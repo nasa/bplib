@@ -62,7 +62,7 @@
 #define BP_ACPT_TOOMANYFILLS            0x00000020  // all the fills in the ACS are used
 #define BP_ACPT_CIDWENTBACKWARDS        0x00000040  // the custody ID went backwards
 #define BP_ACPT_UNABLETOSTORE           0x00000080  // unable to store the ACS bundle for later transmission
-#define BP_ACPT_INCOMPLETE              0x00000080  // the ACS bundle was not able to be fully filled out
+#define BP_ACPT_INCOMPLETE              0x00000100  // the ACS bundle was not able to be fully filled out
 
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1
