@@ -18,7 +18,13 @@ PREFIX	    := /usr/local
 CONSOLE_OBJ := bpc.o
 
 # application object files, application should add their objects to this variable
-APP_OBJ	    :=
+APP_OBJ     := bplib.o
+APP_OBJ     += bplib_blk_bib.o
+APP_OBJ     += bplib_blk_cteb.o
+APP_OBJ     += bplib_blk_pay.o
+APP_OBJ     += bplib_blk_pri.o
+APP_OBJ     += bplib_crc.o
+APP_OBJ     += bplib_sdnv.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    :=
@@ -30,10 +36,11 @@ APP_COPT    :=
 APP_LOPT    :=
 
 # search path for application objects (note this is a make system variable)
-VPATH	    :=
+VPATH	    := $(ROOT)/src
 
 # compiler options for search path for include headers (in form of -I_header_)  
-INCLUDES    :=
+INCLUDES    := -I$(ROOT)/src
+INCLUDES    += -I$(ROOT)/inc
 
 # c compiler and linker used for c file extensions
 COMPILER    ?= gcc
@@ -105,12 +112,7 @@ lib: $(ALL_OBJ)
 	$(AR) -crs $(BLDDIR)/lib$(TGTLIB).a $^
 	$(CC) $^ $(ALL_LOPT) -shared -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
 
-console: $(BLDDIR)/$(CONSOLE_OBJ)
-	$(CC) $^ -l$(TGTLIB) $(ALL_LOPT) -o $(BLDDIR)/$(CONSOLE)
-
-install: installlib installconsole
-
-installlib: lib
+install: lib
 	$(CP) $(BLDDIR)/lib$(TGTLIB).a $(LIBDIR)
 	$(CP) $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)
 	$(LN) -sf $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)/lib$(TGTLIB).so
@@ -121,6 +123,9 @@ installlib: lib
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).a
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER)
+
+console: $(BLDDIR)/$(CONSOLE_OBJ)
+	$(CC) $^ -l$(TGTLIB) $(ALL_LOPT) -o $(BLDDIR)/$(CONSOLE)
 
 installconsole: console
 	$(CP) $(BLDDIR)/$(CONSOLE) $(EXECDIR)
