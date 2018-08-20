@@ -83,6 +83,7 @@
 #define BP_DATA_HDR_CTEB_BLK_INDEX      52
 #define BP_DATA_HDR_BIB_BLK_INDEX       64
 #define BP_DATA_HDR_PAY_BLK_INDEX       72
+#define BP_DATA_PROLOG_SIZE             8
 
 /* ACS Bundle Header Definitions */
 #define BP_ACS_HDR_SIZE                 64
@@ -185,12 +186,14 @@ typedef struct {
     uint32_t        cstnode;
     uint32_t        cstserv;
     uint32_t        cid;
-    int             size;
 } bp_payload_t;
 
 /* Data Bundle Storage Block */
 typedef struct {
-    bp_time_t       retxtime;                   // re-transmit time
+    union {
+        bp_time_t   retxtime;                   // re-transmit time
+        uint8_t     bytes[BP_DATA_PROLOG_SIZE];
+    } prolog;
     uint8_t         header[BP_DATA_HDR_SIZE];   // memory for bundle header
 } bp_data_t;
 
@@ -381,9 +384,9 @@ static int update_acs_header(bp_channel_t* ch, bp_acs_t* acs, void* payload, int
 }    
 
 /*--------------------------------------------------------------------------------------
- * start_acs
+ * initialize_acs_payload
  *-------------------------------------------------------------------------------------*/
-static void start_acs(bp_acs_t* acs, uint32_t cid)
+static void initialize_acs_payload(bp_acs_t* acs, uint32_t cid)
 {
     acs->first_cid = cid;
     acs->last_cid = cid;
@@ -393,9 +396,9 @@ static void start_acs(bp_acs_t* acs, uint32_t cid)
 }
 
 /*--------------------------------------------------------------------------------------
- * process_acs
+ * update_acs_payload
  *-------------------------------------------------------------------------------------*/
-static uint32_t process_acs(bp_channel_t* ch, uint32_t cid, uint32_t cstnode, uint32_t cstserv, int delivered, int timeout)
+static uint32_t update_acs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstnode, uint32_t cstserv, int delivered, int timeout)
 {
     static uint8_t buffer[BP_ACS_PAY_SIZE];
     int i, acs_entry;
@@ -440,7 +443,7 @@ static uint32_t process_acs(bp_channel_t* ch, uint32_t cid, uint32_t cstnode, ui
         if(acs->num_cids == 0)
         {
             /* Start New ACS */
-            start_acs(acs, cid);
+            initialize_acs_payload(acs, cid);
         }
         else if(cid <= acs->last_cid)
         {
@@ -495,7 +498,7 @@ static uint32_t process_acs(bp_channel_t* ch, uint32_t cid, uint32_t cstnode, ui
             if(enstat != BP_SUCCESS) flags |= BP_ACPT_UNABLETOSTORE;
 
             /* Start New ACS */
-            start_acs(acs, cid);
+            initialize_acs_payload(acs, cid);
         }                
     }
     
@@ -1047,16 +1050,19 @@ int bplib_store(int channel, void* payload, int size, int timeout)
 /*--------------------------------------------------------------------------------------
  * bplib_load - 
  *-------------------------------------------------------------------------------------*/
-int bplib_load(int channel, void** bundle, int* size, int timeout)
+int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadflags)
 {
+    int status;                         // size of bundle returned or error code
     bp_time_t sysnow;                   // current system time
     bp_time_t sysretx;                  // system time for retransmits
-    uint8_t* bundle_buf;                // pointer to bundle memory starting at header
-    int bundle_len;                     // size of bundle
-    bp_sid_t sid;                       // bundle id returned from storage service
+    uint8_t* storebuf;                  // pointer to retrieved storage memory
+    int storelen;                       // size of retrieved storage memory
     int ati;                            // active table index
-    int load_ready;                     // boolean state of whether load is ready to proceed
-    int status;                         // return codes for load
+    bp_sid_t sid;                       // id returned from storage of bundle to load
+    uint8_t* load_bundle;               // pointer to bundle to load
+    int load_size;                      // size of bundle to load    
+    int load_store;                     // handle for storage of bundle to load
+    int load_custody;                   // whether or not bundle has custody (ACS does not)
     bp_channel_t* ch;                   // channel pointer
     bp_store_dequeue_t dequeue;         // dequeue storage function
     bp_store_retrieve_t retrieve;       // retrieve storage function
@@ -1077,22 +1083,27 @@ int bplib_load(int channel, void** bundle, int* size, int timeout)
     
     /* Setup State */
     bplib_systime(&sysnow);     // get current system time (to used for timeouts)
-    load_ready = BP_FALSE;      // start out assuming nothing to send
+    load_bundle = NULL;         // start out assuming nothing to send
+    load_custody = BP_FALSE;    // start out not assigning custody
     status = BP_SUCCESS;        // start out assuming operation succeeds
     sid = BP_SID_VACANT;        // storage id points to nothing
-
+    *loadflags = 0;             // start with clean slate
+    
     /* Check if ACS Needs to be Sent */
-    if(dequeue(ch->store_acs, (void**)&bundle_buf, &bundle_len, &sid, timeout) == BP_SUCCESS)
+    if(dequeue(ch->store_acs, (void**)&storebuf, &storelen, &sid, timeout) == BP_SUCCESS)
     {
-        /* Indicate Blind Send */
-        sid = BP_SID_VACANT;
-        
         /* Transmit ACS Bundle */
-        load_ready = BP_TRUE;
+        load_bundle = storebuf;
+        load_size = storelen;
+        load_store = ch->store_acs;
+        load_custody = BP_FALSE;
+        
+        /* ACS Always Need to be Routed */
+        *loadflags |= BP_LOAD_ROUTENEEDED;
     }
     
     /* Try to Send Timed-out Bundle */
-    while(!load_ready && (ch->oldest_custody_id < ch->current_custody_id))
+    while((load_bundle == NULL) && (ch->oldest_custody_id < ch->current_custody_id))
     {
         ati = ch->oldest_custody_id % BP_ACTIVE_TABLE_SIZE;
         sid = ch->active_table[ati];
@@ -1100,14 +1111,17 @@ int bplib_load(int channel, void** bundle, int* size, int timeout)
         {
             ch->oldest_custody_id++;
         }
-        else if(retrieve(ch->store_bundle, (void**)&bundle_buf, &bundle_len, sid, timeout) == BP_SUCCESS)
+        else if(retrieve(ch->store_bundle, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
         {
             /* Check Timeout */
-            bp_data_t* bundle_ptr = (bp_data_t*)bundle_buf;
-            if(bplib_cmptime(sysnow, bundle_ptr->retxtime) >= 0)
+            bp_data_t* bundle_ptr = (bp_data_t*)storebuf;
+            if(bplib_cmptime(sysnow, bundle_ptr->prolog.retxtime) >= 0)
             {
                 /* Retransmit Bundle */
-                load_ready = BP_TRUE;
+                load_bundle = bundle_ptr->header;
+                load_size = storelen - BP_DATA_PROLOG_SIZE;
+                load_store = ch->store_bundle;
+                load_custody = BP_TRUE;
             }
 
             /* Exit Loop */
@@ -1122,23 +1136,26 @@ int bplib_load(int channel, void** bundle, int* size, int timeout)
     }
 
     /* Try to Send Stored Bundle (if nothing sent yet) */
-    while(!load_ready)
+    while(load_bundle == NULL)
     {
         ati = ch->current_custody_id % BP_ACTIVE_TABLE_SIZE;
         sid = ch->active_table[ati];
         if(sid == BP_SID_VACANT) // entry vacant
         {
             /* Dequeue Bundle from Storage Service */
-            if(dequeue(ch->store_bundle, (void**)&bundle_buf, &bundle_len, &sid, timeout) == BP_SUCCESS)
+            if(dequeue(ch->store_bundle, (void**)&storebuf, &storelen, &sid, timeout) == BP_SUCCESS)
             {
                 /* Write Re-Transmit Time */
-                bp_data_t* bundle_ptr = (bp_data_t*)bundle_buf;
+                bp_data_t* bundle_ptr = (bp_data_t*)storebuf;
                 bplib_addtime(&sysretx, sysnow, ch->timeout);
-                bundle_ptr->retxtime = sysretx;
-                refresh(ch->store_bundle, bundle_buf, sizeof(bp_time_t), 0, sid, timeout);
+                bundle_ptr->prolog.retxtime = sysretx;
+                refresh(ch->store_bundle, storebuf, sizeof(bp_time_t), 0, sid, timeout);
 
                 /* Transmit Dequeued Bundle */
-                load_ready = BP_TRUE;
+                load_bundle = bundle_ptr->header;
+                load_size = storelen - BP_DATA_PROLOG_SIZE;
+                load_store = ch->store_bundle;
+                load_custody = BP_TRUE;
             }
             else
             {
@@ -1152,10 +1169,14 @@ int bplib_load(int channel, void** bundle, int* size, int timeout)
         else if(ch->wrap_response == BP_WRAP_RESEND)
         {
             /* Retrieve Bundle from Storage */
-            if(retrieve(ch->store_bundle, (void**)&bundle_buf, &bundle_len, sid, timeout) == BP_SUCCESS)
+            if(retrieve(ch->store_bundle, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
             {
                 /* Retransmit Bundle */
-                load_ready = BP_TRUE;
+                bp_data_t* bundle_ptr = (bp_data_t*)storebuf;
+                load_bundle = bundle_ptr->header;
+                load_size = storelen - BP_DATA_PROLOG_SIZE;
+                load_store = ch->store_bundle;
+                load_custody = BP_TRUE;
             }
             else // failed to retrieve bundle from storage
             {
@@ -1181,20 +1202,32 @@ int bplib_load(int channel, void** bundle, int* size, int timeout)
     }
 
     /* Check if Bundle Ready to Transmit */
-    if(load_ready)
+    if(load_bundle != NULL)
     {
-        if(sid != BP_SID_VACANT)
+        /* Check Buffer Size */
+        if(size < load_size)
         {
-            /* Assign Custody ID */
-            ati = ch->current_custody_id % BP_ACTIVE_TABLE_SIZE;
-            ch->active_table[ati] = sid;
-            bplib_blk_cteb_update(&bundle_buf[BP_DATA_HDR_CTEB_BLK_INDEX], BP_CTEB_BLK_LENGTH, ch->current_custody_id);
-            ch->current_custody_id++;
+            status = BP_BUNDLETOOLARGE;
+            bplog(status, "Bundle too large to fit inside buffer (%d %d)\n", size, load_size);
         }
+        else
+        {
+            /* Successfully Load Bundle to Application and Relinquish Memory */
+            bplib_os_memcpy(bundle, load_bundle, load_size);
+            status = load_size;
 
-        /* Return Bundle */
-        *bundle = bundle_buf;
-        *size = bundle_len;
+            /* Assign Custody ID */
+            if(load_custody == BP_TRUE)
+            {
+                ati = ch->current_custody_id % BP_ACTIVE_TABLE_SIZE;
+                ch->active_table[ati] = sid;
+                bplib_blk_cteb_update(&storebuf[BP_DATA_HDR_CTEB_BLK_INDEX], BP_CTEB_BLK_LENGTH, ch->current_custody_id);
+                ch->current_custody_id++;
+            }
+        }        
+
+        /* Free Bundle Memory */
+        relinquish(load_store, sid);
     }
 
     /* Return Status */
@@ -1214,9 +1247,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
     bp_blk_pri_t        priblk;
     bp_blk_cteb_t       ctebblk;
     bp_blk_bib_t        bibblk;
-    
     bp_time_t           sysnow, expiretime;
-    
     uint8_t             blk_type;
     uint32_t            blk_flags, blk_length;
     int                 start_index, end_index, flag_size;
@@ -1348,7 +1379,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                         {
                             if(cteb_present)
                             {
-                                *procflags |= process_acs(ch, ctebblk.cid, ctebblk.cstnode, ctebblk.cstserv, BP_FALSE, timeout);
+                                *procflags |= update_acs_payload(ch, ctebblk.cid, ctebblk.cstnode, ctebblk.cstserv, BP_FALSE, timeout);
                             }
                             else // only aggregate custody supported
                             {
@@ -1359,6 +1390,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                             /* Update New Bundle Header to Send */
                             update_data_header(channel, &buffer[index], size - index, 0, size - index);
                             bplib_blk_pri_setdst(ch->data_bundle.header, priblk.dstnode, priblk.dstserv);
+                            ch->data_bundle.prolog.retxtime = 0;
                             status = enqueue(ch->store_bundle, &ch->data_bundle, sizeof(bp_data_t), &buffer[index], size - index, timeout);
 
                             /* Restore Destination EID */
@@ -1367,8 +1399,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                         else
                         {
                             /* Enqueue Received Bundle As-Is in Storage Service */
-                            bp_time_t retxtime_tmp = {0, 0};
-                            status = enqueue(ch->store_bundle, &retxtime_tmp, sizeof(bp_time_t), buffer, size, timeout);
+                            uint8_t prolog[BP_DATA_PROLOG_SIZE] = {0};
+                            status = enqueue(ch->store_bundle, prolog, BP_DATA_PROLOG_SIZE, buffer, size, timeout);
                         }
                     }
                 }
@@ -1385,7 +1417,6 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                     payload.cid = ctebblk.cid;
                     payload.cstnode = ctebblk.cstnode;
                     payload.cstserv = ctebblk.cstserv;
-                    payload.size = size - index;
                     payload.cstrqst = BP_FALSE;
 
                     /* Set Custody Transfer Request */
@@ -1403,7 +1434,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                     }
 
                     /* Enqueue Payload into Storage */
-                    status = enqueue(ch->store_payload, &payload, sizeof(payload), &buffer[index], payload.size, timeout);
+                    status = enqueue(ch->store_payload, &payload, sizeof(payload), &buffer[index], size - index, timeout);
                 }
             }
 
@@ -1470,8 +1501,9 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
     bp_store_dequeue_t      dequeue;
     bp_store_relinquish_t   relinquish;
     bp_payload_t*           payptr;
-    uint8_t*                buffer;
-    int                     buffer_size;
+    int                     paylen;
+    uint8_t*                storebuf;
+    int                     storelen;
     bp_sid_t                sid;
     int                     status;
 
@@ -1489,39 +1521,35 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
     relinquish = agents[ch->agent_index].store.relinquish;
 
     /* Dequeue Payload from Storage */
-    status = dequeue(ch->store_payload, (void**)&buffer, &buffer_size, &sid, timeout);    
+    status = dequeue(ch->store_payload, (void**)&storebuf, &storelen, &sid, timeout);    
     if(status != BP_SUCCESS) return status;
-    else if(buffer_size < (int)sizeof(bp_payload_t))
+    else if(storelen < (int)sizeof(bp_payload_t))
     {
-        return bplog(BP_FAILEDSTORE, "Payload retrieved from storage is too small: %d\n", buffer_size);
+        return bplog(BP_FAILEDSTORE, "Payload retrieved from storage is too small: %d\n", storelen);
     }
 
     /* Access Payload */
-    payptr = (bp_payload_t*)buffer;
+    payptr = (bp_payload_t*)storebuf;
+    paylen = storelen - sizeof(bp_payload_t);
 
     /* Copy Payload */
-    if(buffer_size - (int)sizeof(bp_payload_t) != payptr->size)
-    {
-        status = BP_FAILEDSTORE;
-        bplog(status, "Payload buffer size mismatch (%d %d %d)\n", buffer_size, (int)sizeof(bp_payload_t), payptr->size);
-    }
-    else if(size < payptr->size)
+    if(size < paylen)
     {
         status = BP_PAYLOADTOOLARGE;
-        bplog(status, "Payload too large to fit inside buffer (%d %d)\n", size, payptr->size);
+        bplog(status, "Payload too large to fit inside buffer (%d %d)\n", size, paylen);
     }
     else
     {
         /* Successfully Return Payload to Application and Relinquish Memory */
-        bplib_os_memcpy(payload, &buffer[sizeof(bp_payload_t)], payptr->size);
-        status = payptr->size;
+        bplib_os_memcpy(payload, &storebuf[sizeof(bp_payload_t)], paylen);
+        status = paylen;
         relinquish(ch->store_payload, sid);
     }
 
     /* Acknowledge Custody */
     if(payptr->cstrqst && (status > 0))
     {
-        *acptflags |= process_acs(ch, payptr->cid, payptr->cstnode, payptr->cstserv, BP_TRUE, timeout);
+        *acptflags |= update_acs_payload(ch, payptr->cid, payptr->cstnode, payptr->cstserv, BP_TRUE, timeout);
     }
 
     /* Return Status */

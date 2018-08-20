@@ -63,6 +63,7 @@
 #define BP_ACPT_CIDWENTBACKWARDS        0x00000040  // the custody ID went backwards
 #define BP_ACPT_UNABLETOSTORE           0x00000080  // unable to store the ACS bundle for later transmission
 #define BP_ACPT_INCOMPLETE              0x00000100  // the ACS bundle was not able to be fully filled out
+#define BP_LOAD_ROUTENEEDED             0x00000200  // the bundle returned needs to be routed before transmission
 
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1
@@ -144,9 +145,9 @@ int     bplib_getopt    (int channel, int opt, void* val, int len);
 int     bplib_setopt    (int channel, int opt, void* val, int len);
 
 int     bplib_store     (int channel, void* payload, int size, int timeout);
-int     bplib_load      (int channel, void** bundle, int* size, int timeout); 
-int     bplib_process   (int channel, void* bundle, int size, int timeout, uint32_t* procflags);
-int     bplib_accept    (int channel, void* payload, int size, int timeout, uint32_t* acptflags); // populates payload buffer
+int     bplib_load      (int channel, void* bundle,  int size, int timeout, uint32_t* loadflags); 
+int     bplib_process   (int channel, void* bundle,  int size, int timeout, uint32_t* procflags);
+int     bplib_accept    (int channel, void* payload, int size, int timeout, uint32_t* acptflags);
 
 int     bplib_addtime   (bp_time_t* result, bp_time_t tm, int sec);
 int     bplib_cmptime   (bp_time_t tm1, bp_time_t tm2);
