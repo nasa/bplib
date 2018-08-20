@@ -1390,7 +1390,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                             /* Update New Bundle Header to Send */
                             update_data_header(channel, &buffer[index], size - index, 0, size - index);
                             bplib_blk_pri_setdst(ch->data_bundle.header, priblk.dstnode, priblk.dstserv);
-                            ch->data_bundle.prolog.retxtime = 0;
+                            ch->data_bundle.prolog.retxtime.s = 0;
+                            ch->data_bundle.prolog.retxtime.ns = 0;
                             status = enqueue(ch->store_bundle, &ch->data_bundle, sizeof(bp_data_t), &buffer[index], size - index, timeout);
 
                             /* Restore Destination EID */
