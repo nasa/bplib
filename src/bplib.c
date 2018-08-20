@@ -1557,6 +1557,37 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
     return status;
 }
 
+
+/*--------------------------------------------------------------------------------------
+ * bplib_addtime - 
+ * 
+ *  bundle -                pointer to a bundle (byte array) [INPUT]
+ *  size -                  size of bundle being pointed to [INPUT]
+ *  destination_node -      read from bundle [OUTPUT]
+ *  destination_service -   as read from bundle [OUTPUT]
+ *  Returns:                BP_SUCCESS or error code
+ *-------------------------------------------------------------------------------------*/
+int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service)
+{
+    int status;
+    bp_blk_pri_t priblk;
+    uint8_t* buffer = (uint8_t*)bundle;
+
+    /* Check Parameters */
+    assert(buffer);
+    
+    /* Parse Primary Block */
+    status = bplib_blk_pri_read(buffer, size, &priblk);
+    if(status <= 0) return status;
+
+    /* Set Addresses */
+    if(destination_node)    *destination_node = (bp_ipn_t)priblk.dstnode;
+    if(destination_service) *destination_service = (bp_ipn_t)priblk.dstserv;
+    
+    /* Return Success */
+    return BP_SUCCESS;
+}
+
 /*--------------------------------------------------------------------------------------
  * bplib_addtime - 
  * 
@@ -1574,7 +1605,7 @@ int bplib_addtime (bp_time_t* result, bp_time_t tm, int sec)
 /*--------------------------------------------------------------------------------------
  * bplib_cmptime - 
  * 
- *  Notes:      1. The format of BP time precludes the nansecond field from being larger
+ *  Notes:      The format of BP time precludes the nanosecond field from being larger
  *              than one second, therefore the logic below makes that assumption
  * 
  *  Returns:    0 indicates equivalence

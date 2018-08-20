@@ -149,6 +149,7 @@ int     bplib_load      (int channel, void* bundle,  int size, int timeout, uint
 int     bplib_process   (int channel, void* bundle,  int size, int timeout, uint32_t* procflags);
 int     bplib_accept    (int channel, void* payload, int size, int timeout, uint32_t* acptflags);
 
+int     bplib_routeinfo (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
 int     bplib_addtime   (bp_time_t* result, bp_time_t tm, int sec);
 int     bplib_cmptime   (bp_time_t tm1, bp_time_t tm2);
 
