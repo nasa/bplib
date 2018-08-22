@@ -90,11 +90,6 @@
 #define BP_ACS_HDR_BIB_BLK_INDEX        52
 #define BP_ACS_HDR_PAY_BLK_INDEX        60
 
-/* Wrap Responses */
-#define BP_WRAP_RESEND                  0
-#define BP_WRAP_BLOCK                   1
-#define BP_WRAP_DROP                    2
-
 /* Configurations */
 #ifndef BP_ACTIVE_TABLE_SIZE
 #define BP_ACTIVE_TABLE_SIZE            16384
@@ -1100,6 +1095,11 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         
         /* ACS Always Need to be Routed */
         *loadflags |= BP_LOAD_ROUTENEEDED;
+    }
+    else
+    {
+        // TODO: use ch->acs_rate_ms to create ACS bundle if one is not ready
+        // no need enqueue...dequeue
     }
     
     /* Try to Send Timed-out Bundle */

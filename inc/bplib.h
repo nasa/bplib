@@ -24,6 +24,15 @@
 /* Storage ID Special Values */
 #define BP_SID_VACANT                   NULL
 
+/* Wrap Responses */
+#define BP_WRAP_RESEND                  0
+#define BP_WRAP_BLOCK                   1
+#define BP_WRAP_DROP                    2
+
+/* Bundle Integrity Types */
+#define BP_BIB_NONE                     0
+#define BP_BIB_CRC16                    1
+
 /* Return Codes */            
 #define BP_SUCCESS                      1
 #define BP_TIMEOUT                      0
