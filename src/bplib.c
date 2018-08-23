@@ -427,7 +427,7 @@ static uint32_t update_acs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstn
         else
         {
             /* No Room in Table for Another Source */
-            flags |= BP_ACPT_TOOMANYSOURCES; 
+            flags |= BP_FLAG_TOOMANYSOURCES; 
         }
     }
 
@@ -443,7 +443,7 @@ static uint32_t update_acs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstn
         else if(cid <= acs->last_cid)
         {
             /* Mark CID Going Backwards */
-            flags |= BP_ACPT_CIDWENTBACKWARDS;
+            flags |= BP_FLAG_CIDWENTBACKWARDS;
         }
         else // cid > acs->last_cid
         {                
@@ -468,12 +468,12 @@ static uint32_t update_acs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstn
                 }
                 else
                 {
-                    flags |= BP_ACPT_FILLOVERFLOW;
+                    flags |= BP_FLAG_FILLOVERFLOW;
                 }
             }
             else
             {
-                flags |= BP_ACPT_TOOMANYFILLS;
+                flags |= BP_FLAG_TOOMANYFILLS;
             }
         }
 
@@ -486,11 +486,11 @@ static uint32_t update_acs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstn
             /* Build ACS */
             acs_size = bplib_rec_acs_write(buffer, BP_ACS_PAY_SIZE, delivered, acs->first_cid, acs->fills, acs->num_fills);
             upstat = update_acs_header(ch, acs, buffer, acs_size);            
-            if(upstat != BP_SUCCESS) flags |= BP_ACPT_INCOMPLETE;
+            if(upstat != BP_SUCCESS) flags |= BP_FLAG_INCOMPLETE;
 
             /* Send (enqueue) ACS */
             enstat = enqueue(ch->store_acs, acs->header, BP_ACS_HDR_SIZE, buffer, acs_size, timeout);
-            if(enstat != BP_SUCCESS) flags |= BP_ACPT_UNABLETOSTORE;
+            if(enstat != BP_SUCCESS) flags |= BP_FLAG_UNABLETOSTORE;
 
             /* Start New ACS */
             initialize_acs_payload(acs, cid);
@@ -1094,7 +1094,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         load_custody = BP_FALSE;
         
         /* ACS Always Need to be Routed */
-        *loadflags |= BP_LOAD_ROUTENEEDED;
+        *loadflags |= BP_FLAG_ROUTENEEDED;
     }
     else
     {
@@ -1131,6 +1131,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         {
             relinquish(ch->store_bundle, sid);
             ch->active_table[ati] = BP_SID_VACANT;
+            *loadflags |= BP_FLAG_STOREFAIL;
             bplog(BP_FAILEDSTORE, "Failed to retrieve bundle from storage\n");
         }            
     }
@@ -1143,7 +1144,8 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         if(sid == BP_SID_VACANT) // entry vacant
         {
             /* Dequeue Bundle from Storage Service */
-            if(dequeue(ch->store_bundle, (void**)&storebuf, &storelen, &sid, timeout) == BP_SUCCESS)
+            int deq_status = dequeue(ch->store_bundle, (void**)&storebuf, &storelen, &sid, timeout);
+            if(deq_status == BP_SUCCESS)
             {
                 /* Write Re-Transmit Time */
                 bp_data_t* bundle_ptr = (bp_data_t*)storebuf;
@@ -1157,10 +1159,16 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
                 load_store = ch->store_bundle;
                 load_custody = BP_TRUE;
             }
-            else
+            else if(deq_status == BP_TIMEOUT)
             {
                 /* No Bundles in Storage to Send */
-                status = BP_UNDERFLOW;
+                status = BP_TIMEOUT;
+            }
+            else
+            {
+                /* Failed Storage Service */
+                status = BP_FAILEDSTORE;
+                *loadflags |= BP_FLAG_STOREFAIL;
             }
 
             /* Exit Loop */
@@ -1182,6 +1190,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
             {
                 relinquish(ch->store_bundle, sid);
                 ch->active_table[ati] = BP_SID_VACANT;
+                *loadflags |= BP_FLAG_STOREFAIL;
                 bplog(BP_FAILEDSTORE, "Failed to retrieve bundle from storage\n");
             }
         }
@@ -1274,7 +1283,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
     else index += status;
 
     /* Set Processing Flag for Reporting Deletion */
-    if(priblk.report_deletion) *procflags |= BP_PROC_REPORTDELETE;
+    if(priblk.report_deletion) *procflags |= BP_FLAG_REPORTDELETE;
 
     /* Check Administrative Record Status */
     if(ch->proc_admin_only && priblk.is_admin_rec == BP_FALSE)
@@ -1383,7 +1392,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                             }
                             else // only aggregate custody supported
                             {
-                                *procflags |= BP_PROC_NONCOMPLIANT;
+                                *procflags |= BP_FLAG_NONCOMPLIANT;
                                 bplog(BP_UNSUPPORTED, "Only aggregate custody signals supported\n");
                             }
 
@@ -1429,7 +1438,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                         }
                         else
                         {
-                            *procflags |= BP_PROC_NONCOMPLIANT;
+                            *procflags |= BP_FLAG_NONCOMPLIANT;
                             bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
                         }
                     }
@@ -1460,17 +1469,17 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
         else // skip over block
         {
             /* Mark Processing as Incomplete */
-            *procflags |= BP_PROC_INCOMPLETE;
+            *procflags |= BP_FLAG_INCOMPLETE;
             bplog(BP_UNSUPPORTED, "Skipping over unrecognized block\n");
 
             /* Should transmit status report that block cannot be processed */
-            if(blk_flags & BP_BLK_NOTIFYNOPROC_MASK) *procflags |= BP_PROC_NONCOMPLIANT;
+            if(blk_flags & BP_BLK_NOTIFYNOPROC_MASK) *procflags |= BP_FLAG_NONCOMPLIANT;
             
             /* Delete bundle since block not recognized */
             if(blk_flags & BP_BLK_DELETENOPROC_MASK) return BP_DROPPED;
 
             /* Should drop block since it cannot be processed */
-            if(blk_flags & BP_BLK_DROPNOPROC_MASK) *procflags |= BP_PROC_NONCOMPLIANT;
+            if(blk_flags & BP_BLK_DROPNOPROC_MASK) *procflags |= BP_FLAG_NONCOMPLIANT;
 
             /* Mark As Forwarded without Processed */
             blk_flags |= BP_BLK_FORWARDNOPROC_MASK;

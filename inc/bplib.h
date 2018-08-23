@@ -62,17 +62,17 @@
 #define BP_FAILEDSTORE                  (-24)
 #define BP_UNACCEPTED                   (-25)
 
-/* Processing and Acceptance Flags */
-#define BP_PROC_NONCOMPLIANT            0x00000001  // valid bundle but agent not able to comply with standard
-#define BP_PROC_INCOMPLETE              0x00000002  // block in bundle was not recognized
-#define BP_PROC_REPORTDELETE            0x00000004  // status report must be generated if bundle is deleted
-#define BP_ACPT_TOOMANYSOURCES          0x00000008  // too many sources to keep track of for ACS bundles
-#define BP_ACPT_FILLOVERFLOW            0x00000010  // a gap in the CIDs exceeds the max fill
-#define BP_ACPT_TOOMANYFILLS            0x00000020  // all the fills in the ACS are used
-#define BP_ACPT_CIDWENTBACKWARDS        0x00000040  // the custody ID went backwards
-#define BP_ACPT_UNABLETOSTORE           0x00000080  // unable to store the ACS bundle for later transmission
-#define BP_ACPT_INCOMPLETE              0x00000100  // the ACS bundle was not able to be fully filled out
-#define BP_LOAD_ROUTENEEDED             0x00000200  // the bundle returned needs to be routed before transmission
+/* Processing, Acceptance,and Load Flags */
+#define BP_FLAG_NONCOMPLIANT            0x00000001  // valid bundle but agent not able to comply with standard
+#define BP_FLAG_INCOMPLETE              0x00000002  // block in bundle was not recognized
+#define BP_FLAG_REPORTDELETE            0x00000004  // status report must be generated if bundle is deleted
+#define BP_FLAG_TOOMANYSOURCES          0x00000008  // too many sources to keep track of for ACS bundles
+#define BP_FLAG_FILLOVERFLOW            0x00000010  // a gap in the CIDs exceeds the max fill
+#define BP_FLAG_TOOMANYFILLS            0x00000020  // all the fills in the ACS are used
+#define BP_FLAG_CIDWENTBACKWARDS        0x00000040  // the custody ID went backwards
+#define BP_FLAG_UNABLETOSTORE           0x00000080  // unable to store the ACS bundle for later transmission
+#define BP_FLAG_ROUTENEEDED             0x00000100  // the bundle returned needs to be routed before transmission
+#define BP_FLAG_STOREFAIL               0x00000200  // storage service failed to deliver data
 
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1
