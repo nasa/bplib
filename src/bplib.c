@@ -59,6 +59,7 @@
  ******************************************************************************/
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 
 #include "bplib.h"
@@ -79,24 +80,19 @@
 #define BP_MAX_FILL                     0x3FFF
 
 /* Data Bundle Header Definitions */
-#define BP_DATA_HDR_SIZE                76
-#define BP_DATA_HDR_CTEB_BLK_INDEX      52
-#define BP_DATA_HDR_BIB_BLK_INDEX       64
-#define BP_DATA_HDR_PAY_BLK_INDEX       72
+#define BP_DATA_HDR_BUF_SIZE            76
 #define BP_DATA_PROLOG_SIZE             8
 
-/* ACS Bundle Header Definitions */
-#define BP_ACS_HDR_SIZE                 64
-#define BP_ACS_HDR_BIB_BLK_INDEX        52
-#define BP_ACS_HDR_PAY_BLK_INDEX        60
+/* DACS Bundle Header Definitions */
+#define BP_DACS_HDR_BUF_SIZE            64
 
 /* Configurations */
 #ifndef BP_ACTIVE_TABLE_SIZE
 #define BP_ACTIVE_TABLE_SIZE            16384
 #endif
 
-#ifndef BP_ACS_TABLE_SIZE  
-#define BP_ACS_TABLE_SIZE               4   // maximum number of custody eids to keep track of per ACS report period
+#ifndef BP_DACS_TABLE_SIZE  
+#define BP_DACS_TABLE_SIZE              4   // maximum number of custody eids to keep track of per ACS report period
 #endif
 
 #ifndef BP_MAX_AGENTS
@@ -107,8 +103,8 @@
 #define BP_MAX_CHANNELS                 4
 #endif
 
-#ifndef BP_MAX_FILLS_PER_ACS
-#define BP_MAX_FILLS_PER_ACS            64
+#ifndef BP_MAX_FILLS_PER_DACS
+#define BP_MAX_FILLS_PER_DACS           64
 #endif
 
 #ifndef BP_DEFAULT_PAY_CRC      
@@ -159,8 +155,8 @@
 #define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
 #endif
 
-#ifndef BP_DEFAULT_ACS_RATE
-#define BP_DEFAULT_ACS_RATE             1000    // milliseconds
+#ifndef BP_DEFAULT_DACS_RATE
+#define BP_DEFAULT_DACS_RATE            1000    // milliseconds
 #endif
 
 #ifndef BP_DEFAULT_BP_VERSION
@@ -168,7 +164,7 @@
 #endif
 
 /* ACS Payload Size */
-#define BP_ACS_PAY_SIZE (8 + (2 * BP_MAX_FILLS_PER_ACS))
+#define BP_DACS_PAY_SIZE                (8 + (2 * BP_MAX_FILLS_PER_DACS))
 
 
 /******************************************************************************
@@ -181,16 +177,16 @@ typedef struct {
     uint32_t        cstnode;
     uint32_t        cstserv;
     uint32_t        cid;
-} bp_payload_t;
+} bp_payload_store_t;
 
 /* Data Bundle Storage Block */
 typedef struct {
     union {
-        bp_time_t   retxtime;                   // re-transmit time
+        bp_time_t   retxtime;
         uint8_t     bytes[BP_DATA_PROLOG_SIZE];
     } prolog;
-    uint8_t         header[BP_DATA_HDR_SIZE];   // memory for bundle header
-} bp_data_t;
+    uint8_t         header[BP_DATA_HDR_BUF_SIZE];
+} bp_data_store_t;
 
 /* Aggregate Custody Bundle Block */
 typedef struct {
@@ -199,10 +195,10 @@ typedef struct {
     uint32_t        first_cid;
     uint32_t        last_cid;
     uint32_t        num_cids;
-    uint32_t        fills[BP_MAX_FILLS_PER_ACS];
+    uint32_t        fills[BP_MAX_FILLS_PER_DACS];
     int             num_fills;
-    uint8_t         header[BP_ACS_HDR_SIZE];
-} bp_acs_t;
+    uint8_t         header[BP_DACS_HDR_BUF_SIZE];
+} bp_dacs_store_t;
 
 /* Agent Control Block */
 typedef struct {
@@ -216,27 +212,29 @@ typedef struct {
     /* Identifiers */
     int             channel_index;
     int             agent_index;
-    int             store_bundle;
+    int             store_data;
     int             store_payload;
-    int             store_acs;
+    int             store_dacs;
     /* Settings */
     bp_blk_pri_t    primary_data_block;
-    bp_blk_pri_t    primary_acs_block;
+    bp_blk_pri_t    primary_dacs_block;
     bp_blk_cteb_t   custody_block;
     bp_blk_bib_t    integrity_block;
     int             timeout;                // seconds, zero for infinite
+    int             data_creation_time_sys; // 1: use system time, 0: use provided channel value
+    int             dacs_creation_time_sys; // 1: use system time, 0: use provided channel value
     int             bundle_maxlength;
     int             fragment_maxlength;    
     int             proc_admin_only;        // process only administrative records
     int             wrap_response;
-    int             acs_rate_ms;            // number of milliseconds to wait between sending ACS bundles
+    int             dacs_rate_ms;           // number of milliseconds to wait between sending ACS bundles
     /* Data */
     bp_sid_t        active_table[BP_ACTIVE_TABLE_SIZE];
     uint32_t        current_custody_id;
     uint32_t        oldest_custody_id;
-    bp_acs_t        acs_table[BP_ACS_TABLE_SIZE];
-    int             num_acs_entries;
-    bp_data_t       data_bundle;
+    int             num_dacs_entries;
+    bp_dacs_store_t dacs_table[BP_DACS_TABLE_SIZE];
+    bp_data_store_t data_bundle;
 } bp_channel_t;
 
 /******************************************************************************
@@ -245,6 +243,62 @@ typedef struct {
 
 static bp_agent_t   agents[BP_MAX_AGENTS];
 static bp_channel_t channels[BP_MAX_CHANNELS];
+
+static const bp_blk_pri_t native_data_pri_blk = {
+                            /*          Value             Index       Width   */
+    .pcf                = { 0,                              1,          3 },
+    .blklen             = { 0,                              4,          4 },
+    .dstnode            = { 0,                              8,          4 },
+    .dstserv            = { 0,                              12,         4 },
+    .srcnode            = { 0,                              16,         4 },
+    .srcserv            = { 0,                              20,         4 },
+    .rptnode            = { 0,                              24,         4 },
+    .rptserv            = { 0,                              28,         4 },
+    .cstnode            = { 0,                              32,         4 },
+    .cstserv            = { 0,                              36,         4 },
+    .createtms          = { BP_DEFAULT_CREATE_TIME_VAL_S,   40,         4 },
+    .createtmns         = { BP_DEFAULT_CREATE_TIME_VAL_NS,  44,         4 },
+    .createseq          = { 0,                              48,         4 },
+    .lifetime           = { BP_DEFAULT_LIFETIME             52,         4 },
+    .dictlen            = { 0,                              56,         4 },
+    .fragoffset         = { 0,                              60,         4 },
+    .paylen             = { 0,                              64,         4 },
+    .version            = BP_DEFAULT_BP_VERSION,
+    .is_admin_rec       = BP_FALSE,
+    .request_custody    = BP_DEFAULT_CSTRQST,
+    .allow_frag         = BP_FALSE,
+    .report_deletion    = BP_FALSE,
+    .sequence           = 0,
+    .creation_time      = 0
+};
+
+static const bp_blk_pri_t native_dacs_pri_blk = {
+                            /*          Value             Index       Width   */
+    .pcf                = { 0,                              1,          3 },
+    .blklen             = { 0,                              4,          4 },
+    .dstnode            = { 0,                              8,          4 },
+    .dstserv            = { 0,                              12,         4 },
+    .srcnode            = { 0,                              16,         4 },
+    .srcserv            = { 0,                              20,         4 },
+    .rptnode            = { 0,                              24,         4 },
+    .rptserv            = { 0,                              28,         4 },
+    .cstnode            = { 0,                              32,         4 },
+    .cstserv            = { 0,                              36,         4 },
+    .createtms          = { BP_DEFAULT_CREATE_TIME_VAL_S,   40,         4 },
+    .createtmns         = { BP_DEFAULT_CREATE_TIME_VAL_NS,  44,         4 },
+    .createseq          = { 0,                              48,         4 },
+    .lifetime           = { BP_DEFAULT_LIFETIME             52,         4 },
+    .dictlen            = { 0,                              56,         4 },
+    .fragoffset         = { 0,                              0,          0 },
+    .paylen             = { 0,                              0,          0 },
+    .version            = BP_DEFAULT_BP_VERSION,
+    .is_admin_rec       = BP_TRUE,
+    .request_custody    = BP_FALSE,
+    .allow_frag         = BP_FALSE,
+    .report_deletion    = BP_FALSE,
+    .sequence           = 0,
+    .creation_time      = 0
+};
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -265,18 +319,12 @@ static bp_channel_t channels[BP_MAX_CHANNELS];
 static void initialize_data_header(int c)
 {
     uint8_t* hdrbuf = channels[c].data_bundle.header;
+    int index = 0;
 
-    /* Primary Block */
-    bplib_blk_pri_write(hdrbuf, BP_PRI_BLK_LENGTH, &channels[c].primary_data_block);
-    
-    /* Custody Transfer Extension Block */
-    bplib_blk_cteb_write(&hdrbuf[BP_DATA_HDR_CTEB_BLK_INDEX], BP_CTEB_BLK_LENGTH, &channels[c].custody_block);
- 
-    /* Bundle Integrity Block */
-    bplib_blk_bib_write(&hdrbuf[BP_DATA_HDR_BIB_BLK_INDEX], BP_BIB_BLK_LENGTH, &channels[c].integrity_block);
-
-    /* Payload Block */
-    bplib_blk_pay_write(&hdrbuf[BP_DATA_HDR_PAY_BLK_INDEX], BP_DATA_HDR_SIZE - BP_DATA_HDR_PAY_BLK_INDEX);
+    index += bplib_blk_pri_write (&hdrbuf[index], BP_DATA_HDR_BUF_SIZE - index, &channels[c].primary_data_block);
+    index += bplib_blk_cteb_write(&hdrbuf[index], BP_DATA_HDR_BUF_SIZE - index, &channels[c].custody_block);
+    index += bplib_blk_bib_write (&hdrbuf[index], BP_DATA_HDR_BUF_SIZE - index, &channels[c].integrity_block);
+    index += bplib_blk_pay_write (&hdrbuf[index], BP_DATA_HDR_BUF_SIZE - index);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -284,7 +332,7 @@ static void initialize_data_header(int c)
  * 
  *  updates fields in the data_bundle header that are specific to the payload
  *-------------------------------------------------------------------------------------*/
-static int update_data_header(int c, void* fragment_payload, int fragment_payload_size, int fragment_payload_offset, int total_payload_size)
+static void update_data_header(int c, void* fragment_payload, int fragment_payload_size, int fragment_payload_offset, int total_payload_size)
 {
     uint8_t* hdrbuf = channels[c].data_bundle.header;
 
@@ -295,7 +343,7 @@ static int update_data_header(int c, void* fragment_payload, int fragment_payloa
     }
 
     /* Set Creation Time */
-    if(channels[c].primary_data_block.creation_time_sys)
+    if(channels[c].creation_time_sys)
     {
         bp_time_t tm;
         bplib_systime(&tm);
@@ -313,27 +361,24 @@ static int update_data_header(int c, void* fragment_payload, int fragment_payloa
     
     /* Update Payload Block */
     bplib_blk_pay_update(&hdrbuf[BP_DATA_HDR_PAY_BLK_INDEX], 4, fragment_payload_size);
-    
-    /* Return Success */
-    return BP_SUCCESS;
 }    
 
 /*--------------------------------------------------------------------------------------
- * initialize_acs_header - Initialize ACS Bundle Header from Channel Struct
+ * initialize_dacs_header - Initialize ACS Bundle Header from Channel Struct
  * 
- *  Does not populate following (see update_acs_header):
+ *  Does not populate following (see update_dacs_header):
  *      - creation time (when using system time)
  *      - creation sequence
  *      - total payload length
  *      - payload crc
  *      - payload block length
  *-------------------------------------------------------------------------------------*/
-static void initialize_acs_header(bp_channel_t* ch, bp_acs_t* acs, uint32_t dstnode, uint32_t dstserv)
+static void initialize_dacs_header(bp_channel_t* ch, bp_dacs_store_t* dacs, uint32_t dstnode, uint32_t dstserv)
 {
-    uint8_t* hdrbuf = acs->header;
+    uint8_t* hdrbuf = dacs->header;
 
     /* Primary Block */
-    bplib_blk_pri_write(hdrbuf, BP_PRI_BLK_LENGTH, &ch->primary_acs_block);
+    bplib_blk_pri_write(hdrbuf, BP_ACS_HDR_SIZE, &ch->primary_dacs_block);
  
     /* Bundle Integrity Block */
     bplib_blk_bib_write(&hdrbuf[BP_ACS_HDR_BIB_BLK_INDEX], BP_BIB_BLK_LENGTH, &ch->integrity_block);
@@ -346,16 +391,16 @@ static void initialize_acs_header(bp_channel_t* ch, bp_acs_t* acs, uint32_t dstn
 }
 
 /*--------------------------------------------------------------------------------------
- * update_acs_header - Update ACS Bundle Header using Payload
+ * update_dacs_header - Update ACS Bundle Header using Payload
  * 
  *  updates fields in the acs bundle header that are specific to the payload
  *-------------------------------------------------------------------------------------*/
-static int update_acs_header(bp_channel_t* ch, bp_acs_t* acs, void* payload, int payload_size)
+static void update_dacs_header(bp_channel_t* ch, bp_dacs_store_t* dacs, void* payload, int payload_size)
 {
-    uint8_t* hdrbuf = acs->header;
+    uint8_t* hdrbuf = dacs->header;
 
     /* Set Creation Time */
-    if(ch->primary_acs_block.creation_time_sys)
+    if(ch->primary_dacs_block.creation_time_sys)
     {
         bp_time_t tm;
         bplib_systime(&tm);
@@ -363,7 +408,7 @@ static int update_acs_header(bp_channel_t* ch, bp_acs_t* acs, void* payload, int
     }
 
     /* Set Sequence */
-    bplib_blk_pri_setseq(hdrbuf, ch->primary_acs_block.sequence);
+    bplib_blk_pri_setseq(hdrbuf, ch->primary_dacs_block.sequence);
 
     /* Set Total Payload Length */
     bplib_blk_pri_setpaylen(hdrbuf, payload_size);
@@ -373,56 +418,53 @@ static int update_acs_header(bp_channel_t* ch, bp_acs_t* acs, void* payload, int
     
     /* Update Payload Block */
     bplib_blk_pay_update(&hdrbuf[BP_ACS_HDR_PAY_BLK_INDEX], 4, payload_size);
-    
-    /* Return Success */
-    return BP_SUCCESS;
 }    
 
 /*--------------------------------------------------------------------------------------
- * initialize_acs_payload
+ * initialize_dacs_payload
  *-------------------------------------------------------------------------------------*/
-static void initialize_acs_payload(bp_acs_t* acs, uint32_t cid)
+static void initialize_dacs_payload(bp_dacs_store_t* dacs, uint32_t cid)
 {
-    acs->first_cid = cid;
-    acs->last_cid = cid;
-    acs->fills[0] = 0;
-    acs->num_fills = 1;
-    acs->num_cids = 1;        
+    dacs->first_cid = cid;
+    dacs->last_cid = cid;
+    dacs->fills[0] = 0;
+    dacs->num_fills = 1;
+    dacs->num_cids = 1;        
 }
 
 /*--------------------------------------------------------------------------------------
- * update_acs_payload
+ * update_dacs_payload
  *-------------------------------------------------------------------------------------*/
-static uint32_t update_acs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstnode, uint32_t cstserv, int delivered, int timeout)
+static uint32_t update_dacs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstnode, uint32_t cstserv, int delivered, int timeout)
 {
-    static uint8_t buffer[BP_ACS_PAY_SIZE];
-    int i, acs_entry;
+    static uint8_t buffer[BP_DACS_PAY_SIZE];
+    int i, dacs_entry;
     uint32_t flags = 0;
 
     /* Find ACS Table Entry */
-    acs_entry = BP_ACS_TABLE_SIZE; // no entry found
-    for(i = 0; i < ch->num_acs_entries; i++)
+    dacs_entry = BP_DACS_TABLE_SIZE; // no entry found
+    for(i = 0; i < ch->num_dacs_entries; i++)
     {
-        if(ch->acs_table[i].cstnode == cstnode && ch->acs_table[i].cstserv == cstserv)
+        if(ch->dacs_table[i].cstnode == cstnode && ch->dacs_table[i].cstserv == cstserv)
         {
-            acs_entry = i;
+            dacs_entry = i;
             break;
         }
     }
 
     /* Handle Entry Not Found */
-    if(acs_entry == BP_ACS_TABLE_SIZE)
+    if(dacs_entry == BP_DACS_TABLE_SIZE)
     {
-        if(ch->num_acs_entries < BP_ACS_TABLE_SIZE)
+        if(ch->num_dacs_entries < BP_DACS_TABLE_SIZE)
         {
             /* Populate ACS Table */
-            ch->acs_table[ch->num_acs_entries].cstnode = cstnode;
-            ch->acs_table[ch->num_acs_entries].cstserv = cstserv;
-            ch->acs_table[ch->num_acs_entries].num_cids = 0;
-            acs_entry = ch->num_acs_entries++;
+            ch->dacs_table[ch->num_dacs_entries].cstnode = cstnode;
+            ch->dacs_table[ch->num_dacs_entries].cstserv = cstserv;
+            ch->dacs_table[ch->num_dacs_entries].num_cids = 0;
+            dacs_entry = ch->num_dacs_entries++;
 
             /* Initial ACS Header */            
-            initialize_acs_header(ch, &ch->acs_table[acs_entry], cstnode, cstserv);
+            initialize_dacs_header(ch, &ch->dacs_table[dacs_entry], cstnode, cstserv);
         }
         else
         {
@@ -432,39 +474,39 @@ static uint32_t update_acs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstn
     }
 
     /* Populate/Send ACS Bundle(s) */
-    if(acs_entry != BP_ACS_TABLE_SIZE)
+    if(dacs_entry != BP_DACS_TABLE_SIZE)
     {
-        bp_acs_t* acs = &ch->acs_table[acs_entry];
-        if(acs->num_cids == 0)
+        bp_dacs_store_t* dacs = &ch->dacs_table[dacs_entry];
+        if(dacs->num_cids == 0)
         {
             /* Start New ACS */
-            initialize_acs_payload(acs, cid);
+            initialize_dacs_payload(dacs, cid);
         }
-        else if(cid <= acs->last_cid)
+        else if(cid <= dacs->last_cid)
         {
             /* Mark CID Going Backwards */
             flags |= BP_FLAG_CIDWENTBACKWARDS;
         }
-        else // cid > acs->last_cid
+        else // cid > dacs->last_cid
         {                
             /* Update Fill */
-            uint32_t cid_delta = cid - acs->last_cid;
+            uint32_t cid_delta = cid - dacs->last_cid;
             uint32_t hop_val = cid_delta - 1;
-            int fill_index = acs->num_fills - 1;
+            int fill_index = dacs->num_fills - 1;
 
-            acs->last_cid = cid; // save last CID
+            dacs->last_cid = cid; // save last CID
 
-            if((fill_index + 2) < BP_MAX_FILLS_PER_ACS)
+            if((fill_index + 2) < BP_MAX_FILLS_PER_DACS)
             {
-                if(hop_val == 0 && acs->fills[fill_index] < BP_MAX_FILL)
+                if(hop_val == 0 && dacs->fills[fill_index] < BP_MAX_FILL)
                 {
-                    acs->fills[fill_index]++;
+                    dacs->fills[fill_index]++;
                 }
                 else if(hop_val < BP_MAX_FILL)
                 {
-                    acs->fills[fill_index + 1] = hop_val;
-                    acs->fills[fill_index + 2]++;
-                    acs->num_fills += 2;
+                    dacs->fills[fill_index + 1] = hop_val;
+                    dacs->fills[fill_index + 2]++;
+                    dacs->num_fills += 2;
                 }
                 else
                 {
@@ -480,20 +522,19 @@ static uint32_t update_acs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstn
         /* Check Flags */
         if(flags != 0)
         {            
+            int dacs_size, enstat;
             bp_store_enqueue_t enqueue = agents[ch->agent_index].store.enqueue;
-            int acs_size, upstat, enstat;
             
             /* Build ACS */
-            acs_size = bplib_rec_acs_write(buffer, BP_ACS_PAY_SIZE, delivered, acs->first_cid, acs->fills, acs->num_fills);
-            upstat = update_acs_header(ch, acs, buffer, acs_size);            
-            if(upstat != BP_SUCCESS) flags |= BP_FLAG_INCOMPLETE;
+            dacs_size = bplib_rec_acs_write(buffer, BP_DACS_PAY_SIZE, delivered, dacs->first_cid, dacs->fills, dacs->num_fills);
+            update_dacs_header(ch, dacs, buffer, dacs_size);            
 
             /* Send (enqueue) ACS */
-            enstat = enqueue(ch->store_acs, acs->header, BP_ACS_HDR_SIZE, buffer, acs_size, timeout);
+            enstat = enqueue(ch->store_dacs, dacs->header, BP_ACS_HDR_SIZE, buffer, dacs_size, timeout);
             if(enstat != BP_SUCCESS) flags |= BP_FLAG_UNABLETOSTORE;
 
             /* Start New ACS */
-            initialize_acs_payload(acs, cid);
+            initialize_dacs_payload(dacs, cid);
         }                
     }
     
@@ -598,8 +639,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(*enable != BP_TRUE && *enable != BP_FALSE) return BP_PARMERR;
-            if(getset)  channels[c].primary_data_block.creation_time_sys = *enable;
-            else        *enable = channels[c].primary_data_block.creation_time_sys;
+            if(getset)  channels[c].data_creation_time_sys = *enable;
+            else        *enable = channels[c].data_creation_time_sys;
             bplog(BP_INFO, "Config. Enable Creation Time System %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
@@ -607,8 +648,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(bp_time_t)) return BP_PARMERR;
             bp_time_t* create_time = (bp_time_t*)val;
-            if(getset)  channels[c].primary_data_block.createtime = *create_time;
-            else        *create_time = channels[c].primary_data_block.createtime;
+            if(getset)  channels[c].primary_data_block.creation_time = *create_time;
+            else        *create_time = channels[c].primary_data_block.creation_time;
             bplog(BP_INFO, "Config. Creation Time %s %lu.%lu\n", getset ? "<--" : "-->", (unsigned long)create_time->s, (unsigned long)create_time->ns);
             break;
         }
@@ -662,8 +703,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_acs_block.srcnode = *node;
-            else        *node = channels[c].primary_acs_block.srcnode;
+            if(getset)  channels[c].primary_dacs_block.srcnode = *node;
+            else        *node = channels[c].primary_dacs_block.srcnode;
             bplog(BP_INFO, "Config. Source Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
@@ -671,8 +712,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_acs_block.srcserv = *service;
-            else        *service = channels[c].primary_acs_block.srcserv;
+            if(getset)  channels[c].primary_dacs_block.srcserv = *service;
+            else        *service = channels[c].primary_dacs_block.srcserv;
             bplog(BP_INFO, "Config. Source Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
@@ -680,8 +721,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_acs_block.rptnode = *node;
-            else        *node = channels[c].primary_acs_block.rptnode;
+            if(getset)  channels[c].primary_dacs_block.rptnode = *node;
+            else        *node = channels[c].primary_dacs_block.rptnode;
             bplog(BP_INFO, "Config. Report To Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
@@ -689,8 +730,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_acs_block.rptserv = *service;
-            else        *service = channels[c].primary_acs_block.rptserv;
+            if(getset)  channels[c].primary_dacs_block.rptserv = *service;
+            else        *service = channels[c].primary_dacs_block.rptserv;
             bplog(BP_INFO, "Config. Report To Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
@@ -698,8 +739,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_acs_block.cstnode = *node;
-            else        *node = channels[c].primary_acs_block.cstnode;
+            if(getset)  channels[c].primary_dacs_block.cstnode = *node;
+            else        *node = channels[c].primary_dacs_block.cstnode;
             bplog(BP_INFO, "Config. Custodian Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
@@ -707,8 +748,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_acs_block.cstserv = *service;
-            else        *service = channels[c].primary_acs_block.cstserv;
+            if(getset)  channels[c].primary_dacs_block.cstserv = *service;
+            else        *service = channels[c].primary_dacs_block.cstserv;
             bplog(BP_INFO, "Config. Custodian Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
@@ -717,8 +758,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(*enable != BP_TRUE && *enable != BP_FALSE) return BP_PARMERR;
-            if(getset)  channels[c].primary_acs_block.creation_time_sys = *enable;
-            else        *enable = channels[c].primary_acs_block.creation_time_sys;
+            if(getset)  channels[c].dacs_creation_time_sys = *enable;
+            else        *enable = channels[c].dacs_creation_time_sys;
             bplog(BP_INFO, "Config. Enable Creation Time System %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
@@ -726,8 +767,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(bp_time_t)) return BP_PARMERR;
             bp_time_t* create_time = (bp_time_t*)val;
-            if(getset)  channels[c].primary_acs_block.createtime = *create_time;
-            else        *create_time = channels[c].primary_acs_block.createtime;
+            if(getset)  channels[c].primary_dacs_block.creation_time = *create_time;
+            else        *create_time = channels[c].primary_dacs_block.creation_time;
             bplog(BP_INFO, "Config. Creation Time %s %lu.%lu\n", getset ? "<--" : "-->", (unsigned long)create_time->s, (unsigned long)create_time->ns);
             break;
         }
@@ -735,8 +776,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* lifetime = (int*)val;
-            if(getset)  channels[c].primary_acs_block.lifetime = *lifetime;
-            else        *lifetime = channels[c].primary_acs_block.lifetime;
+            if(getset)  channels[c].primary_dacs_block.lifetime = *lifetime;
+            else        *lifetime = channels[c].primary_dacs_block.lifetime;
             bplog(BP_INFO, "Config. Lifetime %s %d\n", getset ? "<--" : "-->", *lifetime);
             break;
         }
@@ -773,8 +814,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* rate = (int*)val;
-            if(getset)  channels[c].acs_rate_ms = *rate;
-            else        *rate = channels[c].acs_rate_ms;
+            if(getset)  channels[c].dacs_rate_ms = *rate;
+            else        *rate = channels[c].dacs_rate_ms;
             bplog(BP_INFO, "Config. ACS Rate %s %d\n", getset ? "<--" : "-->", *rate);
             break;
         }
@@ -889,59 +930,29 @@ int bplib_open(int agent, bp_ipn_t local_service, bp_ipn_t destination_node, bp_
             /* Initialize Assets */
             channels[i].channel_index                           = i;
             channels[i].agent_index                             = agent;
-            channels[i].store_bundle                            = agents[agent].store.create();
+            channels[i].store_data                            = agents[agent].store.create();
             channels[i].store_payload                           = agents[agent].store.create();
-            channels[i].store_acs                               = agents[agent].store.create();
+            channels[i].store_dacs                               = agents[agent].store.create();
     
             /* Initialize Primary Data Block */    
-            channels[i].primary_data_block.version              = BP_DEFAULT_BP_VERSION;
-            channels[i].primary_data_block.dstnode              = destination_node;
-            channels[i].primary_data_block.dstserv              = destination_service;
-            channels[i].primary_data_block.srcnode              = agents[agent].local_node;
-            channels[i].primary_data_block.srcserv              = local_service;
-            channels[i].primary_data_block.rptnode              = agents[agent].local_node;
-            channels[i].primary_data_block.rptserv              = local_service;
-            channels[i].primary_data_block.cstnode              = agents[agent].local_node;
-            channels[i].primary_data_block.cstserv              = local_service;
-            channels[i].primary_data_block.createtime.s         = BP_DEFAULT_CREATE_TIME_VAL_S;
-            channels[i].primary_data_block.createtime.ns        = BP_DEFAULT_CREATE_TIME_VAL_NS;
-            channels[i].primary_data_block.lifetime             = BP_DEFAULT_LIFETIME;
-            channels[i].primary_data_block.is_admin_rec         = BP_FALSE;
-            channels[i].primary_data_block.is_frag              = BP_FALSE;
-            channels[i].primary_data_block.request_custody      = BP_DEFAULT_CSTRQST;
-            channels[i].primary_data_block.allow_frag           = BP_TRUE;
-            channels[i].primary_data_block.report_deletion      = BP_FALSE;
-            channels[i].primary_data_block.creation_time_sys    = BP_DEFAULT_CREATE_TIME_SYS;
-            channels[i].primary_data_block.sequence             = 0;
-
-            /* Initialize Data Bundle Options */    
-            channels[i].timeout                                 = BP_DEFAULT_TIMEOUT;
-            channels[i].bundle_maxlength                        = BP_DEFAULT_BUNDLE_MAXLENGTH;
-            channels[i].fragment_maxlength                      = BP_DEFAULT_BUNDLE_MAXLENGTH;
-            channels[i].proc_admin_only                         = BP_DEFAULT_PROC_ADMIN_ONLY;
-            channels[i].wrap_response                           = BP_DEFAULT_WRAP_RESPONSE;
-            channels[i].acs_rate_ms                             = BP_DEFAULT_ACS_RATE;
+            channels[i].primary_data_block = native_data_pri_blk;
+            channels[i].primary_data_block.dstnode.value        = destination_node;
+            channels[i].primary_data_block.dstserv.value        = destination_service;
+            channels[i].primary_data_block.srcnode.value        = agents[agent].local_node;
+            channels[i].primary_data_block.srcserv.value        = local_service;
+            channels[i].primary_data_block.rptnode.value        = agents[agent].local_node;
+            channels[i].primary_data_block.rptserv.value        = local_service;
+            channels[i].primary_data_block.cstnode.value        = agents[agent].local_node;
+            channels[i].primary_data_block.cstserv.value        = local_service;
     
-            /* Initialize Primary ACS Block */    
-            channels[i].primary_acs_block.version               = BP_DEFAULT_BP_VERSION;
-            channels[i].primary_acs_block.dstnode               = 0;
-            channels[i].primary_acs_block.dstserv               = 0;
-            channels[i].primary_acs_block.srcnode               = agents[agent].local_node;
-            channels[i].primary_acs_block.srcserv               = local_service;
-            channels[i].primary_acs_block.rptnode               = agents[agent].local_node;
-            channels[i].primary_acs_block.rptserv               = local_service;
-            channels[i].primary_acs_block.cstnode               = agents[agent].local_node;
-            channels[i].primary_acs_block.cstserv               = local_service;
-            channels[i].primary_acs_block.createtime.s          = BP_DEFAULT_CREATE_TIME_VAL_S;
-            channels[i].primary_acs_block.createtime.ns         = BP_DEFAULT_CREATE_TIME_VAL_NS;
-            channels[i].primary_acs_block.lifetime              = BP_DEFAULT_LIFETIME;
-            channels[i].primary_acs_block.is_admin_rec          = BP_TRUE;
-            channels[i].primary_acs_block.is_frag               = BP_FALSE;
-            channels[i].primary_acs_block.request_custody       = BP_FALSE;
-            channels[i].primary_acs_block.allow_frag            = BP_FALSE;
-            channels[i].primary_acs_block.report_deletion       = BP_FALSE;
-            channels[i].primary_acs_block.creation_time_sys     = BP_DEFAULT_CREATE_TIME_SYS;
-            channels[i].primary_acs_block.sequence              = 0;
+            /* Initialize Primary ACS Block */
+            channels[i].primary_dacs_block = native_dacs_pri_blk;
+            channels[i].primary_dacs_block.srcnode.value         = agents[agent].local_node;
+            channels[i].primary_dacs_block.srcserv.value         = local_service;
+            channels[i].primary_dacs_block.rptnode.value         = agents[agent].local_node;
+            channels[i].primary_dacs_block.rptserv.value         = local_service;
+            channels[i].primary_dacs_block.cstnode.value         = agents[agent].local_node;
+            channels[i].primary_dacs_block.cstserv.value         = local_service;
 
             /* Initialize Custody Block */
             channels[i].custody_block.cid                       = 0;
@@ -952,9 +963,17 @@ int bplib_open(int agent, bp_ipn_t local_service, bp_ipn_t destination_node, bp_
             channels[i].integrity_block.paytype                 = BP_DEFAULT_PAY_CRC;
 
             /* Initialize Data */
+            channels[i].timeout                                 = BP_DEFAULT_TIMEOUT;
+            channels[i].data_creation_time_sys                  = BP_DEFAULT_CREATE_TIME_SYS;
+            channels[i].dacs_creation_time_sys                  = BP_DEFAULT_CREATE_TIME_SYS;
+            channels[i].bundle_maxlength                        = BP_DEFAULT_BUNDLE_MAXLENGTH;
+            channels[i].fragment_maxlength                      = BP_DEFAULT_BUNDLE_MAXLENGTH;
+            channels[i].proc_admin_only                         = BP_DEFAULT_PROC_ADMIN_ONLY;
+            channels[i].wrap_response                           = BP_DEFAULT_WRAP_RESPONSE;
+            channels[i].dacs_rate_ms                            = BP_DEFAULT_DACS_RATE;
             channels[i].current_custody_id                      = 0;
             channels[i].oldest_custody_id                       = 0;
-            channels[i].num_acs_entries                         = 0;
+            channels[i].num_dacs_entries                         = 0;
 
             /* Populate Initial Data Header */
             initialize_data_header(i);
@@ -976,9 +995,9 @@ void bplib_close(int channel)
     if(channel >= 0 && channel < BP_MAX_CHANNELS)
     {
         channels[channel].channel_index = BP_EMPTY;
-        agents[channels[channel].agent_index].store.destroy(channels[channel].store_bundle);
+        agents[channels[channel].agent_index].store.destroy(channels[channel].store_data);
         agents[channels[channel].agent_index].store.destroy(channels[channel].store_payload);
-        agents[channels[channel].agent_index].store.destroy(channels[channel].store_acs);
+        agents[channels[channel].agent_index].store.destroy(channels[channel].store_dacs);
     }
 }
 
@@ -1030,6 +1049,7 @@ int bplib_store(int channel, void* payload, int size, int timeout)
 
     /* Check Fragmentation */
     if(size > ch->fragment_maxlength)
+        if(ch->primary_data_block.allow_frag)
     {
         uint8_t* payload_ptr = (uint8_t*)payload;
         int payload_offset = 0;
@@ -1037,7 +1057,7 @@ int bplib_store(int channel, void* payload, int size, int timeout)
         {
             /* Enqueue Pre-Built Bundle in Storage Service */
             update_data_header(channel, &payload_ptr[payload_offset], ch->fragment_maxlength, payload_offset, size);
-            enqueue(ch->store_bundle, &ch->data_bundle, sizeof(bp_data_t), &payload_ptr[payload_offset], ch->fragment_maxlength, timeout);
+            enqueue(ch->store_data, &ch->data_bundle, sizeof(bp_data_store_t), &payload_ptr[payload_offset], ch->fragment_maxlength, timeout);
             payload_offset += ch->fragment_maxlength;
         }
     }
@@ -1045,7 +1065,16 @@ int bplib_store(int channel, void* payload, int size, int timeout)
     {
         /* Enqueue Pre-Built Bundle in Storage Service */
         update_data_header(channel, payload, size, 0, size);
-        enqueue(ch->store_bundle, &ch->data_bundle, sizeof(bp_data_t), payload, size, timeout);
+        
+        uint8_t* ptr = (uint8_t*)&ch->data_bundle;
+        printf("[%d]: ", sizeof(bp_data_store_t));
+        for(int i = 0; i < sizeof(bp_data_store_t); i++)
+        {
+            printf("%02X ", ptr[i]);
+        }
+        printf("\n");
+        
+        enqueue(ch->store_data, &ch->data_bundle, sizeof(bp_data_store_t), payload, size, timeout);
     }
 
     /* Increment Sequence Count */
@@ -1098,12 +1127,12 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
     *loadflags = 0;             // start with clean slate
     
     /* Check if ACS Needs to be Sent */
-    if(dequeue(ch->store_acs, (void**)&storebuf, &storelen, &sid, timeout) == BP_SUCCESS)
+    if(dequeue(ch->store_dacs, (void**)&storebuf, &storelen, &sid, timeout) == BP_SUCCESS)
     {
         /* Transmit ACS Bundle */
         load_bundle = storebuf;
         load_size = storelen;
-        load_store = ch->store_acs;
+        load_store = ch->store_dacs;
         load_custody = BP_FALSE;
         
         /* ACS Always Need to be Routed */
@@ -1111,7 +1140,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
     }
     else
     {
-        // TODO: use ch->acs_rate_ms to create ACS bundle if one is not ready
+        // TODO: use ch->dacs_rate_ms to create ACS bundle if one is not ready
         // no need enqueue...dequeue
     }
     
@@ -1124,16 +1153,16 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         {
             ch->oldest_custody_id++;
         }
-        else if(retrieve(ch->store_bundle, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
+        else if(retrieve(ch->store_data, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
         {
             /* Check Timeout */
-            bp_data_t* bundle_ptr = (bp_data_t*)storebuf;
+            bp_data_store_t* bundle_ptr = (bp_data_store_t*)storebuf;
             if(bplib_cmptime(sysnow, bundle_ptr->prolog.retxtime) >= 0)
             {
                 /* Retransmit Bundle */
                 load_bundle = bundle_ptr->header;
                 load_size = storelen - BP_DATA_PROLOG_SIZE;
-                load_store = ch->store_bundle;
+                load_store = ch->store_data;
                 load_custody = BP_TRUE;
             }
 
@@ -1142,7 +1171,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         }
         else // failed to retrieve bundle from storage
         {
-            relinquish(ch->store_bundle, sid);
+            relinquish(ch->store_data, sid);
             ch->active_table[ati] = BP_SID_VACANT;
             *loadflags |= BP_FLAG_STOREFAIL;
             bplog(BP_FAILEDSTORE, "Failed to retrieve bundle from storage\n");
@@ -1157,19 +1186,19 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         if(sid == BP_SID_VACANT) // entry vacant
         {
             /* Dequeue Bundle from Storage Service */
-            int deq_status = dequeue(ch->store_bundle, (void**)&storebuf, &storelen, &sid, timeout);
+            int deq_status = dequeue(ch->store_data, (void**)&storebuf, &storelen, &sid, timeout);
             if(deq_status == BP_SUCCESS)
             {
                 /* Write Re-Transmit Time */
-                bp_data_t* bundle_ptr = (bp_data_t*)storebuf;
+                bp_data_store_t* bundle_ptr = (bp_data_store_t*)storebuf;
                 bplib_addtime(&sysretx, sysnow, ch->timeout);
                 bundle_ptr->prolog.retxtime = sysretx;
-                refresh(ch->store_bundle, storebuf, sizeof(bp_time_t), 0, sid, timeout);
+                refresh(ch->store_data, storebuf, sizeof(bp_time_t), 0, sid, timeout);
 
                 /* Transmit Dequeued Bundle */
                 load_bundle = bundle_ptr->header;
                 load_size = storelen - BP_DATA_PROLOG_SIZE;
-                load_store = ch->store_bundle;
+                load_store = ch->store_data;
                 load_custody = BP_TRUE;
             }
             else if(deq_status == BP_TIMEOUT)
@@ -1190,18 +1219,18 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         else if(ch->wrap_response == BP_WRAP_RESEND)
         {
             /* Retrieve Bundle from Storage */
-            if(retrieve(ch->store_bundle, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
+            if(retrieve(ch->store_data, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
             {
                 /* Retransmit Bundle */
-                bp_data_t* bundle_ptr = (bp_data_t*)storebuf;
+                bp_data_store_t* bundle_ptr = (bp_data_store_t*)storebuf;
                 load_bundle = bundle_ptr->header;
                 load_size = storelen - BP_DATA_PROLOG_SIZE;
-                load_store = ch->store_bundle;
+                load_store = ch->store_data;
                 load_custody = BP_TRUE;
             }
             else // failed to retrieve bundle from storage
             {
-                relinquish(ch->store_bundle, sid);
+                relinquish(ch->store_data, sid);
                 ch->active_table[ati] = BP_SID_VACANT;
                 *loadflags |= BP_FLAG_STOREFAIL;
                 bplog(BP_FAILEDSTORE, "Failed to retrieve bundle from storage\n");
@@ -1217,7 +1246,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         }
         else // if(ch->wrap_response == BP_WRAP_DROP)
         {
-            relinquish(ch->store_bundle, sid);
+            relinquish(ch->store_data, sid);
             ch->active_table[ati] = BP_SID_VACANT;
             ch->oldest_custody_id++;
         }
@@ -1306,14 +1335,14 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
     }
 
     /* Check Unsupported */
-    if(priblk.is_frag || (priblk.dictlen != 0))
+    if(priblk.allow_frag || (priblk.dictlen != 0))
     {
-        return bplog(BP_UNSUPPORTED, "Unsupported bundle attempted to be processed (%d %d)\n", priblk.is_frag, priblk.dictlen);
+        return bplog(BP_UNSUPPORTED, "Unsupported bundle attempted to be processed (%d %d)\n", priblk.allow_frag, priblk.dictlen);
     }
 
     /* Check Life Time */
     bplib_systime(&sysnow);
-    bplib_addtime(&expiretime, priblk.createtime, priblk.lifetime);
+    bplib_addtime(&expiretime, priblk.creation_time, priblk.lifetime);
     if(bplib_cmptime(sysnow, expiretime) >= 0)
     {
         return bplog(BP_EXPIRED, "Expired bundled attempted to be processed \n");
@@ -1366,7 +1395,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                 {
                     status = bplib_rec_acs_process( &buffer[index], size - index, rec_status,
                                                     ch->active_table, BP_ACTIVE_TABLE_SIZE, 
-                                                    agents[ch->agent_index].store.relinquish, ch->store_bundle);
+                                                    agents[ch->agent_index].store.relinquish, ch->store_data);
                 }
                 else if(rec_type == BP_PROTO_CS_REC_TYPE) // Custody Signal
                 {
@@ -1385,14 +1414,17 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
             else // process bundle
             {
                 /* Forward Bundle: Bundle's Final Destination Is NOT This Agent */
-                if(priblk.dstnode != ch->primary_data_block.srcnode)
+                if(priblk.dstnode != ch->primary_data_block.srcnode) // forward bundle
                 {
-                    /* Check Need for Fragmentation */
-                    if(size > ch->fragment_maxlength) // fragment bundle
+                    if(priblk.dstnode != ch->primary_data_block.dstnode) // wrong destination node 
+                    {
+                        status = bplog(BP_WRONGCHANNEL, "Wrong channel to forward bundle (%d, %d)\n", priblk.dstnode, ch->primary_data_block.dstnode);
+                    }
+                    else if(size > ch->fragment_maxlength) // fragment and forward bundle
                     {
                         if(priblk.allow_frag)   status = BP_UNSUPPORTED;
                         else                    status = BP_BUNDLETOOLARGE;
-                        bplog(status, "Unable to fragment bundle\n");
+                        bplog(status, "Unable to fragment forwarded bundle\n");
                     }
                     else // forward bundle
                     {
@@ -1401,40 +1433,36 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                         {
                             if(cteb_present)
                             {
-                                *procflags |= update_acs_payload(ch, ctebblk.cid, ctebblk.cstnode, ctebblk.cstserv, BP_FALSE, timeout);
+                                /* Update ACS */
+                                *procflags |= update_dacs_payload(ch, ctebblk.cid, ctebblk.cstnode, ctebblk.cstserv, BP_FALSE, timeout);
+    
+                                /* Update New Bundle Header to Send */
+                                update_data_header(channel, &buffer[index], size - index, 0, size - index);
+                                ch->data_bundle.prolog.retxtime.s = 0;
+                                ch->data_bundle.prolog.retxtime.ns = 0;
+                                status = enqueue(ch->store_data, &ch->data_bundle, sizeof(bp_data_store_t), &buffer[index], size - index, timeout);
                             }
                             else // only aggregate custody supported
                             {
                                 *procflags |= BP_FLAG_NONCOMPLIANT;
-                                bplog(BP_UNSUPPORTED, "Only aggregate custody signals supported\n");
+                                status = bplog(BP_UNSUPPORTED, "Only aggregate custody signals supported\n");
                             }
-
-                            /* Update New Bundle Header to Send */
-                            update_data_header(channel, &buffer[index], size - index, 0, size - index);
-                            bplib_blk_pri_setdst(ch->data_bundle.header, priblk.dstnode, priblk.dstserv);
-                            ch->data_bundle.prolog.retxtime.s = 0;
-                            ch->data_bundle.prolog.retxtime.ns = 0;
-                            status = enqueue(ch->store_bundle, &ch->data_bundle, sizeof(bp_data_t), &buffer[index], size - index, timeout);
-
-                            /* Restore Destination EID */
-                            bplib_blk_pri_setdst(ch->data_bundle.header, ch->primary_data_block.dstnode, ch->primary_data_block.dstserv);
                         }
                         else
                         {
                             /* Enqueue Received Bundle As-Is in Storage Service */
                             uint8_t prolog[BP_DATA_PROLOG_SIZE] = {0};
-                            status = enqueue(ch->store_bundle, prolog, BP_DATA_PROLOG_SIZE, buffer, size, timeout);
+                            status = enqueue(ch->store_data, prolog, BP_DATA_PROLOG_SIZE, buffer, size, timeout);
                         }
                     }
                 }
                 else if(priblk.dstserv != ch->primary_data_block.srcserv) // wrong channel
                 {
-                    status = BP_WRONGCHANNEL;
-                    bplog(status, "Wrong channel to service bundle (%lu, %lu)\n", (unsigned long)priblk.dstserv, (unsigned long)ch->primary_data_block.srcserv);
+                    status = bplog(BP_WRONGCHANNEL, "Wrong channel to service bundle (%lu, %lu)\n", (unsigned long)priblk.dstserv, (unsigned long)ch->primary_data_block.srcserv);
                 }
                 else // deliver bundle payload to application
                 {
-                    bp_payload_t payload;
+                    bp_payload_store_t payload;
                     
                     /* Populate Payload */
                     payload.cid = ctebblk.cid;
@@ -1452,7 +1480,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                         else
                         {
                             *procflags |= BP_FLAG_NONCOMPLIANT;
-                            bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
+                            status = bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
                         }
                     }
 
@@ -1523,7 +1551,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
     bp_channel_t*           ch;
     bp_store_dequeue_t      dequeue;
     bp_store_relinquish_t   relinquish;
-    bp_payload_t*           payptr;
+    bp_payload_store_t*           payptr;
     int                     paylen;
     uint8_t*                storebuf;
     int                     storelen;
@@ -1546,14 +1574,14 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
     /* Dequeue Payload from Storage */
     status = dequeue(ch->store_payload, (void**)&storebuf, &storelen, &sid, timeout);    
     if(status != BP_SUCCESS) return status;
-    else if(storelen < (int)sizeof(bp_payload_t))
+    else if(storelen < (int)sizeof(bp_payload_store_t))
     {
         return bplog(BP_FAILEDSTORE, "Payload retrieved from storage is too small: %d\n", storelen);
     }
 
     /* Access Payload */
-    payptr = (bp_payload_t*)storebuf;
-    paylen = storelen - sizeof(bp_payload_t);
+    payptr = (bp_payload_store_t*)storebuf;
+    paylen = storelen - sizeof(bp_payload_store_t);
 
     /* Copy Payload */
     if(size < paylen)
@@ -1564,7 +1592,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
     else
     {
         /* Successfully Return Payload to Application and Relinquish Memory */
-        bplib_os_memcpy(payload, &storebuf[sizeof(bp_payload_t)], paylen);
+        bplib_os_memcpy(payload, &storebuf[sizeof(bp_payload_store_t)], paylen);
         status = paylen;
         relinquish(ch->store_payload, sid);
     }
@@ -1572,7 +1600,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
     /* Acknowledge Custody */
     if(payptr->cstrqst && (status > 0))
     {
-        *acptflags |= update_acs_payload(ch, payptr->cid, payptr->cstnode, payptr->cstserv, BP_TRUE, timeout);
+        *acptflags |= update_dacs_payload(ch, payptr->cid, payptr->cstnode, payptr->cstserv, BP_TRUE, timeout);
     }
 
     /* Return Status */

@@ -127,12 +127,6 @@ int bplib_rec_acs_process ( void* rec, int size, uint8_t rec_status,
     uint8_t flags = 0;
     int index = 0;
     
-    /* Check if Custody Accepted */
-    if((rec_status & BP_REC_RPTACT_MASK) == 0)
-    {
-        return BP_UNACCEPTED;
-    }
-
     /* Read First Custody ID */
     index += bplib_sdnv_read(buf, size - index, &cid, &flags);
     if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;

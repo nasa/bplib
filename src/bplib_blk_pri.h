@@ -18,52 +18,63 @@
  DEFINES
  ******************************************************************************/
 
-#define BP_PRI_VERSION        0
-#define BP_PRI_BLK_LENGTH     52
+#define BP_PRI_VERSION                  0x06
+
+#define BP_PCF_FRAGMENT_MASK            0x000001    // bundle is a fragement
+#define BP_PCF_ADMIN_MASK               0x000002    // bundle is an administrative record
+#define BP_PCF_NOFRAG_MASK              0x000004    // bundle must not be fragmented
+#define BP_PCF_CSTRQST_MASK             0x000008    // custody transfer is requested
+#define BP_PCF_SINGLETON_MASK           0x000010    // destination endpoint is a singleton
+#define BP_PCF_ACKRQST_MASK             0x000020    // acknowledgement is requested from application
+#define BP_PCF_COS_MASK                 0x000180    // class of service
+#define BP_PCF_COS_SHIFT                7
+#define BP_PCF_RPTRCV_MASK              0x004000    // report reception
+#define BP_PCF_RPTACT_MASK              0x008000    // report acceptance
+#define BP_PCF_RPTFRW_MASK              0x010000    // report forwarding
+#define BP_PCF_RPTDLV_MASK              0x020000    // report delivery
+#define BP_PCF_RPTDLT_MASK              0x040000    // report deletion
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
-/* Bundle Meta Data */
+/* Bundle Primary Block */
 typedef struct {
-    uint32_t    version;
-    uint32_t    blklen;
-    uint32_t    dstnode;
-    uint32_t    dstserv;
-    uint32_t    srcnode;
-    uint32_t    srcserv;
-    uint32_t    rptnode;
-    uint32_t    rptserv;
-    uint32_t    cstnode;
-    uint32_t    cstserv; 
-    bp_time_t   createtime;
-    uint32_t    createseq;
-    uint32_t    lifetime;
-    uint32_t    dictlen;
-    uint32_t    fragoffset;
-    uint32_t    paylen;
+    /* field data */
+    uint8_t     version;
+    bp_sdnv_t   pcf;
+    bp_sdnv_t   blklen;
+    bp_sdnv_t   dstnode;
+    bp_sdnv_t   dstserv;
+    bp_sdnv_t   srcnode;
+    bp_sdnv_t   srcserv;
+    bp_sdnv_t   rptnode;
+    bp_sdnv_t   rptserv;
+    bp_sdnv_t   cstnode;
+    bp_sdnv_t   cstserv; 
+    bp_sdnv_t   createtms;
+    bp_sdnv_t   createtmns;
+    bp_sdnv_t   createseq;
+    bp_sdnv_t   lifetime;
+    bp_sdnv_t   dictlen;
+    bp_sdnv_t   fragoffset;
+    bp_sdnv_t   paylen;
     /* meta information */
-    int         is_admin_rec;       // 0: not admin, 1: is admin
-    int         is_frag;            // 0: unfragmented, 1: fragmented
-    int         request_custody;    // 0: not requested, 1: requested
-    int         allow_frag;         // 0: do not allow, 1: allow
-    int         report_deletion;    // 0: do not report, 1: report
+    int         is_admin_rec;           // 0: not admin, 1: is admin
+    int         request_custody;        // 0: not requested, 1: requested
+    int         allow_frag;             // 0: do not allow, 1: allow (for created bundles, if allowed, it will be used)
+    int         report_deletion;        // 0: do not report, 1: report
     /* state data */
-    uint32_t    sequence;
+    uint32_t    sequence;               // needs to match type of createseq
     int         creation_time_sys;      // 1: use system time, 0: use provided channel value
+    bp_time_t   creation_time;          // used when creation_time_sys = 0
 } bp_blk_pri_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int bplib_blk_pri_read      (void* block, int size, bp_blk_pri_t* pri);
-int bplib_blk_pri_write     (void* block, int size, bp_blk_pri_t* pri);
-int bplib_blk_pri_setfrag   (void* block, uint32_t fragoffset);
-int bplib_blk_pri_settime   (void* block, bp_time_t tm);
-int bplib_blk_pri_setseq    (void* block, uint32_t seq);
-int bplib_blk_pri_setpaylen (void* block, uint32_t paylen);
-int bplib_blk_pri_setdst    (void* block, uint32_t dstnode, uint32_t dstserv);
+int bplib_blk_pri_read      (void* block, int size, bp_blk_pri_t* pri, int update_indices);
+int bplib_blk_pri_write     (void* block, int size, bp_blk_pri_t* pri, int update_indices);
 
 #endif  /* __BPLIB_BLK_PRI_H__ */

@@ -29,75 +29,37 @@
  *  block - pointer to memory address to read from [input]
  *  size - maximum number of bytes to read [input]
  *  value - pointer to variable that will hold the value read from block [output]
+ *  width - size of value variable in bytes [input]
  *  flags - pointer to variable that will hold the flags set as result of read [output]
  *  returns - number of bytes read in constructing value
  *-------------------------------------------------------------------------------------*/
-int bplib_sdnv_read(uint8_t* block, int size, uint32_t* value, uint8_t* flags)
+int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint8_t* flags)
 {
     assert(block);
-    assert(value);
+    assert(sdnv);
     assert(flags);
 
-    *value = 0;
-    *flags = BP_SDNV_SUCCESS;
+    int i, width;
+    
+    /* Initialize Values */
+    sdnv->value = 0;
+    if(sdnv->width < 0) width = size;
+    else                width = sdnv->width;
 
-    /* Check if Byte 1 can be Read */
-    if(size < 1)
+    /* Read SDNV */
+    for(i = sdnv->index; (i < width) && (i < size); i++)
     {
-        *flags |= BP_SDNV_UNDERFLOW;
-        return 0;
+        sdnv->value <<= 7;
+        sdnv->value |= (block[i] & 0x7F);
+        if((block[i] & 0x80) == 0x00) return ((i + 1) - sdnv->index);
+        else if(size < (i + 2)) *flags |= BP_SDNV_INCOMPLETE;        
     }
 
-    /* Read Byte 1 */
-    *value |= (block[0] & 0x7F) << 21;
-    if((block[0] & 0x80) == 0x00)
-    {
-        return 1; // read one byte
-    }
-
-    /* Check if Byte 2 can be Read */
-    if(size < 2)
-    {
-        *flags |= BP_SDNV_UNDERFLOW;
-        return 1;
-    }
-
-    /* Read Byte 2 */
-    *value |= (block[1] & 0x7F) << 14;
-    if((block[1] & 0x80) == 0x00)
-    {
-        return 2; // read two bytes
-    }
-
-    /* Check if Byte 2 can be Read */
-    if(size < 3)
-    {
-        *flags |= BP_SDNV_UNDERFLOW;
-        return 2;
-    }
-
-    /* Read Byte 3 */
-    *value |= (block[2] & 0x7F) << 7;
-    if((block[2] & 0x80) == 0x00)
-    {
-        return 3; // read three bytes
-    }
-
-    /* Check if Byte 4 can be Read */
-    if(size < 4)
-    {
-        *flags |= BP_SDNV_UNDERFLOW;
-        return 3;
-    }
-
-    /* Read Byte 4 */
-    *value |= (block[3] & 0x7F);
-    if((block[3] & 0x80) == 0x80)
-    {
-        *flags |= BP_SDNV_OVERFLOW;
-    }
-
-    return 4; // read four bytes
+    /* Set Overflow  */
+    *flags |= BP_SDNV_OVERFLOW;
+    
+    /* Return Bytes Read */
+    return (i - sdnv->index);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -106,13 +68,52 @@ int bplib_sdnv_read(uint8_t* block, int size, uint32_t* value, uint8_t* flags)
  *  block - pointer to memory address to be written to [input]
  *  size - number of bytes to write for value (as counted in resulting SDNV) [input]
  *  value - value to write to block [input]
+ *  width - size of value variable in bytes [input]
+ *  flags - pointer to variable that will hold the flags set as result of write [output]
  *  returns - number of bytes written for sdnv
  *-------------------------------------------------------------------------------------*/
-int bplib_sdnv_write(uint8_t* block, int size, uint32_t value)
+int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
 {
-    if(size > 0)    block[0] = (uint8_t)(value >> 7) | 0x80;
-    if(size > 1)    block[1] = (uint8_t)(value >> 14) | 0x80;
-    if(size > 2)    block[2] = (uint8_t)(value >> 21) | 0x80;
-    if(size > 3)    block[3] = (uint8_t)value & 0x7F;
-    return size;
+    assert(block);
+    assert(flags);
+
+    int i, maxbytes;
+    
+    /* Initialize Bytes to Write */
+    if(sdnv.width <= 0)
+    {
+        /* Calculate Bytes Needed to Hold Value */
+        uint32_t tmpval = sdnv.value;
+        maxbytes = 0;
+        while(tmpval > 0)
+        {
+            maxbytes++;
+            tmpval >>= 7;
+        }
+    }
+    else if(sdnv.width <= (size - sdnv.index))
+    {
+        /* Set Fixed Width */
+        maxbytes = sdnv.width;
+    }
+    else                    
+    {
+        /* Truncate Width */
+        *flags |= BP_SDNV_INCOMPLETE;
+        maxbytes = size - sdnv.index;
+    }
+    
+    /* Write SDNV */    
+    for(i = maxbytes + sdnv.index; i >= sdnv.index; i--)
+    {
+        if(i == 0)  block[i] = sdnv.value & 0x7F;
+        else        block[i] = sdnv.value | 0x80;
+        sdnv.value >>= 7; // structure copy into function allows safe modification here
+    }
+
+    /* Set Overflow  */
+    if(sdnv.value > 0) *flags |= BP_SDNV_OVERFLOW;
+
+    /* Return Bytes Written */
+    return maxbytes;
 }
