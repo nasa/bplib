@@ -147,6 +147,7 @@ typedef struct {
 
 void    bplib_init      (void);
 int     bplib_start     (bp_store_t* store, bp_ipn_t local_node);
+int     bplib_stop      (int agent);
 int     bplib_open      (int agent, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service);
 void    bplib_close     (int channel);
 

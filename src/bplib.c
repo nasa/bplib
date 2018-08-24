@@ -841,7 +841,7 @@ int bplib_start(bp_store_t* store, bp_ipn_t local_node)
         {
             /* Initialize agent */
             agents[i].agent_index = i;
-            agents[i].store = *store; // struct copy
+            agents[i].store = *store; // structure copy
             agents[i].local_node = local_node;
             return i; // agent handle
         }
@@ -849,6 +849,19 @@ int bplib_start(bp_store_t* store, bp_ipn_t local_node)
     
     /* Failed to find empty slot */
     return bplog(BP_AGENTSFULL, "Cannot start agent, not enough room\n");
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_open - 
+ *-------------------------------------------------------------------------------------*/
+int bplib_stop(int agent)
+{
+    if(agent < 0 || agent > BP_MAX_AGENTS)          return BP_PARMERR;
+    else if(agents[agent].agent_index == BP_EMPTY)  return BP_INVALIDAGENT;
+
+    agents[agent].agent_index = BP_EMPTY;
+    
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
