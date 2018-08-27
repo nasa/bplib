@@ -18,17 +18,29 @@
  DEFINES
  ******************************************************************************/
 
-#define BP_PROTO_PAY_BLK_TYPE           0x1
-#define BP_PROTO_STAT_REC_TYPE          0x10 // Status Report
-#define BP_PROTO_CS_REC_TYPE            0x20 // Custody Signal
-#define BP_PROTO_ACS_REC_TYPE           0x40 // Aggregate Custody Signal
+#define BP_PAY_BLK_TYPE           0x1
+#define BP_STAT_REC_TYPE          0x10 // Status Report
+#define BP_CS_REC_TYPE            0x20 // Custody Signal
+#define BP_ACS_REC_TYPE           0x40 // Aggregate Custody Signal
+
+/******************************************************************************
+ TYPEDEFS
+ ******************************************************************************/
+
+typedef struct {
+    bp_sdnv_t   bf;
+    bp_sdnv_t   blklen;
+    uint8_t*    payptr;
+    int         paysize;
+} bp_blk_pay_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
 /* Generic Payload Block */
-int bplib_blk_pay_write     (void* block, int size);
+int bplib_blk_pay_read      (void* block, int size, bp_blk_pay_t* pay, int update_indices);
+int bplib_blk_pay_write     (void* block, int size, bp_blk_pay_t* pay, int update_indices);
 int bplib_blk_pay_update    (void* block, int size, int payload_size);
 
 /* Aggregate Custody Signal */

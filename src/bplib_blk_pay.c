@@ -2,22 +2,22 @@
  * Filename     : bplib_blk_pay.c
  * Purpose      : Bundle Protocol Payload Block
  * Design Notes :
- * 
+ *
  * -------------------------------------------------
  *         DTN Aggregate Custody Signal Bundle
  * -------------------------------------------------
  * |    MSB    |           |           |    LSB    |
  * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
  * |-----------|-----------|-----------|-----------|
- * |                                               | 
- * |              Primary Bundle Block             | 
- * |                                               | 
+ * |                                               |
+ * |              Primary Bundle Block             |
+ * |                                               |
  * |-----------|-----------|-----------------------|
  * .           .           .                       .
  * |-----------|-----------|-----------------------|
  * |    0x1    | Blk Flags |     Block Length      | --> Payload BLock
  * |-----------|-----------|-----------------------|
- * |    0x40   |  Status   |  First Custody ID...  | --> Aggregate Custody Signal   
+ * |    0x40   |  Status   |  First Custody ID...  | --> Aggregate Custody Signal
  * |-----------|-----------|-----------------------|
  * |  ...First Custody ID  |   Number Valid CIDs   |
  * |-----------------------|-----------------------|
@@ -29,7 +29,7 @@
  * |-----------------------|-----------------------|
  * |  Number Skipped CIDs  |   Number Valid CIDs   |
  * |-----------------------------------------------|    Variable
- * 
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -41,6 +41,7 @@
 #include "bplib_blk.h"
 #include "bplib_blk_pay.h"
 #include "bplib_sdnv.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  DEFINES
@@ -57,47 +58,120 @@
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_blk_pay_write - 
- * 
- *  block - pointer to memory that holds bundle block [OUTPUT]
+ * bplib_blk_pay_read -
+ *
+ *  block - pointer to block holding bundle block [INPUT]
  *  size - size of block [INPUT]
- * 
- *  Returns:    Number of bytes processed of bundle
+ *  pay - point to a payload block structure [OUTPUT]
+ *  update_indices - boolean, 0: use <sdnv>.index, 1: update <sdnv>.index as you go [INPUT]
+ *
+ *  Returns:    Next index
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_pay_write (void* block, int size)
+int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
-    
+    uint8_t flags = 0;
+    int bytes_read = 0;
+
     /* Check Size */
-    if(size < 4) return BP_PARMERR;
+    if(size < 1) return BP_BUNDLEPARSEERR;
 
-    /* Set Block Flags */
-    uint8_t blk_flags = 0;
-    blk_flags |= BP_BLK_REPALL_MASK;
-    blk_flags |= BP_BLK_LASTBLOCK_MASK;
+    /* Read Block Information */
+    if(!update_indices)
+    {
+        bplib_sdnv_read(buffer, size, &pay->bf, &flags);
+        bytes_read = bplib_sdnv_read(buffer, size, &pay->blklen, &flags);
+    }
+    else
+    {
+        pay->bf.index = 1;
+        pay->blklen.index = bplib_sdnv_read(buffer, size, &pay->bf, &flags);
+        bytes_read = bplib_sdnv_read(buffer, size, &pay->blklen, &flags);
+    }
 
-    /* Write Block */
-    buffer[0] = 0x1;   // block id
-    bplib_sdnv_write(&buffer[1],   1,  blk_flags); 
-    bplib_sdnv_write(&buffer[2],   2,  0);     // block length of rest of block
+    /* Success Oriented Error Checking */
+    if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
 
-    /* Return Block Size */
-    return 4;
+    /* Set Payload Pointer */
+    pay->payptr = &buffer[bytes_read];
+    pay->paysize = pay->blklen.value;
+    
+    /* Return Bytes Read */
+    return bytes_read;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_blk_pay_update - 
- * 
+ * bplib_blk_pay_write -
+ *
+ *  block - pointer to memory that holds bundle block [OUTPUT]
+ *  size - size of block [INPUT]
+ *  pay - pointer to a payload block structure [INPUT]
+ *  update_indices - boolean, 0: use <sdnv>.index, 1: update <sdnv>.index as you go [INPUT]
+ *
+ *  Returns:    Number of bytes processed of bundle
+ *-------------------------------------------------------------------------------------*/
+int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_indices)
+{
+    uint8_t* buffer = (uint8_t*)block;
+    uint8_t flags = 0;
+    int bytes_written = 0;
+
+    /* Check Size */
+    if(size < 1) return BP_BUNDLEPARSEERR;
+
+    /* Set Block Flags */
+    pay->bf.value = 0;
+    pay->bf.value |= BP_BLK_REPALL_MASK;
+    pay->bf.value |= BP_BLK_LASTBLOCK_MASK;
+
+    /* Set Block Length */
+    if(pay->payptr) pay->blklen.value = pay->paysize;
+
+    /* Write Block */
+    buffer[0] = BP_PAY_BLK_TYPE;
+    if(!update_indices)
+    {
+        bplib_sdnv_write(buffer, &pay->bf, &flags);
+        bytes_written = bplib_sdnv_write(buffer, &pay->blklen, &flags);
+    }
+    else
+    {
+        pay->bf.index = 1;
+        pay->blklen.index = bplib_sdnv_write(buffer, &pay->bf, &flags);
+        bytes_written = bplib_sdnv_write(buffer, &pay->blklen, &flags);
+    }
+
+    /* Copy Bytes */
+    if(pay->payptr)
+    {
+        if(size >= (bytes_written + pay->paysize))
+        {
+            bplib_os_memcpy(&buffer[bytes_written], pay->payptr, pay->paysize);
+            bytes_written += pay->paysize;
+        }
+        else
+        {
+            return bplog(BP_BUNDLEPARSEERR, "Unable to write payload, buffer too small (%d %d)\n", size, bytes_written + pay->paysize);
+        }
+    }
+
+    /* Return Written */
+    return bytes_written;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_blk_pay_update -
+ *
  *  block - pointer to memory that holds bundle block [OUTPUT]
  *  size - size of block [INPUT]
  *  payload_size - size of the payload to place in this bundle (if fragmented, then fragment size)
- * 
+ *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
 int bplib_blk_pay_update (void* block, int size, int payload_size)
 {
     uint8_t* buffer = (uint8_t*)block;
-    
+
     /* Check Size */
     if(size < 2) return BP_PARMERR;
 
@@ -109,16 +183,16 @@ int bplib_blk_pay_update (void* block, int size, int payload_size)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rec_acs_process - 
- * 
+ * bplib_rec_acs_process -
+ *
  *  bundle - pointer to block holding bundle block [INPUT]
  *  size - size of block [INPUT]
  *  pri - pointer to a primary bundle block structure to be populated by this function [OUTPUT]
- * 
+ *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
 int bplib_rec_acs_process ( void* rec, int size, uint8_t rec_status,
-                            bp_sid_t* active_table, int table_size, 
+                            bp_sid_t* active_table, int table_size,
                             bp_store_relinquish_t relinquish, int store_handle)
 {
     uint32_t cid, fill, i;
@@ -126,7 +200,7 @@ int bplib_rec_acs_process ( void* rec, int size, uint8_t rec_status,
     int cidin = BP_TRUE;
     uint8_t flags = 0;
     int index = 0;
-    
+
     /* Read First Custody ID */
     index += bplib_sdnv_read(buf, size - index, &cid, &flags);
     if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
@@ -151,7 +225,7 @@ int bplib_rec_acs_process ( void* rec, int size, uint8_t rec_status,
                 {
                     relinquish(store_handle, &sid);
                     active_table[ati] = BP_SID_VACANT;
-                }                        
+                }
             }
         }
         else
@@ -168,21 +242,21 @@ int bplib_rec_acs_process ( void* rec, int size, uint8_t rec_status,
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rec_acs_process - 
- * 
+ * bplib_rec_acs_process -
+ *
  *  rec - buffer containing the ACS record [OUTPUT]
  *  size - size of buffer [INPUT]
  *  first_cid - first Custody ID [INPUT]
  *  fills - array of fill values [INPUT]
  *  num_fills - size of fills array [INPUT]
  *  delivered - 0: forwarded, 1: delivered
- * 
+ *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
 int bplib_rec_acs_write(uint8_t* rec, int size, int delivered, uint32_t first_cid, uint32_t* fills, int num_fills)
 {
     int rec_index = 0, fill_index;
-    
+
     /* Write Record */
     rec[rec_index++] = BP_PROTO_ACS_REC_TYPE; // record type
     rec[rec_index++] = BP_REC_RPTRCV_MASK | BP_REC_RPTACT_MASK | (delivered ? BP_REC_RPTDLV_MASK : BP_REC_RPTFRW_MASK);
@@ -190,7 +264,7 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int delivered, uint32_t first_ci
     for(fill_index = 0; fill_index < num_fills; fill_index++)
     {
         if(rec_index + 2 > size) return BP_PARMERR;
-        rec_index += bplib_sdnv_write(&rec[rec_index], 2, fills[fill_index]);        
+        rec_index += bplib_sdnv_write(&rec[rec_index], 2, fills[fill_index]);
     }
 
     /* Return Block Size */
