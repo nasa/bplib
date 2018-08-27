@@ -41,20 +41,18 @@
 #define BP_EXPIRED                      (-3)
 #define BP_IGNORE                       (-4)
 #define BP_DROPPED                      (-5)
-#define BP_AGENTSFULL                   (-6)
-#define BP_CHANNELSFULL                 (-7)
-#define BP_INVALIDAGENT                 (-8)
-#define BP_INVALIDCHANNEL               (-9)
-#define BP_INVALIDHANDLE                (-10)
-#define BP_OVERFLOW                     (-11)
-#define BP_WRONGVERSION                 (-12)
-#define BP_BUNDLEPARSEERR               (-13)
-#define BP_UNKNOWNREC                   (-14)
-#define BP_BUNDLETOOLARGE               (-15)
-#define BP_PAYLOADTOOLARGE              (-16)
-#define BP_WRONGCHANNEL                 (-17)
-#define BP_FAILEDINTEGRITYCHECK         (-18)
-#define BP_FAILEDSTORE                  (-19)
+#define BP_CHANNELSFULL                 (-6)
+#define BP_INVALIDCHANNEL               (-7)
+#define BP_INVALIDHANDLE                (-8)
+#define BP_OVERFLOW                     (-9)
+#define BP_WRONGVERSION                 (-10)
+#define BP_BUNDLEPARSEERR               (-11)
+#define BP_UNKNOWNREC                   (-12)
+#define BP_BUNDLETOOLARGE               (-13)
+#define BP_PAYLOADTOOLARGE              (-14)
+#define BP_WRONGCHANNEL                 (-15)
+#define BP_FAILEDINTEGRITYCHECK         (-16)
+#define BP_FAILEDSTORE                  (-17)
 
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x00000001  // valid bundle but agent not able to comply with standard
@@ -77,27 +75,19 @@
 #define BP_OPT_RPTSERV_D                6
 #define BP_OPT_CSTNODE_D                7
 #define BP_OPT_CSTSERV_D                8
-#define BP_OPT_TIMEOUT_D                9
-#define BP_OPT_CREATETIMESYS_D          10
-#define BP_OPT_CREATETIMEVAL_D          11
+#define BP_OPT_CREATETIMESYS_D          9
+#define BP_OPT_CREATETIMEVAL_D          10
+#define BP_OPT_SETSEQUENCE_D            11
 #define BP_OPT_LIFETIME_D               12
-#define BP_OPT_BUNDLELEN_D              13
-#define BP_OPT_FRAGMENTLEN_D            14
-#define BP_OPT_SETSEQUENCE_D            15
-#define BP_OPT_CSTRQST_D                16
-#define BP_OPT_SRCNODE_A                17
-#define BP_OPT_SRCSERV_A                18
-#define BP_OPT_RPTNODE_A                19
-#define BP_OPT_RPTSERV_A                20
-#define BP_OPT_CSTNODE_A                21
-#define BP_OPT_CSTSERV_A                22
-#define BP_OPT_CREATETIMESYS_A          23
-#define BP_OPT_CREATETIMEVAL_A          24
-#define BP_OPT_LIFETIME_A               25
-#define BP_OPT_PAYCRC                   26
-#define BP_OPT_PROCADMINONLY            27
-#define BP_OPT_WRAPRSP                  28
-#define BP_OPT_ACSRATE                  29
+#define BP_OPT_CSTRQST_D                13
+#define BP_OPT_ALLOWFRAG_D              14
+#define BP_OPT_PAYCRC_D                 15
+#define BP_OPT_TIMEOUT                  16
+#define BP_OPT_BUNDLELEN                17
+#define BP_OPT_FRAGMENTLEN              18
+#define BP_OPT_PROCADMINONLY            19
+#define BP_OPT_WRAPRSP                  20
+#define BP_OPT_ACSRATE                  21
 
 /******************************************************************************
  TYPEDEFS
@@ -140,9 +130,7 @@ typedef struct {
  ******************************************************************************/
 
 void    bplib_init      (void);
-int     bplib_start     (bp_store_t* store, bp_ipn_t local_node);
-int     bplib_stop      (int agent);
-int     bplib_open      (int agent, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service);
+int     bplib_open      (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service);
 void    bplib_close     (int channel);
 
 int     bplib_getopt    (int channel, int opt, void* val, int len);

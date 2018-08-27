@@ -2,31 +2,31 @@
  * Filename     : bplib.c
  * Purpose      : Bundle Protocol Library
  * Design Notes :
- * 
+ *
  * -------------------------------------------------
  *                    Data Bundle
  * -------------------------------------------------
  * |    MSB    |           |           |    LSB    |
  * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
  * |-----------|-----------|-----------|-----------|    0
- * |                                               | 
+ * |                                               |
  * |              Primary Bundle Block             |
- * |              (see bplib_blk_pri.c)            | 
- * |                                               |    
+ * |              (see bplib_blk_pri.c)            |
+ * |                                               |
  * |-----------------------------------------------|    52
- * |                                               | 
+ * |                                               |
  * |        Custody Transfer Extension Block       |
- * |             (see bplib_blk_cteb.c)            | 
+ * |             (see bplib_blk_cteb.c)            |
  * |                                               |
  * |-----------------------------------------------|    64
- * |                                               | 
+ * |                                               |
  * |             Bundle Integrity Block            |
- * |              (see bplib_blk_bib.c)            | 
+ * |              (see bplib_blk_bib.c)            |
  * |                                               |
  * |-----------|-----------|-----------------------|    72
  * |                                               |    76 --> start of the payload
  * |              Bundle Payload Block             |
- * |              (see bplib_blk_pay.c)            | 
+ * |              (see bplib_blk_pay.c)            |
  * |                                               |
  * |-----------------------------------------------|    4096 --> variable, not to exceed
  *
@@ -36,19 +36,19 @@
  * |    MSB    |           |           |    LSB    |
  * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
  * |-----------|-----------|-----------|-----------|    0
- * |                                               | 
+ * |                                               |
  * |              Primary Bundle Block             |
- * |              (see bplib_blk_pri.c)            | 
- * |                                               |    
+ * |              (see bplib_blk_pri.c)            |
+ * |                                               |
  * |-----------------------------------------------|    52
- * |                                               | 
+ * |                                               |
  * |             Bundle Integrity Block            |
- * |              (see bplib_blk_bib.c)            | 
+ * |              (see bplib_blk_bib.c)            |
  * |                                               |
  * |-----------------------------------------------|    60
  * |                                               |    64 --> start of the payload
  * |              Bundle Payload Block             |
- * |              (see bplib_blk_pay.c)            | 
+ * |              (see bplib_blk_pay.c)            |
  * |                                               |
  * |-----------------------------------------------|
  *
@@ -60,6 +60,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <assert.h>
 
 #include "bplib.h"
@@ -80,23 +81,18 @@
 #define BP_MAX_FILL                     0x3FFF
 
 /* Data Bundle Header Definitions */
-#define BP_DATA_HDR_BUF_SIZE            76
-#define BP_DATA_PROLOG_SIZE             8
+#define BP_DATA_HDR_BUF_SIZE            128
 
 /* DACS Bundle Header Definitions */
-#define BP_DACS_HDR_BUF_SIZE            64
+#define BP_DACS_HDR_BUF_SIZE            128
 
 /* Configurations */
 #ifndef BP_ACTIVE_TABLE_SIZE
 #define BP_ACTIVE_TABLE_SIZE            16384
 #endif
 
-#ifndef BP_DACS_TABLE_SIZE  
+#ifndef BP_DACS_TABLE_SIZE
 #define BP_DACS_TABLE_SIZE              4   // maximum number of custody eids to keep track of per ACS report period
-#endif
-
-#ifndef BP_MAX_AGENTS
-#define BP_MAX_AGENTS                   2
 #endif
 
 #ifndef BP_MAX_CHANNELS
@@ -107,7 +103,7 @@
 #define BP_MAX_FILLS_PER_DACS           64
 #endif
 
-#ifndef BP_DEFAULT_PAY_CRC      
+#ifndef BP_DEFAULT_PAY_CRC
 #define BP_DEFAULT_PAY_CRC              BP_BIB_CRC16
 #endif
 
@@ -171,77 +167,98 @@
  TYPEDEFS
  ******************************************************************************/
 
+/* --------------- Storage Types ------------------- */
+
 /* Payload Storage Block */
 typedef struct {
-    int             cstrqst;
-    uint32_t        cstnode;
-    uint32_t        cstserv;
-    uint32_t        cid;
+    int                 cstrqst;
+    uint32_t            cstnode;
+    uint32_t            cstserv;
+    uint32_t            cid;
 } bp_payload_store_t;
 
 /* Data Bundle Storage Block */
 typedef struct {
-    union {
-        bp_time_t   retxtime;
-        uint8_t     bytes[BP_DATA_PROLOG_SIZE];
-    } prolog;
-    uint8_t         header[BP_DATA_HDR_BUF_SIZE];
+    bp_time_t           retxtime;
+    int                 cteboffset;
+    int                 biboffset;
+    int                 payoffset;
+    int                 headersize;
+    int                 bundlesize;
+    uint8_t             header[BP_DATA_HDR_BUF_SIZE];
 } bp_data_store_t;
 
-/* Aggregate Custody Bundle Block */
+/* DTN Aggregate Custody Bundle Storage Block */
 typedef struct {
-    uint32_t        cstnode;
-    uint32_t        cstserv;
-    uint32_t        first_cid;
-    uint32_t        last_cid;
-    uint32_t        num_cids;
-    uint32_t        fills[BP_MAX_FILLS_PER_DACS];
-    int             num_fills;
-    uint8_t         header[BP_DACS_HDR_BUF_SIZE];
+    uint32_t            cstnode;
+    uint32_t            cstserv;
+    uint32_t            first_cid;
+    uint32_t            last_cid;
+    uint32_t            num_cids;
+    uint32_t            fills[BP_MAX_FILLS_PER_DACS];
+    int                 num_fills;
+    int                 biboffset;
+    int                 payoffset;
+    int                 headersize;
+    int                 bundlesize;
+    uint8_t             header[BP_DACS_HDR_BUF_SIZE];
 } bp_dacs_store_t;
 
-/* Agent Control Block */
+/* --------------- Bundle Types ------------------- */
+
+/* Data Bundle */
 typedef struct {
-    int             agent_index;
-    bp_store_t      store;
-    bp_ipn_t        local_node;
-} bp_agent_t;
-    
+    bp_blk_pri_t        primary_block;
+    bp_blk_cteb_t       custody_block;
+    bp_blk_bib_t        integrity_block;
+    bp_data_store_t     data_storage;
+    int                 data_store_handle;
+    bp_payload_store_t  payload_storage;
+    int                 payload_store_handle;
+    int                 creation_time_sys; // 1: use system time, 0: use provided channel value
+    bp_sid_t            active_table[BP_ACTIVE_TABLE_SIZE];
+    uint32_t            current_custody_id;
+    uint32_t            oldest_custody_id;
+} bp_data_bundle_t;
+
+/* DTN Aggregate Custody Signal Bundle */
+typedef struct {
+    bp_blk_pri_t        primary_block;
+    bp_blk_cteb_t       custody_block;
+    bp_blk_bib_t        integrity_block;
+    bp_dacs_store_t     dacs_storage[BP_DACS_TABLE_SIZE];
+    int                 dacs_store_handle;
+    int                 num_entries;
+    int                 rate_ms;           // number of milliseconds to wait between sending ACS bundles
+} bp_dacs_bundle_t;
+
+/* --------------- Application Types ------------------- */
+
 /* Channel Control Block */
 typedef struct {
-    /* Identifiers */
-    int             channel_index;
-    int             agent_index;
-    int             store_data;
-    int             store_payload;
-    int             store_dacs;
-    /* Settings */
-    bp_blk_pri_t    primary_data_block;
-    bp_blk_pri_t    primary_dacs_block;
-    bp_blk_cteb_t   custody_block;
-    bp_blk_bib_t    integrity_block;
-    int             timeout;                // seconds, zero for infinite
-    int             data_creation_time_sys; // 1: use system time, 0: use provided channel value
-    int             dacs_creation_time_sys; // 1: use system time, 0: use provided channel value
-    int             bundle_maxlength;
-    int             fragment_maxlength;    
-    int             proc_admin_only;        // process only administrative records
-    int             wrap_response;
-    int             dacs_rate_ms;           // number of milliseconds to wait between sending ACS bundles
-    /* Data */
-    bp_sid_t        active_table[BP_ACTIVE_TABLE_SIZE];
-    uint32_t        current_custody_id;
-    uint32_t        oldest_custody_id;
-    int             num_dacs_entries;
-    bp_dacs_store_t dacs_table[BP_DACS_TABLE_SIZE];
-    bp_data_store_t data_bundle;
+    int                 channel_index;
+    bp_store_t          store;
+    bp_data_bundle_t    data_bundle;
+    bp_dacs_bundle_t    dacs_bundle;
+    int                 timeout;                // seconds, zero for infinite
+    int                 bundle_maxlength;
+    int                 fragment_maxlength;
+    int                 proc_admin_only;        // process only administrative records
+    int                 wrap_response;
 } bp_channel_t;
 
 /******************************************************************************
  FILE DATA
- ******************************************************************************/
+ ******************************************************************************
+ * Notes:
+ * 1. The block length field for every bundle block MUST be set to a positive
+ *    integer.  The option to update the fields of the bundle reserves the width
+ *    of the blklen field and goes back and write the value after the entire
+ *    block is written.  If the blklen field was variable, the code would have
+ *    to make a first pass to calculate the block length and then a second pass
+ *    to use that block length - that would be too much processing.
+ */
 
-static bp_agent_t   agents[BP_MAX_AGENTS];
 static bp_channel_t channels[BP_MAX_CHANNELS];
 
 static const bp_blk_pri_t native_data_pri_blk = {
@@ -268,8 +285,6 @@ static const bp_blk_pri_t native_data_pri_blk = {
     .request_custody    = BP_DEFAULT_CSTRQST,
     .allow_frag         = BP_FALSE,
     .report_deletion    = BP_FALSE,
-    .sequence           = 0,
-    .creation_time      = 0
 };
 
 static const bp_blk_pri_t native_dacs_pri_blk = {
@@ -296,9 +311,25 @@ static const bp_blk_pri_t native_dacs_pri_blk = {
     .request_custody    = BP_FALSE,
     .allow_frag         = BP_FALSE,
     .report_deletion    = BP_FALSE,
-    .sequence           = 0,
-    .creation_time      = 0
 };
+
+static const bp_blk_cteb_t native_cteb_blk = {
+                            /*          Value             Index       Width   */
+    .bf                 = { 0,                              1,          1 },
+    .blklen             = { 0,                              2,          2 },
+    .cid                = { 0,                              4,          4 },
+    .cstnode            = { 0,                              8,          4 },
+    .cstserv            = { 0,                              12,         4 }
+};
+
+static const bp_blk_bib_t native_bib_blk = {
+                            /*          Value             Index       Width   */
+    .bf                 = { 0,                              1,          1 },
+    .blklen             = { 0,                              2,          2 },
+    .paytype            = { BP_DEFAULT_PAY_CRC,             4,          2 },
+    .paycrc             = { 0,                              6,          2 }
+};
+
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -306,7 +337,7 @@ static const bp_blk_pri_t native_dacs_pri_blk = {
 
 /*--------------------------------------------------------------------------------------
  * initialize_data_header - Initialize Data Bundle Header from Channel Struct
- * 
+ *
  *  Does not populate following (see update_data_header):
  *      - creation time (when using system time)
  *      - creation sequence
@@ -316,56 +347,71 @@ static const bp_blk_pri_t native_dacs_pri_blk = {
  *      - payload crc
  *      - payload block length
  *-------------------------------------------------------------------------------------*/
-static void initialize_data_header(int c)
+static int initialize_data_header(bp_data_bundle_t* bundle)
 {
-    uint8_t* hdrbuf = channels[c].data_bundle.header;
-    int index = 0;
+    bp_data_store_t* ds     = &bundle->data_storage;
+    uint8_t*         hdrbuf = ds->header;
 
-    index += bplib_blk_pri_write (&hdrbuf[index], BP_DATA_HDR_BUF_SIZE - index, &channels[c].primary_data_block);
-    index += bplib_blk_cteb_write(&hdrbuf[index], BP_DATA_HDR_BUF_SIZE - index, &channels[c].custody_block);
-    index += bplib_blk_bib_write (&hdrbuf[index], BP_DATA_HDR_BUF_SIZE - index, &channels[c].integrity_block);
-    index += bplib_blk_pay_write (&hdrbuf[index], BP_DATA_HDR_BUF_SIZE - index);
+    ds->cteboffset = bplib_blk_pri_write (&hdrbuf[0],              BP_DATA_HDR_BUF_SIZE,                  &bundle->primary_block,   BP_FALSE);
+    ds->biboffset  = bplib_blk_cteb_write(&hdrbuf[ds->cteboffset], BP_DATA_HDR_BUF_SIZE - ds->cteboffset, &bundle->custody_block,   BP_FALSE);
+    ds->payoffset  = bplib_blk_bib_write (&hdrbuf[ds->biboffset],  BP_DATA_HDR_BUF_SIZE - ds->biboffset,  &bundle->integrity_block, BP_FALSE);
+    ds->headersize = bplib_blk_pay_write (&hdrbuf[ds->payoffset],  BP_DATA_HDR_BUF_SIZE - ds->payoffset);
+
+    return ds->headersize;
 }
 
 /*--------------------------------------------------------------------------------------
  * update_data_header - Update Data Bundle Header using Payload
- * 
+ *
  *  updates fields in the data_bundle header that are specific to the payload
  *-------------------------------------------------------------------------------------*/
-static void update_data_header(int c, void* fragment_payload, int fragment_payload_size, int fragment_payload_offset, int total_payload_size)
+static int update_data_header(bp_data_bundle_t* bundle, void* fragment_payload, int fragment_payload_size, int fragment_payload_offset, int total_payload_size)
 {
-    uint8_t* hdrbuf = channels[c].data_bundle.header;
+    uint8_t flags = 0;
+    uint8_t* hdrbuf = bundle->data_storage.header;
+    bp_blk_pri_t* pri = &bundle->primary_block;
 
     /* Set Fragmentation */
-    if(fragment_payload_size != total_payload_size)
+    if(pri->allow_frag)
     {
-        bplib_blk_pri_setfrag(hdrbuf, fragment_payload_offset);
+        pri->fragoffset.value = fragment_payload_offset;
+        pri->paylen.value = total_payload_size;
+        bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, pri->fragoffset, &flags);
+        bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, pri->paylen, &flags);
+    }
+    else
+    {
+        return bplog(BP_UNSUPPORTED, "Attempting to fragment bundle on channel %d which does not allow fragmentation\n", c);
     }
 
     /* Set Creation Time */
-    if(channels[c].creation_time_sys)
+    if(bundle->creation_time_sys)
     {
         bp_time_t tm;
         bplib_systime(&tm);
-        bplib_blk_pri_settime(hdrbuf, tm);
+        pri->createtms.value = tm.s;
+        pri->createtmns.value = tm.ns;
+        bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, pri->createtms, &flags);
+        bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, pri->createtmns, &flags);
     }
 
     /* Set Sequence */
-    bplib_blk_pri_setseq(hdrbuf, channels[c].primary_data_block.sequence);
-
-    /* Set Total Payload Length */
-    bplib_blk_pri_setpaylen(hdrbuf, total_payload_size);
+    bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, pri->createseq, &flags);
 
     /* Update Bundle Integrity Block */
-    bplib_blk_bib_update(&hdrbuf[BP_DATA_HDR_BIB_BLK_INDEX], BP_BIB_BLK_LENGTH, fragment_payload, fragment_payload_size, &channels[c].integrity_block);
-    
+    bplib_blk_bib_update(&hdrbuf[bundle->data_storage.biboffset], BP_DATA_HDR_BUF_SIZE - bundle->data_storage.biboffset, fragment_payload, fragment_payload_size, &bundle->integrity_block);
+
     /* Update Payload Block */
-    bplib_blk_pay_update(&hdrbuf[BP_DATA_HDR_PAY_BLK_INDEX], 4, fragment_payload_size);
-}    
+    bplib_blk_pay_update(&hdrbuf[bundle->data_storage.payoffset], 4, fragment_payload_size);
+
+    /* REturn Status */
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return BP_SUCCESS;
+}
 
 /*--------------------------------------------------------------------------------------
  * initialize_dacs_header - Initialize ACS Bundle Header from Channel Struct
- * 
+ *
  *  Does not populate following (see update_dacs_header):
  *      - creation time (when using system time)
  *      - creation sequence
@@ -373,52 +419,57 @@ static void update_data_header(int c, void* fragment_payload, int fragment_paylo
  *      - payload crc
  *      - payload block length
  *-------------------------------------------------------------------------------------*/
-static void initialize_dacs_header(bp_channel_t* ch, bp_dacs_store_t* dacs, uint32_t dstnode, uint32_t dstserv)
+static int initialize_dacs_header(bp_dacs_bundle_t* bundle, bp_dacs_store_t* ds, uint32_t dstnode, uint32_t dstserv)
 {
-    uint8_t* hdrbuf = dacs->header;
+    uint8_t* hdrbuf = ds->header;
+    uint8_t flags = 0;
 
-    /* Primary Block */
-    bplib_blk_pri_write(hdrbuf, BP_ACS_HDR_SIZE, &ch->primary_dacs_block);
- 
-    /* Bundle Integrity Block */
-    bplib_blk_bib_write(&hdrbuf[BP_ACS_HDR_BIB_BLK_INDEX], BP_BIB_BLK_LENGTH, &ch->integrity_block);
+    ds->biboffset  = bplib_blk_pri_write (&hdrbuf[0],             BP_DATA_HDR_BUF_SIZE,                 &bundle->primary_block,   BP_FALSE);
+    ds->payoffset  = bplib_blk_bib_write (&hdrbuf[ds->biboffset], BP_DATA_HDR_BUF_SIZE - ds->biboffset, &bundle->integrity_block, BP_FALSE);
+    ds->headersize = bplib_blk_pay_write (&hdrbuf[ds->payoffset], BP_DATA_HDR_BUF_SIZE - ds->payoffset);
 
-    /* Payload Block */
-    bplib_blk_pay_write(&hdrbuf[BP_ACS_HDR_PAY_BLK_INDEX], BP_ACS_HDR_SIZE - BP_ACS_HDR_PAY_BLK_INDEX);
+    bundle->primary_block.dstnode.value = dstnode;
+    bundle->primary_block.dstserv.value = dstserv;
 
-    /* Set Destination */
-    bplib_blk_pri_setdst(hdrbuf, dstnode, dstserv);
+    bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, bundle->primary_block.dstnode, &flags);
+    bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, bundle->primary_block.dstserv, &flags);
+
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return ds->headersize;
 }
 
 /*--------------------------------------------------------------------------------------
  * update_dacs_header - Update ACS Bundle Header using Payload
- * 
+ *
  *  updates fields in the acs bundle header that are specific to the payload
  *-------------------------------------------------------------------------------------*/
-static void update_dacs_header(bp_channel_t* ch, bp_dacs_store_t* dacs, void* payload, int payload_size)
+static int update_dacs_header(bp_dacs_bundle_t* bundle, bp_dacs_store_t* dacs, void* payload, int payload_size)
 {
+    uint8_t flags = 0;
     uint8_t* hdrbuf = dacs->header;
+    bp_blk_pri_t* pri = &bundle->primary_block;
 
     /* Set Creation Time */
-    if(ch->primary_dacs_block.creation_time_sys)
-    {
-        bp_time_t tm;
-        bplib_systime(&tm);
-        bplib_blk_pri_settime(hdrbuf, tm);
-    }
+    bp_time_t tm;
+    bplib_systime(&tm);
+    pri->createtms.value = tm.s;
+    pri->createtmns.value = tm.ns;
+    bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, pri->createtms, &flags);
+    bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, pri->createtmns, &flags);
 
     /* Set Sequence */
-    bplib_blk_pri_setseq(hdrbuf, ch->primary_dacs_block.sequence);
-
-    /* Set Total Payload Length */
-    bplib_blk_pri_setpaylen(hdrbuf, payload_size);
+    bplib_sdnv_write(hdrbuf, BP_DATA_HDR_BUF_SIZE, pri->createseq, &flags);
 
     /* Update Bundle Integrity Block */
-    bplib_blk_bib_update(&hdrbuf[BP_ACS_HDR_BIB_BLK_INDEX], BP_BIB_BLK_LENGTH, payload, payload_size, &ch->integrity_block);
-    
+    bplib_blk_bib_update(&hdrbuf[dacs->biboffset], BP_DATA_HDR_BUF_SIZE - dacs->biboffset, payload, payload_size, &bundle->integrity_block);
+
     /* Update Payload Block */
-    bplib_blk_pay_update(&hdrbuf[BP_ACS_HDR_PAY_BLK_INDEX], 4, payload_size);
-}    
+    bplib_blk_pay_update(&hdrbuf[dacs->payoffset], 4, payload_size);
+
+    /* Return Status */
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return BP_SUCCESS;
+}
 
 /*--------------------------------------------------------------------------------------
  * initialize_dacs_payload
@@ -429,13 +480,13 @@ static void initialize_dacs_payload(bp_dacs_store_t* dacs, uint32_t cid)
     dacs->last_cid = cid;
     dacs->fills[0] = 0;
     dacs->num_fills = 1;
-    dacs->num_cids = 1;        
+    dacs->num_cids = 1;
 }
 
 /*--------------------------------------------------------------------------------------
  * update_dacs_payload
  *-------------------------------------------------------------------------------------*/
-static uint32_t update_dacs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cstnode, uint32_t cstserv, int delivered, int timeout)
+static uint32_t update_dacs_payload(bp_dacs_bundle_t* bundle, uint32_t cid, uint32_t cstnode, uint32_t cstserv, int delivered, bp_store_enqueue_t enqueue, int timeout)
 {
     static uint8_t buffer[BP_DACS_PAY_SIZE];
     int i, dacs_entry;
@@ -443,9 +494,9 @@ static uint32_t update_dacs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cst
 
     /* Find ACS Table Entry */
     dacs_entry = BP_DACS_TABLE_SIZE; // no entry found
-    for(i = 0; i < ch->num_dacs_entries; i++)
+    for(i = 0; i < bundle->num_entries; i++)
     {
-        if(ch->dacs_table[i].cstnode == cstnode && ch->dacs_table[i].cstserv == cstserv)
+        if(bundle->dacs_storage[i].cstnode == cstnode && bundle->dacs_storage[i].cstserv == cstserv)
         {
             dacs_entry = i;
             break;
@@ -455,58 +506,58 @@ static uint32_t update_dacs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cst
     /* Handle Entry Not Found */
     if(dacs_entry == BP_DACS_TABLE_SIZE)
     {
-        if(ch->num_dacs_entries < BP_DACS_TABLE_SIZE)
+        if(bundle->num_entries < BP_DACS_TABLE_SIZE)
         {
             /* Populate ACS Table */
-            ch->dacs_table[ch->num_dacs_entries].cstnode = cstnode;
-            ch->dacs_table[ch->num_dacs_entries].cstserv = cstserv;
-            ch->dacs_table[ch->num_dacs_entries].num_cids = 0;
-            dacs_entry = ch->num_dacs_entries++;
+            bundle->dacs_storage[bundle->num_entries].cstnode = cstnode;
+            bundle->dacs_storage[bundle->num_entries].cstserv = cstserv;
+            bundle->dacs_storage[bundle->num_entries].num_cids = 0;
+            dacs_entry = bundle->num_entries++;
 
-            /* Initial ACS Header */            
-            initialize_dacs_header(ch, &ch->dacs_table[dacs_entry], cstnode, cstserv);
+            /* Initial ACS Header */
+            initialize_dacs_header(bundle, &bundle->dacs_storage[dacs_entry], cstnode, cstserv);
         }
         else
         {
             /* No Room in Table for Another Source */
-            flags |= BP_FLAG_TOOMANYSOURCES; 
+            flags |= BP_FLAG_TOOMANYSOURCES;
         }
     }
 
     /* Populate/Send ACS Bundle(s) */
     if(dacs_entry != BP_DACS_TABLE_SIZE)
     {
-        bp_dacs_store_t* dacs = &ch->dacs_table[dacs_entry];
-        if(dacs->num_cids == 0)
+        bp_dacs_store_t* ds = &bundle->dacs_storage[dacs_entry];
+        if(ds->num_cids == 0)
         {
             /* Start New ACS */
-            initialize_dacs_payload(dacs, cid);
+            initialize_dacs_payload(ds, cid);
         }
-        else if(cid <= dacs->last_cid)
+        else if(cid <= ds->last_cid)
         {
             /* Mark CID Going Backwards */
             flags |= BP_FLAG_CIDWENTBACKWARDS;
         }
         else // cid > dacs->last_cid
-        {                
+        {
             /* Update Fill */
-            uint32_t cid_delta = cid - dacs->last_cid;
+            uint32_t cid_delta = cid - ds->last_cid;
             uint32_t hop_val = cid_delta - 1;
-            int fill_index = dacs->num_fills - 1;
+            int fill_index = ds->num_fills - 1;
 
-            dacs->last_cid = cid; // save last CID
+            ds->last_cid = cid; // save last CID
 
             if((fill_index + 2) < BP_MAX_FILLS_PER_DACS)
             {
-                if(hop_val == 0 && dacs->fills[fill_index] < BP_MAX_FILL)
+                if(hop_val == 0 && ds->fills[fill_index] < BP_MAX_FILL)
                 {
-                    dacs->fills[fill_index]++;
+                    ds->fills[fill_index]++;
                 }
                 else if(hop_val < BP_MAX_FILL)
                 {
-                    dacs->fills[fill_index + 1] = hop_val;
-                    dacs->fills[fill_index + 2]++;
-                    dacs->num_fills += 2;
+                    ds->fills[fill_index + 1] = hop_val;
+                    ds->fills[fill_index + 2]++;
+                    ds->num_fills += 2;
                 }
                 else
                 {
@@ -521,172 +572,154 @@ static uint32_t update_dacs_payload(bp_channel_t* ch, uint32_t cid, uint32_t cst
 
         /* Check Flags */
         if(flags != 0)
-        {            
+        {
             int dacs_size, enstat;
-            bp_store_enqueue_t enqueue = agents[ch->agent_index].store.enqueue;
-            
+
             /* Build ACS */
-            dacs_size = bplib_rec_acs_write(buffer, BP_DACS_PAY_SIZE, delivered, dacs->first_cid, dacs->fills, dacs->num_fills);
-            update_dacs_header(ch, dacs, buffer, dacs_size);            
+            dacs_size = bplib_rec_acs_write(buffer, BP_DACS_PAY_SIZE, delivered, ds->first_cid, ds->fills, ds->num_fills);
+            update_dacs_header(bundle, ds, buffer, dacs_size);
 
             /* Send (enqueue) ACS */
-            enstat = enqueue(ch->store_dacs, dacs->header, BP_ACS_HDR_SIZE, buffer, dacs_size, timeout);
+            enstat = enqueue(bundle->dacs_store_handle, ds->header, BP_DACS_HDR_BUF_SIZE, buffer, dacs_size, timeout);
             if(enstat != BP_SUCCESS) flags |= BP_FLAG_UNABLETOSTORE;
 
-            /* Start New ACS */
-            initialize_dacs_payload(dacs, cid);
-        }                
+            /* Start New DTN ACS */
+            initialize_dacs_payload(ds, cid);
+        }
     }
-    
+
     /* Return Flags */
     return flags;
 }
 
 /*--------------------------------------------------------------------------------------
  * getset_opt - Get/Set utility function
- *  
+ *
  *  - getset --> 0: get, 1: set
  *  - assumes parameter checking has already been performed
  *-------------------------------------------------------------------------------------*/
 static int getset_opt(int c, int opt, void* val, int len, int getset)
 {
+    bp_channel_t* ch = &channels[c];
+
     /* Select and Process Option */
     switch(opt)
     {
-        case BP_OPT_DSTNODE_D:       
+        case BP_OPT_DSTNODE_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_data_block.dstnode = *node;
-            else        *node = channels[c].primary_data_block.dstnode;
+            if(getset)  ch->data_bundle.primary_block.dstnode = *node;
+            else        *node = ch->data_bundle.primary_block.dstnode;
             bplog(BP_INFO, "Config. Destination Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
-        case BP_OPT_DSTSERV_D:       
+        case BP_OPT_DSTSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_data_block.dstserv = *service;
-            else        *service = channels[c].primary_data_block.dstserv;
+            if(getset)  ch->data_bundle.primary_block.dstserv = *service;
+            else        *service = ch->data_bundle.primary_block.dstserv;
             bplog(BP_INFO, "Config. Destination Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
-        case BP_OPT_SRCNODE_D:        
+        case BP_OPT_SRCNODE_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_data_block.srcnode = *node;
-            else        *node = channels[c].primary_data_block.srcnode;
+            if(getset)  ch->data_bundle.primary_block.srcnode = *node;
+            else        *node = ch->data_bundle.primary_block.srcnode;
             bplog(BP_INFO, "Config. Source Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
-        case BP_OPT_SRCSERV_D:        
+        case BP_OPT_SRCSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_data_block.srcserv = *service;
-            else        *service = channels[c].primary_data_block.srcserv;
+            if(getset)  ch->data_bundle.primary_block.srcserv = *service;
+            else        *service = ch->data_bundle.primary_block.srcserv;
             bplog(BP_INFO, "Config. Source Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
-        case BP_OPT_RPTNODE_D:      
+        case BP_OPT_RPTNODE_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_data_block.rptnode = *node;
-            else        *node = channels[c].primary_data_block.rptnode;
+            if(getset)  ch->data_bundle.primary_block.rptnode = *node;
+            else        *node = ch->data_bundle.primary_block.rptnode;
             bplog(BP_INFO, "Config. Report To Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
-        case BP_OPT_RPTSERV_D:     
+        case BP_OPT_RPTSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_data_block.rptserv = *service;
-            else        *service = channels[c].primary_data_block.rptserv;
+            if(getset)  ch->data_bundle.primary_block.rptserv = *service;
+            else        *service = ch->data_bundle.primary_block.rptserv;
             bplog(BP_INFO, "Config. Report To Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
-        case BP_OPT_CSTNODE_D:       
+        case BP_OPT_CSTNODE_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_data_block.cstnode = *node;
-            else        *node = channels[c].primary_data_block.cstnode;
+            if(getset)  ch->data_bundle.primary_block.cstnode = *node;
+            else        *node = ch->data_bundle.primary_block.cstnode;
             bplog(BP_INFO, "Config. Custodian Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
-        case BP_OPT_CSTSERV_D:        
+        case BP_OPT_CSTSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_data_block.cstserv = *service;
-            else        *service = channels[c].primary_data_block.cstserv;
+            if(getset)  ch->data_bundle.primary_block.cstserv = *service;
+            else        *service = ch->data_bundle.primary_block.cstserv;
             bplog(BP_INFO, "Config. Custodian Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
-        case BP_OPT_TIMEOUT_D:        
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* timeout = (int*)val;
-            if(getset)  channels[c].timeout = *timeout;
-            else        *timeout = channels[c].timeout;
-            bplog(BP_INFO, "Config. Timeout %s %d\n", getset ? "<--" : "-->", *timeout);
-            break;
-        }
-        case BP_OPT_CREATETIMESYS_D:     
+        case BP_OPT_CREATETIMESYS_D:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(*enable != BP_TRUE && *enable != BP_FALSE) return BP_PARMERR;
-            if(getset)  channels[c].data_creation_time_sys = *enable;
-            else        *enable = channels[c].data_creation_time_sys;
+            if(getset)  ch->data_bundle.creation_time_sys = *enable;
+            else        *enable = ch->data_bundle.creation_time_sys;
             bplog(BP_INFO, "Config. Enable Creation Time System %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
-        case BP_OPT_CREATETIMEVAL_D:     
+        case BP_OPT_CREATETIMEVAL_D:
         {
             if(len != sizeof(bp_time_t)) return BP_PARMERR;
             bp_time_t* create_time = (bp_time_t*)val;
-            if(getset)  channels[c].primary_data_block.creation_time = *create_time;
-            else        *create_time = channels[c].primary_data_block.creation_time;
+            if(getset)
+            {
+                ch->data_bundle.primary_block.createtms = create_time->s;
+                ch->data_bundle.primary_block.createtmns = create_time->ns;
+            }
+            else
+            {
+                create_time->s = ch->data_bundle.primary_block.createtms;
+                create_time->ns = ch->data_bundle.primary_block.createtmns;
+            }
             bplog(BP_INFO, "Config. Creation Time %s %lu.%lu\n", getset ? "<--" : "-->", (unsigned long)create_time->s, (unsigned long)create_time->ns);
+            break;
+        }
+        case BP_OPT_SETSEQUENCE_D:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            uint32_t* seq = (uint32_t*)val;
+            if(getset)  ch->data_bundle.primary_block.createseq = *seq;
+            else        *seq = ch->data_bundle.primary_block.createseq;
+            bplog(BP_INFO, "Config. Sequence %s %lu\n", getset ? "<--" : "-->", (unsigned long)*seq);
             break;
         }
         case BP_OPT_LIFETIME_D:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* lifetime = (int*)val;
-            if(getset)  channels[c].primary_data_block.lifetime = *lifetime;
-            else        *lifetime = channels[c].primary_data_block.lifetime;
+            if(getset)  ch->data_bundle.primary_block.lifetime = *lifetime;
+            else        *lifetime = ch->data_bundle.primary_block.lifetime;
             bplog(BP_INFO, "Config. Lifetime %s %d\n", getset ? "<--" : "-->", *lifetime);
-            break;
-        }
-        case BP_OPT_BUNDLELEN_D:      
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* maxlen = (int*)val;
-            if(getset)  channels[c].bundle_maxlength = *maxlen;
-            else        *maxlen = channels[c].bundle_maxlength;
-            bplog(BP_INFO, "Config. Maximum Bundle Length %s %d\n", getset ? "<--" : "-->", *maxlen);
-            break;
-        }
-        case BP_OPT_FRAGMENTLEN_D:    
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* maxlen = (int*)val;
-            if(getset)  channels[c].fragment_maxlength = *maxlen;
-            else        *maxlen = channels[c].fragment_maxlength;
-            bplog(BP_INFO, "Config. Maximum Fragment Length %s %d\n", getset ? "<--" : "-->", *maxlen);
-            break;
-        }
-        case BP_OPT_SETSEQUENCE_D:       
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            uint32_t* seq = (uint32_t*)val;
-            if(getset)  channels[c].primary_data_block.sequence = *seq;
-            else        *seq = channels[c].primary_data_block.sequence;
-            bplog(BP_INFO, "Config. Sequence %s %lu\n", getset ? "<--" : "-->", (unsigned long)*seq);
             break;
         }
         case BP_OPT_CSTRQST_D:
@@ -694,100 +727,55 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(*enable != BP_TRUE && *enable != BP_FALSE) return BP_PARMERR;
-            if(getset)  channels[c].primary_data_block.request_custody = *enable;
-            else        *enable = channels[c].primary_data_block.request_custody;
+            if(getset)  ch->data_bundle.primary_block.request_custody = *enable;
+            else        *enable = ch->data_bundle.primary_block.request_custody;
             bplog(BP_INFO, "Config. Enable Custody Request %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
-        case BP_OPT_SRCNODE_A:        
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_dacs_block.srcnode = *node;
-            else        *node = channels[c].primary_dacs_block.srcnode;
-            bplog(BP_INFO, "Config. Source Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
-            break;
-        }
-        case BP_OPT_SRCSERV_A:        
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_dacs_block.srcserv = *service;
-            else        *service = channels[c].primary_dacs_block.srcserv;
-            bplog(BP_INFO, "Config. Source Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
-            break;
-        }
-        case BP_OPT_RPTNODE_A:      
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_dacs_block.rptnode = *node;
-            else        *node = channels[c].primary_dacs_block.rptnode;
-            bplog(BP_INFO, "Config. Report To Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
-            break;
-        }
-        case BP_OPT_RPTSERV_A:     
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_dacs_block.rptserv = *service;
-            else        *service = channels[c].primary_dacs_block.rptserv;
-            bplog(BP_INFO, "Config. Report To Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
-            break;
-        }
-        case BP_OPT_CSTNODE_A:       
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_dacs_block.cstnode = *node;
-            else        *node = channels[c].primary_dacs_block.cstnode;
-            bplog(BP_INFO, "Config. Custodian Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
-            break;
-        }
-        case BP_OPT_CSTSERV_A:        
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  channels[c].primary_dacs_block.cstserv = *service;
-            else        *service = channels[c].primary_dacs_block.cstserv;
-            bplog(BP_INFO, "Config. Custodian Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
-            break;
-        }
-        case BP_OPT_CREATETIMESYS_A:     
+        case BP_OPT_ALLOWFRAG_D:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(*enable != BP_TRUE && *enable != BP_FALSE) return BP_PARMERR;
-            if(getset)  channels[c].dacs_creation_time_sys = *enable;
-            else        *enable = channels[c].dacs_creation_time_sys;
-            bplog(BP_INFO, "Config. Enable Creation Time System %s %d\n", getset ? "<--" : "-->", *enable);
+            if(getset)  ch->data_bundle.primary_block.allow_frag = *enable;
+            else        *enable = ch->data_bundle.primary_block.allow_frag;
+            bplog(BP_INFO, "Config. Allow Fragmentation %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
-        case BP_OPT_CREATETIMEVAL_A:     
-        {
-            if(len != sizeof(bp_time_t)) return BP_PARMERR;
-            bp_time_t* create_time = (bp_time_t*)val;
-            if(getset)  channels[c].primary_dacs_block.creation_time = *create_time;
-            else        *create_time = channels[c].primary_dacs_block.creation_time;
-            bplog(BP_INFO, "Config. Creation Time %s %lu.%lu\n", getset ? "<--" : "-->", (unsigned long)create_time->s, (unsigned long)create_time->ns);
-            break;
-        }
-        case BP_OPT_LIFETIME_A:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* lifetime = (int*)val;
-            if(getset)  channels[c].primary_dacs_block.lifetime = *lifetime;
-            else        *lifetime = channels[c].primary_dacs_block.lifetime;
-            bplog(BP_INFO, "Config. Lifetime %s %d\n", getset ? "<--" : "-->", *lifetime);
-            break;
-        }
-        case BP_OPT_PAYCRC:
+        case BP_OPT_PAYCRC_D:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* type = (int*)val;
-            if(getset)  channels[c].integrity_block.paytype = *type;
-            else        *type = channels[c].integrity_block.paytype;
+            if(getset)  ch->data_bundle.integrity_block.paytype = *type;
+            else        *type = ch->data_bundle.integrity_block.paytype;
             bplog(BP_INFO, "Config. Payload CRC Type %s %d\n", getset ? "<--" : "-->", *type);
+            break;
+        }
+        case BP_OPT_TIMEOUT:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* timeout = (int*)val;
+            if(getset)  ch->timeout = *timeout;
+            else        *timeout = ch->timeout;
+            bplog(BP_INFO, "Config. Timeout %s %d\n", getset ? "<--" : "-->", *timeout);
+            break;
+        }
+        case BP_OPT_BUNDLELEN:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* maxlen = (int*)val;
+            if(getset)  ch->bundle_maxlength = *maxlen;
+            else        *maxlen = ch->bundle_maxlength;
+            bplog(BP_INFO, "Config. Maximum Bundle Length %s %d\n", getset ? "<--" : "-->", *maxlen);
+            break;
+        }
+        case BP_OPT_FRAGMENTLEN:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* maxlen = (int*)val;
+            if(getset)  ch->fragment_maxlength = *maxlen;
+            else        *maxlen = ch->fragment_maxlength;
+            bplog(BP_INFO, "Config. Maximum Fragment Length %s %d\n", getset ? "<--" : "-->", *maxlen);
             break;
         }
         case BP_OPT_PROCADMINONLY:
@@ -795,8 +783,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(*enable != BP_TRUE && *enable != BP_FALSE) return BP_PARMERR;
-            if(getset)  channels[c].proc_admin_only = *enable;
-            else        *enable = channels[c].proc_admin_only;
+            if(getset)  ch->proc_admin_only = *enable;
+            else        *enable = ch->proc_admin_only;
             bplog(BP_INFO, "Config. Enable Processing Only Admin Records %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
@@ -805,8 +793,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* wrap = (int*)val;
             if(*wrap != BP_WRAP_RESEND && *wrap != BP_WRAP_BLOCK && *wrap != BP_WRAP_DROP) return BP_PARMERR;
-            if(getset)  channels[c].wrap_response = *wrap;
-            else        *wrap = channels[c].wrap_response;
+            if(getset)  ch->wrap_response = *wrap;
+            else        *wrap = ch->wrap_response;
             bplog(BP_INFO, "Config. Wrap Response %s %d\n", getset ? "<--" : "-->", *wrap);
             break;
         }
@@ -814,8 +802,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* rate = (int*)val;
-            if(getset)  channels[c].dacs_rate_ms = *rate;
-            else        *rate = channels[c].dacs_rate_ms;
+            if(getset)  ch->dacs_bundle.rate_ms = *rate;
+            else        *rate = ch->dacs_bundle.rate_ms;
             bplog(BP_INFO, "Config. ACS Rate %s %d\n", getset ? "<--" : "-->", *rate);
             break;
         }
@@ -825,10 +813,10 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
             return bplog(BP_PARMERR, "Config. Option Not Found (%d)\n", opt);
         }
     }
-    
+
     /* Re-initialize Bundle Header */
-    if(getset) initialize_data_header(c);
-    
+    if(getset) initialize_data_header(&ch->data_bundle);
+
     /* Option Successfully Processed */
     return BP_SUCCESS;
 }
@@ -843,29 +831,21 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
 void bplib_init(void)
 {
     int i;
-    
-    /* Set all agent control blocks to empty */
-    for(i = 0; i < BP_MAX_AGENTS; i++)  
-    {
-        agents[i].agent_index = BP_EMPTY;
-    }
-    
+
     /* Set all channel control blocks to empty */
-    for(i = 0; i < BP_MAX_CHANNELS; i++)  
+    for(i = 0; i < BP_MAX_CHANNELS; i++)
     {
         channels[i].channel_index = BP_EMPTY;
-        channels[i].agent_index = BP_EMPTY;
     }
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_start - registers and initializes an agent
+ * bplib_open -
  *-------------------------------------------------------------------------------------*/
-int bplib_start(bp_store_t* store, bp_ipn_t local_node)
-{    
+int bplib_open(bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service)
+{
     int i;
-    
-    /* Check parameters */
+
     assert(store);
     assert(store->create);
     assert(store->destroy);
@@ -874,50 +854,6 @@ int bplib_start(bp_store_t* store, bp_ipn_t local_node)
     assert(store->retrieve);
     assert(store->refresh);
     assert(store->relinquish);
-    
-    /* Find open agent slot */
-    for(i = 0; i < BP_MAX_AGENTS; i++)
-    {
-        if(agents[i].agent_index == BP_EMPTY)
-        {
-            /* Initialize agent */
-            agents[i].agent_index = i;
-            agents[i].store = *store; // structure copy
-            agents[i].local_node = local_node;
-            return i; // agent handle
-        }
-    }
-    
-    /* Failed to find empty slot */
-    return bplog(BP_AGENTSFULL, "Cannot start agent, not enough room\n");
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_open - 
- *-------------------------------------------------------------------------------------*/
-int bplib_stop(int agent)
-{
-    if(agent < 0 || agent > BP_MAX_AGENTS)          return BP_PARMERR;
-    else if(agents[agent].agent_index == BP_EMPTY)  return BP_INVALIDAGENT;
-
-    agents[agent].agent_index = BP_EMPTY;
-    
-    return BP_SUCCESS;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_open - 
- *-------------------------------------------------------------------------------------*/
-int bplib_open(int agent, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service)
-{
-    int i;
-    
-    /* Check agent */
-    if(agent < 0 || agent >= BP_MAX_AGENTS)
-    {
-        return bplog(BP_PARMERR, "Invalid agent index: %d\n", agent);
-    }
-    else if(agents[agent].agent_index != agent) return BP_INVALIDAGENT;
 
     /* Find open channel slot */
     for(i = 0; i < BP_MAX_CHANNELS; i++)
@@ -929,80 +865,80 @@ int bplib_open(int agent, bp_ipn_t local_service, bp_ipn_t destination_node, bp_
 
             /* Initialize Assets */
             channels[i].channel_index                           = i;
-            channels[i].agent_index                             = agent;
-            channels[i].store_data                            = agents[agent].store.create();
-            channels[i].store_payload                           = agents[agent].store.create();
-            channels[i].store_dacs                               = agents[agent].store.create();
-    
-            /* Initialize Primary Data Block */    
-            channels[i].primary_data_block = native_data_pri_blk;
-            channels[i].primary_data_block.dstnode.value        = destination_node;
-            channels[i].primary_data_block.dstserv.value        = destination_service;
-            channels[i].primary_data_block.srcnode.value        = agents[agent].local_node;
-            channels[i].primary_data_block.srcserv.value        = local_service;
-            channels[i].primary_data_block.rptnode.value        = agents[agent].local_node;
-            channels[i].primary_data_block.rptserv.value        = local_service;
-            channels[i].primary_data_block.cstnode.value        = agents[agent].local_node;
-            channels[i].primary_data_block.cstserv.value        = local_service;
-    
-            /* Initialize Primary ACS Block */
-            channels[i].primary_dacs_block = native_dacs_pri_blk;
-            channels[i].primary_dacs_block.srcnode.value         = agents[agent].local_node;
-            channels[i].primary_dacs_block.srcserv.value         = local_service;
-            channels[i].primary_dacs_block.rptnode.value         = agents[agent].local_node;
-            channels[i].primary_dacs_block.rptserv.value         = local_service;
-            channels[i].primary_dacs_block.cstnode.value         = agents[agent].local_node;
-            channels[i].primary_dacs_block.cstserv.value         = local_service;
+            channels[i].store                                   = *store; // structure copy
 
-            /* Initialize Custody Block */
-            channels[i].custody_block.cid                       = 0;
-            channels[i].custody_block.cstnode                   = agents[agent].local_node;
-            channels[i].custody_block.cstserv                   = local_service;
-            
-            /* Initialize Integrity Block */    
-            channels[i].integrity_block.paytype                 = BP_DEFAULT_PAY_CRC;
+            /* Initialize Data Bundle */
+            channels[i].data_bundle.data_store_handle           = channels[i].store.create();
+            channels[i].data_bundle.payload_store_handle        = channels[i].store.create();
+            channels[i].data_bundle.primary_block               = native_data_pri_blk;
+            channels[i].data_bundle.primary_block.dstnode.value = destination_node;
+            channels[i].data_bundle.primary_block.dstserv.value = destination_service;
+            channels[i].data_bundle.primary_block.srcnode.value = local_node;
+            channels[i].data_bundle.primary_block.srcserv.value = local_service;
+            channels[i].data_bundle.primary_block.rptnode.value = local_node;
+            channels[i].data_bundle.primary_block.rptserv.value = local_service;
+            channels[i].data_bundle.primary_block.cstnode.value = local_node;
+            channels[i].data_bundle.primary_block.cstserv.value = local_service;
+            channels[i].data_bundle.custody_block               = native_cteb_blk;
+            channels[i].data_bundle.custody_block.cid.value     = 0;
+            channels[i].data_bundle.custody_block.cstnode.value = local_node;
+            channels[i].data_bundle.custody_block.cstserv.value = local_service;
+            channels[i].data_bundle.integrity_block             = native_bib_blk;
+            channels[i].data_bundle.creation_time_sys           = BP_DEFAULT_CREATE_TIME_SYS;
+            channels[i].data_bundle.current_custody_id          = 0;
+            channels[i].data_bundle.oldest_custody_id           = 0;
+
+            /* Initialize Primary DACS Block */
+            channels[i].dacs_bundle.dacs_store_handle           = channels[i].store.create();
+            channels[i].dacs_bundle.primary_block               = native_dacs_pri_blk;
+            channels[i].dacs_bundle.primary_block.srcnode.value = local_node;
+            channels[i].dacs_bundle.primary_block.srcserv.value = local_service;
+            channels[i].dacs_bundle.primary_block.rptnode.value = local_node;
+            channels[i].dacs_bundle.primary_block.rptserv.value = local_service;
+            channels[i].dacs_bundle.primary_block.cstnode.value = local_node;
+            channels[i].dacs_bundle.primary_block.cstserv.value = local_service;
+            channels[i].dacs_bundle.integrity_block             = native_bib_blk;
+            channels[i].dacs_bundle.num_entries                 = 0;
+            channels[i].dacs_bundle.rate_ms                     = BP_DEFAULT_DACS_RATE;
 
             /* Initialize Data */
             channels[i].timeout                                 = BP_DEFAULT_TIMEOUT;
-            channels[i].data_creation_time_sys                  = BP_DEFAULT_CREATE_TIME_SYS;
-            channels[i].dacs_creation_time_sys                  = BP_DEFAULT_CREATE_TIME_SYS;
             channels[i].bundle_maxlength                        = BP_DEFAULT_BUNDLE_MAXLENGTH;
             channels[i].fragment_maxlength                      = BP_DEFAULT_BUNDLE_MAXLENGTH;
             channels[i].proc_admin_only                         = BP_DEFAULT_PROC_ADMIN_ONLY;
             channels[i].wrap_response                           = BP_DEFAULT_WRAP_RESPONSE;
-            channels[i].dacs_rate_ms                            = BP_DEFAULT_DACS_RATE;
-            channels[i].current_custody_id                      = 0;
-            channels[i].oldest_custody_id                       = 0;
-            channels[i].num_dacs_entries                         = 0;
 
-            /* Populate Initial Data Header */
-            initialize_data_header(i);
-                        
+            /* Populate Initial Data Bundle Storage Header
+             *  note only initialize data bundle and not dacs bundle
+             *  since for storage the dacs bundles are initialized
+             *  when custody requests arrive */
+            initialize_data_header(&channels[i].data_bundle);
+
             /* Return Channel Handle */
             return i;
         }
     }
-    
+
     /* Failed to find empty slot */
     return bplog(BP_CHANNELSFULL, "Cannot open channel, not enough room\n");
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_close - 
+ * bplib_close -
  *-------------------------------------------------------------------------------------*/
 void bplib_close(int channel)
 {
     if(channel >= 0 && channel < BP_MAX_CHANNELS)
     {
         channels[channel].channel_index = BP_EMPTY;
-        agents[channels[channel].agent_index].store.destroy(channels[channel].store_data);
-        agents[channels[channel].agent_index].store.destroy(channels[channel].store_payload);
-        agents[channels[channel].agent_index].store.destroy(channels[channel].store_dacs);
+        channels[channel].store.destroy(channels[channel].data_bundle.data_store_handle);
+        channels[channel].store.destroy(channels[channel].data_bundle.payload_store_handle);
+        channels[channel].store.destroy(channels[channel].dacs_bundle.dacs_store_handle);
     }
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_getopt - 
+ * bplib_getopt -
  *-------------------------------------------------------------------------------------*/
 int bplib_getopt(int channel, int opt, void* val, int len)
 {
@@ -1016,7 +952,7 @@ int bplib_getopt(int channel, int opt, void* val, int len)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_setopt - 
+ * bplib_setopt -
  *-------------------------------------------------------------------------------------*/
 int bplib_setopt(int channel, int opt, void* val, int len)
 {
@@ -1030,7 +966,7 @@ int bplib_setopt(int channel, int opt, void* val, int len)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_store - 
+ * bplib_store -
  *-------------------------------------------------------------------------------------*/
 int bplib_store(int channel, void* payload, int size, int timeout)
 {
@@ -1042,50 +978,49 @@ int bplib_store(int channel, void* payload, int size, int timeout)
     else if(channels[channel].channel_index != channel) return BP_INVALIDCHANNEL;
     else if(payload == NULL)                            return BP_PARMERR;
     else if(size > channels[channel].bundle_maxlength)  return BP_PARMERR;
-    
+
     /* Set Shortcuts */
     ch = &channels[channel];
-    enqueue = agents[ch->agent_index].store.enqueue;
+    enqueue = ch->store.enqueue;
 
     /* Check Fragmentation */
-    if(size > ch->fragment_maxlength)
-        if(ch->primary_data_block.allow_frag)
+    if(ch->data_bundle.primary_block.allow_frag)
     {
         uint8_t* payload_ptr = (uint8_t*)payload;
         int payload_offset = 0;
         while(payload_offset < size)
         {
             /* Enqueue Pre-Built Bundle in Storage Service */
-            update_data_header(channel, &payload_ptr[payload_offset], ch->fragment_maxlength, payload_offset, size);
-            enqueue(ch->store_data, &ch->data_bundle, sizeof(bp_data_store_t), &payload_ptr[payload_offset], ch->fragment_maxlength, timeout);
-            payload_offset += ch->fragment_maxlength;
+            int fragment_size = ch->fragment_maxlength < size - payload_offset ? ch->fragment_maxlength : size - payload_offset;
+            ch->data_bundle.data_storage.bundlesize = ch->data_bundle.data_storage.headersize + fragment_size;
+            update_data_header(&ch->data_bundle, &payload_ptr[payload_offset], fragment_size, payload_offset, size);
+            enqueue(ch->data_bundle.data_store_handle, &ch->data_bundle, sizeof(bp_data_store_t), &payload_ptr[payload_offset], fragment_size, timeout);
+            payload_offset += fragment_size;
         }
     }
     else
     {
         /* Enqueue Pre-Built Bundle in Storage Service */
-        update_data_header(channel, payload, size, 0, size);
-        
-        uint8_t* ptr = (uint8_t*)&ch->data_bundle;
-        printf("[%d]: ", sizeof(bp_data_store_t));
-        for(int i = 0; i < sizeof(bp_data_store_t); i++)
-        {
-            printf("%02X ", ptr[i]);
-        }
-        printf("\n");
-        
-        enqueue(ch->store_data, &ch->data_bundle, sizeof(bp_data_store_t), payload, size, timeout);
+        ch->data_bundle.data_storage.bundlesize = ch->data_bundle.data_storage.headersize + size;
+        update_data_header(&ch->data_bundle, payload, size, 0, size);
+        enqueue(ch->data_bundle.data_store_handle, &ch->data_bundle, sizeof(bp_data_store_t), payload, size, timeout);
+////////////////////////////////////////////////////////////////////////
+uint8_t* ptr = (uint8_t*)&ch->data_bundle;
+printf("[%d]: ", sizeof(bp_data_store_t));
+for(int i = 0; i < sizeof(bp_data_store_t); i++) printf("%02X ", ptr[i]);
+printf("\n");
+////////////////////////////////////////////////////////////////////////
     }
 
     /* Increment Sequence Count */
-    ch->primary_data_block.sequence++;
+    ch->data_bundle.primary_block.createseq.value++;
 
     /* Return Status */
     return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_load - 
+ * bplib_load -
  *-------------------------------------------------------------------------------------*/
 int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadflags)
 {
@@ -1097,7 +1032,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
     int ati;                            // active table index
     bp_sid_t sid;                       // id returned from storage of bundle to load
     uint8_t* load_bundle;               // pointer to bundle to load
-    int load_size;                      // size of bundle to load    
+    int load_size;                      // size of bundle to load
     int load_store;                     // handle for storage of bundle to load
     int load_custody;                   // whether or not bundle has custody (ACS does not)
     bp_channel_t* ch;                   // channel pointer
@@ -1110,14 +1045,14 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
     if(channel < 0 || channel >= BP_MAX_CHANNELS)       return BP_PARMERR;
     else if(channels[channel].channel_index != channel) return BP_INVALIDCHANNEL;
     else if(bundle == NULL)                             return BP_PARMERR;
-    
+
     /* Set Short Cuts */
     ch          = &channels[channel];
-    dequeue     = agents[ch->agent_index].store.dequeue;
-    retrieve    = agents[ch->agent_index].store.retrieve;
-    refresh     = agents[ch->agent_index].store.refresh;
-    relinquish  = agents[ch->agent_index].store.relinquish;
-    
+    dequeue     = ch->store.dequeue;
+    retrieve    = ch->store.retrieve;
+    refresh     = ch->store.refresh;
+    relinquish  = ch->store.relinquish;
+
     /* Setup State */
     bplib_systime(&sysnow);     // get current system time (to used for timeouts)
     load_bundle = NULL;         // start out assuming nothing to send
@@ -1125,16 +1060,16 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
     status = BP_SUCCESS;        // start out assuming operation succeeds
     sid = BP_SID_VACANT;        // storage id points to nothing
     *loadflags = 0;             // start with clean slate
-    
+
     /* Check if ACS Needs to be Sent */
-    if(dequeue(ch->store_dacs, (void**)&storebuf, &storelen, &sid, timeout) == BP_SUCCESS)
+    if(dequeue(ch->dacs_bundle.dacs_store_handle, (void**)&storebuf, &storelen, &sid, timeout) == BP_SUCCESS)
     {
         /* Transmit ACS Bundle */
         load_bundle = storebuf;
         load_size = storelen;
-        load_store = ch->store_dacs;
+        load_store = ch->dacs_bundle.dacs_store_handle;
         load_custody = BP_FALSE;
-        
+
         /* ACS Always Need to be Routed */
         *loadflags |= BP_FLAG_ROUTENEEDED;
     }
@@ -1143,26 +1078,26 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         // TODO: use ch->dacs_rate_ms to create ACS bundle if one is not ready
         // no need enqueue...dequeue
     }
-    
+
     /* Try to Send Timed-out Bundle */
-    while((load_bundle == NULL) && (ch->oldest_custody_id < ch->current_custody_id))
+    while((load_bundle == NULL) && (ch->data_bundle.oldest_custody_id < ch->data_bundle.current_custody_id))
     {
-        ati = ch->oldest_custody_id % BP_ACTIVE_TABLE_SIZE;
-        sid = ch->active_table[ati];
+        ati = ch->data_bundle.oldest_custody_id % BP_ACTIVE_TABLE_SIZE;
+        sid = ch->data_bundle.active_table[ati];
         if(sid == BP_SID_VACANT) // entry vacant
         {
-            ch->oldest_custody_id++;
+            ch->data_bundle.oldest_custody_id++;
         }
-        else if(retrieve(ch->store_data, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
+        else if(retrieve(ch->data_bundle.data_store_handle, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
         {
             /* Check Timeout */
-            bp_data_store_t* bundle_ptr = (bp_data_store_t*)storebuf;
-            if(bplib_cmptime(sysnow, bundle_ptr->prolog.retxtime) >= 0)
+            bp_data_store_t* ds = (bp_data_store_t*)storebuf;
+            if(bplib_cmptime(sysnow, ds->retxtime) >= 0)
             {
                 /* Retransmit Bundle */
-                load_bundle = bundle_ptr->header;
-                load_size = storelen - BP_DATA_PROLOG_SIZE;
-                load_store = ch->store_data;
+                load_bundle = &ds->header[0];
+                load_size = ds->bundlesize;
+                load_store = ch->data_bundle.data_store_handle;
                 load_custody = BP_TRUE;
             }
 
@@ -1171,34 +1106,34 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         }
         else // failed to retrieve bundle from storage
         {
-            relinquish(ch->store_data, sid);
-            ch->active_table[ati] = BP_SID_VACANT;
+            relinquish(ch->data_bundle.data_store_handle, sid);
+            ch->data_bundle.active_table[ati] = BP_SID_VACANT;
             *loadflags |= BP_FLAG_STOREFAIL;
             bplog(BP_FAILEDSTORE, "Failed to retrieve bundle from storage\n");
-        }            
+        }
     }
 
     /* Try to Send Stored Bundle (if nothing sent yet) */
     while(load_bundle == NULL)
     {
-        ati = ch->current_custody_id % BP_ACTIVE_TABLE_SIZE;
-        sid = ch->active_table[ati];
+        ati = ch->data_bundle.current_custody_id % BP_ACTIVE_TABLE_SIZE;
+        sid = ch->data_bundle.active_table[ati];
         if(sid == BP_SID_VACANT) // entry vacant
         {
             /* Dequeue Bundle from Storage Service */
-            int deq_status = dequeue(ch->store_data, (void**)&storebuf, &storelen, &sid, timeout);
+            int deq_status = dequeue(ch->data_bundle.data_store_handle, (void**)&storebuf, &storelen, &sid, timeout);
             if(deq_status == BP_SUCCESS)
             {
                 /* Write Re-Transmit Time */
-                bp_data_store_t* bundle_ptr = (bp_data_store_t*)storebuf;
+                bp_data_store_t* ds = (bp_data_store_t*)storebuf;
                 bplib_addtime(&sysretx, sysnow, ch->timeout);
-                bundle_ptr->prolog.retxtime = sysretx;
-                refresh(ch->store_data, storebuf, sizeof(bp_time_t), 0, sid, timeout);
+                ds->retxtime = sysretx;
+                refresh(ch->data_bundle.data_store_handle, storebuf, sizeof(bp_time_t), 0, sid, timeout);
 
                 /* Transmit Dequeued Bundle */
-                load_bundle = bundle_ptr->header;
-                load_size = storelen - BP_DATA_PROLOG_SIZE;
-                load_store = ch->store_data;
+                load_bundle = &ds->header[0];
+                load_size = ds->bundlesize;
+                load_store = ch->data_bundle.data_store_handle;
                 load_custody = BP_TRUE;
             }
             else if(deq_status == BP_TIMEOUT)
@@ -1219,19 +1154,19 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         else if(ch->wrap_response == BP_WRAP_RESEND)
         {
             /* Retrieve Bundle from Storage */
-            if(retrieve(ch->store_data, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
+            if(retrieve(ch->data_bundle.data_store_handle, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
             {
                 /* Retransmit Bundle */
-                bp_data_store_t* bundle_ptr = (bp_data_store_t*)storebuf;
-                load_bundle = bundle_ptr->header;
-                load_size = storelen - BP_DATA_PROLOG_SIZE;
-                load_store = ch->store_data;
+                bp_data_store_t* ds = (bp_data_store_t*)storebuf;
+                load_bundle = &ds->header[0];
+                load_size = ds->bundlesize;
+                load_store = ch->data_bundle.data_store_handle;
                 load_custody = BP_TRUE;
             }
             else // failed to retrieve bundle from storage
             {
-                relinquish(ch->store_data, sid);
-                ch->active_table[ati] = BP_SID_VACANT;
+                relinquish(ch->data_bundle.data_store_handle, sid);
+                ch->data_bundle.active_table[ati] = BP_SID_VACANT;
                 *loadflags |= BP_FLAG_STOREFAIL;
                 bplog(BP_FAILEDSTORE, "Failed to retrieve bundle from storage\n");
             }
@@ -1246,9 +1181,9 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         }
         else // if(ch->wrap_response == BP_WRAP_DROP)
         {
-            relinquish(ch->store_data, sid);
-            ch->active_table[ati] = BP_SID_VACANT;
-            ch->oldest_custody_id++;
+            relinquish(ch->data_bundle.data_store_handle, sid);
+            ch->data_bundle.active_table[ati] = BP_SID_VACANT;
+            ch->data_bundle.oldest_custody_id++;
         }
     }
 
@@ -1258,24 +1193,28 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         /* Check Buffer Size */
         if(size < load_size)
         {
-            status = BP_BUNDLETOOLARGE;
-            bplog(status, "Bundle too large to fit inside buffer (%d %d)\n", size, load_size);
+            status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", size, load_size);;
         }
         else
         {
-            /* Successfully Load Bundle to Application and Relinquish Memory */
-            bplib_os_memcpy(bundle, load_bundle, load_size);
-            status = load_size;
-
             /* Assign Custody ID */
             if(load_custody == BP_TRUE)
             {
-                ati = ch->current_custody_id % BP_ACTIVE_TABLE_SIZE;
-                ch->active_table[ati] = sid;
-                bplib_blk_cteb_update(&storebuf[BP_DATA_HDR_CTEB_BLK_INDEX], BP_CTEB_BLK_LENGTH, ch->current_custody_id);
-                ch->current_custody_id++;
+                uint8_t flags = 0;
+                ati = ch->data_bundle.current_custody_id % BP_ACTIVE_TABLE_SIZE;
+                ch->data_bundle.active_table[ati] = sid;
+                ch->data_bundle.custody_block.cid.value = ch->data_bundle.current_custody_id++;
+                bplib_sdnv_write(load_bundle, ch->data_bundle.custody_block.cid, &flags);
+                if(flags != 0)
+                {
+                    status = bplog(BP_BUNDLEPARSEERR, "Fatal error (%0X): failed to write CID to loaded bundle\n", flags);
+                }
             }
-        }        
+
+            /* Successfully Load Bundle to Application and Relinquish Memory */
+            bplib_os_memcpy(bundle, load_bundle, load_size);
+            status = load_size;
+        }
 
         /* Free Bundle Memory */
         relinquish(load_store, sid);
@@ -1286,7 +1225,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_process - 
+ * bplib_process -
  *-------------------------------------------------------------------------------------*/
 int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* procflags)
 {
@@ -1298,7 +1237,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
     bp_blk_pri_t        priblk;
     bp_blk_cteb_t       ctebblk;
     bp_blk_bib_t        bibblk;
-    bp_time_t           sysnow, expiretime;
+    bp_time_t           sysnow, blktime, expiretime;
     uint8_t             blk_type;
     uint32_t            blk_flags, blk_length;
     int                 start_index, end_index, flag_size;
@@ -1310,7 +1249,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 
     /* Set Shortcuts */
     ch = &channels[channel];
-    enqueue = agents[ch->agent_index].store.enqueue;
+    enqueue = ch->store.enqueue;
 
     /* Setup Bundle Parsing */
     *procflags = 0;
@@ -1318,7 +1257,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
     index = 0;
     bib_present = BP_FALSE;
     cteb_present = BP_FALSE;
-    
+
     /* Parse Primary Block */
     status = bplib_blk_pri_read(&buffer[index], size - index, &priblk);
     if(status <= 0) return status;
@@ -1329,7 +1268,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 
     /* Check Administrative Record Status */
     if(ch->proc_admin_only && priblk.is_admin_rec == BP_FALSE)
-    { 
+    {
         /* Ignore all non-admin records */
         return bplog(BP_IGNORE, "Non-administrative bundle ignored\n");
     }
@@ -1342,7 +1281,9 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 
     /* Check Life Time */
     bplib_systime(&sysnow);
-    bplib_addtime(&expiretime, priblk.creation_time, priblk.lifetime);
+    blktime.s = priblk.createtms;
+    blktime.ns = priblk.createtmns;
+    bplib_addtime(&expiretime, blktime, priblk.lifetime);
     if(bplib_cmptime(sysnow, expiretime) >= 0)
     {
         return bplog(BP_EXPIRED, "Expired bundled attempted to be processed \n");
@@ -1364,7 +1305,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
         {
             /* Verify Block Length */
             if(size - index < (int)blk_length) return BP_BUNDLEPARSEERR;
-            
+
             /* Perform Integrity Check */
             if(bib_present)
             {
@@ -1394,8 +1335,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                 if(rec_type == BP_PROTO_ACS_REC_TYPE) // Aggregate Custody Signal
                 {
                     status = bplib_rec_acs_process( &buffer[index], size - index, rec_status,
-                                                    ch->active_table, BP_ACTIVE_TABLE_SIZE, 
-                                                    agents[ch->agent_index].store.relinquish, ch->store_data);
+                                                    ch->data_bundle.active_table, BP_ACTIVE_TABLE_SIZE,
+                                                    ch->store.relinquish, ch->data_bundle.data_store_handle);
                 }
                 else if(rec_type == BP_PROTO_CS_REC_TYPE) // Custody Signal
                 {
@@ -1414,11 +1355,11 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
             else // process bundle
             {
                 /* Forward Bundle: Bundle's Final Destination Is NOT This Agent */
-                if(priblk.dstnode != ch->primary_data_block.srcnode) // forward bundle
+                if(priblk.dstnode != ch->data_bundle.primary_block.srcnode) // forward bundle
                 {
-                    if(priblk.dstnode != ch->primary_data_block.dstnode) // wrong destination node 
+                    if(priblk.dstnode != ch->data_bundle.primary_block.dstnode) // wrong destination node
                     {
-                        status = bplog(BP_WRONGCHANNEL, "Wrong channel to forward bundle (%d, %d)\n", priblk.dstnode, ch->primary_data_block.dstnode);
+                        status = bplog(BP_WRONGCHANNEL, "Wrong channel to forward bundle (%d, %d)\n", priblk.dstnode, ch->data_bundle.primary_block.dstnode);
                     }
                     else if(size > ch->fragment_maxlength) // fragment and forward bundle
                     {
@@ -1433,14 +1374,14 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                         {
                             if(cteb_present)
                             {
-                                /* Update ACS */
-                                *procflags |= update_dacs_payload(ch, ctebblk.cid, ctebblk.cstnode, ctebblk.cstserv, BP_FALSE, timeout);
-    
                                 /* Update New Bundle Header to Send */
-                                update_data_header(channel, &buffer[index], size - index, 0, size - index);
-                                ch->data_bundle.prolog.retxtime.s = 0;
-                                ch->data_bundle.prolog.retxtime.ns = 0;
-                                status = enqueue(ch->store_data, &ch->data_bundle, sizeof(bp_data_store_t), &buffer[index], size - index, timeout);
+                                update_data_header(&ch->data_bundle, &buffer[index], size - index, 0, size - index);
+                                ch->data_bundle.data_storage.retxtime.s = 0;
+                                ch->data_bundle.data_storage.retxtime.ns = 0;
+                                status = enqueue(ch->data_bundle.data_store_handle, &ch->data_bundle, sizeof(bp_data_store_t), &buffer[index], size - index, timeout);
+
+                                /* Update DACS */
+                                *procflags |= update_dacs_payload(&ch->dacs_bundle, ctebblk.cid, ctebblk.cstnode, ctebblk.cstserv, BP_FALSE, ch->store.enqueue, timeout);
                             }
                             else // only aggregate custody supported
                             {
@@ -1451,31 +1392,40 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                         else
                         {
                             /* Enqueue Received Bundle As-Is in Storage Service */
-                            uint8_t prolog[BP_DATA_PROLOG_SIZE] = {0};
-                            status = enqueue(ch->store_data, prolog, BP_DATA_PROLOG_SIZE, buffer, size, timeout);
+                            bp_data_store_t tmpstore;
+#ifdef _GNU_
+                            unsigned long prologsize = offsetof(bp_data_store_t, header);
+#else
+                            /* Note - would prefer to use offsetof and avoid pointer math, but this should safely
+                             * calculate the size of the prolog used to store bundles */
+                            unsigned long prologsize = (unsigned long)&tmpstore.header[0] - (unsigned long)&tmpstore;
+#endif
+                            bplib_os_memset(&tmpstore, 0, sizeof(tmpstore));
+                            tmpstore.bundlesize = size;
+                            status = enqueue(ch->data_bundle.data_store_handle, &tmpstore, (int)prologsize, buffer, size, timeout);
                         }
                     }
                 }
-                else if(priblk.dstserv != ch->primary_data_block.srcserv) // wrong channel
+                else if(priblk.dstserv != ch->data_bundle.primary_block.srcserv) // wrong channel
                 {
-                    status = bplog(BP_WRONGCHANNEL, "Wrong channel to service bundle (%lu, %lu)\n", (unsigned long)priblk.dstserv, (unsigned long)ch->primary_data_block.srcserv);
+                    status = bplog(BP_WRONGCHANNEL, "Wrong channel to service bundle (%lu, %lu)\n", (unsigned long)priblk.dstserv, (unsigned long)ch->data_bundle.primary_block.srcserv);
                 }
                 else // deliver bundle payload to application
                 {
-                    bp_payload_store_t payload;
-                    
+                    bp_payload_store_t* pay = &ch->data_bundle.payload_storage;
+
                     /* Populate Payload */
-                    payload.cid = ctebblk.cid;
-                    payload.cstnode = ctebblk.cstnode;
-                    payload.cstserv = ctebblk.cstserv;
-                    payload.cstrqst = BP_FALSE;
+                    pay->cid = ctebblk.cid;
+                    pay->cstnode = ctebblk.cstnode;
+                    pay->cstserv = ctebblk.cstserv;
+                    pay->cstrqst = BP_FALSE;
 
                     /* Set Custody Transfer Request */
                     if(priblk.request_custody)
                     {
                         if(cteb_present)
                         {
-                            payload.cstrqst = BP_TRUE;
+                            pay->cstrqst = BP_TRUE;
                         }
                         else
                         {
@@ -1485,7 +1435,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                     }
 
                     /* Enqueue Payload into Storage */
-                    status = enqueue(ch->store_payload, &payload, sizeof(payload), &buffer[index], size - index, timeout);
+                    status = enqueue(ch->data_bundle.payload_store_handle, pay, sizeof(bp_payload_store_t), &buffer[index], size - index, timeout);
                 }
             }
 
@@ -1515,7 +1465,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 
             /* Should transmit status report that block cannot be processed */
             if(blk_flags & BP_BLK_NOTIFYNOPROC_MASK) *procflags |= BP_FLAG_NONCOMPLIANT;
-            
+
             /* Delete bundle since block not recognized */
             if(blk_flags & BP_BLK_DELETENOPROC_MASK) return BP_DROPPED;
 
@@ -1542,8 +1492,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_accept - 
- * 
+ * bplib_accept -
+ *
  *  Returns number of bytes of payload copied (positive), or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
 int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* acptflags)
@@ -1551,7 +1501,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
     bp_channel_t*           ch;
     bp_store_dequeue_t      dequeue;
     bp_store_relinquish_t   relinquish;
-    bp_payload_store_t*           payptr;
+    bp_payload_store_t*     payptr;
     int                     paylen;
     uint8_t*                storebuf;
     int                     storelen;
@@ -1565,14 +1515,14 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
 
     /* Set Acceptance Flags */
     *acptflags = 0;
-    
+
     /* Set Shortcuts */
     ch = &channels[channel];
-    dequeue = agents[ch->agent_index].store.dequeue;
-    relinquish = agents[ch->agent_index].store.relinquish;
+    dequeue = ch->store.dequeue;
+    relinquish = ch->store.relinquish;
 
     /* Dequeue Payload from Storage */
-    status = dequeue(ch->store_payload, (void**)&storebuf, &storelen, &sid, timeout);    
+    status = dequeue(ch->data_bundle.payload_store_handle, (void**)&storebuf, &storelen, &sid, timeout);
     if(status != BP_SUCCESS) return status;
     else if(storelen < (int)sizeof(bp_payload_store_t))
     {
@@ -1594,13 +1544,13 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
         /* Successfully Return Payload to Application and Relinquish Memory */
         bplib_os_memcpy(payload, &storebuf[sizeof(bp_payload_store_t)], paylen);
         status = paylen;
-        relinquish(ch->store_payload, sid);
+        relinquish(ch->data_bundle.payload_store_handle, sid);
     }
 
     /* Acknowledge Custody */
     if(payptr->cstrqst && (status > 0))
     {
-        *acptflags |= update_dacs_payload(ch, payptr->cid, payptr->cstnode, payptr->cstserv, BP_TRUE, timeout);
+        *acptflags |= update_dacs_payload(ch, payptr->cid, payptr->cstnode, payptr->cstserv, BP_TRUE, ch->store.enqueue, timeout);
     }
 
     /* Return Status */
@@ -1609,8 +1559,8 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
 
 
 /*--------------------------------------------------------------------------------------
- * bplib_addtime - 
- * 
+ * bplib_addtime -
+ *
  *  bundle -                pointer to a bundle (byte array) [INPUT]
  *  size -                  size of bundle being pointed to [INPUT]
  *  destination_node -      read from bundle [OUTPUT]
@@ -1625,7 +1575,7 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
 
     /* Check Parameters */
     assert(buffer);
-    
+
     /* Parse Primary Block */
     status = bplib_blk_pri_read(buffer, size, &priblk);
     if(status <= 0) return status;
@@ -1633,14 +1583,14 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
     /* Set Addresses */
     if(destination_node)    *destination_node = (bp_ipn_t)priblk.dstnode;
     if(destination_service) *destination_service = (bp_ipn_t)priblk.dstserv;
-    
+
     /* Return Success */
     return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_addtime - 
- * 
+ * bplib_addtime -
+ *
  *  Returns:    0 indicates success
  *             -1 indicates failure
  *-------------------------------------------------------------------------------------*/
@@ -1653,11 +1603,11 @@ int bplib_addtime (bp_time_t* result, bp_time_t tm, int sec)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_cmptime - 
- * 
+ * bplib_cmptime -
+ *
  *  Notes:      The format of BP time precludes the nanosecond field from being larger
  *              than one second, therefore the logic below makes that assumption
- * 
+ *
  *  Returns:    0 indicates equivalence
  *              1 indicates tm1 > tm2
  *             -1 indicates tm1 < tm2

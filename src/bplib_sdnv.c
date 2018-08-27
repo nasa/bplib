@@ -31,7 +31,7 @@
  *  value - pointer to variable that will hold the value read from block [output]
  *  width - size of value variable in bytes [input]
  *  flags - pointer to variable that will hold the flags set as result of read [output]
- *  returns - number of bytes read in constructing value
+ *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
 int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint8_t* flags)
 {
@@ -51,15 +51,15 @@ int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint8_t* flags)
     {
         sdnv->value <<= 7;
         sdnv->value |= (block[i] & 0x7F);
-        if((block[i] & 0x80) == 0x00) return ((i + 1) - sdnv->index);
+        if((block[i] & 0x80) == 0x00) return (i + 1);
         else if(size < (i + 2)) *flags |= BP_SDNV_INCOMPLETE;        
     }
 
     /* Set Overflow  */
     *flags |= BP_SDNV_OVERFLOW;
     
-    /* Return Bytes Read */
-    return (i - sdnv->index);
+    /* Return Next Index */
+    return i;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint8_t* flags)
  *  value - value to write to block [input]
  *  width - size of value variable in bytes [input]
  *  flags - pointer to variable that will hold the flags set as result of write [output]
- *  returns - number of bytes written for sdnv
+ *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
 int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
 {
@@ -104,7 +104,7 @@ int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
     }
     
     /* Write SDNV */    
-    for(i = maxbytes + sdnv.index; i >= sdnv.index; i--)
+    for(i = maxbytes + sdnv.index - 1; i >= sdnv.index; i--)
     {
         if(i == 0)  block[i] = sdnv.value & 0x7F;
         else        block[i] = sdnv.value | 0x80;
@@ -114,6 +114,6 @@ int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
     /* Set Overflow  */
     if(sdnv.value > 0) *flags |= BP_SDNV_OVERFLOW;
 
-    /* Return Bytes Written */
-    return maxbytes;
+    /* Return Next Index */
+    return maxbytes + sdnv.index;
 }

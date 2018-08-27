@@ -24,8 +24,10 @@
  ******************************************************************************/
 
 typedef struct {
-    uint32_t paytype;
-    uint32_t paycrc;
+    bp_sdnv_t   bf;
+    bp_sdnv_t   blklen;
+    bp_sdnv_t   paytype;
+    bp_sdnv_t   paycrc;
 } bp_blk_bib_t;
 
 /******************************************************************************

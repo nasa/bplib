@@ -12,6 +12,7 @@
  ******************************************************************************/
 
 #include <stdint.h>
+#include "bplib_sdnv.h"
 
 /******************************************************************************
  DEFINES
@@ -24,17 +25,18 @@
  ******************************************************************************/
 
 typedef struct {
-    uint32_t cid;
-    uint32_t cstnode;
-    uint32_t cstserv;
+    bp_sdnv_t bf;
+    bp_sdnv_t blklen;
+    bp_sdnv_t cid;
+    bp_sdnv_t cstnode;
+    bp_sdnv_t cstserv;
 } bp_blk_cteb_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int bplib_blk_cteb_read     (void* contents, int size, bp_blk_cteb_t* cteb);
-int bplib_blk_cteb_write    (void* block, int size, bp_blk_cteb_t* cteb);
-int bplib_blk_cteb_update   (void* block, int size, uint32_t cid);
+int bplib_blk_cteb_read     (void* block, int size, bp_blk_cteb_t* cteb, int update_indices);
+int bplib_blk_cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, int update_indices);
 
 #endif  /* __BPLIB_BLK_CTEB_H__ */

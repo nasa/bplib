@@ -64,10 +64,6 @@ typedef struct {
     int         request_custody;        // 0: not requested, 1: requested
     int         allow_frag;             // 0: do not allow, 1: allow (for created bundles, if allowed, it will be used)
     int         report_deletion;        // 0: do not report, 1: report
-    /* state data */
-    uint32_t    sequence;               // needs to match type of createseq
-    int         creation_time_sys;      // 1: use system time, 0: use provided channel value
-    bp_time_t   creation_time;          // used when creation_time_sys = 0
 } bp_blk_pri_t;
 
 /******************************************************************************

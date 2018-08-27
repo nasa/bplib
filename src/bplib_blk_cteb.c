@@ -2,16 +2,16 @@
  * Filename     : bplib_blk_cteb.c
  * Purpose      : Bundle Protocol Custody Transfer Extension Block
  * Design Notes :
- * 
+ *
  * -------------------------------------------------
  *         Custody Transfer Extension Block
  * -------------------------------------------------
  * |    MSB    |           |           |    LSB    |
  * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
  * |-----------|-----------|-----------|-----------|
- * |                                               | 
- * |              Primary Bundle Block             | 
- * |                                               | 
+ * |                                               |
+ * |              Primary Bundle Block             |
+ * |                                               |
  * |-----------|-----------|-----------------------|
  * .           .           .                       .
  * |-----------|-----------|-----------------------|
@@ -19,9 +19,9 @@
  * |-----------|-----------|-----------------------|
  * |                  Custody ID                   | +8
  * |-----------------------|-----------------------|
- * |    Custodian Node     |   Custodian Service   | +12 
- * |-----------------------------------------------|    
- * 
+ * |    Custodian Node     |   Custodian Service   | +12
+ * |-----------------------------------------------|
+ *
  ******************************************************************************/
 
 /******************************************************************************
@@ -39,81 +39,94 @@
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_blk_cteb_read - 
- * 
+ * bplib_blk_cteb_read -
+ *
  *  block - pointer to block holding bundle block [INPUT]
  *  size - size of block [INPUT]
  *  cteb - pointer to a custody transfer extension block structure to be populated by this function [OUTPUT]
- * 
- *  Returns:    Number of bytes processed of bundle
+ *  update_indices - boolean, 0: use <sdnv>.index, 1: update <sdnv>.index as you go [INPUT]
+ *
+ *  Returns:    Next index
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_cteb_read (void* contents, int size, bp_blk_cteb_t* cteb)
+int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_indices)
 {
-    uint8_t* buffer = (uint8_t*)contents;
+    uint8_t* buffer = (uint8_t*)block;
     uint8_t flags = 0;
-    int index = 0;
+    int bytes_read = 0;
+
+    /* Check Size */
+    if(size < 1) return BP_BUNDLEPARSEERR;
 
     /* Read Custody Information */
-    index += bplib_sdnv_read(&buffer[index], size - index, &cteb->cid, &flags);
-    index += bplib_sdnv_read(&buffer[index], size - index, &cteb->cstnode, &flags);
-    index += bplib_sdnv_read(&buffer[index], size - index, &cteb->cstserv, &flags);
+    if(!update_indices)
+    {
+        bplib_sdnv_read(buffer, size, &cteb->bf, &flags);
+        bplib_sdnv_read(buffer, size, &cteb->blklen, &flags);
+        bplib_sdnv_read(buffer, size, &cteb->cid, &flags);
+        bplib_sdnv_read(buffer, size, &cteb->cstnode, &flags);
+        bytes_read = bplib_sdnv_read(buffer, size, &cteb->cstserv, &flags);
+    }
+    else
+    {
+        cteb->bf.index = 1;
+        cteb->blklen.index = bplib_sdnv_read(buffer, size, &cteb->bf, &flags);
+        cteb->cid.index = bplib_sdnv_read(buffer, size, &cteb->blklen, &flags);
+        cteb->cstnode.index = bplib_sdnv_read(buffer, size, &cteb->cid, &flags);
+        cteb->cstserv.index = bplib_sdnv_read(buffer, size, &cteb->cstnode, &flags);
+        bytes_read = bplib_sdnv_read(buffer, size, &cteb->cstserv, &flags);
+    }
+
+    /* Success Oriented Error Checking */
     if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
 
     /* Return Bytes Read */
-    return index;
+    return bytes_read;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_blk_cteb_write - 
- * 
+ * bplib_blk_cteb_write -
+ *
  *  block - pointer to memory that holds bundle block [OUTPUT]
  *  size - size of block [INPUT]
  *  cteb - pointer to a custody transfer extension block structure used to write the block [INPUT]
- * 
- *  Returns:    Number of bytes processed of bundle
- *-------------------------------------------------------------------------------------*/
-int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb)
+ *  update_indices - boolean, 0: use <sdnv>.index, 1: update <sdnv>.index as you go [INPUT]
+ *
+ *  Returns:    Number of bytes written
+ *-----------------------------------------------------------------,--------------------*/
+int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, int update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
-    
+    uint8_t flags = 0;
+    int bytes_written = 0;
+
     /* Check Size */
-    if(size < BP_CTEB_BLK_LENGTH) return BP_BUNDLEPARSEERR;
+    if(size < 1) return BP_BUNDLEPARSEERR;
 
     /* Set Block Flags */
-    uint8_t blk_flags = 0;
-    blk_flags |= BP_BLK_REPALL_MASK;
+    cteb->bf.value |= BP_BLK_REPALL_MASK;
 
     /* Write Block */
     buffer[0] = BP_CTEB_BLK_TYPE; // block type
-    bplib_sdnv_write(&buffer[1],  1,  blk_flags); 
-    bplib_sdnv_write(&buffer[2],  2,  BP_CTEB_BLK_LENGTH - 4);
-    bplib_sdnv_write(&buffer[4],  4,  cteb->cid);
-    bplib_sdnv_write(&buffer[8],  2,  cteb->cstnode);
-    bplib_sdnv_write(&buffer[10], 2,  cteb->cstserv);
+    if(!update_indices)
+    {
+        bplib_sdnv_write(buffer,  &cteb->bf,        &flags);
+        bplib_sdnv_write(buffer,  &cteb->cid,       &flags);
+        bplib_sdnv_write(buffer,  &cteb->cstnode,   &flags);
+        bytes_written = bplib_sdnv_write(buffer, &cteb->cstserv, &flags);
+    }
+    else
+    {
+        cteb->bf.index      = 1;
+        cteb->blklen.index  = bplib_sdnv_write(buffer, &cteb->bf,       &flags);
+        cteb->cid.index     = cteb->blklen.index + cteb->blklen.width;
+        cteb->cstnode.index = bplib_sdnv_write(buffer, &cteb->cid,      &flags);
+        cteb->cstserv.index = bplib_sdnv_write(buffer, &cteb->cstnode,  &flags);
+        bytes_written       = bplib_sdnv_write(buffer, &cteb->cstserv,  &flags);
+    }
 
-    /* Return Block Size */
-    return BP_CTEB_BLK_LENGTH;
-}
+    cteb->blklen.value = bytes_written - cteb->cid.index;
+    bplib_sdnv_write(buffer, &cteb->blklen, &flags);
 
-/*--------------------------------------------------------------------------------------
- * bplib_blk_cteb_update - 
- * 
- *  block - pointer to memory that holds bundle block [OUTPUT]
- *  size - size of block [INPUT]
- *  cid - custody id
- * 
- *  Returns:    Number of bytes processed of bundle
- *-------------------------------------------------------------------------------------*/
-int bplib_blk_cteb_update (void* block, int size, uint32_t cid)
-{
-    uint8_t* buffer = (uint8_t*)block;
-    
-    /* Check Size */
-    if(size < BP_CTEB_BLK_LENGTH) return BP_BUNDLEPARSEERR;
-
-    /* Write CID */
-    bplib_sdnv_write(&buffer[4], 4, cid);
-
-    /* Return Number of Bytes Written */
-    return 4;
+    /* Return Written */
+    return bytes_written;
 }
