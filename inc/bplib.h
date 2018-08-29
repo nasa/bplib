@@ -53,6 +53,7 @@
 #define BP_WRONGCHANNEL                 (-15)
 #define BP_FAILEDINTEGRITYCHECK         (-16)
 #define BP_FAILEDSTORE                  (-17)
+#define BP_FAILEDRESPONSE               (-18)
 
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x00000001  // valid bundle but agent not able to comply with standard
@@ -64,7 +65,9 @@
 #define BP_FLAG_CIDWENTBACKWARDS        0x00000040  // the custody ID went backwards
 #define BP_FLAG_UNABLETOSTORE           0x00000080  // unable to store the ACS bundle for later transmission
 #define BP_FLAG_ROUTENEEDED             0x00000100  // the bundle returned needs to be routed before transmission
-#define BP_FLAG_STOREFAIL               0x00000200  // storage service failed to deliver data
+#define BP_FLAG_STOREFAILURE            0x00000200  // storage service failed to deliver data
+#define BP_FLAG_PARSEFAILURE            0x00000400  // storage service failed to deliver data
+#define BP_FLAG_MIXEDRESPONSE           0x00000800  // aggregate acknowledgement must have uniform delivery vs. forward
 
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1

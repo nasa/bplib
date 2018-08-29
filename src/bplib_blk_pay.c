@@ -235,7 +235,7 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int delivered, uint32_t first_ci
     int rec_index = 0, fill_index;
 
     /* Write Record */
-    rec[rec_index++] = BP_PROTO_ACS_REC_TYPE; // record type
+    rec[rec_index++] = BP_ACS_REC_TYPE; // record type
     rec[rec_index++] = BP_REC_RPTRCV_MASK | BP_REC_RPTACT_MASK | (delivered ? BP_REC_RPTDLV_MASK : BP_REC_RPTFRW_MASK);
     rec_index += bplib_sdnv_write(&rec[rec_index], 4, first_cid);
     for(fill_index = 0; fill_index < num_fills; fill_index++)
