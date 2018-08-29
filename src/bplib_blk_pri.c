@@ -142,10 +142,13 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
     if(pri->pcf & BP_PCF_ADMIN_MASK)        pri->is_admin_rec = BP_TRUE;
     else                                    pri->is_admin_rec = BP_FALSE;
 
-    /* Set Fragmentation */
-    if( (pri->pcf & BP_PCF_FRAGMENT_MASK) ||
-       !(pri->pcf & BP_PCF_NOFRAG_MASK) )   pri->allow_frag = BP_TRUE;
-    else                                    pri->allow_frag = BP_FALSE;
+    /* Set Allow Fragmentation */
+    if(pri->pcf & BP_PCF_NOFRAG_MASK)       pri->allow_frag = BP_FALSE;
+    else                                    pri->allow_frag = BP_TRUE;
+
+    /* Set Is Fragment */
+    if(pri->pcf & BP_PCF_FRAGMENT_MASK)     pri->is_frag = BP_TRUE;
+    else                                    pri->is_frag = BP_FALSE;
 
     /* Set Custody Request */
     if(pri->pcf & BP_PCF_CSTRQST_MASK)      pri->request_custody = BP_TRUE;
@@ -180,10 +183,10 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
 
     /* Set Process Control Flags */
     if(pri->is_admin_rec == BP_TRUE)        pri->pcf.value |= BP_PCF_ADMIN_MASK;
-    if(pri->allow_frag == BP_TRUE)          pri->pcf.value |= BP_PCF_FRAGMENT_MASK;
+    if(pri->is_frag == BP_TRUE)             pri->pcf.value |= BP_PCF_FRAGMENT_MASK;
     if(pri->request_custody == BP_TRUE)     pri->pcf.value |= BP_PCF_CSTRQST_MASK;
     if(pri->allow_frag == BP_FALSE)         pri->pcf.value |= BP_PCF_NOFRAG_MASK;
-    if(pri->report_deletion == BP_FALSE)    pri->pcf.value |= BP_PCF_RPTDLT_MASK;
+    if(pri->report_deletion == BP_TRUE)     pri->pcf.value |= BP_PCF_RPTDLT_MASK;
 
     /* Write Block */
     buffer[0] = pri->version;
@@ -235,7 +238,7 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
         pri->dictlen.index      = bplib_sdnv_write(buffer, size - index, &pri->lifetime,     &flags);
 
         /* Handle Optional Fragmentation Fields */
-        if(pri->allow_frag)
+        if(pri->is_frag)
         {
             pri->fragoffset.index   = bplib_sdnv_write(buffer, size - index, &pri->dictlen,      &flags);
             pri->paylen.index       = bplib_sdnv_write(buffer, size - index, &pri->fragoffset,   &flags);

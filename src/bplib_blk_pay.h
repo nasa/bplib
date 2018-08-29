@@ -41,7 +41,6 @@ typedef struct {
 /* Generic Payload Block */
 int bplib_blk_pay_read      (void* block, int size, bp_blk_pay_t* pay, int update_indices);
 int bplib_blk_pay_write     (void* block, int size, bp_blk_pay_t* pay, int update_indices);
-int bplib_blk_pay_update    (void* block, int size, int payload_size);
 
 /* Aggregate Custody Signal */
 int bplib_rec_acs_process   (void* block, int size, uint8_t rec_status,

@@ -95,7 +95,7 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_ind
     /* Set Payload Pointer */
     pay->payptr = &buffer[bytes_read];
     pay->paysize = pay->blklen.value;
-    
+
     /* Return Bytes Read */
     return bytes_read;
 }
@@ -157,29 +157,6 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_in
 
     /* Return Written */
     return bytes_written;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_blk_pay_update -
- *
- *  block - pointer to memory that holds bundle block [OUTPUT]
- *  size - size of block [INPUT]
- *  payload_size - size of the payload to place in this bundle (if fragmented, then fragment size)
- *
- *  Returns:    Number of bytes processed of bundle
- *-------------------------------------------------------------------------------------*/
-int bplib_blk_pay_update (void* block, int size, int payload_size)
-{
-    uint8_t* buffer = (uint8_t*)block;
-
-    /* Check Size */
-    if(size < 2) return BP_PARMERR;
-
-    /* Write Block Length */
-    bplib_sdnv_write(&buffer[2], 2, payload_size);     // block length of rest of block
-
-    /* Write Number of Bytes Written */
-    return 2;
 }
 
 /*--------------------------------------------------------------------------------------

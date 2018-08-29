@@ -63,6 +63,7 @@ typedef struct {
     int         is_admin_rec;           // 0: not admin, 1: is admin
     int         request_custody;        // 0: not requested, 1: requested
     int         allow_frag;             // 0: do not allow, 1: allow (for created bundles, if allowed, it will be used)
+    int         is_frag;                // 0: is not a fragment, 1: is a fragment
     int         report_deletion;        // 0: do not report, 1: report
 } bp_blk_pri_t;
 

@@ -84,10 +84,9 @@
 #define BP_OPT_PAYCRC_D                 15
 #define BP_OPT_TIMEOUT                  16
 #define BP_OPT_BUNDLELEN                17
-#define BP_OPT_FRAGMENTLEN              18
-#define BP_OPT_PROCADMINONLY            19
-#define BP_OPT_WRAPRSP                  20
-#define BP_OPT_ACSRATE                  21
+#define BP_OPT_PROCADMINONLY            18
+#define BP_OPT_WRAPRSP                  19
+#define BP_OPT_ACSRATE                  20
 
 /******************************************************************************
  TYPEDEFS
