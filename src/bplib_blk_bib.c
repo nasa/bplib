@@ -111,21 +111,21 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, int update_in
     buffer[0] = BP_BIB_BLK_TYPE; // block type
     if(!update_indices)
     {
-        bplib_sdnv_write(buffer, &bib->bf, &flags);
-        bplib_sdnv_write(buffer, &bib->paytype, &flags);
-        bytes_written = bplib_sdnv_write(buffer, &bib->paycrc, &flags);
+        bplib_sdnv_write(buffer, size, bib->bf, &flags);
+        bplib_sdnv_write(buffer, size, bib->paytype, &flags);
+        bytes_written = bplib_sdnv_write(buffer, size, bib->paycrc, &flags);
     }
     else
     {
         bib->bf.index      = 1;
-        bib->blklen.index  = bplib_sdnv_write(buffer, &bib->bf,      &flags);
+        bib->blklen.index  = bplib_sdnv_write(buffer, size, bib->bf,      &flags);
         bib->paytype.index = bib->blklen.index + bib->blklen.width;
-        bib->paycrc.index  = bplib_sdnv_write(buffer, &bib->paytype, &flags);
-        bytes_written      = bplib_sdnv_write(buffer, &bib->paycrc,  &flags);
+        bib->paycrc.index  = bplib_sdnv_write(buffer, size, bib->paytype, &flags);
+        bytes_written      = bplib_sdnv_write(buffer, size, bib->paycrc,  &flags);
     }
 
     bib->blklen.value = bytes_written - bib->paytype.index;
-    bplib_sdnv_write(buffer, &bib->blklen, &flags);
+    bplib_sdnv_write(buffer, size, bib->blklen, &flags);
 
     /* Return Bytes Written */
     return bytes_written;
@@ -151,13 +151,13 @@ int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size
     uint8_t flags = 0;
 
     /* Check Size */
-    if(size < (bib->paycrc.index + bib->paycrc.width)) return BP_BUNDLEPARSEERR;
+    if(size < (int)(bib->paycrc.index + bib->paycrc.width)) return BP_BUNDLEPARSEERR;
 
     /* Calculate and Write Fragment Payload CRC */
-    if(bib->paytype == BP_BIB_CRC16)
+    if(bib->paytype.value == BP_BIB_CRC16)
     {
         bib->paycrc.value = bplib_crc16((uint8_t*)payload, payload_size, 0);
-        bplib_sdnv_write(buffer, bib->paycrc, &flags);
+        bplib_sdnv_write(buffer, size, bib->paycrc, &flags);
     }
 
     /* Check for Errors */

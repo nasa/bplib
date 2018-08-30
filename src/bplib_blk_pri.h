@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include "bplib.h"
+#include "bplib_sdnv.h"
 
 /******************************************************************************
  DEFINES

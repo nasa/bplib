@@ -131,14 +131,14 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_in
     buffer[0] = BP_PAY_BLK_TYPE;
     if(!update_indices)
     {
-        bplib_sdnv_write(buffer, &pay->bf, &flags);
-        bytes_written = bplib_sdnv_write(buffer, &pay->blklen, &flags);
+        bplib_sdnv_write(buffer, size, pay->bf, &flags);
+        bytes_written = bplib_sdnv_write(buffer, size, pay->blklen, &flags);
     }
     else
     {
         pay->bf.index = 1;
-        pay->blklen.index = bplib_sdnv_write(buffer, &pay->bf, &flags);
-        bytes_written = bplib_sdnv_write(buffer, &pay->blklen, &flags);
+        pay->blklen.index = bplib_sdnv_write(buffer, size, pay->bf, &flags);
+        bytes_written = bplib_sdnv_write(buffer, size, pay->blklen, &flags);
     }
 
     /* Copy Bytes */
@@ -168,25 +168,27 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_in
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bplib_rec_acs_process ( void* rec, int size, uint8_t rec_status,
+int bplib_rec_acs_process ( void* rec, int size,
                             bp_sid_t* active_table, int table_size,
                             bp_store_relinquish_t relinquish, int store_handle)
 {
-    uint32_t cid, fill, i;
+    uint32_t i;
+    bp_sdnv_t cid = { 0, 2, 0 };
+    bp_sdnv_t fill = { 0, 0, 0 };
     uint8_t* buf = (uint8_t*)rec;
     int cidin = BP_TRUE;
     uint8_t flags = 0;
     int index = 0;
 
     /* Read First Custody ID */
-    index += bplib_sdnv_read(buf, size - index, &cid, &flags);
+    fill.index = bplib_sdnv_read(buf, size, &cid, &flags);
     if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
 
     /* Process Though Fills */
     while(index < size)
     {
         /* Read Fill */
-        index += bplib_sdnv_read(buf, size - index, &fill, &flags);
+        fill.index = bplib_sdnv_read(buf, size, &fill, &flags);
         if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
 
         /* Process Custody IDs */
@@ -194,9 +196,9 @@ int bplib_rec_acs_process ( void* rec, int size, uint8_t rec_status,
         {
             /* Free Bundles */
             cidin = BP_FALSE;
-            for(i = 0; i < fill; i++)
+            for(i = 0; i < fill.value; i++)
             {
-                int ati = (cid + i) % table_size;
+                int ati = (cid.value + i) % table_size;
                 bp_sid_t sid = active_table[ati];
                 if(sid != BP_SID_VACANT)
                 {
@@ -212,7 +214,7 @@ int bplib_rec_acs_process ( void* rec, int size, uint8_t rec_status,
         }
 
         /* Set Next Custody ID */
-        cid += fill;
+        cid.value += fill.value;
     }
 
     return index;
@@ -232,18 +234,27 @@ int bplib_rec_acs_process ( void* rec, int size, uint8_t rec_status,
  *-------------------------------------------------------------------------------------*/
 int bplib_rec_acs_write(uint8_t* rec, int size, int delivered, uint32_t first_cid, uint32_t* fills, int num_fills)
 {
-    int rec_index = 0, fill_index;
+    bp_sdnv_t cid = { 0, 2, 4 };
+    bp_sdnv_t fill = { 0, 0, 2 };
+    int fill_index = 0;
+    uint8_t flags = 0;
 
-    /* Write Record */
-    rec[rec_index++] = BP_ACS_REC_TYPE; // record type
-    rec[rec_index++] = BP_REC_RPTRCV_MASK | BP_REC_RPTACT_MASK | (delivered ? BP_REC_RPTDLV_MASK : BP_REC_RPTFRW_MASK);
-    rec_index += bplib_sdnv_write(&rec[rec_index], 4, first_cid);
+    /* Write Record Information */
+    rec[0] = BP_ACS_REC_TYPE; // record type
+    rec[1] = BP_REC_RPTRCV_MASK | BP_REC_RPTACT_MASK | (delivered ? BP_REC_RPTDLV_MASK : BP_REC_RPTFRW_MASK);
+
+    /* Write First CID and Fills */
+    cid.value = first_cid;
+    fill.index = bplib_sdnv_write(rec, size, cid, &flags);
     for(fill_index = 0; fill_index < num_fills; fill_index++)
     {
-        if(rec_index + 2 > size) return BP_PARMERR;
-        rec_index += bplib_sdnv_write(&rec[rec_index], 2, fills[fill_index]);
+        fill.value = fills[fill_index];
+        fill.index = bplib_sdnv_write(rec, size, fill, &flags);
     }
 
+    /* Success Oriented Error Checking */
+    if(flags != 0) return BP_BUNDLEPARSEERR;
+
     /* Return Block Size */
-    return rec_index;
+    return fill.index;
 }

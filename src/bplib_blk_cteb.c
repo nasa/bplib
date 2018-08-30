@@ -109,23 +109,23 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, int update
     buffer[0] = BP_CTEB_BLK_TYPE; // block type
     if(!update_indices)
     {
-        bplib_sdnv_write(buffer,  &cteb->bf,        &flags);
-        bplib_sdnv_write(buffer,  &cteb->cid,       &flags);
-        bplib_sdnv_write(buffer,  &cteb->cstnode,   &flags);
-        bytes_written = bplib_sdnv_write(buffer, &cteb->cstserv, &flags);
+        bplib_sdnv_write(buffer, size, cteb->bf, &flags);
+        bplib_sdnv_write(buffer, size, cteb->cid, &flags);
+        bplib_sdnv_write(buffer, size, cteb->cstnode, &flags);
+        bytes_written = bplib_sdnv_write(buffer, size, cteb->cstserv, &flags);
     }
     else
     {
         cteb->bf.index      = 1;
-        cteb->blklen.index  = bplib_sdnv_write(buffer, &cteb->bf,       &flags);
+        cteb->blklen.index  = bplib_sdnv_write(buffer, size, cteb->bf, &flags);
         cteb->cid.index     = cteb->blklen.index + cteb->blklen.width;
-        cteb->cstnode.index = bplib_sdnv_write(buffer, &cteb->cid,      &flags);
-        cteb->cstserv.index = bplib_sdnv_write(buffer, &cteb->cstnode,  &flags);
-        bytes_written       = bplib_sdnv_write(buffer, &cteb->cstserv,  &flags);
+        cteb->cstnode.index = bplib_sdnv_write(buffer, size, cteb->cid, &flags);
+        cteb->cstserv.index = bplib_sdnv_write(buffer, size, cteb->cstnode, &flags);
+        bytes_written       = bplib_sdnv_write(buffer, size, cteb->cstserv, &flags);
     }
 
     cteb->blklen.value = bytes_written - cteb->cid.index;
-    bplib_sdnv_write(buffer, &cteb->blklen, &flags);
+    bplib_sdnv_write(buffer, size, cteb->blklen, &flags);
 
     /* Return Written */
     return bytes_written;
