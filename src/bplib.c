@@ -437,10 +437,13 @@ static int store_data_bundle(bp_channel_t* ch, bp_data_store_t* ds, bp_blk_pri_t
             if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write payload block (static portion) of bundle\n", status);
 
 ////////////////////////////////////////////////////////////////////////
+{
+unsigned int i;
 uint8_t* ptr = (uint8_t*)&ds->header;
 printf("[%ld]: ", sizeof(bp_data_store_t));
-for(unsigned int i = 0; i < sizeof(bp_data_store_t); i++) printf("%02X ", ptr[i]);
+for(i = 0; i < sizeof(bp_data_store_t); i++) printf("%02X ", ptr[i]);
 printf("\n");
+}
 ////////////////////////////////////////////////////////////////////////
 
             /* Enqueue Bundle */
@@ -596,12 +599,14 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
         if(*dacsflags != 0)
         {
             static uint8_t buffer[BP_DACS_PAY_SIZE];
-            int dacs_size, enstat;
+            int dacs_size, enstat, storage_header_size;
             uint8_t sdnv_flags = 0;
             bp_time_t tm;
 
             /* Build DACS */
             dacs_size = bplib_rec_acs_write(buffer, BP_DACS_PAY_SIZE, ds->delivered, ds->first_cid, ds->fills, ds->num_fills);
+            ds->bundlesize = ds->headersize + dacs_size;
+            storage_header_size = sizeof(bp_dacs_store_t) - (BP_DACS_HDR_BUF_SIZE - ds->headersize);
 
             /* Set Creation Time */
             bplib_systime(&tm);
@@ -627,7 +632,7 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
             if(sdnv_flags != 0) *dacsflags |= BP_FLAG_PARSEFAILURE;
 
             /* Send (enqueue) ACS */
-            enstat = ch->store.enqueue(ch->dacs_bundle.dacs_store_handle, ds->header, BP_DACS_HDR_BUF_SIZE, buffer, dacs_size, timeout);
+            enstat = ch->store.enqueue(ch->dacs_bundle.dacs_store_handle, ds->header, storage_header_size, buffer, dacs_size, timeout);
             if(enstat != BP_SUCCESS) *dacsflags |= BP_FLAG_UNABLETOSTORE;
 
             /* Start New DTN ACS */
@@ -764,24 +769,6 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
             if(getset)  ch->data_bundle.primary_block.dstserv.value = *service;
             else        *service = ch->data_bundle.primary_block.dstserv.value;
             bplog(BP_INFO, "Config. Destination Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
-            break;
-        }
-        case BP_OPT_SRCNODE_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  ch->data_bundle.primary_block.srcnode.value = *node;
-            else        *node = ch->data_bundle.primary_block.srcnode.value;
-            bplog(BP_INFO, "Config. Source Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
-            break;
-        }
-        case BP_OPT_SRCSERV_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  ch->data_bundle.primary_block.srcserv.value = *service;
-            else        *service = ch->data_bundle.primary_block.srcserv.value;
-            bplog(BP_INFO, "Config. Source Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
         case BP_OPT_RPTNODE_D:

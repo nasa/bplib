@@ -72,24 +72,22 @@
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1
 #define BP_OPT_DSTSERV_D                2
-#define BP_OPT_SRCNODE_D                3
-#define BP_OPT_SRCSERV_D                4
-#define BP_OPT_RPTNODE_D                5
-#define BP_OPT_RPTSERV_D                6
-#define BP_OPT_CSTNODE_D                7
-#define BP_OPT_CSTSERV_D                8
-#define BP_OPT_CREATETIMESYS_D          9
-#define BP_OPT_CREATETIMEVAL_D          10
-#define BP_OPT_SETSEQUENCE_D            11
-#define BP_OPT_LIFETIME_D               12
-#define BP_OPT_CSTRQST_D                13
-#define BP_OPT_ALLOWFRAG_D              14
-#define BP_OPT_PAYCRC_D                 15
-#define BP_OPT_TIMEOUT                  16
-#define BP_OPT_BUNDLELEN                17
-#define BP_OPT_PROCADMINONLY            18
-#define BP_OPT_WRAPRSP                  19
-#define BP_OPT_ACSRATE                  20
+#define BP_OPT_RPTNODE_D                3
+#define BP_OPT_RPTSERV_D                4
+#define BP_OPT_CSTNODE_D                5
+#define BP_OPT_CSTSERV_D                6
+#define BP_OPT_CREATETIMESYS_D          7
+#define BP_OPT_CREATETIMEVAL_D          8
+#define BP_OPT_SETSEQUENCE_D            9
+#define BP_OPT_LIFETIME_D               10
+#define BP_OPT_CSTRQST_D                11
+#define BP_OPT_ALLOWFRAG_D              12
+#define BP_OPT_PAYCRC_D                 13
+#define BP_OPT_TIMEOUT                  14
+#define BP_OPT_BUNDLELEN                15
+#define BP_OPT_PROCADMINONLY            16
+#define BP_OPT_WRAPRSP                  17
+#define BP_OPT_ACSRATE                  18
 
 /******************************************************************************
  TYPEDEFS
