@@ -96,12 +96,6 @@
 /* IPN Schema Endpoint ID Integer Definition */
 typedef uint16_t bp_ipn_t;
 
-/* Bundle Time Stamp Definition */
-typedef struct {
-    uint32_t    s;     // seconds since epoch (January 1, 2000)
-    uint32_t    ns;    // nanoseconds within the second
-} bp_time_t;
-
 /* Storage ID */
 typedef void* bp_sid_t;
 
@@ -142,7 +136,5 @@ int     bplib_process   (int channel, void* bundle,  int size, int timeout, uint
 int     bplib_accept    (int channel, void* payload, int size, int timeout, uint32_t* acptflags);
 
 int     bplib_routeinfo (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
-int     bplib_addtime   (bp_time_t* result, bp_time_t tm, int sec);
-int     bplib_cmptime   (bp_time_t tm1, bp_time_t tm2);
 
 #endif  /* __BPLIB_H__ */

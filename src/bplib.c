@@ -2,56 +2,6 @@
  * Filename     : bplib.c
  * Purpose      : Bundle Protocol Library
  * Design Notes :
- *
- * -------------------------------------------------
- *                    Data Bundle
- * -------------------------------------------------
- * |    MSB    |           |           |    LSB    |
- * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
- * |-----------|-----------|-----------|-----------|    0
- * |                                               |
- * |              Primary Bundle Block             |
- * |              (see bplib_blk_pri.c)            |
- * |                                               |
- * |-----------------------------------------------|    52
- * |                                               |
- * |        Custody Transfer Extension Block       |
- * |             (see bplib_blk_cteb.c)            |
- * |                                               |
- * |-----------------------------------------------|    64
- * |                                               |
- * |             Bundle Integrity Block            |
- * |              (see bplib_blk_bib.c)            |
- * |                                               |
- * |-----------|-----------|-----------------------|    72
- * |                                               |    76 --> start of the payload
- * |              Bundle Payload Block             |
- * |              (see bplib_blk_pay.c)            |
- * |                                               |
- * |-----------------------------------------------|    4096 --> variable, not to exceed
- *
- * -------------------------------------------------
- *              Aggregate Custody Bundle
- * -------------------------------------------------
- * |    MSB    |           |           |    LSB    |
- * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
- * |-----------|-----------|-----------|-----------|    0
- * |                                               |
- * |              Primary Bundle Block             |
- * |              (see bplib_blk_pri.c)            |
- * |                                               |
- * |-----------------------------------------------|    52
- * |                                               |
- * |             Bundle Integrity Block            |
- * |              (see bplib_blk_bib.c)            |
- * |                                               |
- * |-----------------------------------------------|    60
- * |                                               |    64 --> start of the payload
- * |              Bundle Payload Block             |
- * |              (see bplib_blk_pay.c)            |
- * |                                               |
- * |-----------------------------------------------|
- *
  ******************************************************************************/
 
 /******************************************************************************
@@ -104,12 +54,8 @@
 #define BP_DEFAULT_CREATE_TIME_SYS      BP_TRUE
 #endif
 
-#ifndef BP_DEFAULT_CREATE_TIME_VAL_S
-#define BP_DEFAULT_CREATE_TIME_VAL_S    0
-#endif
-
-#ifndef BP_DEFAULT_CREATE_TIME_VAL_NS
-#define BP_DEFAULT_CREATE_TIME_VAL_NS   0
+#ifndef BP_DEFAULT_CREATE_SECS
+#define BP_DEFAULT_CREATE_SECS      0
 #endif
 
 #ifndef BP_DEFAULT_CSTRQST
@@ -166,7 +112,7 @@ typedef struct {
 
 /* Data Bundle Storage Block */
 typedef struct {
-    bp_time_t           retxtime;
+    uint32_t            retxtime;
     bp_sdnv_t           cidsdnv;
     int                 cteboffset;
     int                 biboffset;
@@ -257,30 +203,78 @@ typedef struct {
  *    block is written.  If the blklen field was variable, the code would have
  *    to make a first pass to calculate the block length and then a second pass
  *    to use that block length - that would be too much processing.
+ *
+ * -------------------------------------------------
+ * 2.                 Data Bundle
+ * -------------------------------------------------
+ * |    MSB    |           |           |    LSB    |
+ * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
+ * |-----------|-----------|-----------|-----------|    0
+ * |                                               |
+ * |              Primary Bundle Block             |
+ * |              (see bplib_blk_pri.c)            |
+ * |                                               |
+ * |-----------------------------------------------|    44/52
+ * |                                               |
+ * |        Custody Transfer Extension Block       |
+ * |             (see bplib_blk_cteb.c)            |
+ * |                                               |
+ * |-----------------------------------------------|    64
+ * |                                               |
+ * |             Bundle Integrity Block            |
+ * |              (see bplib_blk_bib.c)            |
+ * |                                               |
+ * |-----------|-----------|-----------------------|    72
+ * |                                               |    76 --> start of the payload
+ * |              Bundle Payload Block             |
+ * |              (see bplib_blk_pay.c)            |
+ * |                                               |
+ * |-----------------------------------------------|    4096 --> variable, not to exceed
+ *
+ * -------------------------------------------------
+ * 3.           Aggregate Custody Bundle
+ * -------------------------------------------------
+ * |    MSB    |           |           |    LSB    |
+ * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
+ * |-----------|-----------|-----------|-----------|    0
+ * |                                               |
+ * |              Primary Bundle Block             |
+ * |              (see bplib_blk_pri.c)            |
+ * |                                               |
+ * |-----------------------------------------------|    44/52
+ * |                                               |
+ * |             Bundle Integrity Block            |
+ * |              (see bplib_blk_bib.c)            |
+ * |                                               |
+ * |-----------------------------------------------|    60
+ * |                                               |    64 --> start of the payload
+ * |              Bundle Payload Block             |
+ * |              (see bplib_blk_pay.c)            |
+ * |                                               |
+ * |-----------------------------------------------|
  */
 
 static bp_channel_t channels[BP_MAX_CHANNELS];
 
 static const bp_blk_pri_t native_data_pri_blk = {
     .version            = BP_DEFAULT_BP_VERSION,
-                            /*          Value             Index       Width   */
-    .pcf                = { 0,                              1,          3 },
-    .blklen             = { 0,                              4,          4 },
-    .dstnode            = { 0,                              8,          4 },
-    .dstserv            = { 0,                              12,         4 },
-    .srcnode            = { 0,                              16,         4 },
-    .srcserv            = { 0,                              20,         4 },
-    .rptnode            = { 0,                              24,         4 },
-    .rptserv            = { 0,                              28,         4 },
-    .cstnode            = { 0,                              32,         4 },
-    .cstserv            = { 0,                              36,         4 },
-    .createtms          = { BP_DEFAULT_CREATE_TIME_VAL_S,   40,         4 },
-    .createtmns         = { BP_DEFAULT_CREATE_TIME_VAL_NS,  44,         4 },
-    .createseq          = { 0,                              48,         4 },
-    .lifetime           = { BP_DEFAULT_LIFETIME,            52,         4 },
-    .dictlen            = { 0,                              56,         4 },
-    .fragoffset         = { 0,                              60,         4 },
-    .paylen             = { 0,                              64,         4 },
+                            /*          Value         Index       Width   */
+    .pcf                = { 0,                          1,          3 },
+    .blklen             = { 0,                          4,          1 },
+    .dstnode            = { 0,                          5,          4 },
+    .dstserv            = { 0,                          9,          2 },
+    .srcnode            = { 0,                          11,         4 },
+    .srcserv            = { 0,                          15,         2 },
+    .rptnode            = { 0,                          17,         4 },
+    .rptserv            = { 0,                          21,         2 },
+    .cstnode            = { 0,                          23,         4 },
+    .cstserv            = { 0,                          27,         2 },
+    .createsec          = { BP_DEFAULT_CREATE_SECS,     29,         6 },
+    .createseq          = { 0,                          35,         4 },
+    .lifetime           = { BP_DEFAULT_LIFETIME,        39,         4 },
+    .dictlen            = { 0,                          43,         1 },
+    .fragoffset         = { 0,                          44,         4 },
+    .paylen             = { 0,                          48,         4 },
     .is_admin_rec       = BP_FALSE,
     .request_custody    = BP_DEFAULT_CSTRQST,
     .allow_frag         = BP_FALSE,
@@ -290,24 +284,23 @@ static const bp_blk_pri_t native_data_pri_blk = {
 
 static const bp_blk_pri_t native_dacs_pri_blk = {
     .version            = BP_DEFAULT_BP_VERSION,
-                            /*          Value             Index       Width   */
-    .pcf                = { 0,                              1,          3 },
-    .blklen             = { 0,                              4,          4 },
-    .dstnode            = { 0,                              8,          4 },
-    .dstserv            = { 0,                              12,         4 },
-    .srcnode            = { 0,                              16,         4 },
-    .srcserv            = { 0,                              20,         4 },
-    .rptnode            = { 0,                              24,         4 },
-    .rptserv            = { 0,                              28,         4 },
-    .cstnode            = { 0,                              32,         4 },
-    .cstserv            = { 0,                              36,         4 },
-    .createtms          = { BP_DEFAULT_CREATE_TIME_VAL_S,   40,         4 },
-    .createtmns         = { BP_DEFAULT_CREATE_TIME_VAL_NS,  44,         4 },
-    .createseq          = { 0,                              48,         4 },
-    .lifetime           = { BP_DEFAULT_LIFETIME,            52,         4 },
-    .dictlen            = { 0,                              56,         4 },
-    .fragoffset         = { 0,                              0,          0 },
-    .paylen             = { 0,                              0,          0 },
+                            /*          Value         Index       Width   */
+    .pcf                = { 0,                          1,          3 },
+    .blklen             = { 0,                          4,          4 },
+    .dstnode            = { 0,                          8,          4 },
+    .dstserv            = { 0,                          12,         4 },
+    .srcnode            = { 0,                          16,         4 },
+    .srcserv            = { 0,                          20,         4 },
+    .rptnode            = { 0,                          24,         4 },
+    .rptserv            = { 0,                          28,         4 },
+    .cstnode            = { 0,                          32,         4 },
+    .cstserv            = { 0,                          36,         4 },
+    .createsec          = { BP_DEFAULT_CREATE_SECS,     40,         4 },
+    .createseq          = { 0,                          48,         4 },
+    .lifetime           = { BP_DEFAULT_LIFETIME,        52,         4 },
+    .dictlen            = { 0,                          56,         4 },
+    .fragoffset         = { 0,                          0,          0 },
+    .paylen             = { 0,                          0,          0 },
     .is_admin_rec       = BP_TRUE,
     .request_custody    = BP_FALSE,
     .allow_frag         = BP_FALSE,
@@ -399,12 +392,8 @@ static int store_data_bundle(bp_channel_t* ch, bp_data_store_t* ds, bp_blk_pri_t
             /* Set Creation Time */
             if(ch->data_bundle.creation_time_sys)
             {
-                bp_time_t tm;
-                bplib_systime(&tm);
-                pri->createtms.value = tm.s;
-                pri->createtmns.value = tm.ns;
-                bplib_sdnv_write(ds->header, BP_DATA_HDR_BUF_SIZE, pri->createtms, &flags);
-                bplib_sdnv_write(ds->header, BP_DATA_HDR_BUF_SIZE, pri->createtmns, &flags);
+                bplib_systime(&pri->createsec.value);
+                bplib_sdnv_write(ds->header, BP_DATA_HDR_BUF_SIZE, pri->createsec, &flags);
             }
 
             /* Set Sequence */
@@ -458,7 +447,7 @@ printf("\n");
         }
 
         /* Return Status */
-        if(flags != 0)  return BP_BUNDLEPARSEERR;
+        if(flags != 0)  return bplog(BP_BUNDLEPARSEERR, "Failed to construct bundle (%X)\n", flags);
         else            return payload_offset;
     }
     else
@@ -601,7 +590,6 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
             static uint8_t buffer[BP_DACS_PAY_SIZE];
             int dacs_size, enstat, storage_header_size;
             uint8_t sdnv_flags = 0;
-            bp_time_t tm;
 
             /* Build DACS */
             dacs_size = bplib_rec_acs_write(buffer, BP_DACS_PAY_SIZE, ds->delivered, ds->first_cid, ds->fills, ds->num_fills);
@@ -609,11 +597,8 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
             storage_header_size = sizeof(bp_dacs_store_t) - (BP_DACS_HDR_BUF_SIZE - ds->headersize);
 
             /* Set Creation Time */
-            bplib_systime(&tm);
-            pri->createtms.value = tm.s;
-            pri->createtmns.value = tm.ns;
-            bplib_sdnv_write(ds->header, BP_DATA_HDR_BUF_SIZE, pri->createtms, &sdnv_flags);
-            bplib_sdnv_write(ds->header, BP_DATA_HDR_BUF_SIZE, pri->createtmns, &sdnv_flags);
+            bplib_systime(&pri->createsec.value);
+            bplib_sdnv_write(ds->header, BP_DATA_HDR_BUF_SIZE, pri->createsec, &sdnv_flags);
 
             /* Set Sequence */
             bplib_sdnv_write(ds->header, BP_DATA_HDR_BUF_SIZE, pri->createseq, &sdnv_flags);
@@ -819,19 +804,12 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         }
         case BP_OPT_CREATETIMEVAL_D:
         {
-            if(len != sizeof(bp_time_t)) return BP_PARMERR;
-            bp_time_t* create_time = (bp_time_t*)val;
-            if(getset)
-            {
-                ch->data_bundle.primary_block.createtms.value = create_time->s;
-                ch->data_bundle.primary_block.createtmns.value = create_time->ns;
-            }
-            else
-            {
-                create_time->s = ch->data_bundle.primary_block.createtms.value;
-                create_time->ns = ch->data_bundle.primary_block.createtmns.value;
-            }
-            bplog(BP_INFO, "Config. Creation Time %s %lu.%lu\n", getset ? "<--" : "-->", (unsigned long)create_time->s, (unsigned long)create_time->ns);
+            if(len != sizeof(uint32_t)) return BP_PARMERR;
+            uint32_t* sec = (uint32_t*)val;
+            if(getset) ch->data_bundle.primary_block.createsec.value = *sec;
+            else       *sec = ch->data_bundle.primary_block.createsec.value;
+
+            bplog(BP_INFO, "Config. Creation Time %s %lu\n", getset ? "<--" : "-->", (unsigned long)sec);
             break;
         }
         case BP_OPT_SETSEQUENCE_D:
@@ -1125,8 +1103,7 @@ int bplib_store(int channel, void* payload, int size, int timeout)
 int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadflags)
 {
     int status;                         // size of bundle returned or error code
-    bp_time_t sysnow;                   // current system time
-    bp_time_t sysretx;                  // system time for retransmits
+    uint32_t sysnow;                    // current system time
     uint8_t* storebuf;                  // pointer to retrieved storage memory
     int storelen;                       // size of retrieved storage memory
     int ati;                            // active table index
@@ -1192,7 +1169,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         {
             /* Check Timeout */
             bp_data_store_t* ds = (bp_data_store_t*)storebuf;
-            if(bplib_cmptime(sysnow, ds->retxtime) >= 0)
+            if(sysnow <= ds->retxtime)
             {
                 /* Retransmit Bundle */
                 load_bundle = &ds->header[0];
@@ -1227,9 +1204,8 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
             {
                 /* Write Re-Transmit Time */
                 bp_data_store_t* ds = (bp_data_store_t*)storebuf;
-                bplib_addtime(&sysretx, sysnow, ch->timeout);
-                ds->retxtime = sysretx;
-                refresh(ch->data_bundle.data_store_handle, storebuf, sizeof(bp_time_t), 0, sid, timeout);
+                ds->retxtime = sysnow + ch->timeout;
+                refresh(ch->data_bundle.data_store_handle, storebuf, sizeof(uint32_t), 0, sid, timeout);
 
                 /* Transmit Dequeued Bundle */
                 load_bundle = &ds->header[0];
@@ -1331,6 +1307,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 {
     bp_channel_t*       ch;
     int                 status;
+    uint32_t            sysnow;
 
     uint8_t*            buffer = (uint8_t*)bundle;
     int                 index = 0;
@@ -1350,10 +1327,6 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 
     int                 pay_index = 0;
     bp_blk_pay_t        pay_blk;
-
-    bp_time_t           sysnow;
-    bp_time_t           blktime;
-    bp_time_t           expiretime;
 
     /* Check Parameters */
     if(channel < 0 || channel >= BP_MAX_CHANNELS)       return BP_PARMERR;
@@ -1390,10 +1363,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 
     /* Check Life Time */
     bplib_systime(&sysnow);
-    blktime.s = pri_blk.createtms.value;
-    blktime.ns = pri_blk.createtmns.value;
-    bplib_addtime(&expiretime, blktime, pri_blk.lifetime.value);
-    if(bplib_cmptime(sysnow, expiretime) >= 0)
+    if(sysnow >= (pri_blk.lifetime.value + pri_blk.createsec.value))
     {
         return bplog(BP_EXPIRED, "Expired bundled attempted to be processed \n");
     }
@@ -1611,9 +1581,8 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
     else            return paylen;
 }
 
-
 /*--------------------------------------------------------------------------------------
- * bplib_addtime -
+ * bplib_routeinfo -
  *
  *  bundle -                pointer to a bundle (byte array) [INPUT]
  *  size -                  size of bundle being pointed to [INPUT]
@@ -1640,52 +1609,4 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
 
     /* Return Success */
     return BP_SUCCESS;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_addtime -
- *
- *  Returns:    0 indicates success
- *             -1 indicates failure
- *-------------------------------------------------------------------------------------*/
-int bplib_addtime (bp_time_t* result, bp_time_t tm, int sec)
-{
-    if(result == NULL) return -1;
-    result->s = tm.s + sec;
-    result->ns = tm.ns;
-    return 0;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_cmptime -
- *
- *  Notes:      The format of BP time precludes the nanosecond field from being larger
- *              than one second, therefore the logic below makes that assumption
- *
- *  Returns:    0 indicates equivalence
- *              1 indicates tm1 > tm2
- *             -1 indicates tm1 < tm2
- *-------------------------------------------------------------------------------------*/
-int bplib_cmptime (bp_time_t tm1, bp_time_t tm2)
-{
-    if(tm1.s > tm2.s)
-    {
-        return 1;
-    }
-    else if(tm1.s < tm2.s)
-    {
-        return -1;
-    }
-    else if(tm1.ns > tm2.ns)
-    {
-        return 1;
-    }
-    else if(tm1.ns < tm2.ns)
-    {
-        return -1;
-    }
-    else
-    {
-        return 0;
-    }
 }

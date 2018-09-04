@@ -21,14 +21,15 @@
  ******************************************************************************/
 
 #define MAX_LOG_ENTRY_SIZE  256
+#define UNIX_SECS_AT_2000   946684800
 
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_log - 
- * 
+ * bplib_log -
+ *
  * 	Returns - the error code passed in (for convenience)
  *-------------------------------------------------------------------------------------*/
 int bplib_log(const char* file, unsigned int line, int error, const char* fmt, ...)
@@ -50,10 +51,10 @@ int bplib_log(const char* file, unsigned int line, int error, const char* fmt, .
 
 	/* Return Error Code */
 	return error;
-}   
+}
 
 /*--------------------------------------------------------------------------------------
- * bplib_memset - 
+ * bplib_memset -
  *-------------------------------------------------------------------------------------*/
 void bplib_os_memset(void* addr, int len, int val)
 {
@@ -61,7 +62,7 @@ void bplib_os_memset(void* addr, int len, int val)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_memcpy - 
+ * bplib_memcpy -
  *-------------------------------------------------------------------------------------*/
 void bplib_os_memcpy(void* dst, void* src, int len)
 {
@@ -69,13 +70,12 @@ void bplib_os_memcpy(void* dst, void* src, int len)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_systime - 
+ * bplib_systime -
  *-------------------------------------------------------------------------------------*/
-int bplib_systime(bp_time_t* tm)
+int bplib_systime(uint32_t* tm)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    tm->s = now.tv_sec;
-    tm->ns = now.tv_nsec;
+    *tm = now.tv_sec - 946684800;
     return BP_SUCCESS;
 }

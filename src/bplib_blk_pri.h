@@ -53,8 +53,7 @@ typedef struct {
     bp_sdnv_t   rptserv;
     bp_sdnv_t   cstnode;
     bp_sdnv_t   cstserv; 
-    bp_sdnv_t   createtms;
-    bp_sdnv_t   createtmns;
+    bp_sdnv_t   createsec;
     bp_sdnv_t   createseq;
     bp_sdnv_t   lifetime;
     bp_sdnv_t   dictlen;

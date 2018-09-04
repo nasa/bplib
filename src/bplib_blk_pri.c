@@ -1,7 +1,7 @@
 /******************************************************************************
  * Filename     : bplib_blk_pri.c
  * Purpose      : Bundle Protocol Primary Block
- * Design Notes :
+ * Design Notes : Field sizes shown are only for convenience
  *
  * -------------------------------------------------
  *               Primary Bundle Block
@@ -21,9 +21,7 @@
  * |-----------------------|-----------------------|
  * |    Custodian Node     |   Custodian Service   |
  * |-----------------------|-----------------------|
- * |          Creation Timestamp (Seconds)         |
- * |-----------------------------------------------|
- * |       Creation Timestamp (Nanoseconds)        |
+ * |                Creation Seconds               |
  * |-----------------------------------------------|
  * |               Creation Sequence               |
  * |-----------------------------------------------|
@@ -84,8 +82,7 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
         bplib_sdnv_read(blkbuf, size, &pri->rptserv,    &flags);
         bplib_sdnv_read(blkbuf, size, &pri->cstnode,    &flags);
         bplib_sdnv_read(blkbuf, size, &pri->cstserv,    &flags);
-        bplib_sdnv_read(blkbuf, size, &pri->createtms,  &flags);
-        bplib_sdnv_read(blkbuf, size, &pri->createtmns, &flags);
+        bplib_sdnv_read(blkbuf, size, &pri->createsec,  &flags);
         bplib_sdnv_read(blkbuf, size, &pri->createseq,  &flags);
         bplib_sdnv_read(blkbuf, size, &pri->lifetime,   &flags);
 
@@ -114,9 +111,8 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
         pri->rptserv.index      = bplib_sdnv_read(blkbuf, size, &pri->rptnode,    &flags);
         pri->cstnode.index      = bplib_sdnv_read(blkbuf, size, &pri->rptserv,    &flags);
         pri->cstserv.index      = bplib_sdnv_read(blkbuf, size, &pri->cstnode,    &flags);
-        pri->createtms.index    = bplib_sdnv_read(blkbuf, size, &pri->cstserv,    &flags);
-        pri->createtmns.index   = bplib_sdnv_read(blkbuf, size, &pri->createtms,  &flags);
-        pri->createseq.index    = bplib_sdnv_read(blkbuf, size, &pri->createtmns, &flags);
+        pri->createsec.index    = bplib_sdnv_read(blkbuf, size, &pri->cstserv,    &flags);
+        pri->createseq.index    = bplib_sdnv_read(blkbuf, size, &pri->createsec,  &flags);
         pri->lifetime.index     = bplib_sdnv_read(blkbuf, size, &pri->createseq,  &flags);
         pri->dictlen.index      = bplib_sdnv_read(blkbuf, size, &pri->lifetime,   &flags);
 
@@ -201,8 +197,7 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
         bplib_sdnv_write(buffer, size, pri->rptserv,    &flags);
         bplib_sdnv_write(buffer, size, pri->cstnode,    &flags);
         bplib_sdnv_write(buffer, size, pri->cstserv,    &flags);
-        bplib_sdnv_write(buffer, size, pri->createtms,  &flags);
-        bplib_sdnv_write(buffer, size, pri->createtmns, &flags);
+        bplib_sdnv_write(buffer, size, pri->createsec,  &flags);
         bplib_sdnv_write(buffer, size, pri->createseq,  &flags);
         bplib_sdnv_write(buffer, size, pri->lifetime,   &flags);
 
@@ -231,9 +226,8 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
         pri->rptserv.index      = bplib_sdnv_write(buffer, size, pri->rptnode,      &flags);
         pri->cstnode.index      = bplib_sdnv_write(buffer, size, pri->rptserv,      &flags);
         pri->cstserv.index      = bplib_sdnv_write(buffer, size, pri->cstnode,      &flags);
-        pri->createtms.index    = bplib_sdnv_write(buffer, size, pri->cstserv,      &flags);
-        pri->createtmns.index   = bplib_sdnv_write(buffer, size, pri->createtms,    &flags);
-        pri->createseq.index    = bplib_sdnv_write(buffer, size, pri->createtmns,   &flags);
+        pri->createsec.index    = bplib_sdnv_write(buffer, size, pri->cstserv,      &flags);
+        pri->createseq.index    = bplib_sdnv_write(buffer, size, pri->createsec,    &flags);
         pri->lifetime.index     = bplib_sdnv_write(buffer, size, pri->createseq,    &flags);
         pri->dictlen.index      = bplib_sdnv_write(buffer, size, pri->lifetime,     &flags);
 
