@@ -142,18 +142,18 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_in
     }
 
     /* Copy Bytes */
-    if(pay->payptr)
-    {
-        if(size >= (bytes_written + pay->paysize))
-        {
-            bplib_os_memcpy(&buffer[bytes_written], pay->payptr, pay->paysize);
-            bytes_written += pay->paysize;
-        }
-        else
-        {
-            return bplog(BP_BUNDLEPARSEERR, "Unable to write payload, buffer too small (%d %d)\n", size, bytes_written + pay->paysize);
-        }
-    }
+//    if(copy)
+//    {
+//        if(size >= (bytes_written + pay->paysize))
+//        {
+//            bplib_os_memcpy(&buffer[bytes_written], pay->payptr, pay->paysize);
+//            bytes_written += pay->paysize;
+//        }
+//        else
+//        {
+//            return bplog(BP_BUNDLEPARSEERR, "Unable to write payload, buffer too small (%d %d)\n", size, bytes_written + pay->paysize);
+//        }
+//    }
 
     /* Return Written */
     return bytes_written;

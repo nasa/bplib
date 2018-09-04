@@ -16,9 +16,6 @@
 
 #include <assert.h>
 
-#include <stdio.h>
-
-
 #include "bplib_sdnv.h"
 #include "bplib.h"
 
@@ -81,7 +78,7 @@ int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
     assert(flags);
 
     int i, maxbytes;
-    printf("Write - Value=%u, Index=%u, Width=%d, ", sdnv.value, sdnv.index, sdnv.width);
+
     /* Initialize Bytes to Write */
     if(sdnv.width <= 0)
     {
@@ -106,8 +103,6 @@ int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
         maxbytes = size - sdnv.index;
     }
 
-    printf("MaxBytes=%d || ", maxbytes);
-
     /* Write SDNV */
     for(i = maxbytes + sdnv.index - 1; i >= (int)sdnv.index; i--)
     {
@@ -118,7 +113,7 @@ int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
 
     /* Set Overflow  */
     if(sdnv.value > 0) *flags |= BP_SDNV_OVERFLOW;
-    printf("LeftOver=%u\n", sdnv.value);
+
     /* Return Next Index */
     return maxbytes + sdnv.index;
 }

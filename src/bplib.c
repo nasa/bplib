@@ -173,7 +173,6 @@ typedef struct {
 typedef struct {
     bp_blk_cteb_t       custody_block;
     bp_blk_bib_t        integrity_block;
-    bp_blk_pay_t        payload_block;
     bp_data_store_t     data_storage;
     /* uses data bundle for everything else */
 } bp_forw_bundle_t;
@@ -405,11 +404,8 @@ static int store_data_bundle(bp_channel_t* ch, bp_data_store_t* ds, bp_blk_pri_t
         while(payload_offset < pay->paysize)
         {
             /* Calculate Storage Header Size and Fragment Size */
-            ds->headersize = ds->payoffset + status;
-            int storage_header_size = sizeof(bp_data_store_t) - (BP_DATA_HDR_BUF_SIZE - ds->headersize);
             int payload_remaining = pay->paysize - payload_offset;
             int fragment_size = ch->bundle_maxlength <  payload_remaining ? ch->bundle_maxlength : payload_remaining;
-            ds->bundlesize = ds->headersize + fragment_size;
 
             /* Update Primary Block */
             pri->fragoffset.value = payload_offset;
@@ -424,18 +420,11 @@ static int store_data_bundle(bp_channel_t* ch, bp_data_store_t* ds, bp_blk_pri_t
             pay->blklen.value = fragment_size;
             status = bplib_blk_pay_write(&ds->header[ds->payoffset], BP_DATA_HDR_BUF_SIZE - ds->payoffset, pay, BP_FALSE);
             if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write payload block (static portion) of bundle\n", status);
-
-////////////////////////////////////////////////////////////////////////
-{
-unsigned int i;
-uint8_t* ptr = (uint8_t*)&ds->header;
-printf("[%ld]: ", sizeof(bp_data_store_t));
-for(i = 0; i < sizeof(bp_data_store_t); i++) printf("%02X ", ptr[i]);
-printf("\n");
-}
-////////////////////////////////////////////////////////////////////////
+            ds->headersize = ds->payoffset + status;
+            ds->bundlesize = ds->headersize + fragment_size;
 
             /* Enqueue Bundle */
+            int storage_header_size = sizeof(bp_data_store_t) - (BP_DATA_HDR_BUF_SIZE - ds->headersize);
             ch->store.enqueue(ch->data_bundle.data_store_handle, ds, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
             payload_offset += fragment_size;
         }
@@ -644,7 +633,6 @@ static int initialize_forw_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, bp_blk_pa
     bp_data_store_t* ds = &ch->forw_bundle.data_storage;
     bp_blk_cteb_t* fcteb = &ch->forw_bundle.custody_block;
     bp_blk_bib_t* fbib = &ch->forw_bundle.integrity_block;
-    bp_blk_pay_t* fpay = &ch->forw_bundle.payload_block;
 
     /* Initialize Data Storage Memory */
     hdr_index = 0;
@@ -714,10 +702,8 @@ static int initialize_forw_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, bp_blk_pa
         }
     }
 
-    /* Initialize Payload Block (static portion) */
+    /* Initialize Payload Block Offset */
     {
-        fpay->payptr = pay->payptr;
-        fpay->paysize = pay->paysize;
         ds->payoffset = hdr_index;
     }
 
@@ -1012,7 +998,6 @@ int bplib_open(bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp
             /* Initialize Forwarded Bundle */
             channels[i].forw_bundle.custody_block               = native_cteb_blk;
             channels[i].forw_bundle.integrity_block             = native_bib_blk;
-            channels[i].forw_bundle.payload_block               = native_pay_blk;
 
             /* Initialize Data */
             channels[i].timeout                                 = BP_DEFAULT_TIMEOUT;
@@ -1087,6 +1072,10 @@ int bplib_store(int channel, void* payload, int size, int timeout)
     else if(channels[channel].channel_index != channel) return BP_INVALIDCHANNEL;
     else if(payload == NULL)                            return BP_PARMERR;
     else if(size > channels[channel].bundle_maxlength)  return BP_PARMERR;
+
+    /* Update Payload */
+    channels[channel].data_bundle.payload_block.payptr = (uint8_t*)payload;
+    channels[channel].data_bundle.payload_block.paysize = size;
 
     /* Store Bundle */
     return store_data_bundle( &channels[channel],
@@ -1473,7 +1462,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                  *  note that the primary block is the only block reused from the
                  *  oritinal bundle, all other blocks are generated above in the
                  *  initialize_forw_bundle function */
-                status = store_data_bundle(ch, &ch->forw_bundle.data_storage, &pri_blk, &ch->forw_bundle.integrity_block, &ch->forw_bundle.payload_block, BP_FALSE, timeout);
+                status = store_data_bundle(ch, &ch->forw_bundle.data_storage, &pri_blk, &ch->forw_bundle.integrity_block, &pay_blk, BP_FALSE, timeout);
                 if(status <= 0) return status;
 
                 /* Update DACS (bundle successfully forwarded) */
