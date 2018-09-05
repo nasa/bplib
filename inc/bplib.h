@@ -17,6 +17,10 @@
  DEFINES
  ******************************************************************************/
 
+/* Timeouts */
+#define BP_PEND                         (-1)
+#define BP_CHECK                        0
+
 /* Booleans */
 #define BP_TRUE                         1
 #define BP_FALSE                        0

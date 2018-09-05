@@ -1192,7 +1192,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         bp_sdnv_t   load_cidsdnv    = {0,0,0};              // sdnv of the CID that needs to be written on load
 
         /* Check if ACS Needs to be Sent */
-        if(dequeue(ch->dacs_store_handle, (void**)&storebuf, &storelen, &sid, timeout) == BP_SUCCESS)
+        if(dequeue(ch->dacs_store_handle, (void**)&storebuf, &storelen, &sid, BP_CHECK) == BP_SUCCESS)
         {
             bp_dacs_store_t* ds = (bp_dacs_store_t*)storebuf;
 
@@ -1219,7 +1219,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
             {
                 ch->data_bundle.oldest_custody_id++;
             }
-            else if(retrieve(ch->data_store_handle, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
+            else if(retrieve(ch->data_store_handle, (void**)&storebuf, &storelen, sid, BP_CHECK) == BP_SUCCESS)
             {
                 /* Check Timeout */
                 bp_data_store_t* ds = (bp_data_store_t*)storebuf;
@@ -1259,7 +1259,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
                     /* Write Re-Transmit Time */
                     bp_data_store_t* ds = (bp_data_store_t*)storebuf;
                     ds->retxtime = sysnow + ch->timeout;
-                    refresh(ch->data_store_handle, storebuf, sizeof(ds->retxtime), 0, sid, timeout);
+                    refresh(ch->data_store_handle, storebuf, sizeof(ds->retxtime), 0, sid, BP_CHECK);
 
                     /* Transmit Dequeued Bundle */
                     load_bundle = &ds->header[0];
@@ -1286,7 +1286,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
             else if(ch->wrap_response == BP_WRAP_RESEND)
             {
                 /* Retrieve Bundle from Storage */
-                if(retrieve(ch->data_store_handle, (void**)&storebuf, &storelen, sid, timeout) == BP_SUCCESS)
+                if(retrieve(ch->data_store_handle, (void**)&storebuf, &storelen, sid, BP_CHECK) == BP_SUCCESS)
                 {
                     /* Retransmit Bundle */
                     bp_data_store_t* ds = (bp_data_store_t*)storebuf;
@@ -1631,7 +1631,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
                 status = bplog(BP_PAYLOADTOOLARGE, "Payload too large to fit inside buffer (%d %d)\n", size, paylen);
             }
         }
-        else
+        else if(status != BP_TIMEOUT)
         {
             bplog(BP_FAILEDSTORE,"Failed (%d) to dequeue payload\n", status);
         }
