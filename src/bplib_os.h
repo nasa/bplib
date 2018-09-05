@@ -23,16 +23,21 @@
 #else
 #define VARG_CHECK(f, a, b)
 #endif
-#define bplog(err,...)  bplib_log(__FILE__,__LINE__,err,__VA_ARGS__)
+#define bplog(err,...)  bplib_os_log(__FILE__,__LINE__,err,__VA_ARGS__)
 #define BP_INFO         0
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int     bplib_log       (const char* file, unsigned int line, int error, const char* fmt, ...) VARG_CHECK(printf, 4, 5);
-void    bplib_os_memset (void* addr, int len, int val);
-void    bplib_os_memcpy (void* dst, void* src, int len);
-int     bplib_systime   (uint32_t* tm);
+void        bplib_os_init           (void);
+int         bplib_os_log            (const char* file, unsigned int line, int error, const char* fmt, ...) VARG_CHECK(printf, 4, 5);
+void        bplib_os_memset         (void* addr, int len, int val);
+void        bplib_os_memcpy         (void* dst, void* src, int len);
+uint32_t    bplib_os_systime        (void);
+int         bplib_os_createlock     (void);
+void        bplib_os_destroylock    (int handle);
+void        bplib_os_lock           (int handle);
+void        bplib_os_unlock         (int handle);
 
-#endif /* _BPLIB_CRC_H_ */
+#endif /* _BPLIB_OS_H_ */

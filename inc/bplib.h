@@ -54,6 +54,7 @@
 #define BP_FAILEDINTEGRITYCHECK         (-16)
 #define BP_FAILEDSTORE                  (-17)
 #define BP_FAILEDRESPONSE               (-18)
+#define BP_FAILEDOS                     (-19)
 
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x00000001  // valid bundle but agent not able to comply with standard
