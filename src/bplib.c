@@ -141,7 +141,6 @@ typedef struct {
     bp_blk_bib_t        integrity_block;
     bp_blk_pay_t        payload_block;
     bp_sid_t            active_table[BP_ACTIVE_TABLE_SIZE];
-    uint32_t            current_custody_id;
     uint32_t            oldest_custody_id;
     bp_data_store_t     data_store;
     bp_payload_store_t  payload_store;
@@ -1012,7 +1011,6 @@ int bplib_open(bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp
                 channels[i].data_bundle.custody_block.cstserv.value = local_service;
                 channels[i].data_bundle.integrity_block             = native_bib_blk;
                 channels[i].data_bundle.payload_block               = native_pay_blk;
-                channels[i].data_bundle.current_custody_id          = 0;
                 channels[i].data_bundle.oldest_custody_id           = 0;
 
                 /* Initialize DACS Bundle */
@@ -1191,7 +1189,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         int         ati             = -1;                   // active table index
         bp_sdnv_t   load_cidsdnv    = {0,0,0};              // sdnv of the CID that needs to be written on load
 
-        /* Check if ACS Needs to be Sent */
+        /* Check if DACS Needs to be Sent */
         if(dequeue(ch->dacs_store_handle, (void**)&storebuf, &storelen, &sid, BP_CHECK) == BP_SUCCESS)
         {
             bp_dacs_store_t* ds = (bp_dacs_store_t*)storebuf;
@@ -1211,7 +1209,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         }
 
         /* Try to Send Timed-out Bundle */
-        while((load_bundle == NULL) && (ch->data_bundle.oldest_custody_id < ch->data_bundle.current_custody_id))
+        while((load_bundle == NULL) && (ch->data_bundle.oldest_custody_id < ch->data_bundle.custody_block.cid.value))
         {
             ati = ch->data_bundle.oldest_custody_id % BP_ACTIVE_TABLE_SIZE;
             sid = ch->data_bundle.active_table[ati];
@@ -1223,14 +1221,22 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
             {
                 /* Check Timeout */
                 bp_data_store_t* ds = (bp_data_store_t*)storebuf;
-                if(sysnow <= ds->retxtime)
+                if(sysnow >= ds->retxtime)
                 {
+                    /* Write New Re-Transmit Time */
+                    ds->retxtime = sysnow + ch->timeout;
+                    refresh(ch->data_store_handle, storebuf, sizeof(ds->retxtime), 0, sid, BP_CHECK);
+
                     /* Retransmit Bundle */
                     load_bundle = &ds->header[0];
                     load_size = ds->bundlesize;
                     load_store = ch->data_store_handle;
                     load_cteboffset = ds->cteboffset;
                     load_cidsdnv = ds->cidsdnv;
+
+                    /* Clear Entry (it will be reinserted below at the current pointer) */
+                    ch->data_bundle.active_table[ati] = BP_SID_VACANT;
+                    ch->data_bundle.oldest_custody_id++;
                 }
 
                 /* Exit Loop */
@@ -1248,7 +1254,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         /* Try to Send Stored Bundle (if nothing sent yet) */
         while(load_bundle == NULL)
         {
-            ati = ch->data_bundle.current_custody_id % BP_ACTIVE_TABLE_SIZE;
+            ati = ch->data_bundle.custody_block.cid.value % BP_ACTIVE_TABLE_SIZE;
             sid = ch->data_bundle.active_table[ati];
             if(sid == BP_SID_VACANT) // entry vacant
             {
@@ -1334,9 +1340,9 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
                 if(load_cteboffset != 0)
                 {
                     uint8_t flags = 0;
-                    ati = ch->data_bundle.current_custody_id % BP_ACTIVE_TABLE_SIZE;
+                    ati = ch->data_bundle.custody_block.cid.value % BP_ACTIVE_TABLE_SIZE;
                     ch->data_bundle.active_table[ati] = sid;
-                    ch->data_bundle.custody_block.cid.value = ch->data_bundle.current_custody_id++;
+                    load_cidsdnv.value = ch->data_bundle.custody_block.cid.value++;
                     bplib_sdnv_write(&load_bundle[load_cteboffset], load_size, load_cidsdnv, &flags);
                     if(flags != 0)
                     {
@@ -1357,6 +1363,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
     bplib_os_unlock(channels[channel].lock);
 
     /* Return Status */
+printf("RETURNING LOAD %d %d\n", channel, status);
     return status;
 }
 

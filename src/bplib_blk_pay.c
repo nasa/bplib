@@ -90,14 +90,16 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_ind
     }
 
     /* Success Oriented Error Checking */
-    if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
-
-    /* Set Payload Pointer */
-    pay->payptr = &buffer[bytes_read];
-    pay->paysize = pay->blklen.value;
-
-    /* Return Bytes Read */
-    return bytes_read;
+    if(flags != 0)
+    {
+        return BP_BUNDLEPARSEERR;
+    }
+    else
+    {
+        pay->payptr = &buffer[bytes_read];
+        pay->paysize = pay->blklen.value;
+        return bytes_read;
+    }
 }
 
 /*--------------------------------------------------------------------------------------
@@ -155,8 +157,9 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_in
 //        }
 //    }
 
-    /* Return Written */
-    return bytes_written;
+    /* Success Oriented Error Checking */
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return bytes_written;
 }
 
 /*--------------------------------------------------------------------------------------

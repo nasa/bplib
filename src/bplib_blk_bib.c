@@ -79,10 +79,8 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, int update_ind
     }
 
     /* Success Oriented Error Checking */
-    if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
-
-    /* Return Bytes Read */
-    return bytes_read;
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return bytes_read;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -127,8 +125,9 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, int update_in
     bib->blklen.value = bytes_written - bib->paytype.index;
     bplib_sdnv_write(buffer, size, bib->blklen, &flags);
 
-    /* Return Bytes Written */
-    return bytes_written;
+    /* Success Oriented Error Checking */
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return bytes_written;
 }
 
 /*--------------------------------------------------------------------------------------

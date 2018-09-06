@@ -77,10 +77,8 @@ int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_
     }
 
     /* Success Oriented Error Checking */
-    if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
-
-    /* Return Bytes Read */
-    return bytes_read;
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return bytes_read;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -127,6 +125,7 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, int update
     cteb->blklen.value = bytes_written - cteb->cid.index;
     bplib_sdnv_write(buffer, size, cteb->blklen, &flags);
 
-    /* Return Written */
-    return bytes_written;
+    /* Success Oriented Error Checking */
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return bytes_written;
 }

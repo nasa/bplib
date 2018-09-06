@@ -154,8 +154,9 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
     if(pri->pcf.value & BP_PCF_RPTDLT_MASK)     pri->report_deletion = BP_TRUE;
     else                                        pri->report_deletion = BP_FALSE;
 
-    /* Return Number of Bytes Read */
-    return bytes_read;
+    /* Success Oriented Error Checking */
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return bytes_read;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -251,8 +252,6 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
     bplib_sdnv_write(buffer, size, pri->blklen, &flags);
 
     /* Success Oriented Error Checking */
-    if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
-
-    /* Return Bytes Written */
-    return bytes_written;
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    else            return bytes_written;
 }
