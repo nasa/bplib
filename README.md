@@ -3,29 +3,44 @@
 Bundle Protocol Library
 ----------------------------------------------------------------------
 
-The Bundle Protocol library uses the concept of a bundle channel to manage the different source streams of data it receives and bundles that it produces. A channel specifies how the bundles are created (e.g. primary header block fields) at the time the bundle is attempted to be transmitted. The library supports a thread-safe synchronous blocking I/O model where no call-backs are necessary and requested operations will either block according to the timeout or return an error code immediately if the operation cannot be performed.
+The Bundle Protocol library (bplib) implements a subset of the RFC5050 Bundle Protocol necessary for embedded space flight applications. The library uses the concept of a bundle channel to manage the process of encapsulating application data in bundles, and pulling application data out of bundles.  A channel specifies how the bundles are created (e.g. primary header block fields), and how bundles are processed. Bplib contains no threads and relies entirely on the calling application for its execution context and therefore implements a thread-safe synchronous blocking I/O model where no call-backs are necessary and requested operations will either block according to the provided timeout, or return an error code immediately if the operation cannot be performed.
 
-![Figure 5](doc/bp_bundle_management.png "BP Library Bundle Management")
+![Figure 1](doc/bp_api_basic.png "BP Library API (Basic)")
+
+The fundamental problem bplib solves is the receipt and transmission of data when there is the potential for substational differences in input and output rates.  Bplib is designed to handle the receipt of application data to be transmitted as bundles when that transmission occurs minutes, hours, or days later.  Likewise, bplib can receive bundles in long sustained bursts which may take the application minutes, or hours to process.  Therefore, in both cases, bplib assumes the availability of a persistent queued storage system for managing the rate buffering that must occur between data and bundle processing.
+
+A possible application design for using bplib is to have four execution threads:
+1. A __bundle reader__ thread that reads bundles from a convergence layer
+2. A __data writer__ thread that writes the payload data read from bundles to the application layer
+3. A __bundle writer__ thread that writes bundles to a convergence layer
+4. A __data reader__ thread that reads data from the application layer that is then placed in bundles
+
+The __bundle reader__ would use the `bplib_process` function to pass bundles read from the convergence layer into the library.  If those bundles contain payload data bound for the application, that data is pulled out of the bundles and queued in storage until the __data writer__ thread calls the `bplib_accept` function to dequeue the data out of storage and write it to the application.  Meanwhile, if the application is also producing data of its own to be bundled, the __data reader__ thread would call `bplib_store` to read data from the application and pass it into the library to be bundled.  Those bundles are queued in storage until the __bundle writer__ threads calls the `bplib_load` function to dequeue them out of storage and write them to the convergence layer.
 
 ## Application Programming Interface (API)
 
+| Function        | Purpose |
+| --------------- | ------- | 
+| bplib_init      | Initialize the BP library - called once at program start |
+| bplib_open      | Open a channel - provides handle to channel for future channel operations |
+| bplib_close     | Close a channel |
+| bplib_getopt	  | Get the setting of a channel option |
+| bplib_setopt    | Set the setting of a channel option |
+| bplib_store     | Create a bundle from application data and queue in storage for transmission |
+| bplib_load      | Retrieve the next available bundle from storage to transmit |
+| bplib_process   | Process a bundle for data extraction, custody acceptance, and/or forwarding |
+| bplib_accept    | Retrieve the next available data payload from a received bundle |
+| bplib_routeinfo | Parse bundle and return routing information |
+
 #### Initialize
 
-`int bplib_init(char* convergence, char* node, boolean resume)`
+`void bplib_init (void)`
 
-Initializes the BP library for a convergence layer and if _resume_ is true then it attempts to recover any data from persistent storage that has not been sent.
-
-_convergence_ - string identifying the convergence layer to be used
-
-_node_ - endpoint node ID in the format of "{schema}:{node}" used to populate default values for source, reportto, and custodian node IDs. Note the {service} portion of the endpoint ID is not provided here but filled in at the time of bundle creation using the configured channel ID.
-
-_resume_ - boolean specifying if the library is to resume previously started operations or start fresh
-
-_returns_ - convergence ID.
+Initializes the BP library.  This must be called before any other call to the library is made.  It also calls the operating system layer initialization routine.
 
 #### Open Channel
 
-`int bplib_open(int conv, char* dest)`
+`int bplib_open(bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service)`
 
 Opens a bundle channel using the convergence layer and destination information provided and returns a handle. 
 
@@ -39,6 +54,8 @@ _returns_ - channel ID.
 
 #### Close Channel
 
+void    bplib_close     (int channel);
+
 `void bplib_close(int channel)`
 
 Closes the specified bundle channel and releases all run-time resources associated with it; this does not include the bundles stored in persistent memory.
@@ -47,6 +64,8 @@ _channel_ - which channel to close
 
 #### Set/Get Options
 
+int     bplib_getopt    (int channel, int opt, void* val, int len);
+int     bplib_setopt    (int channel, int opt, void* val, int len);
 `int bplib_setopt(int channel, int opt, void* val, int len)`
 `int bplib_getopt(int channel, int opt, void* val, int len)`
 
@@ -80,6 +99,8 @@ _returns_ - return code (see below).
 
 #### Create Bundle
 
+
+int     bplib_store     (int channel, void* payload, int size, int timeout);
 `int bplib_create(int channel, void* payload, int size, int timeout)`
 
 Initiates sending the data pointed to by _payload_ inside a bundle by creating the bundle and filling it out using the _channel_ parameters.  Subsequent to the call the application must call the bplib_retrieve function to fetch the next bundle to be sent. Given class of service and retransmits, among other things, the next bundle fetched is not necessarily the one that was just created.
@@ -94,26 +115,9 @@ _timeout_ - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
 _returns_ - size of bundle created in bytes, or return code on error (see below).
 
-#### Append Bundle
-
-`int bplib_append(int channel, void* payload, int size, int timeout, int control)`
-
-Appends the data pointed to by _payload_ to the current bundle.  This is used to create bundles that are too large to fit into processor memory (RAM).  The maximum bundle and fragment sizes are used to automatically create and fragment the bundle.  The _control_ flag is used to assert the end of a bundle.
-
-_channel_ - channel to create bundle on
-
-_payload_ - pointer to data to be bundled; the payload will be apended to the current bundled and fragmented automatically into smaller bundles based on the maximum bundle and fragment sizes.
-
-_size_ - size of payload in bytes
-
-_timeout_ - 0: check, -1: pend, 1 and above: timeout in milliseconds
-
-_control_ - flag indicated whether or not the payload terminates the current bundle or not
-
-_returns_ - size of bundle created in bytes, or return code on error (see below).
-
 #### Retrieve Bundle
 
+int     bplib_load      (int channel, void* bundle,  int size, int timeout, uint32_t* loadflags); 
 `int bplib_retrieve(int channel, bp_bundle_t* bundle, int timeout)`
 
 Reads the next bundle from the BP library to be sent over a convergence layer. The convergence layer is required to successfully send the bundle. (Note: If it fails to do so, it can call bplib_process and pass in an administrative bundle that indicates that the bundle was not sent).
@@ -128,6 +132,7 @@ _returns_ - size of bundle in bytes, or return code on error (see below)
 
 #### Process Bundle
 
+int     bplib_process   (int channel, void* bundle,  int size, int timeout, uint32_t* procflags);
 `int bplib_process(int channel, bp_bundle_t* bundle, int timeout)`
 
 Processes the provided bundle. If bundle is an aggregate custody signal, then any acknowledged bundles will be freed from memory and any missing bundles will be inspected and the appropriate actions will be taken depending on the options set by the bundle's channel.
@@ -144,6 +149,8 @@ If this call returns a value greater than 0, then the application can call the `
 
 #### Accept Payload
 
+int     bplib_accept    (int channel, void* payload, int size, int timeout, uint32_t* acptflags);
+
 `int bplib_accept(int channel, bp_bundle_payload_t* payload, int timeout)`
 
 Returns the next available bundle payload (from bundles that have been received and processed via the `bplib_process` function) to the application by populating the structure pointed to by the _payload_ pointer. This includes setting another member pointer to a data buffer containing the payload, setting the size of the payload, and any flags.  The payloads are queued as they are built and returned to the application based on class of service and creation time ordering.
@@ -156,6 +163,11 @@ _timeout_ - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
 _returns_ - size of bundle payload in bytes, or return code on error (see below).
 
+
+
+#### Route Information
+
+int     bplib_routeinfo (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
 
 ## Return Codes
 
