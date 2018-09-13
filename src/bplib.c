@@ -55,7 +55,7 @@
 #endif
 
 #ifndef BP_DEFAULT_CREATE_SECS
-#define BP_DEFAULT_CREATE_SECS      0
+#define BP_DEFAULT_CREATE_SECS          0
 #endif
 
 #ifndef BP_DEFAULT_CSTRQST
@@ -83,7 +83,7 @@
 #endif
 
 #ifndef BP_DEFAULT_DACS_RATE
-#define BP_DEFAULT_DACS_RATE            1000    // milliseconds
+#define BP_DEFAULT_DACS_RATE            5    // seconds
 #endif
 
 #ifndef BP_DEFAULT_BP_VERSION
@@ -202,55 +202,6 @@ static int channels_lock;
  *    block is written.  If the blklen field was variable, the code would have
  *    to make a first pass to calculate the block length and then a second pass
  *    to use that block length - that would be too much processing.
- *
- * -------------------------------------------------
- * 2.                 Data Bundle
- * -------------------------------------------------
- * |    MSB    |           |           |    LSB    |
- * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
- * |-----------|-----------|-----------|-----------|    0
- * |                                               |
- * |              Primary Bundle Block             |
- * |              (see bplib_blk_pri.c)            |
- * |                                               |
- * |-----------------------------------------------|    44/52
- * |                                               |
- * |        Custody Transfer Extension Block       |
- * |             (see bplib_blk_cteb.c)            |
- * |                                               |
- * |-----------------------------------------------|    64
- * |                                               |
- * |             Bundle Integrity Block            |
- * |              (see bplib_blk_bib.c)            |
- * |                                               |
- * |-----------|-----------|-----------------------|    72
- * |                                               |    76 --> start of the payload
- * |              Bundle Payload Block             |
- * |              (see bplib_blk_pay.c)            |
- * |                                               |
- * |-----------------------------------------------|    4096 --> variable, not to exceed
- *
- * -------------------------------------------------
- * 3.           Aggregate Custody Bundle
- * -------------------------------------------------
- * |    MSB    |           |           |    LSB    |
- * | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
- * |-----------|-----------|-----------|-----------|    0
- * |                                               |
- * |              Primary Bundle Block             |
- * |              (see bplib_blk_pri.c)            |
- * |                                               |
- * |-----------------------------------------------|    44/52
- * |                                               |
- * |             Bundle Integrity Block            |
- * |              (see bplib_blk_bib.c)            |
- * |                                               |
- * |-----------------------------------------------|    60
- * |                                               |    64 --> start of the payload
- * |              Bundle Payload Block             |
- * |              (see bplib_blk_pay.c)            |
- * |                                               |
- * |-----------------------------------------------|
  */
 
 static const bp_blk_pri_t native_data_pri_blk = {
@@ -1208,8 +1159,9 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
             }
             else if(retrieve(store, (void**)&ds, NULL, sid, BP_CHECK) == BP_SUCCESS)
             {
-                /* Check Timeout */
-                if(sysnow >= ds->retxtime)
+                // TODO: check life time
+
+                if(sysnow >= ds->retxtime) // check timeout
                 {
                     /* Write New Re-Transmit Time */
                     ds->retxtime = sysnow + ch->timeout;
@@ -1385,7 +1337,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 
     /* Check Life Time */
     sysnow = bplib_os_systime();
-    if(sysnow >= (pri_blk.lifetime.value + pri_blk.createsec.value))
+    if((pri_blk.lifetime.value != 0) && (sysnow >= (pri_blk.lifetime.value + pri_blk.createsec.value)))
     {
         return bplog(BP_EXPIRED, "Expired bundled attempted to be processed \n");
     }
