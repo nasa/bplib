@@ -64,7 +64,7 @@ EXECDIR :=   $(PREFIX)/bin
 LIBDIR  :=   $(PREFIX)/lib
 INCDIR  :=   $(PREFIX)/include/$(TGTLIB)
 BLDDIR  :=   build
-O       :=   3 # optimization level
+O       ?=   3 # default optimization level
 
 COPT    :=   -g -Wall -Wextra -O$(O) -D'LIBID="$(TGTVER)"' $(INCLUDES) $(APP_DEFS)
 COPT    +=   -DEXECPATH=\"$(EXECDIR)\"

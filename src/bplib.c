@@ -893,6 +893,9 @@ void bplib_init(void)
     /* Initialize OS Interface */
     bplib_os_init();
 
+    /* Print Version */
+    bplog(BP_SUCCESS, "Initializing bplib version %s\n", LIBID);
+
     /* Create Channel Lock */
     channels_lock = bplib_os_createlock();
 

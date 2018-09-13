@@ -16,8 +16,15 @@ APP_OBJ += bplib_store_pfile.o
 # Disable Asserts #
 # APP_COPT += -DNDEBUG
 
+# Optimization Level #
+O = 0
+
+# GNU Code Coverage # 
+APP_COPT += -fprofile-arcs -ftest-coverage
+APP_LOPT += -lgcov --coverage
+
 # Enable Stack Checker #
-# APP_COPT += -fstack-protector-all
+APP_COPT += -fstack-protector-all
 
 # Enable 32-bit Target #
 # APP_COPT += -m32
