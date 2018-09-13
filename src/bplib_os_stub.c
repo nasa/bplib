@@ -1,6 +1,6 @@
 /******************************************************************************
- * Filename:        bplib_os_posix.c
- * Purpose:         POSIX OS abstraction for Bundle Protocol Library
+ * Filename:        bplib_os_stub.c
+ * Purpose:         Stubbed out OS abstraction for Bundle Protocol Library
  * Design Notes:
  ******************************************************************************/
 
@@ -8,29 +8,9 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include <time.h>
-#include <pthread.h>
 
 #include "bplib.h"
 
-/******************************************************************************
- DEFINES
- ******************************************************************************/
-
-#define MAX_LOG_ENTRY_SIZE  256
-#define UNIX_SECS_AT_2000   946684800
-#define MAX_MUTEXES         32
-
-/******************************************************************************
- FILE DATA
- ******************************************************************************/
-
-pthread_mutex_t* locks[MAX_MUTEXES] = {0};
-pthread_mutex_t lock_of_locks;
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -41,10 +21,6 @@ pthread_mutex_t lock_of_locks;
  *-------------------------------------------------------------------------------------*/
 void bplib_os_init(void)
 {
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&lock_of_locks, &attr);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -54,23 +30,11 @@ void bplib_os_init(void)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt, ...)
 {
-    char formatted_string[MAX_LOG_ENTRY_SIZE];
-    va_list args;
-	int vlen, msglen;
-
-    /* Build Formatted String */
-    va_start(args, fmt);
-    vlen = vsnprintf(formatted_string, MAX_LOG_ENTRY_SIZE - 1, fmt, args);
-    msglen = vlen < MAX_LOG_ENTRY_SIZE - 1 ? vlen : MAX_LOG_ENTRY_SIZE - 1;
-    va_end(args);
-    if (msglen < 0) return error; // nothing to do
-    formatted_string[msglen] = '\0';
-
-	/* Print Log Message */
-    printf("%s:%d:%d:%s", file, line, error, formatted_string);
-
-	/* Return Error Code */
-	return error;
+    (void)file;
+    (void)line;
+    (void)error;
+    (void)fmt;
+	return 0;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -78,7 +42,9 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
  *-------------------------------------------------------------------------------------*/
 void bplib_os_memset(void* addr, int len, int val)
 {
-	memset(addr, len, val);
+    (void)addr;
+    (void)len;
+    (void)val;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -86,7 +52,9 @@ void bplib_os_memset(void* addr, int len, int val)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_memcpy(void* dst, void* src, int len)
 {
-	memcpy(dst, src, len);
+    (void)dst;
+    (void)src;
+    (void)len;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -94,10 +62,8 @@ void bplib_os_memcpy(void* dst, void* src, int len)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_systime(uint32_t* tm)
 {
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-    *tm = now.tv_sec - 946684800;
-    return BP_SUCCESS;
+    (void)tm;
+    return 0;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -105,26 +71,7 @@ int bplib_os_systime(uint32_t* tm)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_createlock(void)
 {
-    int i;
-    int handle = -1;
-    pthread_mutex_lock(&lock_of_locks);
-    {
-        for(i = 0; i < MAX_MUTEXES; i++)
-        {
-            if(locks[i] == NULL)
-            {
-                locks[i] = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
-                pthread_mutexattr_t attr;
-                pthread_mutexattr_init(&attr);
-                pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-                pthread_mutex_init(locks[i], &attr);
-                handle = i;
-                break;
-            }
-        }
-    }
-    pthread_mutex_unlock(&lock_of_locks);
-    return handle;
+    return 0;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -132,15 +79,7 @@ int bplib_os_createlock(void)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_destroylock(int handle)
 {
-    pthread_mutex_lock(&lock_of_locks);
-    {
-        if(locks[handle] != NULL)
-        {
-            free(locks[handle]);
-            locks[handle] = NULL;
-        }
-    }
-    pthread_mutex_unlock(&lock_of_locks);
+    (void)handle;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -148,7 +87,7 @@ void bplib_os_destroylock(int handle)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_lock(int handle)
 {
-    pthread_mutex_lock(locks[handle]);
+    (void)handle;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -156,5 +95,5 @@ void bplib_os_lock(int handle)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_unlock(int handle)
 {
-    pthread_mutex_unlock(locks[handle]);
+    (void)handle;
 }

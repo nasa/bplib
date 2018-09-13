@@ -90,6 +90,10 @@
 #define BP_DEFAULT_BP_VERSION           BP_PRI_VERSION
 #endif
 
+#ifndef LIBID
+#define LIBID                           "unversioned"
+#endif
+
 #define BP_EMPTY                        (-1)
 #define BP_MAX_FILL                     0x3FFF
 #define BP_BUNDLE_HDR_BUF_SIZE          128

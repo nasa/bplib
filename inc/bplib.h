@@ -70,7 +70,7 @@
 #define BP_FLAG_UNABLETOSTORE           0x00000080  // unable to store the ACS bundle for later transmission
 #define BP_FLAG_ROUTENEEDED             0x00000100  // the bundle returned needs to be routed before transmission
 #define BP_FLAG_STOREFAILURE            0x00000200  // storage service failed to deliver data
-#define BP_FLAG_PARSEFAILURE            0x00000400  // storage service failed to deliver data
+#define BP_FLAG_PARSEFAILURE            0x00000400  // 
 #define BP_FLAG_MIXEDRESPONSE           0x00000800  // aggregate acknowledgement must have uniform delivery vs. forward
 
 /* Set/Get Option Defines */
