@@ -33,7 +33,7 @@
  *  flags - pointer to variable that will hold the flags set as result of read [output]
  *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
-int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint8_t* flags)
+int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags)
 {
     assert(block);
     assert(sdnv);
@@ -52,11 +52,11 @@ int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint8_t* flags)
         sdnv->value <<= 7;
         sdnv->value |= (block[i] & 0x7F);
         if((block[i] & 0x80) == 0x00) return (i + 1);
-        else if(size < (i + 2)) *flags |= BP_SDNV_INCOMPLETE;
+        else if(size < (i + 2)) *flags |= BP_FLAG_SDNVINCOMPLETE;
     }
 
     /* Set Overflow  */
-    *flags |= BP_SDNV_OVERFLOW;
+    *flags |= BP_FLAG_SDNVOVERFLOW;
 
     /* Return Next Index */
     return i;
@@ -72,7 +72,7 @@ int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint8_t* flags)
  *  flags - pointer to variable that will hold the flags set as result of write [output]
  *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
-int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
+int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
 {
     assert(block);
     assert(flags);
@@ -99,7 +99,7 @@ int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
     else
     {
         /* Truncate Width */
-        *flags |= BP_SDNV_INCOMPLETE;
+        *flags |= BP_FLAG_SDNVINCOMPLETE;
         maxbytes = size - sdnv.index;
     }
 
@@ -112,7 +112,7 @@ int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint8_t* flags)
     }
 
     /* Set Overflow  */
-    if(sdnv.value > 0) *flags |= BP_SDNV_OVERFLOW;
+    if(sdnv.value > 0) *flags |= BP_FLAG_SDNVOVERFLOW;
 
     /* Return Next Index */
     return maxbytes + sdnv.index;

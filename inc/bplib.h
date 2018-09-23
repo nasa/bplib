@@ -60,18 +60,18 @@
 #define BP_FAILEDOS                     (-18)
 
 /* Processing, Acceptance,and Load Flags */
-#define BP_FLAG_NONCOMPLIANT            0x00000001  // valid bundle but agent not able to comply with standard
-#define BP_FLAG_INCOMPLETE              0x00000002  // block in bundle was not recognized
-#define BP_FLAG_REPORTDELETE            0x00000004  // status report must be generated if bundle is deleted
-#define BP_FLAG_TOOMANYSOURCES          0x00000008  // too many sources to keep track of for ACS bundles
-#define BP_FLAG_FILLOVERFLOW            0x00000010  // a gap in the CIDs exceeds the max fill
-#define BP_FLAG_TOOMANYFILLS            0x00000020  // all the fills in the ACS are used
-#define BP_FLAG_CIDWENTBACKWARDS        0x00000040  // the custody ID went backwards
-#define BP_FLAG_UNABLETOSTORE           0x00000080  // unable to store the ACS bundle for later transmission
-#define BP_FLAG_ROUTENEEDED             0x00000100  // the bundle returned needs to be routed before transmission
-#define BP_FLAG_STOREFAILURE            0x00000200  // storage service failed to deliver data
-#define BP_FLAG_PARSEFAILURE            0x00000400  // sdnv reading/writing encountered an error
-#define BP_FLAG_MIXEDRESPONSE           0x00000800  // aggregate acknowledgement must have uniform delivery vs. forward
+#define BP_FLAG_NONCOMPLIANT            0x0001  // valid bundle but agent not able to comply with standard
+#define BP_FLAG_INCOMPLETE              0x0002  // block in bundle was not recognized
+#define BP_FLAG_REPORTDELETE            0x0004  // status report must be generated if bundle is deleted
+#define BP_FLAG_TOOMANYSOURCES          0x0008  // too many sources to keep track of for ACS bundles
+#define BP_FLAG_FILLOVERFLOW            0x0010  // a gap in the CIDs exceeds the max fill
+#define BP_FLAG_TOOMANYFILLS            0x0020  // all the fills in the ACS are used
+#define BP_FLAG_CIDWENTBACKWARDS        0x0040  // the custody ID went backwards
+#define BP_FLAG_ROUTENEEDED             0x0080  // the bundle returned needs to be routed before transmission
+#define BP_FLAG_STOREFAILURE            0x0100  // storage service failed to deliver data
+#define BP_FLAG_MIXEDRESPONSE           0x0200  // aggregate acknowledgement must have uniform delivery vs. forward
+#define BP_FLAG_SDNVOVERFLOW            0x0400  // insufficient room in variable to read/write value
+#define BP_FLAG_SDNVINCOMPLETE          0x0800  // insufficient room in block to read/write value
 
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1
@@ -98,7 +98,7 @@
  ******************************************************************************/
 
 /* IPN Schema Endpoint ID Integer Definition */
-typedef uint16_t bp_ipn_t;
+typedef uint32_t bp_ipn_t;
 
 /* Storage ID */
 typedef void* bp_sid_t;
@@ -134,10 +134,10 @@ void    bplib_close     (int channel);
 int     bplib_getopt    (int channel, int opt, void* val, int len);
 int     bplib_setopt    (int channel, int opt, void* val, int len);
 
-int     bplib_store     (int channel, void* payload, int size, int timeout);
-int     bplib_load      (int channel, void* bundle,  int size, int timeout, uint32_t* loadflags); 
-int     bplib_process   (int channel, void* bundle,  int size, int timeout, uint32_t* procflags);
-int     bplib_accept    (int channel, void* payload, int size, int timeout, uint32_t* acptflags);
+int     bplib_store     (int channel, void* payload, int size, int timeout, uint16_t* storflags);
+int     bplib_load      (int channel, void* bundle,  int size, int timeout, uint16_t* loadflags); 
+int     bplib_process   (int channel, void* bundle,  int size, int timeout, uint16_t* procflags);
+int     bplib_accept    (int channel, void* payload, int size, int timeout, uint16_t* acptflags);
 
 int     bplib_routeinfo (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
 

@@ -109,21 +109,22 @@
 
 /* Payload Storage Block */
 typedef struct {
-    int                 request_custody;
-    int                 payloadsize;
-    bp_blk_cteb_t       cteb;
+    int                 request_custody;    // boolean whether original bundle requested custody on payload delivery
+    int                 payloadsize;        // size of the payload
+    bp_blk_cteb_t       cteb;               // CTEB block from original bundle, used if custody is requested
 } bp_payload_store_t;
 
 /* Bundle Storage Block */
 typedef struct {
-    uint32_t            retxtime;
-    bp_sdnv_t           cidsdnv;
-    int                 cteboffset;
-    int                 biboffset;
-    int                 payoffset;
-    int                 headersize;
-    int                 bundlesize;
-    uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE];
+    uint32_t            retxtime;           // absolute time when bundle times out
+    uint32_t            exprtime;           // absolute time when bundle expires
+    bp_sdnv_t           cidsdnv;            // SDNV of custody id field of bundle
+    int                 cteboffset;         // offset of the CTEB block of bundle
+    int                 biboffset;          // offset of the BIB block of bundle
+    int                 payoffset;          // offset of the payload block of bundle
+    int                 headersize;         // size of the header (portion of buffer below used)
+    int                 bundlesize;         // total size of the bundle (header and payload)
+    uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; // header portion of bundle
 } bp_bundle_store_t;
 
 /* --------------- Bundle Types ------------------- */
@@ -332,10 +333,9 @@ static int initialize_data_bundle(bp_channel_t* ch)
 /*--------------------------------------------------------------------------------------
  * store_data_bundle -
  *-------------------------------------------------------------------------------------*/
-static int store_data_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, bp_blk_bib_t* bib, bp_blk_pay_t* pay, int originate, int timeout)
+static int store_data_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, bp_blk_bib_t* bib, bp_blk_pay_t* pay, int originate, int timeout, uint16_t* storflags)
 {
     int                 status          = 0;
-    uint8_t             flags           = 0;
     int                 payload_offset  = 0;
     bp_bundle_store_t*  ds              = NULL;
 
@@ -355,17 +355,21 @@ static int store_data_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, bp_blk_bib_t* 
         if(ch->creation_time_sys)
         {
             pri->createsec.value = bplib_os_systime();
-            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, &flags);
+            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, storflags);
         }
 
         /* Set Sequence */
-        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, &flags);
+        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, storflags);
     }
     else
     {
         /* Set Storage to Forward Bundle */
         ds = &ch->forw_bundle.bundle_store;
     }
+
+    /* Set Expiration Time of Bundle */
+    if(pri->lifetime.value != 0)    ds->exprtime = pri->createsec.value + pri->lifetime.value;
+    else                            ds->exprtime = 0;
 
     /* Enqueue Bundle */
     while(payload_offset < pay->paysize)
@@ -377,8 +381,8 @@ static int store_data_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, bp_blk_bib_t* 
         /* Update Primary Block */
         pri->fragoffset.value = payload_offset;
         pri->paylen.value = pay->paysize;
-        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->fragoffset, &flags);
-        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->paylen, &flags);
+        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->fragoffset, storflags);
+        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->paylen, storflags);
 
         /* Update Integrity Block */
         bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, bib);
@@ -392,7 +396,8 @@ static int store_data_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, bp_blk_bib_t* 
 
         /* Enqueue Bundle */
         int storage_header_size = sizeof(bp_bundle_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - ds->headersize);
-        ch->storage.enqueue(ch->data_store_handle, ds, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
+        status = ch->storage.enqueue(ch->data_store_handle, ds, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
+        if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
     }
 
@@ -402,9 +407,8 @@ static int store_data_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, bp_blk_bib_t* 
         pri->createseq.value++;
     }
 
-    /* Return Status */
-    if(flags != 0)  return bplog(BP_BUNDLEPARSEERR, "Failed to construct bundle (%X)\n", flags);
-    else            return payload_offset;
+    /* Return Payload Bytes Stored */
+    return payload_offset;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -422,7 +426,7 @@ static int initialize_dacs_bundle(bp_channel_t* ch, int dac_entry, uint32_t dstn
     bp_dacs_bundle_t*   bundle  = &ch->dacs_bundle[dac_entry];
     bp_bundle_store_t*  ds      = &bundle->bundle_store;
     uint8_t*            hdrbuf  = ds->header;
-    uint8_t             flags   = 0;
+    uint16_t            flags   = 0;
 
     /* Initialize Storage */
     bplib_os_memset(ds, 0, sizeof(bp_bundle_store_t));
@@ -448,7 +452,7 @@ static int initialize_dacs_bundle(bp_channel_t* ch, int dac_entry, uint32_t dstn
  *
  *  Noets: may or may not perform enqueue
  *-------------------------------------------------------------------------------------*/
-static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivered, int timeout, uint32_t* dacsflags)
+static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivered, int timeout, uint16_t* dacsflags)
 {
     int i;
     bp_dacs_bundle_t* dacs;
@@ -547,7 +551,6 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
             static uint8_t buffer[BP_DACS_PAY_SIZE];
             int dacs_size, enstat, storage_header_size;
 
-            uint8_t sdnv_flags = 0;
             bp_bundle_store_t* ds = &dacs->bundle_store;
             bp_blk_pri_t* pri = &dacs->primary_block;
 
@@ -558,10 +561,10 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
 
             /* Set Creation Time */
             pri->createsec.value = bplib_os_systime();
-            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, &sdnv_flags);
+            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, dacsflags);
 
             /* Set Sequence */
-            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, &sdnv_flags);
+            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, dacsflags);
             pri->createseq.value++;
 
             /* Update Bundle Integrity Block */
@@ -571,14 +574,10 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
             dacs->payload_block.payptr = buffer;
             dacs->payload_block.paysize = dacs_size;
             dacs->payload_block.blklen.value = dacs_size;
-            bplib_sdnv_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, dacs->payload_block.blklen, &sdnv_flags);
-
-            /* Check Status */
-            if(sdnv_flags != 0) *dacsflags |= BP_FLAG_PARSEFAILURE;
+            bplib_sdnv_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, dacs->payload_block.blklen, dacsflags);
 
             /* Send (enqueue) ACS */
             enstat = ch->storage.enqueue(ch->dacs_store_handle, ds, storage_header_size, buffer, dacs_size, timeout);
-            if(enstat != BP_SUCCESS) *dacsflags |= BP_FLAG_UNABLETOSTORE;
 
             /* Start New DTN ACS */
             dacs->delivered = delivered;
@@ -586,6 +585,9 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
             dacs->last_cid = cteb->cid.value;
             dacs->fills[0] = 0;
             dacs->num_fills = 1;
+
+            /* Handle Storage Error */
+            if(enstat != BP_SUCCESS) return bplog(enstat, "Failed to store DACS for transmission, bundle dropped\n");
         }
     }
 
@@ -596,7 +598,7 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
 /*--------------------------------------------------------------------------------------
  * initialize_forw_bundle -
  *-------------------------------------------------------------------------------------*/
-static int initialize_forw_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, int cteb_present, uint8_t* buffer, int* exclude, int num_excludes, uint32_t* procflags)
+static int initialize_forw_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, int cteb_present, uint8_t* buffer, int* exclude, int num_excludes, uint16_t* procflags)
 {
     int i, status;
     int hdr_index;
@@ -1080,7 +1082,7 @@ int bplib_setopt(int channel, int opt, void* val, int len)
 /*--------------------------------------------------------------------------------------
  * bplib_store -
  *-------------------------------------------------------------------------------------*/
-int bplib_store(int channel, void* payload, int size, int timeout)
+int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* storflags)
 {
     int status;
 
@@ -1104,7 +1106,7 @@ int bplib_store(int channel, void* payload, int size, int timeout)
             ch->data_bundle.payload_block.paysize = size;
 
             /* Store Bundle */
-            status = store_data_bundle(ch, &ch->data_bundle.primary_block, &ch->data_bundle.integrity_block, &ch->data_bundle.payload_block, BP_TRUE, timeout);
+            status = store_data_bundle(ch, &ch->data_bundle.primary_block, &ch->data_bundle.integrity_block, &ch->data_bundle.payload_block, BP_TRUE, timeout, storflags);
         }
     }
     bplib_os_unlock(channels[channel].lock);
@@ -1116,7 +1118,7 @@ int bplib_store(int channel, void* payload, int size, int timeout)
 /*--------------------------------------------------------------------------------------
  * bplib_load -
  *-------------------------------------------------------------------------------------*/
-int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadflags)
+int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadflags)
 {
     int status = BP_SUCCESS; // size of bundle returned or error code
 
@@ -1150,7 +1152,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
         }
         else
         {
-            // TODO: use ch->dacs_dacs_rate_ms to create ACS bundle if one is not ready
+            // TODO: use ch->dacs_rate_ms to create ACS bundle if one is not ready
             // no need enqueue...dequeue
         }
 
@@ -1166,33 +1168,45 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
             }
             else if(retrieve(store, (void**)&ds, NULL, sid, BP_CHECK) == BP_SUCCESS)
             {
-                // TODO: check life time
+                if(ds->exprtime != 0 && sysnow >= ds->exprtime) // check lifetime
+                {
+                    /* Bundle Expired*/
+                    ds = NULL;
 
-                if(sysnow >= ds->retxtime) // check timeout
+                    /* Clear Entry */
+                    relinquish(store, sid);
+                    ch->data_bundle.active_table[ati] = BP_SID_VACANT;
+                    ch->data_bundle.oldest_custody_id++;
+                }
+                else if(ds->retxtime != 0 && sysnow >= ds->retxtime) // check timeout
                 {
                     /* Write New Re-Transmit Time */
-                    ds->retxtime = sysnow + ch->timeout;
+                    if(ch->timeout > 0) ds->retxtime = sysnow + ch->timeout;
+                    else                ds->retxtime = 0;
                     refresh(store, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
 
                     /* Clear Entry (it will be reinserted below at the current pointer) */
                     ch->data_bundle.active_table[ati] = BP_SID_VACANT;
                     ch->data_bundle.oldest_custody_id++;
+
+                    /* Exit Loop - Bundle Ready to Re-Transmit */
+                    break;
                 }
                 else
                 {
                     /* Not Ready for Re-Transmit */
                     ds = NULL;
-                }
 
-                /* Exit Loop */
-                break;
+                    /* Exit Loop - No Bundles Ready to Re-Transmit */
+                    break;
+                }
             }
-            else // failed to retrieve bundle from storage
+            else
             {
+                /* Failed to Retrieve Bundle from Storage */
                 relinquish(store, sid);
                 ch->data_bundle.active_table[ati] = BP_SID_VACANT;
                 *loadflags |= BP_FLAG_STOREFAILURE;
-                bplog(BP_FAILEDSTORE, "Failed to retrieve bundle from storage\n");
             }
         }
 
@@ -1208,34 +1222,46 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
                 int deq_status = dequeue(store, (void**)&ds, NULL, &sid, timeout);
                 if(deq_status == BP_SUCCESS)
                 {
-                    /* Write Re-Transmit Time */
-                    ds->retxtime = sysnow + ch->timeout;
-                    refresh(store, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
+                    if(ds->exprtime != 0 && sysnow >= ds->exprtime)
+                    {
+                        /* Clear Entry (and loop again) */
+                        relinquish(store, sid);
+
+                        /* Bundle Expired*/
+                        ds = NULL;
+                        sid = BP_SID_VACANT;
+                    }
+                    else
+                    {
+                        /* Write Re-Transmit Time */
+                        if(ch->timeout > 0) ds->retxtime = sysnow + ch->timeout;
+                        else                ds->retxtime = 0;
+                        refresh(store, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
+                    }
                 }
                 else if(deq_status == BP_TIMEOUT)
                 {
                     /* No Bundles in Storage to Send */
                     status = BP_TIMEOUT;
+                    break;
                 }
                 else
                 {
                     /* Failed Storage Service */
                     status = BP_FAILEDSTORE;
                     *loadflags |= BP_FLAG_STOREFAILURE;
+                    break;
                 }
-
-                /* Exit Loop */
-                break;
             }
             else if(ch->wrap_response == BP_WRAP_RESEND)
             {
                 /* Retrieve Bundle from Storage */
                 if(retrieve(store, (void**)&ds, NULL, sid, BP_CHECK) != BP_SUCCESS)
                 {
+                    /* Clear Entry (and loop again) */
                     relinquish(store, sid);
                     ch->data_bundle.active_table[ati] = BP_SID_VACANT;
                     *loadflags |= BP_FLAG_STOREFAILURE;
-                    bplog(BP_FAILEDSTORE, "Failed to retrieve bundle from storage\n");
                 }
             }
             else if(ch->wrap_response == BP_WRAP_BLOCK)
@@ -1248,6 +1274,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
             }
             else // if(ch->wrap_response == BP_WRAP_DROP)
             {
+                /* Clear Entry (and loop again) */
                 relinquish(store, sid);
                 ch->data_bundle.active_table[ati] = BP_SID_VACANT;
                 ch->data_bundle.oldest_custody_id++;
@@ -1267,16 +1294,10 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
                 /* Assign Custody ID */
                 if(ds->cteboffset != 0)
                 {
-                    uint8_t flags = 0;
                     ati = ch->data_bundle.custody_block.cid.value % BP_ACTIVE_TABLE_SIZE;
                     ch->data_bundle.active_table[ati] = sid;
                     ds->cidsdnv.value = ch->data_bundle.custody_block.cid.value++;
-                    bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize, ds->cidsdnv, &flags);
-                    if(flags != 0)
-                    {
-                        *loadflags |= BP_FLAG_PARSEFAILURE;
-                        bplog(BP_BUNDLEPARSEERR, "Fatal error (%0X): failed to write CID to loaded bundle\n", flags);
-                    }
+                    bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize, ds->cidsdnv, loadflags);
                 }
 
                 /* Successfully Load Bundle to Application and Relinquish Memory */
@@ -1297,7 +1318,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint32_t* loadf
 /*--------------------------------------------------------------------------------------
  * bplib_process -
  *-------------------------------------------------------------------------------------*/
-int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* procflags)
+int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* procflags)
 {
     int                 status;
 
@@ -1339,6 +1360,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
     /* Check Unsupported */
     if(pri_blk.dictlen.value != 0)
     {
+        *procflags |= BP_FLAG_NONCOMPLIANT;
         return bplog(BP_UNSUPPORTED, "Unsupported bundle attempted to be processed (%d)\n", pri_blk.dictlen.value);
     }
 
@@ -1378,15 +1400,17 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
         }
         else if(blk_type != BP_PAY_BLK_TYPE) // skip over block
         {
-            uint8_t flags = 0;
             bp_sdnv_t blk_flags = { 0, 1, 0 };
             bp_sdnv_t blk_len = { 0, 0, 0 };
             int start_index = index;
-            blk_len.index = bplib_sdnv_read(&buffer[start_index], size - start_index, &blk_flags, &flags);
-            index = bplib_sdnv_read(&buffer[start_index], size - start_index, &blk_len, &flags);
+            blk_len.index = bplib_sdnv_read(&buffer[start_index], size - start_index, &blk_flags, procflags);
+            index = bplib_sdnv_read(&buffer[start_index], size - start_index, &blk_len, procflags);
 
             /* Check Parsing Status */
-            if(flags != 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%0X) to parse block at index %d\n", flags, start_index);
+            if(*procflags & (BP_FLAG_SDNVOVERFLOW | BP_FLAG_SDNVINCOMPLETE))
+            {
+                return bplog(BP_BUNDLEPARSEERR, "Failed (%0X) to parse block at index %d\n", *procflags, start_index);
+            }
 
             /* Mark Processing as Incomplete */
             *procflags |= BP_FLAG_INCOMPLETE;
@@ -1403,7 +1427,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
 
             /* Mark As Forwarded without Processed */
             blk_flags.value |= BP_BLK_FORWARDNOPROC_MASK;
-            bplib_sdnv_write(&buffer[start_index], size - start_index, blk_flags, &flags);
+            bplib_sdnv_write(&buffer[start_index], size - start_index, blk_flags, procflags);
         }
         else // payload block
         {
@@ -1468,7 +1492,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
                      *  note that the primary block is the only block reused from the
                      *  oritinal bundle, all other blocks are generated above in the
                      *  initialize_forw_bundle function */
-                    if(status == BP_SUCCESS) status = store_data_bundle(ch, &pri_blk, &ch->forw_bundle.integrity_block, &pay_blk, BP_FALSE, timeout);
+                    if(status == BP_SUCCESS) status = store_data_bundle(ch, &pri_blk, &ch->forw_bundle.integrity_block, &pay_blk, BP_FALSE, timeout, procflags);
 
                     /* Update DACS (bundle successfully forwarded) */
                     if(status == BP_SUCCESS) status = store_dacs_bundle(ch, &cteb_blk, BP_FALSE, timeout, procflags);
@@ -1510,7 +1534,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
         }
     }
 
-    /* Return Success */
+    /* Return Status */
     return status;
 }
 
@@ -1519,7 +1543,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint32_t* pr
  *
  *  Returns number of bytes of payload copied (positive), or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
-int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* acptflags)
+int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* acptflags)
 {
     int status;
 
@@ -1564,10 +1588,6 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint32_t* ac
             {
                 status = bplog(BP_PAYLOADTOOLARGE, "Payload too large to fit inside buffer (%d %d)\n", size, paylen);
             }
-        }
-        else if(status != BP_TIMEOUT)
-        {
-            bplog(BP_FAILEDSTORE,"Failed (%d) to dequeue payload\n", status);
         }
     }
     bplib_os_unlock(channels[channel].lock);

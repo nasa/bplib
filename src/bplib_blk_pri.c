@@ -31,7 +31,7 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
 {
     uint8_t* blkbuf = (uint8_t*)block;
     int bytes_read = 0;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
 
     /* Check Size */
     if(size < 1) return BP_BUNDLEPARSEERR;
@@ -141,7 +141,7 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
 {
     uint8_t*    buffer = (uint8_t*)block;
     uint32_t    bytes_written = 0;
-    uint8_t     flags = 0;
+    uint16_t     flags = 0;
 
     /* Check Size */
     if(size < 1) return BP_BUNDLEPARSEERR;

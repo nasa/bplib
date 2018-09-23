@@ -42,7 +42,7 @@
 int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
     int bytes_read = 0;
 
     /* Check Size */
@@ -87,7 +87,7 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_ind
 int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
     int bytes_written = 0;
 
     /* Check Size */
@@ -152,7 +152,7 @@ int bplib_rec_acs_process ( void* rec, int size,
     bp_sdnv_t fill = { 0, 0, 0 };
     uint8_t* buf = (uint8_t*)rec;
     int cidin = BP_TRUE;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
     int index = 0;
 
     /* Read First Custody ID */
@@ -212,7 +212,7 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int delivered, uint32_t first_ci
     bp_sdnv_t cid = { 0, 2, 4 };
     bp_sdnv_t fill = { 0, 0, 2 };
     int fill_index = 0;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
 
     /* Write Record Information */
     rec[0] = BP_ACS_REC_TYPE; // record type

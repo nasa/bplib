@@ -34,7 +34,7 @@
 int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, int update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
     int bytes_read = 0;
 
     /* Check Size */
@@ -78,7 +78,7 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, int update_ind
 int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, int update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
     int bytes_written = 0;
 
     /* Check Size */
@@ -129,7 +129,7 @@ int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size
     assert(payload);
 
     uint8_t* buffer = (uint8_t*)block;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
 
     /* Check Size */
     if(size < (int)(bib->paycrc.index + bib->paycrc.width)) return BP_BUNDLEPARSEERR;

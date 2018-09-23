@@ -52,6 +52,8 @@ __Fixed Size SDNVs__ - The BP library uses fixed sized SDNVs for all fields that
   
 __Creation Time Sequence__ - The BP library never resets a creation time sequence number, but maintains an strictly incrementing value (stepped by one for each successive bundle created) per channel.  This allows receiving nodes to detect gaps in the data.  It also allows reconstruction of the original sending order of the data.
 
+__Lifetimes__ - The BP library calculates an absolute time for a bundles expiration at the time the bundle is created in the `bplib_store` function.  This expiration time is then checked in the `bplib_load` function at the time a bundle is dequeued out of storage.  The active bundles are also scrubed in the `bplib_load` function to check for expiration at which point they are deleted.  The last place a bundle's lifetime is checked is in the `bplib_process` function prior to processing the bundle.
+
 __DTN Aggregate Custody Signaling__ - The BP library only supports custody transfers when DTN Aggregate Custody Signals are used.  Regular RFC5050 custody signals are not supported.  A data bundle received by the library that is requesting custody transfer without a CTEB is dropped.  A custody signal bundle received by the library is ignored.
 
 __Bundle Integrity__ - The BP library inserts a BIB in all data bundles it generates and all data bundles it accepts custody of for forwarding.  Bundles received by the library are not required to have BIBs, but if they do, then the bundle is verified against the BIB prior to accepting custody (if requested) and processing the payload (if destined for the local node).

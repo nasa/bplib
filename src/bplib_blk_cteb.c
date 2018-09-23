@@ -31,7 +31,7 @@
 int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
     int bytes_read = 0;
 
     /* Check Size */
@@ -74,7 +74,7 @@ int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_
 int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, int update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
-    uint8_t flags = 0;
+    uint16_t flags = 0;
     int bytes_written = 0;
 
     /* Check Size */
