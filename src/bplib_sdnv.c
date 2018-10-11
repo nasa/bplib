@@ -77,7 +77,7 @@ int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
     assert(block);
     assert(flags);
 
-    int i, maxbytes;
+    int i, maxbytes, endindex;
 
     /* Initialize Bytes to Write */
     if(sdnv.width <= 0)
@@ -104,11 +104,12 @@ int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
     }
 
     /* Write SDNV */
-    for(i = maxbytes + sdnv.index - 1; i >= (int)sdnv.index; i--)
+    endindex = maxbytes + sdnv.index - 1;
+    for(i = endindex; i >= (int)sdnv.index; i--)
     {
-        if(i == 0)  block[i] = sdnv.value & 0x7F;
-        else        block[i] = sdnv.value | 0x80;
-        sdnv.value >>= 7; // structure copy into function allows safe modification here
+        if(i == endindex)   block[i] = sdnv.value & 0x7F;
+        else                block[i] = sdnv.value | 0x80;
+        sdnv.value >>= 7;
     }
 
     /* Set Overflow  */

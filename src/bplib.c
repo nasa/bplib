@@ -252,8 +252,8 @@ static const bp_blk_pri_t native_dacs_pri_blk = {
     .createseq          = { 0,                          48,         4 },
     .lifetime           = { BP_DEFAULT_LIFETIME,        52,         4 },
     .dictlen            = { 0,                          56,         4 },
-    .fragoffset         = { 0,                          0,          0 },
-    .paylen             = { 0,                          0,          0 },
+    .fragoffset         = { 0,                           0,         0 },
+    .paylen             = { 0,                           0,         0 },
     .is_admin_rec       = BP_TRUE,
     .request_custody    = BP_FALSE,
     .allow_frag         = BP_FALSE,
@@ -264,24 +264,24 @@ static const bp_blk_pri_t native_dacs_pri_blk = {
 static const bp_blk_cteb_t native_cteb_blk = {
                             /*          Value             Index       Width   */
     .bf                 = { 0,                              1,          1 },
-    .blklen             = { 0,                              2,          2 },
-    .cid                = { 0,                              4,          4 },
-    .cstnode            = { 0,                              8,          4 },
-    .cstserv            = { 0,                              12,         4 }
+    .blklen             = { 0,                              2,          1 },
+    .cid                = { 0,                              3,          4 },
+    .cstnode            = { 0,                              7,          4 },
+    .cstserv            = { 0,                              11,         4 }
 };
 
 static const bp_blk_bib_t native_bib_blk = {
                             /*          Value             Index       Width   */
     .bf                 = { 0,                              1,          1 },
-    .blklen             = { 0,                              2,          2 },
-    .paytype            = { BP_DEFAULT_PAY_CRC,             4,          2 },
-    .paycrc             = { 0,                              6,          2 }
+    .blklen             = { 0,                              2,          1 },
+    .paytype            = { BP_DEFAULT_PAY_CRC,             3,          2 },
+    .paycrc             = { 0,                              5,          2 }
 };
 
 static const bp_blk_pay_t native_pay_blk = {
                             /*          Value             Index       Width   */
     .bf                 = { 0,                              1,          1 },
-    .blklen             = { 0,                              2,          2 },
+    .blklen             = { 0,                              2,          3 },
     .payptr             = NULL,
     .paysize            = 0
 };
@@ -378,11 +378,14 @@ static int store_data_bundle(bp_channel_t* ch, bp_blk_pri_t* pri, bp_blk_bib_t* 
         int payload_remaining = pay->paysize - payload_offset;
         int fragment_size = ch->bundle_maxlength <  payload_remaining ? ch->bundle_maxlength : payload_remaining;
 
-        /* Update Primary Block */
-        pri->fragoffset.value = payload_offset;
-        pri->paylen.value = pay->paysize;
-        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->fragoffset, storflags);
-        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->paylen, storflags);
+        /* Update Primary Block Fragmentation */
+        if(pri->is_frag)
+        {
+            pri->fragoffset.value = payload_offset;
+            pri->paylen.value = pay->paysize;
+            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->fragoffset, storflags);
+            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->paylen, storflags);
+        }
 
         /* Update Integrity Block */
         bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, bib);
