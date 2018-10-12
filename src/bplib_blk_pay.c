@@ -56,6 +56,9 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_ind
     }
     else
     {
+        pay->bf.width = 0;
+        pay->blklen.width = 0;
+
         pay->bf.index = 1;
         pay->blklen.index = bplib_sdnv_read(buffer, size, &pay->bf, &flags);
         bytes_read = bplib_sdnv_read(buffer, size, &pay->blklen, &flags);
@@ -110,6 +113,9 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_in
     }
     else
     {
+        pay->bf.width = 0;
+        pay->blklen.width = 0;
+
         pay->bf.index = 1;
         pay->blklen.index = bplib_sdnv_write(buffer, size, pay->bf, &flags);
         bytes_written = bplib_sdnv_write(buffer, size, pay->blklen, &flags);

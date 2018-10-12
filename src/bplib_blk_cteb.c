@@ -48,6 +48,12 @@ int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_
     }
     else
     {
+        cteb->bf.width = 0;
+        cteb->blklen.width = 0;
+        cteb->cid.width = 0;
+        cteb->cstnode.width = 0;
+        cteb->cstserv.width = 0;
+
         cteb->bf.index = 1;
         cteb->blklen.index = bplib_sdnv_read(buffer, size, &cteb->bf, &flags);
         cteb->cid.index = bplib_sdnv_read(buffer, size, &cteb->blklen, &flags);
@@ -94,6 +100,12 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, int update
     }
     else
     {
+        cteb->bf.width = 0;
+        cteb->blklen.width = 0;
+        cteb->cid.width = 0;
+        cteb->cstnode.width = 0;
+        cteb->cstserv.width = 0;
+
         cteb->bf.index      = 1;
         cteb->blklen.index  = bplib_sdnv_write(buffer, size, cteb->bf, &flags);
         cteb->cid.index     = cteb->blklen.index + cteb->blklen.width;

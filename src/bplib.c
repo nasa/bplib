@@ -1387,7 +1387,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             cteb_index = index;
             if(pri_blk.request_custody) exclude[ei++] = index;
             status = bplib_blk_cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, BP_TRUE);
-            if(status <= 0) return status;
+            if(status <= 0) return bplog(status, "Failed to parse CTEB block of size %d\n", size - cteb_index);
             else            index += status;
             if(pri_blk.request_custody) exclude[ei++] = index;
         }
@@ -1397,7 +1397,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             bib_index = index;
             exclude[ei++] = index;
             status = bplib_blk_bib_read(&buffer[bib_index], size - bib_index, &bib_blk, BP_TRUE);
-            if(status <= 0) return status;
+            if(status <= 0) return bplog(status, "Failed to parse BIB block of size %d\n", size - bib_index);
             else            index += status;
             exclude[ei++] = index;
         }

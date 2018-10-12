@@ -69,6 +69,22 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
     }
     else
     {
+
+        pri->pcf.width          = 0;
+        pri->blklen.width       = 0;
+        pri->dstnode.width      = 0;
+        pri->dstserv.width      = 0;
+        pri->srcnode.width      = 0;
+        pri->srcserv.width      = 0;
+        pri->rptnode.width      = 0;
+        pri->rptserv.width      = 0;
+        pri->cstnode.width      = 0;
+        pri->cstserv.width      = 0;
+        pri->createsec.width    = 0;
+        pri->createseq.width    = 0;
+        pri->lifetime.width     = 0;
+        pri->dictlen.width      = 0;
+
         pri->pcf.index          = 1;
         pri->blklen.index       = bplib_sdnv_read(blkbuf, size, &pri->pcf,        &flags);
         pri->dstnode.index      = bplib_sdnv_read(blkbuf, size, &pri->blklen,     &flags);
@@ -87,6 +103,9 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
         /* Handle Fragment Fields */
         if(pri->pcf.value & BP_PCF_FRAGMENT_MASK) // fields are present in bundle
         {
+            pri->fragoffset.width   = 0;
+            pri->paylen.width       = 0;
+
             pri->fragoffset.index   = bplib_sdnv_read(blkbuf, size, &pri->dictlen,      &flags);
             pri->paylen.index       = bplib_sdnv_read(blkbuf, size, &pri->fragoffset,   &flags);
             bytes_read              = bplib_sdnv_read(blkbuf, size, &pri->paylen,       &flags);
@@ -96,7 +115,6 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
             bytes_read              = bplib_sdnv_read(blkbuf, size, &pri->dictlen,      &flags);
         }
     }
-
 
     /* Set Administrative Record Status */
     if(pri->pcf.value & BP_PCF_ADMIN_MASK)      pri->is_admin_rec = BP_TRUE;
@@ -182,6 +200,21 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
     else
     {
         pri->pcf.index          = 1;
+        pri->pcf.width          = 0;
+        pri->blklen.width       = 0;
+        pri->dstnode.width      = 0;
+        pri->dstserv.width      = 0;
+        pri->srcnode.width      = 0;
+        pri->srcserv.width      = 0;
+        pri->rptnode.width      = 0;
+        pri->rptserv.width      = 0;
+        pri->cstnode.width      = 0;
+        pri->cstserv.width      = 0;
+        pri->createsec.width    = 0;
+        pri->createseq.width    = 0;
+        pri->lifetime.width     = 0;
+        pri->dictlen.width      = 0;
+
         pri->blklen.index       = bplib_sdnv_write(buffer, size, pri->pcf,          &flags);
         pri->dstnode.index      = pri->blklen.index + pri->blklen.width;
         pri->dstserv.index      = bplib_sdnv_write(buffer, size, pri->dstnode,      &flags);
@@ -199,6 +232,9 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
         /* Handle Optional Fragmentation Fields */
         if(pri->is_frag)
         {
+            pri->fragoffset.width   = 0;
+            pri->paylen.width       = 0;
+
             pri->fragoffset.index   = bplib_sdnv_write(buffer, size, pri->dictlen,      &flags);
             pri->paylen.index       = bplib_sdnv_write(buffer, size, pri->fragoffset,   &flags);
             bytes_written           = bplib_sdnv_write(buffer, size, pri->paylen,       &flags);

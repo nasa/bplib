@@ -16,6 +16,7 @@
 #include "bplib_blk_bib.h"
 #include "bplib_crc.h"
 #include "bplib_sdnv.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -53,6 +54,11 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, int update_ind
     }
     else
     {
+        bib->bf.width = 0;
+        bib->blklen.width = 0;
+        bib->paycrc.width = 0;
+        bib->paytype.width = 0;
+
         bib->bf.index = 1;
         bib->blklen.index = bplib_sdnv_read(buffer, size, &bib->bf, &flags);
         bib->paytype.index = bplib_sdnv_read(buffer, size, &bib->blklen, &flags);
@@ -61,7 +67,7 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, int update_ind
     }
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    if(flags != 0)  return BP_BUNDLEPARSEERR - 300;
     else            return bytes_read;
 }
 
@@ -97,6 +103,11 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, int update_in
     }
     else
     {
+        bib->bf.width = 0;
+        bib->blklen.width = 0;
+        bib->paycrc.width = 0;
+        bib->paytype.width = 0;
+
         bib->bf.index      = 1;
         bib->blklen.index  = bplib_sdnv_write(buffer, size, bib->bf,      &flags);
         bib->paytype.index = bib->blklen.index + bib->blklen.width;
