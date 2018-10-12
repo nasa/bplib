@@ -75,7 +75,7 @@
 #endif
 
 #ifndef BP_DEFAULT_PROC_ADMIN_ONLY
-#define BP_DEFAULT_PROC_ADMIN_ONLY      BP_TRUE
+#define BP_DEFAULT_PROC_ADMIN_ONLY      BP_FALSE
 #endif
 
 #ifndef BP_DEFAULT_WRAP_RESPONSE
@@ -267,7 +267,7 @@ static const bp_blk_cteb_t native_cteb_blk = {
     .blklen             = { 0,                              2,          1 },
     .cid                = { 0,                              3,          4 },
     .cstnode            = { 0,                              7,          4 },
-    .cstserv            = { 0,                              11,         4 }
+    .cstserv            = { 0,                              11,         2 }
 };
 
 static const bp_blk_bib_t native_bib_blk = {
@@ -275,7 +275,7 @@ static const bp_blk_bib_t native_bib_blk = {
     .bf                 = { 0,                              1,          1 },
     .blklen             = { 0,                              2,          1 },
     .paytype            = { BP_DEFAULT_PAY_CRC,             3,          2 },
-    .paycrc             = { 0,                              5,          2 }
+    .paycrc             = { 0,                              5,          3 }
 };
 
 static const bp_blk_pay_t native_pay_blk = {
@@ -1353,7 +1353,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     /* Parse Primary Block */
     exclude[ei++] = index;
     status = bplib_blk_pri_read(buffer, size, &pri_blk, BP_TRUE);
-    if(status <= 0) return status;
+    if(status <= 0) return bplog(status, "Failed to parse primary block of size %d\n", size);
     else index += status;
     exclude[ei++] = index;
 

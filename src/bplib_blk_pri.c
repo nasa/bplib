@@ -12,6 +12,7 @@
 #include "bplib.h"
 #include "bplib_blk_pri.h"
 #include "bplib_sdnv.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -34,7 +35,7 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
     uint16_t flags = 0;
 
     /* Check Size */
-    if(size < 1) return BP_BUNDLEPARSEERR;
+    if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of primary block: %d\n", size);
 
     /* Read Block */
     pri->version = blkbuf[0];
@@ -65,7 +66,6 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
         {
             bytes_read = bplib_sdnv_read(blkbuf, size, &pri->dictlen, &flags);
         }
-
     }
     else
     {
@@ -94,13 +94,9 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
         else
         {
             bytes_read              = bplib_sdnv_read(blkbuf, size, &pri->dictlen,      &flags);
-
         }
     }
 
-    /* Success Oriented Error Checking */
-    if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
-    else if(pri->version != BP_PRI_VERSION) return BP_WRONGVERSION;
 
     /* Set Administrative Record Status */
     if(pri->pcf.value & BP_PCF_ADMIN_MASK)      pri->is_admin_rec = BP_TRUE;
@@ -123,8 +119,9 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
     else                                        pri->report_deletion = BP_FALSE;
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return BP_BUNDLEPARSEERR;
-    else            return bytes_read;
+    if(flags != 0)                          return bplog(BP_BUNDLEPARSEERR, "Failed to read primary block sdnv %0X\n", flags);
+    else if(pri->version != BP_PRI_VERSION) return bplog(BP_WRONGVERSION, "Incorrect version of bundle reported: %d\n", pri->version);
+    else                                    return bytes_read;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -144,7 +141,7 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
     uint16_t    flags = 0;
 
     /* Check Size */
-    if(size < 1) return BP_BUNDLEPARSEERR;
+    if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of primary block: %d\n", size);
 
     /* Set Process Control Flags */
     if(pri->is_admin_rec == BP_TRUE)        pri->pcf.value |= BP_PCF_ADMIN_MASK;
@@ -176,7 +173,6 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
             bplib_sdnv_write(buffer, size, pri->dictlen,    &flags);
             bplib_sdnv_write(buffer, size, pri->fragoffset, &flags);
             bytes_written = bplib_sdnv_write(buffer, size, pri->paylen, &flags);
-
         }
         else
         {
@@ -206,13 +202,11 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
             pri->fragoffset.index   = bplib_sdnv_write(buffer, size, pri->dictlen,      &flags);
             pri->paylen.index       = bplib_sdnv_write(buffer, size, pri->fragoffset,   &flags);
             bytes_written           = bplib_sdnv_write(buffer, size, pri->paylen,       &flags);
-
         }
         else
         {
             bytes_written           = bplib_sdnv_write(buffer, size, pri->dictlen,      &flags);
         }
-
     }
 
     /* Write Block Length */
@@ -220,6 +214,35 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
     bplib_sdnv_write(buffer, size, pri->blklen, &flags);
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    if(flags != 0)  return bplog(BP_BUNDLEPARSEERR, "Failed to write primary block sdnv %0X\n", flags);
     else            return bytes_written;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_blk_pri_display -
+ *
+ *  pri - pointer to a primary bundle block structure to display [INPUT]
+ *
+ *  Returns: success / fail
+ *-------------------------------------------------------------------------------------*/
+int bplib_blk_pri_display (bp_blk_pri_t* pri)
+{
+    if(!pri) return BP_FALSE;
+
+    bplog(BP_SUCCESS, "Bundle Primary Block (admin: %d, frag:%d, rqst: %d, allow: %d, del: %d)\n",
+        pri->is_admin_rec, pri->is_frag, pri->request_custody, pri->allow_frag, pri->report_deletion);
+
+    bplog(BP_SUCCESS, "PCF: %08X\n",    (unsigned int)pri->pcf.value);
+    bplog(BP_SUCCESS, "DST: %ld.%ld\n", (long)pri->dstnode.value, (long)pri->dstserv.value);
+    bplog(BP_SUCCESS, "SRC: %ld.%ld\n", (long)pri->srcnode.value, (long)pri->srcserv.value);
+    bplog(BP_SUCCESS, "RPT: %ld.%ld\n", (long)pri->rptnode.value, (long)pri->rptserv.value);
+    bplog(BP_SUCCESS, "CST: %ld.%ld\n", (long)pri->cstnode.value, (long)pri->cstserv.value);
+    bplog(BP_SUCCESS, "SEC: %ld\n",     (long)pri->createsec.value);
+    bplog(BP_SUCCESS, "SEQ: %ld\n",     (long)pri->createseq.value);
+    bplog(BP_SUCCESS, "LFT: %ld\n",     (long)pri->lifetime.value);
+    bplog(BP_SUCCESS, "DCT: %ld\n",     (long)pri->dictlen.value);
+    bplog(BP_SUCCESS, "FRG; %ld\n",     (long)pri->fragoffset.value);
+    bplog(BP_SUCCESS, "PAY: %ld\n",     (long)pri->paylen.value);
+
+    return BP_TRUE;
 }

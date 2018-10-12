@@ -73,5 +73,6 @@ typedef struct {
 
 int bplib_blk_pri_read      (void* block, int size, bp_blk_pri_t* pri, int update_indices);
 int bplib_blk_pri_write     (void* block, int size, bp_blk_pri_t* pri, int update_indices);
+int bplib_blk_pri_display   (bp_blk_pri_t* pri);
 
 #endif  /* __BPLIB_BLK_PRI_H__ */
