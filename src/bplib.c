@@ -153,6 +153,7 @@ typedef struct {
     uint32_t            fills[BP_MAX_FILLS_PER_DACS];
     int                 num_fills;
     int                 delivered;  // is it forwarded to destination or delivered to application
+    int                 sent;       // boolean if DACS was sent since last check
     bp_bundle_store_t   bundle_store;
 } bp_dacs_bundle_t;
 
@@ -181,7 +182,8 @@ typedef struct {
     bp_forw_bundle_t    forw_bundle;
 
     int                 num_dacs;
-    int                 dacs_rate_ms;           // number of milliseconds to wait between sending ACS bundles
+    int                 dacs_rate;              // number of seconds to wait between sending ACS bundles
+    uint32_t            last_dacs;              // time of last dacs to be sent
 
     int                 creation_time_sys;      // 1: use system time, 0: use provided value --- TODO: this is 0 for forwarded and potentially 1 for data
     int                 timeout;                // seconds, zero for infinite
@@ -453,9 +455,62 @@ static int initialize_dacs_bundle(bp_channel_t* ch, int dac_entry, uint32_t dstn
 /*--------------------------------------------------------------------------------------
  * store_dacs_bundle -
  *
- *  Noets: may or may not perform enqueue
+ *  Notes:
  *-------------------------------------------------------------------------------------*/
-static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivered, int timeout, uint16_t* dacsflags)
+static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t sysnow, int timeout, uint16_t* dacsflags)
+{
+    static uint8_t buffer[BP_DACS_PAY_SIZE];
+    int dacs_size, enstat, storage_header_size;
+
+    bp_bundle_store_t* ds = &dacs->bundle_store;
+    bp_blk_pri_t* pri = &dacs->primary_block;
+
+    /* Build DACS */
+    dacs_size = bplib_rec_acs_write(buffer, BP_DACS_PAY_SIZE, dacs->delivered, dacs->first_cid, dacs->fills, dacs->num_fills);
+    ds->bundlesize = ds->headersize + dacs_size;
+    storage_header_size = sizeof(bp_bundle_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - ds->headersize);
+
+    /* Set Creation Time */
+    pri->createsec.value = sysnow;
+    bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, dacsflags);
+
+    /* Set Sequence */
+    bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, dacsflags);
+    pri->createseq.value++;
+
+    /* Update Bundle Integrity Block */
+    bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, buffer, dacs_size, &dacs->integrity_block);
+
+    /* Update Payload Block */
+    dacs->payload_block.payptr = buffer;
+    dacs->payload_block.paysize = dacs_size;
+    dacs->payload_block.blklen.value = dacs_size;
+    bplib_sdnv_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, dacs->payload_block.blklen, dacsflags);
+
+    /* Send (enqueue) DACS */
+    enstat = ch->storage.enqueue(ch->dacs_store_handle, ds, storage_header_size, buffer, dacs_size, timeout);
+
+    /* Check Storage Status */
+    if(enstat != BP_SUCCESS)
+    {
+        *dacsflags |= BP_FLAG_STOREFAILURE;
+        return bplog(enstat, "Failed to store DACS for transmission, bundle dropped\n");
+    }
+    else // successfully enqueued
+    {
+        dacs->sent = BP_TRUE;
+        return BP_SUCCESS;
+    }
+}
+
+/*--------------------------------------------------------------------------------------
+ * update_dacs_bundle -
+ *
+ *  Notes:
+ *  1) may or may not perform enqueue depending if DACS needs to be sent
+ *  2) delivered refers to payloads; the alternative is a forwarded bundle
+ *-------------------------------------------------------------------------------------*/
+static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivered, int timeout, uint16_t* dacsflags)
 {
     int i;
     bp_dacs_bundle_t* dacs;
@@ -551,36 +606,8 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
         /* Store DACS */
         if(*dacsflags != 0)
         {
-            static uint8_t buffer[BP_DACS_PAY_SIZE];
-            int dacs_size, enstat, storage_header_size;
-
-            bp_bundle_store_t* ds = &dacs->bundle_store;
-            bp_blk_pri_t* pri = &dacs->primary_block;
-
-            /* Build DACS */
-            dacs_size = bplib_rec_acs_write(buffer, BP_DACS_PAY_SIZE, dacs->delivered, dacs->first_cid, dacs->fills, dacs->num_fills);
-            ds->bundlesize = ds->headersize + dacs_size;
-            storage_header_size = sizeof(bp_bundle_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - ds->headersize);
-
-            /* Set Creation Time */
-            pri->createsec.value = bplib_os_systime();
-            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, dacsflags);
-
-            /* Set Sequence */
-            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, dacsflags);
-            pri->createseq.value++;
-
-            /* Update Bundle Integrity Block */
-            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, buffer, dacs_size, &dacs->integrity_block);
-
-            /* Update Payload Block */
-            dacs->payload_block.payptr = buffer;
-            dacs->payload_block.paysize = dacs_size;
-            dacs->payload_block.blklen.value = dacs_size;
-            bplib_sdnv_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, dacs->payload_block.blklen, dacsflags);
-
-            /* Send (enqueue) ACS */
-            enstat = ch->storage.enqueue(ch->dacs_store_handle, ds, storage_header_size, buffer, dacs_size, timeout);
+            uint32_t sysnow = bplib_os_systime();
+            store_dacs_bundle(ch, dacs, sysnow, timeout, dacsflags);
 
             /* Start New DTN ACS */
             dacs->delivered = delivered;
@@ -588,9 +615,6 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int delivere
             dacs->last_cid = cteb->cid.value;
             dacs->fills[0] = 0;
             dacs->num_fills = 1;
-
-            /* Handle Storage Error */
-            if(enstat != BP_SUCCESS) return bplog(enstat, "Failed to store DACS for transmission, bundle dropped\n");
         }
     }
 
@@ -865,8 +889,8 @@ static int getset_opt(int c, int opt, void* val, int len, int getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* rate = (int*)val;
-            if(getset)  ch->dacs_rate_ms = *rate;
-            else        *rate = ch->dacs_rate_ms;
+            if(getset)  ch->dacs_rate = *rate;
+            else        *rate = ch->dacs_rate;
             bplog(BP_INFO, "Config. ACS Rate %s %d\n", getset ? "<--" : "-->", *rate);
             break;
         }
@@ -996,7 +1020,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
 
                 /* Initialize Data */
                 channels[i].num_dacs                                = 0;
-                channels[i].dacs_rate_ms                            = BP_DEFAULT_DACS_RATE;
+                channels[i].dacs_rate                               = BP_DEFAULT_DACS_RATE;
                 channels[i].creation_time_sys                       = BP_DEFAULT_CREATE_TIME_SYS;
                 channels[i].timeout                                 = BP_DEFAULT_TIMEOUT;
                 channels[i].bundle_maxlength                        = BP_DEFAULT_BUNDLE_MAXLENGTH;
@@ -1146,17 +1170,35 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
         bp_sid_t                sid         = BP_SID_VACANT;        // storage id points to nothing
         int                     ati         = -1;                   // active table index
 
+        /* Check DACS Rate */
+        if((ch->dacs_rate > 0) && ((ch->last_dacs + ch->dacs_rate) < sysnow))
+        {
+            int i;
+            for(i = 0; i < ch->num_dacs; i++)
+            {
+                bp_dacs_bundle_t* dacs = &ch->dacs_bundle[i];
+
+                /* Check for Unsent DACS */
+                if(dacs->sent == BP_FALSE && dacs->num_fills > 0)
+                {
+                    store_dacs_bundle(ch, dacs, sysnow, BP_CHECK, loadflags);
+                    dacs->num_fills = 0;
+                }
+
+                /* Clear Sent Flag */
+                ch->dacs_bundle[i].sent = BP_FALSE;
+            }
+
+            /* Update Time of Last Check */
+            ch->last_dacs = sysnow;
+        }
+
         /* Check if DACS Needs to be Sent */
         store = ch->dacs_store_handle;
         if(dequeue(store, (void**)&ds, NULL, &sid, BP_CHECK) == BP_SUCCESS)
         {
             /* Set Route Flag */
             *loadflags |= BP_FLAG_ROUTENEEDED;
-        }
-        else
-        {
-            // TODO: use ch->dacs_rate_ms to create ACS bundle if one is not ready
-            // no need enqueue...dequeue
         }
 
         /* Try to Send Timed-out Bundle */
@@ -1498,7 +1540,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                     if(status == BP_SUCCESS) status = store_data_bundle(ch, &pri_blk, &ch->forw_bundle.integrity_block, &pay_blk, BP_FALSE, timeout, procflags);
 
                     /* Update DACS (bundle successfully forwarded) */
-                    if(status == BP_SUCCESS) status = store_dacs_bundle(ch, &cteb_blk, BP_FALSE, timeout, procflags);
+                    if(status == BP_SUCCESS) status = update_dacs_bundle(ch, &cteb_blk, BP_FALSE, timeout, procflags);
                 }
                 else if(pri_blk.dstserv.value == ch->data_bundle.primary_block.srcserv.value) // deliver bundle payload to application
                 {
@@ -1584,7 +1626,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
                 /* Acknowledge Custody */
                 if(paystore->request_custody)
                 {
-                    store_dacs_bundle(ch, &paystore->cteb, BP_TRUE, timeout, acptflags);
+                    update_dacs_bundle(ch, &paystore->cteb, BP_TRUE, timeout, acptflags);
                 }
             }
             else
