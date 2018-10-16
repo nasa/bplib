@@ -53,11 +53,12 @@
 #define BP_UNKNOWNREC                   (-11)
 #define BP_BUNDLETOOLARGE               (-12)
 #define BP_PAYLOADTOOLARGE              (-13)
-#define BP_WRONGCHANNEL                 (-14)
-#define BP_FAILEDINTEGRITYCHECK         (-15)
-#define BP_FAILEDSTORE                  (-16)
-#define BP_FAILEDRESPONSE               (-17)
-#define BP_FAILEDOS                     (-18)
+#define BP_WRONGORIGINATION             (-14)
+#define BP_WRONGCHANNEL                 (-15)
+#define BP_FAILEDINTEGRITYCHECK         (-16)
+#define BP_FAILEDSTORE                  (-17)
+#define BP_FAILEDRESPONSE               (-18)
+#define BP_FAILEDOS                     (-19)
 
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  // valid bundle but agent not able to comply with standard
@@ -80,18 +81,17 @@
 #define BP_OPT_RPTSERV_D                4
 #define BP_OPT_CSTNODE_D                5
 #define BP_OPT_CSTSERV_D                6
-#define BP_OPT_CREATETIMESYS_D          7
-#define BP_OPT_CREATETIMEVAL_D          8
-#define BP_OPT_SETSEQUENCE_D            9
-#define BP_OPT_LIFETIME_D               10
-#define BP_OPT_CSTRQST_D                11
-#define BP_OPT_ALLOWFRAG_D              12
-#define BP_OPT_PAYCRC_D                 13
-#define BP_OPT_TIMEOUT                  14
-#define BP_OPT_BUNDLELEN                15
-#define BP_OPT_PROCADMINONLY            16
-#define BP_OPT_WRAPRSP                  17
-#define BP_OPT_ACSRATE                  18
+#define BP_OPT_SETSEQUENCE_D            7
+#define BP_OPT_LIFETIME_D               8
+#define BP_OPT_CSTRQST_D                9
+#define BP_OPT_ALLOWFRAG_D              10
+#define BP_OPT_PAYCRC_D                 11
+#define BP_OPT_TIMEOUT                  12
+#define BP_OPT_BUNDLELEN                13
+#define BP_OPT_ORIGINATE                14
+#define BP_OPT_PROCADMINONLY            15
+#define BP_OPT_WRAPRSP                  16
+#define BP_OPT_ACSRATE                  17
 
 /******************************************************************************
  TYPEDEFS
