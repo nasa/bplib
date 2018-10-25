@@ -163,14 +163,14 @@ int bplib_rec_acs_process ( void* rec, int size,
 
     /* Read First Custody ID */
     fill.index = bplib_sdnv_read(buf, size, &cid, &flags);
-    if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
+    if(flags != 0) return BP_BUNDLEPARSEERR;
 
     /* Process Though Fills */
     while(index < size)
     {
         /* Read Fill */
         fill.index = bplib_sdnv_read(buf, size, &fill, &flags);
-        if(flags != BP_SUCCESS) return BP_BUNDLEPARSEERR;
+        if(flags != 0) return BP_BUNDLEPARSEERR;
 
         /* Process Custody IDs */
         if(cidin == BP_TRUE)

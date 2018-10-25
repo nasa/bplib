@@ -244,21 +244,21 @@ static const bp_blk_pri_t native_dacs_pri_blk = {
     .version            = BP_DEFAULT_BP_VERSION,
                             /*          Value         Index       Width   */
     .pcf                = { 0,                          1,          3 },
-    .blklen             = { 0,                          4,          4 },
-    .dstnode            = { 0,                          8,          4 },
-    .dstserv            = { 0,                          12,         4 },
-    .srcnode            = { 0,                          16,         4 },
-    .srcserv            = { 0,                          20,         4 },
-    .rptnode            = { 0,                          24,         4 },
-    .rptserv            = { 0,                          28,         4 },
-    .cstnode            = { 0,                          32,         4 },
-    .cstserv            = { 0,                          36,         4 },
-    .createsec          = { BP_DEFAULT_CREATE_SECS,     40,         4 },
-    .createseq          = { 0,                          48,         4 },
-    .lifetime           = { BP_DEFAULT_LIFETIME,        52,         4 },
-    .dictlen            = { 0,                          56,         4 },
-    .fragoffset         = { 0,                           0,         0 },
-    .paylen             = { 0,                           0,         0 },
+    .blklen             = { 0,                          4,          2 },
+    .dstnode            = { 0,                          6,          4 },
+    .dstserv            = { 0,                          10,         2 },
+    .srcnode            = { 0,                          12,         4 },
+    .srcserv            = { 0,                          16,         2 },
+    .rptnode            = { 0,                          18,         4 },
+    .rptserv            = { 0,                          22,         2 },
+    .cstnode            = { 0,                          24,         4 },
+    .cstserv            = { 0,                          28,         2 },
+    .createsec          = { BP_DEFAULT_CREATE_SECS,     30,         6 },
+    .createseq          = { 0,                          36,         4 },
+    .lifetime           = { BP_DEFAULT_LIFETIME,        40,         4 },
+    .dictlen            = { 0,                          44,         1 },
+    .fragoffset         = { 0,                          45,         4 },
+    .paylen             = { 0,                          49,         4 },
     .is_admin_rec       = BP_TRUE,
     .request_custody    = BP_FALSE,
     .allow_frag         = BP_FALSE,
@@ -569,10 +569,10 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t 
     enstat = ch->storage.enqueue(ch->dacs_store_handle, ds, storage_header_size, buffer, dacs_size, timeout);
 
     /* Check Storage Status */
-    if(enstat != BP_SUCCESS)
+    if(enstat <= 0)
     {
         *dacsflags |= BP_FLAG_STOREFAILURE;
-        return bplog(enstat, "Failed to store DACS for transmission, bundle dropped\n");
+        return bplog(enstat, "Failed (%d) to store DACS for transmission, bundle dropped\n", enstat);
     }
     else // successfully enqueued
     {
@@ -1506,7 +1506,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                 bplib_os_lock(ch->active_table_lock);
                 {
                     /* Process Record */
-                    if(rec_type == BP_ACS_REC_TYPE)         status = bplib_rec_acs_process( &buffer[index], size - index, ch->active_table, BP_ACTIVE_TABLE_SIZE, ch->storage.relinquish, ch->data_store_handle);
+                    if(rec_type == BP_ACS_REC_TYPE)         status = bplib_rec_acs_process(&buffer[index], size - index, ch->active_table, BP_ACTIVE_TABLE_SIZE, ch->storage.relinquish, ch->data_store_handle);
                     else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
                     else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(BP_UNSUPPORTED, "Status report bundles are not supported\n");
                     else                                    status = bplog(BP_UNKNOWNREC, "Unknown administrative record: %u\n", (unsigned int)rec_type);
@@ -1672,7 +1672,7 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
     assert(buffer);
 
     /* Parse Primary Block */
-    status = bplib_blk_pri_read(buffer, size, &pri_blk, BP_FALSE);
+    status = bplib_blk_pri_read(buffer, size, &pri_blk, BP_TRUE);
     if(status <= 0) return status;
 
     /* Set Addresses */
