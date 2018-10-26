@@ -46,7 +46,7 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_ind
     int bytes_read = 0;
 
     /* Check Size */
-    if(size < 1) return BP_BUNDLEPARSEERR;
+    if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of payload block: %d\n", size);
 
     /* Read Block Information */
     if(!update_indices)
@@ -67,7 +67,7 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_ind
     /* Success Oriented Error Checking */
     if(flags != 0)
     {
-        return BP_BUNDLEPARSEERR;
+        return bplog(BP_BUNDLEPARSEERR, "Error flags raised during processing of payload block (%08X)\n", flags);
     }
     else
     {
@@ -94,7 +94,7 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_in
     int bytes_written = 0;
 
     /* Check Size */
-    if(size < 1) return BP_BUNDLEPARSEERR;
+    if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of payload block: %d\n", size);
 
     /* Set Block Flags */
     pay->bf.value = 0;
@@ -136,7 +136,7 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_in
 //    }
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    if(flags != 0)  return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of payload block (%08X)\n", flags);
     else            return bytes_written;
 }
 
@@ -159,18 +159,17 @@ int bplib_rec_acs_process ( void* rec, int size,
     uint8_t* buf = (uint8_t*)rec;
     int cidin = BP_TRUE;
     uint16_t flags = 0;
-    int index = 0;
 
     /* Read First Custody ID */
     fill.index = bplib_sdnv_read(buf, size, &cid, &flags);
-    if(flags != 0) return BP_BUNDLEPARSEERR;
+    if(flags != 0) return bplog(BP_BUNDLEPARSEERR, "Failed to read first custody ID (%08X)\n", flags);
 
     /* Process Though Fills */
-    while(index < size)
+    while((int)fill.index < size)
     {
         /* Read Fill */
         fill.index = bplib_sdnv_read(buf, size, &fill, &flags);
-        if(flags != 0) return BP_BUNDLEPARSEERR;
+        if(flags != 0) return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", flags);
 
         /* Process Custody IDs */
         if(cidin == BP_TRUE)
@@ -198,11 +197,11 @@ int bplib_rec_acs_process ( void* rec, int size,
         cid.value += fill.value;
     }
 
-    return index;
+    return fill.index;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rec_acs_process -
+ * bplib_rec_acs_write -
  *
  *  rec - buffer containing the ACS record [OUTPUT]
  *  size - size of buffer [INPUT]
@@ -234,7 +233,7 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int delivered, uint32_t first_ci
     }
 
     /* Success Oriented Error Checking */
-    if(flags != 0) return BP_BUNDLEPARSEERR;
+    if(flags != 0) return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of ACS (%08X)\n", flags);
 
     /* Return Block Size */
     return fill.index;
