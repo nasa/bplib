@@ -8,7 +8,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdlib.h>
 #include "bplib.h"
 #include "bplib_blk.h"
 #include "bplib_blk_cteb.h"

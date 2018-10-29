@@ -32,7 +32,7 @@
 
 void        bplib_os_init           (void);
 int         bplib_os_log            (const char* file, unsigned int line, int error, const char* fmt, ...) VARG_CHECK(printf, 4, 5);
-void        bplib_os_memset         (void* addr, int len, int val);
+void        bplib_os_memset         (void* addr, int val, int len);
 void        bplib_os_memcpy         (void* dst, void* src, int len);
 uint32_t    bplib_os_systime        (void);
 int         bplib_os_createlock     (void);

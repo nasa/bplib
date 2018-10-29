@@ -8,9 +8,7 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <stddef.h>
 #include <assert.h>
 
 #include "bplib.h"
@@ -944,7 +942,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
             if(channels[i].index == BP_EMPTY)
             {
                 /* Clear Channel Memory */
-                bplib_os_memset(&channels[i], sizeof(channels[i]), 0);
+                bplib_os_memset(&channels[i], 0, sizeof(channels[i]));
 
                 /* Initialize Assets */
                 channels[i].data_bundle_lock                        = bplib_os_createlock();

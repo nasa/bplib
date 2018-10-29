@@ -8,7 +8,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -76,9 +75,9 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
 /*--------------------------------------------------------------------------------------
  * bplib_os_memset -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_memset(void* addr, int len, int val)
+void bplib_os_memset(void* addr, int val, int len)
 {
-	memset(addr, len, val);
+	memset(addr, val, len);
 }
 
 /*--------------------------------------------------------------------------------------

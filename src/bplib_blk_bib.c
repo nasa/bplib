@@ -8,7 +8,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "bplib.h"

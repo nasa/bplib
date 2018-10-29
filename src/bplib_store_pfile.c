@@ -1,6 +1,6 @@
 /******************************************************************************
  * Filename     : bplib_store_pfile.c
- * Purpose      : Bundle Protocol Library 
+ * Purpose      : Bundle Protocol Library
  *                POSIX-Compliant File System
  *                Storage Service
  * Design Notes :
@@ -10,7 +10,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdlib.h>
 #include <assert.h>
 #include "bplib.h"
 
@@ -34,7 +33,7 @@
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_create - 
+ * bp_store_pfile_create -
  *-------------------------------------------------------------------------------------*/
 int bp_store_pfile_create (void)
 {
@@ -42,16 +41,16 @@ int bp_store_pfile_create (void)
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_destroy - 
+ * bp_store_pfile_destroy -
  *-------------------------------------------------------------------------------------*/
 int bp_store_pfile_destroy (int handle)
 {
     (void)handle;
-    return 0;    
+    return 0;
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_enqueue - 
+ * bp_store_pfile_enqueue -
  *-------------------------------------------------------------------------------------*/
 int bp_store_pfile_enqueue (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout)
 {
@@ -65,7 +64,7 @@ int bp_store_pfile_enqueue (int handle, void* data1, int data1_size, void* data2
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_dequeue - 
+ * bp_store_pfile_dequeue -
  *-------------------------------------------------------------------------------------*/
 int bp_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid, int timeout)
 {
@@ -74,11 +73,11 @@ int bp_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid, i
     assert(data);
     assert(size);
     assert(sid);
-    return 0;    
+    return 0;
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_retrieve - 
+ * bp_store_pfile_retrieve -
  *-------------------------------------------------------------------------------------*/
 int bp_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid, int timeout)
 {
@@ -87,11 +86,11 @@ int bp_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid, i
     (void)timeout;
     assert(data);
     assert(size);
-    return 0;    
+    return 0;
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_refresh - 
+ * bp_store_pfile_refresh -
  *-------------------------------------------------------------------------------------*/
 int bp_store_pfile_refresh (int handle, void* data, int size, int offset, bp_sid_t sid, int timeout)
 {
@@ -101,16 +100,16 @@ int bp_store_pfile_refresh (int handle, void* data, int size, int offset, bp_sid
     (void)sid;
     (void)timeout;
     assert(data);
-    return 0;    
+    return 0;
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_relinquish - 
+ * bp_store_pfile_relinquish -
  *-------------------------------------------------------------------------------------*/
 int bp_store_pfile_relinquish (int handle, bp_sid_t sid)
 {
     (void)handle;
     (void)sid;
-    return 0;    
+    return 0;
 }
 
