@@ -95,7 +95,7 @@ int bplib_os_systime(uint32_t* tm)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    *tm = now.tv_sec - 946684800;
+    *tm = now.tv_sec - UNIX_SECS_AT_2000;
     return BP_SUCCESS;
 }
 

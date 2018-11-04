@@ -7,6 +7,10 @@
 #ifndef __BPLIB_H__
 #define __BPLIB_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+    
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -141,5 +145,9 @@ int     bplib_process   (int channel, void* bundle,  int size, int timeout, uint
 int     bplib_accept    (int channel, void* payload, int size, int timeout, uint16_t* acptflags);
 
 int     bplib_routeinfo (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif 
 
 #endif  /* __BPLIB_H__ */
