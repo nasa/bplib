@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
@@ -91,12 +92,11 @@ void bplib_os_memcpy(void* dst, void* src, int len)
 /*--------------------------------------------------------------------------------------
  * bplib_os_systime -
  *-------------------------------------------------------------------------------------*/
-int bplib_os_systime(uint32_t* tm)
+uint32_t bplib_os_systime(void)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    *tm = now.tv_sec - UNIX_SECS_AT_2000;
-    return BP_SUCCESS;
+    return now.tv_sec - UNIX_SECS_AT_2000;
 }
 
 /*--------------------------------------------------------------------------------------
