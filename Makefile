@@ -1,6 +1,20 @@
 ###############################################################################
 # File: Bundle Protocol Library Makefile
 ###############################################################################
+#
+# Notes:
+#  1. Most settings used to build the library can be overridden in the config.mk
+#     file.  To create a custom build of this library, copy and edit your own
+#     config.mk file and then issue the following commands to build the library:
+#
+#	    make CONFIG=config.mk
+#
+#  2. In order to use clang instead of gcc, set the COMPILER and TOOLCHAIN variables.
+#     For example, if you wanted to run AddressSanitizer via clang, issue the following
+#     commands to build the library:  
+# 
+#           make COMPILER=clang TOOLCHAIN=llvm APP_COPT=-fsanitize=address APP_LOPT=-fsanitize=address 
+#
 
 ##############################################################################
 ## DEFINITIONS and CONFIGURATION (populated/overridden in application includes)
@@ -27,13 +41,13 @@ APP_OBJ     += bplib_crc.o
 APP_OBJ     += bplib_sdnv.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
-APP_DEFS    :=
+APP_DEFS    ?=
 
 # compiler options needed by the application
-APP_COPT    :=
+APP_COPT    ?=
 
 # linker options needed by the application
-APP_LOPT    :=
+APP_LOPT    ?=
 
 # search path for application objects (note this is a make system variable)
 VPATH	    := $(ROOT)/src
@@ -109,7 +123,7 @@ $(BLDDIR)/%.o: %.c
 all: clean prep lib
 
 lib: $(ALL_OBJ)
-	$(AR) -crs $(BLDDIR)/lib$(TGTLIB).a $^
+	$(AR) crs $(BLDDIR)/lib$(TGTLIB).a $^
 	$(CC) $^ $(ALL_LOPT) -shared -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
 
 install: lib
