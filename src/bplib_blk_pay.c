@@ -181,7 +181,7 @@ int bplib_rec_acs_process ( void* rec, int size,
                 bp_sid_t sid = active_table[ati];
                 if(sid != BP_SID_VACANT)
                 {
-                    relinquish(store_handle, &sid);
+                    relinquish(store_handle, sid);
                     active_table[ati] = BP_SID_VACANT;
                 }
             }
