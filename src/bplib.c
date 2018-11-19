@@ -10,6 +10,9 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <errno.h>
+#include <limits.h>
+#include <string.h>
 
 #include "bplib.h"
 #include "bplib_os.h"
@@ -269,8 +272,9 @@ static const bp_blk_cteb_t native_cteb_blk = {
     .bf                 = { 0,                              1,          1 },
     .blklen             = { 0,                              2,          1 },
     .cid                = { 0,                              3,          4 },
-    .cstnode            = { 0,                              7,          4 },
-    .cstserv            = { 0,                              11,         2 }
+    .csteid             = { '\0' },
+    .cstnode            = 0,
+    .cstserv            = 0
 };
 
 static const bp_blk_bib_t native_bib_blk = {
@@ -378,8 +382,9 @@ static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, b
     /* Write Custody Block */
     if(bundle->primary_block.request_custody)
     {
-        fcteb->cstnode.value = local_node;
-        fcteb->cstserv.value = local_service;
+        fcteb->cstnode = local_node;
+        fcteb->cstserv = local_service;
+        bplib_ipn2eid(fcteb->csteid, BP_MAX_EID_STRING, local_node, local_service);
         ds->cidsdnv = fcteb->cid;
         ds->cteboffset = hdr_index;
         status = bplib_blk_cteb_write(&ds->header[ds->cteboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->cteboffset, fcteb, BP_FALSE);
@@ -595,7 +600,7 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int deliver
     dacs = NULL;
     for(i = 0; i < ch->num_dacs; i++)
     {
-        if(ch->dacs_bundle[i].cstnode == cteb->cstnode.value && ch->dacs_bundle[i].cstserv == cteb->cstserv.value)
+        if(ch->dacs_bundle[i].cstnode == cteb->cstnode && ch->dacs_bundle[i].cstserv == cteb->cstserv)
         {
             dacs = &ch->dacs_bundle[i];
             break;
@@ -612,16 +617,16 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, int deliver
             dacs = &ch->dacs_bundle[dacs_entry];
 
             /* Initial DACS Bundle */
-            dacs->cstnode = cteb->cstnode.value;
-            dacs->cstserv = cteb->cstserv.value;
+            dacs->cstnode = cteb->cstnode;
+            dacs->cstserv = cteb->cstserv;
             dacs->num_fills = 0;
-            initialize_dacs_bundle(ch, dacs_entry, cteb->cstnode.value, cteb->cstserv.value);
+            initialize_dacs_bundle(ch, dacs_entry, cteb->cstnode, cteb->cstserv);
         }
         else
         {
             /* No Room in Table for Another Source */
             *dacsflags |= BP_FLAG_TOOMANYSOURCES;
-            return bplog(BP_FAILEDRESPONSE, "No room in DACS table for another source %d.%d\n", cteb->cstnode.value, cteb->cstserv.value);
+            return bplog(BP_FAILEDRESPONSE, "No room in DACS table for another source %d.%d\n", cteb->cstnode, cteb->cstserv);
         }
     }
 
@@ -986,12 +991,15 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 channels[i].data_bundle.primary_block.cstserv.value = local_service;
                 channels[i].data_bundle.custody_block               = native_cteb_blk;
                 channels[i].data_bundle.custody_block.cid.value     = 0;
-                channels[i].data_bundle.custody_block.cstnode.value = local_node;
-                channels[i].data_bundle.custody_block.cstserv.value = local_service;
+                channels[i].data_bundle.custody_block.cstnode       = local_node;
+                channels[i].data_bundle.custody_block.cstserv       = local_service;
                 channels[i].data_bundle.integrity_block             = native_bib_blk;
                 channels[i].data_bundle.payload_block               = native_pay_blk;
                 channels[i].data_bundle.maxlength                   = BP_DEFAULT_BUNDLE_MAXLENGTH;
                 channels[i].data_bundle.originate                   = BP_DEFAULT_ORIGINATION;
+
+                /* Write EID */
+                bplib_ipn2eid(channels[i].data_bundle.custody_block.csteid, BP_MAX_EID_STRING, local_node, local_service);
 
                 /* Initialize DACS Bundle */
                 for(j = 0; j < BP_MAX_CONCURRENT_DACS; j++)
@@ -1451,7 +1459,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
 
             /* Mark Processing as Incomplete */
             *procflags |= BP_FLAG_INCOMPLETE;
-            bplog(BP_UNSUPPORTED, "Skipping over unrecognized block\n");
+            bplog(BP_UNSUPPORTED, "Skipping over unrecognized block of type 0x%02X and size %d\n", blk_type, blk_len.value);
 
             /* Should transmit status report that block cannot be processed */
             if(blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK) *procflags |= BP_FLAG_NONCOMPLIANT;
@@ -1678,5 +1686,116 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
     if(destination_service) *destination_service = (bp_ipn_t)pri_blk.dstserv.value;
 
     /* Return Success */
+    return BP_SUCCESS;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_eid2ipn -
+ *
+ *  eid -                   null-terminated string representation of End Point ID [INPUT]
+ *  len -                   size in bytes of above string including null termination [INPUT]
+ *  node -                  node number as read from eid [OUTPUT]
+ *  service -               service number as read from eid [OUTPUT]
+ *  Returns:                BP_SUCCESS or error code
+ *-------------------------------------------------------------------------------------*/
+int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
+{
+    char eidtmp[BP_MAX_EID_STRING];
+    char* node_ptr;
+    char* service_ptr;
+    char* endptr;
+    unsigned long node_result;
+    unsigned long service_result;
+
+    /* Sanity Check EID Pointer */
+    if(eid == NULL)
+    {
+        return bplog(BP_INVALIDEID, "EID is null\n");
+    }
+
+    /* Sanity Check Length of EID */
+    if(len < 8)
+    {
+        return bplog(BP_INVALIDEID, "EID must be at least 7 characters, act: %d\n", len); // 8 if null-termination is included
+    }
+    else if(len > BP_MAX_EID_STRING)
+    {
+        return bplog(BP_INVALIDEID, "EID cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING, len);
+    }
+
+    /* Check IPN Scheme */
+    if(eid[0] != 'i' || eid[1] != 'p' || eid[2] != 'n' || eid[3] != ':')
+    {
+        return bplog(BP_INVALIDEID, "EID (%s) must start with 'ipn:'\n", eid);
+    }
+
+    /* Copy EID to Temporary Buffer and Set Pointers */
+    strncpy(eidtmp, &eid[4], len - 4);
+    node_ptr = eidtmp;
+    service_ptr = strchr(node_ptr, '.');
+    if(service_ptr != NULL)
+    {
+        *service_ptr = '\0';
+        service_ptr++;
+    }
+    else
+    {
+        return bplog(BP_INVALIDEID, "Unable to find dotted notation in EID (%s)\n", eid);
+    }
+
+    /* Parse Node Number */
+    errno = 0;
+    node_result = strtoul(node_ptr, &endptr, 10); // assume IPN node and service numbers always written in base 10
+    if( (endptr == node_ptr) ||
+        ((node_result == ULONG_MAX || node_result == 0) && errno == ERANGE) )
+    {
+        return bplog(BP_INVALIDEID, "Unable to parse EID (%s) node number\n", eid);
+    }
+
+    /* Parse Service Number */
+    errno = 0;
+    service_result = strtoul(service_ptr, &endptr, 10); // assume IPN node and service numbers always written in base 10
+    if( (endptr == service_ptr) ||
+        ((service_result == ULONG_MAX || service_result == 0) && errno == ERANGE) )
+    {
+        return bplog(BP_INVALIDEID, "Unable to parse EID (%s) service number\n", eid);
+    }
+
+    /* Set Outputs */
+    *node = (uint32_t)node_result;
+    *service = (uint32_t)service_result;
+    return BP_SUCCESS;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_ipn2eid -
+ *
+ *  eid -                   buffer that will hold null-terminated string representation of End Point ID [OUTPUT]
+ *  len -                   size in bytes of above buffer [INPUT]
+ *  node -                  node number to be written into eid [INPUT]
+ *  service -               service number to be written into eid [INPUT]
+ *  Returns:                BP_SUCCESS or error code
+ *-------------------------------------------------------------------------------------*/
+int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t service)
+{
+    /* Sanity Check EID Buffer Pointer */
+    if(eid == NULL)
+    {
+        return bplog(BP_INVALIDEID, "EID buffer is null\n");
+    }
+
+    /* Sanity Check Length of EID Buffer */
+    if(len < 8)
+    {
+        return bplog(BP_INVALIDEID, "EID buffer must be at least 7 characters, act: %d\n", len); // 8 if null-termination is included
+    }
+    else if(len > BP_MAX_EID_STRING)
+    {
+        return bplog(BP_INVALIDEID, "EID buffer cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING, len);
+    }
+
+    /* Write EID */
+    snprintf(eid, len, "ipn:%lu.%lu", (unsigned long)node, (unsigned long)service);
+
     return BP_SUCCESS;
 }

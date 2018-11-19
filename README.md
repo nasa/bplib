@@ -150,10 +150,10 @@ __Storage Service__ - The BP library requires that a storage service is provided
  -------------------------------------------------
 ```
 
-### Custody Transfer Extension Block (CTEB)
+### Custody Transfer Enhancement Block (CTEB)
 ```
  -------------------------------------------------
-         Custody Transfer Extension Block
+        Custody Transfer Enhancement Block
  -------------------------------------------------
  |    MSB    |           |           |    LSB    |
  | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
@@ -164,11 +164,11 @@ __Storage Service__ - The BP library requires that a storage service is provided
  |-----------|-----------|-----------------------|
  .           .           .                       .
  |-----------|-----------|-----------------------|
- |    0xA    | Blk Flags |     Block Length      | +4 --> Custody Transfer Extension Block
+ |    0xA    | Blk Flags |     Block Length      | +4 --> Custody Transfer Enhancement Block
  |-----------|-----------|-----------------------|
  |                  Custody ID                   | +8
  |-----------------------|-----------------------|
- |    Custodian Node     |   Custodian Service   | +12
+ |          CTEB Creator Custodian EID           | (null-terminated string)
  |-----------------------------------------------|
 ```
 

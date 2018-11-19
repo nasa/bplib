@@ -8,6 +8,8 @@
  INCLUDES
  ******************************************************************************/
 
+#include <string.h>
+
 #include "bplib.h"
 #include "bplib_blk.h"
 #include "bplib_blk_cteb.h"
@@ -32,6 +34,9 @@ int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
     int bytes_read = 0;
+    int eid_index = 0;
+    int eid_len = 0;
+    int eid_status = 0;
 
     /* Check Size */
     if(size < 1) return BP_BUNDLEPARSEERR;
@@ -41,25 +46,25 @@ int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_
     {
         bplib_sdnv_read(buffer, size, &cteb->bf, &flags);
         bplib_sdnv_read(buffer, size, &cteb->blklen, &flags);
-        bplib_sdnv_read(buffer, size, &cteb->cid, &flags);
-        bplib_sdnv_read(buffer, size, &cteb->cstnode, &flags);
-        bytes_read = bplib_sdnv_read(buffer, size, &cteb->cstserv, &flags);
     }
     else
     {
         cteb->bf.width = 0;
         cteb->blklen.width = 0;
         cteb->cid.width = 0;
-        cteb->cstnode.width = 0;
-        cteb->cstserv.width = 0;
 
         cteb->bf.index = 1;
         cteb->blklen.index = bplib_sdnv_read(buffer, size, &cteb->bf, &flags);
         cteb->cid.index = bplib_sdnv_read(buffer, size, &cteb->blklen, &flags);
-        cteb->cstnode.index = bplib_sdnv_read(buffer, size, &cteb->cid, &flags);
-        cteb->cstserv.index = bplib_sdnv_read(buffer, size, &cteb->cstnode, &flags);
-        bytes_read = bplib_sdnv_read(buffer, size, &cteb->cstserv, &flags);
     }
+
+    eid_index = bplib_sdnv_read(buffer, size, &cteb->cid, &flags);
+    eid_len = strnlen((char*)&buffer[eid_index], size - eid_index - 1) + 1; // include null-terminator
+
+    eid_status = bplib_eid2ipn((char*)&buffer[eid_index], eid_len, &cteb->cstnode, &cteb->cstserv);
+    if(eid_status != BP_SUCCESS) return eid_status;
+
+    bytes_read = eid_index + eid_len;
 
     /* Success Oriented Error Checking */
     if(flags != 0)  return BP_BUNDLEPARSEERR;
@@ -81,6 +86,8 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, int update
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
     int bytes_written = 0;
+    int eid_index = 0;
+    int eid_len = 0;
 
     /* Check Size */
     if(size < 1) return BP_BUNDLEPARSEERR;
@@ -93,26 +100,24 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, int update
     if(!update_indices)
     {
         bplib_sdnv_write(buffer, size, cteb->bf, &flags);
-        bplib_sdnv_write(buffer, size, cteb->cid, &flags);
-        bplib_sdnv_write(buffer, size, cteb->cstnode, &flags);
-        bytes_written = bplib_sdnv_write(buffer, size, cteb->cstserv, &flags);
     }
     else
     {
-        cteb->bf.width = 0;
-        cteb->blklen.width = 0;
-        cteb->cid.width = 0;
-        cteb->cstnode.width = 0;
-        cteb->cstserv.width = 0;
-
+        cteb->bf.width      = 0;
+        cteb->blklen.width  = 0;
+        cteb->cid.width     = 0;
         cteb->bf.index      = 1;
         cteb->blklen.index  = bplib_sdnv_write(buffer, size, cteb->bf, &flags);
         cteb->cid.index     = cteb->blklen.index + cteb->blklen.width;
-        cteb->cstnode.index = bplib_sdnv_write(buffer, size, cteb->cid, &flags);
-        cteb->cstserv.index = bplib_sdnv_write(buffer, size, cteb->cstnode, &flags);
-        bytes_written       = bplib_sdnv_write(buffer, size, cteb->cstserv, &flags);
     }
 
+    eid_index = bplib_sdnv_write(buffer, size, cteb->cid, &flags);
+
+    eid_len = strnlen(cteb->csteid, BP_MAX_EID_STRING - 1) + 1;
+    if(eid_index + eid_len > size) return BP_BUNDLEPARSEERR;
+    strncpy((char*)&buffer[eid_index], cteb->csteid, eid_len); // the +1 to strnlen guarantees this is null-terminated
+
+    bytes_written = eid_index + eid_len;
     cteb->blklen.value = bytes_written - cteb->cid.index;
     bplib_sdnv_write(buffer, size, cteb->blklen, &flags);
 

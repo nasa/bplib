@@ -64,7 +64,8 @@ extern "C" {
 #define BP_FAILEDSTORE                  (-17)
 #define BP_FAILEDRESPONSE               (-18)
 #define BP_FAILEDOS                     (-19)
-
+#define BP_INVALIDEID                   (-20)
+    
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  // valid bundle but agent not able to comply with standard
 #define BP_FLAG_INCOMPLETE              0x0002  // block in bundle was not recognized
@@ -97,6 +98,9 @@ extern "C" {
 #define BP_OPT_PROCADMINONLY            15
 #define BP_OPT_WRAPRSP                  16
 #define BP_OPT_ACSRATE                  17
+    
+/* IPN Scheme Defines */
+#define BP_MAX_EID_STRING               128
 
 /******************************************************************************
  TYPEDEFS
@@ -145,6 +149,8 @@ int     bplib_process   (int channel, void* bundle,  int size, int timeout, uint
 int     bplib_accept    (int channel, void* payload, int size, int timeout, uint16_t* acptflags);
 
 int     bplib_routeinfo (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
+int     bplib_eid2ipn   (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
+int     bplib_ipn2eid   (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -12,6 +12,7 @@
  ******************************************************************************/
 
 #include <stdint.h>
+#include "bplib.h"
 #include "bplib_sdnv.h"
 
 /******************************************************************************
@@ -28,8 +29,9 @@ typedef struct {
     bp_sdnv_t bf;
     bp_sdnv_t blklen;
     bp_sdnv_t cid;
-    bp_sdnv_t cstnode;
-    bp_sdnv_t cstserv;
+    char      csteid[BP_MAX_EID_STRING];
+    bp_ipn_t  cstnode;
+    bp_ipn_t  cstserv;
 } bp_blk_cteb_t;
 
 /******************************************************************************
