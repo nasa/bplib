@@ -15,6 +15,24 @@
 #include "bplib_os.h"
 
 /******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+#define BP_PCF_FRAGMENT_MASK            0x000001    // bundle is a fragement
+#define BP_PCF_ADMIN_MASK               0x000002    // bundle is an administrative record
+#define BP_PCF_NOFRAG_MASK              0x000004    // bundle must not be fragmented
+#define BP_PCF_CSTRQST_MASK             0x000008    // custody transfer is requested
+#define BP_PCF_SINGLETON_MASK           0x000010    // destination endpoint is a singleton
+#define BP_PCF_ACKRQST_MASK             0x000020    // acknowledgement is requested from application
+#define BP_PCF_COS_MASK                 0x000180    // class of service
+#define BP_PCF_COS_SHIFT                7
+#define BP_PCF_RPTRCV_MASK              0x004000    // report reception
+#define BP_PCF_RPTACT_MASK              0x008000    // report acceptance
+#define BP_PCF_RPTFRW_MASK              0x010000    // report forwarding
+#define BP_PCF_RPTDLV_MASK              0x020000    // report delivery
+#define BP_PCF_RPTDLT_MASK              0x040000    // report deletion
+
+/******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
