@@ -209,7 +209,7 @@ static int channels_lock;
  * Notes:
  * 1. The block length field for every bundle block MUST be set to a positive
  *    integer.  The option to update the fields of the bundle reserves the width
- *    of the blklen field and goes back and write the value after the entire
+ *    of the blklen field and goes back and writes the value after the entire
  *    block is written.  If the blklen field was variable, the code would have
  *    to make a first pass to calculate the block length and then a second pass
  *    to use that block length - that would be too much processing.
