@@ -7,13 +7,13 @@
 #     file.  To create a custom build of this library, copy and edit your own
 #     config.mk file and then issue the following commands to build the library:
 #
-#	    make CONFIG=config.mk
+#        make CONFIG=config.mk
 #
 #  2. In order to use clang instead of gcc, set the COMPILER and TOOLCHAIN variables.
 #     For example, if you wanted to run AddressSanitizer via clang, issue the following
 #     commands to build the library:  
 # 
-#           make COMPILER=clang TOOLCHAIN=llvm APP_COPT=-fsanitize=address APP_LOPT=-fsanitize=address 
+#        make COMPILER=clang TOOLCHAIN=llvm APP_COPT=-fsanitize=address APP_LOPT=-fsanitize=address 
 #
 
 ##############################################################################
