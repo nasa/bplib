@@ -8,12 +8,11 @@
  INCLUDES
  ******************************************************************************/
 
-#include <string.h>
-
 #include "bplib.h"
 #include "bplib_blk.h"
 #include "bplib_blk_cteb.h"
 #include "bplib_sdnv.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -59,7 +58,7 @@ int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_
     }
 
     eid_index = bplib_sdnv_read(buffer, size, &cteb->cid, &flags);
-    eid_len = strnlen((char*)&buffer[eid_index], size - eid_index - 1) + 1; // include null-terminator
+    eid_len = bplib_os_strnlen((char*)&buffer[eid_index], size - eid_index - 1) + 1; // include null-terminator
 
     eid_status = bplib_eid2ipn((char*)&buffer[eid_index], eid_len, &cteb->cstnode, &cteb->cstserv);
     if(eid_status != BP_SUCCESS) return eid_status;
@@ -113,11 +112,12 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, int update
 
     eid_index = bplib_sdnv_write(buffer, size, cteb->cid, &flags);
 
-    eid_len = strnlen(cteb->csteid, BP_MAX_EID_STRING - 1) + 1;
-    if(eid_index + eid_len > size) return BP_BUNDLEPARSEERR;
-    strncpy((char*)&buffer[eid_index], cteb->csteid, eid_len); // the +1 to strnlen guarantees this is null-terminated
+    eid_len = bplib_os_strnlen(cteb->csteid, BP_MAX_EID_STRING - 1);
+    if((eid_index + eid_len + 1) > size) return BP_BUNDLEPARSEERR;
+    bplib_os_memcpy(&buffer[eid_index], cteb->csteid, eid_len);
+    buffer[eid_index + eid_len] = '\0';
 
-    bytes_written = eid_index + eid_len;
+    bytes_written = eid_index + eid_len + 1;
     cteb->blklen.value = bytes_written - cteb->cid.index;
     bplib_sdnv_write(buffer, size, cteb->blklen, &flags);
 
