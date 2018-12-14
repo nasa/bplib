@@ -9,6 +9,7 @@
 
 APP_OBJ += bplib_os_posix.o
 APP_OBJ += bplib_store_pfile.o
+APP_OBJ += bplib_store_pram.o
 
 ###############################################################################
 ##  OPTIONS

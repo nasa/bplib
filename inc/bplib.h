@@ -32,6 +32,7 @@ extern "C" {
 
 /* Storage ID Special Values */
 #define BP_SID_VACANT                   NULL
+#define BP_INVALID_HANDLE               (-1)
 
 /* Wrap Responses */
 #define BP_WRAP_RESEND                  0
