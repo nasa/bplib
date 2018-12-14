@@ -9,6 +9,10 @@
 #ifndef __BPLIB_STORE_PFILE__
 #define __BPLIB_STORE_PFILE__
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -26,5 +30,9 @@ int bplib_store_pfile_dequeue       (int handle, void** data, int* size, bp_sid_
 int bplib_store_pfile_retrieve      (int handle, void** data, int* size, bp_sid_t sid, int timeout);
 int bplib_store_pfile_refresh       (int handle, void* data, int size, int offset, bp_sid_t sid, int timeout);
 int bplib_store_pfile_relinquish    (int handle, bp_sid_t sid);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif 
 
 #endif

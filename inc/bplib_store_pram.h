@@ -7,6 +7,10 @@
 #ifndef __BPLIB_STORE_PRAM__
 #define __BPLIB_STORE_PRAM__
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -24,5 +28,9 @@ int bplib_store_pram_dequeue    (int handle, void** data, int* size, bp_sid_t* s
 int bplib_store_pram_retrieve   (int handle, void** data, int* size, bp_sid_t sid, int timeout);
 int bplib_store_pram_refresh    (int handle, void* data, int size, int offset, bp_sid_t sid, int timeout);
 int bplib_store_pram_relinquish (int handle, bp_sid_t sid);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif 
 
 #endif
