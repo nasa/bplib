@@ -14,45 +14,30 @@
 #include "bplib.h"
 
 /******************************************************************************
- DEFINES
- ******************************************************************************/
-
-
-/******************************************************************************
- TYPEDEFS
- ******************************************************************************/
-
-
-/******************************************************************************
- FILE DATA
- ******************************************************************************/
-
-
-/******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_create -
+ * bplib_store_pfile_create -
  *-------------------------------------------------------------------------------------*/
-int bp_store_pfile_create (void)
+int bplib_store_pfile_create (void)
 {
-    return 0;
+    return BP_INVALID_HANDLE;
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_destroy -
+ * bplib_store_pfile_destroy -
  *-------------------------------------------------------------------------------------*/
-int bp_store_pfile_destroy (int handle)
+int bplib_store_pfile_destroy (int handle)
 {
     (void)handle;
     return 0;
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_enqueue -
+ * bplib_store_pfile_enqueue -
  *-------------------------------------------------------------------------------------*/
-int bp_store_pfile_enqueue (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout)
+int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout)
 {
     (void)handle;
     (void)data1;
@@ -64,9 +49,9 @@ int bp_store_pfile_enqueue (int handle, void* data1, int data1_size, void* data2
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_dequeue -
+ * bplib_store_pfile_dequeue -
  *-------------------------------------------------------------------------------------*/
-int bp_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid, int timeout)
+int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid, int timeout)
 {
     (void)handle;
     (void)timeout;
@@ -77,9 +62,9 @@ int bp_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid, i
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_retrieve -
+ * bplib_store_pfile_retrieve -
  *-------------------------------------------------------------------------------------*/
-int bp_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid, int timeout)
+int bplib_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid, int timeout)
 {
     (void)handle;
     (void)sid;
@@ -90,9 +75,9 @@ int bp_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid, i
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_refresh -
+ * bplib_store_pfile_refresh -
  *-------------------------------------------------------------------------------------*/
-int bp_store_pfile_refresh (int handle, void* data, int size, int offset, bp_sid_t sid, int timeout)
+int bplib_store_pfile_refresh (int handle, void* data, int size, int offset, bp_sid_t sid, int timeout)
 {
     (void)handle;
     (void)size;
@@ -104,9 +89,9 @@ int bp_store_pfile_refresh (int handle, void* data, int size, int offset, bp_sid
 }
 
 /*--------------------------------------------------------------------------------------
- * bp_store_pfile_relinquish -
+ * bplib_store_pfile_relinquish -
  *-------------------------------------------------------------------------------------*/
-int bp_store_pfile_relinquish (int handle, bp_sid_t sid)
+int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
 {
     (void)handle;
     (void)sid;
