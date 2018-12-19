@@ -282,6 +282,11 @@ _channel_ - which channel to apply option operation on
 
 _opt_ - the option as described in the table below
 
+
+
+ORIGINATE - the bundle headers are pre-built, therefore the cost of overwriting the headers for forwarded bundles when the bundles that are generated locally all have the same header is too great.  So the two processes are kept separate.
+
+
 | Option                 | Units    | Default | Description |
 | ---------------------- | -------- | ------- | ----------- |
 | BP_OPT_DSTNODE_D       | bp_ipn_t | destination node (set on channel creation) | Destination node ID of generated data bundles (effectively 28 bits) |

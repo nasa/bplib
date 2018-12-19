@@ -24,6 +24,6 @@
 #define BP_BLK_LASTBLOCK_MASK           0x000008    // last block in bundle
 #define BP_BLK_DROPNOPROC_MASK          0x000010    // drop block if block cannot be processed
 #define BP_BLK_FORWARDNOPROC_MASK       0x000020    // block was forwarded without being processed
-#define BP_BLK_EIDREF_MASK              0x000040    // block contains and EID reference field
+#define BP_BLK_EIDREF_MASK              0x000040    // block contains an EID reference field
 
 #endif  /* __BPLIB_BLK_H__ */
