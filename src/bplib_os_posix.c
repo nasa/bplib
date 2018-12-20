@@ -57,6 +57,7 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     char formatted_string[MAX_LOG_ENTRY_SIZE];
     va_list args;
 	int vlen, msglen;
+    char* pathptr;
 
     /* Build Formatted String */
     va_start(args, fmt);
@@ -66,8 +67,13 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     if (msglen < 0) return error; // nothing to do
     formatted_string[msglen] = '\0';
 
+    /* Chop path in filename */
+    pathptr = strrchr(file, '/');
+    if(pathptr) pathptr++;
+    else pathptr = (char*)file;
+
 	/* Print Log Message */
-    printf("%s:%d:%d:%s", file, line, error, formatted_string);
+    printf("%s:%d:%d:%s", pathptr, line, error, formatted_string);
 
 	/* Return Error Code */
 	return error;
