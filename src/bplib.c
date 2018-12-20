@@ -1191,18 +1191,24 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
     bplib_os_unlock(ch->dacs_bundle_lock);
 
     /* Check if DACS Needs to be Sent */
-    store = ch->dacs_store_handle;
-    if(dequeue(store, (void**)&ds, NULL, &sid, BP_CHECK) == BP_SUCCESS)
+    if(dequeue(ch->dacs_store_handle, (void**)&ds, NULL, &sid, BP_CHECK) == BP_SUCCESS)
     {
+        /* Send DACS - (ds is not null) */
+        store = ch->dacs_store_handle;
+
         /* Set Route Flag */
         *loadflags |= BP_FLAG_ROUTENEEDED;
+    }
+    else
+    {
+        /* Send Data - (if ds is set below) */
+        store = ch->data_store_handle;
     }
 
     /* Lock Active Table */
     bplib_os_lock(ch->active_table_lock);
     {
         /* Try to Send Timed-out Bundle */
-        store = ch->data_store_handle;
         while((ds == NULL) && (ch->oldest_custody_id < ch->current_custody_id))
         {
             ati = ch->oldest_custody_id % BP_ACTIVE_TABLE_SIZE;
@@ -1211,15 +1217,15 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
             {
                 ch->oldest_custody_id++;
             }
-            else if(retrieve(store, (void**)&ds, NULL, sid, BP_CHECK) == BP_SUCCESS)
+            else if(retrieve(ch->data_store_handle, (void**)&ds, NULL, sid, BP_CHECK) == BP_SUCCESS)
             {
                 if(ds->exprtime != 0 && sysnow >= ds->exprtime) // check lifetime
                 {
-                    /* Bundle Expired*/
+                    /* Bundle Expired */
                     ds = NULL;
 
                     /* Clear Entry */
-                    relinquish(store, sid);
+                    relinquish(ch->data_store_handle, sid);
                     ch->active_table[ati] = BP_SID_VACANT;
                     ch->oldest_custody_id++;
                 }
@@ -1228,101 +1234,103 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                     /* Write New Re-Transmit Time */
                     if(ch->timeout > 0) ds->retxtime = sysnow + ch->timeout;
                     else                ds->retxtime = 0;
-                    refresh(store, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
+                    refresh(ch->data_store_handle, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
 
                     /* Clear Entry (it will be reinserted below at the current pointer) */
                     ch->active_table[ati] = BP_SID_VACANT;
                     ch->oldest_custody_id++;
-
-                    /* Exit Loop - Bundle Ready to Re-Transmit */
-                    break;
                 }
-                else
+                else // oldest active bundle still active
                 {
-                    /* Not Ready for Re-Transmit */
+                    /* Bundle Not Ready to Re-Transmit */
                     ds = NULL;
 
-                    /* Exit Loop - No Bundles Ready to Re-Transmit */
+                    /* Check Active Table Has Room
+                     * Since next step is to dequeue from storage, need to make
+                     * sure that there is room in the active table since we don't
+                     * want to dequeue a bundle from storage and have no place
+                     * to put it.  Note that it is possible that even if the
+                     * active table was full, if the bundle dequeued did not
+                     * request custody transfer it could still go out, but the
+                     * current design requires that at least one slot in the active
+                     * table is open at all times. */
+                    ati = ch->current_custody_id % BP_ACTIVE_TABLE_SIZE;
+                    sid = ch->active_table[ati];
+                    if(sid != BP_SID_VACANT) // entry vacant
+                    {
+                        if(ch->wrap_response == BP_WRAP_RESEND)
+                        {
+                            /* Retrieve Bundle from Storage */
+                            if(retrieve(ch->data_store_handle, (void**)&ds, NULL, sid, BP_CHECK) != BP_SUCCESS)
+                            {
+                                /* Failed to Retrieve - Clear Entry (and loop again) */
+                                relinquish(ch->data_store_handle, sid);
+                                ch->active_table[ati] = BP_SID_VACANT;
+                                *loadflags |= BP_FLAG_STOREFAILURE;
+                            }
+                        }
+                        else if(ch->wrap_response == BP_WRAP_BLOCK)
+                        {
+                            /* Custody ID Wrapped Around to Occupied Slot */
+                            status = BP_OVERFLOW;
+                        }
+                        else // if(ch->wrap_response == BP_WRAP_DROP)
+                        {
+                            /* Clear Entry (and loop again) */
+                            relinquish(ch->data_store_handle, sid);
+                            ch->active_table[ati] = BP_SID_VACANT;
+                        }
+                    }
+
+                    /* Break Out of Loop */
                     break;
                 }
             }
             else
             {
                 /* Failed to Retrieve Bundle from Storage */
-                relinquish(store, sid);
+                relinquish(ch->data_store_handle, sid);
                 ch->active_table[ati] = BP_SID_VACANT;
                 *loadflags |= BP_FLAG_STOREFAILURE;
             }
         }
 
         /* Try to Send Stored Bundle (if nothing sent yet) */
-        store = ch->data_store_handle;
         while(ds == NULL)
         {
-            ati = ch->current_custody_id % BP_ACTIVE_TABLE_SIZE;
-            sid = ch->active_table[ati];
-            if(sid == BP_SID_VACANT) // entry vacant
+            /* Dequeue Bundle from Storage Service */
+            int deq_status = dequeue(ch->data_store_handle, (void**)&ds, NULL, &sid, timeout);
+            if(deq_status == BP_SUCCESS)
             {
-                /* Dequeue Bundle from Storage Service */
-                int deq_status = dequeue(store, (void**)&ds, NULL, &sid, timeout);
-                if(deq_status == BP_SUCCESS)
-                {
-                    if(ds->exprtime != 0 && sysnow >= ds->exprtime)
-                    {
-                        /* Clear Entry (and loop again) */
-                        relinquish(store, sid);
-
-                        /* Bundle Expired*/
-                        ds = NULL;
-                        sid = BP_SID_VACANT;
-                    }
-                    else
-                    {
-                        /* Write Re-Transmit Time */
-                        if(ch->timeout > 0) ds->retxtime = sysnow + ch->timeout;
-                        else                ds->retxtime = 0;
-                        refresh(store, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
-                    }
-                }
-                else if(deq_status == BP_TIMEOUT)
-                {
-                    /* No Bundles in Storage to Send */
-                    status = BP_TIMEOUT;
-                    break;
-                }
-                else
-                {
-                    /* Failed Storage Service */
-                    status = BP_FAILEDSTORE;
-                    *loadflags |= BP_FLAG_STOREFAILURE;
-                    break;
-                }
-            }
-            else if(ch->wrap_response == BP_WRAP_RESEND)
-            {
-                /* Retrieve Bundle from Storage */
-                if(retrieve(store, (void**)&ds, NULL, sid, BP_CHECK) != BP_SUCCESS)
+                if(ds->exprtime != 0 && sysnow >= ds->exprtime)
                 {
                     /* Clear Entry (and loop again) */
                     relinquish(store, sid);
-                    ch->active_table[ati] = BP_SID_VACANT;
-                    *loadflags |= BP_FLAG_STOREFAILURE;
+
+                    /* Bundle Expired*/
+                    ds = NULL;
+                    sid = BP_SID_VACANT;
+                }
+                else if(ds->cteboffset != 0) // custody transfer requested
+                {
+                    /* Write Re-Transmit Time */
+                    if(ch->timeout > 0) ds->retxtime = sysnow + ch->timeout;
+                    else                ds->retxtime = 0;
+                    refresh(ch->data_store_handle, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
                 }
             }
-            else if(ch->wrap_response == BP_WRAP_BLOCK)
+            else if(deq_status == BP_TIMEOUT)
             {
-                /* Custody ID Wrapped Around to Occupied Slot */
-                status = BP_OVERFLOW;
-
-                /* Exit Loop */
+                /* No Bundles in Storage to Send */
+                status = BP_TIMEOUT;
                 break;
             }
-            else // if(ch->wrap_response == BP_WRAP_DROP)
+            else
             {
-                /* Clear Entry (and loop again) */
-                relinquish(store, sid);
-                ch->active_table[ati] = BP_SID_VACANT;
-                ch->oldest_custody_id++;
+                /* Failed Storage Service */
+                status = BP_FAILEDSTORE;
+                *loadflags |= BP_FLAG_STOREFAILURE;
+                break;
             }
         }
 
@@ -1348,10 +1356,13 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                 /* Successfully Load Bundle to Application and Relinquish Memory */
                 bplib_os_memcpy(bundle, ds->header, ds->bundlesize);
                 status = ds->bundlesize;
-            }
 
-            /* Free Bundle Memory */
-            relinquish(store, sid);
+                /* If No Custody Transfer - Free Bundle Memory */
+                if(ds->cteboffset == 0)
+                {
+                    relinquish(store, sid);
+                }
+            }
         }
     }
     bplib_os_unlock(ch->active_table_lock);

@@ -1,20 +1,6 @@
 /******************************************************************************
- Filename     : msgq.c
+ Filename     : bplib_store_pram.c
  Purpose      : thread level message queues
- Design Notes : 1. This module provides the convenient functionality of a
-                        message queue that most embedded RTOS's have.  Windows and
-                        Linux (to my knowledge) has no low-overhead inter-thread
-                        message queue functionality.
-                2. All the common features are implemented: blocking, non-blocking,
-                        copy, and no copy.
-                3. The internal queue used by the msg_q only handles pointers, so
-                        the actual data whether copied or just passed in by reference
-                        is handled outside the queue.
-                4. There are two semaphores associated with each message queue.
-                        The "sem" semaphore and the "ready" semaphore.  The "sem"
-                        semaphore is used to protect concurrent access to the internal
-                        queue data structure.  The "ready" semaphore is used to
-                        implement the blocking functionality of a blocking msg_q request.
 *******************************************************************************/
 
 /******************************************************************************
@@ -39,16 +25,12 @@
  * DEFINES
  ******************************************************************************/
 
-#define MSGQ_OKAY           0
-#define MSGQ_FULL           1
-#define MSGQ_MEMORY_ERROR   2
-#define MSGQ_TIMEOUT        3
-#define MSGQ_ERROR          4
-#define MSGQ_UNDERFLOW		5
-#define MSGQ_BLOCK          0
-#define MSGQ_NO_BLOCK       (-1)
-#define MSGQ_COPY           0
-#define MSGQ_NO_COPY        1
+#define MSGQ_OKAY           (1)
+#define MSGQ_TIMEOUT        (0)
+#define MSGQ_ERROR          (-1)
+#define MSGQ_FULL           (-2)
+#define MSGQ_MEMORY_ERROR   (-3)
+#define MSGQ_UNDERFLOW		(-4)
 #define MSGQ_INVALID_HANDLE ((msgq_t)NULL)
 #define MSGQ_MAX_NAME_CHARS 64
 #define MSGQ_DEPTH_INFINITY 0
@@ -74,7 +56,6 @@ typedef struct queue_def_t {
   queue_node_t*   rear;
   unsigned int    depth;
   unsigned int    len;
-  unsigned int    type;
   unsigned int    max_data_size;
 } queue_t;
 
@@ -120,7 +101,7 @@ static void delay_time(unsigned long msecs, struct timespec* tm)
 /*----------------------------------------------------------------------------
  * Function:        create_queue
  *----------------------------------------------------------------------------*/
-static queue_t* create_queue(int depth, int data_size, int copy)
+static queue_t* create_queue(int depth, int data_size)
 {
     queue_t* msgQ = (queue_t*)malloc(sizeof(queue_t));
 
@@ -128,7 +109,6 @@ static queue_t* create_queue(int depth, int data_size, int copy)
     msgQ->rear          = NULL;
     msgQ->depth         = depth;
     msgQ->len           = 0;
-    msgQ->type          = copy;
     msgQ->max_data_size = data_size;
 
     return msgQ;
@@ -144,10 +124,6 @@ static void destroy_queue(queue_t* q)
     while(q->front != NULL)
     {
         temp = q->front->next;
-        if(q->type == MSGQ_COPY)
-        {
-            free(q->front->data);
-        }
         free(q->front);
         q->front = temp;
     }
@@ -175,7 +151,6 @@ static int isempty(queue_t* q)
 static int enqueue(queue_t* q, void* data, int size)
 {
     queue_node_t* temp;
-    void* ndata;
 
     /* check if queue is full */
     if((q->depth != MSGQ_DEPTH_INFINITY) && (q->len >= q->depth))
@@ -185,7 +160,8 @@ static int enqueue(queue_t* q, void* data, int size)
 
     /* check size */
     if((size <= 0) ||
-       ((q->max_data_size != MSGQ_SIZE_INFINITY) && ((unsigned)size > q->max_data_size)))
+       ((q->max_data_size != MSGQ_SIZE_INFINITY) &&
+        ((unsigned)size > q->max_data_size)))
     {
         return MSGQ_ERROR;
     }
@@ -194,26 +170,8 @@ static int enqueue(queue_t* q, void* data, int size)
     temp = (queue_node_t*)malloc((int)sizeof(queue_node_t));
     if(!temp) return MSGQ_MEMORY_ERROR;
 
-    /* perform copy if queue is a copy queue */
-    if(q->type == MSGQ_COPY)
-    {
-        ndata = malloc(size);
-        if(ndata != NULL)
-        {
-            memcpy(ndata, data, size);
-        }
-        else
-        {
-            return MSGQ_MEMORY_ERROR;
-        }
-    }
-    else
-    {
-        ndata = data;
-    }
-
     /* construct node to be added */
-    temp->data      = ndata;
+    temp->data      = data;
     temp->size      = size;
     temp->next      = NULL;
 
@@ -246,7 +204,7 @@ static void* dequeue(queue_t* q, int* size)
     {
         /* extract */
         data = q->front->data;
-        *size = q->front->size;
+        if(size) *size = q->front->size;
 
         /* remove */
         tmp = q->front;
@@ -264,7 +222,7 @@ static void* dequeue(queue_t* q, int* size)
     }
     else
     {
-        *size = 0;
+        if(size) *size = 0;
         data = NULL;
     }
 
@@ -280,7 +238,7 @@ static void* dequeue(queue_t* q, int* size)
  *           is allowed to infinitely grow until all the memory in the
  *           system is consumed.
  *----------------------------------------------------------------------------*/
-static msgq_t msgq_create(const char* name, int depth, int data_size, int copy)
+static msgq_t msgq_create(const char* name, int depth, int data_size)
 {
     message_queue_t* msgQ;
 
@@ -295,14 +253,15 @@ static msgq_t msgq_create(const char* name, int depth, int data_size, int copy)
 
     /* Initialize MSG Q */
     strncpy(msgQ->name, name, MSGQ_MAX_NAME_CHARS);
-    msgQ->queue = create_queue(depth, data_size, copy);
+    msgQ->queue = create_queue(depth, data_size);
     msgQ->state = MSGQ_OKAY;
 
     /* Create Semaphore */
     int mutstatus = pthread_mutex_init(&(msgQ->mut), NULL);
     if(mutstatus == -1)
     {
-        printf("ERROR[%d]: Unable to create mutex for message queue: %s\n", mutstatus, name);
+        printf("ERROR[%d]: Unable to create mutex: %s\n",
+                mutstatus, name);
         free(msgQ);
         msgQ = NULL;
     }
@@ -312,7 +271,8 @@ static msgq_t msgq_create(const char* name, int depth, int data_size, int copy)
         int rdystatus = sem_init(&(msgQ->ready), 0, 0);
         if(rdystatus == -1)
         {
-            printf("ERROR[%d]: Unable to create ready semaphore for message queue: %s\n", rdystatus, name);
+            printf("ERROR[%d]: Unable to create ready sem: %s\n",
+                    rdystatus, name);
             free(msgQ);
             msgQ = NULL;
         }
@@ -321,7 +281,8 @@ static msgq_t msgq_create(const char* name, int depth, int data_size, int copy)
     /* Check Final Status */
     if( (msgQ != NULL) && (msgQ->state != MSGQ_OKAY) )
     {
-        printf("ERROR, Unable to register message queue: %s\n", name);
+        printf("ERROR, Unable to register: %s\n",
+                name);
         free(msgQ);
         msgQ = NULL;
     }
@@ -364,7 +325,8 @@ static int msgq_post(msgq_t queue_handle, void* data, int size)
         /* Print Error */
         if(msgQ->state == MSGQ_OKAY && post_state != MSGQ_OKAY)
         {
-            printf("ERROR: %s, msgq post failed (state:%d sz:%d) \n", msgQ->name, msgQ->state, size);
+            printf("ERROR: %s, msgq post failed (state:%d sz:%d) \n",
+                    msgQ->name, msgQ->state, size);
         }
 #endif
 
@@ -396,7 +358,7 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
 	int recv_state = MSGQ_OKAY;
 
     /* Wait for a message to be posted */
-    if(block == MSGQ_BLOCK)
+    if(block == BP_PEND)
     {
         int ret = -1;
         while(isempty(msgQ->queue) || (ret == -1 && errno == EINTR))
@@ -404,7 +366,7 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
             ret = sem_wait(&(msgQ->ready));
         }
     }
-    else if(block == MSGQ_NO_BLOCK)
+    else if(block == BP_CHECK)
     {
     }
     else /* Timed Wait */
@@ -413,7 +375,8 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
         int waitstatus = 1;
         delay_time(block, &ts);
 
-        while( (waitstatus != -1 && isempty(msgQ->queue)) || (waitstatus == -1 && errno == EINTR) )
+        while((waitstatus != -1 && isempty(msgQ->queue)) ||
+              (waitstatus == -1 && errno == EINTR))
         {
             waitstatus = sem_timedwait(&(msgQ->ready), &ts);
         }
@@ -473,7 +436,9 @@ int bplib_store_pram_create (void)
     {
         if(msgq_stores[i] == MSGQ_INVALID_HANDLE)
         {
-            msgq_stores[i] = msgq_create(qname, MSGQ_DEPTH_INFINITY, MSGQ_SIZE_INFINITY, MSGQ_NO_COPY);
+            msgq_stores[i] = msgq_create(qname,
+                                         MSGQ_DEPTH_INFINITY,
+                                         MSGQ_SIZE_INFINITY);
             slot = i;
             break;
         }
@@ -500,7 +465,8 @@ int bplib_store_pram_destroy (int handle)
 /*----------------------------------------------------------------------------
  * bplib_store_pram_enqueue -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_enqueue (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout)
+int bplib_store_pram_enqueue(int handle, void* data1, int data1_size,
+                             void* data2, int data2_size, int timeout)
 {
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
@@ -540,7 +506,8 @@ int bplib_store_pram_enqueue (int handle, void* data1, int data1_size, void* dat
 /*----------------------------------------------------------------------------
  * bplib_store_pram_dequeue -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_dequeue (int handle, void** data, int* size, bp_sid_t* sid, int timeout)
+int bplib_store_pram_dequeue(int handle, void** data, int* size,
+                             bp_sid_t* sid, int timeout)
 {
     assert(sid);
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
@@ -565,7 +532,8 @@ int bplib_store_pram_dequeue (int handle, void** data, int* size, bp_sid_t* sid,
 /*----------------------------------------------------------------------------
  * bplib_store_pram_retrieve -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_retrieve (int handle, void** data, int* size, bp_sid_t sid, int timeout)
+int bplib_store_pram_retrieve(int handle, void** data, int* size,
+                              bp_sid_t sid, int timeout)
 {
     (void)timeout;
 
@@ -582,7 +550,8 @@ int bplib_store_pram_retrieve (int handle, void** data, int* size, bp_sid_t sid,
 /*----------------------------------------------------------------------------
  * bplib_store_pram_refresh -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_refresh (int handle, void* data, int size, int offset, bp_sid_t sid, int timeout)
+int bplib_store_pram_refresh(int handle, void* data, int size, int offset,
+                             bp_sid_t sid, int timeout)
 {
    (void)timeout;
 
