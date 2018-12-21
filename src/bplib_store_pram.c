@@ -494,11 +494,13 @@ int bplib_store_pram_enqueue(int handle, void* data1, int data1_size,
     }
     else if(status == MSGQ_FULL)
     {
+        free(data);
         usleep(timeout * 1000);
         return BP_TIMEOUT;
     }
     else
     {
+        free(data);
         return BP_FAILEDSTORE;
     }
 }

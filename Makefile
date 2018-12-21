@@ -86,7 +86,6 @@ COPT    +=   -DLIBPATH=\"$(LIBDIR)\"
 COPT    +=   -DINCPATH=\"$(INCDIR)\"
 COPT    +=   -D_GNU_
 COPT    +=   -pthread
-COPT    +=   -Wno-format-security # this poses future security risk and should be removed at some point
 COPT    +=   -Wshadow
  
 LOPT    :=   -lpthread
