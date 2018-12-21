@@ -28,7 +28,7 @@
  *
  *  Returns:    Next index
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_indices)
+int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
@@ -80,7 +80,7 @@ int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, int update_
  *
  *  Returns:    Number of bytes written
  *-----------------------------------------------------------------,--------------------*/
-int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, int update_indices)
+int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;

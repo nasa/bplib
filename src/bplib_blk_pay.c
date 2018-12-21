@@ -38,7 +38,7 @@
  *
  *  Returns:    Next index
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_indices)
+int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
@@ -86,7 +86,7 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, int update_ind
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, int update_indices)
+int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
@@ -156,7 +156,7 @@ int bplib_rec_acs_process ( void* rec, int size,
     bp_sdnv_t cid = { 0, 2, 0 };
     bp_sdnv_t fill = { 0, 0, 0 };
     uint8_t* buf = (uint8_t*)rec;
-    int cidin = BP_TRUE;
+    int cidin = true;
     uint16_t flags = 0;
 
     /* Read First Custody ID */
@@ -171,10 +171,10 @@ int bplib_rec_acs_process ( void* rec, int size,
         if(flags != 0) return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", flags);
 
         /* Process Custody IDs */
-        if(cidin == BP_TRUE)
+        if(cidin == true)
         {
             /* Free Bundles */
-            cidin = BP_FALSE;
+            cidin = false;
             for(i = 0; i < fill.value; i++)
             {
                 int ati = (cid.value + i) % table_size;
@@ -189,7 +189,7 @@ int bplib_rec_acs_process ( void* rec, int size,
         else
         {
             /* Skip Bundles */
-            cidin = BP_TRUE;
+            cidin = true;
         }
 
         /* Set Next Custody ID */
@@ -211,7 +211,7 @@ int bplib_rec_acs_process ( void* rec, int size,
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bplib_rec_acs_write(uint8_t* rec, int size, int delivered, uint32_t first_cid, uint32_t* fills, int num_fills)
+int bplib_rec_acs_write(uint8_t* rec, int size, bool delivered, uint32_t first_cid, uint32_t* fills, int num_fills)
 {
     bp_sdnv_t cid = { 0, 2, 4 };
     bp_sdnv_t fill = { 0, 0, 2 };

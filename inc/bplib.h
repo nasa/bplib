@@ -16,6 +16,7 @@ extern "C" {
  ******************************************************************************/
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 /******************************************************************************
@@ -25,10 +26,6 @@ extern "C" {
 /* Timeouts */
 #define BP_PEND                         (-1)
 #define BP_CHECK                        0
-
-/* Booleans */
-#define BP_TRUE                         1
-#define BP_FALSE                        0
 
 /* Storage ID Special Values */
 #define BP_SID_VACANT                   NULL

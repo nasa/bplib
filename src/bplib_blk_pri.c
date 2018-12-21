@@ -46,7 +46,7 @@
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_indices)
+int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices)
 {
     uint8_t* blkbuf = (uint8_t*)block;
     int bytes_read = 0;
@@ -135,24 +135,24 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
     }
 
     /* Set Administrative Record Status */
-    if(pri->pcf.value & BP_PCF_ADMIN_MASK)      pri->is_admin_rec = BP_TRUE;
-    else                                        pri->is_admin_rec = BP_FALSE;
+    if(pri->pcf.value & BP_PCF_ADMIN_MASK)      pri->is_admin_rec = true;
+    else                                        pri->is_admin_rec = false;
 
     /* Set Allow Fragmentation */
-    if(pri->pcf.value & BP_PCF_NOFRAG_MASK)     pri->allow_frag = BP_FALSE;
-    else                                        pri->allow_frag = BP_TRUE;
+    if(pri->pcf.value & BP_PCF_NOFRAG_MASK)     pri->allow_frag = false;
+    else                                        pri->allow_frag = true;
 
     /* Set Is Fragment */
-    if(pri->pcf.value & BP_PCF_FRAGMENT_MASK)   pri->is_frag = BP_TRUE;
-    else                                        pri->is_frag = BP_FALSE;
+    if(pri->pcf.value & BP_PCF_FRAGMENT_MASK)   pri->is_frag = true;
+    else                                        pri->is_frag = false;
 
     /* Set Custody Request */
-    if(pri->pcf.value & BP_PCF_CSTRQST_MASK)    pri->request_custody = BP_TRUE;
-    else                                        pri->request_custody = BP_FALSE;
+    if(pri->pcf.value & BP_PCF_CSTRQST_MASK)    pri->request_custody = true;
+    else                                        pri->request_custody = false;
 
     /* Set Report Deletion */
-    if(pri->pcf.value & BP_PCF_RPTDLT_MASK)     pri->report_deletion = BP_TRUE;
-    else                                        pri->report_deletion = BP_FALSE;
+    if(pri->pcf.value & BP_PCF_RPTDLT_MASK)     pri->report_deletion = true;
+    else                                        pri->report_deletion = false;
 
     /* Success Oriented Error Checking */
     if(flags != 0)                          return bplog(BP_BUNDLEPARSEERR, "Failed to read primary block sdnv %0X\n", flags);
@@ -170,7 +170,7 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, int update_ind
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_indices)
+int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices)
 {
     uint8_t*    buffer = (uint8_t*)block;
     uint32_t    bytes_written = 0;
@@ -180,11 +180,11 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
     if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of primary block: %d\n", size);
 
     /* Set Process Control Flags */
-    if(pri->is_admin_rec == BP_TRUE)        pri->pcf.value |= BP_PCF_ADMIN_MASK;
-    if(pri->is_frag == BP_TRUE)             pri->pcf.value |= BP_PCF_FRAGMENT_MASK;
-    if(pri->request_custody == BP_TRUE)     pri->pcf.value |= BP_PCF_CSTRQST_MASK;
-    if(pri->allow_frag == BP_FALSE)         pri->pcf.value |= BP_PCF_NOFRAG_MASK;
-    if(pri->report_deletion == BP_TRUE)     pri->pcf.value |= BP_PCF_RPTDLT_MASK;
+    if(pri->is_admin_rec == true)        pri->pcf.value |= BP_PCF_ADMIN_MASK;
+    if(pri->is_frag == true)             pri->pcf.value |= BP_PCF_FRAGMENT_MASK;
+    if(pri->request_custody == true)     pri->pcf.value |= BP_PCF_CSTRQST_MASK;
+    if(pri->allow_frag == false)         pri->pcf.value |= BP_PCF_NOFRAG_MASK;
+    if(pri->report_deletion == true)     pri->pcf.value |= BP_PCF_RPTDLT_MASK;
 
     /* Write Block */
     buffer[0] = pri->version;
@@ -281,7 +281,7 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, int update_in
  *-------------------------------------------------------------------------------------*/
 int bplib_blk_pri_display (bp_blk_pri_t* pri)
 {
-    if(!pri) return BP_FALSE;
+    if(!pri) return false;
 
     bplog(BP_SUCCESS, "Bundle Primary Block (admin: %d, frag:%d, rqst: %d, allow: %d, del: %d)\n",
         pri->is_admin_rec, pri->is_frag, pri->request_custody, pri->allow_frag, pri->report_deletion);
@@ -298,5 +298,5 @@ int bplib_blk_pri_display (bp_blk_pri_t* pri)
     bplog(BP_SUCCESS, "FRG; %ld\n",     (long)pri->fragoffset.value);
     bplog(BP_SUCCESS, "PAY: %ld\n",     (long)pri->paylen.value);
 
-    return BP_TRUE;
+    return true;
 }

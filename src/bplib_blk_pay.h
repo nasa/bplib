@@ -40,15 +40,15 @@ typedef struct {
  ******************************************************************************/
 
 /* Generic Payload Block */
-int bplib_blk_pay_read      (void* block, int size, bp_blk_pay_t* pay, int update_indices);
-int bplib_blk_pay_write     (void* block, int size, bp_blk_pay_t* pay, int update_indices);
+int bplib_blk_pay_read      (void* block, int size, bp_blk_pay_t* pay, bool update_indices);
+int bplib_blk_pay_write     (void* block, int size, bp_blk_pay_t* pay, bool update_indices);
 
 /* Aggregate Custody Signal */
 int bplib_rec_acs_process   (void* block, int size,
                              bp_sid_t* active_table, int table_size, 
                              bp_store_relinquish_t relinquish, int store_handle);
 
-int bplib_rec_acs_write     (uint8_t* rec, int size, int delivered, 
+int bplib_rec_acs_write     (uint8_t* rec, int size, bool delivered, 
                              uint32_t first_cid, uint32_t* fills, int num_fills);
 
 #endif  /* __BPLIB_BLK_PAY_H__ */

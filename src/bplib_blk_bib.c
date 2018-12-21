@@ -31,7 +31,7 @@
  *
  *  Returns:    Number of bytes read
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, int update_indices)
+int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
@@ -80,7 +80,7 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, int update_ind
  *
  *  Returns:    Number of bytes written
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, int update_indices)
+int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;

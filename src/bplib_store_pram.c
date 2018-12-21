@@ -137,11 +137,11 @@ static int isempty(queue_t* q)
 {
     if(q->front == NULL)
     {
-        return BP_TRUE;
+        return true;
     }
     else
     {
-        return BP_FALSE;
+        return false;
     }
 }
 

@@ -297,16 +297,16 @@ ORIGINATE - the bundle headers are pre-built, therefore the cost of overwriting 
 | BP_OPT_RPTSERV_D       | bp_ipn_t | local node (set on channel creation) |Report To service ID of generated data bundles (effectively 14 bits) |
 | BP_OPT_CSTNODE_D       | bp_ipn_t | local node (set on channel creation) |Custody node ID of generated data bundles (effectively 28 bits) |
 | BP_OPT_CSTSERV_D       | bp_ipn_t | local node (set on channel creation) |Custody service ID of generated data bundles (effectively 14 bits) |
-| BP_OPT_CREATETIMESYS_D | int      | BP_FALSE | Creation time population - BP_FALSE: use system time at bundle creation, BP_TRUE: use application supplied value |
+| BP_OPT_CREATETIMESYS_D | int      | false | Creation time population - false: use system time at bundle creation, true: use application supplied value |
 | BP_OPT_CREATETIMEVAL_D | uint32_t | 0 | Creation time value to use when the channel is configured to use application supplied value; the time is in seconds since 2000:01:01:00:00. |
 | BP_OPT_SETSEQUENCE_D   | int      | 0 | Creation sequence number |
 | BP_OPT_LIFETIME_D      | int      | 0 | Amount of time in seconds added to creation time specifying duration of time bundle is considered valid, 0: infinite |
-| BP_OPT_CSTRQST_D       | int      | BP_TRUE | Custody request - BP_FALSE: leave flag unset in generated data bundles, BP_TRUE: set custody request flag in generated data bundles |
-| BP_OPT_ALLOWFRAG_D     | int      | BP_TRUE | Allow fragmentation - BP_FALSE: bundles are not allowed to be fragmented and the allow fragmentation flag is unset in generated data bundles, BP_TRUE: bundles are allowed to be fragmented and the allow fragmentation flag is set in generated data bundles |
+| BP_OPT_CSTRQST_D       | int      | true | Custody request - false: leave flag unset in generated data bundles, true: set custody request flag in generated data bundles |
+| BP_OPT_ALLOWFRAG_D     | int      | true | Allow fragmentation - false: bundles are not allowed to be fragmented and the allow fragmentation flag is unset in generated data bundles, true: bundles are allowed to be fragmented and the allow fragmentation flag is set in generated data bundles |
 | BP_OPT_PAYCRC_D        | int      | BP_BIB_CRC16 | Integrity check type used for payload.  Currently only BP_BIB_CRC16 and BP_BIB_NONE are supported. |
 | BP_OPT_TIMEOUT         | int      | 10 | Amount of time in seconds to wait for positive acknowledgment of bundle before retransmitting, 0: infinite |
 | BP_OPT_BUNDLELEN       | int      | 4096 | Maximum length of the bundle (including header and extension blocks); if length exceeded, then a fragmented bundle is created |
-| BP_OPT_PROCADMINONLY   | int      | BP_FALSE | Configure channel to process administrative records only - BP_TRUE: enable, BP_FALSE: disable |
+| BP_OPT_PROCADMINONLY   | int      | false | Configure channel to process administrative records only - true: enable, false: disable |
 | BP_OPT_WRAPRSP         | int      | BP_WRAP_RESEND | Configure channel's response when the active table wraps - BP_WRAP_RESEND, BP_WRAP_BLOCK, BP_WRAP_DROP |
 | BP_OPT_ACSRATE         | int      | 5 | Minimum rate of ACS generation; various cirucmstances can cause an ACS to be generated, but this rate sets the maximum about time that can elapse before an ACS is automatically generated |
 

@@ -35,8 +35,8 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int bplib_blk_bib_read      (void* contents, int size, bp_blk_bib_t* bib, int update_indices);
-int bplib_blk_bib_write     (void* block, int size, bp_blk_bib_t* bib, int update_indices);
+int bplib_blk_bib_read      (void* contents, int size, bp_blk_bib_t* bib, bool update_indices);
+int bplib_blk_bib_write     (void* block, int size, bp_blk_bib_t* bib, bool update_indices);
 int bplib_blk_bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib);
 int bplib_blk_bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib);
 
