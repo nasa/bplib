@@ -24,7 +24,6 @@
 #define VARG_CHECK(f, a, b)
 #endif
 #define bplog(err,...)  bplib_os_log(__FILE__,__LINE__,err,__VA_ARGS__)
-#define BP_INFO         0
 
 /******************************************************************************
  PROTOTYPES
