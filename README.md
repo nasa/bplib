@@ -305,10 +305,10 @@ ORIGINATE - the bundle headers are pre-built, therefore the cost of overwriting 
 | BP_OPT_ALLOWFRAG_D     | int      | true | Allow fragmentation - false: bundles are not allowed to be fragmented and the allow fragmentation flag is unset in generated data bundles, true: bundles are allowed to be fragmented and the allow fragmentation flag is set in generated data bundles |
 | BP_OPT_PAYCRC_D        | int      | BP_BIB_CRC16 | Integrity check type used for payload.  Currently only BP_BIB_CRC16 and BP_BIB_NONE are supported. |
 | BP_OPT_TIMEOUT         | int      | 10 | Amount of time in seconds to wait for positive acknowledgment of bundle before retransmitting, 0: infinite |
-| BP_OPT_BUNDLELEN       | int      | 4096 | Maximum length of the bundle (including header and extension blocks); if length exceeded, then a fragmented bundle is created |
+| BP_OPT_BUNDLELEN       | int      | 4096 | Maximum length of the bundle payload (primary block, extension blocks, and payload block header excluded); if length exceeded, then a fragmented bundle is created |
 | BP_OPT_PROCADMINONLY   | int      | false | Configure channel to process administrative records only - true: enable, false: disable |
 | BP_OPT_WRAPRSP         | int      | BP_WRAP_RESEND | Configure channel's response when the active table wraps - BP_WRAP_RESEND, BP_WRAP_BLOCK, BP_WRAP_DROP |
-| BP_OPT_ACSRATE         | int      | 5 | Minimum rate of ACS generation; various cirucmstances can cause an ACS to be generated, but this rate sets the maximum about time that can elapse before an ACS is automatically generated |
+| BP_OPT_ACSRATE         | int      | 5 | Minimum rate of ACS generation; various circumstances can cause an ACS to be generated, but this rate sets the maximum about time that can elapse before an ACS is automatically generated |
 
 _val_ - the value set or returned
 
