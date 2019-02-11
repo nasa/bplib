@@ -16,6 +16,7 @@
 #include <pthread.h>
 
 #include "bplib.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  DEFINES
@@ -112,7 +113,7 @@ size_t bplib_os_strnlen(const char *str, size_t maxlen)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_systime -
+ * bplib_os_systime - returns seconds
  *-------------------------------------------------------------------------------------*/
 uint32_t bplib_os_systime(void)
 {

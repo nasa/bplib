@@ -34,7 +34,7 @@ int         bplib_os_log            (const char* file, unsigned int line, int er
 void        bplib_os_memset         (void* addr, int val, int len);
 void        bplib_os_memcpy         (void* dst, void* src, int len);
 size_t      bplib_os_strnlen        (const char *str, size_t maxlen);
-uint32_t    bplib_os_systime        (void);
+uint32_t    bplib_os_systime        (void); // seconds
 int         bplib_os_createlock     (void);
 void        bplib_os_destroylock    (int handle);
 void        bplib_os_lock           (int handle);

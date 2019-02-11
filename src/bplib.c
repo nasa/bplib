@@ -1181,7 +1181,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
     bp_store_relinquish_t   relinquish  = ch->storage.relinquish;
 
     /* Setup State */
-    uint32_t                sysnow      = bplib_os_systime();   // get current system time (used for timeouts)
+    uint32_t                sysnow      = bplib_os_systime();   // get current system time (used for timeouts, seconds)
     bp_bundle_store_t*      ds          = NULL;                 // start out assuming nothing to send
     int                     store       = -1;                   // handle for storage of bundle being loaded
     bp_sid_t                sid         = BP_SID_VACANT;        // storage id points to nothing
@@ -1619,6 +1619,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                         int acknowledgment_count = 0;
                         status = bplib_rec_acs_process(&buffer[index], size - index, &acknowledgment_count, ch->active_table, BP_ACTIVE_TABLE_SIZE, ch->storage.relinquish, ch->data_store_handle);
                         ch->stats.acknowledged += acknowledgment_count;
+                        ch->stats.stored -= acknowledgment_count;
                     }
                     else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
                     else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(BP_UNSUPPORTED, "Status report bundles are not supported\n");
