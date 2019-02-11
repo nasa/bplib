@@ -696,7 +696,7 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
         {
             uint32_t sysnow = bplib_os_systime();
             int store_status = store_dacs_bundle(ch, dacs, sysnow, timeout, dacsflags);
-            if(store_status > 0)    ch->stats.stored++;
+            if(store_status > 0)    ch->stats.stored++; // TODO: stat updates performed in exported functions below, by convention
             else                    ch->stats.lost++;
 
             /* Start New DTN ACS */
@@ -1196,7 +1196,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
     bplib_os_lock(ch->dacs_bundle_lock);
     {
         /* Check DACS Rate */
-        if((ch->dacs_rate > 0) && ((ch->last_dacs + ch->dacs_rate) < sysnow))
+        if((ch->dacs_rate > 0) && ((ch->last_dacs + ch->dacs_rate) <= sysnow))
         {
             int i;
             for(i = 0; i < ch->num_dacs; i++)
@@ -1354,7 +1354,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
             if(ds->exprtime != 0 && sysnow >= ds->exprtime)
             {
                 /* Clear Entry (and loop again) */
-                relinquish(store, sid);
+                relinquish(ch->data_store_handle, sid);
 
                 /* Bundle Expired*/
                 ds = NULL;
