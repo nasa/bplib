@@ -597,6 +597,7 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
 {
     int i;
     bp_dacs_bundle_t* dacs;
+    bool store_dacs = false;
 
     /* Find DACS Entry */
     dacs = NULL;
@@ -641,18 +642,20 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
             dacs->delivered = delivered;
             dacs->first_cid = cteb->cid.value;
             dacs->last_cid = cteb->cid.value;
-            dacs->fills[0] = 0;
+            dacs->fills[0] = 1;
             dacs->num_fills = 1;
         }
         else if(cteb->cid.value <= dacs->last_cid)
         {
             /* Mark CID Going Backwards */
             *dacsflags |= BP_FLAG_CIDWENTBACKWARDS;
+            store_dacs = true;
         }
         else if(dacs->delivered != delivered)
         {
             /* Mark Mixed Response */
             *dacsflags |= BP_FLAG_MIXEDRESPONSE;
+            store_dacs = true;
         }
         else // cid > dacs->last_cid
         {
@@ -678,16 +681,18 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
                 else
                 {
                     *dacsflags |= BP_FLAG_FILLOVERFLOW;
+                    store_dacs = true;
                 }
             }
             else
             {
                 *dacsflags |= BP_FLAG_TOOMANYFILLS;
+                store_dacs = true;
             }
         }
 
         /* Store DACS */
-        if(*dacsflags != 0)
+        if(store_dacs)
         {
             uint32_t sysnow = bplib_os_systime();
             int store_status = store_dacs_bundle(ch, dacs, sysnow, timeout, dacsflags);
@@ -698,7 +703,7 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
             dacs->delivered = delivered;
             dacs->first_cid = cteb->cid.value;
             dacs->last_cid = cteb->cid.value;
-            dacs->fills[0] = 0;
+            dacs->fills[0] = 1;
             dacs->num_fills = 1;
         }
     }
@@ -1232,7 +1237,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
         store = ch->data_store_handle;
     }
 
-    /* Lock Active Table */
+    /* Process Active Table for Timeouts */
     bplib_os_lock(ch->active_table_lock);
     {
         /* Try to Send Timed-out Bundle */
@@ -1336,48 +1341,53 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                 ch->stats.stored--;
             }
         }
+    }
+    bplib_os_unlock(ch->active_table_lock);
 
-        /* Try to Send Stored Bundle (if nothing sent yet) */
-        while(ds == NULL)
+    /* Try to Send Stored Bundle (if nothing ready to send yet) */
+    while(ds == NULL)
+    {
+        /* Dequeue Bundle from Storage Service */
+        int deq_status = dequeue(ch->data_store_handle, (void**)&ds, NULL, &sid, timeout);
+        if(deq_status == BP_SUCCESS)
         {
-            /* Dequeue Bundle from Storage Service */
-            int deq_status = dequeue(ch->data_store_handle, (void**)&ds, NULL, &sid, timeout);
-            if(deq_status == BP_SUCCESS)
+            if(ds->exprtime != 0 && sysnow >= ds->exprtime)
             {
-                if(ds->exprtime != 0 && sysnow >= ds->exprtime)
-                {
-                    /* Clear Entry (and loop again) */
-                    relinquish(store, sid);
+                /* Clear Entry (and loop again) */
+                relinquish(store, sid);
 
-                    /* Bundle Expired*/
-                    ds = NULL;
-                    sid = BP_SID_VACANT;
-                    ch->stats.expired++;
-                    ch->stats.stored--;
-                }
-                else if(ds->cteboffset != 0) // custody transfer requested
-                {
-                    /* Write Re-Transmit Time */
-                    if(ch->timeout > 0) ds->retxtime = sysnow + ch->timeout;
-                    else                ds->retxtime = 0;
-                    refresh(ch->data_store_handle, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
-                }
+                /* Bundle Expired*/
+                ds = NULL;
+                sid = BP_SID_VACANT;
+                ch->stats.expired++;
+                ch->stats.stored--;
             }
-            else if(deq_status == BP_TIMEOUT)
+            else if(ds->cteboffset != 0) // custody transfer requested
             {
-                /* No Bundles in Storage to Send */
-                status = BP_TIMEOUT;
-                break;
-            }
-            else
-            {
-                /* Failed Storage Service */
-                status = BP_FAILEDSTORE;
-                *loadflags |= BP_FLAG_STOREFAILURE;
-                break;
+                /* Write Re-Transmit Time */
+                if(ch->timeout > 0) ds->retxtime = sysnow + ch->timeout;
+                else                ds->retxtime = 0;
+                refresh(ch->data_store_handle, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
             }
         }
+        else if(deq_status == BP_TIMEOUT)
+        {
+            /* No Bundles in Storage to Send */
+            status = BP_TIMEOUT;
+            break;
+        }
+        else
+        {
+            /* Failed Storage Service */
+            status = BP_FAILEDSTORE;
+            *loadflags |= BP_FLAG_STOREFAILURE;
+            break;
+        }
+    }
 
+    /* Process Active Table for Sending Next Bundle */
+    bplib_os_lock(ch->active_table_lock);
+    {
         /* Check if Bundle Ready to Transmit */
         if(ds != NULL)
         {
@@ -1395,7 +1405,6 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                     ati = ch->current_custody_id % BP_ACTIVE_TABLE_SIZE;
                     ch->active_table[ati] = sid;
                     ds->cidsdnv.value = ch->current_custody_id++;
-                    ch->stats.active = ch->current_custody_id - ch->oldest_custody_id;
                     bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize - ds->cteboffset, ds->cidsdnv, loadflags);
                 }
 
@@ -1412,6 +1421,9 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                 }
             }
         }
+
+        /* Update Active Statistic */
+        ch->stats.active = ch->current_custody_id - ch->oldest_custody_id;
     }
     bplib_os_unlock(ch->active_table_lock);
 
@@ -1669,13 +1681,24 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                 }
                 bplib_os_unlock(ch->data_bundle_lock);
 
-                /* Lock DACS Bundle */
-                bplib_os_lock(ch->dacs_bundle_lock);
+                /* Handle Custody Transfer */
+                if(status == BP_SUCCESS && pri_blk.request_custody)
                 {
-                    /* Update DACS (bundle successfully forwarded) */
-                    if(status == BP_SUCCESS) status = update_dacs_bundle(ch, &cteb_blk, false, timeout, procflags);
+                    if(cteb_present)
+                    {
+                        bplib_os_lock(ch->dacs_bundle_lock);
+                        {
+                            /* Update DACS (bundle successfully forwarded) */
+                            status = update_dacs_bundle(ch, &cteb_blk, false, BP_CHECK, procflags);
+                        }
+                        bplib_os_unlock(ch->dacs_bundle_lock);
+                    }
+                    else
+                    {
+                        *procflags |= BP_FLAG_NONCOMPLIANT;
+                        bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
+                    }
                 }
-                bplib_os_unlock(ch->dacs_bundle_lock);
             }
             else if(pri_blk.dstserv.value == ch->local_service) // deliver bundle payload to application
             {
@@ -1771,7 +1794,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
             {
                 bplib_os_lock(ch->dacs_bundle_lock);
                 {
-                    update_dacs_bundle(ch, &paystore->cteb, true, timeout, acptflags);
+                    update_dacs_bundle(ch, &paystore->cteb, true, BP_CHECK, acptflags);
                 }
                 bplib_os_unlock(ch->dacs_bundle_lock);
             }
