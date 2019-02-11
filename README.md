@@ -231,11 +231,14 @@ __Storage Service__ - The BP library requires that a storage service is provided
 | [bplib_close](#close-channel)         | Close a channel |
 | [bplib_getopt](#get-and-set-options)  | Get the setting of a channel option |
 | [bplib_setopt](#get-and-set-options)  | Set the setting of a channel option |
+| [bplib_latchstats](#latch-statistics) | Read out bundle statistics for a channel |
 | [bplib_store](#store-payload)         | Create a bundle from application data and queue in storage for transmission |
 | [bplib_load](#load-bundle)            | Retrieve the next available bundle from storage to transmit |
 | [bplib_process](#process-bundle)      | Process a bundle for data extraction, custody acceptance, and/or forwarding |
 | [bplib_accept](#accept-payload)       | Retrieve the next available data payload from a received bundle |
 | [bplib_routeinfo](#route-information) | Parse bundle and return routing information |
+
+Note: functions that operate on a channel are thread-safe with other functions that operate on channels, but they are not thread-safe with the open and close functions.  A channel can only be closed when no other operations are being performed on it.
 
 ### Initialize
 
@@ -282,10 +285,7 @@ _channel_ - which channel to apply option operation on
 
 _opt_ - the option as described in the table below
 
-
-
 ORIGINATE - the bundle headers are pre-built, therefore the cost of overwriting the headers for forwarded bundles when the bundles that are generated locally all have the same header is too great.  So the two processes are kept separate.
-
 
 | Option                 | Units    | Default | Description |
 | ---------------------- | -------- | ------- | ----------- |
@@ -315,6 +315,11 @@ _val_ - the value set or returned
 _len_ - the length in bytes of the memory pointed to by _val_
 
 _returns_ - return code (see below).
+
+### Latch Statistics
+
+`int bplib_latchstats(int channel, bp_stats_t* stats)`
+
 
 ### Store Payload
 

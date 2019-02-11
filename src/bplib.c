@@ -191,6 +191,8 @@ typedef struct {
     int                 dacs_rate;              // number of seconds to wait between sending ACS bundles
     uint32_t            last_dacs;              // time of last dacs to be sent
 
+    bp_stats_t          stats;
+
     int                 timeout;                // seconds, zero for infinite
     int                 proc_admin_only;        // process only administrative records
     int                 wrap_response;
@@ -580,7 +582,7 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t 
     else // successfully enqueued
     {
         dacs->sent = true;
-        return BP_SUCCESS;
+        return dacs_size;
     }
 }
 
@@ -688,7 +690,9 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
         if(*dacsflags != 0)
         {
             uint32_t sysnow = bplib_os_systime();
-            store_dacs_bundle(ch, dacs, sysnow, timeout, dacsflags);
+            int store_status = store_dacs_bundle(ch, dacs, sysnow, timeout, dacsflags);
+            if(store_status > 0)    ch->stats.stored++;
+            else                    ch->stats.lost++;
 
             /* Start New DTN ACS */
             dacs->delivered = delivered;
@@ -1046,7 +1050,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
  *-------------------------------------------------------------------------------------*/
 void bplib_close(int channel)
 {
-    if(channel >= 0 && channel < BP_MAX_CHANNELS)
+    if(channel >= 0 && channel < BP_MAX_CHANNELS && channels[channel].index != BP_EMPTY)
     {
         bplib_os_lock(channels_lock);
         {
@@ -1071,6 +1075,7 @@ int bplib_getopt(int channel, int opt, void* val, int len)
 
     /* Check Parameters */
     if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(val == NULL)                            return BP_PARMERR;
 
     /* Call Internal Function */
@@ -1089,6 +1094,7 @@ int bplib_setopt(int channel, int opt, void* val, int len)
 
      /* Check Parameters */
     if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(val == NULL)                            return BP_PARMERR;
 
     /* Call Internal Function */
@@ -1096,6 +1102,23 @@ int bplib_setopt(int channel, int opt, void* val, int len)
 
     /* Return Status */
     return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_latchstats -
+ *-------------------------------------------------------------------------------------*/
+int bplib_latchstats(int channel, bp_stats_t* stats)
+{
+     /* Check Parameters */
+    if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
+    else if(stats == NULL)                          return BP_PARMERR;
+
+    /* Latch Statistics */
+    *stats = channels[channel].stats;
+
+    /* Return Success */
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1107,6 +1130,7 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* sto
 
     /* Check Parameters */
     if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(payload == NULL)                        return BP_PARMERR;
 
     /* Lock Data Bundle */
@@ -1117,6 +1141,7 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* sto
         if(!ch->data_bundle.originate)
         {
             status = bplog(BP_WRONGORIGINATION, "Cannot originate bundle on channel designated for forwarding\n");
+            ch->stats.lost++;
         }
         else
         {
@@ -1126,6 +1151,8 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* sto
 
             /* Store Bundle */
             status = store_data_bundle(&ch->data_bundle, ch->storage.enqueue, ch->data_store_handle, timeout, storflags);
+            if(status > 0)  ch->stats.stored++;
+            else            ch->stats.lost++;
         }
     }
     bplib_os_unlock(channels[channel].data_bundle_lock);
@@ -1143,6 +1170,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
 
     /* Check Parameters */
     if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(bundle == NULL)                         return BP_PARMERR;
 
     /* Set Short Cuts */
@@ -1173,7 +1201,9 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                 /* Check for Unsent DACS */
                 if(dacs->sent == false && dacs->num_fills > 0)
                 {
-                    store_dacs_bundle(ch, dacs, sysnow, BP_CHECK, loadflags);
+                    int store_status = store_dacs_bundle(ch, dacs, sysnow, BP_CHECK, loadflags);
+                    if(store_status > 0)    ch->stats.stored++;
+                    else                    ch->stats.lost++;
                     dacs->num_fills = 0;
                 }
 
@@ -1220,6 +1250,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                 {
                     /* Bundle Expired */
                     ds = NULL;
+                    ch->stats.expired++;
 
                     /* Clear Entry */
                     relinquish(ch->data_store_handle, sid);
@@ -1232,6 +1263,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                     if(ch->timeout > 0) ds->retxtime = sysnow + ch->timeout;
                     else                ds->retxtime = 0;
                     refresh(ch->data_store_handle, ds, sizeof(ds->retxtime), 0, sid, BP_CHECK);
+                    ch->stats.retransmitted++;
 
                     /* Clear Entry (it will be reinserted below at the current pointer) */
                     ch->active_table[ati] = BP_SID_VACANT;
@@ -1264,6 +1296,13 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                                 relinquish(ch->data_store_handle, sid);
                                 ch->active_table[ati] = BP_SID_VACANT;
                                 *loadflags |= BP_FLAG_STOREFAILURE;
+                                ch->stats.lost++;
+                                ch->stats.stored--;
+                            }
+                            else
+                            {
+                                /* Force Retransmit */
+                                ch->stats.retransmitted++;
                             }
                         }
                         else if(ch->wrap_response == BP_WRAP_BLOCK)
@@ -1273,6 +1312,10 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                         }
                         else // if(ch->wrap_response == BP_WRAP_DROP)
                         {
+                            /* Drop Bundle */
+                            ch->stats.dropped++;
+                            ch->stats.stored--;
+
                             /* Clear Entry (and loop again) */
                             relinquish(ch->data_store_handle, sid);
                             ch->active_table[ati] = BP_SID_VACANT;
@@ -1289,6 +1332,8 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                 relinquish(ch->data_store_handle, sid);
                 ch->active_table[ati] = BP_SID_VACANT;
                 *loadflags |= BP_FLAG_STOREFAILURE;
+                ch->stats.lost++;
+                ch->stats.stored--;
             }
         }
 
@@ -1307,6 +1352,8 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                     /* Bundle Expired*/
                     ds = NULL;
                     sid = BP_SID_VACANT;
+                    ch->stats.expired++;
+                    ch->stats.stored--;
                 }
                 else if(ds->cteboffset != 0) // custody transfer requested
                 {
@@ -1338,6 +1385,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
             if(size < ds->bundlesize)
             {
                 status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", size, ds->bundlesize);
+                ch->stats.lost++;
             }
             else
             {
@@ -1347,17 +1395,20 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                     ati = ch->current_custody_id % BP_ACTIVE_TABLE_SIZE;
                     ch->active_table[ati] = sid;
                     ds->cidsdnv.value = ch->current_custody_id++;
+                    ch->stats.active = ch->current_custody_id - ch->oldest_custody_id;
                     bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize - ds->cteboffset, ds->cidsdnv, loadflags);
                 }
 
                 /* Successfully Load Bundle to Application and Relinquish Memory */
                 bplib_os_memcpy(bundle, ds->header, ds->bundlesize);
                 status = ds->bundlesize;
+                ch->stats.transmitted++;
 
                 /* If No Custody Transfer - Free Bundle Memory */
                 if(ds->cteboffset == 0)
                 {
                     relinquish(store, sid);
+                    ch->stats.stored--;
                 }
             }
         }
@@ -1374,6 +1425,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
 int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* procflags)
 {
     int                 status;
+    bp_channel_t*       ch;
 
     uint32_t            sysnow;
 
@@ -1398,13 +1450,25 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
 
     /* Check Parameters */
     if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(bundle == NULL)                         return BP_PARMERR;
+
+    /* Count Reception */
+    ch = &channels[channel];
+    ch->stats.received++;
 
     /* Parse Primary Block */
     exclude[ei++] = index;
     status = bplib_blk_pri_read(buffer, size, &pri_blk, true);
-    if(status <= 0) return bplog(status, "Failed to parse primary block of size %d\n", size);
-    else index += status;
+    if(status <= 0)
+    {
+        ch->stats.lost++;
+        return bplog(status, "Failed to parse primary block of size %d\n", size);
+    }
+    else
+    {
+        index += status;
+    }
     exclude[ei++] = index;
 
     /* Set Processing Flag for Reporting Deletion */
@@ -1413,6 +1477,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     /* Check Unsupported */
     if(pri_blk.dictlen.value != 0)
     {
+        ch->stats.lost++;
         *procflags |= BP_FLAG_NONCOMPLIANT;
         return bplog(BP_UNSUPPORTED, "Unsupported bundle attempted to be processed (%d)\n", pri_blk.dictlen.value);
     }
@@ -1421,6 +1486,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     sysnow = bplib_os_systime();
     if((pri_blk.lifetime.value != 0) && (sysnow >= (pri_blk.lifetime.value + pri_blk.createsec.value)))
     {
+        ch->stats.expired++;
         return bplog(BP_EXPIRED, "Expired bundled attempted to be processed \n");
     }
 
@@ -1437,8 +1503,15 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             cteb_index = index;
             if(pri_blk.request_custody) exclude[ei++] = index;
             status = bplib_blk_cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, true);
-            if(status <= 0) return bplog(status, "Failed to parse CTEB block of size %d\n", size - cteb_index);
-            else            index += status;
+            if(status <= 0)
+            {
+                ch->stats.lost++;
+                return bplog(status, "Failed to parse CTEB block of size %d\n", size - cteb_index);
+            }
+            else
+            {
+                index += status;
+            }
             if(pri_blk.request_custody) exclude[ei++] = index;
         }
         else if(blk_type == BP_BIB_BLK_TYPE)
@@ -1447,8 +1520,15 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             bib_index = index;
             exclude[ei++] = index;
             status = bplib_blk_bib_read(&buffer[bib_index], size - bib_index, &bib_blk, true);
-            if(status <= 0) return bplog(status, "Failed to parse BIB block of size %d\n", size - bib_index);
-            else            index += status;
+            if(status <= 0)
+            {
+                ch->stats.lost++;
+                return bplog(status, "Failed to parse BIB block of size %d\n", size - bib_index);
+            }
+            else
+            {
+                index += status;
+            }
             exclude[ei++] = index;
         }
         else if(blk_type != BP_PAY_BLK_TYPE) // skip over block
@@ -1462,6 +1542,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             /* Check Parsing Status */
             if(*procflags & (BP_FLAG_SDNVOVERFLOW | BP_FLAG_SDNVINCOMPLETE))
             {
+                ch->stats.lost++;
                 return bplog(BP_BUNDLEPARSEERR, "Failed (%0X) to parse block at index %d\n", *procflags, start_index);
             }
 
@@ -1473,7 +1554,11 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             if(blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK) *procflags |= BP_FLAG_NONCOMPLIANT;
 
             /* Delete bundle since block not recognized */
-            if(blk_flags.value & BP_BLK_DELETENOPROC_MASK) return bplog(BP_DROPPED, "Dropping bundle with unrecognized block\n");
+            if(blk_flags.value & BP_BLK_DELETENOPROC_MASK)
+            {
+                ch->stats.lost++;
+                return bplog(BP_DROPPED, "Dropping bundle with unrecognized block\n");
+            }
 
             /* Should drop block since it cannot be processed */
             if(blk_flags.value & BP_BLK_DROPNOPROC_MASK) *procflags |= BP_FLAG_NONCOMPLIANT;
@@ -1487,25 +1572,34 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             pay_index = index;
             exclude[ei++] = index; // start of payload header
             status = bplib_blk_pay_read(&buffer[pay_index], size - pay_index, &pay_blk, true);
-            if(status <= 0) return bplog(status, "Failed (%d) to read payload block\n", status);
-            else            index += status;
+            if(status <= 0)
+            {
+                ch->stats.lost++;
+                return bplog(status, "Failed (%d) to read payload block\n", status);
+            }
+            else
+            {
+                index += status;
+            }
             exclude[ei++] = index + pay_blk.paysize;
 
             /* Perform Integrity Check */
             if(bib_present)
             {
                 status = bplib_blk_bib_verify(pay_blk.payptr, pay_blk.paysize, &bib_blk);
-                if(status <= 0) return bplog(status, "Bundle failed integrity check\n");
+                if(status <= 0)
+                {
+                    ch->stats.lost++;
+                    return bplog(status, "Bundle failed integrity check\n");
+                }
             }
 
             /* Check Size of Payload */
             if(pri_blk.is_admin_rec && pay_blk.paysize < 2)
             {
+                ch->stats.lost++;
                 return bplog(BP_BUNDLEPARSEERR, "Invalid block length: %d\n", pay_blk.paysize);
             }
-
-            /* Set Shortcuts */
-            bp_channel_t* ch = &channels[channel];
 
             /* Process Payload */
             if(pri_blk.is_admin_rec) // Administrative Record
@@ -1520,7 +1614,12 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                 bplib_os_lock(ch->active_table_lock);
                 {
                     /* Process Record */
-                    if(rec_type == BP_ACS_REC_TYPE)         status = bplib_rec_acs_process(&buffer[index], size - index, ch->active_table, BP_ACTIVE_TABLE_SIZE, ch->storage.relinquish, ch->data_store_handle);
+                    if(rec_type == BP_ACS_REC_TYPE)
+                    {
+                        int acknowledgment_count = 0;
+                        status = bplib_rec_acs_process(&buffer[index], size - index, &acknowledgment_count, ch->active_table, BP_ACTIVE_TABLE_SIZE, ch->storage.relinquish, ch->data_store_handle);
+                        ch->stats.acknowledged += acknowledgment_count;
+                    }
                     else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
                     else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(BP_UNSUPPORTED, "Status report bundles are not supported\n");
                     else                                    status = bplog(BP_UNKNOWNREC, "Unknown administrative record: %u\n", (unsigned int)rec_type);
@@ -1529,6 +1628,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             }
             else if(ch->proc_admin_only)
             {
+                ch->stats.lost++;
                 status = bplog(BP_IGNORE, "Non-administrative bundle ignored\n");
             }
             else if(pri_blk.dstnode.value != ch->local_node) // forward bundle (dst node != local node)
@@ -1536,6 +1636,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                 /* Check Ability to Forward */
                 if(ch->data_bundle.originate)
                 {
+                    ch->stats.lost++;
                     status = bplog(BP_WRONGORIGINATION, "Unable to forward bundle on an originating channel\n");
                 }
                 else if(pay_blk.paysize > ch->data_bundle.maxlength)
@@ -1543,6 +1644,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                     /* Check Ability to Fragment */
                     if(!pri_blk.allow_frag)
                     {
+                        ch->stats.lost++;
                         status = bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay_blk.paysize, ch->data_bundle.maxlength);
                     }
                     else
@@ -1559,6 +1661,10 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
 
                     /* Store Forwarded Bundle */
                     if(status == BP_SUCCESS) status = store_data_bundle(&ch->data_bundle, ch->storage.enqueue, ch->data_store_handle, timeout, procflags);
+
+                    /* Count Storage */
+                    if(status > 0)  ch->stats.stored++;
+                    else            ch->stats.lost++;
                 }
                 bplib_os_unlock(ch->data_bundle_lock);
 
@@ -1593,10 +1699,19 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
 
                 /* Enqueue Payload into Storage */
                 status = ch->storage.enqueue(ch->payload_store_handle, pay, sizeof(bp_payload_store_t), &buffer[index], pay->payloadsize, timeout);
-                if(status <= 0) bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", status);
+                if(status > 0)
+                {
+                    ch->stats.stored++;
+                }
+                else
+                {
+                    ch->stats.lost++;
+                    bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", status);
+                }
             }
             else // wrong channel
             {
+                ch->stats.lost++;
                 status = bplog(BP_WRONGCHANNEL, "Wrong channel to service bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)ch->local_service);
             }
 
@@ -1620,6 +1735,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
 
     /* Check Parameters */
     if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(payload == NULL)                        return BP_PARMERR;
 
     /* Set Shortcuts */
@@ -1645,6 +1761,8 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
             /* Successfully Return Payload to Application and Relinquish Memory */
             bplib_os_memcpy(payload, payptr, paylen);
             relinquish(ch->payload_store_handle, sid);
+            ch->stats.delivered++;
+            ch->stats.stored--;
             status = paylen;
 
             /* Acknowledge Custody */
@@ -1659,6 +1777,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
         }
         else
         {
+            ch->stats.lost++;
             status = bplog(BP_PAYLOADTOOLARGE, "Payload too large to fit inside buffer (%d %d)\n", size, paylen);
         }
     }

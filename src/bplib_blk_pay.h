@@ -44,7 +44,7 @@ int bplib_blk_pay_read      (void* block, int size, bp_blk_pay_t* pay, bool upda
 int bplib_blk_pay_write     (void* block, int size, bp_blk_pay_t* pay, bool update_indices);
 
 /* Aggregate Custody Signal */
-int bplib_rec_acs_process   (void* block, int size,
+int bplib_rec_acs_process   (void* block, int size, int* acks,
                              bp_sid_t* active_table, int table_size, 
                              bp_store_relinquish_t relinquish, int store_handle);
 

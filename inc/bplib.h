@@ -130,25 +130,40 @@ typedef struct {
     bp_store_relinquish_t   relinquish;
 } bp_store_t;
 
+/* Bundle Channel Statistics */
+typedef struct {
+    uint16_t    dropped;        // overwritten when storage fills up
+    uint16_t    expired;        // lifetime expired, deliberately removed
+    uint16_t    lost;           // storage or copy failure, unable to retrieve
+    uint16_t    acknowledged;   // freed by custody signal
+    uint16_t    transmitted;    // sent (includes resends)
+    uint16_t    retransmitted;  // timedout and resent
+    uint16_t    received;       // bundles processed
+    uint16_t    delivered;      // payloads accepted
+    uint32_t    stored;         // currently in storage (data bundles, admin bundles, payloads)
+    uint32_t    active;         // number of slots in active table in use
+} bp_stats_t;
+
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-void    bplib_init      (void);
-int     bplib_open      (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service);
-void    bplib_close     (int channel);
+void    bplib_init          (void);
+int     bplib_open          (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service);
+void    bplib_close         (int channel);
 
-int     bplib_getopt    (int channel, int opt, void* val, int len);
-int     bplib_setopt    (int channel, int opt, void* val, int len);
+int     bplib_getopt        (int channel, int opt, void* val, int len);
+int     bplib_setopt        (int channel, int opt, void* val, int len);
+int     bplib_latchstats    (int channel, bp_stats_t* stats);
 
-int     bplib_store     (int channel, void* payload, int size, int timeout, uint16_t* storflags);
-int     bplib_load      (int channel, void* bundle,  int size, int timeout, uint16_t* loadflags); 
-int     bplib_process   (int channel, void* bundle,  int size, int timeout, uint16_t* procflags);
-int     bplib_accept    (int channel, void* payload, int size, int timeout, uint16_t* acptflags);
+int     bplib_store         (int channel, void* payload, int size, int timeout, uint16_t* storflags);
+int     bplib_load          (int channel, void* bundle,  int size, int timeout, uint16_t* loadflags); 
+int     bplib_process       (int channel, void* bundle,  int size, int timeout, uint16_t* procflags);
+int     bplib_accept        (int channel, void* payload, int size, int timeout, uint16_t* acptflags);
 
-int     bplib_routeinfo (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
-int     bplib_eid2ipn   (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
-int     bplib_ipn2eid   (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
+int     bplib_routeinfo     (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
+int     bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
+int     bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
 
 #ifdef __cplusplus
 } // extern "C"
