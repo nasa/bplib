@@ -79,7 +79,7 @@ static msgq_t msgq_stores[MSGQ_MAX_STORES];
 static unsigned long store_id = 0;
 
 /******************************************************************************
- * LOCAL FUNCTIONS
+ * LOCAL QUEUE FUNCTIONS
  ******************************************************************************/
 
 /*----------------------------------------------------------------------------
@@ -143,6 +143,14 @@ static int isempty(queue_t* q)
     {
         return false;
     }
+}
+
+/*----------------------------------------------------------------------------
+ * Function:        getcount
+ *----------------------------------------------------------------------------*/
+static int getcount(queue_t* q)
+{
+    return q->len;
 }
 
 /*----------------------------------------------------------------------------
@@ -228,6 +236,10 @@ static void* dequeue(queue_t* q, int* size)
 
     return data;
 }
+
+/******************************************************************************
+ * LOCAL MSGQ FUNCTIONS
+ ******************************************************************************/
 
 /*----------------------------------------------------------------------------
  * Function:        msgq_create
@@ -415,6 +427,18 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
     return recv_state;
 }
 
+/*----------------------------------------------------------------------------
+ * Function:        msgq_getcount
+ *
+ * Notes:           returns number of items in message queue
+ *----------------------------------------------------------------------------*/
+static int msgq_getcount(msgq_t queue_handle)
+{
+    message_queue_t* msgQ = (message_queue_t*)queue_handle;
+    if(msgQ == NULL) return MSGQ_ERROR;
+    return getcount(msgQ->queue);
+}
+
 /******************************************************************************
  * EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -550,25 +574,6 @@ int bplib_store_pram_retrieve(int handle, void** data, int* size,
 }
 
 /*----------------------------------------------------------------------------
- * bplib_store_pram_refresh -
- *----------------------------------------------------------------------------*/
-int bplib_store_pram_refresh(int handle, void* data, int size, int offset,
-                             bp_sid_t sid, int timeout)
-{
-   (void)timeout;
-
-    assert(data);
-    assert(handle >= 0 && handle < MSGQ_MAX_STORES);
-    assert(msgq_stores[handle]);
-
-    uint8_t* app_data = (uint8_t*)data;
-    uint8_t* store_data = (uint8_t*)sid;
-
-    memmove(&store_data[offset], app_data, size);
-    return BP_SUCCESS;
-}
-
-/*----------------------------------------------------------------------------
  * bplib_store_pram_relinquish -
  *----------------------------------------------------------------------------*/
 int bplib_store_pram_relinquish (int handle, bp_sid_t sid)
@@ -580,4 +585,15 @@ int bplib_store_pram_relinquish (int handle, bp_sid_t sid)
     free(data);
 
     return BP_SUCCESS;
+}
+
+/*----------------------------------------------------------------------------
+ * bplib_store_pram_getcount -
+ *----------------------------------------------------------------------------*/
+int bplib_store_pram_getcount (int handle)
+{
+    assert(handle >= 0 && handle < MSGQ_MAX_STORES);
+    assert(msgq_stores[handle]);
+
+    return msgq_getcount(msgq_stores[handle]);
 }

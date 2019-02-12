@@ -149,7 +149,7 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_i
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
 int bplib_rec_acs_process ( void* rec, int size, int* acks,
-                            bp_sid_t* active_table, int table_size,
+                            bp_sid_t* sids, int table_size,
                             bp_store_relinquish_t relinquish, int store_handle)
 {
     uint32_t i;
@@ -181,11 +181,11 @@ int bplib_rec_acs_process ( void* rec, int size, int* acks,
             for(i = 0; i < fill.value; i++)
             {
                 int ati = (cid.value + i) % table_size;
-                bp_sid_t sid = active_table[ati];
+                bp_sid_t sid = sids[ati];
                 if(sid != BP_SID_VACANT)
                 {
                     relinquish(store_handle, sid);
-                    active_table[ati] = BP_SID_VACANT;
+                    sids[ati] = BP_SID_VACANT;
                     (*acks)++;
                 }
             }

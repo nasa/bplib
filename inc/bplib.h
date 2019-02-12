@@ -116,8 +116,8 @@ typedef int (*bp_store_destroy_t)   (int handle);
 typedef int (*bp_store_enqueue_t)   (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
 typedef int (*bp_store_dequeue_t)   (int handle, void** data, int* size, bp_sid_t* sid, int timeout);
 typedef int (*bp_store_retrieve_t)  (int handle, void** data, int* size, bp_sid_t sid, int timeout);
-typedef int (*bp_store_refresh_t)   (int handle, void* data, int size, int offset, bp_sid_t sid, int timeout);
 typedef int (*bp_store_relinquish_t)(int handle, bp_sid_t sid);
+typedef int (*bp_store_getcount_t)  (int handle);
 
 /* Bundle Storage Service */
 typedef struct {
@@ -126,21 +126,22 @@ typedef struct {
     bp_store_enqueue_t      enqueue;
     bp_store_dequeue_t      dequeue;
     bp_store_retrieve_t     retrieve;
-    bp_store_refresh_t      refresh;
     bp_store_relinquish_t   relinquish;
+    bp_store_getcount_t     getcount;
 } bp_store_t;
 
 /* Bundle Channel Statistics */
 typedef struct {
-    uint16_t    dropped;        // overwritten when storage fills up
-    uint16_t    expired;        // lifetime expired, deliberately removed
     uint16_t    lost;           // storage or copy failure, unable to retrieve
+    uint16_t    expired;        // lifetime expired, deliberately removed
     uint16_t    acknowledged;   // freed by custody signal
     uint16_t    transmitted;    // sent (includes resends)
     uint16_t    retransmitted;  // timedout and resent
     uint16_t    received;       // bundles processed
     uint16_t    delivered;      // payloads accepted
-    uint32_t    stored;         // currently in storage (data bundles, admin bundles, payloads)
+    uint16_t    bundles;        // number of data bundles currently in storage
+    uint16_t    payloads;       // number of payloads currently in storage
+    uint16_t    records;        // number of dacs bundles currently in storage
     uint32_t    active;         // number of slots in active table in use
 } bp_stats_t;
 
