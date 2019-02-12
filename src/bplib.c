@@ -83,6 +83,10 @@
 #define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
 #endif
 
+#ifndef BP_DEFAULT_CID_REUSE
+#define BP_DEFAULT_CID_REUSE            false
+#endif
+
 #ifndef BP_DEFAULT_DACS_RATE
 #define BP_DEFAULT_DACS_RATE            5    // seconds
 #endif
@@ -199,8 +203,9 @@ typedef struct {
     bp_stats_t          stats;
 
     int                 timeout;                // seconds, zero for infinite
-    int                 proc_admin_only;        // process only administrative records
-    int                 wrap_response;
+    int                 proc_admin_only;        // process only administrative records (for sender only agents)
+    int                 wrap_response;          // what to do when active table wraps
+    int                 cid_reuse;              // favor reusing CID when retransmitting
 } bp_channel_t;
 
 /******************************************************************************
@@ -894,6 +899,16 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             bplog(BP_SUCCESS, "Config. Wrap Response %s %d\n", getset ? "<--" : "-->", *wrap);
             break;
         }
+        case BP_OPT_CIDREUSE:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* enable = (int*)val;
+            if(*enable != true && *enable != false) return BP_PARMERR;
+            if(getset)  ch->cid_reuse = *enable;
+            else        *enable = ch->cid_reuse;
+            bplog(BP_SUCCESS, "Config. Enable CID Reuse %s %d\n", getset ? "<--" : "-->", *enable);
+            break;
+        }
         case BP_OPT_ACSRATE:
         {
             if(len != sizeof(int)) return BP_PARMERR;
@@ -1041,6 +1056,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 channels[i].timeout                     = BP_DEFAULT_TIMEOUT;
                 channels[i].proc_admin_only             = BP_DEFAULT_PROC_ADMIN_ONLY;
                 channels[i].wrap_response               = BP_DEFAULT_WRAP_RESPONSE;
+                channels[i].cid_reuse                   = BP_DEFAULT_CID_REUSE;
 
                 /* Populate Initial Data Bundle Storage Header
                  *  only initialize data bundle and not dacs or forwarded bundles
@@ -1207,6 +1223,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
     int                     store       = -1;                   // handle for storage of bundle being loaded
     bp_sid_t                sid         = BP_SID_VACANT;        // storage id points to nothing
     int                     ati         = -1;                   // active table index
+    bool                    newcid      = true;                 // whether to assign new custody id and active table entry
 
     /* Lock DACS Bundle */
     bplib_os_lock(ch->dacs_bundle_lock);
@@ -1276,18 +1293,25 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                 }
                 else if(ch->active_table.retx[ati] != 0 && sysnow >= ch->active_table.retx[ati]) // check timeout
                 {
-                    /* Write New Re-Transmit Time */
-                    if(ch->timeout > 0) ch->active_table.retx[ati] = sysnow + ch->timeout;
-                    else                ch->active_table.retx[ati] = 0;
+                    /* Retransmit Bundle */
                     ch->stats.retransmitted++;
 
-                    /* Clear Entry (it will be reinserted below at the current pointer) */
-                    ch->active_table.sid[ati] = BP_SID_VACANT;
-                    ch->active_table.oldest_cid++;
+                    /* Handle Active Table and Custody ID */
+                    if(ch->cid_reuse)
+                    {
+                        /* Set flag to reuse custody id and active table entry */
+                        newcid = false;
+                    }
+                    else
+                    {
+                        /* Clear Entry (it will be reinserted below at the current pointer) */
+                        ch->active_table.sid[ati] = BP_SID_VACANT;
+                        ch->active_table.oldest_cid++;
+                    }
                 }
                 else // oldest active bundle still active
                 {
-                    /* Bundle Not Ready to Re-Transmit */
+                    /* Bundle Not Ready to Retransmit */
                     ds = NULL;
 
                     /* Check Active Table Has Room
@@ -1304,7 +1328,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                     if(sid != BP_SID_VACANT) // entry vacant
                     {
                         *loadflags |= BP_FLAG_ACTIVETABLEWRAP;
-                        
+
                         if(ch->wrap_response == BP_WRAP_RESEND)
                         {
                             /* Retrieve Bundle from Storage */
@@ -1318,7 +1342,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                             }
                             else
                             {
-                                /* Force Retransmit */
+                                /* Force Retransmit - Do Not Reuse Custody ID */
                                 ch->stats.retransmitted++;
                             }
                         }
@@ -1398,15 +1422,21 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
             }
             else
             {
-                /* Store Retransmit Time and Assign Custody ID */
+                /* If Custody Transfer */
                 if(ds->cteboffset != 0)
                 {
-                    ati = ch->active_table.current_cid % BP_ACTIVE_TABLE_SIZE;
+                    /* Assign Custody ID and Active Table Entry */
+                    if(newcid)
+                    {
+                        ati = ch->active_table.current_cid % BP_ACTIVE_TABLE_SIZE;
+                        ch->active_table.sid[ati] = sid;
+                        ds->cidsdnv.value = ch->active_table.current_cid++;
+                        bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize - ds->cteboffset, ds->cidsdnv, loadflags);
+                    }
+
+                    /* Update Retransmit Time */
                     if(ch->timeout > 0) ch->active_table.retx[ati] = sysnow + ch->timeout;
                     else                ch->active_table.retx[ati] = 0;
-                    ch->active_table.sid[ati] = sid;
-                    ds->cidsdnv.value = ch->active_table.current_cid++;
-                    bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize - ds->cteboffset, ds->cidsdnv, loadflags);
                 }
 
                 /* Successfully Load Bundle to Application and Relinquish Memory */

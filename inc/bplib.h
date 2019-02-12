@@ -96,7 +96,8 @@ extern "C" {
 #define BP_OPT_ORIGINATE                14
 #define BP_OPT_PROCADMINONLY            15
 #define BP_OPT_WRAPRSP                  16
-#define BP_OPT_ACSRATE                  17
+#define BP_OPT_CIDREUSE                 17
+#define BP_OPT_ACSRATE                  18
     
 /* IPN Scheme Defines */
 #define BP_MAX_EID_STRING               128
