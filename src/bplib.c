@@ -1303,6 +1303,8 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                     sid = ch->active_table.sid[ati];
                     if(sid != BP_SID_VACANT) // entry vacant
                     {
+                        *loadflags |= BP_FLAG_ACTIVETABLEWRAP;
+                        
                         if(ch->wrap_response == BP_WRAP_RESEND)
                         {
                             /* Retrieve Bundle from Storage */

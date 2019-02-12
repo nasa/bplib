@@ -77,6 +77,7 @@ extern "C" {
 #define BP_FLAG_MIXEDRESPONSE           0x0200  // aggregate acknowledgement must have uniform delivery vs. forward
 #define BP_FLAG_SDNVOVERFLOW            0x0400  // insufficient room in variable to read/write value
 #define BP_FLAG_SDNVINCOMPLETE          0x0800  // insufficient room in block to read/write value
+#define BP_FLAG_ACTIVETABLEWRAP         0x1000  // the active table wrapped
 
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1
