@@ -673,18 +673,27 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
 
             if((fill_index + 2) < BP_MAX_FILLS_PER_DACS)
             {
-                if(hop_val == 0 && dacs->fills[fill_index] < BP_MAX_FILL)
+                if(hop_val == 0)
                 {
                     dacs->fills[fill_index]++;
+                    if(dacs->fills[fill_index] >= BP_MAX_FILL)
+                    {
+                        dacs->fills[fill_index + 1] = 0;
+                        dacs->fills[fill_index + 2] = 0;
+                        dacs->num_fills += 2;
+                    }
                 }
                 else if(hop_val < BP_MAX_FILL)
                 {
                     dacs->fills[fill_index + 1] = hop_val;
-                    dacs->fills[fill_index + 2]++;
+                    dacs->fills[fill_index + 2] = 1;
                     dacs->num_fills += 2;
                 }
-                else
+                else // best effort
                 {
+                    dacs->fills[fill_index + 1] = BP_MAX_FILL;
+                    dacs->fills[fill_index + 2] = 0;
+                    dacs->num_fills += 2;
                     *dacsflags |= BP_FLAG_FILLOVERFLOW;
                     store_dacs = true;
                 }
@@ -1709,12 +1718,11 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
         bp_payload_store_t* paystore    = (bp_payload_store_t*)storebuf;
         int                 paylen      = paystore->payloadsize;
 
-        /* Copy Payload */
+        /* Return Payload to Application */
         if(size >= paylen)
         {
-            /* Successfully Return Payload to Application and Relinquish Memory */
+            /* Copy Payload and Set Status */
             bplib_os_memcpy(payload, payptr, paylen);
-            relinquish(ch->payload_store_handle, sid);
             ch->stats.delivered++;
             status = paylen;
 
@@ -1727,6 +1735,9 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
                 }
                 bplib_os_unlock(ch->dacs_bundle_lock);
             }
+
+            /* Relinquish Memory */
+            relinquish(ch->payload_store_handle, sid);
         }
         else
         {
