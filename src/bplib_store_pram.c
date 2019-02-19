@@ -37,7 +37,18 @@
 #define MSGQ_SIZE_INFINITY  0
 #define MSGQ_STORE_STR      "bplibq"
 #define MSGQ_STORE_STR_SIZE 32
+
+#ifndef MSGQ_MAX_STORES
 #define MSGQ_MAX_STORES     64
+#endif
+
+#ifndef MSGQ_MAX_DEPTH
+#define MSGQ_MAX_DEPTH      65536
+#endif
+
+#ifndef MSGQ_MAX_SIZE
+#define MSGQ_MAX_SIZE       MSGQ_SIZE_INFINITY
+#endif
 
 /******************************************************************************
  * TYPEDEFS
@@ -461,8 +472,8 @@ int bplib_store_pram_create (void)
         if(msgq_stores[i] == MSGQ_INVALID_HANDLE)
         {
             msgq_stores[i] = msgq_create(qname,
-                                         MSGQ_DEPTH_INFINITY,
-                                         MSGQ_SIZE_INFINITY);
+                                         MSGQ_MAX_DEPTH,
+                                         MSGQ_MAX_SIZE);
             slot = i;
             break;
         }

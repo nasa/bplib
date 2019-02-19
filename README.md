@@ -7,7 +7,7 @@ The Bundle Protocol library (bplib) implements a subset of the RFC5050 Bundle Pr
 
 ![Figure 1](doc/bp_api_basic.png "BP Library API (Basic)")
 
-The fundamental problem bplib solves is the receipt and transmission of data when there is the potential for substational differences in input and output rates.  Bplib is designed to handle the receipt of application data to be transmitted as bundles when that transmission occurs minutes, hours, or days later.  Likewise, bplib can receive bundles in long sustained bursts which may take the application minutes, or hours to process.  Therefore, in both cases, bplib assumes the availability of a persistent queued storage system for managing the rate buffering that must occur between data and bundle processing.
+The fundamental problem bplib solves is the receipt and transmission of data when there is the potential for substantial differences in input and output rates.  Bplib is designed to handle the receipt of application data to be transmitted as bundles when that transmission occurs minutes, hours, or days later.  Likewise, bplib can receive bundles in long sustained bursts which may take the application minutes, or hours to process.  Therefore, in both cases, bplib assumes the availability of a persistent queued storage system for managing the rate buffering that must occur between data and bundle processing.
 
 A possible application design for using bplib is to have four execution threads:
 1. A __bundle reader__ thread that reads bundles from a convergence layer
