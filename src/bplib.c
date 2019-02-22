@@ -83,12 +83,16 @@
 #define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
 #endif
 
+#ifndef BP_DEFAULT_WRAP_TIMEOUT
+#define BP_DEFAULT_WRAP_TIMEOUT         1000    // milliseconds
+#endif
+
 #ifndef BP_DEFAULT_CID_REUSE
 #define BP_DEFAULT_CID_REUSE            false
 #endif
 
 #ifndef BP_DEFAULT_DACS_RATE
-#define BP_DEFAULT_DACS_RATE            5    // seconds
+#define BP_DEFAULT_DACS_RATE            5       // seconds
 #endif
 
 #ifndef BP_DEFAULT_ORIGINATION
@@ -181,7 +185,7 @@ typedef struct {
 
     int                 data_bundle_lock;
     int                 dacs_bundle_lock;
-    int                 active_table_lock;
+    int                 active_table_signal;
 
     uint32_t            local_node;
     uint32_t            local_service;
@@ -983,20 +987,20 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 bplib_os_memset(&channels[i], 0, sizeof(channels[i]));
 
                 /* Initialize Assets */
-                channels[i].data_bundle_lock        = bplib_os_createlock();
-                channels[i].dacs_bundle_lock        = bplib_os_createlock();
-                channels[i].active_table_lock       = bplib_os_createlock();
-                channels[i].local_node              = local_node;
-                channels[i].local_service           = local_service;
-                channels[i].storage                 = storage; // structure copy
-                channels[i].data_store_handle       = channels[i].storage.create();
-                channels[i].payload_store_handle    = channels[i].storage.create();
-                channels[i].dacs_store_handle       = channels[i].storage.create();
+                channels[i].data_bundle_lock     = bplib_os_createlock();
+                channels[i].dacs_bundle_lock     = bplib_os_createlock();
+                channels[i].active_table_signal  = bplib_os_createlock();
+                channels[i].local_node           = local_node;
+                channels[i].local_service        = local_service;
+                channels[i].storage              = storage; // structure copy
+                channels[i].data_store_handle    = channels[i].storage.create();
+                channels[i].payload_store_handle = channels[i].storage.create();
+                channels[i].dacs_store_handle    = channels[i].storage.create();
 
                 /* Check Assets */
                 if( channels[i].data_bundle_lock  < 0 ||
                     channels[i].dacs_bundle_lock  < 0 ||
-                    channels[i].active_table_lock < 0 )
+                    channels[i].active_table_signal < 0 )
                 {
                     bplib_os_unlock(channels_lock);
                     return bplog(BP_FAILEDOS, "Failed to allocate OS locks for channel\n");
@@ -1092,7 +1096,7 @@ void bplib_close(int channel)
             channels[channel].storage.destroy(channels[channel].dacs_store_handle);
             bplib_os_destroylock(channels[channel].data_bundle_lock);
             bplib_os_destroylock(channels[channel].dacs_bundle_lock);
-            bplib_os_destroylock(channels[channel].active_table_lock);
+            bplib_os_destroylock(channels[channel].active_table_signal);
             channels[channel].index = BP_EMPTY;
         }
         bplib_os_unlock(channels_lock);
@@ -1153,7 +1157,7 @@ int bplib_latchstats(int channel, bp_stats_t* stats)
     /* Update Store Counts */
     ch->stats.bundles = ch->storage.getcount(ch->data_store_handle);
     ch->stats.payloads = ch->storage.getcount(ch->payload_store_handle);
-    ch->stats.payloads = ch->storage.getcount(ch->dacs_store_handle);
+    ch->stats.records = ch->storage.getcount(ch->dacs_store_handle);
 
     /* Latch Statistics */
     *stats = ch->stats;
@@ -1269,7 +1273,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
     }
 
     /* Process Active Table for Timeouts */
-    bplib_os_lock(ch->active_table_lock);
+    bplib_os_lock(ch->active_table_signal);
     {
         /* Try to Send Timed-out Bundle */
         while((ds == NULL) && (ch->active_table.oldest_cid < ch->active_table.current_cid))
@@ -1331,6 +1335,9 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
 
                         if(ch->wrap_response == BP_WRAP_RESEND)
                         {
+                            /* Bump Oldest Custody ID */
+                            ch->active_table.oldest_cid++;
+                            
                             /* Retrieve Bundle from Storage */
                             if(retrieve(ch->data_store_handle, (void**)&ds, NULL, sid, BP_CHECK) != BP_SUCCESS)
                             {
@@ -1344,15 +1351,20 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                             {
                                 /* Force Retransmit - Do Not Reuse Custody ID */
                                 ch->stats.retransmitted++;
+                                bplib_os_waiton(ch->active_table_signal, BP_DEFAULT_WRAP_TIMEOUT);
                             }
                         }
                         else if(ch->wrap_response == BP_WRAP_BLOCK)
                         {
-                            /* Custody ID Wrapped Around to Occupied Slot */
-                            status = BP_OVERFLOW;
+                            /* Custody ID Wrapped Around to Occupied Slot */                            
+                            status = BP_OVERFLOW;                   
+                            bplib_os_waiton(ch->active_table_signal, BP_DEFAULT_WRAP_TIMEOUT);
                         }
                         else // if(ch->wrap_response == BP_WRAP_DROP)
                         {
+                            /* Bump Oldest Custody ID */
+                            ch->active_table.oldest_cid++;
+
                             /* Clear Entry (and loop again) */
                             relinquish(ch->data_store_handle, sid);
                             ch->active_table.sid[ati] = BP_SID_VACANT;
@@ -1374,7 +1386,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
             }
         }
     }
-    bplib_os_unlock(ch->active_table_lock);
+    bplib_os_unlock(ch->active_table_signal);
 
     /* Try to Send Stored Bundle (if nothing ready to send yet) */
     while(ds == NULL)
@@ -1408,7 +1420,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
     }
 
     /* Process Active Table for Sending Next Bundle */
-    bplib_os_lock(ch->active_table_lock);
+    bplib_os_lock(ch->active_table_signal);
     {
         /* Check if Bundle Ready to Transmit */
         if(ds != NULL)
@@ -1455,7 +1467,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
         /* Update Active Statistic */
         ch->stats.active = ch->active_table.current_cid - ch->active_table.oldest_cid;
     }
-    bplib_os_unlock(ch->active_table_lock);
+    bplib_os_unlock(ch->active_table_signal);
 
     /* Return Status */
     return status;
@@ -1617,20 +1629,24 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                 rec_status = buffer[index + 1]; (void)rec_status; // currently not used
 
                 /* Lock Active Table */
-                bplib_os_lock(ch->active_table_lock);
+                bplib_os_lock(ch->active_table_signal);
                 {
                     /* Process Record */
                     if(rec_type == BP_ACS_REC_TYPE)
                     {
                         int acknowledgment_count = 0;
                         status = bplib_rec_acs_process(&buffer[index], size - index, &acknowledgment_count, ch->active_table.sid, BP_ACTIVE_TABLE_SIZE, ch->storage.relinquish, ch->data_store_handle);
-                        ch->stats.acknowledged += acknowledgment_count;
+                        if(acknowledgment_count > 0)
+                        {
+                            ch->stats.acknowledged += acknowledgment_count;
+                            bplib_os_signal(ch->active_table_signal);
+                        }
                     }
                     else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
                     else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(BP_UNSUPPORTED, "Status report bundles are not supported\n");
                     else                                    status = bplog(BP_UNKNOWNREC, "Unknown administrative record: %u\n", (unsigned int)rec_type);
                 }
-                bplib_os_unlock(ch->active_table_lock);
+                bplib_os_unlock(ch->active_table_signal);
             }
             else if(ch->proc_admin_only)
             {
@@ -1767,16 +1783,15 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
                 }
                 bplib_os_unlock(ch->dacs_bundle_lock);
             }
-
-            /* Relinquish Memory */
-            relinquish(ch->payload_store_handle, sid);
         }
         else
         {
             status = bplog(BP_PAYLOADTOOLARGE, "Payload too large to fit inside buffer (%d %d)\n", size, paylen);
-            relinquish(ch->payload_store_handle, sid);
             ch->stats.lost++;
         }
+
+        /* Relinquish Memory */
+        relinquish(ch->payload_store_handle, sid);
     }
 
     /* Return Status or Payload Size */

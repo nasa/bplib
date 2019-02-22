@@ -14,6 +14,7 @@
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
+#include <errno.h>
 
 #include "bplib.h"
 #include "bplib_os.h"
@@ -22,16 +23,25 @@
  DEFINES
  ******************************************************************************/
 
-#define MAX_LOG_ENTRY_SIZE  256
-#define UNIX_SECS_AT_2000   946684800
-#define MAX_MUTEXES         32
+#define UNIX_SECS_AT_2000       946684800
+#define BP_MAX_LOG_ENTRY_SIZE   256
+#define BP_MAX_LOCKS            32
+
+/******************************************************************************
+ TYPEDEFS
+ ******************************************************************************/
+
+typedef struct {
+    pthread_cond_t  cond;
+    pthread_mutex_t mutex;
+} bplib_os_lock_t;
 
 /******************************************************************************
  FILE DATA
  ******************************************************************************/
 
-pthread_mutex_t* locks[MAX_MUTEXES] = {0};
-pthread_mutex_t lock_of_locks;
+bplib_os_lock_t*    locks[BP_MAX_LOCKS] = {0};
+pthread_mutex_t     lock_of_locks;
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -42,10 +52,10 @@ pthread_mutex_t lock_of_locks;
  *-------------------------------------------------------------------------------------*/
 void bplib_os_init(void)
 {
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&lock_of_locks, &attr);
+    pthread_mutexattr_t locks_attr;
+    pthread_mutexattr_init(&locks_attr);
+    pthread_mutexattr_settype(&locks_attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&lock_of_locks, &locks_attr);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -55,15 +65,15 @@ void bplib_os_init(void)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt, ...)
 {
-    char formatted_string[MAX_LOG_ENTRY_SIZE];
+    char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
     va_list args;
-	int vlen, msglen;
+    int vlen, msglen;
     char* pathptr;
 
     /* Build Formatted String */
     va_start(args, fmt);
-    vlen = vsnprintf(formatted_string, MAX_LOG_ENTRY_SIZE - 1, fmt, args);
-    msglen = vlen < MAX_LOG_ENTRY_SIZE - 1 ? vlen : MAX_LOG_ENTRY_SIZE - 1;
+    vlen = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
+    msglen = vlen < BP_MAX_LOG_ENTRY_SIZE - 1 ? vlen : BP_MAX_LOG_ENTRY_SIZE - 1;
     va_end(args);
     if (msglen < 0) return error; // nothing to do
     formatted_string[msglen] = '\0';
@@ -73,11 +83,11 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     if(pathptr) pathptr++;
     else pathptr = (char*)file;
 
-	/* Print Log Message */
+    /* Print Log Message */
     printf("%s:%d:%d:%s", pathptr, line, error, formatted_string);
 
-	/* Return Error Code */
-	return error;
+    /* Return Error Code */
+    return error;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -129,23 +139,26 @@ int bplib_os_createlock(void)
 {
     int i;
     int handle = -1;
+    
     pthread_mutex_lock(&lock_of_locks);
     {
-        for(i = 0; i < MAX_MUTEXES; i++)
+        for(i = 0; i < BP_MAX_LOCKS; i++)
         {
             if(locks[i] == NULL)
             {
-                locks[i] = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
+                locks[i] = (bplib_os_lock_t*)malloc(sizeof(bplib_os_lock_t));
                 pthread_mutexattr_t attr;
                 pthread_mutexattr_init(&attr);
                 pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-                pthread_mutex_init(locks[i], &attr);
+                pthread_mutex_init(&locks[i]->mutex, &attr);
+                pthread_cond_init(&locks[i]->cond, NULL);
                 handle = i;
                 break;
             }
         }
     }
     pthread_mutex_unlock(&lock_of_locks);
+    
     return handle;
 }
 
@@ -158,6 +171,8 @@ void bplib_os_destroylock(int handle)
     {
         if(locks[handle] != NULL)
         {
+            pthread_mutex_destroy(&locks[handle]->mutex); 
+            pthread_cond_destroy(&locks[handle]->cond);
             free(locks[handle]);
             locks[handle] = NULL;
         }
@@ -170,7 +185,7 @@ void bplib_os_destroylock(int handle)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_lock(int handle)
 {
-    pthread_mutex_lock(locks[handle]);
+    pthread_mutex_lock(&locks[handle]->mutex);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -178,5 +193,53 @@ void bplib_os_lock(int handle)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_unlock(int handle)
 {
-    pthread_mutex_unlock(locks[handle]);
+    pthread_mutex_unlock(&locks[handle]->mutex);
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_os_signal -
+ *-------------------------------------------------------------------------------------*/
+void bplib_os_signal(int handle)
+{
+    pthread_cond_signal(&locks[handle]->cond);
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_os_waiton -
+ *-------------------------------------------------------------------------------------*/
+int bplib_os_waiton(int handle, int timeout_ms)
+{
+    int status;
+
+    /* Perform Wait */
+    if(timeout_ms == -1)
+    {
+        /* Block Forever until Success */
+        status = pthread_cond_wait(&locks[handle]->cond, &locks[handle]->mutex);
+    }
+    else if(timeout_ms > 0)
+    {
+        /* Build Time Structure */
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        ts.tv_sec  += (time_t) (timeout_ms / 1000);
+        ts.tv_nsec +=  (timeout_ms % 1000) * 1000000L;
+        if(ts.tv_nsec  >= 1000000000L)
+        {
+            ts.tv_nsec -= 1000000000L;
+            ts.tv_sec++;
+        }
+
+        /* Block on Timed Wait and Update Timeout */
+        status = pthread_cond_timedwait(&locks[handle]->cond, &locks[handle]->mutex, &ts);
+    }
+    else // timeout_ms = 0
+    {
+        // note that NON-BLOKCING CHECK is an error since the pthread
+        // conditional does not support a non-blocking attempt
+        status = EINVAL;
+    }
+
+    /* Return Status */
+    return status;
 }

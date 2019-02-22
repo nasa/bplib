@@ -39,5 +39,7 @@ int         bplib_os_createlock     (void);
 void        bplib_os_destroylock    (int handle);
 void        bplib_os_lock           (int handle);
 void        bplib_os_unlock         (int handle);
+void        bplib_os_signal         (int handle);
+int         bplib_os_waiton         (int handle, int timeout_ms);
 
 #endif /* _BPLIB_OS_H_ */
