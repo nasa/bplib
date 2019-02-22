@@ -286,7 +286,7 @@ Initializes the BP library.  This must be called before any other call to the li
 
 ### Open Channel
 
-`int bplib_open (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service)`
+`int bplib_open (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes)`
 
 Opens a bundle channel that uses the provided storage service and endpoint IDs. 
 
@@ -301,6 +301,13 @@ _local_service_ - service component of endpoint ID used by the library for the l
 _destination_node_ - node component of endpoint ID used by the library for the destination of the bundles transmitted on the channel. 
 
 _destination_service_ - service component of endpoint ID used by the library for the destination of the bundles transmitetd on the channel.
+
+_attributes_ - structure of attributes for the channel that trade memory usage and performance
+
+* active_table_size:  The number of unacknowledged bundles to keep track of. The larger this number, the more bundles can be sent before a "wrap" occurs (see BP_OPT_WRAPRSP).  But every unacknowledged bundle consumes 8 bytes of CPU memory making this attribute the primary driver for a channel's memory usage.
+* max_concurrent_dacs: The number of dacs to maintain at one time.  Every time a bundle is received from a unique sender requesting custody transfer, the library must begin maintaining a list of custody IDs to populate an aggregate custody signal response bundle.  This attribute sets the maximum number of custody ID lists the library must be able to keep track of for a given channel.
+* max_fills_per_dacs: The maximum number of fills in the aggregate custody signal.  A DACS is sent when the maximum fills are reached or the DACS rate period has expired (see BP_OPT_ACSRATE).
+
 
 _returns_ - channel ID. 
 
@@ -480,7 +487,8 @@ _returns_ - return code (see below)
 | BP_FAILEDSTORE          | -17   | The library encountered an error originating from the storage service |
 | BP_FAILEDRESPONSE       | -18   | The library was unable to report back to another node, e.g. a DACS bundle could not be created or sent due to there being too many sources to track |
 | BP_FAILEDOS             | -19   | The library encountered an error originating from the operation system abstraction layer |
-| BP_INVALIDEID           | -20   | An EID string did not contain a valid IPN address |
+| BP_FAILEDMEM            | -20   | The library encountered an error allocating memory for a channel |
+| BP_INVALIDEID           | -21   | An EID string did not contain a valid IPN address |
 
 ### Flags
 
