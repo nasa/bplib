@@ -62,7 +62,8 @@ extern "C" {
 #define BP_FAILEDSTORE                  (-17)
 #define BP_FAILEDRESPONSE               (-18)
 #define BP_FAILEDOS                     (-19)
-#define BP_INVALIDEID                   (-20)
+#define BP_FAILEDMEM                    (-20)
+#define BP_INVALIDEID                   (-21)
     
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  // valid bundle but agent not able to comply with standard
@@ -132,6 +133,13 @@ typedef struct {
     bp_store_getcount_t     getcount;
 } bp_store_t;
 
+/* Bundle Channel Attributes */
+typedef struct {
+    int     active_table_size;      // number of unacknowledged bundles to keep track of
+    int     max_concurrent_dacs;    // number of dacs to maintain at one time
+    int     max_fills_per_dacs;     // dacs is built on stack (and therefore must fit on stack)
+} bp_attr_t;
+
 /* Bundle Channel Statistics */
 typedef struct {
     uint32_t    lost;           // storage or copy failure, unable to retrieve
@@ -151,8 +159,8 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-void    bplib_init          (void);
-int     bplib_open          (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service);
+void    bplib_init          (int max_channels);
+int     bplib_open          (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes);
 void    bplib_close         (int channel);
 
 int     bplib_getopt        (int channel, int opt, void* val, int len);

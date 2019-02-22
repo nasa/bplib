@@ -27,20 +27,20 @@
  DEFINES
  ******************************************************************************/
 
-#ifndef BP_ACTIVE_TABLE_SIZE
-#define BP_ACTIVE_TABLE_SIZE            16384
+#ifndef BP_DEFAULT_MAX_CHANNELS
+#define BP_DEFAULT_MAX_CHANNELS         4
 #endif
 
-#ifndef BP_MAX_CONCURRENT_DACS
-#define BP_MAX_CONCURRENT_DACS          4   // maximum number of custody eids to keep track of
+#ifndef BP_DEFAULT_ACTIVE_TABLE_SIZE
+#define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
 #endif
 
-#ifndef BP_MAX_CHANNELS
-#define BP_MAX_CHANNELS                 4
+#ifndef BP_DEFAULT_MAX_CONCURRENT_DACS
+#define BP_DEFAULT_MAX_CONCURRENT_DACS  4   // maximum number of custody eids to keep track of
 #endif
 
-#ifndef BP_MAX_FILLS_PER_DACS
-#define BP_MAX_FILLS_PER_DACS           64
+#ifndef BP_DEFAULT_MAX_FILLS_PER_DACS
+#define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #endif
 
 #ifndef BP_DEFAULT_PAY_CRC
@@ -110,7 +110,6 @@
 #define BP_EMPTY                        (-1)
 #define BP_MAX_FILL                     0x3FFF
 #define BP_BUNDLE_HDR_BUF_SIZE          128
-#define BP_DACS_PAY_SIZE                (8 + (2 * BP_MAX_FILLS_PER_DACS))
 #define BP_NUM_EXCLUDE_REGIONS          8
 
 
@@ -162,10 +161,12 @@ typedef struct {
     uint32_t            cstserv;
     uint32_t            first_cid;
     uint32_t            last_cid;
-    uint32_t            fills[BP_MAX_FILLS_PER_DACS];
+    uint32_t*           fills;
     int                 num_fills;
     bool                delivered;  // false: forwarded to destination, true: delivered to application
     bool                sent;       // true: DACS wer sent since last check
+    uint8_t*            paybuf;     // buffer to hold built DACS record
+    int                 paybuf_size;
     bp_bundle_store_t   bundle_store;
 } bp_dacs_bundle_t;
 
@@ -173,8 +174,8 @@ typedef struct {
 
 /* Active Table */
 typedef struct {
-    bp_sid_t            sid[BP_ACTIVE_TABLE_SIZE];
-    uint32_t            retx[BP_ACTIVE_TABLE_SIZE];
+    bp_sid_t*           sid;
+    uint32_t*           retx;
     uint32_t            oldest_cid;
     uint32_t            current_cid;
 } bp_active_table_t;
@@ -182,6 +183,7 @@ typedef struct {
 /* Channel Control Block */
 typedef struct {
     int                 index;
+    bp_attr_t           attributes;
 
     int                 data_bundle_lock;
     int                 dacs_bundle_lock;
@@ -196,7 +198,7 @@ typedef struct {
     int                 dacs_store_handle;
 
     bp_data_bundle_t    data_bundle;
-    bp_dacs_bundle_t    dacs_bundle[BP_MAX_CONCURRENT_DACS];
+    bp_dacs_bundle_t*   dacs_bundle;
 
     bp_active_table_t   active_table;
 
@@ -216,7 +218,8 @@ typedef struct {
  FILE DATA
  ******************************************************************************/
 
-static bp_channel_t channels[BP_MAX_CHANNELS];
+static bp_channel_t* channels;
+static int channels_max;
 static int channels_lock;
 
 /******************************************************************************
@@ -556,14 +559,13 @@ static int initialize_dacs_bundle(bp_channel_t* ch, int dac_entry, uint32_t dstn
  *-------------------------------------------------------------------------------------*/
 static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t sysnow, int timeout, uint16_t* dacsflags)
 {
-    static uint8_t buffer[BP_DACS_PAY_SIZE];
     int dacs_size, enstat, storage_header_size;
 
     bp_bundle_store_t* ds = &dacs->bundle_store;
     bp_blk_pri_t* pri = &dacs->primary_block;
 
     /* Build DACS */
-    dacs_size = bplib_rec_acs_write(buffer, BP_DACS_PAY_SIZE, dacs->delivered, dacs->first_cid, dacs->fills, dacs->num_fills);
+    dacs_size = bplib_rec_acs_write(dacs->paybuf, dacs->paybuf_size, dacs->delivered, dacs->first_cid, dacs->fills, dacs->num_fills);
     ds->bundlesize = ds->headersize + dacs_size;
     storage_header_size = sizeof(bp_bundle_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - ds->headersize);
 
@@ -576,16 +578,16 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t 
     pri->createseq.value++;
 
     /* Update Bundle Integrity Block */
-    bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, buffer, dacs_size, &dacs->integrity_block);
+    bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, dacs->paybuf, dacs_size, &dacs->integrity_block);
 
     /* Update Payload Block */
-    dacs->payload_block.payptr = buffer;
+    dacs->payload_block.payptr = dacs->paybuf;
     dacs->payload_block.paysize = dacs_size;
     dacs->payload_block.blklen.value = dacs_size;
     bplib_sdnv_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, dacs->payload_block.blklen, dacsflags);
 
     /* Send (enqueue) DACS */
-    enstat = ch->storage.enqueue(ch->dacs_store_handle, ds, storage_header_size, buffer, dacs_size, timeout);
+    enstat = ch->storage.enqueue(ch->dacs_store_handle, ds, storage_header_size, dacs->paybuf, dacs_size, timeout);
 
     /* Check Storage Status */
     if(enstat <= 0)
@@ -627,7 +629,7 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
     /* Handle Entry Not Found */
     if(dacs == NULL)
     {
-        if(ch->num_dacs < BP_MAX_CONCURRENT_DACS)
+        if(ch->num_dacs < ch->attributes.max_concurrent_dacs)
         {
             /* Set Pointers */
             int dacs_entry = ch->num_dacs++;
@@ -680,7 +682,7 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
 
             dacs->last_cid = cteb->cid.value; // save last CID
 
-            if((fill_index + 2) < BP_MAX_FILLS_PER_DACS)
+            if((fill_index + 2) < ch->attributes.max_fills_per_dacs)
             {
                 if(hop_val == 0)
                 {
@@ -943,7 +945,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
 /*--------------------------------------------------------------------------------------
  * bplib_init - initializes bp library
  *-------------------------------------------------------------------------------------*/
-void bplib_init(void)
+void bplib_init(int max_channels)
 {
     int i;
 
@@ -953,8 +955,13 @@ void bplib_init(void)
     /* Create Channel Lock */
     channels_lock = bplib_os_createlock();
 
+    /* Allocate Channel Memory */
+    if(max_channels <= 0)   channels_max = BP_DEFAULT_MAX_CHANNELS;
+    else                    channels_max = max_channels;
+    channels = (bp_channel_t*)malloc(channels_max * sizeof(bp_channel_t));
+
     /* Set all channel control blocks to empty */
-    for(i = 0; i < BP_MAX_CHANNELS; i++)
+    for(i = 0; i < channels_max; i++)
     {
         channels[i].index = BP_EMPTY;
     }
@@ -963,7 +970,7 @@ void bplib_init(void)
 /*--------------------------------------------------------------------------------------
  * bplib_open -
  *-------------------------------------------------------------------------------------*/
-int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service)
+int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes)
 {
     int i, j, channel;
 
@@ -979,13 +986,25 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
     bplib_os_lock(channels_lock);
     {
         /* Find open channel slot */
-        for(i = 0; i < BP_MAX_CHANNELS; i++)
+        for(i = 0; i < channels_max; i++)
         {
             if(channels[i].index == BP_EMPTY)
             {
                 /* Clear Channel Memory */
                 bplib_os_memset(&channels[i], 0, sizeof(channels[i]));
-
+                
+                /* Set Active Table Size Attribute */
+                if(attributes && attributes->active_table_size > 0) channels[i].attributes.active_table_size = attributes->active_table_size;
+                else channels[i].attributes.active_table_size = BP_DEFAULT_ACTIVE_TABLE_SIZE;
+                    
+                /* Set Max Concurrent DACS Attribute */
+                if(attributes && attributes->max_concurrent_dacs > 0) channels[i].attributes.max_concurrent_dacs = attributes->max_concurrent_dacs;
+                else channels[i].attributes.max_concurrent_dacs = BP_DEFAULT_MAX_CONCURRENT_DACS;
+                
+                /* Set Max Fills per DACS Attribute */
+                if(attributes && attributes->max_fills_per_dacs > 0) channels[i].attributes.max_fills_per_dacs = attributes->max_fills_per_dacs;
+                else channels[i].attributes.max_fills_per_dacs = BP_DEFAULT_MAX_FILLS_PER_DACS;
+                                
                 /* Initialize Assets */
                 channels[i].data_bundle_lock     = bplib_os_createlock();
                 channels[i].dacs_bundle_lock     = bplib_os_createlock();
@@ -1038,9 +1057,37 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 /* Write EID */
                 bplib_ipn2eid(channels[i].data_bundle.custody_block.csteid, BP_MAX_EID_STRING, local_node, local_service);
 
-                /* Initialize DACS Bundle */
-                for(j = 0; j < BP_MAX_CONCURRENT_DACS; j++)
+                /* Allocate Memory for Channel DACS Bundle */
+                channels[i].dacs_bundle = (bp_dacs_bundle_t*)malloc(sizeof(bp_dacs_bundle_t) * channels[i].attributes.max_concurrent_dacs);
+                if(channels[i].dacs_bundle == NULL)
                 {
+                    bplib_os_unlock(channels_lock);
+                    return bplog(BP_FAILEDMEM, "Failed to allocate memory for channel dacs\n");                    
+                }
+                else
+                {
+                    bplib_os_memset(channels[i].dacs_bundle, 0, sizeof(bp_dacs_bundle_t) * channels[i].attributes.max_concurrent_dacs);
+                }
+                
+                /* Initialize DACS Bundle */
+                for(j = 0; j < channels[i].attributes.max_concurrent_dacs; j++)
+                {
+                    /* Allocate Memory for Channel DACS Bundle Fills */
+                    channels[i].dacs_bundle[j].fills = (uint32_t*)malloc(sizeof(uint32_t) * channels[i].attributes.max_fills_per_dacs);
+                    channels[i].dacs_bundle[j].paybuf_size = sizeof(uint8_t) * sizeof(uint16_t) * channels[i].attributes.max_fills_per_dacs + 32; // 2 bytes per fill plus payload block header
+                    channels[i].dacs_bundle[j].paybuf = (uint8_t*)malloc(channels[i].dacs_bundle[j].paybuf_size); 
+                    if(channels[i].dacs_bundle[j].fills == NULL || channels[i].dacs_bundle[j].paybuf == NULL)
+                    {
+                        bplib_os_unlock(channels_lock);
+                        return bplog(BP_FAILEDMEM, "Failed to allocate memory for channel dacs fills and payload\n");                    
+                    }
+                    else
+                    {
+                        bplib_os_memset(channels[i].dacs_bundle[j].fills, 0, sizeof(uint32_t) * channels[i].attributes.max_fills_per_dacs);
+                        bplib_os_memset(channels[i].dacs_bundle[j].paybuf, 0, channels[i].dacs_bundle[j].paybuf_size);
+                    }
+    
+                    /* Initialize DACS Bundle Fields */
                     channels[i].dacs_bundle[j].primary_block               = native_dacs_pri_blk;
                     channels[i].dacs_bundle[j].primary_block.srcnode.value = local_node;
                     channels[i].dacs_bundle[j].primary_block.srcserv.value = local_service;
@@ -1052,6 +1099,20 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                     channels[i].dacs_bundle[j].payload_block               = native_pay_blk;
                 }
 
+                /* Allocate Memory for Active Table */
+                channels[i].active_table.sid = (bp_sid_t*)malloc(sizeof(bp_sid_t) * channels[i].attributes.active_table_size);
+                channels[i].active_table.retx = (uint32_t*)malloc(sizeof(uint32_t) * channels[i].attributes.active_table_size);
+                if(channels[i].active_table.sid == NULL || channels[i].active_table.retx == NULL)
+                {
+                    bplib_os_unlock(channels_lock);
+                    return bplog(BP_FAILEDMEM, "Failed to allocate memory for channel active table\n");                    
+                }
+                else
+                {
+                    bplib_os_memset(channels[i].active_table.sid, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
+                    bplib_os_memset(channels[i].active_table.retx, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
+                }
+                
                 /* Initialize Data */
                 channels[i].active_table.oldest_cid     = 0;
                 channels[i].active_table.current_cid    = 0;
@@ -1087,7 +1148,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
  *-------------------------------------------------------------------------------------*/
 void bplib_close(int channel)
 {
-    if(channel >= 0 && channel < BP_MAX_CHANNELS && channels[channel].index != BP_EMPTY)
+    if(channel >= 0 && channel < channels_max && channels[channel].index != BP_EMPTY)
     {
         bplib_os_lock(channels_lock);
         {
@@ -1111,7 +1172,7 @@ int bplib_getopt(int channel, int opt, void* val, int len)
     int status;
 
     /* Check Parameters */
-    if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(val == NULL)                            return BP_PARMERR;
 
@@ -1130,7 +1191,7 @@ int bplib_setopt(int channel, int opt, void* val, int len)
     int status;
 
      /* Check Parameters */
-    if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(val == NULL)                            return BP_PARMERR;
 
@@ -1147,7 +1208,7 @@ int bplib_setopt(int channel, int opt, void* val, int len)
 int bplib_latchstats(int channel, bp_stats_t* stats)
 {
      /* Check Parameters */
-    if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(stats == NULL)                          return BP_PARMERR;
 
@@ -1174,7 +1235,7 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* sto
     int status;
 
     /* Check Parameters */
-    if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(payload == NULL)                        return BP_PARMERR;
 
@@ -1211,7 +1272,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
     int status = BP_SUCCESS; // size of bundle returned or error code
 
     /* Check Parameters */
-    if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(bundle == NULL)                         return BP_PARMERR;
 
@@ -1278,7 +1339,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
         /* Try to Send Timed-out Bundle */
         while((ds == NULL) && (ch->active_table.oldest_cid < ch->active_table.current_cid))
         {
-            ati = ch->active_table.oldest_cid % BP_ACTIVE_TABLE_SIZE;
+            ati = ch->active_table.oldest_cid % ch->attributes.active_table_size;
             sid = ch->active_table.sid[ati];
             if(sid == BP_SID_VACANT) // entry vacant
             {
@@ -1327,7 +1388,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                      * request custody transfer it could still go out, but the
                      * current design requires that at least one slot in the active
                      * table is open at all times. */
-                    ati = ch->active_table.current_cid % BP_ACTIVE_TABLE_SIZE;
+                    ati = ch->active_table.current_cid % ch->attributes.active_table_size;
                     sid = ch->active_table.sid[ati];
                     if(sid != BP_SID_VACANT) // entry vacant
                     {
@@ -1440,7 +1501,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                     /* Assign Custody ID and Active Table Entry */
                     if(newcid)
                     {
-                        ati = ch->active_table.current_cid % BP_ACTIVE_TABLE_SIZE;
+                        ati = ch->active_table.current_cid % ch->attributes.active_table_size;
                         ch->active_table.sid[ati] = sid;
                         ds->cidsdnv.value = ch->active_table.current_cid++;
                         bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize - ds->cteboffset, ds->cidsdnv, loadflags);
@@ -1503,7 +1564,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     bp_blk_pay_t        pay_blk;
 
     /* Check Parameters */
-    if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(bundle == NULL)                         return BP_PARMERR;
 
@@ -1635,7 +1696,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                     if(rec_type == BP_ACS_REC_TYPE)
                     {
                         int acknowledgment_count = 0;
-                        status = bplib_rec_acs_process(&buffer[index], size - index, &acknowledgment_count, ch->active_table.sid, BP_ACTIVE_TABLE_SIZE, ch->storage.relinquish, ch->data_store_handle);
+                        status = bplib_rec_acs_process(&buffer[index], size - index, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, ch->storage.relinquish, ch->data_store_handle);
                         if(acknowledgment_count > 0)
                         {
                             ch->stats.acknowledged += acknowledgment_count;
@@ -1745,7 +1806,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
     int status;
 
     /* Check Parameters */
-    if(channel < 0 || channel >= BP_MAX_CHANNELS)   return BP_PARMERR;
+    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(payload == NULL)                        return BP_PARMERR;
 
