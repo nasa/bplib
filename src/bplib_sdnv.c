@@ -1,6 +1,24 @@
-/******************************************************************************
- * Filename     : bplib_sdnv.c
- * Purpose      : Bundle Protocol Library - Self-Delimiting Numeric Values
+/************************************************************************
+ * File: bplib_sdnv.c
+ *
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ * Maintainer(s):
+ *  Joe-Paul Swinski, Code 582 NASA GSFC
+ *
  * Design Notes :
  *   1. The read routines make no assumptions on fixed lengths but there still
  *      needs to be an assumption made as to the size of the variable to hold
@@ -8,7 +26,7 @@
  *      small to hold the read value, an OVERFLOW flag is set.
  *   2. The write routines do assume a fixed length and will write an SDNV that
  *      is always the size specified regardless of the value passed to it.
- ******************************************************************************/
+ *************************************************************************/
 
 /******************************************************************************
  INCLUDES

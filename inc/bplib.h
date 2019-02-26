@@ -1,8 +1,25 @@
-/******************************************************************************
- * Filename     : bplib.h
- * Purpose      : Header file for the Bundle Protocol Library
- * Design Notes :
- *******************************************************************************/
+/************************************************************************
+ * File: bplib.h
+ *
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ * Maintainer(s):
+ *  Joe-Paul Swinski, Code 582 NASA GSFC
+ *
+ *************************************************************************/
 
 #ifndef __BPLIB_H__
 #define __BPLIB_H__
@@ -145,8 +162,8 @@ typedef struct {
     uint32_t    lost;           // storage or copy failure, unable to retrieve
     uint32_t    expired;        // lifetime expired, deliberately removed
     uint32_t    acknowledged;   // freed by custody signal
-    uint32_t    transmitted;    // sent (includes resends)
-    uint32_t    retransmitted;  // timedout and resent
+    uint32_t    transmitted;    // sent (includes re-sends)
+    uint32_t    retransmitted;  // timed-out and resent
     uint32_t    received;       // bundles processed
     uint32_t    delivered;      // payloads accepted
     uint32_t    bundles;        // number of data bundles currently in storage
