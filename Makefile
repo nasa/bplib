@@ -28,9 +28,6 @@ API         := $(ROOT)/inc
 # location to install bplib
 PREFIX	    := /usr/local
 	
-# default console application
-CONSOLE_OBJ := bpc.o
-
 # application object files, application should add their objects to this variable
 APP_OBJ     := bplib.o
 APP_OBJ     += bplib_blk_bib.o
@@ -136,13 +133,6 @@ install: lib
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).a
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER)
-
-console: $(BLDDIR)/$(CONSOLE_OBJ)
-	$(CC) $^ -l$(TGTLIB) $(ALL_LOPT) -o $(BLDDIR)/$(CONSOLE)
-
-installconsole: console
-	$(CP) $(BLDDIR)/$(CONSOLE) $(EXECDIR)
-	chmod 755 $(EXECDIR)/$(CONSOLE)
 
 prep: $(BLDDIR)
 
