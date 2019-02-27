@@ -771,7 +771,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             bp_ipn_t* node = (bp_ipn_t*)val;
             if(getset)  ch->data_bundle.primary_block.dstnode.value = *node;
             else        *node = ch->data_bundle.primary_block.dstnode.value;
-            bplog(BP_SUCCESS, "Config. Destination Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
         case BP_OPT_DSTSERV_D:
@@ -780,7 +779,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             bp_ipn_t* service = (bp_ipn_t*)val;
             if(getset)  ch->data_bundle.primary_block.dstserv.value = *service;
             else        *service = ch->data_bundle.primary_block.dstserv.value;
-            bplog(BP_SUCCESS, "Config. Destination Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
         case BP_OPT_RPTNODE_D:
@@ -789,7 +787,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             bp_ipn_t* node = (bp_ipn_t*)val;
             if(getset)  ch->data_bundle.primary_block.rptnode.value = *node;
             else        *node = ch->data_bundle.primary_block.rptnode.value;
-            bplog(BP_SUCCESS, "Config. Report To Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
         case BP_OPT_RPTSERV_D:
@@ -798,7 +795,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             bp_ipn_t* service = (bp_ipn_t*)val;
             if(getset)  ch->data_bundle.primary_block.rptserv.value = *service;
             else        *service = ch->data_bundle.primary_block.rptserv.value;
-            bplog(BP_SUCCESS, "Config. Report To Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
         case BP_OPT_CSTNODE_D:
@@ -807,7 +803,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             bp_ipn_t* node = (bp_ipn_t*)val;
             if(getset)  ch->data_bundle.primary_block.cstnode.value = *node;
             else        *node = ch->data_bundle.primary_block.cstnode.value;
-            bplog(BP_SUCCESS, "Config. Custodian Node %s %lu\n", getset ? "<--" : "-->", (unsigned long)*node);
             break;
         }
         case BP_OPT_CSTSERV_D:
@@ -816,7 +811,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             bp_ipn_t* service = (bp_ipn_t*)val;
             if(getset)  ch->data_bundle.primary_block.cstserv.value = *service;
             else        *service = ch->data_bundle.primary_block.cstserv.value;
-            bplog(BP_SUCCESS, "Config. Custodian Service %s %lu\n", getset ? "<--" : "-->", (unsigned long)*service);
             break;
         }
         case BP_OPT_SETSEQUENCE_D:
@@ -825,7 +819,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             uint32_t* seq = (uint32_t*)val;
             if(getset)  ch->data_bundle.primary_block.createseq.value = *seq;
             else        *seq = ch->data_bundle.primary_block.createseq.value;
-            bplog(BP_SUCCESS, "Config. Sequence %s %lu\n", getset ? "<--" : "-->", (unsigned long)*seq);
             break;
         }
         case BP_OPT_LIFETIME_D:
@@ -834,7 +827,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             int* lifetime = (int*)val;
             if(getset)  ch->data_bundle.primary_block.lifetime.value = *lifetime;
             else        *lifetime = ch->data_bundle.primary_block.lifetime.value;
-            bplog(BP_SUCCESS, "Config. Lifetime %s %d\n", getset ? "<--" : "-->", *lifetime);
             break;
         }
         case BP_OPT_CSTRQST_D:
@@ -844,7 +836,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(*enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->data_bundle.primary_block.request_custody = *enable;
             else        *enable = ch->data_bundle.primary_block.request_custody;
-            bplog(BP_SUCCESS, "Config. Enable Custody Request %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
         case BP_OPT_ALLOWFRAG_D:
@@ -862,7 +853,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
                 *enable = ch->data_bundle.primary_block.allow_frag;
                 *enable = ch->data_bundle.primary_block.is_frag;
             }
-            bplog(BP_SUCCESS, "Config. Allow Fragmentation %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
         case BP_OPT_PAYCRC_D:
@@ -871,7 +861,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             int* type = (int*)val;
             if(getset)  ch->data_bundle.integrity_block.paytype.value = *type;
             else        *type = ch->data_bundle.integrity_block.paytype.value;
-            bplog(BP_SUCCESS, "Config. Payload CRC Type %s %d\n", getset ? "<--" : "-->", *type);
             break;
         }
         case BP_OPT_TIMEOUT:
@@ -880,7 +869,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             int* timeout = (int*)val;
             if(getset)  ch->timeout = *timeout;
             else        *timeout = ch->timeout;
-            bplog(BP_SUCCESS, "Config. Timeout %s %d\n", getset ? "<--" : "-->", *timeout);
             break;
         }
         case BP_OPT_BUNDLELEN:
@@ -889,7 +877,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             int* maxlen = (int*)val;
             if(getset)  ch->data_bundle.maxlength = *maxlen;
             else        *maxlen = ch->data_bundle.maxlength;
-            bplog(BP_SUCCESS, "Config. Maximum Bundle Length %s %d\n", getset ? "<--" : "-->", *maxlen);
             break;
         }
         case BP_OPT_ORIGINATE:
@@ -899,7 +886,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(*enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->data_bundle.originate = *enable;
             else        *enable = ch->data_bundle.originate;
-            bplog(BP_SUCCESS, "Config. Set Origination %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
         case BP_OPT_PROCADMINONLY:
@@ -909,7 +895,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(*enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->proc_admin_only = *enable;
             else        *enable = ch->proc_admin_only;
-            bplog(BP_SUCCESS, "Config. Enable Processing Only Admin Records %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
         case BP_OPT_WRAPRSP:
@@ -919,7 +904,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(*wrap != BP_WRAP_RESEND && *wrap != BP_WRAP_BLOCK && *wrap != BP_WRAP_DROP) return BP_PARMERR;
             if(getset)  ch->wrap_response = *wrap;
             else        *wrap = ch->wrap_response;
-            bplog(BP_SUCCESS, "Config. Wrap Response %s %d\n", getset ? "<--" : "-->", *wrap);
             break;
         }
         case BP_OPT_CIDREUSE:
@@ -929,7 +913,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(*enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->cid_reuse = *enable;
             else        *enable = ch->cid_reuse;
-            bplog(BP_SUCCESS, "Config. Enable CID Reuse %s %d\n", getset ? "<--" : "-->", *enable);
             break;
         }
         case BP_OPT_ACSRATE:
@@ -938,7 +921,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             int* rate = (int*)val;
             if(getset)  ch->dacs_rate = *rate;
             else        *rate = ch->dacs_rate;
-            bplog(BP_SUCCESS, "Config. ACS Rate %s %d\n", getset ? "<--" : "-->", *rate);
             break;
         }
         default:
