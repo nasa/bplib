@@ -574,7 +574,7 @@ int bplib_store_pram_dequeue(int handle, void** data, int* size,
         *sid = *data;
         return BP_SUCCESS;
     }
-    else if(status == MSGQ_TIMEOUT)
+    else if(status == MSGQ_TIMEOUT || status == MSGQ_UNDERFLOW)
     {
         return BP_TIMEOUT;
     }
