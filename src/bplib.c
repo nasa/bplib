@@ -140,7 +140,6 @@
 typedef struct {
     bool                request_custody;    // boolean whether original bundle requested custody on payload delivery
     int                 payloadsize;        // size of the payload
-    bp_blk_cteb_t       cteb;               // CTEB block from original bundle, used if custody is requested
 } bp_payload_store_t;
 
 /* Bundle Storage Block */
@@ -1768,7 +1767,6 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                     if(cteb_present)
                     {
                         pay->request_custody = true;
-                        pay->cteb = cteb_blk;
                     }
                     else
                     {
@@ -1779,7 +1777,22 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
 
                 /* Enqueue Payload into Storage */
                 status = ch->storage.enqueue(ch->payload_store_handle, pay, sizeof(bp_payload_store_t), &buffer[index], pay->payloadsize, timeout);
-                if(status <= 0) bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", status);
+                if(status > 0)
+                {
+                    /* Acknowledge Custody */
+                    if(pay->request_custody)
+                    {
+                        bplib_os_lock(ch->dacs_bundle_lock);
+                        {
+                            update_dacs_bundle(ch, &cteb_blk, true, BP_CHECK, procflags);
+                        }
+                        bplib_os_unlock(ch->dacs_bundle_lock);
+                    }
+                }
+                else
+                {
+                    bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", status);
+                }
             }
             else // wrong channel
             {
@@ -1802,6 +1815,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
  *-------------------------------------------------------------------------------------*/
 int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* acptflags)
 {
+    (void)acptflags;
+    
     int status;
 
     /* Check Parameters */
@@ -1833,16 +1848,6 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
             bplib_os_memcpy(payload, payptr, paylen);
             ch->stats.delivered++;
             status = paylen;
-
-            /* Acknowledge Custody */
-            if(paystore->request_custody)
-            {
-                bplib_os_lock(ch->dacs_bundle_lock);
-                {
-                    update_dacs_bundle(ch, &paystore->cteb, true, BP_CHECK, acptflags);
-                }
-                bplib_os_unlock(ch->dacs_bundle_lock);
-            }
         }
         else
         {
