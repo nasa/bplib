@@ -1,5 +1,5 @@
 /************************************************************************
- * File: bplib_os_posix.c
+ * File: bplib_os_singlethread.c
  *
  *  Copyright 2019 United States Government as represented by the
  *  Administrator of the National Aeronautics and Space Administration.
@@ -29,10 +29,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
-#include <time.h>
-#include <pthread.h>
-#include <errno.h>
-#include <unistd.h>
+
+#include "cfe.h"
 
 #include "bplib.h"
 #include "bplib_os.h"
@@ -41,25 +39,22 @@
  DEFINES
  ******************************************************************************/
 
-#define UNIX_SECS_AT_2000       946684800
-#define BP_MAX_LOG_ENTRY_SIZE   256
-#define BP_MAX_LOCKS            32
+#ifndef BPLIB_CFE_SECS_AT_2000
+#define BPLIB_CFE_SECS_AT_2000      946684800
+#endif
 
-/******************************************************************************
- TYPEDEFS
- ******************************************************************************/
+#ifndef BPLIB_CFE_ERROR_ID
+#define BPLIB_CFE_ERROR_ID          0xFFFF
+#endif
 
-typedef struct {
-    pthread_cond_t  cond;
-    pthread_mutex_t mutex;
-} bplib_os_lock_t;
+#ifndef BPLIB_OS_SINGLE_THREADED
+#define BPLIB_OS_SINGLE_THREADED    true
+#endif
 
 /******************************************************************************
  FILE DATA
  ******************************************************************************/
 
-bplib_os_lock_t*    locks[BP_MAX_LOCKS] = {0};
-pthread_mutex_t     lock_of_locks;
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -68,12 +63,8 @@ pthread_mutex_t     lock_of_locks;
 /*--------------------------------------------------------------------------------------
  * bplib_os_init -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_init()
+void bplib_os_init(void)
 {
-    pthread_mutexattr_t locks_attr;
-    pthread_mutexattr_init(&locks_attr);
-    pthread_mutexattr_settype(&locks_attr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&lock_of_locks, &locks_attr);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -83,11 +74,12 @@ void bplib_os_init()
  *-------------------------------------------------------------------------------------*/
 int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt, ...)
 {
+    (void)file;
+    (void)line;
+    
     char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
-    char log_message[BP_MAX_LOG_ENTRY_SIZE];
     va_list args;
     int vlen, msglen;
-    char* pathptr;
 
     /* Build Formatted String */
     va_start(args, fmt);
@@ -97,16 +89,8 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     if (msglen < 0) return error; // nothing to do
     formatted_string[msglen] = '\0';
 
-    /* Chop Path in Filename */
-    pathptr = strrchr(file, '/');
-    if(pathptr) pathptr++;
-    else pathptr = (char*)file;
-
-    /* Create Log Message */
-    snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%d:%d:%s", pathptr, line, error, formatted_string);
-    
-    /* Display Log Message */
-    printf("%s", log_message);
+    /* Handle Log Message */
+    CFE_EVS_SendEvent(BPLIB_CFE_ERROR_ID, CFE_EVS_INFORMATION, "[%d] %s", error, formatted_string);
 
     /* Return Error Code */
     return error;
@@ -117,9 +101,8 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
  *-------------------------------------------------------------------------------------*/
 uint32_t bplib_os_systime(void)
 {
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-    return now.tv_sec - UNIX_SECS_AT_2000;
+    CFE_TIME_SysTime_t sys_time = CFE_TIME_GetTime();
+    return sys_time.Seconds - BPLIB_CFE_SECS_AT_2000;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -127,7 +110,7 @@ uint32_t bplib_os_systime(void)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_sleep(int seconds)
 {
-    sleep(seconds);
+    OS_TaskDelay(seconds * 1000);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -135,29 +118,7 @@ void bplib_os_sleep(int seconds)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_createlock(void)
 {
-    int i;
-    int handle = -1;
-    
-    pthread_mutex_lock(&lock_of_locks);
-    {
-        for(i = 0; i < BP_MAX_LOCKS; i++)
-        {
-            if(locks[i] == NULL)
-            {
-                locks[i] = (bplib_os_lock_t*)malloc(sizeof(bplib_os_lock_t));
-                pthread_mutexattr_t attr;
-                pthread_mutexattr_init(&attr);
-                pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-                pthread_mutex_init(&locks[i]->mutex, &attr);
-                pthread_cond_init(&locks[i]->cond, NULL);
-                handle = i;
-                break;
-            }
-        }
-    }
-    pthread_mutex_unlock(&lock_of_locks);
-    
-    return handle;
+    return 0;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -165,17 +126,7 @@ int bplib_os_createlock(void)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_destroylock(int handle)
 {
-    pthread_mutex_lock(&lock_of_locks);
-    {
-        if(locks[handle] != NULL)
-        {
-            pthread_mutex_destroy(&locks[handle]->mutex); 
-            pthread_cond_destroy(&locks[handle]->cond);
-            free(locks[handle]);
-            locks[handle] = NULL;
-        }
-    }
-    pthread_mutex_unlock(&lock_of_locks);
+    (void)handle;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -183,7 +134,7 @@ void bplib_os_destroylock(int handle)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_lock(int handle)
 {
-    pthread_mutex_lock(&locks[handle]->mutex);
+    (void)handle;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -191,7 +142,7 @@ void bplib_os_lock(int handle)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_unlock(int handle)
 {
-    pthread_mutex_unlock(&locks[handle]->mutex);
+    (void)handle;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -199,7 +150,7 @@ void bplib_os_unlock(int handle)
  *-------------------------------------------------------------------------------------*/
 void bplib_os_signal(int handle)
 {
-    pthread_cond_signal(&locks[handle]->cond);
+    (void)handle;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -207,37 +158,7 @@ void bplib_os_signal(int handle)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_waiton(int handle, int timeout_ms)
 {
-    int status;
-
-    /* Perform Wait */
-    if(timeout_ms == -1)
-    {
-        /* Block Forever until Success */
-        status = pthread_cond_wait(&locks[handle]->cond, &locks[handle]->mutex);
-    }
-    else if(timeout_ms > 0)
-    {
-        /* Build Time Structure */
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_sec  += (time_t) (timeout_ms / 1000);
-        ts.tv_nsec +=  (timeout_ms % 1000) * 1000000L;
-        if(ts.tv_nsec  >= 1000000000L)
-        {
-            ts.tv_nsec -= 1000000000L;
-            ts.tv_sec++;
-        }
-
-        /* Block on Timed Wait and Update Timeout */
-        status = pthread_cond_timedwait(&locks[handle]->cond, &locks[handle]->mutex, &ts);
-    }
-    else // timeout_ms = 0
-    {
-        // note that NON-BLOCKING CHECK is an error since the pthread
-        // conditional does not support a non-blocking attempt
-        status = EINVAL;
-    }
-
-    /* Return Status */
-    return status;
+    (void)handle;
+    (void)timeout_ms;
+    return 0;
 }

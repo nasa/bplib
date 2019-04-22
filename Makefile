@@ -77,7 +77,7 @@ COMPILER    ?= gcc
 TOOLCHAIN   ?= gcc
 
 # configuration makefile, if not set then uses default 
-CONFIG      ?= config.mk 
+CONFIG      ?= posix.mk 
 
 # include configuration makefile to override and add to above definitions
 include $(CONFIG)

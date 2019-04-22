@@ -25,8 +25,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include <assert.h>
-
 #include "bplib.h"
 #include "bplib_blk.h"
 #include "bplib_blk_bib.h"

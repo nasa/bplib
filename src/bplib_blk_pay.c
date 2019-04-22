@@ -142,7 +142,7 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_i
 //    {
 //        if(size >= (bytes_written + pay->paysize))
 //        {
-//            bplib_os_memcpy(&buffer[bytes_written], pay->payptr, pay->paysize);
+//            memcpy(&buffer[bytes_written], pay->payptr, pay->paysize);
 //            bytes_written += pay->paysize;
 //        }
 //        else

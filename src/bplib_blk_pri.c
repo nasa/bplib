@@ -25,7 +25,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdint.h>
 #include "bplib.h"
 #include "bplib_blk_pri.h"
 #include "bplib_sdnv.h"

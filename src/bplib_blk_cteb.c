@@ -32,6 +32,27 @@
 #include "bplib_os.h"
 
 /******************************************************************************
+ LOCAL FUNCTIONS
+ ******************************************************************************/
+#ifndef _GNU_
+/*--------------------------------------------------------------------------------------
+ * strnlen -
+ *-------------------------------------------------------------------------------------*/
+inline int strnlen(const char* str, int maxlen)
+{
+    int len;
+    for(len = 0; len < maxlen; len++)
+    {
+        if(str[len] == '\0')
+        {
+            return len;
+        }
+    }
+    return maxlen;
+}
+#endif
+
+/******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
@@ -75,7 +96,7 @@ int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update
     }
 
     eid_index = bplib_sdnv_read(buffer, size, &cteb->cid, &flags);
-    eid_len = bplib_os_strnlen((char*)&buffer[eid_index], size - eid_index - 1) + 1; // include null-terminator
+    eid_len = strnlen((char*)&buffer[eid_index], size - eid_index - 1) + 1; // include null-terminator
 
     eid_status = bplib_eid2ipn((char*)&buffer[eid_index], eid_len, &cteb->cstnode, &cteb->cstserv);
     if(eid_status != BP_SUCCESS) return eid_status;
@@ -129,9 +150,9 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool updat
 
     eid_index = bplib_sdnv_write(buffer, size, cteb->cid, &flags);
 
-    eid_len = bplib_os_strnlen(cteb->csteid, BP_MAX_EID_STRING - 1);
+    eid_len = strnlen(cteb->csteid, BP_MAX_EID_STRING - 1);
     if((eid_index + eid_len + 1) > size) return BP_BUNDLEPARSEERR;
-    bplib_os_memcpy(&buffer[eid_index], cteb->csteid, eid_len);
+    memcpy(&buffer[eid_index], cteb->csteid, eid_len);
     buffer[eid_index + eid_len] = '\0';
 
     bytes_written = eid_index + eid_len + 1;

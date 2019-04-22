@@ -25,12 +25,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdio.h>
-#include <assert.h>
-#include <errno.h>
-#include <limits.h>
-#include <string.h>
-
 #include "bplib.h"
 #include "bplib_os.h"
 #include "bplib_sdnv.h"
@@ -352,7 +346,7 @@ static int initialize_orig_bundle(bp_data_bundle_t* bundle)
     uint8_t*            hdrbuf  = ds->header;
 
     /* Initialize Storage */
-    bplib_os_memset(ds, 0, sizeof(bp_bundle_store_t));
+    memset(ds, 0, sizeof(bp_bundle_store_t));
     ds->cidsdnv = native_cteb_blk.cid;
 
     /* Initialize Header */
@@ -389,7 +383,7 @@ static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, b
 
     /* Initialize Data Storage Memory */
     hdr_index = 0;
-    bplib_os_memset(ds, 0, sizeof(bp_bundle_store_t));
+    memset(ds, 0, sizeof(bp_bundle_store_t));
 
     /* Initialize Primary Block */
     bundle->primary_block = *pri;
@@ -445,7 +439,7 @@ static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, b
         }
         else
         {
-            bplib_os_memcpy(&ds->header[hdr_index], &buffer[start_index], bytes_to_copy);
+            memcpy(&ds->header[hdr_index], &buffer[start_index], bytes_to_copy);
             hdr_index += bytes_to_copy;
         }
     }
@@ -550,7 +544,7 @@ static int initialize_dacs_bundle(bp_channel_t* ch, int dac_entry, uint32_t dstn
     uint16_t            flags   = 0;
 
     /* Initialize Storage */
-    bplib_os_memset(ds, 0, sizeof(bp_bundle_store_t));
+    memset(ds, 0, sizeof(bp_bundle_store_t));
 
     /* Initialize Header */
     ds->biboffset  = bplib_blk_pri_write (&hdrbuf[0],             BP_BUNDLE_HDR_BUF_SIZE,                 &bundle->primary_block,   false);
@@ -989,7 +983,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
             if(channels[i].index == BP_EMPTY)
             {
                 /* Clear Channel Memory */
-                bplib_os_memset(&channels[i], 0, sizeof(channels[i]));
+                memset(&channels[i], 0, sizeof(channels[i]));
                 
                 /* Set Active Table Size Attribute */
                 if(attributes && attributes->active_table_size > 0) channels[i].attributes.active_table_size = attributes->active_table_size;
@@ -1064,7 +1058,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 }
                 else
                 {
-                    bplib_os_memset(channels[i].dacs_bundle, 0, sizeof(bp_dacs_bundle_t) * channels[i].attributes.max_concurrent_dacs);
+                    memset(channels[i].dacs_bundle, 0, sizeof(bp_dacs_bundle_t) * channels[i].attributes.max_concurrent_dacs);
                 }
                 
                 /* Initialize DACS Bundle */
@@ -1081,8 +1075,8 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                     }
                     else
                     {
-                        bplib_os_memset(channels[i].dacs_bundle[j].fills, 0, sizeof(uint32_t) * channels[i].attributes.max_fills_per_dacs);
-                        bplib_os_memset(channels[i].dacs_bundle[j].paybuf, 0, channels[i].dacs_bundle[j].paybuf_size);
+                        memset(channels[i].dacs_bundle[j].fills, 0, sizeof(uint32_t) * channels[i].attributes.max_fills_per_dacs);
+                        memset(channels[i].dacs_bundle[j].paybuf, 0, channels[i].dacs_bundle[j].paybuf_size);
                     }
     
                     /* Initialize DACS Bundle Fields */
@@ -1107,8 +1101,8 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 }
                 else
                 {
-                    bplib_os_memset(channels[i].active_table.sid, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
-                    bplib_os_memset(channels[i].active_table.retx, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
+                    memset(channels[i].active_table.sid, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
+                    memset(channels[i].active_table.retx, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
                 }
                 
                 /* Initialize Data */
@@ -1511,7 +1505,7 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
                 }
 
                 /* Successfully Load Bundle to Application and Relinquish Memory */
-                bplib_os_memcpy(bundle, ds->header, ds->bundlesize);
+                memcpy(bundle, ds->header, ds->bundlesize);
                 status = ds->bundlesize;
                 ch->stats.transmitted++;
 
@@ -1845,7 +1839,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
         if(size >= paylen)
         {
             /* Copy Payload and Set Status */
-            bplib_os_memcpy(payload, payptr, paylen);
+            memcpy(payload, payptr, paylen);
             ch->stats.delivered++;
             status = paylen;
         }
