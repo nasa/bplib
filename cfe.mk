@@ -1,5 +1,5 @@
 ###############################################################################
-# File: config.mk
+# File: cfe.mk
 #
 #  Copyright 2019 United States Government as represented by the
 #  Administrator of the National Aeronautics and Space Administration.
@@ -26,7 +26,7 @@
 ###############################################################################
 ##  PLATFORM SPECIFIC OBJECTS
 
-APP_OBJ += bplib_os_posix.o
+APP_OBJ += bplib_os_cfe.o
 APP_OBJ += bplib_store_pram.o
 
 ###############################################################################
