@@ -70,6 +70,9 @@ int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid
 {
     (void)handle;
     (void)timeout;
+    (void)data;
+    (void)size;
+    (void)sid;
     assert(data);
     assert(size);
     assert(sid);
@@ -84,6 +87,8 @@ int bplib_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid
     (void)handle;
     (void)sid;
     (void)timeout;
+    (void)data;
+    (void)size;
     assert(data);
     assert(size);
     return 0;
