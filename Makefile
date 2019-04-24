@@ -88,14 +88,12 @@ include $(CONFIG)
 TGTLIB  :=   bp
 TGTVER  :=   $(shell cat version.txt)
 CONSOLE :=   bpc
-EXECDIR :=   $(PREFIX)/bin
 LIBDIR  :=   $(PREFIX)/lib
 INCDIR  :=   $(PREFIX)/include/$(TGTLIB)
 BLDDIR  :=   build
 O       ?=   3 # default optimization level
 
 COPT    :=   -g -Wall -Wextra -O$(O) -D'LIBID="$(TGTVER)"' $(INCLUDES) $(APP_DEFS)
-COPT    +=   -DEXECPATH=\"$(EXECDIR)\"
 COPT    +=   -DLIBPATH=\"$(LIBDIR)\"
 COPT    +=   -DINCPATH=\"$(INCDIR)\"
 COPT    +=   -D_GNU_
@@ -140,6 +138,9 @@ lib: $(ALL_OBJ)
 	$(CC) $^ $(ALL_LOPT) -shared -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
 
 install: lib
+	-$(MKDIR) -p $(PREFIX)
+	-$(MKDIR) -p $(LIBDIR)
+	-$(MKDIR) -p $(INCDIR)
 	$(CP) $(BLDDIR)/lib$(TGTLIB).a $(LIBDIR)
 	$(CP) $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)
 	$(LN) -sf $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)/lib$(TGTLIB).so
