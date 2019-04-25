@@ -74,6 +74,10 @@
 #define BP_DEFAULT_CSTRQST              true
 #endif
 
+#ifndef BP_DEFAULT_ICHECK
+#define BP_DEFAULT_ICHECK               true
+#endif
+
 #ifndef BP_DEFAULT_LIFETIME
 #define BP_DEFAULT_LIFETIME             0
 #endif
@@ -267,7 +271,8 @@ static const bp_blk_pri_t native_data_pri_blk = {
     .request_custody    = BP_DEFAULT_CSTRQST,
     .allow_frag         = false,
     .is_frag            = false,
-    .report_deletion    = false
+    .report_deletion    = false,
+    .integrity_check    = BP_DEFAULT_ICHECK
 };
 
 static const bp_blk_pri_t native_dacs_pri_blk = {
@@ -294,6 +299,7 @@ static const bp_blk_pri_t native_dacs_pri_blk = {
     .allow_frag         = false,
     .is_frag            = false,
     .report_deletion    = false,
+    .integrity_check    = BP_DEFAULT_ICHECK
 };
 
 static const bp_blk_cteb_t native_cteb_blk = {
@@ -344,26 +350,42 @@ static int initialize_orig_bundle(bp_data_bundle_t* bundle)
 {
     bp_bundle_store_t*  ds      = &bundle->bundle_store;
     uint8_t*            hdrbuf  = ds->header;
+    int                 offset  = 0;
 
     /* Initialize Storage */
     memset(ds, 0, sizeof(bp_bundle_store_t));
     ds->cidsdnv = native_cteb_blk.cid;
 
-    /* Initialize Header */
+    /* Write Primary Block */
+    offset = bplib_blk_pri_write(&hdrbuf[0], BP_BUNDLE_HDR_BUF_SIZE, &bundle->primary_block, false);
+
+    /* Write Custody Block */
     if(bundle->primary_block.request_custody)
     {
-        ds->cteboffset = bplib_blk_pri_write (&hdrbuf[0],              BP_BUNDLE_HDR_BUF_SIZE,                  &bundle->primary_block,   false);
-        ds->biboffset  = bplib_blk_cteb_write(&hdrbuf[ds->cteboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->cteboffset, &bundle->custody_block,   false) + ds->cteboffset;
-        ds->payoffset  = bplib_blk_bib_write (&hdrbuf[ds->biboffset],  BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset,  &bundle->integrity_block, false) + ds->biboffset;
-        ds->headersize = bplib_blk_pay_write (&hdrbuf[ds->payoffset],  BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset,  &bundle->payload_block,   false) + ds->payoffset;
+        ds->cteboffset = offset;
+        offset = bplib_blk_cteb_write(&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->custody_block, false) + offset;
     }
     else
     {
-        ds->biboffset  = bplib_blk_pri_write (&hdrbuf[0],              BP_BUNDLE_HDR_BUF_SIZE,                  &bundle->primary_block,   false);
-        ds->payoffset  = bplib_blk_bib_write (&hdrbuf[ds->biboffset],  BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset,  &bundle->integrity_block, false) + ds->biboffset;
-        ds->headersize = bplib_blk_pay_write (&hdrbuf[ds->payoffset],  BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset,  &bundle->payload_block,   false) + ds->payoffset;
+        ds->cteboffset = 0;
     }
 
+    /* Write Integrity Block */
+    if(bundle->primary_block.integrity_check)
+    {
+        ds->biboffset = offset;
+        offset = bplib_blk_bib_write(&hdrbuf[offset],  BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->integrity_block, false) + offset;
+    }
+    else
+    {
+        ds->biboffset = 0;
+    }
+
+    /* Write Payload Block */
+    ds->payoffset = offset;
+    ds->headersize = bplib_blk_pay_write (&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
+
+    /* Return Size of Bundle Header */
     return ds->headersize;
 }
 
@@ -420,12 +442,23 @@ static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, b
         if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write custody block of forwarded bundle\n", status);
         hdr_index += status;
     }
+    else
+    {
+        ds->cteboffset = 0;
+    }
 
     /* Write Integrity Block */
-    ds->biboffset = hdr_index;
-    status = bplib_blk_bib_write(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, fbib, false);
-    if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write integrity block of forwarded bundle\n", status);
-    hdr_index += status;
+    if(bundle->primary_block.integrity_check)
+    {
+        ds->biboffset = hdr_index;
+        status = bplib_blk_bib_write(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, fbib, false);
+        if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write integrity block of forwarded bundle\n", status);
+        hdr_index += status;
+    }
+    else
+    {
+        ds->biboffset = 0;
+    }
 
     /* Copy Non-excluded Header Regions */
     for(i = 1; (i + 1) < num_excludes; i+=2)
@@ -503,8 +536,11 @@ static int store_data_bundle(bp_data_bundle_t* bundle, bp_store_enqueue_t enqueu
         }
 
         /* Update Integrity Block */
-        bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, &bundle->integrity_block);
-
+        if(ds->biboffset != 0)
+        {
+            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, &bundle->integrity_block);
+        }
+        
         /* Write Payload Block (static portion) */
         pay->blklen.value = fragment_size;
         status = bplib_blk_pay_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, pay, false);
@@ -542,18 +578,32 @@ static int initialize_dacs_bundle(bp_channel_t* ch, int dac_entry, uint32_t dstn
     bp_bundle_store_t*  ds      = &bundle->bundle_store;
     uint8_t*            hdrbuf  = ds->header;
     uint16_t            flags   = 0;
+    int                 offset  = 0;
 
     /* Initialize Storage */
     memset(ds, 0, sizeof(bp_bundle_store_t));
 
-    /* Initialize Header */
-    ds->biboffset  = bplib_blk_pri_write (&hdrbuf[0],             BP_BUNDLE_HDR_BUF_SIZE,                 &bundle->primary_block,   false);
-    ds->payoffset  = bplib_blk_bib_write (&hdrbuf[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &bundle->integrity_block, false) + ds->biboffset;
-    ds->headersize = bplib_blk_pay_write (&hdrbuf[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, &bundle->payload_block,   false) + ds->payoffset;
+    /* Write Primary Block */
+    offset = bplib_blk_pri_write(&hdrbuf[0], BP_BUNDLE_HDR_BUF_SIZE, &bundle->primary_block, false);
 
+    /* Write Integrity Block */
+    if(bundle->primary_block.integrity_check)
+    {
+        ds->biboffset = offset;
+        offset = bplib_blk_bib_write(&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->integrity_block, false) + offset;
+    }
+    else
+    {
+        ds->biboffset = 0;
+    }
+    
+    /* Write Payload Block */
+    ds->payoffset = offset;
+    ds->headersize = bplib_blk_pay_write(&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
+
+    /* Set Destination EID */
     bundle->primary_block.dstnode.value = dstnode;
     bundle->primary_block.dstserv.value = dstserv;
-
     bplib_sdnv_write(hdrbuf, BP_BUNDLE_HDR_BUF_SIZE, bundle->primary_block.dstnode, &flags);
     bplib_sdnv_write(hdrbuf, BP_BUNDLE_HDR_BUF_SIZE, bundle->primary_block.dstserv, &flags);
 
@@ -588,8 +638,11 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t 
     pri->createseq.value++;
 
     /* Update Bundle Integrity Block */
-    bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, dacs->paybuf, dacs_size, &dacs->integrity_block);
-
+    if(ds->biboffset != 0)
+    {
+        bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, dacs->paybuf, dacs_size, &dacs->integrity_block);
+    }
+    
     /* Update Payload Block */
     dacs->payload_block.payptr = dacs->paybuf;
     dacs->payload_block.paysize = dacs_size;
@@ -829,6 +882,15 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(*enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->data_bundle.primary_block.request_custody = *enable;
             else        *enable = ch->data_bundle.primary_block.request_custody;
+            break;
+        }
+        case BP_OPT_ICHECK_D:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* enable = (int*)val;
+            if(*enable != true && *enable != false) return BP_PARMERR;
+            if(getset)  ch->data_bundle.primary_block.integrity_check = *enable;
+            else        *enable = ch->data_bundle.primary_block.integrity_check;
             break;
         }
         case BP_OPT_ALLOWFRAG_D:

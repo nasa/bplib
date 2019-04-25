@@ -68,6 +68,7 @@ typedef struct {
     bool        allow_frag;             // 0: do not allow, 1: allow (for created bundles, if allowed, it will be used)
     bool        is_frag;                // 0: is not a fragment, 1: is a fragment
     bool        report_deletion;        // 0: do not report, 1: report
+    bool        integrity_check;        // 0: do not include an integrity check, 1: include bundle integrity block
 } bp_blk_pri_t;
 
 /******************************************************************************

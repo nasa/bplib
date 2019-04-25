@@ -106,15 +106,16 @@ extern "C" {
 #define BP_OPT_SETSEQUENCE_D            7
 #define BP_OPT_LIFETIME_D               8
 #define BP_OPT_CSTRQST_D                9
-#define BP_OPT_ALLOWFRAG_D              10
-#define BP_OPT_PAYCRC_D                 11
-#define BP_OPT_TIMEOUT                  12
-#define BP_OPT_BUNDLELEN                13
-#define BP_OPT_ORIGINATE                14
-#define BP_OPT_PROCADMINONLY            15
-#define BP_OPT_WRAPRSP                  16
-#define BP_OPT_CIDREUSE                 17
-#define BP_OPT_ACSRATE                  18
+#define BP_OPT_ICHECK_D                 10
+#define BP_OPT_ALLOWFRAG_D              11
+#define BP_OPT_PAYCRC_D                 12
+#define BP_OPT_TIMEOUT                  13
+#define BP_OPT_BUNDLELEN                14
+#define BP_OPT_ORIGINATE                15
+#define BP_OPT_PROCADMINONLY            16
+#define BP_OPT_WRAPRSP                  17
+#define BP_OPT_CIDREUSE                 18
+#define BP_OPT_ACSRATE                  19
     
 /* IPN Scheme Defines */
 #define BP_MAX_EID_STRING               128
