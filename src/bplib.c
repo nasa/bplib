@@ -436,7 +436,7 @@ static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, b
         bplib_ipn2eid(fcteb->csteid, BP_MAX_EID_STRING, local_node, local_service);
         ds->cidsdnv = fcteb->cid;
         ds->cteboffset = hdr_index;
-        status = bplib_blk_cteb_write(&ds->header[ds->cteboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->cteboffset, fcteb, false);
+        status = bplib_blk_cteb_write(&ds->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, fcteb, false);
         if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write custody block of forwarded bundle\n", status);
         hdr_index += status;
     }
@@ -449,7 +449,7 @@ static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, b
     if(bundle->primary_block.integrity_check)
     {
         ds->biboffset = hdr_index;
-        status = bplib_blk_bib_write(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, fbib, false);
+        status = bplib_blk_bib_write(&ds->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, fbib, false);
         if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write integrity block of forwarded bundle\n", status);
         hdr_index += status;
     }
@@ -1659,7 +1659,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             cteb_index = index;
             if(pri_blk.request_custody) exclude[ei++] = index;
             status = bplib_blk_cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, true);
-            if(status <= 0) return bplog(status, "Failed to parse CTEB block of size %d\n", size - cteb_index);
+            if(status <= 0) return bplog(status, "Failed to parse CTEB block at offset %d\n", cteb_index);
             else            index += status;
             if(pri_blk.request_custody) exclude[ei++] = index;
         }
@@ -1669,7 +1669,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             bib_index = index;
             exclude[ei++] = index;
             status = bplib_blk_bib_read(&buffer[bib_index], size - bib_index, &bib_blk, true);
-            if(status <= 0) return bplog(status, "Failed to parse BIB block of size %d\n", size - bib_index);
+            if(status <= 0) return bplog(status, "Failed to parse BIB block at offset %d\n", bib_index);
             else            index += status;
             exclude[ei++] = index;
         }
@@ -1948,7 +1948,7 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
  * bplib_eid2ipn -
  *
  *  eid -                   null-terminated string representation of End Point ID [INPUT]
- *  len -                   size in bytes of above string including null termination [INPUT]
+ *  len -                   size in bytes of above string [INPUT]
  *  node -                  node number as read from eid [OUTPUT]
  *  service -               service number as read from eid [OUTPUT]
  *  Returns:                BP_SUCCESS or error code
@@ -1956,6 +1956,7 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
 int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
 {
     char eidtmp[BP_MAX_EID_STRING];
+    int tmplen;
     char* node_ptr;
     char* service_ptr;
     char* endptr;
@@ -1969,9 +1970,9 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
     }
 
     /* Sanity Check Length of EID */
-    if(len < 8)
+    if(len < 7)
     {
-        return bplog(BP_INVALIDEID, "EID must be at least 7 characters, act: %d\n", len); // 8 if null-termination is included
+        return bplog(BP_INVALIDEID, "EID must be at least 7 characters, act: %d\n", len);
     }
     else if(len > BP_MAX_EID_STRING)
     {
@@ -1985,7 +1986,9 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
     }
 
     /* Copy EID to Temporary Buffer and Set Pointers */
-    strncpy(eidtmp, &eid[4], len - 4);
+    tmplen = len - 4;
+    memcpy(eidtmp, &eid[4], tmplen);
+    eidtmp[tmplen] = '\0';
     node_ptr = eidtmp;
     service_ptr = strchr(node_ptr, '.');
     if(service_ptr != NULL)
@@ -2040,9 +2043,9 @@ int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t service)
     }
 
     /* Sanity Check Length of EID Buffer */
-    if(len < 8)
+    if(len < 7)
     {
-        return bplog(BP_INVALIDEID, "EID buffer must be at least 7 characters, act: %d\n", len); // 8 if null-termination is included
+        return bplog(BP_INVALIDEID, "EID buffer must be at least 7 characters, act: %d\n", len);
     }
     else if(len > BP_MAX_EID_STRING)
     {

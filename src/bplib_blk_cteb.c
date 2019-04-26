@@ -95,12 +95,14 @@ int bplib_blk_cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update
         cteb->cid.index = bplib_sdnv_read(buffer, size, &cteb->blklen, &flags);
     }
 
+    /* Read Custodian EID */
     eid_index = bplib_sdnv_read(buffer, size, &cteb->cid, &flags);
-    eid_len = strnlen((char*)&buffer[eid_index], size - eid_index - 1) + 1; // include null-terminator
-
+    eid_len = cteb->blklen.value - (eid_index - cteb->cid.index);
+    if(eid_len + eid_index > size) return BP_BUNDLEPARSEERR;
     eid_status = bplib_eid2ipn((char*)&buffer[eid_index], eid_len, &cteb->cstnode, &cteb->cstserv);
     if(eid_status != BP_SUCCESS) return eid_status;
 
+    /* Set Bytes Read */
     bytes_read = eid_index + eid_len;
 
     /* Success Oriented Error Checking */
@@ -150,12 +152,11 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool updat
 
     eid_index = bplib_sdnv_write(buffer, size, cteb->cid, &flags);
 
-    eid_len = strnlen(cteb->csteid, BP_MAX_EID_STRING - 1);
-    if((eid_index + eid_len + 1) > size) return BP_BUNDLEPARSEERR;
+    eid_len = strnlen(cteb->csteid, BP_MAX_EID_STRING);
+    if((eid_index + eid_len) > size) return BP_BUNDLEPARSEERR;
     memcpy(&buffer[eid_index], cteb->csteid, eid_len);
-    buffer[eid_index + eid_len] = '\0';
 
-    bytes_written = eid_index + eid_len + 1;
+    bytes_written = eid_index + eid_len;
     cteb->blklen.value = bytes_written - cteb->cid.index;
     bplib_sdnv_write(buffer, size, cteb->blklen, &flags);
 
