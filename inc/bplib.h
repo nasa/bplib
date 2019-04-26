@@ -84,17 +84,16 @@ extern "C" {
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  // valid bundle but agent not able to comply with standard
 #define BP_FLAG_INCOMPLETE              0x0002  // block in bundle was not recognized
-#define BP_FLAG_REPORTDELETE            0x0004  // status report must be generated if bundle is deleted
-#define BP_FLAG_TOOMANYSOURCES          0x0008  // too many sources to keep track of for ACS bundles
-#define BP_FLAG_FILLOVERFLOW            0x0010  // a gap in the CIDs exceeds the max fill
-#define BP_FLAG_TOOMANYFILLS            0x0020  // all the fills in the ACS are used
-#define BP_FLAG_CIDWENTBACKWARDS        0x0040  // the custody ID went backwards
-#define BP_FLAG_ROUTENEEDED             0x0080  // the bundle returned needs to be routed before transmission
-#define BP_FLAG_STOREFAILURE            0x0100  // storage service failed to deliver data
-#define BP_FLAG_MIXEDRESPONSE           0x0200  // aggregate acknowledgement must have uniform delivery vs. forward
-#define BP_FLAG_SDNVOVERFLOW            0x0400  // insufficient room in variable to read/write value
-#define BP_FLAG_SDNVINCOMPLETE          0x0800  // insufficient room in block to read/write value
-#define BP_FLAG_ACTIVETABLEWRAP         0x1000  // the active table wrapped
+#define BP_FLAG_TOOMANYSOURCES          0x0004  // too many sources to keep track of for ACS bundles
+#define BP_FLAG_FILLOVERFLOW            0x0008  // a gap in the CIDs exceeds the max fill
+#define BP_FLAG_TOOMANYFILLS            0x0010  // all the fills in the ACS are used
+#define BP_FLAG_CIDWENTBACKWARDS        0x0020  // the custody ID went backwards
+#define BP_FLAG_ROUTENEEDED             0x0040  // the bundle returned needs to be routed before transmission
+#define BP_FLAG_STOREFAILURE            0x0080  // storage service failed to deliver data
+#define BP_FLAG_MIXEDRESPONSE           0x0100  // aggregate acknowledgement must have uniform delivery vs. forward
+#define BP_FLAG_SDNVOVERFLOW            0x0200  // insufficient room in variable to read/write value
+#define BP_FLAG_SDNVINCOMPLETE          0x0400  // insufficient room in block to read/write value
+#define BP_FLAG_ACTIVETABLEWRAP         0x0800  // the active table wrapped
 
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1

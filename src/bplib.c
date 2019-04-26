@@ -271,7 +271,6 @@ static const bp_blk_pri_t native_data_pri_blk = {
     .request_custody    = BP_DEFAULT_CSTRQST,
     .allow_frag         = false,
     .is_frag            = false,
-    .report_deletion    = false,
     .integrity_check    = BP_DEFAULT_ICHECK
 };
 
@@ -298,7 +297,6 @@ static const bp_blk_pri_t native_dacs_pri_blk = {
     .request_custody    = false,
     .allow_frag         = false,
     .is_frag            = false,
-    .report_deletion    = false,
     .integrity_check    = BP_DEFAULT_ICHECK
 };
 
@@ -1095,8 +1093,8 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 channels[i].data_bundle.primary_block.dstserv.value = destination_service;
                 channels[i].data_bundle.primary_block.srcnode.value = local_node;
                 channels[i].data_bundle.primary_block.srcserv.value = local_service;
-                channels[i].data_bundle.primary_block.rptnode.value = local_node;
-                channels[i].data_bundle.primary_block.rptserv.value = local_service;
+                channels[i].data_bundle.primary_block.rptnode.value = 0;
+                channels[i].data_bundle.primary_block.rptserv.value = 0;
                 channels[i].data_bundle.primary_block.cstnode.value = local_node;
                 channels[i].data_bundle.primary_block.cstserv.value = local_service;
                 channels[i].data_bundle.custody_block               = native_cteb_blk;
@@ -1145,8 +1143,8 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                     channels[i].dacs_bundle[j].primary_block               = native_dacs_pri_blk;
                     channels[i].dacs_bundle[j].primary_block.srcnode.value = local_node;
                     channels[i].dacs_bundle[j].primary_block.srcserv.value = local_service;
-                    channels[i].dacs_bundle[j].primary_block.rptnode.value = local_node;
-                    channels[i].dacs_bundle[j].primary_block.rptserv.value = local_service;
+                    channels[i].dacs_bundle[j].primary_block.rptnode.value = 0;
+                    channels[i].dacs_bundle[j].primary_block.rptserv.value = 0;
                     channels[i].dacs_bundle[j].primary_block.cstnode.value = local_node;
                     channels[i].dacs_bundle[j].primary_block.cstserv.value = local_service;
                     channels[i].dacs_bundle[j].integrity_block             = native_bib_blk;
@@ -1632,9 +1630,6 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     if(status <= 0) return bplog(status, "Failed to parse primary block of size %d\n", size);
     else            index += status;
     exclude[ei++] = index;
-
-    /* Set Processing Flag for Reporting Deletion */
-    if(pri_blk.report_deletion) *procflags |= BP_FLAG_REPORTDELETE;
 
     /* Check Unsupported */
     if(pri_blk.dictlen.value != 0)

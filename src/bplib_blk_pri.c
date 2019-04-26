@@ -166,10 +166,6 @@ int bplib_blk_pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_in
     if(pri->pcf.value & BP_PCF_CSTRQST_MASK)    pri->request_custody = true;
     else                                        pri->request_custody = false;
 
-    /* Set Report Deletion */
-    if(pri->pcf.value & BP_PCF_RPTDLT_MASK)     pri->report_deletion = true;
-    else                                        pri->report_deletion = false;
-
     /* Success Oriented Error Checking */
     if(flags != 0)                          return bplog(BP_BUNDLEPARSEERR, "Failed to read primary block sdnv %0X\n", flags);
     else if(pri->version != BP_PRI_VERSION) return bplog(BP_WRONGVERSION, "Incorrect version of bundle reported: %d\n", pri->version);
@@ -196,11 +192,11 @@ int bplib_blk_pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_i
     if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of primary block: %d\n", size);
 
     /* Set Process Control Flags */
+    pri->pcf.value |= BP_PCF_SINGLETON_MASK;
     if(pri->is_admin_rec == true)        pri->pcf.value |= BP_PCF_ADMIN_MASK;
     if(pri->is_frag == true)             pri->pcf.value |= BP_PCF_FRAGMENT_MASK;
     if(pri->request_custody == true)     pri->pcf.value |= BP_PCF_CSTRQST_MASK;
     if(pri->allow_frag == false)         pri->pcf.value |= BP_PCF_NOFRAG_MASK;
-    if(pri->report_deletion == true)     pri->pcf.value |= BP_PCF_RPTDLT_MASK;
 
     /* Write Block */
     buffer[0] = pri->version;
@@ -299,8 +295,8 @@ int bplib_blk_pri_display (bp_blk_pri_t* pri)
 {
     if(!pri) return false;
 
-    bplog(BP_SUCCESS, "Bundle Primary Block (admin: %d, frag:%d, rqst: %d, allow: %d, del: %d)\n",
-        pri->is_admin_rec, pri->is_frag, pri->request_custody, pri->allow_frag, pri->report_deletion);
+    bplog(BP_SUCCESS, "Bundle Primary Block (admin: %d, frag:%d, rqst: %d, allow: %d)\n",
+        pri->is_admin_rec, pri->is_frag, pri->request_custody, pri->allow_frag);
 
     bplog(BP_SUCCESS, "PCF: %08X\n",    (unsigned int)pri->pcf.value);
     bplog(BP_SUCCESS, "DST: %ld.%ld\n", (long)pri->dstnode.value, (long)pri->dstserv.value);
