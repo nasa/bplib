@@ -29,14 +29,84 @@
 #include "bplib_os.h"
 
 /******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+#ifndef FILE_MAX_STORES
+#define FILE_MAX_STORES     16
+#endif
+
+#ifndef FILE_FLUSH_DEFAULT
+#define FILE_FLUSH_DEFAULT  false
+#endif
+
+#define FILE_MAX_FILENAME   32
+#define FILE_TABLE_SIZE     256
+
+/******************************************************************************
+ MACROS
+ ******************************************************************************/
+
+#define GET_FILEID(did)         ((did) >> 8)
+#define GET_DATAOFFSET(did)   ((did) & 0xFF)
+
+/******************************************************************************
+ TYPEDEFS
+ ******************************************************************************/
+
+typedef struct {
+    bool        in_use;
+
+    FILE*       write_fd;
+    uint32_t    write_table[FILE_TABLE_SIZE];
+    uint32_t    write_data_id;
+    
+    FILE*       read_fd;
+    uint32_t    read_table[FILE_TABLE_SIZE];
+    uint32_t    read_data_id;
+    bool        read_error;
+
+    FILE*       retrieve_fd;
+    uint32_t    retrieve_table[FILE_TABLE_SIZE];
+
+    uint32_t    active_cnt;
+} file_store_t;
+
+/******************************************************************************
+ FILE DATA
+ ******************************************************************************/
+
+static file_store_t file_stores[FILE_MAX_STORES];
+static bool file_flush = FILE_FLUSH_DEFAULT;
+
+/******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
+
+/*--------------------------------------------------------------------------------------
+ * bplib_store_pfile_init -
+ *-------------------------------------------------------------------------------------*/
+void bplib_store_pfile_init (void)
+{
+    memset(file_stores, 0, sizeof(file_stores));
+}
 
 /*--------------------------------------------------------------------------------------
  * bplib_store_pfile_create -
  *-------------------------------------------------------------------------------------*/
 int bplib_store_pfile_create (void)
 {
+    int s;
+    for(s = 0; s < FILE_MAX_STORES; s++)
+    {
+        if(file_stores[s].in_use == false)
+        {
+            memset(&file_stores[s], 0, sizeof(file_stores[s]));
+            file_stores[s].in_use = true;
+            return s;
+        }
+    }
+
     return BP_INVALID_HANDLE;
 }
 
@@ -45,7 +115,13 @@ int bplib_store_pfile_create (void)
  *-------------------------------------------------------------------------------------*/
 int bplib_store_pfile_destroy (int handle)
 {
-    (void)handle;
+    assert(handle >= 0 && handle < FILE_MAX_STORES);
+    assert(file_stores[handle].in_use);
+
+    if(file_stores[handle].write_fd) fclose(file_stores[handle].write_fd);
+    if(file_stores[handle].read_fd) fclose(file_stores[handle].read_fd);
+    if(file_stores[handle].retrieve_fd) fclose(file_stores[handle].retrieve_fd);
+
     return 0;
 }
 
@@ -54,13 +130,89 @@ int bplib_store_pfile_destroy (int handle)
  *-------------------------------------------------------------------------------------*/
 int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout)
 {
-    (void)handle;
-    (void)data1;
-    (void)data1_size;
-    (void)data2;
-    (void)data2_size;
     (void)timeout;
-    return 0;
+
+    assert(handle >= 0 && handle < FILE_MAX_STORES);
+    assert(file_stores[handle].in_use);
+
+    /* Initialize Variables */
+    file_store_t* fs = (file_store_t*)&file_stores[handle];
+    uint32_t data_size = data1_size + data2_size;
+    uint32_t bytes_written = 0;
+    bool table_error = false;
+    bool flush_error = false;
+    
+    /* Get IDs */
+    uint32_t file_id = GET_FILEID(fs->write_data_id);
+    uint32_t data_offset = GET_DATAOFFSET(fs->write_data_id);
+    
+    /* Check Need to Open Write File */
+    if(fs->write_fd == NULL)
+    {
+        /* Open Write File */
+        char filename[FILE_MAX_FILENAME];
+        snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
+        fs->write_fd = fopen(filename, "wb");
+    }
+
+    /* Check Write File Open */
+    if(fs->write_fd != NULL)
+    {
+        /* Write Data Buffer 1 */
+        bytes_written += fwrite(data1, 1, data1_size, fs->write_fd);
+
+        /* Write Data Buffer 2 */
+        bytes_written += fwrite(data2, 1, data2_size, fs->write_fd);
+        
+        /* Flush File Data */
+        if(file_flush)
+        {
+            int status = fflush(fs->write_fd);
+            if(status < 0) flush_error = true;
+        }
+    }
+
+    /* Add Entry into Write Table */
+    if(data_offset == 0)    fs->write_table[data_offset] = bytes_written;
+    else                    fs->write_table[data_offset] = bytes_written + fs->write_table[data_offset - 1];
+    fs->write_data_id++;
+
+    /* Write Table File */
+    if(fs->write_data_id % FILE_TABLE_SIZE == 0)
+    {
+        /* Close Write File */
+        fclose(fs->write_fd);
+        fs->write_fd = NULL;
+
+        /* Open Table File */
+        char filename[FILE_MAX_FILENAME];
+        snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
+        fs->write_fd = fopen(filename, "wb");
+        if(fs->write_fd != NULL)
+        {
+            /* Write Table */
+            size_t status = fwrite(fs->write_table, 1, sizeof(fs->write_table), fs->write_fd);
+            if(status != sizeof(fs->write_table)) table_error = true;
+            
+            /* Close Write File */
+            fclose(fs->write_fd);
+            fs->write_fd = NULL;
+        }
+        else
+        {
+            table_error = true;
+        }
+    }
+
+    /* Check Errors and Return Status */
+    if((bytes_written != data_size) || table_error || flush_error)
+    {
+        return BP_FAILEDSTORE;
+    }
+    else
+    {
+        return bytes_written;
+    }
 }
 
 /*--------------------------------------------------------------------------------------
@@ -68,15 +220,99 @@ int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* da
  *-------------------------------------------------------------------------------------*/
 int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid, int timeout)
 {
-    (void)handle;
     (void)timeout;
-    (void)data;
-    (void)size;
-    (void)sid;
+
+    assert(handle >= 0 && handle < FILE_MAX_STORES);
+    assert(file_stores[handle].in_use);
     assert(data);
-    assert(size);
     assert(sid);
-    return 0;
+
+    /* Initialize Variables */
+    file_store_t* fs = (file_store_t*)&file_stores[handle];
+    size_t read_status = 0;
+    uint32_t data_position = 0;
+    uint32_t data_size = 0;
+    unsigned char* data_ptr = NULL;
+
+    /* Get IDs */
+    uint32_t file_id = GET_FILEID(fs->read_data_id);
+    uint32_t data_offset = GET_DATAOFFSET(fs->read_data_id);
+    uint32_t data_id = fs->read_data_id;
+    
+    /* Check Need to Open Read File */
+    if(fs->read_fd == NULL)
+    {
+        char filename[FILE_MAX_FILENAME];
+
+        /* Open Read Table File */
+        snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
+        fs->read_fd = fopen(filename, "rb");
+        if(fs->read_fd == NULL) 
+        {
+            return BP_FAILEDSTORE;
+        }
+
+        /* Populate Read Table */
+        read_status = fread(fs->read_table, 1, sizeof(fs->read_table), fs->read_fd);
+        fclose(fs->read_fd);
+        fs->read_fd = NULL;
+        if(read_status != sizeof(fs->read_table)) 
+        {
+            return BP_FAILEDSTORE;
+        }
+        
+        /* Open Read File */
+        snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
+        fs->read_fd = fopen(filename, "rb");
+        if(fs->read_fd == NULL) 
+        {
+            return BP_FAILEDSTORE;
+        }
+    }
+
+    /* Check Read Data ID */
+    fs->read_data_id++;
+    if(fs->read_table[data_offset] == 0)
+    {
+        /*
+         * A value of zero in the read table indicates that no data block was
+         * written for the current read_data_id
+         */
+        return BP_FAILEDSTORE;
+    }
+    else if(data_offset == 0)
+    {
+        data_position = 0;
+        data_size = fs->read_table[data_offset];
+    }
+    else
+    {
+        data_position = fs->read_table[data_offset - 1];
+        data_size = fs->read_table[data_offset] - data_position;
+    }
+    
+    /* Check if File Seek Needed */
+    if(fs->read_error)
+    {
+        int status = fseek(fs->read_fd, data_position, SEEK_SET);
+        if(status < 0) return BP_FAILEDSTORE;
+    }
+    
+    /* Read Data */
+    data_ptr = (unsigned char*)malloc(data_size);
+    read_status = fread(data_ptr, 1, data_size, fs->read_fd);
+    if(read_status != data_size)
+    {
+        fs->read_error = true;
+        free(data_ptr);
+        return BP_FAILEDSTORE;
+    }
+    
+    /* Set Function Parameters and Return Success */
+    *data = data_ptr;
+    if(size) *size = data_size;
+    *sid = (bp_sid_t)(unsigned long long)data_id;
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -84,6 +320,9 @@ int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid
  *-------------------------------------------------------------------------------------*/
 int bplib_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid, int timeout)
 {
+    assert(handle >= 0 && handle < FILE_MAX_STORES);
+    assert(file_stores[handle].in_use);
+
     (void)handle;
     (void)sid;
     (void)timeout;
@@ -99,6 +338,9 @@ int bplib_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid
  *-------------------------------------------------------------------------------------*/
 int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
 {
+    assert(handle >= 0 && handle < FILE_MAX_STORES);
+    assert(file_stores[handle].in_use);
+
     (void)handle;
     (void)sid;
     return 0;
@@ -109,6 +351,9 @@ int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
  *-------------------------------------------------------------------------------------*/
 int bplib_store_pfile_getcount (int handle)
 {
+    assert(handle >= 0 && handle < FILE_MAX_STORES);
+    assert(file_stores[handle].in_use);
+
     (void)handle;
     return 0;
 }

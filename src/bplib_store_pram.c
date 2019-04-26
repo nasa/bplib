@@ -93,7 +93,7 @@ typedef void* msgq_t;
  * FILE DATA
  ******************************************************************************/
 
-static msgq_t msgq_stores[MSGQ_MAX_STORES];
+static msgq_t msgq_stores[MSGQ_MAX_STORES] = {NULL};
 static unsigned long store_id = 0;
 
 /******************************************************************************
