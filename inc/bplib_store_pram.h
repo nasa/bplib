@@ -38,13 +38,14 @@ extern "C" {
  PROTOTYPES
  ******************************************************************************/
 
-int bplib_store_pram_create     (void);
-int bplib_store_pram_destroy    (int handle);
-int bplib_store_pram_enqueue    (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
-int bplib_store_pram_dequeue    (int handle, void** data, int* size, bp_sid_t* sid, int timeout);
-int bplib_store_pram_retrieve   (int handle, void** data, int* size, bp_sid_t sid, int timeout);
-int bplib_store_pram_relinquish (int handle, bp_sid_t sid);
-int bplib_store_pram_getcount   (int handle);
+void    bplib_store_pram_init           (void);
+int     bplib_store_pram_create         (void);
+int     bplib_store_pram_destroy        (int handle);
+int     bplib_store_pram_enqueue        (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
+int     bplib_store_pram_dequeue        (int handle, void** data, int* size, bp_sid_t* sid, int timeout);
+int     bplib_store_pram_retrieve       (int handle, void** data, int* size, bp_sid_t sid, int timeout);
+int     bplib_store_pram_relinquish     (int handle, bp_sid_t sid);
+int     bplib_store_pram_getcount       (int handle);
 
 #ifdef __cplusplus
 } // extern "C"

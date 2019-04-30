@@ -85,8 +85,8 @@ typedef void* msgq_t;
  * FILE DATA
  ******************************************************************************/
 
-static msgq_t msgq_stores[MSGQ_MAX_STORES] = {NULL};
-static unsigned long store_id = 0;
+static msgq_t msgq_stores[MSGQ_MAX_STORES];
+static unsigned long store_id;
 
 /******************************************************************************
  * LOCAL QUEUE FUNCTIONS
@@ -430,6 +430,15 @@ static int msgq_getcount(msgq_t queue_handle)
 /******************************************************************************
  * EXPORTED FUNCTIONS
  ******************************************************************************/
+
+/*----------------------------------------------------------------------------
+ * bplib_store_pram_init -
+ *----------------------------------------------------------------------------*/
+void bplib_store_pram_init (void)
+{
+    memset(msgq_stores, 0, sizeof(msgq_stores));
+    store_id = 0;
+}
 
 /*----------------------------------------------------------------------------
  * bplib_store_pram_create -
