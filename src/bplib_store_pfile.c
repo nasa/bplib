@@ -58,16 +58,14 @@ typedef struct {
     bool        in_use;
 
     FILE*       write_fd;
-    uint32_t    write_table[FILE_TABLE_SIZE];
     uint32_t    write_data_id;
+    bool        write_error;
     
     FILE*       read_fd;
-    uint32_t    read_table[FILE_TABLE_SIZE];
     uint32_t    read_data_id;
     bool        read_error;
 
     FILE*       retrieve_fd;
-    uint32_t    retrieve_table[FILE_TABLE_SIZE];
 
     uint32_t    active_cnt;
 } file_store_t;
@@ -139,7 +137,6 @@ int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* da
     file_store_t* fs = (file_store_t*)&file_stores[handle];
     uint32_t data_size = data1_size + data2_size;
     uint32_t bytes_written = 0;
-    bool table_error = false;
     bool flush_error = false;
     
     /* Get IDs */
@@ -152,12 +149,38 @@ int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* da
         /* Open Write File */
         char filename[FILE_MAX_FILENAME];
         snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
-        fs->write_fd = fopen(filename, "wb");
+        fs->write_fd = fopen(filename, "ab");
+        
+        /* Seek to Current Position */
+        if(fs->write_error)
+        {
+            uint32_t current_size;
+            uint32_t bytes_read;
+            int status, pos;
+            
+            /* Start at Beginning of File */
+            status = fseek(fs->write_fd, 0, SEEK_SET);
+            if(status < 0) return BP_FAILEDSTORE;
+            
+            for(pos = 0; pos < data_offset; pos++)
+            {
+                /* Read Current Data Size */
+                bytes_read = fread(&current_size, 1, sizeof(current_size), fs->write_fd);
+                if(bytes_read != sizeof(current_size)) return BP_FAILEDSTORE;
+
+                /* Seek to End of Current Data */
+                status = fseek(fs->write_fd, current_size, SEEK_CUR);
+                if(status < 0) return BP_FAILEDSTORE;
+            }
+        }
     }
 
     /* Check Write File Open */
     if(fs->write_fd != NULL)
     {
+        /* Write Data Size */
+        bytes_written += fwrite(&data_size, 1, sizeof(data_size), fs->write_fd);
+        
         /* Write Data Buffer 1 */
         bytes_written += fwrite(data1, 1, data1_size, fs->write_fd);
 
@@ -172,45 +195,32 @@ int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* da
         }
     }
 
-    /* Add Entry into Write Table */
-    if(data_offset == 0)    fs->write_table[data_offset] = bytes_written;
-    else                    fs->write_table[data_offset] = bytes_written + fs->write_table[data_offset - 1];
-    fs->write_data_id++;
-
-    /* Write Table File */
-    if(fs->write_data_id % FILE_TABLE_SIZE == 0)
+    /* Check Errors and Return Status */
+    if((bytes_written != (data_size + sizeof(data_size))) || flush_error)
     {
-        /* Close Write File */
-        fclose(fs->write_fd);
-        fs->write_fd = NULL;
-
-        /* Open Table File */
-        char filename[FILE_MAX_FILENAME];
-        snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
-        fs->write_fd = fopen(filename, "wb");
-        if(fs->write_fd != NULL)
+        fs->write_error = true;
+        if(fs->write_fd)
         {
-            /* Write Table */
-            size_t status = fwrite(fs->write_table, 1, sizeof(fs->write_table), fs->write_fd);
-            if(status != sizeof(fs->write_table)) table_error = true;
-            
-            /* Close Write File */
             fclose(fs->write_fd);
             fs->write_fd = NULL;
         }
-        else
-        {
-            table_error = true;
-        }
-    }
-
-    /* Check Errors and Return Status */
-    if((bytes_written != data_size) || table_error || flush_error)
-    {
+        
+        /* Return Failure */
         return BP_FAILEDSTORE;
     }
     else
     {
+        fs->write_error = false;
+        fs->write_data_id++;
+
+        /* Close Write File */
+        if(fs->write_data_id % FILE_TABLE_SIZE == 0)
+        {
+            fclose(fs->write_fd);
+            fs->write_fd = NULL;
+        }
+
+        /* Return Success */
         return bytes_written;
     }
 }
@@ -306,6 +316,10 @@ int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid
         fs->read_error = true;
         free(data_ptr);
         return BP_FAILEDSTORE;
+    }
+    else
+    {
+        fs->read_error = false;
     }
     
     /* Set Function Parameters and Return Success */
