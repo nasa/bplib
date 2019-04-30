@@ -45,17 +45,9 @@
 #define MSGQ_STORE_STR          "bplibq"
 #define MSGQ_STORE_STR_SIZE     32
     
-#ifndef MSGQ_MAX_STORES    
 #define MSGQ_MAX_STORES         64
-#endif    
-    
-#ifndef MSGQ_MAX_DEPTH    
 #define MSGQ_MAX_DEPTH          65536
-#endif    
-    
-#ifndef MSGQ_MAX_SIZE    
 #define MSGQ_MAX_SIZE           MSGQ_SIZE_INFINITY
-#endif
 
 /******************************************************************************
  * TYPEDEFS

@@ -38,86 +38,6 @@
  DEFINES
  ******************************************************************************/
 
-#ifndef BP_DEFAULT_MAX_CHANNELS
-#define BP_DEFAULT_MAX_CHANNELS         4
-#endif
-
-#ifndef BP_DEFAULT_ACTIVE_TABLE_SIZE
-#define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
-#endif
-
-#ifndef BP_DEFAULT_MAX_CONCURRENT_DACS
-#define BP_DEFAULT_MAX_CONCURRENT_DACS  4   // maximum number of custody eids to keep track of
-#endif
-
-#ifndef BP_DEFAULT_MAX_FILLS_PER_DACS
-#define BP_DEFAULT_MAX_FILLS_PER_DACS   64
-#endif
-
-#ifndef BP_DEFAULT_PAY_CRC
-#define BP_DEFAULT_PAY_CRC              BP_BIB_CRC16
-#endif
-
-#ifndef BP_DEFAULT_TIMEOUT
-#define BP_DEFAULT_TIMEOUT              10
-#endif
-
-#ifndef BP_DEFAULT_CREATE_TIME_SYS
-#define BP_DEFAULT_CREATE_TIME_SYS      true
-#endif
-
-#ifndef BP_DEFAULT_CREATE_SECS
-#define BP_DEFAULT_CREATE_SECS          0
-#endif
-
-#ifndef BP_DEFAULT_CSTRQST
-#define BP_DEFAULT_CSTRQST              true
-#endif
-
-#ifndef BP_DEFAULT_ICHECK
-#define BP_DEFAULT_ICHECK               true
-#endif
-
-#ifndef BP_DEFAULT_LIFETIME
-#define BP_DEFAULT_LIFETIME             0
-#endif
-
-#ifndef BP_DEFAULT_BUNDLE_MAXLENGTH
-#define BP_DEFAULT_BUNDLE_MAXLENGTH     4096
-#endif
-
-#ifndef BP_DEFAULT_SEQ_RESET_PERIOD
-#define BP_DEFAULT_SEQ_RESET_PERIOD     0
-#endif
-
-#ifndef BP_DEFAULT_PROC_ADMIN_ONLY
-#define BP_DEFAULT_PROC_ADMIN_ONLY      false
-#endif
-
-#ifndef BP_DEFAULT_WRAP_RESPONSE
-#define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
-#endif
-
-#ifndef BP_DEFAULT_WRAP_TIMEOUT
-#define BP_DEFAULT_WRAP_TIMEOUT         1000    // milliseconds
-#endif
-
-#ifndef BP_DEFAULT_CID_REUSE
-#define BP_DEFAULT_CID_REUSE            false
-#endif
-
-#ifndef BP_DEFAULT_DACS_RATE
-#define BP_DEFAULT_DACS_RATE            5       // seconds
-#endif
-
-#ifndef BP_DEFAULT_ORIGINATION
-#define BP_DEFAULT_ORIGINATION          true
-#endif
-
-#ifndef BP_DEFAULT_BP_VERSION
-#define BP_DEFAULT_BP_VERSION           BP_PRI_VERSION
-#endif
-
 #ifndef LIBID
 #define LIBID                           "unversioned"
 #endif
@@ -127,6 +47,26 @@
 #define BP_BUNDLE_HDR_BUF_SIZE          128
 #define BP_NUM_EXCLUDE_REGIONS          8
 
+#define BP_DEFAULT_MAX_CHANNELS         4
+#define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
+#define BP_DEFAULT_MAX_CONCURRENT_DACS  4   // maximum number of custody eids to keep track of
+#define BP_DEFAULT_MAX_FILLS_PER_DACS   64
+#define BP_DEFAULT_PAY_CRC              BP_BIB_CRC16
+#define BP_DEFAULT_TIMEOUT              10
+#define BP_DEFAULT_CREATE_TIME_SYS      true
+#define BP_DEFAULT_CREATE_SECS          0
+#define BP_DEFAULT_CSTRQST              true
+#define BP_DEFAULT_ICHECK               true
+#define BP_DEFAULT_LIFETIME             0
+#define BP_DEFAULT_BUNDLE_MAXLENGTH     4096
+#define BP_DEFAULT_SEQ_RESET_PERIOD     0
+#define BP_DEFAULT_PROC_ADMIN_ONLY      false
+#define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
+#define BP_DEFAULT_WRAP_TIMEOUT         1000    // milliseconds
+#define BP_DEFAULT_CID_REUSE            false
+#define BP_DEFAULT_DACS_RATE            5       // seconds
+#define BP_DEFAULT_ORIGINATION          true
+#define BP_DEFAULT_BP_VERSION           BP_PRI_VERSION
 
 /******************************************************************************
  TYPEDEFS

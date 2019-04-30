@@ -32,42 +32,55 @@
  DEFINES
  ******************************************************************************/
 
-#ifndef FILE_MAX_STORES
-#define FILE_MAX_STORES     16
-#endif
-
-#ifndef FILE_FLUSH_DEFAULT
-#define FILE_FLUSH_DEFAULT  false
-#endif
-
-#define FILE_MAX_FILENAME   32
-#define FILE_TABLE_SIZE     256
+#define FILE_MAX_STORES         16
+#define FILE_FLUSH_DEFAULT      false
+#define FILE_MAX_FILENAME       32
+#define FILE_DATA_COUNT         256
+#define FILE_DATA_CACHE_SIZE    16384
 
 /******************************************************************************
  MACROS
  ******************************************************************************/
 
-#define GET_FILEID(did)         ((did) >> 8)
-#define GET_DATAOFFSET(did)   ((did) & 0xFF)
+#define GET_FILEID(did)     ((did) >> 8)
+#define GET_DATAOFFSET(did) ((did) & 0xFF)
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
 typedef struct {
-    bool        in_use;
+    void*           mem_ptr;
+    uint32_t        mem_size;
+    uint32_t        mem_data_id;
+} data_cache_t;
 
-    FILE*       write_fd;
-    uint32_t    write_data_id;
-    bool        write_error;
+typedef struct {
+    bool            freed[FILE_DATA_COUNT];
+    int             free_cnt;
+} free_table_t;
+
+typedef struct {
+    bool            in_use;
+
+    FILE*           write_fd;
+    uint32_t        write_data_id;
+    bool            write_error;
     
-    FILE*       read_fd;
-    uint32_t    read_data_id;
-    bool        read_error;
+    FILE*           read_fd;
+    uint32_t        read_data_id;
+    bool            read_error;
 
-    FILE*       retrieve_fd;
+    FILE*           retrieve_fd;
+    uint32_t        retrieve_data_id;
 
-    uint32_t    active_cnt;
+    FILE*           relinquish_fd;
+    uint32_t        relinquish_data_id;
+    free_table_t    relinquish_table;         
+
+    uint32_t        active_cnt;
+    
+    data_cache_t    data_cache[FILE_DATA_CACHE_SIZE];
 } file_store_t;
 
 /******************************************************************************
@@ -156,7 +169,8 @@ int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* da
         {
             uint32_t current_size;
             uint32_t bytes_read;
-            int status, pos;
+            unsigned int pos;
+            int status;
             
             /* Start at Beginning of File */
             status = fseek(fs->write_fd, 0, SEEK_SET);
@@ -212,9 +226,10 @@ int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* da
     {
         fs->write_error = false;
         fs->write_data_id++;
+        fs->active_cnt++;
 
         /* Close Write File */
-        if(fs->write_data_id % FILE_TABLE_SIZE == 0)
+        if(fs->write_data_id % FILE_DATA_COUNT == 0)
         {
             fclose(fs->write_fd);
             fs->write_fd = NULL;
@@ -239,10 +254,10 @@ int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid
 
     /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
-    size_t read_status = 0;
-    uint32_t data_position = 0;
+    uint32_t bytes_read = 0;
     uint32_t data_size = 0;
     unsigned char* data_ptr = NULL;
+    uint32_t cache_index = 0;
 
     /* Get IDs */
     uint32_t file_id = GET_FILEID(fs->read_data_id);
@@ -252,26 +267,8 @@ int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid
     /* Check Need to Open Read File */
     if(fs->read_fd == NULL)
     {
-        char filename[FILE_MAX_FILENAME];
-
-        /* Open Read Table File */
-        snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
-        fs->read_fd = fopen(filename, "rb");
-        if(fs->read_fd == NULL) 
-        {
-            return BP_FAILEDSTORE;
-        }
-
-        /* Populate Read Table */
-        read_status = fread(fs->read_table, 1, sizeof(fs->read_table), fs->read_fd);
-        fclose(fs->read_fd);
-        fs->read_fd = NULL;
-        if(read_status != sizeof(fs->read_table)) 
-        {
-            return BP_FAILEDSTORE;
-        }
-        
         /* Open Read File */
+        char filename[FILE_MAX_FILENAME];
         snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
         fs->read_fd = fopen(filename, "rb");
         if(fs->read_fd == NULL) 
@@ -280,52 +277,75 @@ int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid
         }
     }
 
-    /* Check Read Data ID */
-    fs->read_data_id++;
-    if(fs->read_table[data_offset] == 0)
-    {
-        /*
-         * A value of zero in the read table indicates that no data block was
-         * written for the current read_data_id
-         */
-        return BP_FAILEDSTORE;
-    }
-    else if(data_offset == 0)
-    {
-        data_position = 0;
-        data_size = fs->read_table[data_offset];
-    }
-    else
-    {
-        data_position = fs->read_table[data_offset - 1];
-        data_size = fs->read_table[data_offset] - data_position;
-    }
-    
-    /* Check if File Seek Needed */
+    /* Seek to Current Position */
     if(fs->read_error)
     {
-        int status = fseek(fs->read_fd, data_position, SEEK_SET);
+        uint32_t current_size;
+        unsigned int pos;
+        int status;
+
+        /* Start at Beginning of File */
+        status = fseek(fs->read_fd, 0, SEEK_SET);
         if(status < 0) return BP_FAILEDSTORE;
+
+        for(pos = 0; pos < data_offset; pos++)
+        {
+            /* Read Current Data Size */
+            bytes_read = fread(&current_size, 1, sizeof(current_size), fs->read_fd);
+            if(bytes_read != sizeof(current_size)) return BP_FAILEDSTORE;
+
+            /* Seek to End of Current Data */
+            status = fseek(fs->read_fd, current_size, SEEK_CUR);
+            if(status < 0) return BP_FAILEDSTORE;
+        }
     }
     
     /* Read Data */
-    data_ptr = (unsigned char*)malloc(data_size);
-    read_status = fread(data_ptr, 1, data_size, fs->read_fd);
-    if(read_status != data_size)
+    bytes_read = fread(&data_size, 1, sizeof(data_size), fs->read_fd);
+    if(bytes_read == sizeof(data_size))
     {
-        fs->read_error = true;
-        free(data_ptr);
-        return BP_FAILEDSTORE;
+        data_ptr = (unsigned char*)malloc(data_size);
+        bytes_read = fread(data_ptr, 1, data_size, fs->read_fd);
+        if(bytes_read == data_size)
+        {
+            fs->read_error = false;
+            fs->read_data_id++;
+
+            /* Close Read File */
+            if(fs->read_data_id % FILE_DATA_COUNT == 0)
+            {
+                fclose(fs->read_fd);
+                fs->read_fd = NULL;
+            }
+        }
+        else
+        {
+            fs->read_error = true;
+            free(data_ptr);
+            
+            /* Close Read File */
+            if(fs->read_fd)
+            {
+                fclose(fs->read_fd);
+                fs->read_fd = NULL;
+            }
+            
+            /* Return Failure */
+            return BP_FAILEDSTORE;
+        }
     }
-    else
-    {
-        fs->read_error = false;
-    }
+    
+    /* Set Data Cache */
+    cache_index = data_id % FILE_DATA_CACHE_SIZE;
+    if(fs->data_cache[cache_index].mem_ptr) free(fs->data_cache[cache_index].mem_ptr);
+    fs->data_cache[cache_index].mem_ptr = data_ptr;
+    fs->data_cache[cache_index].mem_size = data_size;
+    fs->data_cache[cache_index].mem_data_id = data_id;
     
     /* Set Function Parameters and Return Success */
     *data = data_ptr;
     if(size) *size = data_size;
-    *sid = (bp_sid_t)(unsigned long long)data_id;
+    *sid = (bp_sid_t)(unsigned long)data_id;
     return BP_SUCCESS;
 }
 
@@ -336,15 +356,129 @@ int bplib_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid
 {
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
-
-    (void)handle;
-    (void)sid;
+    
     (void)timeout;
-    (void)data;
-    (void)size;
-    assert(data);
-    assert(size);
-    return 0;
+    
+    /* Initialize Variables */
+    file_store_t* fs = (file_store_t*)&file_stores[handle];
+    int seek_status = 0;
+    uint32_t bytes_read = 0;
+    uint32_t data_size = 0;
+    unsigned char* data_ptr = NULL;
+    uint32_t cache_index = 0;
+    int offset_delta = 0;
+
+    /* Get IDs */
+    uint32_t data_id = (uint32_t)(unsigned long)sid;
+    uint32_t file_id = GET_FILEID(data_id);
+    uint32_t data_offset = GET_DATAOFFSET(data_id);
+    uint32_t curr_file_id = GET_FILEID(fs->retrieve_data_id);
+    uint32_t curr_data_offset = GET_DATAOFFSET(fs->retrieve_data_id);
+            
+    /* Check Data Cache */
+    cache_index = data_id;
+    if(fs->data_cache[cache_index].mem_ptr)
+    {
+        if(fs->data_cache[cache_index].mem_data_id == data_id)
+        {
+            /* Return Data Cache */
+            *data = fs->data_cache[cache_index].mem_ptr;
+            if(size) *size = fs->data_cache[cache_index].mem_size;
+            return BP_SUCCESS;    
+        }
+    }
+    
+    /* Check Need to Open New Retrieve File */
+    if(file_id != curr_file_id)
+    {
+        if(fs->retrieve_fd)
+        {
+            fclose(fs->retrieve_fd);
+            fs->retrieve_fd = NULL;
+        }
+    }
+    
+    /* Check Need to Open Retrieve File */
+    if(fs->retrieve_fd == NULL)
+    {        
+        /* Open Retrieve File */
+        char filename[FILE_MAX_FILENAME];
+        snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
+        fs->retrieve_fd = fopen(filename, "rb");
+        if(fs->retrieve_fd == NULL) 
+        {
+            return BP_FAILEDSTORE;
+        }
+
+    }
+    else
+    {
+        /* Set Delta from Current Position in File */
+        offset_delta = data_offset - curr_data_offset;
+        if(offset_delta < 0)
+        {
+            /* Handling Seeking Backwards */
+            offset_delta = data_offset;
+            seek_status = fseek(fs->retrieve_fd, 0, SEEK_SET);
+            if(seek_status < 0) return BP_FAILEDSTORE;        
+        }
+    }            
+    
+    /* Seek Forward */
+    if(offset_delta > 0)
+    {
+        uint32_t current_size;
+        int pos;
+
+        for(pos = 0; pos < offset_delta; pos++)
+        {
+            /* Read Current Data Size */
+            bytes_read = fread(&current_size, 1, sizeof(current_size), fs->retrieve_fd);
+            if(bytes_read != sizeof(current_size)) return BP_FAILEDSTORE;
+
+            /* Seek to End of Current Data */
+            seek_status = fseek(fs->retrieve_fd, current_size, SEEK_CUR);
+            if(seek_status < 0) return BP_FAILEDSTORE;
+        }
+    }
+    
+    /* Read Data */
+    bytes_read = fread(&data_size, 1, sizeof(data_size), fs->retrieve_fd);
+    if(bytes_read == sizeof(data_size))
+    {
+        data_ptr = (unsigned char*)malloc(data_size);
+        bytes_read = fread(data_ptr, 1, data_size, fs->retrieve_fd);
+        if(bytes_read == data_size)
+        {
+            fs->retrieve_data_id = data_id;
+        }
+        else
+        {
+            free(data_ptr);
+            
+            /* Close Read File */
+            if(fs->read_fd)
+            {
+                fclose(fs->read_fd);
+                fs->read_fd = NULL;
+            }
+            
+            /* Return Failure */
+            return BP_FAILEDSTORE;
+        }
+    }
+    
+    /* Set Data Cache */
+    cache_index = data_id % FILE_DATA_CACHE_SIZE;
+    if(fs->data_cache[cache_index].mem_ptr) free(fs->data_cache[cache_index].mem_ptr);
+    fs->data_cache[cache_index].mem_ptr = data_ptr;
+    fs->data_cache[cache_index].mem_size = data_size;
+    fs->data_cache[cache_index].mem_data_id = data_id;
+
+    /* Set Function Parameters and Return Success */
+    *data = data_ptr;
+    if(size) *size = data_size;
+    return BP_SUCCESS;    
 }
 
 /*--------------------------------------------------------------------------------------
@@ -355,9 +489,120 @@ int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
-    (void)handle;
-    (void)sid;
-    return 0;
+    /* Initialize Variables */
+    file_store_t* fs = (file_store_t*)&file_stores[handle];
+    uint32_t cache_index = 0;
+    uint32_t bytes_read = 0;
+    uint32_t bytes_written = 0;
+
+    /* Get IDs */
+    uint32_t data_id = (uint32_t)(unsigned long)sid;
+    uint32_t file_id = GET_FILEID(data_id);
+    uint32_t data_offset = GET_DATAOFFSET(data_id);
+    uint32_t curr_file_id = GET_FILEID(fs->relinquish_data_id);
+
+    /* Check Data Cache */
+    cache_index = data_id;
+    if(fs->data_cache[cache_index].mem_ptr)
+    {
+        if(fs->data_cache[cache_index].mem_data_id == data_id)
+        {
+            free(fs->data_cache[cache_index].mem_ptr);
+            fs->data_cache[cache_index].mem_ptr = NULL;
+        }
+    }
+
+    /* Check Need to Read New Relinquish Table */
+    if(file_id != curr_file_id)
+    {
+        char filename[FILE_MAX_FILENAME];
+
+        if(fs->relinquish_table.free_cnt > 0)
+        {
+            /* Open Previous Relinquish File */
+            if(fs->relinquish_fd == NULL)
+            {
+                snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
+                fs->relinquish_fd = fopen(filename, "wb");
+                if(fs->relinquish_fd == NULL) return BP_FAILEDSTORE;
+            }
+
+            /* Write Previous Relinquish Table */
+            bytes_written = fwrite(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+
+            /* Close Previous Relinquish File */
+            fclose(fs->relinquish_fd);
+            fs->relinquish_fd = NULL;
+
+            /* Check Status of Write */
+            if(bytes_written != sizeof(fs->relinquish_table))
+            {
+                return BP_FAILEDSTORE;
+            }
+        }
+
+        /* Open New Relinquish File */
+        snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
+        fs->relinquish_fd = fopen(filename, "rb");
+        if(fs->relinquish_fd == NULL)
+        {
+            /* Initialize New Relinquish Table */
+            memset(&fs->relinquish_table, 0, sizeof(fs->relinquish_table));
+        }
+        else
+        {
+            /* Read Relinquish Table */
+            bytes_read = fread(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+            if(bytes_read != sizeof(fs->relinquish_table))
+            {
+                fclose(fs->relinquish_fd);
+                fs->relinquish_fd = NULL;
+                return BP_FAILEDSTORE;
+            }
+        }
+        
+        /* Close New Relinquish File */
+        fclose(fs->relinquish_fd);
+        fs->relinquish_fd = NULL;
+
+        /* Set Current Relinquish Table */
+        fs->relinquish_data_id = data_id;
+
+    }
+    
+    /* Mark Data as Relinquished */
+    fs->relinquish_data_id = data_id;
+    if(fs->relinquish_table.freed[data_offset] == 0)
+    {
+        fs->relinquish_table.freed[data_offset] = 1;
+        fs->relinquish_table.free_cnt++;
+        fs->active_cnt--;
+        if(fs->relinquish_table.free_cnt == FILE_DATA_COUNT)
+        {
+            char filename[FILE_MAX_FILENAME];
+            int status;
+
+            /* Close Write File */
+            if(fs->write_fd)
+            {
+                fclose(fs->write_fd);
+                fs->write_fd = NULL;
+            }
+
+            /* Delete Write File */
+            snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
+            status = remove(filename);
+            if(status < 0) return BP_FAILEDSTORE;
+            
+            /* Delete Relinquish File */
+            snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
+            status = remove(filename);
+            if(status < 0) return BP_FAILEDSTORE;
+        }
+    }
+
+    /* Return Success */
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -368,6 +613,7 @@ int bplib_store_pfile_getcount (int handle)
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
-    (void)handle;
-    return 0;
+    file_store_t* fs = (file_store_t*)&file_stores[handle];
+
+    return fs->active_cnt;
 }
