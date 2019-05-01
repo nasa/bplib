@@ -1,6 +1,13 @@
 # bplib
 
-Bundle Protocol Library
+[Overview](#overview)
+[Build with Make](#build-with-make)
+[Protocol Compliance and Tailoring](#protocol-compliance-and-tailoring)
+[Bundle Formats](#bundle-formats)
+[Application Programming Interface])#application-programming-interface)
+[Storage Service](#storage-service)
+
+Overview
 ----------------------------------------------------------------------
 
 The Bundle Protocol library (bplib) implements a subset of the RFC5050 Bundle Protocol necessary for embedded space flight applications. The library uses the concept of a bundle channel to manage the process of encapsulating application data in bundles, and extracting application data out of bundles.  A channel specifies how the bundles are created (e.g. primary header block fields), and how bundles are processed. Bplib contains no threads and relies entirely on the calling application for its execution context and implements a thread-safe synchronous blocking I/O model where no call-backs are necessary and requested operations will either block according to the provided timeout, or return an error code immediately if the operation cannot be performed.
@@ -18,7 +25,8 @@ A possible application design for using bplib is to have four execution threads:
 The __bundle reader__ would use the `bplib_process` function to pass bundles read from the convergence layer into the library.  If those bundles contain payload data bound for the application, that data is pulled out of the bundles and queued in storage until the __data writer__ thread calls the `bplib_accept` function to dequeue the data out of storage and write it to the application.  Meanwhile, if the application is also producing data of its own to be bundled, the __data reader__ thread would call `bplib_store` to pass data from the application into the library to be bundled.  Those bundles are queued in storage until the __bundle writer__ threads calls the `bplib_load` function to dequeue them out of storage and write them to the convergence layer.
 
 
-## Build with Make
+Build with Make
+----------------------------------------------------------------------
 
 1. Go to repository root directory
 2. `make`
@@ -45,7 +53,8 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
 * `sudo ldconfig` 
 
 
-## Protocol Compliance and Tailoring
+Protocol Compliance and Tailoring
+----------------------------------------------------------------------
 
 __Endpoint IDs__
 * Compressed Bundle Header Encoding (CBHE) is used on all generated data bundles.  
@@ -109,7 +118,8 @@ __Routing__
 __Storage Service__ - The BP library requires that a storage service is provided outside the library.  When a channel is created, a set of function pointers are supplied to provide access to the storage service at runtime.  The library comes pre-built with a POSIX RAM storage service and file system storage service available to applications.
 
 
-## Bundle Formats
+Bundle Formats
+----------------------------------------------------------------------
 
 ### Data Bundle 
 ```
@@ -264,7 +274,8 @@ __Storage Service__ - The BP library requires that a storage service is provided
  |-----------------------------------------------| Variable
 ```
 
-## Application Programming Interface (API)
+Application Programming Interface
+----------------------------------------------------------------------
 
 | Function        | Purpose |
 | --------------- | ------- | 
@@ -502,14 +513,20 @@ _returns_ - return code (see below)
 | ------------------------ | ----- | ----------- |
 | BP_FLAG_NONCOMPLIANT     | 0x0001 | Valid bundle but the library was not able to comply with the standard |
 | BP_FLAG_INCOMPLETE       | 0x0002 | At least one block in bundle was not recognized |
-| BP_FLAG_REPORTDELETE     | 0x0004 | A status report must be generated if the bundle is dropped |
-| BP_FLAG_TOOMANYSOURCES   | 0x0008 | There are too many sources to keep track of for ACS bundles |
-| BP_FLAG_FILLOVERFLOW     | 0x0010 | A gap in the CIDs exceeds the max fill value allowed in an ACS bundle |
-| BP_FLAG_TOOMANYFILLS     | 0x0020 | All the fills in the ACS are used |
-| BP_FLAG_CIDWENTBACKWARDS | 0x0040 | The custody ID went backwards |
-| BP_FLAG_ROUTENEEDED      | 0x0080 | The bundle returned needs to be routed before transmission |
-| BP_FLAG_STOREFAILURE     | 0x0100 | Storage service failed to deliver data |
-| BP_FLAG_MIXEDRESPONSE    | 0x0200 | Aggregate acknowledgement must have uniform delivery vs. forward |
-| BP_FLAG_SDNVOVERFLOW     | 0x0400 | There was insufficient room in 32-bit variable to read/write value |
-| BP_FLAG_SDNVINCOMPLETE   | 0x0800 | There was insufficient room in block to read/write value |
-| BP_FLAG_ACTIVETABLEWRAP  | 0x1000 | The active table wrapped; see BP_OPT_WRAPRSP |
+| BP_FLAG_TOOMANYSOURCES   | 0x0004 | There are too many sources to keep track of for ACS bundles |
+| BP_FLAG_FILLOVERFLOW     | 0x0008 | A gap in the CIDs exceeds the max fill value allowed in an ACS bundle |
+| BP_FLAG_TOOMANYFILLS     | 0x0010 | All the fills in the ACS are used |
+| BP_FLAG_CIDWENTBACKWARDS | 0x0020 | The custody ID went backwards |
+| BP_FLAG_ROUTENEEDED      | 0x0040 | The bundle returned needs to be routed before transmission |
+| BP_FLAG_STOREFAILURE     | 0x0080 | Storage service failed to deliver data |
+| BP_FLAG_MIXEDRESPONSE    | 0x0100 | Aggregate acknowledgement must have uniform delivery vs. forward |
+| BP_FLAG_SDNVOVERFLOW     | 0x0200 | There was insufficient room in 32-bit variable to read/write value |
+| BP_FLAG_SDNVINCOMPLETE   | 0x0400 | There was insufficient room in block to read/write value |
+| BP_FLAG_ACTIVETABLEWRAP  | 0x0800 | The active table wrapped; see BP_OPT_WRAPRSP |
+
+Storage Service
+----------------------------------------------------------------------
+
+* All calls to storage service functions are made in a thread safe way; no assumption is made that storage service functions are reentrant.
+* The memory returned by the dequeue function is valid only until the next dequeue function call or the next relinquish function call
+ 
