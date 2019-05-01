@@ -114,6 +114,7 @@ __Routing__
 * If a BP library channel is used to forward bundles (i.e. both receive data bundles and send data bundles), then it cannot be used to generate bundles.  This nuance is due to pre-building the bundle primary block, CTEB, BIB, and payload block header fields.
 * When a call to the BP library returns a bundle, it will set a flag if the bundle needs to be routed to a different destination than the channel’s default destination.
 * When routing bundles, the BP library will associate any bundle with a destination {node} that matches its local {node} number as being destined for itself and will then require that the {service} number matches the channel's {service} number that it is being processed on.  Any bundle with a {node} that is different than its local {node} number is treated as a bundle that needs to be routed.
+* A service number of 0 is considered a global service and is allowed to be passed to any channel associated with the node
 
 __Storage Service__ - The BP library requires that a storage service is provided outside the library.  When a channel is created, a set of function pointers are supplied to provide access to the storage service at runtime.  The library comes pre-built with a POSIX RAM storage service and file system storage service available to applications.
 
