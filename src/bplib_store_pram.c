@@ -358,15 +358,14 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
     message_queue_t* msgQ = (message_queue_t*)queue_handle;
     if(msgQ == NULL) return MSGQ_ERROR;
 
-	int recv_state = MSGQ_OKAY;
+    int recv_state = MSGQ_OKAY;
 
     /* Wait for a message to be posted */
     if(block == BP_PEND)
     {
-        int ret = -1;
-        while(isempty(msgQ->queue) || (ret == -1 && errno == EINTR))
+        while(isempty(msgQ->queue))
         {
-            ret = bplib_os_waiton(msgQ->ready, -1);
+            bplib_os_waiton(msgQ->ready, BP_PEND);
         }
     }
     else if(block == BP_CHECK)
@@ -374,20 +373,11 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
     }
     else /* Timed Wait */
     {
-        int waitstatus = 1;
-        while((waitstatus != -1 && isempty(msgQ->queue)) ||
-              (waitstatus == -1 && errno == EINTR))
+        if(isempty(msgQ->queue))
         {
-            waitstatus = bplib_os_waiton(msgQ->ready, block);
-        }
-
-        if(waitstatus == -1 && errno == ETIMEDOUT)
-        {
-            recv_state = MSGQ_TIMEOUT;
-        }
-        else if(waitstatus == -1)
-        {
-            recv_state = MSGQ_ERROR;
+            int wait_status = bplib_os_waiton(msgQ->ready, block);
+            if(wait_status == BP_OS_TIMEOUT) recv_state = MSGQ_TIMEOUT;
+            else if(wait_status == BP_OS_ERROR) recv_state = MSGQ_ERROR;
         }
     }
 

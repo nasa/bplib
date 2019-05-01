@@ -528,6 +528,8 @@ _returns_ - return code (see below)
 Storage Service
 ----------------------------------------------------------------------
 
-* All calls to storage service functions are made in a thread safe way; no assumption is made that storage service functions are reentrant.
+* Storage service functions do not need to be reentrant.
+* Enqueue, Dequeue, Retrieve, and Relinquish are expected to be thread safe against each other.
+* Create and Destroy do not need to be thread safe against each other or any other function call - the application is responsible for call them when it can complete atomically with respect to any other storage service call
 * The memory returned by the dequeue function is valid only until the next dequeue function call or the next relinquish function call
  

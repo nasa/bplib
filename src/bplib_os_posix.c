@@ -136,7 +136,7 @@ void bplib_os_sleep(int seconds)
 int bplib_os_createlock(void)
 {
     int i;
-    int handle = -1;
+    int handle = BP_OS_ERROR;
     
     pthread_mutex_lock(&lock_of_locks);
     {
@@ -213,7 +213,9 @@ int bplib_os_waiton(int handle, int timeout_ms)
     if(timeout_ms == -1)
     {
         /* Block Forever until Success */
-        status = pthread_cond_wait(&locks[handle]->cond, &locks[handle]->mutex);
+        do {
+            status = pthread_cond_wait(&locks[handle]->cond, &locks[handle]->mutex);
+        } while(status == -1 && errno == EINTR);
     }
     else if(timeout_ms > 0)
     {
@@ -229,13 +231,21 @@ int bplib_os_waiton(int handle, int timeout_ms)
         }
 
         /* Block on Timed Wait and Update Timeout */
-        status = pthread_cond_timedwait(&locks[handle]->cond, &locks[handle]->mutex, &ts);
+        do {
+            status = pthread_cond_timedwait(&locks[handle]->cond, &locks[handle]->mutex, &ts);
+        } while(status == -1 && errno == EINTR);
+            
+        /* Check Status */
+        if(status == -1 && errno == ETIMEDOUT)
+        {
+            status = BP_OS_TIMEOUT;
+        }
     }
     else // timeout_ms = 0
     {
         // note that NON-BLOCKING CHECK is an error since the pthread
         // conditional does not support a non-blocking attempt
-        status = EINVAL;
+        status = BP_OS_ERROR;
     }
 
     /* Return Status */

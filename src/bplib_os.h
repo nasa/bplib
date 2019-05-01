@@ -41,6 +41,10 @@
  DEFINES
  ******************************************************************************/
 
+#define BP_OS_SUCCESS 1
+#define BP_OS_TIMEOUT 0
+#define BP_OS_ERROR   (-1)
+
 /* Logging */
 #ifdef _GNU_
 #define VARG_CHECK(f, a, b) __attribute__((format(f, a, b)))
