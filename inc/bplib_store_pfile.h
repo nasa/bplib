@@ -38,7 +38,12 @@ extern "C" {
  PROTOTYPES
  ******************************************************************************/
 
+/* Application API */
 void    bplib_store_pfile_init          (void);
+int     bplib_store_pfile_set_path      (const char* root_path);
+
+
+/* Service API */
 int     bplib_store_pfile_create        (void);
 int     bplib_store_pfile_destroy       (int handle);
 int     bplib_store_pfile_enqueue       (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);

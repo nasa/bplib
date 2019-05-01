@@ -34,9 +34,10 @@
 
 #define FILE_MAX_STORES         16
 #define FILE_FLUSH_DEFAULT      false
-#define FILE_MAX_FILENAME       32
+#define FILE_MAX_FILENAME       256
 #define FILE_DATA_COUNT         256
 #define FILE_DATA_CACHE_SIZE    16384
+#define FILE_DEFAULT_ROOT       ".pfile"
 
 /******************************************************************************
  MACROS
@@ -89,6 +90,57 @@ typedef struct {
 
 static file_store_t file_stores[FILE_MAX_STORES];
 static bool file_flush = FILE_FLUSH_DEFAULT;
+static char* file_root = NULL;
+
+/******************************************************************************
+ LOCAL FUNCTIONS
+ ******************************************************************************/
+
+/*--------------------------------------------------------------------------------------
+ * open_dat_file -
+ *-------------------------------------------------------------------------------------*/
+static FILE* open_dat_file (int handle, uint32_t file_id, bool read_only)
+{
+    char filename[FILE_MAX_FILENAME];
+    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, handle, file_id);
+
+    if(read_only)   return fopen(filename, "rb");
+    else            return fopen(filename, "ab");
+}
+
+/*--------------------------------------------------------------------------------------
+ * delete_dat_file -
+ *-------------------------------------------------------------------------------------*/
+static int delete_dat_file (int handle, uint32_t file_id)
+{
+    char filename[FILE_MAX_FILENAME];
+    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, handle, file_id);
+
+    return remove(filename);
+}
+
+/*--------------------------------------------------------------------------------------
+ * open_tbl_file -
+ *-------------------------------------------------------------------------------------*/
+static FILE* open_tbl_file (int handle, uint32_t file_id, bool read_only)
+{
+    char filename[FILE_MAX_FILENAME];
+    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, handle, file_id);
+
+    if(read_only)   return fopen(filename, "rb");
+    else            return fopen(filename, "wb");
+}
+
+/*--------------------------------------------------------------------------------------
+ * delete_tbl_file -
+ *-------------------------------------------------------------------------------------*/
+static int delete_tbl_file (int handle, uint32_t file_id)
+{
+    char filename[FILE_MAX_FILENAME];
+    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, handle, file_id);
+
+    return remove(filename);
+}
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -100,6 +152,24 @@ static bool file_flush = FILE_FLUSH_DEFAULT;
 void bplib_store_pfile_init (void)
 {
     memset(file_stores, 0, sizeof(file_stores));
+    file_root = (char*)malloc(FILE_MAX_FILENAME);
+    strncpy(file_root, FILE_DEFAULT_ROOT, FILE_MAX_FILENAME);
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_store_pfile_set_path -
+ *-------------------------------------------------------------------------------------*/
+int bplib_store_pfile_set_path (const char* root_path)
+{
+    int root_path_len = strnlen(root_path, FILE_MAX_FILENAME - 1) + 1;
+    if(root_path_len == (FILE_MAX_FILENAME - 1)) return BP_PARMERR;
+    
+    if(file_root) free(file_root);
+    file_root = (char*)malloc(root_path_len);
+    
+    strncpy(file_root, root_path, root_path_len);
+
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -160,9 +230,8 @@ int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* da
     if(fs->write_fd == NULL)
     {
         /* Open Write File */
-        char filename[FILE_MAX_FILENAME];
-        snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
-        fs->write_fd = fopen(filename, "ab");
+        fs->write_fd = open_dat_file(handle, file_id, false);
+        if(fs->write_fd == NULL) return BP_FAILEDSTORE;
         
         /* Seek to Current Position */
         if(fs->write_error)
@@ -268,13 +337,8 @@ int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid
     if(fs->read_fd == NULL)
     {
         /* Open Read File */
-        char filename[FILE_MAX_FILENAME];
-        snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
-        fs->read_fd = fopen(filename, "rb");
-        if(fs->read_fd == NULL) 
-        {
-            return BP_FAILEDSTORE;
-        }
+        fs->read_fd = open_dat_file(handle, file_id, true);
+        if(fs->read_fd == NULL) return BP_FAILEDSTORE;
     }
 
     /* Seek to Current Position */
@@ -402,14 +466,8 @@ int bplib_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid
     if(fs->retrieve_fd == NULL)
     {        
         /* Open Retrieve File */
-        char filename[FILE_MAX_FILENAME];
-        snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
-        fs->retrieve_fd = fopen(filename, "rb");
-        if(fs->retrieve_fd == NULL) 
-        {
-            return BP_FAILEDSTORE;
-        }
-
+        fs->retrieve_fd = open_dat_file(handle, file_id, true);
+        if(fs->retrieve_fd == NULL) return BP_FAILEDSTORE;
     }
     else
     {
@@ -515,15 +573,12 @@ int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
     /* Check Need to Read New Relinquish Table */
     if(file_id != curr_file_id)
     {
-        char filename[FILE_MAX_FILENAME];
-
         if(fs->relinquish_table.free_cnt > 0)
         {
             /* Open Previous Relinquish File */
             if(fs->relinquish_fd == NULL)
             {
-                snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
-                fs->relinquish_fd = fopen(filename, "wb");
+                fs->relinquish_fd = open_tbl_file(handle, file_id, false);
                 if(fs->relinquish_fd == NULL) return BP_FAILEDSTORE;
             }
 
@@ -542,8 +597,7 @@ int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
         }
 
         /* Open New Relinquish File */
-        snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
-        fs->relinquish_fd = fopen(filename, "rb");
+        fs->relinquish_fd = open_tbl_file(handle, file_id, true);
         if(fs->relinquish_fd == NULL)
         {
             /* Initialize New Relinquish Table */
@@ -579,7 +633,6 @@ int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
         fs->active_cnt--;
         if(fs->relinquish_table.free_cnt == FILE_DATA_COUNT)
         {
-            char filename[FILE_MAX_FILENAME];
             int status;
 
             /* Close Write File */
@@ -589,14 +642,12 @@ int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
                 fs->write_fd = NULL;
             }
 
-            /* Delete Write File */
-            snprintf(filename, FILE_MAX_FILENAME, "%u.dat", file_id);
-            status = remove(filename);
+            /* Delete Write Files */
+            status = delete_dat_file(handle, file_id);
             if(status < 0) return BP_FAILEDSTORE;
             
             /* Delete Relinquish File */
-            snprintf(filename, FILE_MAX_FILENAME, "%u.tbl", file_id);
-            status = remove(filename);
+            status = delete_tbl_file(handle, file_id);
             if(status < 0) return BP_FAILEDSTORE;
         }
     }

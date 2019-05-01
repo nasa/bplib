@@ -58,7 +58,7 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_in
     /* Check Block Type */
     if(buffer[0] != BP_BIB_BLK_TYPE) return BP_BUNDLEPARSEERR;
 
-    /* Read Custody Information */
+    /* Read Integrity Information */
     if(!update_indices)
     {
         bplib_sdnv_read(buffer, size, &bib->bf, &flags);

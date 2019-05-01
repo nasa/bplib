@@ -1618,13 +1618,19 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             bp_sdnv_t blk_flags = { 0, 1, 0 };
             bp_sdnv_t blk_len = { 0, 0, 0 };
             int start_index = index;
+            int data_index = 0; // start of the block after the block length, set below
+            
             blk_len.index = bplib_sdnv_read(&buffer[start_index], size - start_index, &blk_flags, procflags);
-            index = bplib_sdnv_read(&buffer[start_index], size - start_index, &blk_len, procflags);
+            data_index = bplib_sdnv_read(&buffer[start_index], size - start_index, &blk_len, procflags);
 
             /* Check Parsing Status */
             if(*procflags & (BP_FLAG_SDNVOVERFLOW | BP_FLAG_SDNVINCOMPLETE))
             {
                 return bplog(BP_BUNDLEPARSEERR, "Failed (%0X) to parse block at index %d\n", *procflags, start_index);
+            }
+            else
+            {
+                index += data_index + blk_len.value;
             }
 
             /* Mark Processing as Incomplete */
@@ -1640,8 +1646,12 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                 return bplog(BP_DROPPED, "Dropping bundle with unrecognized block\n");
             }
 
-            /* Should drop block since it cannot be processed */
-            if(blk_flags.value & BP_BLK_DROPNOPROC_MASK) *procflags |= BP_FLAG_NONCOMPLIANT;
+            /* Drop block since it cannot be processed */
+            if(blk_flags.value & BP_BLK_DROPNOPROC_MASK)
+            {
+                exclude[ei++] = start_index;
+                exclude[ei++] = index;
+            }
 
             /* Mark As Forwarded without Processed */
             blk_flags.value |= BP_BLK_FORWARDNOPROC_MASK;
@@ -1670,39 +1680,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             }
 
             /* Process Payload */
-            if(pri_blk.is_admin_rec) // Administrative Record
-            {
-                uint32_t rec_type, rec_status;
-
-                /* Read Record Information */
-                rec_type = buffer[index];
-                rec_status = buffer[index + 1]; (void)rec_status; // currently not used
-
-                /* Lock Active Table */
-                bplib_os_lock(ch->active_table_signal);
-                {
-                    /* Process Record */
-                    if(rec_type == BP_ACS_REC_TYPE)
-                    {
-                        int acknowledgment_count = 0;
-                        status = bplib_rec_acs_process(&buffer[index], size - index, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, ch->storage.relinquish, ch->data_store_handle);
-                        if(acknowledgment_count > 0)
-                        {
-                            ch->stats.acknowledged += acknowledgment_count;
-                            bplib_os_signal(ch->active_table_signal);
-                        }
-                    }
-                    else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
-                    else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(BP_UNSUPPORTED, "Status report bundles are not supported\n");
-                    else                                    status = bplog(BP_UNKNOWNREC, "Unknown administrative record: %u\n", (unsigned int)rec_type);
-                }
-                bplib_os_unlock(ch->active_table_signal);
-            }
-            else if(ch->proc_admin_only)
-            {
-                status = bplog(BP_IGNORE, "Non-administrative bundle ignored\n");
-            }
-            else if(pri_blk.dstnode.value != ch->local_node) // forward bundle (dst node != local node)
+            if(pri_blk.dstnode.value != ch->local_node) // forward bundle (dst node != local node)
             {
                 /* Check Ability to Forward */
                 if(ch->data_bundle.originate)
@@ -1746,7 +1724,43 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                     }
                 }
             }
-            else if(pri_blk.dstserv.value == ch->local_service) // deliver bundle payload to application
+            else if((ch->local_service != 0) && (pri_blk.dstserv.value != ch->local_service))
+            {
+                status = bplog(BP_WRONGCHANNEL, "Wrong channel to service bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)ch->local_service);
+            }
+            else if(pri_blk.is_admin_rec) // Administrative Record
+            {
+                uint32_t rec_type, rec_status;
+
+                /* Read Record Information */
+                rec_type = buffer[index];
+                rec_status = buffer[index + 1]; (void)rec_status; // currently not used
+
+                /* Lock Active Table */
+                bplib_os_lock(ch->active_table_signal);
+                {
+                    /* Process Record */
+                    if(rec_type == BP_ACS_REC_TYPE)
+                    {
+                        int acknowledgment_count = 0;
+                        status = bplib_rec_acs_process(&buffer[index], size - index, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, ch->storage.relinquish, ch->data_store_handle);
+                        if(acknowledgment_count > 0)
+                        {
+                            ch->stats.acknowledged += acknowledgment_count;
+                            bplib_os_signal(ch->active_table_signal);
+                        }
+                    }
+                    else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
+                    else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(BP_UNSUPPORTED, "Status report bundles are not supported\n");
+                    else                                    status = bplog(BP_UNKNOWNREC, "Unknown administrative record: %u\n", (unsigned int)rec_type);
+                }
+                bplib_os_unlock(ch->active_table_signal);
+            }
+            else if(ch->proc_admin_only)
+            {
+                status = bplog(BP_IGNORE, "Non-administrative bundle ignored\n");
+            }
+            else // deliver bundle payload to application
             {
                 bp_payload_store_t* pay = &ch->data_bundle.payload_store;
                 pay->payloadsize = size - index;
@@ -1784,10 +1798,6 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                 {
                     bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", status);
                 }
-            }
-            else // wrong channel
-            {
-                status = bplog(BP_WRONGCHANNEL, "Wrong channel to service bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)ch->local_service);
             }
 
             /* Stop Processing Bundle Once Payload Block Reached */
