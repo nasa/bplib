@@ -1,11 +1,11 @@
 # bplib
 
-[Overview](#overview)
-[Build with Make](#build-with-make)
-[Protocol Compliance and Tailoring](#protocol-compliance-and-tailoring)
-[Bundle Formats](#bundle-formats)
-[Application Programming Interface])#application-programming-interface)
-[Storage Service](#storage-service)
+[Overview](#overview)  
+[Build with Make](#build-with-make)  
+[Protocol Compliance and Tailoring](#protocol-compliance-and-tailoring)  
+[Bundle Formats](#bundle-formats)  
+[Application Programming Interface](#application-programming-interface)  
+[Storage Service](#storage-service)  
 
 Overview
 ----------------------------------------------------------------------
