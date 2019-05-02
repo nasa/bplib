@@ -563,7 +563,7 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t 
     bp_blk_pri_t* pri = &dacs->primary_block;
 
     /* Build DACS */
-    dacs_size = bplib_rec_acs_write(dacs->paybuf, dacs->paybuf_size, dacs->delivered, dacs->first_cid, dacs->fills, dacs->num_fills);
+    dacs_size = bplib_rec_acs_write(dacs->paybuf, dacs->paybuf_size, dacs->first_cid, dacs->fills, dacs->num_fills);
     ds->bundlesize = ds->headersize + dacs_size;
     storage_header_size = sizeof(bp_bundle_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - ds->headersize);
 
@@ -1730,11 +1730,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             }
             else if(pri_blk.is_admin_rec) // Administrative Record
             {
-                uint32_t rec_type, rec_status;
-
                 /* Read Record Information */
-                rec_type = buffer[index];
-                rec_status = buffer[index + 1]; (void)rec_status; // currently not used
+                uint32_t rec_type = buffer[index];
 
                 /* Lock Active Table */
                 bplib_os_lock(ch->active_table_signal);

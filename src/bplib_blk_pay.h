@@ -65,7 +65,7 @@ int bplib_rec_acs_process   (void* block, int size, int* acks,
                              bp_sid_t* sids, int table_size, 
                              bp_store_relinquish_t relinquish, int store_handle);
 
-int bplib_rec_acs_write     (uint8_t* rec, int size, bool delivered, 
+int bplib_rec_acs_write     (uint8_t* rec, int size, 
                              uint32_t first_cid, uint32_t* fills, int num_fills);
 
 #endif  /* __BPLIB_BLK_PAY_H__ */

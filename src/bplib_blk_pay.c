@@ -35,11 +35,9 @@
  DEFINES
  ******************************************************************************/
 
-#define BP_REC_RPTRCV_MASK      0x01    // report reception
-#define BP_REC_RPTACT_MASK      0x02    // report acceptance
-#define BP_REC_RPTFRW_MASK      0x04    // report forwarding
-#define BP_REC_RPTDLV_MASK      0x08    // report delivery
-#define BP_REC_RPTDLT_MASK      0x10    // report deletion
+#define BP_ACS_REC_TYPE_INDEX   0
+#define BP_ACS_REC_STATUS_INDEX 1
+#define BP_ACS_ACK_MASK         0x80    // if set, then custody successfully transfered
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -137,20 +135,6 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_i
         bytes_written = bplib_sdnv_write(buffer, size, pay->blklen, &flags);
     }
 
-    /* Copy Bytes */
-//    if(copy)
-//    {
-//        if(size >= (bytes_written + pay->paysize))
-//        {
-//            memcpy(&buffer[bytes_written], pay->payptr, pay->paysize);
-//            bytes_written += pay->paysize;
-//        }
-//        else
-//        {
-//            return bplog(BP_BUNDLEPARSEERR, "Unable to write payload, buffer too small (%d %d)\n", size, bytes_written + pay->paysize);
-//        }
-//    }
-
     /* Success Oriented Error Checking */
     if(flags != 0)  return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of payload block (%08X)\n", flags);
     else            return bytes_written;
@@ -175,7 +159,9 @@ int bplib_rec_acs_process ( void* rec, int size, int* acks,
     uint8_t* buf = (uint8_t*)rec;
     int cidin = true;
     uint16_t flags = 0;
-
+    uint8_t acs_status = buf[BP_ACS_REC_STATUS_INDEX];
+    bool ack_success = (acs_status & BP_ACS_ACK_MASK) == BP_ACS_ACK_MASK;
+    
     /* Initialize Acknowledgment Count */
     *acks = 0;
 
@@ -191,7 +177,7 @@ int bplib_rec_acs_process ( void* rec, int size, int* acks,
         if(flags != 0) return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", flags);
 
         /* Process Custody IDs */
-        if(cidin == true)
+        if(cidin == true && ack_success)
         {
             /* Free Bundles */
             cidin = false;
@@ -228,11 +214,10 @@ int bplib_rec_acs_process ( void* rec, int size, int* acks,
  *  first_cid - first Custody ID [INPUT]
  *  fills - array of fill values [INPUT]
  *  num_fills - size of fills array [INPUT]
- *  delivered - 0: forwarded, 1: delivered
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bplib_rec_acs_write(uint8_t* rec, int size, bool delivered, uint32_t first_cid, uint32_t* fills, int num_fills)
+int bplib_rec_acs_write(uint8_t* rec, int size, uint32_t first_cid, uint32_t* fills, int num_fills)
 {
     bp_sdnv_t cid = { 0, 2, 4 };
     bp_sdnv_t fill = { 0, 0, 2 };
@@ -240,8 +225,8 @@ int bplib_rec_acs_write(uint8_t* rec, int size, bool delivered, uint32_t first_c
     uint16_t flags = 0;
 
     /* Write Record Information */
-    rec[0] = BP_ACS_REC_TYPE; // record type
-    rec[1] = BP_REC_RPTRCV_MASK | BP_REC_RPTACT_MASK | (delivered ? BP_REC_RPTDLV_MASK : BP_REC_RPTFRW_MASK);
+    rec[BP_ACS_REC_TYPE_INDEX] = BP_ACS_REC_TYPE; // record type
+    rec[BP_ACS_REC_STATUS_INDEX] = BP_ACS_ACK_MASK;
 
     /* Write First CID and Fills */
     cid.value = first_cid;
