@@ -73,7 +73,6 @@ typedef struct queue_def_t {
 typedef struct {
     char                    name[MSGQ_MAX_NAME_CHARS];
     queue_t*                queue;
-    int                     mut;
     int                     ready;
     int                     state;
 } message_queue_t;
@@ -262,24 +261,13 @@ static msgq_t msgq_create(const char* name, int depth, int data_size)
     msgQ->queue = create_queue(depth, data_size);
     msgQ->state = MSGQ_OKAY;
 
-    /* Create Mutex */
-    msgQ->mut = bplib_os_createlock();
-    if(msgQ->mut == -1)
+    /* Create Lock */
+    msgQ->ready = bplib_os_createlock();
+    if(msgQ->ready == -1)
     {
-        printf("ERROR[%d]: Unable to create mutex: %s\n", msgQ->mut, name);
+        printf("ERROR[%d]: Unable to create ready sem: %s\n", msgQ->ready, name);
         free(msgQ);
         msgQ = NULL;
-    }
-    else
-    {
-        /* Create Semaphore */
-        msgQ->ready = bplib_os_createlock();
-        if(msgQ->ready == -1)
-        {
-            printf("ERROR[%d]: Unable to create ready sem: %s\n", msgQ->ready, name);
-            free(msgQ);
-            msgQ = NULL;
-        }
     }
 
     /* Check Final Status */
@@ -320,22 +308,12 @@ static int msgq_post(msgq_t queue_handle, void* data, int size)
     if(msgQ == NULL) return MSGQ_ERROR;
 
     /* Post Data */
-    bplib_os_lock(msgQ->mut);
+    bplib_os_lock(msgQ->ready);
     {
         post_state = enqueue(msgQ->queue, data, size);
-
-#ifdef MSGQ_VERBOSE
-        /* Print Error */
-        if(msgQ->state == MSGQ_OKAY && post_state != MSGQ_OKAY)
-        {
-            printf("ERROR: %s, msgq post failed (state:%d sz:%d) \n",
-                    msgQ->name, msgQ->state, size);
-        }
-#endif
-
         msgQ->state = post_state;
     }
-    bplib_os_unlock(msgQ->mut);
+    bplib_os_unlock(msgQ->ready);
 
     /* Trigger if Ready */
     if(post_state == MSGQ_OKAY)
@@ -360,38 +338,30 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
 
     int recv_state = MSGQ_OKAY;
 
-    /* Wait for a message to be posted */
-    if(block == BP_PEND)
+    bplib_os_lock(msgQ->ready);
     {
-        while(isempty(msgQ->queue))
+        /* Wait for a message to be posted */
+        if(block == BP_PEND)
         {
-            bplib_os_waiton(msgQ->ready, BP_PEND);
+            while(isempty(msgQ->queue))
+            {
+                bplib_os_waiton(msgQ->ready, BP_PEND);
+            }
         }
-    }
-    else if(block == BP_CHECK)
-    {
-    }
-    else /* Timed Wait */
-    {
-        if(isempty(msgQ->queue))
+        else if(block == BP_CHECK)
         {
-            int wait_status = bplib_os_waiton(msgQ->ready, block);
-            if(wait_status == BP_OS_TIMEOUT) recv_state = MSGQ_TIMEOUT;
-            else if(wait_status == BP_OS_ERROR) recv_state = MSGQ_ERROR;
         }
-    }
+        else /* Timed Wait */
+        {
+            if(isempty(msgQ->queue))
+            {
+                int wait_status = bplib_os_waiton(msgQ->ready, block);
+                if(wait_status == BP_OS_TIMEOUT) recv_state = MSGQ_TIMEOUT;
+                else if(wait_status == BP_OS_ERROR) recv_state = MSGQ_ERROR;
+            }
+        }
 
-    /* Get data from queue */
-    bplib_os_lock(msgQ->mut);
-    {
-#ifdef MSGQ_VERBOSE
-        /* Print Error */
-        if(msgQ->state == MSGQ_OKAY && recv_state != MSGQ_OKAY)
-        {
-            printf("ERROR: %s, receive failed (%d)\n", msgQ->name, recv_state);
-        }
-#endif
-
+        /* Get data from queue */
         msgQ->state = recv_state;
         if(msgQ->state == MSGQ_OKAY)
         {
@@ -399,7 +369,7 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
             if(*data == NULL) recv_state = MSGQ_UNDERFLOW;
         }
     }
-    bplib_os_unlock(msgQ->mut);
+    bplib_os_unlock(msgQ->ready);
 
     /* Return Status */
     return recv_state;

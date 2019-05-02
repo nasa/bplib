@@ -43,8 +43,8 @@
  MACROS
  ******************************************************************************/
 
-#define GET_FILEID(did)     ((did) >> 8)
-#define GET_DATAOFFSET(did) ((did) & 0xFF)
+#define GET_FILEID(did)     ((uint32_t)((did) >> 8))
+#define GET_DATAOFFSET(did) ((uint8_t)((did) & 0xFF))
 
 /******************************************************************************
  TYPEDEFS
@@ -53,7 +53,7 @@
 typedef struct {
     void*           mem_ptr;
     uint32_t        mem_size;
-    uint32_t        mem_data_id;
+    uint64_t        mem_data_id;
 } data_cache_t;
 
 typedef struct {
@@ -66,18 +66,18 @@ typedef struct {
     int             lock;
     
     FILE*           write_fd;
-    uint32_t        write_data_id;
+    uint64_t        write_data_id;
     bool            write_error;
     
     FILE*           read_fd;
-    uint32_t        read_data_id;
+    uint64_t        read_data_id;
     bool            read_error;
 
     FILE*           retrieve_fd;
-    uint32_t        retrieve_data_id;
+    uint64_t        retrieve_data_id;
 
     FILE*           relinquish_fd;
-    uint32_t        relinquish_data_id;
+    uint64_t        relinquish_data_id;
     free_table_t    relinquish_table;         
 
     data_cache_t    data_cache[FILE_DATA_CACHE_SIZE];
@@ -108,7 +108,7 @@ static FILE* open_dat_file (int handle, uint32_t file_id, bool read_only)
     if(read_only)   fd = fopen(filename, "rb");
     else            fd = fopen(filename, "ab");
 
-if(fd == NULL) printf("FAILED TO OPEN FILE: %s\n", filename);
+    if(fd == NULL) printf("pfile fatal error - failed to open data file %s[%d]: %s\n", filename, read_only, strerror(errno));
     
     return fd;
 }
@@ -129,11 +129,17 @@ static int delete_dat_file (int handle, uint32_t file_id)
  *-------------------------------------------------------------------------------------*/
 static FILE* open_tbl_file (int handle, uint32_t file_id, bool read_only)
 {
+    FILE* fd;
+    
     char filename[FILE_MAX_FILENAME];
     snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, handle, file_id);
 
-    if(read_only)   return fopen(filename, "rb");
-    else            return fopen(filename, "wb");
+    if(read_only)   fd = fopen(filename, "rb");
+    else            fd = fopen(filename, "wb");
+
+    if(fd == NULL) printf("pfile fatal error - failed to open table file %s[%d]: %s\n", filename, read_only, strerror(errno));
+    
+    return fd;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -190,7 +196,6 @@ int bplib_store_pfile_create (void)
             memset(&file_stores[s], 0, sizeof(file_stores[s]));
             file_stores[s].in_use = true;
             file_stores[s].lock = bplib_os_createlock();
-printf("CREATING FILE SERVICE: %d\n", s);
             return s;
         }
     }
@@ -206,8 +211,6 @@ int bplib_store_pfile_destroy (int handle)
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
-printf("DESTROYING FILE SERVICE: %d\n", handle);
-    
     if(file_stores[handle].write_fd) fclose(file_stores[handle].write_fd);
     if(file_stores[handle].read_fd) fclose(file_stores[handle].read_fd);
     if(file_stores[handle].retrieve_fd) fclose(file_stores[handle].retrieve_fd);
@@ -347,10 +350,15 @@ int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid
     /* Check if Data Available */
     if(fs->read_data_id == fs->write_data_id)
     {
-        int wait_status = bplib_os_waiton(fs->lock, timeout);
+        int wait_status;
+        bplib_os_lock(fs->lock);
+        {
+            wait_status = bplib_os_waiton(fs->lock, timeout);
+        }
+        bplib_os_unlock(fs->lock);
         if(wait_status == BP_OS_TIMEOUT) return BP_TIMEOUT;
         else if(wait_status == BP_OS_ERROR) return BP_FAILEDSTORE;
-        else if(fs->read_data_id < fs->write_data_id) return BP_TIMEOUT;
+        else if(fs->read_data_id == fs->write_data_id) return BP_TIMEOUT;
     }
         
     /* Check Need to Open Read File */
