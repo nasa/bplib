@@ -196,6 +196,10 @@ int bplib_store_pfile_create (void)
             memset(&file_stores[s], 0, sizeof(file_stores[s]));
             file_stores[s].in_use = true;
             file_stores[s].lock = bplib_os_createlock();
+            file_stores[s].write_data_id = 1;
+            file_stores[s].read_data_id = 1;
+            file_stores[s].retrieve_data_id = 1;
+            file_stores[s].relinquish_data_id = 1;
             return s;
         }
     }

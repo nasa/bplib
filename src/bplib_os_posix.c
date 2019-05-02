@@ -237,9 +237,9 @@ int bplib_os_waiton(int handle, int timeout_ms)
     }
     else // timeout_ms = 0
     {
-        // note that NON-BLOCKING CHECK is an error since the pthread
         // conditional does not support a non-blocking attempt
-        status = BP_OS_ERROR;
+        // so treat it as an immediate timeout
+        status = BP_OS_TIMEOUT;
     }
 
     /* Return Status */

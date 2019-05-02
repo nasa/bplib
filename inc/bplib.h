@@ -44,7 +44,7 @@ extern "C" {
 #define BP_CHECK                        0
 
 /* Storage ID Special Values */
-#define BP_SID_VACANT                   NULL
+#define BP_SID_VACANT                   0
 #define BP_INVALID_HANDLE               (-1)
 
 /* Wrap Responses */
