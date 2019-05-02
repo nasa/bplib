@@ -532,4 +532,6 @@ Storage Service
 * Enqueue, Dequeue, Retrieve, and Relinquish are expected to be thread safe against each other.
 * Create and Destroy do not need to be thread safe against each other or any other function call - the application is responsible for call them when it can complete atomically with respect to any other storage service call
 * The memory returned by the dequeue function is valid only until the next dequeue function call or the next relinquish function call
+* The Storage ID (SID) returned by the storage service cannot be zero since that is marked as a VACANT SID
+
  

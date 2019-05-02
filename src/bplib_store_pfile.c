@@ -64,6 +64,7 @@ typedef struct {
 typedef struct {
     bool            in_use;
     int             lock;
+    uint64_t        service_id;
     
     FILE*           write_fd;
     uint64_t        write_data_id;
@@ -90,6 +91,7 @@ typedef struct {
 static file_store_t file_stores[FILE_MAX_STORES];
 static bool file_flush = FILE_FLUSH_DEFAULT;
 static char* file_root = NULL;
+static uint64_t file_service_id = 0;
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -98,12 +100,12 @@ static char* file_root = NULL;
 /*--------------------------------------------------------------------------------------
  * open_dat_file -
  *-------------------------------------------------------------------------------------*/
-static FILE* open_dat_file (int handle, uint32_t file_id, bool read_only)
+static FILE* open_dat_file (int service_id, uint32_t file_id, bool read_only)
 {
     FILE* fd;
     
     char filename[FILE_MAX_FILENAME];
-    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, handle, file_id);
+    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, service_id, file_id);
 
     if(read_only)   fd = fopen(filename, "rb");
     else            fd = fopen(filename, "ab");
@@ -116,10 +118,10 @@ static FILE* open_dat_file (int handle, uint32_t file_id, bool read_only)
 /*--------------------------------------------------------------------------------------
  * delete_dat_file -
  *-------------------------------------------------------------------------------------*/
-static int delete_dat_file (int handle, uint32_t file_id)
+static int delete_dat_file (int service_id, uint32_t file_id)
 {
     char filename[FILE_MAX_FILENAME];
-    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, handle, file_id);
+    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, service_id, file_id);
 
     return remove(filename);
 }
@@ -127,12 +129,12 @@ static int delete_dat_file (int handle, uint32_t file_id)
 /*--------------------------------------------------------------------------------------
  * open_tbl_file -
  *-------------------------------------------------------------------------------------*/
-static FILE* open_tbl_file (int handle, uint32_t file_id, bool read_only)
+static FILE* open_tbl_file (int service_id, uint32_t file_id, bool read_only)
 {
     FILE* fd;
     
     char filename[FILE_MAX_FILENAME];
-    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, handle, file_id);
+    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, service_id, file_id);
 
     if(read_only)   fd = fopen(filename, "rb");
     else            fd = fopen(filename, "wb");
@@ -145,10 +147,10 @@ static FILE* open_tbl_file (int handle, uint32_t file_id, bool read_only)
 /*--------------------------------------------------------------------------------------
  * delete_tbl_file -
  *-------------------------------------------------------------------------------------*/
-static int delete_tbl_file (int handle, uint32_t file_id)
+static int delete_tbl_file (int service_id, uint32_t file_id)
 {
     char filename[FILE_MAX_FILENAME];
-    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, handle, file_id);
+    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, service_id, file_id);
 
     return remove(filename);
 }
@@ -195,6 +197,7 @@ int bplib_store_pfile_create (void)
         {
             memset(&file_stores[s], 0, sizeof(file_stores[s]));
             file_stores[s].in_use = true;
+            file_stores[s].service_id = file_service_id++;
             file_stores[s].lock = bplib_os_createlock();
             file_stores[s].write_data_id = 1;
             file_stores[s].read_data_id = 1;
@@ -250,7 +253,7 @@ int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* da
     if(fs->write_fd == NULL)
     {
         /* Open Write File */
-        fs->write_fd = open_dat_file(handle, file_id, false);
+        fs->write_fd = open_dat_file(fs->service_id, file_id, false);
         if(fs->write_fd == NULL) return BP_FAILEDSTORE;
         
         /* Seek to Current Position */
@@ -369,7 +372,7 @@ int bplib_store_pfile_dequeue (int handle, void** data, int* size, bp_sid_t* sid
     if(fs->read_fd == NULL)
     {
         /* Open Read File */
-        fs->read_fd = open_dat_file(handle, file_id, true);
+        fs->read_fd = open_dat_file(fs->service_id, file_id, true);
         if(fs->read_fd == NULL) return BP_FAILEDSTORE;
     }
 
@@ -507,7 +510,7 @@ int bplib_store_pfile_retrieve (int handle, void** data, int* size, bp_sid_t sid
     if(fs->retrieve_fd == NULL)
     {        
         /* Open Retrieve File */
-        fs->retrieve_fd = open_dat_file(handle, file_id, true);
+        fs->retrieve_fd = open_dat_file(fs->service_id, file_id, true);
         if(fs->retrieve_fd == NULL) return BP_FAILEDSTORE;
     }
     else
@@ -627,7 +630,7 @@ int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
             /* Open Previous Relinquish File */
             if(fs->relinquish_fd == NULL)
             {
-                fs->relinquish_fd = open_tbl_file(handle, file_id, false);
+                fs->relinquish_fd = open_tbl_file(fs->service_id, file_id, false);
                 if(fs->relinquish_fd == NULL) return BP_FAILEDSTORE;
             }
 
@@ -646,7 +649,7 @@ int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
         }
 
         /* Open New Relinquish File */
-        fs->relinquish_fd = open_tbl_file(handle, file_id, true);
+        fs->relinquish_fd = open_tbl_file(fs->service_id, file_id, true);
         if(fs->relinquish_fd == NULL)
         {
             /* Initialize New Relinquish Table */
