@@ -130,7 +130,7 @@ typedef uint32_t bp_ipn_t;
 typedef void* bp_sid_t;
 
 /* Storage API */
-typedef int (*bp_store_create_t)    (void);
+typedef int (*bp_store_create_t)    (void* parm);
 typedef int (*bp_store_destroy_t)   (int handle);
 typedef int (*bp_store_enqueue_t)   (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
 typedef int (*bp_store_dequeue_t)   (int handle, void** data, int* size, bp_sid_t* sid, int timeout);
@@ -154,6 +154,7 @@ typedef struct {
     int     active_table_size;      // number of unacknowledged bundles to keep track of
     int     max_concurrent_dacs;    // number of dacs to maintain at one time
     int     max_fills_per_dacs;     // dacs is built on stack (and therefore must fit on stack)
+    void*   storage_service_parm;   // pass through of parameters needed by storage service
 } bp_attr_t;
 
 /* Bundle Channel Statistics */

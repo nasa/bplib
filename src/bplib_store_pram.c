@@ -403,8 +403,10 @@ void bplib_store_pram_init (void)
 /*----------------------------------------------------------------------------
  * bplib_store_pram_create -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_create (void)
+int bplib_store_pram_create (void* parm)
 {
+    (void)parm;
+    
     int slot, i;
 
     /* Build Queue Name */

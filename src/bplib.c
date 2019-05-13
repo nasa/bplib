@@ -996,6 +996,9 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 /* Set Max Fills per DACS Attribute */
                 if(attributes && attributes->max_fills_per_dacs > 0) channels[i].attributes.max_fills_per_dacs = attributes->max_fills_per_dacs;
                 else channels[i].attributes.max_fills_per_dacs = BP_DEFAULT_MAX_FILLS_PER_DACS;
+                
+                /* Set Storage Service Parameter */
+                channels[i].attributes.storage_service_parm = attributes->storage_service_parm;
                                 
                 /* Initialize Assets */
                 channels[i].data_bundle_lock     = bplib_os_createlock();
@@ -1004,9 +1007,9 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 channels[i].local_node           = local_node;
                 channels[i].local_service        = local_service;
                 channels[i].storage              = storage; // structure copy
-                channels[i].data_store_handle    = channels[i].storage.create();
-                channels[i].payload_store_handle = channels[i].storage.create();
-                channels[i].dacs_store_handle    = channels[i].storage.create();
+                channels[i].data_store_handle    = channels[i].storage.create(channels[i].attributes.storage_service_parm);
+                channels[i].payload_store_handle = channels[i].storage.create(channels[i].attributes.storage_service_parm);
+                channels[i].dacs_store_handle    = channels[i].storage.create(channels[i].attributes.storage_service_parm);
 
                 /* Check Assets */
                 if( channels[i].data_bundle_lock  < 0 ||
