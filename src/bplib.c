@@ -1490,11 +1490,6 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                 /* Successfully Load Bundle to Application and Relinquish Memory */                
                 if(*bundle != NULL)
                 {
-                    memcpy(*bundle, ds->header, ds->bundlesize);
-                    *size = ds->bundlesize;
-                    ch->stats.transmitted++;
-                    status = BP_SUCCESS;
-
                     /* If Custody Transfer */
                     if(ds->cteboffset != 0)
                     {
@@ -1511,9 +1506,16 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                         if(ch->timeout > 0) ch->active_table.retx[ati] = sysnow + ch->timeout;
                         else                ch->active_table.retx[ati] = 0;
                     }
-                    else
+
+                    /* Load Bundle */
+                    memcpy(*bundle, ds->header, ds->bundlesize);
+                    *size = ds->bundlesize;
+                    ch->stats.transmitted++;
+                    status = BP_SUCCESS;
+
+                    /* If No Custody Transfer - Free Bundle Memory */
+                    if(ds->cteboffset == 0)
                     {
-                        /* If No Custody Transfer - Free Bundle Memory */
                         relinquish(store, sid);
                     }
                 }\
