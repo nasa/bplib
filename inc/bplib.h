@@ -185,9 +185,9 @@ int     bplib_setopt        (int channel, int opt, void* val, int len);
 int     bplib_latchstats    (int channel, bp_stats_t* stats);
 
 int     bplib_store         (int channel, void* payload, int size, int timeout, uint16_t* storflags);
-int     bplib_load          (int channel, void* bundle,  int size, int timeout, uint16_t* loadflags); 
+int     bplib_load          (int channel, void** bundle,  int* size, int timeout, uint16_t* loadflags); 
 int     bplib_process       (int channel, void* bundle,  int size, int timeout, uint16_t* procflags);
-int     bplib_accept        (int channel, void* payload, int size, int timeout, uint16_t* acptflags);
+int     bplib_accept        (int channel, void** payload, int* size, int timeout, uint16_t* acptflags);
 
 int     bplib_routeinfo     (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
 int     bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);

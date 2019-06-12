@@ -1262,14 +1262,14 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* sto
 /*--------------------------------------------------------------------------------------
  * bplib_load -
  *-------------------------------------------------------------------------------------*/
-int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadflags)
+int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loadflags)
 {
     int status = BP_SUCCESS; // size of bundle returned or error code
 
     /* Check Parameters */
     if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(bundle == NULL)                         return BP_PARMERR;
+    else if(bundle == NULL || size == NULL)         return BP_PARMERR;
 
     /* Set Short Cuts */
     bp_channel_t*           ch          = &channels[channel];
@@ -1482,41 +1482,53 @@ int bplib_load(int channel, void* bundle, int size, int timeout, uint16_t* loadf
         if(ds != NULL)
         {
             /* Check Buffer Size */
-            if(size < ds->bundlesize)
+            if(*bundle == NULL || *size >= ds->bundlesize)
             {
-                status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", size, ds->bundlesize);
-                relinquish(store, sid);
-                ch->stats.lost++;
+                /* Check/Allocate Bundle Memory */
+                if(*bundle == 0) *bundle = malloc(ds->bundlesize);
+                    
+                /* Successfully Load Bundle to Application and Relinquish Memory */                
+                if(*bundle != NULL)
+                {
+                    memcpy(*bundle, ds->header, ds->bundlesize);
+                    *size = ds->bundlesize;
+                    ch->stats.transmitted++;
+                    status = BP_SUCCESS;
+
+                    /* If Custody Transfer */
+                    if(ds->cteboffset != 0)
+                    {
+                        /* Assign Custody ID and Active Table Entry */
+                        if(newcid)
+                        {
+                            ati = ch->active_table.current_cid % ch->attributes.active_table_size;
+                            ch->active_table.sid[ati] = sid;
+                            ds->cidsdnv.value = ch->active_table.current_cid++;
+                            bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize - ds->cteboffset, ds->cidsdnv, loadflags);
+                        }
+
+                        /* Update Retransmit Time */
+                        if(ch->timeout > 0) ch->active_table.retx[ati] = sysnow + ch->timeout;
+                        else                ch->active_table.retx[ati] = 0;
+                    }
+                    else
+                    {
+                        /* If No Custody Transfer - Free Bundle Memory */
+                        relinquish(store, sid);
+                    }
+                }\
+                else
+                {
+                    status = bplog(BP_FAILEDMEM, "Unable to acquire memory for bundle of size %d\n", ds->bundlesize);
+                    relinquish(store, sid);
+                    ch->stats.lost++;                    
+                }
             }
             else
             {
-                /* If Custody Transfer */
-                if(ds->cteboffset != 0)
-                {
-                    /* Assign Custody ID and Active Table Entry */
-                    if(newcid)
-                    {
-                        ati = ch->active_table.current_cid % ch->attributes.active_table_size;
-                        ch->active_table.sid[ati] = sid;
-                        ds->cidsdnv.value = ch->active_table.current_cid++;
-                        bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize - ds->cteboffset, ds->cidsdnv, loadflags);
-                    }
-
-                    /* Update Retransmit Time */
-                    if(ch->timeout > 0) ch->active_table.retx[ati] = sysnow + ch->timeout;
-                    else                ch->active_table.retx[ati] = 0;
-                }
-
-                /* Successfully Load Bundle to Application and Relinquish Memory */
-                memcpy(bundle, ds->header, ds->bundlesize);
-                status = ds->bundlesize;
-                ch->stats.transmitted++;
-
-                /* If No Custody Transfer - Free Bundle Memory */
-                if(ds->cteboffset == 0)
-                {
-                    relinquish(store, sid);
-                }
+                status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", *size, ds->bundlesize);
+                relinquish(store, sid);
+                ch->stats.lost++;
             }
         }
 
@@ -1814,7 +1826,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
  *
  *  Returns number of bytes of payload copied (positive), or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
-int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* acptflags)
+int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* acptflags)
 {
     (void)acptflags;
     
@@ -1823,7 +1835,7 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
     /* Check Parameters */
     if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(payload == NULL)                        return BP_PARMERR;
+    else if(payload == NULL || size == NULL)        return BP_PARMERR;
 
     /* Set Shortcuts */
     bp_channel_t*           ch          = &channels[channel];
@@ -1843,16 +1855,27 @@ int bplib_accept(int channel, void* payload, int size, int timeout, uint16_t* ac
         int                 paylen      = paystore->payloadsize;
 
         /* Return Payload to Application */
-        if(size >= paylen)
+        if(*payload == NULL || *size >= paylen)
         {
+            /* Check/Allocate Memory for Payload */
+            if(*payload == NULL) *payload = malloc(paylen);
+            
             /* Copy Payload and Set Status */
-            memcpy(payload, payptr, paylen);
-            ch->stats.delivered++;
-            status = paylen;
+            if(*payload != NULL)
+            {
+                memcpy(*payload, payptr, paylen);
+                *size = paylen;
+                ch->stats.delivered++;
+            }
+            else
+            {
+                status = bplog(BP_FAILEDMEM, "Unable to acquire memory for payload of size %d\n", paylen);
+                ch->stats.lost++;
+            }
         }
         else
         {
-            status = bplog(BP_PAYLOADTOOLARGE, "Payload too large to fit inside buffer (%d %d)\n", size, paylen);
+            status = bplog(BP_PAYLOADTOOLARGE, "Payload too large to fit inside buffer (%d %d)\n", *size, paylen);
             ch->stats.lost++;
         }
 
