@@ -201,7 +201,7 @@ int bplib_store_pfile_create (void* parm)
             memset(&file_stores[s], 0, sizeof(file_stores[s]));
             file_stores[s].in_use = true;
             file_stores[s].service_id = file_service_id++;
-            set_root_path(file_stores[s].file_root, attr->root_path);
+            set_root_path(file_stores[s].file_root, attr ? attr->root_path : NULL);
             file_stores[s].lock = bplib_os_createlock();
             file_stores[s].write_data_id = 1;
             file_stores[s].read_data_id = 1;
