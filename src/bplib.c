@@ -998,8 +998,9 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 else channels[i].attributes.max_fills_per_dacs = BP_DEFAULT_MAX_FILLS_PER_DACS;
                 
                 /* Set Storage Service Parameter */
-                channels[i].attributes.storage_service_parm = attributes->storage_service_parm;
-                                
+                if(attributes)  channels[i].attributes.storage_service_parm = attributes->storage_service_parm;
+                else            channels[i].attributes.storage_service_parm = NULL;
+
                 /* Initialize Assets */
                 channels[i].data_bundle_lock     = bplib_os_createlock();
                 channels[i].dacs_bundle_lock     = bplib_os_createlock();
