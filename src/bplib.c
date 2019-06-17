@@ -974,7 +974,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
     assert(storage.relinquish);
     assert(storage.getcount);
 
-    channel = -1;
+    channel = BP_INVALID_HANDLE;
     bplib_os_lock(channels_lock);
     {
         /* Find open channel slot */
@@ -982,8 +982,14 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
         {
             if(channels[i].index == BP_EMPTY)
             {
-                /* Clear Channel Memory */
+                /* Clear Channel Memory and Initialize to Defaults */
                 memset(&channels[i], 0, sizeof(channels[i]));
+                channels[i].data_bundle_lock     = BP_INVALID_HANDLE;
+                channels[i].dacs_bundle_lock     = BP_INVALID_HANDLE;
+                channels[i].active_table_signal  = BP_INVALID_HANDLE;
+                channels[i].data_store_handle    = BP_INVALID_HANDLE;
+                channels[i].payload_store_handle = BP_INVALID_HANDLE;
+                channels[i].dacs_store_handle    = BP_INVALID_HANDLE;
                 
                 /* Set Active Table Size Attribute */
                 if(attributes && attributes->active_table_size > 0) channels[i].attributes.active_table_size = attributes->active_table_size;
@@ -1017,15 +1023,19 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                     channels[i].dacs_bundle_lock  < 0 ||
                     channels[i].active_table_signal < 0 )
                 {
+                    bplib_close(i);
                     bplib_os_unlock(channels_lock);
-                    return bplog(BP_FAILEDOS, "Failed to allocate OS locks for channel\n");
+                    bplog(BP_FAILEDOS, "Failed to allocate OS locks for channel\n");
+                    return BP_INVALID_HANDLE;
                 }
                 else if( channels[i].data_store_handle    < 0 ||
                          channels[i].payload_store_handle < 0 ||
                          channels[i].dacs_store_handle    < 0 )
                 {
+                    bplib_close(i);
                     bplib_os_unlock(channels_lock);
-                    return bplog(BP_FAILEDSTORE, "Failed to create storage handles for channel\n");
+                    bplog(BP_FAILEDSTORE, "Failed to create storage handles for channel\n");
+                    return BP_INVALID_HANDLE;
                 }
 
                 /* Register Channel */
@@ -1057,8 +1067,10 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 channels[i].dacs_bundle = (bp_dacs_bundle_t*)malloc(sizeof(bp_dacs_bundle_t) * channels[i].attributes.max_concurrent_dacs);
                 if(channels[i].dacs_bundle == NULL)
                 {
+                    bplib_close(i);
                     bplib_os_unlock(channels_lock);
-                    return bplog(BP_FAILEDMEM, "Failed to allocate memory for channel dacs\n");                    
+                    bplog(BP_FAILEDMEM, "Failed to allocate memory for channel dacs\n");                    
+                    return BP_INVALID_HANDLE;
                 }
                 else
                 {
@@ -1074,8 +1086,10 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                     channels[i].dacs_bundle[j].paybuf = (uint8_t*)malloc(channels[i].dacs_bundle[j].paybuf_size); 
                     if(channels[i].dacs_bundle[j].fills == NULL || channels[i].dacs_bundle[j].paybuf == NULL)
                     {
+                        bplib_close(i);
                         bplib_os_unlock(channels_lock);
-                        return bplog(BP_FAILEDMEM, "Failed to allocate memory for channel dacs fills and payload\n");                    
+                        bplog(BP_FAILEDMEM, "Failed to allocate memory for channel dacs fills and payload\n");                    
+                        return BP_INVALID_HANDLE;
                     }
                     else
                     {
@@ -1100,8 +1114,10 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 channels[i].active_table.retx = (uint32_t*)malloc(sizeof(uint32_t) * channels[i].attributes.active_table_size);
                 if(channels[i].active_table.sid == NULL || channels[i].active_table.retx == NULL)
                 {
+                    bplib_close(i);
                     bplib_os_unlock(channels_lock);
-                    return bplog(BP_FAILEDMEM, "Failed to allocate memory for channel active table\n");                    
+                    bplog(BP_FAILEDMEM, "Failed to allocate memory for channel active table\n");                    
+                    return BP_INVALID_HANDLE;
                 }
                 else
                 {
@@ -1134,9 +1150,14 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
     }
     bplib_os_unlock(channels_lock);
 
-    /* Return Channel or Error */
-    if(channel < 0) return bplog(BP_CHANNELSFULL, "Cannot open channel, not enough room\n");
-    else            return channel;
+    /* Check if Channels Table Full */
+    if(channel == BP_INVALID_HANDLE)
+    {
+        bplog(BP_CHANNELSFULL, "Cannot open channel, not enough room\n");
+    }
+        
+    /* Return Channel */
+    return channel;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1144,17 +1165,36 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
  *-------------------------------------------------------------------------------------*/
 void bplib_close(int channel)
 {
+    int j;
+    
     if(channel >= 0 && channel < channels_max && channels[channel].index != BP_EMPTY)
     {
+        bp_channel_t* ch = &channels[channel];
         bplib_os_lock(channels_lock);
         {
-            channels[channel].storage.destroy(channels[channel].data_store_handle);
-            channels[channel].storage.destroy(channels[channel].payload_store_handle);
-            channels[channel].storage.destroy(channels[channel].dacs_store_handle);
-            bplib_os_destroylock(channels[channel].data_bundle_lock);
-            bplib_os_destroylock(channels[channel].dacs_bundle_lock);
-            bplib_os_destroylock(channels[channel].active_table_signal);
-            channels[channel].index = BP_EMPTY;
+            if(ch->data_store_handle    != BP_INVALID_HANDLE) ch->storage.destroy(ch->data_store_handle);
+            if(ch->payload_store_handle != BP_INVALID_HANDLE) ch->storage.destroy(ch->payload_store_handle);
+            if(ch->dacs_store_handle    != BP_INVALID_HANDLE) ch->storage.destroy(ch->dacs_store_handle);
+            
+            if(ch->data_bundle_lock     != BP_INVALID_HANDLE) bplib_os_destroylock(ch->data_bundle_lock);
+            if(ch->dacs_bundle_lock     != BP_INVALID_HANDLE) bplib_os_destroylock(ch->dacs_bundle_lock);
+            if(ch->active_table_signal  != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
+            
+            if(ch->dacs_bundle)
+            {
+                for(j = 0; j < ch->attributes.max_concurrent_dacs; j++)
+                {
+                    if(ch->dacs_bundle[j].fills) free(ch->dacs_bundle[j].fills);
+                    if(ch->dacs_bundle[j].paybuf) free(ch->dacs_bundle[j].paybuf);
+                }
+                
+                free(ch->dacs_bundle);
+            }
+                   
+            if(ch->active_table.sid) free(ch->active_table.sid);
+            if(ch->active_table.retx) free(ch->active_table.retx);
+                    
+            ch->index = BP_EMPTY;
         }
         bplib_os_unlock(channels_lock);
     }
