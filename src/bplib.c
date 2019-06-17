@@ -817,7 +817,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
-            if(*enable != true && *enable != false) return BP_PARMERR;
+            if(getset && *enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->data_bundle.primary_block.request_custody = *enable;
             else        *enable = ch->data_bundle.primary_block.request_custody;
             break;
@@ -826,7 +826,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
-            if(*enable != true && *enable != false) return BP_PARMERR;
+            if(getset && *enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->data_bundle.primary_block.integrity_check = *enable;
             else        *enable = ch->data_bundle.primary_block.integrity_check;
             break;
@@ -835,7 +835,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
-            if(*enable != true && *enable != false) return BP_PARMERR;
+            if(getset && *enable != true && *enable != false) return BP_PARMERR;
             if(getset)
             {
                 ch->data_bundle.primary_block.allow_frag = *enable;
@@ -876,7 +876,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
-            if(*enable != true && *enable != false) return BP_PARMERR;
+            if(getset && *enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->data_bundle.originate = *enable;
             else        *enable = ch->data_bundle.originate;
             break;
@@ -885,7 +885,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
-            if(*enable != true && *enable != false) return BP_PARMERR;
+            if(getset && *enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->proc_admin_only = *enable;
             else        *enable = ch->proc_admin_only;
             break;
@@ -894,7 +894,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* wrap = (int*)val;
-            if(*wrap != BP_WRAP_RESEND && *wrap != BP_WRAP_BLOCK && *wrap != BP_WRAP_DROP) return BP_PARMERR;
+            if(getset && *wrap != BP_WRAP_RESEND && *wrap != BP_WRAP_BLOCK && *wrap != BP_WRAP_DROP) return BP_PARMERR;
             if(getset)  ch->wrap_response = *wrap;
             else        *wrap = ch->wrap_response;
             break;
@@ -903,7 +903,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
-            if(*enable != true && *enable != false) return BP_PARMERR;
+            if(getset && *enable != true && *enable != false) return BP_PARMERR;
             if(getset)  ch->cid_reuse = *enable;
             else        *enable = ch->cid_reuse;
             break;
