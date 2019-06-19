@@ -67,6 +67,7 @@ typedef struct {
     int             lock;
     uint64_t        service_id;
     char*           file_root;
+    int             data_count;
     
     FILE*           write_fd;
     uint64_t        write_data_id;
@@ -111,7 +112,7 @@ static FILE* open_dat_file (int service_id, char* file_root, uint32_t file_id, b
     if(read_only)   fd = fopen(filename, "rb");
     else            fd = fopen(filename, "ab");
 
-    if(fd == NULL) printf("pfile fatal error - failed to open data file %s[%d]: %s\n", filename, read_only, strerror(errno));
+    if(fd == NULL) printf("pfile fatal error - failed to open %s data file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
     
     return fd;
 }
@@ -140,7 +141,7 @@ static FILE* open_tbl_file (int service_id, char* file_root, uint32_t file_id, b
     if(read_only)   fd = fopen(filename, "rb");
     else            fd = fopen(filename, "wb");
 
-    if(fd == NULL) printf("pfile fatal error - failed to open table file %s[%d]: %s\n", filename, read_only, strerror(errno));
+    if(fd == NULL) printf("pfile fatal error - failed to open %s table file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
     
     return fd;
 }
@@ -159,17 +160,17 @@ static int delete_tbl_file (int service_id, char* file_root, uint32_t file_id)
 /*--------------------------------------------------------------------------------------
  * set_root_path -
  *-------------------------------------------------------------------------------------*/
-int set_root_path (char* root_path_dst, const char* root_path_src)
+static int set_root_path (char** root_path_dst, const char* root_path_src)
 {
     if(root_path_src == NULL) root_path_src = FILE_DEFAULT_ROOT;
     
     int root_path_len = strnlen(root_path_src, FILE_MAX_FILENAME - 1) + 1;
     if(root_path_len == (FILE_MAX_FILENAME - 1)) return BP_PARMERR;
     
-    if(root_path_dst) free(root_path_dst);
-    root_path_dst = (char*)malloc(root_path_len);
+    if(*root_path_dst) free(*root_path_dst);
+    *root_path_dst = (char*)malloc(root_path_len);
     
-    strncpy(root_path_dst, root_path_src, root_path_len);
+    strncpy(*root_path_dst, root_path_src, root_path_len);
 
     return BP_SUCCESS;
 }
@@ -201,7 +202,7 @@ int bplib_store_pfile_create (void* parm)
             memset(&file_stores[s], 0, sizeof(file_stores[s]));
             file_stores[s].in_use = true;
             file_stores[s].service_id = file_service_id++;
-            set_root_path(file_stores[s].file_root, attr ? attr->root_path : NULL);
+            set_root_path(&file_stores[s].file_root, attr ? attr->root_path : NULL);
             file_stores[s].lock = bplib_os_createlock();
             file_stores[s].write_data_id = 1;
             file_stores[s].read_data_id = 1;
@@ -332,6 +333,7 @@ int bplib_store_pfile_enqueue (int handle, void* data1, int data1_size, void* da
         }
 
         /* Return Success */
+        fs->data_count++;
         return bytes_written;
     }
 }
@@ -703,6 +705,7 @@ int bplib_store_pfile_relinquish (int handle, bp_sid_t sid)
     }
 
     /* Return Success */
+    fs->data_count--;
     return BP_SUCCESS;
 }
 
@@ -716,5 +719,5 @@ int bplib_store_pfile_getcount (int handle)
 
     file_store_t* fs = (file_store_t*)&file_stores[handle];
 
-    return (fs->write_data_id - fs->read_data_id);
+    return fs->data_count;
 }
