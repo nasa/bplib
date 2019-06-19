@@ -49,7 +49,7 @@
 
 #define BP_DEFAULT_MAX_CHANNELS         4
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
-#define BP_DEFAULT_MAX_CONCURRENT_DACS  4   // maximum number of custody eids to keep track of
+#define BP_DEFAULT_MAX_CONCURRENT_DACS  4       // maximum number of custody eids to keep track of
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_PAY_CRC              BP_BIB_CRC16
 #define BP_DEFAULT_TIMEOUT              10
@@ -323,8 +323,8 @@ static int initialize_orig_bundle(bp_data_bundle_t* bundle)
     ds->payoffset = offset;
     ds->headersize = bplib_blk_pay_write (&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
 
-    /* Return Size of Bundle Header */
-    return ds->headersize;
+    /* Return Success */
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -497,7 +497,7 @@ static int store_data_bundle(bp_data_bundle_t* bundle, bp_store_enqueue_t enqueu
     if(bundle->originate) pri->createseq.value++;
 
     /* Return Payload Bytes Stored */
-    return payload_offset;
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -547,7 +547,7 @@ static int initialize_dacs_bundle(bp_channel_t* ch, int dac_entry, uint32_t dstn
 
     /* Return Status */
     if(flags != 0)  return BP_BUNDLEPARSEERR;
-    else            return ds->headersize;
+    else            return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -599,7 +599,7 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t 
     else // successfully enqueued
     {
         dacs->sent = true;
-        return dacs_size;
+        return BP_SUCCESS;
     }
 }
 
@@ -1590,6 +1590,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
 int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* procflags)
 {
     int                 status;
+    int                 enstat;
     bp_channel_t*       ch;
 
     uint32_t            sysnow;
@@ -1798,7 +1799,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                     if(rec_type == BP_ACS_REC_TYPE)
                     {
                         int acknowledgment_count = 0;
-                        status = bplib_rec_acs_process(&buffer[index], size - index, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, ch->storage.relinquish, ch->data_store_handle);
+                        bplib_rec_acs_process(&buffer[index], size - index, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, ch->storage.relinquish, ch->data_store_handle);
                         if(acknowledgment_count > 0)
                         {
                             ch->stats.acknowledged += acknowledgment_count;
@@ -1836,8 +1837,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                 }
 
                 /* Enqueue Payload into Storage */
-                status = ch->storage.enqueue(ch->payload_store_handle, pay, sizeof(bp_payload_store_t), &buffer[index], pay->payloadsize, timeout);
-                if(status > 0)
+                enstat = ch->storage.enqueue(ch->payload_store_handle, pay, sizeof(bp_payload_store_t), &buffer[index], pay->payloadsize, timeout);
+                if(enstat > 0)
                 {
                     /* Acknowledge Custody */
                     if(pay->request_custody)
@@ -1851,7 +1852,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
                 }
                 else
                 {
-                    bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", status);
+                    status = bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", enstat);
                 }
             }
 
@@ -1867,13 +1868,13 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
 /*--------------------------------------------------------------------------------------
  * bplib_accept -
  *
- *  Returns number of bytes of payload copied (positive), or error code (zero, negative)
+ *  Returns success if payload copied, or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
 int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* acptflags)
 {
     (void)acptflags;
     
-    int status;
+    int status, deqstat;;
 
     /* Check Parameters */
     if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
@@ -1889,8 +1890,8 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
     bp_sid_t                sid         = BP_SID_VACANT;
 
     /* Dequeue Payload from Storage */
-    status = dequeue(ch->payload_store_handle, (void**)&storebuf, &storelen, &sid, timeout);
-    if(status == BP_SUCCESS)
+    deqstat = dequeue(ch->payload_store_handle, (void**)&storebuf, &storelen, &sid, timeout);
+    if(deqstat > 0)
     {
         /* Access Payload */
         uint8_t*            payptr      = &storebuf[sizeof(bp_payload_store_t)];
@@ -1909,6 +1910,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
                 memcpy(*payload, payptr, paylen);
                 *size = paylen;
                 ch->stats.delivered++;
+                status = BP_SUCCESS;
             }
             else
             {
@@ -1925,8 +1927,12 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
         /* Relinquish Memory */
         relinquish(ch->payload_store_handle, sid);
     }
+    else 
+    {
+        status = deqstat;
+    }
 
-    /* Return Status or Payload Size */
+    /* Return Status */
     return status;
 }
 
