@@ -53,6 +53,7 @@ APP_OBJ     += bplib_blk_pay.o
 APP_OBJ     += bplib_blk_pri.o
 APP_OBJ     += bplib_crc.o
 APP_OBJ     += bplib_sdnv.o
+APP_OBJ     += bplib_rb_tree.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?=
