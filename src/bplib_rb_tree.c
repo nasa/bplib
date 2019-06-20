@@ -37,7 +37,7 @@
  ******************************************************************************/ 
 
 /*--------------------------------------------------------------------------------------
- * pop_free_node - Retrieves a block of unallocated memory for assigning an rb_node if available. 
+ * pop_free_node - Retrieves a block of unallocated memory to assign an rb_node if available. 
  *
  * tree: A ptr to a rb_tree. [OUTPUT]
  * returns: A ptr to a free block of memory to allocate an rb_node. If no space is available
@@ -189,7 +189,7 @@ static bool is_left_child(struct rb_node* node)
  *-------------------------------------------------------------------------------------*/
 struct rb_node* get_sibling(struct rb_node* node)
 {
-    struct rb_node* parent = parent->parent;
+    struct rb_node* parent = node->parent;
     if (parent == NULL)
     {
         return NULL;
@@ -261,15 +261,15 @@ static bool has_right_child(struct rb_node* node)
  * node_1: A ptr to an rb_node to move down in the tree when swapping parents. [OUTPUT]
  * node_2: A ptr to an rb_node that was previously the child of node_1 and should be moved up
  *      in the tree when swapping parents. [OUTPUT]
- * root: A ptr to a ptr of the of the root node in the red black tree. [OUTPUT]
+ * tree: A ptr to the red black to within which to swap parents. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void swap_parents(struct rb_node* node_1, struct rb_node* node_2, struct rb_node** root)
+static void swap_parents(struct rb_node* node_1, struct rb_node* node_2, struct rb_tree* tree)
 {
     node_2->parent = node_1->parent;
 
     if (is_root(node_1))
     {
-        *root = node_2;
+        tree->root = node_2;
     }
     else if (is_left_child(node_1))
     {
@@ -295,10 +295,10 @@ static void swap_parents(struct rb_node* node_1, struct rb_node* node_2, struct 
  *        10   20                               15   22
  *            /  \                             /  \
  *           17  22                           10  17
- * root: A ptr to the rb_node that is currently root of the red black tree. [OUTPUT]
+ * tree: A ptr to the rb_tree to rotate. [OUTPUT]
  * node: A ptr to an rb_node about which to rotate the red black tree left. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void rotate_left(struct rb_node** root, struct rb_node* node)
+static void rotate_left(struct rb_tree* tree, struct rb_node* node)
 {
     struct rb_node* new_parent = node->right;
     node->right = new_parent->left;
@@ -308,7 +308,7 @@ static void rotate_left(struct rb_node** root, struct rb_node* node)
     {
         node->right->parent = node;
     }
-    swap_parents(node, new_parent, root);
+    swap_parents(node, new_parent, tree);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -323,10 +323,10 @@ static void rotate_left(struct rb_node** root, struct rb_node* node)
  *        10    20                               7   15
  *       / \                                         / \
  *      7  13                                       13  20
- * root: A ptr to the rb_node that is currently root of the red black tree. [OUTPUT]
+ * tree: A ptr to the rb_tree to rotate. [OUTPUT]
  * node: A ptr to an rb_node about which to rotate the red black tree right. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void rotate_right(struct rb_node** root, struct rb_node* node)
+static void rotate_right(struct rb_tree* tree, struct rb_node* node)
 {
     struct rb_node* new_parent = node->left;
     node->left = new_parent->right;
@@ -337,7 +337,7 @@ static void rotate_right(struct rb_node** root, struct rb_node* node)
         node->left->parent = node;
     }
     
-    swap_parents(node, new_parent, root);
+    swap_parents(node, new_parent, tree);
 }
 
 /*-------------------------------------------------------------------------------------
@@ -346,7 +346,7 @@ static void rotate_right(struct rb_node** root, struct rb_node* node)
  * value: The value to assign to the rb_node. [INPUT]
  * node: A ptr to an rb_node to instantiate with defaults and set its value. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-struct rb_node* populate_rb_node(uint32_t value, struct rb_node* node)
+static void populate_rb_node(uint32_t value, struct rb_node* node)
 {
     node->value = value;
     node->offset = 1;
@@ -409,6 +409,30 @@ static void insert_child(struct rb_node* node,
 {
     node->parent = parent;
     *child_ptr = node;
+}
+
+/*--------------------------------------------------------------------------------------
+ * apply_inorder - Applies a function in order to nodes in a rb_tree. 
+ * 
+ * node: A ptr to a rb_node to apply a function to and recurse its subtrees. [INPUT]
+ * func. A function pointer accepting a ptr to an rb_node. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
+static void apply_inorder(struct rb_node* node, void (*func)(rb_node*))
+{
+    if (has_left_child(node))
+    {
+        // Apply function to left subtree.
+        apply_inorder(node->left, func);
+    }
+
+    // Apply function to the current node.
+    func(node);
+
+    if (has_right_child(node))
+    {
+        // Apply function to right subtree.
+        apply_inorder(node->right, func);
+    }
 }
 
 /*-------------------------------------------------------------------------------------
@@ -542,24 +566,69 @@ static void replace_node(struct rb_node* node, struct rb_node* child)
     }
 }
 
+/*--------------------------------------------------------------------------------------
+ * delete_case_6 - Sibling is black. Node is a left child of parent and sibling has a 
+ *      right red child or node is a right child and sibling has a left red child. 
+ *      In these cases parent and sibling swap colors and the red child of sibling is
+ *      recolored black. The tree is then rotated such that sibling becomes nodes grandparent.
+ *     
+ *            P       -->     S    
+ *           / \             / \
+ *          BN  BS          BP  BSR
+ *               \          /    
+ *                RSR      BN
+ *
+ * root: A ptr to the rb_tree within which we need to rebalance to maintain 
+ *      its properties. [OUTPUT]
+ * node: A ptr to the rb_node to rebalance. [OUTPUT]
+ *--------------------------------------------------------------------------------------*
+ * CITATION: The code in this function was adated from the following source.
+ *
+ * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
+ * Retrieved 14:34, June 20, 2019, 
+ * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
+ *--------------------------------------------------------------------------------------*/ 
 static void delete_case_6(struct rb_tree* tree, struct rb_node* node)
 {
     struct rb_node* sibling =  get_sibling(node);
-    sibling->color = node->parent->color;
-    set_black(node->parent);
+    struct rb_node* parent = node->parent;
+
+    swap_colors(sibling, parent);
 
     if (is_left_child(node))
     {
         set_black(sibling->right);
-        rotate_left(&tree->root, node->parent);
+        rotate_left(tree, parent);
     }
     else
     {
         set_black(sibling->left);
-        rotate_right(&tree->root, node->parent);
+        rotate_right(tree, parent);
     }
 }
 
+/*--------------------------------------------------------------------------------------
+ * delete_case_5 - Sibling is a black left child and has a red left child and a black 
+ *      right child. The mirror case is also applicable. In these situations the tree is 
+ *      rotated such sibling becomes the child of its red child and then its color is
+ *      swapped with the red child (new parent). If this case is not met, this function 
+ *      casecades into case 6.
+ *     
+ *            BS        -->   BSL    
+ *           / \               \
+ *          RSL BSR            RS
+ *                              \
+ *                              BSL
+ *
+ * root: A ptr to the rb_tree within which we need to rebalance . [OUTPUT]
+ * node: A ptr to the rb_node to rebalance. [OUTPUT]
+ *--------------------------------------------------------------------------------------*
+ * CITATION: The code in this function was adated from the following source.
+ *
+ * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
+ * Retrieved 14:34, June 20, 2019,
+ * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
+ *--------------------------------------------------------------------------------------*/ 
 static void delete_case_5(struct rb_tree* tree, struct rb_node* node)
 {
     struct rb_node* sibling = get_sibling(node);
@@ -571,38 +640,98 @@ static void delete_case_5(struct rb_tree* tree, struct rb_node* node)
         {
             set_red(sibling);
             set_black(sibling->left);
-            rotate_right(&tree->root, sibling);
+            rotate_right(tree, sibling);
         }
         else if (!is_left && is_black(sibling->left) && is_red(sibling->right))
         {
-            rotate_left(&tree->root, sibling);
+            rotate_left(tree, sibling);
         }
     }
     delete_case_6(tree, node);
 }
 
+/*--------------------------------------------------------------------------------------
+ * delete_case_4 - Parent is red but sibling and its children are black. In this case
+ *      the colors of parent and sibling can be swapped and node can then be deleted preserving
+ *      black depth. If this is not the case then this function casecades in cases 5 & 6. 
+ *     
+ *          RP                   BP
+ *         / \                  /  \
+ *        BN BS         -->    BN   RS
+ *           / \                    / \
+ *          BSL BSR               BSL  BSR
+ *
+ *
+ * root: A ptr to the rb_tree within which we need to rebalance. [OUTPUT]
+ * node: A ptr to the rb_node to rebalance. [OUTPUT]
+ *
+ *--------------------------------------------------------------------------------------*
+ * CITATION: The code in this function was adated from the following source.
+ *
+ * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
+ * Retrieved 14:34, June 20, 2019, from 
+ * https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
+ *--------------------------------------------------------------------------------------*/ 
 static void delete_case_4(struct rb_tree* tree, struct rb_node* node)
 {
     struct rb_node* sibling = get_sibling(node);
-    if (is_red(node->parent) && is_black(sibling) && is_black(sibling->left) && is_black(sibling->right))
+    struct rb_node* parent = node->parent;
+
+    if (is_red(parent) &&
+        is_black(sibling) &&
+        is_black(sibling->left) && 
+        is_black(sibling->right))
     {
         set_red(sibling);
-        set_black(node->parent);
+        set_black(parent);
     }
     else
     {
         delete_case_5(tree, node);
     }
 }
+
+// This is a function declaration for delete_case_1. For details on the intended usage see
+// the function definition.
 static void delete_case_1(struct rb_tree *tree, struct rb_node* node);
 
+/*--------------------------------------------------------------------------------------
+ * delete_case_3 - If parent, its siblings and its children are black then sibling can
+ *      be recolored such that pathes through sibling have one less black node which allows
+ *      us to delete node and maintain balance in tree. Pathes through parent however now
+ *      have one fewer black node than other pathes and so delete_case_1 must be called to
+ *      fix parent. If nodes are not recolored as described above, this function casecades
+ *      into cases 4, 5 & 6.
+ *
+ *     
+ *          BP                   BP
+ *         / \                  /  \
+ *        BN BS         -->    BN   RS
+ *           / \                    / \
+ *          BSL BSR                BSL BSR
+ *
+ *
+ * root: A ptr to the rb_tree within which we need to rebalance. [OUTPUT]
+ * node: A ptr to the rb_node to rebalance. [OUTPUT]
+ *
+ *--------------------------------------------------------------------------------------*
+ * CITATION: The code in this function was adated from the following source.
+ *
+ * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
+ * Retrieved 14:34, June 20, 2019, 
+ * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
+ *--------------------------------------------------------------------------------------*/ 
 static void delete_case_3(struct rb_tree* tree, struct rb_node* node)
 {
     struct rb_node* sibling = get_sibling(node);
-    if (is_black(node->parent) && is_black(sibling) && is_black(sibling->left) && is_black(sibling->right))
+    struct rb_node* parent = node->parent;
+    if (is_black(parent) &&
+        is_black(sibling) && 
+        is_black(sibling->left) &&
+        is_black(sibling->right))
     {
         set_red(sibling);
-        delete_case_1(tree, node->parent);
+        delete_case_1(tree, parent);
     }
     else
     {
@@ -610,73 +739,149 @@ static void delete_case_3(struct rb_tree* tree, struct rb_node* node)
     }
 }
 
+/*--------------------------------------------------------------------------------------
+ * delete_case_2 - If sibling is red the colors of it and parent are swapped and
+ *      and the tree is rotated such that sibling becomes node's grandparent. This stage
+ *      prepares the tree for the follow on cases, 3, 4, 5 & 6.
+ *     
+ *          BP                   BS
+ *         / \                  /  \
+ *        BN RS         -->    RP  BSR
+ *           / \              / \
+ *          BSL BSR          BN  BSL
+ *
+ *
+ * root: A ptr to the rb_tree within which we need to rebalance. [OUTPUT]
+ * node: A ptr to the rb_node to rebalance. [OUTPUT]
+ *
+ *--------------------------------------------------------------------------------------*
+ * CITATION: The code in this function was adated from the following source.
+ *
+ * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
+ * Retrieved 14:34, June 20, 2019,
+ * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
+ *--------------------------------------------------------------------------------------*/ 
 static void delete_case_2(struct rb_tree *tree, struct rb_node* node)
 {
     struct rb_node* sibling = get_sibling(node);
+    struct rb_node* parent = node->parent;
 
     if (is_red(sibling))
     {
-        set_red(node->parent);
+        // Swap colors between parent and sibling.
+        set_red(parent);
         set_black(sibling);
+
+        // Rotate sibling into the grandparent position.
         if (is_left_child(node))
         {
-            rotate_left(&tree->root, node->parent);
+            rotate_left(tree, parent);
         }
         else
         {
-            rotate_right(&tree->root, node->parent);
+            rotate_right(tree, parent);
         }
     }
+
     delete_case_3(tree, node);
 }
 
 
+/*--------------------------------------------------------------------------------------
+ * delete_case_1 - Checks if a node is root. If it is rebalancing for deletion is complete.
+ *      Otherwise, rebalancing progresses into different cases.
+ *
+ * root: A ptr to the rb_tree within which we need to rebalance. [OUTPUT]
+ * node: A ptr to the rb_node to delete. [OUTPUT]
+ *
+ *--------------------------------------------------------------------------------------*
+ * CITATION: The code in this function was adated from the following source.
+ *
+ * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
+ * Retrieved 14:34, June 20, 2019, 
+ * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
+ *--------------------------------------------------------------------------------------*/ 
 static void delete_case_1(struct rb_tree *tree, struct rb_node* node)
 {
-
     if (is_root(node))
     {
+        // Node is root. No more rebalancing is needed.
         return; 
     }
+
     delete_case_2(tree, node);
 }
 
+/*--------------------------------------------------------------------------------------
+ * delete_one_child - Deletes a node from a rb_tree containing at most one child.
+ *
+ * tree: A ptr to the rb_tree from which to delete a node. [OUTPUT] 
+ * node: A ptr to the rb_node to delete. [OUTPUT]
+ *
+ *--------------------------------------------------------------------------------------*
+ * CITATION: The code in this function was adated from the following source.
+ *
+ * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
+ * Retrieved 14:34, June 20, 2019, 
+ * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
+ *--------------------------------------------------------------------------------------*/ 
 static void delete_one_child(struct rb_tree* tree, struct rb_node* node)
 {
     struct rb_node* child = has_left_child(node) ? node->left : node->right;
 
     if (child == NULL)
     {
+        // The current node is a leaf with no children.
+
         if (is_black(node))
         {
+            // If the node is a black leaf with no children then deleting it
+            // requires rebalancing.
             delete_case_1(tree, node);
         }
+       
+        // Replace the current node with its NULl child. In the case where the current
+        // node was red this step results in a trivial deletion.
         replace_node(node, child);
     }
     else {
+        // Replace the current node with its non-null child and rebalance.
         replace_node(node, child);
+
         if (is_black(node))
         {
-            if (child != NULL && is_red(child))
+            // Rebalancing is only required upon deleting a black node 
+            // since a red node results in a trivial swap and deletion.
+
+            if (is_red(child))
             {
+                // If node is a black and child is red then simply recolor
+                // child to black to preserve the black depth of the tree.
                 set_black(child);
             }
             else
             {
-                // double black case.
+                // Node and its child are black. The tree must be rebalanced to 
+                // account for the change in black depth.
                 delete_case_1(tree, child);
             }
         }
     }
+    
+    // Free the block of memory for the deleted node.
     push_free_node(tree, node); 
 }
 
-
+/*--------------------------------------------------------------------------------------
+ * delete_node - Deletes an rb_node from an rb_tree and rebalances the tree accordingly. 
+ *
+ * tree: A ptr to the rb_tree from which to delete an rb_node. [OUTPUT] 
+ * node: A ptr to the rb_node to delete from the tree. [OUTPUT]
+ *--------------------------------------------------------------------------------------*/ 
 static void delete_node(struct rb_tree* tree, struct rb_node* node)
 {
     // Attempt to find a sucessor node for the current node. 
     struct rb_node* replace_node = get_sucessor(node);
-    struct rb_node* parent = node->parent;
 
     if (replace_node == NULL && is_root(node))
     {
@@ -696,7 +901,7 @@ static void delete_node(struct rb_tree* tree, struct rb_node* node)
         node = replace_node;
     }
 
-    // Node should now point to a node with at most one child that we want to delete.
+    // Node now points to a node with at most one child that we want to delete.
     delete_one_child(tree, node);
 }
 
@@ -842,39 +1047,43 @@ static rb_node* try_binary_insert_or_merge(uint32_t value, struct rb_tree* tree)
 
 /*--------------------------------------------------------------------------------------
  * try_insert_rebalance - Ensure that the red black tree adheres to all rules and rebalances
- *      the nodes within it accordingly.
+ *      the nodes within it accordingly. 
  *
  * root: A ptr to the rb_tree to rebalance. [OUTPUT]
- * node: A ptr to the last modified node in the red black tree.
+ * node: A ptr to the last modified node in the red black tree. [OUTPUT]
+ *
+ *--------------------------------------------------------------------------------------*
+ * CITATION: The code in this function was adated from the following source.
+ *
+ * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
+ * Retrieved 14:34, June 20, 2019, 
+ * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
  *--------------------------------------------------------------------------------------*/ 
 static void try_insert_rebalance(struct rb_tree* tree, struct rb_node* node)
 {
     while(true)
     {
-        rb_node** root = &tree->root;
         rb_node* parent = node->parent;
         rb_node* uncle = get_uncle(node);   
  
         if (parent == NULL)
         {
-            /* Case Root:
-             * The inserted node is root. Set its color to black. 
-             */
+            // Case Root:
+            // The inserted node is root. Set its color to black. 
             set_black(node);
             return;
         }
         else if (is_black(parent))
         {
-            /* Case Black Parent:
-             *  For insertion, this means we have not violated any rules.
-             */
+            // Case Black Parent:
+            // For insertion, this means we have not violated any rules.
             return;
         }
         else if (uncle != NULL && is_red(uncle))
         {
-            /* Case Red Parent and Red Uncle:
-             * Both parent and uncle should be made black.
-             */
+            // Case Red Parent and Red Uncle:
+            // Both parent and uncle should be made black.
+            //
             set_black(parent);
             set_black(uncle);
             rb_node* grandparent = get_grandparent(node);
@@ -885,35 +1094,34 @@ static void try_insert_rebalance(struct rb_tree* tree, struct rb_node* node)
         }
         else
         {     
-            /* Case Red Parent and Black Uncle:   
-             * The goal of the below steps is to rotate the current node into the grandparent
-             * position.
-             */
+            // Case Red Parent and Black Uncle:   
+            // The goal of the below steps is to rotate the current node into the grandparent
+            // position.
             rb_node* grandparent = get_grandparent(node);
 
             if (parent == grandparent->left && node == parent->right)
             {
                 // If parent is a left child and node is a right child then rotate left
                 // and reassign node to perform an additional rebalancing loop.
-                rotate_left(root, parent);
+                rotate_left(tree, parent);
                 node = node->left; 
             }
             else if (parent == grandparent->right && node == parent->left)
             {
                 // If parent is a right child and node is a left child then rotate right
                 // and reassign node to perform an additional rebalancing loop.
-                rotate_right(root, parent);
+                rotate_right(tree, parent);
                 node = node->right;
             }
             
             grandparent = get_grandparent(node);
             if (is_left_child(node))
             {
-                rotate_right(root, grandparent);
+                rotate_right(tree, grandparent);
             }
             else
             {
-                rotate_left(root, grandparent);
+                rotate_left(tree, grandparent);
             }
             set_black(parent);
             set_red(grandparent);
@@ -944,9 +1152,9 @@ struct rb_tree* create_rb_tree(uint32_t max_size)
 
     // Allocate a block of memory for the nodes in the tree and add them all to the
     // the free nodes queue.
-    rb_node* start = (rb_node*) calloc(max_size, sizeof(rb_node));
+    tree->node_block = (rb_node*) calloc(max_size, sizeof(rb_node));
 
-    if (start == NULL)
+    if (tree->node_block == NULL)
     {
         // If no memory is allocated return an empty tree.
         tree->free_node_head = NULL;
@@ -954,8 +1162,9 @@ struct rb_tree* create_rb_tree(uint32_t max_size)
         return tree;
     }
 
+    rb_node* start = tree->node_block;
     rb_node* end = start + (max_size * sizeof(rb_node));
-    for (start; start < end; start += sizeof(rb_node))
+    for (; start < end; start += sizeof(rb_node))
     {
         push_free_node(tree, start);
     }
@@ -993,7 +1202,7 @@ bool is_full(struct rb_tree *tree)
  *      unsucessful for duplicates or when the tree has no more memory available to allocate.
  *--------------------------------------------------------------------------------------*/ 
 bool insert(uint32_t value, struct rb_tree* tree)
-{       
+{
     rb_node* inserted_node = try_binary_insert_or_merge(value, tree);
 
     if (inserted_node == NULL)
@@ -1005,6 +1214,26 @@ bool insert(uint32_t value, struct rb_tree* tree)
     // Correct any violations within the red black tree due to the insertion.
     try_insert_rebalance(tree, inserted_node);
     return true;
+}
+
+/*--------------------------------------------------------------------------------------
+ * delete_rb_tree - Frees all memory allocated by a given rb_tree. 
+ *
+ * tree: A ptr to a rb_tree to free its memory. [OUTPUT]
+ *--------------------------------------------------------------------------------------*/ 
+void delete_rb_tree(struct rb_tree* tree)
+{
+    if (tree == NULL)
+    {
+        return;
+    }
+    free(tree);
+    
+    if (tree->node_block == NULL)
+    {
+        return;
+    }
+    free(tree->node_block);
 }
 
 /******************************************************************************
@@ -1039,6 +1268,13 @@ static bool are_nodes_equal(struct rb_node* n1, struct rb_node* n2)
             is_root(n1)          == is_root(n2));
 }
 
+/*--------------------------------------------------------------------------------------
+ * assert_equal_inorder_traverse - Asserts two trees have equivalent nodes when traversed
+ *      in order.
+ * 
+ * n1: A ptr to an rb_node to check equality with n2 and traverse its subtrees. [INPUT]
+ * n2: A ptr to an rb_node to check equality with n1 and traverse its subtrees. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
 static void assert_equal_inorder_traverse(struct rb_node* n1, struct rb_node* n2)
 {
     // Check equality of nodes at the current point in the tree.
@@ -1056,6 +1292,12 @@ static void assert_equal_inorder_traverse(struct rb_node* n1, struct rb_node* n2
     }
 }
 
+/*--------------------------------------------------------------------------------------
+ * assert_rb_trees_equal -
+ * 
+ * t1: A ptr to an rb_tree to check equality with t2. [INPUT]
+ * t2: A ptr to an rb_tree to check equality with t1. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
 static void assert_rb_trees_equal(struct rb_tree* t1, struct rb_tree* t2)
 {
     assert (t1->size == t2->size);
@@ -1063,7 +1305,11 @@ static void assert_rb_trees_equal(struct rb_tree* t1, struct rb_tree* t2)
     assert_equal_inorder_traverse(t1->root, t2->root);
 }
 
-
+/*--------------------------------------------------------------------------------------
+ * print_node -
+ * 
+ * node: A ptr to an rb_node to print. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
 static void print_node(struct rb_node* node)
 {
     if (node == NULL)
@@ -1078,25 +1324,13 @@ static void print_node(struct rb_node* node)
         node->left != NULL ? node->left->value : -1,
         node->right != NULL ? node->right->value : -1,
         node->offset);
- 
 }
 
-static void apply_inorder(struct rb_node* node, void (*func)(rb_node*))
-{
-    if (has_left_child(node))
-    {
-        apply_inorder(node->left, func);
-    }
-
-    func(node);
-
-    if (has_right_child(node))
-    {
-        apply_inorder(node->right, func);
-    }
-}
-
-
+/*--------------------------------------------------------------------------------------
+ * print_tree - 
+ * 
+ * tree: A ptr to an rb_tree to print. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
 static void print_tree(struct rb_tree* tree)
 {
     printf("##################################\n");
@@ -1112,15 +1346,60 @@ static void print_tree(struct rb_tree* tree)
     printf("**********************************\n");
 }
 
-static void assert_rb_tree_root_is_black(struct rb_tree* tree)
+/*--------------------------------------------------------------------------------------
+ * assert_inorder_values_are - Asserts that the nodes in tree match the provided array of values.
+ *
+ * node: A ptr to a rb_node to recursively check if its values match the values array.
+ * nodes: An array of nodes whose values, offsets and colors will be compared to the tree 
+ *      inorder.
+ * length: The length of the nodes array.
+ * index: A ptr to an integer index into the nodes array which is incremented within recursive
+ *      calls to this function.
+ * returns: The number of times the current index was incremented by its subtrees
+ *--------------------------------------------------------------------------------------*/  
+static int assert_inorder_nodes_are(struct rb_node* node, 
+                                    struct rb_node* nodes, 
+                                    int length, 
+                                    int index)
 {
-    if (is_empty(tree))
+    if (node == NULL)
     {
-        return;
+        // In the case where root is empty we should have no nodes. 
+        assert(length == 0);
+        return 0;
     }
-    assert(is_black(tree->root));
+
+    if (has_left_child(node))
+    {
+        // Check left subtree values.
+        index += assert_inorder_nodes_are(node->left, nodes, length, index);
+    }
+
+    // Check that there are not more nodes than expected.
+    assert(index < length);
+    
+    // Check that the nodes matches those provided in the list.
+    assert(node->value == nodes[index].value);
+    assert(node->offset == nodes[index].offset);   
+    assert(node->color == nodes[index].color); 
+
+    index += 1;
+
+    if (has_right_child(node))
+    {
+        // Check right subtre values.
+        index += assert_inorder_nodes_are(node->right, nodes, length, index);
+    }
+
+    return index;
 }
 
+/*--------------------------------------------------------------------------------------
+ * assert_node_has_no_adjacent_red - Checks the condition that a given node has no adjacent
+ *      red nodes among its children.
+ * 
+ * node: A ptr to check rb_node to check it and its subtrees for validity. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
 static void assert_node_has_no_adjacent_red(struct rb_node* node)
 {
     if (is_black(node))
@@ -1132,92 +1411,120 @@ static void assert_node_has_no_adjacent_red(struct rb_node* node)
     {
         // Assert left child is black since current node is red.
         assert(is_black(node->left));
+        assert_node_has_no_adjacent_red(node->left);
     }
     if (has_right_child(node))
     {
         // Assert right child is black since current node is red.
         assert(is_black(node->right));
+        assert_node_has_no_adjacent_red(node->right);
     }
 }
 
-static void assert_rb_tree_has_no_adjacent_red_nodes(struct rb_tree* tree)
-{
-    if (is_empty(tree)) 
-    {
-        return;
-    }
-    apply_inorder(tree->root, assert_node_has_no_adjacent_red);
-}
-
+/*--------------------------------------------------------------------------------------
+ * count_is_black - 
+ * 
+ * node: A ptr to an rb_node to check its color. [INPUT]
+ * returns: 1 if the provided node is black or null, else 0.
+ *--------------------------------------------------------------------------------------*/  
 static uint32_t count_is_black(rb_node* node)
 {
     return is_black(node) ? 1 : 0;
 }
 
-static uint32_t assert_node_has_equal_black_depths(struct rb_node* node)
+/*--------------------------------------------------------------------------------------
+ * assert_tree_pathes_have_equal_black_depths - Asserts the validity condition that
+ *      all pathes from a given node in a red black tree have equal black depths.
+ * 
+ * node: A ptr to a node to check its subtrees for equal black depths. [INPUT]
+ * returns: The black depth in indicating the number of black nodes along a path to a 
+ * leaf starting at node.
+ *--------------------------------------------------------------------------------------*/  
+static uint32_t assert_tree_pathes_have_equal_black_depths(struct rb_node* node)
 {
+    if (node == NULL)
+    {   
+        // If the node is NULL leaf or NULL root return early.
+        return 0;
+    }
+
     int left_count = 0;
     int right_count = 0;
     if (has_left_child(node))
     {
-        left_count = assert_node_has_equal_black_depths(node->left);
+        // Node has a left child. Check that the black depths are
+        // equal down the child subtree.
+        left_count = assert_tree_pathes_have_equal_black_depths(node->left);
     }
     else {
+        // If node has no left child the left tree has a black
+        // depth of 1 since leaves are black.
         left_count += 1;
     }
     if (has_right_child(node))
     {
-        right_count = assert_node_has_equal_black_depths(node->right);
+        // Node has a left child. Check that the black depths are equal
+        // down the child subtree.
+        right_count = assert_tree_pathes_have_equal_black_depths(node->right);
     }
     else
     {
+        // Node has no right child and so the right subtree black depth
+        // count is 1 since leaves are black.
         right_count += 1;
     }
-    assert (left_count == right_count);
 
-    return count_is_black(node) + left_count; // Need to only test one path since they are equal.
+    assert (left_count == right_count);
+    // Need to only test one path since they are equal.
+    return count_is_black(node) + left_count; 
 }
 
-static void assert_rb_tree_black_depths_are_equal(struct rb_tree* tree)
+/*--------------------------------------------------------------------------------------
+ * assert_node_values_in_between_child - Asserts the red black tree validity condition that
+ *      a given nodes left child has a value less than node and the right child has a value
+ *      greater than node.
+ * 
+ * node: A ptr to an rb_node to compare its value to its children and also check the children's subtrees. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
+static void assert_node_value_in_between_children(struct rb_node* node)
 {
-    if (is_empty(tree))
+    if (node == NULL)
     {
         return;
     }
-    print_tree(tree);
-    assert_node_has_equal_black_depths(tree->root);
 
-}
-
-static void assert_node_value_in_between_children(struct rb_node* node)
-{
     if (has_left_child(node))
     {
         assert(node->value > node->left->value);
+        assert_node_value_in_between_children(node->left);
     }
     if (has_right_child(node))
     {
         assert(node->value < node->right->value);
+        assert_node_value_in_between_children(node->right);
     }
 }
 
-static void assert_rb_tree_is_binary_search_tree(struct rb_tree* tree)
-{
-    if (is_empty(tree))
-    {
-        return;
-    }
-    apply_inorder(tree->root, assert_node_value_in_between_children);
-}
-
+/*--------------------------------------------------------------------------------------
+ * assert_rb_tree_is_valid - Checks all the validity conditions for a well formed red black tree.
+ * 
+ * tree: A ptr to an rb_tree to check for validity. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
 static void assert_rb_tree_is_valid(struct rb_tree* tree)
 {
-    assert_rb_tree_root_is_black(tree);
-    assert_rb_tree_has_no_adjacent_red_nodes(tree);
-    assert_rb_tree_black_depths_are_equal(tree);
-    assert_rb_tree_is_binary_search_tree(tree);
+    assert(is_black(tree->root));
+    assert_node_has_no_adjacent_red(tree->root);
+    assert_tree_pathes_have_equal_black_depths(tree->root);
+    assert_node_value_in_between_children(tree->root);
 }
 
+/******************************************************************************
+ RB_TREE TESTS
+ ******************************************************************************/
+
+/*--------------------------------------------------------------------------------------
+ * test_new_tree_empty - 
+ *--------------------------------------------------------------------------------------*/  
 static void test_new_tree_empty()
 {
     rb_tree* tree = create_rb_tree(0);
@@ -1226,6 +1533,9 @@ static void test_new_tree_empty()
     assert(tree->root == NULL);
 }
 
+/*--------------------------------------------------------------------------------------
+ * test_unable_to_insert_into_empty_tree - 
+ *--------------------------------------------------------------------------------------*/  
 static void test_unable_to_insert_into_empty_tree()
 {
     rb_tree* tree = create_rb_tree(0);
@@ -1237,9 +1547,12 @@ static void test_unable_to_insert_into_empty_tree()
     assert(tail_start == tree->free_node_tail);
 }
 
+/*--------------------------------------------------------------------------------------
+ * test_unable_to_insert_into_full_tree - 
+ *--------------------------------------------------------------------------------------*/  
 static void test_unable_to_insert_into_full_tree()
 {
-    rb_tree * tree = create_rb_tree(4);
+    rb_tree* tree = create_rb_tree(4);
     assert(tree->size == 0);
     assert(!is_full(tree));
     insert(0, tree);
@@ -1257,84 +1570,52 @@ static void test_unable_to_insert_into_full_tree()
     assert_rb_tree_is_valid(tree);
 }
 
-static void test_single_insertion()
+
+/*--------------------------------------------------------------------------------------
+ * test_deletes_tree -
+ *--------------------------------------------------------------------------------------*/  
+static void test_deletes_tree()
+{
+    // Tests deleting a tree with nodes.
+    rb_tree* tree = create_rb_tree(5);
+    insert(0, tree);
+    insert(1, tree);
+    insert(2, tree);
+    insert(3, tree);
+    delete_rb_tree(tree);
+    
+    // Tests deleting an empty tree.
+    tree = create_rb_tree(0);
+    delete_rb_tree(tree);
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_single_insertion -
+ *--------------------------------------------------------------------------------------*/  
+static void test_insert_root()
 {
     rb_tree* tree = create_rb_tree(1);
     insert(5, tree);
     assert_rb_tree_is_valid(tree);
+ 
+    struct rb_node n1 = {.value = 5, .offset = 1, .color=false};
+    struct rb_node nodes[] = {n1};
+    assert_inorder_nodes_are(tree->root, nodes, 1, 0);
 }
 
-static void test_insert_at_red_uncle()
-{
-    /* Tests insertion when the inserted element's uncle is red.
-
-            B5                        B5
-           /  \     Insert 1 -->     /  \
-          R3  R7                    B3  B7
-                                   /
-                                  R1
-    */                             
-    rb_tree* tree = create_rb_tree(4);
-    rb_node* node_1 = create_black_node(5, tree);     
-    rb_node* node_2 = create_red_node(3, tree);
-    rb_node* node_3 = create_red_node(7, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(1, tree);
-    assert_rb_tree_is_valid(tree);   
-}
-
-static void test_insert_at_black_uncle_left_left_case()
-{   
-    rb_tree* tree = create_rb_tree(8);
-    insert(10, tree);
-    print_tree(tree);
-    insert(9, tree);
-    print_tree(tree);
-    insert(11, tree);
-    print_tree(tree);
-    assert_rb_tree_is_valid(tree);
-}
-
-static void test_merge()
-{
-    rb_tree* tree = create_rb_tree(9);
-    insert(10, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(5, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(13, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(15, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(11, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(12, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(6, tree);
-    
-    assert_rb_tree_is_valid(tree);
-    insert(4, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(8, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(9, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(7, tree);
-    assert_rb_tree_is_valid(tree);
-    insert(14, tree);
-    assert_rb_tree_is_valid(tree);
-    assert_rb_tree_is_valid(tree);
-}
-
+/*--------------------------------------------------------------------------------------
+ * run_tests - Run all rb_tree tests. 
+ *--------------------------------------------------------------------------------------*/  
 static void run_tests()
 {
-//    test_new_tree_empty();
-//    test_unable_to_insert_into_empty_tree();
-//    test_unable_to_insert_into_full_tree();
-//    test_insert_at_black_uncle_left_left_case();
-    test_merge();
+    test_new_tree_empty();
+    test_unable_to_insert_into_empty_tree();
+    test_unable_to_insert_into_full_tree();
+    test_deletes_tree();
+    test_insert_root();
 }
 
 int main() {    
     run_tests();
 }
+

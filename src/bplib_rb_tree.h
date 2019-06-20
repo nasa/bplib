@@ -56,6 +56,9 @@ typedef struct rb_tree {
     rb_node* root; // The root of the tree. When root is null size is also 0.
     rb_node* free_node_head; // The memory location of the first unallocated rb_node.
     rb_node* free_node_tail; // The memory location of the last unallocated rb_node.
+    // The starting memory address of the allocated memory for rb_nodes. 
+    // This value is tracked so that the nodes can be deallocated in a single call to free.
+    rb_node* node_block; 
 } rb_tree;
 
 /******************************************************************************
@@ -72,4 +75,6 @@ bool is_empty(struct rb_tree* tree);
 bool is_full(struct rb_tree* tree);
 // Inserts value into a red black tree. Duplicates will not be inserted.
 bool insert(uint32_t value, struct rb_tree* tree);
+// Frees all memory allocated for a rb_tree and recursively frees its nodes.
+void delete_rb_tree(struct rb_tree* tree);
 #endif  /* __BPLIB_RB_TREE_H__ */
