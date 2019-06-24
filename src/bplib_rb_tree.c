@@ -59,7 +59,6 @@ static rb_node* pop_free_node(struct rb_tree* tree)
     return free_node;
 }
 
-
 /*--------------------------------------------------------------------------------------
  * push_free_node - Recovers a block of unallocated memory for assigning future rb_nodes to.
  *
@@ -592,8 +591,8 @@ static void delete_case_6(struct rb_tree* tree, struct rb_node* node)
 {
     struct rb_node* sibling =  get_sibling(node);
     struct rb_node* parent = node->parent;
-
-    swap_colors(sibling, parent);
+    sibling->color = parent->color;
+    set_black(parent);
 
     if (is_left_child(node))
     {
@@ -845,6 +844,7 @@ static void delete_one_child(struct rb_tree* tree, struct rb_node* node)
         replace_node(node, child);
     }
     else {
+        
         // Replace the current node with its non-null child and rebalance.
         replace_node(node, child);
 
@@ -1083,7 +1083,6 @@ static void try_insert_rebalance(struct rb_tree* tree, struct rb_node* node)
         {
             // Case Red Parent and Red Uncle:
             // Both parent and uncle should be made black.
-            //
             set_black(parent);
             set_black(uncle);
             rb_node* grandparent = get_grandparent(node);
@@ -1115,6 +1114,8 @@ static void try_insert_rebalance(struct rb_tree* tree, struct rb_node* node)
             }
             
             grandparent = get_grandparent(node);
+            parent = node->parent;
+
             if (is_left_child(node))
             {
                 rotate_right(tree, grandparent);
@@ -1125,6 +1126,7 @@ static void try_insert_rebalance(struct rb_tree* tree, struct rb_node* node)
             }
             set_black(parent);
             set_red(grandparent);
+            return;
         }
     }
 }
@@ -1163,8 +1165,9 @@ struct rb_tree* create_rb_tree(uint32_t max_size)
     }
 
     rb_node* start = tree->node_block;
-    rb_node* end = start + (max_size * sizeof(rb_node));
-    for (; start < end; start += sizeof(rb_node))
+    rb_node* end = start + max_size;
+    
+    for (; start < end; start++)
     {
         push_free_node(tree, start);
     }
@@ -1223,17 +1226,19 @@ bool insert(uint32_t value, struct rb_tree* tree)
  *--------------------------------------------------------------------------------------*/ 
 void delete_rb_tree(struct rb_tree* tree)
 {
+    
     if (tree == NULL)
     {
         return;
     }
-    free(tree);
-    
+
     if (tree->node_block == NULL)
     {
         return;
     }
+    
     free(tree->node_block);
+    free(tree);
 }
 
 /******************************************************************************
@@ -1347,21 +1352,23 @@ static void print_tree(struct rb_tree* tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * assert_inorder_values_are - Asserts that the nodes in tree match the provided array of values.
+ * assert_inorder_values_are - Asserts that the nodes in tree match the provided values.
  *
  * node: A ptr to a rb_node to recursively check if its values match the values array.
- * nodes: An array of nodes whose values, offsets and colors will be compared to the tree 
- *      inorder.
+ * nodes: An array of ptr to rb_nodes whose values, offsets and colors will be 
+ *      compared to the nodes in the tree tree inorder.
  * length: The length of the nodes array.
  * index: A ptr to an integer index into the nodes array which is incremented within recursive
  *      calls to this function.
  * returns: The number of times the current index was incremented by its subtrees
  *--------------------------------------------------------------------------------------*/  
 static int assert_inorder_nodes_are(struct rb_node* node, 
-                                    struct rb_node* nodes, 
+                                    struct rb_node** nodes, 
                                     int length, 
                                     int index)
 {
+    int index_offset = 0;
+
     if (node == NULL)
     {
         // In the case where root is empty we should have no nodes. 
@@ -1372,26 +1379,27 @@ static int assert_inorder_nodes_are(struct rb_node* node,
     if (has_left_child(node))
     {
         // Check left subtree values.
-        index += assert_inorder_nodes_are(node->left, nodes, length, index);
+        index_offset += assert_inorder_nodes_are(node->left, nodes, length, index);
     }
 
     // Check that there are not more nodes than expected.
     assert(index < length);
     
     // Check that the nodes matches those provided in the list.
-    assert(node->value == nodes[index].value);
-    assert(node->offset == nodes[index].offset);   
-    assert(node->color == nodes[index].color); 
+    assert(node->value == nodes[index + index_offset]->value);
+    assert(node->offset == nodes[index + index_offset]->offset);   
+    assert(node->color == nodes[index + index_offset]->color); 
 
-    index += 1;
+    index_offset += 1;
 
     if (has_right_child(node))
     {
         // Check right subtre values.
-        index += assert_inorder_nodes_are(node->right, nodes, length, index);
+        index_offset += assert_inorder_nodes_are(node->right, nodes, length, 
+                                                 index + index_offset);
     }
 
-    return index;
+    return index_offset;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1506,7 +1514,7 @@ static void assert_node_value_in_between_children(struct rb_node* node)
 }
 
 /*--------------------------------------------------------------------------------------
- * assert_rb_tree_is_valid - Checks all the validity conditions for a well formed red black tree.
+ * assert_rb_tree_is_valid - Checks all the validity conditions for a valid red black tree.
  * 
  * tree: A ptr to an rb_tree to check for validity. [INPUT]
  *--------------------------------------------------------------------------------------*/  
@@ -1516,6 +1524,23 @@ static void assert_rb_tree_is_valid(struct rb_tree* tree)
     assert_node_has_no_adjacent_red(tree->root);
     assert_tree_pathes_have_equal_black_depths(tree->root);
     assert_node_value_in_between_children(tree->root);
+}
+
+/*--------------------------------------------------------------------------------------
+ * shuffle - Shuffles an array of integers randomly.
+ * 
+ * array: A ptr to the array to shuffle. [OUTPUT]
+ * length: The length of the int array to shuffle. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
+static void shuffle(uint32_t* array, int length)
+{
+    for (int i = 0; i < length; i++)
+    {
+        int j = i + rand() / (RAND_MAX / (length - i) + 1);
+        int temp = array[j];
+        array[j] = array[i];
+        array[i] = temp;
+    }
 }
 
 /******************************************************************************
@@ -1531,6 +1556,7 @@ static void test_new_tree_empty()
     assert(is_empty(tree));
     assert(is_full(tree));
     assert(tree->root == NULL);
+    delete_rb_tree(tree);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1545,6 +1571,7 @@ static void test_unable_to_insert_into_empty_tree()
     assert(tree->root == NULL); 
     // Ensure that no blocks have been allocated.
     assert(tail_start == tree->free_node_tail);
+    delete_rb_tree(tree);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1568,6 +1595,7 @@ static void test_unable_to_insert_into_full_tree()
     // The final insert should fail when tree is full.
     assert(!insert(8, tree));
     assert_rb_tree_is_valid(tree);
+    delete_rb_tree(tree);
 }
 
 
@@ -1599,23 +1627,360 @@ static void test_insert_root()
     assert_rb_tree_is_valid(tree);
  
     struct rb_node n1 = {.value = 5, .offset = 1, .color=false};
-    struct rb_node nodes[] = {n1};
+    struct rb_node* nodes[] = {&n1};
     assert_inorder_nodes_are(tree->root, nodes, 1, 0);
+    delete_rb_tree(tree);
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_insert_left_subtree -
+ *--------------------------------------------------------------------------------------*/  
+static void test_insert_left_subtree()
+{
+    // Tests a single insertion into the left subtree from root.
+    rb_tree* tree = create_rb_tree(4);
+    insert(7, tree);
+    insert(5, tree);
+    assert_rb_tree_is_valid(tree);
+    struct rb_node n1 = {.value = 7, .offset = 1, .color = false};
+    struct rb_node n2 = {.value = 5, .offset = 1, .color = true};
+    struct rb_node* nodes_1[] = {&n2, &n1};
+    assert_inorder_nodes_are(tree->root, nodes_1, 2, 0);
+    
+    // Tests inserting into a left subtree requiring a rebalancing.
+    insert(3, tree);
+    n1.color = true;
+    n2.color = false;
+    struct rb_node n3 = {.value = 3, .offset = 1, .color = true};
+    struct rb_node* nodes_2[] = {&n3, &n2, &n1}; 
+    assert_inorder_nodes_are(tree->root, nodes_2, 3, 0);
+
+    // Tests an insertion into the left subtree when the parent node is not root.
+    insert(1, tree); 
+    n1.color = false;
+    n2.color = false;
+    n3.color = false;
+    struct rb_node n4 = {.value = 1, .offset = 1, .color = true};
+    struct rb_node* nodes_3[] = {&n4, &n3, &n2, &n1};
+    assert_inorder_nodes_are(tree->root, nodes_3, 4, 0);
+    delete_rb_tree(tree);
+ }
+
+/*--------------------------------------------------------------------------------------
+ * test_insert_right_subtree -
+ *--------------------------------------------------------------------------------------*/  
+static void test_insert_right_subtree()
+{
+    // Tests a single insertion into the right subtree from root.
+    rb_tree* tree = create_rb_tree(4);
+    insert(1, tree);
+    insert(3, tree);
+    assert_rb_tree_is_valid(tree);
+    struct rb_node n1 = {.value = 1, .offset = 1, .color = false};
+    struct rb_node n2 = {.value = 3, .offset = 1, .color = true};
+    struct rb_node* nodes_1[] = {&n1, &n2};
+    assert_inorder_nodes_are(tree->root, nodes_1, 2, 0);
+    
+    // Tests inserting into a right subtree requiring a rebalancing.
+    insert(5, tree);
+    n1.color = true;
+    n2.color = false;
+    struct rb_node n3 = {.value = 5, .offset = 1, .color = true};
+    struct rb_node* nodes_2[] = {&n1, &n2, &n3}; 
+    assert_inorder_nodes_are(tree->root, nodes_2, 3, 0);
+
+    // Tests an insertion into the right subtree when the parent node is not root.
+    insert(7, tree); 
+    n1.color = false;
+    n2.color = false;
+    n3.color = false;
+    struct rb_node n4 = {.value = 7, .offset = 1, .color = true};
+    struct rb_node* nodes_3[] = {&n1, &n2, &n3, &n4};
+    assert_inorder_nodes_are(tree->root, nodes_3, 4, 0);
+    delete_rb_tree(tree);
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_insert_merge_lower -
+ *--------------------------------------------------------------------------------------*/  
+static void test_insert_merge_lower()
+{
+    rb_tree* tree = create_rb_tree(3);
+    insert(5, tree);
+    insert(2, tree);
+    insert(10, tree);
+     
+    struct rb_node n1 = {.value =  2, .offset = 1, .color = true};
+    struct rb_node n2 = {.value =  5, .offset = 1, .color = false};
+    struct rb_node n3 = {.value = 10, .offset = 1, .color = true};
+    struct rb_node* nodes[] = {&n1, &n2, &n3};
+    
+    assert_rb_tree_is_valid(tree);
+    assert_inorder_nodes_are(tree->root, nodes, 3, 0);
+    
+    // After inserting the following values all node values in the tree should be replaced
+    // with the corresponding consecutive number that is lower. The offset should also be
+    // incremented to indicate that each node stores multiple values.
+    insert(4, tree);
+    insert(1, tree);
+    insert(9, tree);
+    insert(8, tree);
+    insert(7, tree);
+    insert(0, tree);
+   
+    n1.value = 0;
+    n1.offset = 3;
+
+    n2.value = 4;
+    n2.offset = 2;
+
+    n3.value = 7;
+    n3.offset = 4;
+
+    assert_rb_tree_is_valid(tree);
+    assert_inorder_nodes_are(tree->root, nodes, 3, 0);
+    delete_rb_tree(tree);
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_insert_merge_upper -
+ *--------------------------------------------------------------------------------------*/  
+static void test_insert_merge_upper()
+{
+    rb_tree* tree = create_rb_tree(3);
+    insert(5, tree);
+    insert(2, tree);
+    insert(10, tree);
+     
+    struct rb_node n1 = {.value =  2, .offset = 1, .color = true};
+    struct rb_node n2 = {.value =  5, .offset = 1, .color = false};
+    struct rb_node n3 = {.value = 10, .offset = 1, .color = true};
+    struct rb_node* nodes[] = {&n1, &n2, &n3};
+    
+    assert_rb_tree_is_valid(tree);
+    assert_inorder_nodes_are(tree->root, nodes, 3, 0);
+    
+    // After inserting the following values all node values in the tree should increase
+    // have increased offsets reflecting the fact that the node stores a range of inserted
+    // values.
+    insert(6, tree);
+    insert(7, tree);
+    insert(3, tree);
+    insert(11, tree);
+    insert(12, tree);
+    insert(13, tree);
+    insert(14, tree);
+    insert(15, tree);
+   
+    n1.offset = 2;
+    n2.offset = 3;
+    n3.offset = 6;
+
+    assert_rb_tree_is_valid(tree);
+    assert_inorder_nodes_are(tree->root, nodes, 3, 0);
+    delete_rb_tree(tree);
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_insert_merge_lower_and_child -
+ *--------------------------------------------------------------------------------------*/  
+static void test_insert_merge_lower_and_child()
+{
+    rb_tree* tree = create_rb_tree(7);
+    insert(20, tree);
+    insert(15, tree);
+    insert(25, tree);
+    insert(10, tree);
+    insert(30, tree);
+    insert(5, tree);
+    insert(35, tree);
+ 
+    struct rb_node n1 = {.value =  5, .offset = 1, .color = true};
+    struct rb_node n2 = {.value = 10, .offset = 1, .color = false}; 
+    struct rb_node n3 = {.value = 15, .offset = 1, .color = true}; 
+    struct rb_node n4 = {.value = 20, .offset = 1, .color = false};  
+    struct rb_node n5 = {.value = 25, .offset = 1, .color = true};  
+    struct rb_node n6 = {.value = 30, .offset = 1, .color = false}; 
+    struct rb_node n7 = {.value = 35, .offset = 1, .color = true}; 
+    struct rb_node* nodes_1[] = {&n1, &n2, &n3, &n4, &n5, &n6, &n7};
+
+    assert_rb_tree_is_valid(tree);
+    assert_inorder_nodes_are(tree->root, nodes_1, 7, 0);
+
+    insert(11, tree);
+    insert(12, tree);
+    insert(13, tree);
+    insert(14, tree);
+
+
+    n2.offset = 6;    
+    struct rb_node* nodes_2[] = {&n1, &n2, &n4, &n5, &n6, &n7};
+
+    assert_rb_tree_is_valid(tree);
+    assert_inorder_nodes_are(tree->root, nodes_2, 6, 0);
+    delete_rb_tree(tree);
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_insert_merge_upper_and_child -
+ *--------------------------------------------------------------------------------------*/  
+static void test_insert_merge_upper_and_child()
+{
+    rb_tree* tree = create_rb_tree(4);
+    insert(20, tree);
+    insert(10, tree);
+    insert(28, tree);
+    insert(30, tree);
+    
+    struct rb_node n1 = {.value = 10, .offset = 1, .color = false};
+    struct rb_node n2 = {.value = 20, .offset = 1, .color = false}; 
+    struct rb_node n3 = {.value = 28, .offset = 1, .color = false}; 
+    struct rb_node n4 = {.value = 30, .offset = 1, .color = true};  
+    struct rb_node* nodes_1[] = {&n1, &n2, &n3, &n4};
+
+    assert_rb_tree_is_valid(tree);
+    assert_inorder_nodes_are(tree->root, nodes_1, 4, 0);
+
+    insert(29, tree);
+    
+    n3.offset = 3;
+    struct rb_node* nodes_2[] = {&n1, &n2, &n3};
+
+    assert_rb_tree_is_valid(tree);
+    assert_inorder_nodes_are(tree->root, nodes_2, 3, 0);
+    delete_rb_tree(tree);
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_merge_to_single_node -
+ *--------------------------------------------------------------------------------------*/  
+static void test_merge_to_single_node()
+{
+    rb_tree* tree = create_rb_tree(10);
+    insert(1, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(3, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(5, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(7, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(9, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(11, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(13, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(15, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(12, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(8, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(4, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(14, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(2, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(6, tree);
+    assert_rb_tree_is_valid(tree);
+    insert(10, tree);
+ 
+    struct rb_node final_node = {.value = 1, .offset = 15, .color = false};
+    struct rb_node* nodes[] = {&final_node};
+
+    assert_rb_tree_is_valid(tree);
+    assert_inorder_nodes_are(tree->root, nodes, 1, 0);
+    delete_rb_tree(tree);
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_no_duplicates -
+ *--------------------------------------------------------------------------------------*/  
+static void test_no_duplicates()
+{
+    rb_tree* tree = create_rb_tree(10);
+    insert(5, tree);
+    insert(10, tree);
+    insert(15, tree);
+    struct rb_node n1 = {.value =  5, .offset = 1, .color = true};
+    struct rb_node n2 = {.value = 10, .offset = 1, .color = false}; 
+    struct rb_node n3 = {.value = 15, .offset = 1, .color = true};
+    struct rb_node* nodes[] = {&n1, &n2, &n3};
+
+   
+    assert(tree->size == 3);
+    assert_rb_tree_is_valid(tree); 
+    assert_inorder_nodes_are(tree->root, nodes, 3, 0);
+
+    assert(!insert(5, tree));
+    assert(!insert(5, tree));
+    assert(!insert(10, tree));
+    assert(!insert(10, tree));
+    assert(!insert(15, tree));
+    assert(!insert(15, tree));
+ 
+    assert(tree->size == 3);
+    assert_rb_tree_is_valid(tree); 
+    assert_inorder_nodes_are(tree->root, nodes, 3, 0);
+    delete_rb_tree(tree); 
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_random_stress -
+ *--------------------------------------------------------------------------------------*/  
+static void test_random_stress()
+{
+    int number_trees = 10;
+    uint32_t max_bundles = 16000; 
+    struct rb_node n = {.value = 0, .offset = max_bundles, .color = false};
+    struct rb_node* nodes[] = {&n};
+
+    uint32_t bundle_ids[max_bundles];
+    for (int i = 0; i < max_bundles; i++)
+    {
+        bundle_ids[i] = i;
+    }
+
+    for (int i = 0; i < number_trees; i++)
+    {
+        struct rb_tree* tree = create_rb_tree(max_bundles);
+        shuffle(bundle_ids, max_bundles);
+        for (int j = 0; j < max_bundles; j++)
+        {
+            insert(bundle_ids[j], tree);
+            assert_rb_tree_is_valid(tree);
+        }
+        assert_inorder_nodes_are(tree->root, nodes, 1, 0);
+        delete_rb_tree(tree);
+    }
 }
 
 /*--------------------------------------------------------------------------------------
  * run_tests - Run all rb_tree tests. 
  *--------------------------------------------------------------------------------------*/  
-static void run_tests()
+static void run_rb_tree_tests()
 {
+    printf("Running RB Tree Tests...\n");
     test_new_tree_empty();
     test_unable_to_insert_into_empty_tree();
     test_unable_to_insert_into_full_tree();
     test_deletes_tree();
     test_insert_root();
+    test_insert_left_subtree();
+    test_insert_right_subtree();
+    test_insert_merge_lower();
+    test_insert_merge_upper();
+    test_insert_merge_lower_and_child();
+    test_insert_merge_upper_and_child();
+    test_merge_to_single_node();
+    test_no_duplicates();
+    test_random_stress();
+    printf("All tests passed!\n");
 }
 
 int main() {    
-    run_tests();
+    run_rb_tree_tests();
 }
 
