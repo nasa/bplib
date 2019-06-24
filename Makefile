@@ -32,6 +32,10 @@
 # 
 #        make COMPILER=clang TOOLCHAIN=llvm APP_COPT=-fsanitize=address APP_LOPT=-fsanitize=address 
 #
+#  3. To build the unit tests:
+#
+#        make APP_COPT=-DUNITTEST unittest
+#
 
 ##############################################################################
 ## DEFINITIONS and CONFIGURATION (populated/overridden in application includes)
@@ -157,6 +161,11 @@ prep: $(BLDDIR)
 
 $(BLDDIR):
 	-$(MKDIR) -p $(BLDDIR)
+
+unittest: clean prep exe
+ 
+exe: $(ALL_OBJ)
+	$(CC) $^ $(ALL_LOPT) -o $(TGTLIB).out
 
 clean ::
 	-$(RM) -R $(BLDDIR)

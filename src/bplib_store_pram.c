@@ -64,15 +64,15 @@ typedef struct queue_block_t {
 typedef struct queue_def_t {
     queue_node_t*           front;
     queue_node_t*           rear;
-    unsigned int            depth;
-    unsigned int            len;
+    unsigned int            depth;  // maximum length of linked list
+    unsigned int            len;    // current length of linked list
     unsigned int            max_data_size;
 } queue_t;
 
 /* message_queue_t */
 typedef struct {
     char                    name[MSGQ_MAX_NAME_CHARS];
-    queue_t*                queue;
+    queue_t                 queue;
     int                     ready;
     int                     state;
 } message_queue_t;
@@ -85,6 +85,7 @@ typedef void* msgq_t;
  ******************************************************************************/
 
 static msgq_t msgq_stores[MSGQ_MAX_STORES];
+static int msgq_counts[MSGQ_MAX_STORES];
 static unsigned long store_id;
 
 /******************************************************************************
@@ -92,25 +93,9 @@ static unsigned long store_id;
  ******************************************************************************/
 
 /*----------------------------------------------------------------------------
- * Function:        create_queue
+ * Function:        flush_queue
  *----------------------------------------------------------------------------*/
-static queue_t* create_queue(int depth, int data_size)
-{
-    queue_t* msgQ = (queue_t*)malloc(sizeof(queue_t));
-
-    msgQ->front         = NULL;
-    msgQ->rear          = NULL;
-    msgQ->depth         = depth;
-    msgQ->len           = 0;
-    msgQ->max_data_size = data_size;
-
-    return msgQ;
-}
-
-/*----------------------------------------------------------------------------
- * Function:        destroy_queue
- *----------------------------------------------------------------------------*/
-static void destroy_queue(queue_t* q)
+static void flush_queue(queue_t* q)
 {
     queue_node_t* temp;
 
@@ -136,14 +121,6 @@ static int isempty(queue_t* q)
     {
         return false;
     }
-}
-
-/*----------------------------------------------------------------------------
- * Function:        getcount
- *----------------------------------------------------------------------------*/
-static int getcount(queue_t* q)
-{
-    return q->len;
 }
 
 /*----------------------------------------------------------------------------
@@ -246,6 +223,7 @@ static void* dequeue(queue_t* q, int* size)
 static msgq_t msgq_create(const char* name, int depth, int data_size)
 {
     message_queue_t* msgQ;
+    int ready_lock;
 
     /* Check Parameters */
     if(name == NULL)
@@ -253,31 +231,33 @@ static msgq_t msgq_create(const char* name, int depth, int data_size)
         return MSGQ_INVALID_HANDLE;
     }
 
+    /* Create Lock */
+    ready_lock = bplib_os_createlock();
+    if(ready_lock == -1)
+    {
+        printf("ERROR(%d): Unable to create ready sem: %s\n", ready_lock, name);
+        return MSGQ_INVALID_HANDLE;
+    }
+
     /* Allocate MSG Q */
     msgQ = (message_queue_t*)malloc(sizeof(message_queue_t));
+    if(msgQ == NULL)
+    {
+        printf("ERROR, Unable to allocate message queue: %s\n", name);
+        return MSGQ_INVALID_HANDLE;
+    }
 
     /* Initialize MSG Q */
-    strncpy(msgQ->name, name, MSGQ_MAX_NAME_CHARS);
-    msgQ->queue = create_queue(depth, data_size);
     msgQ->state = MSGQ_OKAY;
+    strncpy(msgQ->name, name, MSGQ_MAX_NAME_CHARS);
+    msgQ->queue.front         = NULL;
+    msgQ->queue.rear          = NULL;
+    msgQ->queue.depth         = depth;
+    msgQ->queue.len           = 0;
+    msgQ->queue.max_data_size = data_size;
+    msgQ->ready = ready_lock;
 
-    /* Create Lock */
-    msgQ->ready = bplib_os_createlock();
-    if(msgQ->ready == -1)
-    {
-        printf("ERROR[%d]: Unable to create ready sem: %s\n", msgQ->ready, name);
-        free(msgQ);
-        msgQ = NULL;
-    }
-
-    /* Check Final Status */
-    if( (msgQ != NULL) && (msgQ->state != MSGQ_OKAY) )
-    {
-        printf("ERROR, Unable to register: %s\n", name);
-        free(msgQ);
-        msgQ = NULL;
-    }
-
+    /* Return MSG Q */
     return (msgq_t)msgQ;
 }
 
@@ -292,7 +272,7 @@ static void msgq_delete(msgq_t queue_handle)
     message_queue_t* msgQ = (message_queue_t*)queue_handle;
     if(msgQ != NULL)
     {
-        destroy_queue(msgQ->queue);
+        flush_queue(&msgQ->queue);
         free(msgQ);
     }
 }
@@ -310,7 +290,7 @@ static int msgq_post(msgq_t queue_handle, void* data, int size)
     /* Post Data */
     bplib_os_lock(msgQ->ready);
     {
-        post_state = enqueue(msgQ->queue, data, size);
+        post_state = enqueue(&msgQ->queue, data, size);
         msgQ->state = post_state;
     }
     bplib_os_unlock(msgQ->ready);
@@ -343,7 +323,7 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
         /* Wait for a message to be posted */
         if(block == BP_PEND)
         {
-            while(isempty(msgQ->queue))
+            while(isempty(&msgQ->queue))
             {
                 bplib_os_waiton(msgQ->ready, BP_PEND);
             }
@@ -353,7 +333,7 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
         }
         else /* Timed Wait */
         {
-            if(isempty(msgQ->queue))
+            if(isempty(&msgQ->queue))
             {
                 int wait_status = bplib_os_waiton(msgQ->ready, block);
                 if(wait_status == BP_OS_TIMEOUT) recv_state = MSGQ_TIMEOUT;
@@ -365,7 +345,7 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
         msgQ->state = recv_state;
         if(msgQ->state == MSGQ_OKAY)
         {
-            *data = dequeue(msgQ->queue, size);
+            *data = dequeue(&msgQ->queue, size);
             if(*data == NULL) recv_state = MSGQ_UNDERFLOW;
         }
     }
@@ -373,18 +353,6 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
 
     /* Return Status */
     return recv_state;
-}
-
-/*----------------------------------------------------------------------------
- * Function:        msgq_getcount
- *
- * Notes:           returns number of items in message queue
- *----------------------------------------------------------------------------*/
-static int msgq_getcount(msgq_t queue_handle)
-{
-    message_queue_t* msgQ = (message_queue_t*)queue_handle;
-    if(msgQ == NULL) return MSGQ_ERROR;
-    return getcount(msgQ->queue);
 }
 
 /******************************************************************************
@@ -397,6 +365,7 @@ static int msgq_getcount(msgq_t queue_handle)
 void bplib_store_pram_init (void)
 {
     memset(msgq_stores, 0, sizeof(msgq_stores));
+    memset(msgq_counts, 0, sizeof(msgq_counts));
     store_id = 0;
 }
 
@@ -419,10 +388,13 @@ int bplib_store_pram_create (void* parm)
     {
         if(msgq_stores[i] == MSGQ_INVALID_HANDLE)
         {
-            msgq_stores[i] = msgq_create(qname,
-                                         MSGQ_MAX_DEPTH,
-                                         MSGQ_MAX_SIZE);
-            slot = i;
+            msgq_t msgq = msgq_create(qname, MSGQ_MAX_DEPTH, MSGQ_MAX_SIZE);
+            if(msgq != MSGQ_INVALID_HANDLE)
+            {
+                msgq_stores[i] = msgq;
+                msgq_counts[i] = 0;
+                slot = i;
+            }
             break;
         }
     }
@@ -441,6 +413,7 @@ int bplib_store_pram_destroy (int handle)
 
     msgq_delete(msgq_stores[handle]);
     msgq_stores[handle] = MSGQ_INVALID_HANDLE;
+    msgq_counts[handle] = 0;
 
     return BP_SUCCESS;
 }
@@ -473,6 +446,7 @@ int bplib_store_pram_enqueue(int handle, void* data1, int data1_size,
     /* Return status */
     if(status > 0)
     {
+        msgq_counts[handle]++;
         return status;
     }
     else if(status == MSGQ_FULL)
@@ -545,6 +519,7 @@ int bplib_store_pram_relinquish (int handle, bp_sid_t sid)
 
     void* data = (void*)sid;
     free(data);
+    msgq_counts[handle]--;
 
     return BP_SUCCESS;
 }
@@ -557,5 +532,5 @@ int bplib_store_pram_getcount (int handle)
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
 
-    return msgq_getcount(msgq_stores[handle]);
+    return msgq_counts[handle];
 }
