@@ -1241,6 +1241,17 @@ void delete_rb_tree(struct rb_tree* tree)
     free(tree);
 }
 
+#define RBTREETESTS 
+#ifdef RBTREETESTS
+/*--------------------------------------------------------------------------------------
+ * DEFINES TEST AND HELPER FUNCTIONS FOR THE RED BLACK TREE
+ * 
+ * RUN TESTS COMMAND LINE RECIPE:
+ *
+ *  sudo make sudo make APP_COPT=-DRBTREETESTS unittest && ./bp.out
+ *--------------------------------------------------------------------------------------*/
+
+
 /******************************************************************************
  TEST AND DEBUGGING HELPER FUNCTIONS 
  ******************************************************************************/
@@ -1984,3 +1995,4 @@ int main() {
     run_rb_tree_tests();
 }
 
+#endif // RBTREETESTS
