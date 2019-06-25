@@ -1121,7 +1121,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 }
                 else
                 {
-                    memset(channels[i].active_table.sid, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
+                    memset(channels[i].active_table.sid, 0, sizeof(bp_sid_t*) * channels[i].attributes.active_table_size);
                     memset(channels[i].active_table.retx, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
                 }
                 
