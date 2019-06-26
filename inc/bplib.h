@@ -80,7 +80,8 @@ extern "C" {
 #define BP_FAILEDOS                     (-19)
 #define BP_FAILEDMEM                    (-20)
 #define BP_INVALIDEID                   (-21)
-    
+#define BP_RBTREEMAXSIZEZERO            (-22)
+ 
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  // valid bundle but agent not able to comply with standard
 #define BP_FLAG_INCOMPLETE              0x0002  // block in bundle was not recognized
@@ -94,6 +95,7 @@ extern "C" {
 #define BP_FLAG_SDNVOVERFLOW            0x0200  // insufficient room in variable to read/write value
 #define BP_FLAG_SDNVINCOMPLETE          0x0400  // insufficient room in block to read/write value
 #define BP_FLAG_ACTIVETABLEWRAP         0x0800  // the active table wrapped
+#define BP_FLAG_DUPLICATES              0x0900  // duplicate bundle ids were identified when creating this dacs
 
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1

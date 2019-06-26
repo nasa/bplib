@@ -662,16 +662,16 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
             dacs->delivered = delivered;
             enum rb_tree_status status = rb_tree_insert(cteb->cid.value, dacs->tree);
             
-            // TODO(ameade): Consider removing this case as it should only occur
-            // if tree size is set to 0.
             if (status == RB_FAIL_FULL) {
+                // This case should only occur if rb_tree size is set to 0.
                 // If we failed the last insert and the tree is full then it must be
                 // because our tree is out of memory to allocate new nodes.
-                store_dacs = true;
+                return bplog(BP_RBTREEMAXSIZEZERO, "Maximum size of a dacs tree is zero and is misconfigured.");
             }
             else if (status == RB_FAIL_DUPLICATE)
             {
-                // TODO (log dupe case)
+                // This case should not occur in a properly configured setup.
+                *dacsflags |= BP_FLAG_DUPLICATES
             }
         }
         else if(dacs->delivered != delivered)
@@ -683,7 +683,7 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
         else 
         {
             /* Update Fill */
-            enum rb_tree_status status = !rb_tree_insert(cteb->cid.value, dacs->tree);
+            enum rb_tree_status status = rb_tree_insert(cteb->cid.value, dacs->tree);
             if (status == RB_FAIL_FULL) {
                 // If we failed the last insert and the tree is full then it must be
                 // because our tree is out of memory to allocate new nodes.
@@ -691,7 +691,7 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
             }
             else if (status == RB_FAIL_DUPLICATE)
             {
-                // TODO (handle duplicate case)
+                *dacsflags |= BP_FLAG_DUPLICATES
             }
         }
 
