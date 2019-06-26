@@ -234,6 +234,30 @@ static bool has_right_child(struct rb_node* node)
 }
 
 /*--------------------------------------------------------------------------------------
+ * remove_from_parent - Removes references to a node from its parent.
+ * 
+ * node: A ptr to an rb_node to remove references to it in its parent. [OUTPUT]
+ *--------------------------------------------------------------------------------------*/  
+static void remove_from_parent(struct rb_node* node)
+{
+    if (is_root(node))
+    {
+        return;
+    }
+    // If node is not root we need to remove its parents references to it.
+    if (is_left_child(node))
+    {
+        // If node is a left child of parent set parent's left child to NULL.
+        node->parent->left = NULL;
+    }
+    else
+    {
+        // If node is a right child of parent set parent's right child to NULL.
+        node->parent->right = NULL;
+    }
+}
+
+/*--------------------------------------------------------------------------------------
  * swap_parents - Swaps the parents of two nodes which are currently parent and child
  *      of eachother.
  *
@@ -422,7 +446,6 @@ static void apply_inorder(struct rb_node* node, void (*func)(rb_node*))
     }
 }
 
-
 /*--------------------------------------------------------------------------------------
  * clear_nodes - Clears nodes in the rb_tree in pose order. Does not deallocate memory.
  * 
@@ -443,6 +466,7 @@ static void clear_nodes(struct rb_tree* tree, struct rb_node* node)
         clear_nodes(tree, node->right);
     }
 
+    remove_from_parent(node);   
     push_free_node(tree, node);
 }
 
@@ -1285,7 +1309,22 @@ void rb_tree_delete(struct rb_tree* tree)
     free(tree);
 }
 
-#define RBTREETESTS 
+/*--------------------------------------------------------------------------------------
+ * rb_node_delete_without_rebalancing - Deletes a node from the rb_tree without rebalancing.
+ *      This does not result in any memory deallocation, but the node is now assigned to
+ *      to a "free block" within the tree and can be reused. This function should only be
+ *      called when traversing a rb_tree inorder and writing the nodes to a dacs.
+ * 
+ * tree: A ptr to an rb_tree from which to remove the provided node. [OUTPUT]
+ * node: A ptr to an rb_node to delete and remove references to it in its parent. [OUTPUT]
+ *--------------------------------------------------------------------------------------*/  
+void rb_node_delete_without_rebalancing(struct rb_tree* tree, struct rb_node* node)
+{
+    remove_from_parent(node);
+    push_free_node(tree, node);
+}
+
+
 #ifdef RBTREETESTS
 /*--------------------------------------------------------------------------------------
  * DEFINES TEST AND HELPER FUNCTIONS FOR THE RED BLACK TREE

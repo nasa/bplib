@@ -89,4 +89,10 @@ bool rb_tree_is_full(struct rb_tree* tree);
 enum rb_tree_status rb_tree_insert(uint32_t value, struct rb_tree* tree);
 // Frees all memory allocated for a rb_tree and recursively frees its nodes.
 void rb_tree_delete(struct rb_tree* tree);
+// Deletes a node and removes references to the node from its parent. 
+// This should only be called on leaf nodes and does NOT result in any deletion rebalancing. 
+// This function should only be called when converting the rb_tree to dacs. No memory is
+// deallocated when using this function.
+void rb_node_delete_without_rebalancing(struct rb_tree* tree, struct rb_node* node);
+
 #endif  /* __BPLIB_RB_TREE_H__ */
