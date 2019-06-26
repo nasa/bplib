@@ -33,6 +33,7 @@
 #include "bplib_blk_cteb.h"
 #include "bplib_blk_bib.h"
 #include "bplib_blk_pay.h"
+#include "bplib_rb_tree.h"
 
 /******************************************************************************
  DEFINES
@@ -117,6 +118,7 @@ typedef struct {
     uint32_t            last_cid;
     uint32_t*           fills;
     int                 num_fills;
+    rb_tree*            tree;       // balanced tree to store bundle ids
     bool                delivered;  // false: forwarded to destination, true: delivered to application
     bool                sent;       // true: DACS wer sent since last check
     uint8_t*            paybuf;     // buffer to hold built DACS record
@@ -563,6 +565,7 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t 
     bp_blk_pri_t* pri = &dacs->primary_block;
 
     /* Build DACS */
+    // TODO(ameade): Write out tree payload as multiple dacs.
     dacs_size = bplib_rec_acs_write(dacs->paybuf, dacs->paybuf_size, dacs->first_cid, dacs->fills, dacs->num_fills);
     ds->bundlesize = ds->headersize + dacs_size;
     storage_header_size = sizeof(bp_bundle_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - ds->headersize);
@@ -637,9 +640,9 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
             dacs = &ch->dacs_bundle[dacs_entry];
 
             /* Initial DACS Bundle */
+            rb_tree_clear(dacs->tree);
             dacs->cstnode = cteb->cstnode;
             dacs->cstserv = cteb->cstserv;
-            dacs->num_fills = 0;
             initialize_dacs_bundle(ch, dacs_entry, cteb->cstnode, cteb->cstserv);
         }
         else
@@ -653,20 +656,23 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
     /* Populate/Send ACS Bundle(s) */
     if(dacs != NULL)
     {
-        if(dacs->num_fills == 0)
+        if(rb_tree_is_empty(dacs->tree))
         {
             /* Start New ACS */
             dacs->delivered = delivered;
-            dacs->first_cid = cteb->cid.value;
-            dacs->last_cid = cteb->cid.value;
-            dacs->fills[0] = 1;
-            dacs->num_fills = 1;
-        }
-        else if(cteb->cid.value <= dacs->last_cid)
-        {
-            /* Mark CID Going Backwards */
-            *dacsflags |= BP_FLAG_CIDWENTBACKWARDS;
-            store_dacs = true;
+            enum rb_tree_status status = rb_tree_insert(cteb->cid.value, dacs->tree);
+            
+            // TODO(ameade): Consider removing this case as it should only occur
+            // if tree size is set to 0.
+            if (status == RB_FAIL_FULL) {
+                // If we failed the last insert and the tree is full then it must be
+                // because our tree is out of memory to allocate new nodes.
+                store_dacs = true;
+            }
+            else if (status == RB_FAIL_DUPLICATE)
+            {
+                // TODO (log dupe case)
+            }
         }
         else if(dacs->delivered != delivered)
         {
@@ -674,46 +680,18 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
             *dacsflags |= BP_FLAG_MIXEDRESPONSE;
             store_dacs = true;
         }
-        else // cid > dacs->last_cid
+        else 
         {
             /* Update Fill */
-            uint32_t cid_delta = cteb->cid.value - dacs->last_cid;
-            uint32_t hop_val = cid_delta - 1;
-            int fill_index = dacs->num_fills - 1;
-
-            dacs->last_cid = cteb->cid.value; // save last CID
-
-            if((fill_index + 2) < ch->attributes.max_fills_per_dacs)
-            {
-                if(hop_val == 0)
-                {
-                    dacs->fills[fill_index]++;
-                    if(dacs->fills[fill_index] >= BP_MAX_FILL)
-                    {
-                        dacs->fills[fill_index + 1] = 0;
-                        dacs->fills[fill_index + 2] = 0;
-                        dacs->num_fills += 2;
-                    }
-                }
-                else if(hop_val < BP_MAX_FILL)
-                {
-                    dacs->fills[fill_index + 1] = hop_val;
-                    dacs->fills[fill_index + 2] = 1;
-                    dacs->num_fills += 2;
-                }
-                else // best effort
-                {
-                    dacs->fills[fill_index + 1] = BP_MAX_FILL;
-                    dacs->fills[fill_index + 2] = 0;
-                    dacs->num_fills += 2;
-                    *dacsflags |= BP_FLAG_FILLOVERFLOW;
-                    store_dacs = true;
-                }
-            }
-            else
-            {
-                *dacsflags |= BP_FLAG_TOOMANYFILLS;
+            enum rb_tree_status status = !rb_tree_insert(cteb->cid.value, dacs->tree);
+            if (status == RB_FAIL_FULL) {
+                // If we failed the last insert and the tree is full then it must be
+                // because our tree is out of memory to allocate new nodes.
                 store_dacs = true;
+            }
+            else if (status == RB_FAIL_DUPLICATE)
+            {
+                // TODO (handle duplicate case)
             }
         }
 
@@ -724,6 +702,7 @@ static int update_dacs_bundle(bp_channel_t* ch, bp_blk_cteb_t* cteb, bool delive
             store_dacs_bundle(ch, dacs, sysnow, timeout, dacsflags);
 
             /* Start New DTN ACS */
+            rb_tree_clear(dacs->tree);
             dacs->delivered = delivered;
             dacs->first_cid = cteb->cid.value;
             dacs->last_cid = cteb->cid.value;
@@ -1097,6 +1076,16 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                         memset(channels[i].dacs_bundle[j].paybuf, 0, channels[i].dacs_bundle[j].paybuf_size);
                     }
     
+                    /* Allocate Memory for Channel DACS Tree to Store Bundle IDs */
+                    channels[i].dacs_bundle[j].tree = rb_tree_create(channels[i].attributes.max_tree_size);
+                    if (channels[i].dacs_bundle[j].tree == NULL)
+                    {
+                        bplib_close(i);
+                        bplib_os_unlock(channels_lock);
+                        bplog(BP_FAILEDMEM, "Failed to allocate memory for channel dacs tree\n");
+                        return BP_INVALID_HANDLE;
+                    }
+
                     /* Initialize DACS Bundle Fields */
                     channels[i].dacs_bundle[j].primary_block               = native_dacs_pri_blk;
                     channels[i].dacs_bundle[j].primary_block.srcnode.value = local_node;
@@ -1186,6 +1175,7 @@ void bplib_close(int channel)
                 {
                     if(ch->dacs_bundle[j].fills) free(ch->dacs_bundle[j].fills);
                     if(ch->dacs_bundle[j].paybuf) free(ch->dacs_bundle[j].paybuf);
+                    if(ch->dacs_bundle[j].tree) rb_tree_delete(ch->dacs_bundle[j].tree);
                 }
                 
                 free(ch->dacs_bundle);
@@ -1338,10 +1328,9 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                 bp_dacs_bundle_t* dacs = &ch->dacs_bundle[i];
 
                 /* Check for Unsent DACS */
-                if(dacs->sent == false && dacs->num_fills > 0)
+                if(dacs->sent == false && !rb_tree_is_empty(dacs->tree))
                 {
                     store_dacs_bundle(ch, dacs, sysnow, BP_CHECK, loadflags);
-                    dacs->num_fills = 0;
                 }
 
                 /* Clear Sent Flag */

@@ -51,8 +51,8 @@ typedef struct rb_node {
 
 // A wrapper around a red black trees nodes with some additional metadata.
 typedef struct rb_tree {
-    uint32_t size; // The number of rb_nodes within the tree.
-    uint32_t max_size; // The maximum number of rb_nodes within the tree.
+    int size; // The number of rb_nodes within the tree.
+    int max_size; // The maximum number of rb_nodes within the tree.
     rb_node* root; // The root of the tree. When root is null size is also 0.
     rb_node* free_node_head; // The memory location of the first unallocated rb_node.
     rb_node* free_node_tail; // The memory location of the last unallocated rb_node.
@@ -61,6 +61,16 @@ typedef struct rb_tree {
     rb_node* node_block; 
 } rb_tree;
 
+// A status reflecting potential outcomes of a call to rb_tree_insert.
+enum rb_tree_status
+{
+    RB_SUCCESS_INSERT,   // Value was sucessfully inserted into the rb_tree.
+    RB_SUCCESS_MERGE,    // Value was sucessfully merged into the tree.
+    RB_FAIL_DUPLICATE,  // Value was not inserted because a duplicate existed.
+    RB_FAIL_FULL,       // Value was not inserted because the rb_tree was full.
+    RB_UNKNOWN_ERROR    // An unknown error occured.
+};
+
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
@@ -68,13 +78,15 @@ typedef struct rb_tree {
 /* Red Black Tree API */
 
 // Creates am empty rb_tree.
-struct rb_tree* create_rb_tree(uint32_t max_size);
+struct rb_tree* rb_tree_create(int max_size);
+// Clears all nodes in an rb_tree. This does not deallocate any memory.
+void rb_tree_clear(struct rb_tree* tree);
 // Checks whether a rb_tree is empty.
-bool is_empty(struct rb_tree* tree); 
+bool rb_tree_is_empty(struct rb_tree* tree); 
 // Checks whether a rb_tree is full.
-bool is_full(struct rb_tree* tree);
+bool rb_tree_is_full(struct rb_tree* tree);
 // Inserts value into a red black tree. Duplicates will not be inserted.
-bool insert(uint32_t value, struct rb_tree* tree);
+enum rb_tree_status rb_tree_insert(uint32_t value, struct rb_tree* tree);
 // Frees all memory allocated for a rb_tree and recursively frees its nodes.
-void delete_rb_tree(struct rb_tree* tree);
+void rb_tree_delete(struct rb_tree* tree);
 #endif  /* __BPLIB_RB_TREE_H__ */

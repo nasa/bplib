@@ -154,6 +154,7 @@ typedef struct {
     int     active_table_size;      // number of unacknowledged bundles to keep track of
     int     max_concurrent_dacs;    // number of dacs to maintain at one time
     int     max_fills_per_dacs;     // dacs is built on stack (and therefore must fit on stack)
+    int     max_tree_size;          // number of nodes within a tree to store bundle ids
     void*   storage_service_parm;   // pass through of parameters needed by storage service
 } bp_attr_t;
 
