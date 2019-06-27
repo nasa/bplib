@@ -37,6 +37,27 @@
  ******************************************************************************/ 
 
 /*--------------------------------------------------------------------------------------
+ * print_node -
+ * 
+ * node: A ptr to an rb_node to print. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
+static void print_node(struct rb_node* node)
+{
+    if (node == NULL)
+    {
+        printf("NULL NODE\n");
+        return;
+    }
+    printf("[ C: %5s || N: %3d || P: %3d || L: %3d || R: %3d || O: %3d]\n",
+        node->color ? "RED" : "BLACK",
+        node != NULL ? (int) node->value : -1,
+        node->parent != NULL ? (int) node->parent->value : -1,
+        node->left != NULL ? (int) node->left->value : -1,
+        node->right != NULL ? (int) node->right->value : -1,
+        node->offset);
+}
+
+/*--------------------------------------------------------------------------------------
  * pop_free_node - Retrieves a block of unallocated memory to assign an rb_node if available. 
  *
  * tree: A ptr to a rb_tree. [OUTPUT]
@@ -1289,15 +1310,56 @@ void rb_tree_delete(struct rb_tree* tree)
  * rb_node_delete_without_rebalancing - Deletes a node from the rb_tree without rebalancing.
  *      This does not result in any memory deallocation, but the node is now assigned to
  *      to a "free block" within the tree and can be reused. This function should only be
- *      called when traversing a rb_tree inorder and writing the nodes to a dacs.
+ *      called when traversing a rb_tree inorder and writing the nodes to a dacs. Calling
+ *      this function also assumes that node has at most one child node that is a right
+ *      right child.
  * 
  * tree: A ptr to an rb_tree from which to remove the provided node. [OUTPUT]
  * node: A ptr to an rb_node to delete and remove references to it in its parent. [OUTPUT]
  *--------------------------------------------------------------------------------------*/  
 void rb_node_delete_without_rebalancing(struct rb_tree* tree, struct rb_node* node)
 {
-    remove_from_parent(node);
+
+    printf("************************ %d\n", tree->size);
+    printf("PARENT\n");
+    print_node(node->parent);
+    printf("NODE\n");
+    print_node(node);
+    printf("LEFT\n");
+    print_node(node->left);
+    printf("RIGHT\n");
+    print_node(node->right);
+
+    if (!is_root(node))
+    {
+        // If node is not root we need to remove its parents references to it.
+        if (is_left_child(node))
+        {
+            // If node is a left child of parent set parent's left child to NULL.
+            node->parent->left = node->right;
+        }
+        else
+        {
+            // If node is a right child of parent set parent's right child to NULL.
+            node->parent->right = node->right;
+        }
+        if (node->right != NULL)
+        {
+
+        
+}
+    }
     push_free_node(tree, node);
+    printf("!!!!!!!!!!!!!!!!!!!!!!!!! %d \n", tree->size);
+    printf("PARENT\n");
+    print_node(node->parent);
+    printf("NODE\n");
+    print_node(node);
+    printf("LEFT\n");
+    print_node(node->left);
+    printf("RIGHT\n");
+    print_node(node->right);
+
 }
 
 
@@ -1379,28 +1441,6 @@ static void assert_rb_trees_equal(struct rb_tree* t1, struct rb_tree* t2)
     assert(t1->max_size == t2->max_size);
     assert_equal_inorder_traverse(t1->root, t2->root);
 }
-
-/*--------------------------------------------------------------------------------------
- * print_node -
- * 
- * node: A ptr to an rb_node to print. [INPUT]
- *--------------------------------------------------------------------------------------*/  
-static void print_node(struct rb_node* node)
-{
-    if (node == NULL)
-    {
-        printf("NULL NODE\n");
-        return;
-    }
-    printf("[ C: %5s || N: %3d || P: %3d || L: %3d || R: %3d || O: %3d]\n",
-        node->color ? "RED" : "BLACK",
-        node != NULL ? (int) node->value : -1,
-        node->parent != NULL ? (int) node->parent->value : -1,
-        node->left != NULL ? (int) node->left->value : -1,
-        node->right != NULL ? (int) node->right->value : -1,
-        node->offset);
-}
-
 /*--------------------------------------------------------------------------------------
  * apply_inorder - Applies a function in order to nodes in a rb_tree. 
  * 
@@ -1430,7 +1470,7 @@ static void apply_inorder(struct rb_node* node, void (*func)(rb_node*))
  * 
  * tree: A ptr to an rb_tree to print. [INPUT]
  *--------------------------------------------------------------------------------------*/  
-static void print_tree(struct rb_tree* tree)
+void print_tree(struct rb_tree* tree)
 {
     printf("##################################\n");
     printf("* Count: %d\n", tree->size);

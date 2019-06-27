@@ -229,16 +229,20 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
     /* Write First CID and Fills */
     int count_fills = 0; // The number of fills that have occured so far.
     struct rb_node* prev_node = NULL;
+    struct rb_node* right_child = NULL;
     struct rb_node* node = tree->root;
 
+    printf("TREE SIZE BEFORE ACS %d / %d\n", tree->size, tree->max_size);
     /* Traverse tree in order and write out fills to dacs. */
     while (count_fills < max_fills_per_dacs && node != NULL)
     {
-        // Continue writing fills to a dacs from the cid rb_tree until the dacs is full or tree is empty
-
+        // Continue writing fills to a dacs from the cid rb_tree until 
+        // the dacs is full or tree is empty
+        // printf("TREE SIZE INSDE ACS %d / %d\n", tree->size, tree->max_size);
         if (node->left != NULL) // Node has a left child.
         {
             // Search the left subtree of node for the next inorder node
+            //printf("ALWAYS BE LEFT\n");
             node = node->left;
             continue;
         }
@@ -263,21 +267,43 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
         prev_node = node;
         count_fills += 2;        
 
-        if (node->right != NULL) // Node has a right child.
+        if (node->right != NULL)
         {
-            // Search the right subtree of node for the next inorder node.
-            node = node->right;
-            continue;
+            // Node has a right child which we store so that we can navigate to it after
+            // deleting node. 
+            right_child = node->right;
         }
-
+        else
+        {
+            // Node has no right child.
+            right_child = NULL;
+        }
+        
+        // Delete node from the tree now that it has been written to DACS
         // Does not deallocate memory nor reset parent so we are safe to update node to
         // its parent after this call.
         rb_node_delete_without_rebalancing(tree, node);
-        node = node->parent;
-    }
 
+        if (right_child != NULL)
+        {
+            // Node had a right subtree so it needs to be explored for the next inorder node.
+            node = right_child;
+            continue;
+        }
+        else
+        {
+            // Node has no right subtree so the next inorder node must be the parent.
+            node = node->parent;
+            continue;
+        }
+    }
+    printf("TREE SIZE AFTER ACS %d / %d\n", tree->size, tree->max_size);
     /* Success Oriented Error Checking */
-    if(flags != 0) return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of ACS (%08X)\n", flags);
+    if(flags != 0)
+    {
+        return bplog(BP_BUNDLEPARSEERR,
+                     "Flags raised during processing of ACS (%08X)\n", flags); 
+    } 
 
     /* Return Block Size */
     return fill.index;
