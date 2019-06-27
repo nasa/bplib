@@ -250,17 +250,14 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
             // Write out the first cid.
             cid.value = node->value;
             fill.index = bplib_sdnv_write(rec, size, cid, &flags);
-            printf("%d | ", node->value);
         }    
         else
         {
-            printf("%d | ", node->value - (prev_node->value + prev_node->offset));
             // Write range of missing cid.
             // Calculate the missing values between the current and previous node.  
             fill.value = node->value - (prev_node->value + prev_node->offset);
             fill.index = bplib_sdnv_write(rec, size, fill, &flags);
         }
-        printf("%d | ", node->offset);
         // Write range of received cids.
         fill.value = node->offset;
         fill.index = bplib_sdnv_write(rec, size, fill, &flags);    
@@ -298,7 +295,6 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
         }
     }
 
-    printf("\n DACS LENGTH %d\n", count_fills);
     /* Success Oriented Error Checking */
     if(flags != 0)
     {

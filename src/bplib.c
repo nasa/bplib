@@ -595,7 +595,6 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
         /* Send (enqueue) DACS */
         enstat = ch->storage.enqueue(ch->dacs_store_handle, ds, storage_header_size, dacs->paybuf, dacs_size, timeout);
 
-        printf("COUNT %d \n", ch->storage.getcount(ch->dacs_store_handle));
         /* Check Storage Status */
         if(enstat <= 0) // failure enqueuing dacs
         {
