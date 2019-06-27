@@ -51,7 +51,7 @@
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
 #define BP_DEFAULT_MAX_CONCURRENT_DACS  4       // maximum number of custody eids to keep track of
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
-#define BP_DEFAULT_MAX_TREE_SIZE        1024
+#define BP_DEFAULT_MAX_TREE_SIZE        1028
 #define BP_DEFAULT_PAY_CRC              BP_BIB_CRC16
 #define BP_DEFAULT_TIMEOUT              10
 #define BP_DEFAULT_CREATE_TIME_SYS      true
@@ -595,6 +595,7 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
         /* Send (enqueue) DACS */
         enstat = ch->storage.enqueue(ch->dacs_store_handle, ds, storage_header_size, dacs->paybuf, dacs_size, timeout);
 
+        printf("COUNT %d \n", ch->storage.getcount(ch->dacs_store_handle));
         /* Check Storage Status */
         if(enstat <= 0) // failure enqueuing dacs
         {

@@ -172,6 +172,7 @@ int bplib_rec_acs_process ( void* rec, int size, int* acks,
     /* Process Though Fills */
     while((int)fill.index < size)
     {
+
         /* Read Fill */
         fill.index = bplib_sdnv_read(buf, size, &fill, &flags);
         if(flags != 0) return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", flags);
@@ -232,17 +233,14 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
     struct rb_node* right_child = NULL;
     struct rb_node* node = tree->root;
 
-    printf("TREE SIZE BEFORE ACS %d / %d\n", tree->size, tree->max_size);
     /* Traverse tree in order and write out fills to dacs. */
     while (count_fills < max_fills_per_dacs && node != NULL)
     {
         // Continue writing fills to a dacs from the cid rb_tree until 
         // the dacs is full or tree is empty
-        // printf("TREE SIZE INSDE ACS %d / %d\n", tree->size, tree->max_size);
         if (node->left != NULL) // Node has a left child.
         {
             // Search the left subtree of node for the next inorder node
-            //printf("ALWAYS BE LEFT\n");
             node = node->left;
             continue;
         }
@@ -252,15 +250,17 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
             // Write out the first cid.
             cid.value = node->value;
             fill.index = bplib_sdnv_write(rec, size, cid, &flags);
+            printf("%d | ", node->value);
         }    
         else
         {
+            printf("%d | ", node->value - (prev_node->value + prev_node->offset));
             // Write range of missing cid.
             // Calculate the missing values between the current and previous node.  
             fill.value = node->value - (prev_node->value + prev_node->offset);
             fill.index = bplib_sdnv_write(rec, size, fill, &flags);
         }
-
+        printf("%d | ", node->offset);
         // Write range of received cids.
         fill.value = node->offset;
         fill.index = bplib_sdnv_write(rec, size, fill, &flags);    
@@ -297,7 +297,8 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
             continue;
         }
     }
-    printf("TREE SIZE AFTER ACS %d / %d\n", tree->size, tree->max_size);
+
+    printf("\n DACS LENGTH %d\n", count_fills);
     /* Success Oriented Error Checking */
     if(flags != 0)
     {
