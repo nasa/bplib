@@ -118,7 +118,7 @@ typedef struct {
     uint32_t*           fills;
     int                 num_fills;
     bool                delivered;  // false: forwarded to destination, true: delivered to application
-    bool                sent;       // true: DACS wer sent since last check
+    bool                sent;       // true: DACS were sent since last check
     uint8_t*            paybuf;     // buffer to hold built DACS record
     int                 paybuf_size;
     bp_bundle_store_t   bundle_store;
@@ -1395,19 +1395,20 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                 else if(ch->active_table.retx[ati] != 0 && sysnow >= ch->active_table.retx[ati]) // check timeout
                 {
                     /* Retransmit Bundle */
+                    ch->active_table.oldest_cid++;
                     ch->stats.retransmitted++;
 
                     /* Handle Active Table and Custody ID */
                     if(ch->cid_reuse)
                     {
-                        /* Set flag to reuse custody id and active table entry */
+                        /* Set flag to reuse custody id and active table entry, 
+                         * active table entry is not cleared, since CID is being reused */
                         newcid = false;
                     }
                     else
                     {
-                        /* Clear Entry (it will be reinserted below at the current pointer) */
+                        /* Clear Entry (it will be reinserted below at the current CID) */
                         ch->active_table.sid[ati] = BP_SID_VACANT;
-                        ch->active_table.oldest_cid++;
                     }
                 }
                 else // oldest active bundle still active
