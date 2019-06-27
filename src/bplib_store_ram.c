@@ -1,5 +1,5 @@
 /************************************************************************
- * File: bplib_store_pram.c
+ * File: bplib_store_ram.c
  *
  *  Copyright 2019 United States Government as represented by the
  *  Administrator of the National Aeronautics and Space Administration.
@@ -360,9 +360,9 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
  ******************************************************************************/
 
 /*----------------------------------------------------------------------------
- * bplib_store_pram_init -
+ * bplib_store_ram_init -
  *----------------------------------------------------------------------------*/
-void bplib_store_pram_init (void)
+void bplib_store_ram_init (void)
 {
     memset(msgq_stores, 0, sizeof(msgq_stores));
     memset(msgq_counts, 0, sizeof(msgq_counts));
@@ -370,9 +370,9 @@ void bplib_store_pram_init (void)
 }
 
 /*----------------------------------------------------------------------------
- * bplib_store_pram_create -
+ * bplib_store_ram_create -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_create (void* parm)
+int bplib_store_ram_create (void* parm)
 {
     (void)parm;
     
@@ -404,9 +404,9 @@ int bplib_store_pram_create (void* parm)
 }
 
 /*----------------------------------------------------------------------------
- * bplib_store_pram_destroy -
+ * bplib_store_ram_destroy -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_destroy (int handle)
+int bplib_store_ram_destroy (int handle)
 {
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle] != MSGQ_INVALID_HANDLE);
@@ -419,9 +419,9 @@ int bplib_store_pram_destroy (int handle)
 }
 
 /*----------------------------------------------------------------------------
- * bplib_store_pram_enqueue -
+ * bplib_store_ram_enqueue -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_enqueue(int handle, void* data1, int data1_size,
+int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
                              void* data2, int data2_size, int timeout)
 {
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
@@ -463,9 +463,9 @@ int bplib_store_pram_enqueue(int handle, void* data1, int data1_size,
 }
 
 /*----------------------------------------------------------------------------
- * bplib_store_pram_dequeue -
+ * bplib_store_ram_dequeue -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_dequeue(int handle, void** data, int* size,
+int bplib_store_ram_dequeue(int handle, void** data, int* size,
                              bp_sid_t* sid, int timeout)
 {
     assert(sid);
@@ -489,9 +489,9 @@ int bplib_store_pram_dequeue(int handle, void** data, int* size,
 }
 
 /*----------------------------------------------------------------------------
- * bplib_store_pram_retrieve -
+ * bplib_store_ram_retrieve -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_retrieve(int handle, void** data, int* size,
+int bplib_store_ram_retrieve(int handle, void** data, int* size,
                               bp_sid_t sid, int timeout)
 {
     (void)handle;
@@ -508,9 +508,9 @@ int bplib_store_pram_retrieve(int handle, void** data, int* size,
 }
 
 /*----------------------------------------------------------------------------
- * bplib_store_pram_relinquish -
+ * bplib_store_ram_relinquish -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_relinquish (int handle, bp_sid_t sid)
+int bplib_store_ram_relinquish (int handle, bp_sid_t sid)
 {
     (void)handle;
     
@@ -525,9 +525,9 @@ int bplib_store_pram_relinquish (int handle, bp_sid_t sid)
 }
 
 /*----------------------------------------------------------------------------
- * bplib_store_pram_getcount -
+ * bplib_store_ram_getcount -
  *----------------------------------------------------------------------------*/
-int bplib_store_pram_getcount (int handle)
+int bplib_store_ram_getcount (int handle)
 {
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);

@@ -1,5 +1,5 @@
 /************************************************************************
- * File: bplib_store_pfile.h
+ * File: bplib_store_file.h
  *
  *  Copyright 2019 United States Government as represented by the
  *  Administrator of the National Aeronautics and Space Administration.
@@ -21,8 +21,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_STORE_PFILE__
-#define __BPLIB_STORE_PFILE__
+#ifndef __BPLIB_STORE_FILE__
+#define __BPLIB_STORE_FILE__
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,16 +47,16 @@ typedef struct {
  ******************************************************************************/
 
 /* Application API */
-void    bplib_store_pfile_init          (void);
+void    bplib_store_file_init          (void);
 
 /* Service API */
-int     bplib_store_pfile_create        (void* parm);
-int     bplib_store_pfile_destroy       (int handle);
-int     bplib_store_pfile_enqueue       (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
-int     bplib_store_pfile_dequeue       (int handle, void** data, int* size, bp_sid_t* sid, int timeout);
-int     bplib_store_pfile_retrieve      (int handle, void** data, int* size, bp_sid_t sid, int timeout);
-int     bplib_store_pfile_relinquish    (int handle, bp_sid_t sid);
-int     bplib_store_pfile_getcount      (int handle);
+int     bplib_store_file_create        (void* parm);
+int     bplib_store_file_destroy       (int handle);
+int     bplib_store_file_enqueue       (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
+int     bplib_store_file_dequeue       (int handle, void** data, int* size, bp_sid_t* sid, int timeout);
+int     bplib_store_file_retrieve      (int handle, void** data, int* size, bp_sid_t sid, int timeout);
+int     bplib_store_file_relinquish    (int handle, bp_sid_t sid);
+int     bplib_store_file_getcount      (int handle);
 
 #ifdef __cplusplus
 } // extern "C"

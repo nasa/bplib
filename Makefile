@@ -87,8 +87,8 @@ OBJ     += bplib_blk_pay.o
 OBJ     += bplib_blk_pri.o
 OBJ     += bplib_crc.o
 OBJ     += bplib_sdnv.o
-OBJ     += bplib_store_pfile.o
-OBJ     += bplib_store_pram.o
+OBJ     += bplib_store_file.o
+OBJ     += bplib_store_ram.o
 
 TGTLIB  :=   bp
 TGTVER  :=   $(shell cat version.txt)
