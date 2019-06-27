@@ -423,30 +423,6 @@ static void insert_child(struct rb_node* node,
 }
 
 /*--------------------------------------------------------------------------------------
- * apply_inorder - Applies a function in order to nodes in a rb_tree. 
- * 
- * node: A ptr to a rb_node to apply a function to and recurse its subtrees. [INPUT]
- * func. A function pointer accepting a ptr to an rb_node. [INPUT]
- *--------------------------------------------------------------------------------------*/  
-static void apply_inorder(struct rb_node* node, void (*func)(rb_node*))
-{
-    if (has_left_child(node))
-    {
-        // Apply function to left subtree.
-        apply_inorder(node->left, func);
-    }
-
-    // Apply function to the current node.
-    func(node);
-
-    if (has_right_child(node))
-    {
-        // Apply function to right subtree.
-        apply_inorder(node->right, func);
-    }
-}
-
-/*--------------------------------------------------------------------------------------
  * clear_nodes - Clears nodes in the rb_tree in pose order. Does not deallocate memory.
  * 
  * tree: A ptr to the rb_tree to clear nodes from. [OUTPUT]
@@ -1423,6 +1399,30 @@ static void print_node(struct rb_node* node)
         node->left != NULL ? (int) node->left->value : -1,
         node->right != NULL ? (int) node->right->value : -1,
         node->offset);
+}
+
+/*--------------------------------------------------------------------------------------
+ * apply_inorder - Applies a function in order to nodes in a rb_tree. 
+ * 
+ * node: A ptr to a rb_node to apply a function to and recurse its subtrees. [INPUT]
+ * func. A function pointer accepting a ptr to an rb_node. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
+static void apply_inorder(struct rb_node* node, void (*func)(rb_node*))
+{
+    if (has_left_child(node))
+    {
+        // Apply function to left subtree.
+        apply_inorder(node->left, func);
+    }
+
+    // Apply function to the current node.
+    func(node);
+
+    if (has_right_child(node))
+    {
+        // Apply function to right subtree.
+        apply_inorder(node->right, func);
+    }
 }
 
 /*--------------------------------------------------------------------------------------

@@ -51,6 +51,7 @@
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
 #define BP_DEFAULT_MAX_CONCURRENT_DACS  4       // maximum number of custody eids to keep track of
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
+#define BP_DEFAULT_MAX_TREE_SIZE        1024
 #define BP_DEFAULT_PAY_CRC              BP_BIB_CRC16
 #define BP_DEFAULT_TIMEOUT              10
 #define BP_DEFAULT_CREATE_TIME_SYS      true
@@ -608,7 +609,6 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
         else // dacs successfully enqueued
         {
             dacs->last_dacs = sysnow;
-            return BP_SUCCESS;
         }
     }
 
@@ -1007,6 +1007,10 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 if(attributes && attributes->max_fills_per_dacs > 0) channels[i].attributes.max_fills_per_dacs = attributes->max_fills_per_dacs;
                 else channels[i].attributes.max_fills_per_dacs = BP_DEFAULT_MAX_FILLS_PER_DACS;
                 
+                /* Set Max Fills per DACS Attribute */
+                if(attributes && attributes->max_tree_size > 0) channels[i].attributes.max_tree_size = attributes->max_tree_size;
+                else channels[i].attributes.max_tree_size = BP_DEFAULT_MAX_TREE_SIZE;
+
                 /* Set Storage Service Parameter */
                 if(attributes)  channels[i].attributes.storage_service_parm = attributes->storage_service_parm;
                 else            channels[i].attributes.storage_service_parm = NULL;
@@ -1347,13 +1351,11 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
         {
             bp_dacs_bundle_t* dacs = &ch->dacs_bundle[i];
 
-
             if((ch->dacs_rate > 0) && 
                (sysnow >= (dacs->last_dacs + ch->dacs_rate)) && 
                !rb_tree_is_empty(dacs->tree))
             {
-                store_dacs_bundle(ch, dacs, sysnow, BP_CHECK, loadflags);
-                dacs->num_fills = 0;
+                store_dacs_bundles(ch, dacs, sysnow, BP_CHECK, loadflags);
                 dacs->last_dacs = sysnow;
             }
         }
