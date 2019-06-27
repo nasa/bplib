@@ -107,7 +107,7 @@ static FILE* open_dat_file (int service_id, char* file_root, uint32_t file_id, b
     FILE* fd;
     
     char filename[FILE_MAX_FILENAME];
-    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, service_id, file_id);
+    bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, service_id, file_id);
 
     if(read_only)   fd = fopen(filename, "rb");
     else            fd = fopen(filename, "ab");
@@ -123,7 +123,7 @@ static FILE* open_dat_file (int service_id, char* file_root, uint32_t file_id, b
 static int delete_dat_file (int service_id, char* file_root, uint32_t file_id)
 {
     char filename[FILE_MAX_FILENAME];
-    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, service_id, file_id);
+    bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, service_id, file_id);
 
     return remove(filename);
 }
@@ -136,7 +136,7 @@ static FILE* open_tbl_file (int service_id, char* file_root, uint32_t file_id, b
     FILE* fd;
     
     char filename[FILE_MAX_FILENAME];
-    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, service_id, file_id);
+    bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, service_id, file_id);
 
     if(read_only)   fd = fopen(filename, "rb");
     else            fd = fopen(filename, "wb");
@@ -152,7 +152,7 @@ static FILE* open_tbl_file (int service_id, char* file_root, uint32_t file_id, b
 static int delete_tbl_file (int service_id, char* file_root, uint32_t file_id)
 {
     char filename[FILE_MAX_FILENAME];
-    snprintf(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, service_id, file_id);
+    bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, service_id, file_id);
 
     return remove(filename);
 }
@@ -164,13 +164,13 @@ static int set_root_path (char** root_path_dst, const char* root_path_src)
 {
     if(root_path_src == NULL) root_path_src = FILE_DEFAULT_ROOT;
     
-    int root_path_len = strnlen(root_path_src, FILE_MAX_FILENAME - 1) + 1;
+    int root_path_len = bplib_os_strnlen(root_path_src, FILE_MAX_FILENAME - 1) + 1;
     if(root_path_len == (FILE_MAX_FILENAME - 1)) return BP_PARMERR;
     
     if(*root_path_dst) free(*root_path_dst);
     *root_path_dst = (char*)malloc(root_path_len);
     
-    strncpy(*root_path_dst, root_path_src, root_path_len);
+    memcpy(*root_path_dst, root_path_src, root_path_len);
 
     return BP_SUCCESS;
 }

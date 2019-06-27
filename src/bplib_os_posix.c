@@ -94,7 +94,7 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     vlen = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
     msglen = vlen < BP_MAX_LOG_ENTRY_SIZE - 1 ? vlen : BP_MAX_LOG_ENTRY_SIZE - 1;
     va_end(args);
-    if (msglen < 0) return error; // nothing to do
+    if (msglen < 0) return error; /* nothing to do */
     formatted_string[msglen] = '\0';
 
     /* Chop Path in Filename */
@@ -235,13 +235,46 @@ int bplib_os_waiton(int handle, int timeout_ms)
         if(status == ETIMEDOUT) status = BP_OS_TIMEOUT;
         else                    status = BP_SUCCESS;
     }
-    else // timeout_ms = 0
+    else /* timeout_ms = 0 */
     {
-        // conditional does not support a non-blocking attempt
-        // so treat it as an immediate timeout
+        /* conditional does not support a non-blocking attempt
+         * so treat it as an immediate timeout */
         status = BP_OS_TIMEOUT;
     }
 
     /* Return Status */
     return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_os_format -
+ *-------------------------------------------------------------------------------------*/
+int bplib_os_format(char* dst, size_t len, const char* fmt, ...)
+{
+    va_list args;
+    int vlen;
+
+    /* Build Formatted String */
+    va_start(args, fmt);
+    vlen = vsnprintf(dst, len, fmt, args);
+    va_end(args);
+
+    /* Return Error Code */
+    return vlen;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_os_strnlen -
+ *-------------------------------------------------------------------------------------*/
+int bplib_os_strnlen(const char* str, int maxlen)
+{
+    int len;
+    for(len = 0; len < maxlen; len++)
+    {
+        if(str[len] == '\0')
+        {
+            return len;
+        }
+    }
+    return maxlen;
 }

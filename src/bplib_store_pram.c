@@ -64,8 +64,8 @@ typedef struct queue_block_t {
 typedef struct queue_def_t {
     queue_node_t*           front;
     queue_node_t*           rear;
-    unsigned int            depth;  // maximum length of linked list
-    unsigned int            len;    // current length of linked list
+    unsigned int            depth;  /* maximum length of linked list */
+    unsigned int            len;    /* current length of linked list */
     unsigned int            max_data_size;
 } queue_t;
 
@@ -380,7 +380,7 @@ int bplib_store_pram_create (void* parm)
 
     /* Build Queue Name */
     char qname[MSGQ_STORE_STR_SIZE];
-    snprintf(qname, MSGQ_STORE_STR_SIZE, "%s%ld", MSGQ_STORE_STR, store_id++);
+    bplib_os_format(qname, MSGQ_STORE_STR_SIZE, "%s%ld", MSGQ_STORE_STR, store_id++);
 
     /* Look for Empty Slots */
     slot = BP_INVALID_HANDLE;
@@ -502,7 +502,7 @@ int bplib_store_pram_retrieve(int handle, void** data, int* size,
     assert(msgq_stores[handle]);
 
     if(data) *data = sid;
-    if(size) *size = 0; // unsupported
+    if(size) *size = 0; /* unsupported */
 
     return BP_SUCCESS;
 }

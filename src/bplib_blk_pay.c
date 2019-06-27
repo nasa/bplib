@@ -37,7 +37,7 @@
 
 #define BP_ACS_REC_TYPE_INDEX   0
 #define BP_ACS_REC_STATUS_INDEX 1
-#define BP_ACS_ACK_MASK         0x80    // if set, then custody successfully transfered
+#define BP_ACS_ACK_MASK         0x80    /* if set, then custody successfully transfered */
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -225,7 +225,7 @@ int bplib_rec_acs_write(uint8_t* rec, int size, uint32_t first_cid, uint32_t* fi
     uint16_t flags = 0;
 
     /* Write Record Information */
-    rec[BP_ACS_REC_TYPE_INDEX] = BP_ACS_REC_TYPE; // record type
+    rec[BP_ACS_REC_TYPE_INDEX] = BP_ACS_REC_TYPE; /* record type */
     rec[BP_ACS_REC_STATUS_INDEX] = BP_ACS_ACK_MASK;
 
     /* Write First CID and Fills */

@@ -24,39 +24,9 @@
 ###############################################################################
 
 ###############################################################################
-##  PLATFORM SPECIFIC OBJECTS
-
-APP_OBJ += bplib_os_posix.o
-
-###############################################################################
 ##  OPTIONS
 
-# Optimization Level #
-O = 0
+# ANSI Compile Options #
+APP_COPT += -ansi
 
-# Disable Asserts #
-# APP_COPT += -DNDEBUG
-
-# POSIX Compile Options #
-APP_COPT += -pthread
-
-# GNU Code Coverage # 
-APP_COPT += -fprofile-arcs -ftest-coverage
-APP_LOPT += -lgcov --coverage
-
-# Enable Stack Checker #
-APP_COPT += -fstack-protector-all
-
-# Enable 32-bit Target #
-# APP_COPT += -m32
-# APP_LOPT += -m32
-
-# POSIX Libraries #
-APP_LOPT += -lpthread
-APP_LOPT += -lrt
-
-# Enable Toolchain Specific Checks #
-ifeq ($(TOOLCHAIN), gcc)
-APP_COPT += -Wlogical-op
-endif
 

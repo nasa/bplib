@@ -49,15 +49,6 @@ API         := $(ROOT)/inc
 # location to install bplib
 PREFIX	    := /usr/local
 	
-# application object files, application should add their objects to this variable
-APP_OBJ     := bplib.o
-APP_OBJ     += bplib_blk_bib.o
-APP_OBJ     += bplib_blk_cteb.o
-APP_OBJ     += bplib_blk_pay.o
-APP_OBJ     += bplib_blk_pri.o
-APP_OBJ     += bplib_crc.o
-APP_OBJ     += bplib_sdnv.o
-
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?=
 
@@ -89,6 +80,16 @@ include $(CONFIG)
 ###############################################################################
 ##  DEFINES
 
+OBJ     := bplib.o
+OBJ     += bplib_blk_bib.o
+OBJ     += bplib_blk_cteb.o
+OBJ     += bplib_blk_pay.o
+OBJ     += bplib_blk_pri.o
+OBJ     += bplib_crc.o
+OBJ     += bplib_sdnv.o
+OBJ     += bplib_store_pfile.o
+OBJ     += bplib_store_pram.o
+
 TGTLIB  :=   bp
 TGTVER  :=   $(shell cat version.txt)
 CONSOLE :=   bpc
@@ -100,13 +101,9 @@ O       ?=   3 # default optimization level
 COPT    :=   -g -Wall -Wextra -O$(O) -D'LIBID="$(TGTVER)"' $(INCLUDES) $(APP_DEFS)
 COPT    +=   -DLIBPATH=\"$(LIBDIR)\"
 COPT    +=   -DINCPATH=\"$(INCDIR)\"
-COPT    +=   -D_GNU_
-COPT    +=   -pthread
 COPT    +=   -Wshadow
  
-LOPT    :=   -lpthread
-LOPT    +=   -lm
-LOPT    +=   -lrt
+LOPT    :=
 
 ###############################################################################
 ##  TOOLS
@@ -122,12 +119,9 @@ MKDIR	 =   mkdir
 ###############################################################################
 ##  COMPILER RULES
 
-ALL_OBJ := $(addprefix $(BLDDIR)/, $(APP_OBJ))
+ALL_OBJ := $(addprefix $(BLDDIR)/, $(OBJ))
 ALL_COPT := $(COPT) $(APP_COPT)
 ALL_LOPT := $(LOPT) $(APP_LOPT)
-
-$(BLDDIR)/%.o: %.cpp
-	$(CC) -c -fpic $(ALL_COPT) -o $@ $<
 
 $(BLDDIR)/%.o: %.c
 	$(CC) -c -fpic $(ALL_COPT) -o $@ $<
