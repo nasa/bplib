@@ -251,8 +251,9 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
         }    
         else
         {
-            // Write range of missing cids.
-            fill.value = node->value - (prev_node->value + prev_node->offset); // Calculate the missing values between the current and previous node.
+            // Write range of missing cid.
+            // Calculate the missing values between the current and previous node.  
+            fill.value = node->value - (prev_node->value + prev_node->offset);
             fill.index = bplib_sdnv_write(rec, size, fill, &flags);
         }
 
