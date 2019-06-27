@@ -115,7 +115,7 @@ typedef struct {
     uint32_t            cstserv;
     rb_tree*            tree;       // balanced tree to store bundle ids
     bool                delivered;  // false: forwarded to destination, true: delivered to application
-    bool                sent;       // true: DACS wer sent since last check
+    uint32_t            last_dacs;  // time of last dacs generated
     uint8_t*            paybuf;     // buffer to hold built DACS record
     int                 paybuf_size;
     bp_bundle_store_t   bundle_store;
@@ -155,7 +155,6 @@ typedef struct {
 
     int                 num_dacs;
     int                 dacs_rate;              // number of seconds to wait between sending ACS bundles
-    uint32_t            last_dacs;              // time of last dacs to be sent
 
     bp_stats_t          stats;
 
@@ -608,7 +607,7 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
         }
         else // dacs successfully enqueued
         {
-            dacs->sent = true;
+            dacs->last_dacs = sysnow;
             return BP_SUCCESS;
         }
     }
@@ -1134,7 +1133,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 }
                 else
                 {
-                    memset(channels[i].active_table.sid, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
+                    memset(channels[i].active_table.sid, 0, sizeof(bp_sid_t*) * channels[i].attributes.active_table_size);
                     memset(channels[i].active_table.retx, 0, sizeof(uint32_t) * channels[i].attributes.active_table_size);
                 }
                 
@@ -1343,25 +1342,20 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
     bplib_os_lock(ch->dacs_bundle_lock);
     {
         /* Check DACS Rate */
-        if((ch->dacs_rate > 0) && ((ch->last_dacs + ch->dacs_rate) <= sysnow))
+        int i;
+        for(i = 0; i < ch->num_dacs; i++)
         {
-            int i;
-            for(i = 0; i < ch->num_dacs; i++)
+            bp_dacs_bundle_t* dacs = &ch->dacs_bundle[i];
+
+
+            if((ch->dacs_rate > 0) && 
+               (sysnow >= (dacs->last_dacs + ch->dacs_rate)) && 
+               !rb_tree_is_empty(dacs->tree))
             {
-                bp_dacs_bundle_t* dacs = &ch->dacs_bundle[i];
-
-                /* Check for Unsent DACS */
-                if(dacs->sent == false && !rb_tree_is_empty(dacs->tree))
-                {
-                    store_dacs_bundles(ch, dacs, sysnow, BP_CHECK, loadflags);
-                }
-
-                /* Clear Sent Flag */
-                ch->dacs_bundle[i].sent = false;
+                store_dacs_bundle(ch, dacs, sysnow, BP_CHECK, loadflags);
+                dacs->num_fills = 0;
+                dacs->last_dacs = sysnow;
             }
-
-            /* Update Time of Last Check */
-            ch->last_dacs = sysnow;
         }
     }
     bplib_os_unlock(ch->dacs_bundle_lock);
@@ -1407,19 +1401,20 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                 else if(ch->active_table.retx[ati] != 0 && sysnow >= ch->active_table.retx[ati]) // check timeout
                 {
                     /* Retransmit Bundle */
+                    ch->active_table.oldest_cid++;
                     ch->stats.retransmitted++;
 
                     /* Handle Active Table and Custody ID */
                     if(ch->cid_reuse)
                     {
-                        /* Set flag to reuse custody id and active table entry */
+                        /* Set flag to reuse custody id and active table entry, 
+                         * active table entry is not cleared, since CID is being reused */
                         newcid = false;
                     }
                     else
                     {
-                        /* Clear Entry (it will be reinserted below at the current pointer) */
+                        /* Clear Entry (it will be reinserted below at the current CID) */
                         ch->active_table.sid[ati] = BP_SID_VACANT;
-                        ch->active_table.oldest_cid++;
                     }
                 }
                 else // oldest active bundle still active
