@@ -118,7 +118,7 @@ typedef struct {
     uint32_t*           fills;
     int                 num_fills;
     bool                delivered;  // false: forwarded to destination, true: delivered to application
-    bool                sent;       // true: DACS were sent since last check
+    uint32_t            last_dacs;  // time of last dacs generated
     uint8_t*            paybuf;     // buffer to hold built DACS record
     int                 paybuf_size;
     bp_bundle_store_t   bundle_store;
@@ -158,7 +158,6 @@ typedef struct {
 
     int                 num_dacs;
     int                 dacs_rate;              // number of seconds to wait between sending ACS bundles
-    uint32_t            last_dacs;              // time of last dacs to be sent
 
     bp_stats_t          stats;
 
@@ -598,7 +597,7 @@ static int store_dacs_bundle(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t 
     }
     else // successfully enqueued
     {
-        dacs->sent = true;
+        dacs->last_dacs = sysnow;
         return BP_SUCCESS;
     }
 }
@@ -1330,26 +1329,19 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
     bplib_os_lock(ch->dacs_bundle_lock);
     {
         /* Check DACS Rate */
-        if((ch->dacs_rate > 0) && ((ch->last_dacs + ch->dacs_rate) <= sysnow))
+        int i;
+        for(i = 0; i < ch->num_dacs; i++)
         {
-            int i;
-            for(i = 0; i < ch->num_dacs; i++)
+            bp_dacs_bundle_t* dacs = &ch->dacs_bundle[i];
+
+            if((ch->dacs_rate > 0) && 
+               (sysnow >= (dacs->last_dacs + ch->dacs_rate)) && 
+               (dacs->num_fills > 0))
             {
-                bp_dacs_bundle_t* dacs = &ch->dacs_bundle[i];
-
-                /* Check for Unsent DACS */
-                if(dacs->sent == false && dacs->num_fills > 0)
-                {
-                    store_dacs_bundle(ch, dacs, sysnow, BP_CHECK, loadflags);
-                    dacs->num_fills = 0;
-                }
-
-                /* Clear Sent Flag */
-                ch->dacs_bundle[i].sent = false;
+                store_dacs_bundle(ch, dacs, sysnow, BP_CHECK, loadflags);
+                dacs->num_fills = 0;
+                dacs->last_dacs = sysnow;
             }
-
-            /* Update Time of Last Check */
-            ch->last_dacs = sysnow;
         }
     }
     bplib_os_unlock(ch->dacs_bundle_lock);
