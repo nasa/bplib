@@ -37,6 +37,9 @@ O = 0
 # Disable Asserts #
 # APP_COPT += -DNDEBUG
 
+# Position Independent Code #
+APP_COPT += -fPIC
+
 # POSIX Compile Options #
 APP_COPT += -pthread
 

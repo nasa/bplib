@@ -26,6 +26,9 @@
 ###############################################################################
 ##  OPTIONS
 
+# Position Independent Code #
+APP_COPT += -fPIC
+
 # ANSI Compile Options #
 APP_COPT += -ansi
 

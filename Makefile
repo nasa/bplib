@@ -124,36 +124,48 @@ ALL_COPT := $(COPT) $(APP_COPT)
 ALL_LOPT := $(LOPT) $(APP_LOPT)
 
 $(BLDDIR)/%.o: %.c
-	$(CC) -c -fpic $(ALL_COPT) -o $@ $<
+	$(CC) -c $(ALL_COPT) -o $@ $<
 
 ##############################################################################
 ##  TARGET RULES
 
-all: clean prep lib
+all: clean $(BLDDIR) static-lib shared-lib
 
-lib: $(ALL_OBJ)
-	$(AR) crs $(BLDDIR)/lib$(TGTLIB).a $^
-	$(CC) $^ $(ALL_LOPT) -shared -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
+static-lib: $(BLDDIR) $(ALL_OBJ)
+	$(AR) crs $(BLDDIR)/lib$(TGTLIB).a $(ALL_OBJ)
 
-install: lib
-	-$(MKDIR) -p $(PREFIX)
-	-$(MKDIR) -p $(LIBDIR)
-	-$(MKDIR) -p $(INCDIR)
+shared-lib: $(BLDDIR) $(ALL_OBJ)
+	$(CC) $(ALL_OBJ) $(ALL_LOPT) -shared -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
+
+
+install: static-lib shared-lib install-headers install-static install-shared
+
+install-headers: $(INCDIR)
+	$(CP) $(foreach element,$(API),$(subst -I,,$(element)/*.h)) $(INCDIR)
+	chmod 644 $(INCDIR)/*
+
+install-static: $(PREFIX) $(LIBDIR)
 	$(CP) $(BLDDIR)/lib$(TGTLIB).a $(LIBDIR)
+	chmod 644 $(LIBDIR)/lib$(TGTLIB).a
+
+install-shared: $(PREFIX) $(LIBDIR)
 	$(CP) $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)
 	$(LN) -sf $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)/lib$(TGTLIB).so
 	ldconfig
-	$(MKDIR) -p $(INCDIR)
-	$(CP) $(foreach element,$(API),$(subst -I,,$(element)/*.h)) $(INCDIR)
-	chmod 644 $(INCDIR)/*
-	chmod 644 $(LIBDIR)/lib$(TGTLIB).a
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER)
 
-prep: $(BLDDIR)
-
 $(BLDDIR):
 	-$(MKDIR) -p $(BLDDIR)
+
+$(PREFIX):
+	-$(MKDIR) -p $(PREFIX)
+
+$(LIBDIR):
+	-$(MKDIR) -p $(LIBDIR)
+
+$(INCDIR):
+	-$(MKDIR) -p $(INCDIR)
 
 unittest: clean prep exe
  
