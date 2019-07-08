@@ -33,6 +33,7 @@
 #include "bplib_blk_cteb.h"
 #include "bplib_blk_bib.h"
 #include "bplib_blk_pay.h"
+#include "bplib_crc.h"
 #include "bplib_rb_tree.h"
 
 /******************************************************************************
@@ -262,6 +263,24 @@ static const bp_blk_pay_t native_pay_blk = {
     .payptr             = NULL,
     .paysize            = 0
 };
+
+
+/******************************************************************************
+ CRC DEFINITIONS
+ ******************************************************************************/
+
+// Defines the parameters for the CRC-16 IBM-SDLC implementation.
+static struct crc_parameters crc16_ibm_sdlc =  {.name="CRC-16 IBM-SDLC", 
+                                                .length=16,
+                                                .generator_polynomial=0x1021,
+                                                .initial_value=0xFFFF,
+                                                .should_reflect_input=true,
+                                                .should_reflect_output=true,
+                                                .final_xor=0xf0b8,
+                                                .check_value=0x906e};
+
+// A pointer a byte XOR lookup table for a 16 bit CRC.
+static struct crc16_table* c16t;
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -595,6 +614,7 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
         /* Send (enqueue) DACS */
         enstat = ch->storage.enqueue(ch->dacs_store_handle, ds, storage_header_size, dacs->paybuf, dacs_size, timeout);
 
+        printf("COUNT %d \n", ch->storage.getcount(ch->dacs_store_handle));
         /* Check Storage Status */
         if(enstat <= 0) // failure enqueuing dacs
         {
