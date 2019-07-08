@@ -31,6 +31,13 @@
 #include "bplib_os.h"
 
 /******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+// Number of different possible bytes.
+#define BYTE_COMBOS 256
+
+/******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
@@ -45,29 +52,18 @@ typedef struct crc_parameters
     bool should_reflect_output;     // Whether to reflect the bits of the output crc.
     uint64_t final_xor;             // The final value to xor with the crc before returning.
     uint16_t check_value;           // The crc value resulting from the input string "123456789" used to check validity of the implementation.
+    uint16_t table[BYTE_COMBOS];    // A ptr to a lookup table containing the precomputed XOR values of each byte with the generator polynomial.
 } crc_parameters;
  
-// Defines a lookup table and corresponding polynomial for creating a 16 bit crc.
-typedef struct crc16_table
-{
-    // A lookup table containing the possible XOR combinations for a given byte.
-    uint16_t* table;
-    // The polynomial used to generated the lookup table for the crc.
-    uint16_t generator_polynomial;
-} crc16_table;
-
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-// Frees all memory allocated to a crc16_table.
-void free_crc16_table(struct crc16_table* ct);
 // Creates a crc16_table containing a lookup table and generator polynomial.
-struct crc16_table* create_crc16_table(uint16_t generator_polynomial);
+void populate_crc16_table(struct crc_parameters* params);
 // Calulcates a CRC value for an array of bytes using a set of parameters and 
-// a corresponding crc16 lookup table. The generator polynomial of the parameters
-// must match that of the lookup table.
-uint16_t calculate_crc16(uint8_t* data, int length, struct crc16_table* ct,
-                         struct crc_parameters* params);
-
+// a corresponding crc16 lookup table.
+uint16_t calculate_crc16(uint8_t* data, int length, struct crc_parameters* params);
+// Checks that a crc parameters properly computes its check value.
+bool validate_crc_parameters(struct crc_parameters* params);
 #endif /* _BPLIB_CRC_H_ */

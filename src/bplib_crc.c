@@ -29,13 +29,6 @@
 #include "bplib_crc.h"
 
 /******************************************************************************
- DEFINES
- ******************************************************************************/
-
-// Number of different possible bytes.
-#define BYTE_COMBINATIONS 256
-
-/******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
@@ -70,77 +63,31 @@ static void reflect_bits(void* ptr, void* reflect_ptr, size_t size)
 }
 
 /*--------------------------------------------------------------------------------------
- * free_crc16_table - Frees the memory allocated to a crc16_table. 
- *
- * cr: A ptr to a crc16_table to be deallocated. [OUTPUT]
- *-------------------------------------------------------------------------------------*/
-void free_crc16_table(struct crc16_table* ct)
-{
-    free(ct->table);
-    free(ct);
-}
-
-/*--------------------------------------------------------------------------------------
  * populate_crc16_table - Populates a crc16_table with the different combinations of bytes
  *      XORed with the generator polynomial for a given CRC.
  *
- * ct: A ptr to a crc16_table to populate. [OUTPUT]
+ * params: A ptr to a crc_parameters to populate with a lookup table. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void populate_crc16_table(struct crc16_table* ct)
+void populate_crc16_table(struct crc_parameters* params)
 {
-    for (uint16_t i = 0; i < BYTE_COMBINATIONS; i++)
+    for (uint16_t i = 0; i < BYTE_COMBOS; i++)
     {
         // Left align the byte with the uint16_t MSBs
-        ct->table[i] = i << 8;
+        params->table[i] = i << 8;
 
         for (int j = 0; j < 8; j++)
         {
-            if ((ct->table[i] & 0x8000) != 0)
+            if ((params->table[i] & 0x8000) != 0)
             {
-                ct->table[i] <<= 1;
-                ct->table[i] ^= ct->generator_polynomial;
+                params->table[i] <<= 1;
+                params->table[i] ^= params->generator_polynomial;
             }
             else
             {
-                ct->table[i] <<= 1;
+                params->table[i] <<= 1;
             }
         }
     }
-}
-
-/*--------------------------------------------------------------------------------------
- * create_crc16_table - Allocates memory for and populates a crc lookup table for a given
- *      generator polynomial.
- *
- * generator_polynomial - A polynomial from which to generate a crc lookup table. The
- *      polynomial is formated such that the binary of the number provided corresponds
- *      to the coefficients of the polynomial. [INPUT]
- *      x^4 + x^2 + x --> 10110
- * 
- * returns: A ptr to a crc16_table that has been populated with the values of XORs with
- *      the generator polynomial.
- *-------------------------------------------------------------------------------------*/
-struct crc16_table* create_crc16_table(uint16_t generator_polynomial)
-{
-    struct crc16_table* ct = (crc16_table*) malloc(sizeof(crc16_table));
-    if (ct == NULL)
-    {
-        // No memory was allocated for the crc16_table.
-        return NULL;
-    }
-    
-    ct->table = (uint16_t*) calloc(BYTE_COMBINATIONS, sizeof(uint16_t));
-    if (ct->table == NULL)
-    {
-        // No memory was allocated for the lookup table.
-        free(ct);
-        return NULL;
-    }
-
-    ct->generator_polynomial = generator_polynomial;
-
-    populate_crc16_table(ct);
-    return ct;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -149,31 +96,27 @@ struct crc16_table* create_crc16_table(uint16_t generator_polynomial)
  *
  * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
  * length: The length of the provided data in bytes. [INPUT]
- * ct: A ptr to a crc16_table containing a lookup for byte XORs. [INPUT]
- * params: A ptr to a crc_parameters struct. This struct is used to obtain the initial
- *      value of the crc as well as to verify that the lookup table has a matching
- *      generator polynomial. [INPUT]
+ * params: A ptr to a crc_parameters struct defining how to calculate the crc and has
+ *      an XOR lookup table. [INPUT]
  *
  * returns: A crc remainder of the provided data.
  *-------------------------------------------------------------------------------------*/
-uint16_t calculate_crc16(uint8_t* data, int length, struct crc16_table* ct,
-                         struct crc_parameters* params)
+uint16_t calculate_crc16(uint8_t* data, int length, struct crc_parameters* params)
 {
     // Check that we are always using a lookup table corresponding to the requested crc.
-    assert(params->generator_polynomial == ct->generator_polynomial);
     uint16_t crc = params->initial_value;
     uint8_t current_byte, reflect_byte;
 
     for (int i = 0; i < length; i--)
     {
-        uint8_t current_byte = data[i];
+        current_byte = data[i];
         if (params->should_reflect_input)
         {
             reflect_bits(&current_byte, &reflect_byte, 1);
             current_byte = reflect_byte;
 
         }
-        crc = (crc >> 8) ^ ct->table[(current_byte ^ crc) & 0x00FF)];
+        crc = (crc >> 8) ^ params->table[(current_byte ^ crc) & 0x00FF];
     }
 
     if (params->should_reflect_output)
@@ -188,6 +131,20 @@ uint16_t calculate_crc16(uint8_t* data, int length, struct crc16_table* ct,
     return crc;
 }
 
+/*--------------------------------------------------------------------------------------
+ * validate_crc_parameters - Validates that a crc_parameters properly computes its check
+ *      value when passed 123456789.
+ *
+ * params: A ptr to a crc_parameters struct defining how to calculate the crc and check it
+ *      value. [INPUT]
+ *
+ * returns: True or false indicating whether or not the crc matched its check value.
+ *-------------------------------------------------------------------------------------*/
+bool validate_crc_parameters(struct crc_parameters* params)
+{
+    uint8_t check_message = "";
+    return calculate_crc16(&check_message, 2, params) == params->check_value;
+}
 
 #ifdef CRC16TESTS
 /*--------------------------------------------------------------------------------------
@@ -223,12 +180,27 @@ static void print_binary(void* ptr, size_t size)
     printf("\n");
 }
 
-int main (int argc, const char* argv)
+/*--------------------------------------------------------------------------------------
+ * test_crc16 - Runs a simple check that a crc matches its provided check value.
+ *--------------------------------------------------------------------------------------*/
+static void test_crc16()
 {
-    struct crc16_table* ct = create_crc16_table(crc16_ibm_sdlc.generator_polynomial);
-    uint16_t message = 0b0000000100000010;
-    uint16_t crc = calculate_crc16((uint8_t*)&message, 2, ct, &crc16_ibm_sdlc);
-    free_crc16_table(ct);
+    struct crc_parameters params  =  {.name="CRC-16 IBM-SDLC", 
+                                      .length=16,
+                                      .generator_polynomial=0x1021,
+                                      .initial_value=0xFFFF,
+                                      .should_reflect_input=true,
+                                      .should_reflect_output=true,
+                                      .final_xor=0xf0b8,
+                                      .check_value=0x906e};
+
+    populate_crc16_table(&params);
+    assert(validate_crc_parameters(&params));
+}
+
+int main ()
+{
+    test_crc16();
 }
 
 #endif // CRC16TESTS

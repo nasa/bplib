@@ -279,9 +279,6 @@ static struct crc_parameters crc16_ibm_sdlc =  {.name="CRC-16 IBM-SDLC",
                                                 .final_xor=0xf0b8,
                                                 .check_value=0x906e};
 
-// A pointer a byte XOR lookup table for a 16 bit CRC.
-static struct crc16_table* c16t;
-
 /******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/
@@ -492,7 +489,7 @@ static int store_data_bundle(bp_data_bundle_t* bundle, bp_store_enqueue_t enqueu
         /* Update Integrity Block */
         if(ds->biboffset != 0)
         {
-            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, &bundle->integrity_block);
+            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, &bundle->integrity_block, &crc16_ibm_sdlc);
         }
         
         /* Write Payload Block (static portion) */
@@ -602,7 +599,7 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
         /* Update Bundle Integrity Block */
         if(ds->biboffset != 0)
         {
-            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, dacs->paybuf, dacs_size, &dacs->integrity_block);
+            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, dacs->paybuf, dacs_size, &dacs->integrity_block, &crc16_ibm_sdlc);
         }
         
         /* Update Payload Block */
@@ -981,6 +978,9 @@ void bplib_init(int max_channels)
     {
         channels[i].index = BP_EMPTY;
     }
+
+    /* Populate the CRC lookup table for the desired params. */
+    populate_crc16_table(&crc16_ibm_sdlc);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1757,7 +1757,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             /* Perform Integrity Check */
             if(bib_present)
             {
-                status = bplib_blk_bib_verify(pay_blk.payptr, pay_blk.paysize, &bib_blk);
+                status = bplib_blk_bib_verify(pay_blk.payptr, pay_blk.paysize,
+                                              &bib_blk, &crc16_ibm_sdlc);
                 if(status <= 0) return bplog(status, "Bundle failed integrity check\n");
             }
 

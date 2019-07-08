@@ -28,7 +28,6 @@
 #include "bplib.h"
 #include "bplib_blk.h"
 #include "bplib_blk_bib.h"
-#include "bplib_crc.h"
 #include "bplib_sdnv.h"
 #include "bplib_os.h"
 
@@ -145,10 +144,12 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
  *  payload - pointer to payload memory buffer [INPUT]
  *  payload_size - number of bytes to crc over [INPUT]
  *  bib - pointer to a bundle integrity block structure used to write the block [INPUT]
+ *  crc_params - A ptr a to crc_parameters containing the requirements for how to calulcate
+ *      a 16 bit crc. [INPUT]
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib)
+int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib, struct crc_parameters* crc_params)
 {
     assert(bib);
     assert(payload);
@@ -162,7 +163,7 @@ int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size
     /* Calculate and Write Fragment Payload CRC */
     if(bib->paytype.value == BP_BIB_CRC16)
     {
-        bib->paycrc.value = bplib_crc16((uint8_t*)payload, payload_size, 0);
+        bib->paycrc.value = calculate_crc16((uint8_t*)payload, payload_size, crc_params);
         bplib_sdnv_write(buffer, size, bib->paycrc, &flags);
     }
 
@@ -177,10 +178,13 @@ int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size
  *  payload - pointer to payload memory buffer [INPUT]
  *  payload_size - number of bytes to crc over [INPUT]
  *  bib - pointer to a bundle integrity block structure used to write the block [INPUT]
+ *  crc_params - A ptr a to crc_parameters containing the requirements for how to calulcate
+ *      a 16 bit crc. [INPUT]
  *
  *  Returns:    success or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib)
+int bplib_blk_bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib,
+                          struct crc_parameters* crc_params)
 {
     assert(payload);
     assert(bib);
@@ -188,7 +192,7 @@ int bplib_blk_bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib)
     /* Calculate and Verify Payload CRC */
     if(bib->paytype.value == BP_BIB_CRC16)
     {
-        uint16_t crc = bplib_crc16((uint8_t*)payload, payload_size, 0);
+        uint16_t crc = calculate_crc16((uint8_t*)payload, payload_size, crc_params);
         if(bib->paycrc.value != crc)
         {
             /* Return Failure */

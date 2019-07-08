@@ -30,6 +30,7 @@
 
 #include "bplib_sdnv.h"
 #include "bplib_os.h"
+#include "bplib_crc.h"
 
 /******************************************************************************
  DEFINES
@@ -54,7 +55,7 @@ typedef struct {
 
 int bplib_blk_bib_read      (void* contents, int size, bp_blk_bib_t* bib, bool update_indices);
 int bplib_blk_bib_write     (void* block, int size, bp_blk_bib_t* bib, bool update_indices);
-int bplib_blk_bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib);
-int bplib_blk_bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib);
+int bplib_blk_bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib, struct crc_parameters* crc_params);
+int bplib_blk_bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib, struct crc_parameters* crc_params);
 
 #endif  /* __BPLIB_BLK_BIB_H__ */
