@@ -1384,7 +1384,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                     ch->stats.expired++;
                     ds = NULL;
                 }
-                else if(ch->active_table.retx[ati] != 0 && sysnow >= ch->active_table.retx[ati]) /* check timeout */
+                else if(ch->timeout != 0 && sysnow >= (ch->active_table.retx[ati] + ch->timeout)) /* check timeout */
                 {
                     /* Retransmit Bundle */
                     ch->active_table.oldest_cid++;
@@ -1537,8 +1537,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                         }
 
                         /* Update Retransmit Time */
-                        if(ch->timeout > 0) ch->active_table.retx[ati] = sysnow + ch->timeout;
-                        else                ch->active_table.retx[ati] = 0;
+                        ch->active_table.retx[ati] = sysnow;
                     }
 
                     /* Load Bundle */
