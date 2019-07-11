@@ -28,8 +28,9 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib_crc16.h"
-#include "bplib_crc32.h"
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 /******************************************************************************
  DEFINES
@@ -42,26 +43,41 @@
  TYPEDEFS
  ******************************************************************************/
 
-// Standard parameters for calculating a CRC.
-typedef struct crc_parameters
+// Parameters specific to calculating 16 bit crc parameters.
+typedef struct crc16_parameters
 {
-    char* name;                      // Name of the CRC.
-    int length;                      // The number of bits in the CRC.
-    bool should_reflect_input;       // Whether to reflect the bits of the input bytes.
-    bool should_reflect_output;      // Whether to reflect the bits of the output crc.
+    uint16_t generator_polynomial;   // The generator polynomial used to compute the CRC.
+    uint16_t initial_value;          // The value used to initialize a CRC.
+    uint16_t final_xor;              // The final value to xor with the crc before returning.
+    uint16_t check_value;            // The crc resulting from the input string "123456789".
+    uint16_t xor_table[BYTE_COMBOS]; // A ptr to a table with the precomputed XOR values.
+} crc16_parameters;
+
+// Parameters specific to calculating 32 bit crcs.
+typedef struct crc32_parameters
+{
     uint32_t generator_polynomial;   // The generator polynomial used to compute the CRC.
     uint32_t initial_value;          // The value used to initialize a CRC.
     uint32_t final_xor;              // The final value to xor with the crc before returning.
-    uint32_t check_value;            // The crc value resulting from the input string "123456789" used to check validity of the implementation.
-    uint32_t xor_table[BYTE_COMBOS]; // A ptr to a lookup table containing the precomputed XOR values of each byte with the generator polynomial.
-} crc_parameters;
+    uint32_t check_value;            // The crc resulting from the input string "123456789".
+    uint32_t xor_table[BYTE_COMBOS]; // A ptr to a table with the precomputed XOR values.
+} crc32_parameters;
 
-// A generic return type for returning calculated crcs of various sizes.
-typedef union crc_return
+// Standard parameters for calculating a CRC.
+typedef struct crc_parameters
 {
-    uint16_t crc16; // 16 bit crc.
-    uint32_t crc32; // 32 bit crc.
-};
+    char* name;                 // Name of the CRC.
+    int length;                 // The number of bits in the CRC.
+    bool should_reflect_input;  // Whether to reflect the bits of the input bytes.
+    bool should_reflect_output; // Whether to reflect the bits of the output crc.
+    // Parameters specific to crc implementations of various lengths. The field that is populated
+    // within this union should directly coincide with the length member.
+    // Ex: If length == 16 crc16 should be popualted in this union below.
+    union {
+        crc16_parameters crc16;
+        crc32_parameters crc32;
+    } n_bit_params;
+} crc_parameters;
 
 /******************************************************************************
  PROTOTYPES
@@ -69,8 +85,5 @@ typedef union crc_return
 // Creates an xor lookup table corresponding to the generator polynomial specified by params.
 void init_crc_table(struct crc_parameters* params);
 // Calulcates a CRC value for an array of bytes.
-crc_return get_crc(uint8_t* data, int length, struct crc_parameters* params);
-// Checks that a crc parameters properly computes its check value.
-bool validate_crc_parameters(struct crc_parameters* params);
-
+uint32_t get_crc(const uint8_t* data, const int length, const struct crc_parameters* params);
 #endif /* _BPLIB_CRC_H_ */

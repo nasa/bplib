@@ -163,7 +163,7 @@ int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size
     /* Calculate and Write Fragment Payload CRC */
     if(bib->paytype.value == BP_BIB_CRC16)
     {
-        bib->paycrc.value = calculate_crc16((uint8_t*)payload, payload_size, crc_params);
+        bib->paycrc.value = get_crc((uint8_t*)payload, payload_size, crc_params);
         bplib_sdnv_write(buffer, size, bib->paycrc, &flags);
     }
 
@@ -192,7 +192,7 @@ int bplib_blk_bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib,
     /* Calculate and Verify Payload CRC */
     if(bib->paytype.value == BP_BIB_CRC16)
     {
-        uint16_t crc = calculate_crc16((uint8_t*)payload, payload_size, crc_params);
+        uint16_t crc = get_crc((uint8_t*)payload, payload_size, crc_params);
         if(bib->paycrc.value != crc)
         {
             /* Return Failure */

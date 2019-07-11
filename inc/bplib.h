@@ -80,7 +80,8 @@ extern "C" {
 #define BP_FAILEDOS                     (-19)
 #define BP_FAILEDMEM                    (-20)
 #define BP_INVALIDEID                   (-21)
- 
+#define BP_CRCINVALIDLENGTHERR          (-22)
+
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  // valid bundle but agent not able to comply with standard
 #define BP_FLAG_INCOMPLETE              0x0002  // block in bundle was not recognized

@@ -271,13 +271,16 @@ static const bp_blk_pay_t native_pay_blk = {
 
 // Defines the parameters for the CRC-16 IBM-SDLC implementation.
 static struct crc_parameters crc16_ibm_sdlc =  {.name="CRC-16 IBM-SDLC", 
-                                                .length=16,
-                                                .generator_polynomial=0x1021,
-                                                .initial_value=0xFFFF,
-                                                .should_reflect_input=true,
-                                                .should_reflect_output=true,
-                                                .final_xor=0xf0b8,
-                                                .check_value=0x906e};
+                                .length=16,
+                                .should_reflect_input=true,
+                                .should_reflect_output=true,
+                                .n_bit_params = {
+                                    .crc16 = {
+                                        .generator_polynomial=0x1021,
+                                        .initial_value=0xFFFF,
+                                        .final_xor=0xF0B8,
+                                        .check_value=0x906E
+                                }}};
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -980,7 +983,7 @@ void bplib_init(int max_channels)
     }
 
     /* Populate the CRC lookup table for the desired params. */
-    populate_crc16_table(&crc16_ibm_sdlc);
+    init_crc_table(&crc16_ibm_sdlc);
 }
 
 /*--------------------------------------------------------------------------------------
