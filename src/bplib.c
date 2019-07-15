@@ -1291,6 +1291,7 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* sto
 
             /* Store Bundle */
             status = store_data_bundle(&ch->data_bundle, ch->storage.enqueue, ch->data_store_handle, timeout, storflags);
+            if(status == BP_SUCCESS) ch->stats.generated++;
         }
     }
     bplib_os_unlock(channels[channel].data_bundle_lock);

@@ -159,13 +159,14 @@ typedef struct {
 
 /* Bundle Channel Statistics */
 typedef struct {
-    uint32_t    lost;           /* storage or copy failure, unable to retrieve */
-    uint32_t    expired;        /* lifetime expired, deliberately removed */
-    uint32_t    acknowledged;   /* freed by custody signal */
-    uint32_t    transmitted;    /* sent (includes re-sends) */
-    uint32_t    retransmitted;  /* timed-out and resent */
-    uint32_t    received;       /* bundles processed */
-    uint32_t    delivered;      /* payloads accepted */
+    uint32_t    lost;           /* storage or copy failure, unable to retrieve load, accept */
+    uint32_t    expired;        /* lifetime expired, deliberately removed - load, process */
+    uint32_t    acknowledged;   /* freed by custody signal - process */
+    uint32_t    transmitted;    /* sent, includes re-sends - load */
+    uint32_t    retransmitted;  /* timed-out and resent - load */
+    uint32_t    received;       /* bundles processed - process */
+    uint32_t    generated;      /* bundles generated - store */
+    uint32_t    delivered;      /* payloads accepted  - accept */
     uint32_t    bundles;        /* number of data bundles currently in storage */
     uint32_t    payloads;       /* number of payloads currently in storage */
     uint32_t    records;        /* number of dacs bundles currently in storage */
