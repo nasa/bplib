@@ -1519,7 +1519,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
             if(*bundle == NULL || *size >= ds->bundlesize)
             {
                 /* Check/Allocate Bundle Memory */
-                if(*bundle == 0) *bundle = malloc(ds->bundlesize);
+                if(*bundle == NULL) *bundle = malloc(ds->bundlesize);
                     
                 /* Successfully Load Bundle to Application and Relinquish Memory */                
                 if(*bundle != NULL)
@@ -1551,7 +1551,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                     {
                         relinquish(store, sid);
                     }
-                }\
+                }
                 else
                 {
                     status = bplog(BP_FAILEDMEM, "Unable to acquire memory for bundle of size %d\n", ds->bundlesize);
