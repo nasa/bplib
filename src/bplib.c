@@ -977,6 +977,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
 {
     int i, j, channel;
 
+    fflush(stdin);
     assert(storage.create);
     assert(storage.destroy);
     assert(storage.enqueue);
