@@ -1130,7 +1130,6 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                     channels[i].dacs_bundle[j].primary_block.cstserv.value = local_service;
                     channels[i].dacs_bundle[j].integrity_block             = native_bib_blk;
                     channels[i].dacs_bundle[j].payload_block               = native_pay_blk;
-                    printf("ASDASDADS\n");
                     /* Init the xor table for for the provided crc cipher suite id
                        and set the security result length. */
                     bplib_blk_bib_init(&channels[i].dacs_bundle[j].integrity_block);
