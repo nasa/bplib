@@ -54,7 +54,8 @@ extern "C" {
 
 /* Bundle Integrity Types */
 #define BP_BIB_NONE                     0
-#define BP_BIB_CRC16                    1
+#define BP_BIB_CRC16_X25                1
+#define BP_BIB_CRC32_CASTAGNOLI         2
 
 /* Return Codes */            
 #define BP_SUCCESS                      1

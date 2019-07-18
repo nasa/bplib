@@ -53,7 +53,7 @@
 #define BP_DEFAULT_MAX_CONCURRENT_DACS  4       // maximum number of custody eids to keep track of
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_TREE_SIZE        1028
-#define BP_DEFAULT_PAY_CRC              BP_BIB_CRC16
+#define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
 #define BP_DEFAULT_TIMEOUT              10
 #define BP_DEFAULT_CREATE_TIME_SYS      true
 #define BP_DEFAULT_CREATE_SECS          0
@@ -249,38 +249,25 @@ static const bp_blk_cteb_t native_cteb_blk = {
 };
 
 static const bp_blk_bib_t native_bib_blk = {
-                            /*          Value             Index       Width   */
-    .bf                 = { 0,                              1,          1 },
-    .blklen             = { 0,                              2,          1 },
-    .paytype            = { BP_DEFAULT_PAY_CRC,             3,          2 },
-    .paycrc             = { 0,                              5,          3 }
+                                /* Value                         Index  Width */
+    .block_flags              = {  0,                            1,     1     },
+    .block_length             = {  0,                            2,     4     },
+    .security_target_count    = {  1,                            6,     1     },
+    .security_target_type     = {  1,                            7,     1     },
+    .security_target_sequence = {  0,                            8,     1     },
+    .cipher_suite_id          = {  BP_DEFAULT_CIPHER_SUITE,      9,     1     },
+    .cipher_suite_flags       = {  0,                            10,    1     },
+    .security_result_count    = {  1,                            11,    1     },
+    .security_result_type     =    0,
+    .security_result_length   = {  1,                            13,    1     },
 };
 
 static const bp_blk_pay_t native_pay_blk = {
-                            /*          Value             Index       Width   */
-    .bf                 = { 0,                              1,          1 },
-    .blklen             = { 0,                              2,          4 },
-    .payptr             = NULL,
-    .paysize            = 0
+    .bf                       = { 0,                              1,    1     },
+    .blklen                   = { 0,                              2,    4     },
+    .payptr                   = NULL,
+    .paysize                  = 0
 };
-
-
-/******************************************************************************
- CRC DEFINITIONS
- ******************************************************************************/
-
-// Defines the parameters for the CRC-16 IBM-SDLC implementation.
-static struct crc_parameters crc16_ibm_sdlc =  {.name="CRC-16 IBM-SDLC", 
-                                .length=16,
-                                .should_reflect_input=true,
-                                .should_reflect_output=true,
-                                .n_bit_params = {
-                                    .crc16 = {
-                                        .generator_polynomial=0x1021,
-                                        .initial_value=0xFFFF,
-                                        .final_xor=0xF0B8,
-                                        .check_value=0x906E
-                                }}};
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -492,7 +479,7 @@ static int store_data_bundle(bp_data_bundle_t* bundle, bp_store_enqueue_t enqueu
         /* Update Integrity Block */
         if(ds->biboffset != 0)
         {
-            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, &bundle->integrity_block, &crc16_ibm_sdlc);
+            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, &bundle->integrity_block);
         }
         
         /* Write Payload Block (static portion) */
@@ -602,7 +589,7 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
         /* Update Bundle Integrity Block */
         if(ds->biboffset != 0)
         {
-            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, dacs->paybuf, dacs_size, &dacs->integrity_block, &crc16_ibm_sdlc);
+            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, dacs->paybuf, dacs_size, &dacs->integrity_block);
         }
         
         /* Update Payload Block */
@@ -876,8 +863,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* type = (int*)val;
-            if(getset)  ch->data_bundle.integrity_block.paytype.value = *type;
-            else        *type = ch->data_bundle.integrity_block.paytype.value;
+            if(getset)  ch->data_bundle.integrity_block.security_result_type = *type;
+            else        *type = ch->data_bundle.integrity_block.security_result_type;
             break;
         }
         case BP_OPT_TIMEOUT:
@@ -981,9 +968,6 @@ void bplib_init(int max_channels)
     {
         channels[i].index = BP_EMPTY;
     }
-
-    /* Populate the CRC lookup table for the desired params. */
-    init_crc_table(&crc16_ibm_sdlc);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1146,9 +1130,13 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                     channels[i].dacs_bundle[j].primary_block.cstserv.value = local_service;
                     channels[i].dacs_bundle[j].integrity_block             = native_bib_blk;
                     channels[i].dacs_bundle[j].payload_block               = native_pay_blk;
+                    printf("ASDASDADS\n");
+                    /* Init the xor table for for the provided crc cipher suite id
+                       and set the security result length. */
+                    bplib_blk_bib_init(&channels[i].dacs_bundle[j].integrity_block);
                 }
-
-                /* Allocate Memory for Active Table */
+                
+                                /* Allocate Memory for Active Table */
                 channels[i].active_table.sid = (bp_sid_t*)malloc(sizeof(bp_sid_t) * channels[i].attributes.active_table_size);
                 channels[i].active_table.retx = (uint32_t*)malloc(sizeof(uint32_t) * channels[i].attributes.active_table_size);
                 if(channels[i].active_table.sid == NULL || channels[i].active_table.retx == NULL)
@@ -1760,8 +1748,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             /* Perform Integrity Check */
             if(bib_present)
             {
-                status = bplib_blk_bib_verify(pay_blk.payptr, pay_blk.paysize,
-                                              &bib_blk, &crc16_ibm_sdlc);
+                status = bplib_blk_bib_verify(pay_blk.payptr, pay_blk.paysize, &bib_blk);
                 if(status <= 0) return bplog(status, "Bundle failed integrity check\n");
             }
 

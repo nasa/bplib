@@ -84,7 +84,8 @@ typedef struct crc_parameters
  ******************************************************************************/
 // Creates an xor lookup table corresponding to the generator polynomial specified by params.
 void init_crc_table(struct crc_parameters* params);
-// Calulcates a CRC value for an array of bytes. You must call init_crc_table before any
-// calls to this function.
-uint32_t get_crc(const uint8_t* data, const int length, const struct crc_parameters* params);
+// Calculates crc of specified size assuming. This function does not check parameters to ensure
+// that the CRC length matches.
+uint16_t get_crc16(const uint8_t* data, const int length, const struct crc_parameters* params);
+uint32_t get_crc32(const uint8_t* data, const int length, const struct crc_parameters* params);
 #endif /* _BPLIB_CRC_H_ */

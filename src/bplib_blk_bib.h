@@ -30,7 +30,6 @@
 
 #include "bplib_sdnv.h"
 #include "bplib_os.h"
-#include "bplib_crc.h"
 
 /******************************************************************************
  DEFINES
@@ -43,19 +42,34 @@
  ******************************************************************************/
 
 typedef struct {
-    bp_sdnv_t   bf;
-    bp_sdnv_t   blklen;
-    bp_sdnv_t   paytype;
-    bp_sdnv_t   paycrc;
+    bp_sdnv_t   block_flags;
+    bp_sdnv_t   block_length;
+    bp_sdnv_t   security_target_count;
+    bp_sdnv_t   security_target_type;
+    bp_sdnv_t   security_target_sequence;
+    bp_sdnv_t   cipher_suite_id;
+    bp_sdnv_t   cipher_suite_flags;
+    bp_sdnv_t   security_result_count;
+    uint8_t     security_result_type;
+    bp_sdnv_t   security_result_length;
+    
+    // Security data is specified as a union here to avoid mallocing a pointer when
+    // creating block definitions.
+    union
+    {
+        uint16_t crc16;
+        uint32_t crc32;
+    } security_result_data;
 } bp_blk_bib_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
+int bplib_blk_bib_init      (bp_blk_bib_t* bib);
 int bplib_blk_bib_read      (void* contents, int size, bp_blk_bib_t* bib, bool update_indices);
 int bplib_blk_bib_write     (void* block, int size, bp_blk_bib_t* bib, bool update_indices);
-int bplib_blk_bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib, struct crc_parameters* crc_params);
-int bplib_blk_bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib, struct crc_parameters* crc_params);
+int bplib_blk_bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib);
+int bplib_blk_bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib);
 
 #endif  /* __BPLIB_BLK_BIB_H__ */
