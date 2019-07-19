@@ -84,20 +84,20 @@ extern "C" {
 #define BP_CRCINVALIDLENGTHERR          (-22)
 
 /* Processing, Acceptance,and Load Flags */
-#define BP_FLAG_NONCOMPLIANT            0x0001  // valid bundle but agent not able to comply with standard
-#define BP_FLAG_INCOMPLETE              0x0002  // block in bundle was not recognized
-#define BP_FLAG_TOOMANYSOURCES          0x0004  // too many sources to keep track of for ACS bundles
-#define BP_FLAG_FILLOVERFLOW            0x0008  // a gap in the CIDs exceeds the max fill
-#define BP_FLAG_TOOMANYFILLS            0x0010  // all the fills in the ACS are used
-#define BP_FLAG_CIDWENTBACKWARDS        0x0020  // the custody ID went backwards
-#define BP_FLAG_ROUTENEEDED             0x0040  // the bundle returned needs to be routed before transmission
-#define BP_FLAG_STOREFAILURE            0x0080  // storage service failed to deliver data
-#define BP_FLAG_MIXEDRESPONSE           0x0100  // aggregate acknowledgement must have uniform delivery vs. forward
-#define BP_FLAG_SDNVOVERFLOW            0x0200  // insufficient room in variable to read/write value
-#define BP_FLAG_SDNVINCOMPLETE          0x0400  // insufficient room in block to read/write value
-#define BP_FLAG_ACTIVETABLEWRAP         0x0800  // the active table wrapped
-#define BP_FLAG_DUPLICATES              0x1000  // duplicate bundle ids were identified when creating this dacs
-#define BP_FLAG_RBTREEFULL              0x2000  // the dacs rb_tree was full
+#define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
+#define BP_FLAG_INCOMPLETE              0x0002  /* block in bundle was not recognized */
+#define BP_FLAG_TOOMANYSOURCES          0x0004  /* too many sources to keep track of for ACS bundles */
+#define BP_FLAG_FILLOVERFLOW            0x0008  /* a gap in the CIDs exceeds the max fill */
+#define BP_FLAG_TOOMANYFILLS            0x0010  /* all the fills in the ACS are used */
+#define BP_FLAG_CIDWENTBACKWARDS        0x0020  /* the custody ID went backwards */
+#define BP_FLAG_ROUTENEEDED             0x0040  /* the bundle returned needs to be routed before transmission */
+#define BP_FLAG_STOREFAILURE            0x0080  /* storage service failed to deliver data */
+#define BP_FLAG_MIXEDRESPONSE           0x0100  /* aggregate acknowledgement must have uniform delivery vs. forward */
+#define BP_FLAG_SDNVOVERFLOW            0x0200  /* insufficient room in variable to read/write value */
+#define BP_FLAG_SDNVINCOMPLETE          0x0400  /* insufficient room in block to read/write value */
+#define BP_FLAG_ACTIVETABLEWRAP         0x0800  /* the active table wrapped */
+#define BP_FLAG_DUPLICATES              0x1000  /* duplicate bundle ids were identified when creating this dacs */
+#define BP_FLAG_RBTREEFULL              0x2000  /* the dacs rb_tree was full */
 
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1
@@ -155,26 +155,27 @@ typedef struct {
 
 /* Bundle Channel Attributes */
 typedef struct {
-    int     active_table_size;      // number of unacknowledged bundles to keep track of
-    int     max_concurrent_dacs;    // number of dacs to maintain at one time
-    int     max_fills_per_dacs;     // dacs is built on stack (and therefore must fit on stack)
-    int     max_tree_size;          // number of nodes within a tree to store bundle ids
-    void*   storage_service_parm;   // pass through of parameters needed by storage service
+    int     active_table_size;      /* number of unacknowledged bundles to keep track of */
+    int     max_concurrent_dacs;    /* number of dacs to maintain at one time */
+    int     max_fills_per_dacs;     /* dacs is built on stack (and therefore must fit on stack) */
+    int     max_tree_size;          /* number of nodes within a tree to store bundle ids */
+    void*   storage_service_parm;   /* pass through of parameters needed by storage service */
 } bp_attr_t;
 
 /* Bundle Channel Statistics */
 typedef struct {
-    uint32_t    lost;           // storage or copy failure, unable to retrieve
-    uint32_t    expired;        // lifetime expired, deliberately removed
-    uint32_t    acknowledged;   // freed by custody signal
-    uint32_t    transmitted;    // sent (includes re-sends)
-    uint32_t    retransmitted;  // timed-out and resent
-    uint32_t    received;       // bundles processed
-    uint32_t    delivered;      // payloads accepted
-    uint32_t    bundles;        // number of data bundles currently in storage
-    uint32_t    payloads;       // number of payloads currently in storage
-    uint32_t    records;        // number of dacs bundles currently in storage
-    uint32_t    active;         // number of slots in active table in use
+    uint32_t    lost;           /* storage or copy failure, unable to retrieve load, accept */
+    uint32_t    expired;        /* lifetime expired, deliberately removed - load, process */
+    uint32_t    acknowledged;   /* freed by custody signal - process */
+    uint32_t    transmitted;    /* sent, includes re-sends - load */
+    uint32_t    retransmitted;  /* timed-out and resent - load */
+    uint32_t    received;       /* bundles processed - process */
+    uint32_t    generated;      /* bundles generated - store */
+    uint32_t    delivered;      /* payloads accepted  - accept */
+    uint32_t    bundles;        /* number of data bundles currently in storage */
+    uint32_t    payloads;       /* number of payloads currently in storage */
+    uint32_t    records;        /* number of dacs bundles currently in storage */
+    uint32_t    active;         /* number of slots in active table in use */
 } bp_stats_t;
 
 /******************************************************************************

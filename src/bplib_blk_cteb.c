@@ -32,27 +32,6 @@
 #include "bplib_os.h"
 
 /******************************************************************************
- LOCAL FUNCTIONS
- ******************************************************************************/
-#ifndef _GNU_
-/*--------------------------------------------------------------------------------------
- * strnlen -
- *-------------------------------------------------------------------------------------*/
-inline int strnlen(const char* str, int maxlen)
-{
-    int len;
-    for(len = 0; len < maxlen; len++)
-    {
-        if(str[len] == '\0')
-        {
-            return len;
-        }
-    }
-    return maxlen;
-}
-#endif
-
-/******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
@@ -135,7 +114,7 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool updat
     cteb->bf.value |= BP_BLK_REPALL_MASK;
 
     /* Write Block */
-    buffer[0] = BP_CTEB_BLK_TYPE; // block type
+    buffer[0] = BP_CTEB_BLK_TYPE; /* block type */
     if(!update_indices)
     {
         bplib_sdnv_write(buffer, size, cteb->bf, &flags);
@@ -152,7 +131,7 @@ int bplib_blk_cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool updat
 
     eid_index = bplib_sdnv_write(buffer, size, cteb->cid, &flags);
 
-    eid_len = strnlen(cteb->csteid, BP_MAX_EID_STRING);
+    eid_len = bplib_os_strnlen(cteb->csteid, BP_MAX_EID_STRING);
     if((eid_index + eid_len) > size) return BP_BUNDLEPARSEERR;
     memcpy(&buffer[eid_index], cteb->csteid, eid_len);
 

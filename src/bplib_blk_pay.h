@@ -38,9 +38,9 @@
  ******************************************************************************/
 
 #define BP_PAY_BLK_TYPE           0x1
-#define BP_STAT_REC_TYPE          0x10 // Status Report
-#define BP_CS_REC_TYPE            0x20 // Custody Signal
-#define BP_ACS_REC_TYPE           0x40 // Aggregate Custody Signal
+#define BP_STAT_REC_TYPE          0x10 /* Status Report */
+#define BP_CS_REC_TYPE            0x20 /* Custody Signal */
+#define BP_ACS_REC_TYPE           0x40 /* Aggregate Custody Signal */
 
 /******************************************************************************
  TYPEDEFS

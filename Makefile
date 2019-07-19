@@ -48,16 +48,19 @@ API         := $(ROOT)/inc
 
 # location to install bplib
 PREFIX	    := /usr/local
+<<<<<<< HEAD
 	
 # application object files, application should add their objects to this variable
-APP_OBJ     := bplib.o
-APP_OBJ     += bplib_blk_bib.o
-APP_OBJ     += bplib_blk_cteb.o
-APP_OBJ     += bplib_blk_pay.o
-APP_OBJ     += bplib_blk_pri.o
-APP_OBJ     += bplib_crc.o
-APP_OBJ     += bplib_sdnv.o
-APP_OBJ     += bplib_rb_tree.o
+APP_OBJ := bplib.o
+APP_OBJ += bplib_blk_bib.o
+APP_OBJ += bplib_blk_cteb.o
+APP_OBJ += bplib_blk_pay.o
+APP_OBJ += bplib_blk_pri.o
+APP_OBJ += bplib_crc.o
+APP_OBJ += bplib_sdnv.o
+APP_OBJ += bplib_rb_tree.o
+APP_OBJ += bplib_store_file.o
+APP_OBJ += bplib_store_ram.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?=
@@ -101,13 +104,9 @@ O       ?=   3 # default optimization level
 COPT    :=   -g -Wall -Wextra -O$(O) -D'LIBID="$(TGTVER)"' $(INCLUDES) $(APP_DEFS)
 COPT    +=   -DLIBPATH=\"$(LIBDIR)\"
 COPT    +=   -DINCPATH=\"$(INCDIR)\"
-COPT    +=   -D_GNU_
-COPT    +=   -pthread
 COPT    +=   -Wshadow
  
-LOPT    :=   -lpthread
-LOPT    +=   -lm
-LOPT    +=   -lrt
+LOPT    :=
 
 ###############################################################################
 ##  TOOLS
@@ -127,40 +126,49 @@ ALL_OBJ := $(addprefix $(BLDDIR)/, $(APP_OBJ))
 ALL_COPT := $(COPT) $(APP_COPT)
 ALL_LOPT := $(LOPT) $(APP_LOPT)
 
-$(BLDDIR)/%.o: %.cpp
-	$(CC) -c -fpic $(ALL_COPT) -o $@ $<
-
 $(BLDDIR)/%.o: %.c
-	$(CC) -c -fpic $(ALL_COPT) -o $@ $<
+	$(CC) -c $(ALL_COPT) -o $@ $<
 
 ##############################################################################
 ##  TARGET RULES
 
-all: clean prep lib
+all: clean $(BLDDIR) static-lib shared-lib
 
-lib: $(ALL_OBJ)
-	$(AR) crs $(BLDDIR)/lib$(TGTLIB).a $^
-	$(CC) $^ $(ALL_LOPT) -shared -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
+static-lib: $(BLDDIR) $(ALL_OBJ)
+	$(AR) crs $(BLDDIR)/lib$(TGTLIB).a $(ALL_OBJ)
 
-install: lib
-	-$(MKDIR) -p $(PREFIX)
-	-$(MKDIR) -p $(LIBDIR)
-	-$(MKDIR) -p $(INCDIR)
+shared-lib: $(BLDDIR) $(ALL_OBJ)
+	$(CC) $(ALL_OBJ) $(ALL_LOPT) -shared -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
+
+
+install: static-lib shared-lib install-headers install-static install-shared
+
+install-headers: $(INCDIR)
+	$(CP) $(foreach element,$(API),$(subst -I,,$(element)/*.h)) $(INCDIR)
+	chmod 644 $(INCDIR)/*
+
+install-static: $(PREFIX) $(LIBDIR)
 	$(CP) $(BLDDIR)/lib$(TGTLIB).a $(LIBDIR)
+	chmod 644 $(LIBDIR)/lib$(TGTLIB).a
+
+install-shared: $(PREFIX) $(LIBDIR)
 	$(CP) $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)
 	$(LN) -sf $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)/lib$(TGTLIB).so
 	ldconfig
-	$(MKDIR) -p $(INCDIR)
-	$(CP) $(foreach element,$(API),$(subst -I,,$(element)/*.h)) $(INCDIR)
-	chmod 644 $(INCDIR)/*
-	chmod 644 $(LIBDIR)/lib$(TGTLIB).a
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER)
 
-prep: $(BLDDIR)
-
 $(BLDDIR):
 	-$(MKDIR) -p $(BLDDIR)
+
+$(PREFIX):
+	-$(MKDIR) -p $(PREFIX)
+
+$(LIBDIR):
+	-$(MKDIR) -p $(LIBDIR)
+
+$(INCDIR):
+	-$(MKDIR) -p $(INCDIR)
 
 unittest: clean prep exe
  

@@ -189,7 +189,7 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
     bib->block_flags.value |= BP_BLK_REPALL_MASK;
 
     /* Write Block */
-    buffer[0] = BP_BIB_BLK_TYPE; // block type
+    buffer[0] = BP_BIB_BLK_TYPE; /* block type */
     if(!update_indices)
     {
         bplib_sdnv_write(buffer, size, bib->block_flags, &flags);
