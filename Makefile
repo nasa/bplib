@@ -48,7 +48,6 @@ API         := $(ROOT)/inc
 
 # location to install bplib
 PREFIX	    := /usr/local
-<<<<<<< HEAD
 	
 # application object files, application should add their objects to this variable
 APP_OBJ := bplib.o
