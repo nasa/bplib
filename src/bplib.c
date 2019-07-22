@@ -564,13 +564,13 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
     bool has_enqueue_failure = false;
     while (!rb_tree_is_empty(dacs->tree))
     {
-        // Continue to delete nodes from the tree and write them to dacs until the tree is empty.
+        /* Continue to delete nodes from the tree and write them to dacs until the tree is empty. */
 
         bp_bundle_store_t* ds = &dacs->bundle_store;
         bp_blk_pri_t* pri = &dacs->primary_block;
 
         /* Build DACS */
-        // This call will remove nodes from the tree. 
+        /* This call will remove nodes from the tree. */
         dacs_size = bplib_rec_acs_write(dacs->paybuf, dacs->paybuf_size, 
                                         ch->attributes.max_fills_per_dacs, 
                                         dacs->tree);
@@ -954,6 +954,9 @@ void bplib_init(int max_channels)
 
     /* Initialize OS Interface */
     bplib_os_init();
+    
+    /* Init the xor tables for all supported crc specifications. */
+    bplib_blk_crc_init();
 
     /* Create Channel Lock */
     channels_lock = bplib_os_createlock();
@@ -1131,9 +1134,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                     channels[i].dacs_bundle[j].primary_block.cstserv.value = local_service;
                     channels[i].dacs_bundle[j].integrity_block             = native_bib_blk;
                     channels[i].dacs_bundle[j].payload_block               = native_pay_blk;
-                    /* Init the xor table for for the provided crc cipher suite id
-                       and set the security result length. */
-                    bplib_blk_bib_init(&channels[i].dacs_bundle[j].integrity_block);
+                    
                 }
                 
                                 /* Allocate Memory for Active Table */

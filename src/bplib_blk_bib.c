@@ -36,7 +36,6 @@
  CRC DEFINITIONS
  ******************************************************************************/
 
-// Defines the parameters for the CRC-IBM-SDLC implementation.
 static struct crc_parameters crc16_x25 =  {.name                            = "CRC-16 X25", 
                                            .length                          = 16,
                                            .should_reflect_input            = true,
@@ -66,27 +65,12 @@ static struct crc_parameters crc32_castagnoli = {.name                         =
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_blk_bib_init -
- *
- *  bib - pointer to a bundle integrity block structure to be populated by this function [OUTPUT]
- *
- *  Returns: int indicating sucess or failure.
+ * bplib_blk_crc_init - Inits the crc xor tables for all supported crc specifications.
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_bib_init (bp_blk_bib_t* bib)
+int bplib_blk_crc_init ()
 {
-    if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
-    {
-        init_crc_table(&crc16_x25);
-        bib->security_result_length.value = 2;
-        return BP_SUCCESS;
-    }
-    else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
-    {
-        init_crc_table(&crc32_castagnoli);
-        bib->security_result_length.value = 4;
-        return BP_SUCCESS;
-    }
-    return BP_CRCINVALIDLENGTHERR;
+    init_crc16_table(&crc16_x25);
+    init_crc32_table(&crc32_castagnoli);
 } 
 
 
@@ -146,7 +130,7 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_in
         bib->cipher_suite_flags.index = bplib_sdnv_read(buffer, size, &bib->cipher_suite_id, &flags);       
         bib->security_result_count.index = bplib_sdnv_read(buffer, size, &bib->cipher_suite_flags, &flags);
         bib->security_result_type = buffer[bib->security_result_count.index];
-        // Reads the security_result length.
+        /* Reads the security_result length. */
         bytes_read = bplib_sdnv_read(buffer, size, (bp_sdnv_t*)(buffer + bib->security_result_count.index + 1), &flags);
     }
 
@@ -283,7 +267,6 @@ int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size
         bib->security_result_data.crc32 = get_crc32((uint8_t*)payload, payload_size, &crc32_castagnoli);
         bib->security_result_length.value = 4;
         *(uint32_t *)(buffer + bib->security_result_length.index + bib->security_result_length.width) = bib->security_result_data.crc32;
-   ;
     }
 
     /* Check for Errors */

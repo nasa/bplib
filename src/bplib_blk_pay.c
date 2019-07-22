@@ -228,7 +228,7 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
     rec[BP_ACS_REC_STATUS_INDEX] = BP_ACS_ACK_MASK;
 
     /* Write First CID and Fills */
-    int count_fills = 0; // The number of fills that have occured so far.
+    int count_fills = 0; /* The number of fills that have occured so far. */
     struct rb_node* prev_node = NULL;
     struct rb_node* right_child = NULL;
     struct rb_node* node = tree->root;
@@ -236,29 +236,29 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
     /* Traverse tree in order and write out fills to dacs. */
     while (count_fills < max_fills_per_dacs && node != NULL)
     {
-        // Continue writing fills to a dacs from the cid rb_tree until 
-        // the dacs is full or tree is empty
-        if (node->left != NULL) // Node has a left child.
+        /* Continue writing fills to a dacs from the cid rb_tree until 
+           the dacs is full or tree is empty. */
+        if (node->left != NULL) /* Node has a left child. */
         {
-            // Search the left subtree of node for the next inorder node
+            /* Search the left subtree of node for the next inorder node. */
             node = node->left;
             continue;
         }
         
         if (prev_node == NULL)
         {
-            // Write out the first cid.
+            /* Write out the first cid. */
             cid.value = node->value;
             fill.index = bplib_sdnv_write(rec, size, cid, &flags);
         }    
         else
         {
-            // Write range of missing cid.
-            // Calculate the missing values between the current and previous node.  
+            /* Write range of missing cid.
+               Calculate the missing values between the current and previous node. */
             fill.value = node->value - (prev_node->value + prev_node->offset);
             fill.index = bplib_sdnv_write(rec, size, fill, &flags);
         }
-        // Write range of received cids.
+        /* Write range of received cids. */
         fill.value = node->offset;
         fill.index = bplib_sdnv_write(rec, size, fill, &flags);    
         prev_node = node;
@@ -266,30 +266,30 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, struct r
 
         if (node->right != NULL)
         {
-            // Node has a right child which we store so that we can navigate to it after
-            // deleting node. 
+            /* Node has a right child which we store so that we can navigate to it after
+               deleting node. */
             right_child = node->right;
         }
         else
         {
-            // Node has no right child.
+            /* Node has no right child. */
             right_child = NULL;
         }
         
-        // Delete node from the tree now that it has been written to DACS
-        // Does not deallocate memory nor reset parent so we are safe to update node to
-        // its parent after this call.
+        /* Delete node from the tree now that it has been written to DACS
+           Does not deallocate memory nor reset parent so we are safe to update node to
+           its parent after this call. */
         rb_node_delete_without_rebalancing(tree, node);
 
         if (right_child != NULL)
         {
-            // Node had a right subtree so it needs to be explored for the next inorder node.
+            /* Node had a right subtree so it needs to be explored for the next inorder node. */
             node = right_child;
             continue;
         }
         else
         {
-            // Node has no right subtree so the next inorder node must be the parent.
+            /* Node has no right subtree so the next inorder node must be the parent. */
             node = node->parent;
             continue;
         }

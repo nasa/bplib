@@ -21,36 +21,6 @@
  *
  *************************************************************************/
 
-/************************************************************************
- * The code for generating a crc XOR table and for calculating a crc from
- * that table for the 16 and 32 bit cases was informed from a blog
- * post containing the following license, where this website refers to
- * http://www.sunshine2k.de
- *
- * All content of this website is released under the MIT license as follows:
- *
- * Copyright (c) 2015 Bastian Molkenthin
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- *************************************************************************/
-
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -129,6 +99,71 @@ uint32_t reflect32(uint32_t num)
     reflected_bytes[3] = reflect8(num_bytes[0]);
     return reflected_num;
 }
+/******************************************************************************
+ EXPORTED FUNCTIONS
+ ******************************************************************************/
+/*--------------------------------------------------------------------------------------
+ * get_crc16 - Calculates the CRC from a byte array of a given length using a 
+ *      16 bit CRC lookup table.
+ *
+ * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
+ * length: The length of the provided data in bytes. [INPUT]
+ * params: A ptr to a crc_parameters struct defining how to calculate the crc and has
+ *      an XOR lookup table. [INPUT]
+ *
+ * returns: A crc remainder of the provided data.
+ *-------------------------------------------------------------------------------------*/
+uint16_t get_crc16(const uint8_t* data, int length, const struct crc_parameters* params)
+{
+    /* Check that we are always using a lookup table corresponding to the requested crc. */
+    uint16_t crc = params->n_bit_params.crc16.initial_value;
+    uint8_t current_byte;
+    for (int i = 0; i < length; i++)
+    {
+        current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
+        crc = (crc << 8) ^ params->n_bit_params.crc16.xor_table[current_byte ^ (crc >> 8)];
+    }
+
+    if (params->should_reflect_output)
+    {
+        crc = reflect16(crc);
+    }
+    /* Perform the final XOR based on the parameters. */
+    return crc ^ params->n_bit_params.crc16.final_xor;
+}
+
+/*--------------------------------------------------------------------------------------
+ * get_crc32 - Calculates the CRC from a byte array of a given length using a 
+ *      32 bit CRC lookup table.
+ *
+ * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
+ * length: The length of the provided data in bytes. [INPUT]
+ * params: A ptr to a crc_parameters struct defining how to calculate the crc and has
+ *      an XOR lookup table. [INPUT]
+ *
+ * returns: A crc remainder of the provided data.
+ *-------------------------------------------------------------------------------------*/
+uint32_t get_crc32(const uint8_t* data, const int length, const struct crc_parameters* params)
+{
+    /* Check that we are always using a lookup table corresponding to the requested crc. */
+    uint32_t crc = params->n_bit_params.crc32.initial_value;
+    uint8_t current_byte;
+    for (int i = 0; i < length; i++)
+    {
+        current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
+        crc = ((crc << 8) ^ 
+               params->n_bit_params.crc32.xor_table[current_byte ^ (crc >> 24)]);
+    }
+
+    if (params->should_reflect_output)
+    {
+        crc = reflect32(crc);
+    }
+
+    /* Perform the final XOR based on the parameters. */
+    return crc ^ params->n_bit_params.crc32.final_xor;
+}
+
 
 /*--------------------------------------------------------------------------------------
  * init_crc16_table - Populates a crc16_table with the different combinations of bytes
@@ -136,7 +171,7 @@ uint32_t reflect32(uint32_t num)
  *
  * params: A ptr to a crc_parameters to populate with a lookup table. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void init_crc16_table(struct crc_parameters* params)
+void init_crc16_table(struct crc_parameters* params)
 {
     uint16_t generator = params->n_bit_params.crc16.generator_polynomial; 
     uint16_t* table = params->n_bit_params.crc16.xor_table;
@@ -157,7 +192,7 @@ static void init_crc16_table(struct crc_parameters* params)
  *
  * params: A ptr to a crc_parameters to populate with a lookup table. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void init_crc32_table(struct crc_parameters* params)
+void init_crc32_table(struct crc_parameters* params)
 {
     uint32_t generator = params->n_bit_params.crc32.generator_polynomial; 
     uint32_t* table = params->n_bit_params.crc32.xor_table;
@@ -170,93 +205,6 @@ static void init_crc32_table(struct crc_parameters* params)
             table[i] = (table[i] & 0x80000000) != 0 ? (table[i] << 1) ^ generator : table[i] << 1;
         }
     }
-}
-
-/******************************************************************************
- EXPORTED FUNCTIONS
- ******************************************************************************/
-
-/*--------------------------------------------------------------------------------------
- * init_crc_table - Inits the xor table within a given crc params.
- *
- * params: A ptr to a crc params detailing how to calculate the xor table. [OUTPUT]
- *-------------------------------------------------------------------------------------*/
-void init_crc_table(struct crc_parameters* params)
-{
-    if (params->length == 16)
-    {
-        init_crc16_table(params);
-    }
-    else if (params->length == 32)
-    {
-        init_crc32_table(params);
-    }
-    else
-    {
-        bplog(BP_CRCINVALIDLENGTHERR, "Invalid crc length %d\n", params->length);
-    }
-}
-
-/*--------------------------------------------------------------------------------------
- * get_crc16 - Calculates the CRC from a byte array of a given length using a 
- *      16 bit CRC lookup table.
- *
- * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
- * length: The length of the provided data in bytes. [INPUT]
- * params: A ptr to a crc_parameters struct defining how to calculate the crc and has
- *      an XOR lookup table. [INPUT]
- *
- * returns: A crc remainder of the provided data.
- *-------------------------------------------------------------------------------------*/
-uint16_t get_crc16(const uint8_t* data, int length, const struct crc_parameters* params)
-{
-    // Check that we are always using a lookup table corresponding to the requested crc.
-    uint16_t crc = params->n_bit_params.crc16.initial_value;
-    uint8_t current_byte;
-    for (int i = 0; i < length; i++)
-    {
-        current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
-        crc = (crc << 8) ^ params->n_bit_params.crc16.xor_table[current_byte ^ (crc >> 8)];
-    }
-
-    if (params->should_reflect_output)
-    {
-        crc = reflect16(crc);
-    }
-    // Perform the final XOR based on the parameters.
-    return crc ^ params->n_bit_params.crc16.final_xor;
-}
-
-/*--------------------------------------------------------------------------------------
- * get_crc32 - Calculates the CRC from a byte array of a given length using a 
- *      32 bit CRC lookup table.
- *
- * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
- * length: The length of the provided data in bytes. [INPUT]
- * params: A ptr to a crc_parameters struct defining how to calculate the crc and has
- *      an XOR lookup table. [INPUT]
- *
- * returns: A crc remainder of the provided data.
- *-------------------------------------------------------------------------------------*/
-uint32_t get_crc32(const uint8_t* data, const int length, const struct crc_parameters* params)
-{
-    // Check that we are always using a lookup table corresponding to the requested crc.
-    uint32_t crc = params->n_bit_params.crc32.initial_value;
-    uint8_t current_byte;
-    for (int i = 0; i < length; i++)
-    {
-        current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
-        crc = ((crc << 8) ^ 
-               params->n_bit_params.crc32.xor_table[current_byte ^ (crc >> 24)]);
-    }
-
-    if (params->should_reflect_output)
-    {
-        crc = reflect32(crc);
-    }
-
-    // Perform the final XOR based on the parameters.
-    return crc ^ params->n_bit_params.crc32.final_xor;
 }
 
 #ifdef CRCTESTS
@@ -274,6 +222,27 @@ uint32_t get_crc32(const uint8_t* data, const int length, const struct crc_param
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
+ * init_crc_table - Inits the xor table within a given crc params.
+ *
+ * params: A ptr to a crc params detailing how to calculate the xor table. [OUTPUT]
+ *-------------------------------------------------------------------------------------*/
+static void init_crc_table(struct crc_parameters* params)
+{
+    if (params->length == 16)
+    {
+        init_crc16_table(params);
+    }
+    else if (params->length == 32)
+    {
+        init_crc32_table(params);
+    }
+    else
+    {
+        bplog(BP_CRCINVALIDLENGTHERR, "Invalid crc length %d\n", params->length);
+    }
+}
+
+/*--------------------------------------------------------------------------------------
  * print_binary - Prints a number in binary. This function has undefined behavior on
  *      unallocated memory.
  *
@@ -285,7 +254,7 @@ static void print_binary(const void* ptr, const size_t size, const int num_space
 {
     unsigned char * number_ptr = (unsigned char *) ptr;
 
-    // Print spaces to help align the bits.
+    /* Print spaces to help align the bits. */
     for (int i = 0; i < num_spaces; i++)
     {
         printf(" ");
@@ -446,4 +415,4 @@ int main ()
     printf("TESTING COMPLETE. ALL TESTS PASSED.\n");
 }
 
-#endif // CRCTESTS
+#endif /* CRCTESTS */
