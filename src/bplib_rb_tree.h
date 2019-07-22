@@ -35,8 +35,14 @@
  TYPEDEFS
  ******************************************************************************/
 
+/* A wrapper for a range from [value, value + offset]. */
+typedef struct bp_fill_range {
+    uint32_t value; /* The starting value in the range. */
+    uint32_t offset; /* The offset from the value. */
+} bp_fill;
+
 /* A node in the red black tree. */
-typedef struct rb_node {
+typedef struct bp_rb_node {
     uint32_t  value;   /* The value retained by the node. */
     uint32_t  offset;  /* Offset of value representing the range [value, value + offset). */
     bool      color;   /* The color of the node where RED (True) and BLACK (False).  */
@@ -44,31 +50,30 @@ typedef struct rb_node {
     /* The respective ancestors of the current node within the red black tree.
        Child nodes that are null are assumed to be black in color.  The root node 
        of the red black tree has a null parent. */
-    struct rb_node* left;
-    struct rb_node* right;
-    struct rb_node* parent;
-} rb_node;
+    struct bp_rb_node* left;
+    struct bp_rb_node* right;
+    struct bp_rb_node* parent;
+} bp_rb_node;
 
 /* A wrapper around a red black trees nodes with some additional metadata. */
-typedef struct rb_tree {
-    int size; /* The number of rb_nodes within the tree. */
-    int max_size; /* The maximum number of rb_nodes within the tree. */
-    rb_node* root; /* The root of the tree. When root is null size is also 0. */
-    rb_node* free_node_head; /* The memory location of the first unallocated rb_node. */
-    rb_node* free_node_tail; /* The memory location of the last unallocated rb_node. */
-    /* The starting memory address of the allocated memory for rb_nodes. 
+typedef struct bp_rb_tree {
+    uint32_t size; /* The number of bp_rb_nodes within the tree. */
+    uint32_t max_size; /* The maximum number of bp_rb_nodes within the tree. */
+    bp_rb_node* root; /* The root of the tree. When root is null size is also 0. */
+    bp_rb_node* free_node_head; /* The memory location of the first unallocated bp_rb_node. */
+    bp_rb_node* free_node_tail; /* The memory location of the last unallocated bp_rb_node. */
+    /* The starting memory address of the allocated memory for bp_rb_nodes. 
        This value is tracked so that the nodes can be deallocated in a single call to free. */
-    rb_node* node_block; 
-} rb_tree;
+    bp_rb_node* node_block; 
+} bp_rb_tree;
 
-/* A status reflecting potential outcomes of a call to rb_tree_insert. */
-enum rb_tree_status
+/* A status reflecting potential outcomes of a call to bp_rb_tree_insert. */
+enum bp_rb_tree_status
 {
-    RB_SUCCESS_INSERT,  /* Value was sucessfully inserted into the rb_tree. */
-    RB_SUCCESS_MERGE,   /* Value was sucessfully merged into the tree. */
-    RB_FAIL_DUPLICATE,  /* Value was not inserted because a duplicate existed. */
-    RB_FAIL_FULL,       /* Value was not inserted because the rb_tree was full. */
-    RB_UNKNOWN_ERROR    /* An unknown error occured. */
+    BP_RB_SUCCESS_INSERT,  /* Value was sucessfully inserted into the bp_rb_tree. */
+    BP_RB_SUCCESS_MERGE,   /* Value was sucessfully merged into the tree. */
+    BP_RB_FAIL_DUPLICATE,  /* Value was not inserted because a duplicate existed. */
+    BP_RB_FAIL_FULL,       /* Value was not inserted because the bp_rb_tree was full. */
 };
 
 /******************************************************************************
@@ -77,21 +82,20 @@ enum rb_tree_status
 
 /* Red Black Tree API */
 
-/* Creates am empty rb_tree. */
-struct rb_tree* rb_tree_create(int max_size);
-/* Clears all nodes in an rb_tree. This does not deallocate any memory. */
-void rb_tree_clear(struct rb_tree* tree);
-/* Checks whether a rb_tree is empty. */
-bool rb_tree_is_empty(struct rb_tree* tree); 
-/* Checks whether a rb_tree is full. */
-bool rb_tree_is_full(struct rb_tree* tree);
+/* Creates am empty bp_rb_tree. */
+struct bp_rb_tree* bplib_rb_tree_create(int max_size, struct bp_rb_tree* tree);
+/* Clears the nodes in a bp_rb_tree without deallocating any memory. */
+void bplib_rb_tree_clear(struct bp_rb_tree* tree); 
+/* Checks whether a bp_rb_tree is empty. */
+bool bplib_rb_tree_is_empty(struct bp_rb_tree* tree); 
+/* Checks whether a bp_rb_tree is full. */
+bool bplib_rb_tree_is_full(struct bp_rb_tree* tree);
 /* Inserts value into a red black tree. Duplicates will not be inserted. */
-enum rb_tree_status rb_tree_insert(uint32_t value, struct rb_tree* tree);
-/* Frees all memory allocated for a rb_tree and recursively frees its nodes. */
-void rb_tree_delete(struct rb_tree* tree);
-/* Deletes a node and removes references to the node from its parent. 
-   This should only be called on leaf nodes and does NOT result in any deletion rebalancing. 
-   This function should only be called when converting the rb_tree to dacs. No memory is
-   deallocated when using this function. */
-void rb_node_delete_without_rebalancing(struct rb_tree* tree, struct rb_node* node);
+enum bp_rb_tree_status bplib_rb_tree_insert(uint32_t value, struct bp_rb_tree* tree);
+/* Frees all memory allocated for a bp_rb_tree and recursively frees its nodes. */
+void bplib_rb_tree_delete(struct bp_rb_tree* tree);
+/* Removes the next bp_rb_node from the provided tree where next is defined as the node with
+   the lowest value remaining in the tree. This function does not deallocate memory nor rebalance
+   the tree and so all */
+struct bp_fill_range get_next_bp_rb_node(struct bp_rb_tree* tree, bool should_delete_node);
 #endif  /* __BPLIB_RB_TREE_H__ */
