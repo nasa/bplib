@@ -169,6 +169,8 @@ $(LIBDIR):
 $(INCDIR):
 	-$(MKDIR) -p $(INCDIR)
 
+prep: $(BLDDIR)
+
 unittest: clean prep exe
  
 exe: $(ALL_OBJ)
