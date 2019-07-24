@@ -43,8 +43,7 @@
 /******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/ 
-static void print_tree(bp_rb_tree_t* tree);
-static void print_node(bp_rb_node_t* node);
+
 /*--------------------------------------------------------------------------------------
  * pop_free_node - Retrieves a block of unallocated memory to assign a bp_rb_node_t if available. 
  *
@@ -357,7 +356,7 @@ static bp_rb_node_t* create_rb_node(uint32_t value, bool color, bp_rb_tree_t* tr
     node->left = NULL;
     node->right = NULL;
     node->color = color;
-    node->is_visited = false;
+    node->traversal_state = false;
     return node;
 }
 
@@ -747,12 +746,12 @@ static void delete_one_child(bp_rb_tree_t* tree, bp_rb_node_t* node)
 }
 
 /*--------------------------------------------------------------------------------------
- * delete_node - Deletes a bp_rb_node_t from a bp_rb_tree_t and rebalances the tree accordingly. 
+ * delete_rb_node - Deletes a bp_rb_node_t from a bp_rb_tree_t and rebalances the tree accordingly. 
  *
  * tree: A ptr to the bp_rb_tree_t from which to delete an bp_rb_node. [OUTPUT] 
  * node: A ptr to the bp_rb_node_t to delete from the tree. [OUTPUT]
  *--------------------------------------------------------------------------------------*/ 
-static void delete_node(bp_rb_tree_t* tree, bp_rb_node_t* node)
+static void delete_rb_node(bp_rb_tree_t* tree, bp_rb_node_t* node)
 {
     /* Attempt to find a successor node for the current node. */
     bp_rb_node_t* successor_node = get_successor(node);
@@ -839,7 +838,7 @@ static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree
                        value and so we can merge the three values into a single node. */
                     node->range.value = successor->range.value;
                     node->range.offset += successor->range.offset + 2;
-                    delete_node(tree, successor);
+                    delete_rb_node(tree, successor);
                     status = BP_RB_SUCCESS;
                     break; 
                 }
@@ -887,7 +886,7 @@ static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree
                     /* The right child of the current node is also consecutive the the new value
                        and so we can merge the three values into a single node. */
                     node->range.offset += successor->range.offset + 2;
-                    delete_node(tree, successor);
+                    delete_rb_node(tree, successor);
                     status = BP_RB_SUCCESS;
                     break;
                 }
@@ -1258,17 +1257,17 @@ bp_rb_tree_status_t bplib_rb_tree_get_first_rb_node(bp_rb_tree_t* tree,
     if (*iter == NULL)
     {
         /* There exist no nodes within the tree. */
-        return BP_RB_TREE_NULL_TREE;
+        return BP_RB_FAIL_NULL_TREE;
     }
 
     /* Resets the is visited state of root. */
-    *iter->traversal_state = false;
+    (*iter)->traversal_state = false;
 
     while (has_left_child(*iter))
     {
         /* Update iter to the left most child of root and reset is visited. */
-        *iter = *iter->left;
-        *iter->traversal_state = false;
+        *iter = (*iter)->left;
+        (*iter)->traversal_state = false;
     }
     return BP_RB_SUCCESS;
 }
@@ -1311,8 +1310,8 @@ bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
     }
 
     /* Fill the range from the current iter ptr. */
-    range->value = iter->range.value;
-    range->offset = iter->range.offset;
+    range->value = (*iter)->range.value;
+    range->offset = (*iter)->range.offset;
     
     /* Set iter to visited and store node for deletion. */
     bp_rb_node_t* delete_node = *iter;
@@ -1321,7 +1320,7 @@ bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
     if (should_pop && should_rebalance)
     {
         /* Remove the node and rebalance the tree. Iter must be recalculated. */
-        delete_node(tree, delete_node);
+        delete_rb_node(tree, delete_node);
         bplib_rb_tree_get_first_rb_node(tree, iter);
     }
 
@@ -2171,7 +2170,7 @@ static void test_max_range_offset()
 static void test_tree_traversed_and_deleted_inorder()
 {
     printf("test_tree_traversed_and_deleted_inorder: ");
-    struct bp_rb_tree_t tree;
+    bp_rb_tree_t tree;
     uint32_t max_nodes = 10;
     bplib_rb_tree_create(max_nodes, &tree);
     assert(bplib_rb_tree_insert(6, &tree) == BP_RB_SUCCESS);
@@ -2182,15 +2181,17 @@ static void test_tree_traversed_and_deleted_inorder()
     assert(bplib_rb_tree_insert(12, &tree) == BP_RB_SUCCESS);
     assert(bplib_rb_tree_insert(11, &tree) == BP_RB_SUCCESS);
     assert_bp_rb_tree_is_valid(&tree);
-    assert(tree.size == 5);
+    assert(tree.size == 4);
 
-    bp_rb_tree_t* iter = tree.root;
+    bp_rb_node_t* iter = tree.root;
     bp_rb_range_t range;
 
-    assert(bplib_rb_tree_get_first_rb_node(NULL, &iter) == BP_RB_NULL_TREE); 
+    assert(bplib_rb_tree_get_first_rb_node(NULL, &iter) == BP_RB_FAIL_NULL_TREE); 
     assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, NULL, true, false) 
+        == BP_RB_FAIL_NULL_RANGE); 
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
     assert(range.value == 2 && range.offset == 1);
-    assert(bplib_rb_tree_get_first_rb_node(NULL, &range, true) == BP_RB_NULL_NODE); 
     assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
     assert(range.value == 6 && range.offset == 0);
     assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
@@ -2199,7 +2200,7 @@ static void test_tree_traversed_and_deleted_inorder()
     assert(range.value == 10 && range.offset == 2); 
     assert(iter == NULL);
     assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == 
-           BP_RB_NULL_RANGE); 
+        BP_RB_FAIL_NULL_NODE); 
     assert(tree.size == 0);
     printf("PASS\n");
 }
