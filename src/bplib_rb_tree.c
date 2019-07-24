@@ -357,6 +357,7 @@ static bp_rb_node_t* create_rb_node(uint32_t value, bool color, bp_rb_tree_t* tr
     node->left = NULL;
     node->right = NULL;
     node->color = color;
+    node->is_visited = false;
     return node;
 }
 
@@ -508,61 +509,11 @@ static void replace_node(bp_rb_node_t* node, bp_rb_node_t* child)
 }
 
 /*--------------------------------------------------------------------------------------
- * delete_case_6 - Sibling is black. Node is a left child of parent and sibling has a 
- *      right red child or node is a right child and sibling has a left red child. 
- *      In these cases parent and sibling swap colors and the red child of sibling is
- *      recolored black. The tree is then rotated such that sibling becomes nodes grandparent.
- *     
- *            P       -->     S    
- *           / \             / \
- *          BN  BS          BP  BSR
- *               \          /    
- *                RSR      BN
+ * delete_rebalance - Rebalance the bp_rb_tree_t to account for the deletion.
  *
- * root: A ptr to the bp_rb_tree_t within which we need to rebalance to maintain 
- *      its properties. [OUTPUT]
- * node: A ptr to the bp_rb_node to rebalance. [OUTPUT]
- *--------------------------------------------------------------------------------------*
- * CITATION: The code in this function was adapted from the following source.
+ * tree: A ptr to the bp_rb_tree_t to rebalance. [OUTPUT]
+ * node: A ptr to the bp_rb_node_t from which to start the rebalancing operation. [INPUT]
  *
- * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
- * Retrieved 14:34, June 20, 2019, 
- * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
- *--------------------------------------------------------------------------------------*/ 
-static void delete_case_6(bp_rb_tree_t* tree, bp_rb_node_t* node)
-{
-    bp_rb_node_t* sibling =  get_sibling(node);
-    bp_rb_node_t* parent = node->parent;
-    sibling->color = parent->color;
-    set_black(parent);
-
-    if (is_left_child(node))
-    {
-        set_black(sibling->right);
-        rotate_left(tree, parent);
-    }
-    else
-    {
-        set_black(sibling->left);
-        rotate_right(tree, parent);
-    }
-}
-
-/*--------------------------------------------------------------------------------------
- * delete_case_5 - Sibling is a black left child and has a red left child and a black 
- *      right child. The mirror case is also applicable. In these situations the tree is 
- *      rotated such sibling becomes the child of its red child and then its color is
- *      swapped with the red child (new parent). If this case is not met, this function 
- *      casecades into case 6.
- *     
- *            BS        -->   BSL    
- *           / \               \
- *          RSL BSR            RS
- *                              \
- *                              BSL
- *
- * root: A ptr to the bp_rb_tree_t within which we need to rebalance . [OUTPUT]
- * node: A ptr to the bp_rb_node_t to rebalance. [OUTPUT]
  *--------------------------------------------------------------------------------------*
  * CITATION: The code in this function was adapted from the following source.
  *
@@ -570,187 +521,168 @@ static void delete_case_6(bp_rb_tree_t* tree, bp_rb_node_t* node)
  * Retrieved 14:34, June 20, 2019,
  * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
  *--------------------------------------------------------------------------------------*/ 
-static void delete_case_5(bp_rb_tree_t* tree, bp_rb_node_t* node)
-{
-    bp_rb_node_t* sibling = get_sibling(node);
-    
-    if (is_black(sibling))
+static void delete_rebalance(bp_rb_tree_t* tree, bp_rb_node_t* node) {
+
+    /* Allocate parent and sibling ptrs. */
+    bp_rb_node_t* sibling;
+    bp_rb_node_t* parent;
+
+    /* DELETE_CASE_1 - If node is ever set to root rebalancing for deletion is complete. */
+    while (!is_root(node))
     {
-        bool is_left = is_left_child(node);
-        if (is_left && is_black(sibling->right) && is_red(sibling->left))
+
+        /*-----------------------------------------------------------------------------------
+        * DELETE_CASE_2 - If sibling is red the colors of it and parent are swapped and
+        *      and the tree is rotated such that sibling becomes node's grandparent. This stage
+        *      prepares the tree for the follow on cases, 3, 4, 5 & 6.
+        *     
+        *          BP                   BS
+        *         / \                  /  \
+        *        BN RS         -->    RP  BSR
+        *           / \              / \
+        *          BSL BSR          BN  BSL
+        *
+        *----------------------------------------------------------------------------------*/
+        sibling = get_sibling(node);
+        parent = node->parent;
+
+        if (is_red(sibling))
+        {
+            /* Swap colors between parent and sibling. */
+            set_red(parent);
+            set_black(sibling);
+
+            /* Rotate sibling into the grandparent position. */
+            if (is_left_child(node))
+            {
+                rotate_left(tree, parent);
+            }
+            else
+            {
+                rotate_right(tree, parent);
+            }
+        }
+        /* END DELETE_CASE_2 */
+
+        /*-----------------------------------------------------------------------------------
+        * DELETE_CASE_3 - If parent, its siblings and its children are black then sibling can
+        *      be recolored such that pathes through sibling have one less black node which 
+        *      allows us to delete node and maintain balance in tree. Pathes through parent 
+        *      however now have one fewer black node than other pathes and so we must return
+        *      to DELETE_CASE_1 to fix parent. If nodes are not recolored as described above,
+        *      this function casecades
+        *      into cases 4, 5 & 6.
+        *
+        *     
+        *          BP                   BP
+        *         / \                  /  \
+        *        BN BS         -->    BN   RS
+        *           / \                    / \
+        *          BSL BSR                BSL BSR
+        *----------------------------------------------------------------------------------*/
+        sibling = get_sibling(node);
+        parent = node->parent;
+        if (is_black(parent) &&
+            is_black(sibling) && 
+            is_black(sibling->left) &&
+            is_black(sibling->right))
         {
             set_red(sibling);
-            set_black(sibling->left);
-            rotate_right(tree, sibling);
+            node = parent;
+            continue; 
         }
-        else if (!is_left && is_black(sibling->left) && is_red(sibling->right))
+        /* END DELETE_CASE_3 */
+
+        /*-----------------------------------------------------------------------------------
+        * DELETE_CASE_4 - Parent is red but sibling and its children are black. In this case
+        *      the colors of parent and sibling can be swapped and node can then be deleted 
+        *      preserving black depth. If this is not the case then this function casecades 
+        *      in cases 5 & 6. 
+        *     
+        *          RP                   BP
+        *         / \                  /  \
+        *        BN BS         -->    BN   RS
+        *           / \                    / \
+        *          BSL BSR               BSL  BSR
+        *-----------------------------------------------------------------------------------*/
+        sibling = get_sibling(node);
+        parent = node->parent;
+
+        if (is_red(parent) &&
+            is_black(sibling) &&
+            is_black(sibling->left) && 
+            is_black(sibling->right))
         {
-            rotate_left(tree, sibling);
+            set_red(sibling);
+            set_black(parent);
+            break;
         }
-    }
-    delete_case_6(tree, node);
-}
+        /* END DELETE_CASE_4 */
 
-/*--------------------------------------------------------------------------------------
- * delete_case_4 - Parent is red but sibling and its children are black. In this case
- *      the colors of parent and sibling can be swapped and node can then be deleted preserving
- *      black depth. If this is not the case then this function casecades in cases 5 & 6. 
- *     
- *          RP                   BP
- *         / \                  /  \
- *        BN BS         -->    BN   RS
- *           / \                    / \
- *          BSL BSR               BSL  BSR
- *
- *
- * root: A ptr to the bp_rb_tree_t within which we need to rebalance. [OUTPUT]
- * node: A ptr to the bp_rb_node_t to rebalance. [OUTPUT]
- *
- *--------------------------------------------------------------------------------------*
- * CITATION: The code in this function was adapted from the following source.
- *
- * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
- * Retrieved 14:34, June 20, 2019, from 
- * https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
- *--------------------------------------------------------------------------------------*/ 
-static void delete_case_4(bp_rb_tree_t* tree, bp_rb_node_t* node)
-{
-    bp_rb_node_t* sibling = get_sibling(node);
-    bp_rb_node_t* parent = node->parent;
 
-    if (is_red(parent) &&
-        is_black(sibling) &&
-        is_black(sibling->left) && 
-        is_black(sibling->right))
-    {
-        set_red(sibling);
+        /*-----------------------------------------------------------------------------------
+        * DELETE_CASE_5 - Sibling is a black left child and has a red left child and a black 
+        *      right child. The mirror case is also applicable. In these situations the tree is 
+        *      rotated such sibling becomes the child of its red child and then its color is
+        *      swapped with the red child (new parent). If this case is not met, this function 
+        *      casecades into case 6.
+        *     
+        *            BS        -->   BSL    
+        *           / \               \
+        *          RSL BSR            RS
+        *                              \
+        *                              BSL
+        *-----------------------------------------------------------------------------------*/
+        sibling = get_sibling(node);
+    
+        if (is_black(sibling))
+        {
+            bool is_left = is_left_child(node);
+            if (is_left && is_black(sibling->right) && is_red(sibling->left))
+            {
+                set_red(sibling);
+                set_black(sibling->left);
+                rotate_right(tree, sibling);
+            }
+            else if (!is_left && is_black(sibling->left) && is_red(sibling->right))
+            {
+                rotate_left(tree, sibling);
+            }
+        }
+        /* END DELETE_CASE_5 */
+
+        /*-----------------------------------------------------------------------------------
+        * DELETE_CASE_6 - Sibling is black. Node is a left child of parent and sibling has a 
+        *      right red child or node is a right child and sibling has a left red child. 
+        *      In these cases parent and sibling swap colors and the red child of sibling is
+        *      recolored black. The tree is then rotated such that sibling becomes nodes
+        *      grandparent.
+        *     
+        *            P       -->     S    
+        *           / \             / \
+        *          BN  BS          BP  BSR
+        *               \          /    
+        *                RSR      BN
+        *
+        *----------------------------------------------------------------------------------*/
+        sibling =  get_sibling(node);
+        parent = node->parent;
+        sibling->color = parent->color;
         set_black(parent);
-    }
-    else
-    {
-        delete_case_5(tree, node);
-    }
-}
 
-/* This is a function declaration for delete_case_1. For details on the intended usage see
-   the function definition. */
-static void delete_case_1(bp_rb_tree_t *tree, bp_rb_node_t* node);
-
-/*--------------------------------------------------------------------------------------
- * delete_case_3 - If parent, its siblings and its children are black then sibling can
- *      be recolored such that pathes through sibling have one less black node which allows
- *      us to delete node and maintain balance in tree. Pathes through parent however now
- *      have one fewer black node than other pathes and so delete_case_1 must be called to
- *      fix parent. If nodes are not recolored as described above, this function casecades
- *      into cases 4, 5 & 6.
- *
- *     
- *          BP                   BP
- *         / \                  /  \
- *        BN BS         -->    BN   RS
- *           / \                    / \
- *          BSL BSR                BSL BSR
- *
- *
- * root: A ptr to the bp_rb_tree_t within which we need to rebalance. [OUTPUT]
- * node: A ptr to the bp_rb_node_t to rebalance. [OUTPUT]
- *
- *--------------------------------------------------------------------------------------*
- * CITATION: The code in this function was adapted from the following source.
- *
- * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
- * Retrieved 14:34, June 20, 2019, 
- * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
- *--------------------------------------------------------------------------------------*/ 
-static void delete_case_3(bp_rb_tree_t* tree, bp_rb_node_t* node)
-{
-    bp_rb_node_t* sibling = get_sibling(node);
-    bp_rb_node_t* parent = node->parent;
-    if (is_black(parent) &&
-        is_black(sibling) && 
-        is_black(sibling->left) &&
-        is_black(sibling->right))
-    {
-        set_red(sibling);
-        delete_case_1(tree, parent);
-    }
-    else
-    {
-        delete_case_4(tree, node);
-    }
-}
-
-/*--------------------------------------------------------------------------------------
- * delete_case_2 - If sibling is red the colors of it and parent are swapped and
- *      and the tree is rotated such that sibling becomes node's grandparent. This stage
- *      prepares the tree for the follow on cases, 3, 4, 5 & 6.
- *     
- *          BP                   BS
- *         / \                  /  \
- *        BN RS         -->    RP  BSR
- *           / \              / \
- *          BSL BSR          BN  BSL
- *
- *
- * root: A ptr to the bp_rb_tree_t within which we need to rebalance. [OUTPUT]
- * node: A ptr to the bp_rb_node_t to rebalance. [OUTPUT]
- *
- *--------------------------------------------------------------------------------------*
- * CITATION: The code in this function was adapted from the following source.
- *
- * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
- * Retrieved 14:34, June 20, 2019,
- * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
- *--------------------------------------------------------------------------------------*/ 
-static void delete_case_2(bp_rb_tree_t *tree, bp_rb_node_t* node)
-{
-    bp_rb_node_t* sibling = get_sibling(node);
-    bp_rb_node_t* parent = node->parent;
-
-    if (is_red(sibling))
-    {
-        /* Swap colors between parent and sibling. */
-        set_red(parent);
-        set_black(sibling);
-
-        /* Rotate sibling into the grandparent position. */
         if (is_left_child(node))
         {
+            set_black(sibling->right);
             rotate_left(tree, parent);
         }
         else
         {
+            set_black(sibling->left);
             rotate_right(tree, parent);
         }
+        break;
+        /* END DELETE_CASE_6 */
     }
-
-    delete_case_3(tree, node);
-}
-
-
-/*--------------------------------------------------------------------------------------
- * delete_case_1 - Checks if a node is root. If it is rebalancing for deletion is complete.
- *      Otherwise, rebalancing progresses into different cases.
- *
- * root: A ptr to the bp_rb_tree_t within which we need to rebalance. [OUTPUT]
- * node: A ptr to the bp_rb_node_t to delete. [OUTPUT]
- *
- *--------------------------------------------------------------------------------------*
- * CITATION: The code in this function was adapted from the following source.
- *
- * Wikipedia contributors. (2019, June 16). Red–black tree. In Wikipedia, The Free Encyclopedia.
- * Retrieved 14:34, June 20, 2019, 
- * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
- *--------------------------------------------------------------------------------------*/ 
-static void delete_case_1(bp_rb_tree_t *tree, bp_rb_node_t* node)
-{
-    if (is_root(node))
-    {
-        /* Node is root. No more rebalancing is needed. */
-        return; 
-    }
-
-    delete_case_2(tree, node);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -778,7 +710,7 @@ static void delete_one_child(bp_rb_tree_t* tree, bp_rb_node_t* node)
         {
             /* If the node is a black leaf with no children then deleting it
                requires rebalancing. */
-            delete_case_1(tree, node);
+            delete_rebalance(tree, node); 
         }
        
         /* Replace the current node with its NULl child. In the case where the current
@@ -805,7 +737,7 @@ static void delete_one_child(bp_rb_tree_t* tree, bp_rb_node_t* node)
             {
                 /* Node and its child are black. The tree must be rebalanced to 
                    account for the change in black depth. */
-                delete_case_1(tree, child);
+                delete_rebalance(tree, node);
             }
         }
     }
@@ -874,7 +806,8 @@ static bool are_consecutive(uint32_t value_1, uint32_t value_2)
  *
  * value: The value of the node to attempt to insert or merge into the red black tree. [INPUT]
  * tree: A ptr to the bp_rb_tree_t to insert values into. [OUTPUT]
- * inserted_node: A ptr to a ptr to the bp_rb_node that was inserted. NULL if no node was inserted. [OUTPUT]
+ * inserted_node: A ptr to a ptr to the bp_rb_node that was inserted. NULL if no node was 
+ *      inserted. [OUTPUT]
  * returns: A bp_rb_tree status indicating the result of the insertion attempt.
  *-------------------------------------------------------------------------------------*/
 static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree_t* tree, bp_rb_node_t** inserted_node)
@@ -1087,6 +1020,46 @@ static void try_insert_rebalance(bp_rb_tree_t* tree, bp_rb_node_t* node)
     }
 }
 
+/*--------------------------------------------------------------------------------------
+ * delete_rb_node_without_rebalancing - Deletes a node from the rb_tree without rebalancing.
+ *      This does not result in any memory deallocation, but the node is now assigned to
+ *      to a "free block" within the tree and can be reused. This function should only be
+ *      called when traversing a rb_tree inorder and writing the nodes to a dacs. Calling
+ *      this function also assumes that node has at most one child node that is a right
+ *      right child.
+ * 
+ * tree: A ptr to an rb_tree from which to remove the provided node. [OUTPUT]
+ * node: A ptr to an rb_node to delete and remove references to it in its parent. [OUTPUT]
+ *--------------------------------------------------------------------------------------*/  
+static void delete_rb_node_without_rebalancing(bp_rb_tree_t* tree, bp_rb_node_t* node)
+{
+    if (!is_root(node))
+    {
+        // If node is not root we need to remove its parents references to it.
+        if (is_left_child(node))
+        {
+            // If node is a left child of parent set parent's left child to NULL.
+            node->parent->left = node->right;
+        }
+        else
+        {
+            // If node is a right child of parent set parent's right child to NULL.
+            node->parent->right = node->right;
+        }
+    }
+    else
+    {
+        tree->root = node->right;
+    }
+
+    if (node->right != NULL)
+    {
+        // If the right sub node exists we also update its references to parent.
+        node->right->parent = node->parent;
+    }
+    push_free_node(tree, node);
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -1249,11 +1222,11 @@ bp_rb_tree_status_t bplib_rb_tree_insert(uint32_t value, bp_rb_tree_t* tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_delete - Frees all memory allocated by a given bp_rb_tree_t. 
+ * bplib_rb_tree_destroy - Frees all memory allocated by a given bp_rb_tree_t. 
  *
  * tree: A ptr to a bp_rb_tree_t to free its memory. [OUTPUT]
  *--------------------------------------------------------------------------------------*/ 
-bp_rb_tree_status_t bplib_rb_tree_delete(bp_rb_tree_t* tree)
+bp_rb_tree_status_t bplib_rb_tree_destroy(bp_rb_tree_t* tree)
 {
     if (tree == NULL) return BP_RB_FAIL_NULL_TREE;
     free(tree->node_block);
@@ -1262,25 +1235,127 @@ bp_rb_tree_status_t bplib_rb_tree_delete(bp_rb_tree_t* tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_get_next_inorder_rb_node - Traverses a bp_rb_tree_t inorder and returns the
- *      the ranges within the tree. This function performs no rebalancing and therefore if
- *      should_pop is true it should be called until no nodes remain in the tree to ensure
- *      that the tree does not degrade to a linked list.
- *
- * iter: A ptr to the next bp_rb_node_t node from which to continue the inorder traversal
- *      of the tree. After each call to this function iter is updated. If iter is set to NULL
- *      then the traversal is complete. Providing a NULL iter to this function will result in
- *      a NULL bp_rb_range_t ptr. [OUTPUT]
- * range: A ptr to a bp_range_t to update with the next range. [OUTPUT]
- * should_pop: A boolean determining whether or not nodes should be deleted from the tree,
- *      but not free'ed when traversing the tree inorder. All calls to this function should
- *      maintain the same value for this variable. [INPUT]
+ * bplib_rb_tree_get_first_rb_node - Traverses a bp_rb_tree_t inorder and finds the node
+ *      with the lowest value to serve as an iterator.
+
+ * tree: A ptr to a bp_rb_tree_t to identify the lowest range. [OUTPUT]
+ * iter: A ptr of a ptr to the next bp_rb_node_t node from which to continue the inorder 
+ *      traversal of the tree. After each call to this function iter is updated. If iter is 
+ *      set to NULL then the traversal is complete. Providing a NULL iter to this function 
+ *      will result in a NULL bp_rb_range_t ptr. [OUTPUT]
  * returns: A status indicating the outcome of the function call.
  *--------------------------------------------------------------------------------------*/ 
-bp_rb_tree_status_t bplib_rb_tree_get_next_inorder_rb_node(bp_rb_node_t* iter, 
-                                                           bp_rb_range_t* range,
-                                                           bool should_pop)
+bp_rb_tree_status_t bplib_rb_tree_get_first_rb_node(bp_rb_tree_t* tree,
+                                                   bp_rb_node_t** iter)
 {
+    if (tree == NULL)
+    {
+        /* No nodes exist in the tree. */
+        return BP_RB_FAIL_NULL_TREE;
+    }
+
+    *iter = tree->root;
+    if (*iter == NULL)
+    {
+        /* There exist no nodes within the tree. */
+        return BP_RB_TREE_NULL_TREE;
+    }
+
+    /* Resets the is visited state of root. */
+    *iter->traversal_state = false;
+
+    while (has_left_child(*iter))
+    {
+        /* Update iter to the left most child of root and reset is visited. */
+        *iter = *iter->left;
+        *iter->traversal_state = false;
+    }
+    return BP_RB_SUCCESS;
+}
+
+ /*--------------------------------------------------------------------------------------
+ * bplib_rb_tree_get_next_rb_node - Traverses a bp_rb_tree_t inorder and returns the
+ *      the ranges within the tree. This function performs no rebalancing and therefore if
+ *      should_pop is true and should_rebalance is false, it should be called until no 
+ *      nodes remain in the tree to ensure that the tree's operation does not degrade.
+ *
+ * tree: A ptr to a bp_rb_tree_t to identify the lowest range. [OUTPUT]
+ * iter: A ptr of a ptr to the next bp_rb_node_t node from which to continue the inorder 
+ *      traversal of the tree. After each call to this function iter is updated. If iter is 
+ *      set to NULL then the traversal is complete. Providing a NULL iter to this function 
+ *      will result in a NULL bp_rb_range_t ptr. [OUTPUT]
+ * range: A ptr to a bp_range_t to update with the next range. [OUTPUT]
+ * should_pop: A boolean determining whether or not the node pointed to by iter at the start of
+ *      of the function call should be deleted from the tree. [INPUT]
+ * should_rebalance: A boolean determining whether or not the tree should be balanced upon
+ *      deletions. This variable is only used when should_pop is true. If should_rebalance is
+ *      set to false then this function should be called to for all iterations until completion
+ *      or else the tree is no longer garunteed to operate properly.
+ * returns: A status indicating the outcome of the function call.
+ *--------------------------------------------------------------------------------------*/ 
+bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
+                                                   bp_rb_node_t** iter, 
+                                                   bp_rb_range_t* range,
+                                                   bool should_pop,
+                                                   bool should_rebalance)
+{
+    if (*iter == NULL)
+    {
+        /* There is no next if the provided node is NULL. */
+        return BP_RB_FAIL_NULL_NODE;
+    }
+    if (range == NULL)
+    {
+        /* The range to fill is NULL and so the function must exit early. */
+        return BP_RB_FAIL_NULL_RANGE;
+    }
+
+    /* Fill the range from the current iter ptr. */
+    range->value = iter->range.value;
+    range->offset = iter->range.offset;
+    
+    /* Set iter to visited and store node for deletion. */
+    bp_rb_node_t* delete_node = *iter;
+    bp_rb_node_t* node = *iter;
+   
+    if (should_pop && should_rebalance)
+    {
+        /* Remove the node and rebalance the tree. Iter must be recalculated. */
+        delete_node(tree, delete_node);
+        bplib_rb_tree_get_first_rb_node(tree, iter);
+    }
+
+    /* Node hasn't been traversed. This means we are at a leaf. */
+    if (has_right_child(node))
+    {
+        /* Node has a right child and so the right subtree must be explored. */
+        node->traversal_state = true;
+        node = node->right;
+        node->traversal_state = false;
+        while (has_left_child(node))
+        {
+            node = node->left;
+            node->traversal_state = false;
+        }
+        *iter = node;
+    }
+    else
+    {
+        /* Node has no children and so the tree is searched upward for an unvisted node. */
+        node->traversal_state = true;
+        while (node != NULL && node->traversal_state)
+        {
+            node = node->parent;
+        }
+        *iter = node;
+    }
+    
+    if (should_pop && !should_rebalance)
+    {
+        /* Remove the the node from the tree. NO REBALANCING WILL OCCUR. */
+        delete_rb_node_without_rebalancing(tree, delete_node);
+    }
+
     return BP_RB_SUCCESS;
 }
 
@@ -1674,7 +1749,7 @@ static void test_unable_to_insert_into_full_tree()
     /* The final insert should fail when tree is full. */
     assert(bplib_rb_tree_insert(8, &tree) == BP_RB_FAIL_TREE_FULL);
     assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1692,11 +1767,11 @@ static void test_deletes_tree()
     bplib_rb_tree_insert(1, &tree);
     bplib_rb_tree_insert(2, &tree);
     bplib_rb_tree_insert(3, &tree);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     
     /* Tests deleting an empty tree. */
     bplib_rb_tree_create(0, &tree);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1714,7 +1789,7 @@ static void test_insert_root()
     bp_rb_node_t n1 = {.range = {.value = 5, .offset = 0}, .color=BLACK};
     bp_rb_node_t* nodes[] = {&n1};
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1751,7 +1826,7 @@ static void test_insert_left_subtree()
     bp_rb_node_t n4 = {.range = {.value = 1, .offset = 0}, .color = RED};
     bp_rb_node_t* nodes_3[] = {&n4, &n3, &n2, &n1};
     assert_inorder_nodes_are(tree.root, nodes_3, 4, 0);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf("PASS\n");
  }
 
@@ -1788,7 +1863,7 @@ static void test_insert_right_subtree()
     bp_rb_node_t n4 = {.range = {.value = 7, .offset = 0}, .color = RED};
     bp_rb_node_t* nodes_3[] = {&n1, &n2, &n3, &n4};
     assert_inorder_nodes_are(tree.root, nodes_3, 4, 0);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1833,7 +1908,7 @@ static void test_insert_merge_lower()
 
     assert_bp_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1875,7 +1950,7 @@ static void test_insert_merge_upper()
 
     assert_bp_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf(" PASS\n");
 }
 
@@ -1916,7 +1991,7 @@ static void test_insert_merge_lower_and_child()
     bp_rb_node_t* nodes_2[] = {&n1, &n2, &n4, &n5, &n6, &n7};
     assert_bp_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes_2, 6, 0);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1949,7 +2024,7 @@ static void test_insert_merge_upper_and_child()
 
     assert_bp_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes_2, 3, 0);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf("PASS \n");
 }
 
@@ -1996,7 +2071,7 @@ static void test_merge_to_single_node()
 
     assert_bp_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
     printf(" PASS\n");
 }
 
@@ -2031,7 +2106,7 @@ static void test_no_duplicates()
     assert(tree.size == 3);
     assert_bp_rb_tree_is_valid(&tree); 
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
-    bplib_rb_tree_delete(&tree); 
+    bplib_rb_tree_destroy(&tree); 
     printf("PASS\n");
 }
 
@@ -2086,7 +2161,46 @@ static void test_max_range_offset()
     bp_rb_node_t* nodes[] = {&n};
     print_tree(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
-    bplib_rb_tree_delete(&tree);
+    bplib_rb_tree_destroy(&tree);
+    printf("PASS\n");
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_tree_traversed_and_deleted_inorder - 
+ *--------------------------------------------------------------------------------------*/
+static void test_tree_traversed_and_deleted_inorder()
+{
+    printf("test_tree_traversed_and_deleted_inorder: ");
+    struct bp_rb_tree_t tree;
+    uint32_t max_nodes = 10;
+    bplib_rb_tree_create(max_nodes, &tree);
+    assert(bplib_rb_tree_insert(6, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(2, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(3, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(8, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(10, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(12, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(11, &tree) == BP_RB_SUCCESS);
+    assert_bp_rb_tree_is_valid(&tree);
+    assert(tree.size == 5);
+
+    bp_rb_tree_t* iter = tree.root;
+    bp_rb_range_t range;
+
+    assert(bplib_rb_tree_get_first_rb_node(NULL, &iter) == BP_RB_NULL_TREE); 
+    assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
+    assert(range.value == 2 && range.offset == 1);
+    assert(bplib_rb_tree_get_first_rb_node(NULL, &range, true) == BP_RB_NULL_NODE); 
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
+    assert(range.value == 6 && range.offset == 0);
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
+    assert(range.value == 8 && range.offset == 0);
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS);
+    assert(range.value == 10 && range.offset == 2); 
+    assert(iter == NULL);
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == 
+           BP_RB_NULL_RANGE); 
+    assert(tree.size == 0);
     printf("PASS\n");
 }
 
@@ -2118,7 +2232,7 @@ static void test_random_stress()
             assert_bp_rb_tree_is_valid(&tree);
         }
         assert_inorder_nodes_are(tree.root, nodes, 1, 0);
-        bplib_rb_tree_delete(&tree);
+        bplib_rb_tree_destroy(&tree);
     }
     printf("PASS\n");
 }
@@ -2145,6 +2259,7 @@ static void run_bp_rb_tree_tests()
     test_are_consecutive();
     test_max_size_configured_properly();
     test_max_range_offset();
+    test_tree_traversed_and_deleted_inorder();
     test_random_stress();
     printf("All tests passed!\n");
 }

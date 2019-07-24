@@ -44,7 +44,9 @@ typedef struct bp_rb_range {
 /* A node in the red black tree. */
 typedef struct bp_rb_node {
     bp_rb_range_t range; /* The range of values represented by the node. */
-    bool      color;   /* The color of the node where RED (True) and BLACK (False).  */
+    bool           color;   /* The color of the node where RED (True) and BLACK (False).  */
+    bool traversal_state; /* Tracks when a node is visited in a tree traversal. */
+    
     /* The respective ancestors of the current node within the red black tree.
        Child nodes that are null are assumed to be black in color.  The root node 
        of the red black tree has a null parent. */
@@ -75,7 +77,9 @@ typedef enum bp_rb_tree_status
     BP_RB_FAIL_EXCEEDED_MAX_SIZE,   /* Exceeded the maximum allocatable size of the tree. */
     BP_RB_FAIL_NULL_TREE,           /* The provided bp_rb_tree_t was NULL. */
     BP_RB_FAIL_MEM_ERR,             /* No memory was allocated. */
-    BP_RB_FAIL_NULL_NODE            /* The provided bp_rb_node_t was NULL. */
+    BP_RB_FAIL_NULL_NODE,           /* The provided bp_rb_node_t was NULL. */ 
+    BP_RB_FAIL_NULL_RANGE,          /* The provided bp_rb_range_t was NULL. */
+    BP_RB_FAIL_VALUE_NOT_FOUND      /* The provided value did not exist in the tree. */
 } bp_rb_tree_status_t;
 
 /******************************************************************************
@@ -85,9 +89,8 @@ typedef enum bp_rb_tree_status
 /* Red Black Tree API 
 
 NOTE: The bp_rb_tree_t is limited by its maximum size data type, in this case a uint32_t.
-Since ranges are being stored no range will ever exceed UINT32_MAX nor will the size of the
-tree be allowed to exceed UINT_MAX - 1 such that the full range of allowable values [0, UINTMAX]
-can be stored without issue.
+Since ranges are being stored no range will ever exceed UINT32_MAX nor will the tree be able
+to allocate more than UINT32_MAX nodes even if the memory is available.
 */
 
 /* Creates am empty bp_rb_tree. */
@@ -101,9 +104,14 @@ bool bplib_rb_tree_is_full(bp_rb_tree_t* tree);
 /* Inserts value into a red black tree. Duplicates will not be inserted. */
 bp_rb_tree_status_t bplib_rb_tree_insert(uint32_t value, bp_rb_tree_t* tree);
 /* Frees all memory allocated for a bp_rb_tree and recursively frees its nodes. */
-bp_rb_tree_status_t bplib_rb_tree_delete(bp_rb_tree_t* tree);
+bp_rb_tree_status_t bplib_rb_tree_destroy(bp_rb_tree_t* tree);
+/* Gets the node of lowest value in the tree to serve as an iterator to calls of get next.*/
+bp_rb_tree_status_t bplib_rb_tree_get_first_rb_node(bp_rb_tree_t* tree,
+                                                    bp_rb_node_t** iter)
 /* Gets the next range inorder in the bp_rb_tree_t and increments the iterator. */
-bp_rb_tree_status_t bplib_rb_tree_get_next_inorder_rb_node(bp_rb_node_t* iter,
-                                                           bp_rb_range_t* range,
-                                                           bool should_pop);
+bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
+                                                   bp_rb_node_t** iter,
+                                                   bp_rb_range_t* range,
+                                                   bool should_pop,
+                                                   bool should_rebalance);
 #endif  /* __BPLIB_RB_TREE_H__ */
