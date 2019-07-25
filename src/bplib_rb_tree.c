@@ -1322,6 +1322,7 @@ bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
         /* Remove the node and rebalance the tree. Iter must be recalculated. */
         delete_rb_node(tree, delete_node);
         bplib_rb_tree_get_first_rb_node(tree, iter);
+        return BP_RB_SUCCESS;
     }
 
     /* Node hasn't been traversed. This means we are at a leaf. */
@@ -1354,7 +1355,6 @@ bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
         /* Remove the the node from the tree. NO REBALANCING WILL OCCUR. */
         delete_rb_node_without_rebalancing(tree, delete_node);
     }
-
     return BP_RB_SUCCESS;
 }
 
@@ -1383,7 +1383,7 @@ static void print_node(bp_rb_node_t* node)
         printf("NULL NODE\n");
         return;
     }
-    printf("[ C: %5s || N: %3u || P: %3u || L: %3u || R: %3u || O: %3u]\n",
+    printf("[ C: %5s || N: %3d || P: %3d || L: %3d || R: %3d || O: %3u]\n",
         node->color ? "RED" : "BLACK",
         node != NULL ? (int) node->range.value : -1,
         node->parent != NULL ? (int) node->parent->range.value : -1,
@@ -2165,11 +2165,11 @@ static void test_max_range_offset()
 }
 
 /*--------------------------------------------------------------------------------------
- * test_tree_traversed_and_deleted_inorder - 
+ * test_tree_traversed_and_deleted_inorder_with_rebalancing - 
  *--------------------------------------------------------------------------------------*/
-static void test_tree_traversed_and_deleted_inorder()
+static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
 {
-    printf("test_tree_traversed_and_deleted_inorder: ");
+    printf("test_tree_traversed_and_deleted_inorder_with_rebalancing: ");
     bp_rb_tree_t tree;
     uint32_t max_nodes = 10;
     bplib_rb_tree_create(max_nodes, &tree);
@@ -2188,20 +2188,115 @@ static void test_tree_traversed_and_deleted_inorder()
 
     assert(bplib_rb_tree_get_first_rb_node(NULL, &iter) == BP_RB_FAIL_NULL_TREE); 
     assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, NULL, true, false) 
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, NULL, true, true) 
         == BP_RB_FAIL_NULL_RANGE); 
+    
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == BP_RB_SUCCESS); 
+    assert(range.value == 2 && range.offset == 1);
+    assert_bp_rb_tree_is_valid(&tree);
+    
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == BP_RB_SUCCESS); 
+    assert(range.value == 6 && range.offset == 0);
+    assert_bp_rb_tree_is_valid(&tree);
+    
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == BP_RB_SUCCESS); 
+    assert(range.value == 8 && range.offset == 0);
+    assert_bp_rb_tree_is_valid(&tree);
+    
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == BP_RB_SUCCESS);
+    assert(range.value == 10 && range.offset == 2); 
+    assert_bp_rb_tree_is_valid(&tree);
+    
+    assert(iter == NULL);
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == 
+        BP_RB_FAIL_NULL_NODE); 
+    assert(tree.size == 0);
+    printf("PASS\n");
+}
+
+
+/*--------------------------------------------------------------------------------------
+ * test_tree_traversed_and_deleted_inorder_without_rebalancing - 
+ *--------------------------------------------------------------------------------------*/
+static void test_tree_traversed_and_deleted_inorder_without_rebalancing()
+{
+    printf("test_tree_traversed_and_deleted_inorder_without_rebalancing: ");
+    bp_rb_tree_t tree;
+    uint32_t max_nodes = 10;
+    bplib_rb_tree_create(max_nodes, &tree);
+    assert(bplib_rb_tree_insert(6, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(2, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(3, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(8, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(10, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(12, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(11, &tree) == BP_RB_SUCCESS);
+    assert_bp_rb_tree_is_valid(&tree);
+    assert(tree.size == 4);
+
+    bp_rb_node_t* iter = tree.root;
+    bp_rb_range_t range;
+
+    assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
+    
     assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
     assert(range.value == 2 && range.offset == 1);
+    
     assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
     assert(range.value == 6 && range.offset == 0);
+    
     assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
     assert(range.value == 8 && range.offset == 0);
+    
     assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS);
     assert(range.value == 10 && range.offset == 2); 
     assert(iter == NULL);
     assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == 
         BP_RB_FAIL_NULL_NODE); 
     assert(tree.size == 0);
+    printf("PASS\n");
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_tree_traversed_inorder_after_partial_traversal - 
+ *--------------------------------------------------------------------------------------*/
+static void test_tree_traversed_inorder_after_partial_traversal()
+{
+    printf("test_tree_traversed_inorder_after_partial_traversal: ");
+    bp_rb_tree_t tree;
+    uint32_t max_nodes = 10;
+    bplib_rb_tree_create(max_nodes, &tree);
+    assert(bplib_rb_tree_insert(2, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(4, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(6, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(8, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(10, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(12, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(14, &tree) == BP_RB_SUCCESS);
+    assert(bplib_rb_tree_insert(16, &tree) == BP_RB_SUCCESS);
+    assert_bp_rb_tree_is_valid(&tree);
+    assert(tree.size == 8);
+
+    bp_rb_node_t* iter = tree.root;
+    bp_rb_range_t range;
+
+    assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
+    for (uint32_t i = 2; i <= 8; i += 2)
+    {
+        assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, false, false) == BP_RB_SUCCESS); 
+        assert(range.value == i && range.offset == 0);
+    }
+
+    assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
+    for (uint32_t i = 2; i <= 16; i += 2)
+    {
+        assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, false, false) == BP_RB_SUCCESS); 
+        assert(range.value == i && range.offset == 0);
+    }
+
+    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == 
+        BP_RB_FAIL_NULL_NODE); 
+    assert(tree.size == 8);
     printf("PASS\n");
 }
 
@@ -2260,7 +2355,9 @@ static void run_bp_rb_tree_tests()
     test_are_consecutive();
     test_max_size_configured_properly();
     test_max_range_offset();
-    test_tree_traversed_and_deleted_inorder();
+    test_tree_traversed_and_deleted_inorder_with_rebalancing();
+    test_tree_traversed_and_deleted_inorder_without_rebalancing();
+    test_tree_traversed_inorder_after_partial_traversal();
     test_random_stress();
     printf("All tests passed!\n");
 }
