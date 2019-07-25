@@ -105,10 +105,13 @@ bool bplib_rb_tree_is_full(bp_rb_tree_t* tree);
 bp_rb_tree_status_t bplib_rb_tree_insert(uint32_t value, bp_rb_tree_t* tree);
 /* Frees all memory allocated for a bp_rb_tree and recursively frees its nodes. */
 bp_rb_tree_status_t bplib_rb_tree_destroy(bp_rb_tree_t* tree);
-/* Gets the node of lowest value in the tree to serve as an iterator to calls of get next.*/
+/* Gets the node of lowest value in the tree to serve as an iterator to calls of get next.
+   This must be called to prepare the tree before future iteration calls to 
+   bplib_rb_tree_get_next_rb_node. */
 bp_rb_tree_status_t bplib_rb_tree_get_first_rb_node(bp_rb_tree_t* tree,
                                                     bp_rb_node_t** iter);
-/* Gets the next range inorder in the bp_rb_tree_t and increments the iterator. */
+/* Gets the next range inorder in the bp_rb_tree_t and increments the iterator. To start
+   a new iteration of the bp_rb_tree_t, provide a NULL iter as an arg. */
 bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
                                                    bp_rb_node_t** iter,
                                                    bp_rb_range_t* range,

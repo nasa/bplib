@@ -30,6 +30,13 @@
 #include "bplib_crc.h"
 
 /******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+// Number of different possible bytes.
+#define BYTE_COMBOS 256
+
+/******************************************************************************
  FILE DATA
  ******************************************************************************/
 
@@ -73,7 +80,7 @@ static inline uint8_t reflect8(uint8_t num)
  *
  * num: A uint16_t to reflect. [INPUT]
  *-------------------------------------------------------------------------------------*/
-uint16_t reflect16(uint16_t num)
+static uint16_t reflect16(uint16_t num)
 {
     uint16_t reflected_num = 0;
     uint8_t* num_bytes = (uint8_t *) &num;
@@ -88,7 +95,7 @@ uint16_t reflect16(uint16_t num)
  *
  * num: A uint32_t to reflect. [INPUT]
  *-------------------------------------------------------------------------------------*/
-uint32_t reflect32(uint32_t num)
+static uint32_t reflect32(uint32_t num)
 {
     uint32_t reflected_num = 0;
     uint8_t* num_bytes = (uint8_t *) &num;
@@ -99,21 +106,19 @@ uint32_t reflect32(uint32_t num)
     reflected_bytes[3] = reflect8(num_bytes[0]);
     return reflected_num;
 }
-/******************************************************************************
- EXPORTED FUNCTIONS
- ******************************************************************************/
+
 /*--------------------------------------------------------------------------------------
  * get_crc16 - Calculates the CRC from a byte array of a given length using a 
  *      16 bit CRC lookup table.
  *
  * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
  * length: The length of the provided data in bytes. [INPUT]
- * params: A ptr to a crc_parameters struct defining how to calculate the crc and has
+ * params: A ptr to a bp_crc_parameters_t struct defining how to calculate the crc and has
  *      an XOR lookup table. [INPUT]
  *
  * returns: A crc remainder of the provided data.
  *-------------------------------------------------------------------------------------*/
-uint16_t get_crc16(const uint8_t* data, int length, const struct crc_parameters* params)
+static uint16_t get_crc16(const uint8_t* data, int length, const bp_crc_parameters_t* params)
 {
     /* Check that we are always using a lookup table corresponding to the requested crc. */
     uint16_t crc = params->n_bit_params.crc16.initial_value;
@@ -138,12 +143,12 @@ uint16_t get_crc16(const uint8_t* data, int length, const struct crc_parameters*
  *
  * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
  * length: The length of the provided data in bytes. [INPUT]
- * params: A ptr to a crc_parameters struct defining how to calculate the crc and has
+ * params: A ptr to a bp_crc_parameters_t struct defining how to calculate the crc and has
  *      an XOR lookup table. [INPUT]
  *
  * returns: A crc remainder of the provided data.
  *-------------------------------------------------------------------------------------*/
-uint32_t get_crc32(const uint8_t* data, const int length, const struct crc_parameters* params)
+static uint32_t get_crc32(const uint8_t* data, const int length, const bp_crc_parameters_t* params)
 {
     /* Check that we are always using a lookup table corresponding to the requested crc. */
     uint32_t crc = params->n_bit_params.crc32.initial_value;
@@ -169,9 +174,9 @@ uint32_t get_crc32(const uint8_t* data, const int length, const struct crc_param
  * init_crc16_table - Populates a crc16_table with the different combinations of bytes
  *      XORed with the generator polynomial for a given CRC.
  *
- * params: A ptr to a crc_parameters to populate with a lookup table. [OUTPUT]
+ * params: A ptr to a bp_crc_parameters_t to populate with a lookup table. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-void init_crc16_table(struct crc_parameters* params)
+static void init_crc16_table(bp_crc_parameters_t* params)
 {
     uint16_t generator = params->n_bit_params.crc16.generator_polynomial; 
     uint16_t* table = params->n_bit_params.crc16.xor_table;
@@ -190,9 +195,9 @@ void init_crc16_table(struct crc_parameters* params)
  * init_crc32_table - Populates a crc32_table with the different combinations of bytes
  *      XORed with the generator polynomial for a given CRC.
  *
- * params: A ptr to a crc_parameters to populate with a lookup table. [OUTPUT]
+ * params: A ptr to a bp_crc_parameters_t to populate with a lookup table. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-void init_crc32_table(struct crc_parameters* params)
+static void init_crc32_table(bp_crc_parameters_t* params)
 {
     uint32_t generator = params->n_bit_params.crc32.generator_polynomial; 
     uint32_t* table = params->n_bit_params.crc32.xor_table;
@@ -204,6 +209,63 @@ void init_crc32_table(struct crc_parameters* params)
         {
             table[i] = (table[i] & 0x80000000) != 0 ? (table[i] << 1) ^ generator : table[i] << 1;
         }
+    }
+}
+
+/******************************************************************************
+ EXPORTED FUNCTIONS
+ ******************************************************************************/
+
+/*--------------------------------------------------------------------------------------
+ * bplib_crc_init - Inits a crc_params struct by creating its xor table for its predefined
+ *      polynomial.
+ *
+ * params: A ptr to a bp_crc_parameters_t to init. [OUTPUT]
+ * returns: An int indicating the result status of init.
+ *-------------------------------------------------------------------------------------*/
+int bplib_crc_init(crc_parameters_t* params)
+{
+    if (params->length == 16)
+    {
+        init_crc16_table(params); 
+    }
+    else if (params->length == 32)
+    {
+        init_crc32_table(params);
+    }
+    else
+    {
+        return BP_CRC_INIT_FAIL_INVALID_LENGTH;
+    }
+    return BP_CRC_INIT_FAIL_INVALID_LENGTH;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_crc_get - Calculates the CRC from a byte array using the crc provided as params.
+ *      bplib_crc_init must be called on the provided params before every calling this function.
+ *
+ * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
+ * length: The length of the provided data in bytes. [INPUT]
+ * params: A ptr to a bp_crc_parameters_t struct defining how to calculate the crc and has
+ *      an XOR lookup table. [INPUT]
+ *
+ * returns: A crc remainder of the provided data. If a crc length is used that is less
+ *      than the returned data type size than expect it to be cast.
+ *-------------------------------------------------------------------------------------*/
+uint32_t bplib_crc_get(const uint8_t* data, const int length, const bp_crc_parameters_t* params)
+{
+    if (params->length == 16)
+    {   
+        return (uint32_t) get_crc16(data, length, params);
+    }
+    else if (params->length == 32)
+    {
+        return get_crc32(data, length, params);
+    }
+    else
+    {
+        /* Default to return UINT32_MAX if crc length is not supported. */
+        return UINT32_MAX;
     }
 }
 
@@ -220,27 +282,6 @@ void init_crc32_table(struct crc_parameters* params)
 /******************************************************************************
  TEST AND DEBUGGING HELPER FUNCTIONS 
  ******************************************************************************/
-
-/*--------------------------------------------------------------------------------------
- * init_crc_table - Inits the xor table within a given crc params.
- *
- * params: A ptr to a crc params detailing how to calculate the xor table. [OUTPUT]
- *-------------------------------------------------------------------------------------*/
-static void init_crc_table(struct crc_parameters* params)
-{
-    if (params->length == 16)
-    {
-        init_crc16_table(params);
-    }
-    else if (params->length == 32)
-    {
-        init_crc32_table(params);
-    }
-    else
-    {
-        bplog(BP_CRCINVALIDLENGTHERR, "Invalid crc length %d\n", params->length);
-    }
-}
 
 /*--------------------------------------------------------------------------------------
  * print_binary - Prints a number in binary. This function has undefined behavior on
@@ -275,7 +316,7 @@ static void print_binary(const void* ptr, const size_t size, const int num_space
  *
  * params: A ptr to a crc params to print its xor table. [INPUT]
  *-------------------------------------------------------------------------------------*/
-static void print_xor_table(const struct crc_parameters* params)
+static void print_xor_table(const bp_crc_parameters_t* params)
 {
     int index = 0;
     if (params->length == 16)
@@ -307,15 +348,15 @@ static void print_xor_table(const struct crc_parameters* params)
 }
 
 /*--------------------------------------------------------------------------------------
- * validate_crc_parameters - Validates that a crc_parameters properly computes its check
+ * validate_bp_crc_parameters_t - Validates that a crc_parameters properly computes its check
  *      value when passed 123456789.
  *
- * params: A ptr to a crc_parameters struct defining how to calculate the crc and check it
+ * params: A ptr to a bp_crc_parameters_t struct defining how to calculate the crc and check it
  *      value. [INPUT]
  *
  * returns: True or false indicating whether or not the crc matched its check value.
  *-------------------------------------------------------------------------------------*/
-static bool validate_crc_parameters(const struct crc_parameters* params)
+static bool validate_bp_crc_parameters_t(const bp_crc_parameters_t* params)
 {
     uint8_t check_message[9] = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39};
     printf("Input Message:\n");
@@ -345,49 +386,22 @@ static bool validate_crc_parameters(const struct crc_parameters* params)
     return false;
 }
 
-
-/*--------------------------------------------------------------------------------------
- * get_crc - Calculates the CRC from a byte array using the crc provided as params.
- *      init_crc_table must be called on the provided params before every calling this function.
- *
- * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
- * length: The length of the provided data in bytes. [INPUT]
- * params: A ptr to a crc_parameters struct defining how to calculate the crc and has
- *      an XOR lookup table. [INPUT]
- *
- * returns: A crc remainder of the provided data. If a crc length is used that is less
- *      than the returned data type size than expect it to be cast.
- *-------------------------------------------------------------------------------------*/
-static uint32_t get_crc(const uint8_t* data, const int length, const struct crc_parameters* params)
-{
-    if (params->length == 16)
-    {   
-        return (uint16_t) get_crc16(data, length, params);
-    }
-    else if (params->length == 32)
-    {
-        return get_crc32(data, length, params);
-    }
-
-    return bplog(BP_CRCINVALIDLENGTHERR, "Invalid crc length %d\n", params->length); 
-}
-
 /*--------------------------------------------------------------------------------------
  * test_crc - Popualtes a crc table and validates the check value for the crc.
  *
- * params: A ptr crc_parameters for initing the XOR table and testing the check value. [INPUT]
+ * params: A ptr bp_crc_parameters_t for initing the XOR table and testing the check value. [INPUT]
  *--------------------------------------------------------------------------------------*/
-static void test_crc(struct crc_parameters* params)
+static void test_crc(bp_crc_parameters_t* params)
 {
     printf("Testing CRC %s\n", params->name);
-    init_crc_table(params);
+    bplib_crc_init(params);
     print_xor_table(params);
-    assert(validate_crc_parameters(params));
+    assert(validate_bp_crc_parameters_t(params));
 }
 
 int main ()
 {
-    struct crc_parameters p1 = {.name                         = "CRC-16 X25", 
+    bp_crc_parameters_t p1 = {.name                         = "CRC-16 X25", 
                                 .length                       = 16,
                                 .should_reflect_input         = true,
                                 .should_reflect_output        = true,
@@ -400,7 +414,7 @@ int main ()
                                 }}};
     test_crc(&p1);
 
-    struct crc_parameters p2 = {.name                         = "CRC-32 Castagnoli", 
+    bp_crc_parameters_t p2 = {.name                         = "CRC-32 Castagnoli", 
                                 .length                       = 32,
                                 .should_reflect_input         = true,
                                 .should_reflect_output        = true,

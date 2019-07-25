@@ -562,7 +562,14 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
 {
     int dacs_size, enstat, enstat_fail, storage_header_size;
     bool has_enqueue_failure = false;
-    while (!bplib_rb_tree_is_empty(dacs->tree))
+    
+    bp_node_rb_t* iter;
+    if (!bplib_rb_tree_is_empty(&(dacs->tree)))
+    {
+        /* If the tree has nodes, intialize the iterator for traversing the tree in order. */
+        bplib_rb_tree_get_first_rb_node(&(dacs->tree), &iter);
+    }
+    while (!bplib_rb_tree_is_empty(&(dacs->tree)))
     {
         /* Continue to delete nodes from the tree and write them to dacs until the tree is empty. */
 
@@ -573,7 +580,8 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
         /* This call will remove nodes from the tree. */
         dacs_size = bplib_rec_acs_write(dacs->paybuf, dacs->paybuf_size, 
                                         ch->attributes.max_fills_per_dacs, 
-                                        dacs->tree);
+                                        &(dacs->tree),
+                                        &iter);
 
         ds->bundlesize = ds->headersize + dacs_size;
         storage_header_size = sizeof(bp_bundle_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - ds->headersize);
@@ -644,8 +652,8 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
  *-------------------------------------------------------------------------------------*/
 static bool try_dacs_insert(uint32_t value, bp_dacs_bundle_t* dacs, uint16_t* dacsflags)
 {
-    enum bp_rb_tree_status status = bplib_rb_tree_insert(value, dacs->tree);
-    if (status == RB_FAIL_FULL) {
+    bp_rb_tree_status status_t = bplib_rb_tree_insert(value, dacs->tree);
+    if (status == BP_RB_RB_FAIL_TREE_FULL) {
         /* This case should only occur if rb_tree size is set to 0.
          * If we failed the last insert and the tree is full then it must be
          * because our tree is out of memory to allocate new nodes. */
@@ -653,7 +661,7 @@ static bool try_dacs_insert(uint32_t value, bp_dacs_bundle_t* dacs, uint16_t* da
         /* Store this dacs because the tree is full. */
         return true;
     }
-    else if (status == RB_FAIL_DUPLICATE)
+    else if (status == BP_RB_FAIL_INSERT_DUPLICATE)
     {
         /* This case should not occur. */
         *dacsflags |= BP_FLAG_DUPLICATES;

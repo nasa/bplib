@@ -36,35 +36,35 @@
  DEFINES
  ******************************************************************************/
 
-// Number of different possible bytes.
-#define BYTE_COMBOS 256
+#define BP_CRC_INIT_SUCCESS 0 /* A sucessful return when initing a crc_parameters_t. */
+#define BP_CRC_INIT_FAIL_INVALID_LENGTH 1 /* The provided crc param struct has invalid length. */
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
 /* Parameters specific to calculating 16 bit crc parameters. */
-typedef struct crc16_parameters
+typedef struct bp_crc16_parameters
 {
     uint16_t generator_polynomial;   /* The generator polynomial used to compute the CRC. */
     uint16_t initial_value;          /* The value used to initialize a CRC. */
     uint16_t final_xor;              /* The final value to xor with the crc before returning. */
     uint16_t check_value;            /* The crc resulting from the input string "123456789". */
     uint16_t xor_table[BYTE_COMBOS]; /* A ptr to a table with the precomputed XOR values. */
-} crc16_parameters;
+} bp_crc16_parameters_t;
 
 /* Parameters specific to calculating 32 bit crcs. */
-typedef struct crc32_parameters
+typedef struct bp_crc32_parameters
 {
     uint32_t generator_polynomial;   /* The generator polynomial used to compute the CRC. */
     uint32_t initial_value;          /* The value used to initialize a CRC. */
     uint32_t final_xor;              /* The final value to xor with the crc before returning. */
     uint32_t check_value;            /* The crc resulting from the input string "123456789". */
     uint32_t xor_table[BYTE_COMBOS]; /* A ptr to a table with the precomputed XOR values. */
-} crc32_parameters;
+} bp_crc32_parameters_t;
 
 /* Standard parameters for calculating a CRC. */
-typedef struct crc_parameters
+typedef struct bp_crc_parameters
 {
     char* name;                 /* Name of the CRC. */
     int length;                 /* The number of bits in the CRC. */
@@ -74,20 +74,16 @@ typedef struct crc_parameters
        within this union should directly coincide with the length member.
        Ex: If length == 16 crc16 should be popualted in this union below. */
     union {
-        crc16_parameters crc16;
-        crc32_parameters crc32;
+        crc16_parameters_t crc16;
+        crc32_parameters_t crc32;
     } n_bit_params;
-} crc_parameters;
+} bp_crc_parameters_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
-/* Create xor lookup tables for 16 and 32 bit crcs respectively, corresponding to the 
-   generator polynomial specified by params. */
-void init_crc16_table(struct crc_parameters* params);
-void init_crc32_table(struct crc_parameters* params);
-/* Calculates crc of specified size assuming. This function does not check parameters to ensure
-   that the CRC length matches. */
-uint16_t get_crc16(const uint8_t* data, const int length, const struct crc_parameters* params);
-uint32_t get_crc32(const uint8_t* data, const int length, const struct crc_parameters* params);
+/* Create a lookup tables for the provided crc. */
+int bplib_crc_init(crc_parameters_t* params);
+/* Calculates a crc from an initialized set of params on data. */
+uint32_t bplib_crc_get(const uint8_t* data, const int length, const crc_parameters_t* params);
 #endif /* _BPLIB_CRC_H_ */

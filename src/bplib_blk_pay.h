@@ -67,6 +67,7 @@ int bplib_rec_acs_process   (void* block, int size, int* acks,
                              bp_store_relinquish_t relinquish, int store_handle);
 
 int bplib_rec_acs_write     (uint8_t* rec, int size, int max_fills_per_dacs, 
-                             struct rb_tree* tree);
+                             bp_rb_tree_t* tree,
+                             bp_rb_node_t** iter);
 
 #endif  /* __BPLIB_BLK_PAY_H__ */
