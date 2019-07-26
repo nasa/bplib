@@ -86,7 +86,6 @@ void bplib_blk_crc_init ()
  *-------------------------------------------------------------------------------------*/
 int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices)
 {
-    printf("READ\n");
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
     int bytes_read = 0;
@@ -166,7 +165,6 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_in
  *-------------------------------------------------------------------------------------*/
 int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices)
 {
-    printf("WRITE\n");
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
     int bytes_written = 0;
@@ -252,7 +250,6 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
  *-------------------------------------------------------------------------------------*/
 int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib)
 {
-    printf("UPDATE\n");
     assert(bib);
     assert(payload);
 
