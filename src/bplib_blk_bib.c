@@ -36,29 +36,29 @@
  CRC DEFINITIONS
  ******************************************************************************/
 
-static struct crc_parameters crc16_x25 =  {.name                            = "CRC-16 X25", 
-                                           .length                          = 16,
-                                           .should_reflect_input            = true,
-                                           .should_reflect_output           = true,
-                                           .n_bit_params = {
-                                               .crc16 = {
-                                                   .generator_polynomial    = 0x1021,
-                                                   .initial_value           = 0xFFFF,
-                                                   .final_xor               = 0xF0B8,
-                                                   .check_value             = 0x906E
-                                           }}};
+static bp_crc_parameters_t crc16_x25 = {.name                            = "CRC-16 X25", 
+                                        .length                          = 16,
+                                        .should_reflect_input            = true,
+                                        .should_reflect_output           = true,
+                                        .n_bit_params = {
+                                            .crc16 = {
+                                                .generator_polynomial    = 0x1021,
+                                                .initial_value           = 0xFFFF,
+                                                .final_xor               = 0xF0B8,
+                                                .check_value             = 0x906E
+                                        }}};
 
-static struct crc_parameters crc32_castagnoli = {.name                         = "CRC-32 Castagnoli", 
-                                                 .length                       = 32,
-                                                 .should_reflect_input         = true,
-                                                 .should_reflect_output        = true,
-                                                 .n_bit_params = {
-                                                     .crc32 = {
-                                                         .generator_polynomial = 0x1EDC6F41,
-                                                         .initial_value        = 0xFFFFFFFF,
-                                                         .final_xor            = 0xFFFFFFFF,
-                                                         .check_value          = 0xE3069283
-                                                 }}};
+static bp_crc_parameters_t crc32_castagnoli = {.name                         = "CRC-32 Castagnoli", 
+                                               .length                       = 32,
+                                               .should_reflect_input         = true,
+                                               .should_reflect_output        = true,
+                                               .n_bit_params = {
+                                                   .crc32 = {
+                                                       .generator_polynomial = 0x1EDC6F41,
+                                                       .initial_value        = 0xFFFFFFFF,
+                                                       .final_xor            = 0xFFFFFFFF,
+                                                       .check_value          = 0xE3069283
+                                               }}};
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -67,7 +67,7 @@ static struct crc_parameters crc32_castagnoli = {.name                         =
 /*--------------------------------------------------------------------------------------
  * bplib_blk_crc_init - Inits the crc xor tables for all supported crc specifications.
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_crc_init ()
+void bplib_blk_crc_init ()
 {
     assert(bplib_crc_init(&crc16_x25) == BP_CRC_INIT_SUCCESS);
     assert(bplib_crc_init(&crc32_castagnoli) == BP_CRC_INIT_SUCCESS);
@@ -86,6 +86,7 @@ int bplib_blk_crc_init ()
  *-------------------------------------------------------------------------------------*/
 int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices)
 {
+    printf("READ\n");
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
     int bytes_read = 0;
@@ -107,7 +108,7 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_in
         bplib_sdnv_read(buffer, size, &bib->cipher_suite_id, &flags);
         bplib_sdnv_read(buffer, size, &bib->cipher_suite_flags, &flags);
         bytes_read = bplib_sdnv_read(buffer, size, &bib->security_result_count, &flags);
-        buffer[bytes_read] = bib->security_result_type;
+        bib->security_result_type = buffer[bytes_read];
         bytes_read = bplib_sdnv_read(buffer, size, &bib->security_result_length, &flags);
     }
     else
@@ -125,13 +126,16 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_in
         bib->block_flags.index = 1;
         bib->block_length.index = bplib_sdnv_read(buffer, size, &bib->block_flags, &flags);
         bib->security_target_count.index = bplib_sdnv_read(buffer, size, &bib->block_length, &flags);
-        bib->security_target_sequence.index = bplib_sdnv_read(buffer, size, &bib->security_target_count, &flags);
+        bib->security_target_type.index = bplib_sdnv_read(buffer, size, &bib->security_target_count, &flags);
+        bib->security_target_sequence.index = bplib_sdnv_read(buffer, size, &bib->security_target_type, &flags);
         bib->cipher_suite_id.index = bplib_sdnv_read(buffer, size, &bib->security_target_sequence, &flags);
         bib->cipher_suite_flags.index = bplib_sdnv_read(buffer, size, &bib->cipher_suite_id, &flags);       
         bib->security_result_count.index = bplib_sdnv_read(buffer, size, &bib->cipher_suite_flags, &flags);
-        bib->security_result_type = buffer[bib->security_result_count.index];
+        bytes_read = bplib_sdnv_read(buffer, size, &bib->security_result_count, &flags);
+        bib->security_result_type = buffer[bytes_read];
         /* Reads the security_result length. */
-        bytes_read = bplib_sdnv_read(buffer, size, (bp_sdnv_t*)(buffer + bib->security_result_count.index + 1), &flags);
+        bib->security_result_length.index = bytes_read + 1;
+        bytes_read = bplib_sdnv_read(buffer, size, &bib->security_result_length, &flags);
     }
 
     if (bib->security_result_length.value == 2)
@@ -162,6 +166,7 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_in
  *-------------------------------------------------------------------------------------*/
 int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices)
 {
+    printf("WRITE\n");
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
     int bytes_written = 0;
@@ -185,7 +190,6 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
         bplib_sdnv_write(buffer, size, bib->cipher_suite_flags, &flags);
         bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_count, &flags);
         buffer[bytes_written] = bib->security_result_type;
-        bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_length, &flags);
     }
     else
     {
@@ -202,31 +206,33 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
         bib->block_flags.index = 1;
         bib->block_length.index = bplib_sdnv_write(buffer, size, bib->block_flags, &flags);
         bib->security_target_count.index = bplib_sdnv_write(buffer, size, bib->block_length, &flags);
-        bib->security_target_sequence.index = bplib_sdnv_write(buffer, size, bib->security_target_count, &flags);
+        bib->security_target_type.index = bplib_sdnv_write(buffer, size, bib->security_target_count, &flags);
+        bib->security_target_sequence.index = bplib_sdnv_write(buffer, size, bib->security_target_type, &flags);
         bib->cipher_suite_id.index = bplib_sdnv_write(buffer, size, bib->security_target_sequence, &flags);
         bib->cipher_suite_flags.index = bplib_sdnv_write(buffer, size, bib->cipher_suite_id, &flags);       
         bib->security_result_count.index = bplib_sdnv_write(buffer, size, bib->cipher_suite_flags, &flags);
         bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_count, &flags);
         buffer[bytes_written] = bib->security_result_type;
-        bytes_written += 1;
-        bib->security_result_length.index = bytes_written;
-        bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_length, &flags);
+        bib->security_result_length.index = bytes_written + 1;
     }
-
-    if (bib->security_result_length.value == 2)
+    
+    if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
+        bib->security_result_length.value = 2; 
+        bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_length, &flags);
         *(uint16_t *)(buffer + bytes_written) = bib->security_result_data.crc16;
-        bib->block_length.value = bytes_written - bib->security_result_length.index;
-        bplib_sdnv_write(buffer, size, bib->block_length, &flags);
         bytes_written += 2;
     }
-    else if (bib->security_result_length.value == 4)
+    else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
+        bib->security_result_length.value = 4;
+        bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_length, &flags);
         *(uint32_t *)(buffer + bytes_written) = bib->security_result_data.crc32;
-        bib->block_length.value = bytes_written - bib->security_result_length.index;
-        bplib_sdnv_write(buffer, size, bib->block_length, &flags);
         bytes_written += 4;
     }
+
+    bib->block_length.value = bytes_written - bib->security_target_count.index;
+    bplib_sdnv_write(buffer, size, bib->block_length, &flags);
 
         /* Success Oriented Error Checking */
     if(flags != 0)  return BP_BUNDLEPARSEERR;
@@ -246,6 +252,7 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
  *-------------------------------------------------------------------------------------*/
 int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib)
 {
+    printf("UPDATE\n");
     assert(bib);
     assert(payload);
 
@@ -258,14 +265,12 @@ int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size
     /* Calculate and Write Fragment Payload CRC */
     if(bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
-        bib->security_result_data.crc16 = (uint16_t) bplib_crc_get((uint8_t*)payload, payload_size, &crc16_x25);        bib->security_result_length.value = 2; 
+        bib->security_result_data.crc16 = (uint16_t) bplib_crc_get((uint8_t*)payload, payload_size, &crc16_x25); 
         *(uint16_t *)(buffer + bib->security_result_length.index + bib->security_result_length.width) = bib->security_result_data.crc16;
-        
     }
     else if(bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
         bib->security_result_data.crc32 = bplib_crc_get((uint8_t*)payload, payload_size, &crc32_castagnoli);
-        bib->security_result_length.value = 4;
         *(uint32_t *)(buffer + bib->security_result_length.index + bib->security_result_length.width) = bib->security_result_data.crc32;
     }
 

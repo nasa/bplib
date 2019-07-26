@@ -115,7 +115,7 @@ typedef struct {
     bp_blk_pay_t        payload_block;
     uint32_t            cstnode;
     uint32_t            cstserv;
-    bp_rb_tree          tree;       /* balanced tree to store bundle ids */
+    bp_rb_tree_t          tree;       /* balanced tree to store bundle ids */
     bool                delivered;  /* false: forwarded to destination, true: delivered to application */
     uint32_t            last_dacs;  /* time of last dacs generated */
     uint8_t*            paybuf;     /* buffer to hold built DACS record */
@@ -563,7 +563,7 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
     int dacs_size, enstat, enstat_fail, storage_header_size;
     bool has_enqueue_failure = false;
     
-    bp_node_rb_t* iter;
+    bp_rb_node_t* iter;
     if (!bplib_rb_tree_is_empty(&(dacs->tree)))
     {
         /* If the tree has nodes, intialize the iterator for traversing the tree in order. */
@@ -652,8 +652,8 @@ static int store_dacs_bundles(bp_channel_t* ch, bp_dacs_bundle_t* dacs, uint32_t
  *-------------------------------------------------------------------------------------*/
 static bool try_dacs_insert(uint32_t value, bp_dacs_bundle_t* dacs, uint16_t* dacsflags)
 {
-    bp_rb_tree_status status_t = bplib_rb_tree_insert(value, dacs->tree);
-    if (status == BP_RB_RB_FAIL_TREE_FULL) {
+    bp_rb_tree_status_t status = bplib_rb_tree_insert(value, &dacs->tree);
+    if (status == BP_RB_FAIL_TREE_FULL) {
         /* This case should only occur if rb_tree size is set to 0.
          * If we failed the last insert and the tree is full then it must be
          * because our tree is out of memory to allocate new nodes. */
@@ -1123,8 +1123,10 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                     }
     
                     /* Allocate Memory for Channel DACS Tree to Store Bundle IDs */
-                    channels[i].dacs_bundle[j].tree = bplib_rb_tree_create(channels[i].attributes.max_tree_size);
-                    if (channels[i].dacs_bundle[j].tree == NULL || channels[i].dacs_bundle[j].tree->max_size == 0)
+                    int status = bplib_rb_tree_create(channels[i].attributes.max_tree_size,
+                                                      &(channels[i].dacs_bundle[j].tree));
+                    if (status == BP_RB_FAIL_EXCEEDED_MAX_SIZE ||
+                        status == BP_RB_FAIL_MEM_ERR)
                     {
                         bplib_close(i);
                         bplib_os_unlock(channels_lock);
@@ -1221,7 +1223,10 @@ void bplib_close(int channel)
                 for(j = 0; j < ch->attributes.max_concurrent_dacs; j++)
                 {
                     if(ch->dacs_bundle[j].paybuf) free(ch->dacs_bundle[j].paybuf);
-                    if(ch->dacs_bundle[j].tree) bplib_rb_tree_delete(ch->dacs_bundle[j].tree);
+                    if(ch->dacs_bundle[j].tree.max_size > 0) 
+                    {
+                        bplib_rb_tree_destroy(&(ch->dacs_bundle[j].tree));
+                    }
                 }
                 
                 free(ch->dacs_bundle);
@@ -1374,7 +1379,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
 
             if((ch->dacs_rate > 0) && 
                (sysnow >= (dacs->last_dacs + ch->dacs_rate)) && 
-               !bplib_rb_tree_is_empty(dacs->tree))
+               !bplib_rb_tree_is_empty(&(dacs->tree)))
             {
                 store_dacs_bundles(ch, dacs, sysnow, BP_CHECK, loadflags);
                 dacs->last_dacs = sysnow;

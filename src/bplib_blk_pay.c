@@ -234,8 +234,8 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, bp_rb_tr
     int count_fills = 0; /* The number of fills that have occured so far. */
 
     /* Store the previous and next range fills. */
-    bp_range_t range;
-    bp_range_t prev_range;
+    bp_rb_range_t range;
+    bp_rb_range_t prev_range;
 
     /* Get the first available range from the rb tree and fill it. */
     bplib_rb_tree_get_next_rb_node(tree, iter, &range, true, false);
@@ -257,7 +257,6 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, bp_rb_tr
         /* Write range of received cids. */
         fill.value = range.offset + 1;
         fill.index = bplib_sdnv_write(rec, size, fill, &flags);    
-        prev_node = node;
         count_fills += 2;        
     }
 

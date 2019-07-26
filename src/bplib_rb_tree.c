@@ -1149,17 +1149,7 @@ bp_rb_tree_status_t bplib_rb_tree_clear(bp_rb_tree_t* tree)
             node = node->right;
         }
 
-        if (!is_root(node))
-        {
-            if (is_left_child(node))
-            {
-                node->parent->left = NULL;
-            }
-            else
-            {
-                node->parent->right = NULL;
-            }
-        }
+        remove_from_parent(node);
         push_free_node(tree, node);
         node = node->parent;
     }
@@ -1358,7 +1348,7 @@ bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
     return BP_RB_SUCCESS;
 }
 
-//#ifdef RBTREETESTS
+#ifdef RBTREETESTS
 /*--------------------------------------------------------------------------------------
  * DEFINES TEST AND HELPER FUNCTIONS FOR THE RED BLACK TREE
  * 
@@ -1436,72 +1426,6 @@ static void print_tree(bp_rb_tree_t* tree)
     printf("**********************************\n");
     fflush(stdout);
 }
-
-/*--------------------------------------------------------------------------------------
- * are_nodes_equal -
- * 
- * n1: A ptr to an bp_rb_node_t to check equality with n2. [INPUT]
- * n2: A ptr to an bp_rb_node_t to check equality with n1. [INPUT]
- * returns: A bool indicating whether or not the two provided node ptrs point to equal
- *      nodes. NULL ptrs are considered equal with eachother.
- *--------------------------------------------------------------------------------------*/  
-static bool are_nodes_equal(bp_rb_node_t* n1, bp_rb_node_t* n2)
-{
-    /* Handles NULL root and leaf node comparisons. */
-    if (n1 == NULL || n2 == NULL)
-    {
-        if (n1 == NULL && n2 == NULL)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    /* Checks node equality. */
-    return (n1->range.value      == n2->range.value  &&
-            n1->range.offset     == n2->range.offset &&
-            has_left_child(n1)   == has_left_child(n2)  &&
-            has_right_child(n1)  == has_right_child(n2) &&
-            is_root(n1)          == is_root(n2));
-}
-
-/*--------------------------------------------------------------------------------------
- * assert_equal_inorder_traverse - Asserts two trees have equivalent nodes when traversed
- *      in order.
- * 
- * n1: A ptr to an bp_rb_node_t to check equality with n2 and traverse its subtrees. [INPUT]
- * n2: A ptr to an bp_rb_node_t to check equality with n1 and traverse its subtrees. [INPUT]
- *--------------------------------------------------------------------------------------*/  
-static void assert_equal_inorder_traverse(bp_rb_node_t* n1, bp_rb_node_t* n2)
-{
-    /* Check equality of nodes at the current point in the tree. */
-    assert(are_nodes_equal(n1, n2));
-
-    if (has_left_child(n1))
-    {
-        /* Check the left subtree of each node for equality. */
-        assert_equal_inorder_traverse(n1->left, n2->left);
-    }
-    if (has_right_child(n1))
-    {
-        /* Check the right subtree of each node for equality. */
-        assert_equal_inorder_traverse(n1->right, n2->right);
-    }
-}
-
-/*--------------------------------------------------------------------------------------
- * assert_bp_rb_trees_equal -
- * 
- * t1: A ptr to an bp_rb_tree_t to check equality with t2. [INPUT]
- * t2: A ptr to an bp_rb_tree_t to check equality with t1. [INPUT]
- *--------------------------------------------------------------------------------------*/  
-static void assert_bp_rb_trees_equal(bp_rb_tree_t* t1, bp_rb_tree_t* t2)
-{
-    assert (t1->size == t2->size);
-    assert(t1->max_size == t2->max_size);
-    assert_equal_inorder_traverse(t1->root, t2->root);
-}
-
 
 /*--------------------------------------------------------------------------------------
  * assert_inorder_values_are - Asserts that the nodes in tree match the provided values.
@@ -2366,4 +2290,4 @@ int main() {
     run_bp_rb_tree_tests();
 }
 
-//#endif /* RBTREETESTS */
+#endif /* RBTREETESTS */

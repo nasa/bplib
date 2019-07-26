@@ -36,6 +36,7 @@
  DEFINES
  ******************************************************************************/
 
+#define BYTE_COMBOS 256 /* Number of different possible bytes. */
 #define BP_CRC_INIT_SUCCESS 0 /* A sucessful return when initing a crc_parameters_t. */
 #define BP_CRC_INIT_FAIL_INVALID_LENGTH 1 /* The provided crc param struct has invalid length. */
 
@@ -74,8 +75,8 @@ typedef struct bp_crc_parameters
        within this union should directly coincide with the length member.
        Ex: If length == 16 crc16 should be popualted in this union below. */
     union {
-        crc16_parameters_t crc16;
-        crc32_parameters_t crc32;
+        bp_crc16_parameters_t crc16;
+        bp_crc32_parameters_t crc32;
     } n_bit_params;
 } bp_crc_parameters_t;
 
@@ -83,7 +84,7 @@ typedef struct bp_crc_parameters
  PROTOTYPES
  ******************************************************************************/
 /* Create a lookup tables for the provided crc. */
-int bplib_crc_init(crc_parameters_t* params);
+int bplib_crc_init(bp_crc_parameters_t* params);
 /* Calculates a crc from an initialized set of params on data. */
-uint32_t bplib_crc_get(const uint8_t* data, const int length, const crc_parameters_t* params);
+uint32_t bplib_crc_get(const uint8_t* data, const int length, const bp_crc_parameters_t* params);
 #endif /* _BPLIB_CRC_H_ */

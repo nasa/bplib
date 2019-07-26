@@ -30,13 +30,6 @@
 #include "bplib_crc.h"
 
 /******************************************************************************
- DEFINES
- ******************************************************************************/
-
-// Number of different possible bytes.
-#define BYTE_COMBOS 256
-
-/******************************************************************************
  FILE DATA
  ******************************************************************************/
 
@@ -223,21 +216,25 @@ static void init_crc32_table(bp_crc_parameters_t* params)
  * params: A ptr to a bp_crc_parameters_t to init. [OUTPUT]
  * returns: An int indicating the result status of init.
  *-------------------------------------------------------------------------------------*/
-int bplib_crc_init(crc_parameters_t* params)
+int bplib_crc_init(bp_crc_parameters_t* params)
 {
+    int status;
     if (params->length == 16)
     {
         init_crc16_table(params); 
+        status = BP_CRC_INIT_SUCCESS;
+        
     }
     else if (params->length == 32)
     {
         init_crc32_table(params);
+        status = BP_CRC_INIT_SUCCESS;
     }
     else
     {
-        return BP_CRC_INIT_FAIL_INVALID_LENGTH;
+        status = BP_CRC_INIT_FAIL_INVALID_LENGTH;
     }
-    return BP_CRC_INIT_FAIL_INVALID_LENGTH;
+    return status;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -382,7 +379,6 @@ static bool validate_bp_crc_parameters_t(const bp_crc_parameters_t* params)
         return crc == check_value;
     }
 
-    bplog(BP_CRCINVALIDLENGTHERR, "Invalid crc length %d\n", params->length); 
     return false;
 }
 

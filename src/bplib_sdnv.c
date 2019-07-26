@@ -68,7 +68,8 @@ int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags)
     {
         sdnv->value <<= 7;
         sdnv->value |= (block[i] & 0x7F);
-        if((block[i] & 0x80) == 0x00) return (i + 1);
+        if((block[i] & 0x80) == 0x00)  return (i + 1);
+        
         else if(size < (i + 2)) *flags |= BP_FLAG_SDNVINCOMPLETE;
     }
 
