@@ -1059,6 +1059,37 @@ static void delete_rb_node_without_rebalancing(bp_rb_tree_t* tree, bp_rb_node_t*
     push_free_node(tree, node);
 }
 
+/*--------------------------------------------------------------------------------------
+ * rb_tree_binary_search - Searches a bp_rb_tree for a node containing a given value.
+ *
+ * tree: A ptr to a bp_rb_tree_t to search. [INPUT]
+ * value: The value to search for within the bp_rb_tree_t. [INPUT]
+ * returns: A ptr to a bp_rb_node_t to populate with the identified node. This is set to NULL
+ *      if no node is found.
+ *--------------------------------------------------------------------------------------*/ 
+static bp_rb_node_t* rb_tree_binary_search(bp_rb_tree_t* tree, uint32_t value)
+{
+    bp_rb_node_t* node = tree->root;
+    while(node != NULL)
+    {
+        if ((node->range.value <= value) && 
+            ((node->range.value + node->range.offset) >= value))
+        {
+            /* Node contains the current value. */
+            break;
+        }
+        else if (node->range.value > value)
+        {
+            node = node->left;
+        }
+        else
+        {
+            node = node->right;
+        }
+    }
+    return node;
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -1206,6 +1237,77 @@ bp_rb_tree_status_t bplib_rb_tree_insert(uint32_t value, bp_rb_tree_t* tree)
     {
         /* Correct any violations within the red black tree due to the insertion. */
         try_insert_rebalance(tree, inserted_node);
+    }
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_rb_tree_delete - Deletes a value into the red black tree and rebalances it accordingly.
+ *
+ * value - The value to delete into the bp_rb_tree_t. [INPUT]
+ * tree: A ptr to a bp_rb_tree_t to delete value from. [OUTPUT]
+ * returns: An bp_rb_tree_status_t enum indicating the result of the deletion. 
+ *--------------------------------------------------------------------------------------*/ 
+bp_rb_tree_status_t bplib_rb_tree_delete(uint32_t value, bp_rb_tree_t* tree)
+{
+    if (tree == NULL)
+    {
+        return BP_RB_FAIL_NULL_TREE;
+    }
+
+    bp_rb_node_t* node = rb_tree_binary_search(tree, value);
+    bp_rb_tree_status_t status = BP_RB_SUCCESS;
+    if (node == NULL)
+    {
+        /* No node containing value was found. */
+        status = BP_RB_FAIL_VALUE_NOT_FOUND;
+    }
+    else
+    {
+        if(node->range.offset == 0)
+        {
+            /* Node contains a single value so it can be deleted. */
+            delete_rb_node(tree, node);
+        }
+        else
+        {
+            /* Node contains a range and so it must be split. */
+            if (value == node->range.value && node->range.offset != 0)
+            {
+                /* Value is at the start of nodes range so we can redefine the range. */
+                node->range.value += 1;
+                node->range.offset -= 1;
+            }
+            else if (value == node->range.value + node->range.offset)
+            {
+                /* Value at the end of the nodes range so it can be redefind. */
+                node->range.offset -= 1;
+            }
+            else
+            {
+                /* Value is somewhere within the range of the current node and so that
+                   node must be split. */
+                bp_rb_node_t* upper_node = NULL;
+                bp_rb_tree_status_t insert_status = try_binary_insert_or_merge(value + 1, 
+                                                                          tree, 
+                                                                          &upper_node);
+                
+                if (insert_status != BP_RB_SUCCESS)
+                {
+                    /* Failure in inserting the new upper range node into the tree. In theory
+                       this should only ever be caused by a lack of memory in the tree. */
+                    status = insert_status;
+                    assert(status == BP_RB_FAIL_TREE_FULL);
+                }
+                else
+                {
+                    /* Memory was sucessfully allocated to the new node. */
+                    assert(upper_node != NULL);
+                    upper_node->range.offset = node->range.value + node->range.offset - upper_node->range.value;
+                    node->range.offset = value - node->range.value - 1;
+                }
+            }
+        }
     }
     return status;
 }
@@ -2091,6 +2193,208 @@ static void test_max_range_offset()
 /*--------------------------------------------------------------------------------------
  * test_tree_traversed_and_deleted_inorder_with_rebalancing - 
  *--------------------------------------------------------------------------------------*/
+static void test_unable_to_delete_value_that_does_not_exist()
+{
+    printf("test_unable_to_delete_value_that_does_not_exist: ");
+    bp_rb_tree_t tree;
+    bplib_rb_tree_create(30, &tree);
+
+    /* Write out 5 bundles and then skip 5 bundles. */
+    for (uint32_t i = 0; i < 50; i += 10)
+    {
+        bplib_rb_tree_insert(i, &tree);
+        bplib_rb_tree_insert(i + 1, &tree);
+        bplib_rb_tree_insert(i + 2, &tree);
+        bplib_rb_tree_insert(i + 3, &tree);
+        bplib_rb_tree_insert(i + 4, &tree);
+    }
+    assert_bp_rb_tree_is_valid(&tree);
+
+    assert(tree.size == 5);
+    assert(bplib_rb_tree_delete(6, &tree) == BP_RB_FAIL_VALUE_NOT_FOUND);
+    assert(bplib_rb_tree_delete(25, &tree) == BP_RB_FAIL_VALUE_NOT_FOUND);
+    assert(bplib_rb_tree_delete(39, &tree) == BP_RB_FAIL_VALUE_NOT_FOUND);
+    assert(tree.size == 5);
+    printf("PASS\n");
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_delete_single_node - 
+ *--------------------------------------------------------------------------------------*/
+static void test_delete_single_node()
+{
+    printf("test_delete_single_node: ");
+    bp_rb_tree_t tree;
+    bplib_rb_tree_create(10, &tree);
+    for (uint32_t i = 0; i <= 10; i += 2)
+    {
+        bplib_rb_tree_insert(i, &tree);
+    }
+    assert(tree.size == 6);
+    assert_bp_rb_tree_is_valid(&tree);
+
+    bp_rb_node_t n1 = {.range = {.value = 0,  .offset = 0}, .color = BLACK};
+    bp_rb_node_t n2 = {.range = {.value = 2,  .offset = 0}, .color = BLACK};
+    bp_rb_node_t n3 = {.range = {.value = 4,  .offset = 0}, .color = BLACK};
+    bp_rb_node_t n4 = {.range = {.value = 6,  .offset = 0}, .color = RED};
+    bp_rb_node_t n5 = {.range = {.value = 8,  .offset = 0}, .color = BLACK};
+    bp_rb_node_t n6 = {.range = {.value = 10, .offset = 0}, .color = RED};
+
+    bp_rb_node_t* nodes_start[] = {&n1, &n2, &n3, &n4, &n5, &n6};
+    assert_inorder_nodes_are(tree.root, nodes_start, 6, 0);
+
+    bplib_rb_tree_delete(6, &tree);
+    n5.color = RED;
+    n6.color = BLACK;
+    bp_rb_node_t* nodes_end[] = {&n1, &n2, &n3, &n5, &n6};
+    assert_inorder_nodes_are(tree.root, nodes_end, 5, 0);
+    assert(tree.size == 5);
+    assert_bp_rb_tree_is_valid(&tree);
+    printf("PASS\n");
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_tree_traversed_and_deleted_inorder_with_rebalancing - 
+ *--------------------------------------------------------------------------------------*/
+static void test_deletes_node_at_start_of_range()
+{
+    printf("test_deletes_node_at_start_of_range: ");
+    bp_rb_tree_t tree;
+    bplib_rb_tree_create(10, &tree);
+    bplib_rb_tree_insert(0, &tree);
+    bplib_rb_tree_insert(1, &tree);
+    bplib_rb_tree_insert(2, &tree);
+    bplib_rb_tree_insert(5, &tree);
+    bplib_rb_tree_insert(6, &tree);
+    bplib_rb_tree_insert(7, &tree);
+    bplib_rb_tree_insert(9, &tree);
+    bplib_rb_tree_insert(10, &tree);
+    bplib_rb_tree_insert(13, &tree);
+    bplib_rb_tree_insert(14, &tree);
+    bplib_rb_tree_insert(16, &tree);
+
+    assert(tree.size == 5);
+
+    bp_rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
+    bp_rb_node_t n2 = {.range = {.value = 5,  .offset = 2}, .color = BLACK};
+    bp_rb_node_t n3 = {.range = {.value = 9,  .offset = 1}, .color = RED};
+    bp_rb_node_t n4 = {.range = {.value = 13, .offset = 1}, .color = BLACK};
+    bp_rb_node_t n5 = {.range = {.value = 16, .offset = 0}, .color = RED};
+    bp_rb_node_t* nodes[] = {&n1, &n2, &n3, &n4, &n5};
+
+    assert_bp_rb_tree_is_valid(&tree);
+    assert_inorder_nodes_are(tree.root, nodes, 5, 0);
+
+    bplib_rb_tree_delete(13, &tree);
+    assert(tree.size == 5);
+    n4.range.value = 14;
+    n4.range.offset = 0;
+    assert_inorder_nodes_are(tree.root, nodes, 5, 0);
+    
+    bplib_rb_tree_delete(5, &tree);
+    assert(tree.size == 5);
+    n2.range.value = 6;
+    n2.range.offset = 1;
+    assert_inorder_nodes_are(tree.root, nodes, 5, 0);
+    assert_bp_rb_tree_is_valid(&tree);
+
+    printf("PASS\n");
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_deletes_node_at_end_of_range - 
+ *--------------------------------------------------------------------------------------*/
+static void test_deletes_node_at_end_of_range()
+{
+    printf("test_deletes_node_at_end_of_range: ");
+    bp_rb_tree_t tree;
+    bplib_rb_tree_create(10, &tree);
+    bplib_rb_tree_insert(0, &tree);
+    bplib_rb_tree_insert(1, &tree);
+    bplib_rb_tree_insert(2, &tree);
+    bplib_rb_tree_insert(5, &tree);
+    bplib_rb_tree_insert(6, &tree);
+    bplib_rb_tree_insert(7, &tree);
+    bplib_rb_tree_insert(9, &tree);
+    bplib_rb_tree_insert(10, &tree);
+    bplib_rb_tree_insert(13, &tree);
+    bplib_rb_tree_insert(14, &tree);
+    bplib_rb_tree_insert(16, &tree);
+
+    assert(tree.size == 5);
+
+    bp_rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
+    bp_rb_node_t n2 = {.range = {.value = 5,  .offset = 2}, .color = BLACK};
+    bp_rb_node_t n3 = {.range = {.value = 9,  .offset = 1}, .color = RED};
+    bp_rb_node_t n4 = {.range = {.value = 13, .offset = 1}, .color = BLACK};
+    bp_rb_node_t n5 = {.range = {.value = 16, .offset = 0}, .color = RED};
+    bp_rb_node_t* nodes[] = {&n1, &n2, &n3, &n4, &n5};
+
+    assert_bp_rb_tree_is_valid(&tree);
+    assert_inorder_nodes_are(tree.root, nodes, 5, 0);
+
+    bplib_rb_tree_delete(14, &tree);
+    assert(tree.size == 5);
+    n4.range.offset = 0;
+    assert_inorder_nodes_are(tree.root, nodes, 5, 0);
+    
+    bplib_rb_tree_delete(7, &tree);
+    assert(tree.size == 5);
+    n2.range.offset = 1;
+    assert_inorder_nodes_are(tree.root, nodes, 5, 0);
+    assert_bp_rb_tree_is_valid(&tree);
+
+    printf("PASS\n");
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_deletes_node_inside_of_range - 
+ *--------------------------------------------------------------------------------------*/
+static void test_deletes_node_inside_of_range()
+{
+    printf("test_deletes_node_inside_of_range: ");
+    bp_rb_tree_t tree;
+    bplib_rb_tree_create(10, &tree);
+    bplib_rb_tree_insert(0, &tree);
+    bplib_rb_tree_insert(1, &tree);
+    bplib_rb_tree_insert(2, &tree);
+    bplib_rb_tree_insert(5, &tree);
+    bplib_rb_tree_insert(6, &tree);
+    bplib_rb_tree_insert(7, &tree);
+    bplib_rb_tree_insert(8, &tree);
+    bplib_rb_tree_insert(9, &tree);
+    bplib_rb_tree_insert(13, &tree);
+    bplib_rb_tree_insert(14, &tree);
+    bplib_rb_tree_insert(16, &tree);
+    bplib_rb_tree_insert(18, &tree);
+
+    bp_rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
+    bp_rb_node_t n2 = {.range = {.value = 5,  .offset = 4}, .color = BLACK};
+    bp_rb_node_t n3 = {.range = {.value = 13, .offset = 1}, .color = RED};
+    bp_rb_node_t n4 = {.range = {.value = 16, .offset = 0}, .color = BLACK};
+    bp_rb_node_t n5 = {.range = {.value = 18, .offset = 0}, .color = RED};
+
+    bp_rb_node_t* nodes_start[] = {&n1, &n2, &n3, &n4, &n5};
+
+    assert_bp_rb_tree_is_valid(&tree);
+    assert(tree.size == 5);
+    assert_inorder_nodes_are(tree.root, nodes_start, 5, 0);
+
+    bplib_rb_tree_delete(6, &tree);
+
+    n2.range.offset = 0;
+    bp_rb_node_t n6 = {.range = {.value = 7, .offset = 2}, .color = RED};
+    bp_rb_node_t* nodes_end[] = {&n1, &n2, &n6, &n3, &n4, &n5};
+    assert(tree.size == 6);
+    assert_inorder_nodes_are(tree.root, nodes_end, 6, 0);
+    assert_bp_rb_tree_is_valid(&tree);
+
+    printf("PASS\n");
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_tree_traversed_and_deleted_inorder_with_rebalancing - 
+ *--------------------------------------------------------------------------------------*/
 static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
 {
     printf("test_tree_traversed_and_deleted_inorder_with_rebalancing: ");
@@ -2279,6 +2583,11 @@ static void run_bp_rb_tree_tests()
     test_are_consecutive();
     test_max_size_configured_properly();
     test_max_range_offset();
+    test_unable_to_delete_value_that_does_not_exist();
+    test_delete_single_node();
+    test_deletes_node_at_start_of_range();
+    test_deletes_node_at_end_of_range();
+    test_deletes_node_inside_of_range();
     test_tree_traversed_and_deleted_inorder_with_rebalancing();
     test_tree_traversed_and_deleted_inorder_without_rebalancing();
     test_tree_traversed_inorder_after_partial_traversal();

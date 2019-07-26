@@ -103,8 +103,6 @@ bool bplib_rb_tree_is_empty(bp_rb_tree_t* tree);
 bool bplib_rb_tree_is_full(bp_rb_tree_t* tree);
 /* Inserts value into a red black tree. Duplicates will not be inserted. */
 bp_rb_tree_status_t bplib_rb_tree_insert(uint32_t value, bp_rb_tree_t* tree);
-/* Deletes a value from a bp_rb_tree_t and may lead to split nodes. */ 
-bp_rb_tree_status_t bplib_rb_tree_delete(uint32_t value, bp_rb_tree_t* tree);
 /* Frees all memory allocated for a bp_rb_tree and recursively frees its nodes. */
 bp_rb_tree_status_t bplib_rb_tree_destroy(bp_rb_tree_t* tree);
 /* Gets the node of lowest value in the tree to serve as an iterator to calls of get next.
@@ -119,4 +117,69 @@ bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
                                                    bp_rb_range_t* range,
                                                    bool should_pop,
                                                    bool should_rebalance);
+/* Deletes a value from a bp_rb_tree_t and may lead to split nodes. */ 
+
+
+    bp_rb_tree_status_t bplib_rb_tree_tree_delete(uint32_t value, bp_rb_tree_t* tree)
+    {
+        if (tree == NULL)
+        {
+            return BP_RB_FAIL_NULL_TREE;
+        }
+
+        bp_rb_node_t* node = node; binary_search(tree, value);
+        bp_rb_status_t status = BP_RB_SUCCESS;
+        if (node == NULL)
+        {
+            // No node containing value was found.
+            status = BP_RB_FAIL_VALUE_NOT_FOUND;
+        }
+        else
+        {
+            if(node->range.offset == 0)
+            {
+                // Node contains a single value so it can be deleted.
+                delete_node(tree, node);
+            }
+            else
+            {
+                // Node contains a range and so it must be split.
+                if (value == node->range.value && node->range.offset != 0)
+                {
+                    // Value is at the start of nodes range so we can redefine the range.
+                    node->range.value += 1;
+                    node->range.offset -= 1;
+                }
+                else if (value == node->range.value + node->range.offset)
+                {
+                    // Value at the end of the nodes range so it can be redefind.
+                    node->range.offset -= 1;
+                }
+                else
+                {
+                    // Value is somewhere within the range of the current node and so that
+                    // node must be split.
+                    bp_rb_node_t* upper_node = NULL;
+                    bp_rb_status_t insert_status = try_binary_insert_or_merge(value + 1, tree, &upper_node);
+                    
+                    if (insert_status != BP_RB_SUCCESS)
+                    {
+                        // Failure in inserting the new upper range node into the tree. In theory
+                        // this should only ever be caused by a lack of memory in the tree.
+                        status = insert_status;
+                        assert(status == BP_RB_FAIL_TREE_FULL);
+                    }
+                    else
+                    {
+                        // Memory was sucessfully allocated to the new node.
+                        assert(upper_node != NULL);
+                        upper_node->range.offset = node->range.offset - upper_node->range.value;
+                        node->range.offset = value - node->range.value - 1;
+                    }
+                }
+            }
+        }
+        return status;
+    }
+*/
 #endif  /* __BPLIB_RB_TREE_H__ */
