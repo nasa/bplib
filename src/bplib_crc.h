@@ -86,5 +86,5 @@ typedef struct bp_crc_parameters
 /* Create a lookup tables for the provided crc. */
 int bplib_crc_init(bp_crc_parameters_t* params);
 /* Calculates a crc from an initialized set of params on data. */
-uint32_t bplib_crc_get(const uint8_t* data, const int length, const bp_crc_parameters_t* params);
+uint32_t bplib_crc_get(const uint8_t* data, const uint32_t length, const bp_crc_parameters_t* params);
 #endif /* _BPLIB_CRC_H_ */

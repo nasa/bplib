@@ -111,12 +111,12 @@ static uint32_t reflect32(uint32_t num)
  *
  * returns: A crc remainder of the provided data.
  *-------------------------------------------------------------------------------------*/
-static uint16_t get_crc16(const uint8_t* data, int length, const bp_crc_parameters_t* params)
+static uint16_t get_crc16(const uint8_t* data, uint32_t length, const bp_crc_parameters_t* params)
 {
     /* Check that we are always using a lookup table corresponding to the requested crc. */
     uint16_t crc = params->n_bit_params.crc16.initial_value;
     uint8_t current_byte;
-    for (int i = 0; i < length; i++)
+    for (uint32_t i = 0; i < length; i++)
     {
         current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
         crc = (crc << 8) ^ params->n_bit_params.crc16.xor_table[current_byte ^ (crc >> 8)];
@@ -141,12 +141,12 @@ static uint16_t get_crc16(const uint8_t* data, int length, const bp_crc_paramete
  *
  * returns: A crc remainder of the provided data.
  *-------------------------------------------------------------------------------------*/
-static uint32_t get_crc32(const uint8_t* data, const int length, const bp_crc_parameters_t* params)
+static uint32_t get_crc32(const uint8_t* data, const uint32_t length, const bp_crc_parameters_t* params)
 {
     /* Check that we are always using a lookup table corresponding to the requested crc. */
     uint32_t crc = params->n_bit_params.crc32.initial_value;
     uint8_t current_byte;
-    for (int i = 0; i < length; i++)
+    for (uint32_t i = 0; i < length; i++)
     {
         current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
         crc = ((crc << 8) ^ 
@@ -249,7 +249,7 @@ int bplib_crc_init(bp_crc_parameters_t* params)
  * returns: A crc remainder of the provided data. If a crc length is used that is less
  *      than the returned data type size than expect it to be cast.
  *-------------------------------------------------------------------------------------*/
-uint32_t bplib_crc_get(const uint8_t* data, const int length, const bp_crc_parameters_t* params)
+uint32_t bplib_crc_get(const uint8_t* data, const uint32_t length, const bp_crc_parameters_t* params)
 {
     if (params->length == 16)
     {   
