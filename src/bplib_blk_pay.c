@@ -215,12 +215,12 @@ int bplib_rec_acs_process ( void* rec, int size, int* acks,
  *  max_fills_per_dacs - the maximum number of allowable fills for each dacs
  *  tree - a rb_tree ptr containing the cid ranges for the bundle. The tree nodes will 
  *      be deleted as they are written to the dacs. [OUTPUT]
- *  iter - a ptr to a ptr the next bp_rb_node in the tree to extract the fill information
+ *  iter - a ptr to a ptr the next rb_node in the tree to extract the fill information
  *      and then delete. [OUTPUT]
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, bp_rb_tree_t* tree,
-                        bp_rb_node_t** iter)
+int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree,
+                        rb_node_t** iter)
 {
     bp_sdnv_t cid = { 0, 2, 4 };
     bp_sdnv_t fill = { 0, 0, 2 };
@@ -234,26 +234,28 @@ int bplib_rec_acs_write(uint8_t* rec, int size, int max_fills_per_dacs, bp_rb_tr
     int count_fills = 0; /* The number of fills that have occured so far. */
 
     /* Store the previous and next range fills. */
-    bp_rb_range_t range;
-    bp_rb_range_t prev_range;
+    rb_range_t range;
+    rb_range_t prev_range;
 
     /* Get the first available range from the rb tree and fill it. */
-    bplib_rb_tree_get_next_rb_node(tree, iter, &range, true, false);
+    rb_tree_get_next_rb_node(tree, iter, &range, true, false);
     cid.value = range.value;
     fill.index = bplib_sdnv_write(rec, size, cid, &flags);
-    count_fills += 1;
+    fill.value = range.offset + 1;
+    fill.index = bplib_sdnv_write(rec, size, fill, &flags);    
+    count_fills += 2;
 
     /* Traverse tree in order and write out fills to dacs. */
     while (count_fills < max_fills_per_dacs && *iter != NULL)
     {
         prev_range = range;
-        bplib_rb_tree_get_next_rb_node(tree, iter, &range, true, false);        
-        
+        rb_tree_get_next_rb_node(tree, iter, &range, true, false);        
+
         /* Write range of missing cid.
            Calculate the missing values between the current and previous node. */
         fill.value = range.value - (prev_range.value + prev_range.offset + 1);
         fill.index = bplib_sdnv_write(rec, size, fill, &flags);
-        
+
         /* Write range of received cids. */
         fill.value = range.offset + 1;
         fill.index = bplib_sdnv_write(rec, size, fill, &flags);    

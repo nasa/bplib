@@ -1,5 +1,5 @@
 /************************************************************************
- * File: bplib_rb_tree.c
+ * File: rb_tree.c
  *
  *  Copyright 2019 United States Government as represented by the
  *  Administrator of the National Aeronautics and Space Administration.
@@ -30,30 +30,34 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bplib_rb_tree.h"
+#include "rb_tree.h"
 
 /******************************************************************************
  DEFINES
  ******************************************************************************/ 
 
-#define MAX_TREE_SIZE UINT32_MAX - 1 /* The maximum number of allowable bp_rb_node_ts. */
-#define RED   true  /* Boolean representing a red bp_rb_node_t. */
-#define BLACK false /* Boolean representing a black bp_rb_node_t, */
+/* The maximum number of allowable rb_node_ts. This can never be larger than one more
+   than the max data size because since we are representing ranges. Thus in the worse case
+   scenario where values are added one apart so that a new node is added for each insertion
+   once we reach half + 1 nodes then merging will occur. */
+#define MAX_TREE_SIZE ((UINT32_MAX  / 2) + 1) 
+#define RED   true  /* Boolean representing a red rb_node_t. */
+#define BLACK false /* Boolean representing a black rb_node_t, */
 
 /******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/ 
 
 /*--------------------------------------------------------------------------------------
- * pop_free_node - Retrieves a block of unallocated memory to assign a bp_rb_node_t if available. 
+ * pop_free_node - Retrieves a block of unallocated memory to assign a rb_node_t if available. 
  *
- * tree: A ptr to a bp_rb_tree_t. [OUTPUT]
- * returns: A ptr to a free block of memory to allocate an bp_rb_node_t. If no space is available
+ * tree: A ptr to a rb_tree_t. [OUTPUT]
+ * returns: A ptr to a free block of memory to allocate an rb_node_t. If no space is available
  *      a NULL ptr is returned. If the ptr is non NULL the tree's size is incremented.
  *-------------------------------------------------------------------------------------*/
-static bp_rb_node_t* pop_free_node(bp_rb_tree_t* tree)
+static rb_node_t* pop_free_node(rb_tree_t* tree)
 {
-    bp_rb_node_t* free_node = tree->free_node_tail;
+    rb_node_t* free_node = tree->free_node_tail;
     
     if (free_node != NULL) {
         tree->free_node_tail = free_node->left;
@@ -67,12 +71,12 @@ static bp_rb_node_t* pop_free_node(bp_rb_tree_t* tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * push_free_node - Recovers a block of unallocated memory for assigning future bp_rb_node_ts to.
+ * push_free_node - Recovers a block of unallocated memory for assigning future rb_node_ts to.
  *
- * tree: A ptr to a bp_rb_tree_t. The trees size is decremented after pushing the node. [OUTPUT] 
- * node: A ptr to a bp_rb_node_t to reassign that can now be treated as unallocated memory.
+ * tree: A ptr to a rb_tree_t. The trees size is decremented after pushing the node. [OUTPUT] 
+ * node: A ptr to a rb_node_t to reassign that can now be treated as unallocated memory.
  *-------------------------------------------------------------------------------------*/
-static void push_free_node(bp_rb_tree_t* tree, bp_rb_node_t* node)
+static void push_free_node(rb_tree_t* tree, rb_node_t* node)
 {
     // Push the node into the queue.
     node->right = tree->free_node_head;
@@ -95,9 +99,9 @@ static void push_free_node(bp_rb_tree_t* tree, bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * set_black -
  *
- * node: A ptr to an bp_rb_node_t to set the color to black. [OUTPUT] 
+ * node: A ptr to an rb_node_t to set the color to black. [OUTPUT] 
  *-------------------------------------------------------------------------------------*/
-static inline void set_black(bp_rb_node_t* node)
+static inline void set_black(rb_node_t* node)
 {
     node->color = BLACK;
 }
@@ -105,9 +109,9 @@ static inline void set_black(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * set_red -
  *
- * node: A ptr to an bp_rb_node_t to set the color to red. [OUTPUT]
+ * node: A ptr to an rb_node_t to set the color to red. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static inline void set_red(bp_rb_node_t* node)
+static inline void set_red(rb_node_t* node)
 {
     node->color = RED;
 }
@@ -116,10 +120,10 @@ static inline void set_red(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * is_black -
  *
- * node: A bp_rb_node_t to check its color. [INPUT]
- * returns: Whether or not the provided bp_rb_node_t is black.  
+ * node: A rb_node_t to check its color. [INPUT]
+ * returns: Whether or not the provided rb_node_t is black.  
  *-------------------------------------------------------------------------------------*/
-static inline bool is_black(bp_rb_node_t* node)
+static inline bool is_black(rb_node_t* node)
 {
     return node == NULL || node->color == BLACK;
 }
@@ -127,10 +131,10 @@ static inline bool is_black(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * is_red -
  *
- * node: A bp_rb_node_t to check its color. [INPUT]
- * returns: Whether or not the provided bp_rb_node_t is red.  
+ * node: A rb_node_t to check its color. [INPUT]
+ * returns: Whether or not the provided rb_node_t is red.  
  *-------------------------------------------------------------------------------------*/
-static inline bool is_red(bp_rb_node_t* node)
+static inline bool is_red(rb_node_t* node)
 {
     return node != NULL && node->color == RED;
 }
@@ -139,10 +143,10 @@ static inline bool is_red(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * get_grandparent -
  *
- * node: A ptr to an bp_rb_node_t to get its grandparent. [INPUT]
+ * node: A ptr to an rb_node_t to get its grandparent. [INPUT]
  * returns: A ptr to the node grandparent or NULL
  *-------------------------------------------------------------------------------------*/
-static inline bp_rb_node_t* get_grandparent(bp_rb_node_t* node)
+static inline rb_node_t* get_grandparent(rb_node_t* node)
 {
     return node->parent == NULL ? NULL : node->parent->parent;
 }
@@ -150,10 +154,10 @@ static inline bp_rb_node_t* get_grandparent(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * is_root -
  *
- * node: A ptr to an bp_rb_node_t to check if it is the root of an red black tree. [INPUT]
+ * node: A ptr to an rb_node_t to check if it is the root of an red black tree. [INPUT]
  * returns: Whether or not the provided node is the tree root.  
  *-------------------------------------------------------------------------------------*/
-static inline bool is_root(bp_rb_node_t* node)
+static inline bool is_root(rb_node_t* node)
 {
     return node->parent == NULL;
 }
@@ -161,34 +165,34 @@ static inline bool is_root(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * is_left_child -
  *
- * node: A ptr to an bp_rb_node_t to check if it is the left child of its parent node. [INPUT]
+ * node: A ptr to an rb_node_t to check if it is the left child of its parent node. [INPUT]
  * returns: Whether or not the provided node is the left child of its parent. If the
  *      provided node is root then this returns false. 
  *-------------------------------------------------------------------------------------*/
-static inline bool is_left_child(bp_rb_node_t* node)
+static inline bool is_left_child(rb_node_t* node)
 {
     return !is_root(node) && node == node->parent->left;
 }
 
 /*--------------------------------------------------------------------------------------
- * get_sibling - A sibling is defined as a parents other child within the bp_rb_tree_t.
+ * get_sibling - A sibling is defined as a parents other child within the rb_tree_t.
  *
- * node: A ptr to an bp_rb_node_t to get its sibling. [INPUT]
+ * node: A ptr to an rb_node_t to get its sibling. [INPUT]
  * returns: A ptr to the sibling or NULL of node.
  *-------------------------------------------------------------------------------------*/
-static inline bp_rb_node_t* get_sibling(bp_rb_node_t* node)
+static inline rb_node_t* get_sibling(rb_node_t* node)
 {
     return node->parent == NULL ? NULL : /* If parent is NULL return NULL else. */
            is_left_child(node)  ? node->parent->right : node->parent->left; /* Return left child if it exists. Else return right child, which may be NULL. */
 }
 
 /*--------------------------------------------------------------------------------------
- * get_uncle - An uncle within an bp_rb_tree is a nodes parent's parent's sibling.
+ * get_uncle - An uncle within an rb_tree is a nodes parent's parent's sibling.
  *
- * node: A ptr to an bp_rb_node to get its uncle. [INPUT]
+ * node: A ptr to an rb_node to get its uncle. [INPUT]
  * returns: A ptr to the nodes uncle or or NULL.  
  *-------------------------------------------------------------------------------------*/
-static inline bp_rb_node_t* get_uncle(bp_rb_node_t* node)
+static inline rb_node_t* get_uncle(rb_node_t* node)
 {
     return node->parent == NULL          ? NULL : /* If parent is NULL Return NULL. */
            get_grandparent(node) == NULL ? NULL : get_sibling(node->parent); /* If grandparent is NULL return NULL. Else return parent's sibling. */
@@ -197,10 +201,10 @@ static inline bp_rb_node_t* get_uncle(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * has_left_child -
  *
- * node: A ptr to an bp_rb_node_t to check if it has a left child. [INPUT]
+ * node: A ptr to an rb_node_t to check if it has a left child. [INPUT]
  * returns: Whether or not the provided node has a non NULL left child.   
  *-------------------------------------------------------------------------------------*/
-static inline bool has_left_child(bp_rb_node_t* node)
+static inline bool has_left_child(rb_node_t* node)
 {
     return node->left != NULL;
 }
@@ -208,10 +212,10 @@ static inline bool has_left_child(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * has_right_child -
  *
- * node: A ptr to an bp_rb_node_t to check if it has a right child. [INPUT]
+ * node: A ptr to an rb_node_t to check if it has a right child. [INPUT]
  * returns: Whether or not the provided node has a non NULL right child.   
  *-------------------------------------------------------------------------------------*/
-static inline bool has_right_child(bp_rb_node_t* node)
+static inline bool has_right_child(rb_node_t* node)
 {
     return node->right != NULL;
 }
@@ -219,9 +223,9 @@ static inline bool has_right_child(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * remove_from_parent - Removes references to a node from its parent.
  * 
- * node: A ptr to an bp_rb_node_t to remove references to it in its parent. [OUTPUT]
+ * node: A ptr to an rb_node_t to remove references to it in its parent. [OUTPUT]
  *--------------------------------------------------------------------------------------*/  
-static void remove_from_parent(bp_rb_node_t* node)
+static void remove_from_parent(rb_node_t* node)
 {
     if (is_root(node))
     {
@@ -252,12 +256,12 @@ static void remove_from_parent(bp_rb_node_t* node)
  *        \                                   / 
  *         8                                 6    
  *
- * node_1: A ptr to a bp_rb_node_t to move down in the tree when swapping parents. [OUTPUT]
- * node_2: A ptr to a bp_rb_node_t that was previously the child of node_1 and should be moved up
+ * node_1: A ptr to a rb_node_t to move down in the tree when swapping parents. [OUTPUT]
+ * node_2: A ptr to a rb_node_t that was previously the child of node_1 and should be moved up
  *      in the tree when swapping parents. [OUTPUT]
  * tree: A ptr to the red black to within which to swap parents. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void swap_parents(bp_rb_node_t* node_1, bp_rb_node_t* node_2, bp_rb_tree_t* tree)
+static void swap_parents(rb_node_t* node_1, rb_node_t* node_2, rb_tree_t* tree)
 {
     node_2->parent = node_1->parent;
 
@@ -289,12 +293,12 @@ static void swap_parents(bp_rb_node_t* node_1, bp_rb_node_t* node_2, bp_rb_tree_
  *        10   20                               15   22
  *            /  \                             /  \
  *           17  22                           10  17
- * tree: A ptr to a bp_rb_tree_t to rotate. [OUTPUT]
- * node: A ptr to a bp_rb_node_t about which to rotate the red black tree left. [OUTPUT]
+ * tree: A ptr to a rb_tree_t to rotate. [OUTPUT]
+ * node: A ptr to a rb_node_t about which to rotate the red black tree left. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void rotate_left(bp_rb_tree_t* tree, bp_rb_node_t* node)
+static void rotate_left(rb_tree_t* tree, rb_node_t* node)
 {
-    bp_rb_node_t* new_parent = node->right;
+    rb_node_t* new_parent = node->right;
     node->right = new_parent->left;
     new_parent->left = node;
 
@@ -317,12 +321,12 @@ static void rotate_left(bp_rb_tree_t* tree, bp_rb_node_t* node)
  *        10    20                               7   15
  *       / \                                         / \
  *      7  13                                       13  20
- * tree: A ptr to a bp_rb_tree_t to rotate. [OUTPUT]
- * node: A ptr to a bp_rb_node_t about which to rotate the red black tree right. [OUTPUT]
+ * tree: A ptr to a rb_tree_t to rotate. [OUTPUT]
+ * node: A ptr to a rb_node_t about which to rotate the red black tree right. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void rotate_right(bp_rb_tree_t* tree, bp_rb_node_t* node)
+static void rotate_right(rb_tree_t* tree, rb_node_t* node)
 {
-    bp_rb_node_t* new_parent = node->left;
+    rb_node_t* new_parent = node->left;
     node->left = new_parent->right;
     new_parent->right = node;
 
@@ -335,16 +339,16 @@ static void rotate_right(bp_rb_tree_t* tree, bp_rb_node_t* node)
 }
 
 /*-------------------------------------------------------------------------------------
- * create_black_node - Creates a black colored bp_rb_node with value and with no children.
+ * create_black_node - Creates a black colored rb_node with value and with no children.
  *
- * value: The value to assign to the new bp_rb_node. [INPUT]
+ * value: The value to assign to the new rb_node. [INPUT]
  * color: A boolean indicating the color of the newly created node. [INPUT]
- * tree: A ptr to a bp_rb_tree_t from which to obtain free memory  the new node. [OUTPUT]
- * returns: A ptr to a new bp_rb_node_t or NULL if no memory exists in the bp_rb_tree_t.
+ * tree: A ptr to a rb_tree_t from which to obtain free memory  the new node. [OUTPUT]
+ * returns: A ptr to a new rb_node_t or NULL if no memory exists in the rb_tree_t.
  *-------------------------------------------------------------------------------------*/
-static bp_rb_node_t* create_rb_node(uint32_t value, bool color, bp_rb_tree_t* tree)
+static rb_node_t* create_rb_node(uint32_t value, bool color, rb_tree_t* tree)
 {
-    bp_rb_node_t* node = pop_free_node(tree);
+    rb_node_t* node = pop_free_node(tree);
     if (node == NULL)
     {
         /* Return early since no memory exists within the tree to create a new node. */
@@ -368,9 +372,9 @@ static bp_rb_node_t* create_rb_node(uint32_t value, bool color, bp_rb_tree_t* tr
  * child_ptr: A ptr to a ptr owned by parent that will be assigned to its new child node. 
  *      This ptr should correspond to either parent->left or parent->right. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void insert_child(bp_rb_node_t* node,
-                         bp_rb_node_t* parent,
-                         bp_rb_node_t** child_ptr)
+static void insert_child(rb_node_t* node,
+                         rb_node_t* parent,
+                         rb_node_t** child_ptr)
 {
     node->parent = parent;
     *child_ptr = node;
@@ -391,14 +395,14 @@ static void insert_child(bp_rb_node_t* node,
  * returns: A ptr to the successor node with a value less than that contained by node. If
  *      no successor exists, NULL is returned.
  *-------------------------------------------------------------------------------------*/
-static bp_rb_node_t* get_left_successor(bp_rb_node_t* node)
+static rb_node_t* get_left_successor(rb_node_t* node)
 {
     if (!has_left_child(node))
     {
         return NULL;
     }
 
-    bp_rb_node_t* successor = node->left;
+    rb_node_t* successor = node->left;
     while (has_right_child(successor))
     {
         successor = successor->right;
@@ -421,14 +425,14 @@ static bp_rb_node_t* get_left_successor(bp_rb_node_t* node)
  * returns: A ptr to the successor node with a value less than that contained by node. If
  *      no successor exists, NULL is returned.
  *-------------------------------------------------------------------------------------*/
-static bp_rb_node_t* get_right_successor(bp_rb_node_t* node)
+static rb_node_t* get_right_successor(rb_node_t* node)
 {
     if (!has_right_child(node))
     {
         return NULL;
     }
 
-    bp_rb_node_t* successor = node->right;
+    rb_node_t* successor = node->right;
     while (has_left_child(successor))
     {
         successor = successor->left;
@@ -442,9 +446,9 @@ static bp_rb_node_t* get_right_successor(bp_rb_node_t* node)
  * node: A ptr to the node to obtain its successor. [INPUT]
  * returns: A ptr to the successor node. If no successor exists, NULL is returned.
  *-------------------------------------------------------------------------------------*/
-static bp_rb_node_t* get_successor(bp_rb_node_t* node)
+static rb_node_t* get_successor(rb_node_t* node)
 {
-    bp_rb_node_t* successor = get_left_successor(node);
+    rb_node_t* successor = get_left_successor(node);
     if (successor == NULL)
     {
         /* The left subtree has no successor. Check the right subtree. */
@@ -456,10 +460,10 @@ static bp_rb_node_t* get_successor(bp_rb_node_t* node)
 /*-------------------------------------------------------------------------------------
  * swap_values - Swaps the values stored by two nodes.
  *
- * n1: A ptr to the first bp_rb_node_t to swap its value. [OUTPUT]
- * n2: A ptr to the second bp_rb_node_t to swap its value. [OUTPUT]
+ * n1: A ptr to the first rb_node_t to swap its value. [OUTPUT]
+ * n2: A ptr to the second rb_node_t to swap its value. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void swap_values(bp_rb_node_t* n1, bp_rb_node_t* n2)
+static void swap_values(rb_node_t* n1, rb_node_t* n2)
 {
     uint32_t temp = n1->range.value;
     n1->range.value = n2->range.value;
@@ -469,10 +473,10 @@ static void swap_values(bp_rb_node_t* n1, bp_rb_node_t* n2)
 /*-------------------------------------------------------------------------------------
  * swap_offsets - Swaps the offsets stored by two nodes.
  *
- * n1: A ptr to the first bp_rb_node_t to swap its offset. [OUTPUT]
- * n2: A ptr to the second bp_rb_node_t to swap its offset. [OUTPUT]
+ * n1: A ptr to the first rb_node_t to swap its offset. [OUTPUT]
+ * n2: A ptr to the second rb_node_t to swap its offset. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void swap_offsets(bp_rb_node_t* n1, bp_rb_node_t* n2)
+static void swap_offsets(rb_node_t* n1, rb_node_t* n2)
 {
     uint32_t temp = n1->range.offset;
     n1->range.offset = n2->range.offset;
@@ -482,12 +486,12 @@ static void swap_offsets(bp_rb_node_t* n1, bp_rb_node_t* n2)
 /*-------------------------------------------------------------------------------------
  * replace_node - Replaces a node with its child.
  *
- * node: A ptr to the bp_rb_node_t to replace with its child. [OUTPUT]
- * child: A ptr to an bp_rb_node_t that is a child of node and will replace it. [OUTPUT]
+ * node: A ptr to the rb_node_t to replace with its child. [OUTPUT]
+ * child: A ptr to an rb_node_t that is a child of node and will replace it. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void replace_node(bp_rb_node_t* node, bp_rb_node_t* child)
+static void replace_node(rb_node_t* node, rb_node_t* child)
 {
-    bp_rb_node_t* parent = node->parent;
+    rb_node_t* parent = node->parent;
 
     if (is_left_child(node))
     {
@@ -508,10 +512,10 @@ static void replace_node(bp_rb_node_t* node, bp_rb_node_t* child)
 }
 
 /*--------------------------------------------------------------------------------------
- * delete_rebalance - Rebalance the bp_rb_tree_t to account for the deletion.
+ * delete_rebalance - Rebalance the rb_tree_t to account for the deletion.
  *
- * tree: A ptr to the bp_rb_tree_t to rebalance. [OUTPUT]
- * node: A ptr to the bp_rb_node_t from which to start the rebalancing operation. [INPUT]
+ * tree: A ptr to the rb_tree_t to rebalance. [OUTPUT]
+ * node: A ptr to the rb_node_t from which to start the rebalancing operation. [INPUT]
  *
  *--------------------------------------------------------------------------------------*
  * CITATION: The code in this function was adapted from the following source.
@@ -520,11 +524,11 @@ static void replace_node(bp_rb_node_t* node, bp_rb_node_t* child)
  * Retrieved 14:34, June 20, 2019,
  * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
  *--------------------------------------------------------------------------------------*/ 
-static void delete_rebalance(bp_rb_tree_t* tree, bp_rb_node_t* node) {
+static void delete_rebalance(rb_tree_t* tree, rb_node_t* node) {
 
     /* Allocate parent and sibling ptrs. */
-    bp_rb_node_t* sibling;
-    bp_rb_node_t* parent;
+    rb_node_t* sibling;
+    rb_node_t* parent;
 
     /* DELETE_CASE_1 - If node is ever set to root rebalancing for deletion is complete. */
     while (!is_root(node))
@@ -685,10 +689,10 @@ static void delete_rebalance(bp_rb_tree_t* tree, bp_rb_node_t* node) {
 }
 
 /*--------------------------------------------------------------------------------------
- * delete_one_child - Deletes a node from a bp_rb_tree containing at most one child.
+ * delete_one_child - Deletes a node from a rb_tree containing at most one child.
  *
- * tree: A ptr to the bp_rb_tree_t from which to delete a node. [OUTPUT] 
- * node: A ptr to the bp_rb_node_t to delete. [OUTPUT]
+ * tree: A ptr to the rb_tree_t from which to delete a node. [OUTPUT] 
+ * node: A ptr to the rb_node_t to delete. [OUTPUT]
  *
  *--------------------------------------------------------------------------------------*
  * CITATION: The code in this function was adapted from the following source.
@@ -697,9 +701,9 @@ static void delete_rebalance(bp_rb_tree_t* tree, bp_rb_node_t* node) {
  * Retrieved 14:34, June 20, 2019, 
  * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
  *--------------------------------------------------------------------------------------*/ 
-static void delete_one_child(bp_rb_tree_t* tree, bp_rb_node_t* node)
+static void delete_one_child(rb_tree_t* tree, rb_node_t* node)
 {
-    bp_rb_node_t* child = has_left_child(node) ? node->left : node->right;
+    rb_node_t* child = has_left_child(node) ? node->left : node->right;
 
     if (child == NULL)
     {
@@ -746,15 +750,15 @@ static void delete_one_child(bp_rb_tree_t* tree, bp_rb_node_t* node)
 }
 
 /*--------------------------------------------------------------------------------------
- * delete_rb_node - Deletes a bp_rb_node_t from a bp_rb_tree_t and rebalances the tree accordingly. 
+ * delete_rb_node - Deletes a rb_node_t from a rb_tree_t and rebalances the tree accordingly. 
  *
- * tree: A ptr to the bp_rb_tree_t from which to delete an bp_rb_node. [OUTPUT] 
- * node: A ptr to the bp_rb_node_t to delete from the tree. [OUTPUT]
+ * tree: A ptr to the rb_tree_t from which to delete an rb_node. [OUTPUT] 
+ * node: A ptr to the rb_node_t to delete from the tree. [OUTPUT]
  *--------------------------------------------------------------------------------------*/ 
-static void delete_rb_node(bp_rb_tree_t* tree, bp_rb_node_t* node)
+static void delete_rb_node(rb_tree_t* tree, rb_node_t* node)
 {
     /* Attempt to find a successor node for the current node. */
-    bp_rb_node_t* successor_node = get_successor(node);
+    rb_node_t* successor_node = get_successor(node);
 
     if (successor_node != NULL)
     {
@@ -804,21 +808,21 @@ static bool are_consecutive(uint32_t value_1, uint32_t value_2)
  *      to reflect the range of values the modified nodes will represent.
  *
  * value: The value of the node to attempt to insert or merge into the red black tree. [INPUT]
- * tree: A ptr to the bp_rb_tree_t to insert values into. [OUTPUT]
- * inserted_node: A ptr to a ptr to the bp_rb_node that was inserted. NULL if no node was 
+ * tree: A ptr to the rb_tree_t to insert values into. [OUTPUT]
+ * inserted_node: A ptr to a ptr to the rb_node that was inserted. NULL if no node was 
  *      inserted. [OUTPUT]
- * returns: A bp_rb_tree status indicating the result of the insertion attempt.
+ * returns: A rb_tree status indicating the result of the insertion attempt.
  *-------------------------------------------------------------------------------------*/
-static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree_t* tree, bp_rb_node_t** inserted_node)
+static rb_tree_status_t try_binary_insert_or_merge(uint32_t value, rb_tree_t* tree, rb_node_t** inserted_node)
 {
-    bp_rb_tree_status_t status;
+    rb_tree_status_t status;
     *inserted_node = NULL;
-    bp_rb_node_t* node = tree->root;
+    rb_node_t* node = tree->root;
     if (node == NULL) 
     {
         /* The tree is empty and so a root node is created. */
         tree->root = create_rb_node(value,  BLACK, tree);
-        status = BP_RB_SUCCESS;
+        status = RB_SUCCESS;
         *inserted_node = tree->root;
     }
     else 
@@ -830,7 +834,7 @@ static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree
             {
                 /* The current node value is greater than value and consecutive and so we should
                    merge the new value into the tree. */
-                bp_rb_node_t* successor = get_left_successor(node);
+                rb_node_t* successor = get_left_successor(node);
                 if (successor != NULL &&
                     are_consecutive(successor->range.value + successor->range.offset, value))
                 {
@@ -839,14 +843,14 @@ static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree
                     node->range.value = successor->range.value;
                     node->range.offset += successor->range.offset + 2;
                     delete_rb_node(tree, successor);
-                    status = BP_RB_SUCCESS;
+                    status = RB_SUCCESS;
                     break; 
                 }
                 else {
                     /* Merge the new value into the current node. */
                     node->range.value = value;
                     node->range.offset += 1;
-                    status = BP_RB_SUCCESS;
+                    status = RB_SUCCESS;
                     break;
                 }
             }
@@ -867,11 +871,11 @@ static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree
                     if (*inserted_node == NULL)
                     {
                         /* There was no memory remaining for inserting a new child. */
-                        status = BP_RB_FAIL_TREE_FULL;
+                        status = RB_FAIL_TREE_FULL;
                         break;
                     }
                     insert_child(*inserted_node, node, &node->left);
-                    status = BP_RB_SUCCESS;
+                    status = RB_SUCCESS;
                     break;
                 }
                
@@ -880,20 +884,20 @@ static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree
             {
                 /* The current node value is lesser than value and consecutive and so we should
                    merge the new value into the tree. */
-                bp_rb_node_t* successor = get_right_successor(node);
+                rb_node_t* successor = get_right_successor(node);
                 if (successor != NULL && are_consecutive(value, successor->range.value))
                 {
                     /* The right child of the current node is also consecutive the the new value
                        and so we can merge the three values into a single node. */
                     node->range.offset += successor->range.offset + 2;
                     delete_rb_node(tree, successor);
-                    status = BP_RB_SUCCESS;
+                    status = RB_SUCCESS;
                     break;
                 }
                 else
                 {
                     node->range.offset += 1;
-                    status = BP_RB_SUCCESS;
+                    status = RB_SUCCESS;
                     break;
                 }             
             }
@@ -914,18 +918,18 @@ static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree
                     if (*inserted_node == NULL)
                     {
                         /* There was no memory remaining for inserting a new child. */
-                        status = BP_RB_FAIL_TREE_FULL;
+                        status = RB_FAIL_TREE_FULL;
                         break;
                     }
                     insert_child(*inserted_node, node, &node->right);
-                    status = BP_RB_SUCCESS;
+                    status = RB_SUCCESS;
                     break;
                 }
             }
             else
             {
                 /* Value already exists within the tree. Do not insert any duplicates. */
-                status = BP_RB_FAIL_INSERT_DUPLICATE;
+                status = RB_FAIL_INSERT_DUPLICATE;
                 break;
             }
         }
@@ -937,7 +941,7 @@ static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree
  * try_insert_rebalance - Ensure that the red black tree adheres to all rules and rebalances
  *      the nodes within it accordingly. 
  *
- * root: A ptr to the bp_rb_tree_t to rebalance. [OUTPUT]
+ * root: A ptr to the rb_tree_t to rebalance. [OUTPUT]
  * node: A ptr to the last modified node in the red black tree. [OUTPUT]
  *
  *--------------------------------------------------------------------------------------*
@@ -947,12 +951,12 @@ static bp_rb_tree_status_t try_binary_insert_or_merge(uint32_t value, bp_rb_tree
  * Retrieved 14:34, June 20, 2019, 
  * from https://en.wikipedia.org/w/index.php?title=Red%E2%80%93black_tree&oldid=902059008
  *--------------------------------------------------------------------------------------*/ 
-static void try_insert_rebalance(bp_rb_tree_t* tree, bp_rb_node_t* node)
+static void try_insert_rebalance(rb_tree_t* tree, rb_node_t* node)
 {
     while(true)
     {
-        bp_rb_node_t* parent = node->parent;
-        bp_rb_node_t* uncle = get_uncle(node);   
+        rb_node_t* parent = node->parent;
+        rb_node_t* uncle = get_uncle(node);   
  
         if (parent == NULL)
         {
@@ -973,7 +977,7 @@ static void try_insert_rebalance(bp_rb_tree_t* tree, bp_rb_node_t* node)
                Both parent and uncle should be made black. */
             set_black(parent);
             set_black(uncle);
-            bp_rb_node_t* grandparent = get_grandparent(node);
+            rb_node_t* grandparent = get_grandparent(node);
             set_red(grandparent);
 
             /* Repeat the rebalancing steps to correct for red root case or red parent. */
@@ -984,7 +988,7 @@ static void try_insert_rebalance(bp_rb_tree_t* tree, bp_rb_node_t* node)
             /* Case Red Parent and Black Uncle:   
                The goal of the below steps is to rotate the current node into the grandparent
                position. */
-            bp_rb_node_t* grandparent = get_grandparent(node);
+            rb_node_t* grandparent = get_grandparent(node);
 
             if (parent == grandparent->left && node == parent->right)
             {
@@ -1030,7 +1034,7 @@ static void try_insert_rebalance(bp_rb_tree_t* tree, bp_rb_node_t* node)
  * tree: A ptr to an rb_tree from which to remove the provided node. [OUTPUT]
  * node: A ptr to an rb_node to delete and remove references to it in its parent. [OUTPUT]
  *--------------------------------------------------------------------------------------*/  
-static void delete_rb_node_without_rebalancing(bp_rb_tree_t* tree, bp_rb_node_t* node)
+static void delete_rb_node_without_rebalancing(rb_tree_t* tree, rb_node_t* node)
 {
     if (!is_root(node))
     {
@@ -1060,16 +1064,16 @@ static void delete_rb_node_without_rebalancing(bp_rb_tree_t* tree, bp_rb_node_t*
 }
 
 /*--------------------------------------------------------------------------------------
- * rb_tree_binary_search - Searches a bp_rb_tree for a node containing a given value.
+ * rb_tree_binary_search - Searches a rb_tree for a node containing a given value.
  *
- * tree: A ptr to a bp_rb_tree_t to search. [INPUT]
- * value: The value to search for within the bp_rb_tree_t. [INPUT]
- * returns: A ptr to a bp_rb_node_t to populate with the identified node. This is set to NULL
+ * tree: A ptr to a rb_tree_t to search. [INPUT]
+ * value: The value to search for within the rb_tree_t. [INPUT]
+ * returns: A ptr to a rb_node_t to populate with the identified node. This is set to NULL
  *      if no node is found.
  *--------------------------------------------------------------------------------------*/ 
-static bp_rb_node_t* rb_tree_binary_search(bp_rb_tree_t* tree, uint32_t value)
+static rb_node_t* rb_tree_binary_search(rb_tree_t* tree, uint32_t value)
 {
-    bp_rb_node_t* node = tree->root;
+    rb_node_t* node = tree->root;
     while(node != NULL)
     {
         if ((node->range.value <= value) && 
@@ -1095,16 +1099,16 @@ static bp_rb_node_t* rb_tree_binary_search(bp_rb_tree_t* tree, uint32_t value)
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_create -
+ * rb_tree_create -
  *
  * max_size: The maximum number of allowable nodes within the red black tree.
- * tree: A bp_rb_tree_t to allocate memory to.
+ * tree: A rb_tree_t to allocate memory to.
  *--------------------------------------------------------------------------------------*/ 
-bp_rb_tree_status_t bplib_rb_tree_create(uint32_t max_size, bp_rb_tree_t* tree) 
+rb_tree_status_t rb_tree_create(uint32_t max_size, rb_tree_t* tree) 
 {
     if (tree == NULL)
     {
-        return BP_RB_FAIL_NULL_TREE;
+        return RB_FAIL_NULL_TREE;
     }
     
     tree->size = 0;
@@ -1117,11 +1121,11 @@ bp_rb_tree_status_t bplib_rb_tree_create(uint32_t max_size, bp_rb_tree_t* tree)
 
     if (max_size == 0)
     {
-        return BP_RB_FAIL_SIZE_ZERO;
+        return RB_FAIL_SIZE_ZERO;
     }
     if (max_size > MAX_TREE_SIZE)
     {
-        return BP_RB_FAIL_EXCEEDED_MAX_SIZE;
+        return RB_FAIL_EXCEEDED_MAX_SIZE;
     }
 
     /* Size starts maxed out until free blocks are allocated. */
@@ -1130,44 +1134,44 @@ bp_rb_tree_status_t bplib_rb_tree_create(uint32_t max_size, bp_rb_tree_t* tree)
     
     /* Allocate a block of memory for the nodes in the tree and add them all to the
        the free nodes queue. */
-    tree->node_block = (bp_rb_node_t*) calloc(max_size, sizeof(bp_rb_node_t));
+    tree->node_block = (rb_node_t*) calloc(max_size, sizeof(rb_node_t));
 
     if (tree->node_block == NULL)
     {
         /* If no memory is allocated return an empty tree. */
-        return BP_RB_FAIL_MEM_ERR;
+        return RB_FAIL_MEM_ERR;
     }
 
-    bp_rb_node_t* start = tree->node_block;
-    bp_rb_node_t* end = start + max_size;
+    rb_node_t* start = tree->node_block;
+    rb_node_t* end = start + max_size;
     
     for (; start < end; start++)
     {
         push_free_node(tree, start);
     }
-    return BP_RB_SUCCESS;
+    return RB_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
- * rb_tree_clear - Clears all the nodes in an bp_rb_tree_t. No memory is deallocated. Nodes
+ * rb_tree_clear - Clears all the nodes in an rb_tree_t. No memory is deallocated. Nodes
  *      are simply appended to the free stack.
  *
- * tree - A ptr to an bp_rb_tree_t to clear all of its nodes. [OUTPUT]
+ * tree - A ptr to an rb_tree_t to clear all of its nodes. [OUTPUT]
  * returns: A status indicating the sucess of the clear operation.
  *--------------------------------------------------------------------------------------*/
-bp_rb_tree_status_t bplib_rb_tree_clear(bp_rb_tree_t* tree)
+rb_tree_status_t rb_tree_clear(rb_tree_t* tree)
 {
     if (tree == NULL)
     {
-        return BP_RB_FAIL_NULL_TREE;
+        return RB_FAIL_NULL_TREE;
     }
 
-    if (bplib_rb_tree_is_empty(tree))
+    if (rb_tree_is_empty(tree))
     {
-        return BP_RB_SUCCESS;
+        return RB_SUCCESS;
     }
     
-    bp_rb_node_t* node = tree->root;
+    rb_node_t* node = tree->root;
     while(node != NULL)
     {
         if (has_left_child(node))
@@ -1185,55 +1189,55 @@ bp_rb_tree_status_t bplib_rb_tree_clear(bp_rb_tree_t* tree)
         node = node->parent;
     }
 
-    return BP_RB_SUCCESS;
+    return RB_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_is_empty - 
+ * rb_tree_is_empty - 
  *
- * tree: The bp_rb_tree_t to check whether is empty.
- * returns: True when the bp_rb_tree_t has no nodes, otherwise false. If tree is NULL returns
+ * tree: The rb_tree_t to check whether is empty.
+ * returns: True when the rb_tree_t has no nodes, otherwise false. If tree is NULL returns
  *      false.
  *--------------------------------------------------------------------------------------*/ 
-bool bplib_rb_tree_is_empty(bp_rb_tree_t *tree)
+bool rb_tree_is_empty(rb_tree_t *tree)
 {
     return tree != NULL && tree->size == 0;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_is_full - 
+ * rb_tree_is_full - 
  *
- * tree: The bp_rb_tree to check whether is full.
- * returns: True when the bp_rb_tree is full, otherwise false. If tree is NULL returns true.
+ * tree: The rb_tree to check whether is full.
+ * returns: True when the rb_tree is full, otherwise false. If tree is NULL returns true.
  *--------------------------------------------------------------------------------------*/ 
-bool bplib_rb_tree_is_full(bp_rb_tree_t *tree)
+bool rb_tree_is_full(rb_tree_t *tree)
 {
     return tree == NULL || tree->size == tree->max_size;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_insert - Inserts a value into the red black tree and rebalances it accordingly.
+ * rb_tree_insert - Inserts a value into the red black tree and rebalances it accordingly.
  *
- * value - The value to insert into the bp_rb_tree_t. [INPUT]
- * tree: A ptr to a bp_rb_tree_t to insert the value into. [OUTPUT]
- * returns: An bp_rb_tree_status_t enum indicating the result of the insertion. 
+ * value - The value to insert into the rb_tree_t. [INPUT]
+ * tree: A ptr to a rb_tree_t to insert the value into. [OUTPUT]
+ * returns: An rb_tree_status_t enum indicating the result of the insertion. 
  *--------------------------------------------------------------------------------------*/ 
-bp_rb_tree_status_t bplib_rb_tree_insert(uint32_t value, bp_rb_tree_t* tree)
+rb_tree_status_t rb_tree_insert(uint32_t value, rb_tree_t* tree)
 {
     if (tree == NULL)
     {
-        return BP_RB_FAIL_NULL_TREE;
+        return RB_FAIL_NULL_TREE;
     }   
     
     if (tree->node_block == NULL || tree->max_size == 0)
     {
-        return BP_RB_FAIL_SIZE_ZERO;
+        return RB_FAIL_SIZE_ZERO;
     }
 
-    bp_rb_node_t* inserted_node = NULL;
-    bp_rb_tree_status_t status = try_binary_insert_or_merge(value, tree, &inserted_node);
+    rb_node_t* inserted_node = NULL;
+    rb_tree_status_t status = try_binary_insert_or_merge(value, tree, &inserted_node);
 
-    if (status == BP_RB_SUCCESS && inserted_node != NULL)
+    if (status == RB_SUCCESS && inserted_node != NULL)
     {
         /* Correct any violations within the red black tree due to the insertion. */
         try_insert_rebalance(tree, inserted_node);
@@ -1242,25 +1246,25 @@ bp_rb_tree_status_t bplib_rb_tree_insert(uint32_t value, bp_rb_tree_t* tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_delete - Deletes a value into the red black tree and rebalances it accordingly.
+ * rb_tree_delete - Deletes a value into the red black tree and rebalances it accordingly.
  *
- * value - The value to delete into the bp_rb_tree_t. [INPUT]
- * tree: A ptr to a bp_rb_tree_t to delete value from. [OUTPUT]
- * returns: An bp_rb_tree_status_t enum indicating the result of the deletion. 
+ * value - The value to delete into the rb_tree_t. [INPUT]
+ * tree: A ptr to a rb_tree_t to delete value from. [OUTPUT]
+ * returns: An rb_tree_status_t enum indicating the result of the deletion. 
  *--------------------------------------------------------------------------------------*/ 
-bp_rb_tree_status_t bplib_rb_tree_delete(uint32_t value, bp_rb_tree_t* tree)
+rb_tree_status_t rb_tree_delete(uint32_t value, rb_tree_t* tree)
 {
     if (tree == NULL)
     {
-        return BP_RB_FAIL_NULL_TREE;
+        return RB_FAIL_NULL_TREE;
     }
 
-    bp_rb_node_t* node = rb_tree_binary_search(tree, value);
-    bp_rb_tree_status_t status = BP_RB_SUCCESS;
+    rb_node_t* node = rb_tree_binary_search(tree, value);
+    rb_tree_status_t status = RB_SUCCESS;
     if (node == NULL)
     {
         /* No node containing value was found. */
-        status = BP_RB_FAIL_VALUE_NOT_FOUND;
+        status = RB_FAIL_VALUE_NOT_FOUND;
     }
     else
     {
@@ -1287,17 +1291,17 @@ bp_rb_tree_status_t bplib_rb_tree_delete(uint32_t value, bp_rb_tree_t* tree)
             {
                 /* Value is somewhere within the range of the current node and so that
                    node must be split. */
-                bp_rb_node_t* upper_node = NULL;
-                bp_rb_tree_status_t insert_status = try_binary_insert_or_merge(value + 1, 
+                rb_node_t* upper_node = NULL;
+                rb_tree_status_t insert_status = try_binary_insert_or_merge(value + 1, 
                                                                           tree, 
                                                                           &upper_node);
                 
-                if (insert_status != BP_RB_SUCCESS)
+                if (insert_status != RB_SUCCESS)
                 {
                     /* Failure in inserting the new upper range node into the tree. In theory
                        this should only ever be caused by a lack of memory in the tree. */
                     status = insert_status;
-                    assert(status == BP_RB_FAIL_TREE_FULL);
+                    assert(status == RB_FAIL_TREE_FULL);
                 }
                 else
                 {
@@ -1313,43 +1317,43 @@ bp_rb_tree_status_t bplib_rb_tree_delete(uint32_t value, bp_rb_tree_t* tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_destroy - Frees all memory allocated by a given bp_rb_tree_t. 
+ * rb_tree_destroy - Frees all memory allocated by a given rb_tree_t. 
  *
- * tree: A ptr to a bp_rb_tree_t to free its memory. [OUTPUT]
+ * tree: A ptr to a rb_tree_t to free its memory. [OUTPUT]
  *--------------------------------------------------------------------------------------*/ 
-bp_rb_tree_status_t bplib_rb_tree_destroy(bp_rb_tree_t* tree)
+rb_tree_status_t rb_tree_destroy(rb_tree_t* tree)
 {
-    if (tree == NULL) return BP_RB_FAIL_NULL_TREE;
+    if (tree == NULL) return RB_FAIL_NULL_TREE;
     free(tree->node_block);
     tree->node_block = NULL;
-    return BP_RB_SUCCESS;
+    return RB_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_get_first_rb_node - Traverses a bp_rb_tree_t inorder and finds the node
+ * rb_tree_get_first_rb_node - Traverses a rb_tree_t inorder and finds the node
  *      with the lowest value to serve as an iterator.
 
- * tree: A ptr to a bp_rb_tree_t to identify the lowest range. [OUTPUT]
- * iter: A ptr of a ptr to the next bp_rb_node_t node from which to continue the inorder 
+ * tree: A ptr to a rb_tree_t to identify the lowest range. [OUTPUT]
+ * iter: A ptr of a ptr to the next rb_node_t node from which to continue the inorder 
  *      traversal of the tree. After each call to this function iter is updated. If iter is 
  *      set to NULL then the traversal is complete. Providing a NULL iter to this function 
- *      will result in a NULL bp_rb_range_t ptr. [OUTPUT]
+ *      will result in a NULL rb_range_t ptr. [OUTPUT]
  * returns: A status indicating the outcome of the function call.
  *--------------------------------------------------------------------------------------*/ 
-bp_rb_tree_status_t bplib_rb_tree_get_first_rb_node(bp_rb_tree_t* tree,
-                                                   bp_rb_node_t** iter)
+rb_tree_status_t rb_tree_get_first_rb_node(rb_tree_t* tree,
+                                                   rb_node_t** iter)
 {
     if (tree == NULL)
     {
         /* No nodes exist in the tree. */
-        return BP_RB_FAIL_NULL_TREE;
+        return RB_FAIL_NULL_TREE;
     }
 
     *iter = tree->root;
     if (*iter == NULL)
     {
         /* There exist no nodes within the tree. */
-        return BP_RB_FAIL_NULL_TREE;
+        return RB_FAIL_NULL_TREE;
     }
 
     /* Resets the is visited state of root. */
@@ -1361,20 +1365,20 @@ bp_rb_tree_status_t bplib_rb_tree_get_first_rb_node(bp_rb_tree_t* tree,
         *iter = (*iter)->left;
         (*iter)->traversal_state = false;
     }
-    return BP_RB_SUCCESS;
+    return RB_SUCCESS;
 }
 
  /*--------------------------------------------------------------------------------------
- * bplib_rb_tree_get_next_rb_node - Traverses a bp_rb_tree_t inorder and returns the
+ * rb_tree_get_next_rb_node - Traverses a rb_tree_t inorder and returns the
  *      the ranges within the tree. This function performs no rebalancing and therefore if
  *      should_pop is true and should_rebalance is false, it should be called until no 
  *      nodes remain in the tree to ensure that the tree's operation does not degrade.
  *
- * tree: A ptr to a bp_rb_tree_t to identify the lowest range. [OUTPUT]
- * iter: A ptr of a ptr to the next bp_rb_node_t node from which to continue the inorder 
+ * tree: A ptr to a rb_tree_t to identify the lowest range. [OUTPUT]
+ * iter: A ptr of a ptr to the next rb_node_t node from which to continue the inorder 
  *      traversal of the tree. After each call to this function iter is updated. If iter is 
  *      set to NULL then the traversal is complete. Providing a NULL iter to this function 
- *      will result in a NULL bp_rb_range_t ptr. [OUTPUT]
+ *      will result in a NULL rb_range_t ptr. [OUTPUT]
  * range: A ptr to a bp_range_t to update with the next range. [OUTPUT]
  * should_pop: A boolean determining whether or not the node pointed to by iter at the start of
  *      of the function call should be deleted from the tree. [INPUT]
@@ -1384,21 +1388,21 @@ bp_rb_tree_status_t bplib_rb_tree_get_first_rb_node(bp_rb_tree_t* tree,
  *      or else the tree is no longer garunteed to operate properly.
  * returns: A status indicating the outcome of the function call.
  *--------------------------------------------------------------------------------------*/ 
-bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
-                                                   bp_rb_node_t** iter, 
-                                                   bp_rb_range_t* range,
+rb_tree_status_t rb_tree_get_next_rb_node(rb_tree_t* tree,
+                                                   rb_node_t** iter, 
+                                                   rb_range_t* range,
                                                    bool should_pop,
                                                    bool should_rebalance)
 {
     if (*iter == NULL)
     {
         /* There is no next if the provided node is NULL. */
-        return BP_RB_FAIL_NULL_NODE;
+        return RB_FAIL_NULL_NODE;
     }
     if (range == NULL)
     {
         /* The range to fill is NULL and so the function must exit early. */
-        return BP_RB_FAIL_NULL_RANGE;
+        return RB_FAIL_NULL_RANGE;
     }
 
     /* Fill the range from the current iter ptr. */
@@ -1406,15 +1410,15 @@ bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
     range->offset = (*iter)->range.offset;
     
     /* Set iter to visited and store node for deletion. */
-    bp_rb_node_t* delete_node = *iter;
-    bp_rb_node_t* node = *iter;
+    rb_node_t* delete_node = *iter;
+    rb_node_t* node = *iter;
    
     if (should_pop && should_rebalance)
     {
         /* Remove the node and rebalance the tree. Iter must be recalculated. */
         delete_rb_node(tree, delete_node);
-        bplib_rb_tree_get_first_rb_node(tree, iter);
-        return BP_RB_SUCCESS;
+        rb_tree_get_first_rb_node(tree, iter);
+        return RB_SUCCESS;
     }
 
     /* Node hasn't been traversed. This means we are at a leaf. */
@@ -1447,7 +1451,7 @@ bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
         /* Remove the the node from the tree. NO REBALANCING WILL OCCUR. */
         delete_rb_node_without_rebalancing(tree, delete_node);
     }
-    return BP_RB_SUCCESS;
+    return RB_SUCCESS;
 }
 
 #ifdef RBTREETESTS
@@ -1466,9 +1470,9 @@ bp_rb_tree_status_t bplib_rb_tree_get_next_rb_node(bp_rb_tree_t* tree,
 /*--------------------------------------------------------------------------------------
  * print_node -
  * 
- * node: A ptr to an bp_rb_node to print. [INPUT]
+ * node: A ptr to an rb_node to print. [INPUT]
  *--------------------------------------------------------------------------------------*/  
-static void print_node(bp_rb_node_t* node)
+static void print_node(rb_node_t* node)
 {
     if (node == NULL)
     {
@@ -1485,12 +1489,12 @@ static void print_node(bp_rb_node_t* node)
 }
 
 /*--------------------------------------------------------------------------------------
- * apply_inorder - Applies a function in order to nodes in a bp_rb_tree. 
+ * apply_inorder - Applies a function in order to nodes in a rb_tree. 
  * 
- * node: A ptr to a bp_rb_node to apply a function to and recurse its subtrees. [INPUT]
- * func. A function pointer accepting a ptr to an bp_rb_node. [INPUT]
+ * node: A ptr to a rb_node to apply a function to and recurse its subtrees. [INPUT]
+ * func. A function pointer accepting a ptr to an rb_node. [INPUT]
  *--------------------------------------------------------------------------------------*/  
-static void apply_inorder(bp_rb_node_t* node, void (*func)(bp_rb_node_t*))
+static void apply_inorder(rb_node_t* node, void (*func)(rb_node_t*))
 {
     if (has_left_child(node))
     {
@@ -1511,9 +1515,9 @@ static void apply_inorder(bp_rb_node_t* node, void (*func)(bp_rb_node_t*))
 /*--------------------------------------------------------------------------------------
  * print_tree - 
  * 
- * tree: A ptr to an bp_rb_tree to print. [INPUT]
+ * tree: A ptr to an rb_tree to print. [INPUT]
  *--------------------------------------------------------------------------------------*/  
-static void print_tree(bp_rb_tree_t* tree)
+static void print_tree(rb_tree_t* tree)
 {
     printf("\n##################################\n");
     printf("* Size: %u / %u\n", tree->size, tree->max_size);
@@ -1532,16 +1536,16 @@ static void print_tree(bp_rb_tree_t* tree)
 /*--------------------------------------------------------------------------------------
  * assert_inorder_values_are - Asserts that the nodes in tree match the provided values.
  *
- * node: A ptr to a bp_rb_node_t to recursively check if its values match the values array.
- * nodes: An array of ptr to bp_rb_node_ts whose values, offsets and colors will be 
+ * node: A ptr to a rb_node_t to recursively check if its values match the values array.
+ * nodes: An array of ptr to rb_node_ts whose values, offsets and colors will be 
  *      compared to the nodes in the tree tree inorder.
  * length: The length of the nodes array.
  * index: A ptr to an integer index into the nodes array which is incremented within recursive
  *      calls to this function.
  * returns: The number of times the current index was incremented by its subtrees
  *--------------------------------------------------------------------------------------*/  
-static uint32_t assert_inorder_nodes_are(bp_rb_node_t* node, 
-                                    bp_rb_node_t** nodes, 
+static uint32_t assert_inorder_nodes_are(rb_node_t* node, 
+                                    rb_node_t** nodes, 
                                     uint32_t length, 
                                     uint32_t index)
 {
@@ -1584,9 +1588,9 @@ static uint32_t assert_inorder_nodes_are(bp_rb_node_t* node,
  * assert_node_has_no_adjacent_red - Checks the condition that a given node has no adjacent
  *      red nodes among its children.
  * 
- * node: A ptr to check bp_rb_node_t to check it and its subtrees for validity. [INPUT]
+ * node: A ptr to check rb_node_t to check it and its subtrees for validity. [INPUT]
  *--------------------------------------------------------------------------------------*/  
-static void assert_node_has_no_adjacent_red(bp_rb_node_t* node)
+static void assert_node_has_no_adjacent_red(rb_node_t* node)
 {
     if (is_black(node))
     {
@@ -1610,10 +1614,10 @@ static void assert_node_has_no_adjacent_red(bp_rb_node_t* node)
 /*--------------------------------------------------------------------------------------
  * count_is_black - 
  * 
- * node: A ptr to an bp_rb_node_t to check its color. [INPUT]
+ * node: A ptr to an rb_node_t to check its color. [INPUT]
  * returns: 1 if the provided node is black or null, else 0.
  *--------------------------------------------------------------------------------------*/  
-static uint32_t count_is_black(bp_rb_node_t* node)
+static uint32_t count_is_black(rb_node_t* node)
 {
     return is_black(node) ? 1 : 0;
 }
@@ -1626,7 +1630,7 @@ static uint32_t count_is_black(bp_rb_node_t* node)
  * returns: The black depth in indicating the number of black nodes along a path to a 
  * leaf starting at node.
  *--------------------------------------------------------------------------------------*/  
-static uint32_t assert_tree_pathes_have_equal_black_depths(bp_rb_node_t* node)
+static uint32_t assert_tree_pathes_have_equal_black_depths(rb_node_t* node)
 {
     if (node == NULL)
     {   
@@ -1670,9 +1674,9 @@ static uint32_t assert_tree_pathes_have_equal_black_depths(bp_rb_node_t* node)
  *      a given nodes left child has a value less than node and the right child has a value
  *      greater than node.
  * 
- * node: A ptr to an bp_rb_node_t to compare its value to its children and also check the children's subtrees. [INPUT]
+ * node: A ptr to an rb_node_t to compare its value to its children and also check the children's subtrees. [INPUT]
  *--------------------------------------------------------------------------------------*/  
-static void assert_node_value_in_between_children(bp_rb_node_t* node)
+static void assert_node_value_in_between_children(rb_node_t* node)
 {
     if (node == NULL)
     {
@@ -1692,11 +1696,11 @@ static void assert_node_value_in_between_children(bp_rb_node_t* node)
 }
 
 /*--------------------------------------------------------------------------------------
- * assert_bp_rb_tree_is_valid - Checks all the validity conditions for a valid red black tree.
+ * assert_rb_tree_is_valid - Checks all the validity conditions for a valid red black tree.
  * 
- * tree: A ptr to an bp_rb_tree_t to check for validity. [INPUT]
+ * tree: A ptr to an rb_tree_t to check for validity. [INPUT]
  *--------------------------------------------------------------------------------------*/  
-static void assert_bp_rb_tree_is_valid(bp_rb_tree_t* tree)
+static void assert_rb_tree_is_valid(rb_tree_t* tree)
 {
     assert(is_black(tree->root));
     assert_node_has_no_adjacent_red(tree->root);
@@ -1722,7 +1726,7 @@ static void shuffle(uint32_t* array, uint32_t length)
 }
 
 /******************************************************************************
- BP_RB_TREE TESTS
+ RB_TREE TESTS
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
@@ -1731,8 +1735,8 @@ static void shuffle(uint32_t* array, uint32_t length)
 static void test_new_tree_empty()
 {
     printf("test_new_empty_tree: ");
-    bp_rb_tree_t tree;
-    assert(bplib_rb_tree_create(0, &tree) == BP_RB_FAIL_SIZE_ZERO);
+    rb_tree_t tree;
+    assert(rb_tree_create(0, &tree) == RB_FAIL_SIZE_ZERO);
     assert(tree.root == NULL);
     assert(tree.max_size == 0);
     printf("PASS\n");
@@ -1744,9 +1748,9 @@ static void test_new_tree_empty()
 static void test_unable_to_insert_into_empty_tree()
 {
     printf("test_unable_to_insert_into_empty_tree: ");
-    bp_rb_tree_t tree;
-    assert(bplib_rb_tree_create(0, &tree) == BP_RB_FAIL_SIZE_ZERO);
-    assert(bplib_rb_tree_is_full(&tree));
+    rb_tree_t tree;
+    assert(rb_tree_create(0, &tree) == RB_FAIL_SIZE_ZERO);
+    assert(rb_tree_is_full(&tree));
     assert(tree.root == NULL); 
     printf("PASS\n");
 }
@@ -1757,24 +1761,24 @@ static void test_unable_to_insert_into_empty_tree()
 static void test_unable_to_insert_into_full_tree()
 {
     printf("test_unable_to_insert_into_full_tree: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(4, &tree);
+    rb_tree_t tree;
+    rb_tree_create(4, &tree);
     assert(tree.size == 0);
-    assert(!bplib_rb_tree_is_full(&tree));
-    bplib_rb_tree_insert(0, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(2, &tree);
-    assert_bp_rb_tree_is_valid(&tree);       
-    bplib_rb_tree_insert(4, &tree);
-    assert_bp_rb_tree_is_valid(&tree);   
-    bplib_rb_tree_insert(6, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
+    assert(!rb_tree_is_full(&tree));
+    rb_tree_insert(0, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(2, &tree);
+    assert_rb_tree_is_valid(&tree);       
+    rb_tree_insert(4, &tree);
+    assert_rb_tree_is_valid(&tree);   
+    rb_tree_insert(6, &tree);
+    assert_rb_tree_is_valid(&tree);
     assert(tree.size == 4);
-    assert(bplib_rb_tree_is_full(&tree));
+    assert(rb_tree_is_full(&tree));
     /* The final insert should fail when tree is full. */
-    assert(bplib_rb_tree_insert(8, &tree) == BP_RB_FAIL_TREE_FULL);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_destroy(&tree);
+    assert(rb_tree_insert(8, &tree) == RB_FAIL_TREE_FULL);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1786,17 +1790,17 @@ static void test_deletes_tree()
 {
     printf("test_deletes_tree: ");
     /* Tests deleting a tree with nodes. */
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(5, &tree);
-    bplib_rb_tree_insert(0, &tree);
-    bplib_rb_tree_insert(1, &tree);
-    bplib_rb_tree_insert(2, &tree);
-    bplib_rb_tree_insert(3, &tree);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_t tree;
+    rb_tree_create(5, &tree);
+    rb_tree_insert(0, &tree);
+    rb_tree_insert(1, &tree);
+    rb_tree_insert(2, &tree);
+    rb_tree_insert(3, &tree);
+    rb_tree_destroy(&tree);
     
     /* Tests deleting an empty tree. */
-    bplib_rb_tree_create(0, &tree);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_create(0, &tree);
+    rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1806,15 +1810,15 @@ static void test_deletes_tree()
 static void test_insert_root()
 {
     printf("test_insert_root: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(1, &tree);
-    bplib_rb_tree_insert(5, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
+    rb_tree_t tree;
+    rb_tree_create(1, &tree);
+    rb_tree_insert(5, &tree);
+    assert_rb_tree_is_valid(&tree);
  
-    bp_rb_node_t n1 = {.range = {.value = 5, .offset = 0}, .color=BLACK};
-    bp_rb_node_t* nodes[] = {&n1};
+    rb_node_t n1 = {.range = {.value = 5, .offset = 0}, .color=BLACK};
+    rb_node_t* nodes[] = {&n1};
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1825,33 +1829,33 @@ static void test_insert_left_subtree()
 {
     printf("test_insert_left_subtree: ");
     /* Tests a single insertion into the left subtree from root. */
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(4, &tree);
-    bplib_rb_tree_insert(7, &tree);
-    bplib_rb_tree_insert(5, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bp_rb_node_t n1 = {.range = {.value = 7, .offset = 0}, .color = BLACK};
-    bp_rb_node_t n2 = {.range = {.value = 5, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes_1[] = {&n2, &n1};
+    rb_tree_t tree;
+    rb_tree_create(4, &tree);
+    rb_tree_insert(7, &tree);
+    rb_tree_insert(5, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_node_t n1 = {.range = {.value = 7, .offset = 0}, .color = BLACK};
+    rb_node_t n2 = {.range = {.value = 5, .offset = 0}, .color = RED};
+    rb_node_t* nodes_1[] = {&n2, &n1};
     assert_inorder_nodes_are(tree.root, nodes_1, 2, 0);
     
     /* Tests inserting into a left subtree requiring a rebalancing. */
-    bplib_rb_tree_insert(3, &tree);
+    rb_tree_insert(3, &tree);
     n1.color = RED;
     n2.color = BLACK;
-    bp_rb_node_t n3 = {.range = {.value = 3, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes_2[] = {&n3, &n2, &n1}; 
+    rb_node_t n3 = {.range = {.value = 3, .offset = 0}, .color = RED};
+    rb_node_t* nodes_2[] = {&n3, &n2, &n1}; 
     assert_inorder_nodes_are(tree.root, nodes_2, 3, 0);
 
     /* Tests an insertion into the left subtree when the parent node is not root. */
-    bplib_rb_tree_insert(1, &tree); 
+    rb_tree_insert(1, &tree); 
     n1.color = BLACK;
     n2.color = BLACK;
     n3.color = BLACK;
-    bp_rb_node_t n4 = {.range = {.value = 1, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes_3[] = {&n4, &n3, &n2, &n1};
+    rb_node_t n4 = {.range = {.value = 1, .offset = 0}, .color = RED};
+    rb_node_t* nodes_3[] = {&n4, &n3, &n2, &n1};
     assert_inorder_nodes_are(tree.root, nodes_3, 4, 0);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_destroy(&tree);
     printf("PASS\n");
  }
 
@@ -1862,33 +1866,33 @@ static void test_insert_right_subtree()
 {
     printf("test_insert_right_subtree: ");
     /* Tests a single insertion into the right subtree from root. */
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(4, &tree);
-    bplib_rb_tree_insert(1, &tree);
-    bplib_rb_tree_insert(3, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bp_rb_node_t n1 = {.range = {.value = 1, .offset = 0}, .color = BLACK};
-    bp_rb_node_t n2 = {.range = {.value = 3, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes_1[] = {&n1, &n2};
+    rb_tree_t tree;
+    rb_tree_create(4, &tree);
+    rb_tree_insert(1, &tree);
+    rb_tree_insert(3, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_node_t n1 = {.range = {.value = 1, .offset = 0}, .color = BLACK};
+    rb_node_t n2 = {.range = {.value = 3, .offset = 0}, .color = RED};
+    rb_node_t* nodes_1[] = {&n1, &n2};
     assert_inorder_nodes_are(tree.root, nodes_1, 2, 0);
     
     /* Tests inserting into a right subtree requiring a rebalancing. */
-    bplib_rb_tree_insert(5, &tree);
+    rb_tree_insert(5, &tree);
     n1.color = RED;
     n2.color = BLACK;
-    bp_rb_node_t n3 = {.range = {.value = 5, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes_2[] = {&n1, &n2, &n3}; 
+    rb_node_t n3 = {.range = {.value = 5, .offset = 0}, .color = RED};
+    rb_node_t* nodes_2[] = {&n1, &n2, &n3}; 
     assert_inorder_nodes_are(tree.root, nodes_2, 3, 0);
 
     /* Tests an insertion into the right subtree when the parent node is not root. */
-    bplib_rb_tree_insert(7, &tree); 
+    rb_tree_insert(7, &tree); 
     n1.color = BLACK;
     n2.color = BLACK;
     n3.color = BLACK;
-    bp_rb_node_t n4 = {.range = {.value = 7, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes_3[] = {&n1, &n2, &n3, &n4};
+    rb_node_t n4 = {.range = {.value = 7, .offset = 0}, .color = RED};
+    rb_node_t* nodes_3[] = {&n1, &n2, &n3, &n4};
     assert_inorder_nodes_are(tree.root, nodes_3, 4, 0);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1898,29 +1902,29 @@ static void test_insert_right_subtree()
 static void test_insert_merge_lower()
 {
     printf("test_insert_merge_lower: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(3, &tree);
-    bplib_rb_tree_insert(5, &tree);
-    bplib_rb_tree_insert(2, &tree);
-    bplib_rb_tree_insert(10, &tree);
+    rb_tree_t tree;
+    rb_tree_create(3, &tree);
+    rb_tree_insert(5, &tree);
+    rb_tree_insert(2, &tree);
+    rb_tree_insert(10, &tree);
      
-    bp_rb_node_t n1 = {.range = {.value =  2, .offset = 0}, .color = RED};
-    bp_rb_node_t n2 = {.range = {.value =  5, .offset = 0}, .color = BLACK};
-    bp_rb_node_t n3 = {.range = {.value = 10, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes[] = {&n1, &n2, &n3};
+    rb_node_t n1 = {.range = {.value =  2, .offset = 0}, .color = RED};
+    rb_node_t n2 = {.range = {.value =  5, .offset = 0}, .color = BLACK};
+    rb_node_t n3 = {.range = {.value = 10, .offset = 0}, .color = RED};
+    rb_node_t* nodes[] = {&n1, &n2, &n3};
     
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
     
     /* After inserting the following values all node values in the tree should be replaced
        with the corresponding consecutive number that is lower. The offset should also be
        incremented to indicate that each node stores multiple values. */
-    bplib_rb_tree_insert(4, &tree);
-    bplib_rb_tree_insert(1, &tree);
-    bplib_rb_tree_insert(9, &tree);
-    bplib_rb_tree_insert(8, &tree);
-    bplib_rb_tree_insert(7, &tree);
-    bplib_rb_tree_insert(0, &tree);
+    rb_tree_insert(4, &tree);
+    rb_tree_insert(1, &tree);
+    rb_tree_insert(9, &tree);
+    rb_tree_insert(8, &tree);
+    rb_tree_insert(7, &tree);
+    rb_tree_insert(0, &tree);
    
     n1.range.value = 0;
     n1.range.offset = 2;
@@ -1931,9 +1935,9 @@ static void test_insert_merge_lower()
     n3.range.value = 7;
     n3.range.offset = 3;
 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -1943,39 +1947,39 @@ static void test_insert_merge_lower()
 static void test_insert_merge_upper()
 {
     printf("test_insert_merge_upper: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(3, &tree);
-    bplib_rb_tree_insert(5, &tree);
-    bplib_rb_tree_insert(2, &tree);
-    bplib_rb_tree_insert(10, &tree);
+    rb_tree_t tree;
+    rb_tree_create(3, &tree);
+    rb_tree_insert(5, &tree);
+    rb_tree_insert(2, &tree);
+    rb_tree_insert(10, &tree);
      
-    bp_rb_node_t n1 = {.range = {.value =  2, .offset = 0}, .color = RED};
-    bp_rb_node_t n2 = {.range = {.value =  5, .offset = 0}, .color = BLACK};
-    bp_rb_node_t n3 = {.range = {.value = 10, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes[] = {&n1, &n2, &n3};
+    rb_node_t n1 = {.range = {.value =  2, .offset = 0}, .color = RED};
+    rb_node_t n2 = {.range = {.value =  5, .offset = 0}, .color = BLACK};
+    rb_node_t n3 = {.range = {.value = 10, .offset = 0}, .color = RED};
+    rb_node_t* nodes[] = {&n1, &n2, &n3};
     
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
     
     /* After inserting the following values all node values in the tree should increase
        have increased offsets reflecting the fact that the node stores a range of inserted
        values. */
-    bplib_rb_tree_insert(6, &tree);
-    bplib_rb_tree_insert(7, &tree);
-    bplib_rb_tree_insert(3, &tree);
-    bplib_rb_tree_insert(11, &tree);
-    bplib_rb_tree_insert(12, &tree);
-    bplib_rb_tree_insert(13, &tree);
-    bplib_rb_tree_insert(14, &tree);
-    bplib_rb_tree_insert(15, &tree);
+    rb_tree_insert(6, &tree);
+    rb_tree_insert(7, &tree);
+    rb_tree_insert(3, &tree);
+    rb_tree_insert(11, &tree);
+    rb_tree_insert(12, &tree);
+    rb_tree_insert(13, &tree);
+    rb_tree_insert(14, &tree);
+    rb_tree_insert(15, &tree);
    
     n1.range.offset = 1;
     n2.range.offset = 2;
     n3.range.offset = 5;
 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_destroy(&tree);
     printf(" PASS\n");
 }
 
@@ -1985,38 +1989,38 @@ static void test_insert_merge_upper()
 static void test_insert_merge_lower_and_child()
 {
     printf("test_insert_merge_lower_and_child: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(7, &tree);
-    bplib_rb_tree_insert(20, &tree);
-    bplib_rb_tree_insert(15, &tree);
-    bplib_rb_tree_insert(25, &tree);
-    bplib_rb_tree_insert(10, &tree);
-    bplib_rb_tree_insert(30, &tree);
-    bplib_rb_tree_insert(5,  &tree);
-    bplib_rb_tree_insert(35, &tree);
+    rb_tree_t tree;
+    rb_tree_create(7, &tree);
+    rb_tree_insert(20, &tree);
+    rb_tree_insert(15, &tree);
+    rb_tree_insert(25, &tree);
+    rb_tree_insert(10, &tree);
+    rb_tree_insert(30, &tree);
+    rb_tree_insert(5,  &tree);
+    rb_tree_insert(35, &tree);
  
-    bp_rb_node_t n1 = {.range = {.value =  5, .offset = 0}, .color = RED};
-    bp_rb_node_t n2 = {.range = {.value = 10, .offset = 0}, .color = BLACK}; 
-    bp_rb_node_t n3 = {.range = {.value = 15, .offset = 0}, .color = RED}; 
-    bp_rb_node_t n4 = {.range = {.value = 20, .offset = 0}, .color = BLACK};  
-    bp_rb_node_t n5 = {.range = {.value = 25, .offset = 0}, .color = RED};  
-    bp_rb_node_t n6 = {.range = {.value = 30, .offset = 0}, .color = BLACK}; 
-    bp_rb_node_t n7 = {.range = {.value = 35, .offset = 0}, .color = RED}; 
-    bp_rb_node_t* nodes_1[] = {&n1, &n2, &n3, &n4, &n5, &n6, &n7};
+    rb_node_t n1 = {.range = {.value =  5, .offset = 0}, .color = RED};
+    rb_node_t n2 = {.range = {.value = 10, .offset = 0}, .color = BLACK}; 
+    rb_node_t n3 = {.range = {.value = 15, .offset = 0}, .color = RED}; 
+    rb_node_t n4 = {.range = {.value = 20, .offset = 0}, .color = BLACK};  
+    rb_node_t n5 = {.range = {.value = 25, .offset = 0}, .color = RED};  
+    rb_node_t n6 = {.range = {.value = 30, .offset = 0}, .color = BLACK}; 
+    rb_node_t n7 = {.range = {.value = 35, .offset = 0}, .color = RED}; 
+    rb_node_t* nodes_1[] = {&n1, &n2, &n3, &n4, &n5, &n6, &n7};
 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes_1, 7, 0);
-    bplib_rb_tree_insert(11, &tree);
-    bplib_rb_tree_insert(12, &tree);
-    bplib_rb_tree_insert(13, &tree);
-    bplib_rb_tree_insert(14, &tree);
+    rb_tree_insert(11, &tree);
+    rb_tree_insert(12, &tree);
+    rb_tree_insert(13, &tree);
+    rb_tree_insert(14, &tree);
 
 
     n2.range.offset = 5;    
-    bp_rb_node_t* nodes_2[] = {&n1, &n2, &n4, &n5, &n6, &n7};
-    assert_bp_rb_tree_is_valid(&tree);
+    rb_node_t* nodes_2[] = {&n1, &n2, &n4, &n5, &n6, &n7};
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes_2, 6, 0);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -2026,30 +2030,30 @@ static void test_insert_merge_lower_and_child()
 static void test_insert_merge_upper_and_child()
 {
     printf("test_insert_merge_upper_and_child: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(4, &tree);
-    bplib_rb_tree_insert(20, &tree);
-    bplib_rb_tree_insert(10, &tree);
-    bplib_rb_tree_insert(28, &tree);
-    bplib_rb_tree_insert(30, &tree);
+    rb_tree_t tree;
+    rb_tree_create(4, &tree);
+    rb_tree_insert(20, &tree);
+    rb_tree_insert(10, &tree);
+    rb_tree_insert(28, &tree);
+    rb_tree_insert(30, &tree);
     
-    bp_rb_node_t n1 = {.range = {.value = 10, .offset = 0}, .color = BLACK};
-    bp_rb_node_t n2 = {.range = {.value = 20, .offset = 0}, .color = BLACK}; 
-    bp_rb_node_t n3 = {.range = {.value = 28, .offset = 0}, .color = BLACK}; 
-    bp_rb_node_t n4 = {.range = {.value = 30, .offset = 0}, .color = RED};  
-    bp_rb_node_t* nodes_1[] = {&n1, &n2, &n3, &n4};
+    rb_node_t n1 = {.range = {.value = 10, .offset = 0}, .color = BLACK};
+    rb_node_t n2 = {.range = {.value = 20, .offset = 0}, .color = BLACK}; 
+    rb_node_t n3 = {.range = {.value = 28, .offset = 0}, .color = BLACK}; 
+    rb_node_t n4 = {.range = {.value = 30, .offset = 0}, .color = RED};  
+    rb_node_t* nodes_1[] = {&n1, &n2, &n3, &n4};
 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes_1, 4, 0);
 
-    bplib_rb_tree_insert(29, &tree);
+    rb_tree_insert(29, &tree);
     
     n3.range.offset = 2;
-    bp_rb_node_t* nodes_2[] = {&n1, &n2, &n3};
+    rb_node_t* nodes_2[] = {&n1, &n2, &n3};
 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes_2, 3, 0);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_destroy(&tree);
     printf("PASS \n");
 }
 
@@ -2059,44 +2063,44 @@ static void test_insert_merge_upper_and_child()
 static void test_merge_to_single_node()
 {
     printf("test_merge_to_single_node: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(10, &tree);
-    bplib_rb_tree_insert(1, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(3, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(5, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(7, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(9, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(11, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(13, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(15, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(12, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(8, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(4, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(14, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(2, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(6, &tree);
-    assert_bp_rb_tree_is_valid(&tree);
-    bplib_rb_tree_insert(10, &tree);
+    rb_tree_t tree;
+    rb_tree_create(10, &tree);
+    rb_tree_insert(1, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(3, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(5, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(7, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(9, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(11, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(13, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(15, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(12, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(8, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(4, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(14, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(2, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(6, &tree);
+    assert_rb_tree_is_valid(&tree);
+    rb_tree_insert(10, &tree);
  
-    bp_rb_node_t final_node = {.range = {.value = 1, .offset = 14}, .color = false};
-    bp_rb_node_t* nodes[] = {&final_node};
+    rb_node_t final_node = {.range = {.value = 1, .offset = 14}, .color = false};
+    rb_node_t* nodes[] = {&final_node};
 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_destroy(&tree);
     printf(" PASS\n");
 }
 
@@ -2106,32 +2110,32 @@ static void test_merge_to_single_node()
 static void test_no_duplicates()
 {
     printf("test_no_duplicates: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(10, &tree);
-    bplib_rb_tree_insert(5, &tree);
-    bplib_rb_tree_insert(10, &tree);
-    bplib_rb_tree_insert(15, &tree);
-    bp_rb_node_t n1 = {.range = {.value =  5, .offset = 0}, .color = RED};
-    bp_rb_node_t n2 = {.range = {.value = 10, .offset = 0}, .color = BLACK}; 
-    bp_rb_node_t n3 = {.range = {.value = 15, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes[] = {&n1, &n2, &n3};
+    rb_tree_t tree;
+    rb_tree_create(10, &tree);
+    rb_tree_insert(5, &tree);
+    rb_tree_insert(10, &tree);
+    rb_tree_insert(15, &tree);
+    rb_node_t n1 = {.range = {.value =  5, .offset = 0}, .color = RED};
+    rb_node_t n2 = {.range = {.value = 10, .offset = 0}, .color = BLACK}; 
+    rb_node_t n3 = {.range = {.value = 15, .offset = 0}, .color = RED};
+    rb_node_t* nodes[] = {&n1, &n2, &n3};
 
    
     assert(tree.size == 3);
-    assert_bp_rb_tree_is_valid(&tree); 
+    assert_rb_tree_is_valid(&tree); 
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
 
-    assert(bplib_rb_tree_insert(5, &tree)  == BP_RB_FAIL_INSERT_DUPLICATE);
-    assert(bplib_rb_tree_insert(5, &tree)  == BP_RB_FAIL_INSERT_DUPLICATE);
-    assert(bplib_rb_tree_insert(10, &tree) == BP_RB_FAIL_INSERT_DUPLICATE);
-    assert(bplib_rb_tree_insert(10, &tree) == BP_RB_FAIL_INSERT_DUPLICATE);
-    assert(bplib_rb_tree_insert(15, &tree) == BP_RB_FAIL_INSERT_DUPLICATE);
-    assert(bplib_rb_tree_insert(15, &tree) == BP_RB_FAIL_INSERT_DUPLICATE);
+    assert(rb_tree_insert(5, &tree)  == RB_FAIL_INSERT_DUPLICATE);
+    assert(rb_tree_insert(5, &tree)  == RB_FAIL_INSERT_DUPLICATE);
+    assert(rb_tree_insert(10, &tree) == RB_FAIL_INSERT_DUPLICATE);
+    assert(rb_tree_insert(10, &tree) == RB_FAIL_INSERT_DUPLICATE);
+    assert(rb_tree_insert(15, &tree) == RB_FAIL_INSERT_DUPLICATE);
+    assert(rb_tree_insert(15, &tree) == RB_FAIL_INSERT_DUPLICATE);
  
     assert(tree.size == 3);
-    assert_bp_rb_tree_is_valid(&tree); 
+    assert_rb_tree_is_valid(&tree); 
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
-    bplib_rb_tree_destroy(&tree); 
+    rb_tree_destroy(&tree); 
     printf("PASS\n");
 }
 
@@ -2156,8 +2160,8 @@ static void test_max_size_configured_properly()
 {
     printf("test_max_size_configured_properly: ");
     assert(MAX_TREE_SIZE < UINT32_MAX);
-    bp_rb_tree_t tree;
-    assert(bplib_rb_tree_create(UINT32_MAX, &tree) == BP_RB_FAIL_EXCEEDED_MAX_SIZE);
+    rb_tree_t tree;
+    assert(rb_tree_create(UINT32_MAX, &tree) == RB_FAIL_EXCEEDED_MAX_SIZE);
     printf("PASS\n");
 }
 
@@ -2167,10 +2171,10 @@ static void test_max_size_configured_properly()
 static void test_max_range_offset()
 {
     printf("test_max_range_offset: ");
-    bp_rb_tree_t tree;
-    bp_rb_tree_status_t status = bplib_rb_tree_create(UINT32_MAX - 1, &tree);
-    assert(status == BP_RB_SUCCESS || status == BP_RB_FAIL_MEM_ERR);
-    if (status == BP_RB_FAIL_MEM_ERR)
+    rb_tree_t tree;
+    rb_tree_status_t status = rb_tree_create(UINT32_MAX - 1, &tree);
+    assert(status == RB_SUCCESS || status == RB_FAIL_MEM_ERR);
+    if (status == RB_FAIL_MEM_ERR)
     {
         /* Return early if no memory was allocated. */
         return;
@@ -2178,15 +2182,15 @@ static void test_max_range_offset()
 
     for (uint32_t i = 0; i < UINT32_MAX - 1; i++)
     {
-        bplib_rb_tree_insert(i, &tree);
+        rb_tree_insert(i, &tree);
     }
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
 
-    bp_rb_node_t n = {.range = {.value = 0, .offset = UINT32_MAX - 1}, .color = BLACK};
-    bp_rb_node_t* nodes[] = {&n};
+    rb_node_t n = {.range = {.value = 0, .offset = UINT32_MAX - 1}, .color = BLACK};
+    rb_node_t* nodes[] = {&n};
     print_tree(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
-    bplib_rb_tree_destroy(&tree);
+    rb_tree_destroy(&tree);
     printf("PASS\n");
 }
 
@@ -2196,24 +2200,24 @@ static void test_max_range_offset()
 static void test_unable_to_delete_value_that_does_not_exist()
 {
     printf("test_unable_to_delete_value_that_does_not_exist: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(30, &tree);
+    rb_tree_t tree;
+    rb_tree_create(30, &tree);
 
     /* Write out 5 bundles and then skip 5 bundles. */
     for (uint32_t i = 0; i < 50; i += 10)
     {
-        bplib_rb_tree_insert(i, &tree);
-        bplib_rb_tree_insert(i + 1, &tree);
-        bplib_rb_tree_insert(i + 2, &tree);
-        bplib_rb_tree_insert(i + 3, &tree);
-        bplib_rb_tree_insert(i + 4, &tree);
+        rb_tree_insert(i, &tree);
+        rb_tree_insert(i + 1, &tree);
+        rb_tree_insert(i + 2, &tree);
+        rb_tree_insert(i + 3, &tree);
+        rb_tree_insert(i + 4, &tree);
     }
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
 
     assert(tree.size == 5);
-    assert(bplib_rb_tree_delete(6, &tree) == BP_RB_FAIL_VALUE_NOT_FOUND);
-    assert(bplib_rb_tree_delete(25, &tree) == BP_RB_FAIL_VALUE_NOT_FOUND);
-    assert(bplib_rb_tree_delete(39, &tree) == BP_RB_FAIL_VALUE_NOT_FOUND);
+    assert(rb_tree_delete(6, &tree) == RB_FAIL_VALUE_NOT_FOUND);
+    assert(rb_tree_delete(25, &tree) == RB_FAIL_VALUE_NOT_FOUND);
+    assert(rb_tree_delete(39, &tree) == RB_FAIL_VALUE_NOT_FOUND);
     assert(tree.size == 5);
     printf("PASS\n");
 }
@@ -2224,32 +2228,32 @@ static void test_unable_to_delete_value_that_does_not_exist()
 static void test_delete_single_node()
 {
     printf("test_delete_single_node: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(10, &tree);
+    rb_tree_t tree;
+    rb_tree_create(10, &tree);
     for (uint32_t i = 0; i <= 10; i += 2)
     {
-        bplib_rb_tree_insert(i, &tree);
+        rb_tree_insert(i, &tree);
     }
     assert(tree.size == 6);
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
 
-    bp_rb_node_t n1 = {.range = {.value = 0,  .offset = 0}, .color = BLACK};
-    bp_rb_node_t n2 = {.range = {.value = 2,  .offset = 0}, .color = BLACK};
-    bp_rb_node_t n3 = {.range = {.value = 4,  .offset = 0}, .color = BLACK};
-    bp_rb_node_t n4 = {.range = {.value = 6,  .offset = 0}, .color = RED};
-    bp_rb_node_t n5 = {.range = {.value = 8,  .offset = 0}, .color = BLACK};
-    bp_rb_node_t n6 = {.range = {.value = 10, .offset = 0}, .color = RED};
+    rb_node_t n1 = {.range = {.value = 0,  .offset = 0}, .color = BLACK};
+    rb_node_t n2 = {.range = {.value = 2,  .offset = 0}, .color = BLACK};
+    rb_node_t n3 = {.range = {.value = 4,  .offset = 0}, .color = BLACK};
+    rb_node_t n4 = {.range = {.value = 6,  .offset = 0}, .color = RED};
+    rb_node_t n5 = {.range = {.value = 8,  .offset = 0}, .color = BLACK};
+    rb_node_t n6 = {.range = {.value = 10, .offset = 0}, .color = RED};
 
-    bp_rb_node_t* nodes_start[] = {&n1, &n2, &n3, &n4, &n5, &n6};
+    rb_node_t* nodes_start[] = {&n1, &n2, &n3, &n4, &n5, &n6};
     assert_inorder_nodes_are(tree.root, nodes_start, 6, 0);
 
-    bplib_rb_tree_delete(6, &tree);
+    rb_tree_delete(6, &tree);
     n5.color = RED;
     n6.color = BLACK;
-    bp_rb_node_t* nodes_end[] = {&n1, &n2, &n3, &n5, &n6};
+    rb_node_t* nodes_end[] = {&n1, &n2, &n3, &n5, &n6};
     assert_inorder_nodes_are(tree.root, nodes_end, 5, 0);
     assert(tree.size == 5);
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     printf("PASS\n");
 }
 
@@ -2259,44 +2263,44 @@ static void test_delete_single_node()
 static void test_deletes_node_at_start_of_range()
 {
     printf("test_deletes_node_at_start_of_range: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(10, &tree);
-    bplib_rb_tree_insert(0, &tree);
-    bplib_rb_tree_insert(1, &tree);
-    bplib_rb_tree_insert(2, &tree);
-    bplib_rb_tree_insert(5, &tree);
-    bplib_rb_tree_insert(6, &tree);
-    bplib_rb_tree_insert(7, &tree);
-    bplib_rb_tree_insert(9, &tree);
-    bplib_rb_tree_insert(10, &tree);
-    bplib_rb_tree_insert(13, &tree);
-    bplib_rb_tree_insert(14, &tree);
-    bplib_rb_tree_insert(16, &tree);
+    rb_tree_t tree;
+    rb_tree_create(10, &tree);
+    rb_tree_insert(0, &tree);
+    rb_tree_insert(1, &tree);
+    rb_tree_insert(2, &tree);
+    rb_tree_insert(5, &tree);
+    rb_tree_insert(6, &tree);
+    rb_tree_insert(7, &tree);
+    rb_tree_insert(9, &tree);
+    rb_tree_insert(10, &tree);
+    rb_tree_insert(13, &tree);
+    rb_tree_insert(14, &tree);
+    rb_tree_insert(16, &tree);
 
     assert(tree.size == 5);
 
-    bp_rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
-    bp_rb_node_t n2 = {.range = {.value = 5,  .offset = 2}, .color = BLACK};
-    bp_rb_node_t n3 = {.range = {.value = 9,  .offset = 1}, .color = RED};
-    bp_rb_node_t n4 = {.range = {.value = 13, .offset = 1}, .color = BLACK};
-    bp_rb_node_t n5 = {.range = {.value = 16, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes[] = {&n1, &n2, &n3, &n4, &n5};
+    rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
+    rb_node_t n2 = {.range = {.value = 5,  .offset = 2}, .color = BLACK};
+    rb_node_t n3 = {.range = {.value = 9,  .offset = 1}, .color = RED};
+    rb_node_t n4 = {.range = {.value = 13, .offset = 1}, .color = BLACK};
+    rb_node_t n5 = {.range = {.value = 16, .offset = 0}, .color = RED};
+    rb_node_t* nodes[] = {&n1, &n2, &n3, &n4, &n5};
 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
 
-    bplib_rb_tree_delete(13, &tree);
+    rb_tree_delete(13, &tree);
     assert(tree.size == 5);
     n4.range.value = 14;
     n4.range.offset = 0;
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
     
-    bplib_rb_tree_delete(5, &tree);
+    rb_tree_delete(5, &tree);
     assert(tree.size == 5);
     n2.range.value = 6;
     n2.range.offset = 1;
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
 
     printf("PASS\n");
 }
@@ -2307,42 +2311,42 @@ static void test_deletes_node_at_start_of_range()
 static void test_deletes_node_at_end_of_range()
 {
     printf("test_deletes_node_at_end_of_range: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(10, &tree);
-    bplib_rb_tree_insert(0, &tree);
-    bplib_rb_tree_insert(1, &tree);
-    bplib_rb_tree_insert(2, &tree);
-    bplib_rb_tree_insert(5, &tree);
-    bplib_rb_tree_insert(6, &tree);
-    bplib_rb_tree_insert(7, &tree);
-    bplib_rb_tree_insert(9, &tree);
-    bplib_rb_tree_insert(10, &tree);
-    bplib_rb_tree_insert(13, &tree);
-    bplib_rb_tree_insert(14, &tree);
-    bplib_rb_tree_insert(16, &tree);
+    rb_tree_t tree;
+    rb_tree_create(10, &tree);
+    rb_tree_insert(0, &tree);
+    rb_tree_insert(1, &tree);
+    rb_tree_insert(2, &tree);
+    rb_tree_insert(5, &tree);
+    rb_tree_insert(6, &tree);
+    rb_tree_insert(7, &tree);
+    rb_tree_insert(9, &tree);
+    rb_tree_insert(10, &tree);
+    rb_tree_insert(13, &tree);
+    rb_tree_insert(14, &tree);
+    rb_tree_insert(16, &tree);
 
     assert(tree.size == 5);
 
-    bp_rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
-    bp_rb_node_t n2 = {.range = {.value = 5,  .offset = 2}, .color = BLACK};
-    bp_rb_node_t n3 = {.range = {.value = 9,  .offset = 1}, .color = RED};
-    bp_rb_node_t n4 = {.range = {.value = 13, .offset = 1}, .color = BLACK};
-    bp_rb_node_t n5 = {.range = {.value = 16, .offset = 0}, .color = RED};
-    bp_rb_node_t* nodes[] = {&n1, &n2, &n3, &n4, &n5};
+    rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
+    rb_node_t n2 = {.range = {.value = 5,  .offset = 2}, .color = BLACK};
+    rb_node_t n3 = {.range = {.value = 9,  .offset = 1}, .color = RED};
+    rb_node_t n4 = {.range = {.value = 13, .offset = 1}, .color = BLACK};
+    rb_node_t n5 = {.range = {.value = 16, .offset = 0}, .color = RED};
+    rb_node_t* nodes[] = {&n1, &n2, &n3, &n4, &n5};
 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
 
-    bplib_rb_tree_delete(14, &tree);
+    rb_tree_delete(14, &tree);
     assert(tree.size == 5);
     n4.range.offset = 0;
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
     
-    bplib_rb_tree_delete(7, &tree);
+    rb_tree_delete(7, &tree);
     assert(tree.size == 5);
     n2.range.offset = 1;
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
 
     printf("PASS\n");
 }
@@ -2353,41 +2357,41 @@ static void test_deletes_node_at_end_of_range()
 static void test_deletes_node_inside_of_range()
 {
     printf("test_deletes_node_inside_of_range: ");
-    bp_rb_tree_t tree;
-    bplib_rb_tree_create(10, &tree);
-    bplib_rb_tree_insert(0, &tree);
-    bplib_rb_tree_insert(1, &tree);
-    bplib_rb_tree_insert(2, &tree);
-    bplib_rb_tree_insert(5, &tree);
-    bplib_rb_tree_insert(6, &tree);
-    bplib_rb_tree_insert(7, &tree);
-    bplib_rb_tree_insert(8, &tree);
-    bplib_rb_tree_insert(9, &tree);
-    bplib_rb_tree_insert(13, &tree);
-    bplib_rb_tree_insert(14, &tree);
-    bplib_rb_tree_insert(16, &tree);
-    bplib_rb_tree_insert(18, &tree);
+    rb_tree_t tree;
+    rb_tree_create(10, &tree);
+    rb_tree_insert(0, &tree);
+    rb_tree_insert(1, &tree);
+    rb_tree_insert(2, &tree);
+    rb_tree_insert(5, &tree);
+    rb_tree_insert(6, &tree);
+    rb_tree_insert(7, &tree);
+    rb_tree_insert(8, &tree);
+    rb_tree_insert(9, &tree);
+    rb_tree_insert(13, &tree);
+    rb_tree_insert(14, &tree);
+    rb_tree_insert(16, &tree);
+    rb_tree_insert(18, &tree);
 
-    bp_rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
-    bp_rb_node_t n2 = {.range = {.value = 5,  .offset = 4}, .color = BLACK};
-    bp_rb_node_t n3 = {.range = {.value = 13, .offset = 1}, .color = RED};
-    bp_rb_node_t n4 = {.range = {.value = 16, .offset = 0}, .color = BLACK};
-    bp_rb_node_t n5 = {.range = {.value = 18, .offset = 0}, .color = RED};
+    rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
+    rb_node_t n2 = {.range = {.value = 5,  .offset = 4}, .color = BLACK};
+    rb_node_t n3 = {.range = {.value = 13, .offset = 1}, .color = RED};
+    rb_node_t n4 = {.range = {.value = 16, .offset = 0}, .color = BLACK};
+    rb_node_t n5 = {.range = {.value = 18, .offset = 0}, .color = RED};
 
-    bp_rb_node_t* nodes_start[] = {&n1, &n2, &n3, &n4, &n5};
+    rb_node_t* nodes_start[] = {&n1, &n2, &n3, &n4, &n5};
 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     assert(tree.size == 5);
     assert_inorder_nodes_are(tree.root, nodes_start, 5, 0);
 
-    bplib_rb_tree_delete(6, &tree);
+    rb_tree_delete(6, &tree);
 
     n2.range.offset = 0;
-    bp_rb_node_t n6 = {.range = {.value = 7, .offset = 2}, .color = RED};
-    bp_rb_node_t* nodes_end[] = {&n1, &n2, &n6, &n3, &n4, &n5};
+    rb_node_t n6 = {.range = {.value = 7, .offset = 2}, .color = RED};
+    rb_node_t* nodes_end[] = {&n1, &n2, &n6, &n3, &n4, &n5};
     assert(tree.size == 6);
     assert_inorder_nodes_are(tree.root, nodes_end, 6, 0);
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
 
     printf("PASS\n");
 }
@@ -2398,46 +2402,46 @@ static void test_deletes_node_inside_of_range()
 static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
 {
     printf("test_tree_traversed_and_deleted_inorder_with_rebalancing: ");
-    bp_rb_tree_t tree;
+    rb_tree_t tree;
     uint32_t max_nodes = 10;
-    bplib_rb_tree_create(max_nodes, &tree);
-    assert(bplib_rb_tree_insert(6, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(2, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(3, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(8, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(10, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(12, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(11, &tree) == BP_RB_SUCCESS);
-    assert_bp_rb_tree_is_valid(&tree);
+    rb_tree_create(max_nodes, &tree);
+    assert(rb_tree_insert(6, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(2, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(3, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(8, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(10, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(12, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(11, &tree) == RB_SUCCESS);
+    assert_rb_tree_is_valid(&tree);
     assert(tree.size == 4);
 
-    bp_rb_node_t* iter = tree.root;
-    bp_rb_range_t range;
+    rb_node_t* iter = tree.root;
+    rb_range_t range;
 
-    assert(bplib_rb_tree_get_first_rb_node(NULL, &iter) == BP_RB_FAIL_NULL_TREE); 
-    assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, NULL, true, true) 
-        == BP_RB_FAIL_NULL_RANGE); 
+    assert(rb_tree_get_first_rb_node(NULL, &iter) == RB_FAIL_NULL_TREE); 
+    assert(rb_tree_get_first_rb_node(&tree, &iter) == RB_SUCCESS);
+    assert(rb_tree_get_next_rb_node(&tree, &iter, NULL, true, true) 
+        == RB_FAIL_NULL_RANGE); 
     
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == BP_RB_SUCCESS); 
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == RB_SUCCESS); 
     assert(range.value == 2 && range.offset == 1);
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == BP_RB_SUCCESS); 
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == RB_SUCCESS); 
     assert(range.value == 6 && range.offset == 0);
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == BP_RB_SUCCESS); 
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == RB_SUCCESS); 
     assert(range.value == 8 && range.offset == 0);
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == BP_RB_SUCCESS);
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == RB_SUCCESS);
     assert(range.value == 10 && range.offset == 2); 
-    assert_bp_rb_tree_is_valid(&tree);
+    assert_rb_tree_is_valid(&tree);
     
     assert(iter == NULL);
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == 
-        BP_RB_FAIL_NULL_NODE); 
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, true) == 
+        RB_FAIL_NULL_NODE); 
     assert(tree.size == 0);
     printf("PASS\n");
 }
@@ -2449,38 +2453,38 @@ static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
 static void test_tree_traversed_and_deleted_inorder_without_rebalancing()
 {
     printf("test_tree_traversed_and_deleted_inorder_without_rebalancing: ");
-    bp_rb_tree_t tree;
+    rb_tree_t tree;
     uint32_t max_nodes = 10;
-    bplib_rb_tree_create(max_nodes, &tree);
-    assert(bplib_rb_tree_insert(6, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(2, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(3, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(8, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(10, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(12, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(11, &tree) == BP_RB_SUCCESS);
-    assert_bp_rb_tree_is_valid(&tree);
+    rb_tree_create(max_nodes, &tree);
+    assert(rb_tree_insert(6, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(2, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(3, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(8, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(10, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(12, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(11, &tree) == RB_SUCCESS);
+    assert_rb_tree_is_valid(&tree);
     assert(tree.size == 4);
 
-    bp_rb_node_t* iter = tree.root;
-    bp_rb_range_t range;
+    rb_node_t* iter = tree.root;
+    rb_range_t range;
 
-    assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
+    assert(rb_tree_get_first_rb_node(&tree, &iter) == RB_SUCCESS);
     
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == RB_SUCCESS); 
     assert(range.value == 2 && range.offset == 1);
     
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == RB_SUCCESS); 
     assert(range.value == 6 && range.offset == 0);
     
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS); 
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == RB_SUCCESS); 
     assert(range.value == 8 && range.offset == 0);
     
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == BP_RB_SUCCESS);
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == RB_SUCCESS);
     assert(range.value == 10 && range.offset == 2); 
     assert(iter == NULL);
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == 
-        BP_RB_FAIL_NULL_NODE); 
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == 
+        RB_FAIL_NULL_NODE); 
     assert(tree.size == 0);
     printf("PASS\n");
 }
@@ -2491,39 +2495,39 @@ static void test_tree_traversed_and_deleted_inorder_without_rebalancing()
 static void test_tree_traversed_inorder_after_partial_traversal()
 {
     printf("test_tree_traversed_inorder_after_partial_traversal: ");
-    bp_rb_tree_t tree;
+    rb_tree_t tree;
     uint32_t max_nodes = 10;
-    bplib_rb_tree_create(max_nodes, &tree);
-    assert(bplib_rb_tree_insert(2, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(4, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(6, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(8, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(10, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(12, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(14, &tree) == BP_RB_SUCCESS);
-    assert(bplib_rb_tree_insert(16, &tree) == BP_RB_SUCCESS);
-    assert_bp_rb_tree_is_valid(&tree);
+    rb_tree_create(max_nodes, &tree);
+    assert(rb_tree_insert(2, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(4, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(6, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(8, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(10, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(12, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(14, &tree) == RB_SUCCESS);
+    assert(rb_tree_insert(16, &tree) == RB_SUCCESS);
+    assert_rb_tree_is_valid(&tree);
     assert(tree.size == 8);
 
-    bp_rb_node_t* iter = tree.root;
-    bp_rb_range_t range;
+    rb_node_t* iter = tree.root;
+    rb_range_t range;
 
-    assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
+    assert(rb_tree_get_first_rb_node(&tree, &iter) == RB_SUCCESS);
     for (uint32_t i = 2; i <= 8; i += 2)
     {
-        assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, false, false) == BP_RB_SUCCESS); 
+        assert(rb_tree_get_next_rb_node(&tree, &iter, &range, false, false) == RB_SUCCESS); 
         assert(range.value == i && range.offset == 0);
     }
 
-    assert(bplib_rb_tree_get_first_rb_node(&tree, &iter) == BP_RB_SUCCESS);
+    assert(rb_tree_get_first_rb_node(&tree, &iter) == RB_SUCCESS);
     for (uint32_t i = 2; i <= 16; i += 2)
     {
-        assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, false, false) == BP_RB_SUCCESS); 
+        assert(rb_tree_get_next_rb_node(&tree, &iter, &range, false, false) == RB_SUCCESS); 
         assert(range.value == i && range.offset == 0);
     }
 
-    assert(bplib_rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == 
-        BP_RB_FAIL_NULL_NODE); 
+    assert(rb_tree_get_next_rb_node(&tree, &iter, &range, true, false) == 
+        RB_FAIL_NULL_NODE); 
     assert(tree.size == 8);
     printf("PASS\n");
 }
@@ -2536,8 +2540,8 @@ static void test_random_stress()
     printf("test_random_stress: ");
     uint32_t number_trees = 10;
     uint32_t max_bundles = 16000; 
-    bp_rb_node_t n = {.range = {.value = 0, .offset = max_bundles - 1}, .color = BLACK};
-    bp_rb_node_t* nodes[] = {&n};
+    rb_node_t n = {.range = {.value = 0, .offset = max_bundles - 1}, .color = BLACK};
+    rb_node_t* nodes[] = {&n};
 
     uint32_t bundle_ids[max_bundles];
     for (uint32_t i = 0; i < max_bundles; i++)
@@ -2547,24 +2551,24 @@ static void test_random_stress()
 
     for (uint32_t i = 0; i < number_trees; i++)
     {
-        bp_rb_tree_t tree; 
-        bplib_rb_tree_create(max_bundles, &tree);
+        rb_tree_t tree; 
+        rb_tree_create(max_bundles, &tree);
         shuffle(bundle_ids, max_bundles);
         for (uint32_t j = 0; j < max_bundles; j++)
         {
-            bplib_rb_tree_insert(bundle_ids[j], &tree);
-            assert_bp_rb_tree_is_valid(&tree);
+            rb_tree_insert(bundle_ids[j], &tree);
+            assert_rb_tree_is_valid(&tree);
         }
         assert_inorder_nodes_are(tree.root, nodes, 1, 0);
-        bplib_rb_tree_destroy(&tree);
+        rb_tree_destroy(&tree);
     }
     printf("PASS\n");
 }
 
 /*--------------------------------------------------------------------------------------
- * run_tests - Run all bp_rb_tree tests. 
+ * run_tests - Run all rb_tree tests. 
  *--------------------------------------------------------------------------------------*/  
-static void run_bp_rb_tree_tests()
+static void run_rb_tree_tests()
 {
     printf("Running RB Tree Tests...\n");
     test_new_tree_empty();
@@ -2596,7 +2600,7 @@ static void run_bp_rb_tree_tests()
 }
 
 int main() {    
-    run_bp_rb_tree_tests();
+    run_rb_tree_tests();
 }
 
 #endif /* RBTREETESTS */

@@ -57,7 +57,7 @@ APP_OBJ += bplib_blk_pay.o
 APP_OBJ += bplib_blk_pri.o
 APP_OBJ += bplib_crc.o
 APP_OBJ += bplib_sdnv.o
-APP_OBJ += bplib_rb_tree.o
+APP_OBJ += rb_tree.o
 APP_OBJ += bplib_store_file.o
 APP_OBJ += bplib_store_ram.o
 
