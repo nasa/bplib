@@ -107,6 +107,7 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_in
         bplib_sdnv_read(buffer, size, &bib->cipher_suite_id, &flags);
         bplib_sdnv_read(buffer, size, &bib->cipher_suite_flags, &flags);
         bytes_read = bplib_sdnv_read(buffer, size, &bib->security_result_count, &flags);
+        if (bytes_read + 1 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_type = buffer[bytes_read];
         bytes_read = bplib_sdnv_read(buffer, size, &bib->security_result_length, &flags);
     }
@@ -131,21 +132,28 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_in
         bib->cipher_suite_flags.index = bplib_sdnv_read(buffer, size, &bib->cipher_suite_id, &flags);       
         bib->security_result_count.index = bplib_sdnv_read(buffer, size, &bib->cipher_suite_flags, &flags);
         bytes_read = bplib_sdnv_read(buffer, size, &bib->security_result_count, &flags);
+        if (bytes_read + 1 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_type = buffer[bytes_read];
         /* Reads the security_result length. */
         bib->security_result_length.index = bytes_read + 1;
         bytes_read = bplib_sdnv_read(buffer, size, &bib->security_result_length, &flags);
     }
 
-    if (bib->security_result_length.value == 2)
+    if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25 && bib->security_result_length.value == 2)
     {
+        if (bytes_read + 2 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_data.crc16 = *((uint16_t*) (buffer + bytes_read));
         bytes_read += 2;
     }
-    else if (bib->security_result_length.value == 4)
+    else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI && bib->security_result_length.value == 4)
     {
+        if (bytes_read + 4 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_data.crc32 = *((uint32_t*) (buffer + bytes_read));
         bytes_read += 4;
+    }
+    else
+    {
+        return BP_BUNDLEPARSEERR;
     }
 
     /* Success Oriented Error Checking */
@@ -187,6 +195,7 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
         bplib_sdnv_write(buffer, size, bib->cipher_suite_id, &flags);
         bplib_sdnv_write(buffer, size, bib->cipher_suite_flags, &flags);
         bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_count, &flags);
+        if (bytes_written + 1 > size) return BP_BUNDLEPARSEERR;
         buffer[bytes_written] = bib->security_result_type;
     }
     else
@@ -210,12 +219,14 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
         bib->cipher_suite_flags.index = bplib_sdnv_write(buffer, size, bib->cipher_suite_id, &flags);       
         bib->security_result_count.index = bplib_sdnv_write(buffer, size, bib->cipher_suite_flags, &flags);
         bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_count, &flags);
+        if (bytes_written + 1 > size) return BP_BUNDLEPARSEERR;
         buffer[bytes_written] = bib->security_result_type;
         bib->security_result_length.index = bytes_written + 1;
     }
     
     if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
+        if (bytes_written + 2 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_length.value = 2; 
         bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_length, &flags);
         *(uint16_t *)(buffer + bytes_written) = bib->security_result_data.crc16;
@@ -223,10 +234,15 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
     }
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
+        if (bytes_written + 4 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_length.value = 4;
         bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_length, &flags);
         *(uint32_t *)(buffer + bytes_written) = bib->security_result_data.crc32;
         bytes_written += 4;
+    }
+    else
+    {
+        return BP_BUNDLEPARSEERR;
     }
 
     bib->block_length.value = bytes_written - bib->security_target_count.index;
