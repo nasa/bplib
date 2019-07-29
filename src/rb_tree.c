@@ -30,6 +30,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "rb_tree.h"
 
 /******************************************************************************
@@ -2172,11 +2173,12 @@ static void test_max_range_offset()
 {
     printf("test_max_range_offset: ");
     rb_tree_t tree;
-    rb_tree_status_t status = rb_tree_create(UINT32_MAX - 1, &tree);
+    rb_tree_status_t status = rb_tree_create(MAX_TREE_SIZE, &tree);
     assert(status == RB_SUCCESS || status == RB_FAIL_MEM_ERR);
     if (status == RB_FAIL_MEM_ERR)
     {
         /* Return early if no memory was allocated. */
+        printf("PASS\n");
         return;
     }
 
@@ -2565,16 +2567,135 @@ static void test_random_stress()
     printf("PASS\n");
 }
 
+
+/* Struct used to measure rb_tree stats for a given operation. */
+typedef struct rb_tree_stats
+{
+    char* name;
+    uint32_t count;
+    double total;
+    double max;
+    double min;
+    double average;
+} rb_tree_stats_t;
+
+/*--------------------------------------------------------------------------------------
+ * print_stats -
+ *
+ * stats - A ptr to an rb_tree_stats_t struct to print. [INPUT]
+ *--------------------------------------------------------------------------------------*/  
+static void print_stats(rb_tree_stats_t* stats)
+{
+    printf("%s -> ( Count: %d | Total %f | Max: %f | Min: %f | Average: %f )\n", 
+                stats->name,
+                stats->count,
+                stats->total / CLOCKS_PER_SEC,
+                stats->max / CLOCKS_PER_SEC,
+                stats->min / CLOCKS_PER_SEC,
+                stats->average / CLOCKS_PER_SEC);
+}
+
 /*--------------------------------------------------------------------------------------
  * characterize_rb_tree_performance - Tests the worst case for insertions which is 
  *      skipping every other value within a range to avoid any merge conditions
  *      thereby resulting in new nodes insertions and the largest possible tree size.
  *      This does NOT generate the worst case in terms of tree rebalancing which literature
- *      does not have a clear answer for.
+ *      does not have a clear answer for. After creating complete tree which is merged to a 
+ *      single node. This function performs a series of worst case deletions until the tree
+ *      is empty. These are caused when deleting a value within a range resulting in the
+ *      insertion of a new node.
  *--------------------------------------------------------------------------------------*/  
-static void characterize_rb_tree_performance()
+static rb_tree_status_t characterize_rb_tree_performance()
 {
-    printf("charactize_rb_tree_performance:\n");
+    printf("\nCharacterizing RB Tree Performance... \n");
+    uint32_t max_trees = 1000;
+    uint32_t max_size = 16000;
+    rb_tree_t tree;
+    rb_tree_status_t status = rb_tree_create(max_size, &tree);
+    
+    if (status != RB_SUCCESS)
+    {
+        /* If tree creation status is not successful, return early. */
+        return status;
+    }
+
+
+
+    /* Define stats variables to track. */
+    rb_tree_stats_t insert_stats = {.name="Insert", 
+                                    .count = 0,
+                                    .total = 0,
+                                    .max = 0,
+                                    .min = UINT32_MAX,
+                                    .average = 0,
+                                   };
+   
+    rb_tree_stats_t delete_stats = {.name="Delete", 
+                                    .count = 0,
+                                    .total = 0,
+                                    .max = 0,
+                                    .min = UINT32_MAX,
+                                    .average = 0,
+                                   };
+
+
+    uint32_t max_val = (max_size - 1) * 2;
+    assert(max_val >= 2);
+
+    clock_t start, end, elapsed;
+
+    uint32_t bundle_ids[max_val];
+    for (uint32_t i = 0; i < max_val; i++)
+    {
+        bundle_ids[i] = i;
+    }
+
+
+    /* Seed random test. */
+    srand(0);
+    for (uint32_t j = 0; j < max_trees; j++)
+    {
+        shuffle(bundle_ids, max_val);
+        for (uint32_t i = 0; i <= max_val; i++)
+        {
+            start = clock();
+            rb_tree_insert(i, &tree);
+            end = clock();
+
+            elapsed = end - start;
+
+            insert_stats.max = insert_stats.max < elapsed ? elapsed : insert_stats.max;
+            insert_stats.min = insert_stats.min > elapsed ? elapsed : insert_stats.min;
+            insert_stats.total += elapsed;
+            insert_stats.count += 1;
+        }
+        assert(tree.size == 1);
+        shuffle(bundle_ids, max_val);
+        for (uint32_t i = 0; i <= max_val; i++)
+        {
+            start = clock();
+            rb_tree_delete(i, &tree);
+            end = clock();
+
+            elapsed = end - start;
+
+            delete_stats.max = delete_stats.max < elapsed ? elapsed : delete_stats.max;
+            delete_stats.min = delete_stats.min > elapsed ? elapsed : delete_stats.min;
+            delete_stats.total += elapsed;
+            delete_stats.count += 1;
+        }
+        assert(rb_tree_is_empty(&tree));
+     }
+
+    insert_stats.average = insert_stats.total / insert_stats.count;
+    delete_stats.average = delete_stats.total/ delete_stats.count;
+    printf("Results calculated from creating and destroying %d rb_trees of size %d\n",
+            max_trees,
+            max_size);
+    print_stats(&insert_stats);
+    print_stats(&delete_stats);
+    printf("Performance Characterization Complete!\n");
+    return RB_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -2582,7 +2703,7 @@ static void characterize_rb_tree_performance()
  *--------------------------------------------------------------------------------------*/  
 static void run_rb_tree_tests()
 {
-    printf("Running RB Tree Tests...\n");
+    printf("\nRunning RB Tree Tests...\n");
     test_new_tree_empty();
     test_unable_to_insert_into_empty_tree();
     test_unable_to_insert_into_full_tree();
@@ -2608,12 +2729,12 @@ static void run_rb_tree_tests()
     test_tree_traversed_and_deleted_inorder_without_rebalancing();
     test_tree_traversed_inorder_after_partial_traversal();
     test_random_stress();
-    printf("All tests passed!\n");
+    printf("All Tests Passed!\n");
 }
 
 int main() {    
     run_rb_tree_tests();
-    characterize_rb_tree_performance();
+    assert(characterize_rb_tree_performance() == RB_SUCCESS);
 }
 
 #endif /* RBTREETESTS */
