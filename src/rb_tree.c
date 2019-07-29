@@ -2566,6 +2566,18 @@ static void test_random_stress()
 }
 
 /*--------------------------------------------------------------------------------------
+ * characterize_rb_tree_performance - Tests the worst case for insertions which is 
+ *      skipping every other value within a range to avoid any merge conditions
+ *      thereby resulting in new nodes insertions and the largest possible tree size.
+ *      This does NOT generate the worst case in terms of tree rebalancing which literature
+ *      does not have a clear answer for.
+ *--------------------------------------------------------------------------------------*/  
+static void characterize_rb_tree_performance()
+{
+    printf("charactize_rb_tree_performance:\n");
+}
+
+/*--------------------------------------------------------------------------------------
  * run_tests - Run all rb_tree tests. 
  *--------------------------------------------------------------------------------------*/  
 static void run_rb_tree_tests()
@@ -2601,6 +2613,7 @@ static void run_rb_tree_tests()
 
 int main() {    
     run_rb_tree_tests();
+    characterize_rb_tree_performance();
 }
 
 #endif /* RBTREETESTS */

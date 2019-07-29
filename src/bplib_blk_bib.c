@@ -28,7 +28,7 @@
 #include "bplib.h"
 #include "bplib_blk.h"
 #include "bplib_blk_bib.h"
-#include "bplib_crc.h"
+#include "crc.h"
 #include "bplib_sdnv.h"
 #include "bplib_os.h"
 
@@ -36,7 +36,7 @@
  CRC DEFINITIONS
  ******************************************************************************/
 
-static bp_crc_parameters_t crc16_x25 = {.name                            = "CRC-16 X25", 
+static crc_parameters_t crc16_x25 = {.name                            = "CRC-16 X25", 
                                         .length                          = 16,
                                         .should_reflect_input            = true,
                                         .should_reflect_output           = true,
@@ -48,7 +48,7 @@ static bp_crc_parameters_t crc16_x25 = {.name                            = "CRC-
                                                 .check_value             = 0x906E
                                         }}};
 
-static bp_crc_parameters_t crc32_castagnoli = {.name                         = "CRC-32 Castagnoli", 
+static crc_parameters_t crc32_castagnoli = {.name                         = "CRC-32 Castagnoli", 
                                                .length                       = 32,
                                                .should_reflect_input         = true,
                                                .should_reflect_output        = true,
@@ -69,8 +69,8 @@ static bp_crc_parameters_t crc32_castagnoli = {.name                         = "
  *-------------------------------------------------------------------------------------*/
 void bplib_blk_crc_init ()
 {
-    assert(bplib_crc_init(&crc16_x25) == BP_CRC_INIT_SUCCESS);
-    assert(bplib_crc_init(&crc32_castagnoli) == BP_CRC_INIT_SUCCESS);
+    assert(crc_init(&crc16_x25) == BP_CRC_INIT_SUCCESS);
+    assert(crc_init(&crc32_castagnoli) == BP_CRC_INIT_SUCCESS);
 } 
 
 
@@ -262,12 +262,12 @@ int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size
     /* Calculate and Write Fragment Payload CRC */
     if(bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
-        bib->security_result_data.crc16 = (uint16_t) bplib_crc_get((uint8_t*)payload, payload_size, &crc16_x25); 
+        bib->security_result_data.crc16 = (uint16_t) crc_get((uint8_t*)payload, payload_size, &crc16_x25); 
         *(uint16_t *)(buffer + bib->security_result_length.index + bib->security_result_length.width) = bib->security_result_data.crc16;
     }
     else if(bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
-        bib->security_result_data.crc32 = bplib_crc_get((uint8_t*)payload, payload_size, &crc32_castagnoli);
+        bib->security_result_data.crc32 = crc_get((uint8_t*)payload, payload_size, &crc32_castagnoli);
         *(uint32_t *)(buffer + bib->security_result_length.index + bib->security_result_length.width) = bib->security_result_data.crc32;
     }
 
@@ -293,7 +293,7 @@ int bplib_blk_bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib)
     /* Calculate and Verify Payload CRC */
     if(bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
-        uint16_t crc = (uint16_t) bplib_crc_get((uint8_t*)payload, payload_size, &crc16_x25);
+        uint16_t crc = (uint16_t) crc_get((uint8_t*)payload, payload_size, &crc16_x25);
         if(bib->security_result_data.crc16 != crc)
         {
             /* Return Failure */
@@ -302,7 +302,7 @@ int bplib_blk_bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib)
     }
     else if(bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
-        uint32_t crc = bplib_crc_get((uint8_t*)payload, payload_size, &crc32_castagnoli);
+        uint32_t crc = crc_get((uint8_t*)payload, payload_size, &crc32_castagnoli);
         if(bib->security_result_data.crc32 != crc)
         {
             /* Return Failure */

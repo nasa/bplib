@@ -33,7 +33,7 @@
 #include "bplib_blk_cteb.h"
 #include "bplib_blk_bib.h"
 #include "bplib_blk_pay.h"
-#include "bplib_crc.h"
+#include "crc.h"
 #include "rb_tree.h"
 
 /******************************************************************************
