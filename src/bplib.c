@@ -867,8 +867,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* type = (int*)val;
-            if(getset)  ch->data_bundle.integrity_block.security_result_type = *type;
-            else        *type = ch->data_bundle.integrity_block.security_result_type;
+            if(getset)  ch->data_bundle.integrity_block.cipher_suite_id.value = *type;
+            else        *type = ch->data_bundle.integrity_block.cipher_suite_id.value;
             break;
         }
         case BP_OPT_TIMEOUT:
