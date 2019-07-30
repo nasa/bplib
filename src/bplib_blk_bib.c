@@ -61,6 +61,38 @@ static crc_parameters_t crc32_castagnoli = {.name                         = "CRC
                                                }}};
 
 /******************************************************************************
+ STATIC FUNCTIONS
+ ******************************************************************************/
+
+/*--------------------------------------------------------------------------------------
+ * to_big_endian16 - Converts a uint16_t to big endian representation and writes it to
+ *      buffer.
+ *
+ * val: The uint16_t to convert to big endian. [INPUT]
+ * buffer: The buffer to write the converted value to. [OUTPUT]
+ *-------------------------------------------------------------------------------------*/
+static inline void to_big_endian16(uint16_t val, uint8_t* buffer)
+{
+    buffer[0] = (val >> 8) & 0xFF;
+    buffer[1] = (val     ) & 0xFF;
+}
+
+/*--------------------------------------------------------------------------------------
+ * to_big_endian32 - Converts a uint16_t to big endian representation and writes it to
+ *      buffer.
+ *
+ * val: The uint32_t to convert to big endian. [INPUT]
+ * buffer: The buffer to write the converted value to. [OUTPUT]
+ *-------------------------------------------------------------------------------------*/
+static inline void to_big_endian32(uint32_t val, uint8_t* buffer)
+{
+    buffer[0] = (val >> 24) & 0xFF;
+    buffer[1] = (val >> 16) & 0xFF;
+    buffer[2] = (val >>  8) & 0xFF;
+    buffer[3] = (val      ) & 0xFF;
+}
+
+/******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
@@ -143,12 +175,22 @@ int bplib_blk_bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_in
     {
         if (bytes_read + 2 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_data.crc16 = *((uint16_t*) (buffer + bytes_read));
+        uint8_t* valptr = buffer + bytes_read; 
+        bib->security_result_data.crc16 = 0;
+        bib->security_result_data.crc16 |= (((uint16_t) valptr[0]) << 8);
+        bib->security_result_data.crc16 |= ((uint16_t) valptr[1]);
         bytes_read += 2;
     }
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI && bib->security_result_length.value == 4)
     {
         if (bytes_read + 4 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_data.crc32 = *((uint32_t*) (buffer + bytes_read));
+        uint8_t* valptr = buffer + bytes_read; 
+        bib->security_result_data.crc32 = 0;
+        bib->security_result_data.crc32 |= ((uint32_t) valptr[0]) << 24;
+        bib->security_result_data.crc32 |= ((uint32_t) valptr[1]) << 16;
+        bib->security_result_data.crc32 |= ((uint32_t) valptr[2]) <<  8;
+        bib->security_result_data.crc32 |= ((uint32_t) valptr[3]);
         bytes_read += 4;
     }
     else
@@ -229,7 +271,7 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
         if (bytes_written + 2 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_length.value = 2; 
         bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_length, &flags);
-        *(uint16_t *)(buffer + bytes_written) = bib->security_result_data.crc16;
+        to_big_endian16(bib->security_result_data.crc16, buffer + bytes_written);
         bytes_written += 2;
     }
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
@@ -237,7 +279,7 @@ int bplib_blk_bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_i
         if (bytes_written + 4 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_length.value = 4;
         bytes_written = bplib_sdnv_write(buffer, size, bib->security_result_length, &flags);
-        *(uint32_t *)(buffer + bytes_written) = bib->security_result_data.crc32;
+        to_big_endian32(bib->security_result_data.crc32, buffer + bytes_written);
         bytes_written += 4;
     }
     else
@@ -279,12 +321,14 @@ int bplib_blk_bib_update (void* block, int size, void* payload, int payload_size
     if(bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
         bib->security_result_data.crc16 = (uint16_t) crc_get((uint8_t*)payload, payload_size, &crc16_x25); 
-        *(uint16_t *)(buffer + bib->security_result_length.index + bib->security_result_length.width) = bib->security_result_data.crc16;
+        uint8_t* valptr = buffer + bib->security_result_length.index + bib->security_result_length.width;
+        to_big_endian16(bib->security_result_data.crc16, valptr);
     }
     else if(bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
         bib->security_result_data.crc32 = crc_get((uint8_t*)payload, payload_size, &crc32_castagnoli);
-        *(uint32_t *)(buffer + bib->security_result_length.index + bib->security_result_length.width) = bib->security_result_data.crc32;
+        uint8_t* valptr = buffer + bib->security_result_length.index + bib->security_result_length.width;
+        to_big_endian32(bib->security_result_data.crc32, valptr);
     }
 
     /* Check for Errors */
