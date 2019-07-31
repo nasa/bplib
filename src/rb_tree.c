@@ -2182,15 +2182,15 @@ static void test_max_range_offset()
         return;
     }
 
-    for (uint32_t i = 0; i < UINT32_MAX - 1; i++)
+    for (uint32_t i = 0; i <= UINT32_MAX - 1; i++)
     {
         rb_tree_insert(i, &tree);
     }
+    rb_tree_insert(UINT32_MAX, &tree);
     assert_rb_tree_is_valid(&tree);
 
-    rb_node_t n = {.range = {.value = 0, .offset = UINT32_MAX - 1}, .color = BLACK};
+    rb_node_t n = {.range = {.value = 0, .offset = UINT32_MAX}, .color = BLACK};
     rb_node_t* nodes[] = {&n};
-    print_tree(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
     rb_tree_destroy(&tree);
     printf("PASS\n");
