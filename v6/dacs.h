@@ -1,5 +1,5 @@
 /************************************************************************
- * File: cteb.h
+ * File: dacs.h
  *
  *  Copyright 2019 United States Government as represented by the 
  *  Administrator of the National Aeronautics and Space Administration. 
@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_BLK_CTEB_H__
-#define __BPLIB_BLK_CTEB_H__
+#ifndef __BPLIB_DACS_H__
+#define __BPLIB_DACS_H__
 
 /******************************************************************************
  INCLUDES
@@ -24,26 +24,32 @@
 
 #include "bplib.h"
 #include "os_api.h"
-#include "sdnv.h"
+#include "pri.h"
+#include "bib.h"
+#include "pay.h"
+#include "rb_tree.h"
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
 typedef struct {
-    bp_sdnv_t bf;
-    bp_sdnv_t blklen;
-    bp_sdnv_t cid;
-    char      csteid[BP_MAX_EID_STRING];
-    bp_ipn_t  cstnode;
-    bp_ipn_t  cstserv;
-} bp_blk_cteb_t;
+    int     max_acks;
+    int     max_fills;
+    int     max_gaps;
+    int     num_acks;
+    void*   ack_list;
+} bp_dacs_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int bplib_blk_cteb_read     (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices);
-int bplib_blk_cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices);
+int     dacs_initialize     (bp_dacs_t* dacs, int max_acks, int max_fills, int max_gaps, int local_node, int local_service);
+void    dacs_uninitialize   (bp_dacs_t* dacs);
 
-#endif  /* __BPLIB_BLK_CTEB_H__ */
+int     dacs_acknowledge    (bp_dacs_t* dacs, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags);
+int     dacs_check          (bp_dacs_t* dacs, uint32_t period, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags);
+int     dacs_process        (void* block, int size, int* acks, bp_sid_t* sids, int table_size, bp_store_relinquish_t relinquish, int store_handle, uint16_t* dacsflags);
+
+#endif  /* __BPLIB_BLK_PAY_H__ */

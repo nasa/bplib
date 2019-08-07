@@ -69,6 +69,7 @@ VPATH	    := $(ROOT)/lib
 VPATH	    += $(ROOT)/v6
 VPATH	    += $(ROOT)/os
 VPATH	    += $(ROOT)/store
+VPATH	    += $(ROOT)/common
 
 # compiler options for search path for include headers (in form of -I_header_)  
 INCLUDES    := -I$(ROOT)/inc
@@ -76,6 +77,7 @@ INCLUDES    += -I$(ROOT)/lib
 INCLUDES    += -I$(ROOT)/v6
 INCLUDES    += -I$(ROOT)/os
 INCLUDES    += -I$(ROOT)/store
+INCLUDES    += -I$(ROOT)/common
 
 # c compiler and linker used for c file extensions
 COMPILER    ?= gcc

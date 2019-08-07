@@ -71,11 +71,10 @@ extern "C" {
 #define BP_WRONGCHANNEL                 (-15)
 #define BP_FAILEDINTEGRITYCHECK         (-16)
 #define BP_FAILEDSTORE                  (-17)
-#define BP_FAILEDRESPONSE               (-18)
-#define BP_FAILEDOS                     (-19)
-#define BP_FAILEDMEM                    (-20)
-#define BP_INVALIDEID                   (-21)
-#define BP_INVALIDCIPHERSUITEID         (-22)
+#define BP_FAILEDOS                     (-18)
+#define BP_FAILEDMEM                    (-19)
+#define BP_INVALIDEID                   (-20)
+#define BP_INVALIDCIPHERSUITEID         (-21)
 
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
@@ -117,6 +116,30 @@ extern "C" {
 /* IPN Scheme Defines */
 #define BP_MAX_EID_STRING               128
 
+/* Default Configuration */
+#define BP_DEFAULT_MAX_CHANNELS         4
+#define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
+#define BP_DEFAULT_MAX_CONCURRENT_DACS  4       /* maximum number of custody eids to keep track of */
+#define BP_DEFAULT_MAX_FILLS_PER_DACS   64
+#define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
+#define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
+#define BP_DEFAULT_TIMEOUT              10
+#define BP_DEFAULT_CREATE_TIME_SYS      true
+#define BP_DEFAULT_CREATE_SECS          0
+#define BP_DEFAULT_CSTRQST              true
+#define BP_DEFAULT_ICHECK               true
+#define BP_DEFAULT_LIFETIME             0
+#define BP_DEFAULT_BUNDLE_MAXLENGTH     4096
+#define BP_DEFAULT_SEQ_RESET_PERIOD     0
+#define BP_DEFAULT_PROC_ADMIN_ONLY      false
+#define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
+#define BP_DEFAULT_WRAP_TIMEOUT         1000    /* milliseconds */
+#define BP_DEFAULT_CID_REUSE            false
+#define BP_DEFAULT_DACS_RATE            5       /* seconds */
+#define BP_DEFAULT_ORIGINATION          true
+#define BP_DEFAULT_BP_VERSION           BP_PRI_VERSION
+
+
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
@@ -152,7 +175,7 @@ typedef struct {
     int     active_table_size;      /* number of unacknowledged bundles to keep track of */
     int     max_concurrent_dacs;    /* number of dacs to maintain at one time */
     int     max_fills_per_dacs;     /* dacs is built on stack (and therefore must fit on stack) */
-    int     max_tree_size;          /* number of nodes within a tree to store bundle ids */
+    int     max_gaps_per_dacs;      /* number of gaps in custody ids that can be kept track of */
     void*   storage_service_parm;   /* pass through of parameters needed by storage service */
 } bp_attr_t;
 

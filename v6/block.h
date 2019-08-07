@@ -37,4 +37,15 @@
 #define BP_BLK_FORWARDNOPROC_MASK       0x000020    /* block was forwarded without being processed */
 #define BP_BLK_EIDREF_MASK              0x000040    /* block contains an EID reference field */
 
+/* Block Type Definitions */
+#define BP_PAY_BLK_TYPE                 0x1
+#define BP_CTEB_BLK_TYPE                0xA
+#define BP_BIB_BLK_TYPE                 0xD
+
+/* Record Type Definitions */    
+#define BP_STAT_REC_TYPE                0x10 /* Status Report */
+#define BP_CS_REC_TYPE                  0x20 /* Custody Signal */
+#define BP_ACS_REC_TYPE                 0x40 /* Aggregate Custody Signal */
+    
+
 #endif  /* __BPLIB_BLK_H__ */
