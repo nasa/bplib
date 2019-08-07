@@ -1,20 +1,14 @@
 ###############################################################################
 # File: Makefile
 #
-#  Copyright 2019 United States Government as represented by the
-#  Administrator of the National Aeronautics and Space Administration.
+#   Copyright 2019 United States Government as represented by the 
+#   Administrator of the National Aeronautics and Space Administration. 
+#   All Other Rights Reserved.  
 #
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
+#   This software was created at NASA's Goddard Space Flight Center.
+#   This software is governed by the NASA Open Source Agreement and may be 
+#   used, distributed and modified only pursuant to the terms of that 
+#   agreement.
 #
 # Maintainer(s):
 #  Joe-Paul Swinski, Code 582 NASA GSFC
@@ -51,15 +45,15 @@ PREFIX	    := /usr/local
 	
 # application object files, application should add their objects to this variable
 APP_OBJ := bplib.o
-APP_OBJ += bplib_blk_bib.o
-APP_OBJ += bplib_blk_cteb.o
-APP_OBJ += bplib_blk_pay.o
-APP_OBJ += bplib_blk_pri.o
+APP_OBJ += bib.o
+APP_OBJ += cteb.o
+APP_OBJ += pay.o
+APP_OBJ += pri.o
+APP_OBJ += sdnv.o
 APP_OBJ += crc.o
-APP_OBJ += bplib_sdnv.o
 APP_OBJ += rb_tree.o
-APP_OBJ += bplib_store_file.o
-APP_OBJ += bplib_store_ram.o
+APP_OBJ += file.o
+APP_OBJ += ram.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?=
@@ -71,11 +65,17 @@ APP_COPT    ?=
 APP_LOPT    ?=
 
 # search path for application objects (note this is a make system variable)
-VPATH	    := $(ROOT)/src
+VPATH	    := $(ROOT)/lib
+VPATH	    += $(ROOT)/v6
+VPATH	    += $(ROOT)/os
+VPATH	    += $(ROOT)/store
 
 # compiler options for search path for include headers (in form of -I_header_)  
-INCLUDES    := -I$(ROOT)/src
-INCLUDES    += -I$(ROOT)/inc
+INCLUDES    := -I$(ROOT)/inc
+INCLUDES    += -I$(ROOT)/lib
+INCLUDES    += -I$(ROOT)/v6
+INCLUDES    += -I$(ROOT)/os
+INCLUDES    += -I$(ROOT)/store
 
 # c compiler and linker used for c file extensions
 COMPILER    ?= gcc
