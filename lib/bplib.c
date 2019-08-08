@@ -27,7 +27,7 @@
 #include "bib.h"
 #include "pay.h"
 #include "dacs.h"
-#include "os_api.h"
+#include "bplib_os.h"
 #include "crc.h"
 #include "rb_tree.h"
 
@@ -231,13 +231,13 @@ static int initialize_orig_bundle(bp_data_bundle_t* bundle)
     ds->cidsdnv = native_cteb_blk.cid;
 
     /* Write Primary Block */
-    offset = bplib_blk_pri_write(&hdrbuf[0], BP_BUNDLE_HDR_BUF_SIZE, &bundle->primary_block, false);
+    offset = pri_write(&hdrbuf[0], BP_BUNDLE_HDR_BUF_SIZE, &bundle->primary_block, false);
 
     /* Write Custody Block */
     if(bundle->primary_block.request_custody)
     {
         ds->cteboffset = offset;
-        offset = bplib_blk_cteb_write(&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->custody_block, false) + offset;
+        offset = cteb_write(&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->custody_block, false) + offset;
     }
     else
     {
@@ -248,7 +248,7 @@ static int initialize_orig_bundle(bp_data_bundle_t* bundle)
     if(bundle->primary_block.integrity_check)
     {
         ds->biboffset = offset;
-        offset = bplib_blk_bib_write(&hdrbuf[offset],  BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->integrity_block, false) + offset;
+        offset = bib_write(&hdrbuf[offset],  BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->integrity_block, false) + offset;
     }
     else
     {
@@ -257,7 +257,7 @@ static int initialize_orig_bundle(bp_data_bundle_t* bundle)
 
     /* Write Payload Block */
     ds->payoffset = offset;
-    ds->headersize = bplib_blk_pay_write (&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
+    ds->headersize = pay_write (&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
 
     /* Return Success */
     return BP_SUCCESS;
@@ -300,7 +300,7 @@ static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, b
     }
 
     /* Write Primary Block */
-    status = bplib_blk_pri_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, &bundle->primary_block, false);
+    status = pri_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, &bundle->primary_block, false);
     if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write primary block of forwarded bundle\n", status);
     hdr_index += status;
 
@@ -312,7 +312,7 @@ static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, b
         bplib_ipn2eid(fcteb->csteid, BP_MAX_EID_STRING, local_node, local_service);
         ds->cidsdnv = fcteb->cid;
         ds->cteboffset = hdr_index;
-        status = bplib_blk_cteb_write(&ds->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, fcteb, false);
+        status = cteb_write(&ds->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, fcteb, false);
         if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write custody block of forwarded bundle\n", status);
         hdr_index += status;
     }
@@ -325,7 +325,7 @@ static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, b
     if(bundle->primary_block.integrity_check)
     {
         ds->biboffset = hdr_index;
-        status = bplib_blk_bib_write(&ds->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, fbib, false);
+        status = bib_write(&ds->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, fbib, false);
         if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write integrity block of forwarded bundle\n", status);
         hdr_index += status;
     }
@@ -383,10 +383,10 @@ static int store_data_bundle(bp_data_bundle_t* bundle, bp_store_enqueue_t enqueu
     {
         /* Set Creation Time */
         pri->createsec.value = bplib_os_systime();
-        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, storflags);
+        sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, storflags);
 
         /* Set Sequence */
-        bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, storflags);
+        sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, storflags);
     }
 
     /* Set Expiration Time of Bundle */
@@ -405,19 +405,19 @@ static int store_data_bundle(bp_data_bundle_t* bundle, bp_store_enqueue_t enqueu
         {
             pri->fragoffset.value = payload_offset;
             pri->paylen.value = pay->paysize;
-            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->fragoffset, storflags);
-            bplib_sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->paylen, storflags);
+            sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->fragoffset, storflags);
+            sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->paylen, storflags);
         }
 
         /* Update Integrity Block */
         if(ds->biboffset != 0)
         {
-            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, &bundle->integrity_block);
+            bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, &bundle->integrity_block);
         }
         
         /* Write Payload Block (static portion) */
         pay->blklen.value = fragment_size;
-        status = bplib_blk_pay_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, pay, false);
+        status = pay_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, pay, false);
         if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write payload block (static portion) of bundle\n", status);
         ds->headersize = ds->payoffset + status;
         ds->bundlesize = ds->headersize + fragment_size;
@@ -644,8 +644,8 @@ void bplib_init(int max_channels)
     /* Initialize OS Interface */
     bplib_os_init();
     
-    /* Init the xor tables for all supported crc specifications. */
-    bplib_blk_crc_init();
+    /* Initialize the Bundle Integrity Block Module */
+    bib_init();
 
     /* Create Channel Lock */
     channels_lock = bplib_os_createlock();
@@ -655,7 +655,7 @@ void bplib_init(int max_channels)
     else                    channels_max = max_channels;
     channels = (bp_channel_t*)malloc(channels_max * sizeof(bp_channel_t));
 
-    /* Set all channel control blocks to empty */
+    /* Set All Channel Control Blocks to Empty */
     for(i = 0; i < channels_max; i++)
     {
         channels[i].index = BP_EMPTY;
@@ -1180,7 +1180,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                             ati = ch->active_table.current_cid % ch->attributes.active_table_size;
                             ch->active_table.sid[ati] = sid;
                             ds->cidsdnv.value = ch->active_table.current_cid++;
-                            bplib_sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize - ds->cteboffset, ds->cidsdnv, loadflags);
+                            sdnv_write(&ds->header[ds->cteboffset], ds->bundlesize - ds->cteboffset, ds->cidsdnv, loadflags);
                         }
 
                         /* Update Retransmit Time */
@@ -1265,7 +1265,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
 
     /* Parse Primary Block */
     exclude[ei++] = index;
-    status = bplib_blk_pri_read(buffer, size, &pri_blk, true);
+    status = pri_read(buffer, size, &pri_blk, true);
     if(status <= 0) return bplog(status, "Failed to parse primary block of size %d\n", size);
     else            index += status;
     exclude[ei++] = index;
@@ -1297,7 +1297,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             cteb_present = true;
             cteb_index = index;
             if(pri_blk.request_custody) exclude[ei++] = index;
-            status = bplib_blk_cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, true);
+            status = cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, true);
             if(status <= 0) return bplog(status, "Failed to parse CTEB block at offset %d\n", cteb_index);
             else            index += status;
             if(pri_blk.request_custody) exclude[ei++] = index;
@@ -1307,7 +1307,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             bib_present = true;
             bib_index = index;
             exclude[ei++] = index;
-            status = bplib_blk_bib_read(&buffer[bib_index], size - bib_index, &bib_blk, true);
+            status = bib_read(&buffer[bib_index], size - bib_index, &bib_blk, true);
             if(status <= 0) return bplog(status, "Failed to parse BIB block at offset %d\n", bib_index);
             else            index += status;
             exclude[ei++] = index;
@@ -1319,8 +1319,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             int start_index = index;
             int data_index = 0; /* start of the block after the block length, set below */
             
-            blk_len.index = bplib_sdnv_read(&buffer[start_index], size - start_index, &blk_flags, procflags);
-            data_index = bplib_sdnv_read(&buffer[start_index], size - start_index, &blk_len, procflags);
+            blk_len.index = sdnv_read(&buffer[start_index], size - start_index, &blk_flags, procflags);
+            data_index = sdnv_read(&buffer[start_index], size - start_index, &blk_len, procflags);
 
             /* Check Parsing Status */
             if(*procflags & (BP_FLAG_SDNVOVERFLOW | BP_FLAG_SDNVINCOMPLETE))
@@ -1354,13 +1354,13 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
 
             /* Mark As Forwarded without Processed */
             blk_flags.value |= BP_BLK_FORWARDNOPROC_MASK;
-            bplib_sdnv_write(&buffer[start_index], size - start_index, blk_flags, procflags);
+            sdnv_write(&buffer[start_index], size - start_index, blk_flags, procflags);
         }
         else /* payload block */
         {
             pay_index = index;
             exclude[ei++] = index; /* start of payload header */
-            status = bplib_blk_pay_read(&buffer[pay_index], size - pay_index, &pay_blk, true);
+            status = pay_read(&buffer[pay_index], size - pay_index, &pay_blk, true);
             if(status <= 0) return bplog(status, "Failed (%d) to read payload block\n", status);
             else            index += status;
             exclude[ei++] = index + pay_blk.paysize;
@@ -1368,7 +1368,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             /* Perform Integrity Check */
             if(bib_present)
             {
-                status = bplib_blk_bib_verify(pay_blk.payptr, pay_blk.paysize, &bib_blk);
+                status = bib_verify(pay_blk.payptr, pay_blk.paysize, &bib_blk);
                 if(status <= 0) return bplog(status, "Bundle failed integrity check\n");
             }
 
@@ -1596,7 +1596,7 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
     assert(buffer);
 
     /* Parse Primary Block */
-    status = bplib_blk_pri_read(buffer, size, &pri_blk, true);
+    status = pri_read(buffer, size, &pri_blk, true);
     if(status <= 0) return status;
 
     /* Set Addresses */

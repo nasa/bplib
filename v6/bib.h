@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include "sdnv.h"
-#include "os_api.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -54,10 +54,10 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-void bplib_blk_crc_init      ();
-int bplib_blk_bib_read      (void* contents, int size, bp_blk_bib_t* bib, bool update_indices);
-int bplib_blk_bib_write     (void* block, int size, bp_blk_bib_t* bib, bool update_indices);
-int bplib_blk_bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib);
-int bplib_blk_bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib);
+void bib_init      ();
+int bib_read      (void* contents, int size, bp_blk_bib_t* bib, bool update_indices);
+int bib_write     (void* block, int size, bp_blk_bib_t* bib, bool update_indices);
+int bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib);
+int bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib);
 
 #endif  /* __BPLIB_BLK_BIB_H__ */

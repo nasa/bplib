@@ -23,14 +23,14 @@
 #include "block.h"
 #include "pay.h"
 #include "sdnv.h"
-#include "os_api.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_blk_pay_read -
+ * pay_read -
  *
  *  block - pointer to block holding bundle block [INPUT]
  *  size - size of block [INPUT]
@@ -39,7 +39,7 @@
  *
  *  Returns:    Next index
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_indices)
+int pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
@@ -51,8 +51,8 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_in
     /* Read Block Information */
     if(!update_indices)
     {
-        bplib_sdnv_read(buffer, size, &pay->bf, &flags);
-        bytes_read = bplib_sdnv_read(buffer, size, &pay->blklen, &flags);
+        sdnv_read(buffer, size, &pay->bf, &flags);
+        bytes_read = sdnv_read(buffer, size, &pay->blklen, &flags);
     }
     else
     {
@@ -60,8 +60,8 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_in
         pay->blklen.width = 0;
 
         pay->bf.index = 1;
-        pay->blklen.index = bplib_sdnv_read(buffer, size, &pay->bf, &flags);
-        bytes_read = bplib_sdnv_read(buffer, size, &pay->blklen, &flags);
+        pay->blklen.index = sdnv_read(buffer, size, &pay->bf, &flags);
+        bytes_read = sdnv_read(buffer, size, &pay->blklen, &flags);
     }
 
     /* Success Oriented Error Checking */
@@ -78,7 +78,7 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_in
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_blk_pay_write -
+ * pay_write -
  *
  *  block - pointer to memory that holds bundle block [OUTPUT]
  *  size - size of block [INPUT]
@@ -87,7 +87,7 @@ int bplib_blk_pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_in
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_indices)
+int pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_indices)
 {
     uint8_t* buffer = (uint8_t*)block;
     uint16_t flags = 0;
@@ -108,8 +108,8 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_i
     buffer[0] = BP_PAY_BLK_TYPE;
     if(!update_indices)
     {
-        bplib_sdnv_write(buffer, size, pay->bf, &flags);
-        bytes_written = bplib_sdnv_write(buffer, size, pay->blklen, &flags);
+        sdnv_write(buffer, size, pay->bf, &flags);
+        bytes_written = sdnv_write(buffer, size, pay->blklen, &flags);
     }
     else
     {
@@ -117,8 +117,8 @@ int bplib_blk_pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_i
         pay->blklen.width = 0;
 
         pay->bf.index = 1;
-        pay->blklen.index = bplib_sdnv_write(buffer, size, pay->bf, &flags);
-        bytes_written = bplib_sdnv_write(buffer, size, pay->blklen, &flags);
+        pay->blklen.index = sdnv_write(buffer, size, pay->bf, &flags);
+        bytes_written = sdnv_write(buffer, size, pay->blklen, &flags);
     }
 
     /* Success Oriented Error Checking */

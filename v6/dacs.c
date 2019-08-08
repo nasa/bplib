@@ -25,7 +25,7 @@
 #include "bib.h"
 #include "pay.h"
 #include "sdnv.h"
-#include "os_api.h"
+#include "bplib_os.h"
 #include "dacs.h"
 
 /******************************************************************************
@@ -188,9 +188,9 @@ static int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t*
     /* Get the first available range from the rb tree and fill it. */
     rb_tree_get_next_rb_node(tree, iter, &range, true, false);
     cid.value = range.value;
-    fill.index = bplib_sdnv_write(rec, size, cid, &flags);
+    fill.index = sdnv_write(rec, size, cid, &flags);
     fill.value = range.offset + 1;
-    fill.index = bplib_sdnv_write(rec, size, fill, &flags);    
+    fill.index = sdnv_write(rec, size, fill, &flags);    
     count_fills += 2;
 
     /* Traverse tree in order and write out fills to dacs. */
@@ -202,11 +202,11 @@ static int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t*
         /* Write range of missing cid.
            Calculate the missing values between the current and previous node. */
         fill.value = range.value - (prev_range.value + prev_range.offset + 1);
-        fill.index = bplib_sdnv_write(rec, size, fill, &flags);
+        fill.index = sdnv_write(rec, size, fill, &flags);
 
         /* Write range of received cids. */
         fill.value = range.offset + 1;
-        fill.index = bplib_sdnv_write(rec, size, fill, &flags);    
+        fill.index = sdnv_write(rec, size, fill, &flags);    
         count_fills += 2;        
     }
 
@@ -248,23 +248,23 @@ static int dacs_store(dacs_bundle_t* bundle, uint32_t sysnow, int timeout, int m
 
         /* Set Creation Time */
         pri->createsec.value = sysnow;
-        bplib_sdnv_write(ds->header, BP_DACS_HDR_BUF_SIZE, pri->createsec, dacsflags);
+        sdnv_write(ds->header, BP_DACS_HDR_BUF_SIZE, pri->createsec, dacsflags);
 
         /* Set Sequence */
-        bplib_sdnv_write(ds->header, BP_DACS_HDR_BUF_SIZE, pri->createseq, dacsflags);
+        sdnv_write(ds->header, BP_DACS_HDR_BUF_SIZE, pri->createseq, dacsflags);
         pri->createseq.value++;
 
         /* Update Bundle Integrity Block */
         if(ds->biboffset != 0)
         {
-            bplib_blk_bib_update(&ds->header[ds->biboffset], BP_DACS_HDR_BUF_SIZE - ds->biboffset, bundle->paybuf, dacs_size, &bundle->integrity_block);
+            bib_update(&ds->header[ds->biboffset], BP_DACS_HDR_BUF_SIZE - ds->biboffset, bundle->paybuf, dacs_size, &bundle->integrity_block);
         }
         
         /* Update Payload Block */
         bundle->payload_block.payptr = bundle->paybuf;
         bundle->payload_block.paysize = dacs_size;
         bundle->payload_block.blklen.value = dacs_size;
-        bplib_sdnv_write(&ds->header[ds->payoffset], BP_DACS_HDR_BUF_SIZE - ds->payoffset, bundle->payload_block.blklen, dacsflags);
+        sdnv_write(&ds->header[ds->payoffset], BP_DACS_HDR_BUF_SIZE - ds->payoffset, bundle->payload_block.blklen, dacsflags);
 
         /* Send (enqueue) DACS */
         enstat = enqueue(store_handle, ds, storage_header_size, bundle->paybuf, dacs_size, timeout);
@@ -322,13 +322,13 @@ static int dacs_new(dacs_bundle_t* bundle, uint32_t dstnode, uint32_t dstserv, u
     memset(ds, 0, sizeof(dacs_store_t));
 
     /* Write Primary Block */
-    offset = bplib_blk_pri_write(&hdrbuf[0], BP_DACS_HDR_BUF_SIZE, &bundle->primary_block, false);
+    offset = pri_write(&hdrbuf[0], BP_DACS_HDR_BUF_SIZE, &bundle->primary_block, false);
 
     /* Write Integrity Block */
     if(bundle->primary_block.integrity_check)
     {
         ds->biboffset = offset;
-        offset = bplib_blk_bib_write(&hdrbuf[offset], BP_DACS_HDR_BUF_SIZE - offset, &bundle->integrity_block, false) + offset;
+        offset = bib_write(&hdrbuf[offset], BP_DACS_HDR_BUF_SIZE - offset, &bundle->integrity_block, false) + offset;
     }
     else
     {
@@ -337,13 +337,13 @@ static int dacs_new(dacs_bundle_t* bundle, uint32_t dstnode, uint32_t dstserv, u
     
     /* Write Payload Block */
     ds->payoffset = offset;
-    ds->headersize = bplib_blk_pay_write(&hdrbuf[offset], BP_DACS_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
+    ds->headersize = pay_write(&hdrbuf[offset], BP_DACS_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
 
     /* Set Destination EID */
     bundle->primary_block.dstnode.value = dstnode;
     bundle->primary_block.dstserv.value = dstserv;
-    bplib_sdnv_write(hdrbuf, BP_DACS_HDR_BUF_SIZE, bundle->primary_block.dstnode, &flags);
-    bplib_sdnv_write(hdrbuf, BP_DACS_HDR_BUF_SIZE, bundle->primary_block.dstserv, &flags);
+    sdnv_write(hdrbuf, BP_DACS_HDR_BUF_SIZE, bundle->primary_block.dstnode, &flags);
+    sdnv_write(hdrbuf, BP_DACS_HDR_BUF_SIZE, bundle->primary_block.dstserv, &flags);
 
     /* Set Custody EID */
     bundle->cstnode = dstnode;
@@ -576,7 +576,7 @@ int dacs_process(void* rec, int size, int* acks, bp_sid_t* sids, int table_size,
     *acks = 0;
 
     /* Read First Custody ID */
-    fill.index = bplib_sdnv_read(buf, size, &cid, &flags);
+    fill.index = sdnv_read(buf, size, &cid, &flags);
     if(flags != 0)
     {
         *dacsflags |= flags;
@@ -588,7 +588,7 @@ int dacs_process(void* rec, int size, int* acks, bp_sid_t* sids, int table_size,
     {
 
         /* Read Fill */
-        fill.index = bplib_sdnv_read(buf, size, &fill, &flags);
+        fill.index = sdnv_read(buf, size, &fill, &flags);
         if(flags != 0)
         {
             *dacsflags |= flags;

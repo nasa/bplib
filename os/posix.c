@@ -29,7 +29,7 @@
 #include <unistd.h>
 
 #include "bplib.h"
-#include "os_api.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  DEFINES

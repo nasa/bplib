@@ -27,7 +27,7 @@
  ******************************************************************************/
 
 #include "sdnv.h"
-#include "os_api.h"
+#include "bplib_os.h"
 #include "bplib.h"
 
 /******************************************************************************
@@ -35,7 +35,7 @@
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_sdnv_read -
+ * sdnv_read -
  *
  *  block - pointer to memory address to read from [input]
  *  size - maximum number of bytes to read [input]
@@ -44,7 +44,7 @@
  *  flags - pointer to variable that will hold the flags set as result of read [output]
  *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
-int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags)
+int sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags)
 {
     assert(block);
     assert(sdnv);
@@ -75,7 +75,7 @@ int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_sdnv_write -
+ * sdnv_write -
  *
  *  block - pointer to memory address to be written to [input]
  *  size - number of bytes to write for value (as counted in resulting SDNV) [input]
@@ -84,7 +84,7 @@ int bplib_sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags)
  *  flags - pointer to variable that will hold the flags set as result of write [output]
  *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
-int bplib_sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
+int sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
 {
     assert(block);
     assert(flags);

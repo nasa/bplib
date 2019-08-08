@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "os_api.h"
+#include "bplib_os.h"
 #include "sdnv.h"
 #include "rb_tree.h"
 
@@ -42,7 +42,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int bplib_blk_pay_read      (void* block, int size, bp_blk_pay_t* pay, bool update_indices);
-int bplib_blk_pay_write     (void* block, int size, bp_blk_pay_t* pay, bool update_indices);
+int pay_read      (void* block, int size, bp_blk_pay_t* pay, bool update_indices);
+int pay_write     (void* block, int size, bp_blk_pay_t* pay, bool update_indices);
 
 #endif  /* __BPLIB_BLK_PAY_H__ */

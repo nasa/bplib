@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "os_api.h"
+#include "bplib_os.h"
 #include "sdnv.h"
 
 /******************************************************************************
@@ -68,8 +68,8 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int bplib_blk_pri_read      (void* block, int size, bp_blk_pri_t* pri, bool update_indices);
-int bplib_blk_pri_write     (void* block, int size, bp_blk_pri_t* pri, bool update_indices);
-int bplib_blk_pri_display   (bp_blk_pri_t* pri);
+int pri_read      (void* block, int size, bp_blk_pri_t* pri, bool update_indices);
+int pri_write     (void* block, int size, bp_blk_pri_t* pri, bool update_indices);
+int pri_display   (bp_blk_pri_t* pri);
 
 #endif  /* __BPLIB_BLK_PRI_H__ */

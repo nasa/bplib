@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "os_api.h"
+#include "bplib_os.h"
 #include "sdnv.h"
 
 /******************************************************************************
@@ -43,7 +43,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int bplib_blk_cteb_read     (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices);
-int bplib_blk_cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices);
+int cteb_read     (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices);
+int cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices);
 
 #endif  /* __BPLIB_BLK_CTEB_H__ */
