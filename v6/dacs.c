@@ -22,9 +22,11 @@
 #include "bplib.h"
 #include "block.h"
 #include "pri.h"
+#include "bib.h"
 #include "pay.h"
 #include "sdnv.h"
 #include "os_api.h"
+#include "dacs.h"
 
 /******************************************************************************
  DEFINES
@@ -224,23 +226,23 @@ static int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t*
  *
  *  Notes:
  *-------------------------------------------------------------------------------------*/
-static int dacs_store(dacs_bundle_t* bundle, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags)
+static int dacs_store(dacs_bundle_t* bundle, uint32_t sysnow, int timeout, int max_fills_per_dacs, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags)
 {
     int dacs_size, enstat, enstat_fail, storage_header_size;
     bool has_enqueue_failure = false;
 
     /* If the tree has nodes, initialize the iterator for traversing the tree in order */
     rb_node_t* iter;
-    rb_tree_get_first_rb_node(&(bundle->tree), &iter);
+    rb_tree_get_first_rb_node(&bundle->tree, &iter);
 
     /* Continue to delete nodes from the tree and write them to DACS until the tree is empty */
-    while (!rb_tree_is_empty(&(bundle->tree)))
+    while (!rb_tree_is_empty(&bundle->tree))
     {
         dacs_store_t* ds = &bundle->dacs_store;
         bp_blk_pri_t* pri = &bundle->primary_block;
 
         /* Build DACS - will remove nodes from the tree */
-        dacs_size = dacs_write(bundle->paybuf, bundle->paybuf_size, bundle->max_fills, &(bundle->tree), &iter);
+        dacs_size = dacs_write(bundle->paybuf, bundle->paybuf_size, max_fills_per_dacs, &bundle->tree, &iter);
         ds->bundlesize = ds->headersize + dacs_size;
         storage_header_size = sizeof(dacs_store_t) - (BP_DACS_HDR_BUF_SIZE - ds->headersize);
 
@@ -359,16 +361,14 @@ static int dacs_new(dacs_bundle_t* bundle, uint32_t dstnode, uint32_t dstserv, u
  *  Notes:  may or may not perform enqueue depending if DACS needs to be sent
  *          based on whether or not dacs record is full
  *-------------------------------------------------------------------------------------*/
-static int dacs_update(dacs_bundle_t* bundle, uint32_t cid, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags)
+static int dacs_update(dacs_bundle_t* bundle, uint32_t cid, uint32_t sysnow, int timeout, int max_fills_per_dacs, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags)
 {
-    int i;
-
     /* Attempt to insert cid into bundle. */
     bool insert_status = dacs_insert(bundle, cid, dacsflags);
     if(!insert_status)
     {
         /* Store DACS */
-        dacs_store(bundle, sysnow, timeout, enqueue, store_handle, dacsflags);
+        dacs_store(bundle, sysnow, timeout, max_fills_per_dacs, enqueue, store_handle, dacsflags);
 
         /* Start New DTN ACS */
         insert_status = dacs_insert(bundle, cid, dacsflags);
@@ -454,11 +454,14 @@ int dacs_initialize (bp_dacs_t* dacs, int max_acks, int max_fills, int max_gaps,
  *-------------------------------------------------------------------------------------*/
 void dacs_uninitialize(bp_dacs_t* dacs)
 {
+    int j;
+    
     if(dacs)
     {
+        dacs_bundle_t* bundle_list = (dacs_bundle_t*)dacs->acks_list;
+
         for(j = 0; j < dacs->max_acks; j++)
         {
-            dacs_bundle_t* bundle_list = (dacs_bundle_t*)dacs->acks_list;
             if(bundle_list[j].paybuf) free(bundle_list[j].paybuf);
             if(bundle_list[j].tree.max_size > 0) 
             {
@@ -476,13 +479,15 @@ void dacs_uninitialize(bp_dacs_t* dacs)
 int dacs_acknowledge(bp_dacs_t* dacs, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags)
 {
     int j;
+    int status = BP_SUCCESS;
+
+    dacs_bundle_t* bundle_list = (dacs_bundle_t*)dacs->acks_list;
 
     /* Find DACS Entry */                   
     dacs_bundle_t* bundle = NULL;                    
-    for(j = 0; j < dacs->num_dacs; j++)
+    for(j = 0; j < dacs->num_acks; j++)
     {
-        dacs_bundle_t* bundle_list = (dacs_bundle_t*)dacs->acks_list;
-        if(bundle_list[j].cstnode == cteb_blk.cstnode && bundle_list[j].cstserv == cteb_blk.cstserv)
+        if(bundle_list[j].cstnode == cteb->cstnode && bundle_list[j].cstserv == cteb->cstserv)
         {
             bundle = &bundle_list[j];
             break;
@@ -492,16 +497,16 @@ int dacs_acknowledge(bp_dacs_t* dacs, bp_blk_cteb_t* cteb, uint32_t sysnow, int 
     /* Handle Entry Not Found */
     if(bundle == NULL)
     {
-        if(dacs->num_dacs < dacs->max_dacs)
+        if(dacs->num_acks < dacs->max_acks)
         {
             /* Initial DACS Bundle */
-            bundle = &bundle_list[dacs->num_dacs++]
-            dacs_new(bundle, cteb_blk.cstnode, cteb_blk.cstserv, procflags);
+            bundle = &bundle_list[dacs->num_acks++];
+            dacs_new(bundle, cteb->cstnode, cteb->cstserv, dacsflags);
         }
         else
         {
             /* No Room in Table for Another Source */
-            *procflags |= BP_FLAG_TOOMANYSOURCES;
+            *dacsflags |= BP_FLAG_TOOMANYSOURCES;
             status = bplog(BP_FAILEDRESPONSE, "No room in DACS table for another source %d.%d\n", cteb->cstnode, cteb->cstserv);
         }
     }
@@ -509,9 +514,11 @@ int dacs_acknowledge(bp_dacs_t* dacs, bp_blk_cteb_t* cteb, uint32_t sysnow, int 
     /* Update DACS */
     if(bundle != NULL)
     {
-        status = dacs_update(bundle, cteb->cid.value, sysnow, BP_CHECK, enqueue, store_handle, procflags);
+        status = dacs_update(bundle, cteb->cid.value, sysnow, timeout, dacs->max_fills, enqueue, store_handle, dacsflags);
     }
     
+    /* Return Status */
+    return status;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -520,20 +527,20 @@ int dacs_acknowledge(bp_dacs_t* dacs, bp_blk_cteb_t* cteb, uint32_t sysnow, int 
  *  Notes:  may or may not perform enqueue depending if DACS needs to be sent
  *          based on whether or not it has been too long a time without sending a DACS
  *-------------------------------------------------------------------------------------*/
-int dacs_check(dacs_bundle_t* dacs, uint32_t period, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags)
+int dacs_check(bp_dacs_t* dacs, uint32_t period, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags)
 {   
     int j;
     int ret_status = BP_SUCCESS;
 
     if(period > 0)
     {
-        for(j = 0; j < dacs->num_dacs; j++)
+        dacs_bundle_t* bundle_list = (dacs_bundle_t*)dacs->acks_list;
+        for(j = 0; j < dacs->num_acks; j++)
         {
-            dacs_bundle_t* bundle_list = (dacs_bundle_t*)dacs->acks_list;
             if( (sysnow >= (bundle_list[j].last_dacs + period)) && 
                 !rb_tree_is_empty(&bundle_list[j].tree) )
             {
-                int status = dacs_store(&bundle_list[j], sysnow, BP_CHECK, enqueue, store_handle, dacsflags);
+                int status = dacs_store(&bundle_list[j], sysnow, timeout, dacs->max_fills, enqueue, store_handle, dacsflags);
                 if(status != BP_SUCCESS && ret_status == BP_SUCCESS)
                 {
                     ret_status = status;
@@ -554,7 +561,7 @@ int dacs_check(dacs_bundle_t* dacs, uint32_t period, uint32_t sysnow, int timeou
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int dacs_process(void* rec, int size, int* acks, bp_sid_t* sids, int table_size, bp_store_relinquish_t relinquish, int store_handleu, int16_t* dacsflags)
+int dacs_process(void* rec, int size, int* acks, bp_sid_t* sids, int table_size, bp_store_relinquish_t relinquish, int store_handle, uint16_t* dacsflags)
 {
     uint32_t i;
     bp_sdnv_t cid = { 0, 2, 0 };
