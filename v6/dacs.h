@@ -53,4 +53,4 @@ int     dacs_acknowledge    (bp_dacs_t* dacs, bp_blk_cteb_t* cteb, uint32_t sysn
 int     dacs_check          (bp_dacs_t* dacs, uint32_t period, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags);
 int     dacs_process        (void* rec, int size, int* acks, bp_sid_t* sids, int table_size, bp_store_relinquish_t relinquish, int store_handle, uint16_t* dacsflags);
 
-#endif  /* __BPLIB_BLK_PAY_H__ */
+#endif  /* __BPLIB_DACS_H__ */

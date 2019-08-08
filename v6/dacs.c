@@ -27,6 +27,7 @@
 #include "sdnv.h"
 #include "bplib_os.h"
 #include "dacs.h"
+#include "data.h"
 
 /******************************************************************************
  DEFINES
@@ -35,23 +36,10 @@
 #define BP_ACS_REC_TYPE_INDEX       0
 #define BP_ACS_REC_STATUS_INDEX     1
 #define BP_ACS_ACK_MASK             0x80    /* if set, then custody successfully transfered */
-#define BP_DACS_HDR_BUF_SIZE        128
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
-
-/* DTN Aggregate Custody Signal - Storage Block */
-typedef struct {
-    uint32_t            exprtime;           /* absolute time when bundle expires */
-    bp_sdnv_t           cidsdnv;            /* SDNV of custody id field of bundle */
-    int                 cteboffset;         /* offset of the CTEB block of bundle */
-    int                 biboffset;          /* offset of the BIB block of bundle */
-    int                 payoffset;          /* offset of the payload block of bundle */
-    int                 headersize;         /* size of the header (portion of buffer below used) */
-    int                 bundlesize;         /* total size of the bundle (header and payload) */
-    uint8_t             header[BP_DACS_HDR_BUF_SIZE]; /* header portion of DACS */
-} dacs_store_t;
 
 /* DTN Aggregate Custody Signal - Bundle */
 typedef struct {
@@ -64,7 +52,7 @@ typedef struct {
     uint32_t            last_dacs;  /* time of last dacs generated */
     uint8_t*            paybuf;     /* buffer to hold built DACS record */
     int                 paybuf_size;
-    dacs_store_t        dacs_store;
+    bp_bundle_store_t   dacs_store;
 } dacs_bundle_t;
 
 /******************************************************************************
@@ -238,33 +226,33 @@ static int dacs_store(dacs_bundle_t* bundle, uint32_t sysnow, int timeout, int m
     /* Continue to delete nodes from the tree and write them to DACS until the tree is empty */
     while (!rb_tree_is_empty(&bundle->tree))
     {
-        dacs_store_t* ds = &bundle->dacs_store;
+        bp_bundle_store_t* ds = &bundle->dacs_store;
         bp_blk_pri_t* pri = &bundle->primary_block;
 
         /* Build DACS - will remove nodes from the tree */
         dacs_size = dacs_write(bundle->paybuf, bundle->paybuf_size, max_fills_per_dacs, &bundle->tree, &iter);
         ds->bundlesize = ds->headersize + dacs_size;
-        storage_header_size = sizeof(dacs_store_t) - (BP_DACS_HDR_BUF_SIZE - ds->headersize);
+        storage_header_size = sizeof(bp_bundle_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - ds->headersize);
 
         /* Set Creation Time */
         pri->createsec.value = sysnow;
-        sdnv_write(ds->header, BP_DACS_HDR_BUF_SIZE, pri->createsec, dacsflags);
+        sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, dacsflags);
 
         /* Set Sequence */
-        sdnv_write(ds->header, BP_DACS_HDR_BUF_SIZE, pri->createseq, dacsflags);
+        sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, dacsflags);
         pri->createseq.value++;
 
         /* Update Bundle Integrity Block */
         if(ds->biboffset != 0)
         {
-            bib_update(&ds->header[ds->biboffset], BP_DACS_HDR_BUF_SIZE - ds->biboffset, bundle->paybuf, dacs_size, &bundle->integrity_block);
+            bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, bundle->paybuf, dacs_size, &bundle->integrity_block);
         }
         
         /* Update Payload Block */
         bundle->payload_block.payptr = bundle->paybuf;
         bundle->payload_block.paysize = dacs_size;
         bundle->payload_block.blklen.value = dacs_size;
-        sdnv_write(&ds->header[ds->payoffset], BP_DACS_HDR_BUF_SIZE - ds->payoffset, bundle->payload_block.blklen, dacsflags);
+        sdnv_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, bundle->payload_block.blklen, dacsflags);
 
         /* Send (enqueue) DACS */
         enstat = enqueue(store_handle, ds, storage_header_size, bundle->paybuf, dacs_size, timeout);
@@ -313,22 +301,22 @@ static int dacs_store(dacs_bundle_t* bundle, uint32_t sysnow, int timeout, int m
  *-------------------------------------------------------------------------------------*/
 static int dacs_new(dacs_bundle_t* bundle, uint32_t dstnode, uint32_t dstserv, uint16_t* dacsflags)
 {
-    dacs_store_t*   ds      = &bundle->dacs_store;
-    uint8_t*        hdrbuf  = ds->header;
-    uint16_t        flags   = 0;
-    int             offset  = 0;
+    bp_bundle_store_t*  ds      = &bundle->dacs_store;
+    uint8_t*            hdrbuf  = ds->header;
+    uint16_t            flags   = 0;
+    int                 offset  = 0;
 
     /* Initialize Storage */
-    memset(ds, 0, sizeof(dacs_store_t));
+    memset(ds, 0, sizeof(bp_bundle_store_t));
 
     /* Write Primary Block */
-    offset = pri_write(&hdrbuf[0], BP_DACS_HDR_BUF_SIZE, &bundle->primary_block, false);
+    offset = pri_write(&hdrbuf[0], BP_BUNDLE_HDR_BUF_SIZE, &bundle->primary_block, false);
 
     /* Write Integrity Block */
     if(bundle->primary_block.integrity_check)
     {
         ds->biboffset = offset;
-        offset = bib_write(&hdrbuf[offset], BP_DACS_HDR_BUF_SIZE - offset, &bundle->integrity_block, false) + offset;
+        offset = bib_write(&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->integrity_block, false) + offset;
     }
     else
     {
@@ -337,13 +325,13 @@ static int dacs_new(dacs_bundle_t* bundle, uint32_t dstnode, uint32_t dstserv, u
     
     /* Write Payload Block */
     ds->payoffset = offset;
-    ds->headersize = pay_write(&hdrbuf[offset], BP_DACS_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
+    ds->headersize = pay_write(&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
 
     /* Set Destination EID */
     bundle->primary_block.dstnode.value = dstnode;
     bundle->primary_block.dstserv.value = dstserv;
-    sdnv_write(hdrbuf, BP_DACS_HDR_BUF_SIZE, bundle->primary_block.dstnode, &flags);
-    sdnv_write(hdrbuf, BP_DACS_HDR_BUF_SIZE, bundle->primary_block.dstserv, &flags);
+    sdnv_write(hdrbuf, BP_BUNDLE_HDR_BUF_SIZE, bundle->primary_block.dstnode, &flags);
+    sdnv_write(hdrbuf, BP_BUNDLE_HDR_BUF_SIZE, bundle->primary_block.dstserv, &flags);
 
     /* Set Custody EID */
     bundle->cstnode = dstnode;
