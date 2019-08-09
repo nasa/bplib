@@ -20,6 +20,7 @@
  ******************************************************************************/
 
 #include "bplib.h"
+#include "bplib_os.h"
 #include "sdnv.h"
 #include "block.h"
 #include "pri.h"
@@ -27,9 +28,8 @@
 #include "bib.h"
 #include "pay.h"
 #include "dacs.h"
-#include "bplib_os.h"
+#include "data.h"
 #include "crc.h"
-#include "rb_tree.h"
 
 /******************************************************************************
  DEFINES
@@ -40,46 +40,11 @@
 #endif
 
 #define BP_EMPTY                        (-1)
-#define BP_BUNDLE_HDR_BUF_SIZE          128
 #define BP_NUM_EXCLUDE_REGIONS          8
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
-
-/* --------------- Storage Types ------------------- */
-
-/* Payload Storage Block */
-typedef struct {
-    bool                request_custody;    /* boolean whether original bundle requested custody on payload delivery */
-    int                 payloadsize;        /* size of the payload */
-} bp_payload_store_t;
-
-/* Bundle Storage Block */
-typedef struct {
-    uint32_t            exprtime;           /* absolute time when bundle expires */
-    bp_sdnv_t           cidsdnv;            /* SDNV of custody id field of bundle */
-    int                 cteboffset;         /* offset of the CTEB block of bundle */
-    int                 biboffset;          /* offset of the BIB block of bundle */
-    int                 payoffset;          /* offset of the payload block of bundle */
-    int                 headersize;         /* size of the header (portion of buffer below used) */
-    int                 bundlesize;         /* total size of the bundle (header and payload) */
-    uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; /* header portion of bundle */
-} bp_bundle_store_t;
-
-/* --------------- Bundle Types ------------------- */
-
-/* Data Bundle */
-typedef struct {
-    bp_blk_pri_t        primary_block;
-    bp_blk_cteb_t       custody_block;
-    bp_blk_bib_t        integrity_block;
-    bp_blk_pay_t        payload_block;
-    int                 maxlength;  /* maximum size of bundle in bytes (includes header blocks) */
-    int                 originate;  /* 1: originated bundle, 0: forwarded bundle */
-    bp_bundle_store_t   bundle_store;
-    bp_payload_store_t  payload_store;
-} bp_data_bundle_t;
 
 /* --------------- Application Types ------------------- */
 
@@ -111,7 +76,7 @@ typedef struct {
     int                 payload_store_handle;
     int                 dacs_store_handle;
 
-    bp_data_bundle_t    data_bundle;
+    bp_data_t           data;
     bp_dacs_t           dacs;
 
     bp_active_table_t   active_table;
@@ -134,307 +99,8 @@ static int channels_max;
 static int channels_lock;
 
 /******************************************************************************
- CONST FILE DATA
- ******************************************************************************
- * Notes:
- * 1. The block length field for every bundle block MUST be set to a positive
- *    integer.  The option to update the fields of the bundle reserves the width
- *    of the blklen field and goes back and writes the value after the entire
- *    block is written.  If the blklen field was variable, the code would have
- *    to make a first pass to calculate the block length and then a second pass
- *    to use that block length - that would be too much processing.
- */
-
-static const bp_blk_pri_t native_data_pri_blk = {
-    .version            = BP_DEFAULT_BP_VERSION,
-                            /*          Value         Index       Width   */
-    .pcf                = { 0,                          1,          3 },
-    .blklen             = { 0,                          4,          1 },
-    .dstnode            = { 0,                          5,          4 },
-    .dstserv            = { 0,                          9,          2 },
-    .srcnode            = { 0,                          11,         4 },
-    .srcserv            = { 0,                          15,         2 },
-    .rptnode            = { 0,                          17,         4 },
-    .rptserv            = { 0,                          21,         2 },
-    .cstnode            = { 0,                          23,         4 },
-    .cstserv            = { 0,                          27,         2 },
-    .createsec          = { BP_DEFAULT_CREATE_SECS,     29,         6 },
-    .createseq          = { 0,                          35,         4 },
-    .lifetime           = { BP_DEFAULT_LIFETIME,        39,         4 },
-    .dictlen            = { 0,                          43,         1 },
-    .fragoffset         = { 0,                          44,         4 },
-    .paylen             = { 0,                          48,         4 },
-    .is_admin_rec       = false,
-    .request_custody    = BP_DEFAULT_CSTRQST,
-    .allow_frag         = false,
-    .is_frag            = false,
-    .integrity_check    = BP_DEFAULT_ICHECK
-};
-
-static const bp_blk_cteb_t native_cteb_blk = {
-                            /*          Value             Index       Width   */
-    .bf                 = { 0,                              1,          1 },
-    .blklen             = { 0,                              2,          1 },
-    .cid                = { 0,                              3,          4 },
-    .csteid             = { '\0' },
-    .cstnode            = 0,
-    .cstserv            = 0
-};
-
-static const bp_blk_bib_t native_bib_blk = {
-                                /* Value                         Index  Width */
-    .block_flags              = {  0,                            1,     1     },
-    .block_length             = {  0,                            2,     4     },
-    .security_target_count    = {  1,                            6,     1     },
-    .security_target_type     = {  1,                            7,     1     },
-    .security_target_sequence = {  0,                            8,     1     },
-    .cipher_suite_id          = {  BP_DEFAULT_CIPHER_SUITE,      9,     1     },
-    .cipher_suite_flags       = {  0,                            10,    1     },
-    .security_result_count    = {  1,                            11,    1     },
-    .security_result_type     =    0,
-    .security_result_length   = {  1,                            13,    1     },
-};
-
-static const bp_blk_pay_t native_pay_blk = {
-    .bf                       = { 0,                              1,    1     },
-    .blklen                   = { 0,                              2,    4     },
-    .payptr                   = NULL,
-    .paysize                  = 0
-};
-
-/******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/
-
-/*--------------------------------------------------------------------------------------
- * initialize_orig_bundle - Initialize Bundle Header from Channel Struct
- *
- *  This is only done when changes to the bundle's channel parameters are made
- *
- *  Does not populate following:
- *      - creation time (when using system time)
- *      - creation sequence
- *      - fragment offset
- *      - total payload length
- *      - custody id
- *      - payload crc
- *      - payload block length
- *-------------------------------------------------------------------------------------*/
-static int initialize_orig_bundle(bp_data_bundle_t* bundle)
-{
-    bp_bundle_store_t*  ds      = &bundle->bundle_store;
-    uint8_t*            hdrbuf  = ds->header;
-    int                 offset  = 0;
-
-    /* Initialize Storage */
-    memset(ds, 0, sizeof(bp_bundle_store_t));
-    ds->cidsdnv = native_cteb_blk.cid;
-
-    /* Write Primary Block */
-    offset = pri_write(&hdrbuf[0], BP_BUNDLE_HDR_BUF_SIZE, &bundle->primary_block, false);
-
-    /* Write Custody Block */
-    if(bundle->primary_block.request_custody)
-    {
-        ds->cteboffset = offset;
-        offset = cteb_write(&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->custody_block, false) + offset;
-    }
-    else
-    {
-        ds->cteboffset = 0;
-    }
-
-    /* Write Integrity Block */
-    if(bundle->primary_block.integrity_check)
-    {
-        ds->biboffset = offset;
-        offset = bib_write(&hdrbuf[offset],  BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->integrity_block, false) + offset;
-    }
-    else
-    {
-        ds->biboffset = 0;
-    }
-
-    /* Write Payload Block */
-    ds->payoffset = offset;
-    ds->headersize = pay_write (&hdrbuf[offset], BP_BUNDLE_HDR_BUF_SIZE - offset, &bundle->payload_block, false) + offset;
-
-    /* Return Success */
-    return BP_SUCCESS;
-}
-
-/*--------------------------------------------------------------------------------------
- * initialize_forw_bundle -
- *
- *  This is done for every bundle that is forwarded
- *-------------------------------------------------------------------------------------*/
-static int initialize_forw_bundle(bp_data_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, uint32_t local_node, uint32_t local_service, bool cteb_present, uint8_t* buffer, int* exclude, int num_excludes, uint16_t* procflags)
-{
-    int i, status;
-    int hdr_index;
-
-    bp_bundle_store_t*  ds      = &bundle->bundle_store;
-    bp_blk_cteb_t*      fcteb   = &bundle->custody_block;
-    bp_blk_bib_t*       fbib    = &bundle->integrity_block;
-
-    /* Initialize Data Storage Memory */
-    hdr_index = 0;
-    memset(ds, 0, sizeof(bp_bundle_store_t));
-
-    /* Initialize Primary Block */
-    bundle->primary_block = *pri;
-
-    /* Accept Custody */
-    if(bundle->primary_block.request_custody)
-    {
-        if(cteb_present == false)
-        {
-            *procflags |= BP_FLAG_NONCOMPLIANT;
-            return bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
-        }
-
-        bundle->primary_block.rptnode.value = local_node;
-        bundle->primary_block.rptserv.value = local_service;
-        bundle->primary_block.cstnode.value = local_node;
-        bundle->primary_block.cstserv.value = local_service;
-    }
-
-    /* Write Primary Block */
-    status = pri_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, &bundle->primary_block, false);
-    if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write primary block of forwarded bundle\n", status);
-    hdr_index += status;
-
-    /* Write Custody Block */
-    if(bundle->primary_block.request_custody)
-    {
-        fcteb->cstnode = local_node;
-        fcteb->cstserv = local_service;
-        bplib_ipn2eid(fcteb->csteid, BP_MAX_EID_STRING, local_node, local_service);
-        ds->cidsdnv = fcteb->cid;
-        ds->cteboffset = hdr_index;
-        status = cteb_write(&ds->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, fcteb, false);
-        if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write custody block of forwarded bundle\n", status);
-        hdr_index += status;
-    }
-    else
-    {
-        ds->cteboffset = 0;
-    }
-
-    /* Write Integrity Block */
-    if(bundle->primary_block.integrity_check)
-    {
-        ds->biboffset = hdr_index;
-        status = bib_write(&ds->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, fbib, false);
-        if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write integrity block of forwarded bundle\n", status);
-        hdr_index += status;
-    }
-    else
-    {
-        ds->biboffset = 0;
-    }
-
-    /* Copy Non-excluded Header Regions */
-    for(i = 1; (i + 1) < num_excludes; i+=2)
-    {
-        int start_index = exclude[i];
-        int stop_index = exclude[i + 1];
-        int bytes_to_copy = stop_index - start_index;
-        if((hdr_index + bytes_to_copy) >= BP_BUNDLE_HDR_BUF_SIZE)
-        {
-            return bplog(BP_BUNDLETOOLARGE, "Non-excluded forwarded blocks exceed maximum header size (%d)\n", hdr_index);
-        }
-        else
-        {
-            memcpy(&ds->header[hdr_index], &buffer[start_index], bytes_to_copy);
-            hdr_index += bytes_to_copy;
-        }
-    }
-
-    /* Initialize Payload Block */
-    bundle->payload_block = *pay;
-
-    /* Initialize Payload Block Offset */
-    ds->payoffset = hdr_index;
-
-    /* Return Success */
-    return BP_SUCCESS;
-}
-
-/*--------------------------------------------------------------------------------------
- * store_data_bundle -
- *-------------------------------------------------------------------------------------*/
-static int store_data_bundle(bp_data_bundle_t* bundle, bp_store_enqueue_t enqueue, int handle, int timeout, uint16_t* storflags)
-{
-    int                 status          = 0;
-    int                 payload_offset  = 0;
-    bp_blk_pri_t*       pri             = &bundle->primary_block;
-    bp_blk_pay_t*       pay             = &bundle->payload_block;
-    bp_bundle_store_t*  ds              = &bundle->bundle_store;;
-
-    /* Check Fragmentation */
-    if(!pri->is_frag && (pay->paysize > bundle->maxlength))
-    {
-        return bplog(BP_BUNDLETOOLARGE, "Bundle is not being fragmented yet the payload is too large (%d)\n", pay->paysize);
-    }
-
-    /* Originator Specific Steps */
-    if(bundle->originate)
-    {
-        /* Set Creation Time */
-        pri->createsec.value = bplib_os_systime();
-        sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, storflags);
-
-        /* Set Sequence */
-        sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, storflags);
-    }
-
-    /* Set Expiration Time of Bundle */
-    if(pri->lifetime.value != 0)    ds->exprtime = pri->createsec.value + pri->lifetime.value;
-    else                            ds->exprtime = 0;
-
-    /* Enqueue Bundle */
-    while(payload_offset < pay->paysize)
-    {
-        /* Calculate Storage Header Size and Fragment Size */
-        int payload_remaining = pay->paysize - payload_offset;
-        int fragment_size = bundle->maxlength <  payload_remaining ? bundle->maxlength : payload_remaining;
-
-        /* Update Primary Block Fragmentation */
-        if(pri->is_frag)
-        {
-            pri->fragoffset.value = payload_offset;
-            pri->paylen.value = pay->paysize;
-            sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->fragoffset, storflags);
-            sdnv_write(ds->header, BP_BUNDLE_HDR_BUF_SIZE, pri->paylen, storflags);
-        }
-
-        /* Update Integrity Block */
-        if(ds->biboffset != 0)
-        {
-            bib_update(&ds->header[ds->biboffset], BP_BUNDLE_HDR_BUF_SIZE - ds->biboffset, &pay->payptr[payload_offset], fragment_size, &bundle->integrity_block);
-        }
-        
-        /* Write Payload Block (static portion) */
-        pay->blklen.value = fragment_size;
-        status = pay_write(&ds->header[ds->payoffset], BP_BUNDLE_HDR_BUF_SIZE - ds->payoffset, pay, false);
-        if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write payload block (static portion) of bundle\n", status);
-        ds->headersize = ds->payoffset + status;
-        ds->bundlesize = ds->headersize + fragment_size;
-
-        /* Enqueue Bundle */
-        int storage_header_size = sizeof(bp_bundle_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - ds->headersize);
-        status = enqueue(handle, ds, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
-        if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
-        payload_offset += fragment_size;
-    }
-
-    /* Increment Sequence Count (done here since now bundle successfully stored) */
-    if(bundle->originate) pri->createseq.value++;
-
-    /* Return Payload Bytes Stored */
-    return BP_SUCCESS;
-}
 
 /*--------------------------------------------------------------------------------------
  * getset_opt - Get/Set utility function
@@ -453,64 +119,64 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  ch->data_bundle.primary_block.dstnode.value = *node;
-            else        *node = ch->data_bundle.primary_block.dstnode.value;
+            if(getset)  ch->data.primary_block.dstnode.value = *node;
+            else        *node = ch->data.primary_block.dstnode.value;
             break;
         }
         case BP_OPT_DSTSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  ch->data_bundle.primary_block.dstserv.value = *service;
-            else        *service = ch->data_bundle.primary_block.dstserv.value;
+            if(getset)  ch->data.primary_block.dstserv.value = *service;
+            else        *service = ch->data.primary_block.dstserv.value;
             break;
         }
         case BP_OPT_RPTNODE_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  ch->data_bundle.primary_block.rptnode.value = *node;
-            else        *node = ch->data_bundle.primary_block.rptnode.value;
+            if(getset)  ch->data.primary_block.rptnode.value = *node;
+            else        *node = ch->data.primary_block.rptnode.value;
             break;
         }
         case BP_OPT_RPTSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  ch->data_bundle.primary_block.rptserv.value = *service;
-            else        *service = ch->data_bundle.primary_block.rptserv.value;
+            if(getset)  ch->data.primary_block.rptserv.value = *service;
+            else        *service = ch->data.primary_block.rptserv.value;
             break;
         }
         case BP_OPT_CSTNODE_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  ch->data_bundle.primary_block.cstnode.value = *node;
-            else        *node = ch->data_bundle.primary_block.cstnode.value;
+            if(getset)  ch->data.primary_block.cstnode.value = *node;
+            else        *node = ch->data.primary_block.cstnode.value;
             break;
         }
         case BP_OPT_CSTSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
             bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  ch->data_bundle.primary_block.cstserv.value = *service;
-            else        *service = ch->data_bundle.primary_block.cstserv.value;
+            if(getset)  ch->data.primary_block.cstserv.value = *service;
+            else        *service = ch->data.primary_block.cstserv.value;
             break;
         }
         case BP_OPT_SETSEQUENCE_D:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             uint32_t* seq = (uint32_t*)val;
-            if(getset)  ch->data_bundle.primary_block.createseq.value = *seq;
-            else        *seq = ch->data_bundle.primary_block.createseq.value;
+            if(getset)  ch->data.primary_block.createseq.value = *seq;
+            else        *seq = ch->data.primary_block.createseq.value;
             break;
         }
         case BP_OPT_LIFETIME_D:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* lifetime = (int*)val;
-            if(getset)  ch->data_bundle.primary_block.lifetime.value = *lifetime;
-            else        *lifetime = ch->data_bundle.primary_block.lifetime.value;
+            if(getset)  ch->data.primary_block.lifetime.value = *lifetime;
+            else        *lifetime = ch->data.primary_block.lifetime.value;
             break;
         }
         case BP_OPT_CSTRQST_D:
@@ -518,8 +184,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->data_bundle.primary_block.request_custody = *enable;
-            else        *enable = ch->data_bundle.primary_block.request_custody;
+            if(getset)  ch->data.primary_block.request_custody = *enable;
+            else        *enable = ch->data.primary_block.request_custody;
             break;
         }
         case BP_OPT_ICHECK_D:
@@ -527,8 +193,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->data_bundle.primary_block.integrity_check = *enable;
-            else        *enable = ch->data_bundle.primary_block.integrity_check;
+            if(getset)  ch->data.primary_block.integrity_check = *enable;
+            else        *enable = ch->data.primary_block.integrity_check;
             break;
         }
         case BP_OPT_ALLOWFRAG_D:
@@ -538,13 +204,13 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
             if(getset)
             {
-                ch->data_bundle.primary_block.allow_frag = *enable;
-                ch->data_bundle.primary_block.is_frag = *enable;
+                ch->data.primary_block.allow_frag = *enable;
+                ch->data.primary_block.is_frag = *enable;
             }
             else
             {
-                *enable = ch->data_bundle.primary_block.allow_frag;
-                *enable = ch->data_bundle.primary_block.is_frag;
+                *enable = ch->data.primary_block.allow_frag;
+                *enable = ch->data.primary_block.is_frag;
             }
             break;
         }
@@ -552,8 +218,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* type = (int*)val;
-            if(getset)  ch->data_bundle.integrity_block.cipher_suite_id.value = *type;
-            else        *type = ch->data_bundle.integrity_block.cipher_suite_id.value;
+            if(getset)  ch->data.integrity_block.cipher_suite_id.value = *type;
+            else        *type = ch->data.integrity_block.cipher_suite_id.value;
             break;
         }
         case BP_OPT_TIMEOUT:
@@ -568,8 +234,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* maxlen = (int*)val;
-            if(getset)  ch->data_bundle.maxlength = *maxlen;
-            else        *maxlen = ch->data_bundle.maxlength;
+            if(getset)  ch->data.maxlength = *maxlen;
+            else        *maxlen = ch->data.maxlength;
             break;
         }
         case BP_OPT_ORIGINATE:
@@ -577,8 +243,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->data_bundle.originate = *enable;
-            else        *enable = ch->data_bundle.originate;
+            if(getset)  ch->data.originate = *enable;
+            else        *enable = ch->data.originate;
             break;
         }
         case BP_OPT_PROCADMINONLY:
@@ -624,7 +290,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
     }
 
     /* Re-initialize Bundles */
-    if(getset) initialize_orig_bundle(&ch->data_bundle);
+    if(getset) initialize_orig_bundle(&ch->data);
 
     /* Option Successfully Processed */
     return BP_SUCCESS;
@@ -669,7 +335,6 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
 {
     int i, channel, status;
 
-    fflush(stdin);
     assert(storage.create);
     assert(storage.destroy);
     assert(storage.enqueue);
@@ -750,26 +415,26 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                 channels[i].index = i;
 
                 /* Initialize Data Bundle */
-                channels[i].data_bundle.primary_block               = native_data_pri_blk;
-                channels[i].data_bundle.primary_block.dstnode.value = destination_node;
-                channels[i].data_bundle.primary_block.dstserv.value = destination_service;
-                channels[i].data_bundle.primary_block.srcnode.value = local_node;
-                channels[i].data_bundle.primary_block.srcserv.value = local_service;
-                channels[i].data_bundle.primary_block.rptnode.value = 0;
-                channels[i].data_bundle.primary_block.rptserv.value = 0;
-                channels[i].data_bundle.primary_block.cstnode.value = local_node;
-                channels[i].data_bundle.primary_block.cstserv.value = local_service;
-                channels[i].data_bundle.custody_block               = native_cteb_blk;
-                channels[i].data_bundle.custody_block.cid.value     = 0;
-                channels[i].data_bundle.custody_block.cstnode       = local_node;
-                channels[i].data_bundle.custody_block.cstserv       = local_service;
-                channels[i].data_bundle.integrity_block             = native_bib_blk;
-                channels[i].data_bundle.payload_block               = native_pay_blk;
-                channels[i].data_bundle.maxlength                   = BP_DEFAULT_BUNDLE_MAXLENGTH;
-                channels[i].data_bundle.originate                   = BP_DEFAULT_ORIGINATION;
+                channels[i].data.primary_block               = native_data_pri_blk;
+                channels[i].data.primary_block.dstnode.value = destination_node;
+                channels[i].data.primary_block.dstserv.value = destination_service;
+                channels[i].data.primary_block.srcnode.value = local_node;
+                channels[i].data.primary_block.srcserv.value = local_service;
+                channels[i].data.primary_block.rptnode.value = 0;
+                channels[i].data.primary_block.rptserv.value = 0;
+                channels[i].data.primary_block.cstnode.value = local_node;
+                channels[i].data.primary_block.cstserv.value = local_service;
+                channels[i].data.custody_block               = native_cteb_blk;
+                channels[i].data.custody_block.cid.value     = 0;
+                channels[i].data.custody_block.cstnode       = local_node;
+                channels[i].data.custody_block.cstserv       = local_service;
+                channels[i].data.integrity_block             = native_bib_blk;
+                channels[i].data.payload_block               = native_pay_blk;
+                channels[i].data.maxlength                   = BP_DEFAULT_BUNDLE_MAXLENGTH;
+                channels[i].data.originate                   = BP_DEFAULT_ORIGINATION;
 
                 /* Write EID */
-                bplib_ipn2eid(channels[i].data_bundle.custody_block.csteid, BP_MAX_EID_STRING, local_node, local_service);
+                bplib_ipn2eid(channels[i].data.custody_block.csteid, BP_MAX_EID_STRING, local_node, local_service);
 
                 /* Initialize DACS */
                 status = dacs_initialize(&channels[i].dacs, channels[i].attributes.max_concurrent_dacs, channels[i].attributes.max_fills_per_dacs, channels[i].attributes.max_gaps_per_dacs, local_node, local_service);
@@ -810,7 +475,7 @@ int bplib_open(bp_store_t storage, bp_ipn_t local_node, bp_ipn_t local_service, 
                  *  since for storage the dacs bundles are initialized
                  *  when custody requests arrive, and forwarded bundles are
                  *  initialized each time a bundle is forwarded */
-                initialize_orig_bundle(&channels[i].data_bundle);
+                initialize_orig_bundle(&channels[i].data);
 
                 /* Set Channel Handle */
                 channel = i;
@@ -934,27 +599,16 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* sto
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(payload == NULL)                        return BP_PARMERR;
 
+    /* Set Short Cuts */
+    bp_channel_t* ch = &channels[channel];
+
     /* Lock Data Bundle */
-    bplib_os_lock(channels[channel].data_bundle_lock);
+    bplib_os_lock(ch->data_bundle_lock);
     {
-        bp_channel_t* ch = &channels[channel];
-
-        if(!ch->data_bundle.originate)
-        {
-            status = bplog(BP_WRONGORIGINATION, "Cannot originate bundle on channel designated for forwarding\n");
-        }
-        else
-        {
-            /* Update Payload */
-            ch->data_bundle.payload_block.payptr = (uint8_t*)payload;
-            ch->data_bundle.payload_block.paysize = size;
-
-            /* Store Bundle */
-            status = store_data_bundle(&ch->data_bundle, ch->storage.enqueue, ch->data_store_handle, timeout, storflags);
-            if(status == BP_SUCCESS) ch->stats.generated++;
-        }
+        status = data_send(&ch->data, payload, size, timeout, ch->storage.enqueue, ch->data_store_handle, storflags);
+        if(status == BP_SUCCESS) ch->stats.generated++;
     }
-    bplib_os_unlock(channels[channel].data_bundle_lock);
+    bplib_os_unlock(ch->data_bundle_lock);
 
     /* Return Status */
     return status;
@@ -1229,9 +883,6 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
 int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* procflags)
 {
     int                 status;
-    int                 enstat;
-    bp_channel_t*       ch;
-
     uint32_t            sysnow;
 
     uint8_t*            buffer = (uint8_t*)bundle;
@@ -1259,8 +910,10 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(bundle == NULL)                         return BP_PARMERR;
 
+    /* Set Short Cuts */
+    bp_channel_t* ch = &channels[channel];
+
     /* Count Reception */
-    ch = &channels[channel];
     ch->stats.received++;
 
     /* Parse Primary Block */
@@ -1381,40 +1034,54 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             /* Process Payload */
             if(pri_blk.dstnode.value != ch->local_node) /* forward bundle (dst node != local node) */
             {
-                /* Check Ability to Forward */
-                if(ch->data_bundle.originate)
+                /* Handle Custody Request */
+                if(pri_blk.request_custody)
                 {
-                    status = bplog(BP_WRONGORIGINATION, "Unable to forward bundle on an originating channel\n");
-                }
-                else if(pay_blk.paysize > ch->data_bundle.maxlength)
-                {
-                    /* Check Ability to Fragment */
-                    if(!pri_blk.allow_frag) status = bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay_blk.paysize, ch->data_bundle.maxlength);
-                    else                    pri_blk.is_frag = true;
+                    pri_blk.rptnode.value = 0;
+                    pri_blk.rptserv.value = 0;
+                    pri_blk.cstnode.value = ch->local_node;
+                    pri_blk.cstserv.value = ch->local_service;                        
                 }
 
-                /* Lock Data Bundle */
+                /* Copy Non-excluded Header Regions */
+                uint8_t hdr_buf[BP_BUNDLE_HDR_BUF_SIZE];
+                int hdr_index = 0;
+                int i;
+                for(i = 1; (i + 1) < ei; i+=2)
+                {
+                    int start_index = exclude[i];
+                    int stop_index = exclude[i + 1];
+                    int bytes_to_copy = stop_index - start_index;
+                    if((hdr_index + bytes_to_copy) >= BP_BUNDLE_HDR_BUF_SIZE)
+                    {
+                        status = bplog(BP_BUNDLETOOLARGE, "Non-excluded forwarded blocks exceed maximum header size (%d)\n", hdr_index);
+                        break;
+                    }
+                    else
+                    {
+                        memcpy(&hdr_buf[hdr_index], &buffer[start_index], bytes_to_copy);
+                        hdr_index += bytes_to_copy;
+                    }
+                }
+
+                /* Forward Bundle */
                 bplib_os_lock(ch->data_bundle_lock);
                 {
-                    /* Initialize Forwarded Bundle */
-                    if(status == BP_SUCCESS) status = initialize_forw_bundle(&ch->data_bundle, &pri_blk, &pay_blk, ch->local_node, ch->local_service, cteb_present, buffer, exclude, ei, procflags);
-
-                    /* Store Forwarded Bundle */
-                    if(status == BP_SUCCESS) status = store_data_bundle(&ch->data_bundle, ch->storage.enqueue, ch->data_store_handle, timeout, procflags);
+                    status = data_forward(&ch->data, &pri_blk, &pay_blk, hdr_buf, hdr_index, timeout, ch->storage.enqueue, ch->data_store_handle, procflags);
                 }
                 bplib_os_unlock(ch->data_bundle_lock);
 
                 /* Handle Custody Transfer */
                 if(status == BP_SUCCESS && pri_blk.request_custody)
                 {
-                    if(cteb_present)
+                    if(!cteb_present)
                     {
-                        acknowledge = true;
+                        *procflags |= BP_FLAG_NONCOMPLIANT;
+                        status = bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
                     }
                     else
                     {
-                        *procflags |= BP_FLAG_NONCOMPLIANT;
-                        bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
+                        acknowledge = true;
                     }
                 }
             }
@@ -1453,37 +1120,25 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
             }
             else /* deliver bundle payload to application */
             {
-                bp_payload_store_t* pay = &ch->data_bundle.payload_store;
-                pay->payloadsize = size - index;
-
-                /* Set Custody Transfer Request */
-                pay->request_custody = false;
-                if(pri_blk.request_custody)
+                /* Receive Data */
+                bplib_os_lock(ch->data_bundle_lock);
                 {
-                    if(cteb_present)
+                    status = data_receive(ch->data, pri_blk.request_custody, &buffer[index], size - index, timeout, ch->storage.enqueue, ch->payload_store_handle, procflags);
+                }
+                bplib_os_unlock(ch->data_bundle_lock);
+
+                /* Handle Custody Transfer */
+                if(status == BP_SUCCESS && pri_blk.request_custody)
+                {
+                    if(!cteb_present)
                     {
-                        pay->request_custody = true;
+                        *procflags |= BP_FLAG_NONCOMPLIANT;
+                        status = bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
                     }
                     else
                     {
-                        *procflags |= BP_FLAG_NONCOMPLIANT;
-                        bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
-                    }
-                }
-
-                /* Enqueue Payload into Storage */
-                enstat = ch->storage.enqueue(ch->payload_store_handle, pay, sizeof(bp_payload_store_t), &buffer[index], pay->payloadsize, timeout);
-                if(enstat > 0)
-                {
-                    /* Acknowledge Custody */
-                    if(pay->request_custody)
-                    {
                         acknowledge = true;
                     }
-                }
-                else
-                {
-                    status = bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", enstat);
                 }
             }
 
@@ -1515,7 +1170,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
 {
     (void)acptflags;
     
-    int status, deqstat;;
+    int status, deqstat;
 
     /* Check Parameters */
     if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
