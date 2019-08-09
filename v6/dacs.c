@@ -27,7 +27,7 @@
 #include "sdnv.h"
 #include "bplib_os.h"
 #include "dacs.h"
-#include "data.h"
+#include "bundle.h"
 
 /******************************************************************************
  DEFINES
@@ -377,29 +377,29 @@ static int dacs_update(dacs_bundle_t* bundle, uint32_t cid, uint32_t sysnow, int
 /*--------------------------------------------------------------------------------------
  * dacs_initialize - Allocates resources for DACS and initializes control structures
  *-------------------------------------------------------------------------------------*/
-int dacs_initialize (bp_dacs_t* dacs, int max_acks, int max_fills, int max_gaps, int local_node, int local_service)
+int dacs_initialize(bp_dacs_t* dacs, int local_node, int local_service, bp_attr_t* attr)
 {
     int j;
-    
+
     /* Set Number Attributes */
-    dacs->max_acks  = max_acks;
-    dacs->max_fills = max_fills;
-    dacs->max_gaps  = max_gaps;
+    dacs->max_acks  = attr->max_concurrent_dacs;
+    dacs->max_fills = attr->max_fills_per_dacs;
+    dacs->max_gaps  = attr->max_gaps_per_dacs;
     dacs->num_acks  = 0;
     
     /* Allocate Memory for DACS Bundle */
-    dacs->acks_list = malloc(sizeof(dacs_bundle_t) * max_acks);
+    dacs->acks_list = malloc(sizeof(dacs_bundle_t) * dacs->max_acks);
     if(dacs->acks_list == NULL)
     {
         return bplog(BP_FAILEDMEM, "Failed to allocate memory for channel dacs\n");                    
     }
     else
     {
-        memset(dacs->acks_list, 0, sizeof(dacs_bundle_t) * max_acks);
+        memset(dacs->acks_list, 0, sizeof(dacs_bundle_t) * dacs->max_acks);
     }
 
     /* Initialize DACS Bundle */
-    for(j = 0; j < max_acks; j++)
+    for(j = 0; j < dacs->max_acks; j++)
     {
         dacs_bundle_t* bundle_list = (dacs_bundle_t*)dacs->acks_list;
         

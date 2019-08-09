@@ -157,8 +157,8 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices)
     else                                        pri->is_frag = false;
 
     /* Set Custody Request */
-    if(pri->pcf.value & BP_PCF_CSTRQST_MASK)    pri->request_custody = true;
-    else                                        pri->request_custody = false;
+    if(pri->pcf.value & BP_PCF_CSTRQST_MASK)    pri->cst_rqst = true;
+    else                                        pri->cst_rqst = false;
 
     /* Success Oriented Error Checking */
     if(flags != 0)                          return bplog(BP_BUNDLEPARSEERR, "Failed to read primary block sdnv %0X\n", flags);
@@ -187,10 +187,10 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices)
 
     /* Set Process Control Flags */
     pri->pcf.value |= BP_PCF_SINGLETON_MASK;
-    if(pri->is_admin_rec == true)        pri->pcf.value |= BP_PCF_ADMIN_MASK;
-    if(pri->is_frag == true)             pri->pcf.value |= BP_PCF_FRAGMENT_MASK;
-    if(pri->request_custody == true)     pri->pcf.value |= BP_PCF_CSTRQST_MASK;
-    if(pri->allow_frag == false)         pri->pcf.value |= BP_PCF_NOFRAG_MASK;
+    if(pri->is_admin_rec == true)   pri->pcf.value |= BP_PCF_ADMIN_MASK;
+    if(pri->is_frag == true)        pri->pcf.value |= BP_PCF_FRAGMENT_MASK;
+    if(pri->cst_rqst == true)       pri->pcf.value |= BP_PCF_CSTRQST_MASK;
+    if(pri->allow_frag == false)    pri->pcf.value |= BP_PCF_NOFRAG_MASK;
 
     /* Write Block */
     buffer[0] = pri->version;
@@ -290,7 +290,7 @@ int pri_display (bp_blk_pri_t* pri)
     if(!pri) return false;
 
     bplog(BP_SUCCESS, "Bundle Primary Block (admin: %d, frag:%d, rqst: %d, allow: %d)\n",
-        pri->is_admin_rec, pri->is_frag, pri->request_custody, pri->allow_frag);
+        pri->is_admin_rec, pri->is_frag, pri->cst_rqst, pri->allow_frag);
 
     bplog(BP_SUCCESS, "PCF: %08X\n",    (unsigned int)pri->pcf.value);
     bplog(BP_SUCCESS, "DST: %ld.%ld\n", (long)pri->dstnode.value, (long)pri->dstserv.value);

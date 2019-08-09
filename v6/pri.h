@@ -58,10 +58,9 @@ typedef struct {
     bp_sdnv_t   paylen;
     /* meta information */
     bool        is_admin_rec;           /* 0: not admin, 1: is admin */
-    bool        request_custody;        /* 0: not requested, 1: requested */
-    bool        allow_frag;             /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
     bool        is_frag;                /* 0: is not a fragment, 1: is a fragment */
-    bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
+    bool        allow_frag;             /* 0: fragmentation not allowed, 1: fragmentation allowed */
+    bool        cst_rqst;               /* 0: custody not requested, 1: custody requested */
 } bp_blk_pri_t;
 
 /******************************************************************************

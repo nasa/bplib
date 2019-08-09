@@ -46,7 +46,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     dacs_initialize     (bp_dacs_t* dacs, int max_acks, int max_fills, int max_gaps, int local_node, int local_service);
+int     dacs_initialize     (bp_dacs_t* dacs, int local_node, int local_service, bp_attr_t* attr);
 void    dacs_uninitialize   (bp_dacs_t* dacs);
 
 int     dacs_acknowledge    (bp_dacs_t* dacs, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags);

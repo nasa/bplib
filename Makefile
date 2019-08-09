@@ -49,6 +49,7 @@ APP_OBJ += bib.o
 APP_OBJ += cteb.o
 APP_OBJ += pay.o
 APP_OBJ += pri.o
+APP_OBJ += bundle.o
 APP_OBJ += dacs.o
 APP_OBJ += sdnv.o
 APP_OBJ += crc.o

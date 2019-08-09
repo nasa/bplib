@@ -199,7 +199,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices)
     }
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return BP_BUNDLEPARSEERR - 300;
+    if(flags != 0)  return BP_BUNDLEPARSEERR;
     else            return bytes_read;
 }
 

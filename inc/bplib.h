@@ -76,7 +76,9 @@ extern "C" {
 #define BP_FAILEDRESPONSE               (-20)
 #define BP_INVALIDEID                   (-21)
 #define BP_INVALIDCIPHERSUITEID         (-22)
-
+#define BP_PENDINGACKNOWLEDGMENT        (-23)
+#define BP_PENDINGCUSTODYTRANSFER       (-24)
+    
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
 #define BP_FLAG_INCOMPLETE              0x0002  /* block in bundle was not recognized */
@@ -94,6 +96,12 @@ extern "C" {
 #define BP_FLAG_RBTREEFULL              0x2000  /* the dacs rb_tree was full */
 
 /* Set/Get Option Defines */
+#define BP_OPT_DSTNODE_D                1
+#define BP_OPT_DSTSERV_D                2
+#define BP_OPT_RPTNODE_D                3
+#define BP_OPT_RPTSERV_D                4
+#define BP_OPT_CSTNODE_D                5
+#define BP_OPT_CSTSERV_D                6
 #define BP_OPT_SETSEQUENCE_D            7
 #define BP_OPT_LIFETIME_D               8
 #define BP_OPT_CSTRQST_D                9
@@ -116,11 +124,11 @@ extern "C" {
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
 #define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
 #define BP_DEFAULT_TIMEOUT              10
-#define BP_DEFAULT_CREATE_TIME_SYS      true
 #define BP_DEFAULT_CREATE_SECS          0
 #define BP_DEFAULT_CSTRQST              true
 #define BP_DEFAULT_ICHECK               true
 #define BP_DEFAULT_LIFETIME             0
+#define BP_DEFAULT_ALLOW_FRAGMENTATION  false
 #define BP_DEFAULT_BUNDLE_MAXLENGTH     4096
 #define BP_DEFAULT_SEQ_RESET_PERIOD     0
 #define BP_DEFAULT_PROC_ADMIN_ONLY      false
@@ -163,8 +171,6 @@ typedef struct {
 
 /* Bundle Channel Attributes */
 typedef struct {
-    bp_ipn_t    report_to_node;         /* node to send bundle reports to */
-    bp_ipn_t    report_to_service;      /* service to send bundle reports to */
     int         active_table_size;      /* number of unacknowledged bundles to keep track of */
     int         max_concurrent_dacs;    /* number of dacs to maintain at one time */
     int         max_fills_per_dacs;     /* dacs is built on stack (and therefore must fit on stack) */
