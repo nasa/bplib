@@ -108,9 +108,6 @@ extern "C" {
 #define BP_OPT_CIDREUSE                 18
 #define BP_OPT_ACSRATE                  19
     
-/* IPN Scheme Defines */
-#define BP_MAX_EID_STRING               128
-
 /* Default Configuration */
 #define BP_DEFAULT_MAX_CHANNELS         4
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
@@ -133,7 +130,6 @@ extern "C" {
 #define BP_DEFAULT_DACS_RATE            5       /* seconds */
 #define BP_DEFAULT_ORIGINATION          true
 #define BP_DEFAULT_BP_VERSION           BP_PRI_VERSION
-
 
 /******************************************************************************
  TYPEDEFS
