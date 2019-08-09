@@ -94,12 +94,6 @@ extern "C" {
 #define BP_FLAG_RBTREEFULL              0x2000  /* the dacs rb_tree was full */
 
 /* Set/Get Option Defines */
-#define BP_OPT_DSTNODE_D                1
-#define BP_OPT_DSTSERV_D                2
-#define BP_OPT_RPTNODE_D                3
-#define BP_OPT_RPTSERV_D                4
-#define BP_OPT_CSTNODE_D                5
-#define BP_OPT_CSTSERV_D                6
 #define BP_OPT_SETSEQUENCE_D            7
 #define BP_OPT_LIFETIME_D               8
 #define BP_OPT_CSTRQST_D                9
@@ -173,11 +167,13 @@ typedef struct {
 
 /* Bundle Channel Attributes */
 typedef struct {
-    int     active_table_size;      /* number of unacknowledged bundles to keep track of */
-    int     max_concurrent_dacs;    /* number of dacs to maintain at one time */
-    int     max_fills_per_dacs;     /* dacs is built on stack (and therefore must fit on stack) */
-    int     max_gaps_per_dacs;      /* number of gaps in custody ids that can be kept track of */
-    void*   storage_service_parm;   /* pass through of parameters needed by storage service */
+    bp_ipn_t    report_to_node;         /* node to send bundle reports to */
+    bp_ipn_t    report_to_service;      /* service to send bundle reports to */
+    int         active_table_size;      /* number of unacknowledged bundles to keep track of */
+    int         max_concurrent_dacs;    /* number of dacs to maintain at one time */
+    int         max_fills_per_dacs;     /* dacs is built on stack (and therefore must fit on stack) */
+    int         max_gaps_per_dacs;      /* number of gaps in custody ids that can be kept track of */
+    void*       storage_service_parm;   /* pass through of parameters needed by storage service */
 } bp_attr_t;
 
 /* Bundle Channel Statistics */
