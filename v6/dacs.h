@@ -35,22 +35,32 @@
  ******************************************************************************/
 
 typedef struct {
-    int     max_acks;
-    int     max_fills;
-    int     max_gaps;
-    int     num_acks;
-    void*   acks_list;
+    int             max_fills;
+    int             max_gaps;
+    uint32_t        cstnode;
+    uint32_t        cstserv;
+    rb_tree_t       tree;       /* balanced tree to store bundle ids */
+    uint32_t        last_dacs;  /* time of last dacs generated */
+    uint8_t*        recbuf;     /* buffer to hold built DACS record */
+    int             recbuf_size;
+    bp_bundle_t     bundle;
 } bp_dacs_t;
+
+typedef struct {
+    int             max_dacs;
+    int             num_dacs;
+    bp_dacs_t*      dacs;
+} bp_custody_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int     dacs_initialize     (bp_dacs_t* dacs, int local_node, int local_service, bp_attr_t* attr);
-void    dacs_uninitialize   (bp_dacs_t* dacs);
+int     dacs_initialize     (bp_custody_t* custody, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, bp_store_t* store, bp_attr_t* attr, uint16_t* flags);
+void    dacs_uninitialize   (bp_custody_t* custody);
 
-int     dacs_acknowledge    (bp_dacs_t* dacs, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags);
-int     dacs_check          (bp_dacs_t* dacs, uint32_t period, uint32_t sysnow, int timeout, bp_store_enqueue_t enqueue, int store_handle, uint16_t* dacsflags);
-int     dacs_process        (void* rec, int size, int* acks, bp_sid_t* sids, int table_size, bp_store_relinquish_t relinquish, int store_handle, uint16_t* dacsflags);
+int     dacs_acknowledge    (bp_custody_t* custody, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, uint16_t* flags);
+int     dacs_check          (bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags);
+int     dacs_process        (void* rec, int size, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags);
 
 #endif  /* __BPLIB_DACS_H__ */

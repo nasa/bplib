@@ -42,7 +42,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int pay_read      (void* block, int size, bp_blk_pay_t* pay, bool update_indices);
-int pay_write     (void* block, int size, bp_blk_pay_t* pay, bool update_indices);
+int pay_read      (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint16_t* flags);
+int pay_write     (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint16_t* flags);
 
 #endif  /* __BPLIB_BLK_PAY_H__ */

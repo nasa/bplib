@@ -49,7 +49,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int cteb_read     (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices);
-int cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices);
+int cteb_read     (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* flags);
+int cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* flags);
 
 #endif  /* __BPLIB_BLK_CTEB_H__ */

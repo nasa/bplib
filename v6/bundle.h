@@ -59,13 +59,11 @@ typedef struct {
 
 /* Bundle Data */
 typedef struct {
-    bp_store_t*         store;
+    bp_store_t*         service;
     int                 lock;    
-    int                 bundle_data_handle;
-    int                 payload_data_handle;
-    bp_bundle_data_t    bundle_data;
-    bp_payload_data_t   payload_data;
-} bp_store_data_t;
+    int                 handle;
+    void*               data;
+} bp_data_store_t;
 
 /* Bundle Blocks */
 typedef struct {
@@ -89,7 +87,9 @@ typedef struct {
     bool                integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
     int                 maxlength;              /* maximum size of bundle in bytes (includes header blocks) */
     int                 originate;              /* 1: originated bundle, 0: forwarded bundle */
-    bp_store_data_t     data;                   /* populated in initialization function */
+    int                 proc_admin_only;        /* process only administrative records (for sender only agents) */
+    bp_data_store_t     bundle_store;           /* populated in initialization function */
+    bp_data_store_t     payload_store;          /* populated in initialization function */    
     bp_bundle_blocks_t  blocks;                 /* populated in initialization function */
 } bp_bundle_t;
 
@@ -97,7 +97,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     bundle_initialize   (bp_bundle_t* bundle, bp_store_t* store, bp_attr_t* attr, uint16_t* flags);
+int     bundle_initialize   (bp_bundle_t* bundle, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, bp_store_t* store, bp_attr_t* attr, uint16_t* flags);
 void    bundle_uninitialize (bp_bundle_t* bundle);
 
 int     bundle_update       (bp_bundle_t* bundle, uint16_t* flags);
