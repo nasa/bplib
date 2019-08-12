@@ -199,7 +199,7 @@ typedef struct {
  ******************************************************************************/
 
 void    bplib_init          (int max_channels);
-int     bplib_open          (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes);
+int     bplib_open          (bp_store_t service, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes);
 void    bplib_close         (int channel);
 
 int     bplib_getopt        (int channel, int opt, void* val, int len);

@@ -160,7 +160,7 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
     else                                        pri->cst_rqst = false;
 
     /* Success Oriented Error Checking */
-    if(flags != 0)                          return bplog(BP_BUNDLEPARSEERR, "Failed to read primary block sdnv %0X\n", flags);
+    if(*flags != 0)                         return bplog(BP_BUNDLEPARSEERR, "Failed to read primary block sdnv %0X\n", flags);
     else if(pri->version != BP_PRI_VERSION) return bplog(BP_WRONGVERSION, "Incorrect version of bundle reported: %d\n", pri->version);
     else                                    return bytes_read;
 }
@@ -272,7 +272,7 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, ui
     sdnv_write(buffer, size, pri->blklen, flags);
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return bplog(BP_BUNDLEPARSEERR, "Failed to write primary block sdnv %0X\n", flags);
+    if(*flags != 0) return bplog(BP_BUNDLEPARSEERR, "Failed to write primary block sdnv %0X\n", flags);
     else            return bytes_written;
 }
 

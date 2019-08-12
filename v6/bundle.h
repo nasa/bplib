@@ -60,7 +60,6 @@ typedef struct {
 /* Bundle Data */
 typedef struct {
     bp_store_t*         service;
-    int                 lock;    
     int                 handle;
     void*               data;
 } bp_data_store_t;
@@ -85,6 +84,7 @@ typedef struct {
     bool                request_custody;        /* 0: not requested, 1: requested */
     bool                allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
     bool                integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
+    int                 cipher_suite;           /* 0: present but unpopulated, all other values identify a cipher suite */
     int                 maxlength;              /* maximum size of bundle in bytes (includes header blocks) */
     int                 originate;              /* 1: originated bundle, 0: forwarded bundle */
     int                 proc_admin_only;        /* process only administrative records (for sender only agents) */
@@ -97,7 +97,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     bundle_initialize   (bp_bundle_t* bundle, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, bp_store_t* store, bp_attr_t* attr, uint16_t* flags);
+int     bundle_initialize   (bp_bundle_t* bundle, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, bp_store_t* service, bp_attr_t* attr, uint16_t* flags);
 void    bundle_uninitialize (bp_bundle_t* bundle);
 
 int     bundle_update       (bp_bundle_t* bundle, uint16_t* flags);

@@ -78,7 +78,7 @@ int cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, 
     bytes_read = eid_index + eid_len;
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    if(*flags != 0) return BP_BUNDLEPARSEERR;
     else            return bytes_read;
 }
 
@@ -132,6 +132,6 @@ int cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices,
     sdnv_write(buffer, size, cteb->blklen, flags);
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    if(*flags != 0) return BP_BUNDLEPARSEERR;
     else            return bytes_written;
 }

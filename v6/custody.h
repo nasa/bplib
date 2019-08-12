@@ -1,5 +1,5 @@
 /************************************************************************
- * File: dacs.h
+ * File: custody.h
  *
  *  Copyright 2019 United States Government as represented by the 
  *  Administrator of the National Aeronautics and Space Administration. 
@@ -24,6 +24,7 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
+#include "bundle.h"
 #include "pri.h"
 #include "bib.h"
 #include "pay.h"
@@ -43,24 +44,25 @@ typedef struct {
     uint32_t        last_dacs;  /* time of last dacs generated */
     uint8_t*        recbuf;     /* buffer to hold built DACS record */
     int             recbuf_size;
-    bp_bundle_t     bundle;
 } bp_dacs_t;
 
 typedef struct {
     int             max_dacs;
     int             num_dacs;
+    int             lock;       /* for thread safe operations on dacs */
     bp_dacs_t*      dacs;
+    bp_bundle_t     bundle;
 } bp_custody_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int     dacs_initialize     (bp_custody_t* custody, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, bp_store_t* store, bp_attr_t* attr, uint16_t* flags);
-void    dacs_uninitialize   (bp_custody_t* custody);
+int     custody_initialize      (bp_custody_t* custody, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_store_t* store, bp_attr_t* attr, uint16_t* flags);
+void    custody_uninitialize    (bp_custody_t* custody);
 
-int     dacs_acknowledge    (bp_custody_t* custody, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, uint16_t* flags);
-int     dacs_check          (bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags);
-int     dacs_process        (void* rec, int size, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags);
+int     custody_acknowledge     (bp_custody_t* custody, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, uint16_t* flags);
+int     custody_check           (bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags);
+int     custody_process         (bp_custody_t* custody, void* rec, int size, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags);
 
 #endif  /* __BPLIB_DACS_H__ */

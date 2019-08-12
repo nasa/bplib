@@ -182,7 +182,7 @@ static int bundle_new(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay,
     {
         /* Initialize Block */
         blocks->integrity_block = bundle_bib_blk;
-
+        blocks->integrity_block.cipher_suite_id.value = bundle->cipher_suite;
         /* Populate Data */
         data->biboffset = hdr_index;
         status = bib_write(&data->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, &blocks->integrity_block, false, flags);
@@ -343,7 +343,7 @@ static int payload_enqueue(bp_bundle_t* bundle, bool custody_request, uint8_t* p
 /*--------------------------------------------------------------------------------------
  * bundle_initialize -
  *-------------------------------------------------------------------------------------*/
-int bundle_initialize(bp_bundle_t* bundle, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t dstserv, bp_store_t* store, bp_attr_t* attr, uint16_t* flags)
+int bundle_initialize(bp_bundle_t* bundle, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t dstserv, bp_store_t* service, bp_attr_t* attr, uint16_t* flags)
 {
     bp_data_store_t*    bundle_store    = &bundle->bundle_store;
     bp_data_store_t*    payload_store   = &bundle->payload_store;
@@ -365,19 +365,15 @@ int bundle_initialize(bp_bundle_t* bundle, bp_ipn_t srcnode, bp_ipn_t srcserv, b
     bundle->proc_admin_only     = BP_DEFAULT_PROC_ADMIN_ONLY;
 
     /* Initialize Bundle Store */
-    bundle_store->service   = store;
-    bundle_store->lock      = bplib_os_createlock();
+    bundle_store->service   = service;
     bundle_store->handle    = bundle_store->service->create(attr->storage_service_parm);
     
     /* Initialize Payload Store */
-    payload_store->service  = store;
-    payload_store->lock     = bplib_os_createlock();
+    payload_store->service  = service;
     payload_store->handle   = payload_store->service->create(attr->storage_service_parm);
 
     /* Handle Errors */
-    if(bundle_store->lock < 0 ||
-       bundle_store->handle < 0 ||
-       payload_store->lock < 0 ||
+    if(bundle_store->handle < 0 ||
        payload_store->handle < 0 )
     {
         bundle_uninitialize(bundle);
@@ -393,10 +389,7 @@ int bundle_initialize(bp_bundle_t* bundle, bp_ipn_t srcnode, bp_ipn_t srcserv, b
  *-------------------------------------------------------------------------------------*/
 void bundle_uninitialize(bp_bundle_t* bundle)
 {
-    if(bundle->bundle_store.lock >= 0) bplib_os_destroylock(bundle->bundle_store.lock);
     if(bundle->bundle_store.handle >= 0) bundle->bundle_store.service->destroy(bundle->bundle_store.handle);
-
-    if(bundle->payload_store.lock >= 0) bplib_os_destroylock(bundle->payload_store.lock);
     if(bundle->payload_store.handle >= 0) bundle->payload_store.service->destroy(bundle->payload_store.handle);
 }
 /*--------------------------------------------------------------------------------------
@@ -432,11 +425,7 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout,
     blocks->payload_block.paysize = pay_len;
 
     /* Store Bundle */
-    bplib_os_lock(bundle->bundle_store.lock);
-    {
-        status = bundle_enqueue(bundle, timeout, flags);
-    }
-    bplib_os_unlock(bundle->bundle_store.lock);
+    status = bundle_enqueue(bundle, timeout, flags);
     
     /* Return Status */
     return status;
@@ -469,9 +458,6 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
     int                 pay_index = 0;
     bp_blk_pay_t        pay_blk;
     
-    bp_data_store_t*    payload_store = &bundle->payload_store;
-    bp_data_store_t*    bundle_store = &bundle->bundle_store;
-
     /* Parse Primary Block */
     exclude[ei++] = index;
     status = pri_read(buffer, size, &pri_blk, true, flags);
@@ -633,17 +619,13 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
                 }
 
                 /* Forward Bundle */
-                bplib_os_lock(bundle_store->lock);
+                /* Initialize Forwarded Bundle */
+                status = bundle_new(bundle, &pri_blk, &pay_blk, hdr_buf, hdr_index, flags);
+                if(status == BP_SUCCESS)
                 {
-                    /* Initialize Forwarded Bundle */
-                    status = bundle_new(bundle, &pri_blk, &pay_blk, hdr_buf, hdr_index, flags);
-                    if(status == BP_SUCCESS)
-                    {
-                        /* Store Forwarded Bundle */
-                        status = bundle_enqueue(bundle, timeout, flags);
-                    }
+                    /* Store Forwarded Bundle */
+                    status = bundle_enqueue(bundle, timeout, flags);
                 }
-                bplib_os_unlock(bundle_store->lock);
 
                 /* Handle Custody Transfer */
                 if(status == BP_SUCCESS && pri_blk.cst_rqst)
@@ -687,11 +669,7 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
             else 
             {
                 /* Deliver Bundle Payload to Application */
-                bplib_os_lock(payload_store->lock);
-                {
-                    status = payload_enqueue(bundle, pri_blk.cst_rqst, &buffer[index], size - index, timeout, flags);
-                }
-                bplib_os_unlock(payload_store->lock);
+                status = payload_enqueue(bundle, pri_blk.cst_rqst, &buffer[index], size - index, timeout, flags);
 
                 /* Handle Custody Transfer */
                 if(status == BP_SUCCESS && pri_blk.cst_rqst)

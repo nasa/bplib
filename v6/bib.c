@@ -198,7 +198,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     }
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    if(*flags != 0) return BP_BUNDLEPARSEERR;
     else            return bytes_read;
 }
 
@@ -288,8 +288,8 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     bib->block_length.value = bytes_written - bib->security_target_count.index;
     sdnv_write(buffer, size, bib->block_length, flags);
 
-        /* Success Oriented Error Checking */
-    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    /* Success Oriented Error Checking */
+    if(*flags != 0) return BP_BUNDLEPARSEERR;
     else            return bytes_written;
 }
 
@@ -329,7 +329,7 @@ int bib_update (void* block, int size, void* payload, int payload_size, bp_blk_b
     }
 
     /* Check for Errors */
-    if(flags != 0)  return BP_BUNDLEPARSEERR;
+    if(*flags != 0) return BP_BUNDLEPARSEERR;
     else            return BP_SUCCESS;
 }
 

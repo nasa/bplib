@@ -64,7 +64,7 @@ int pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uin
     }
 
     /* Success Oriented Error Checking */
-    if(flags != 0)
+    if(*flags != 0)
     {
         return bplog(BP_BUNDLEPARSEERR, "Error flags raised during processing of payload block (%08X)\n", flags);
     }
@@ -120,6 +120,6 @@ int pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_indices, ui
     }
 
     /* Success Oriented Error Checking */
-    if(flags != 0)  return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of payload block (%08X)\n", flags);
+    if(*flags != 0) return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of payload block (%08X)\n", flags);
     else            return bytes_written;
 }
