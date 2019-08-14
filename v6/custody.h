@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_DACS_H__
-#define __BPLIB_DACS_H__
+#ifndef __BPLIB_CUSTODY_H__
+#define __BPLIB_CUSTODY_H__
 
 /******************************************************************************
  INCLUDES
@@ -36,21 +36,13 @@
  ******************************************************************************/
 
 typedef struct {
-    int             max_fills;
-    int             max_gaps;
-    uint32_t        cstnode;
-    uint32_t        cstserv;
-    rb_tree_t       tree;       /* balanced tree to store bundle ids */
-    uint32_t        last_dacs;  /* time of last dacs generated */
-    uint8_t*        recbuf;     /* buffer to hold built DACS record */
-    int             recbuf_size;
-} bp_dacs_t;
-
-typedef struct {
-    int             max_dacs;
-    int             num_dacs;
+    uint32_t        cstnode;    /* custody node of bundle sender */
+    uint32_t        cstserv;    /* custody service of bundle sender */
+    uint32_t        last_time;  /* time of last dacs generated */
     int             lock;       /* for thread safe operations on dacs */
-    bp_dacs_t*      dacs;
+    rb_tree_t       tree;       /* balanced tree to store bundle ids */
+    uint8_t*        recbuf;     /* buffer to hold built DACS record */
+    int             recbuf_size;/* size of the recbuf above */
     bp_bundle_t     bundle;
 } bp_custody_t;
 
@@ -58,11 +50,11 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     custody_initialize      (bp_custody_t* custody, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_store_t* store, bp_attr_t* attr, uint16_t* flags);
+int     custody_initialize      (bp_custody_t* custody, bp_attr_t* attr, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_store_t* service, uint16_t* flags);
 void    custody_uninitialize    (bp_custody_t* custody);
 
 int     custody_acknowledge     (bp_custody_t* custody, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, uint16_t* flags);
 int     custody_check           (bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags);
 int     custody_process         (bp_custody_t* custody, void* rec, int size, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags);
 
-#endif  /* __BPLIB_DACS_H__ */
+#endif  /* __BPLIB_CUSTODY_H__ */

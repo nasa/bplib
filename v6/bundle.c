@@ -48,24 +48,24 @@
  */
 
 static const bp_blk_pri_t bundle_pri_blk = {
-    .version            = BP_DEFAULT_BP_VERSION,
-                            /*          Value         Index       Width   */
-    .pcf                = { 0,                          1,          3 },
-    .blklen             = { 0,                          4,          1 },
-    .dstnode            = { 0,                          5,          4 },
-    .dstserv            = { 0,                          9,          2 },
-    .srcnode            = { 0,                          11,         4 },
-    .srcserv            = { 0,                          15,         2 },
-    .rptnode            = { 0,                          17,         4 },
-    .rptserv            = { 0,                          21,         2 },
-    .cstnode            = { 0,                          23,         4 },
-    .cstserv            = { 0,                          27,         2 },
-    .createsec          = { BP_DEFAULT_CREATE_SECS,     29,         6 },
-    .createseq          = { 0,                          35,         4 },
-    .lifetime           = { BP_DEFAULT_LIFETIME,        39,         4 },
-    .dictlen            = { 0,                          43,         1 },
-    .fragoffset         = { 0,                          44,         4 },
-    .paylen             = { 0,                          48,         4 },
+    .version            = BP_PRI_VERSION,
+                         /* Value   Index   Width */
+    .pcf                = { 0,      1,      3   },
+    .blklen             = { 0,      4,      1   },
+    .dstnode            = { 0,      5,      4   },
+    .dstserv            = { 0,      9,      2   },
+    .srcnode            = { 0,      11,     4   },
+    .srcserv            = { 0,      15,     2   },
+    .rptnode            = { 0,      17,     4   },
+    .rptserv            = { 0,      21,     2   },
+    .cstnode            = { 0,      23,     4   },
+    .cstserv            = { 0,      27,     2   },
+    .createsec          = { 0,      29,     6   },
+    .createseq          = { 0,      35,     4   },
+    .lifetime           = { 0,      39,     4   },
+    .dictlen            = { 0,      43,     1   },
+    .fragoffset         = { 0,      44,     4   },
+    .paylen             = { 0,      48,     4   },
     .is_admin_rec       = false,
     .is_frag            = false,
     .allow_frag         = false,
@@ -73,32 +73,33 @@ static const bp_blk_pri_t bundle_pri_blk = {
 };
 
 static const bp_blk_cteb_t bundle_cteb_blk = {
-                            /*          Value             Index       Width   */
-    .bf                 = { 0,                              1,          1 },
-    .blklen             = { 0,                              2,          1 },
-    .cid                = { 0,                              3,          4 },
+                         /* Value   Index   Width */
+    .bf                 = { 0,      1,      1   },
+    .blklen             = { 0,      2,      1   },
+    .cid                = { 0,      3,      4   },
     .csteid             = { '\0' },
     .cstnode            = 0,
     .cstserv            = 0
 };
 
 static const bp_blk_bib_t bundle_bib_blk = {
-                                /* Value                         Index  Width */
-    .block_flags              = {  0,                            1,     1     },
-    .block_length             = {  0,                            2,     4     },
-    .security_target_count    = {  1,                            6,     1     },
-    .security_target_type     = {  1,                            7,     1     },
-    .security_target_sequence = {  0,                            8,     1     },
-    .cipher_suite_id          = {  BP_DEFAULT_CIPHER_SUITE,      9,     1     },
-    .cipher_suite_flags       = {  0,                            10,    1     },
-    .security_result_count    = {  1,                            11,    1     },
+                                /* Value    Index  Width */
+    .block_flags              = {  0,       1,     1   },
+    .block_length             = {  0,       2,     4   },
+    .security_target_count    = {  1,       6,     1   },
+    .security_target_type     = {  1,       7,     1   },
+    .security_target_sequence = {  0,       8,     1   },
+    .cipher_suite_id          = {  0,       9,     1   },
+    .cipher_suite_flags       = {  0,       10,    1   },
+    .security_result_count    = {  1,       11,    1   },
     .security_result_type     =    0,
-    .security_result_length   = {  1,                            13,    1     },
+    .security_result_length   = {  1,       13,    1   },
 };
 
 static const bp_blk_pay_t bundle_pay_blk = {
-    .bf                       = { 0,                              1,    1     },
-    .blklen                   = { 0,                              2,    4     },
+                               /* Value     Index   Width */
+    .bf                       = { 0,        1,      1   },
+    .blklen                   = { 0,        2,      4   },
     .payptr                   = NULL,
     .paysize                  = 0
 };
@@ -128,10 +129,7 @@ static int bundle_new(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay,
     if(pri)
     {
         /* User Provided Primary Block */
-        blocks->primary_block       = *pri;
-        bundle->allow_fragmentation = pri->allow_frag;
-        bundle->request_custody     = pri->cst_rqst;
-        bundle->lifetime            = pri->lifetime.value;
+        blocks->primary_block = *pri;
     }
     else
     {
@@ -145,9 +143,9 @@ static int bundle_new(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay,
         blocks->primary_block.rptserv.value     = bundle->report_service;
         blocks->primary_block.cstnode.value     = bundle->local_node;
         blocks->primary_block.cstserv.value     = bundle->local_service;
-        blocks->primary_block.lifetime.value    = bundle->lifetime;
-        blocks->primary_block.allow_frag        = bundle->allow_fragmentation;
-        blocks->primary_block.cst_rqst          = bundle->request_custody;
+        blocks->primary_block.lifetime.value    = bundle->attributes->lifetime;
+        blocks->primary_block.allow_frag        = bundle->attributes->allow_fragmentation;
+        blocks->primary_block.cst_rqst          = bundle->attributes->request_custody;
     }
 
     /* Write Primary Block */
@@ -156,7 +154,7 @@ static int bundle_new(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay,
     hdr_index += status;
 
     /* Write Custody Block */
-    if(bundle->request_custody)
+    if(blocks->primary_block.cst_rqst)
     {
         /* Initialize Block */
         blocks->custody_block = bundle_cteb_blk;
@@ -178,11 +176,11 @@ static int bundle_new(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay,
     }
 
     /* Write Integrity Block */
-    if(bundle->integrity_check)
+    if(bundle->attributes->integrity_check)
     {
         /* Initialize Block */
         blocks->integrity_block = bundle_bib_blk;
-        blocks->integrity_block.cipher_suite_id.value = bundle->cipher_suite;
+        blocks->integrity_block.cipher_suite_id.value = bundle->attributes->cipher_suite;
         /* Populate Data */
         data->biboffset = hdr_index;
         status = bib_write(&data->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, &blocks->integrity_block, false, flags);
@@ -241,20 +239,20 @@ static int bundle_enqueue(bp_bundle_t* bundle, int timeout, uint16_t* flags)
     bp_bundle_data_t*       data            = (bp_bundle_data_t*)store->data;
 
     /* Check Fragmentation */
-    if(pay->paysize > bundle->maxlength)
+    if(pay->paysize > bundle->attributes->maxlength)
     {
-        if(bundle->allow_fragmentation)
+        if(bundle->attributes->allow_fragmentation)
         {
             pri->is_frag = true;            
         }
         else
         {
-            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, bundle->maxlength);
+            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, bundle->attributes->maxlength);
         }
     }
 
     /* Originator Specific Steps */
-    if(bundle->originate)
+    if(bundle->attributes->originate)
     {
         /* Set Creation Time */
         pri->createsec.value = bplib_os_systime();
@@ -273,7 +271,7 @@ static int bundle_enqueue(bp_bundle_t* bundle, int timeout, uint16_t* flags)
     {
         /* Calculate Storage Header Size and Fragment Size */
         int payload_remaining = pay->paysize - payload_offset;
-        int fragment_size = bundle->maxlength <  payload_remaining ? bundle->maxlength : payload_remaining;
+        int fragment_size = bundle->attributes->maxlength <  payload_remaining ? bundle->attributes->maxlength : payload_remaining;
 
         /* Update Primary Block Fragmentation */
         if(pri->is_frag)
@@ -305,7 +303,7 @@ static int bundle_enqueue(bp_bundle_t* bundle, int timeout, uint16_t* flags)
     }
 
     /* Increment Sequence Count (done here since now bundle successfully stored) */
-    if(bundle->originate) pri->createseq.value++;
+    if(bundle->attributes->originate) pri->createseq.value++;
 
     /* Return Payload Bytes Stored */
     return BP_SUCCESS;
@@ -343,27 +341,20 @@ static int payload_enqueue(bp_bundle_t* bundle, bool custody_request, uint8_t* p
 /*--------------------------------------------------------------------------------------
  * bundle_initialize -
  *-------------------------------------------------------------------------------------*/
-int bundle_initialize(bp_bundle_t* bundle, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t dstserv, bp_store_t* service, bp_attr_t* attr, uint16_t* flags)
+int bundle_initialize(bp_bundle_t* bundle, bp_attr_t* attr, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t dstserv, bp_store_t* service, uint16_t* flags)
 {
     bp_data_store_t*    bundle_store    = &bundle->bundle_store;
     bp_data_store_t*    payload_store   = &bundle->payload_store;
     
-
     /* Initialize Bundle Parameters */
+    bundle->attributes          = attr;
     bundle->local_node          = srcnode;
     bundle->local_service       = srcserv;
     bundle->destination_node    = dstnode;
     bundle->destination_service = dstserv;
     bundle->report_node         = 0;
-    bundle->report_service      = 0;    
-    bundle->lifetime            = BP_DEFAULT_LIFETIME;
-    bundle->allow_fragmentation = BP_DEFAULT_ALLOW_FRAGMENTATION;
-    bundle->request_custody     = BP_DEFAULT_CSTRQST;
-    bundle->integrity_check     = BP_DEFAULT_ICHECK;
-    bundle->maxlength           = BP_DEFAULT_BUNDLE_MAXLENGTH;
-    bundle->originate           = BP_DEFAULT_ORIGINATION;                
-    bundle->proc_admin_only     = BP_DEFAULT_PROC_ADMIN_ONLY;
-
+    bundle->report_service      = 0;
+    
     /* Initialize Bundle Store */
     bundle_store->service   = service;
     bundle_store->handle    = bundle_store->service->create(attr->storage_service_parm);
@@ -415,7 +406,7 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout,
     bp_bundle_blocks_t* blocks = &bundle->blocks;
 
     /* Check Ability to Send */
-    if(!bundle->originate)
+    if(!bundle->attributes->originate)
     {
         return bplog(BP_WRONGORIGINATION, "Cannot originate bundle on channel designated for forwarding\n");
     }
@@ -613,7 +604,7 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
                 }
 
                 /* Check Ability to Forward */
-                if(bundle->originate)
+                if(bundle->attributes->originate)
                 {
                     return bplog(BP_WRONGORIGINATION, "Unable to forward bundle on an originating channel\n");
                 }
@@ -662,7 +653,7 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
                 else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(BP_UNSUPPORTED, "Status report bundles are not supported\n");
                 else                                    status = bplog(BP_UNKNOWNREC, "Unknown administrative record: %u\n", (unsigned int)rec_type);
             }
-            else if(bundle->proc_admin_only)
+            else if(bundle->attributes->proc_admin_only)
             {
                 return bplog(BP_IGNORE, "Non-administrative bundle ignored\n");
             }

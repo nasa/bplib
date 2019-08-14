@@ -40,6 +40,7 @@
 #endif
 
 #define BP_EMPTY                        (-1)
+#define BP_WRAP_TIMEOUT                 1000    /* milliseconds */
 
 /******************************************************************************
  TYPEDEFS
@@ -59,21 +60,36 @@ typedef struct {
 typedef struct {
     int                 index;
     bp_attr_t           attributes;
-
     bp_store_t          service;
     bp_bundle_t         bundle;
     bp_custody_t        custody;
-
     int                 active_table_signal;
     bp_active_table_t   active_table;
-
     bp_stats_t          stats;
-
-    int                 timeout;                /* seconds, zero for infinite */
-    int                 dacs_rate;              /* number of seconds to wait between sending ACS bundles */
-    int                 wrap_response;          /* what to do when active table wraps */
-    int                 cid_reuse;              /* favor reusing CID when retransmitting */
 } bp_channel_t;
+
+/******************************************************************************
+ CONSTANT DATA
+ ******************************************************************************/
+
+static const bp_attr_t default_attributes = {
+    .active_table_size      = BP_DEFAULT_ACTIVE_TABLE_SIZE,
+    .timeout                = BP_DEFAULT_TIMEOUT,
+    .dacs_rate              = BP_DEFAULT_DACS_RATE,
+    .wrap_response          = BP_DEFAULT_WRAP_RESPONSE,
+    .cid_reuse              = BP_DEFAULT_CID_REUSE,
+    .lifetime               = BP_DEFAULT_LIFETIME,
+    .request_custody        = BP_DEFAULT_REQUEST_CUSTODY,
+    .allow_fragmentation    = BP_DEFAULT_ALLOW_FRAGMENTATION,
+    .integrity_check        = BP_DEFAULT_INTEGRITY_CHECK,
+    .cipher_suite           = BP_DEFAULT_CIPHER_SUITE,
+    .maxlength              = BP_DEFAULT_BUNDLE_MAXLENGTH,
+    .originate              = BP_DEFAULT_ORIGINATE,
+    .proc_admin_only        = BP_DEFAULT_PROC_ADMIN_ONLY,
+    .max_fills_per_dacs     = BP_DEFAULT_MAX_FILLS_PER_DACS,
+    .max_gaps_per_dacs      = BP_DEFAULT_MAX_GAPS_PER_DACS,
+    .storage_service_parm   = NULL
+};
 
 /******************************************************************************
  FILE DATA
@@ -160,8 +176,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* lifetime = (int*)val;
-            if(getset)  ch->bundle.lifetime = *lifetime;
-            else        *lifetime = ch->bundle.lifetime;
+            if(getset)  ch->attributes.lifetime = *lifetime;
+            else        *lifetime = ch->attributes.lifetime;
             break;
         }
         case BP_OPT_CSTRQST_D:
@@ -169,8 +185,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->bundle.request_custody = *enable;
-            else        *enable = ch->bundle.request_custody;
+            if(getset)  ch->attributes.request_custody = *enable;
+            else        *enable = ch->attributes.request_custody;
             break;
         }
         case BP_OPT_ICHECK_D:
@@ -178,8 +194,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->bundle.integrity_check = *enable;
-            else        *enable = ch->bundle.integrity_check;
+            if(getset)  ch->attributes.integrity_check = *enable;
+            else        *enable = ch->attributes.integrity_check;
             break;
         }
         case BP_OPT_ALLOWFRAG_D:
@@ -187,32 +203,32 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->bundle.allow_fragmentation = *enable;
-            else        *enable = ch->bundle.allow_fragmentation;
+            if(getset)  ch->attributes.allow_fragmentation = *enable;
+            else        *enable = ch->attributes.allow_fragmentation;
             break;
         }
         case BP_OPT_PAYCRC_D:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* type = (int*)val;
-            if(getset)  ch->bundle.cipher_suite = *type;
-            else        *type = ch->bundle.cipher_suite;
+            if(getset)  ch->attributes.cipher_suite = *type;
+            else        *type = ch->attributes.cipher_suite;
             break;
         }
         case BP_OPT_TIMEOUT:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* timeout = (int*)val;
-            if(getset)  ch->timeout = *timeout;
-            else        *timeout = ch->timeout;
+            if(getset)  ch->attributes.timeout = *timeout;
+            else        *timeout = ch->attributes.timeout;
             break;
         }
         case BP_OPT_BUNDLELEN:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* maxlen = (int*)val;
-            if(getset)  ch->bundle.maxlength = *maxlen;
-            else        *maxlen = ch->bundle.maxlength;
+            if(getset)  ch->attributes.maxlength = *maxlen;
+            else        *maxlen = ch->attributes.maxlength;
             break;
         }
         case BP_OPT_ORIGINATE:
@@ -220,8 +236,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->bundle.originate = *enable;
-            else        *enable = ch->bundle.originate;
+            if(getset)  ch->attributes.originate = *enable;
+            else        *enable = ch->attributes.originate;
             break;
         }
         case BP_OPT_PROCADMINONLY:
@@ -229,8 +245,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->bundle.proc_admin_only = *enable;
-            else        *enable = ch->bundle.proc_admin_only;
+            if(getset)  ch->attributes.proc_admin_only = *enable;
+            else        *enable = ch->attributes.proc_admin_only;
             break;
         }
         case BP_OPT_WRAPRSP:
@@ -238,8 +254,8 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* wrap = (int*)val;
             if(getset && *wrap != BP_WRAP_RESEND && *wrap != BP_WRAP_BLOCK && *wrap != BP_WRAP_DROP) return BP_PARMERR;
-            if(getset)  ch->wrap_response = *wrap;
-            else        *wrap = ch->wrap_response;
+            if(getset)  ch->attributes.wrap_response = *wrap;
+            else        *wrap = ch->attributes.wrap_response;
             break;
         }
         case BP_OPT_CIDREUSE:
@@ -247,16 +263,16 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
             if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->cid_reuse = *enable;
-            else        *enable = ch->cid_reuse;
+            if(getset)  ch->attributes.cid_reuse = *enable;
+            else        *enable = ch->attributes.cid_reuse;
             break;
         }
         case BP_OPT_ACSRATE:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* rate = (int*)val;
-            if(getset)  ch->dacs_rate = *rate;
-            else        *rate = ch->dacs_rate;
+            if(getset)  ch->attributes.dacs_rate = *rate;
+            else        *rate = ch->attributes.dacs_rate;
             break;
         }
         default:
@@ -338,17 +354,14 @@ int bplib_open(bp_store_t service, bp_ipn_t local_node, bp_ipn_t local_service, 
                 
                 /* Set Initial Attributes */
                 if(attributes) ch->attributes = *attributes;
-                if(attributes->active_table_size == 0)      ch->attributes.active_table_size = BP_DEFAULT_ACTIVE_TABLE_SIZE;                    
-                if(attributes->max_concurrent_dacs == 0)    ch->attributes.max_concurrent_dacs = BP_DEFAULT_MAX_CONCURRENT_DACS;
-                if(attributes->max_fills_per_dacs == 0)     ch->attributes.max_fills_per_dacs = BP_DEFAULT_MAX_FILLS_PER_DACS;
-                if(attributes->max_gaps_per_dacs == 0)      ch->attributes.max_gaps_per_dacs = BP_DEFAULT_MAX_GAPS_PER_DACS;
+                else            ch->attributes = default_attributes;
 
                 /* Initialize Bundle */
-                status = bundle_initialize(&ch->bundle, local_node, local_service, destination_node, destination_service, &service, &ch->attributes, &flags);
+                status = bundle_initialize(&ch->bundle, &ch->attributes, local_node, local_service, destination_node, destination_service, &service, &flags);
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize DACS */
-                status = custody_initialize(&ch->custody, local_node, local_service, &service, &ch->attributes, &flags);
+                status = custody_initialize(&ch->custody, &ch->attributes, local_node, local_service, &service, &flags);
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize Active Table */
@@ -377,10 +390,6 @@ int bplib_open(bp_store_t service, bp_ipn_t local_node, bp_ipn_t local_service, 
                 ch->service                     = service;
                 ch->active_table.oldest_cid     = 0;
                 ch->active_table.current_cid    = 0;
-                ch->dacs_rate                   = BP_DEFAULT_DACS_RATE;
-                ch->timeout                     = BP_DEFAULT_TIMEOUT;
-                ch->wrap_response               = BP_DEFAULT_WRAP_RESPONSE;
-                ch->cid_reuse                   = BP_DEFAULT_CID_REUSE;
                 ch->index                       = i;
 
                 /* Exit Loop - Success */
@@ -543,7 +552,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
 
     /* Check if DACS Needs to be Sent First */
     store_handle = ch->custody.bundle.bundle_store.handle;
-    custody_check(&ch->custody, ch->dacs_rate, sysnow, BP_CHECK, loadflags);
+    custody_check(&ch->custody, ch->attributes.dacs_rate, sysnow, BP_CHECK, loadflags);
     if(dequeue(store_handle, (void**)&data, NULL, &sid, timeout) == BP_SUCCESS)
     {
         /* Set Route Flag */
@@ -577,14 +586,14 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                         ch->stats.expired++;
                         data = NULL;
                     }
-                    else if(ch->timeout != 0 && sysnow >= (ch->active_table.retx[ati] + ch->timeout)) /* check timeout */
+                    else if(ch->attributes.timeout != 0 && sysnow >= (ch->active_table.retx[ati] + ch->attributes.timeout)) /* check timeout */
                     {
                         /* Retransmit Bundle */
                         ch->active_table.oldest_cid++;
                         ch->stats.retransmitted++;
 
                         /* Handle Active Table and Custody ID */
-                        if(ch->cid_reuse)
+                        if(ch->attributes.cid_reuse)
                         {
                             /* Set flag to reuse custody id and active table entry, 
                              * active table entry is not cleared, since CID is being reused */
@@ -616,7 +625,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                         {
                             *loadflags |= BP_FLAG_ACTIVETABLEWRAP;
 
-                            if(ch->wrap_response == BP_WRAP_RESEND)
+                            if(ch->attributes.wrap_response == BP_WRAP_RESEND)
                             {
                                 /* Bump Oldest Custody ID */
                                 ch->active_table.oldest_cid++;
@@ -634,14 +643,14 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                                 {
                                     /* Force Retransmit - Do Not Reuse Custody ID */
                                     ch->stats.retransmitted++;
-                                    bplib_os_waiton(ch->active_table_signal, BP_DEFAULT_WRAP_TIMEOUT);
+                                    bplib_os_waiton(ch->active_table_signal, BP_WRAP_TIMEOUT );
                                 }
                             }
-                            else if(ch->wrap_response == BP_WRAP_BLOCK)
+                            else if(ch->attributes.wrap_response == BP_WRAP_BLOCK)
                             {
                                 /* Custody ID Wrapped Around to Occupied Slot */                            
                                 status = BP_OVERFLOW;                   
-                                bplib_os_waiton(ch->active_table_signal, BP_DEFAULT_WRAP_TIMEOUT);
+                                bplib_os_waiton(ch->active_table_signal, BP_WRAP_TIMEOUT );
                             }
                             else /* if(ch->wrap_response == BP_WRAP_DROP) */
                             {
@@ -1049,4 +1058,23 @@ int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t service)
     bplib_os_format(eid, len, "ipn:%lu.%lu", (unsigned long)node, (unsigned long)service);
 
     return BP_SUCCESS;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_attrinit -         initializes a channel attribute struct with default values
+ *
+ *  attr -                  pointer to attribute structure that needs to be initialized
+ *  Returns:                BP_SUCCESS or error code
+ *-------------------------------------------------------------------------------------*/
+int bplib_attrinit(bp_attr_t* attr)
+{
+    if(attr)
+    {
+        *attr = default_attributes;
+        return BP_SUCCESS;
+    }
+    else
+    {
+        return BP_PARMERR;
+    }
 }

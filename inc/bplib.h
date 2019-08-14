@@ -82,7 +82,7 @@ extern "C" {
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
 #define BP_FLAG_INCOMPLETE              0x0002  /* block in bundle was not recognized */
-#define BP_FLAG_TOOMANYSOURCES          0x0004  /* too many sources to keep track of for ACS bundles */
+#define BP_FLAG_RESERVED01              0x0004
 #define BP_FLAG_FILLOVERFLOW            0x0008  /* a gap in the CIDs exceeds the max fill */
 #define BP_FLAG_TOOMANYFILLS            0x0010  /* all the fills in the ACS are used */
 #define BP_FLAG_CIDWENTBACKWARDS        0x0020  /* the custody ID went backwards */
@@ -119,25 +119,20 @@ extern "C" {
 /* Default Configuration */
 #define BP_DEFAULT_MAX_CHANNELS         4
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
-#define BP_DEFAULT_MAX_CONCURRENT_DACS  4       /* maximum number of custody eids to keep track of */
+#define BP_DEFAULT_TIMEOUT              10
+#define BP_DEFAULT_DACS_RATE            5       /* seconds */
+#define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
+#define BP_DEFAULT_CID_REUSE            false
+#define BP_DEFAULT_LIFETIME             0
+#define BP_DEFAULT_REQUEST_CUSTODY      true
+#define BP_DEFAULT_ALLOW_FRAGMENTATION  false
+#define BP_DEFAULT_INTEGRITY_CHECK      true
+#define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
+#define BP_DEFAULT_BUNDLE_MAXLENGTH     4096
+#define BP_DEFAULT_ORIGINATE            true
+#define BP_DEFAULT_PROC_ADMIN_ONLY      false
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
-#define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
-#define BP_DEFAULT_TIMEOUT              10
-#define BP_DEFAULT_CREATE_SECS          0
-#define BP_DEFAULT_CSTRQST              true
-#define BP_DEFAULT_ICHECK               true
-#define BP_DEFAULT_LIFETIME             0
-#define BP_DEFAULT_ALLOW_FRAGMENTATION  false
-#define BP_DEFAULT_BUNDLE_MAXLENGTH     4096
-#define BP_DEFAULT_SEQ_RESET_PERIOD     0
-#define BP_DEFAULT_PROC_ADMIN_ONLY      false
-#define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
-#define BP_DEFAULT_WRAP_TIMEOUT         1000    /* milliseconds */
-#define BP_DEFAULT_CID_REUSE            false
-#define BP_DEFAULT_DACS_RATE            5       /* seconds */
-#define BP_DEFAULT_ORIGINATION          true
-#define BP_DEFAULT_BP_VERSION           BP_PRI_VERSION
 
 /******************************************************************************
  TYPEDEFS
@@ -158,7 +153,7 @@ typedef int (*bp_store_retrieve_t)  (int handle, void** data, int* size, bp_sid_
 typedef int (*bp_store_relinquish_t)(int handle, bp_sid_t sid);
 typedef int (*bp_store_getcount_t)  (int handle);
 
-/* Bundle Storage Service */
+/* Storage Service */
 typedef struct {
     bp_store_create_t       create;
     bp_store_destroy_t      destroy;
@@ -169,16 +164,34 @@ typedef struct {
     bp_store_getcount_t     getcount;
 } bp_store_t;
 
-/* Bundle Channel Attributes */
-typedef struct {
+/* Channel Attributes */
+typedef struct {    
+    /* Channel Characteristics */
     int         active_table_size;      /* number of unacknowledged bundles to keep track of */
-    int         max_concurrent_dacs;    /* number of dacs to maintain at one time */
-    int         max_fills_per_dacs;     /* dacs is built on stack (and therefore must fit on stack) */
-    int         max_gaps_per_dacs;      /* number of gaps in custody ids that can be kept track of */
+    int         timeout;                /* seconds, zero for infinite */
+    int         dacs_rate;              /* number of seconds to wait between sending ACS bundles */
+    int         wrap_response;          /* what to do when active table wraps */
+    int         cid_reuse;              /* reuse CID when retransmitting */
+
+    /* Bundle Characteristics */
+    uint32_t    lifetime;               /* Number of seconds from creation time before bundle expires */
+    bool        request_custody;        /* 0: not requested, 1: requested */
+    bool        allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
+    bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
+    int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */
+    int         maxlength;              /* maximum size of bundle in bytes (includes header blocks) */
+    int         originate;              /* 1: originated bundle, 0: forwarded bundle */
+    int         proc_admin_only;        /* process only administrative records (for sender only agents) */
+
+    /* DTN Aggregate Custody Signal Characteristics */
+    int         max_fills_per_dacs;     /* limits the size of the DACS bundle */
+    int         max_gaps_per_dacs;      /* number of gaps in custody IDs that can be kept track of */
+ 
+    /* Storage Service */
     void*       storage_service_parm;   /* pass through of parameters needed by storage service */
 } bp_attr_t;
 
-/* Bundle Channel Statistics */
+/* Channel Statistics */
 typedef struct {
     uint32_t    lost;           /* storage or copy failure, unable to retrieve load, accept */
     uint32_t    expired;        /* lifetime expired, deliberately removed - load, process */
@@ -214,6 +227,7 @@ int     bplib_accept        (int channel, void** payload, int* size, int timeout
 int     bplib_routeinfo     (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
 int     bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
 int     bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
+int     bplib_attrinit      (bp_attr_t* attr);
 
 #ifdef __cplusplus
 } // extern "C"
