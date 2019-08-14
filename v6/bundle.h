@@ -39,12 +39,6 @@
  TYPEDEFS
  ******************************************************************************/
 
-/* Payload Data */
-typedef struct {
-    bool                request_custody;    /* boolean whether original bundle requested custody on payload delivery */
-    int                 payloadsize;        /* size of the payload */
-} bp_payload_data_t;
-
 /* Bundle Data */
 typedef struct {
     uint32_t            exprtime;           /* absolute time when bundle expires */
@@ -57,13 +51,6 @@ typedef struct {
     uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; /* header portion of bundle */
 } bp_bundle_data_t;
 
-/* Bundle Data */
-typedef struct {
-    bp_store_t*         service;
-    int                 handle;
-    void*               data;
-} bp_data_store_t;
-
 /* Bundle Blocks */
 typedef struct {
     bp_blk_pri_t        primary_block;
@@ -75,14 +62,16 @@ typedef struct {
 /* Bundle Control Structure */
 typedef struct {
     bp_attr_t*          attributes;             /* pointer to the channel attributes */
+    bp_store_t*         store;                  /* storage service call-backs */
     bp_ipn_t            local_node;             /* source node for bundle */
     bp_ipn_t            local_service;          /* source service for bundle */
     bp_ipn_t            destination_node;       /* destination node for bundle */
     bp_ipn_t            destination_service;    /* destination service for bundle */
     bp_ipn_t            report_node;            /* destination node for bundle reports */
     bp_ipn_t            report_service;         /* destination service for bundle reports */ 
-    bp_data_store_t     bundle_store;           /* populated in initialization function */
-    bp_data_store_t     payload_store;          /* populated in initialization function */    
+    bool                prebuilt;               /* does pre-built bundle header need initialization */
+    int                 handle;                 /* storage service handle for bundle data */
+    bp_bundle_data_t    data;                   /* serialized and stored bundle data */
     bp_bundle_blocks_t  blocks;                 /* populated in initialization function */
 } bp_bundle_t;
 
@@ -90,11 +79,10 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     bundle_initialize   (bp_bundle_t* bundle, bp_attr_t* attr, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, bp_store_t* service, uint16_t* flags);
+int     bundle_initialize   (bp_bundle_t* bundle, bp_attr_t* attr, bp_store_t* store, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, uint16_t* flags);
 void    bundle_uninitialize (bp_bundle_t* bundle);
 
-int     bundle_update       (bp_bundle_t* bundle, uint16_t* flags);
-int     bundle_send         (bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags);
-int     bundle_receive      (bp_bundle_t* bundle, void** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags);
+int     bundle_send         (bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags);
+int     bundle_receive      (bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags);
 
 #endif  /* __BPLIB_BUNDLE_H__ */

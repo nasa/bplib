@@ -109,27 +109,30 @@ static const bp_blk_pay_t bundle_pay_blk = {
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bundle_new -
+ * bundle_build -
  *
  *  This initializes a new bundle
  *-------------------------------------------------------------------------------------*/
-static int bundle_new(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, uint8_t* hdr_buf, int hdr_len, uint16_t* flags)
+static int bundle_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, uint8_t* hdr_buf, int hdr_len, uint16_t* flags)
 {
     int status;
     int hdr_index;
 
-    bp_bundle_data_t*       data    = (bp_bundle_data_t*)bundle->bundle_store.data;
+    bp_bundle_data_t*       data    = &bundle->data;
     bp_bundle_blocks_t*     blocks  = &bundle->blocks;
 
     /* Initialize Data Storage Memory */
     hdr_index = 0;
-    memset(data, 0, sizeof(bp_data_store_t));
+    memset(data, 0, sizeof(bp_bundle_data_t));
 
     /* Initialize Primary Block */
     if(pri)
     {
         /* User Provided Primary Block */
         blocks->primary_block = *pri;
+
+        /* Set Pre-Built Flag to FALSE */
+        bundle->prebuilt = false;
     }
     else
     {
@@ -146,6 +149,9 @@ static int bundle_new(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay,
         blocks->primary_block.lifetime.value    = bundle->attributes->lifetime;
         blocks->primary_block.allow_frag        = bundle->attributes->allow_fragmentation;
         blocks->primary_block.cst_rqst          = bundle->attributes->request_custody;
+
+        /* Set Pre-Built Flag to TRUE */
+        bundle->prebuilt = true;
     }
 
     /* Write Primary Block */
@@ -227,16 +233,15 @@ static int bundle_new(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay,
 /*--------------------------------------------------------------------------------------
  * bundle_enqueue -
  *-------------------------------------------------------------------------------------*/
-static int bundle_enqueue(bp_bundle_t* bundle, int timeout, uint16_t* flags)
+static int bundle_enqueue(bp_bundle_t* bundle, bool set_time, int timeout, uint16_t* flags)
 {
     int                     status          = 0;
     int                     payload_offset  = 0;
+    bp_bundle_data_t*       data            = &bundle->data;
     bp_bundle_blocks_t*     blocks          = &bundle->blocks;
     bp_blk_pri_t*           pri             = &blocks->primary_block;
     bp_blk_bib_t*           bib             = &blocks->integrity_block;
     bp_blk_pay_t*           pay             = &blocks->payload_block;
-    bp_data_store_t*        store           = &bundle->bundle_store;
-    bp_bundle_data_t*       data            = (bp_bundle_data_t*)store->data;
 
     /* Check Fragmentation */
     if(pay->paysize > bundle->attributes->maxlength)
@@ -251,8 +256,8 @@ static int bundle_enqueue(bp_bundle_t* bundle, int timeout, uint16_t* flags)
         }
     }
 
-    /* Originator Specific Steps */
-    if(bundle->attributes->originate)
+    /* Check if Time Needs to be Set  */
+    if(set_time)
     {
         /* Set Creation Time */
         pri->createsec.value = bplib_os_systime();
@@ -296,42 +301,17 @@ static int bundle_enqueue(bp_bundle_t* bundle, int timeout, uint16_t* flags)
         data->bundlesize = data->headersize + fragment_size;
 
         /* Enqueue Bundle */
-        int storage_header_size = sizeof(bp_data_store_t) - (BP_BUNDLE_HDR_BUF_SIZE - data->headersize);
-        status = store->service->enqueue(store->handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
+        int storage_header_size = sizeof(bp_bundle_data_t) - (BP_BUNDLE_HDR_BUF_SIZE - data->headersize);
+        status = bundle->store->enqueue(bundle->handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
     }
 
     /* Increment Sequence Count (done here since now bundle successfully stored) */
-    if(bundle->attributes->originate) pri->createseq.value++;
+    if(set_time) pri->createseq.value++;
 
     /* Return Payload Bytes Stored */
     return BP_SUCCESS;
-}
-
-
-/*--------------------------------------------------------------------------------------
- * payload_enqueue -
- *-------------------------------------------------------------------------------------*/
-static int payload_enqueue(bp_bundle_t* bundle, bool custody_request, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags)
-{
-    int                 status  = BP_SUCCESS;
-    bp_data_store_t*    store   = &bundle->payload_store;
-    bp_payload_data_t*  data    = (bp_payload_data_t*)bundle->payload_store.data;
-
-    /* Initialize Payload Store */
-    data->payloadsize     = pay_len;
-    data->request_custody = custody_request;
-
-    /* Enqueue Payload into Storage */
-    int enstat = store->service->enqueue(store->handle, data, sizeof(bp_payload_data_t), pay_buf, pay_len, timeout);
-    if(enstat <= 0)
-    {
-        status = bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", enstat);
-        *flags |= BP_FLAG_STOREFAILURE;
-    }
-    
-    return status;
 }
 
 /******************************************************************************
@@ -341,11 +321,8 @@ static int payload_enqueue(bp_bundle_t* bundle, bool custody_request, uint8_t* p
 /*--------------------------------------------------------------------------------------
  * bundle_initialize -
  *-------------------------------------------------------------------------------------*/
-int bundle_initialize(bp_bundle_t* bundle, bp_attr_t* attr, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t dstserv, bp_store_t* service, uint16_t* flags)
+int bundle_initialize(bp_bundle_t* bundle, bp_attr_t* attr, bp_store_t* store, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t dstserv, uint16_t* flags)
 {
-    bp_data_store_t*    bundle_store    = &bundle->bundle_store;
-    bp_data_store_t*    payload_store   = &bundle->payload_store;
-    
     /* Initialize Bundle Parameters */
     bundle->attributes          = attr;
     bundle->local_node          = srcnode;
@@ -354,25 +331,21 @@ int bundle_initialize(bp_bundle_t* bundle, bp_attr_t* attr, bp_ipn_t srcnode, bp
     bundle->destination_service = dstserv;
     bundle->report_node         = 0;
     bundle->report_service      = 0;
+    bundle->prebuilt            = false;
     
     /* Initialize Bundle Store */
-    bundle_store->service   = service;
-    bundle_store->handle    = bundle_store->service->create(attr->storage_service_parm);
+    bundle->store   = store;
+    bundle->handle  = bundle->store->create(bundle->attributes->storage_service_parm);
     
-    /* Initialize Payload Store */
-    payload_store->service  = service;
-    payload_store->handle   = payload_store->service->create(attr->storage_service_parm);
-
     /* Handle Errors */
-    if(bundle_store->handle < 0 ||
-       payload_store->handle < 0 )
+    if(bundle->handle < 0)
     {
         bundle_uninitialize(bundle);
-        return bplog(BP_FAILEDSTORE, "Failed to create storage handles in bundle initialization\n");
+        return bplog(BP_FAILEDSTORE, "Failed to create storage handle for bundles\n");
     }
     
     /* Initialize New Bundle */
-    return bundle_new(bundle, NULL, NULL, NULL, 0, flags);
+    return bundle_build(bundle, NULL, NULL, NULL, 0, flags);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -380,43 +353,29 @@ int bundle_initialize(bp_bundle_t* bundle, bp_attr_t* attr, bp_ipn_t srcnode, bp
  *-------------------------------------------------------------------------------------*/
 void bundle_uninitialize(bp_bundle_t* bundle)
 {
-    if(bundle->bundle_store.handle >= 0) bundle->bundle_store.service->destroy(bundle->bundle_store.handle);
-    if(bundle->payload_store.handle >= 0) bundle->payload_store.service->destroy(bundle->payload_store.handle);
-}
-/*--------------------------------------------------------------------------------------
- * bundle_update -
- *-------------------------------------------------------------------------------------*/
-int bundle_update(bp_bundle_t* bundle, uint16_t* flags)
-{
-    int status;
-    
-    /* Update Bundle */
-    status = bundle_new(bundle, NULL, NULL, NULL, 0, flags);
-    
-    /* Return Status */
-    return status;    
+    if(bundle->handle >= 0) bundle->store->destroy(bundle->handle);
 }
 
 /*--------------------------------------------------------------------------------------
  * bundle_send -
  *-------------------------------------------------------------------------------------*/
-int bundle_send(bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags)
+int bundle_send(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags)
 {
     int status;
     bp_bundle_blocks_t* blocks = &bundle->blocks;
 
-    /* Check Ability to Send */
-    if(!bundle->attributes->originate)
+    /* Check if Re-initialization Needed */
+    if(bundle->prebuilt == false)
     {
-        return bplog(BP_WRONGORIGINATION, "Cannot originate bundle on channel designated for forwarding\n");
+        bundle_build(bundle, NULL, NULL, NULL, 0, flags);
     }
-
+    
     /* Update Payload */
-    blocks->payload_block.payptr = (uint8_t*)pay_buf;
-    blocks->payload_block.paysize = pay_len;
+    blocks->payload_block.payptr = (uint8_t*)pay;
+    blocks->payload_block.paysize = pay_size;
 
     /* Store Bundle */
-    status = bundle_enqueue(bundle, timeout, flags);
+    status = bundle_enqueue(bundle, true, timeout, flags);
     
     /* Return Status */
     return status;
@@ -425,11 +384,11 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout,
 /*--------------------------------------------------------------------------------------
  * bundle_receive -
  *-------------------------------------------------------------------------------------*/
-int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags)
+int bundle_receive(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags)
 {
     int                 status = BP_SUCCESS;
 
-    uint8_t*            buffer = (uint8_t*)*block;
+    uint8_t*            buffer = *block;
     int                 size = *block_size;
     int                 index = 0;
 
@@ -440,7 +399,7 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
 
     bool                cteb_present = false;
     int                 cteb_index = 0;
-    int                 cteb_size = 0;
+    bp_blk_cteb_t       cteb_blk;
 
     bool                bib_present = false;
     int                 bib_index = 0;
@@ -491,6 +450,17 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
             /* Mark End of BIB Region */
             exclude[ei++] = index;
         }
+        else if(blk_type == BP_CTEB_BLK_TYPE)
+        {
+            /* Mark Start of CTEB Region */
+            cteb_present = true;
+            cteb_index = index;
+
+            /* Read CTEB */
+            status = cteb_read(&buffer[bib_index], size - cteb_index, &cteb_blk, true, flags);
+            if(status <= 0) return bplog(status, "Failed to parse CTEB block at offset %d\n", cteb_index);
+            else            index += status;
+        }
         else if(blk_type != BP_PAY_BLK_TYPE) /* skip over block */
         {
             bp_sdnv_t blk_flags = { 0, 1, 0 };
@@ -511,29 +481,18 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
                 index += data_index + blk_len.value;
             }
 
-            /* Check for CTEB */
-            if(blk_type == BP_CTEB_BLK_TYPE)
+            /* Mark Processing as Incomplete */            
+            *flags |= BP_FLAG_INCOMPLETE;
+            bplog(BP_UNSUPPORTED, "Skipping over unrecognized block of type 0x%02X and size %d\n", blk_type, blk_len.value);
+
+            /* Should transmit status report that block cannot be processed */
+            if(blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK) *flags |= BP_FLAG_NONCOMPLIANT;
+
+            /* Delete bundle since block not recognized */
+            if(blk_flags.value & BP_BLK_DELETENOPROC_MASK)
             {
-                cteb_present = true;
-                cteb_index = start_index;
-                cteb_size = index - start_index;        
-                blk_flags.value &= BP_BLK_DROPNOPROC_MASK;
+                status = bplog(BP_DROPPED, "Dropping bundle with unrecognized block\n");
             }
-            else /* unrecognized block */
-            {
-                /* Mark Processing as Incomplete */            
-                *flags |= BP_FLAG_INCOMPLETE;
-                bplog(BP_UNSUPPORTED, "Skipping over unrecognized block of type 0x%02X and size %d\n", blk_type, blk_len.value);
-
-                /* Should transmit status report that block cannot be processed */
-                if(blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK) *flags |= BP_FLAG_NONCOMPLIANT;
-
-                /* Delete bundle since block not recognized */
-                if(blk_flags.value & BP_BLK_DELETENOPROC_MASK)
-                {
-                    status = bplog(BP_DROPPED, "Dropping bundle with unrecognized block\n");
-                }
-            } 
     
             /* Check if Block Should be Included */
             if(blk_flags.value & BP_BLK_DROPNOPROC_MASK)
@@ -603,19 +562,12 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
                     }
                 }
 
-                /* Check Ability to Forward */
-                if(bundle->attributes->originate)
-                {
-                    return bplog(BP_WRONGORIGINATION, "Unable to forward bundle on an originating channel\n");
-                }
-
-                /* Forward Bundle */
                 /* Initialize Forwarded Bundle */
-                status = bundle_new(bundle, &pri_blk, &pay_blk, hdr_buf, hdr_index, flags);
+                status = bundle_build(bundle, &pri_blk, &pay_blk, hdr_buf, hdr_index, flags);
                 if(status == BP_SUCCESS)
                 {
                     /* Store Forwarded Bundle */
-                    status = bundle_enqueue(bundle, timeout, flags);
+                    status = bundle_enqueue(bundle, false, timeout, flags);
                 }
 
                 /* Handle Custody Transfer */
@@ -628,51 +580,51 @@ int bundle_receive(bp_bundle_t* bundle, void** block, int* block_size, uint32_t 
                     }
                     else
                     {
-                        status = BP_PENDINGCUSTODYTRANSFER;
+                        *block = NULL;
+                        *block_size = 0;
+                        status = BP_PENDINGBUNDLECUSTODY;
                     }
                 }
             }
             else if((bundle->local_service != 0) && (pri_blk.dstserv.value != bundle->local_service))
             {
-                return bplog(BP_WRONGCHANNEL, "Wrong channel to service bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)bundle->local_service);
+                return bplog(BP_WRONGCHANNEL, "Wrong channel to store bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)bundle->local_service);
             }
             else if(pri_blk.is_admin_rec) /* Administrative Record */
             {
                 /* Read Record Information */
-                uint32_t rec_type = buffer[index];
+                uint32_t rec_type = buffer[index++];
 
                 /* Process Record */
                 if(rec_type == BP_ACS_REC_TYPE)
                 {
-                    /* Return CTEB for DACS Processing */
-                    *block = &buffer[cteb_index];
-                    *block_size = cteb_size;
-                    return BP_PENDINGACKNOWLEDGMENT;
+                    /* Return Aggregate Custody Signal for Custody Processing */
+                    *block = &buffer[index];
+                    *block_size = size - index;
+                    status = BP_PENDINGACKNOWLEDGMENT;
                 }
                 else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
                 else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(BP_UNSUPPORTED, "Status report bundles are not supported\n");
                 else                                    status = bplog(BP_UNKNOWNREC, "Unknown administrative record: %u\n", (unsigned int)rec_type);
             }
-            else if(bundle->attributes->proc_admin_only)
-            {
-                return bplog(BP_IGNORE, "Non-administrative bundle ignored\n");
-            }
             else 
             {
-                /* Deliver Bundle Payload to Application */
-                status = payload_enqueue(bundle, pri_blk.cst_rqst, &buffer[index], size - index, timeout, flags);
-
+                /* Return Payload for Payload Processing */
+                *block = &buffer[index];
+                *block_size = size - index;
+                status = BP_PENDINGPAYLOAD;
+                
                 /* Handle Custody Transfer */
-                if(status == BP_SUCCESS && pri_blk.cst_rqst)
+                if(pri_blk.cst_rqst)
                 {
-                    if(!cteb_present)
+                    if(cteb_present)
                     {
-                        *flags |= BP_FLAG_NONCOMPLIANT;
-                        status = bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
+                        status = BP_PENDINGPAYLOADCUSTODY;
                     }
                     else
                     {
-                        status = BP_PENDINGCUSTODYTRANSFER;
+                        *flags |= BP_FLAG_NONCOMPLIANT;
+                        bplog(BP_UNSUPPORTED, "Bundle requesting custody, but only aggregate custody supported\n");
                     }
                 }
             }

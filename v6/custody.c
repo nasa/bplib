@@ -152,7 +152,7 @@ static int dacs_enqueue(bp_custody_t* custody, uint32_t sysnow, int timeout, uin
 /*--------------------------------------------------------------------------------------
  * custody_initialize - Allocates resources for DACS and initializes control structures
  *-------------------------------------------------------------------------------------*/
-int custody_initialize(bp_custody_t* custody, bp_attr_t* attr, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_store_t* service, uint16_t* flags)
+int custody_initialize(bp_custody_t* custody, bp_attr_t* attr, bp_store_t* store, bp_ipn_t srcnode, bp_ipn_t srcserv, uint16_t* flags)
 {
     int status;
 
@@ -168,7 +168,7 @@ int custody_initialize(bp_custody_t* custody, bp_attr_t* attr, bp_ipn_t srcnode,
     }
 
     /* Initialize DACS Bundle */
-    status = bundle_initialize(&custody->bundle, attr, srcnode, srcserv, 0, 0, service, flags);
+    status = bundle_initialize(&custody->bundle, attr, store, srcnode, srcserv, 0, 0, flags);
     if(status != BP_SUCCESS)
     {
         custody_uninitialize(custody);
@@ -316,31 +316,30 @@ int custody_check(bp_custody_t* custody, uint32_t period, uint32_t sysnow, int t
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int custody_process(bp_custody_t* custody, void* rec, int size, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags)
+int custody_process(bp_custody_t* custody, uint8_t* rec, int rec_size, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags)
 {
     uint32_t i;
     bp_sdnv_t cid = { 0, 2, 0 };
     bp_sdnv_t fill = { 0, 0, 0 };
-    uint8_t* buf = (uint8_t*)rec;
     int cidin = true;
-    uint8_t acs_status = buf[BP_ACS_REC_STATUS_INDEX];
+    uint8_t acs_status = rec[BP_ACS_REC_STATUS_INDEX];
     bool ack_success = (acs_status & BP_ACS_ACK_MASK) == BP_ACS_ACK_MASK;
     
     /* Initialize Acknowledgment Count */
     *acks = 0;
 
     /* Read First Custody ID */
-    fill.index = sdnv_read(buf, size, &cid, flags);
+    fill.index = sdnv_read(rec, rec_size, &cid, flags);
     if(*flags != 0)
     {
         return bplog(BP_BUNDLEPARSEERR, "Failed to read first custody ID (%08X)\n", *flags);
     }
 
     /* Process Though Fills */
-    while((int)fill.index < size)
+    while((int)fill.index < rec_size)
     {
         /* Read Fill */
-        fill.index = sdnv_read(buf, size, &fill, flags);
+        fill.index = sdnv_read(rec, rec_size, &fill, flags);
         if(*flags != 0)
         {
             return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", *flags);
@@ -357,7 +356,7 @@ int custody_process(bp_custody_t* custody, void* rec, int size, int* acks, bp_si
                 bp_sid_t sid = sids[ati];
                 if(sid != BP_SID_VACANT)
                 {
-                    custody->bundle.bundle_store.service->relinquish(custody->bundle.bundle_store.handle, sid);
+                    custody->bundle.store->relinquish(custody->bundle.handle, sid);
                     sids[ati] = BP_SID_VACANT;
                     (*acks)++;
                 }

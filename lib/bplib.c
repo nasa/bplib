@@ -29,6 +29,7 @@
 #include "pay.h"
 #include "custody.h"
 #include "bundle.h"
+#include "payload.h"
 #include "crc.h"
 
 /******************************************************************************
@@ -46,8 +47,6 @@
  TYPEDEFS
  ******************************************************************************/
 
-/* --------------- Application Types ------------------- */
-
 /* Active Table */
 typedef struct {
     bp_sid_t*           sid;
@@ -60,9 +59,10 @@ typedef struct {
 typedef struct {
     int                 index;
     bp_attr_t           attributes;
-    bp_store_t          service;
+    bp_store_t          store;
     bp_bundle_t         bundle;
     bp_custody_t        custody;
+    bp_payload_t        payload;
     int                 active_table_signal;
     bp_active_table_t   active_table;
     bp_stats_t          stats;
@@ -84,8 +84,6 @@ static const bp_attr_t default_attributes = {
     .integrity_check        = BP_DEFAULT_INTEGRITY_CHECK,
     .cipher_suite           = BP_DEFAULT_CIPHER_SUITE,
     .maxlength              = BP_DEFAULT_BUNDLE_MAXLENGTH,
-    .originate              = BP_DEFAULT_ORIGINATE,
-    .proc_admin_only        = BP_DEFAULT_PROC_ADMIN_ONLY,
     .max_fills_per_dacs     = BP_DEFAULT_MAX_FILLS_PER_DACS,
     .max_gaps_per_dacs      = BP_DEFAULT_MAX_GAPS_PER_DACS,
     .storage_service_parm   = NULL
@@ -127,9 +125,9 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         case BP_OPT_DSTSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  ch->bundle.destination_service = *service;
-            else        *service = ch->bundle.destination_service;
+            bp_ipn_t* store = (bp_ipn_t*)val;
+            if(getset)  ch->bundle.destination_service = *store;
+            else        *store = ch->bundle.destination_service;
             break;
         }
         case BP_OPT_RPTNODE_D:
@@ -143,9 +141,9 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         case BP_OPT_RPTSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  ch->bundle.report_service = *service;
-            else        *service = ch->bundle.report_service;
+            bp_ipn_t* store = (bp_ipn_t*)val;
+            if(getset)  ch->bundle.report_service = *store;
+            else        *store = ch->bundle.report_service;
             break;
         }
         case BP_OPT_CSTNODE_D:
@@ -159,9 +157,9 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
         case BP_OPT_CSTSERV_D:
         {
             if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* service = (bp_ipn_t*)val;
-            if(getset)  ch->bundle.local_service = *service;
-            else        *service = ch->bundle.local_service;
+            bp_ipn_t* store = (bp_ipn_t*)val;
+            if(getset)  ch->bundle.local_service = *store;
+            else        *store = ch->bundle.local_service;
             break;
         }
         case BP_OPT_SETSEQUENCE_D:
@@ -231,24 +229,6 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
             else        *maxlen = ch->attributes.maxlength;
             break;
         }
-        case BP_OPT_ORIGINATE:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->attributes.originate = *enable;
-            else        *enable = ch->attributes.originate;
-            break;
-        }
-        case BP_OPT_PROCADMINONLY:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->attributes.proc_admin_only = *enable;
-            else        *enable = ch->attributes.proc_admin_only;
-            break;
-        }
         case BP_OPT_WRAPRSP:
         {
             if(len != sizeof(int)) return BP_PARMERR;
@@ -283,8 +263,7 @@ static int getset_opt(int c, int opt, void* val, int len, bool getset)
     }
 
     /* Re-initialize Bundles */
-    uint16_t flags;
-    if(getset) bundle_update(&ch->bundle, &flags);
+    if(getset) ch->bundle.prebuilt = true;
 
     /* Option Successfully Processed */
     return BP_SUCCESS;
@@ -325,15 +304,15 @@ void bplib_init(int max_channels)
 /*--------------------------------------------------------------------------------------
  * bplib_open -
  *-------------------------------------------------------------------------------------*/
-int bplib_open(bp_store_t service, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes)
+int bplib_open(bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes)
 {
-    assert(service.create);
-    assert(service.destroy);
-    assert(service.enqueue);
-    assert(service.dequeue);
-    assert(service.retrieve);
-    assert(service.relinquish);
-    assert(service.getcount);
+    assert(store.create);
+    assert(store.destroy);
+    assert(store.enqueue);
+    assert(store.dequeue);
+    assert(store.retrieve);
+    assert(store.relinquish);
+    assert(store.getcount);
 
     int i, status;
     uint16_t flags = 0;
@@ -356,12 +335,16 @@ int bplib_open(bp_store_t service, bp_ipn_t local_node, bp_ipn_t local_service, 
                 if(attributes) ch->attributes = *attributes;
                 else            ch->attributes = default_attributes;
 
+                /* Initialize Payload */
+                status = payload_initialize(&ch->payload, &ch->attributes, &store, &flags);
+                if(status != BP_SUCCESS) break;
+
                 /* Initialize Bundle */
-                status = bundle_initialize(&ch->bundle, &ch->attributes, local_node, local_service, destination_node, destination_service, &service, &flags);
+                status = bundle_initialize(&ch->bundle, &ch->attributes, &store, local_node, local_service, destination_node, destination_service, &flags);
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize DACS */
-                status = custody_initialize(&ch->custody, &ch->attributes, local_node, local_service, &service, &flags);
+                status = custody_initialize(&ch->custody, &ch->attributes, &store, local_node, local_service, &flags);
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize Active Table */
@@ -387,7 +370,7 @@ int bplib_open(bp_store_t service, bp_ipn_t local_node, bp_ipn_t local_service, 
                 }
                 
                 /* Initialize Data */
-                ch->service                     = service;
+                ch->store                       = store;
                 ch->active_table.oldest_cid     = 0;
                 ch->active_table.current_cid    = 0;
                 ch->index                       = i;
@@ -490,9 +473,9 @@ int bplib_latchstats(int channel, bp_stats_t* stats)
     bp_channel_t* ch = &channels[channel];
 
     /* Update Store Counts */
-    ch->stats.bundles = ch->bundle.bundle_store.service->getcount(ch->bundle.bundle_store.handle);
-    ch->stats.payloads = ch->bundle.bundle_store.service->getcount(ch->bundle.payload_store.handle);
-    ch->stats.records = ch->custody.bundle.bundle_store.service->getcount(ch->custody.bundle.bundle_store.handle);
+    ch->stats.bundles = ch->bundle.store->getcount(ch->bundle.handle);
+    ch->stats.payloads = ch->payload.store->getcount(ch->payload.handle);
+    ch->stats.records = ch->custody.bundle.store->getcount(ch->custody.bundle.handle);
 
     /* Latch Statistics */
     *stats = ch->stats;
@@ -538,9 +521,9 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
 
     /* Set Short Cuts */
     bp_channel_t*           ch          = &channels[channel];
-    bp_store_dequeue_t      dequeue     = ch->service.dequeue;
-    bp_store_retrieve_t     retrieve    = ch->service.retrieve;
-    bp_store_relinquish_t   relinquish  = ch->service.relinquish;
+    bp_store_dequeue_t      dequeue     = ch->store.dequeue;
+    bp_store_retrieve_t     retrieve    = ch->store.retrieve;
+    bp_store_relinquish_t   relinquish  = ch->store.relinquish;
 
     /* Setup State */
     uint32_t            sysnow          = bplib_os_systime();   /* get current system time (used for timeouts, seconds) */
@@ -551,7 +534,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
     bool                newcid          = true;                 /* whether to assign new custody id and active table entry */
 
     /* Check if DACS Needs to be Sent First */
-    store_handle = ch->custody.bundle.bundle_store.handle;
+    store_handle = ch->custody.bundle.handle;
     custody_check(&ch->custody, ch->attributes.dacs_rate, sysnow, BP_CHECK, loadflags);
     if(dequeue(store_handle, (void**)&data, NULL, &sid, timeout) == BP_SUCCESS)
     {
@@ -561,7 +544,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
     else
     {
         /* Send Data Bundle */
-        store_handle = ch->bundle.bundle_store.handle;
+        store_handle = ch->bundle.handle;
 
         /* Process Active Table for Timeouts */
         bplib_os_lock(ch->active_table_signal);
@@ -804,12 +787,12 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     /* Receive Bundle */
     void* block = bundle;
     int block_size = size;
-    status = bundle_receive(&ch->bundle, &block, &block_size, sysnow, timeout, procflags);
+    status = bundle_receive(&ch->bundle, (uint8_t**)&block, &block_size, sysnow, timeout, procflags);
     if(status == BP_EXPIRED)
     {
         ch->stats.expired++;
     }
-    else if(status == BP_PENDINGCUSTODYTRANSFER)
+    else if(status == BP_PENDINGACKNOWLEDGMENT)
     {
         /* Process Aggregate Custody Signal - Process DACS */
         bplib_os_lock(ch->active_table_signal);
@@ -824,20 +807,14 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
         }
         bplib_os_unlock(ch->active_table_signal);
     }
-    else if(status == BP_PENDINGACKNOWLEDGMENT)
+    else if(status == BP_PENDINGBUNDLECUSTODY)
     {
-        bp_blk_cteb_t cteb_blk;
-
-        /* Read CTEB */
-        if(cteb_read(block, block_size, &cteb_blk, true, procflags) > 0)
-        {
-            /* Acknowledge Custody Transfer - Update DACS */
-            status = custody_acknowledge(&ch->custody, &cteb_blk, sysnow, BP_CHECK, procflags);
-        }
-        else
-        {
-            bplog(status, "Failed to parse CTEB block in order to acknowledge custody\n");
-        }
+        /* Acknowledge Custody Transfer - Update DACS */
+        //status = custody_acknowledge(&ch->custody, &cteb_blk, sysnow, BP_CHECK, flags);
+    }
+    else if(status == BP_PENDINGPAYLOADCUSTODY)
+    {
+        //status = payload_receive(&ch->payload, cst_rqst, block, block_size, timeout, flags);
     }
     
     /* Return Status */
@@ -862,14 +839,14 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
 
     /* Set Shortcuts */
     bp_channel_t*           ch          = &channels[channel];
-    bp_store_dequeue_t      dequeue     = ch->service.dequeue;
-    bp_store_relinquish_t   relinquish  = ch->service.relinquish;
+    bp_store_dequeue_t      dequeue     = ch->payload.store->dequeue;
+    bp_store_relinquish_t   relinquish  = ch->payload.store->relinquish;
     uint8_t*                storebuf    = NULL;
     int                     storelen    = 0;
     bp_sid_t                sid         = BP_SID_VACANT;
 
     /* Dequeue Payload from Storage */
-    deqstat = dequeue(ch->bundle.payload_store.handle, (void**)&storebuf, &storelen, &sid, timeout);
+    deqstat = dequeue(ch->payload.handle, (void**)&storebuf, &storelen, &sid, timeout);
     if(deqstat > 0)
     {
         /* Access Payload */
@@ -904,7 +881,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
         }
 
         /* Relinquish Memory */
-        relinquish(ch->bundle.payload_store.handle, sid);
+        relinquish(ch->payload.handle, sid);
     }
     else 
     {
@@ -952,10 +929,10 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
  *  eid -                   null-terminated string representation of End Point ID [INPUT]
  *  len -                   size in bytes of above string [INPUT]
  *  node -                  node number as read from eid [OUTPUT]
- *  service -               service number as read from eid [OUTPUT]
+ *  store -               store number as read from eid [OUTPUT]
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
+int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* store)
 {
     char eidtmp[BP_MAX_EID_STRING];
     int tmplen;
@@ -1005,7 +982,7 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
 
     /* Parse Node Number */
     errno = 0;
-    node_result = strtoul(node_ptr, &endptr, 10); /* assume IPN node and service numbers always written in base 10 */
+    node_result = strtoul(node_ptr, &endptr, 10); /* assume IPN node and store numbers always written in base 10 */
     if( (endptr == node_ptr) ||
         ((node_result == ULONG_MAX || node_result == 0) && errno == ERANGE) )
     {
@@ -1014,16 +991,16 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
 
     /* Parse Service Number */
     errno = 0;
-    service_result = strtoul(service_ptr, &endptr, 10); /* assume IPN node and service numbers always written in base 10 */
+    service_result = strtoul(service_ptr, &endptr, 10); /* assume IPN node and store numbers always written in base 10 */
     if( (endptr == service_ptr) ||
         ((service_result == ULONG_MAX || service_result == 0) && errno == ERANGE) )
     {
-        return bplog(BP_INVALIDEID, "Unable to parse EID (%s) service number\n", eid);
+        return bplog(BP_INVALIDEID, "Unable to parse EID (%s) store number\n", eid);
     }
 
     /* Set Outputs */
     *node = (uint32_t)node_result;
-    *service = (uint32_t)service_result;
+    *store = (uint32_t)service_result;
     return BP_SUCCESS;
 }
 
@@ -1033,10 +1010,10 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
  *  eid -                   buffer that will hold null-terminated string representation of End Point ID [OUTPUT]
  *  len -                   size in bytes of above buffer [INPUT]
  *  node -                  node number to be written into eid [INPUT]
- *  service -               service number to be written into eid [INPUT]
+ *  store -               store number to be written into eid [INPUT]
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t service)
+int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t store)
 {
     /* Sanity Check EID Buffer Pointer */
     if(eid == NULL)
@@ -1055,7 +1032,7 @@ int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t service)
     }
 
     /* Write EID */
-    bplib_os_format(eid, len, "ipn:%lu.%lu", (unsigned long)node, (unsigned long)service);
+    bplib_os_format(eid, len, "ipn:%lu.%lu", (unsigned long)node, (unsigned long)store);
 
     return BP_SUCCESS;
 }

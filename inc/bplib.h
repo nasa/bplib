@@ -57,27 +57,27 @@ extern "C" {
 #define BP_PARMERR                      (-1)
 #define BP_UNSUPPORTED                  (-2)
 #define BP_EXPIRED                      (-3)
-#define BP_IGNORE                       (-4)
-#define BP_DROPPED                      (-5)
-#define BP_CHANNELSFULL                 (-6)
-#define BP_INVALIDHANDLE                (-7)
-#define BP_OVERFLOW                     (-8)
-#define BP_WRONGVERSION                 (-9)
-#define BP_BUNDLEPARSEERR               (-10)
-#define BP_UNKNOWNREC                   (-11)
-#define BP_BUNDLETOOLARGE               (-12)
-#define BP_PAYLOADTOOLARGE              (-13)
-#define BP_WRONGORIGINATION             (-14)
-#define BP_WRONGCHANNEL                 (-15)
-#define BP_FAILEDINTEGRITYCHECK         (-16)
-#define BP_FAILEDSTORE                  (-17)
-#define BP_FAILEDOS                     (-18)
-#define BP_FAILEDMEM                    (-19)
-#define BP_FAILEDRESPONSE               (-20)
-#define BP_INVALIDEID                   (-21)
-#define BP_INVALIDCIPHERSUITEID         (-22)
-#define BP_PENDINGACKNOWLEDGMENT        (-23)
-#define BP_PENDINGCUSTODYTRANSFER       (-24)
+#define BP_DROPPED                      (-4)
+#define BP_CHANNELSFULL                 (-5)
+#define BP_INVALIDHANDLE                (-6)
+#define BP_OVERFLOW                     (-7)
+#define BP_WRONGVERSION                 (-8)
+#define BP_BUNDLEPARSEERR               (-9)
+#define BP_UNKNOWNREC                   (-10)
+#define BP_BUNDLETOOLARGE               (-11)
+#define BP_PAYLOADTOOLARGE              (-12)
+#define BP_WRONGCHANNEL                 (-13)
+#define BP_FAILEDINTEGRITYCHECK         (-14)
+#define BP_FAILEDSTORE                  (-15)
+#define BP_FAILEDOS                     (-16)
+#define BP_FAILEDMEM                    (-17)
+#define BP_FAILEDRESPONSE               (-18)
+#define BP_INVALIDEID                   (-19)
+#define BP_INVALIDCIPHERSUITEID         (-20)
+#define BP_PENDINGACKNOWLEDGMENT        (-21)
+#define BP_PENDINGBUNDLECUSTODY         (-22)
+#define BP_PENDINGPAYLOADCUSTODY        (-23)
+#define BP_PENDINGPAYLOAD               (-24)
     
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
@@ -110,17 +110,15 @@ extern "C" {
 #define BP_OPT_PAYCRC_D                 12
 #define BP_OPT_TIMEOUT                  13
 #define BP_OPT_BUNDLELEN                14
-#define BP_OPT_ORIGINATE                15
-#define BP_OPT_PROCADMINONLY            16
-#define BP_OPT_WRAPRSP                  17
-#define BP_OPT_CIDREUSE                 18
-#define BP_OPT_ACSRATE                  19
+#define BP_OPT_WRAPRSP                  15
+#define BP_OPT_CIDREUSE                 16
+#define BP_OPT_ACSRATE                  17
     
 /* Default Configuration */
 #define BP_DEFAULT_MAX_CHANNELS         4
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
-#define BP_DEFAULT_TIMEOUT              10
-#define BP_DEFAULT_DACS_RATE            5       /* seconds */
+#define BP_DEFAULT_TIMEOUT              10 /* seconds */
+#define BP_DEFAULT_DACS_RATE            5 /* period in seconds */
 #define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
 #define BP_DEFAULT_CID_REUSE            false
 #define BP_DEFAULT_LIFETIME             0
@@ -129,8 +127,6 @@ extern "C" {
 #define BP_DEFAULT_INTEGRITY_CHECK      true
 #define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
 #define BP_DEFAULT_BUNDLE_MAXLENGTH     4096
-#define BP_DEFAULT_ORIGINATE            true
-#define BP_DEFAULT_PROC_ADMIN_ONLY      false
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
 
@@ -180,8 +176,6 @@ typedef struct {
     bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
     int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */
     int         maxlength;              /* maximum size of bundle in bytes (includes header blocks) */
-    int         originate;              /* 1: originated bundle, 0: forwarded bundle */
-    int         proc_admin_only;        /* process only administrative records (for sender only agents) */
 
     /* DTN Aggregate Custody Signal Characteristics */
     int         max_fills_per_dacs;     /* limits the size of the DACS bundle */
@@ -212,7 +206,7 @@ typedef struct {
  ******************************************************************************/
 
 void    bplib_init          (int max_channels);
-int     bplib_open          (bp_store_t service, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes);
+int     bplib_open          (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes);
 void    bplib_close         (int channel);
 
 int     bplib_getopt        (int channel, int opt, void* val, int len);
