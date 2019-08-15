@@ -22,7 +22,7 @@
 #include "bplib.h"
 #include "bplib_os.h"
 #include "sdnv.h"
-#include "block.h"
+#include "blocks.h"
 #include "pri.h"
 #include "cteb.h"
 #include "bib.h"

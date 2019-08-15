@@ -20,7 +20,7 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "block.h"
+#include "blocks.h"
 #include "bib.h"
 #include "crc.h"
 #include "sdnv.h"

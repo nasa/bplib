@@ -20,7 +20,7 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "block.h"
+#include "blocks.h"
 #include "pri.h"
 #include "bib.h"
 #include "pay.h"

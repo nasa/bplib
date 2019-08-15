@@ -1,5 +1,5 @@
 /************************************************************************
- * File: block.h
+ * File: blocks.h
  *
  *  Copyright 2019 United States Government as represented by the 
  *  Administrator of the National Aeronautics and Space Administration. 
@@ -22,7 +22,11 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdint.h>
+#include "pri.h"
+#include "bib.h"
+#include "pay.h"
+#include "cteb.h"
+#include "bundle.h"
 
 /******************************************************************************
  DEFINES
@@ -47,5 +51,23 @@
 #define BP_CS_REC_TYPE                  0x20 /* Custody Signal */
 #define BP_ACS_REC_TYPE                 0x40 /* Aggregate Custody Signal */
     
+/******************************************************************************
+ TYPEDEFS
+ ******************************************************************************/
+
+/* Bundle Blocks */
+typedef struct {
+    bp_blk_pri_t        primary_block;
+    bp_blk_cteb_t       custody_block;
+    bp_blk_bib_t        integrity_block;
+    bp_blk_pay_t        payload_block;
+} bp_bundle_blocks_t;
+
+/******************************************************************************
+ PROTOTYPES
+ ******************************************************************************/
+
+int blocks_build    (bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, uint8_t* hdr_buf, int hdr_len, uint16_t* flags);
+int blocks_enqueue  (bp_bundle_t* bundle, bool set_time, int timeout, uint16_t* flags);
 
 #endif  /* __BPLIB_BLK_H__ */

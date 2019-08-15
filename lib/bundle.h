@@ -24,10 +24,7 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
-#include "pri.h"
-#include "bib.h"
-#include "pay.h"
-#include "cteb.h"
+#include "blocks.h"
 
 /******************************************************************************
  DEFINES
@@ -50,14 +47,6 @@ typedef struct {
     int                 bundlesize;         /* total size of the bundle (header and payload) */
     uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; /* header portion of bundle */
 } bp_bundle_data_t;
-
-/* Bundle Blocks */
-typedef struct {
-    bp_blk_pri_t        primary_block;
-    bp_blk_cteb_t       custody_block;
-    bp_blk_bib_t        integrity_block;
-    bp_blk_pay_t        payload_block;
-} bp_bundle_blocks_t;
 
 /* Bundle Control Structure */
 typedef struct {
