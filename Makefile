@@ -43,18 +43,27 @@ API         := $(ROOT)/inc
 # location to install bplib
 PREFIX	    := /usr/local
 	
-# application object files, application should add their objects to this variable
+# application object files, library
 APP_OBJ := bplib.o
+
+# block objects 
 APP_OBJ += bib.o
 APP_OBJ += cteb.o
 APP_OBJ += pay.o
 APP_OBJ += pri.o
+APP_OBJ += dacs.o
+
+# protocol objects
 APP_OBJ += bundle.o
 APP_OBJ += custody.o
 APP_OBJ += payload.o
+
+# common objects
 APP_OBJ += sdnv.o
 APP_OBJ += crc.o
 APP_OBJ += rb_tree.o
+
+# storage service objects
 APP_OBJ += file.o
 APP_OBJ += ram.o
 
