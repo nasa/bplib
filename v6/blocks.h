@@ -72,6 +72,7 @@ typedef struct {
 
 /* Bundle Blocks */
 typedef struct {
+    bool                prebuilt;               /* does pre-built bundle header need initialization */
     bp_blk_pri_t        primary_block;
     bp_blk_cteb_t       custody_block;
     bp_blk_bib_t        integrity_block;

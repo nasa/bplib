@@ -127,7 +127,7 @@ int blocks_build(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* 
         blocks->primary_block = *pri;
 
         /* Set Pre-Built Flag to FALSE */
-        bundle->prebuilt = false;
+        blocks->prebuilt = false;
     }
     else
     {
@@ -146,7 +146,7 @@ int blocks_build(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* 
         blocks->primary_block.cst_rqst          = attr->request_custody;
 
         /* Set Pre-Built Flag to TRUE */
-        bundle->prebuilt = true;
+        blocks->prebuilt = true;
     }
 
     /* Write Primary Block */
@@ -493,7 +493,7 @@ int blocks_read(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* a
                 if(status == BP_SUCCESS)
                 {
                     /* Store Forwarded Bundle */
-                    status = blocks_write(blocks, data, attr, false, timeout, flags);
+//                   status = blocks_write(blocks, data, attr, false, enqueue, handle, timeout, flags);
                 }
 
                 /* Handle Custody Transfer */

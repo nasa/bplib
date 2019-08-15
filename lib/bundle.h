@@ -35,7 +35,6 @@ typedef struct {
     bp_store_t          store;                  /* storage service call-backs */
     bp_route_t          route;                  /* addressing information */
     bp_attr_t*          attributes;             /* -pointer- to the channel attributes */
-    bool                prebuilt;               /* does pre-built bundle header need initialization */
     int                 handle;                 /* storage service handle for bundle data */
     bp_bundle_data_t    data;                   /* serialized and stored bundle data */
     bp_bundle_blocks_t  blocks;                 /* populated in initialization function */

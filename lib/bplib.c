@@ -359,7 +359,7 @@ int bplib_config(int channel, int mode, int opt, void* val, int len)
     }
 
     /* Re-initialize Bundles */
-    if(setopt) ch->bundle.prebuilt = true;
+    if(setopt) ch->bundle.blocks.prebuilt = true;
 
     /* Return Status */
     return BP_SUCCESS;
@@ -426,23 +426,22 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
     else if(bundle == NULL || size == NULL)         return BP_PARMERR;
 
     /* Set Short Cuts */
-    bp_channel_t*           ch          = &channels[channel];
-    bp_store_dequeue_t      dequeue     = ch->bundle.store.dequeue;
-    bp_store_retrieve_t     retrieve    = ch->bundle.store.retrieve;
-    bp_store_relinquish_t   relinquish  = ch->bundle.store.relinquish;
-
+    bp_channel_t*       ch              = &channels[channel];
+    
     /* Setup State */
     uint32_t            sysnow          = bplib_os_systime();   /* get current system time (used for timeouts, seconds) */
     bp_bundle_data_t*   data            = NULL;                 /* start out assuming nothing to send */
-    int                 store_handle    = -1;                   /* handle for store of bundle being loaded */
     bp_sid_t            sid             = BP_SID_VACANT;        /* store id points to nothing */
     int                 ati             = -1;                   /* active table index */
     bool                newcid          = true;                 /* whether to assign new custody id and active table entry */
+    bp_store_t*         store           = NULL;                 /* which storage service to used */
+    int                 handle          = -1;                   /* handle for store service being loaded */
 
     /* Check if DACS Needs to be Sent First */
-    store_handle = ch->custody.bundle.handle;
+    store = &ch->custody.bundle.store;
+    handle = ch->custody.bundle.handle;    
     custody_check(&ch->custody, ch->attributes.dacs_rate, sysnow, BP_CHECK, loadflags);
-    if(ch->custody.bundle.store.dequeue(store_handle, (void**)&data, NULL, &sid, timeout) == BP_SUCCESS)
+    if(store->dequeue(handle, (void**)&data, NULL, &sid, timeout) == BP_SUCCESS)
     {
         /* Set Route Flag */
         *loadflags |= BP_FLAG_ROUTENEEDED;
@@ -450,7 +449,8 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
     else
     {
         /* Send Data Bundle */
-        store_handle = ch->bundle.handle;
+        store = &ch->bundle.store;
+        handle = ch->bundle.handle;
 
         /* Process Active Table for Timeouts */
         bplib_os_lock(ch->active_table_signal);
@@ -464,12 +464,12 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                 {
                     ch->active_table.oldest_cid++;
                 }
-                else if(retrieve(store_handle, (void**)&data, NULL, sid, BP_CHECK) == BP_SUCCESS)
+                else if(store->retrieve(handle, (void**)&data, NULL, sid, BP_CHECK) == BP_SUCCESS)
                 {
                     if(data->exprtime != 0 && sysnow >= data->exprtime) /* check lifetime */
                     {
                         /* Bundle Expired - Clear Entry */
-                        relinquish(store_handle, sid);
+                        store->relinquish(handle, sid);
                         ch->active_table.sid[ati] = BP_SID_VACANT;
                         ch->active_table.oldest_cid++;
                         ch->stats.expired++;
@@ -520,10 +520,10 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                                 ch->active_table.oldest_cid++;
 
                                 /* Retrieve Bundle from Storage */
-                                if(retrieve(store_handle, (void**)&data, NULL, sid, BP_CHECK) != BP_SUCCESS)
+                                if(store->retrieve(handle, (void**)&data, NULL, sid, BP_CHECK) != BP_SUCCESS)
                                 {
                                     /* Failed to Retrieve - Clear Entry (and loop again) */
-                                    relinquish(store_handle, sid);
+                                    store->relinquish(handle, sid);
                                     ch->active_table.sid[ati] = BP_SID_VACANT;
                                     *loadflags |= BP_FLAG_STOREFAILURE;
                                     ch->stats.lost++;
@@ -547,7 +547,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                                 ch->active_table.oldest_cid++;
 
                                 /* Clear Entry (and loop again) */
-                                relinquish(store_handle, sid);
+                                store->relinquish(handle, sid);
                                 ch->active_table.sid[ati] = BP_SID_VACANT;
                                 ch->stats.lost++;
                             }
@@ -560,7 +560,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                 else
                 {
                     /* Failed to Retrieve Bundle from Storage */
-                    relinquish(store_handle, sid);
+                    store->relinquish(handle, sid);
                     ch->active_table.sid[ati] = BP_SID_VACANT;
                     *loadflags |= BP_FLAG_STOREFAILURE;
                     ch->stats.lost++;
@@ -573,13 +573,13 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
         while(data == NULL)
         {
             /* Dequeue Bundle from Storage Service */
-            int deq_status = dequeue(store_handle, (void**)&data, NULL, &sid, timeout);
+            int deq_status = store->dequeue(handle, (void**)&data, NULL, &sid, timeout);
             if(deq_status == BP_SUCCESS)
             {
                 if(data->exprtime != 0 && sysnow >= data->exprtime)
                 {
                     /* Bundle Expired Clear Entry (and loop again) */
-                    relinquish(store_handle, sid);
+                    store->relinquish(handle, sid);
                     ch->stats.expired++;
                     sid = BP_SID_VACANT;
                     data = NULL;
@@ -642,20 +642,20 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                     /* If No Custody Transfer - Free Bundle Memory */
                     if(data->cteboffset == 0)
                     {
-                        relinquish(store_handle, sid);
+                        store->relinquish(handle, sid);
                     }
                 }
                 else
                 {
                     status = bplog(BP_FAILEDMEM, "Unable to acquire memory for bundle of size %d\n", data->bundlesize);
-                    relinquish(store_handle, sid);
+                    store->relinquish(handle, sid);
                     ch->stats.lost++;                    
                 }
             }
             else
             {
                 status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", *size, data->bundlesize);
-                relinquish(store_handle, sid);
+                store->relinquish(handle, sid);
                 ch->stats.lost++;
             }
         }

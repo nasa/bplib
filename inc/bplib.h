@@ -169,26 +169,20 @@ typedef struct {
 
 /* Channel Attributes */
 typedef struct {    
-    /* Channel Characteristics */
-    int         active_table_size;      /* number of unacknowledged bundles to keep track of */
+    uint32_t    lifetime;               /* Number of seconds from creation time before bundle expires */
     int         timeout;                /* seconds, zero for infinite */
     int         dacs_rate;              /* number of seconds to wait between sending ACS bundles */
     int         wrap_response;          /* what to do when active table wraps */
     int         cid_reuse;              /* reuse CID when retransmitting */
 
-    /* Bundle Characteristics */
-    uint32_t    lifetime;               /* Number of seconds from creation time before bundle expires */
+    int         active_table_size;      /* number of unacknowledged bundles to keep track of */
     bool        request_custody;        /* 0: not requested, 1: requested */
     bool        allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
     bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
     int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */
     int         maxlength;              /* maximum size of bundle in bytes (includes header blocks) */
-
-    /* DTN Aggregate Custody Signal Characteristics */
     int         max_fills_per_dacs;     /* limits the size of the DACS bundle */
     int         max_gaps_per_dacs;      /* number of gaps in custody IDs that can be kept track of */
- 
-    /* Storage Service */
     void*       storage_service_parm;   /* pass through of parameters needed by storage service */
 } bp_attr_t;
 

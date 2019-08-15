@@ -38,7 +38,6 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_store_t store, b
     bundle->route               = route;
     bundle->store               = store;
     bundle->attributes          = attr;
-    bundle->prebuilt            = false;
     
     /* Initialize Bundle Store */
     bundle->handle  = bundle->store.create(bundle->attributes->storage_service_parm);
@@ -68,7 +67,7 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, ui
     bp_bundle_blocks_t* blocks = &bundle->blocks;
 
     /* Check if Re-initialization Needed */
-    if(bundle->prebuilt == false)
+    if(bundle->blocks.prebuilt == false)
     {
         blocks_build(&bundle->blocks, &bundle->data, bundle->attributes, bundle->route, NULL, NULL, NULL, 0, flags);
     }

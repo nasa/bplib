@@ -47,6 +47,7 @@ PREFIX	    := /usr/local
 APP_OBJ := bplib.o
 
 # block objects 
+APP_OBJ += blocks.o
 APP_OBJ += bib.o
 APP_OBJ += cteb.o
 APP_OBJ += pay.o
