@@ -41,7 +41,7 @@ typedef struct {
 /* Payload */
 typedef struct {
     bp_attr_t*          attributes;         /* pointer to channel attributes */
-    bp_store_t*         store;              /* pointer to storage service for payloads */
+    bp_store_t          store;              /* pointer to storage service for payloads */
     int                 handle;             /* storage service handle for payload */
     bp_payload_data_t   data;               /* serialized and stored payload data */    
 } bp_payload_t;
@@ -50,7 +50,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     payload_initialize      (bp_payload_t* payload, bp_attr_t* attr, bp_store_t* service, uint16_t* flags);
+int     payload_initialize      (bp_payload_t* payload, bp_attr_t* attr, bp_store_t store, uint16_t* flags);
 void    payload_uninitialize    (bp_payload_t* payload);
 
 int     payload_receive         (bp_payload_t* payload, bool cst_rqst, uint8_t* pay, int pay_size, int timeout, uint16_t* flags);

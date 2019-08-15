@@ -302,7 +302,7 @@ static int bundle_enqueue(bp_bundle_t* bundle, bool set_time, int timeout, uint1
 
         /* Enqueue Bundle */
         int storage_header_size = sizeof(bp_bundle_data_t) - (BP_BUNDLE_HDR_BUF_SIZE - data->headersize);
-        status = bundle->store->enqueue(bundle->handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
+        status = bundle->store.enqueue(bundle->handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
     }
@@ -321,7 +321,7 @@ static int bundle_enqueue(bp_bundle_t* bundle, bool set_time, int timeout, uint1
 /*--------------------------------------------------------------------------------------
  * bundle_initialize -
  *-------------------------------------------------------------------------------------*/
-int bundle_initialize(bp_bundle_t* bundle, bp_attr_t* attr, bp_store_t* store, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t dstserv, uint16_t* flags)
+int bundle_initialize(bp_bundle_t* bundle, bp_attr_t* attr, bp_store_t store, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t dstserv, uint16_t* flags)
 {
     /* Initialize Bundle Parameters */
     bundle->attributes          = attr;
@@ -335,7 +335,7 @@ int bundle_initialize(bp_bundle_t* bundle, bp_attr_t* attr, bp_store_t* store, b
     
     /* Initialize Bundle Store */
     bundle->store   = store;
-    bundle->handle  = bundle->store->create(bundle->attributes->storage_service_parm);
+    bundle->handle  = bundle->store.create(bundle->attributes->storage_service_parm);
     
     /* Handle Errors */
     if(bundle->handle < 0)
@@ -353,7 +353,7 @@ int bundle_initialize(bp_bundle_t* bundle, bp_attr_t* attr, bp_store_t* store, b
  *-------------------------------------------------------------------------------------*/
 void bundle_uninitialize(bp_bundle_t* bundle)
 {
-    if(bundle->handle >= 0) bundle->store->destroy(bundle->handle);
+    if(bundle->handle >= 0) bundle->store.destroy(bundle->handle);
 }
 
 /*--------------------------------------------------------------------------------------

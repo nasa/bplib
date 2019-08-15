@@ -35,7 +35,7 @@
 /*--------------------------------------------------------------------------------------
  * payload_initialize - 
  *-------------------------------------------------------------------------------------*/
-int payload_initialize(bp_payload_t* payload, bp_attr_t* attr, bp_store_t* store, uint16_t* flags)
+int payload_initialize(bp_payload_t* payload, bp_attr_t* attr, bp_store_t store, uint16_t* flags)
 {
     (void)flags;
     
@@ -44,7 +44,7 @@ int payload_initialize(bp_payload_t* payload, bp_attr_t* attr, bp_store_t* store
     
     /* Initialize Bundle Store */
     payload->store   = store;
-    payload->handle  = payload->store->create(payload->attributes->storage_service_parm);
+    payload->handle  = payload->store.create(payload->attributes->storage_service_parm);
     
     /* Handle Errors */
     if(payload->handle < 0)
@@ -63,7 +63,7 @@ void payload_uninitialize(bp_payload_t* payload)
 {
     if(payload)
     {
-        if(payload->handle >= 0) payload->store->destroy(payload->handle);
+        if(payload->handle >= 0) payload->store.destroy(payload->handle);
     }    
 }
 
@@ -80,7 +80,7 @@ int payload_receive(bp_payload_t* payload, bool cst_rqst, uint8_t* pay, int pay_
     data->request_custody = cst_rqst;
 
     /* Enqueue Payload into Storage */
-    int enstat = payload->store->enqueue(payload->handle, data, sizeof(bp_payload_data_t), pay, pay_size, timeout);
+    int enstat = payload->store.enqueue(payload->handle, data, sizeof(bp_payload_data_t), pay, pay_size, timeout);
     if(enstat <= 0)
     {
         status = bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", enstat);

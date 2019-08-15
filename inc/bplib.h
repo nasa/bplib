@@ -95,6 +95,10 @@ extern "C" {
 #define BP_FLAG_DUPLICATES              0x1000  /* duplicate bundle ids were identified when creating this dacs */
 #define BP_FLAG_RBTREEFULL              0x2000  /* the dacs rb_tree was full */
 
+/* Set/Get Option Modes */
+#define BP_OPT_MODE_READ                0
+#define BP_OPT_MODE_WRITE               1
+
 /* Set/Get Option Defines */
 #define BP_OPT_DSTNODE_D                1
 #define BP_OPT_DSTSERV_D                2
@@ -209,8 +213,7 @@ void    bplib_init          (int max_channels);
 int     bplib_open          (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes);
 void    bplib_close         (int channel);
 
-int     bplib_getopt        (int channel, int opt, void* val, int len);
-int     bplib_setopt        (int channel, int opt, void* val, int len);
+int     bplib_config        (int channel, int mode, int opt, void* val, int len);
 int     bplib_latchstats    (int channel, bp_stats_t* stats);
 
 int     bplib_store         (int channel, void* payload, int size, int timeout, uint16_t* storflags);

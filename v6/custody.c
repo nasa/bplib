@@ -152,7 +152,7 @@ static int dacs_enqueue(bp_custody_t* custody, uint32_t sysnow, int timeout, uin
 /*--------------------------------------------------------------------------------------
  * custody_initialize - Allocates resources for DACS and initializes control structures
  *-------------------------------------------------------------------------------------*/
-int custody_initialize(bp_custody_t* custody, bp_attr_t* attr, bp_store_t* store, bp_ipn_t srcnode, bp_ipn_t srcserv, uint16_t* flags)
+int custody_initialize(bp_custody_t* custody, bp_attr_t* attr, bp_store_t store, bp_ipn_t srcnode, bp_ipn_t srcserv, uint16_t* flags)
 {
     int status;
 
@@ -356,7 +356,7 @@ int custody_process(bp_custody_t* custody, uint8_t* rec, int rec_size, int* acks
                 bp_sid_t sid = sids[ati];
                 if(sid != BP_SID_VACANT)
                 {
-                    custody->bundle.store->relinquish(custody->bundle.handle, sid);
+                    custody->bundle.store.relinquish(custody->bundle.handle, sid);
                     sids[ati] = BP_SID_VACANT;
                     (*acks)++;
                 }

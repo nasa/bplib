@@ -62,7 +62,7 @@ typedef struct {
 /* Bundle Control Structure */
 typedef struct {
     bp_attr_t*          attributes;             /* pointer to the channel attributes */
-    bp_store_t*         store;                  /* storage service call-backs */
+    bp_store_t          store;                  /* storage service call-backs */
     bp_ipn_t            local_node;             /* source node for bundle */
     bp_ipn_t            local_service;          /* source service for bundle */
     bp_ipn_t            destination_node;       /* destination node for bundle */
@@ -79,7 +79,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     bundle_initialize   (bp_bundle_t* bundle, bp_attr_t* attr, bp_store_t* store, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, uint16_t* flags);
+int     bundle_initialize   (bp_bundle_t* bundle, bp_attr_t* attr, bp_store_t store, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, uint16_t* flags);
 void    bundle_uninitialize (bp_bundle_t* bundle);
 
 int     bundle_send         (bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags);

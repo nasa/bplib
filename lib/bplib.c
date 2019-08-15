@@ -59,7 +59,6 @@ typedef struct {
 typedef struct {
     int                 index;
     bp_attr_t           attributes;
-    bp_store_t          store;
     bp_bundle_t         bundle;
     bp_custody_t        custody;
     bp_payload_t        payload;
@@ -96,178 +95,6 @@ static const bp_attr_t default_attributes = {
 static bp_channel_t* channels;
 static int channels_max;
 static int channels_lock;
-
-/******************************************************************************
- LOCAL FUNCTIONS
- ******************************************************************************/
-
-/*--------------------------------------------------------------------------------------
- * getset_opt - Get/Set utility function
- *
- *  - getset --> false: get, true: set
- *  - assumes parameter checking has already been performed
- *-------------------------------------------------------------------------------------*/
-static int getset_opt(int c, int opt, void* val, int len, bool getset)
-{
-    bp_channel_t* ch = &channels[c];
-
-    /* Select and Process Option */
-    switch(opt)
-    {
-        case BP_OPT_DSTNODE_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  ch->bundle.destination_node = *node;
-            else        *node = ch->bundle.destination_node;
-            break;
-        }
-        case BP_OPT_DSTSERV_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* store = (bp_ipn_t*)val;
-            if(getset)  ch->bundle.destination_service = *store;
-            else        *store = ch->bundle.destination_service;
-            break;
-        }
-        case BP_OPT_RPTNODE_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  ch->bundle.report_node = *node;
-            else        *node = ch->bundle.report_node;
-            break;
-        }
-        case BP_OPT_RPTSERV_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* store = (bp_ipn_t*)val;
-            if(getset)  ch->bundle.report_service = *store;
-            else        *store = ch->bundle.report_service;
-            break;
-        }
-        case BP_OPT_CSTNODE_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(getset)  ch->bundle.local_node = *node;
-            else        *node = ch->bundle.local_node;
-            break;
-        }
-        case BP_OPT_CSTSERV_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* store = (bp_ipn_t*)val;
-            if(getset)  ch->bundle.local_service = *store;
-            else        *store = ch->bundle.local_service;
-            break;
-        }
-        case BP_OPT_SETSEQUENCE_D:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            uint32_t* seq = (uint32_t*)val;
-            if(getset)  ch->bundle.blocks.primary_block.createseq.value = *seq;
-            else        *seq = ch->bundle.blocks.primary_block.createseq.value;
-            break;
-        }
-        case BP_OPT_LIFETIME_D:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* lifetime = (int*)val;
-            if(getset)  ch->attributes.lifetime = *lifetime;
-            else        *lifetime = ch->attributes.lifetime;
-            break;
-        }
-        case BP_OPT_CSTRQST_D:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->attributes.request_custody = *enable;
-            else        *enable = ch->attributes.request_custody;
-            break;
-        }
-        case BP_OPT_ICHECK_D:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->attributes.integrity_check = *enable;
-            else        *enable = ch->attributes.integrity_check;
-            break;
-        }
-        case BP_OPT_ALLOWFRAG_D:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->attributes.allow_fragmentation = *enable;
-            else        *enable = ch->attributes.allow_fragmentation;
-            break;
-        }
-        case BP_OPT_PAYCRC_D:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* type = (int*)val;
-            if(getset)  ch->attributes.cipher_suite = *type;
-            else        *type = ch->attributes.cipher_suite;
-            break;
-        }
-        case BP_OPT_TIMEOUT:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* timeout = (int*)val;
-            if(getset)  ch->attributes.timeout = *timeout;
-            else        *timeout = ch->attributes.timeout;
-            break;
-        }
-        case BP_OPT_BUNDLELEN:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* maxlen = (int*)val;
-            if(getset)  ch->attributes.maxlength = *maxlen;
-            else        *maxlen = ch->attributes.maxlength;
-            break;
-        }
-        case BP_OPT_WRAPRSP:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* wrap = (int*)val;
-            if(getset && *wrap != BP_WRAP_RESEND && *wrap != BP_WRAP_BLOCK && *wrap != BP_WRAP_DROP) return BP_PARMERR;
-            if(getset)  ch->attributes.wrap_response = *wrap;
-            else        *wrap = ch->attributes.wrap_response;
-            break;
-        }
-        case BP_OPT_CIDREUSE:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(getset && *enable != true && *enable != false) return BP_PARMERR;
-            if(getset)  ch->attributes.cid_reuse = *enable;
-            else        *enable = ch->attributes.cid_reuse;
-            break;
-        }
-        case BP_OPT_ACSRATE:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* rate = (int*)val;
-            if(getset)  ch->attributes.dacs_rate = *rate;
-            else        *rate = ch->attributes.dacs_rate;
-            break;
-        }
-        default:
-        {
-            /* Option Not Found */
-            return bplog(BP_PARMERR, "Config. Option Not Found (%d)\n", opt);
-        }
-    }
-
-    /* Re-initialize Bundles */
-    if(getset) ch->bundle.prebuilt = true;
-
-    /* Option Successfully Processed */
-    return BP_SUCCESS;
-}
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -336,15 +163,15 @@ int bplib_open(bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp
                 else            ch->attributes = default_attributes;
 
                 /* Initialize Payload */
-                status = payload_initialize(&ch->payload, &ch->attributes, &store, &flags);
+                status = payload_initialize(&ch->payload, &ch->attributes, store, &flags);
                 if(status != BP_SUCCESS) break;
 
                 /* Initialize Bundle */
-                status = bundle_initialize(&ch->bundle, &ch->attributes, &store, local_node, local_service, destination_node, destination_service, &flags);
+                status = bundle_initialize(&ch->bundle, &ch->attributes, store, local_node, local_service, destination_node, destination_service, &flags);
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize DACS */
-                status = custody_initialize(&ch->custody, &ch->attributes, &store, local_node, local_service, &flags);
+                status = custody_initialize(&ch->custody, &ch->attributes, store, local_node, local_service, &flags);
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize Active Table */
@@ -370,7 +197,6 @@ int bplib_open(bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp
                 }
                 
                 /* Initialize Data */
-                ch->store                       = store;
                 ch->active_table.oldest_cid     = 0;
                 ch->active_table.current_cid    = 0;
                 ch->index                       = i;
@@ -422,41 +248,177 @@ void bplib_close(int channel)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_getopt -
+ * bplib_config -
  *-------------------------------------------------------------------------------------*/
-int bplib_getopt(int channel, int opt, void* val, int len)
+int bplib_config(int channel, int mode, int opt, void* val, int len)
 {
-    int status;
-
     /* Check Parameters */
     if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
     else if(val == NULL)                            return BP_PARMERR;
+    
+    /* Set Shortcut to Channel */
+    bp_channel_t* ch = &channels[channel];
 
-    /* Call Internal Function */
-    status = getset_opt(channel, opt, val, len, false);
+    /* Set Mode */
+    bool setopt = mode == BP_OPT_MODE_WRITE ? true : false;
+    
+    /* Select and Process Option */
+    switch(opt)
+    {
+        case BP_OPT_DSTNODE_D:
+        {
+            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
+            bp_ipn_t* node = (bp_ipn_t*)val;
+            if(setopt)  ch->bundle.destination_node = *node;
+            else        *node = ch->bundle.destination_node;
+            break;
+        }
+        case BP_OPT_DSTSERV_D:
+        {
+            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
+            bp_ipn_t* store = (bp_ipn_t*)val;
+            if(setopt)  ch->bundle.destination_service = *store;
+            else        *store = ch->bundle.destination_service;
+            break;
+        }
+        case BP_OPT_RPTNODE_D:
+        {
+            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
+            bp_ipn_t* node = (bp_ipn_t*)val;
+            if(setopt)  ch->bundle.report_node = *node;
+            else        *node = ch->bundle.report_node;
+            break;
+        }
+        case BP_OPT_RPTSERV_D:
+        {
+            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
+            bp_ipn_t* store = (bp_ipn_t*)val;
+            if(setopt)  ch->bundle.report_service = *store;
+            else        *store = ch->bundle.report_service;
+            break;
+        }
+        case BP_OPT_CSTNODE_D:
+        {
+            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
+            bp_ipn_t* node = (bp_ipn_t*)val;
+            if(setopt)  ch->bundle.local_node = *node;
+            else        *node = ch->bundle.local_node;
+            break;
+        }
+        case BP_OPT_CSTSERV_D:
+        {
+            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
+            bp_ipn_t* store = (bp_ipn_t*)val;
+            if(setopt)  ch->bundle.local_service = *store;
+            else        *store = ch->bundle.local_service;
+            break;
+        }
+        case BP_OPT_SETSEQUENCE_D:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            uint32_t* seq = (uint32_t*)val;
+            if(setopt)  ch->bundle.blocks.primary_block.createseq.value = *seq;
+            else        *seq = ch->bundle.blocks.primary_block.createseq.value;
+            break;
+        }
+        case BP_OPT_LIFETIME_D:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* lifetime = (int*)val;
+            if(setopt)  ch->attributes.lifetime = *lifetime;
+            else        *lifetime = ch->attributes.lifetime;
+            break;
+        }
+        case BP_OPT_CSTRQST_D:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* enable = (int*)val;
+            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.request_custody = *enable;
+            else        *enable = ch->attributes.request_custody;
+            break;
+        }
+        case BP_OPT_ICHECK_D:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* enable = (int*)val;
+            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.integrity_check = *enable;
+            else        *enable = ch->attributes.integrity_check;
+            break;
+        }
+        case BP_OPT_ALLOWFRAG_D:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* enable = (int*)val;
+            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.allow_fragmentation = *enable;
+            else        *enable = ch->attributes.allow_fragmentation;
+            break;
+        }
+        case BP_OPT_PAYCRC_D:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* type = (int*)val;
+            if(setopt)  ch->attributes.cipher_suite = *type;
+            else        *type = ch->attributes.cipher_suite;
+            break;
+        }
+        case BP_OPT_TIMEOUT:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* timeout = (int*)val;
+            if(setopt)  ch->attributes.timeout = *timeout;
+            else        *timeout = ch->attributes.timeout;
+            break;
+        }
+        case BP_OPT_BUNDLELEN:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* maxlen = (int*)val;
+            if(setopt)  ch->attributes.maxlength = *maxlen;
+            else        *maxlen = ch->attributes.maxlength;
+            break;
+        }
+        case BP_OPT_WRAPRSP:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* wrap = (int*)val;
+            if(setopt && *wrap != BP_WRAP_RESEND && *wrap != BP_WRAP_BLOCK && *wrap != BP_WRAP_DROP) return BP_PARMERR;
+            if(setopt)  ch->attributes.wrap_response = *wrap;
+            else        *wrap = ch->attributes.wrap_response;
+            break;
+        }
+        case BP_OPT_CIDREUSE:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* enable = (int*)val;
+            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.cid_reuse = *enable;
+            else        *enable = ch->attributes.cid_reuse;
+            break;
+        }
+        case BP_OPT_ACSRATE:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* rate = (int*)val;
+            if(setopt)  ch->attributes.dacs_rate = *rate;
+            else        *rate = ch->attributes.dacs_rate;
+            break;
+        }
+        default:
+        {
+            /* Option Not Found */
+            return bplog(BP_PARMERR, "Config. Option Not Found (%d)\n", opt);
+        }
+    }
+
+    /* Re-initialize Bundles */
+    if(setopt) ch->bundle.prebuilt = true;
 
     /* Return Status */
-    return status;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_setopt -
- *-------------------------------------------------------------------------------------*/
-int bplib_setopt(int channel, int opt, void* val, int len)
-{
-    int status;
-
-     /* Check Parameters */
-    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
-    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(val == NULL)                            return BP_PARMERR;
-
-    /* Call Internal Function */
-    status = getset_opt(channel, opt, val, len, true);
-
-    /* Return Status */
-    return status;
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -473,9 +435,9 @@ int bplib_latchstats(int channel, bp_stats_t* stats)
     bp_channel_t* ch = &channels[channel];
 
     /* Update Store Counts */
-    ch->stats.bundles = ch->bundle.store->getcount(ch->bundle.handle);
-    ch->stats.payloads = ch->payload.store->getcount(ch->payload.handle);
-    ch->stats.records = ch->custody.bundle.store->getcount(ch->custody.bundle.handle);
+    ch->stats.bundles = ch->bundle.store.getcount(ch->bundle.handle);
+    ch->stats.payloads = ch->payload.store.getcount(ch->payload.handle);
+    ch->stats.records = ch->custody.bundle.store.getcount(ch->custody.bundle.handle);
 
     /* Latch Statistics */
     *stats = ch->stats;
@@ -521,9 +483,9 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
 
     /* Set Short Cuts */
     bp_channel_t*           ch          = &channels[channel];
-    bp_store_dequeue_t      dequeue     = ch->store.dequeue;
-    bp_store_retrieve_t     retrieve    = ch->store.retrieve;
-    bp_store_relinquish_t   relinquish  = ch->store.relinquish;
+    bp_store_dequeue_t      dequeue     = ch->bundle.store.dequeue;
+    bp_store_retrieve_t     retrieve    = ch->bundle.store.retrieve;
+    bp_store_relinquish_t   relinquish  = ch->bundle.store.relinquish;
 
     /* Setup State */
     uint32_t            sysnow          = bplib_os_systime();   /* get current system time (used for timeouts, seconds) */
@@ -536,7 +498,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
     /* Check if DACS Needs to be Sent First */
     store_handle = ch->custody.bundle.handle;
     custody_check(&ch->custody, ch->attributes.dacs_rate, sysnow, BP_CHECK, loadflags);
-    if(dequeue(store_handle, (void**)&data, NULL, &sid, timeout) == BP_SUCCESS)
+    if(ch->custody.bundle.store.dequeue(store_handle, (void**)&data, NULL, &sid, timeout) == BP_SUCCESS)
     {
         /* Set Route Flag */
         *loadflags |= BP_FLAG_ROUTENEEDED;
@@ -839,8 +801,8 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
 
     /* Set Shortcuts */
     bp_channel_t*           ch          = &channels[channel];
-    bp_store_dequeue_t      dequeue     = ch->payload.store->dequeue;
-    bp_store_relinquish_t   relinquish  = ch->payload.store->relinquish;
+    bp_store_dequeue_t      dequeue     = ch->payload.store.dequeue;
+    bp_store_relinquish_t   relinquish  = ch->payload.store.relinquish;
     uint8_t*                storebuf    = NULL;
     int                     storelen    = 0;
     bp_sid_t                sid         = BP_SID_VACANT;
