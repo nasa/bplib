@@ -131,7 +131,7 @@ void bplib_init(int max_channels)
 /*--------------------------------------------------------------------------------------
  * bplib_open -
  *-------------------------------------------------------------------------------------*/
-int bplib_open(bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes)
+int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
 {
     assert(store.create);
     assert(store.destroy);
@@ -167,11 +167,11 @@ int bplib_open(bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp
                 if(status != BP_SUCCESS) break;
 
                 /* Initialize Bundle */
-                status = bundle_initialize(&ch->bundle, &ch->attributes, store, local_node, local_service, destination_node, destination_service, &flags);
+                status = bundle_initialize(&ch->bundle, route, store, &ch->attributes, &flags);
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize DACS */
-                status = custody_initialize(&ch->custody, &ch->attributes, store, local_node, local_service, &flags);
+                status = custody_initialize(&ch->custody, route, store, &ch->attributes, &flags);
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize Active Table */
@@ -266,63 +266,7 @@ int bplib_config(int channel, int mode, int opt, void* val, int len)
     /* Select and Process Option */
     switch(opt)
     {
-        case BP_OPT_DSTNODE_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(setopt)  ch->bundle.destination_node = *node;
-            else        *node = ch->bundle.destination_node;
-            break;
-        }
-        case BP_OPT_DSTSERV_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* store = (bp_ipn_t*)val;
-            if(setopt)  ch->bundle.destination_service = *store;
-            else        *store = ch->bundle.destination_service;
-            break;
-        }
-        case BP_OPT_RPTNODE_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(setopt)  ch->bundle.report_node = *node;
-            else        *node = ch->bundle.report_node;
-            break;
-        }
-        case BP_OPT_RPTSERV_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* store = (bp_ipn_t*)val;
-            if(setopt)  ch->bundle.report_service = *store;
-            else        *store = ch->bundle.report_service;
-            break;
-        }
-        case BP_OPT_CSTNODE_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* node = (bp_ipn_t*)val;
-            if(setopt)  ch->bundle.local_node = *node;
-            else        *node = ch->bundle.local_node;
-            break;
-        }
-        case BP_OPT_CSTSERV_D:
-        {
-            if(len != sizeof(bp_ipn_t)) return BP_PARMERR;
-            bp_ipn_t* store = (bp_ipn_t*)val;
-            if(setopt)  ch->bundle.local_service = *store;
-            else        *store = ch->bundle.local_service;
-            break;
-        }
-        case BP_OPT_SETSEQUENCE_D:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            uint32_t* seq = (uint32_t*)val;
-            if(setopt)  ch->bundle.blocks.primary_block.createseq.value = *seq;
-            else        *seq = ch->bundle.blocks.primary_block.createseq.value;
-            break;
-        }
-        case BP_OPT_LIFETIME_D:
+        case BP_OPT_LIFETIME:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* lifetime = (int*)val;
@@ -330,7 +274,7 @@ int bplib_config(int channel, int mode, int opt, void* val, int len)
             else        *lifetime = ch->attributes.lifetime;
             break;
         }
-        case BP_OPT_CSTRQST_D:
+        case BP_OPT_CSTRQST:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
@@ -339,7 +283,7 @@ int bplib_config(int channel, int mode, int opt, void* val, int len)
             else        *enable = ch->attributes.request_custody;
             break;
         }
-        case BP_OPT_ICHECK_D:
+        case BP_OPT_ICHECK:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
@@ -348,7 +292,7 @@ int bplib_config(int channel, int mode, int opt, void* val, int len)
             else        *enable = ch->attributes.integrity_check;
             break;
         }
-        case BP_OPT_ALLOWFRAG_D:
+        case BP_OPT_ALLOWFRAG:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* enable = (int*)val;
@@ -357,7 +301,7 @@ int bplib_config(int channel, int mode, int opt, void* val, int len)
             else        *enable = ch->attributes.allow_fragmentation;
             break;
         }
-        case BP_OPT_PAYCRC_D:
+        case BP_OPT_PAYCRC:
         {
             if(len != sizeof(int)) return BP_PARMERR;
             int* type = (int*)val;
@@ -772,7 +716,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     else if(status == BP_PENDINGBUNDLECUSTODY)
     {
         /* Acknowledge Custody Transfer - Update DACS */
-        //status = custody_acknowledge(&ch->custody, &cteb_blk, sysnow, BP_CHECK, flags);
+        //status = custody_acknowledge(&ch->custody, cteb_blk.cstnode, cteb_blk.cstserv, cteb_blk.cid.value, sysnow, BP_CHECK, flags);
     }
     else if(status == BP_PENDINGPAYLOADCUSTODY)
     {
@@ -863,7 +807,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
  *  destination_service -   as read from bundle [OUTPUT]
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service)
+int bplib_routeinfo(void* bundle, int size, bp_route_t* route)
 {
     int status;
     bp_blk_pri_t pri_blk;
@@ -878,8 +822,15 @@ int bplib_routeinfo(void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t
     if(status <= 0) return status;
 
     /* Set Addresses */
-    if(destination_node)    *destination_node = (bp_ipn_t)pri_blk.dstnode.value;
-    if(destination_service) *destination_service = (bp_ipn_t)pri_blk.dstserv.value;
+    if(route)
+    {
+        route->local_node           = (bp_ipn_t)pri_blk.srcnode.value;
+        route->local_service        = (bp_ipn_t)pri_blk.srcserv.value;
+        route->destination_node     = (bp_ipn_t)pri_blk.dstnode.value;
+        route->destination_service  = (bp_ipn_t)pri_blk.dstserv.value;
+        route->report_node          = (bp_ipn_t)pri_blk.rptnode.value;
+        route->report_service       = (bp_ipn_t)pri_blk.rptserv.value;
+    }
 
     /* Return Success */
     return BP_SUCCESS;

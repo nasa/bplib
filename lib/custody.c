@@ -20,11 +20,10 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "dacs.h"
-#include "sdnv.h"
 #include "bplib_os.h"
-#include "custody.h"
+#include "dacs.h"
 #include "bundle.h"
+#include "custody.h"
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -78,7 +77,7 @@ static int custody_enqueue(bp_custody_t* custody, uint32_t sysnow, int timeout, 
 /*--------------------------------------------------------------------------------------
  * custody_initialize - Allocates resources for DACS and initializes control structures
  *-------------------------------------------------------------------------------------*/
-int custody_initialize(bp_custody_t* custody, bp_attr_t* attr, bp_store_t store, bp_ipn_t srcnode, bp_ipn_t srcserv, uint16_t* flags)
+int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store, bp_attr_t* attr, uint16_t* flags)
 {
     int status;
 
@@ -94,7 +93,7 @@ int custody_initialize(bp_custody_t* custody, bp_attr_t* attr, bp_store_t store,
     }
 
     /* Initialize DACS Bundle */
-    status = bundle_initialize(&custody->bundle, attr, store, srcnode, srcserv, 0, 0, flags);
+    status = bundle_initialize(&custody->bundle, route, store, attr, flags);
     if(status != BP_SUCCESS)
     {
         custody_uninitialize(custody);
@@ -147,15 +146,15 @@ void custody_uninitialize(bp_custody_t* custody)
 /*--------------------------------------------------------------------------------------
  * custody_acknowledge -
  *-------------------------------------------------------------------------------------*/
-int custody_acknowledge(bp_custody_t* custody, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, uint16_t* flags)
+int custody_acknowledge(bp_custody_t* custody, bp_ipn_t node, bp_ipn_t service, uint32_t cid, uint32_t sysnow, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS;
     bplib_os_lock(custody->lock);
     {
-        if(custody->cstnode == cteb->cstnode && custody->cstserv == cteb->cstserv)
+        if(custody->cstnode == node && custody->cstserv == service)
         {
             /* Insert Custody ID directly into current custody tree */
-            rb_tree_status_t insert_status = rb_tree_insert(cteb->cid.value, &custody->tree);
+            rb_tree_status_t insert_status = rb_tree_insert(cid, &custody->tree);
             if(insert_status == RB_FAIL_TREE_FULL) 
             {
                 /* Flag Full Tree - possibly the tree size is configured to be too small */
@@ -165,7 +164,7 @@ int custody_acknowledge(bp_custody_t* custody, bp_blk_cteb_t* cteb, uint32_t sys
                 custody_enqueue(custody, sysnow, timeout, flags);
 
                 /* Start New DACS */
-                if(rb_tree_insert(cteb->cid.value, &custody->tree) != RB_SUCCESS)
+                if(rb_tree_insert(cid, &custody->tree) != RB_SUCCESS)
                 {
                     /* There is no valid reason for an insert to fail on an empty tree */
                     status = BP_FAILEDRESPONSE;
@@ -188,11 +187,11 @@ int custody_acknowledge(bp_custody_t* custody, bp_blk_cteb_t* cteb, uint32_t sys
             custody_enqueue(custody, sysnow, timeout, flags);
 
             /* Initial New DACS Bundle */
-            custody->cstnode = cteb->cstnode;
-            custody->cstserv = cteb->cstserv;
+            custody->cstnode = node;
+            custody->cstserv = service;
 
             /* Start New DACS */
-            if(rb_tree_insert(cteb->cid.value, &custody->tree) != RB_SUCCESS)
+            if(rb_tree_insert(cid, &custody->tree) != RB_SUCCESS)
             {
                 /* There is no valid reason for an insert to fail on an empty tree */
                 status = BP_FAILEDRESPONSE;

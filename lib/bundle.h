@@ -27,37 +27,14 @@
 #include "blocks.h"
 
 /******************************************************************************
- DEFINES
- ******************************************************************************/
-
-#define BP_BUNDLE_HDR_BUF_SIZE          128
-
-/******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
-/* Bundle Data */
-typedef struct {
-    uint32_t            exprtime;           /* absolute time when bundle expires */
-    bp_sdnv_t           cidsdnv;            /* SDNV of custody id field of bundle */
-    int                 cteboffset;         /* offset of the CTEB block of bundle */
-    int                 biboffset;          /* offset of the BIB block of bundle */
-    int                 payoffset;          /* offset of the payload block of bundle */
-    int                 headersize;         /* size of the header (portion of buffer below used) */
-    int                 bundlesize;         /* total size of the bundle (header and payload) */
-    uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; /* header portion of bundle */
-} bp_bundle_data_t;
-
 /* Bundle Control Structure */
 typedef struct {
-    bp_attr_t*          attributes;             /* pointer to the channel attributes */
     bp_store_t          store;                  /* storage service call-backs */
-    bp_ipn_t            local_node;             /* source node for bundle */
-    bp_ipn_t            local_service;          /* source service for bundle */
-    bp_ipn_t            destination_node;       /* destination node for bundle */
-    bp_ipn_t            destination_service;    /* destination service for bundle */
-    bp_ipn_t            report_node;            /* destination node for bundle reports */
-    bp_ipn_t            report_service;         /* destination service for bundle reports */ 
+    bp_route_t          route;                  /* addressing information */
+    bp_attr_t*          attributes;             /* -pointer- to the channel attributes */
     bool                prebuilt;               /* does pre-built bundle header need initialization */
     int                 handle;                 /* storage service handle for bundle data */
     bp_bundle_data_t    data;                   /* serialized and stored bundle data */
@@ -68,7 +45,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     bundle_initialize   (bp_bundle_t* bundle, bp_attr_t* attr, bp_store_t store, bp_ipn_t srcnode, bp_ipn_t srcserv, bp_ipn_t dstnode, bp_ipn_t destsrv, uint16_t* flags);
+int     bundle_initialize   (bp_bundle_t* bundle, bp_route_t route, bp_store_t store, bp_attr_t* attr, uint16_t* flags);
 void    bundle_uninitialize (bp_bundle_t* bundle);
 
 int     bundle_send         (bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags);

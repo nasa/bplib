@@ -100,23 +100,16 @@ extern "C" {
 #define BP_OPT_MODE_WRITE               1
 
 /* Set/Get Option Defines */
-#define BP_OPT_DSTNODE_D                1
-#define BP_OPT_DSTSERV_D                2
-#define BP_OPT_RPTNODE_D                3
-#define BP_OPT_RPTSERV_D                4
-#define BP_OPT_CSTNODE_D                5
-#define BP_OPT_CSTSERV_D                6
-#define BP_OPT_SETSEQUENCE_D            7
-#define BP_OPT_LIFETIME_D               8
-#define BP_OPT_CSTRQST_D                9
-#define BP_OPT_ICHECK_D                 10
-#define BP_OPT_ALLOWFRAG_D              11
-#define BP_OPT_PAYCRC_D                 12
-#define BP_OPT_TIMEOUT                  13
-#define BP_OPT_BUNDLELEN                14
-#define BP_OPT_WRAPRSP                  15
-#define BP_OPT_CIDREUSE                 16
-#define BP_OPT_ACSRATE                  17
+#define BP_OPT_LIFETIME                 1
+#define BP_OPT_CSTRQST                  2
+#define BP_OPT_ICHECK                   3
+#define BP_OPT_ALLOWFRAG                4
+#define BP_OPT_PAYCRC                   5
+#define BP_OPT_TIMEOUT                  6
+#define BP_OPT_BUNDLELEN                7
+#define BP_OPT_WRAPRSP                  8
+#define BP_OPT_CIDREUSE                 9
+#define BP_OPT_ACSRATE                  10
     
 /* Default Configuration */
 #define BP_DEFAULT_MAX_CHANNELS         4
@@ -140,6 +133,16 @@ extern "C" {
 
 /* IPN Schema Endpoint ID Integer Definition */
 typedef uint32_t bp_ipn_t;
+
+/* Address Routing */
+typedef struct {
+    bp_ipn_t    local_node;
+    bp_ipn_t    local_service;
+    bp_ipn_t    destination_node;
+    bp_ipn_t    destination_service;
+    bp_ipn_t    report_node;
+    bp_ipn_t    report_service;
+} bp_route_t;
 
 /* Storage ID */
 typedef void* bp_sid_t;
@@ -210,7 +213,7 @@ typedef struct {
  ******************************************************************************/
 
 void    bplib_init          (int max_channels);
-int     bplib_open          (bp_store_t store, bp_ipn_t local_node, bp_ipn_t local_service, bp_ipn_t destination_node, bp_ipn_t destination_service, bp_attr_t* attributes);
+int     bplib_open          (bp_route_t route, bp_store_t store, bp_attr_t* attributes);
 void    bplib_close         (int channel);
 
 int     bplib_config        (int channel, int mode, int opt, void* val, int len);
@@ -221,7 +224,7 @@ int     bplib_load          (int channel, void** bundle,  int* size, int timeout
 int     bplib_process       (int channel, void* bundle,  int size, int timeout, uint16_t* procflags);
 int     bplib_accept        (int channel, void** payload, int* size, int timeout, uint16_t* acptflags);
 
-int     bplib_routeinfo     (void* bundle, int size, bp_ipn_t* destination_node, bp_ipn_t* destination_service);
+int     bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
 int     bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
 int     bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
 int     bplib_attrinit      (bp_attr_t* attr);

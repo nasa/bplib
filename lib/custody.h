@@ -50,10 +50,10 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     custody_initialize      (bp_custody_t* custody, bp_attr_t* attr, bp_store_t store, bp_ipn_t srcnode, bp_ipn_t srcserv, uint16_t* flags);
+int     custody_initialize      (bp_custody_t* custody, bp_route_t route, bp_store_t store, bp_attr_t* attr, uint16_t* flags);
 void    custody_uninitialize    (bp_custody_t* custody);
 
-int     custody_acknowledge     (bp_custody_t* custody, bp_blk_cteb_t* cteb, uint32_t sysnow, int timeout, uint16_t* flags);
+int     custody_acknowledge     (bp_custody_t* custody, bp_ipn_t node, bp_ipn_t service, uint32_t cid, uint32_t sysnow, int timeout, uint16_t* flags);
 int     custody_check           (bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags);
 int     custody_process         (bp_custody_t* custody, uint8_t* rec, int rec_size, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags);
 
