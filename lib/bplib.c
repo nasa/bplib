@@ -465,7 +465,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
         /* Dequeue any stored DACS */
         store = &ch->custody.bundle.store;
         handle = ch->custody.bundle.bundle_handle;    
-        if(store->dequeue(handle, (void**)&data, NULL, &sid, timeout) == BP_SUCCESS)
+        if(store->dequeue(handle, (void**)&data, NULL, &sid, BP_CHECK) == BP_SUCCESS)
         {
             /* Set Route Flag */
             *flags |= BP_FLAG_ROUTENEEDED;
