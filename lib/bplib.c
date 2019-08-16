@@ -104,16 +104,17 @@ static int channels_lock;
 static int acknowledge(void* parm, uint32_t cid)
 {
     bp_channel_t* ch = (bp_channel_t*)parm;
-
+    int status = BP_FAILEDRESPONSE;
+    
     int ati = cid % ch->attributes.active_table_size;
     bp_sid_t sid = ch->active_table.sid[ati];
     if(sid != BP_SID_VACANT)
     {
-        ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
-        ch->active_table.sid[ati] = BP_SID_VACANT;
+        status = ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
+        ch->active_table.sid[ati] = BP_SID_VACANT;        
     }
 
-    return ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
+    return status;
 }
 
 /******************************************************************************
@@ -214,8 +215,8 @@ int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
                 }
                 
                 /* Initialize Data */
-                ch->active_table.oldest_cid     = 0;
-                ch->active_table.current_cid    = 0;
+                ch->active_table.oldest_cid     = 7;
+                ch->active_table.current_cid    = 7;
                 ch->index                       = i;
 
                 /* Exit Loop - Success */
@@ -666,7 +667,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
                         {
                             ati = ch->active_table.current_cid % ch->attributes.active_table_size;
                             ch->active_table.sid[ati] = sid;
-                            v6blocks_update(&ch->bundle, ch->active_table.current_cid++, flags);
+                            bundle_update(data, ch->active_table.current_cid++, flags);
                         }
 
                         /* Update Retransmit Time */

@@ -102,8 +102,8 @@ int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t
 /*--------------------------------------------------------------------------------------
  * bundle_update -
  *-------------------------------------------------------------------------------------*/
-int bundle_update (bp_bundle_t* bundle, uint32_t cid, uint16_t* flags)
+int bundle_update (bp_bundle_data_t* data, uint32_t cid, uint16_t* flags)
 {
-    return v6blocks_update(bundle, cid, flags);
+    return v6blocks_update(data, cid, flags);
 
 }

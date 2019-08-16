@@ -112,19 +112,19 @@ int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, 
     
     /* Read First Custody ID */
     fill.index = sdnv_read(rec, rec_size, &cid, &flags);
-    if(*&flags != 0)
+    if(flags != 0)
     {
-        return bplog(BP_BUNDLEPARSEERR, "Failed to read first custody ID (%08X)\n", *&flags);
+        return bplog(BP_BUNDLEPARSEERR, "Failed to read first custody ID (%08X)\n", flags);
     }
 
-    /* Process Though Fills */
+    /* Process Fills */
     while((int)fill.index < rec_size)
     {
         /* Read Fill */
         fill.index = sdnv_read(rec, rec_size, &fill, &flags);
-        if(*&flags != 0)
+        if(flags != 0)
         {
-            return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", *&flags);
+            return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", flags);
         }
 
         /* Process Custody IDs */
