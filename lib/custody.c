@@ -144,12 +144,12 @@ void custody_uninitialize(bp_custody_t* custody)
 }
 
 /*--------------------------------------------------------------------------------------
- * custody_check -
+ * custody_send -
  *
  *  Notes:  may or may not perform enqueue depending if DACS needs to be sent
  *          based on whether or not it has been too long a time without sending a DACS
  *-------------------------------------------------------------------------------------*/
-int custody_check(bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags)
+int custody_send(bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags)
 {   
     int ret_status = BP_SUCCESS;
 
@@ -172,9 +172,9 @@ int custody_check(bp_custody_t* custody, uint32_t period, uint32_t sysnow, int t
 }
 
 /*--------------------------------------------------------------------------------------
- * custody_acknowledge -
+ * custody_receive -
  *-------------------------------------------------------------------------------------*/
-int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, uint32_t sysnow, int timeout, uint16_t* flags)
+int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, uint32_t sysnow, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS;
     bplib_os_lock(custody->lock);
@@ -233,9 +233,9 @@ int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, uint32
 }
 
 /*--------------------------------------------------------------------------------------
- * custody_process -
+ * custody_acknowledge -
  *-------------------------------------------------------------------------------------*/
-int custody_process(bp_custody_t* custody, bp_custodian_t* custodian, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags)
+int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags)
 {
     return dacs_read(custodian->acs.rec, custodian->acs.rec_size, acks, sids, table_size, custody->bundle.store.relinquish, custody->bundle.bundle_handle, flags);
 }

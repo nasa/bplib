@@ -99,29 +99,31 @@ extern "C" {
 
 /* Set/Get Option Defines */
 #define BP_OPT_LIFETIME                 1
-#define BP_OPT_CSTRQST                  2
-#define BP_OPT_ICHECK                   3
-#define BP_OPT_ALLOWFRAG                4
-#define BP_OPT_PAYCRC                   5
+#define BP_OPT_REQUEST_CUSTODY          2
+#define BP_OPT_INTEGRITY_CHECK          3
+#define BP_OPT_ALLOW_FRAGMENTATION      4
+#define BP_OPT_CIPHER_SUITE             5
 #define BP_OPT_TIMEOUT                  6
-#define BP_OPT_BUNDLELEN                7
-#define BP_OPT_WRAPRSP                  8
-#define BP_OPT_CIDREUSE                 9
-#define BP_OPT_ACSRATE                  10
+#define BP_OPT_MAX_LENGTH               7
+#define BP_OPT_WRAP_RESPONSE            8
+#define BP_OPT_CID_REUSE                9
+#define BP_OPT_DACS_RATE                10
     
-/* Default Configuration */
-#define BP_DEFAULT_MAX_CHANNELS         4
-#define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
-#define BP_DEFAULT_TIMEOUT              10 /* seconds */
-#define BP_DEFAULT_DACS_RATE            5 /* period in seconds */
-#define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
-#define BP_DEFAULT_CID_REUSE            false
+/* Default Dynamic Configuration */
 #define BP_DEFAULT_LIFETIME             0
 #define BP_DEFAULT_REQUEST_CUSTODY      true
-#define BP_DEFAULT_ALLOW_FRAGMENTATION  false
 #define BP_DEFAULT_INTEGRITY_CHECK      true
+#define BP_DEFAULT_ALLOW_FRAGMENTATION  false
+#define BP_DEFAULT_TIMEOUT              10 /* seconds */
+#define BP_DEFAULT_MAX_LENGTH           4096
+#define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
+#define BP_DEFAULT_CID_REUSE            false
+#define BP_DEFAULT_DACS_RATE            5 /* period in seconds */
 #define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
-#define BP_DEFAULT_BUNDLE_MAXLENGTH     4096
+
+/* Default Fixed Configuration */
+#define BP_DEFAULT_MAX_CHANNELS         4
+#define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
 
@@ -167,18 +169,19 @@ typedef struct {
 
 /* Channel Attributes */
 typedef struct {    
+    /* Dynamic Attributes */
     uint32_t    lifetime;               /* Number of seconds from creation time before bundle expires */
+    bool        request_custody;        /* 0: not requested, 1: requested */
+    bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
+    bool        allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
+    int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */
     int         timeout;                /* seconds, zero for infinite */
-    int         dacs_rate;              /* number of seconds to wait between sending ACS bundles */
+    int         max_length;             /* maximum size of bundle in bytes (includes header blocks) */
     int         wrap_response;          /* what to do when active table wraps */
     int         cid_reuse;              /* reuse CID when retransmitting */
-
+    int         dacs_rate;              /* number of seconds to wait between sending ACS bundles */
+    /* Fixed Attributes */
     int         active_table_size;      /* number of unacknowledged bundles to keep track of */
-    bool        request_custody;        /* 0: not requested, 1: requested */
-    bool        allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
-    bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
-    int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */
-    int         maxlength;              /* maximum size of bundle in bytes (includes header blocks) */
     int         max_fills_per_dacs;     /* limits the size of the DACS bundle */
     int         max_gaps_per_dacs;      /* number of gaps in custody IDs that can be kept track of */
     void*       storage_service_parm;   /* pass through of parameters needed by storage service */

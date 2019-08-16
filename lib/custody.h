@@ -52,8 +52,8 @@ typedef struct {
 
 int     custody_initialize      (bp_custody_t* custody, bp_route_t route, bp_store_t store, bp_attr_t* attr, uint16_t* flags);
 void    custody_uninitialize    (bp_custody_t* custody);
-int     custody_check           (bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags);
-int     custody_acknowledge     (bp_custody_t* custody, bp_custodian_t* custodian, uint32_t sysnow, int timeout, uint16_t* flags);
-int     custody_process         (bp_custody_t* custody, bp_custodian_t* custodian, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags);
+int     custody_send            (bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags);
+int     custody_receive         (bp_custody_t* custody, bp_custodian_t* custodian, uint32_t sysnow, int timeout, uint16_t* flags);
+int     custody_acknowledge     (bp_custody_t* custody, bp_custodian_t* custodian, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags);
 
 #endif  /* __BPLIB_CUSTODY_H__ */

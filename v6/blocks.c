@@ -234,7 +234,7 @@ int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay
     pay->paysize = pay_len;
 
     /* Check Fragmentation */
-    if(pay->paysize > bundle->attributes->maxlength)
+    if(pay->paysize > bundle->attributes->max_length)
     {
         if(bundle->attributes->allow_fragmentation)
         {
@@ -242,7 +242,7 @@ int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay
         }
         else
         {
-            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, bundle->attributes->maxlength);
+            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, bundle->attributes->max_length);
         }
     }
 
@@ -266,7 +266,7 @@ int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay
     {
         /* Calculate Storage Header Size and Fragment Size */
         int payload_remaining = pay->paysize - payload_offset;
-        int fragment_size = bundle->attributes->maxlength <  payload_remaining ? bundle->attributes->maxlength : payload_remaining;
+        int fragment_size = bundle->attributes->max_length <  payload_remaining ? bundle->attributes->max_length : payload_remaining;
 
         /* Update Primary Block Fragmentation */
         if(pri->is_frag)

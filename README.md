@@ -322,9 +322,9 @@ _destination_service_ - service component of endpoint ID used by the library for
 
 _attributes_ - structure of attributes for the channel that trade memory usage and performance
 
-* active_table_size:  The number of unacknowledged bundles to keep track of. The larger this number, the more bundles can be sent before a "wrap" occurs (see BP_OPT_WRAPRSP).  But every unacknowledged bundle consumes 8 bytes of CPU memory making this attribute the primary driver for a channel's memory usage.
+* active_table_size:  The number of unacknowledged bundles to keep track of. The larger this number, the more bundles can be sent before a "wrap" occurs (see BP_OPT_WRAP_RESPONSE).  But every unacknowledged bundle consumes 8 bytes of CPU memory making this attribute the primary driver for a channel's memory usage.
 * max_concurrent_dacs: The number of dacs to maintain at one time.  Every time a bundle is received from a unique sender requesting custody transfer, the library must begin maintaining a list of custody IDs to populate an aggregate custody signal response bundle.  This attribute sets the maximum number of custody ID lists the library must be able to keep track of for a given channel.
-* max_fills_per_dacs: The maximum number of fills in the aggregate custody signal.  A DACS is sent when the maximum fills are reached or the DACS rate period has expired (see BP_OPT_ACSRATE).
+* max_fills_per_dacs: The maximum number of fills in the aggregate custody signal.  A DACS is sent when the maximum fills are reached or the DACS rate period has expired (see BP_OPT_DACS_RATE).
 
 
 _returns_ - channel ID. 
@@ -362,12 +362,12 @@ _opt_ - the option as described in the table below
 | BP_OPT_ALLOWFRAG_D     | int      | true | Allow fragmentation - false: bundles are not allowed to be fragmented and the allow fragmentation flag is unset in generated data bundles, true: bundles are allowed to be fragmented and the allow fragmentation flag is set in generated data bundles |
 | BP_OPT_PAYCRC_D        | int      | BP_BIB_CRC16 | Integrity check type used for payload.  Currently only BP_BIB_CRC16 and BP_BIB_NONE are supported. |
 | BP_OPT_TIMEOUT         | int      | 10 | Amount of time in seconds to wait for positive acknowledgment of bundle before retransmitting, 0: infinite |
-| BP_OPT_BUNDLELEN       | int      | 4096 | Maximum length of the bundle payload (primary block, extension blocks, and payload block header excluded); if length exceeded, then a fragmented bundle is created |
+| BP_OPT_MAX_LENGTH       | int      | 4096 | Maximum length of the bundle payload (primary block, extension blocks, and payload block header excluded); if length exceeded, then a fragmented bundle is created |
 | BP_OPT_ORIGINATE       | int      | true | Channel originates the data.  When set to true, the channel can only generate bundles and receive bundles as a destination node; it cannot forward bundles.  When set to false, the channel can only forward bundles and cannot generate bundles from application data.  This functional partition is necessary to allow the optimization of prebuilding the bundle headers. |
 | BP_OPT_PROCADMINONLY   | int      | false | Configure channel to process administrative records only - true: enable, false: disable |
-| BP_OPT_WRAPRSP         | int      | BP_WRAP_RESEND | Configure channel's response when the active table wraps - BP_WRAP_RESEND, BP_WRAP_BLOCK, BP_WRAP_DROP |
-| BP_OPT_CIDREUSE        | int      | false | When enabled, a restransmitted bundle reuses its custody IDs when it timesout.  When disabled, a restransmitted bundle uses the next available custody ID when it timesout. |
-| BP_OPT_ACSRATE         | int      | 5 | Minimum rate of ACS generation; various circumstances can cause an ACS to be generated, but this rate sets the maximum about time that can elapse before an ACS is automatically generated |
+| BP_OPT_WRAP_RESPONSE         | int      | BP_WRAP_RESEND | Configure channel's response when the active table wraps - BP_WRAP_RESEND, BP_WRAP_BLOCK, BP_WRAP_DROP |
+| BP_OPT_CID_REUSE        | int      | false | When enabled, a restransmitted bundle reuses its custody IDs when it timesout.  When disabled, a restransmitted bundle uses the next available custody ID when it timesout. |
+| BP_OPT_DACS_RATE         | int      | 5 | Minimum rate of ACS generation; various circumstances can cause an ACS to be generated, but this rate sets the maximum about time that can elapse before an ACS is automatically generated |
 
 _val_ - the value set or returned
 
@@ -523,7 +523,7 @@ _returns_ - return code (see below)
 | BP_FLAG_MIXEDRESPONSE    | 0x0100 | Aggregate acknowledgement must have uniform delivery vs. forward |
 | BP_FLAG_SDNVOVERFLOW     | 0x0200 | There was insufficient room in 32-bit variable to read/write value |
 | BP_FLAG_SDNVINCOMPLETE   | 0x0400 | There was insufficient room in block to read/write value |
-| BP_FLAG_ACTIVETABLEWRAP  | 0x0800 | The active table wrapped; see BP_OPT_WRAPRSP |
+| BP_FLAG_ACTIVETABLEWRAP  | 0x0800 | The active table wrapped; see BP_OPT_WRAP_RESPONSE |
 
 Storage Service
 ----------------------------------------------------------------------
