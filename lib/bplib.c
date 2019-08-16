@@ -358,7 +358,7 @@ int bplib_config(int channel, int mode, int opt, void* val, int len)
     }
 
     /* Re-initialize Bundles */
-    if(setopt) ch->bundle.blocks.prebuilt = true;
+    if(setopt) ch->bundle.prebuilt = true;
 
     /* Return Status */
     return BP_SUCCESS;

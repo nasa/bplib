@@ -55,7 +55,6 @@ typedef struct {
 
 /* Version 6 Bundle Blocks */
 typedef struct {
-    bool                prebuilt;               /* does pre-built bundle header need initialization */
     bp_blk_pri_t        primary_block;
     bp_blk_cteb_t       custody_block;
     bp_blk_bib_t        integrity_block;
@@ -69,6 +68,7 @@ typedef struct {
     bp_attr_t*          attributes;             /* -pointer- to the channel attributes */
     int                 handle;                 /* storage service handle for bundle data */
     bp_bundle_data_t    data;                   /* serialized and stored bundle data */
+    bool                prebuilt;               /* does pre-built bundle header need initialization */
     bp_v6blocks_t       v6blocks;               /* populated in initialization function */
 } bp_bundle_t;
 
@@ -82,8 +82,8 @@ int     bundle_send         (bp_bundle_t* bundle, uint8_t* pay, int pay_size, in
 int     bundle_receive      (bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags);
 
 /* v6 bundle functions */
-int     v6blocks_build      (bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, uint8_t* hdr_buf, int hdr_len, uint16_t* flags);
-int     v6blocks_write      (bp_bundle_t* bundle, bool set_time, int timeout, uint16_t* flags);
+int     v6blocks_build      (bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags);
+int     v6blocks_write      (bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags);
 int     v6blocks_read       (bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags);
 
 

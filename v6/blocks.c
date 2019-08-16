@@ -132,13 +132,13 @@ static const bp_blk_pay_t bundle_pay_blk = {
  *
  *  This initializes a new bundle
  *-------------------------------------------------------------------------------------*/
-int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, uint8_t* hdr_buf, int hdr_len, uint16_t* flags)
+int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags)
 {
     int status;
     int hdr_index;
     
     bp_bundle_data_t* data = &bundle->data;
-    bp_v6blocks_t* blocks = &bundle->blocks;
+    bp_v6blocks_t* blocks = &bundle->v6blocks;
 
     /* Initialize Data Storage Memory */
     hdr_index = 0;
@@ -151,7 +151,7 @@ int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, ui
         blocks->primary_block = *pri;
 
         /* Set Pre-Built Flag to FALSE */
-        blocks->prebuilt = false;
+        bundle->prebuilt = false;
     }
     else
     {
@@ -170,7 +170,7 @@ int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, ui
         blocks->primary_block.cst_rqst          = bundle->attributes->request_custody;
 
         /* Set Pre-Built Flag to TRUE */
-        blocks->prebuilt = true;
+        bundle->prebuilt = true;
     }
 
     /* Write Primary Block */
@@ -232,16 +232,7 @@ int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, ui
     }
         
     /* Initialize Payload Block */
-    if(pay)
-    {
-        /* User Provided Payload Block */
-        blocks->payload_block = *pay;
-    }
-    else
-    {
-        /* Library Provided Payload Block */
-        blocks->payload_block = bundle_pay_blk;
-    }
+    blocks->payload_block = bundle_pay_blk;
 
     /* Initialize Payload Block Offset */
     data->payoffset = hdr_index;
@@ -253,7 +244,7 @@ int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, ui
 /*--------------------------------------------------------------------------------------
  * v6blocks_write -
  *-------------------------------------------------------------------------------------*/
-int v6blocks_write(bp_bundle_t* bundle, bool set_time, int timeout, uint16_t* flags)
+int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags)
 {
     int                     status          = 0;
     int                     payload_offset  = 0;
@@ -262,6 +253,11 @@ int v6blocks_write(bp_bundle_t* bundle, bool set_time, int timeout, uint16_t* fl
     bp_blk_pri_t*           pri             = &blocks->primary_block;
     bp_blk_bib_t*           bib             = &blocks->integrity_block;
     bp_blk_pay_t*           pay             = &blocks->payload_block;
+
+
+    /* Update Payload Block */
+    pay->payptr = pay_buf;
+    pay->paysize = pay_len;
 
     /* Check Fragmentation */
     if(pay->paysize > bundle->attributes->maxlength)
@@ -516,11 +512,11 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_
                 }
 
                 /* Initialize Forwarded Bundle */
-                status = v6blocks_build(bundle, &pri_blk, &pay_blk, hdr_buf, hdr_index, flags);
+                status = v6blocks_build(bundle, &pri_blk, hdr_buf, hdr_index, flags);
                 if(status == BP_SUCCESS)
                 {
                     /* Store Forwarded Bundle */
-                   status = v6blocks_write(bundle, false, timeout, flags);
+                   status = v6blocks_write(bundle, false, pay_blk.payptr, pay_blk.paysize, timeout, flags);
                 }
 
                 /* Handle Custody Transfer */
