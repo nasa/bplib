@@ -292,7 +292,7 @@ int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay
 
         /* Enqueue Bundle */
         int storage_header_size = sizeof(bp_bundle_data_t) - (BP_BUNDLE_HDR_BUF_SIZE - data->headersize);
-        status = bundle->store.enqueue(bundle->handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
+        status = bundle->store.enqueue(bundle->bundle_handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
     }
@@ -323,7 +323,6 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
     bool                cteb_present = false;
     int                 cteb_index = 0;
     bp_blk_cteb_t       cteb_blk;
-    int                 cteb_size;
 
     bool                bib_present = false;
     int                 bib_index = 0;
@@ -384,9 +383,6 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
             status = cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, true, flags);
             if(status <= 0) return bplog(status, "Failed to parse CTEB block at offset %d\n", cteb_index);
             else            index += status;
-            
-            /* Set Size of CTEB */
-            cteb_size = index - cteb_index;
         }
         else if(blk_type != BP_PAY_BLK_TYPE) /* skip over block */
         {

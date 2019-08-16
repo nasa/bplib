@@ -57,7 +57,6 @@ APP_OBJ += dacs.o
 # protocol objects
 APP_OBJ += bundle.o
 APP_OBJ += custody.o
-APP_OBJ += payload.o
 
 # common objects
 APP_OBJ += sdnv.o

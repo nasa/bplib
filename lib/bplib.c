@@ -160,7 +160,7 @@ int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
                 else            ch->attributes = default_attributes;
 
                 /* Initialize Bundle */
-                status = bundle_initialize(&ch->bundle, route, store, &ch->attributes, &flags);
+                status = bundle_initialize(&ch->bundle, route, store, &ch->attributes, true, &flags);
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize DACS */
@@ -685,7 +685,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* fl
 
     /* Receive Bundle */
     bp_custodian_t custodian;
-    status = bundle_receive(&ch->bundle, bundle, size, &custodian, sysnow, timeout, flags);
+    status = bundle_receive(&ch->bundle, bundle, size, sysnow, &custodian, timeout, flags);
     if(status == BP_EXPIRED)
     {
         ch->stats.expired++;

@@ -93,7 +93,7 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store
     }
 
     /* Initialize DACS Bundle */
-    status = bundle_initialize(&custody->bundle, route, store, attr, flags);
+    status = bundle_initialize(&custody->bundle, route, store, attr, false, flags);
     if(status != BP_SUCCESS)
     {
         custody_uninitialize(custody);
@@ -237,5 +237,5 @@ int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, uint32
  *-------------------------------------------------------------------------------------*/
 int custody_process(bp_custody_t* custody, bp_custodian_t* custodian, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags)
 {
-    return dacs_read(custodian->acs.rec, custodian->acs.rec_size, acks, sids, table_size, custody->bundle.store.relinquish, custody->bundle.handle, flags);
+    return dacs_read(custodian->acs.rec, custodian->acs.rec_size, acks, sids, table_size, custody->bundle.store.relinquish, custody->bundle.bundle_handle, flags);
 }

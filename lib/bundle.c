@@ -94,5 +94,5 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, ui
 int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
 {
     /* Read Bundle */
-    return v6blocks_read(bundle, block, block_size, sysnow, timeout, flags);
+    return v6blocks_read(bundle, block, block_size, sysnow, custodian, timeout, flags);
 }

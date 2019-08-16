@@ -64,15 +64,15 @@ typedef struct {
 
 /* Custodian */
 typedef union {
-    struct cst {
+    struct {
         bp_ipn_t        node;                   /* custody node of bundle */
         bp_ipn_t        service;                /* custody service of bundle */
         uint32_t        cid;                    /* custody id of bundle */
-    };
-    struct acs {
+    } cst;
+    struct {
         uint8_t*        rec;                    /* aggregate custody signal */
         int             rec_size;               /* size of aggregate custody signal */
-    };
+    } acs;
 } bp_custodian_t;
 
 /* Bundle Control Structure */
@@ -82,7 +82,7 @@ typedef struct {
     bp_attr_t*          attributes;             /* -pointer- to the channel attributes */
     int                 payload_handle;         /* storage service handle for bundle data */
     int                 bundle_handle;          /* storage service handle for bundle data */
-    bp_bundle_data_t    bundle_data;            /* serialized and stored bundle data */
+    bp_bundle_data_t    data;                   /* serialized and stored bundle data */
     bool                prebuilt;               /* does pre-built bundle header need initialization */
     bp_v6blocks_t       v6blocks;               /* populated in initialization function */
 } bp_bundle_t;
@@ -99,7 +99,7 @@ int     bundle_receive      (bp_bundle_t* bundle, uint8_t* block, int block_size
 /* v6 bundle functions */
 int     v6blocks_build      (bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags);
 int     v6blocks_write      (bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags);
-int     v6blocks_read       (bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags);
+int     v6blocks_read       (bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
 
 
 
