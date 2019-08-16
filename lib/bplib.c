@@ -654,8 +654,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
                         {
                             ati = ch->active_table.current_cid % ch->attributes.active_table_size;
                             ch->active_table.sid[ati] = sid;
-                            data->cidsdnv.value = ch->active_table.current_cid++;
-                            sdnv_write(&data->header[data->cteboffset], data->bundlesize - data->cteboffset, data->cidsdnv, flags);
+                            v6blocks_update(&ch->bundle, ch->active_table.current_cid++, flags);
                         }
 
                         /* Update Retransmit Time */

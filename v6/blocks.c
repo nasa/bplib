@@ -569,3 +569,16 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
     /* Return Status */
     return status;
 }
+
+/*--------------------------------------------------------------------------------------
+ * v6blocks_update -
+ *-------------------------------------------------------------------------------------*/
+int v6blocks_update(bp_bundle_t* bundle, uint32_t cid, uint16_t* flags)
+{
+    bp_bundle_data_t* data = &bundle->data;
+    
+    data->cidsdnv.value = cid;
+    sdnv_write(&data->header[data->cteboffset], data->bundlesize - data->cteboffset, data->cidsdnv, flags);
+    
+    return BP_SUCCESS;    
+}

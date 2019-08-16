@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_BLK_PRI_H__
-#define __BPLIB_BLK_PRI_H__
+#ifndef __BPLIB_PRI_H__
+#define __BPLIB_PRI_H__
 
 /******************************************************************************
  INCLUDES
@@ -66,4 +66,4 @@ int pri_read      (void* block, int size, bp_blk_pri_t* pri, bool update_indices
 int pri_write     (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint16_t* flags);
 int pri_display   (bp_blk_pri_t* pri);
 
-#endif  /* __BPLIB_BLK_PRI_H__ */
+#endif  /* __BPLIB_PRI_H__ */

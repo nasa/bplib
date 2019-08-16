@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_BLK_CTEB_H__
-#define __BPLIB_BLK_CTEB_H__
+#ifndef __BPLIB_CTEB_H__
+#define __BPLIB_CTEB_H__
 
 /******************************************************************************
  INCLUDES
@@ -52,4 +52,4 @@ typedef struct {
 int cteb_read     (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* flags);
 int cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* flags);
 
-#endif  /* __BPLIB_BLK_CTEB_H__ */
+#endif  /* __BPLIB_CTEB_H__ */

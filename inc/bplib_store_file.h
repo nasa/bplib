@@ -56,4 +56,4 @@ int     bplib_store_file_getcount      (int handle);
 } // extern "C"
 #endif 
 
-#endif
+#endif /* __BPLIB_STORE_FILE__ */

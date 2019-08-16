@@ -48,4 +48,4 @@ int     bplib_store_ram_getcount       (int handle);
 } // extern "C"
 #endif 
 
-#endif
+#endif /* __BPLIB_STORE_RAM__ */

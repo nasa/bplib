@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_BLK_PAY_H__
-#define __BPLIB_BLK_PAY_H__
+#ifndef __BPLIB_PAY_H__
+#define __BPLIB_PAY_H__
 
 /******************************************************************************
  INCLUDES
@@ -45,4 +45,4 @@ typedef struct {
 int pay_read      (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint16_t* flags);
 int pay_write     (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint16_t* flags);
 
-#endif  /* __BPLIB_BLK_PAY_H__ */
+#endif  /* __BPLIB_PAY_H__ */

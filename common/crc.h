@@ -77,8 +77,8 @@ typedef struct crc_parameters
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
-/* Create a lookup tables for the provided crc. */
-int crc_init(crc_parameters_t* params);
-/* Calculates a crc from an initialized set of params on data. */
-uint32_t crc_get(const uint8_t* data, const uint32_t length, const crc_parameters_t* params);
+
+int         crc_init    (crc_parameters_t* params);
+uint32_t    crc_get     (const uint8_t* data, const uint32_t length, const crc_parameters_t* params);
+
 #endif /* _BPLIB_CRC_H_ */

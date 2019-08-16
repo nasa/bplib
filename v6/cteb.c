@@ -39,13 +39,14 @@
  *
  *  Returns:    Next index
  *-------------------------------------------------------------------------------------*/
-int cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* flags)
+int cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* sdnvflags)
 {
     uint8_t* buffer = (uint8_t*)block;
     int bytes_read = 0;
     int eid_index = 0;
     int eid_len = 0;
     int eid_status = 0;
+    uint16_t flags = 0;
 
     /* Check Size */
     if(size < 1) return BP_BUNDLEPARSEERR;
@@ -53,8 +54,8 @@ int cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, 
     /* Read Custody Information */
     if(!update_indices)
     {
-        sdnv_read(buffer, size, &cteb->bf, flags);
-        sdnv_read(buffer, size, &cteb->blklen, flags);
+        sdnv_read(buffer, size, &cteb->bf, &flags);
+        sdnv_read(buffer, size, &cteb->blklen, &flags);
     }
     else
     {
@@ -63,12 +64,12 @@ int cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, 
         cteb->cid.width = 0;
 
         cteb->bf.index = 1;
-        cteb->blklen.index = sdnv_read(buffer, size, &cteb->bf, flags);
-        cteb->cid.index = sdnv_read(buffer, size, &cteb->blklen, flags);
+        cteb->blklen.index = sdnv_read(buffer, size, &cteb->bf, &flags);
+        cteb->cid.index = sdnv_read(buffer, size, &cteb->blklen, &flags);
     }
 
     /* Read Custodian EID */
-    eid_index = sdnv_read(buffer, size, &cteb->cid, flags);
+    eid_index = sdnv_read(buffer, size, &cteb->cid, &flags);
     eid_len = cteb->blklen.value - (eid_index - cteb->cid.index);
     if(eid_len + eid_index > size) return BP_BUNDLEPARSEERR;
     eid_status = bplib_eid2ipn((char*)&buffer[eid_index], eid_len, &cteb->cstnode, &cteb->cstserv);
@@ -78,8 +79,15 @@ int cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, 
     bytes_read = eid_index + eid_len;
 
     /* Success Oriented Error Checking */
-    if(*flags != 0) return BP_BUNDLEPARSEERR;
-    else            return bytes_read;
+    if(flags != 0)
+    {
+        *sdnvflags |= flags;
+        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of CTEB (%08X)\n", flags); 
+    }
+    else
+    {
+        return bytes_read;
+    }
 }
 
 /*--------------------------------------------------------------------------------------
@@ -92,12 +100,13 @@ int cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, 
  *
  *  Returns:    Number of bytes written
  *-----------------------------------------------------------------,--------------------*/
-int cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* flags)
+int cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* sdnvflags)
 {
     uint8_t* buffer = (uint8_t*)block;
     int bytes_written = 0;
     int eid_index = 0;
     int eid_len = 0;
+    uint16_t flags = 0;
 
     /* Check Size */
     if(size < 1) return BP_BUNDLEPARSEERR;
@@ -109,7 +118,7 @@ int cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices,
     buffer[0] = BP_CTEB_BLK_TYPE; /* block type */
     if(!update_indices)
     {
-        sdnv_write(buffer, size, cteb->bf, flags);
+        sdnv_write(buffer, size, cteb->bf, &flags);
     }
     else
     {
@@ -117,11 +126,11 @@ int cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices,
         cteb->blklen.width  = 0;
         cteb->cid.width     = 0;
         cteb->bf.index      = 1;
-        cteb->blklen.index  = sdnv_write(buffer, size, cteb->bf, flags);
+        cteb->blklen.index  = sdnv_write(buffer, size, cteb->bf, &flags);
         cteb->cid.index     = cteb->blklen.index + cteb->blklen.width;
     }
 
-    eid_index = sdnv_write(buffer, size, cteb->cid, flags);
+    eid_index = sdnv_write(buffer, size, cteb->cid, &flags);
 
     eid_len = bplib_os_strnlen(cteb->csteid, BP_MAX_EID_STRING);
     if((eid_index + eid_len) > size) return BP_BUNDLEPARSEERR;
@@ -129,9 +138,16 @@ int cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices,
 
     bytes_written = eid_index + eid_len;
     cteb->blklen.value = bytes_written - cteb->cid.index;
-    sdnv_write(buffer, size, cteb->blklen, flags);
+    sdnv_write(buffer, size, cteb->blklen, &flags);
 
     /* Success Oriented Error Checking */
-    if(*flags != 0) return BP_BUNDLEPARSEERR;
-    else            return bytes_written;
+    if(flags != 0)
+    {
+        *sdnvflags |= flags;
+        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of CTEB (%08X)\n", flags); 
+    }
+    else
+    {
+        return bytes_written;
+    }
 }
