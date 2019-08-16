@@ -226,16 +226,17 @@ int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     /* Handle Failures */
     if(ch == NULL)
     {
-        bplog(BP_CHANNELSFULL, "Cannot open channel, not enough room\n");
+        return bplog(BP_CHANNELSFULL, "Cannot open channel, not enough room\n");
     }
-    else if(ch->index == BP_EMPTY)
+    else if(ch->index == BP_EMPTY) /* Loop Exited Early */
     {
-        /* Loop Exited Early */
         bplib_close(i);
+        return status;
     }
-        
-    /* Return Channel */
-    return ch->index;
+    else /* Return Channel */
+    {
+        return ch->index;
+    }
 }
 
 /*--------------------------------------------------------------------------------------
