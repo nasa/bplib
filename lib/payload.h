@@ -32,19 +32,6 @@
  TYPEDEFS
  ******************************************************************************/
 
-/* Payload Data */
-typedef struct {
-    bool                request_custody;    /* boolean whether original bundle requested custody on payload delivery */
-    int                 payloadsize;        /* size of the payload */
-} bp_payload_data_t;
-
-/* Payload */
-typedef struct {
-    bp_attr_t*          attributes;         /* pointer to channel attributes */
-    bp_store_t          store;              /* pointer to storage service for payloads */
-    int                 handle;             /* storage service handle for payload */
-    bp_payload_data_t   data;               /* serialized and stored payload data */    
-} bp_payload_t;
 
 /******************************************************************************
  PROTOTYPES

@@ -29,32 +29,6 @@
 #include "pay.h"
 
 /******************************************************************************
- DEFINES
- ******************************************************************************/
-
-/* Block Processing Control Flags */
-#define BP_BLK_REPALL_MASK              0x000001    /* block must be replicated in every fragment */
-#define BP_BLK_NOTIFYNOPROC_MASK        0x000002    /* transmit status report if block cannot be processed */
-#define BP_BLK_DELETENOPROC_MASK        0x000004    /* delete bundle if block cannot be processed */
-#define BP_BLK_LASTBLOCK_MASK           0x000008    /* last block in bundle */
-#define BP_BLK_DROPNOPROC_MASK          0x000010    /* drop block if block cannot be processed */
-#define BP_BLK_FORWARDNOPROC_MASK       0x000020    /* block was forwarded without being processed */
-#define BP_BLK_EIDREF_MASK              0x000040    /* block contains an EID reference field */
-
-/* Block Type Definitions */
-#define BP_PAY_BLK_TYPE                 0x1
-#define BP_CTEB_BLK_TYPE                0xA
-#define BP_BIB_BLK_TYPE                 0xD
-
-/* Record Type Definitions */    
-#define BP_STAT_REC_TYPE                0x10 /* Status Report */
-#define BP_CS_REC_TYPE                  0x20 /* Custody Signal */
-#define BP_ACS_REC_TYPE                 0x40 /* Aggregate Custody Signal */
-
-/* Processing Limits */
-#define BP_NUM_EXCLUDE_REGIONS          8
-
-/******************************************************************************
  FILE DATA
  ******************************************************************************
  * Notes:
@@ -268,7 +242,7 @@ int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay
         }
         else
         {
-            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, attr->maxlength);
+            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, bundle->attributes->maxlength);
         }
     }
 
@@ -333,12 +307,12 @@ int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay
 /*--------------------------------------------------------------------------------------
  * v6blocks_read -
  *-------------------------------------------------------------------------------------*/
-int v6blocks_read(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags)
+int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
 {
     int                 status = BP_SUCCESS;
 
-    uint8_t*            buffer = *block;
-    int                 size = *block_size;
+    uint8_t*            buffer = block;
+    int                 size = block_size;
     int                 index = 0;
 
     int                 ei = 0;
@@ -349,6 +323,7 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_
     bool                cteb_present = false;
     int                 cteb_index = 0;
     bp_blk_cteb_t       cteb_blk;
+    int                 cteb_size;
 
     bool                bib_present = false;
     int                 bib_index = 0;
@@ -406,9 +381,12 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_
             cteb_index = index;
 
             /* Read CTEB */
-            status = cteb_read(&buffer[bib_index], size - cteb_index, &cteb_blk, true, flags);
+            status = cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, true, flags);
             if(status <= 0) return bplog(status, "Failed to parse CTEB block at offset %d\n", cteb_index);
             else            index += status;
+            
+            /* Set Size of CTEB */
+            cteb_size = index - cteb_index;
         }
         else if(blk_type != BP_PAY_BLK_TYPE) /* skip over block */
         {
@@ -529,9 +507,10 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_
                     }
                     else
                     {
-                        *block = NULL;
-                        *block_size = 0;
-                        status = BP_PENDINGBUNDLECUSTODY;
+                        custodian->cst.node = cteb_blk.cstnode;
+                        custodian->cst.service = cteb_blk.cstserv;
+                        custodian->cst.cid = cteb_blk.cid.value;
+                        status = BP_PENDINGCUSTODYTRANSFER;
                     }
                 }
             }
@@ -548,8 +527,8 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_
                 if(rec_type == BP_ACS_REC_TYPE)
                 {
                     /* Return Aggregate Custody Signal for Custody Processing */
-                    *block = &buffer[index];
-                    *block_size = size - index;
+                    custodian->acs.rec = &buffer[index];
+                    custodian->acs.rec_size = size - index;
                     status = BP_PENDINGACKNOWLEDGMENT;
                 }
                 else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
@@ -558,22 +537,30 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_
             }
             else 
             {
-                /* Return Payload for Payload Processing */
-                *block = &buffer[index];
-                *block_size = size - index;
-                status = BP_PENDINGPAYLOAD;
+                /* Enqueue Payload */
+                uint8_t* pay_buf = &buffer[index];
+                int pay_len = size - index;
+                int enstat = bundle->store.enqueue(bundle->payload_handle, pay_buf, pay_len, NULL, 0, timeout);
+                if(enstat <= 0)
+                {
+                    status = bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", enstat);
+                    *flags |= BP_FLAG_STOREFAILURE;
+                }
                 
                 /* Handle Custody Transfer */
                 if(pri_blk.cst_rqst)
                 {
                     if(cteb_present)
                     {
-                        status = BP_PENDINGPAYLOADCUSTODY;
+                        custodian->cst.node = cteb_blk.cstnode;
+                        custodian->cst.service = cteb_blk.cstserv;
+                        custodian->cst.cid = cteb_blk.cid.value;
+                        status = BP_PENDINGCUSTODYTRANSFER;
                     }
-                    else
+                    else                        
                     {
                         *flags |= BP_FLAG_NONCOMPLIANT;
-                        bplog(BP_UNSUPPORTED, "Bundle requesting custody, but only aggregate custody supported\n");
+                        status = bplog(BP_UNSUPPORTED, "Bundle requesting custody, but only aggregate custody supported\n");
                     }
                 }
             }

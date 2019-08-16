@@ -20,17 +20,10 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "sdnv.h"
-#include "rb_tree.h"
 #include "bplib_os.h"
-
-/******************************************************************************
- DEFINES
- ******************************************************************************/
-
-#define BP_ACS_REC_TYPE_INDEX       0
-#define BP_ACS_REC_STATUS_INDEX     1
-#define BP_ACS_ACK_MASK             0x80    /* if set, then custody successfully transfered */
+#include "rb_tree.h"
+#include "sdnv.h"
+#include "v6.h"
 
 /******************************************************************************
  EXPORTED FUNCTIONS

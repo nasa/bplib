@@ -28,7 +28,6 @@
 #include "pay.h"
 #include "custody.h"
 #include "bundle.h"
-#include "payload.h"
 #include "crc.h"
 
 /******************************************************************************
@@ -60,7 +59,6 @@ typedef struct {
     bp_attr_t           attributes;
     bp_bundle_t         bundle;
     bp_custody_t        custody;
-    bp_payload_t        payload;
     int                 active_table_signal;
     bp_active_table_t   active_table;
     bp_stats_t          stats;
@@ -158,12 +156,8 @@ int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
                 memset(ch, 0, sizeof(bp_channel_t));
                 
                 /* Set Initial Attributes */
-                if(attributes) ch->attributes = *attributes;
+                if(attributes)  ch->attributes = *attributes;
                 else            ch->attributes = default_attributes;
-
-                /* Initialize Payload */
-                status = payload_initialize(&ch->payload, &ch->attributes, store, &flags);
-                if(status != BP_SUCCESS) break;
 
                 /* Initialize Bundle */
                 status = bundle_initialize(&ch->bundle, route, store, &ch->attributes, &flags);
@@ -378,9 +372,9 @@ int bplib_latchstats(int channel, bp_stats_t* stats)
     bp_channel_t* ch = &channels[channel];
 
     /* Update Store Counts */
-    ch->stats.bundles = ch->bundle.store.getcount(ch->bundle.handle);
-    ch->stats.payloads = ch->payload.store.getcount(ch->payload.handle);
-    ch->stats.records = ch->custody.bundle.store.getcount(ch->custody.bundle.handle);
+    ch->stats.bundles = ch->bundle.store.getcount(ch->bundle.bundle_handle);
+    ch->stats.payloads = ch->bundle.store.getcount(ch->bundle.payload_handle);
+    ch->stats.records = ch->custody.bundle.store.getcount(ch->custody.bundle.bundle_handle);
 
     /* Latch Statistics */
     *stats = ch->stats;
@@ -438,7 +432,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
 
     /* Check if DACS Needs to be Sent First */
     store = &ch->custody.bundle.store;
-    handle = ch->custody.bundle.handle;    
+    handle = ch->custody.bundle.bundle_handle;    
     custody_check(&ch->custody, ch->attributes.dacs_rate, sysnow, BP_CHECK, flags);
     if(store->dequeue(handle, (void**)&data, NULL, &sid, timeout) == BP_SUCCESS)
     {
@@ -449,7 +443,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
     {
         /* Send Data Bundle */
         store = &ch->bundle.store;
-        handle = ch->bundle.handle;
+        handle = ch->bundle.bundle_handle;
 
         /* Process Active Table for Timeouts */
         bplib_os_lock(ch->active_table_signal);
@@ -690,9 +684,8 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* fl
     uint32_t sysnow = bplib_os_systime();
 
     /* Receive Bundle */
-    void* block = bundle;
-    int block_size = size;
-    status = bundle_receive(&ch->bundle, (uint8_t**)&block, &block_size, sysnow, timeout, flags);
+    bp_custodian_t custodian;
+    status = bundle_receive(&ch->bundle, bundle, size, &custodian, sysnow, timeout, flags);
     if(status == BP_EXPIRED)
     {
         ch->stats.expired++;
@@ -703,7 +696,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* fl
         bplib_os_lock(ch->active_table_signal);
         {
             int acknowledgment_count = 0;
-            custody_process(&ch->custody, block, block_size, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, flags);
+            custody_process(&ch->custody, &custodian, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, flags);
             if(acknowledgment_count > 0)
             {
                 ch->stats.acknowledged += acknowledgment_count;
@@ -712,18 +705,10 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* fl
         }
         bplib_os_unlock(ch->active_table_signal);
     }
-    else if(status == BP_PENDINGBUNDLECUSTODY)
+    else if(status == BP_PENDINGCUSTODYTRANSFER)
     {
         /* Acknowledge Custody Transfer - Update DACS */
-        status = custody_acknowledge(&ch->custody, cteb_blk.cstnode, cteb_blk.cstserv, cteb_blk.cid.value, sysnow, BP_CHECK, flags);
-    }
-    else if(status == BP_PENDINGPAYLOADCUSTODY)
-    {
-        status = payload_receive(&ch->payload, true, block, block_size, timeout, flags);
-    }
-    else if(status == BP_PENDINGPAYLOAD)
-    {
-        status = payload_receive(&ch->payload, false, block, block_size, timeout, flags);
+        status = custody_acknowledge(&ch->custody, &custodian, sysnow, BP_CHECK, flags);
     }
     
     /* Return Status */
@@ -747,20 +732,15 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
     else if(payload == NULL || size == NULL)        return BP_PARMERR;
 
     /* Set Shortcuts */
-    bp_channel_t*           ch          = &channels[channel];
-    uint8_t*                storebuf    = NULL;
-    int                     storelen    = 0;
-    bp_sid_t                sid         = BP_SID_VACANT;
+    bp_channel_t*   ch      = &channels[channel];
+    uint8_t*        payptr  = NULL;
+    int             paylen  = 0;
+    bp_sid_t        sid     = BP_SID_VACANT;
 
     /* Dequeue Payload from Storage */
-    deqstat = ch->payload.store.dequeue(ch->payload.handle, (void**)&storebuf, &storelen, &sid, timeout);
+    deqstat = ch->bundle.store.dequeue(ch->bundle.payload_handle, (void**)&payptr, &paylen, &sid, timeout);
     if(deqstat > 0)
     {
-        /* Access Payload */
-        uint8_t*            payptr      = &storebuf[sizeof(bp_payload_data_t)];
-        bp_payload_data_t*  paystore    = (bp_payload_data_t*)storebuf;
-        int                 paylen      = paystore->payloadsize;
-
         /* Return Payload to Application */
         if(*payload == NULL || *size >= paylen)
         {
@@ -788,7 +768,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
         }
 
         /* Relinquish Memory */
-        ch->payload.store.relinquish(ch->payload.handle, sid);
+        ch->bundle.store.relinquish(ch->bundle.payload_handle, sid);
     }
     else 
     {

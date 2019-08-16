@@ -144,67 +144,6 @@ void custody_uninitialize(bp_custody_t* custody)
 }
 
 /*--------------------------------------------------------------------------------------
- * custody_acknowledge -
- *-------------------------------------------------------------------------------------*/
-int custody_acknowledge(bp_custody_t* custody, bp_ipn_t node, bp_ipn_t service, uint32_t cid, uint32_t sysnow, int timeout, uint16_t* flags)
-{
-    int status = BP_SUCCESS;
-    bplib_os_lock(custody->lock);
-    {
-        if(custody->cstnode == node && custody->cstserv == service)
-        {
-            /* Insert Custody ID directly into current custody tree */
-            rb_tree_status_t insert_status = rb_tree_insert(cid, &custody->tree);
-            if(insert_status == RB_FAIL_TREE_FULL) 
-            {
-                /* Flag Full Tree - possibly the tree size is configured to be too small */
-                *flags |= BP_FLAG_RBTREEFULL;
-
-                /* Store DACS */
-                custody_enqueue(custody, sysnow, timeout, flags);
-
-                /* Start New DACS */
-                if(rb_tree_insert(cid, &custody->tree) != RB_SUCCESS)
-                {
-                    /* There is no valid reason for an insert to fail on an empty tree */
-                    status = BP_FAILEDRESPONSE;
-                }
-            }
-            else if(insert_status == RB_FAIL_INSERT_DUPLICATE)
-            {
-                /* Duplicate values are fine and are treated as a success */
-                *flags |= BP_FLAG_DUPLICATES;
-            }
-            else if(insert_status != RB_SUCCESS)
-            {
-                /* Tree error unexpected */
-                status = BP_FAILEDRESPONSE;        
-            }
-        }
-        else
-        {
-            /* Store DACS */
-            custody_enqueue(custody, sysnow, timeout, flags);
-
-            /* Initial New DACS Bundle */
-            custody->cstnode = node;
-            custody->cstserv = service;
-
-            /* Start New DACS */
-            if(rb_tree_insert(cid, &custody->tree) != RB_SUCCESS)
-            {
-                /* There is no valid reason for an insert to fail on an empty tree */
-                status = BP_FAILEDRESPONSE;
-            }
-        }
-    }
-    bplib_os_unlock(custody->lock);            
-    
-    /* Return Status */
-    return status;
-}
-
-/*--------------------------------------------------------------------------------------
  * custody_check -
  *
  *  Notes:  may or may not perform enqueue depending if DACS needs to be sent
@@ -233,9 +172,70 @@ int custody_check(bp_custody_t* custody, uint32_t period, uint32_t sysnow, int t
 }
 
 /*--------------------------------------------------------------------------------------
+ * custody_acknowledge -
+ *-------------------------------------------------------------------------------------*/
+int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, uint32_t sysnow, int timeout, uint16_t* flags)
+{
+    int status = BP_SUCCESS;
+    bplib_os_lock(custody->lock);
+    {
+        if(custody->cstnode == custodian->cst.node && custody->cstserv == custodian->cst.service)
+        {
+            /* Insert Custody ID directly into current custody tree */
+            rb_tree_status_t insert_status = rb_tree_insert(custodian->cst.cid, &custody->tree);
+            if(insert_status == RB_FAIL_TREE_FULL) 
+            {
+                /* Flag Full Tree - possibly the tree size is configured to be too small */
+                *flags |= BP_FLAG_RBTREEFULL;
+
+                /* Store DACS */
+                custody_enqueue(custody, sysnow, timeout, flags);
+
+                /* Start New DACS */
+                if(rb_tree_insert(custodian->cst.cid, &custody->tree) != RB_SUCCESS)
+                {
+                    /* There is no valid reason for an insert to fail on an empty tree */
+                    status = BP_FAILEDRESPONSE;
+                }
+            }
+            else if(insert_status == RB_FAIL_INSERT_DUPLICATE)
+            {
+                /* Duplicate values are fine and are treated as a success */
+                *flags |= BP_FLAG_DUPLICATES;
+            }
+            else if(insert_status != RB_SUCCESS)
+            {
+                /* Tree error unexpected */
+                status = BP_FAILEDRESPONSE;        
+            }
+        }
+        else
+        {
+            /* Store DACS */
+            custody_enqueue(custody, sysnow, timeout, flags);
+
+            /* Initial New DACS Bundle */
+            custody->cstnode = custodian->cst.node;
+            custody->cstserv = custodian->cst.service;
+
+            /* Start New DACS */
+            if(rb_tree_insert(custodian->cst.cid, &custody->tree) != RB_SUCCESS)
+            {
+                /* There is no valid reason for an insert to fail on an empty tree */
+                status = BP_FAILEDRESPONSE;
+            }
+        }
+    }
+    bplib_os_unlock(custody->lock);            
+    
+    /* Return Status */
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
  * custody_process -
  *-------------------------------------------------------------------------------------*/
-int custody_process(bp_custody_t* custody, uint8_t* rec, int rec_size, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags)
+int custody_process(bp_custody_t* custody, bp_custodian_t* custodian, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags)
 {
-    return dacs_read(rec, rec_size, acks, sids, table_size, custody->bundle.store.relinquish, custody->bundle.handle, flags);
+    return dacs_read(custodian->acs.rec, custodian->acs.rec_size, acks, sids, table_size, custody->bundle.store.relinquish, custody->bundle.handle, flags);
 }

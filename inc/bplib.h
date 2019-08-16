@@ -75,9 +75,7 @@ extern "C" {
 #define BP_INVALIDEID                   (-19)
 #define BP_INVALIDCIPHERSUITEID         (-20)
 #define BP_PENDINGACKNOWLEDGMENT        (-21)
-#define BP_PENDINGBUNDLECUSTODY         (-22)
-#define BP_PENDINGPAYLOADCUSTODY        (-23)
-#define BP_PENDINGPAYLOAD               (-24)
+#define BP_PENDINGCUSTODYTRANSFER       (-22)
     
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */

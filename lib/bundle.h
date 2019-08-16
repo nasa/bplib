@@ -35,7 +35,8 @@
  DEFINES
  ******************************************************************************/
 
-#define BP_BUNDLE_HDR_BUF_SIZE  128
+#define BP_NUM_EXCLUDE_REGIONS          8
+#define BP_BUNDLE_HDR_BUF_SIZE          128
 
 /******************************************************************************
  TYPEDEFS
@@ -43,13 +44,13 @@
 
 /* Bundle Data */
 typedef struct {
-    uint32_t            exprtime;           /* absolute time when bundle expires */
-    bp_sdnv_t           cidsdnv;            /* SDNV of custody id field of bundle */
-    int                 cteboffset;         /* offset of the CTEB block of bundle */
-    int                 biboffset;          /* offset of the BIB block of bundle */
-    int                 payoffset;          /* offset of the payload block of bundle */
-    int                 headersize;         /* size of the header (portion of buffer below used) */
-    int                 bundlesize;         /* total size of the bundle (header and payload) */
+    uint32_t            exprtime;               /* absolute time when bundle expires */
+    bp_sdnv_t           cidsdnv;                /* SDNV of custody id field of bundle */
+    int                 cteboffset;             /* offset of the CTEB block of bundle */
+    int                 biboffset;              /* offset of the BIB block of bundle */
+    int                 payoffset;              /* offset of the payload block of bundle */
+    int                 headersize;             /* size of the header (portion of buffer below used) */
+    int                 bundlesize;             /* total size of the bundle (header and payload) */
     uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; /* header portion of bundle */
 } bp_bundle_data_t;
 
@@ -61,13 +62,27 @@ typedef struct {
     bp_blk_pay_t        payload_block;
 } bp_v6blocks_t;
 
+/* Custodian */
+typedef union {
+    struct cst {
+        bp_ipn_t        node;                   /* custody node of bundle */
+        bp_ipn_t        service;                /* custody service of bundle */
+        uint32_t        cid;                    /* custody id of bundle */
+    };
+    struct acs {
+        uint8_t*        rec;                    /* aggregate custody signal */
+        int             rec_size;               /* size of aggregate custody signal */
+    };
+} bp_custodian_t;
+
 /* Bundle Control Structure */
 typedef struct {
     bp_store_t          store;                  /* storage service call-backs */
     bp_route_t          route;                  /* addressing information */
     bp_attr_t*          attributes;             /* -pointer- to the channel attributes */
-    int                 handle;                 /* storage service handle for bundle data */
-    bp_bundle_data_t    data;                   /* serialized and stored bundle data */
+    int                 payload_handle;         /* storage service handle for bundle data */
+    int                 bundle_handle;          /* storage service handle for bundle data */
+    bp_bundle_data_t    bundle_data;            /* serialized and stored bundle data */
     bool                prebuilt;               /* does pre-built bundle header need initialization */
     bp_v6blocks_t       v6blocks;               /* populated in initialization function */
 } bp_bundle_t;
@@ -76,10 +91,10 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     bundle_initialize   (bp_bundle_t* bundle, bp_route_t route, bp_store_t store, bp_attr_t* attr, uint16_t* flags);
+int     bundle_initialize   (bp_bundle_t* bundle, bp_route_t route, bp_store_t store, bp_attr_t* attributes, bool with_payload, uint16_t* flags);
 void    bundle_uninitialize (bp_bundle_t* bundle);
 int     bundle_send         (bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags);
-int     bundle_receive      (bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags);
+int     bundle_receive      (bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
 
 /* v6 bundle functions */
 int     v6blocks_build      (bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags);
