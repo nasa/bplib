@@ -36,13 +36,15 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_store_t store, b
     bundle->route               = route;
     bundle->store               = store;
     bundle->attributes          = attributes;
+    bundle->bundle_handle       = BP_INVALID_HANDLE;    
+    bundle->payload_handle      = BP_INVALID_HANDLE;
     
     /* Initialize Bundle Store */
-    bundle->bundle_handle  = bundle->store.create(bundle->attributes->storage_service_parm);
+    bundle->bundle_handle = bundle->store.create(bundle->attributes->storage_service_parm);
     if(bundle->bundle_handle < 0)
     {
         bundle_uninitialize(bundle);
-        return bplog(BP_FAILEDSTORE, "Failed to create storage bundle_handle for bundles\n");
+        return bplog(BP_FAILEDSTORE, "Failed to create storage handle for bundles\n");
     }
     
     /* Initialize Payload Store */
@@ -52,7 +54,7 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_store_t store, b
         if(bundle->payload_handle < 0)
         {
             bundle_uninitialize(bundle);
-            return bplog(BP_FAILEDSTORE, "Failed to create storage bundle_handle for bundles\n");
+            return bplog(BP_FAILEDSTORE, "Failed to create storage handle for payloads\n");
         }
     }
     else

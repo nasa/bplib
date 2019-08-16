@@ -131,6 +131,8 @@ void custody_uninitialize(bp_custody_t* custody)
 {
     if(custody)
     {
+        bundle_uninitialize(&custody->bundle);
+        
         if(custody->recbuf)
         {
             free(custody->recbuf);

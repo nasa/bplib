@@ -176,6 +176,7 @@ int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
                 
                 /* Clear Channel Memory and Initialize to Defaults */
                 memset(ch, 0, sizeof(bp_channel_t));
+                ch->active_table_signal = BP_INVALID_HANDLE;
                 
                 /* Set Initial Attributes */
                 if(attributes)  ch->attributes = *attributes;
