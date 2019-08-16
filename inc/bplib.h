@@ -37,7 +37,10 @@ extern "C" {
 #define BP_PEND                         (-1)
 #define BP_CHECK                        0
 
-/* Storage ID Special Values */
+/* Endpoint ID Strings */    
+#define BP_MAX_EID_STRING               128
+
+    /* Storage ID Special Values */
 #define BP_SID_VACANT                   0
 #define BP_INVALID_HANDLE               (-1)
 
