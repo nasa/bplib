@@ -77,12 +77,15 @@ static int custody_enqueue(bp_custody_t* custody, uint32_t sysnow, int timeout, 
 /*--------------------------------------------------------------------------------------
  * custody_initialize - Allocates resources for DACS and initializes control structures
  *-------------------------------------------------------------------------------------*/
-int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store, bp_attr_t* attr, uint16_t* flags)
+int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store, bp_attr_t* attributes, uint16_t* flags)
 {
     int status;
 
-    /* Set Attributes */
-    custody->bundle.attributes = attr;
+    /* Set Custody Parameters */
+    custody->attributes = *attributes;
+    custody->attributes.request_custody = false;
+    custody->attributes.admin_record = true;
+    custody->last_time = 0;
     
     /* Create DACS Lock */
     custody->lock = bplib_os_createlock();
@@ -92,8 +95,10 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store
         return bplog(BP_FAILEDOS, "Failed to create a lock for custody processing\n");
     }
 
-    /* Initialize DACS Bundle */
-    status = bundle_initialize(&custody->bundle, route, store, attr, false, flags);
+    /* Initialize DACS Bundle */    
+    route.destination_node = 0;
+    route.destination_service = 0;
+    status = bundle_initialize(&custody->bundle, route, store, &custody->attributes, false, flags);
     if(status != BP_SUCCESS)
     {
         custody_uninitialize(custody);
@@ -181,7 +186,7 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, uint32_t s
     int status = BP_SUCCESS;
     bplib_os_lock(custody->lock);
     {
-        if(custody->cstnode == custodian->cst.node && custody->cstserv == custodian->cst.service)
+        if(custody->bundle.route.destination_node == custodian->cst.node && custody->bundle.route.destination_service == custodian->cst.service)
         {
             /* Insert Custody ID directly into current custody tree */
             rb_tree_status_t insert_status = rb_tree_insert(custodian->cst.cid, &custody->tree);
@@ -214,11 +219,15 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, uint32_t s
         else
         {
             /* Store DACS */
-            custody_enqueue(custody, sysnow, timeout, flags);
+            if(!rb_tree_is_empty(&custody->tree))
+            {
+                custody_enqueue(custody, sysnow, timeout, flags);
+            }
 
             /* Initial New DACS Bundle */
-            custody->cstnode = custodian->cst.node;
-            custody->cstserv = custodian->cst.service;
+            custody->bundle.route.destination_node = custodian->cst.node;
+            custody->bundle.route.destination_service = custodian->cst.service;
+            custody->bundle.prebuilt = false;
 
             /* Start New DACS */
             if(rb_tree_insert(custodian->cst.cid, &custody->tree) != RB_SUCCESS)

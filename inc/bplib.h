@@ -103,18 +103,20 @@ extern "C" {
 /* Set/Get Option Defines */
 #define BP_OPT_LIFETIME                 1
 #define BP_OPT_REQUEST_CUSTODY          2
-#define BP_OPT_INTEGRITY_CHECK          3
-#define BP_OPT_ALLOW_FRAGMENTATION      4
-#define BP_OPT_CIPHER_SUITE             5
-#define BP_OPT_TIMEOUT                  6
-#define BP_OPT_MAX_LENGTH               7
-#define BP_OPT_WRAP_RESPONSE            8
-#define BP_OPT_CID_REUSE                9
-#define BP_OPT_DACS_RATE                10
+#define BP_OPT_ADMIN_RECORD             3
+#define BP_OPT_INTEGRITY_CHECK          4
+#define BP_OPT_ALLOW_FRAGMENTATION      5
+#define BP_OPT_CIPHER_SUITE             6
+#define BP_OPT_TIMEOUT                  7
+#define BP_OPT_MAX_LENGTH               8
+#define BP_OPT_WRAP_RESPONSE            9
+#define BP_OPT_CID_REUSE                10
+#define BP_OPT_DACS_RATE                11
     
 /* Default Dynamic Configuration */
 #define BP_DEFAULT_LIFETIME             0
 #define BP_DEFAULT_REQUEST_CUSTODY      true
+#define BP_DEFAULT_ADMIN_RECORD         false
 #define BP_DEFAULT_INTEGRITY_CHECK      true
 #define BP_DEFAULT_ALLOW_FRAGMENTATION  false
 #define BP_DEFAULT_TIMEOUT              10 /* seconds */
@@ -175,6 +177,7 @@ typedef struct {
     /* Dynamic Attributes */
     uint32_t    lifetime;               /* Number of seconds from creation time before bundle expires */
     bool        request_custody;        /* 0: not requested, 1: requested */
+    bool        admin_record;           /* 0: payload data, 1: administrative record */ 
     bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
     bool        allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
     int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */

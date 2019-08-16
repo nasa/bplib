@@ -140,6 +140,7 @@ int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int
         blocks->primary_block.cstnode.value     = bundle->route.local_node;
         blocks->primary_block.cstserv.value     = bundle->route.local_service;
         blocks->primary_block.lifetime.value    = bundle->attributes->lifetime;
+        blocks->primary_block.is_admin_rec      = bundle->attributes->admin_record;
         blocks->primary_block.allow_frag        = bundle->attributes->allow_fragmentation;
         blocks->primary_block.cst_rqst          = bundle->attributes->request_custody;
 
@@ -314,6 +315,7 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
     uint8_t*            buffer = block;
     int                 size = block_size;
     int                 index = 0;
+    int                 bytes = 0;
 
     int                 ei = 0;
     int                 exclude[BP_NUM_EXCLUDE_REGIONS];
@@ -330,12 +332,12 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
 
     int                 pay_index = 0;
     bp_blk_pay_t        pay_blk;
-    
+
     /* Parse Primary Block */
     exclude[ei++] = index;
-    status = pri_read(buffer, size, &pri_blk, true, flags);
-    if(status <= 0) return bplog(status, "Failed to parse primary block of size %d\n", size);
-    else            index += status;
+    bytes = pri_read(buffer, size, &pri_blk, true, flags);
+    if(bytes <= 0)  return bplog(bytes, "Failed to parse primary block of size %d\n", size);
+    else            index += bytes;
     exclude[ei++] = index;
 
     /* Check Unsupported */
@@ -366,9 +368,9 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
             exclude[ei++] = index;
             
             /* Read BIB */
-            status = bib_read(&buffer[bib_index], size - bib_index, &bib_blk, true, flags);
-            if(status <= 0) return bplog(status, "Failed to parse BIB block at offset %d\n", bib_index);
-            else            index += status;
+            bytes = bib_read(&buffer[bib_index], size - bib_index, &bib_blk, true, flags);
+            if(bytes <= 0)  return bplog(bytes, "Failed to parse BIB block at offset %d\n", bib_index);
+            else            index += bytes;
 
             /* Mark End of BIB Region */
             exclude[ei++] = index;
@@ -380,9 +382,9 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
             cteb_index = index;
 
             /* Read CTEB */
-            status = cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, true, flags);
-            if(status <= 0) return bplog(status, "Failed to parse CTEB block at offset %d\n", cteb_index);
-            else            index += status;
+            bytes = cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, true, flags);
+            if(bytes <= 0)  return bplog(bytes, "Failed to parse CTEB block at offset %d\n", cteb_index);
+            else            index += bytes;
         }
         else if(blk_type != BP_PAY_BLK_TYPE) /* skip over block */
         {
@@ -435,16 +437,16 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
         {
             pay_index = index;
             exclude[ei++] = index; /* start of payload header */
-            status = pay_read(&buffer[pay_index], size - pay_index, &pay_blk, true, flags);
-            if(status <= 0) return bplog(status, "Failed (%d) to read payload block\n", status);
-            else            index += status;
+            bytes = pay_read(&buffer[pay_index], size - pay_index, &pay_blk, true, flags);
+            if(bytes <= 0)  return bplog(bytes, "Failed (%d) to read payload block\n", status);
+            else            index += bytes;
             exclude[ei++] = index + pay_blk.paysize;
 
             /* Perform Integrity Check */
             if(bib_present)
             {
                 status = bib_verify(pay_blk.payptr, pay_blk.paysize, &bib_blk, flags);
-                if(status <= 0) return bplog(status, "Bundle failed integrity check\n");
+                if(status != BP_SUCCESS) return bplog(status, "Bundle failed integrity check\n");
             }
 
             /* Check Size of Payload */

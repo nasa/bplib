@@ -69,17 +69,18 @@ typedef struct {
  ******************************************************************************/
 
 static const bp_attr_t default_attributes = {
-    .active_table_size      = BP_DEFAULT_ACTIVE_TABLE_SIZE,
-    .timeout                = BP_DEFAULT_TIMEOUT,
-    .dacs_rate              = BP_DEFAULT_DACS_RATE,
-    .wrap_response          = BP_DEFAULT_WRAP_RESPONSE,
-    .cid_reuse              = BP_DEFAULT_CID_REUSE,
     .lifetime               = BP_DEFAULT_LIFETIME,
     .request_custody        = BP_DEFAULT_REQUEST_CUSTODY,
-    .allow_fragmentation    = BP_DEFAULT_ALLOW_FRAGMENTATION,
+    .admin_record           = BP_DEFAULT_ADMIN_RECORD,
     .integrity_check        = BP_DEFAULT_INTEGRITY_CHECK,
+    .allow_fragmentation    = BP_DEFAULT_ALLOW_FRAGMENTATION,
     .cipher_suite           = BP_DEFAULT_CIPHER_SUITE,
-    .max_length              = BP_DEFAULT_MAX_LENGTH,
+    .timeout                = BP_DEFAULT_TIMEOUT,
+    .max_length             = BP_DEFAULT_MAX_LENGTH,
+    .wrap_response          = BP_DEFAULT_WRAP_RESPONSE,
+    .cid_reuse              = BP_DEFAULT_CID_REUSE,
+    .dacs_rate              = BP_DEFAULT_DACS_RATE,
+    .active_table_size      = BP_DEFAULT_ACTIVE_TABLE_SIZE,
     .max_fills_per_dacs     = BP_DEFAULT_MAX_FILLS_PER_DACS,
     .max_gaps_per_dacs      = BP_DEFAULT_MAX_GAPS_PER_DACS,
     .storage_service_parm   = NULL
@@ -298,6 +299,15 @@ int bplib_config(int channel, int mode, int opt, void* val, int len)
             if(setopt && *enable != true && *enable != false) return BP_PARMERR;
             if(setopt)  ch->attributes.request_custody = *enable;
             else        *enable = ch->attributes.request_custody;
+            break;
+        }
+        case BP_OPT_ADMIN_RECORD:
+        {
+            if(len != sizeof(int)) return BP_PARMERR;
+            int* enable = (int*)val;
+            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.admin_record = *enable;
+            else        *enable = ch->attributes.admin_record;
             break;
         }
         case BP_OPT_INTEGRITY_CHECK:
