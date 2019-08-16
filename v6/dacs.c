@@ -23,6 +23,7 @@
 #include "bplib_os.h"
 #include "rb_tree.h"
 #include "sdnv.h"
+#include "dacs.h"
 #include "v6.h"
 
 /******************************************************************************
@@ -96,7 +97,7 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
 /*--------------------------------------------------------------------------------------
  * dacs_read -
  *-------------------------------------------------------------------------------------*/
-int dacs_read(uint8_t* rec, int rec_size, int* acks, bp_sid_t* sids, int table_size, bp_store_relinquish_t relinquish, int handle, uint16_t* flags)
+int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, uint16_t* flags)
 {
     uint32_t i;
     bp_sdnv_t cid = { 0, 2, 0 };
@@ -104,10 +105,8 @@ int dacs_read(uint8_t* rec, int rec_size, int* acks, bp_sid_t* sids, int table_s
     int cidin = true;
     uint8_t acs_status = rec[BP_ACS_REC_STATUS_INDEX];
     bool ack_success = (acs_status & BP_ACS_ACK_MASK) == BP_ACS_ACK_MASK;
+    int ack_count = 0;
     
-    /* Initialize Acknowledgment Count */
-    *acks = 0;
-
     /* Read First Custody ID */
     fill.index = sdnv_read(rec, rec_size, &cid, flags);
     if(*flags != 0)
@@ -132,13 +131,9 @@ int dacs_read(uint8_t* rec, int rec_size, int* acks, bp_sid_t* sids, int table_s
             cidin = false;
             for(i = 0; i < fill.value; i++)
             {
-                int ati = (cid.value + i) % table_size;
-                bp_sid_t sid = sids[ati];
-                if(sid != BP_SID_VACANT)
+                if(ack(ack_parm, cid.value + i) == BP_SUCCESS)
                 {
-                    relinquish(handle, sid);
-                    sids[ati] = BP_SID_VACANT;
-                    (*acks)++;
+                    ack_count++;
                 }
             }
         }
@@ -152,5 +147,6 @@ int dacs_read(uint8_t* rec, int rec_size, int* acks, bp_sid_t* sids, int table_s
         cid.value += fill.value;
     }
 
-    return fill.index;
+    /* Return Number of Acknowledgments */
+    return ack_count;
 }

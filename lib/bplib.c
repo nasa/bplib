@@ -94,6 +94,28 @@ static int channels_max;
 static int channels_lock;
 
 /******************************************************************************
+ LOCAL FUNCTIONS
+ ******************************************************************************/
+
+/*--------------------------------------------------------------------------------------
+ * acknowledge
+ *-------------------------------------------------------------------------------------*/
+static int acknowledge(void* parm, uint32_t cid)
+{
+    bp_channel_t* ch = (bp_channel_t*)parm;
+
+    int ati = cid % ch->attributes.active_table_size;
+    bp_sid_t sid = ch->active_table.sid[ati];
+    if(sid != BP_SID_VACANT)
+    {
+        ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
+        ch->active_table.sid[ati] = BP_SID_VACANT;
+    }
+
+    return ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
+}
+
+/******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
@@ -709,8 +731,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* fl
         /* Process Aggregate Custody Signal - Process DACS */
         bplib_os_lock(ch->active_table_signal);
         {
-            int acknowledgment_count = 0;
-            custody_acknowledge(&ch->custody, &custodian, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, flags);
+            int acknowledgment_count = custody_acknowledge(&ch->custody, &custodian, acknowledge, (void*)ch, flags);
             if(acknowledgment_count > 0)
             {
                 ch->stats.acknowledged += acknowledgment_count;

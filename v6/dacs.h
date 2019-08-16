@@ -27,10 +27,17 @@
 #include "rb_tree.h"
 
 /******************************************************************************
+ TYPEDEFS
+ ******************************************************************************/
+
+/* Acknowledge Call-Back */
+typedef int (*bp_acknowledge_t) (void* parm, uint32_t cid);
+
+/******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
 int dacs_write  (uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, rb_node_t** iter, uint16_t* flags);
-int dacs_read   (uint8_t* rec, int rec_size, int* acks, bp_sid_t* sids, int table_size, bp_store_relinquish_t relinquish, int handle, uint16_t* flags);
+int dacs_read   (uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, uint16_t* flags);
 
 #endif  /* __BPLIB_BLK_CTEB_H__ */

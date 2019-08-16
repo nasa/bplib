@@ -235,7 +235,9 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, uint32_t s
 /*--------------------------------------------------------------------------------------
  * custody_acknowledge -
  *-------------------------------------------------------------------------------------*/
-int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, int* acks, bp_sid_t* sids, int table_size, uint16_t* flags)
+int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, bp_acknowledge_t ack, void* ack_parm, uint16_t* flags)
 {
-    return dacs_read(custodian->acs.rec, custodian->acs.rec_size, acks, sids, table_size, custody->bundle.store.relinquish, custody->bundle.bundle_handle, flags);
+    (void)custody;
+    
+    return dacs_read(custodian->acs.rec, custodian->acs.rec_size, ack, ack_parm, flags);
 }
