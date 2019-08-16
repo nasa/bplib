@@ -52,7 +52,6 @@ typedef struct {
 
 int     payload_initialize      (bp_payload_t* payload, bp_attr_t* attr, bp_store_t store, uint16_t* flags);
 void    payload_uninitialize    (bp_payload_t* payload);
-
 int     payload_receive         (bp_payload_t* payload, bool cst_rqst, uint8_t* pay, int pay_size, int timeout, uint16_t* flags);
 
 #endif  /* __BPLIB_PAYLOAD_H__ */

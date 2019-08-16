@@ -20,10 +20,8 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bundle.h"
-#include "blocks.h"
-#include "sdnv.h"
 #include "bplib_os.h"
+#include "bundle.h"
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -48,7 +46,7 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_store_t store, b
     }
     
     /* Initialize New Bundle */
-    return blocks_build(&bundle->blocks, &bundle->data, bundle->attributes, bundle->route, NULL, NULL, NULL, 0, flags);
+    return v6blocks_build(&bundle->blocks, &bundle->data, bundle->attributes, bundle->route, NULL, NULL, NULL, 0, flags);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -64,12 +62,12 @@ void bundle_uninitialize(bp_bundle_t* bundle)
  *-------------------------------------------------------------------------------------*/
 int bundle_send(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags)
 {
-    bp_bundle_blocks_t* blocks = &bundle->blocks;
+    bp_v6blocks_t* blocks = &bundle->blocks;
 
     /* Check if Re-initialization Needed */
     if(bundle->blocks.prebuilt == false)
     {
-        blocks_build(&bundle->blocks, &bundle->data, bundle->attributes, bundle->route, NULL, NULL, NULL, 0, flags);
+        v6blocks_build(&bundle->blocks, &bundle->data, bundle->attributes, bundle->route, NULL, NULL, NULL, 0, flags);
     }
     
     /* Update Payload */
@@ -77,8 +75,7 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, ui
     blocks->payload_block.paysize = pay_size;
 
     /* Store Bundle */
-    return blocks_write(&bundle->blocks, &bundle->data, bundle->attributes, true, bundle->store.enqueue, bundle->handle, timeout, flags);
-
+    return v6blocks_write(&bundle->blocks, &bundle->data, bundle->attributes, true, bundle->store.enqueue, bundle->handle, timeout, flags);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -87,5 +84,5 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, ui
 int bundle_receive(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags)
 {
     /* Read Bundle */
-    return blocks_read(&bundle->blocks, &bundle->data, bundle->attributes, bundle->route, block, block_size, sysnow, timeout, flags);
+    return v6blocks_read(&bundle->blocks, &bundle->data, bundle->attributes, bundle->route, block, block_size, sysnow, timeout, flags);
 }

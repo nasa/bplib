@@ -22,7 +22,6 @@
 #include "bplib.h"
 #include "bplib_os.h"
 #include "sdnv.h"
-#include "blocks.h"
 #include "pri.h"
 #include "cteb.h"
 #include "bib.h"
@@ -393,7 +392,7 @@ int bplib_latchstats(int channel, bp_stats_t* stats)
 /*--------------------------------------------------------------------------------------
  * bplib_store -
  *-------------------------------------------------------------------------------------*/
-int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* storflags)
+int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* flags)
 {
     int status;
 
@@ -406,7 +405,7 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* sto
     bp_channel_t* ch = &channels[channel];
 
     /* Lock Data Bundle */
-    status = bundle_send(&ch->bundle, payload, size, timeout, storflags);
+    status = bundle_send(&ch->bundle, payload, size, timeout, flags);
     if(status == BP_SUCCESS) ch->stats.generated++;
 
     /* Return Status */
@@ -416,7 +415,7 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* sto
 /*--------------------------------------------------------------------------------------
  * bplib_load -
  *-------------------------------------------------------------------------------------*/
-int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loadflags)
+int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS; /* size of bundle returned or error code */
 
@@ -440,11 +439,11 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
     /* Check if DACS Needs to be Sent First */
     store = &ch->custody.bundle.store;
     handle = ch->custody.bundle.handle;    
-    custody_check(&ch->custody, ch->attributes.dacs_rate, sysnow, BP_CHECK, loadflags);
+    custody_check(&ch->custody, ch->attributes.dacs_rate, sysnow, BP_CHECK, flags);
     if(store->dequeue(handle, (void**)&data, NULL, &sid, timeout) == BP_SUCCESS)
     {
         /* Set Route Flag */
-        *loadflags |= BP_FLAG_ROUTENEEDED;
+        *flags |= BP_FLAG_ROUTENEEDED;
     }
     else
     {
@@ -512,7 +511,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                         sid = ch->active_table.sid[ati];
                         if(sid != BP_SID_VACANT) /* entry vacant */
                         {
-                            *loadflags |= BP_FLAG_ACTIVETABLEWRAP;
+                            *flags |= BP_FLAG_ACTIVETABLEWRAP;
 
                             if(ch->attributes.wrap_response == BP_WRAP_RESEND)
                             {
@@ -525,7 +524,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                                     /* Failed to Retrieve - Clear Entry (and loop again) */
                                     store->relinquish(handle, sid);
                                     ch->active_table.sid[ati] = BP_SID_VACANT;
-                                    *loadflags |= BP_FLAG_STOREFAILURE;
+                                    *flags |= BP_FLAG_STOREFAILURE;
                                     ch->stats.lost++;
                                 }
                                 else
@@ -562,7 +561,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                     /* Failed to Retrieve Bundle from Storage */
                     store->relinquish(handle, sid);
                     ch->active_table.sid[ati] = BP_SID_VACANT;
-                    *loadflags |= BP_FLAG_STOREFAILURE;
+                    *flags |= BP_FLAG_STOREFAILURE;
                     ch->stats.lost++;
                 }
             }
@@ -595,7 +594,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
             {
                 /* Failed Storage Service */
                 status = BP_FAILEDSTORE;
-                *loadflags |= BP_FLAG_STOREFAILURE;
+                *flags |= BP_FLAG_STOREFAILURE;
                 break;
             }
         }
@@ -626,7 +625,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
                             ati = ch->active_table.current_cid % ch->attributes.active_table_size;
                             ch->active_table.sid[ati] = sid;
                             data->cidsdnv.value = ch->active_table.current_cid++;
-                            sdnv_write(&data->header[data->cteboffset], data->bundlesize - data->cteboffset, data->cidsdnv, loadflags);
+                            sdnv_write(&data->header[data->cteboffset], data->bundlesize - data->cteboffset, data->cidsdnv, flags);
                         }
 
                         /* Update Retransmit Time */
@@ -672,7 +671,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* loa
 /*--------------------------------------------------------------------------------------
  * bplib_process -
  *-------------------------------------------------------------------------------------*/
-int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* procflags)
+int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* flags)
 {
     int status;
 
@@ -693,7 +692,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     /* Receive Bundle */
     void* block = bundle;
     int block_size = size;
-    status = bundle_receive(&ch->bundle, (uint8_t**)&block, &block_size, sysnow, timeout, procflags);
+    status = bundle_receive(&ch->bundle, (uint8_t**)&block, &block_size, sysnow, timeout, flags);
     if(status == BP_EXPIRED)
     {
         ch->stats.expired++;
@@ -704,7 +703,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
         bplib_os_lock(ch->active_table_signal);
         {
             int acknowledgment_count = 0;
-            custody_process(&ch->custody, block, block_size, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, procflags);
+            custody_process(&ch->custody, block, block_size, &acknowledgment_count, ch->active_table.sid, ch->attributes.active_table_size, flags);
             if(acknowledgment_count > 0)
             {
                 ch->stats.acknowledged += acknowledgment_count;
@@ -716,11 +715,15 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
     else if(status == BP_PENDINGBUNDLECUSTODY)
     {
         /* Acknowledge Custody Transfer - Update DACS */
-        //status = custody_acknowledge(&ch->custody, cteb_blk.cstnode, cteb_blk.cstserv, cteb_blk.cid.value, sysnow, BP_CHECK, flags);
+        status = custody_acknowledge(&ch->custody, cteb_blk.cstnode, cteb_blk.cstserv, cteb_blk.cid.value, sysnow, BP_CHECK, flags);
     }
     else if(status == BP_PENDINGPAYLOADCUSTODY)
     {
-        //status = payload_receive(&ch->payload, cst_rqst, block, block_size, timeout, flags);
+        status = payload_receive(&ch->payload, true, block, block_size, timeout, flags);
+    }
+    else if(status == BP_PENDINGPAYLOAD)
+    {
+        status = payload_receive(&ch->payload, false, block, block_size, timeout, flags);
     }
     
     /* Return Status */
@@ -732,9 +735,9 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* pr
  *
  *  Returns success if payload copied, or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
-int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* acptflags)
+int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* flags)
 {
-    (void)acptflags;
+    (void)flags;
     
     int status, deqstat;
 
@@ -745,14 +748,12 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
 
     /* Set Shortcuts */
     bp_channel_t*           ch          = &channels[channel];
-    bp_store_dequeue_t      dequeue     = ch->payload.store.dequeue;
-    bp_store_relinquish_t   relinquish  = ch->payload.store.relinquish;
     uint8_t*                storebuf    = NULL;
     int                     storelen    = 0;
     bp_sid_t                sid         = BP_SID_VACANT;
 
     /* Dequeue Payload from Storage */
-    deqstat = dequeue(ch->payload.handle, (void**)&storebuf, &storelen, &sid, timeout);
+    deqstat = ch->payload.store.dequeue(ch->payload.handle, (void**)&storebuf, &storelen, &sid, timeout);
     if(deqstat > 0)
     {
         /* Access Payload */
@@ -787,7 +788,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
         }
 
         /* Relinquish Memory */
-        relinquish(ch->payload.handle, sid);
+        ch->payload.store.relinquish(ch->payload.handle, sid);
     }
     else 
     {

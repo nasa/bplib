@@ -20,17 +20,38 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "blocks.h"
+#include "bplib_os.h"
+#include "bundle.h"
+#include "sdnv.h"
 #include "pri.h"
+#include "cteb.h"
 #include "bib.h"
 #include "pay.h"
-#include "sdnv.h"
-#include "bplib_os.h"
 
 /******************************************************************************
  DEFINES
  ******************************************************************************/
 
+/* Block Processing Control Flags */
+#define BP_BLK_REPALL_MASK              0x000001    /* block must be replicated in every fragment */
+#define BP_BLK_NOTIFYNOPROC_MASK        0x000002    /* transmit status report if block cannot be processed */
+#define BP_BLK_DELETENOPROC_MASK        0x000004    /* delete bundle if block cannot be processed */
+#define BP_BLK_LASTBLOCK_MASK           0x000008    /* last block in bundle */
+#define BP_BLK_DROPNOPROC_MASK          0x000010    /* drop block if block cannot be processed */
+#define BP_BLK_FORWARDNOPROC_MASK       0x000020    /* block was forwarded without being processed */
+#define BP_BLK_EIDREF_MASK              0x000040    /* block contains an EID reference field */
+
+/* Block Type Definitions */
+#define BP_PAY_BLK_TYPE                 0x1
+#define BP_CTEB_BLK_TYPE                0xA
+#define BP_BIB_BLK_TYPE                 0xD
+
+/* Record Type Definitions */    
+#define BP_STAT_REC_TYPE                0x10 /* Status Report */
+#define BP_CS_REC_TYPE                  0x20 /* Custody Signal */
+#define BP_ACS_REC_TYPE                 0x40 /* Aggregate Custody Signal */
+
+/* Processing Limits */
 #define BP_NUM_EXCLUDE_REGIONS          8
 
 /******************************************************************************
@@ -107,14 +128,17 @@ static const bp_blk_pay_t bundle_pay_blk = {
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * blocks_build -
+ * v6blocks_build -
  *
  *  This initializes a new bundle
  *-------------------------------------------------------------------------------------*/
-int blocks_build(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* attr, bp_route_t route, bp_blk_pri_t* pri, bp_blk_pay_t* pay, uint8_t* hdr_buf, int hdr_len, uint16_t* flags)
+int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, bp_blk_pay_t* pay, uint8_t* hdr_buf, int hdr_len, uint16_t* flags)
 {
     int status;
     int hdr_index;
+    
+    bp_bundle_data_t* data = &bundle->data;
+    bp_v6blocks_t* blocks = &bundle->blocks;
 
     /* Initialize Data Storage Memory */
     hdr_index = 0;
@@ -133,17 +157,17 @@ int blocks_build(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* 
     {
         /* Library Provided Primary Block */
         blocks->primary_block                   = bundle_pri_blk;
-        blocks->primary_block.dstnode.value     = route.destination_node;
-        blocks->primary_block.dstserv.value     = route.destination_service;
-        blocks->primary_block.srcnode.value     = route.local_node;
-        blocks->primary_block.srcserv.value     = route.local_service;
-        blocks->primary_block.rptnode.value     = route.report_node;
-        blocks->primary_block.rptserv.value     = route.report_service;
-        blocks->primary_block.cstnode.value     = route.local_node;
-        blocks->primary_block.cstserv.value     = route.local_service;
-        blocks->primary_block.lifetime.value    = attr->lifetime;
-        blocks->primary_block.allow_frag        = attr->allow_fragmentation;
-        blocks->primary_block.cst_rqst          = attr->request_custody;
+        blocks->primary_block.dstnode.value     = bundle->route.destination_node;
+        blocks->primary_block.dstserv.value     = bundle->route.destination_service;
+        blocks->primary_block.srcnode.value     = bundle->route.local_node;
+        blocks->primary_block.srcserv.value     = bundle->route.local_service;
+        blocks->primary_block.rptnode.value     = bundle->route.report_node;
+        blocks->primary_block.rptserv.value     = bundle->route.report_service;
+        blocks->primary_block.cstnode.value     = bundle->route.local_node;
+        blocks->primary_block.cstserv.value     = bundle->route.local_service;
+        blocks->primary_block.lifetime.value    = bundle->attributes->lifetime;
+        blocks->primary_block.allow_frag        = bundle->attributes->allow_fragmentation;
+        blocks->primary_block.cst_rqst          = bundle->attributes->request_custody;
 
         /* Set Pre-Built Flag to TRUE */
         blocks->prebuilt = true;
@@ -160,7 +184,7 @@ int blocks_build(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* 
         /* Initialize Block */
         blocks->custody_block = bundle_cteb_blk;
         blocks->custody_block.cid.value = 0; /* Set Initial Custody ID to Zero */
-        bplib_ipn2eid(blocks->custody_block.csteid, BP_MAX_EID_STRING, route.local_node, route.local_service); /* Set Custodian EID */
+        bplib_ipn2eid(blocks->custody_block.csteid, BP_MAX_EID_STRING, bundle->route.local_node, bundle->route.local_service); /* Set Custodian EID */
 
         /* Populate Data with Block */
         data->cidsdnv = blocks->custody_block.cid;
@@ -177,11 +201,12 @@ int blocks_build(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* 
     }
 
     /* Write Integrity Block */
-    if(attr->integrity_check)
+    if(bundle->attributes->integrity_check)
     {
         /* Initialize Block */
         blocks->integrity_block = bundle_bib_blk;
-        blocks->integrity_block.cipher_suite_id.value = attr->cipher_suite;
+        blocks->integrity_block.cipher_suite_id.value = bundle->attributes->cipher_suite;
+        
         /* Populate Data */
         data->biboffset = hdr_index;
         status = bib_write(&data->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, &blocks->integrity_block, false, flags);
@@ -226,20 +251,22 @@ int blocks_build(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* 
 }
 
 /*--------------------------------------------------------------------------------------
- * blocks_write -
+ * v6blocks_write -
  *-------------------------------------------------------------------------------------*/
-int blocks_write(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* attr, bool set_time, bp_store_enqueue_t enqueue, int handle, int timeout, uint16_t* flags)
+int v6blocks_write(bp_bundle_t* bundle, bool set_time, int timeout, uint16_t* flags)
 {
     int                     status          = 0;
     int                     payload_offset  = 0;
+    bp_bundle_data_t*       data            = &bundle->data;
+    bp_v6blocks_t*          blocks          = &bundle->v6blocks;
     bp_blk_pri_t*           pri             = &blocks->primary_block;
     bp_blk_bib_t*           bib             = &blocks->integrity_block;
     bp_blk_pay_t*           pay             = &blocks->payload_block;
 
     /* Check Fragmentation */
-    if(pay->paysize > attr->maxlength)
+    if(pay->paysize > bundle->attributes->maxlength)
     {
-        if(attr->allow_fragmentation)
+        if(bundle->attributes->allow_fragmentation)
         {
             pri->is_frag = true;            
         }
@@ -269,7 +296,7 @@ int blocks_write(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* 
     {
         /* Calculate Storage Header Size and Fragment Size */
         int payload_remaining = pay->paysize - payload_offset;
-        int fragment_size = attr->maxlength <  payload_remaining ? attr->maxlength : payload_remaining;
+        int fragment_size = bundle->attributes->maxlength <  payload_remaining ? bundle->attributes->maxlength : payload_remaining;
 
         /* Update Primary Block Fragmentation */
         if(pri->is_frag)
@@ -295,7 +322,7 @@ int blocks_write(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* 
 
         /* Enqueue Bundle */
         int storage_header_size = sizeof(bp_bundle_data_t) - (BP_BUNDLE_HDR_BUF_SIZE - data->headersize);
-        status = enqueue(handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
+        status = bundle->store.enqueue(bundle->handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
     }
@@ -308,9 +335,9 @@ int blocks_write(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* 
 }
 
 /*--------------------------------------------------------------------------------------
- * blocks_read -
+ * v6blocks_read -
  *-------------------------------------------------------------------------------------*/
-int blocks_read(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* attr, bp_route_t route, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags)
+int v6blocks_read(bp_bundle_t* bundle, uint8_t** block, int* block_size, uint32_t sysnow, int timeout, uint16_t* flags)
 {
     int                 status = BP_SUCCESS;
 
@@ -457,15 +484,15 @@ int blocks_read(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* a
             }
 
             /* Process Payload */
-            if(pri_blk.dstnode.value != route.local_node) /* forward bundle (dst node != local node) */
+            if(pri_blk.dstnode.value != bundle->route.local_node) /* forward bundle (dst node != local node) */
             {
                 /* Handle Custody Request */
                 if(pri_blk.cst_rqst)
                 {
                     pri_blk.rptnode.value = 0;
                     pri_blk.rptserv.value = 0;
-                    pri_blk.cstnode.value = route.local_node;
-                    pri_blk.cstserv.value = route.local_service;                        
+                    pri_blk.cstnode.value = bundle->route.local_node;
+                    pri_blk.cstserv.value = bundle->route.local_service;                        
                 }
 
                 /* Copy Non-excluded Header Regions */
@@ -489,11 +516,11 @@ int blocks_read(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* a
                 }
 
                 /* Initialize Forwarded Bundle */
-                status = blocks_build(blocks, data, attr, route, &pri_blk, &pay_blk, hdr_buf, hdr_index, flags);
+                status = v6blocks_build(bundle, &pri_blk, &pay_blk, hdr_buf, hdr_index, flags);
                 if(status == BP_SUCCESS)
                 {
                     /* Store Forwarded Bundle */
-//                   status = blocks_write(blocks, data, attr, false, enqueue, handle, timeout, flags);
+                   status = v6blocks_write(bundle, false, timeout, flags);
                 }
 
                 /* Handle Custody Transfer */
@@ -512,9 +539,9 @@ int blocks_read(bp_bundle_blocks_t* blocks, bp_bundle_data_t* data, bp_attr_t* a
                     }
                 }
             }
-            else if((route.local_service != 0) && (pri_blk.dstserv.value != route.local_service))
+            else if((bundle->route.local_service != 0) && (pri_blk.dstserv.value != bundle->route.local_service))
             {
-                return bplog(BP_WRONGCHANNEL, "Wrong channel to store bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)route.local_service);
+                return bplog(BP_WRONGCHANNEL, "Wrong channel to store bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)bundle->route.local_service);
             }
             else if(pri_blk.is_admin_rec) /* Administrative Record */
             {
