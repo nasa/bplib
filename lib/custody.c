@@ -87,6 +87,18 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store
     custody->attributes.admin_record = true;
     custody->last_time = 0;
     
+    /* Initialize DACS Bundle */    
+    route.destination_node = 0;
+    route.destination_service = 0;
+    status = bundle_initialize(&custody->bundle, route, store, &custody->attributes, false, flags);
+    if(status != BP_SUCCESS)
+    {
+        /* Does not un-initialize bundle since the bundle initialization 
+         * function takes care of that.  Also note that this must be first
+         * so that future calls to custody_uninitialize are safe. */
+        return status;
+    }
+    
     /* Create DACS Lock */
     custody->lock = bplib_os_createlock();
     if(custody->lock < 0)
@@ -95,16 +107,6 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store
         return bplog(BP_FAILEDOS, "Failed to create a lock for custody processing\n");
     }
 
-    /* Initialize DACS Bundle */    
-    route.destination_node = 0;
-    route.destination_service = 0;
-    status = bundle_initialize(&custody->bundle, route, store, &custody->attributes, false, flags);
-    if(status != BP_SUCCESS)
-    {
-        custody_uninitialize(custody);
-        return status;
-    }
-    
     /* Allocate Memory for Channel DACS Bundle Fills */
     custody->recbuf_size = sizeof(uint16_t) * custody->bundle.attributes->max_fills_per_dacs + 32; // 2 bytes per fill plus payload block header
     custody->recbuf = (uint8_t*)malloc(custody->recbuf_size); 
@@ -136,13 +138,22 @@ void custody_uninitialize(bp_custody_t* custody)
 {
     if(custody)
     {
+        /* Destroy Lock */
+        if(custody->lock >= 0)
+        {
+            bplib_os_destroylock(custody->lock);
+        }
+        
+        /* Uninitialize Bundle */
         bundle_uninitialize(&custody->bundle);
         
+        /* Free Buffer for DACS */
         if(custody->recbuf)
         {
             free(custody->recbuf);
         }
 
+        /* Free Tree */
         if(custody->tree.max_size > 0) 
         {
             rb_tree_destroy(&custody->tree);
@@ -163,15 +174,19 @@ int custody_send(bp_custody_t* custody, uint32_t period, uint32_t sysnow, int ti
     /* Timeout Any Pending Acknowledgments */
     if(period > 0)
     {
-        if( (sysnow >= (custody->last_time + period)) && 
-            !rb_tree_is_empty(&custody->tree) )
+        bplib_os_lock(custody->lock);
         {
-            int status = custody_enqueue(custody, sysnow, timeout, flags);
-            if(status != BP_SUCCESS && ret_status == BP_SUCCESS)
+            if( (sysnow >= (custody->last_time + period)) && 
+                !rb_tree_is_empty(&custody->tree) )
             {
-                ret_status = status;
+                int status = custody_enqueue(custody, sysnow, timeout, flags);
+                if(status != BP_SUCCESS && ret_status == BP_SUCCESS)
+                {
+                    ret_status = status;
+                }
             }
         }
+        bplib_os_unlock(custody->lock);
     }
     
     /* Return Status */

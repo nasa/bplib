@@ -105,7 +105,7 @@ static int acknowledge(void* parm, uint32_t cid)
 {
     bp_channel_t* ch = (bp_channel_t*)parm;
     int status = BP_FAILEDRESPONSE;
-    
+
     int ati = cid % ch->attributes.active_table_size;
     bp_sid_t sid = ch->active_table.sid[ati];
     if(sid != BP_SID_VACANT)
@@ -215,8 +215,8 @@ int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
                 }
                 
                 /* Initialize Data */
-                ch->active_table.oldest_cid     = 7;
-                ch->active_table.current_cid    = 7;
+                ch->active_table.oldest_cid     = 1;
+                ch->active_table.current_cid    = 1;
                 ch->index                       = i;
 
                 /* Exit Loop - Success */
@@ -410,6 +410,9 @@ int bplib_latchstats(int channel, bp_stats_t* stats)
     ch->stats.bundles = ch->bundle.store.getcount(ch->bundle.bundle_handle);
     ch->stats.payloads = ch->bundle.store.getcount(ch->bundle.payload_handle);
     ch->stats.records = ch->custody.bundle.store.getcount(ch->custody.bundle.bundle_handle);
+    
+    /* Update Active Statistic */
+    ch->stats.active = ch->active_table.current_cid - ch->active_table.oldest_cid;
 
     /* Latch Statistics */
     *stats = ch->stats;
@@ -496,7 +499,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
         bplib_os_lock(ch->active_table_signal);
         {
             /* Try to Send Timed-out Bundle */
-            while((data == NULL) && (ch->active_table.oldest_cid < ch->active_table.current_cid))
+            while((data == NULL) && (ch->active_table.oldest_cid != ch->active_table.current_cid))
             {
                 ati = ch->active_table.oldest_cid % ch->attributes.active_table_size;
                 sid = ch->active_table.sid[ati];
@@ -672,9 +675,6 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
 
                         /* Update Retransmit Time */
                         ch->active_table.retx[ati] = sysnow;
-
-                        /* Update Active Statistic */
-                        ch->stats.active = ch->active_table.current_cid - ch->active_table.oldest_cid;
                     }
                     bplib_os_unlock(ch->active_table_signal);
                 }
@@ -743,9 +743,11 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* fl
         /* Process Aggregate Custody Signal - Process DACS */
         bplib_os_lock(ch->active_table_signal);
         {
-            int acknowledgment_count = custody_acknowledge(&ch->custody, &custodian, acknowledge, (void*)ch, flags);
-            if(acknowledgment_count > 0)
+            status = custody_acknowledge(&ch->custody, &custodian, acknowledge, (void*)ch, flags);
+            if(status > 0)
             {
+                int acknowledgment_count = status;
+                status = BP_SUCCESS;
                 ch->stats.acknowledged += acknowledgment_count;
                 bplib_os_signal(ch->active_table_signal);
             }
