@@ -110,7 +110,8 @@ static uint16_t get_crc16(const uint8_t* data, uint32_t length, const crc_parame
     /* Check that we are always using a lookup table corresponding to the requested crc. */
     uint16_t crc = params->n_bit_params.crc16.initial_value;
     uint8_t current_byte;
-    for (uint32_t i = 0; i < length; i++)
+    uint32_t i;
+    for (i = 0; i < length; i++)
     {
         current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
         crc = (crc << 8) ^ params->n_bit_params.crc16.xor_table[current_byte ^ (crc >> 8)];
@@ -140,7 +141,8 @@ static uint32_t get_crc32(const uint8_t* data, const uint32_t length, const crc_
     /* Check that we are always using a lookup table corresponding to the requested crc. */
     uint32_t crc = params->n_bit_params.crc32.initial_value;
     uint8_t current_byte;
-    for (uint32_t i = 0; i < length; i++)
+    uint32_t i;
+    for (i = 0; i < length; i++)
     {
         current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
         crc = ((crc << 8) ^ 
@@ -167,11 +169,14 @@ static void init_crc16_table(crc_parameters_t* params)
 {
     uint16_t generator = params->n_bit_params.crc16.generator_polynomial; 
     uint16_t* table = params->n_bit_params.crc16.xor_table;
-    for (uint16_t i = 0; i < BYTE_COMBOS; i++)
+    uint16_t i;
+    int j;
+
+    for (i = 0; i < BYTE_COMBOS; i++)
     {
         table[i] = i << 8;
 
-        for (int j = 8; j > 0; j--)
+        for (j = 8; j > 0; j--)
         {
             table[i] = (table[i] & 0x8000) != 0 ? (table[i] << 1) ^ generator : table[i] << 1;
         }
@@ -188,11 +193,14 @@ static void init_crc32_table(crc_parameters_t* params)
 {
     uint32_t generator = params->n_bit_params.crc32.generator_polynomial; 
     uint32_t* table = params->n_bit_params.crc32.xor_table;
-    for (uint32_t i = 0; i < BYTE_COMBOS; i++)
+    uint32_t i;
+    int j;
+
+    for (i = 0; i < BYTE_COMBOS; i++)
     {
         table[i] = i << 24;
 
-        for (int j = 8; j > 0; j--)
+        for (j = 8; j > 0; j--)
         {
             table[i] = (table[i] & 0x80000000) != 0 ? (table[i] << 1) ^ generator : table[i] << 1;
         }
