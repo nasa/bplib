@@ -1,5 +1,5 @@
 /************************************************************************
- * File: bplib_store_ram.c
+ * File: ram.c
  *
  *  Copyright 2019 United States Government as represented by the 
  *  Administrator of the National Aeronautics and Space Administration. 

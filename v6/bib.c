@@ -1,5 +1,5 @@
 /************************************************************************
- * File: bplib_blk_bib.c
+ * File: bib.c
  *
  *  Copyright 2019 United States Government as represented by the 
  *  Administrator of the National Aeronautics and Space Administration. 

@@ -44,28 +44,28 @@ API         := $(ROOT)/inc
 PREFIX	    := /usr/local
 	
 # application object files, library
-APP_OBJ := bplib.o
+APP_OBJ     := bplib.o
 
 # block objects 
-APP_OBJ += blocks.o
-APP_OBJ += bib.o
-APP_OBJ += cteb.o
-APP_OBJ += pay.o
-APP_OBJ += pri.o
-APP_OBJ += dacs.o
+APP_OBJ     += blocks.o
+APP_OBJ     += bib.o
+APP_OBJ     += cteb.o
+APP_OBJ     += pay.o
+APP_OBJ     += pri.o
+APP_OBJ     += dacs.o
 
 # protocol objects
-APP_OBJ += bundle.o
-APP_OBJ += custody.o
+APP_OBJ     += bundle.o
+APP_OBJ     += custody.o
 
 # common objects
-APP_OBJ += sdnv.o
-APP_OBJ += crc.o
-APP_OBJ += rb_tree.o
+APP_OBJ     += sdnv.o
+APP_OBJ     += crc.o
+APP_OBJ     += rb_tree.o
 
 # storage service objects
-APP_OBJ += file.o
-APP_OBJ += ram.o
+APP_OBJ     += file.o
+APP_OBJ     += ram.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?=
@@ -106,38 +106,38 @@ include $(CONFIG)
 ###############################################################################
 ##  DEFINES
 
-TGTLIB  :=   bp
-TGTVER  :=   $(shell cat version.txt)
-CONSOLE :=   bpc
-LIBDIR  :=   $(PREFIX)/lib
-INCDIR  :=   $(PREFIX)/include/$(TGTLIB)
-BLDDIR  :=   build
-O       ?=   3 # default optimization level
+TGTLIB      :=   bp
+TGTVER      :=   $(shell cat version.txt)
+CONSOLE     :=   bpc
+LIBDIR      :=   $(PREFIX)/lib
+INCDIR      :=   $(PREFIX)/include/$(TGTLIB)
+BLDDIR      :=   build
+O           ?=   3 # default optimization level
 
-COPT    :=   -g -Wall -Wextra -O$(O) -D'LIBID="$(TGTVER)"' $(INCLUDES) $(APP_DEFS)
-COPT    +=   -DLIBPATH=\"$(LIBDIR)\"
-COPT    +=   -DINCPATH=\"$(INCDIR)\"
-COPT    +=   -Wshadow
+COPT        :=   -g -Wall -Wextra -O$(O) -D'LIBID="$(TGTVER)"' $(INCLUDES) $(APP_DEFS)
+COPT        +=   -DLIBPATH=\"$(LIBDIR)\"
+COPT        +=   -DINCPATH=\"$(INCDIR)\"
+COPT        +=   -Wshadow
  
-LOPT    :=
+LOPT        :=
 
 ###############################################################################
 ##  TOOLS
 
-CC       =   $(COMPILER)
-AR       =   $(TOOLCHAIN)-ar
-RM       =   rm -f
-CP       =   cp
-DIFF     =   diff
-LN       =   ln
-MKDIR	 =   mkdir
+CC           =   $(COMPILER)
+AR           =   $(TOOLCHAIN)-ar
+RM           =   rm -f
+CP           =   cp
+DIFF         =   diff
+LN           =   ln
+MKDIR	     =   mkdir
 
 ###############################################################################
 ##  COMPILER RULES
 
-ALL_OBJ := $(addprefix $(BLDDIR)/, $(APP_OBJ))
-ALL_COPT := $(COPT) $(APP_COPT)
-ALL_LOPT := $(LOPT) $(APP_LOPT)
+ALL_OBJ     := $(addprefix $(BLDDIR)/, $(APP_OBJ))
+ALL_COPT    := $(COPT) $(APP_COPT)
+ALL_LOPT    := $(LOPT) $(APP_LOPT)
 
 $(BLDDIR)/%.o: %.c
 	$(CC) -c $(ALL_COPT) -o $@ $<
