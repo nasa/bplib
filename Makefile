@@ -18,17 +18,23 @@
 #     file.  To create a custom build of this library, copy and edit your own
 #     config.mk file and then issue the following commands to build the library:
 #
-#        make CONFIG=config.mk
+#       make CONFIG=config.mk
 #
 #  2. In order to use clang instead of gcc, set the COMPILER and TOOLCHAIN variables.
 #     For example, if you wanted to run AddressSanitizer via clang, issue the following
 #     commands to build the library:  
 # 
-#        make COMPILER=clang TOOLCHAIN=llvm APP_COPT=-fsanitize=address APP_LOPT=-fsanitize=address 
+#       make COMPILER=clang TOOLCHAIN=llvm APP_COPT=-fsanitize=address APP_LOPT=-fsanitize=address 
 #
 #  3. To build the unit tests:
 #
-#        make APP_COPT=-DUNITTEST unittest
+#       make APP_COPT=-DUNITTEST unittest
+#
+#  4. The libabi.version script controls the export of any symbols in the library.  By convention
+#     anything that starts with bplib_ is exported.  Run the following command to verify which
+#     symbols are available to a linking application:
+#
+#       nm -CD /usr/local/lib/libbp.so | grep " T "
 #
 
 ##############################################################################
@@ -151,7 +157,7 @@ static-lib: $(BLDDIR) $(ALL_OBJ)
 	$(AR) crs $(BLDDIR)/lib$(TGTLIB).a $(ALL_OBJ)
 
 shared-lib: $(BLDDIR) $(ALL_OBJ)
-	$(CC) $(ALL_OBJ) $(ALL_LOPT) -shared -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
+	$(CC) $(ALL_OBJ) $(ALL_LOPT) -shared -Wl,--version-script=libabi.version -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
 
 
 install: static-lib shared-lib install-headers install-static install-shared
