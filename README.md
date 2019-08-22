@@ -20,7 +20,7 @@ Bplib assumes the availability of a persistent queued storage system for managin
 ## 2. Application Design
 ----------------------------------------------------------------------
 
-![Figure 1](doc/bp_api_basic.png "BP Library API (Basic)")
+![Figure 1](doc/bp_api_architecture.png "BP Library API (Architecture)")
 
 Bplib is written in "vanilla C" and is intended to be linked in as either a shared or static library into an application with an ABI for reading/writing application data and reading/writing bundles.  
 
