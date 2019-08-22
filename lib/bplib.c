@@ -447,7 +447,7 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* fla
 /*--------------------------------------------------------------------------------------
  * bplib_load -
  *-------------------------------------------------------------------------------------*/
-int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* flags)
+int bplib_load(int channel, void** bundle, int size, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS; /* size of bundle returned or error code */
 
@@ -652,7 +652,7 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
     if(data != NULL)
     {
         /* Check Buffer Size */
-        if(*bundle == NULL || *size >= data->bundlesize)
+        if(*bundle == NULL || size >= data->bundlesize)
         {
             /* Check/Allocate Bundle Memory */
             if(*bundle == NULL) *bundle = malloc(data->bundlesize);
@@ -681,10 +681,9 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
 
                 /* Load Bundle */
                 memcpy(*bundle, data->header, data->bundlesize);
-                *size = data->bundlesize;
+                status = data->bundlesize;
                 ch->stats.transmitted++;
-                status = BP_SUCCESS;
-
+ 
                 /* If No Custody Transfer - Free Bundle Memory */
                 if(data->cteboffset == 0)
                 {
@@ -700,13 +699,13 @@ int bplib_load(int channel, void** bundle, int* size, int timeout, uint16_t* fla
         }
         else
         {
-            status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", *size, data->bundlesize);
+            status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", size, data->bundlesize);
             store->relinquish(handle, sid);
             ch->stats.lost++;
         }
     }
 
-    /* Return Status */
+    /* Return Size in Bytes or Status on Error */
     return status;
 }
 
@@ -769,7 +768,7 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* fl
  *
  *  Returns success if payload copied, or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
-int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* flags)
+int bplib_accept(int channel, void** payload, int size, int timeout, uint16_t* flags)
 {
     (void)flags;
     
@@ -791,7 +790,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
     if(deqstat > 0)
     {
         /* Return Payload to Application */
-        if(*payload == NULL || *size >= paylen)
+        if(*payload == NULL || size >= paylen)
         {
             /* Check/Allocate Memory for Payload */
             if(*payload == NULL) *payload = malloc(paylen);
@@ -800,7 +799,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
             if(*payload != NULL)
             {
                 memcpy(*payload, payptr, paylen);
-                *size = paylen;
+                status = paylen;
                 ch->stats.delivered++;
                 status = BP_SUCCESS;
             }
@@ -812,7 +811,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
         }
         else
         {
-            status = bplog(BP_PAYLOADTOOLARGE, "Payload too large to fit inside buffer (%d %d)\n", *size, paylen);
+            status = bplog(BP_PAYLOADTOOLARGE, "Payload too large to fit inside buffer (%d %d)\n", size, paylen);
             ch->stats.lost++;
         }
 
@@ -824,7 +823,7 @@ int bplib_accept(int channel, void** payload, int* size, int timeout, uint16_t* 
         status = deqstat;
     }
 
-    /* Return Status */
+    /* Return Size of Payload in Bytes or Status on Error */
     return status;
 }
 

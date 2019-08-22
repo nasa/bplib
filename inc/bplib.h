@@ -89,7 +89,7 @@ extern "C" {
 #define BP_FLAG_CIDWENTBACKWARDS        0x0020  /* the custody ID went backwards */
 #define BP_FLAG_ROUTENEEDED             0x0040  /* the bundle returned needs to be routed before transmission */
 #define BP_FLAG_STOREFAILURE            0x0080  /* storage service failed to deliver data */
-#define BP_FLAG_MIXEDRESPONSE           0x0100  /* aggregate acknowledgement must have uniform delivery vs. forward */
+#define BP_FLAG_RESERVED02              0x0100
 #define BP_FLAG_SDNVOVERFLOW            0x0200  /* insufficient room in variable to read/write value */
 #define BP_FLAG_SDNVINCOMPLETE          0x0400  /* insufficient room in block to read/write value */
 #define BP_FLAG_ACTIVETABLEWRAP         0x0800  /* the active table wrapped */
@@ -220,10 +220,10 @@ void    bplib_close         (int channel);
 int     bplib_config        (int channel, int mode, int opt, void* val, int len);
 int     bplib_latchstats    (int channel, bp_stats_t* stats);
 
-int     bplib_store         (int channel, void* payload, int size, int timeout, uint16_t* storflags);
-int     bplib_load          (int channel, void** bundle,  int* size, int timeout, uint16_t* loadflags); 
-int     bplib_process       (int channel, void* bundle,  int size, int timeout, uint16_t* procflags);
-int     bplib_accept        (int channel, void** payload, int* size, int timeout, uint16_t* acptflags);
+int     bplib_store         (int channel, void* payload, int size, int timeout, uint16_t* flags);
+int     bplib_load          (int channel, void** bundle,  int size, int timeout, uint16_t* flags); 
+int     bplib_process       (int channel, void* bundle,  int size, int timeout, uint16_t* flags);
+int     bplib_accept        (int channel, void** payload, int size, int timeout, uint16_t* flags);
 
 int     bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
 int     bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
