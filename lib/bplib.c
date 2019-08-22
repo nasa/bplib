@@ -801,7 +801,6 @@ int bplib_accept(int channel, void** payload, int size, int timeout, uint16_t* f
                 memcpy(*payload, payptr, paylen);
                 status = paylen;
                 ch->stats.delivered++;
-                status = BP_SUCCESS;
             }
             else
             {
