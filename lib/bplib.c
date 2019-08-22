@@ -454,7 +454,7 @@ int bplib_load(int channel, void** bundle, int size, int timeout, uint16_t* flag
     /* Check Parameters */
     if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(bundle == NULL || size == NULL)         return BP_PARMERR;
+    else if(bundle == NULL)                         return BP_PARMERR;
 
     /* Set Short Cuts */
     bp_channel_t*       ch              = &channels[channel];
@@ -777,7 +777,7 @@ int bplib_accept(int channel, void** payload, int size, int timeout, uint16_t* f
     /* Check Parameters */
     if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
     else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(payload == NULL || size == NULL)        return BP_PARMERR;
+    else if(payload == NULL)                        return BP_PARMERR;
 
     /* Set Shortcuts */
     bp_channel_t*   ch      = &channels[channel];

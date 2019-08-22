@@ -475,7 +475,7 @@ Initiates sending the data pointed to by _payload_ as a bundle. The data will be
 
 `timeout` - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
-`flags` - flags that provide additional information on the result of the store operation (see [flags](#6-3-flag-definitions))
+`flags` - flags that provide additional information on the result of the store operation (see [flags](#6-3-flag-definitions)).  The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
 `returns` - size of bundle created in bytes, or [return code](#6-2-return-codes) on error.
 
@@ -494,7 +494,7 @@ Reads the next bundle from storage to be sent by the application over the conver
 
 `timeout` - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
-`flags` - flags that provide additional information on the result of the load operation (see [flags](#6-3-flag-definitions))
+`flags` - flags that provide additional information on the result of the load operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
 `returns` - the size of the loaded bundle or [return code](#6-2-return-codes) on error.
 
@@ -518,7 +518,7 @@ There are three types of bundles processed by this function:
 
 `timeout` - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
-`flags` - flags that provide additional information on the result of the process operation (see [flags](#6-3-flag-definitions))
+`flags` - flags that provide additional information on the result of the process operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
 `returns` - [return code](#6-2-return-codes).
 
@@ -537,7 +537,7 @@ Returns the next available bundle payload (from bundles that have been received 
 
 `timeout` - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
-`flags` - flags that provide additional information on the result of the accept operation (see [flags](#6-3-flag-definitions))
+`flags` - flags that provide additional information on the result of the accept operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
 `returns` - size of bundle payload in bytes, or [return code](#6-2-return-codes) on error.
 
