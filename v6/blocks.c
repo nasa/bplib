@@ -229,7 +229,6 @@ int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay
     bp_blk_bib_t*           bib             = &blocks->integrity_block;
     bp_blk_pay_t*           pay             = &blocks->payload_block;
 
-
     /* Update Payload Block */
     pay->payptr = pay_buf;
     pay->paysize = pay_len;
@@ -446,7 +445,7 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
             if(bib_present)
             {
                 status = bib_verify(pay_blk.payptr, pay_blk.paysize, &bib_blk, flags);
-                if(status != BP_SUCCESS) return bplog(status, "Bundle failed integrity check\n");
+                if(status != BP_SUCCESS) return bplog(status, "Bundle failed integrity check, type: %d\n", bib_blk.cipher_suite_id.value);
             }
 
             /* Check Size of Payload */
