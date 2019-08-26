@@ -63,7 +63,7 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_store_t store, b
     }
 
     /* Initialize New Bundle */
-    return v6blocks_build(bundle, NULL, NULL, 0, flags);
+    return v6_build(bundle, NULL, NULL, 0, flags);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -83,11 +83,11 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, ui
     /* Check if Re-initialization Needed */
     if(bundle->prebuilt == false)
     {
-        v6blocks_build(bundle, NULL, NULL, 0, flags);
+        v6_build(bundle, NULL, NULL, 0, flags);
     }
     
     /* Store Bundle */
-    return v6blocks_write(bundle, true, pay, pay_size, timeout, flags);
+    return v6_write(bundle, true, pay, pay_size, timeout, flags);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, ui
 int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
 {
     /* Read Bundle */
-    return v6blocks_read(bundle, block, block_size, sysnow, custodian, timeout, flags);
+    return v6_read(bundle, block, block_size, sysnow, custodian, timeout, flags);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -104,6 +104,6 @@ int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t
  *-------------------------------------------------------------------------------------*/
 int bundle_update (bp_bundle_data_t* data, uint32_t cid, uint16_t* flags)
 {
-    return v6blocks_update(data, cid, flags);
+    return v6_update(data, cid, flags);
 
 }

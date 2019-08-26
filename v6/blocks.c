@@ -102,11 +102,11 @@ static const bp_blk_pay_t bundle_pay_blk = {
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * v6blocks_build -
+ * v6_build -
  *
  *  This initializes a new bundle
  *-------------------------------------------------------------------------------------*/
-int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags)
+int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags)
 {
     int status;
     int hdr_index;
@@ -217,9 +217,9 @@ int v6blocks_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int
 }
 
 /*--------------------------------------------------------------------------------------
- * v6blocks_write -
+ * v6_write -
  *-------------------------------------------------------------------------------------*/
-int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags)
+int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags)
 {
     int                     status          = 0;
     int                     payload_offset  = 0;
@@ -305,9 +305,9 @@ int v6blocks_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay
 }
 
 /*--------------------------------------------------------------------------------------
- * v6blocks_read -
+ * v6_read -
  *-------------------------------------------------------------------------------------*/
-int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
+int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
 {
     int                 status = BP_SUCCESS;
 
@@ -487,11 +487,11 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
                 }
 
                 /* Initialize Forwarded Bundle */
-                status = v6blocks_build(bundle, &pri_blk, hdr_buf, hdr_index, flags);
+                status = v6_build(bundle, &pri_blk, hdr_buf, hdr_index, flags);
                 if(status == BP_SUCCESS)
                 {
                     /* Store Forwarded Bundle */
-                   status = v6blocks_write(bundle, false, pay_blk.payptr, pay_blk.paysize, timeout, flags);
+                   status = v6_write(bundle, false, pay_blk.payptr, pay_blk.paysize, timeout, flags);
                 }
 
                 /* Handle Custody Transfer */
@@ -572,9 +572,9 @@ int v6blocks_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t 
 }
 
 /*--------------------------------------------------------------------------------------
- * v6blocks_update -
+ * v6_update -
  *-------------------------------------------------------------------------------------*/
-int v6blocks_update(bp_bundle_data_t* data, uint32_t cid, uint16_t* flags)
+int v6_update(bp_bundle_data_t* data, uint32_t cid, uint16_t* flags)
 {
     data->cidsdnv.value = cid;
 

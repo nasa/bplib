@@ -98,10 +98,10 @@ int     bundle_receive      (bp_bundle_t* bundle, uint8_t* block, int block_size
 int     bundle_update       (bp_bundle_data_t* data, uint32_t cid, uint16_t* flags);
 
 /* v6 bundle functions */
-int     v6blocks_build      (bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags);
-int     v6blocks_write      (bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags);
-int     v6blocks_read       (bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
-int     v6blocks_update     (bp_bundle_data_t* data, uint32_t cid, uint16_t* flags);
+int     v6_build            (bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags);
+int     v6_write            (bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags);
+int     v6_read             (bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
+int     v6_update           (bp_bundle_data_t* data, uint32_t cid, uint16_t* flags);
 
 
 
