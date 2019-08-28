@@ -126,6 +126,8 @@ Constant static data structures declared in the code set the size of all {node} 
 * When routing bundles, the BP library will associate any bundle with a destination {node} that matches its local {node} number as being destined for itself and will then require that the {service} number matches the channel's {service} number that it is being processed on.  Any bundle with a {node} that is different than its local {node} number is treated as a bundle that needs to be routed.
 * A service number of 0 is considered a global service and is allowed to be passed to any channel associated with the node.
 
+#### 4.12 Payload Block
+* The library assumes that the last block of every bundle is the payload block and stops processing the bundle when the payload block is reached.
 
 ----------------------------------------------------------------------
 ## 5. Bundle Formats
