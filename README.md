@@ -645,7 +645,7 @@ Initialize an attribute structure with the library default values.  This is usef
 | BP_FLAG_SDNVINCOMPLETE   | 0x0400 | There was insufficient room in block to read/write value |
 | BP_FLAG_ACTIVETABLEWRAP  | 0x0800 | The active table wrapped; see BP_OPT_WRAP_RESPONSE |
 | BP_FLAG_DUPLICATES       | 0x1000 | The custody ID was already acknowledged |
-| BP_FLAG_RBTREEFULL       | 0x0800 | An aggregate custody signal was generated due the number of custody ID gaps exceeded the maximum allowed |
+| BP_FLAG_RBTREEFULL       | 0x2000 | An aggregate custody signal was generated due the number of custody ID gaps exceeded the maximum allowed |
 
 ----------------------------------------------------------------------
 ## 7. Storage Service

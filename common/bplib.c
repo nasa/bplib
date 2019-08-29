@@ -193,7 +193,7 @@ int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
                 if(status != BP_SUCCESS) break;
                 
                 /* Initialize Active Table */
-                ch->active_table_signal  = bplib_os_createlock();
+                ch->active_table_signal = bplib_os_createlock();
                 if(ch->active_table_signal < 0)
                 {
                     status = bplog(BP_FAILEDOS, "Failed to create lock for active table \n");
