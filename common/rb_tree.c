@@ -370,9 +370,7 @@ static rb_node_t* create_rb_node(uint32_t value, bool color, rb_tree_t* tree)
  * child_ptr: A ptr to a ptr owned by parent that will be assigned to its new child node. 
  *      This ptr should correspond to either parent->left or parent->right. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static void insert_child(rb_node_t* node,
-                         rb_node_t* parent,
-                         rb_node_t** child_ptr)
+static void insert_child(rb_node_t* node, rb_node_t* parent, rb_node_t** child_ptr)
 {
     node->parent = parent;
     *child_ptr = node;
@@ -1329,15 +1327,21 @@ rb_tree_status_t rb_tree_delete(uint32_t value, rb_tree_t* tree)
 rb_tree_status_t rb_tree_destroy(rb_tree_t* tree)
 {
     if (tree == NULL) return RB_FAIL_NULL_TREE;
-    free(tree->node_block);
-    tree->node_block = NULL;
+    
+    if(tree->node_block != NULL) 
+    {
+        free(tree->node_block);
+        tree->node_block = NULL;
+    }
+    
     return RB_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
- * rb_tree_get_first_rb_node - Traverses a rb_tree_t inorder and finds the node
- *      with the lowest value to serve as an iterator.
-
+ * rb_tree_get_first - Traverses a rb_tree_t inorder and finds the node
+ *      with the lowest value to serve as an iterator. This must be called to prepare 
+ *      the tree before future iteration calls to rb_tree_get_next.
+ * 
  * tree: A ptr to a rb_tree_t to identify the lowest range. [OUTPUT]
  * iter: A ptr of a ptr to the next rb_node_t node from which to continue the inorder 
  *      traversal of the tree. After each call to this function iter is updated. If iter is 
@@ -1345,8 +1349,7 @@ rb_tree_status_t rb_tree_destroy(rb_tree_t* tree)
  *      will result in a NULL rb_range_t ptr. [OUTPUT]
  * returns: A status indicating the outcome of the function call.
  *--------------------------------------------------------------------------------------*/ 
-rb_tree_status_t rb_tree_get_first_rb_node(rb_tree_t* tree,
-                                                   rb_node_t** iter)
+rb_tree_status_t rb_tree_get_first(rb_tree_t* tree, rb_node_t** iter )
 {
     if (tree == NULL)
     {
@@ -1375,7 +1378,7 @@ rb_tree_status_t rb_tree_get_first_rb_node(rb_tree_t* tree,
 }
 
  /*--------------------------------------------------------------------------------------
- * rb_tree_get_next_rb_node - Traverses a rb_tree_t inorder and returns the
+ * rb_tree_get_next - Traverses a rb_tree_t inorder and returns the
  *      the ranges within the tree. This function performs no rebalancing and therefore if
  *      should_pop is true and should_rebalance is false, it should be called until no 
  *      nodes remain in the tree to ensure that the tree's operation does not degrade.
@@ -1394,11 +1397,7 @@ rb_tree_status_t rb_tree_get_first_rb_node(rb_tree_t* tree,
  *      or else the tree is no longer garunteed to operate properly.
  * returns: A status indicating the outcome of the function call.
  *--------------------------------------------------------------------------------------*/ 
-rb_tree_status_t rb_tree_get_next_rb_node(rb_tree_t* tree,
-                                                   rb_node_t** iter, 
-                                                   rb_range_t* range,
-                                                   bool should_pop,
-                                                   bool should_rebalance)
+rb_tree_status_t rb_tree_get_next(rb_tree_t* tree, rb_node_t** iter, rb_range_t* range, bool should_pop, bool should_rebalance)
 {
     if (*iter == NULL)
     {
@@ -1423,7 +1422,7 @@ rb_tree_status_t rb_tree_get_next_rb_node(rb_tree_t* tree,
     {
         /* Remove the node and rebalance the tree. Iter must be recalculated. */
         delete_rb_node(tree, delete_node);
-        rb_tree_get_first_rb_node(tree, iter);
+        rb_tree_get_first(tree, iter);
         return RB_SUCCESS;
     }
 

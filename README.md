@@ -314,16 +314,14 @@ __Note__: _functions that operate on a channel are thread-safe with other functi
 ----------------------------------------------------------------------
 ##### Initialize
 
-`void bplib_init (int max_channels)`
+`void bplib_init (void)`
 
 Initializes the BP library.  This must be called before any other call to the library is made.  It calls the operating system layer initialization routine.
-
-`max_channels` - the number of channels that the library supports.  Inside this function the array of channel descriptors are dynamically allocated on the heap.
 
 ----------------------------------------------------------------------
 ##### Open Channel
 
-`int bplib_open (bp_route_t route, bp_store_t store, bp_attr_t* attributes)`
+`bp_desc_t bplib_open (bp_route_t route, bp_store_t store, bp_attr_t* attributes)`
 
 Opens a bundle channel that uses the provided endpoint IDs, storage service, and attributes. 
 
@@ -377,12 +375,12 @@ This function returns a channel handle that is used for all future operations on
 
 * __storage_service_parm__: A pass through to the storage service `create` function.
 
-`returns` - channel ID. 
+`returns` - channel descriptor. 
 
 ----------------------------------------------------------------------
 ##### Close Channel
 
-`void bplib_close (int channel)`
+`void bplib_close (bp_desc_t channel)`
 
 Closes the specified bundle channel and releases all run-time resources associated with it; this does not include the bundles stored in the storage service.  The close call is not mutex'ed against other channel operations - it is the caller's responsibility that the close call is made non-concurrently with any other library function call on that channel.
 
@@ -391,7 +389,7 @@ Closes the specified bundle channel and releases all run-time resources associat
 ----------------------------------------------------------------------
 ##### Config Channel
 
-`int bplib_config (int channel, int mode, int opt, void* val, int len)`
+`int bplib_config (bp_desc_t channel, int mode, int opt, void* val, int len)`
 
 Configures or retrieves an attribute on a channel.
 
@@ -430,7 +428,7 @@ __NOTE__: _transmitted_ bundles include both bundles generated on the channel fr
 ----------------------------------------------------------------------
 ##### Latch Statistics
 
-`int bplib_latchstats (int channel, bp_stats_t* stats)`
+`int bplib_latchstats (bp_desc_t channel, bp_stats_t* stats)`
 
 Retrieve channel statistics populated in the structure pointed to by _stats_.
 
@@ -465,7 +463,7 @@ Retrieve channel statistics populated in the structure pointed to by _stats_.
 ----------------------------------------------------------------------
 ##### Store Payload
 
-`int bplib_store (int channel, void* payload, int size, int timeout, uint16_t* flags)`
+`int bplib_store (bp_desc_t channel, void* payload, int size, int timeout, uint16_t* flags)`
 
 Initiates sending the data pointed to by _payload_ as a bundle. The data will be encapsulated in a bundle (or many bundles if the channel allows fragmentation and the payload exceeds the maximum bundle length) and queued in storage for later retrieval and transmission.
 
@@ -484,7 +482,7 @@ Initiates sending the data pointed to by _payload_ as a bundle. The data will be
 ----------------------------------------------------------------------
 ##### Load Bundle
 
-`int bplib_load (int channel, void** bundle,  int size, int timeout, uint16_t* flags)`
+`int bplib_load (bp_desc_t channel, void** bundle,  int size, int timeout, uint16_t* flags)`
 
 Reads the next bundle from storage to be sent by the application over the convergence layer.  From the perspective of the library, once a bundle is loaded to the application, it is as good as sent.  Any failure of the application to send the bundle is treated no differently that a failure downstream in the bundle reaching its destination. 
 
@@ -503,7 +501,7 @@ Reads the next bundle from storage to be sent by the application over the conver
 ----------------------------------------------------------------------
 ##### Process Bundle
 
-`int bplib_process (int channel, void* bundle,  int size, int timeout, uint16_t* flags)`
+`int bplib_process (bp_desc_t channel, void* bundle,  int size, int timeout, uint16_t* flags)`
 
 Processes the provided bundle.
 
@@ -527,7 +525,7 @@ There are three types of bundles processed by this function:
 ----------------------------------------------------------------------
 ##### Accept Payload
 
-`int bplib_accept (int channel, void** payload, int size, int timeout, uint16_t* flags)`
+`int bplib_accept (bp_desc_t channel, void** payload, int size, int timeout, uint16_t* flags)`
 
 Returns the next available bundle payload (from bundles that have been received and processed via the `bplib_process` function) to the application by populating the structure pointed to by the _payload_ pointer.
 
@@ -604,15 +602,15 @@ Initialize an attribute structure with the library default values.  This is usef
 | ----------------------- | ----- | ----------- |
 | BP_SUCCESS              | 1     | Operation successfully performed |
 | BP_TIMEOUT              | 0     | A timeout occurred when a blocking operation was performed |
-| BP_PARMERR              | -1    | Parameter passed into function was invalid |
-| BP_UNSUPPORTED          | -2    | A valid bundle could not be processed by the library because the requested functionality is not yet implemented |
-| BP_EXPIRED              | -3    | A bundle expired due to its lifetime and was deleted |
-| BP_DROPPED              | -4    | A bundle was dropped because it could not be processed |
-| BP_CHANNELSFULL         | -5    | A channel could not be opened because the maximum number of open channels was reached |
+| BP_ERROR                | -1    | Generic error occurred; further information provided in flags to determine root cause |
+| BP_PARMERR              | -2    | Parameter passed into function was invalid |
+| BP_UNSUPPORTED          | -3    | A valid bundle could not be processed by the library because the requested functionality is not yet implemented |
+| BP_EXPIRED              | -4    | A bundle expired due to its lifetime and was deleted |
+| BP_DROPPED              | -5    | A bundle was dropped because it could not be processed |
 | BP_INVALIDHANDLE        | -6    | The handle passed into a storage service function was invalid |
 | BP_OVERFLOW             | -7    | An SDNV was not able to be written or read due to their being insufficient space in the variable or bundle buffer |
 | BP_WRONGVERSION         | -8    | The primary block bundle version number did not match the CCSDS recommended version |
-| BP_BUNDLEPARSEERR       | -9   | An error was encountered when trying to read or write a bundle, usually associated with either an SDNV overflow or a buffer that is too small |
+| BP_BUNDLEPARSEERR       | -9    | An error was encountered when trying to read or write a bundle, usually associated with either an SDNV overflow or a buffer that is too small |
 | BP_UNKNOWNREC           | -10   | The administrative record type was unrecognized by the library |
 | BP_BUNDLETOOLARGE       | -11   | The size of the bundle exceeded the maximum size bundle that is able to be processed by the library |
 | BP_PAYLOADTOOLARGE      | -12   | The size of the payload exceeded the maximum size payload that is able to be processed by the library |

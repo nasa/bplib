@@ -41,7 +41,7 @@ static int custody_enqueue(bp_custody_t* custody, uint32_t sysnow, int timeout, 
 
     /* If the tree has nodes, initialize the iterator for traversing the tree in order */
     rb_node_t* iter;
-    rb_tree_get_first_rb_node(&custody->tree, &iter);
+    rb_tree_get_first(&custody->tree, &iter);
 
     /* Continue to delete nodes from the tree and write them to DACS until the tree is empty */
     while (!rb_tree_is_empty(&custody->tree))
@@ -86,7 +86,10 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store
     custody->attributes.request_custody = false;
     custody->attributes.admin_record = true;
     custody->last_time = 0;
-    
+    custody->lock = BP_INVALID_HANDLE;
+    custody->recbuf = 0;
+    custody->tree.max_size = 0;
+            
     /* Initialize DACS Bundle */    
     route.destination_node = 0;
     route.destination_service = 0;
@@ -101,14 +104,14 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store
     
     /* Create DACS Lock */
     custody->lock = bplib_os_createlock();
-    if(custody->lock < 0)
+    if(custody->lock == BP_INVALID_HANDLE)
     {
         custody_uninitialize(custody);
         return bplog(BP_FAILEDOS, "Failed to create a lock for custody processing\n");
     }
 
     /* Allocate Memory for Channel DACS Bundle Fills */
-    custody->recbuf_size = sizeof(uint16_t) * custody->bundle.attributes->max_fills_per_dacs + 32; // 2 bytes per fill plus payload block header
+    custody->recbuf_size = sizeof(uint16_t) * custody->bundle.attributes->max_fills_per_dacs + 6; // 2 bytes per fill plus payload block header
     custody->recbuf = (uint8_t*)malloc(custody->recbuf_size); 
     if(custody->recbuf == NULL)
     {
@@ -139,25 +142,24 @@ void custody_uninitialize(bp_custody_t* custody)
     if(custody)
     {
         /* Destroy Lock */
-        if(custody->lock >= 0)
+        if(custody->lock != BP_INVALID_HANDLE)
         {
             bplib_os_destroylock(custody->lock);
+            custody->lock = BP_INVALID_HANDLE;
         }
         
-        /* Uninitialize Bundle */
+        /* Un-initialize Bundle */
         bundle_uninitialize(&custody->bundle);
         
         /* Free Buffer for DACS */
         if(custody->recbuf)
         {
             free(custody->recbuf);
+            custody->recbuf = NULL;
         }
 
         /* Free Tree */
-        if(custody->tree.max_size > 0) 
-        {
-            rb_tree_destroy(&custody->tree);
-        }
+        rb_tree_destroy(&custody->tree);
     }    
 }
 

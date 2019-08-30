@@ -33,6 +33,10 @@ extern "C" {
  DEFINES
  ******************************************************************************/
 
+/* Handles and Descriptors */
+#define BP_INVALID_HANDLE               (-1)    // used for integers (os locks, storage services)
+#define BP_INVALID_DESCRIPTOR           NULL    // used for pointers (channels)
+    
 /* Timeouts */
 #define BP_PEND                         (-1)
 #define BP_CHECK                        0
@@ -40,9 +44,8 @@ extern "C" {
 /* Endpoint ID Strings */    
 #define BP_MAX_EID_STRING               128
 
-    /* Storage ID Special Values */
+/* Storage IDs */
 #define BP_SID_VACANT                   0
-#define BP_INVALID_HANDLE               (-1)
 
 /* Wrap Responses */
 #define BP_WRAP_RESEND                  0
@@ -57,11 +60,11 @@ extern "C" {
 /* Return Codes */            
 #define BP_SUCCESS                      1
 #define BP_TIMEOUT                      0
-#define BP_PARMERR                      (-1)
-#define BP_UNSUPPORTED                  (-2)
-#define BP_EXPIRED                      (-3)
-#define BP_DROPPED                      (-4)
-#define BP_CHANNELSFULL                 (-5)
+#define BP_ERROR                        (-1)
+#define BP_PARMERR                      (-2)
+#define BP_UNSUPPORTED                  (-3)
+#define BP_EXPIRED                      (-4)
+#define BP_DROPPED                      (-5)
 #define BP_INVALIDHANDLE                (-6)
 #define BP_OVERFLOW                     (-7)
 #define BP_WRONGVERSION                 (-8)
@@ -79,7 +82,7 @@ extern "C" {
 #define BP_INVALIDCIPHERSUITEID         (-20)
 #define BP_PENDINGACKNOWLEDGMENT        (-21)
 #define BP_PENDINGCUSTODYTRANSFER       (-22)
-    
+
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
 #define BP_FLAG_INCOMPLETE              0x0002  /* block in bundle was not recognized */
@@ -127,14 +130,17 @@ extern "C" {
 #define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
 
 /* Default Fixed Configuration */
-#define BP_DEFAULT_MAX_CHANNELS         4
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
-
+#define BP_DEFAULT_STORAGE_SERVICE_PARM NULL
+    
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
+
+/* Channel Descriptor */
+typedef void* bp_desc_t;
 
 /* IPN Schema Endpoint ID Integer Definition */
 typedef uint32_t bp_ipn_t;
@@ -213,22 +219,23 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-void    bplib_init          (int max_channels);
-int     bplib_open          (bp_route_t route, bp_store_t store, bp_attr_t* attributes);
-void    bplib_close         (int channel);
+void        bplib_init          (void);
 
-int     bplib_config        (int channel, int mode, int opt, void* val, int len);
-int     bplib_latchstats    (int channel, bp_stats_t* stats);
+bp_desc_t   bplib_open          (bp_route_t route, bp_store_t store, bp_attr_t* attributes);
+void        bplib_close         (bp_desc_t channel);
 
-int     bplib_store         (int channel, void* payload, int size, int timeout, uint16_t* flags);
-int     bplib_load          (int channel, void** bundle,  int size, int timeout, uint16_t* flags); 
-int     bplib_process       (int channel, void* bundle,  int size, int timeout, uint16_t* flags);
-int     bplib_accept        (int channel, void** payload, int size, int timeout, uint16_t* flags);
+int         bplib_config        (bp_desc_t channel, int mode, int opt, void* val, int len);
+int         bplib_latchstats    (bp_desc_t channel, bp_stats_t* stats);
 
-int     bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
-int     bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
-int     bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
-int     bplib_attrinit      (bp_attr_t* attr);
+int         bplib_store         (bp_desc_t channel, void* payload, int size, int timeout, uint16_t* flags);
+int         bplib_load          (bp_desc_t channel, void** bundle,  int size, int timeout, uint16_t* flags); 
+int         bplib_process       (bp_desc_t channel, void* bundle,  int size, int timeout, uint16_t* flags);
+int         bplib_accept        (bp_desc_t channel, void** payload, int size, int timeout, uint16_t* flags);
+
+int         bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
+int         bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
+int         bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
+int         bplib_attrinit      (bp_attr_t* attr);
 
 #ifdef __cplusplus
 } // extern "C"

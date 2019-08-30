@@ -1,4 +1,4 @@
-/************************************************************************
+ /************************************************************************
  * File: bundle.c
  *
  *  Copyright 2019 United States Government as represented by the 
@@ -36,7 +36,7 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_store_t store, b
     bundle->route               = route;
     bundle->store               = store;
     bundle->attributes          = attributes;
-    bundle->bundle_handle       = BP_INVALID_HANDLE;    
+    bundle->bundle_handle       = BP_INVALID_HANDLE;
     bundle->payload_handle      = BP_INVALID_HANDLE;
     
     /* Initialize Bundle Store */
@@ -71,8 +71,17 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_store_t store, b
  *-------------------------------------------------------------------------------------*/
 void bundle_uninitialize(bp_bundle_t* bundle)
 {
-    if(bundle->bundle_handle >= 0) bundle->store.destroy(bundle->bundle_handle);
-    if(bundle->payload_handle >= 0) bundle->store.destroy(bundle->payload_handle);
+    if(bundle->bundle_handle >= 0)
+    {
+        bundle->store.destroy(bundle->bundle_handle);
+        bundle->bundle_handle = BP_INVALID_HANDLE;
+    }
+    
+    if(bundle->payload_handle >= 0)
+    {
+        bundle->store.destroy(bundle->payload_handle);
+        bundle->payload_handle = BP_INVALID_HANDLE;
+    }
 }
 
 /*--------------------------------------------------------------------------------------

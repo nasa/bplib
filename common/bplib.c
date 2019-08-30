@@ -38,8 +38,9 @@
 #define LIBID                           "unversioned"
 #endif
 
-#define BP_EMPTY                        (-1)
+#ifndef BP_WRAP_TIMEOUT
 #define BP_WRAP_TIMEOUT                 1000    /* milliseconds */
+#endif
 
 /******************************************************************************
  TYPEDEFS
@@ -53,7 +54,6 @@ typedef struct {
 
 /* Channel Control Block */
 typedef struct {
-    int                 index;
     bp_attr_t           attributes;
     bp_bundle_t         bundle;
     bp_custody_t        custody;
@@ -83,16 +83,8 @@ static const bp_attr_t default_attributes = {
     .active_table_size      = BP_DEFAULT_ACTIVE_TABLE_SIZE,
     .max_fills_per_dacs     = BP_DEFAULT_MAX_FILLS_PER_DACS,
     .max_gaps_per_dacs      = BP_DEFAULT_MAX_GAPS_PER_DACS,
-    .storage_service_parm   = NULL
+    .storage_service_parm   = BP_DEFAULT_STORAGE_SERVICE_PARM
 };
-
-/******************************************************************************
- FILE DATA
- ******************************************************************************/
-
-static bp_channel_t* channels;
-static int channels_max;
-static int channels_lock;
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -124,35 +116,19 @@ static int acknowledge(void* parm, uint32_t cid)
 /*--------------------------------------------------------------------------------------
  * bplib_init - initializes bp library
  *-------------------------------------------------------------------------------------*/
-void bplib_init(int max_channels)
+void bplib_init(void)
 {
-    int i;
-
     /* Initialize OS Interface */
     bplib_os_init();
     
     /* Initialize the Bundle Integrity Block Module */
     bib_init();
-
-    /* Create Channel Lock */
-    channels_lock = bplib_os_createlock();
-
-    /* Allocate Channel Memory */
-    if(max_channels <= 0)   channels_max = BP_DEFAULT_MAX_CHANNELS;
-    else                    channels_max = max_channels;
-    channels = (bp_channel_t*)malloc(channels_max * sizeof(bp_channel_t));
-
-    /* Set All Channel Control Blocks to Empty */
-    for(i = 0; i < channels_max; i++)
-    {
-        channels[i].index = BP_EMPTY;
-    }
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_open -
  *-------------------------------------------------------------------------------------*/
-int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
+bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
 {
     assert(store.create);
     assert(store.destroy);
@@ -161,120 +137,98 @@ int bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     assert(store.retrieve);
     assert(store.relinquish);
     assert(store.getcount);
-
-    int i, status;
-    uint16_t flags = 0;
-    bp_channel_t* ch = NULL;
     
-    bplib_os_lock(channels_lock);
-    {
-        /* Find open channel slot */
-        for(i = 0; i < channels_max; i++)
-        {
-            if(channels[i].index == BP_EMPTY)
-            {
-                /* Set Channel */
-                ch = &channels[i];
-                
-                /* Clear Channel Memory and Initialize to Defaults */
-                memset(ch, 0, sizeof(bp_channel_t));
-                ch->active_table_signal = BP_INVALID_HANDLE;
-                
-                /* Set Initial Attributes */
-                if(attributes)  ch->attributes = *attributes;
-                else            ch->attributes = default_attributes;
-
-                /* Initialize Bundle */
-                status = bundle_initialize(&ch->bundle, route, store, &ch->attributes, true, &flags);
-                if(status != BP_SUCCESS) break;
-                
-                /* Initialize DACS */
-                status = custody_initialize(&ch->custody, route, store, &ch->attributes, &flags);
-                if(status != BP_SUCCESS) break;
-                
-                /* Initialize Active Table */
-                ch->active_table_signal = bplib_os_createlock();
-                if(ch->active_table_signal < 0)
-                {
-                    status = bplog(BP_FAILEDOS, "Failed to create lock for active table \n");
-                    break;
-                }
-
-                /* Allocate Memory for Active Table */
-                ch->active_table = (bp_active_table_t*)malloc(sizeof(bp_active_table_t) * ch->attributes.active_table_size);
-                if(ch->active_table == NULL)
-                {
-                    status = bplog(BP_FAILEDMEM, "Failed to allocate memory for channel active table\n");
-                    break;
-                }
-                else
-                {
-                    memset(ch->active_table, 0, sizeof(bp_active_table_t) * ch->attributes.active_table_size);
-                }
-                
-                /* Initialize Data */
-                ch->oldest_active_cid   = 1;
-                ch->current_active_cid  = 1;
-                ch->index               = i;
-
-                /* Exit Loop - Success */
-                break;
-            }
-        }
-    }
-    bplib_os_unlock(channels_lock);
-
-    /* Handle Failures */
+    /* Allocate Channel */
+    bp_channel_t* ch = (bp_channel_t*)malloc(sizeof(bp_channel_t));
     if(ch == NULL)
     {
-        return bplog(BP_CHANNELSFULL, "Cannot open channel, not enough room\n");
+        bplog(BP_FAILEDMEM, "Cannot open channel: not enough memory\n");
+        return NULL;
     }
-    else if(ch->index == BP_EMPTY) /* Loop Exited Early */
+
+    /* Clear Channel Memory and Initialize to Defaults */
+    memset(ch, 0, sizeof(bp_channel_t));
+    ch->active_table_signal = BP_INVALID_HANDLE;
+
+    /* Set Initial Attributes */
+    if(attributes)  ch->attributes = *attributes;
+    else            ch->attributes = default_attributes;
+
+    /* Initialize Bundle and Custody Modules 
+     *  NOTE: this must occur first and together so that future calls to 
+     *  un-initialize are safe to make.
+     */
+    uint16_t flags = 0;
+    int bundle_status = bundle_initialize(&ch->bundle, route, store, &ch->attributes, true, &flags);
+    int custody_status = custody_initialize(&ch->custody, route, store, &ch->attributes, &flags);
+    if(bundle_status != BP_SUCCESS || custody_status != BP_SUCCESS)
     {
-        bplib_close(i);
-        return status;
+        bplog(BP_ERROR, "Failed to initialize channel, flags=%0X\n", flags);
+        bplib_close(ch);
+        return NULL;
     }
-    else /* Return Channel */
+
+    /* Initialize Active Table */
+    ch->active_table_signal = bplib_os_createlock();
+    if(ch->active_table_signal < 0)
     {
-        return ch->index;
+        bplib_close(ch);
+        bplog(BP_FAILEDOS, "Failed to create lock for active table\n");
+        return NULL;
     }
+
+    /* Allocate Memory for Active Table */
+    ch->active_table = (bp_active_table_t*)malloc(sizeof(bp_active_table_t) * ch->attributes.active_table_size);
+    if(ch->active_table == NULL)
+    {
+        bplib_close(ch);
+        bplog(BP_FAILEDMEM, "Failed to allocate memory for channel active table\n");
+        return NULL;
+    }
+    else
+    {
+        memset(ch->active_table, 0, sizeof(bp_active_table_t) * ch->attributes.active_table_size);
+    }
+
+    /* Initialize Data */
+    ch->oldest_active_cid   = 1;
+    ch->current_active_cid  = 1;
+
+    /* Return Channel */
+    return ch;
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_close -
  *-------------------------------------------------------------------------------------*/
-void bplib_close(int channel)
+void bplib_close(bp_desc_t channel)
 {
-    if(channel >= 0 && channel < channels_max && channels[channel].index != BP_EMPTY)
-    {
-        bp_channel_t* ch = &channels[channel];
-        bplib_os_lock(channels_lock);
-        {
-            if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
-            
-            bundle_uninitialize(&ch->bundle);
-            custody_uninitialize(&ch->custody);
-                   
-            if(ch->active_table) free(ch->active_table);
-                    
-            ch->index = BP_EMPTY;
-        }
-        bplib_os_unlock(channels_lock);
-    }
+    /* Check Parameters */
+    if(channel == NULL) return;
+    
+    /* Get Channel */
+    bp_channel_t* ch = (bp_channel_t*)channel;
+    
+    /* Un-initialize Active Table */
+    if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
+    if(ch->active_table) free(ch->active_table);
+
+    /* Un-initialize Bundle and Custody Modules */
+    bundle_uninitialize(&ch->bundle);
+    custody_uninitialize(&ch->custody);
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_config -
  *-------------------------------------------------------------------------------------*/
-int bplib_config(int channel, int mode, int opt, void* val, int len)
+int bplib_config(bp_desc_t channel, int mode, int opt, void* val, int len)
 {
     /* Check Parameters */
-    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
-    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(val == NULL)                            return BP_PARMERR;
+    if(channel == NULL)     return BP_PARMERR;
+    else if(val == NULL)    return BP_PARMERR;
     
-    /* Set Shortcut to Channel */
-    bp_channel_t* ch = &channels[channel];
+    /* Get Channel */
+    bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Set Mode */
     bool setopt = mode == BP_OPT_MODE_WRITE ? true : false;
@@ -393,15 +347,14 @@ int bplib_config(int channel, int mode, int opt, void* val, int len)
 /*--------------------------------------------------------------------------------------
  * bplib_latchstats -
  *-------------------------------------------------------------------------------------*/
-int bplib_latchstats(int channel, bp_stats_t* stats)
+int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
 {
      /* Check Parameters */
-    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
-    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(stats == NULL)                          return BP_PARMERR;
+    if(channel == NULL)     return BP_PARMERR;
+    else if(stats == NULL)  return BP_PARMERR;
 
-    /* Shortcut to Channel */
-    bp_channel_t* ch = &channels[channel];
+    /* Get Channel */
+    bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Update Store Counts */
     ch->stats.bundles = ch->bundle.store.getcount(ch->bundle.bundle_handle);
@@ -421,17 +374,16 @@ int bplib_latchstats(int channel, bp_stats_t* stats)
 /*--------------------------------------------------------------------------------------
  * bplib_store -
  *-------------------------------------------------------------------------------------*/
-int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* flags)
+int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_t* flags)
 {
     int status;
 
-    /* Check Parameters */
-    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
-    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(payload == NULL)                        return BP_PARMERR;
+     /* Check Parameters */
+    if(channel == NULL)         return BP_PARMERR;
+    else if(payload == NULL)    return BP_PARMERR;
 
-    /* Set Short Cuts */
-    bp_channel_t* ch = &channels[channel];
+    /* Get Channel */
+    bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Lock Data Bundle */
     status = bundle_send(&ch->bundle, payload, size, timeout, flags);
@@ -444,17 +396,16 @@ int bplib_store(int channel, void* payload, int size, int timeout, uint16_t* fla
 /*--------------------------------------------------------------------------------------
  * bplib_load -
  *-------------------------------------------------------------------------------------*/
-int bplib_load(int channel, void** bundle, int size, int timeout, uint16_t* flags)
+int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS; /* size of bundle returned or error code */
 
     /* Check Parameters */
-    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
-    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(bundle == NULL)                         return BP_PARMERR;
+    if(channel == NULL)     return BP_PARMERR;
+    else if(bundle == NULL) return BP_PARMERR;
 
-    /* Set Short Cuts */
-    bp_channel_t*       ch              = &channels[channel];
+    /* Get Channel */
+    bp_channel_t* ch = (bp_channel_t*)channel;
     
     /* Setup State */
     uint32_t            sysnow          = bplib_os_systime();   /* get current system time (used for timeouts, seconds) */
@@ -709,17 +660,16 @@ int bplib_load(int channel, void** bundle, int size, int timeout, uint16_t* flag
 /*--------------------------------------------------------------------------------------
  * bplib_process -
  *-------------------------------------------------------------------------------------*/
-int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* flags)
+int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16_t* flags)
 {
     int status;
 
     /* Check Parameters */
-    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
-    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(bundle == NULL)                         return BP_PARMERR;
+    if(channel == NULL)     return BP_PARMERR;
+    else if(bundle == NULL) return BP_PARMERR;
 
-    /* Set Short Cuts */
-    bp_channel_t* ch = &channels[channel];
+    /* Get Channel */
+    bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Count Reception */
     ch->stats.received++;
@@ -765,19 +715,20 @@ int bplib_process(int channel, void* bundle, int size, int timeout, uint16_t* fl
  *
  *  Returns success if payload copied, or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
-int bplib_accept(int channel, void** payload, int size, int timeout, uint16_t* flags)
+int bplib_accept(bp_desc_t channel, void** payload, int size, int timeout, uint16_t* flags)
 {
     (void)flags;
     
     int status, deqstat;
 
     /* Check Parameters */
-    if(channel < 0 || channel >= channels_max)      return BP_PARMERR;
-    else if(channels[channel].index == BP_EMPTY)    return BP_PARMERR;
-    else if(payload == NULL)                        return BP_PARMERR;
+    if(channel == NULL)         return BP_PARMERR;
+    else if(payload == NULL)    return BP_PARMERR;
 
-    /* Set Shortcuts */
-    bp_channel_t*   ch      = &channels[channel];
+    /* Get Channel */
+    bp_channel_t* ch = (bp_channel_t*)channel;
+
+    /* Setup Variables */
     uint8_t*        payptr  = NULL;
     int             paylen  = 0;
     bp_sid_t        sid     = BP_SID_VACANT;
