@@ -54,10 +54,10 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-void bib_init      ();
-int bib_read      (void* contents, int size, bp_blk_bib_t* bib, bool update_indices, uint16_t* flags);
-int bib_write     (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uint16_t* flags);
-int bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib, uint16_t* flags);
-int bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib, uint16_t* flags);
+int     bib_init      (void);
+int     bib_read      (void* contents, int size, bp_blk_bib_t* bib, bool update_indices, uint16_t* flags);
+int     bib_write     (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uint16_t* flags);
+int     bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib, uint16_t* flags);
+int     bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib, uint16_t* flags);
 
 #endif  /* __BPLIB_BLK_BIB_H__ */

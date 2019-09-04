@@ -108,10 +108,10 @@ static uint32_t reflect32(uint32_t num)
  *-------------------------------------------------------------------------------------*/
 static uint16_t get_crc16(const uint8_t* data, uint32_t length, const crc_parameters_t* params)
 {
-    /* Check that we are always using a lookup table corresponding to the requested crc. */
     uint16_t crc = params->n_bit_params.crc16.initial_value;
     uint8_t current_byte;
     uint32_t i;
+    
     for (i = 0; i < length; i++)
     {
         current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
@@ -122,6 +122,7 @@ static uint16_t get_crc16(const uint8_t* data, uint32_t length, const crc_parame
     {
         crc = reflect16(crc);
     }
+
     /* Perform the final XOR based on the parameters. */
     return crc ^ params->n_bit_params.crc16.final_xor;
 }
@@ -139,10 +140,10 @@ static uint16_t get_crc16(const uint8_t* data, uint32_t length, const crc_parame
  *-------------------------------------------------------------------------------------*/
 static uint32_t get_crc32(const uint8_t* data, const uint32_t length, const crc_parameters_t* params)
 {
-    /* Check that we are always using a lookup table corresponding to the requested crc. */
     uint32_t crc = params->n_bit_params.crc32.initial_value;
     uint8_t current_byte;
     uint32_t i;
+    
     for (i = 0; i < length; i++)
     {
         current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
@@ -222,11 +223,11 @@ static void init_crc32_table(crc_parameters_t* params)
 int crc_init(crc_parameters_t* params)
 {
     int status;
+    
     if (params->length == 16)
     {
         init_crc16_table(params); 
         status = BP_CRC_INIT_SUCCESS;
-        
     }
     else if (params->length == 32)
     {
@@ -237,6 +238,7 @@ int crc_init(crc_parameters_t* params)
     {
         status = BP_CRC_INIT_FAIL_INVALID_LENGTH;
     }
+    
     return status;
 }
 

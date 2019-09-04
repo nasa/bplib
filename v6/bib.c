@@ -99,12 +99,21 @@ static inline void to_big_endian32(uint32_t val, uint8_t* buffer)
 /*--------------------------------------------------------------------------------------
  * bib_init - Inits the crc xor tables for all supported crc specifications.
  *-------------------------------------------------------------------------------------*/
-void bib_init ()
+int bib_init (void)
 {
-    assert(crc_init(&crc16_x25) == BP_CRC_INIT_SUCCESS);
-    assert(crc_init(&crc32_castagnoli) == BP_CRC_INIT_SUCCESS);
+    int crc16_status = crc_init(&crc16_x25);
+    int crc32_status = crc_init(&crc32_castagnoli);
+    
+    if(crc16_status == BP_CRC_INIT_SUCCESS && 
+       crc32_status == BP_CRC_INIT_SUCCESS)
+    {
+        return BP_SUCCESS;
+    }
+    else
+    {
+        return BP_ERROR;
+    }
 } 
-
 
 /*--------------------------------------------------------------------------------------
  * bib_read -
