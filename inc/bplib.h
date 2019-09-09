@@ -224,6 +224,7 @@ void        bplib_init          (void);
 bp_desc_t   bplib_open          (bp_route_t route, bp_store_t store, bp_attr_t* attributes);
 void        bplib_close         (bp_desc_t channel);
 
+int         bplib_flush         (bp_desc_t channel);
 int         bplib_config        (bp_desc_t channel, int mode, int opt, void* val, int len);
 int         bplib_latchstats    (bp_desc_t channel, bp_stats_t* stats);
 

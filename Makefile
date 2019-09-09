@@ -24,13 +24,10 @@
 #     For example, if you wanted to run AddressSanitizer via clang, issue the following
 #     commands to build the library:  
 # 
-#       make COMPILER=clang TOOLCHAIN=llvm APP_COPT=-fsanitize=address APP_LOPT=-fsanitize=address 
+#       make COMPILER=clang TOOLCHAIN=llvm USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address 
+#		sudo make COMPILER=clang TOOLCHAIN=llvm USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address install
 #
-#  3. To build the unit tests:
-#
-#       make APP_COPT=-DUNITTEST unittest
-#
-#  4. The libabi.version script controls the export of any symbols in the library.  By convention
+#  3. The libabi.version script controls the export of any symbols in the library.  By convention
 #     anything that starts with bplib_ is exported.  Run the following command to verify which
 #     symbols are available to a linking application:
 #
@@ -74,13 +71,13 @@ APP_OBJ     += file.o
 APP_OBJ     += ram.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
-APP_DEFS    ?=
+APP_DEFS    ?= $(USER_DEFS)
 
 # compiler options needed by the application
-APP_COPT    ?=
+APP_COPT    ?= $(USER_COPT)
 
 # linker options needed by the application
-APP_LOPT    ?=
+APP_LOPT    ?= $(USER_LOPT)
 
 # search path for application objects (note this is a make system variable)
 VPATH	    := $(ROOT)/common
@@ -188,11 +185,6 @@ $(INCDIR):
 	-$(MKDIR) -p $(INCDIR)
 
 prep: $(BLDDIR)
-
-unittest: clean prep exe
- 
-exe: $(ALL_OBJ)
-	$(CC) $^ $(ALL_LOPT) -o $(TGTLIB).out
 
 clean ::
 	-$(RM) -R $(BLDDIR)

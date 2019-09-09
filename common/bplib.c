@@ -216,6 +216,52 @@ void bplib_close(bp_desc_t channel)
     /* Un-initialize Bundle and Custody Modules */
     bundle_uninitialize(&ch->bundle);
     custody_uninitialize(&ch->custody);
+    
+    /* Free Channel */
+    free(ch);
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_flush -
+ *-------------------------------------------------------------------------------------*/
+int bplib_flush(bp_desc_t channel)
+{
+    /* Check Parameters */
+    if(channel == NULL) return BP_PARMERR;
+    
+    /* Get Channel */
+    bp_channel_t* ch = (bp_channel_t*)channel;
+
+    /* Send Data Bundle */
+    bp_store_t* store = &ch->bundle.store;
+    int handle = ch->bundle.bundle_handle;
+
+    /* Lock Active Table */
+    bplib_os_lock(ch->active_table_signal);
+    {
+        /* Relinquish All Active Bundles */
+        while(ch->oldest_active_cid != ch->current_active_cid)
+        {
+            /* Get Storage ID of Oldest Active Bundle */
+            int ati = ch->oldest_active_cid % ch->attributes.active_table_size;
+            bp_sid_t sid = ch->active_table[ati].sid;
+
+            /* Relinquish Bundle */
+            if(sid != BP_SID_VACANT)
+            {
+                store->relinquish(handle, sid);
+                ch->active_table[ati].sid = BP_SID_VACANT;
+                ch->stats.lost++;
+            }
+
+            /* Go To Next Active Table Entry */
+            ch->oldest_active_cid++;
+        }
+    }
+    bplib_os_unlock(ch->active_table_signal);
+
+    /* Return Success */
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------

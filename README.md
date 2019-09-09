@@ -297,7 +297,8 @@ Constant static data structures declared in the code set the size of all {node} 
 | [bplib_init](#initialize)             | Initialize the BP library - called once at program start |
 | [bplib_open](#open-channel)           | Open a channel - provides handle to channel for future channel operations |
 | [bplib_close](#close-channel)         | Close a channel |
-| [bplib_config](#config-channel)  | Change and retrieve channel settings |
+| [bplib_flush](#flush-channel)         | Flush active bundles on a channel |
+| [bplib_config](#config-channel)       | Change and retrieve channel settings |
 | [bplib_latchstats](#latch-statistics) | Read out bundle statistics for a channel |
 | [bplib_store](#store-payload)         | Create a bundle from application data and queue in storage for transmission |
 | [bplib_load](#load-bundle)            | Retrieve the next available bundle from storage to transmit |
@@ -382,9 +383,18 @@ This function returns a channel handle that is used for all future operations on
 
 `void bplib_close (bp_desc_t channel)`
 
-Closes the specified bundle channel and releases all run-time resources associated with it; this does not include the bundles stored in the storage service.  The close call is not mutex'ed against other channel operations - it is the caller's responsibility that the close call is made non-concurrently with any other library function call on that channel.
+Closes the specified bundle channel and releases all run-time resources associated with it; this does not include the bundles stored in the storage service; nor does it include bundles that have been transmitted but not yet acknowledged (active bundles).  The close call is not mutex'ed against other channel operations - it is the caller's responsibility that the close call is made non-concurrently with any other library function call on that channel.
 
 `channel` - which channel to close
+
+----------------------------------------------------------------------
+##### Flush Channel
+
+`int bplib_flush (bp_desc_t channel)`
+
+Flushes all active bundles on a channel; this treats each bundle that has been transmitted but not yet acknowledged as if it was immediately acknowledged.  This function is separate from the bplib_close function because it is possible that a storage service supports resuming where it left off after a channel is closed.  In such a case, closing the channel would occur without flushing the data since the next time the channel was opened, the data that had not yet been relinquished would resume being sent.
+
+`channel` - which channel to flush
 
 ----------------------------------------------------------------------
 ##### Config Channel

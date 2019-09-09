@@ -56,8 +56,8 @@ typedef struct queue_block_t {
 
 /* queue_t */
 typedef struct queue_def_t {
-    queue_node_t*           front;
-    queue_node_t*           rear;
+    queue_node_t*           front;  /* oldest node removed (read pointer) */
+    queue_node_t*           rear;   /* newest node added (write pointer) */
     unsigned int            depth;  /* maximum length of linked list */
     unsigned int            len;    /* current length of linked list */
     unsigned int            max_data_size;

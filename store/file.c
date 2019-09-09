@@ -220,7 +220,8 @@ int bplib_store_file_destroy (int handle)
     if(file_stores[handle].write_fd) fclose(file_stores[handle].write_fd);
     if(file_stores[handle].read_fd) fclose(file_stores[handle].read_fd);
     if(file_stores[handle].retrieve_fd) fclose(file_stores[handle].retrieve_fd);
-
+    if(file_stores[handle].file_root) free(file_stores[handle].file_root);
+    
     bplib_os_destroylock(file_stores[handle].lock);
     
     file_stores[handle].in_use = false;
