@@ -109,7 +109,7 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
 /*--------------------------------------------------------------------------------------
  * bplib_os_systime - returns seconds
  *-------------------------------------------------------------------------------------*/
-uint32_t bplib_os_systime(void)
+unsigned long bplib_os_systime(void)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);

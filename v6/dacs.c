@@ -101,7 +101,7 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
  *-------------------------------------------------------------------------------------*/
 int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, uint16_t* sdnvflags)
 {
-    uint32_t i;
+    bp_val_t i;
     uint16_t flags = 0;
     bp_sdnv_t cid = { 0, 2, 0 };
     bp_sdnv_t fill = { 0, 0, 0 };

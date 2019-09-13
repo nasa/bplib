@@ -31,7 +31,7 @@
  ******************************************************************************/
 
 /* Acknowledge Call-Back */
-typedef int (*bp_acknowledge_t) (void* parm, uint32_t cid);
+typedef int (*bp_acknowledge_t) (void* parm, bp_val_t cid);
 
 /******************************************************************************
  PROTOTYPES

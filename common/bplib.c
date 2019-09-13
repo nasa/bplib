@@ -49,7 +49,7 @@
 /* Active Table */
 typedef struct {
     bp_sid_t            sid;
-    uint32_t            retx;
+    bp_val_t            retx;
 } bp_active_table_t;
 
 /* Channel Control Block */
@@ -57,8 +57,8 @@ typedef struct {
     bp_attr_t           attributes;
     bp_bundle_t         bundle;
     bp_custody_t        custody;
-    uint32_t            oldest_active_cid;
-    uint32_t            current_active_cid;
+    bp_val_t            oldest_active_cid;
+    bp_val_t            current_active_cid;
     int                 active_table_signal;
     bp_active_table_t*  active_table;
     bp_stats_t          stats;
@@ -93,7 +93,7 @@ static const bp_attr_t default_attributes = {
 /*--------------------------------------------------------------------------------------
  * acknowledge
  *-------------------------------------------------------------------------------------*/
-static int acknowledge(void* parm, uint32_t cid)
+static int acknowledge(void* parm, bp_val_t cid)
 {
     bp_channel_t* ch = (bp_channel_t*)parm;
     int status = BP_FAILEDRESPONSE;
@@ -454,7 +454,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
     bp_channel_t* ch = (bp_channel_t*)channel;
     
     /* Setup State */
-    uint32_t            sysnow          = bplib_os_systime();   /* get current system time (used for timeouts, seconds) */
+    bp_val_t            sysnow          = bplib_os_systime();   /* get current system time (used for timeouts, seconds) */
     bp_bundle_data_t*   data            = NULL;                 /* start out assuming nothing to send */
     bp_sid_t            sid             = BP_SID_VACANT;        /* store id points to nothing */
     int                 ati             = -1;                   /* active table index */
@@ -721,7 +721,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     ch->stats.received++;
     
     /* Get Time */
-    uint32_t sysnow = bplib_os_systime();
+    bp_val_t sysnow = bplib_os_systime();
 
     /* Receive Bundle */
     bp_custodian_t custodian;
@@ -934,8 +934,8 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* store)
     }
 
     /* Set Outputs */
-    *node = (uint32_t)node_result;
-    *store = (uint32_t)service_result;
+    *node = (bp_ipn_t)node_result;
+    *store = (bp_ipn_t)service_result;
     return BP_SUCCESS;
 }
 

@@ -34,7 +34,7 @@
  *
  *  Notes:
  *-------------------------------------------------------------------------------------*/
-static int custody_enqueue(bp_custody_t* custody, uint32_t sysnow, int timeout, uint16_t* flags)
+static int custody_enqueue(bp_custody_t* custody, bp_val_t sysnow, int timeout, uint16_t* flags)
 {
     int send_status = BP_SUCCESS;
     int ret_status = BP_SUCCESS;
@@ -169,7 +169,7 @@ void custody_uninitialize(bp_custody_t* custody)
  *  Notes:  may or may not perform enqueue depending if DACS needs to be sent
  *          based on whether or not it has been too long a time without sending a DACS
  *-------------------------------------------------------------------------------------*/
-int custody_send(bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags)
+int custody_send(bp_custody_t* custody, bp_val_t period, bp_val_t sysnow, int timeout, uint16_t* flags)
 {   
     int ret_status = BP_SUCCESS;
 
@@ -198,7 +198,7 @@ int custody_send(bp_custody_t* custody, uint32_t period, uint32_t sysnow, int ti
 /*--------------------------------------------------------------------------------------
  * custody_receive -
  *-------------------------------------------------------------------------------------*/
-int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, uint32_t sysnow, int timeout, uint16_t* flags)
+int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t sysnow, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS;
     bplib_os_lock(custody->lock);

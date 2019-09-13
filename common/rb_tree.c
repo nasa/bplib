@@ -22,9 +22,9 @@
 
 #include <assert.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+
+#include "bplib.h"
 #include "rb_tree.h"
 
 /******************************************************************************
@@ -35,7 +35,7 @@
    than the max data size because since we are representing ranges. Thus in the worse case
    scenario where values are added one apart so that a new node is added for each insertion
    once we reach half + 1 nodes then merging will occur. */
-#define MAX_TREE_SIZE ((UINT32_MAX  / 2) + 1) 
+#define MAX_TREE_SIZE ((BP_MAX_ENCODED_VALUE  / 2) + 1) 
 #define RED   true  /* Boolean representing a red rb_node_t. */
 #define BLACK false /* Boolean representing a black rb_node_t, */
 
@@ -342,7 +342,7 @@ static void rotate_right(rb_tree_t* tree, rb_node_t* node)
  * tree: A ptr to a rb_tree_t from which to obtain free memory  the new node. [OUTPUT]
  * returns: A ptr to a new rb_node_t or NULL if no memory exists in the rb_tree_t.
  *-------------------------------------------------------------------------------------*/
-static rb_node_t* create_rb_node(uint32_t value, bool color, rb_tree_t* tree)
+static rb_node_t* create_rb_node(bp_val_t value, bool color, rb_tree_t* tree)
 {
     rb_node_t* node = pop_free_node(tree);
     if (node == NULL)
@@ -464,7 +464,7 @@ static rb_node_t* get_successor(rb_node_t* node)
  *-------------------------------------------------------------------------------------*/
 static void swap_values(rb_node_t* n1, rb_node_t* n2)
 {
-    uint32_t temp = n1->range.value;
+    bp_val_t temp = n1->range.value;
     n1->range.value = n2->range.value;
     n2->range.value = temp;
 }
@@ -477,7 +477,7 @@ static void swap_values(rb_node_t* n1, rb_node_t* n2)
  *-------------------------------------------------------------------------------------*/
 static void swap_offsets(rb_node_t* n1, rb_node_t* n2)
 {
-    uint32_t temp = n1->range.offset;
+    bp_val_t temp = n1->range.offset;
     n1->range.offset = n2->range.offset;
     n2->range.offset = temp;
 }
@@ -794,9 +794,9 @@ static void delete_rb_node(rb_tree_t* tree, rb_node_t* node)
  * value_2: The greater of the two potentially consecutive values. [INPUT]
  * returns: Whether value_2 is the consecutive integer after value_1.
  *-------------------------------------------------------------------------------------*/
-static bool are_consecutive(uint32_t value_1, uint32_t value_2)
+static bool are_consecutive(bp_val_t value_1, bp_val_t value_2)
 {
-    return (value_1 != UINT32_MAX) && (value_1 + 1 == value_2);
+    return (value_1 != BP_MAX_ENCODED_VALUE) && (value_1 + 1 == value_2);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -811,7 +811,7 @@ static bool are_consecutive(uint32_t value_1, uint32_t value_2)
  *      inserted. [OUTPUT]
  * returns: A rb_tree status indicating the result of the insertion attempt.
  *-------------------------------------------------------------------------------------*/
-static rb_tree_status_t try_binary_insert_or_merge(uint32_t value, rb_tree_t* tree, rb_node_t** inserted_node)
+static rb_tree_status_t try_binary_insert_or_merge(bp_val_t value, rb_tree_t* tree, rb_node_t** inserted_node)
 {
     rb_tree_status_t status;
     *inserted_node = NULL;
@@ -1071,7 +1071,7 @@ static void delete_rb_node_without_rebalancing(rb_tree_t* tree, rb_node_t* node)
  * returns: A ptr to a rb_node_t to populate with the identified node. This is set to NULL
  *      if no node is found.
  *--------------------------------------------------------------------------------------*/ 
-static rb_node_t* rb_tree_binary_search(rb_tree_t* tree, uint32_t value)
+static rb_node_t* rb_tree_binary_search(rb_tree_t* tree, bp_val_t value)
 {
     rb_node_t* node = tree->root;
     while(node != NULL)
@@ -1104,7 +1104,7 @@ static rb_node_t* rb_tree_binary_search(rb_tree_t* tree, uint32_t value)
  * max_size: The maximum number of allowable nodes within the red black tree.
  * tree: A rb_tree_t to allocate memory to.
  *--------------------------------------------------------------------------------------*/ 
-rb_tree_status_t rb_tree_create(uint32_t max_size, rb_tree_t* tree) 
+rb_tree_status_t rb_tree_create(bp_val_t max_size, rb_tree_t* tree) 
 {
     if (tree == NULL)
     {
@@ -1223,7 +1223,7 @@ bool rb_tree_is_full(rb_tree_t *tree)
  * tree: A ptr to a rb_tree_t to insert the value into. [OUTPUT]
  * returns: An rb_tree_status_t enum indicating the result of the insertion. 
  *--------------------------------------------------------------------------------------*/ 
-rb_tree_status_t rb_tree_insert(uint32_t value, rb_tree_t* tree)
+rb_tree_status_t rb_tree_insert(bp_val_t value, rb_tree_t* tree)
 {
     if (tree == NULL)
     {
@@ -1254,7 +1254,7 @@ rb_tree_status_t rb_tree_insert(uint32_t value, rb_tree_t* tree)
  * tree: A ptr to a rb_tree_t to delete value from. [OUTPUT]
  * returns: An rb_tree_status_t enum indicating the result of the deletion. 
  *--------------------------------------------------------------------------------------*/ 
-rb_tree_status_t rb_tree_delete(uint32_t value, rb_tree_t* tree)
+rb_tree_status_t rb_tree_delete(bp_val_t value, rb_tree_t* tree)
 {
     if (tree == NULL)
     {

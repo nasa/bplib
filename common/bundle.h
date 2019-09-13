@@ -44,7 +44,7 @@
 
 /* Bundle Data */
 typedef struct {
-    uint32_t            exprtime;               /* absolute time when bundle expires */
+    bp_val_t            exprtime;               /* absolute time when bundle expires */
     bp_sdnv_t           cidsdnv;                /* SDNV of custody id field of bundle */
     int                 cteboffset;             /* offset of the CTEB block of bundle */
     int                 biboffset;              /* offset of the BIB block of bundle */
@@ -67,7 +67,7 @@ typedef union {
     struct {
         bp_ipn_t        node;                   /* custody node of bundle */
         bp_ipn_t        service;                /* custody service of bundle */
-        uint32_t        cid;                    /* custody id of bundle */
+        bp_val_t        cid;                    /* custody id of bundle */
     } cst;
     struct {
         uint8_t*        rec;                    /* aggregate custody signal */
@@ -94,14 +94,14 @@ typedef struct {
 int     bundle_initialize   (bp_bundle_t* bundle, bp_route_t route, bp_store_t store, bp_attr_t* attributes, bool with_payload, uint16_t* flags);
 void    bundle_uninitialize (bp_bundle_t* bundle);
 int     bundle_send         (bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags);
-int     bundle_receive      (bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
-int     bundle_update       (bp_bundle_data_t* data, uint32_t cid, uint16_t* flags);
+int     bundle_receive      (bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
+int     bundle_update       (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags);
 
 /* v6 bundle functions */
 int     v6_build            (bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags);
 int     v6_write            (bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags);
-int     v6_read             (bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
-int     v6_update           (bp_bundle_data_t* data, uint32_t cid, uint16_t* flags);
+int     v6_read             (bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
+int     v6_update           (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags);
 
 
 

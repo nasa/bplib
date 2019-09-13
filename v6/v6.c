@@ -258,8 +258,18 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
     }
 
     /* Set Expiration Time of Bundle */
-    if(pri->lifetime.value != 0)    data->exprtime = pri->createsec.value + pri->lifetime.value;
-    else                            data->exprtime = 0;
+    if(pri->lifetime.value != 0)
+    {
+        data->exprtime = pri->createsec.value + pri->lifetime.value;
+        if(data->exprtime < pri->createsec.value)
+        {
+            data->exprtime = BP_MAX_ENCODED_VALUE;
+        }
+    }
+    else
+    {
+        data->exprtime = 0;
+    }
 
     /* Enqueue Bundle */
     while(payload_offset < pay->paysize)
@@ -291,7 +301,7 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
         data->bundlesize = data->headersize + fragment_size;
 
         /* Enqueue Bundle */
-        int storage_header_size = sizeof(bp_bundle_data_t) - (BP_BUNDLE_HDR_BUF_SIZE - data->headersize);
+        int storage_header_size = &data->header[data->headersize] - (uint8_t*)data;
         status = bundle->store.enqueue(bundle->bundle_handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
@@ -307,7 +317,7 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
 /*--------------------------------------------------------------------------------------
  * v6_read -
  *-------------------------------------------------------------------------------------*/
-int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
+int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
 {
     int                 status = BP_SUCCESS;
 
@@ -518,7 +528,7 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow
             else if(pri_blk.is_admin_rec) /* Administrative Record */
             {
                 /* Read Record Information */
-                uint32_t rec_type = buffer[index++];
+                uint8_t rec_type = buffer[index++];
 
                 /* Process Record */
                 if(rec_type == BP_ACS_REC_TYPE)
@@ -574,7 +584,7 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow
 /*--------------------------------------------------------------------------------------
  * v6_update -
  *-------------------------------------------------------------------------------------*/
-int v6_update(bp_bundle_data_t* data, uint32_t cid, uint16_t* flags)
+int v6_update(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 {
     data->cidsdnv.value = cid;
 

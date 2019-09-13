@@ -95,7 +95,7 @@ int sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
     if(sdnv.width <= 0)
     {
         /* Calculate Bytes Needed to Hold Value */
-        uint32_t tmpval = sdnv.value;
+        bp_val_t tmpval = sdnv.value;
         maxbytes = 0;
         while(tmpval > 0)
         {

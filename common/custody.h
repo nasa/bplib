@@ -40,7 +40,7 @@
 
 typedef struct {
     bp_attr_t       attributes;     /* its own copy and version of attributes */
-    uint32_t        last_time;      /* time of last dacs generated */
+    bp_val_t        last_time;      /* time of last dacs generated */
     int             lock;           /* for thread safe operations on dacs */
     rb_tree_t       tree;           /* balanced tree to store bundle ids */
     uint8_t*        recbuf;         /* buffer to hold built DACS record */
@@ -54,8 +54,8 @@ typedef struct {
 
 int     custody_initialize      (bp_custody_t* custody, bp_route_t route, bp_store_t store, bp_attr_t* attributes, uint16_t* flags);
 void    custody_uninitialize    (bp_custody_t* custody);
-int     custody_send            (bp_custody_t* custody, uint32_t period, uint32_t sysnow, int timeout, uint16_t* flags);
-int     custody_receive         (bp_custody_t* custody, bp_custodian_t* custodian, uint32_t sysnow, int timeout, uint16_t* flags);
+int     custody_send            (bp_custody_t* custody, bp_val_t period, bp_val_t sysnow, int timeout, uint16_t* flags);
+int     custody_receive         (bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t sysnow, int timeout, uint16_t* flags);
 int     custody_acknowledge     (bp_custody_t* custody, bp_custodian_t* custodian, bp_acknowledge_t ack, void* parm, uint16_t* flags);
 
 #endif  /* __BPLIB_CUSTODY_H__ */

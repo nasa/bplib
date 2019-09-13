@@ -41,8 +41,8 @@ typedef struct {
     uint8_t     security_result_type;
     bp_sdnv_t   security_result_length;
     
-    // Security data is specified as a union here to avoid mallocing a pointer when
-    // creating block definitions.
+    /* Security data is specified as a union here to avoid 
+     * allocating arrays when creating block definitions. */
     union
     {
         uint16_t crc16;

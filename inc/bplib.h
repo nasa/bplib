@@ -28,6 +28,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <limits.h>
 
 /******************************************************************************
  DEFINES
@@ -134,6 +135,9 @@ extern "C" {
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
 #define BP_DEFAULT_STORAGE_SERVICE_PARM NULL
+
+/* Maximum Encoded Value */
+#define BP_MAX_ENCODED_VALUE            ULONG_MAX
     
 /******************************************************************************
  TYPEDEFS
@@ -142,8 +146,11 @@ extern "C" {
 /* Channel Descriptor */
 typedef void* bp_desc_t;
 
+/* Encoded Value */
+typedef unsigned long bp_val_t;
+
 /* IPN Schema Endpoint ID Integer Definition */
-typedef uint32_t bp_ipn_t;
+typedef bp_val_t bp_ipn_t;
 
 /* Address Routing */
 typedef struct {
@@ -181,7 +188,7 @@ typedef struct {
 /* Channel Attributes */
 typedef struct {    
     /* Dynamic Attributes */
-    uint32_t    lifetime;               /* Number of seconds from creation time before bundle expires */
+    bp_val_t    lifetime;               /* Number of seconds from creation time before bundle expires */
     bool        request_custody;        /* 0: not requested, 1: requested */
     bool        admin_record;           /* 0: payload data, 1: administrative record */ 
     bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */

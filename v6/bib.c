@@ -321,7 +321,7 @@ int bib_update (void* block, int size, void* payload, int payload_size, bp_blk_b
     uint8_t* buffer = (uint8_t*)block;
 
     /* Check Size */
-    if((uint32_t) size < bib->security_result_length.value) return BP_BUNDLEPARSEERR;
+    if(size < (long)bib->security_result_length.value) return BP_BUNDLEPARSEERR;
 
     /* Calculate and Write Fragment Payload CRC */
     if(bib->cipher_suite_id.value == BP_BIB_CRC16_X25)

@@ -102,7 +102,7 @@ int bundle_send(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, ui
 /*--------------------------------------------------------------------------------------
  * bundle_receive -
  *-------------------------------------------------------------------------------------*/
-int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
+int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
 {
     /* Read Bundle */
     return v6_read(bundle, block, block_size, sysnow, custodian, timeout, flags);
@@ -111,7 +111,7 @@ int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, uint32_t
 /*--------------------------------------------------------------------------------------
  * bundle_update -
  *-------------------------------------------------------------------------------------*/
-int bundle_update (bp_bundle_data_t* data, uint32_t cid, uint16_t* flags)
+int bundle_update (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 {
     return v6_update(data, cid, flags);
 
