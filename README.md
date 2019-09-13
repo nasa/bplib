@@ -72,13 +72,13 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
 * Compressed Bundle Header Encoding (CBHE) is used on all generated data bundles.  
 * The only addressing schema supported by the BP library is the "ipn" schema defined in RFC6260.  
 * The format of endpoint IDs as defined by this schema are "ipn:{node}.{service}" where {node} and {service} are unsigned integers encoded as SDNVs in the bundle header block. 
-Constant static data structures declared in the code set the size of all {node} numbers to 28 bits (which occupies 32 bits of bundle memory encoded as an SDNV), and all {service} numbers to 14 bits (which occupies 16 bits of bundle memory encoded as an SDNV).
+* Constant static data structures declared in the code set the size of all endpoint IDs. All {node} numbers are 28 bits (which occupies 32 bits of bundle memory encoded as an SDNV), and all {service} numbers are 14 bits (which occupies 16 bits of bundle memory encoded as an SDNV).
 * The convention used by the BP library is that {node} number identifies the endpoint application agent and the {service} number identifies a flow of data that is able to be processed by the application agent.
 * All endpoints are treated as singletons and marked as such in the PCF, even for forwarded bundles.
 
 #### 4.2 Fixed Size SDNVs
 * The BP library uses fixed sized SDNVs for all SDNV fields of generated bundles. 
-* Bundles that are received by the library can have any size SDNV as long as the encoded value fits within 32-bits (future enhancement to make compile time switch for 64-bits).
+* Bundles that are received by the library can have any size SDNV as long as the encoded value fits within the `unsigned long` integer for the local platform the library is compiled on.
 
 #### 4.3 Creation Time Sequence
 * The BP library does not reset the creation time sequence number, but maintains a strictly incrementing value (stepped by one for each successive bundle created) per channel. This allows receiving nodes to detect gaps in the data and allows reconstruction of the original sending order of the data.
@@ -86,7 +86,7 @@ Constant static data structures declared in the code set the size of all {node} 
 #### 4.4 Lifetimes
 * The BP library calculates an absolute time for a bundles expiration at the time the bundle is created.
 * The expiration time is checked prior to transmission and on receipt (in `bplib_load` and `bplib_process` functions).
-* A value of zero has special meaning when using bplib and specifies an infinite lifetime, this is different than the protocol specification which interprets zero as an immediate expiration.  In order to be compatible with other BP nodes, 2^32 - 1 should be used to set the maximum lifetime (136 years).
+* A value of zero has special meaning when using bplib and specifies an infinite lifetime, this is different than the protocol specification which interprets zero as an immediate expiration.  In order to be compatible with other BP nodes, ULONG_MAX - 1 should be used to set the maximum lifetime (136 years on 32-bit machine).
 
 #### 4.5 Administrative Records
 * The only supported administrative record type is the aggregate custody signal, all other record types are ignored.
@@ -650,7 +650,7 @@ Initialize an attribute structure with the library default values.  This is usef
 | BP_FLAG_ROUTENEEDED      | 0x0040 | The bundle returned needs to be routed before transmission |
 | BP_FLAG_STOREFAILURE     | 0x0080 | Storage service failed to deliver data |
 | BP_FLAG_RESERVED02       | 0x0100 | Reserved |
-| BP_FLAG_SDNVOVERFLOW     | 0x0200 | There was insufficient room in 32-bit variable to read/write value |
+| BP_FLAG_SDNVOVERFLOW     | 0x0200 | The local variable used to read/write and the value was of insufficient width |
 | BP_FLAG_SDNVINCOMPLETE   | 0x0400 | There was insufficient room in block to read/write value |
 | BP_FLAG_ACTIVETABLEWRAP  | 0x0800 | The active table wrapped; see BP_OPT_WRAP_RESPONSE |
 | BP_FLAG_DUPLICATES       | 0x1000 | The custody ID was already acknowledged |
