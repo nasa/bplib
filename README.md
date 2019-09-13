@@ -86,6 +86,7 @@ Constant static data structures declared in the code set the size of all {node} 
 #### 4.4 Lifetimes
 * The BP library calculates an absolute time for a bundles expiration at the time the bundle is created.
 * The expiration time is checked prior to transmission and on receipt (in `bplib_load` and `bplib_process` functions).
+* A value of zero has special meaning when using bplib and specifies an infinite lifetime, this is different than the protocol specification which interprets zero as an immediate expiration.  In order to be compatible with other BP nodes, 2^32 - 1 should be used to set the maximum lifetime (136 years).
 
 #### 4.5 Administrative Records
 * The only supported administrative record type is the aggregate custody signal, all other record types are ignored.
@@ -202,9 +203,9 @@ Constant static data structures declared in the code set the size of all {node} 
  |-----------|-----------------------|-----------| 28
     Service  |    Creation Timestamp Seconds             
  |-----------|-----------------------------------| 32
-             |   Creation Timestamp Sequence ...
+             |   Timestamp Sequence  |    ...
  |-----------|-----------------------------------| 36
-     ...     |            Lifetime ...
+                 ... Lifetime ...
  |-----------|-----------|-----------------------| 40
      ...     |  Dict Len |  Fragment Offset ...
  |-----------|-----------|-----------------------| 44
