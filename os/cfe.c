@@ -99,15 +99,19 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
  *-------------------------------------------------------------------------------------*/
 int bplib_os_systime(unsigned long* sysnow)
 {
-    /* Get System Time */
-    CFE_TIME_SysTime_t sys_time = CFE_TIME_GetTime();
+    assert(sysnow);
     
-    /* Return Time */ 
-    if(sysnow) *sysnow = sys_time.Seconds - BPLIB_CFE_SECS_AT_2000;
-
-    /* Check Reliability */
-    if(sys_time.Seconds < BPLIB_CFE_SECS_AT_2000)   return BP_OS_ERROR;
-    else                                            return BP_OS_SUCCESS;
+    CFE_TIME_SysTime_t sys_time = CFE_TIME_GetTime();
+    if(sys_time.Seconds < BPLIB_CFE_SECS_AT_2000)
+    {
+        *sysnow = sys_time.Seconds;
+        return BP_OS_ERROR;
+    }
+    else
+    {
+        *sysnow = sys_time.Seconds - BPLIB_CFE_SECS_AT_2000;
+        return BP_OS_SUCCESS;
+    }
 }
 
 /*--------------------------------------------------------------------------------------
