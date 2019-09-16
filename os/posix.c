@@ -54,6 +54,7 @@ typedef struct {
 
 bplib_os_lock_t*    locks[BP_MAX_LOCKS] = {0};
 pthread_mutex_t     lock_of_locks;
+struct timespec     prevnow;
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -68,6 +69,7 @@ void bplib_os_init()
     pthread_mutexattr_init(&locks_attr);
     pthread_mutexattr_settype(&locks_attr, PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&lock_of_locks, &locks_attr);
+    clock_gettime(CLOCK_REALTIME, &prevnow);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -109,11 +111,29 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
 /*--------------------------------------------------------------------------------------
  * bplib_os_systime - returns seconds
  *-------------------------------------------------------------------------------------*/
-unsigned long bplib_os_systime(void)
+int bplib_os_systime(unsigned long* sysnow)
 {
+    int status = BP_OS_SUCCESS;
+
+    /* Get System Time */
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    return now.tv_sec - UNIX_SECS_AT_2000;
+    unsigned long elapsed_secs = now.tv_sec - UNIX_SECS_AT_2000;
+    unsigned long previous_secs = prevnow.tv_sec - UNIX_SECS_AT_2000;
+    prevnow = now;
+    
+    /* Return Time */
+    if(sysnow) *sysnow = elapsed_secs;
+    
+    /* Check Reliability */
+    if( (now.tv_sec < UNIX_SECS_AT_2000) || /* time nonsensical */
+        (previous_secs > elapsed_secs) )    /* time going backwards */
+    {
+        status = BP_OS_ERROR;
+    }
+
+    /* Return Status */
+    return status;
 }
 
 /*--------------------------------------------------------------------------------------

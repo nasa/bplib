@@ -87,7 +87,7 @@ extern "C" {
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
 #define BP_FLAG_INCOMPLETE              0x0002  /* block in bundle was not recognized */
-#define BP_FLAG_RESERVED01              0x0004
+#define BP_FLAG_UNRELIABLETIME          0x0004  /* the os call to get time return a suspicious value */
 #define BP_FLAG_FILLOVERFLOW            0x0008  /* a gap in the CIDs exceeds the max fill */
 #define BP_FLAG_TOOMANYFILLS            0x0010  /* all the fills in the ACS are used */
 #define BP_FLAG_CIDWENTBACKWARDS        0x0020  /* the custody ID went backwards */

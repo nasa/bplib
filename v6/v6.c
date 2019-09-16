@@ -249,8 +249,18 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
     /* Check if Time Needs to be Set  */
     if(set_time)
     {
+        /* Get Current Time */
+        unsigned long sysnow = 0;
+        if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+        {
+            /* NOTE: creation time set to zero in this special case 
+             * to protect against unintended bundle expiration */
+            sysnow = 0; 
+            *flags |= BP_FLAG_UNRELIABLETIME;
+        }
+
         /* Set Creation Time */
-        pri->createsec.value = bplib_os_systime();
+        pri->createsec.value = (bp_val_t)sysnow;
         sdnv_write(data->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, flags);
 
         /* Set Sequence */
@@ -263,6 +273,8 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
         data->exprtime = pri->createsec.value + pri->lifetime.value;
         if(data->exprtime < pri->createsec.value)
         {
+            /* In rollover condition, set expiration time to maximum value
+             * as a best effort attempt to avoid unintended bundle expiration */
             data->exprtime = BP_MAX_ENCODED_VALUE;
         }
     }

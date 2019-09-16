@@ -643,7 +643,7 @@ Initialize an attribute structure with the library default values.  This is usef
 | ------------------------ | ----- | ----------- |
 | BP_FLAG_NONCOMPLIANT     | 0x0001 | Valid bundle but the library was not able to comply with the standard |
 | BP_FLAG_INCOMPLETE       | 0x0002 | At least one block in bundle was not recognized |
-| BP_FLAG_RESERVED01       | 0x0004 | Reserved |
+| BP_FLAG_UNRELIABLETIME   | 0x0004 | The time returned by the O.S. preceded the January 2000 epoch, or went backwards |
 | BP_FLAG_FILLOVERFLOW     | 0x0008 | A gap in the CIDs exceeds the max fill value allowed in an ACS bundle |
 | BP_FLAG_TOOMANYFILLS     | 0x0010 | All the fills in the ACS are used |
 | BP_FLAG_CIDWENTBACKWARDS | 0x0020 | The custody ID went backwards |

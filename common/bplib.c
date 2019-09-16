@@ -427,6 +427,7 @@ int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_
      /* Check Parameters */
     if(channel == NULL)         return BP_PARMERR;
     else if(payload == NULL)    return BP_PARMERR;
+    else if(flags == NULL)  return BP_PARMERR;
 
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
@@ -449,19 +450,26 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
     /* Check Parameters */
     if(channel == NULL)     return BP_PARMERR;
     else if(bundle == NULL) return BP_PARMERR;
+    else if(flags == NULL)  return BP_PARMERR;
 
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
     
     /* Setup State */
-    bp_val_t            sysnow          = bplib_os_systime();   /* get current system time (used for timeouts, seconds) */
-    bp_bundle_data_t*   data            = NULL;                 /* start out assuming nothing to send */
-    bp_sid_t            sid             = BP_SID_VACANT;        /* store id points to nothing */
-    int                 ati             = -1;                   /* active table index */
-    bool                newcid          = true;                 /* whether to assign new custody id and active table entry */
-    bp_store_t*         store           = NULL;                 /* which storage service to used */
-    int                 handle          = -1;                   /* handle for store service being loaded */
+    unsigned long       sysnow          = 0;                /* current system time used for timeouts (seconds) */
+    bp_bundle_data_t*   data            = NULL;             /* start out assuming nothing to send */
+    bp_sid_t            sid             = BP_SID_VACANT;    /* store id points to nothing */
+    int                 ati             = -1;               /* active table index */
+    bool                newcid          = true;             /* whether to assign new custody id and active table entry */
+    bp_store_t*         store           = NULL;             /* which storage service to used */
+    int                 handle          = -1;               /* handle for store service being loaded */
 
+    /* Get Current Time */
+    if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+    {
+        *flags |= BP_FLAG_UNRELIABLETIME;
+    }
+    
     /*-------------------------*/
     /* Try to Send DACS Bundle */
     /*-------------------------*/
@@ -713,6 +721,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     /* Check Parameters */
     if(channel == NULL)     return BP_PARMERR;
     else if(bundle == NULL) return BP_PARMERR;
+    else if(flags == NULL)  return BP_PARMERR;
 
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
@@ -721,7 +730,11 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     ch->stats.received++;
     
     /* Get Time */
-    bp_val_t sysnow = bplib_os_systime();
+    unsigned long sysnow = 0;
+    if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+    {
+        *flags |= BP_FLAG_UNRELIABLETIME;
+    }
 
     /* Receive Bundle */
     bp_custodian_t custodian;
@@ -770,6 +783,7 @@ int bplib_accept(bp_desc_t channel, void** payload, int size, int timeout, uint1
     /* Check Parameters */
     if(channel == NULL)         return BP_PARMERR;
     else if(payload == NULL)    return BP_PARMERR;
+    else if(flags == NULL)      return BP_PARMERR;
 
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
