@@ -38,10 +38,20 @@
 #define MSGQ_SIZE_INFINITY      0
 #define MSGQ_STORE_STR          "bplibq"
 #define MSGQ_STORE_STR_SIZE     32
-    
-#define MSGQ_MAX_STORES         64
+
+/* Configurable Options */
+
+#ifndef MSGQ_MAX_STORES
+#define MSGQ_MAX_STORES         60
+#endif
+
+#ifndef MSGQ_MAX_DEPTH
 #define MSGQ_MAX_DEPTH          65536
+#endif
+
+#ifndef MSGQ_MAX_SIZE
 #define MSGQ_MAX_SIZE           MSGQ_SIZE_INFINITY
+#endif
 
 /******************************************************************************
  * TYPEDEFS

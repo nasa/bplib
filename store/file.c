@@ -27,12 +27,20 @@
  DEFINES
  ******************************************************************************/
 
-#define FILE_MAX_STORES         16
 #define FILE_FLUSH_DEFAULT      true
 #define FILE_MAX_FILENAME       256
 #define FILE_DATA_COUNT         256
-#define FILE_DATA_CACHE_SIZE    16384
+
+/* Dynamically Set Attributes */
+
+#define FILE_DEFAULT_CACHE_SIZE 16384
 #define FILE_DEFAULT_ROOT       ".pfile"
+
+/* Configurable Options */
+
+#ifndef FILE_MAX_STORES
+#define FILE_MAX_STORES         60
+#endif
 
 /******************************************************************************
  MACROS
@@ -78,7 +86,8 @@ typedef struct {
     uint64_t        relinquish_data_id;
     free_table_t    relinquish_table;         
 
-    data_cache_t    data_cache[FILE_DATA_CACHE_SIZE];
+    data_cache_t*   data_cache;
+    int             cache_size;
 } file_store_t;
 
 /******************************************************************************
@@ -151,24 +160,6 @@ static int delete_tbl_file (int service_id, char* file_root, uint32_t file_id)
     return remove(filename);
 }
 
-/*--------------------------------------------------------------------------------------
- * set_root_path -
- *-------------------------------------------------------------------------------------*/
-static int set_root_path (char** root_path_dst, const char* root_path_src)
-{
-    if(root_path_src == NULL) root_path_src = FILE_DEFAULT_ROOT;
-    
-    int root_path_len = bplib_os_strnlen(root_path_src, FILE_MAX_FILENAME - 1) + 1;
-    if(root_path_len == (FILE_MAX_FILENAME - 1)) return BP_PARMERR;
-    
-    if(*root_path_dst) free(*root_path_dst);
-    *root_path_dst = (char*)malloc(root_path_len);
-    
-    memcpy(*root_path_dst, root_path_src, root_path_len);
-
-    return BP_SUCCESS;
-}
-
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -186,22 +177,73 @@ void bplib_store_file_init (void)
  *-------------------------------------------------------------------------------------*/
 int bplib_store_file_create (void* parm)
 {
-    pfile_attr_t* attr = (pfile_attr_t*)parm;
+    bp_file_attr_t* attr = (bp_file_attr_t*)parm;
     
     int s;
     for(s = 0; s < FILE_MAX_STORES; s++)
     {
         if(file_stores[s].in_use == false)
         {
+            /* Clear File Store (pointers set to NULL) */
             memset(&file_stores[s], 0, sizeof(file_stores[s]));
+
+            /* Set In Use (necessary to be able to destroy later) */
             file_stores[s].in_use = true;
+
+            /* Initialize Parameters */
             file_stores[s].service_id = file_service_id++;
-            set_root_path(&file_stores[s].file_root, attr ? attr->root_path : NULL);
-            file_stores[s].lock = bplib_os_createlock();
+            file_stores[s].lock = BP_INVALID_HANDLE;
             file_stores[s].write_data_id = 1;
             file_stores[s].read_data_id = 1;
             file_stores[s].retrieve_data_id = 1;
             file_stores[s].relinquish_data_id = 1;
+
+            /* Setup and Check Lock */
+            file_stores[s].lock = bplib_os_createlock();
+            if(file_stores[s].lock < 0)
+            {
+                bplib_store_file_destroy(s);
+                break;                
+            }
+   
+            /* Setup Root Path */
+            const char* root_path = FILE_DEFAULT_ROOT;
+            if(attr && attr->root_path) root_path = attr->root_path;
+            int root_path_len = bplib_os_strnlen(root_path, FILE_MAX_FILENAME) + 1;
+            if(root_path_len <= FILE_MAX_FILENAME)
+            {
+                file_stores[s].file_root = (char*)malloc(root_path_len);
+                if(file_stores[s].file_root)
+                {
+                    memcpy(file_stores[s].file_root, root_path, root_path_len);
+                }
+            }
+ 
+            /* Check File Root Setup */
+            if(file_stores[s].file_root == NULL)
+            {
+                bplib_store_file_destroy(s);
+                break;
+            }                
+            
+            /* Setup Data Cache */
+            int cache_size = FILE_DEFAULT_CACHE_SIZE;
+            if(attr && attr->cache_size) cache_size = attr->cache_size;
+            file_stores[s].cache_size = cache_size;
+            file_stores[s].data_cache = (data_cache_t*)malloc(cache_size * sizeof(data_cache_t));
+            if(file_stores[s].data_cache)
+            {
+                memset(file_stores[s].data_cache, 0, cache_size * sizeof(data_cache_t));
+            }
+            
+            /* Check Data Cache Setup */
+            if(file_stores[s].data_cache == NULL)
+            {
+                bplib_store_file_destroy(s);
+                break;                
+            }
+
+            /* Return Handle */
             return s;
         }
     }
@@ -217,12 +259,12 @@ int bplib_store_file_destroy (int handle)
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
-    if(file_stores[handle].write_fd) fclose(file_stores[handle].write_fd);
-    if(file_stores[handle].read_fd) fclose(file_stores[handle].read_fd);
-    if(file_stores[handle].retrieve_fd) fclose(file_stores[handle].retrieve_fd);
-    if(file_stores[handle].file_root) free(file_stores[handle].file_root);
-    
-    bplib_os_destroylock(file_stores[handle].lock);
+    if(file_stores[handle].write_fd != NULL)            fclose(file_stores[handle].write_fd);
+    if(file_stores[handle].read_fd != NULL)             fclose(file_stores[handle].read_fd);
+    if(file_stores[handle].retrieve_fd != NULL)         fclose(file_stores[handle].retrieve_fd);
+    if(file_stores[handle].file_root != NULL)           free(file_stores[handle].file_root);  
+    if(file_stores[handle].lock != BP_INVALID_HANDLE)   bplib_os_destroylock(file_stores[handle].lock);
+    if(file_stores[handle].data_cache != NULL)          free(file_stores[handle].data_cache);
     
     file_stores[handle].in_use = false;
     
@@ -436,7 +478,7 @@ int bplib_store_file_dequeue (int handle, void** data, int* size, bp_sid_t* sid,
     }
     
     /* Set Data Cache */
-    cache_index = data_id % FILE_DATA_CACHE_SIZE;
+    cache_index = data_id % fs->cache_size;
     bplib_os_lock(fs->lock);
     {
         if(fs->data_cache[cache_index].mem_ptr) free(fs->data_cache[cache_index].mem_ptr);
@@ -480,12 +522,12 @@ int bplib_store_file_retrieve (int handle, void** data, int* size, bp_sid_t sid,
     uint32_t curr_data_offset = GET_DATAOFFSET(fs->retrieve_data_id);
             
     /* Check Data Cache */
-    cache_index = data_id;
+    cache_index = data_id % fs->cache_size;
     bplib_os_lock(fs->lock);
     {
-        if(fs->data_cache[cache_index].mem_ptr)
+        if(fs->data_cache[cache_index].mem_data_id == data_id)
         {
-            if(fs->data_cache[cache_index].mem_data_id == data_id)
+            if(fs->data_cache[cache_index].mem_ptr)
             {
                 /* Return Data Cache */
                 *data = fs->data_cache[cache_index].mem_ptr;
@@ -572,7 +614,7 @@ int bplib_store_file_retrieve (int handle, void** data, int* size, bp_sid_t sid,
     }
     
     /* Set Data Cache */
-    cache_index = data_id % FILE_DATA_CACHE_SIZE;
+    cache_index = data_id % fs->cache_size;
     bplib_os_lock(fs->lock);
     {
         if(fs->data_cache[cache_index].mem_ptr) free(fs->data_cache[cache_index].mem_ptr);

@@ -34,7 +34,8 @@ extern "C" {
 
 typedef struct {
     const char* root_path;
-} pfile_attr_t;
+    int         cache_size;
+} bp_file_attr_t;
 
 /******************************************************************************
  PROTOTYPES
