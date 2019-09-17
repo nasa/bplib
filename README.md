@@ -202,17 +202,17 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
           ... Custody Node           |  Custody     
  |-----------|-----------------------|-----------| 28
     Service  |    Creation Timestamp Seconds             
- |-----------|-----------------------------------| 32
-             |   Timestamp Sequence  |    ...
- |-----------|-----------------------------------| 36
-                 ... Lifetime ...
- |-----------|-----------|-----------------------| 40
-     ...     |  Dict Len |  Fragment Offset ...
- |-----------|-----------|-----------------------| 44
-     ...                 | Payload Length ... 
- |-----------------------|-----------------------| 48
-     ...                 |
- |-----------------------| 52
+ |-----------|-----------------------|-----------| 32
+     ...                             | Timestamp   
+ |-----------|-----------------------|-----------| 36
+   Sequence  |       Lifetime ...
+ |-----------|-----------------------|-----------| 40
+     ...                             | Dict Len  |
+ |-----------------------------------|-----------| 44
+ |                Fragment Offset                |
+ |-----------------------------------------------| 48
+ |                Payload Length                 |  
+ |-----------------------------------------------| 52
 ```
 
 #### 5.4 Custody Transfer Enhancement Block (CTEB)
@@ -233,7 +233,7 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
  |-----------|-----------|-----------|-----------| 4
               Custody ID             |  ...
  |-----------------------|-----------------------| 8
- |    Custodian EID (null-terminated string)     |
+ |    Custodian EID (ASCII character array)      |
  |-----------------------------------------------| Variable
 ```
 
@@ -251,10 +251,23 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
  |-----------|-----------|-----------------------|
  .           .           .                       .
  |-----------|-----------|-----------------------| 0 --> Bundle Integrity Block
- |    0xD    | Blk Flags |     Block Length      | 
- |-----------|-----------|-----------------------| 4 
- |    Payload CRC Type   |      Payload CRC      |
- |-----------------------------------------------| 8
+ |    0xD    | Blk Flags |     Block Length ...      
+ |-----------|-----------|-----------|-----------| 4 
+    ...                  |    STC    |    STT    |
+ |-----------|-----------|-----------|-----------| 8
+ |    STS    |    CSI    |    CSF    |    SRC    |
+ |-----------|-----------|-----------|-----------| 12
+ |    SRT    |    SRL    |   Security Result ...
+ |-----------|-----------|-----------|-----------| Variable
+
+ STC: Security Target Count (hardcoded to 1)
+ STT: Security Target Type (hardcoded to 1)
+ STS: Security Target Sequence
+ CSI: Cipher Suite ID
+ CSF: Cipher Suite Flags
+ SRC: Security Result Count (hardcoded to 1)
+ SRT: Security Result Type
+ SRL: Security Result Length
 ```
 
 #### 5.6 Aggregate Custody Signal Block
