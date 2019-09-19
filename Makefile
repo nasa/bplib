@@ -80,13 +80,15 @@ APP_COPT    ?= $(USER_COPT)
 APP_LOPT    ?= $(USER_LOPT)
 
 # search path for application objects (note this is a make system variable)
-VPATH	    := $(ROOT)/common
+VPATH	    := $(ROOT)/lib
+VPATH	    += $(ROOT)/common
 VPATH	    += $(ROOT)/v6
 VPATH	    += $(ROOT)/os
 VPATH	    += $(ROOT)/store
 
 # compiler options for search path for include headers (in form of -I_header_)  
 INCLUDES    := -I$(ROOT)/inc
+INCLUDES    += -I$(ROOT)/lib
 INCLUDES    += -I$(ROOT)/common
 INCLUDES    += -I$(ROOT)/v6
 INCLUDES    += -I$(ROOT)/os
