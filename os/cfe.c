@@ -42,7 +42,7 @@
 #define BP_MAX_LOG_ENTRY_SIZE       256
 
 #ifndef BPLIB_CFE_SECS_AT_2000
-#define BPLIB_CFE_SECS_AT_2000      946684800
+#define BPLIB_CFE_SECS_AT_2000      630720013
 #endif
 
 #ifndef BPLIB_CFE_LOG_EID
