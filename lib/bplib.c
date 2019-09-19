@@ -464,6 +464,12 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
     bp_store_t*         store           = NULL;             /* which storage service to used */
     int                 handle          = -1;               /* handle for store service being loaded */
 
+
+    /* Check for Acknowledgment */
+    if(bundle == BP_ACKNOWLEDGMENT)
+    {
+        .. TO DO
+    }
     /* Get Current Time */
     if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
     {
@@ -649,44 +655,48 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
     }
     
     /*------------------------------*/
-    /* Send Bundle if Ready to Send */
+    /* Load Bundle if Ready to Send */
     /*------------------------------*/
     if(data != NULL)
     {
-        /* Check Buffer Size */
-        if(*bundle == NULL || size >= data->bundlesize)
+        /* Check Buffer Size for Return by Copy */
+        if((*bundle != NULL) && (size < data->bundlesize))
         {
-            /* Check/Allocate Bundle Memory */
-            if(*bundle == NULL) *bundle = malloc(data->bundlesize);
+            status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", size, data->bundlesize);
+            store->relinquish(handle, sid);
+            ch->stats.lost++;
+        }
+            
+        if(status == BP_SUCCESS)
+        {
+            /* If Custody Transfer */
+            if(data->cteboffset != 0)
+            {
+                bplib_os_lock(ch->active_table_signal);
+                {
+                    /* Assign Custody ID and Active Table Entry */
+                    if(newcid)
+                    {
+                        ati = ch->current_active_cid % ch->attributes.active_table_size;
+                        ch->active_table[ati].sid = sid;
+                        bundle_update(data, ch->current_active_cid++, flags);
+                    }
 
-            /* Successfully Load Bundle to Application and Relinquish Memory */                
+                    /* Update Retransmit Time */
+                    ch->active_table[ati].retx = sysnow;
+                }
+                bplib_os_unlock(ch->active_table_signal);
+            }
+
+            /* Load Bundle */
             if(*bundle != NULL)
             {
-                /* If Custody Transfer */
-                if(data->cteboffset != 0)
-                {
-                    bplib_os_lock(ch->active_table_signal);
-                    {
-                        /* Assign Custody ID and Active Table Entry */
-                        if(newcid)
-                        {
-                            ati = ch->current_active_cid % ch->attributes.active_table_size;
-                            ch->active_table[ati].sid = sid;
-                            bundle_update(data, ch->current_active_cid++, flags);
-                        }
-
-                        /* Update Retransmit Time */
-                        ch->active_table[ati].retx = sysnow;
-                    }
-                    bplib_os_unlock(ch->active_table_signal);
-                }
-
-                /* Load Bundle */
+                /* Return Bundle by Copy */
                 memcpy(*bundle, data->header, data->bundlesize);
-                status = data->bundlesize;
-                ch->stats.transmitted++;
- 
-                /* If No Custody Transfer - Free Bundle Memory */
+
+                /* Free Bundle Memory
+                 *  only when returning by copy and when no custody 
+                 *  transfer is requested, free memory right away */
                 if(data->cteboffset == 0)
                 {
                     store->relinquish(handle, sid);
@@ -694,16 +704,19 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
             }
             else
             {
-                status = bplog(BP_FAILEDMEM, "Unable to acquire memory for bundle of size %d\n", data->bundlesize);
-                store->relinquish(handle, sid);
-                ch->stats.lost++;                    
+                /* Return Bundle by Reference*/
+                *bundle = data->header;
+                
+                /* Note no freeing of memory by reference here, this will occur 
+                 * when the data is acknowledged if custody transfer is not 
+                 * requested. If custody transfer is requested, then there the 
+                 * application level acknowledgment is not necessary and 
+                 * performs no action */
             }
-        }
-        else
-        {
-            status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", size, data->bundlesize);
-            store->relinquish(handle, sid);
-            ch->stats.lost++;
+            
+            /* Set Status */
+            ch->stats.transmitted++;
+            status = data->bundlesize;
         }
     }
 

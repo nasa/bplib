@@ -42,6 +42,9 @@ extern "C" {
 #define BP_PEND                         (-1)
 #define BP_CHECK                        0
 
+/* Load/Accept Control */
+#define BP_ACKNOWLEDGE                  NULL
+    
 /* Endpoint ID Strings */    
 #define BP_MAX_EID_STRING               128
 
