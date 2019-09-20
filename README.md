@@ -637,17 +637,16 @@ Initialize an attribute structure with the library default values.  This is usef
 | BP_BUNDLEPARSEERR       | -9    | An error was encountered when trying to read or write a bundle, usually associated with either an SDNV overflow or a buffer that is too small |
 | BP_UNKNOWNREC           | -10   | The administrative record type was unrecognized by the library |
 | BP_BUNDLETOOLARGE       | -11   | The size of the bundle exceeded the maximum size bundle that is able to be processed by the library |
-| BP_PAYLOADTOOLARGE      | -12   | The size of the payload exceeded the maximum size payload that is able to be processed by the library |
-| BP_WRONGCHANNEL         | -13   | The destination service number did not match the channel's source service number when trying to processing a bundle destined for the local node |
-| BP_FAILEDINTEGRITYCHECK | -14   | A bundle processed by the library contained a Bundle Integrity Block, but the checksum contained in that block did not match the calculated checksum |
-| BP_FAILEDSTORE          | -15   | The library encountered an error originating from the storage service |
-| BP_FAILEDOS             | -16   | The library encountered an error originating from the operation system abstraction layer |
-| BP_FAILEDMEM            | -17   | The library encountered an error allocating memory for a channel |
-| BP_FAILEDRESPONSE       | -18   | The library was unable to report back to another node, e.g. a DACS bundle could not be created or sent due to there being too many sources to track |
-| BP_INVALIDEID           | -19   | An EID string did not contain a valid IPN address |
-| BP_INVALIDCIPHERSUITEID   | -20   | A BIB block as an unrecognized Cipher Suite ID  |
-| BP_PENDINGACKNOWLEDGMENT  | -21   | An aggregate custody signal was unable to be processed due to a library failure |
-| BP_PENDINGCUSTODYTRANSFER | -22   | A bundle requesting custody transfer failed to be acknowledged due to a library failure |
+| BP_WRONGCHANNEL         | -12   | The destination service number did not match the channel's source service number when trying to processing a bundle destined for the local node |
+| BP_FAILEDINTEGRITYCHECK | -13   | A bundle processed by the library contained a Bundle Integrity Block, but the checksum contained in that block did not match the calculated checksum |
+| BP_FAILEDSTORE          | -14   | The library encountered an error originating from the storage service |
+| BP_FAILEDOS             | -15   | The library encountered an error originating from the operation system abstraction layer |
+| BP_FAILEDMEM            | -16   | The library encountered an error allocating memory for a channel |
+| BP_FAILEDRESPONSE       | -17   | The library was unable to report back to another node, e.g. a DACS bundle could not be created or sent due to there being too many sources to track |
+| BP_INVALIDEID           | -18   | An EID string did not contain a valid IPN address |
+| BP_INVALIDCIPHERSUITEID   | -19   | A BIB block as an unrecognized Cipher Suite ID  |
+| BP_PENDINGACKNOWLEDGMENT  | -20   | An aggregate custody signal was unable to be processed due to a library failure |
+| BP_PENDINGCUSTODYTRANSFER | -21   | A bundle requesting custody transfer failed to be acknowledged due to a library failure |
 
 ----------------------------------------------------------------------
 #### 6.3 Flag Definitions

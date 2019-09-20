@@ -30,6 +30,8 @@
 #define FILE_FLUSH_DEFAULT      true
 #define FILE_MAX_FILENAME       256
 #define FILE_DATA_COUNT         256
+#define FILE_MEM_LOCKED         1
+#define FILE_MEM_AVAIABLE       0
 
 /* Dynamically Set Attributes */
 
@@ -55,8 +57,8 @@
 
 typedef struct {
     void*           mem_ptr;
-    uint32_t        mem_size;
-    uint64_t        mem_data_id;
+    uint32_t        mem_locked; /* 0: available, 1: locked */
+    uint32_t        mem_data_id;
 } data_cache_t;
 
 typedef struct {
@@ -284,6 +286,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
     uint32_t data_size = data1_size + data2_size;
+    uint32_t object_size = sizeof(bp_object_t) + data_size;
     uint32_t bytes_written = 0;
     bool flush_error = false;
     
@@ -326,8 +329,17 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     /* Check Write File Open */
     if(fs->write_fd != NULL)
     {
-        /* Write Data Size */
-        bytes_written += fwrite(&data_size, 1, sizeof(data_size), fs->write_fd);
+        bp_object_t object = {
+            .handle = handle,
+            .sid = BP_SID_VACANT,
+            .size = data_size
+        };
+
+        /* Write Object Size */
+        bytes_written += fwrite(&object_size, 1, sizeof(object_size), fs->write_fd);
+        
+        /* Write Object */
+        bytes_written += fwrite(&object, 1, sizeof(object), fs->write_fd);
         
         /* Write Data Buffer 1 */
         bytes_written += fwrite(data1, 1, data1_size, fs->write_fd);
@@ -344,7 +356,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     }
 
     /* Check Errors and Return Status */
-    if((bytes_written != (data_size + sizeof(data_size))) || flush_error)
+    if((bytes_written != (object_size + sizeof(object_size))) || flush_error)
     {
         fs->write_error = true;
         if(fs->write_fd)
@@ -378,130 +390,178 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_dequeue -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_dequeue (int handle, void** data, int* size, bp_sid_t* sid, int timeout)
+int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
 {
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
-    assert(data);
-    assert(sid);
+    assert(object);
 
     /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
     uint32_t bytes_read = 0;
-    uint32_t data_size = 0;
-    unsigned char* data_ptr = NULL;
+    uint32_t object_size = 0;
+    unsigned char* object_ptr = NULL;
     uint32_t cache_index = 0;
 
-    /* Get IDs */
-    uint32_t file_id = GET_FILEID(fs->read_data_id);
-    uint32_t data_offset = GET_DATAOFFSET(fs->read_data_id);
-    uint32_t data_id = fs->read_data_id;
-
-    /* Check if Data Available */
-    if(fs->read_data_id == fs->write_data_id)
-    {
-        int wait_status;
-        bplib_os_lock(fs->lock);
-        {
-            wait_status = bplib_os_waiton(fs->lock, timeout);
-        }
-        bplib_os_unlock(fs->lock);
-        if(wait_status == BP_OS_TIMEOUT) return BP_TIMEOUT;
-        else if(wait_status == BP_OS_ERROR) return BP_FAILEDSTORE;
-        else if(fs->read_data_id == fs->write_data_id) return BP_TIMEOUT;
-    }
-        
-    /* Check Need to Open Read File */
-    if(fs->read_fd == NULL)
-    {
-        /* Open Read File */
-        fs->read_fd = open_dat_file(fs->service_id, fs->file_root, file_id, true);
-        if(fs->read_fd == NULL) return BP_FAILEDSTORE;
-    }
-
-    /* Seek to Current Position */
-    if(fs->read_error)
-    {
-        uint32_t current_size;
-        unsigned int pos;
-        int status;
-
-        /* Start at Beginning of File */
-        status = fseek(fs->read_fd, 0, SEEK_SET);
-        if(status < 0) return BP_FAILEDSTORE;
-
-        for(pos = 0; pos < data_offset; pos++)
-        {
-            /* Read Current Data Size */
-            bytes_read = fread(&current_size, 1, sizeof(current_size), fs->read_fd);
-            if(bytes_read != sizeof(current_size)) return BP_FAILEDSTORE;
-
-            /* Seek to End of Current Data */
-            status = fseek(fs->read_fd, current_size, SEEK_CUR);
-            if(status < 0) return BP_FAILEDSTORE;
-        }
-    }
-    
-    /* Read Data */
-    bytes_read = fread(&data_size, 1, sizeof(data_size), fs->read_fd);
-    if(bytes_read == sizeof(data_size))
-    {
-        data_ptr = (unsigned char*)malloc(data_size);
-        bytes_read = fread(data_ptr, 1, data_size, fs->read_fd);
-        if(bytes_read == data_size)
-        {
-            fs->read_error = false;
-            fs->read_data_id++;
-
-            /* Close Read File */
-            if(fs->read_data_id % FILE_DATA_COUNT == 0)
-            {
-                fclose(fs->read_fd);
-                fs->read_fd = NULL;
-            }
-        }
-        else
-        {
-            fs->read_error = true;
-            free(data_ptr);
-            
-            /* Close Read File */
-            if(fs->read_fd)
-            {
-                fclose(fs->read_fd);
-                fs->read_fd = NULL;
-            }
-            
-            /* Return Failure */
-            return BP_FAILEDSTORE;
-        }
-    }
-    
-    /* Set Data Cache */
-    cache_index = data_id % fs->cache_size;
     bplib_os_lock(fs->lock);
     {
-        if(fs->data_cache[cache_index].mem_ptr) free(fs->data_cache[cache_index].mem_ptr);
-        fs->data_cache[cache_index].mem_ptr = data_ptr;
-        fs->data_cache[cache_index].mem_size = data_size;
+        /* Get IDs */
+        uint32_t file_id = GET_FILEID(fs->read_data_id);
+        uint32_t data_offset = GET_DATAOFFSET(fs->read_data_id);
+        uint32_t data_id = fs->read_data_id;
+
+        /* Check if Data Available */
+        if(fs->read_data_id == fs->write_data_id)
+        {
+            int wait_status = bplib_os_waiton(fs->lock, timeout);
+            if(wait_status == BP_OS_ERROR)
+            {
+                bplib_os_unlock(fs->lock);
+                return BP_FAILEDSTORE;
+            }
+            else if((wait_status == BP_OS_TIMEOUT) ||
+                    (fs->read_data_id == fs->write_data_id))
+            {
+                bplib_os_unlock(fs->lock);
+                return BP_TIMEOUT;
+            }
+        }
+
+        /* Check Need to Open Read File */
+        if(fs->read_fd == NULL)
+        {
+            /* Open Read File */
+            fs->read_fd = open_dat_file(fs->service_id, fs->file_root, file_id, true);
+            if(fs->read_fd == NULL)
+            {
+                bplib_os_unlock(fs->lock);
+                return BP_FAILEDSTORE;
+            }
+        }
+
+        /* Seek to Current Position */
+        if(fs->read_error)
+        {
+            uint32_t current_size;
+            unsigned int pos;
+            int status;
+
+            /* Start at Beginning of File */
+            status = fseek(fs->read_fd, 0, SEEK_SET);
+            if(status < 0)
+            {
+                bplib_os_unlock(fs->lock);
+                return BP_FAILEDSTORE;
+            }
+
+            for(pos = 0; pos < data_offset; pos++)
+            {
+                /* Read Current Object Size */
+                bytes_read = fread(&current_size, 1, sizeof(current_size), fs->read_fd);
+                if(bytes_read != sizeof(current_size))
+                {
+                    bplib_os_unlock(fs->lock);
+                    return BP_FAILEDSTORE;
+                }
+
+                /* Seek to End of Current Data */
+                status = fseek(fs->read_fd, current_size, SEEK_CUR);
+                if(status < 0)
+                {
+                    bplib_os_unlock(fs->lock);
+                    return BP_FAILEDSTORE;
+                }
+            }
+        }
+
+        /* Read Data */
+        bytes_read = fread(&object_size, 1, sizeof(object_size), fs->read_fd);
+        if(bytes_read == sizeof(object_size))
+        {
+            object_ptr = (unsigned char*)malloc(object_size);
+            bytes_read = fread(object_ptr, 1, object_size, fs->read_fd);
+            if(bytes_read == object_size)
+            {            
+                fs->read_error = false;
+                fs->read_data_id++;
+
+                /* Update SID */
+                bp_object_t* dequeued_object = (bp_object_t*)object_ptr;
+                dequeued_object->sid = (bp_sid_t)(unsigned long)data_id;
+
+                /* Close Read File */
+                if(fs->read_data_id % FILE_DATA_COUNT == 0)
+                {
+                    fclose(fs->read_fd);
+                    fs->read_fd = NULL;
+                }
+            }
+            else
+            {
+                fs->read_error = true;
+
+                /* Close Read File */
+                if(fs->read_fd)
+                {
+                    fclose(fs->read_fd);
+                    fs->read_fd = NULL;
+                }
+
+                /* Return Failure */
+                free(object_ptr);
+                bplib_os_unlock(fs->lock);
+                return BP_FAILEDSTORE;
+            }
+        }
+
+        /* Check State of Data Cache */
+        cache_index = data_id % fs->cache_size;
+        if(fs->data_cache[cache_index].mem_locked)
+        {
+            int wait_status = bplib_os_waiton(fs->lock, timeout);
+            if(wait_status == BP_OS_ERROR)
+            {
+                free(object_ptr);
+                bplib_os_unlock(fs->lock);
+                return BP_FAILEDSTORE;
+            }
+            else if((wait_status == BP_OS_TIMEOUT) ||
+                    (fs->data_cache[cache_index].mem_locked))
+            {
+                free(object_ptr);
+                bplib_os_unlock(fs->lock);
+                return BP_TIMEOUT;
+            }
+        }
+        
+        /* Free Previous Entry in Data Cache */
+        if(fs->data_cache[cache_index].mem_ptr)
+        {
+            free(fs->data_cache[cache_index].mem_ptr);
+        }
+        
+        /* Update Data Cache */
+        fs->data_cache[cache_index].mem_locked = FILE_MEM_LOCKED;
+        fs->data_cache[cache_index].mem_ptr = object_ptr;
         fs->data_cache[cache_index].mem_data_id = data_id;
+
+        /* Set Object */
+        *object = (bp_object_t*)object_ptr;
     }
     bplib_os_unlock(fs->lock);
     
-    /* Set Function Parameters and Return Success */
-    *data = data_ptr;
-    if(size) *size = data_size;
-    *sid = (bp_sid_t)(unsigned long)data_id;
+    /* Return Success */
     return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_retrieve -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_retrieve (int handle, void** data, int* size, bp_sid_t sid, int timeout)
+int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, int timeout)
 {
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
+    assert(object);
     
     (void)timeout;
     
@@ -509,125 +569,199 @@ int bplib_store_file_retrieve (int handle, void** data, int* size, bp_sid_t sid,
     file_store_t* fs = (file_store_t*)&file_stores[handle];
     int seek_status = 0;
     uint32_t bytes_read = 0;
-    uint32_t data_size = 0;
-    unsigned char* data_ptr = NULL;
+    uint32_t object_size = 0;
+    unsigned char* object_ptr = NULL;
     uint32_t cache_index = 0;
     int offset_delta = 0;
 
-    /* Get IDs */
-    uint32_t data_id = (uint32_t)(unsigned long)sid;
-    uint32_t file_id = GET_FILEID(data_id);
-    uint32_t data_offset = GET_DATAOFFSET(data_id);
-    uint32_t curr_file_id = GET_FILEID(fs->retrieve_data_id);
-    uint32_t curr_data_offset = GET_DATAOFFSET(fs->retrieve_data_id);
-            
-    /* Check Data Cache */
-    cache_index = data_id % fs->cache_size;
     bplib_os_lock(fs->lock);
     {
-        if(fs->data_cache[cache_index].mem_data_id == data_id)
+        /* Get IDs */
+        uint32_t data_id = (uint32_t)(unsigned long)sid;
+        uint32_t file_id = GET_FILEID(data_id);
+        uint32_t data_offset = GET_DATAOFFSET(data_id);
+        uint32_t curr_file_id = GET_FILEID(fs->retrieve_data_id);
+        uint32_t curr_data_offset = GET_DATAOFFSET(fs->retrieve_data_id);
+
+        /* Check Data Cache */
+        cache_index = data_id % fs->cache_size;
+        if(fs->data_cache[cache_index].mem_ptr)
         {
-            if(fs->data_cache[cache_index].mem_ptr)
+            if(fs->data_cache[cache_index].mem_data_id == data_id)
             {
                 /* Return Data Cache */
-                *data = fs->data_cache[cache_index].mem_ptr;
-                if(size) *size = fs->data_cache[cache_index].mem_size;
+                *object = fs->data_cache[cache_index].mem_ptr;
                 bplib_os_unlock(fs->lock);
                 return BP_SUCCESS;    
             }
         }
-    }
-    bplib_os_unlock(fs->lock);
     
-    /* Check Need to Open New Retrieve File */
-    if(file_id != curr_file_id)
-    {
-        if(fs->retrieve_fd)
+        /* Check Need to Open New Retrieve File */
+        if(file_id != curr_file_id)
         {
-            fclose(fs->retrieve_fd);
-            fs->retrieve_fd = NULL;
-        }
-    }
-    
-    /* Check Need to Open Retrieve File */
-    if(fs->retrieve_fd == NULL)
-    {        
-        /* Open Retrieve File */
-        fs->retrieve_fd = open_dat_file(fs->service_id, fs->file_root, file_id, true);
-        if(fs->retrieve_fd == NULL) return BP_FAILEDSTORE;
-    }
-    else
-    {
-        /* Set Delta from Current Position in File */
-        offset_delta = data_offset - curr_data_offset;
-        if(offset_delta < 0)
-        {
-            /* Handling Seeking Backwards */
-            offset_delta = data_offset;
-            seek_status = fseek(fs->retrieve_fd, 0, SEEK_SET);
-            if(seek_status < 0) return BP_FAILEDSTORE;        
-        }
-    }            
-    
-    /* Seek Forward */
-    if(offset_delta > 0)
-    {
-        uint32_t current_size;
-        int pos;
-
-        for(pos = 0; pos < offset_delta; pos++)
-        {
-            /* Read Current Data Size */
-            bytes_read = fread(&current_size, 1, sizeof(current_size), fs->retrieve_fd);
-            if(bytes_read != sizeof(current_size)) return BP_FAILEDSTORE;
-
-            /* Seek to End of Current Data */
-            seek_status = fseek(fs->retrieve_fd, current_size, SEEK_CUR);
-            if(seek_status < 0) return BP_FAILEDSTORE;
-        }
-    }
-    
-    /* Read Data */
-    bytes_read = fread(&data_size, 1, sizeof(data_size), fs->retrieve_fd);
-    if(bytes_read == sizeof(data_size))
-    {
-        data_ptr = (unsigned char*)malloc(data_size);
-        bytes_read = fread(data_ptr, 1, data_size, fs->retrieve_fd);
-        if(bytes_read == data_size)
-        {
-            fs->retrieve_data_id = data_id;
-        }
-        else
-        {
-            free(data_ptr);
-            
-            /* Close Read File */
             if(fs->retrieve_fd)
             {
                 fclose(fs->retrieve_fd);
                 fs->retrieve_fd = NULL;
             }
-            
-            /* Return Failure */
-            return BP_FAILEDSTORE;
         }
-    }
-    
-    /* Set Data Cache */
-    cache_index = data_id % fs->cache_size;
-    bplib_os_lock(fs->lock);
-    {
-        if(fs->data_cache[cache_index].mem_ptr) free(fs->data_cache[cache_index].mem_ptr);
-        fs->data_cache[cache_index].mem_ptr = data_ptr;
-        fs->data_cache[cache_index].mem_size = data_size;
+
+        /* Check Need to Open Retrieve File */
+        if(fs->retrieve_fd == NULL)
+        {        
+            /* Open Retrieve File */
+            fs->retrieve_fd = open_dat_file(fs->service_id, fs->file_root, file_id, true);
+            if(fs->retrieve_fd == NULL)
+            {
+                bplib_os_unlock(fs->lock);
+                return BP_FAILEDSTORE;
+            }
+        }
+        else
+        {
+            /* Set Delta from Current Position in File */
+            offset_delta = data_offset - curr_data_offset;
+            if(offset_delta < 0)
+            {
+                /* Handling Seeking Backwards */
+                offset_delta = data_offset;
+                seek_status = fseek(fs->retrieve_fd, 0, SEEK_SET);
+                if(seek_status < 0)
+                {
+                    bplib_os_unlock(fs->lock);
+                    return BP_FAILEDSTORE;        
+                }
+            }
+        }            
+
+        /* Seek Forward */
+        if(offset_delta > 0)
+        {
+            uint32_t current_size;
+            int pos;
+
+            for(pos = 0; pos < offset_delta; pos++)
+            {
+                /* Read Current Data Size */
+                bytes_read = fread(&current_size, 1, sizeof(current_size), fs->retrieve_fd);
+                if(bytes_read != sizeof(current_size))
+                {
+                    bplib_os_unlock(fs->lock);
+                    return BP_FAILEDSTORE;
+                }
+
+                /* Seek to End of Current Data */
+                seek_status = fseek(fs->retrieve_fd, current_size, SEEK_CUR);
+                if(seek_status < 0)
+                {
+                    bplib_os_unlock(fs->lock);
+                    return BP_FAILEDSTORE;
+                }
+            }
+        }
+
+        /* Read Data */
+        bytes_read = fread(&object_size, 1, sizeof(object_size), fs->retrieve_fd);
+        if(bytes_read == sizeof(object_size))
+        {
+            object_ptr = (unsigned char*)malloc(object_size);
+            bytes_read = fread(object_ptr, 1, object_size, fs->retrieve_fd);
+            if(bytes_read == object_size)
+            {
+                bp_object_t* retrieved_object = (bp_object_t*)object_ptr;
+                retrieved_object->sid = (bp_sid_t)(unsigned long)data_id;
+                fs->retrieve_data_id = data_id;
+            }
+            else
+            {
+                free(object_ptr);
+
+                /* Close Read File */
+                if(fs->retrieve_fd)
+                {
+                    fclose(fs->retrieve_fd);
+                    fs->retrieve_fd = NULL;
+                }
+
+                /* Return Failure */
+                bplib_os_unlock(fs->lock);
+                return BP_FAILEDSTORE;
+            }
+        }
+
+        /* Check State of Data Cache */
+        cache_index = data_id % fs->cache_size;
+        if(fs->data_cache[cache_index].mem_locked)
+        {
+            int wait_status = bplib_os_waiton(fs->lock, timeout);
+            if(wait_status == BP_OS_ERROR)
+            {
+                free(object_ptr);
+                bplib_os_unlock(fs->lock);
+                return BP_FAILEDSTORE;
+            }
+            else if((wait_status == BP_OS_TIMEOUT) ||
+                    (fs->data_cache[cache_index].mem_locked))
+            {
+                free(object_ptr);
+                bplib_os_unlock(fs->lock);
+                return BP_TIMEOUT;
+            }
+        }
+        
+        /* Free Previous Entry in Data Cache */
+        if(fs->data_cache[cache_index].mem_ptr)
+        {
+            free(fs->data_cache[cache_index].mem_ptr);
+        }
+        
+        /* Update Data Cache */
+        fs->data_cache[cache_index].mem_locked = FILE_MEM_LOCKED;
+        fs->data_cache[cache_index].mem_ptr = object_ptr;
         fs->data_cache[cache_index].mem_data_id = data_id;
+
+        /* Set Object */
+        *object = (bp_object_t*)object_ptr;
     }
     bplib_os_unlock(fs->lock);
 
-    /* Set Function Parameters and Return Success */
-    *data = data_ptr;
-    if(size) *size = data_size;
+    /* Return Success */
     return BP_SUCCESS;    
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_store_file_release -
+ *-------------------------------------------------------------------------------------*/
+int bplib_store_file_release (int handle, bp_sid_t sid)
+{
+    assert(handle >= 0 && handle < FILE_MAX_STORES);
+    assert(file_stores[handle].in_use);
+
+    file_store_t* fs = (file_store_t*)&file_stores[handle];
+
+    bplib_os_lock(fs->lock);
+    {
+        /* Get Cache Index */
+        uint32_t data_id = (uint32_t)(unsigned long)sid;
+        uint32_t cache_index = data_id % fs->cache_size;
+
+        /* Check Data Cache */
+        if((fs->data_cache[cache_index].mem_ptr == NULL) ||
+           (fs->data_cache[cache_index].mem_data_id == data_id)) 
+        {
+            /* Releasing Invalid Resource */
+            bplib_os_unlock(fs->lock);
+            return BP_FAILEDSTORE;
+        }
+\
+        /* Unlock Cache Entry */
+        fs->data_cache[cache_index].mem_locked = FILE_MEM_AVAIABLE;
+        bplib_os_signal(fs->lock);
+    }
+    bplib_os_unlock(fs->lock);
+    
+    /* Return Success */
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -640,109 +774,125 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
 
     /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
-    uint32_t cache_index = 0;
     uint32_t bytes_read = 0;
     uint32_t bytes_written = 0;
 
-    /* Get IDs */
-    uint32_t data_id = (uint32_t)(unsigned long)sid;
-    uint32_t file_id = GET_FILEID(data_id);
-    uint32_t data_offset = GET_DATAOFFSET(data_id);
-    uint32_t curr_file_id = GET_FILEID(fs->relinquish_data_id);
-
-    /* Check Data Cache */
-    cache_index = data_id;
     bplib_os_lock(fs->lock);
     {
+        /* Get IDs */
+        uint32_t data_id = (uint32_t)(unsigned long)sid;
+        uint32_t file_id = GET_FILEID(data_id);
+        uint32_t data_offset = GET_DATAOFFSET(data_id);
+        uint32_t curr_file_id = GET_FILEID(fs->relinquish_data_id);
+
+        /* Check Data Cache */
+        uint32_t cache_index = data_id % fs->cache_size;
         if(fs->data_cache[cache_index].mem_ptr)
         {
             if(fs->data_cache[cache_index].mem_data_id == data_id)
             {
                 free(fs->data_cache[cache_index].mem_ptr);
                 fs->data_cache[cache_index].mem_ptr = NULL;
+                fs->data_cache[cache_index].mem_data_id = BP_SID_VACANT;
+                fs->data_cache[cache_index].mem_locked = FILE_MEM_AVAIABLE;
             }
         }
-    }
-    bplib_os_unlock(fs->lock);
 
-    /* Check Need to Read New Relinquish Table */
-    if(file_id != curr_file_id)
-    {
-        if(fs->relinquish_table.free_cnt > 0)
+        /* Check Need to Read New Relinquish Table */
+        if(file_id != curr_file_id)
         {
-            /* Open Previous Relinquish File */
-            if(fs->relinquish_fd == NULL)
+            if(fs->relinquish_table.free_cnt > 0)
             {
-                fs->relinquish_fd = open_tbl_file(fs->service_id, fs->file_root, file_id, false);
-                if(fs->relinquish_fd == NULL) return BP_FAILEDSTORE;
+                /* Open Previous Relinquish File */
+                if(fs->relinquish_fd == NULL)
+                {
+                    fs->relinquish_fd = open_tbl_file(fs->service_id, fs->file_root, file_id, false);
+                    if(fs->relinquish_fd == NULL) 
+                    {
+                        bplib_os_unlock(fs->lock);
+                        return BP_FAILEDSTORE;
+                    }
+                }
+
+                /* Write Previous Relinquish Table */
+                bytes_written = fwrite(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+
+                /* Close Previous Relinquish File */
+                fclose(fs->relinquish_fd);
+                fs->relinquish_fd = NULL;
+
+                /* Check Status of Write */
+                if(bytes_written != sizeof(fs->relinquish_table))
+                {
+                    bplib_os_unlock(fs->lock);
+                    return BP_FAILEDSTORE;
+                }
             }
 
-            /* Write Previous Relinquish Table */
-            bytes_written = fwrite(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+            /* Open New Relinquish File */
+            fs->relinquish_fd = open_tbl_file(fs->service_id, fs->file_root, file_id, true);
+            if(fs->relinquish_fd == NULL)
+            {
+                /* Initialize New Relinquish Table */
+                memset(&fs->relinquish_table, 0, sizeof(fs->relinquish_table));
+            }
+            else
+            {
+                /* Read Relinquish Table */
+                bytes_read = fread(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+                if(bytes_read != sizeof(fs->relinquish_table))
+                {
+                    fclose(fs->relinquish_fd);
+                    fs->relinquish_fd = NULL;
+                    bplib_os_unlock(fs->lock);
+                    return BP_FAILEDSTORE;
+                }
+            }
 
-            /* Close Previous Relinquish File */
+            /* Close New Relinquish File */
             fclose(fs->relinquish_fd);
             fs->relinquish_fd = NULL;
 
-            /* Check Status of Write */
-            if(bytes_written != sizeof(fs->relinquish_table))
-            {
-                return BP_FAILEDSTORE;
-            }
+            /* Set Current Relinquish Table */
+            fs->relinquish_data_id = data_id;
         }
 
-        /* Open New Relinquish File */
-        fs->relinquish_fd = open_tbl_file(fs->service_id, fs->file_root, file_id, true);
-        if(fs->relinquish_fd == NULL)
+        /* Mark Data as Relinquished */
+        fs->relinquish_data_id = data_id;
+        if(fs->relinquish_table.freed[data_offset] == 0)
         {
-            /* Initialize New Relinquish Table */
-            memset(&fs->relinquish_table, 0, sizeof(fs->relinquish_table));
-        }
-        else
-        {
-            /* Read Relinquish Table */
-            bytes_read = fread(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
-            if(bytes_read != sizeof(fs->relinquish_table))
+            fs->relinquish_table.freed[data_offset] = 1;
+
+            /* Relinquish Resources */
+            fs->relinquish_table.free_cnt++;
+            if(fs->relinquish_table.free_cnt == FILE_DATA_COUNT)
             {
-                fclose(fs->relinquish_fd);
-                fs->relinquish_fd = NULL;
-                return BP_FAILEDSTORE;
+                int status;
+
+                /* Delete Write File */
+                status = delete_dat_file(fs->service_id, fs->file_root, file_id);
+                if(status < 0)
+                {
+                    bplib_os_unlock(fs->lock);
+                    return BP_FAILEDSTORE;
+                }
+
+                /* Delete Relinquish File */
+                status = delete_tbl_file(fs->service_id, fs->file_root, file_id);
+                if(status < 0)
+                {
+                    bplib_os_unlock(fs->lock);
+                    return BP_FAILEDSTORE;
+                }
             }
         }
         
-        /* Close New Relinquish File */
-        fclose(fs->relinquish_fd);
-        fs->relinquish_fd = NULL;
-
-        /* Set Current Relinquish Table */
-        fs->relinquish_data_id = data_id;
-
+        /* Update Data Count */
+        fs->data_count--;
     }
-    
-    /* Mark Data as Relinquished */
-    fs->relinquish_data_id = data_id;
-    if(fs->relinquish_table.freed[data_offset] == 0)
-    {
-        fs->relinquish_table.freed[data_offset] = 1;
-
-        /* Relinquish Resources */
-        fs->relinquish_table.free_cnt++;
-        if(fs->relinquish_table.free_cnt == FILE_DATA_COUNT)
-        {
-            int status;
-
-            /* Delete Write File */
-            status = delete_dat_file(fs->service_id, fs->file_root, file_id);
-            if(status < 0) return BP_FAILEDSTORE;
-            
-            /* Delete Relinquish File */
-            status = delete_tbl_file(fs->service_id, fs->file_root, file_id);
-            if(status < 0) return BP_FAILEDSTORE;
-        }
-    }
+    bplib_os_unlock(fs->lock);
 
     /* Return Success */
-    fs->data_count--;
     return BP_SUCCESS;
 }
 

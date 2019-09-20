@@ -54,6 +54,7 @@ typedef struct {
 
 /* Channel Control Block */
 typedef struct {
+    bp_store_t          store;
     bp_attr_t           attributes;
     bp_bundle_t         bundle;
     bp_custody_t        custody;
@@ -135,6 +136,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     assert(store.enqueue);
     assert(store.dequeue);
     assert(store.retrieve);
+    assert(store.release);
     assert(store.relinquish);
     assert(store.getcount);
     
@@ -150,6 +152,9 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     memset(ch, 0, sizeof(bp_channel_t));
     ch->active_table_signal = BP_INVALID_HANDLE;
 
+    /* Set Store */
+    ch->store = store;
+    
     /* Set Initial Attributes */
     if(attributes)  ch->attributes = *attributes;
     else            ch->attributes = default_attributes;
@@ -233,7 +238,6 @@ int bplib_flush(bp_desc_t channel)
     bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Send Data Bundle */
-    bp_store_t* store = &ch->bundle.store;
     int handle = ch->bundle.bundle_handle;
 
     /* Lock Active Table */
@@ -249,7 +253,7 @@ int bplib_flush(bp_desc_t channel)
             /* Relinquish Bundle */
             if(sid != BP_SID_VACANT)
             {
-                store->relinquish(handle, sid);
+                ch->store.relinquish(handle, sid);
                 ch->active_table[ati].sid = BP_SID_VACANT;
                 ch->stats.lost++;
             }
@@ -403,9 +407,9 @@ int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
     bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Update Store Counts */
-    ch->stats.bundles = ch->bundle.store.getcount(ch->bundle.bundle_handle);
-    ch->stats.payloads = ch->bundle.store.getcount(ch->bundle.payload_handle);
-    ch->stats.records = ch->custody.bundle.store.getcount(ch->custody.bundle.bundle_handle);
+    ch->stats.bundles = ch->store.getcount(ch->bundle.bundle_handle);
+    ch->stats.payloads = ch->store.getcount(ch->bundle.payload_handle);
+    ch->stats.records = ch->store.getcount(ch->custody.bundle.bundle_handle);
     
     /* Update Active Statistic */
     ch->stats.active = ch->current_active_cid - ch->oldest_active_cid;
@@ -443,9 +447,9 @@ int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_
 /*--------------------------------------------------------------------------------------
  * bplib_load -
  *-------------------------------------------------------------------------------------*/
-int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t* flags)
+int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_t* flags)
 {
-    int status = BP_SUCCESS; /* size of bundle returned or error code */
+    int status = BP_SUCCESS; /* success or error code */
 
     /* Check Parameters */
     if(channel == NULL)     return BP_PARMERR;
@@ -457,19 +461,12 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
     
     /* Setup State */
     unsigned long       sysnow          = 0;                /* current system time used for timeouts (seconds) */
-    bp_bundle_data_t*   data            = NULL;             /* start out assuming nothing to send */
+    bp_object_t*        object          = NULL;             /* stare out assuming nothing to send */
     bp_sid_t            sid             = BP_SID_VACANT;    /* store id points to nothing */
     int                 ati             = -1;               /* active table index */
     bool                newcid          = true;             /* whether to assign new custody id and active table entry */
-    bp_store_t*         store           = NULL;             /* which storage service to used */
     int                 handle          = -1;               /* handle for store service being loaded */
 
-
-    /* Check for Acknowledgment */
-    if(bundle == BP_ACKNOWLEDGMENT)
-    {
-        .. TO DO
-    }
     /* Get Current Time */
     if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
     {
@@ -479,17 +476,16 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
     /*-------------------------*/
     /* Try to Send DACS Bundle */
     /*-------------------------*/
-    if(data == NULL)
+    if(object == NULL)
     {
         /* Store any DACS currently being accumulated */
         custody_send(&ch->custody, ch->attributes.dacs_rate, sysnow, BP_CHECK, flags);
 
         /* Dequeue any stored DACS */
-        store = &ch->custody.bundle.store;
         handle = ch->custody.bundle.bundle_handle;    
-        if(store->dequeue(handle, (void**)&data, NULL, &sid, BP_CHECK) == BP_SUCCESS)
+        if(ch->store.dequeue(handle, &object, BP_CHECK) == BP_SUCCESS)
         {
-            /* Set Route Flag */
+            sid = object->sid;
             *flags |= BP_FLAG_ROUTENEEDED;
         }
     }
@@ -497,17 +493,16 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
     /*------------------------------------------------*/
     /* Try to Send Active Bundle (if nothing to send) */
     /*------------------------------------------------*/
-    if(data == NULL)
+    if(object == NULL)
     {
         /* Send Data Bundle */
-        store = &ch->bundle.store;
         handle = ch->bundle.bundle_handle;
 
         /* Process Active Table for Timeouts */
         bplib_os_lock(ch->active_table_signal);
         {
             /* Try to Send Timed-out Bundle */
-            while((data == NULL) && (ch->oldest_active_cid != ch->current_active_cid))
+            while((object == NULL) && (ch->oldest_active_cid != ch->current_active_cid))
             {
                 ati = ch->oldest_active_cid % ch->attributes.active_table_size;
                 sid = ch->active_table[ati].sid;
@@ -515,12 +510,13 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
                 {
                     ch->oldest_active_cid++;
                 }
-                else if(store->retrieve(handle, (void**)&data, NULL, sid, BP_CHECK) == BP_SUCCESS)
+                else if(ch->store.retrieve(handle, sid, &object, BP_CHECK) == BP_SUCCESS)
                 {
+                    bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
                     if(data->exprtime != 0 && sysnow >= data->exprtime) /* check lifetime */
                     {
                         /* Bundle Expired - Clear Entry */
-                        store->relinquish(handle, sid);
+                        ch->store.relinquish(handle, sid);
                         ch->active_table[ati].sid = BP_SID_VACANT;
                         ch->oldest_active_cid++;
                         ch->stats.expired++;
@@ -548,7 +544,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
                     else /* oldest active bundle still active */
                     {
                         /* Bundle Not Ready to Retransmit */
-                        data = NULL;
+                        object = NULL;
 
                         /* Check Active Table Has Room
                          * Since next step is to dequeue from store, need to make
@@ -571,10 +567,10 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
                                 ch->oldest_active_cid++;
 
                                 /* Retrieve Bundle from Storage */
-                                if(store->retrieve(handle, (void**)&data, NULL, sid, BP_CHECK) != BP_SUCCESS)
+                                if(ch->store.retrieve(handle, sid, &object, BP_CHECK) != BP_SUCCESS)
                                 {
                                     /* Failed to Retrieve - Clear Entry (and loop again) */
-                                    store->relinquish(handle, sid);
+                                    ch->store.relinquish(handle, sid);
                                     ch->active_table[ati].sid = BP_SID_VACANT;
                                     *flags |= BP_FLAG_STOREFAILURE;
                                     ch->stats.lost++;
@@ -598,7 +594,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
                                 ch->oldest_active_cid++;
 
                                 /* Clear Entry (and loop again) */
-                                store->relinquish(handle, sid);
+                                ch->store.relinquish(handle, sid);
                                 ch->active_table[ati].sid = BP_SID_VACANT;
                                 ch->stats.lost++;
                             }
@@ -611,7 +607,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
                 else
                 {
                     /* Failed to Retrieve Bundle from Storage */
-                    store->relinquish(handle, sid);
+                    ch->store.relinquish(handle, sid);
                     ch->active_table[ati].sid = BP_SID_VACANT;
                     *flags |= BP_FLAG_STOREFAILURE;
                     ch->stats.lost++;
@@ -624,16 +620,19 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
     /*------------------------------------------------*/
     /* Try to Send Stored Bundle (if nothing to send) */
     /*------------------------------------------------*/
-    while(data == NULL)
+    while(object == NULL)
     {
         /* Dequeue Bundle from Storage Service */
-        int deq_status = store->dequeue(handle, (void**)&data, NULL, &sid, timeout);
+        int deq_status = ch->store.dequeue(handle, &object, timeout);
         if(deq_status == BP_SUCCESS)
         {
+            bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
+            sid = object->sid;
+
             if(data->exprtime != 0 && sysnow >= data->exprtime)
             {
                 /* Bundle Expired Clear Entry (and loop again) */
-                store->relinquish(handle, sid);
+                ch->store.relinquish(handle, sid);
                 ch->stats.expired++;
                 sid = BP_SID_VACANT;
                 data = NULL;
@@ -657,70 +656,42 @@ int bplib_load(bp_desc_t channel, void** bundle, int size, int timeout, uint16_t
     /*------------------------------*/
     /* Load Bundle if Ready to Send */
     /*------------------------------*/
-    if(data != NULL)
+    if(object != NULL)
     {
-        /* Check Buffer Size for Return by Copy */
-        if((*bundle != NULL) && (size < data->bundlesize))
+        bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
+
+        /* Check Custody Transfer */
+        if(data->cteboffset != 0)
         {
-            status = bplog(BP_BUNDLETOOLARGE, "Bundle too large to fit inside buffer (%d %d)\n", size, data->bundlesize);
-            store->relinquish(handle, sid);
-            ch->stats.lost++;
+            /* Mark Bundle as Active */
+            bplib_os_lock(ch->active_table_signal);
+            {
+                /* Assign Custody ID and Active Table Entry */
+                if(newcid)
+                {
+                    ati = ch->current_active_cid % ch->attributes.active_table_size;
+                    ch->active_table[ati].sid = sid;
+                    bundle_update(data, ch->current_active_cid++, flags);
+                }
+
+                /* Update Retransmit Time */
+                ch->active_table[ati].retx = sysnow;
+            }
+            bplib_os_unlock(ch->active_table_signal);
         }
-            
-        if(status == BP_SUCCESS)
+        else /* Not an Active Bundle */
         {
-            /* If Custody Transfer */
-            if(data->cteboffset != 0)
-            {
-                bplib_os_lock(ch->active_table_signal);
-                {
-                    /* Assign Custody ID and Active Table Entry */
-                    if(newcid)
-                    {
-                        ati = ch->current_active_cid % ch->attributes.active_table_size;
-                        ch->active_table[ati].sid = sid;
-                        bundle_update(data, ch->current_active_cid++, flags);
-                    }
-
-                    /* Update Retransmit Time */
-                    ch->active_table[ati].retx = sysnow;
-                }
-                bplib_os_unlock(ch->active_table_signal);
-            }
-
-            /* Load Bundle */
-            if(*bundle != NULL)
-            {
-                /* Return Bundle by Copy */
-                memcpy(*bundle, data->header, data->bundlesize);
-
-                /* Free Bundle Memory
-                 *  only when returning by copy and when no custody 
-                 *  transfer is requested, free memory right away */
-                if(data->cteboffset == 0)
-                {
-                    store->relinquish(handle, sid);
-                }
-            }
-            else
-            {
-                /* Return Bundle by Reference*/
-                *bundle = data->header;
-                
-                /* Note no freeing of memory by reference here, this will occur 
-                 * when the data is acknowledged if custody transfer is not 
-                 * requested. If custody transfer is requested, then there the 
-                 * application level acknowledgment is not necessary and 
-                 * performs no action */
-            }
-            
-            /* Set Status */
-            ch->stats.transmitted++;
-            status = data->bundlesize;
+            /* Mark Bundle for Relinquishing on Release */
+            object->size = 0;
         }
+
+        /* Load Bundle */
+        *bundle = data->header;
+        if(size) *size = data->bundlesize;
+        ch->stats.transmitted++;
     }
 
-    /* Return Size in Bytes or Status on Error */
+    /* Return Status */
     return status;
 }
 
@@ -765,9 +736,9 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
             if(status > 0)
             {
                 int acknowledgment_count = status;
-                status = BP_SUCCESS;
                 ch->stats.acknowledged += acknowledgment_count;
                 bplib_os_signal(ch->active_table_signal);
+                status = BP_SUCCESS;
             }
         }
         bplib_os_unlock(ch->active_table_signal);
@@ -787,11 +758,12 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
  *
  *  Returns success if payload copied, or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
-int bplib_accept(bp_desc_t channel, void** payload, int size, int timeout, uint16_t* flags)
+int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint16_t* flags)
 {
     (void)flags;
     
-    int status, deqstat;
+    int status = BP_SUCCESS;
+    bp_object_t* object = NULL;
 
     /* Check Parameters */
     if(channel == NULL)         return BP_PARMERR;
@@ -801,49 +773,43 @@ int bplib_accept(bp_desc_t channel, void** payload, int size, int timeout, uint1
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
 
-    /* Setup Variables */
-    uint8_t*        payptr  = NULL;
-    int             paylen  = 0;
-    bp_sid_t        sid     = BP_SID_VACANT;
-
     /* Dequeue Payload from Storage */
-    deqstat = ch->bundle.store.dequeue(ch->bundle.payload_handle, (void**)&payptr, &paylen, &sid, timeout);
-    if(deqstat > 0)
+    status = ch->store.dequeue(ch->bundle.payload_handle, &object, timeout);
+    if(status > 0)
     {
         /* Return Payload to Application */
-        if(*payload == NULL || size >= paylen)
-        {
-            /* Check/Allocate Memory for Payload */
-            if(*payload == NULL) *payload = malloc(paylen);
-
-            /* Copy Payload and Set Status */
-            if(*payload != NULL)
-            {
-                memcpy(*payload, payptr, paylen);
-                status = paylen;
-                ch->stats.delivered++;
-            }
-            else
-            {
-                status = bplog(BP_FAILEDMEM, "Unable to acquire memory for payload of size %d\n", paylen);
-                ch->stats.lost++;
-            }
-        }
-        else
-        {
-            status = bplog(BP_PAYLOADTOOLARGE, "Payload too large to fit inside buffer (%d %d)\n", size, paylen);
-            ch->stats.lost++;
-        }
-
-        /* Relinquish Memory */
-        ch->bundle.store.relinquish(ch->bundle.payload_handle, sid);
-    }
-    else 
-    {
-        status = deqstat;
+        *payload = object->data;
+        if(size) *size = object->size;
+        ch->stats.delivered++;
+        
+        /* Mark Payload for Relinquishing on Release */
+        object->size = 0;
     }
 
-    /* Return Size of Payload in Bytes or Status on Error */
+    /* Return Status */
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_acknowledge -
+ *-------------------------------------------------------------------------------------*/
+int bplib_acknowledge(bp_desc_t channel, void* memory)
+{
+    int status = BP_SUCCESS;
+    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_object_t* object = (bp_object_t*)((uint8_t*)memory - offsetof(bp_object_t, data));
+           
+    /* Check Parameters */
+    if(channel == NULL)     return BP_PARMERR;
+    else if(memory == NULL) return BP_PARMERR;
+
+    /* Release Memory */
+    ch->store.release(object->handle, object->sid);
+    
+    /* Free Bundle Memory - only when no custody transfer is requested */
+    if(object->size == 0) ch->store.relinquish(object->handle, object->sid);
+
+    /* Return Status */
     return status;
 }
 
@@ -891,10 +857,10 @@ int bplib_routeinfo(void* bundle, int size, bp_route_t* route)
  *  eid -                   null-terminated string representation of End Point ID [INPUT]
  *  len -                   size in bytes of above string [INPUT]
  *  node -                  node number as read from eid [OUTPUT]
- *  store -               store number as read from eid [OUTPUT]
+ *  service -               service number as read from eid [OUTPUT]
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* store)
+int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
 {
     char eidtmp[BP_MAX_EID_STRING];
     int tmplen;
@@ -944,7 +910,7 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* store)
 
     /* Parse Node Number */
     errno = 0;
-    node_result = strtoul(node_ptr, &endptr, 10); /* assume IPN node and store numbers always written in base 10 */
+    node_result = strtoul(node_ptr, &endptr, 10); /* assume IPN node and service numbers always written in base 10 */
     if( (endptr == node_ptr) ||
         ((node_result == ULONG_MAX || node_result == 0) && errno == ERANGE) )
     {
@@ -953,16 +919,16 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* store)
 
     /* Parse Service Number */
     errno = 0;
-    service_result = strtoul(service_ptr, &endptr, 10); /* assume IPN node and store numbers always written in base 10 */
+    service_result = strtoul(service_ptr, &endptr, 10); /* assume IPN node and service numbers always written in base 10 */
     if( (endptr == service_ptr) ||
         ((service_result == ULONG_MAX || service_result == 0) && errno == ERANGE) )
     {
-        return bplog(BP_INVALIDEID, "Unable to parse EID (%s) store number\n", eid);
+        return bplog(BP_INVALIDEID, "Unable to parse EID (%s) service number\n", eid);
     }
 
     /* Set Outputs */
     *node = (bp_ipn_t)node_result;
-    *store = (bp_ipn_t)service_result;
+    *service = (bp_ipn_t)service_result;
     return BP_SUCCESS;
 }
 
@@ -972,10 +938,10 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* store)
  *  eid -                   buffer that will hold null-terminated string representation of End Point ID [OUTPUT]
  *  len -                   size in bytes of above buffer [INPUT]
  *  node -                  node number to be written into eid [INPUT]
- *  store -               store number to be written into eid [INPUT]
+ *  service -               service number to be written into eid [INPUT]
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t store)
+int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t service)
 {
     /* Sanity Check EID Buffer Pointer */
     if(eid == NULL)
@@ -994,7 +960,7 @@ int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t store)
     }
 
     /* Write EID */
-    bplib_os_format(eid, len, "ipn:%lu.%lu", (unsigned long)node, (unsigned long)store);
+    bplib_os_format(eid, len, "ipn:%lu.%lu", (unsigned long)node, (unsigned long)service);
 
     return BP_SUCCESS;
 }

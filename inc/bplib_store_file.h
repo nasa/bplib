@@ -48,8 +48,9 @@ void    bplib_store_file_init          (void);
 int     bplib_store_file_create        (void* parm);
 int     bplib_store_file_destroy       (int handle);
 int     bplib_store_file_enqueue       (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
-int     bplib_store_file_dequeue       (int handle, void** data, int* size, bp_sid_t* sid, int timeout);
-int     bplib_store_file_retrieve      (int handle, void** data, int* size, bp_sid_t sid, int timeout);
+int     bplib_store_file_dequeue       (int handle, bp_object_t** object, int timeout);
+int     bplib_store_file_retrieve      (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
+int     bplib_store_file_release       (int handle, bp_sid_t sid);
 int     bplib_store_file_relinquish    (int handle, bp_sid_t sid);
 int     bplib_store_file_getcount      (int handle);
 
