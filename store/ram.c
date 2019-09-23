@@ -435,7 +435,7 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
 
     int status;
     int data_size = data1_size + data2_size;
-    int object_size = sizeof(bp_object_t) + data_size;
+    int object_size = offsetof(bp_object_t, data) + data_size;
     bp_object_t* object = (bp_object_t*)malloc(object_size);
 
     /* Check memory allocation */
@@ -484,7 +484,7 @@ int bplib_store_ram_dequeue(int handle, bp_object_t** object, int timeout)
     if(status == MSGQ_OKAY)
     {
         (void)size; /* unused */
-        dequeued_object->sid = dequeued_object->data; /* only update sid */
+        dequeued_object->sid = dequeued_object; /* only update sid */
         *object = dequeued_object;
         return BP_SUCCESS;
     }
@@ -511,7 +511,7 @@ int bplib_store_ram_retrieve(int handle, bp_sid_t sid,
     assert(msgq_stores[handle]);
     assert(object);
 
-    *object = (bp_object_t*)((uint8_t*)sid - offsetof(bp_object_t, data));
+    *object = (bp_object_t*)sid;
     
     return BP_SUCCESS;
 }
@@ -537,8 +537,8 @@ int bplib_store_ram_relinquish (int handle, bp_sid_t sid)
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
 
-    void* data = (void*)sid;
-    free(data);
+    bp_object_t* object = (void*)sid;
+    free(object);
     msgq_counts[handle]--;
 
     return BP_SUCCESS;

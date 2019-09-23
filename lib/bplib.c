@@ -520,7 +520,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                         ch->active_table[ati].sid = BP_SID_VACANT;
                         ch->oldest_active_cid++;
                         ch->stats.expired++;
-                        data = NULL;
+                        object = NULL;
                     }
                     else if(ch->attributes.timeout != 0 && sysnow >= (ch->active_table[ati].retx + ch->attributes.timeout)) /* check timeout */
                     {
@@ -635,7 +635,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                 ch->store.relinquish(handle, sid);
                 ch->stats.expired++;
                 sid = BP_SID_VACANT;
-                data = NULL;
+                object = NULL;
             }
         }
         else if(deq_status == BP_TIMEOUT)
@@ -678,11 +678,6 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                 ch->active_table[ati].retx = sysnow;
             }
             bplib_os_unlock(ch->active_table_signal);
-        }
-        else /* Not an Active Bundle */
-        {
-            /* Mark Bundle for Relinquishing on Release */
-            object->size = 0;
         }
 
         /* Load Bundle */
@@ -781,9 +776,6 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
         *payload = object->data;
         if(size) *size = object->size;
         ch->stats.delivered++;
-        
-        /* Mark Payload for Relinquishing on Release */
-        object->size = 0;
     }
 
     /* Return Status */
@@ -791,23 +783,47 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_acknowledge -
+ * bplib_ackbundle -
  *-------------------------------------------------------------------------------------*/
-int bplib_acknowledge(bp_desc_t channel, void* memory)
+int bplib_ackbundle(bp_desc_t channel, void* bundle)
 {
     int status = BP_SUCCESS;
     bp_channel_t* ch = (bp_channel_t*)channel;
-    bp_object_t* object = (bp_object_t*)((uint8_t*)memory - offsetof(bp_object_t, data));
-           
+    bp_bundle_data_t* data = (bp_bundle_data_t*)((uint8_t*)bundle - offsetof(bp_bundle_data_t, header));
+    bp_object_t* object = (bp_object_t*)((uint8_t*)data - offsetof(bp_object_t, data));
+
     /* Check Parameters */
     if(channel == NULL)     return BP_PARMERR;
-    else if(memory == NULL) return BP_PARMERR;
+    else if(bundle == NULL) return BP_PARMERR;
 
     /* Release Memory */
     ch->store.release(object->handle, object->sid);
     
-    /* Free Bundle Memory - only when no custody transfer is requested */
-    if(object->size == 0) ch->store.relinquish(object->handle, object->sid);
+    /* Free Memory - only when no custody transfer is requested */
+    if(data->cteboffset == 0) ch->store.relinquish(object->handle, object->sid);
+
+    /* Return Status */
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_ackpayload -
+ *-------------------------------------------------------------------------------------*/
+int bplib_ackpayload(bp_desc_t channel, void* payload)
+{
+    int status = BP_SUCCESS;
+    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_object_t* object = (bp_object_t*)((uint8_t*)payload - offsetof(bp_object_t, data));
+
+    /* Check Parameters */
+    if(channel == NULL)         return BP_PARMERR;
+    else if(payload == NULL)    return BP_PARMERR;
+
+    /* Release Memory */
+    ch->store.release(object->handle, object->sid);
+    
+    /* Free Memory */
+    ch->store.relinquish(object->handle, object->sid);
 
     /* Return Status */
     return status;

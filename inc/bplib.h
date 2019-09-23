@@ -246,7 +246,9 @@ int         bplib_store         (bp_desc_t channel, void* payload, int size, int
 int         bplib_load          (bp_desc_t channel, void** bundle, int* size, int timeout, uint16_t* flags); 
 int         bplib_process       (bp_desc_t channel, void* bundle, int size, int timeout, uint16_t* flags);
 int         bplib_accept        (bp_desc_t channel, void** payload, int* size, int timeout, uint16_t* flags);
-int         bplib_acknowledge   (bp_desc_t channel, void* memory);
+
+int         bplib_ackbundle     (bp_desc_t channel, void* bundle);
+int         bplib_ackpayload    (bp_desc_t channel, void* payload);
 
 int         bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
 int         bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);

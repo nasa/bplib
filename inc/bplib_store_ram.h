@@ -40,7 +40,7 @@ int     bplib_store_ram_create         (void* parm);
 int     bplib_store_ram_destroy        (int handle);
 int     bplib_store_ram_enqueue        (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
 int     bplib_store_ram_dequeue        (int handle, bp_object_t** object, int timeout);
-int     bplib_store_ram_retrieve       (int handle, bp_sid_t sid, bp_object_t* object, int timeout);
+int     bplib_store_ram_retrieve       (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
 int     bplib_store_ram_release        (int handle, bp_sid_t sid);
 int     bplib_store_ram_relinquish     (int handle, bp_sid_t sid);
 int     bplib_store_ram_getcount       (int handle);

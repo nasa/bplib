@@ -22,6 +22,7 @@
 #include "bplib.h"
 #include "bplib_os.h"
 #include "bplib_store_file.h"
+#include "bundle.h"
 
 /******************************************************************************
  DEFINES
@@ -286,7 +287,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
     uint32_t data_size = data1_size + data2_size;
-    uint32_t object_size = sizeof(bp_object_t) + data_size;
+    uint32_t object_size = offsetof(bp_object_t, data) + data_size;
     uint32_t bytes_written = 0;
     bool flush_error = false;
     
@@ -339,7 +340,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
         bytes_written += fwrite(&object_size, 1, sizeof(object_size), fs->write_fd);
         
         /* Write Object */
-        bytes_written += fwrite(&object, 1, sizeof(object), fs->write_fd);
+        bytes_written += fwrite(&object, 1, offsetof(bp_object_t, data), fs->write_fd);
         
         /* Write Data Buffer 1 */
         bytes_written += fwrite(data1, 1, data1_size, fs->write_fd);
