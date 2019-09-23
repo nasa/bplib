@@ -403,6 +403,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
     uint32_t object_size = 0;
     unsigned char* object_ptr = NULL;
     uint32_t cache_index = 0;
+    bool read_success = false;
 
     bplib_os_lock(fs->lock);
     {
@@ -426,6 +427,13 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
                 bplib_os_unlock(fs->lock);
                 return BP_TIMEOUT;
             }
+        }
+
+        /* Check Need to Open New File */
+        if(fs->read_data_id % FILE_DATA_COUNT == 0)
+        {
+            fclose(fs->read_fd);
+            fs->read_fd = NULL;
         }
 
         /* Check Need to Open Read File */
@@ -486,31 +494,36 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
                 /* Update SID */
                 bp_object_t* dequeued_object = (bp_object_t*)object_ptr;
                 dequeued_object->sid = (bp_sid_t)(unsigned long)data_id;
-
+                read_success = true;
+                
                 /* Close Read File */
                 if(fs->read_data_id % FILE_DATA_COUNT == 0)
                 {
                     fclose(fs->read_fd);
                     fs->read_fd = NULL;
                 }
-            }
-            else
+            }            
+        }
+
+        /* Check for Read Errors */
+        if(!read_success)
+        {
+            /* Set Error State */
+            fs->read_error = true;
+
+            /* Close Read File */
+            if(fs->read_fd)
             {
-                /* Set Error State */
-                fs->read_error = true;
-
-                /* Close Read File */
-                if(fs->read_fd)
-                {
-                    fclose(fs->read_fd);
-                    fs->read_fd = NULL;
-                }
-
-                /* Return Failure */
-                free(object_ptr);
-                bplib_os_unlock(fs->lock);
-                return BP_FAILEDSTORE;
+                fclose(fs->read_fd);
+                fs->read_fd = NULL;
             }
+            
+            /* Free Object Pointer */
+            if(object_ptr) free(object_ptr);
+
+            /* Return Failure */
+            bplib_os_unlock(fs->lock);
+            return BP_FAILEDSTORE;
         }
 
         /* Check State of Data Cache */
