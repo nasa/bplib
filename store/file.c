@@ -483,9 +483,6 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             bytes_read = fread(object_ptr, 1, object_size, fs->read_fd);
             if(bytes_read == object_size)
             {            
-                fs->read_error = false;
-                fs->read_data_id++;
-
                 /* Update SID */
                 bp_object_t* dequeued_object = (bp_object_t*)object_ptr;
                 dequeued_object->sid = (bp_sid_t)(unsigned long)data_id;
@@ -499,6 +496,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             }
             else
             {
+                /* Set Error State */
                 fs->read_error = true;
 
                 /* Close Read File */
@@ -546,7 +544,11 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
         fs->data_cache[cache_index].mem_ptr = object_ptr;
         fs->data_cache[cache_index].mem_data_id = data_id;
 
-        /* Set Object */
+        /* Set Read State */
+        fs->read_error = false;
+        fs->read_data_id++;
+
+        /* Return Object */
         *object = (bp_object_t*)object_ptr;
     }
     bplib_os_unlock(fs->lock);
@@ -721,7 +723,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
         fs->data_cache[cache_index].mem_ptr = object_ptr;
         fs->data_cache[cache_index].mem_data_id = data_id;
 
-        /* Set Object */
+        /* Return Object */
         *object = (bp_object_t*)object_ptr;
     }
     bplib_os_unlock(fs->lock);
@@ -748,7 +750,7 @@ int bplib_store_file_release (int handle, bp_sid_t sid)
 
         /* Check Data Cache */
         if((fs->data_cache[cache_index].mem_ptr == NULL) ||
-           (fs->data_cache[cache_index].mem_data_id == data_id)) 
+           (fs->data_cache[cache_index].mem_data_id != data_id)) 
         {
             /* Releasing Invalid Resource */
             bplib_os_unlock(fs->lock);
