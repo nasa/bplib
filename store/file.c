@@ -22,7 +22,6 @@
 #include "bplib.h"
 #include "bplib_os.h"
 #include "bplib_store_file.h"
-#include "bundle.h"
 
 /******************************************************************************
  DEFINES
@@ -30,7 +29,7 @@
 
 #define FILE_FLUSH_DEFAULT      true
 #define FILE_MAX_FILENAME       256
-#define FILE_DATA_COUNT         256
+#define FILE_DATA_COUNT         256 /* Cannot be changed withou changing macros */
 #define FILE_MEM_LOCKED         1
 #define FILE_MEM_AVAIABLE       0
 
@@ -49,6 +48,7 @@
  MACROS
  ******************************************************************************/
 
+#define GET_DATAID(sid)     ((uint32_t)((unsigned long)sid - 1))
 #define GET_FILEID(did)     ((uint32_t)((did) >> 8))
 #define GET_DATAOFFSET(did) ((uint8_t)((did) & 0xFF))
 
@@ -115,10 +115,18 @@ static FILE* open_dat_file (int service_id, char* file_root, uint32_t file_id, b
     char filename[FILE_MAX_FILENAME];
     bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, service_id, file_id);
 
-    if(read_only)   fd = fopen(filename, "rb");
-    else            fd = fopen(filename, "ab");
-
-    if(fd == NULL) printf("pfile fatal error - failed to open %s data file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
+    if(read_only)
+    {
+        fd = fopen(filename, "rb");
+    }
+    else
+    {
+        fd = fopen(filename, "ab");
+        if(fd == NULL)
+        {
+            bplog(BP_FAILEDSTORE, "failed to open %s data file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
+        }
+    }
     
     return fd;
 }
@@ -144,10 +152,18 @@ static FILE* open_tbl_file (int service_id, char* file_root, uint32_t file_id, b
     char filename[FILE_MAX_FILENAME];
     bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, service_id, file_id);
 
-    if(read_only)   fd = fopen(filename, "rb");
-    else            fd = fopen(filename, "wb");
-
-    if(fd == NULL) printf("pfile fatal error - failed to open %s table file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
+    if(read_only)
+    { 
+        fd = fopen(filename, "rb");
+    }
+    else
+    { 
+        fd = fopen(filename, "wb");
+        if(fd == NULL) 
+        {
+            bplog(BP_FAILEDSTORE, "failed to open %s table file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
+        }
+    }
     
     return fd;
 }
@@ -292,8 +308,9 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     bool flush_error = false;
     
     /* Get IDs */
-    uint32_t file_id = GET_FILEID(fs->write_data_id);
-    uint32_t data_offset = GET_DATAOFFSET(fs->write_data_id);
+    uint32_t data_id = GET_DATAID(fs->write_data_id);
+    uint32_t file_id = GET_FILEID(data_id);
+    uint32_t data_offset = GET_DATAOFFSET(data_id);
     
     /* Check Need to Open Write File */
     if(fs->write_fd == NULL)
@@ -327,33 +344,30 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
         }
     }
 
-    /* Check Write File Open */
-    if(fs->write_fd != NULL)
+    /* Create Object */
+    bp_object_t object = {
+        .handle = handle,
+        .sid = BP_SID_VACANT,
+        .size = data_size
+    };
+
+    /* Write Object Size */
+    bytes_written += fwrite(&object_size, 1, sizeof(object_size), fs->write_fd);
+
+    /* Write Object */
+    bytes_written += fwrite(&object, 1, offsetof(bp_object_t, data), fs->write_fd);
+
+    /* Write Data Buffer 1 */
+    bytes_written += fwrite(data1, 1, data1_size, fs->write_fd);
+
+    /* Write Data Buffer 2 */
+    bytes_written += fwrite(data2, 1, data2_size, fs->write_fd);
+
+    /* Flush File Data */
+    if(file_flush)
     {
-        bp_object_t object = {
-            .handle = handle,
-            .sid = BP_SID_VACANT,
-            .size = data_size
-        };
-
-        /* Write Object Size */
-        bytes_written += fwrite(&object_size, 1, sizeof(object_size), fs->write_fd);
-        
-        /* Write Object */
-        bytes_written += fwrite(&object, 1, offsetof(bp_object_t, data), fs->write_fd);
-        
-        /* Write Data Buffer 1 */
-        bytes_written += fwrite(data1, 1, data1_size, fs->write_fd);
-
-        /* Write Data Buffer 2 */
-        bytes_written += fwrite(data2, 1, data2_size, fs->write_fd);
-        
-        /* Flush File Data */
-        if(file_flush)
-        {
-            int status = fflush(fs->write_fd);
-            if(status < 0) flush_error = true;
-        }
+        int status = fflush(fs->write_fd);
+        if(status < 0) flush_error = true;
     }
 
     /* Check Errors and Return Status */
@@ -371,19 +385,23 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     }
     else
     {
-        fs->write_error = false;
-        fs->write_data_id++;
-        bplib_os_signal(fs->lock);
-
-        /* Close Write File */
-        if(fs->write_data_id % FILE_DATA_COUNT == 0)
+        /* Close Write File 
+         *  this needs to be performed here prior to the write_data_id being
+         *  incremented because the x_data_id variables are one based instead 
+         *  of zero based */
+       if(fs->write_data_id % FILE_DATA_COUNT == 0)
         {
             fclose(fs->write_fd);
             fs->write_fd = NULL;
         }
 
-        /* Return Success */
+        /* Set Write State */
+        fs->write_error = false;
+        fs->write_data_id++;
         fs->data_count++;
+        bplib_os_signal(fs->lock);
+
+        /* Return Success */
         return bytes_written;
     }
 }
@@ -408,9 +426,9 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
     bplib_os_lock(fs->lock);
     {
         /* Get IDs */
-        uint32_t file_id = GET_FILEID(fs->read_data_id);
-        uint32_t data_offset = GET_DATAOFFSET(fs->read_data_id);
-        uint32_t data_id = fs->read_data_id;
+        uint32_t data_id = GET_DATAID(fs->read_data_id);
+        uint32_t file_id = GET_FILEID(data_id);
+        uint32_t data_offset = GET_DATAOFFSET(data_id);
 
         /* Check if Data Available */
         if(fs->read_data_id == fs->write_data_id)
@@ -427,13 +445,6 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
                 bplib_os_unlock(fs->lock);
                 return BP_TIMEOUT;
             }
-        }
-
-        /* Check Need to Open New File */
-        if(fs->read_data_id % FILE_DATA_COUNT == 0)
-        {
-            fclose(fs->read_fd);
-            fs->read_fd = NULL;
         }
 
         /* Check Need to Open Read File */
@@ -493,15 +504,8 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             {            
                 /* Update SID */
                 bp_object_t* dequeued_object = (bp_object_t*)object_ptr;
-                dequeued_object->sid = (bp_sid_t)(unsigned long)data_id;
+                dequeued_object->sid = (bp_sid_t)fs->read_data_id;
                 read_success = true;
-                
-                /* Close Read File */
-                if(fs->read_data_id % FILE_DATA_COUNT == 0)
-                {
-                    fclose(fs->read_fd);
-                    fs->read_fd = NULL;
-                }
             }            
         }
 
@@ -557,6 +561,16 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
         fs->data_cache[cache_index].mem_ptr = object_ptr;
         fs->data_cache[cache_index].mem_data_id = data_id;
 
+        /* Check Need to Open New File 
+         *  this needs to be performed here prior to the read_data_id being
+         *  incremented because the x_data_id variables are one based instead 
+         *  of zero based */
+        if(fs->read_data_id % FILE_DATA_COUNT == 0)
+        {
+            fclose(fs->read_fd);
+            fs->read_fd = NULL;
+        }
+
         /* Set Read State */
         fs->read_error = false;
         fs->read_data_id++;
@@ -593,11 +607,12 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
     bplib_os_lock(fs->lock);
     {
         /* Get IDs */
-        uint32_t data_id = (uint32_t)(unsigned long)sid;
+        uint32_t data_id = GET_DATAID(sid);
         uint32_t file_id = GET_FILEID(data_id);
         uint32_t data_offset = GET_DATAOFFSET(data_id);
-        uint32_t curr_file_id = GET_FILEID(fs->retrieve_data_id);
-        uint32_t curr_data_offset = GET_DATAOFFSET(fs->retrieve_data_id);
+        uint32_t prev_data_id = GET_DATAID(fs->retrieve_data_id);
+        uint32_t prev_file_id = GET_FILEID(prev_data_id);
+        uint32_t prev_data_offset = GET_DATAOFFSET(prev_data_id);
 
         /* Check Data Cache */
         cache_index = data_id % fs->cache_size;
@@ -613,7 +628,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
         }
     
         /* Check Need to Open New Retrieve File */
-        if(file_id != curr_file_id)
+        if(file_id != prev_file_id)
         {
             if(fs->retrieve_fd)
             {
@@ -636,7 +651,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
         else
         {
             /* Set Delta from Current Position in File */
-            offset_delta = data_offset - curr_data_offset;
+            offset_delta = data_offset - prev_data_offset;
             if(offset_delta < 0)
             {
                 /* Handling Seeking Backwards */
@@ -685,8 +700,8 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             if(bytes_read == object_size)
             {
                 bp_object_t* retrieved_object = (bp_object_t*)object_ptr;
-                retrieved_object->sid = (bp_sid_t)(unsigned long)data_id;
-                fs->retrieve_data_id = data_id;
+                retrieved_object->sid = sid;
+                fs->retrieve_data_id = (uint64_t)sid;
             }
             else
             {
@@ -769,7 +784,7 @@ int bplib_store_file_release (int handle, bp_sid_t sid)
             bplib_os_unlock(fs->lock);
             return BP_FAILEDSTORE;
         }
-\
+
         /* Unlock Cache Entry */
         fs->data_cache[cache_index].mem_locked = FILE_MEM_AVAIABLE;
         bplib_os_signal(fs->lock);
@@ -796,12 +811,13 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
     bplib_os_lock(fs->lock);
     {
         /* Get IDs */
-        uint32_t data_id = (uint32_t)(unsigned long)sid;
+        uint32_t data_id = GET_DATAID(sid);
         uint32_t file_id = GET_FILEID(data_id);
         uint32_t data_offset = GET_DATAOFFSET(data_id);
-        uint32_t curr_file_id = GET_FILEID(fs->relinquish_data_id);
+        uint32_t prev_data_id = GET_DATAID(fs->relinquish_data_id);
+        uint32_t prev_file_id = GET_FILEID(prev_data_id);
 
-        /* Check Data Cache */
+        /* Clear Data Cache */
         uint32_t cache_index = data_id % fs->cache_size;
         if(fs->data_cache[cache_index].mem_ptr)
         {
@@ -815,14 +831,18 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
         }
 
         /* Check Need to Read New Relinquish Table */
-        if(file_id != curr_file_id)
+        if(file_id != prev_file_id)
         {
+            /* Set Current Relinquish Table */
+            fs->relinquish_data_id = (uint64_t)sid;
+
+            /* Check Need to Save Off Previous Relinquish Table */
             if(fs->relinquish_table.free_cnt > 0)
             {
                 /* Open Previous Relinquish File */
                 if(fs->relinquish_fd == NULL)
                 {
-                    fs->relinquish_fd = open_tbl_file(fs->service_id, fs->file_root, file_id, false);
+                    fs->relinquish_fd = open_tbl_file(fs->service_id, fs->file_root, prev_file_id, false);
                     if(fs->relinquish_fd == NULL) 
                     {
                         bplib_os_unlock(fs->lock);
@@ -856,27 +876,24 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
             {
                 /* Read Relinquish Table */
                 bytes_read = fread(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+
+                /* Close New Relinquish File */
+                fclose(fs->relinquish_fd);
+                fs->relinquish_fd = NULL;
+
+                /* Check for Error */
                 if(bytes_read != sizeof(fs->relinquish_table))
                 {
-                    fclose(fs->relinquish_fd);
-                    fs->relinquish_fd = NULL;
                     bplib_os_unlock(fs->lock);
                     return BP_FAILEDSTORE;
                 }
             }
-
-            /* Close New Relinquish File */
-            fclose(fs->relinquish_fd);
-            fs->relinquish_fd = NULL;
-
-            /* Set Current Relinquish Table */
-            fs->relinquish_data_id = data_id;
         }
 
-        /* Mark Data as Relinquished */
-        fs->relinquish_data_id = data_id;
+        /* Check if Still Present */
         if(fs->relinquish_table.freed[data_offset] == 0)
         {
+            /* Mark Data as Relinquished */
             fs->relinquish_table.freed[data_offset] = 1;
 
             /* Relinquish Resources */
