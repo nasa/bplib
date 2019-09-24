@@ -522,7 +522,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             {            
                 /* Update SID */
                 bp_object_t* dequeued_object = (bp_object_t*)object_ptr;
-                dequeued_object->sid = (bp_sid_t)fs->read_data_id;
+                dequeued_object->sid = (bp_sid_t)(unsigned long)fs->read_data_id;
                 read_success = true;
             }            
         }
@@ -719,7 +719,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             {
                 bp_object_t* retrieved_object = (bp_object_t*)object_ptr;
                 retrieved_object->sid = sid;
-                fs->retrieve_data_id = (uint64_t)sid;
+                fs->retrieve_data_id = (uint64_t)(unsigned long)sid;
             }
             else
             {
@@ -852,7 +852,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
         if(file_id != prev_file_id)
         {
             /* Set Current Relinquish Table */
-            fs->relinquish_data_id = (uint64_t)sid;
+            fs->relinquish_data_id = (uint64_t)(unsigned long)sid;
 
             /* Check Need to Save Off Previous Relinquish Table */
             if(fs->relinquish_table.free_cnt > 0)
