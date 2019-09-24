@@ -139,7 +139,16 @@ static int delete_dat_file (int service_id, char* file_root, uint32_t file_id)
     char filename[FILE_MAX_FILENAME];
     bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, service_id, file_id);
 
-    return remove(filename);
+    int status = remove(filename);
+    
+    if(status < 0)
+    {
+        return bplog(BP_FAILEDSTORE, "failed to remove %s data file: %s\n", filename, strerror(errno));
+    }
+    else
+    {
+        return status;
+    }
 }
 
 /*--------------------------------------------------------------------------------------
@@ -176,7 +185,16 @@ static int delete_tbl_file (int service_id, char* file_root, uint32_t file_id)
     char filename[FILE_MAX_FILENAME];
     bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, service_id, file_id);
 
-    return remove(filename);
+    int status = remove(filename);
+
+    if(status < 0 && errno != 2)
+    {
+        return bplog(BP_FAILEDSTORE, "failed to remove %s table file: %d %s\n", filename, errno, strerror(errno));
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 /******************************************************************************
@@ -389,7 +407,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
          *  this needs to be performed here prior to the write_data_id being
          *  incremented because the x_data_id variables are one based instead 
          *  of zero based */
-       if(fs->write_data_id % FILE_DATA_COUNT == 0)
+        if(fs->write_data_id % FILE_DATA_COUNT == 0)
         {
             fclose(fs->write_fd);
             fs->write_fd = NULL;
@@ -773,7 +791,7 @@ int bplib_store_file_release (int handle, bp_sid_t sid)
     bplib_os_lock(fs->lock);
     {
         /* Get Cache Index */
-        uint32_t data_id = (uint32_t)(unsigned long)sid;
+        uint32_t data_id = GET_DATAID(sid);
         uint32_t cache_index = data_id % fs->cache_size;
 
         /* Check Data Cache */
@@ -895,33 +913,26 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
         {
             /* Mark Data as Relinquished */
             fs->relinquish_table.freed[data_offset] = 1;
+            fs->data_count--;
 
             /* Relinquish Resources */
             fs->relinquish_table.free_cnt++;
             if(fs->relinquish_table.free_cnt == FILE_DATA_COUNT)
             {
-                int status;
-
-                /* Delete Write File */
-                status = delete_dat_file(fs->service_id, fs->file_root, file_id);
-                if(status < 0)
-                {
-                    bplib_os_unlock(fs->lock);
-                    return BP_FAILEDSTORE;
-                }
-
-                /* Delete Relinquish File */
-                status = delete_tbl_file(fs->service_id, fs->file_root, file_id);
-                if(status < 0)
+                /* Delete Associated Files 
+                 *  only check the status of the data file deletion as it is
+                 *  possible (and often the case) that the table file is never 
+                 *  created because the state of which bundles are freed does 
+                 *  not need to be saved off */
+                delete_tbl_file(fs->service_id, fs->file_root, file_id);
+                int dat_status = delete_dat_file(fs->service_id, fs->file_root, file_id);
+                if(dat_status < 0)
                 {
                     bplib_os_unlock(fs->lock);
                     return BP_FAILEDSTORE;
                 }
             }
         }
-        
-        /* Update Data Count */
-        fs->data_count--;
     }
     bplib_os_unlock(fs->lock);
 
