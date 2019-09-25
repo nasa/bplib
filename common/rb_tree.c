@@ -293,6 +293,8 @@ static void swap_parents(rb_node_t* node_1, rb_node_t* node_2, rb_tree_t* tree)
  *-------------------------------------------------------------------------------------*/
 static void rotate_left(rb_tree_t* tree, rb_node_t* node)
 {
+    assert(node->right);
+
     rb_node_t* new_parent = node->right;
     node->right = new_parent->left;
     new_parent->left = node;
@@ -322,6 +324,8 @@ static void rotate_left(rb_tree_t* tree, rb_node_t* node)
  *-------------------------------------------------------------------------------------*/
 static void rotate_right(rb_tree_t* tree, rb_node_t* node)
 {
+    assert(node->left);
+    
     rb_node_t* new_parent = node->left;
     node->left = new_parent->right;
     new_parent->right = node;
