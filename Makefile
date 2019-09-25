@@ -33,6 +33,11 @@
 #
 #       nm -CD /usr/local/lib/libbp.so | grep " T "
 #
+#  4. In order to build the unit tests, use the following commands:
+#
+#       make USER_DEFS=-DUNITTESTS
+#       sudo make install
+#
 
 ##############################################################################
 ## DEFINITIONS and CONFIGURATION (populated/overridden in application includes)
@@ -70,6 +75,10 @@ APP_OBJ     += rb_tree.o
 APP_OBJ     += file.o
 APP_OBJ     += ram.o
 
+# unit tests #
+APP_OBJ     += unittest.o
+APP_OBJ     += ut_crc.o
+
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?= $(USER_DEFS)
 
@@ -85,6 +94,7 @@ VPATH	    += $(ROOT)/common
 VPATH	    += $(ROOT)/v6
 VPATH	    += $(ROOT)/os
 VPATH	    += $(ROOT)/store
+VPATH	    += $(ROOT)/unittest
 
 # compiler options for search path for include headers (in form of -I_header_)  
 INCLUDES    := -I$(ROOT)/inc
@@ -93,6 +103,7 @@ INCLUDES    += -I$(ROOT)/common
 INCLUDES    += -I$(ROOT)/v6
 INCLUDES    += -I$(ROOT)/os
 INCLUDES    += -I$(ROOT)/store
+INCLUDES    += -I$(ROOT)/unittest
 
 # c compiler and linker used for c file extensions
 COMPILER    ?= gcc
@@ -191,6 +202,9 @@ prep: $(BLDDIR)
 clean ::
 	-$(RM) -R $(BLDDIR)
 
+testcov:
+	lcov -c --directory build --output-file build/coverage.info
+	genhtml build/coverage.info --output-directory build/coverage_html
+	# firefox build/coverage_html/index.html
+
 # end of file
-
-
