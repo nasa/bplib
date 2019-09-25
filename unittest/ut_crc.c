@@ -26,14 +26,7 @@
 #include "crc.h"
 
 /******************************************************************************
- EXTERNS
- ******************************************************************************/
-
-uint16_t get_crc16(const uint8_t* data, const uint32_t length, const crc_parameters_t* params);
-uint32_t get_crc32(const uint8_t* data, const uint32_t length, const crc_parameters_t* params);
-
-/******************************************************************************
- LOCAL FUNCTIONS
+ HELPER FUNCTIONS
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
@@ -138,12 +131,16 @@ static bool validate_crc_parameters_t(const crc_parameters_t* params)
     return false;
 }
 
+/******************************************************************************
+ TEST FUNCTIONS
+ ******************************************************************************/
+
 /*--------------------------------------------------------------------------------------
- * crc_test - Populates a crc table and validates the check value for the crc.
+ * test_crc - Populates a crc table and validates the check value for the crc.
  *
  * params: A ptr crc_parameters_t for initing the XOR table and testing the check value. [INPUT]
  *--------------------------------------------------------------------------------------*/
-static bool crc_test(crc_parameters_t* params)
+static bool test_crc(crc_parameters_t* params)
 {
     printf("Testing CRC %s\n", params->name);
     crc_init(params);
@@ -174,7 +171,7 @@ int ut_crc (void)
             .check_value          = 0x906E
     }}};
     
-    if(!crc_test(&p1))
+    if(!test_crc(&p1))
     {
         failures++;
     }
@@ -194,7 +191,7 @@ int ut_crc (void)
             .check_value          = 0xE3069283
     }}};
 
-    if(!crc_test(&p2))
+    if(!test_crc(&p2))
     {
         failures++;
     }

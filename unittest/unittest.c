@@ -20,6 +20,7 @@
  ******************************************************************************/
 
 extern int ut_crc (void);
+extern int ut_rb_tree (void);
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -33,6 +34,7 @@ int bplib_unittest (void)
     
 #ifdef UNITTESTS
     failures += ut_crc();
+    failures += ut_rb_tree();
 #endif
     
     /* Return Failures */

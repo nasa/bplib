@@ -78,6 +78,7 @@ APP_OBJ     += ram.o
 # unit tests #
 APP_OBJ     += unittest.o
 APP_OBJ     += ut_crc.o
+APP_OBJ     += ut_rb_tree.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?= $(USER_DEFS)

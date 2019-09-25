@@ -22,7 +22,6 @@
 
 #include <assert.h>
 #include <stdbool.h>
-#include <stdlib.h>
 
 #include "bplib.h"
 #include "rb_tree.h"
