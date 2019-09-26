@@ -38,7 +38,8 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags);
-int sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags);
+int     sdnv_read   (uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags);
+int     sdnv_write  (uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags);
+void    sdnv_mask   (bp_sdnv_t* sdnv);
 
 #endif  /* __BPLIB_SDNV_H__ */

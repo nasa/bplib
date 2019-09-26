@@ -130,3 +130,17 @@ int sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
     /* Return Next Index */
     return maxbytes + sdnv.index;
 }
+
+/*--------------------------------------------------------------------------------------
+ * sdnv_mask - truncates value to width
+ *
+ *  sdnv - pointer to sdnv that will be truncated [input/output]
+ *-------------------------------------------------------------------------------------*/
+void sdnv_mask(bp_sdnv_t* sdnv)
+{
+    int num_bits = sdnv->width * 7;
+    int max_bits = sizeof(bp_val_t) * 8;
+    int shift_bits = max_bits - num_bits;
+    bp_val_t val_mask = BP_MAX_ENCODED_VALUE >> shift_bits;
+    sdnv->value = sdnv->value & val_mask;
+}

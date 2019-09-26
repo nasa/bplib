@@ -320,7 +320,11 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
     }
 
     /* Increment Sequence Count (done here since now bundle successfully stored) */
-    if(set_time) pri->createseq.value++;
+    if(set_time)
+    {
+        pri->createseq.value++;
+        sdnv_mask(&pri->createseq);
+    }
 
     /* Return Payload Bytes Stored */
     return BP_SUCCESS;
