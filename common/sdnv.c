@@ -89,34 +89,36 @@ int sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
     assert(block);
     assert(flags);
 
-    int i, maxbytes, endindex;
+    int i, fixedwidth, endindex;
 
     /* Initialize Bytes to Write */
     if(sdnv.width <= 0)
     {
         /* Calculate Bytes Needed to Hold Value */
         bp_val_t tmpval = sdnv.value;
-        maxbytes = 0;
+        fixedwidth = 0;
         while(tmpval > 0)
         {
-            maxbytes++;
+            fixedwidth++;
             tmpval >>= 7;
         }
     }
-    else if(sdnv.width <= (size - sdnv.index))
+    else
     {
         /* Set Fixed Width */
-        maxbytes = sdnv.width;
+        fixedwidth = sdnv.width;
     }
-    else
+    
+    /* Check for Truncation */
+    if(fixedwidth > (size - (int)sdnv.index))
     {
         /* Truncate Width */
         *flags |= BP_FLAG_SDNVINCOMPLETE;
-        maxbytes = size - sdnv.index;
+        fixedwidth = size - sdnv.index;
     }
 
     /* Write SDNV */
-    endindex = maxbytes + sdnv.index - 1;
+    endindex = fixedwidth + sdnv.index - 1;
     for(i = endindex; i >= (int)sdnv.index; i--)
     {
         if(i == endindex)   block[i] = sdnv.value & 0x7F;
@@ -128,7 +130,7 @@ int sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
     if(sdnv.value > 0) *flags |= BP_FLAG_SDNVOVERFLOW;
 
     /* Return Next Index */
-    return maxbytes + sdnv.index;
+    return fixedwidth + sdnv.index;
 }
 
 /*--------------------------------------------------------------------------------------

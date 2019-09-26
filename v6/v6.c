@@ -544,7 +544,7 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow
             else if(pri_blk.is_admin_rec) /* Administrative Record */
             {
                 /* Read Record Information */
-                uint8_t rec_type = buffer[index++];
+                uint8_t rec_type = buffer[index];
 
                 /* Process Record */
                 if(rec_type == BP_ACS_REC_TYPE)
@@ -603,6 +603,6 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow
 int v6_update(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 {
     data->cidsdnv.value = cid;
-
+    sdnv_mask(&data->cidsdnv);
     return sdnv_write(&data->header[data->cteboffset], data->bundlesize - data->cteboffset, data->cidsdnv, flags);
 }

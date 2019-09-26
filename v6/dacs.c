@@ -46,8 +46,8 @@
 int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, rb_node_t** iter, uint16_t* sdnvflags)
 {
     uint16_t flags = 0;
-    bp_sdnv_t cid = { 0, 2, 4 };
-    bp_sdnv_t fill = { 0, 0, 2 };
+    bp_sdnv_t cid = { 0, 2, 0 };
+    bp_sdnv_t fill = { 0, 0, 0 };
  
     /* Write Record Information */
     rec[BP_ACS_REC_TYPE_INDEX] = BP_ACS_REC_TYPE; /* record type */

@@ -727,11 +727,10 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         /* Process Aggregate Custody Signal - Process DACS */
         bplib_os_lock(ch->active_table_signal);
         {
-            status = custody_acknowledge(&ch->custody, &custodian, acknowledge, (void*)ch, flags);
-            if(status > 0)
+            int num_acks = custody_acknowledge(&ch->custody, &custodian, acknowledge, (void*)ch, flags);
+            if(num_acks > 0)
             {
-                int acknowledgment_count = status;
-                ch->stats.acknowledged += acknowledgment_count;
+                ch->stats.acknowledged += num_acks;
                 bplib_os_signal(ch->active_table_signal);
                 status = BP_SUCCESS;
             }

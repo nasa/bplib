@@ -289,7 +289,7 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
             ...          |    0x40   |  Status   | 
  |-----------|-----------|-----------|-----------| 8
  |                First Custody ID               |
- |-----------------------|-----------------------| 12
+ |-----------------------|-----------------------| Variable
  |  Number Valid CIDs    |  Number Skipped CIDs  |
  |-----------------------|-----------------------| 
  |  Number VAlid CIDs    |  Number Skipped CIDs  |
