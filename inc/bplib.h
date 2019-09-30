@@ -40,9 +40,10 @@ extern "C" {
 #define BP_PEND                         (-1)
 #define BP_CHECK                        0
 
-/* Endpoint ID Strings */    
+/* Endpoint IDs */    
 #define BP_MAX_EID_STRING               128
-
+#define BP_IPN_NULL                     0
+    
 /* Storage IDs */
 #define BP_SID_VACANT                   0
 
@@ -79,7 +80,8 @@ extern "C" {
 #define BP_INVALIDEID                   (-18)
 #define BP_INVALIDCIPHERSUITEID         (-19)
 #define BP_PENDINGACKNOWLEDGMENT        (-20)
-#define BP_PENDINGCUSTODYTRANSFER       (-21)
+#define BP_PENDINGFORWARD               (-21)
+#define BP_PENDINGACCEPTANCE            (-22)
 
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */

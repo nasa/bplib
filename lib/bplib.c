@@ -59,6 +59,9 @@ typedef struct {
     bp_attr_t           attributes;
     bp_bundle_t         bundle;
     bp_custody_t        custody;
+    int                 bundle_handle;
+    int                 payload_handle;
+    int                 record_handle;
     bp_val_t            oldest_active_cid;
     bp_val_t            current_active_cid;
     int                 active_table_signal;
@@ -93,24 +96,57 @@ static const bp_attr_t default_attributes = {
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
+ * generate
+ *-------------------------------------------------------------------------------------*/
+static int generate(void* parm, bool is_record, uint8_t* payload, int size, int timeout)
+{
+    bp_channel_t*       ch      = (bp_channel_t*)parm;
+    int                 status  = BP_ERROR;
+    bp_bundle_data_t*   data    = NULL;
+    int                 handle  = BP_INVALID_HANDLE;
+    
+    /* Set Type of Bundle */
+    if(is_record)
+    {
+        handle = ch->record_handle;
+        data = &ch->custody.bundle.data;        
+    }
+    else /* data bundle */
+    {
+        handle = ch->bundle_handle;
+        data = &ch->bundle.data;        
+    }
+
+    /* Enqueue Bundle */
+    int storage_header_size = &data->header[data->headersize] - (uint8_t*)data;
+    status = ch->store.enqueue(handle, data, storage_header_size, payload, size, timeout);
+
+    /* Return Status */
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
  * acknowledge
  *-------------------------------------------------------------------------------------*/
 static int acknowledge(void* parm, bp_val_t cid)
 {
-    bp_channel_t* ch = (bp_channel_t*)parm;
-    int status = BP_FAILEDRESPONSE;
+    bp_channel_t*   ch      = (bp_channel_t*)parm;
+    int             status  = BP_FAILEDRESPONSE;
+    int             ati     = cid % ch->attributes.active_table_size;
+    bp_sid_t        sid     = ch->active_table[ati].sid;
 
-    int ati = cid % ch->attributes.active_table_size;
-    bp_sid_t sid = ch->active_table[ati].sid;
+    /* Check Active Table Entry */
     if(sid != BP_SID_VACANT)
     {
         if(ch->active_table[ati].cid == cid)
         {
-            status = ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
+            /* Free Bundle */
+            status = ch->store.relinquish(ch->bundle_handle, sid);
             ch->active_table[ati].sid = BP_SID_VACANT;
         }
     }
 
+    /* Return Status */
     return status;
 }
 
@@ -155,6 +191,9 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     /* Clear Channel Memory and Initialize to Defaults */
     memset(ch, 0, sizeof(bp_channel_t));
     ch->active_table_signal = BP_INVALID_HANDLE;
+    ch->bundle_handle       = BP_INVALID_HANDLE;
+    ch->payload_handle      = BP_INVALID_HANDLE;
+    ch->record_handle       = BP_INVALID_HANDLE;
 
     /* Set Store */
     ch->store = store;
@@ -163,13 +202,40 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     if(attributes)  ch->attributes = *attributes;
     else            ch->attributes = default_attributes;
 
+    /* Initialize Bundle Store */
+    ch->bundle_handle = ch->store.create(ch->attributes.storage_service_parm);
+    if(ch->bundle_handle < 0)
+    {
+        bplib_close(ch);
+        bplog(BP_FAILEDSTORE, "Failed to create storage handle for bundles\n");
+        return NULL;
+    }
+    
+    /* Initialize Payload Store */
+    ch->payload_handle = ch->store.create(ch->attributes.storage_service_parm);
+    if(ch->payload_handle < 0)
+    {
+        bplib_close(ch);
+        bplog(BP_FAILEDSTORE, "Failed to create storage handle for payloads\n");
+        return NULL;
+    }
+
+    /* Initialize Record Store */
+    ch->record_handle = ch->store.create(ch->attributes.storage_service_parm);
+    if(ch->record_handle < 0)
+    {
+        bplib_close(ch);
+        bplog(BP_FAILEDSTORE, "Failed to create storage handle for records\n");
+        return NULL;
+    }
+
     /* Initialize Bundle and Custody Modules 
      *  NOTE: this must occur first and together so that future calls to 
      *  un-initialize are safe to make.
      */
     uint16_t flags = 0;
-    int bundle_status = bundle_initialize(&ch->bundle, route, store, &ch->attributes, true, &flags);
-    int custody_status = custody_initialize(&ch->custody, route, store, &ch->attributes, &flags);
+    int bundle_status = bundle_initialize(&ch->bundle, route, &ch->attributes, &flags);
+    int custody_status = custody_initialize(&ch->custody, route, &ch->attributes, &flags);
     if(bundle_status != BP_SUCCESS || custody_status != BP_SUCCESS)
     {
         bplog(BP_ERROR, "Failed to initialize channel, flags=%0X\n", flags);
@@ -222,8 +288,28 @@ void bplib_close(bp_desc_t channel)
     if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
     if(ch->active_table) free(ch->active_table);
 
+    /* Un-initialize Bundle Store */
+    if(ch->bundle_handle >= 0)
+    {
+        ch->store.destroy(ch->bundle_handle);
+        ch->bundle_handle = BP_INVALID_HANDLE;
+    }
+    
+    /* Un-initialize Payload Store */
+    if(ch->payload_handle >= 0)
+    {
+        ch->store.destroy(ch->payload_handle);
+        ch->payload_handle = BP_INVALID_HANDLE;
+    }
+
+    /* Un-initialize Record Store */
+    if(ch->record_handle >= 0)
+    {
+        ch->store.destroy(ch->record_handle);
+        ch->record_handle = BP_INVALID_HANDLE;
+    }
+
     /* Un-initialize Bundle and Custody Modules */
-    bundle_uninitialize(&ch->bundle);
     custody_uninitialize(&ch->custody);
     
     /* Free Channel */
@@ -242,7 +328,7 @@ int bplib_flush(bp_desc_t channel)
     bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Send Data Bundle */
-    int handle = ch->bundle.bundle_handle;
+    int handle = ch->bundle_handle;
 
     /* Lock Active Table */
     bplib_os_lock(ch->active_table_signal);
@@ -411,9 +497,9 @@ int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
     bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Update Store Counts */
-    ch->stats.bundles = ch->store.getcount(ch->bundle.bundle_handle);
-    ch->stats.payloads = ch->store.getcount(ch->bundle.payload_handle);
-    ch->stats.records = ch->store.getcount(ch->custody.bundle.bundle_handle);
+    ch->stats.bundles = ch->store.getcount(ch->bundle_handle);
+    ch->stats.payloads = ch->store.getcount(ch->payload_handle);
+    ch->stats.records = ch->store.getcount(ch->record_handle);
     
     /* Update Active Statistic */
     ch->stats.active = ch->current_active_cid - ch->oldest_active_cid;
@@ -441,7 +527,7 @@ int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_
     bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Lock Data Bundle */
-    status = bundle_send(&ch->bundle, payload, size, timeout, flags);
+    status = bundle_send(&ch->bundle, true, payload, size, generate, ch, timeout, flags);
     if(status == BP_SUCCESS) ch->stats.generated++;
 
     /* Return Status */
@@ -483,10 +569,10 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     if(object == NULL)
     {
         /* Store any DACS currently being accumulated */
-        custody_send(&ch->custody, ch->attributes.dacs_rate, sysnow, BP_CHECK, flags);
+        custody_send(&ch->custody, ch->attributes.dacs_rate, sysnow, generate, ch, BP_CHECK, flags);
 
         /* Dequeue any stored DACS */
-        handle = ch->custody.bundle.bundle_handle;    
+        handle = ch->record_handle;    
         if(ch->store.dequeue(handle, &object, BP_CHECK) == BP_SUCCESS)
         {
             sid = object->sid;
@@ -500,7 +586,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     if(object == NULL)
     {
         /* Send Data Bundle */
-        handle = ch->bundle.bundle_handle;
+        handle = ch->bundle_handle;
 
         /* Process Active Table for Timeouts */
         bplib_os_lock(ch->active_table_signal);
@@ -722,7 +808,8 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
 
     /* Receive Bundle */
     bp_custodian_t custodian;
-    status = bundle_receive(&ch->bundle, bundle, size, sysnow, &custodian, timeout, flags);
+    bool custody_transfer = false;
+    status = bundle_receive(&ch->bundle, bundle, size, sysnow, &custodian, flags);
     if(status == BP_EXPIRED)
     {
         ch->stats.expired++;
@@ -742,10 +829,33 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         }
         bplib_os_unlock(ch->active_table_signal);
     }
-    else if(status == BP_PENDINGCUSTODYTRANSFER)
+    else if(status == BP_PENDINGACCEPTANCE)
     {
-        /* Acknowledge Custody Transfer - Update DACS */
-        status = custody_receive(&ch->custody, &custodian, sysnow, BP_CHECK, flags);
+        /* Store Payload */
+        status = ch->store.enqueue(ch->payload_handle, custodian.rec, custodian.rec_size, NULL, 0, timeout);
+        if(status == BP_SUCCESS && custodian.node != BP_IPN_NULL)
+        {
+            custody_transfer = true;
+        }
+        else if(status != BP_SUCCESS)
+        {
+            *flags |= BP_FLAG_STOREFAILURE;
+        }
+    }
+    else if(status == BP_PENDINGFORWARD)
+    {
+        /* Store Forwarded Bundle */
+        status = bundle_send(&ch->bundle, false, custodian.rec, custodian.rec_size, generate, ch, timeout, flags);
+        if(status == BP_SUCCESS && custodian.node != BP_IPN_NULL)
+        {
+            custody_transfer = true;
+        }
+    }
+
+    /* Acknowledge Custody Transfer - Update DACS */
+    if(custody_transfer)
+    {
+        status = custody_receive(&ch->custody, &custodian, sysnow, generate, ch, BP_CHECK, flags);
     }
     
     /* Return Status */
@@ -773,7 +883,7 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
     bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Dequeue Payload from Storage */
-    status = ch->store.dequeue(ch->bundle.payload_handle, &object, timeout);
+    status = ch->store.dequeue(ch->payload_handle, &object, timeout);
     if(status > 0)
     {
         /* Return Payload to Application */

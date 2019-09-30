@@ -42,6 +42,9 @@
  TYPEDEFS
  ******************************************************************************/
 
+/* Generate Call-Back */
+typedef int (*bp_generate_t) (void* parm, bool is_record, uint8_t* payload, int size, int timeout);
+
 /* Bundle Data */
 typedef struct {
     bp_val_t            exprtime;               /* absolute time when bundle expires */
@@ -63,25 +66,18 @@ typedef struct {
 } bp_v6blocks_t;
 
 /* Custodian */
-typedef union {
-    struct {
-        bp_ipn_t        node;                   /* custody node of bundle */
-        bp_ipn_t        service;                /* custody service of bundle */
-        bp_val_t        cid;                    /* custody id of bundle */
-    } cst;
-    struct {
-        uint8_t*        rec;                    /* aggregate custody signal */
-        int             rec_size;               /* size of aggregate custody signal */
-    } acs;
+typedef struct {
+    uint8_t*        rec;                    /* payload | aggregate custody signal */
+    int             rec_size;               /* size of payload | size of aggregate custody signal */
+    bp_ipn_t        node;                   /* custody node of bundle */
+    bp_ipn_t        service;                /* custody service of bundle */
+    bp_val_t        cid;                    /* custody id of bundle */
 } bp_custodian_t;
 
 /* Bundle Control Structure */
 typedef struct {
-    bp_store_t          store;                  /* storage service call-backs */
     bp_route_t          route;                  /* addressing information */
     bp_attr_t*          attributes;             /* -pointer- to the channel attributes */
-    int                 payload_handle;         /* storage service handle for bundle data */
-    int                 bundle_handle;          /* storage service handle for bundle data */
     bp_bundle_data_t    data;                   /* serialized and stored bundle data */
     bool                prebuilt;               /* does pre-built bundle header need initialization */
     bp_v6blocks_t       v6blocks;               /* populated in initialization function */
@@ -91,16 +87,15 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int     bundle_initialize   (bp_bundle_t* bundle, bp_route_t route, bp_store_t store, bp_attr_t* attributes, bool with_payload, uint16_t* flags);
-void    bundle_uninitialize (bp_bundle_t* bundle);
-int     bundle_send         (bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags);
-int     bundle_receive      (bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
+int     bundle_initialize   (bp_bundle_t* bundle, bp_route_t route, bp_attr_t* attributes, uint16_t* flags);
+int     bundle_send         (bp_bundle_t* bundle, bool set_time, uint8_t* pay, int pay_size, bp_generate_t gen, void* parm, int timeout, uint16_t* flags);
+int     bundle_receive      (bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, uint16_t* flags);
 int     bundle_update       (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags);
 
 /* v6 bundle functions */
 int     v6_build            (bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags);
-int     v6_write            (bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags);
-int     v6_read             (bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags);
+int     v6_write            (bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, bp_generate_t gen, void* parm, int timeout, uint16_t* flags);
+int     v6_read             (bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, uint16_t* flags);
 int     v6_update           (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags);
 
 

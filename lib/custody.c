@@ -34,7 +34,7 @@
  *
  *  Notes:
  *-------------------------------------------------------------------------------------*/
-static int custody_enqueue(bp_custody_t* custody, bp_val_t sysnow, int timeout, uint16_t* flags)
+static int custody_enqueue(bp_custody_t* custody, bp_val_t sysnow, bp_generate_t gen, void* parm, int timeout, uint16_t* flags)
 {
     int send_status = BP_SUCCESS;
     int ret_status = BP_SUCCESS;
@@ -50,7 +50,7 @@ static int custody_enqueue(bp_custody_t* custody, bp_val_t sysnow, int timeout, 
         int dacs_size = dacs_write(custody->recbuf, custody->recbuf_size, custody->bundle.attributes->max_fills_per_dacs, &custody->tree, &iter, flags);
         if(dacs_size > 0)
         {
-            send_status = bundle_send(&custody->bundle, custody->recbuf, dacs_size, timeout, flags);
+            send_status = bundle_send(&custody->bundle, true, custody->recbuf, dacs_size, gen, parm, timeout, flags);
             if((send_status <= 0) && (ret_status == BP_SUCCESS))
             {
                 /* Save first failed DACS enqueue to return later */
@@ -77,7 +77,7 @@ static int custody_enqueue(bp_custody_t* custody, bp_val_t sysnow, int timeout, 
 /*--------------------------------------------------------------------------------------
  * custody_initialize - Allocates resources for DACS and initializes control structures
  *-------------------------------------------------------------------------------------*/
-int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store, bp_attr_t* attributes, uint16_t* flags)
+int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_attr_t* attributes, uint16_t* flags)
 {
     int status;
 
@@ -93,7 +93,7 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_store_t store
     /* Initialize DACS Bundle */    
     route.destination_node = 0;
     route.destination_service = 0;
-    status = bundle_initialize(&custody->bundle, route, store, &custody->attributes, false, flags);
+    status = bundle_initialize(&custody->bundle, route, &custody->attributes, flags);
     if(status != BP_SUCCESS)
     {
         /* Does not un-initialize bundle since the bundle initialization 
@@ -148,9 +148,6 @@ void custody_uninitialize(bp_custody_t* custody)
             custody->lock = BP_INVALID_HANDLE;
         }
         
-        /* Un-initialize Bundle */
-        bundle_uninitialize(&custody->bundle);
-        
         /* Free Buffer for DACS */
         if(custody->recbuf)
         {
@@ -169,7 +166,7 @@ void custody_uninitialize(bp_custody_t* custody)
  *  Notes:  may or may not perform enqueue depending if DACS needs to be sent
  *          based on whether or not it has been too long a time without sending a DACS
  *-------------------------------------------------------------------------------------*/
-int custody_send(bp_custody_t* custody, bp_val_t period, bp_val_t sysnow, int timeout, uint16_t* flags)
+int custody_send(bp_custody_t* custody, bp_val_t period, bp_val_t sysnow, bp_generate_t gen, void* parm, int timeout, uint16_t* flags)
 {   
     int ret_status = BP_SUCCESS;
 
@@ -181,7 +178,7 @@ int custody_send(bp_custody_t* custody, bp_val_t period, bp_val_t sysnow, int ti
             if( (sysnow >= (custody->last_time + period)) && 
                 !rb_tree_is_empty(&custody->tree) )
             {
-                int status = custody_enqueue(custody, sysnow, timeout, flags);
+                int status = custody_enqueue(custody, sysnow, gen, parm, timeout, flags);
                 if(status != BP_SUCCESS && ret_status == BP_SUCCESS)
                 {
                     ret_status = status;
@@ -198,25 +195,25 @@ int custody_send(bp_custody_t* custody, bp_val_t period, bp_val_t sysnow, int ti
 /*--------------------------------------------------------------------------------------
  * custody_receive -
  *-------------------------------------------------------------------------------------*/
-int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t sysnow, int timeout, uint16_t* flags)
+int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t sysnow, bp_generate_t gen, void* parm, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS;
     bplib_os_lock(custody->lock);
     {
-        if(custody->bundle.route.destination_node == custodian->cst.node && custody->bundle.route.destination_service == custodian->cst.service)
+        if(custody->bundle.route.destination_node == custodian->node && custody->bundle.route.destination_service == custodian->service)
         {
             /* Insert Custody ID directly into current custody tree */
-            rb_tree_status_t insert_status = rb_tree_insert(custodian->cst.cid, &custody->tree);
+            rb_tree_status_t insert_status = rb_tree_insert(custodian->cid, &custody->tree);
             if(insert_status == RB_FAIL_TREE_FULL) 
             {
                 /* Flag Full Tree - possibly the tree size is configured to be too small */
                 *flags |= BP_FLAG_RBTREEFULL;
 
                 /* Store DACS */
-                custody_enqueue(custody, sysnow, timeout, flags);
+                custody_enqueue(custody, sysnow, gen, parm, timeout, flags);
 
                 /* Start New DACS */
-                if(rb_tree_insert(custodian->cst.cid, &custody->tree) != RB_SUCCESS)
+                if(rb_tree_insert(custodian->cid, &custody->tree) != RB_SUCCESS)
                 {
                     /* There is no valid reason for an insert to fail on an empty tree */
                     status = BP_FAILEDRESPONSE;
@@ -238,16 +235,16 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t s
             /* Store DACS */
             if(!rb_tree_is_empty(&custody->tree))
             {
-                custody_enqueue(custody, sysnow, timeout, flags);
+                custody_enqueue(custody, sysnow, gen, parm, timeout, flags);
             }
 
             /* Initial New DACS Bundle */
-            custody->bundle.route.destination_node = custodian->cst.node;
-            custody->bundle.route.destination_service = custodian->cst.service;
+            custody->bundle.route.destination_node = custodian->node;
+            custody->bundle.route.destination_service = custodian->service;
             custody->bundle.prebuilt = false;
 
             /* Start New DACS */
-            if(rb_tree_insert(custodian->cst.cid, &custody->tree) != RB_SUCCESS)
+            if(rb_tree_insert(custodian->cid, &custody->tree) != RB_SUCCESS)
             {
                 /* There is no valid reason for an insert to fail on an empty tree */
                 status = BP_FAILEDRESPONSE;
@@ -267,5 +264,5 @@ int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, bp_ack
 {
     (void)custody;
     
-    return dacs_read(custodian->acs.rec, custodian->acs.rec_size, ack, ack_parm, flags);
+    return dacs_read(custodian->rec, custodian->rec_size, ack, ack_parm, flags);
 }

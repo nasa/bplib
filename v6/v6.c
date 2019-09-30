@@ -219,7 +219,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
 /*--------------------------------------------------------------------------------------
  * v6_write -
  *-------------------------------------------------------------------------------------*/
-int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags)
+int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, bp_generate_t gen, void* parm, int timeout, uint16_t* flags)
 {
     int                     status          = 0;
     int                     payload_offset  = 0;
@@ -313,8 +313,7 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
         data->bundlesize = data->headersize + fragment_size;
 
         /* Enqueue Bundle */
-        int storage_header_size = &data->header[data->headersize] - (uint8_t*)data;
-        status = bundle->store.enqueue(bundle->bundle_handle, data, storage_header_size, &pay->payptr[payload_offset], fragment_size, timeout);
+        status = gen(parm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
     }
@@ -333,7 +332,7 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
 /*--------------------------------------------------------------------------------------
  * v6_read -
  *-------------------------------------------------------------------------------------*/
-int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, int timeout, uint16_t* flags)
+int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, uint16_t* flags)
 {
     int                 status = BP_SUCCESS;
 
@@ -516,24 +515,29 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow
                 status = v6_build(bundle, &pri_blk, hdr_buf, hdr_index, flags);
                 if(status == BP_SUCCESS)
                 {
-                    /* Store Forwarded Bundle */
-                   status = v6_write(bundle, false, pay_blk.payptr, pay_blk.paysize, timeout, flags);
-                }
+                    custodian->rec = pay_blk.payptr;
+                    custodian->rec_size = pay_blk.paysize;
+                    status = BP_PENDINGFORWARD;
 
-                /* Handle Custody Transfer */
-                if(status == BP_SUCCESS && pri_blk.cst_rqst)
-                {
-                    if(!cteb_present)
+                    /* Handle Custody Transfer */
+                    if(pri_blk.cst_rqst)
                     {
-                        *flags |= BP_FLAG_NONCOMPLIANT;
-                        status = bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
+                        if(!cteb_present)
+                        {
+                            *flags |= BP_FLAG_NONCOMPLIANT;
+                            status = bplog(BP_UNSUPPORTED, "Only aggregate custody supported\n");
+                        }
+                        else
+                        {
+                            custodian->node = cteb_blk.cstnode;
+                            custodian->service = cteb_blk.cstserv;
+                            custodian->cid = cteb_blk.cid.value;
+                        }
                     }
                     else
                     {
-                        custodian->cst.node = cteb_blk.cstnode;
-                        custodian->cst.service = cteb_blk.cstserv;
-                        custodian->cst.cid = cteb_blk.cid.value;
-                        status = BP_PENDINGCUSTODYTRANSFER;
+                        custodian->node = BP_IPN_NULL;
+                        custodian->service = BP_IPN_NULL;
                     }
                 }
             }
@@ -550,8 +554,10 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow
                 if(rec_type == BP_ACS_REC_TYPE)
                 {
                     /* Return Aggregate Custody Signal for Custody Processing */
-                    custodian->acs.rec = &buffer[index];
-                    custodian->acs.rec_size = size - index;
+                    custodian->rec = &buffer[index];
+                    custodian->rec_size = size - index;
+                    custodian->node = pri_blk.cstnode.value;
+                    custodian->service = pri_blk.cstserv.value;
                     status = BP_PENDINGACKNOWLEDGMENT;
                 }
                 else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
@@ -560,31 +566,30 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow
             }
             else 
             {
-                /* Enqueue Payload */
-                uint8_t* pay_buf = &buffer[index];
-                int pay_len = size - index;
-                int enstat = bundle->store.enqueue(bundle->payload_handle, pay_buf, pay_len, NULL, 0, timeout);
-                if(enstat <= 0)
-                {
-                    status = bplog(BP_FAILEDSTORE, "Failed (%d) to store payload\n", enstat);
-                    *flags |= BP_FLAG_STOREFAILURE;
-                }
+                /* Return Payload */
+                custodian->rec = &buffer[index];
+                custodian->rec_size = size - index;
+                status = BP_PENDINGACCEPTANCE;
                 
                 /* Handle Custody Transfer */
                 if(pri_blk.cst_rqst)
                 {
                     if(cteb_present)
                     {
-                        custodian->cst.node = cteb_blk.cstnode;
-                        custodian->cst.service = cteb_blk.cstserv;
-                        custodian->cst.cid = cteb_blk.cid.value;
-                        status = BP_PENDINGCUSTODYTRANSFER;
+                        custodian->node = cteb_blk.cstnode;
+                        custodian->service = cteb_blk.cstserv;
+                        custodian->cid = cteb_blk.cid.value;
                     }
                     else                        
                     {
                         *flags |= BP_FLAG_NONCOMPLIANT;
                         status = bplog(BP_UNSUPPORTED, "Bundle requesting custody, but only aggregate custody supported\n");
                     }
+                }
+                else
+                {
+                    custodian->node = BP_IPN_NULL;
+                    custodian->service = BP_IPN_NULL;
                 }
             }
             
