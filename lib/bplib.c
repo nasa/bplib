@@ -103,8 +103,17 @@ static int acknowledge(void* parm, bp_val_t cid)
     bp_sid_t sid = ch->active_table[ati].sid;
     if(sid != BP_SID_VACANT)
     {
-        status = ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
-        ch->active_table[ati].sid = BP_SID_VACANT;        
+//        bp_object_t* object;
+//        status = ch->bundle.store.retrieve(ch->bundle.bundle_handle, sid, &object, BP_CHECK);
+//        if(status == BP_SUCCESS)
+//        {
+//            bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
+//            if(data->cidsdnv.value == cid)
+//            {
+                status = ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
+                ch->active_table[ati].sid = BP_SID_VACANT;
+//            }
+//        }
     }
 
     return status;
