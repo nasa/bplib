@@ -114,6 +114,7 @@ int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, 
     fill.index = sdnv_read(rec, rec_size, &cid, &flags);
     if(flags != 0)
     {
+        *sdnvflags |= flags;
         return bplog(BP_BUNDLEPARSEERR, "Failed to read first custody ID (%08X)\n", flags);
     }
 
@@ -124,6 +125,7 @@ int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, 
         fill.index = sdnv_read(rec, rec_size, &fill, &flags);
         if(flags != 0)
         {
+            *sdnvflags |= flags;
             return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", flags);
         }
 
@@ -134,10 +136,10 @@ int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, 
             cidin = false;
             for(i = 0; i < fill.value; i++)
             {
-                if(ack(ack_parm, cid.value + i) == BP_SUCCESS)
-                {
-                    ack_count++;
-                }
+                int status = ack(ack_parm, cid.value + i);
+                if(status == BP_SUCCESS)                ack_count++;
+                else if(status == BP_FAILEDRESPONSE)    flags |= BP_FLAG_UNKNOWNCID;
+                else if(status == BP_FAILEDSTORE)       flags |= BP_FLAG_STOREFAILURE;
             }
         }
         else

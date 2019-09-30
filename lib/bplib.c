@@ -109,14 +109,6 @@ static int acknowledge(void* parm, bp_val_t cid)
             status = ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
             ch->active_table[ati].sid = BP_SID_VACANT;
         }
-        else
-        {
-            ch->stats.misidentified++;
-        }
-    }
-    else
-    {
-        ch->stats.reacknowledged++;
     }
 
     return status;

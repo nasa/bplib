@@ -90,7 +90,7 @@ extern "C" {
 #define BP_FLAG_CIDWENTBACKWARDS        0x0020  /* the custody ID went backwards */
 #define BP_FLAG_ROUTENEEDED             0x0040  /* the bundle returned needs to be routed before transmission */
 #define BP_FLAG_STOREFAILURE            0x0080  /* storage service failed to deliver data */
-#define BP_FLAG_RESERVED02              0x0100
+#define BP_FLAG_UNKNOWNCID              0x0100  /* received CID in acknowledgment for which no bundle was found */
 #define BP_FLAG_SDNVOVERFLOW            0x0200  /* insufficient room in variable to read/write value */
 #define BP_FLAG_SDNVINCOMPLETE          0x0400  /* insufficient room in block to read/write value */
 #define BP_FLAG_ACTIVETABLEWRAP         0x0800  /* the active table wrapped */
@@ -217,8 +217,6 @@ typedef struct {
 typedef struct {
     uint32_t    lost;           /* storage or copy failure, unable to retrieve load, accept */
     uint32_t    expired;        /* lifetime expired, deliberately removed - load, process */
-    uint32_t    reacknowledged; /* acknowledged more than once - process */
-    uint32_t    misidentified;  /* could not find bundle that was attempting to be acknowledged - process */
     uint32_t    acknowledged;   /* freed by custody signal - process */
     uint32_t    transmitted;    /* sent, includes re-sends - load */
     uint32_t    retransmitted;  /* timed-out and resent - load */

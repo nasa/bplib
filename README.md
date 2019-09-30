@@ -506,21 +506,21 @@ Initiates sending the data pointed to by _payload_ as a bundle. The data will be
 ----------------------------------------------------------------------
 ##### Load Bundle
 
-`int bplib_load (bp_desc_t channel, void** bundle,  int size, int timeout, uint16_t* flags)`
+`int bplib_load (bp_desc_t channel, void** bundle,  int* size, int timeout, uint16_t* flags)`
 
-Reads the next bundle from storage to be sent by the application over the convergence layer.  From the perspective of the library, once a bundle is loaded to the application, it is as good as sent.  Any failure of the application to send the bundle is treated no differently that a failure downstream in the bundle reaching its destination. 
+Reads the next bundle from storage to be sent by the application over the convergence layer.  From the perspective of the library, once a bundle is loaded to the application, it is as good as sent.  Any failure of the application to send the bundle is treated no differently that a failure downstream in the bundle reaching its destination.  On the other hand, the memory containing the bundle returned by the library is kept valid until the `bplib_ackbundle` function is called, which must be called once for every returned bundle.  So while subsequent calls to `bplib_load` will continue to provide the next bundle the library determines should be sent, the application is free to hold onto the bundle buffer and keep trying to send it until it acknowledges the bundle to the library.
 
 `channel` - channel to retrieve bundle from
 
-`bundle` - pointer to the buffer for bundle being loaded.  The pointer cannot be null, but if the dereferenced memory location for the pointer is null, then the library will dynamically allocate the memory needed for the bundle.  If the dereferenced memory location is not null, then it points to a buffer into which the bundle will be copied, and the __size__ value is used to indicate the size of the buffer.
+`bundle` - pointer to a bundle buffer pointer; on success, the library will populate this pointer with the address of a buffer containing the bundle that is loaded.
 
-`size` - the size in bytes of the bundle buffer being passed in, or zero if the bundle memory is to be dynamically allocated.
+`size` - pointer to a variable holding the size in bytes of the bundle buffer being returned, populated on success.
 
 `timeout` - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
 `flags` - flags that provide additional information on the result of the load operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
-`returns` - the size of the loaded bundle or [return code](#6.2-return-codes) on error.
+`returns` - the bundle reference, the size of the bundle, and [return code](#6.2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Process Bundle
@@ -549,21 +549,47 @@ There are three types of bundles processed by this function:
 ----------------------------------------------------------------------
 ##### Accept Payload
 
-`int bplib_accept (bp_desc_t channel, void** payload, int size, int timeout, uint16_t* flags)`
+`int bplib_accept (bp_desc_t channel, void** payload, int* size, int timeout, uint16_t* flags)`
 
-Returns the next available bundle payload (from bundles that have been received and processed via the `bplib_process` function) to the application by populating the structure pointed to by the _payload_ pointer.
+Returns the next available bundle payload (from bundles that have been received and processed via the `bplib_process` function) to the application. The memory containing the payload returned by the library is kept valid until the `bplib_ackpayload` function is called, which must be called once for every returned payload.  So while subsequent calls to `bplib_accept` will continue to provide the next payload the library determines should be accepted, the payload will not be deleted from the library's storage service until it is acknowledged by the application.
 
 `channel` - channel to accept payload from
 
-`payload` - pointer to the buffer for data being accepted.  The pointer cannot be null, but if the dereferenced memory location for the pointer is null, then the library will dynamically allocate the memory needed for the data.  If the dereferenced memory location is not null, then it points to a buffer into which the data will be copied, and the __size__ value is used to indicate the size of the buffer.
+`payload` - pointer to a payload buffer pointer; on success, the library will populate this pointer with the address of a buffer containing the payload that is accepted.
 
-`size` - the size in bytes of the data buffer being passed in, or zero if the data memory is to be dynamically allocated.
+`size` - pointer to a variable holding the size in bytes of the payload buffer being returned, populated on success.
 
 `timeout` - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
 `flags` - flags that provide additional information on the result of the accept operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
-`returns` - size of bundle payload in bytes, or [return code](#6.2-return-codes) on error.
+`returns` - the payload reference, the size of the payload, and [return code](#6.2-return-codes)
+
+----------------------------------------------------------------------
+##### Acknowledge Bundle
+
+`int bplib_ackbundle (bp_desc_t channel, void* bundle)`
+
+Informs the library that the memory and storage used for the payload can be freed.  The memory will be immediately freed, the storage will be freed immediately only if the bundle is not requesting custody transfer (otherwise, if the bundle is requesting custody transfer, then the ACS acknowledgment frees the storage).  This must be called at some point after every bundle that is loaded.
+
+`channel` - channel to acknowlwedge bundle
+
+`bundle` - pointer to the bundle buffer to be acknowledged
+
+`returns` - [return code](#6.2-return-codes)
+
+----------------------------------------------------------------------
+##### Acknowledge Payload
+
+`int bplib_ackpayload (bp_desc_t channel, void* payload)`
+
+Informs the library that the memory and storage used for the payload can be freed.  This must be called at some point after every payload that is accepted.
+
+`channel` - channel to acknowlwedge payload
+
+`payload` - pointer to the payload buffer to be acknowledged
+
+`returns` - [return code](#6.2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Route Information
@@ -661,7 +687,7 @@ Initialize an attribute structure with the library default values.  This is usef
 | BP_FLAG_CIDWENTBACKWARDS | 0x0020 | The custody ID went backwards |
 | BP_FLAG_ROUTENEEDED      | 0x0040 | The bundle returned needs to be routed before transmission |
 | BP_FLAG_STOREFAILURE     | 0x0080 | Storage service failed to deliver data |
-| BP_FLAG_RESERVED02       | 0x0100 | Reserved |
+| BP_FLAG_UNKNOWNCID       | 0x0100 | An ACS bundle acknowledged a CID for which no bundle was found |
 | BP_FLAG_SDNVOVERFLOW     | 0x0200 | The local variable used to read/write and the value was of insufficient width |
 | BP_FLAG_SDNVINCOMPLETE   | 0x0400 | There was insufficient room in block to read/write value |
 | BP_FLAG_ACTIVETABLEWRAP  | 0x0800 | The active table wrapped; see BP_OPT_WRAP_RESPONSE |
@@ -756,6 +782,19 @@ Retrieves the data block stored in the storage service identified by the _Storag
 `returns` - [return code](#6.2-return-codes)
 
 ----------------------------------------------------------------------
+##### Release Storage Service
+
+`int release (int handle, bp_sid_t sid)`
+
+Releases any in-memory resources associated with the dequeueing or retrieval of a bundle.
+
+`handle` - handle to the storage service
+
+`sid` - the _Storage ID_ that identifies the data block for which memory resources are released.
+
+`returns` - [return code](#6.2-return-codes)
+
+----------------------------------------------------------------------
 ##### Relinquish Storage Service
 
 `int relinquish (int handle, bp_sid_t sid)`
@@ -783,7 +822,7 @@ Returns the number of data blocks currently stored in the storage service.
 The storage service call-backs must have the following characteristics:
 * `enqueue`, `dequeue`, `retrieve`, and `relinquish` are expected to be thread safe against each other.
 * `create` and `destroy` do not need to be thread safe against each other or any other function call - the application is responsible for calling them when it can complete atomically with respect to any other storage service call
-* The memory returned by the dequeue function is valid only until the next `dequeue` function call or the next `relinquish` function call
+* The memory returned by the dequeue and retrieve function is valid until the release function call.  Every dequeue and retrieve issued by the library will be followed by a release.
 * The _Storage ID (SID)_ returned by the storage service cannot be zero since that is marked as a _VACANT_ SID
 
  
