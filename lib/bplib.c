@@ -50,6 +50,7 @@
 typedef struct {
     bp_sid_t            sid;
     bp_val_t            retx;
+    bp_val_t            cid;
 } bp_active_table_t;
 
 /* Channel Control Block */
@@ -103,17 +104,19 @@ static int acknowledge(void* parm, bp_val_t cid)
     bp_sid_t sid = ch->active_table[ati].sid;
     if(sid != BP_SID_VACANT)
     {
-//        bp_object_t* object;
-//        status = ch->bundle.store.retrieve(ch->bundle.bundle_handle, sid, &object, BP_CHECK);
-//        if(status == BP_SUCCESS)
-//        {
-//            bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
-//            if(data->cidsdnv.value == cid)
-//            {
-                status = ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
-                ch->active_table[ati].sid = BP_SID_VACANT;
-//            }
-//        }
+        if(ch->active_table[ati].cid == cid)
+        {
+            status = ch->bundle.store.relinquish(ch->bundle.bundle_handle, sid);
+            ch->active_table[ati].sid = BP_SID_VACANT;
+        }
+        else
+        {
+            ch->stats.misidentified++;
+        }
+    }
+    else
+    {
+        ch->stats.reacknowledged++;
     }
 
     return status;
@@ -680,6 +683,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                 {
                     ati = ch->current_active_cid % ch->attributes.active_table_size;
                     ch->active_table[ati].sid = sid;
+                    ch->active_table[ati].cid = ch->current_active_cid;
                     bundle_update(data, ch->current_active_cid++, flags);
                 }
 

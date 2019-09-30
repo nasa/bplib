@@ -217,6 +217,8 @@ typedef struct {
 typedef struct {
     uint32_t    lost;           /* storage or copy failure, unable to retrieve load, accept */
     uint32_t    expired;        /* lifetime expired, deliberately removed - load, process */
+    uint32_t    reacknowledged; /* acknowledged more than once - process */
+    uint32_t    misidentified;  /* could not find bundle that was attempting to be acknowledged - process */
     uint32_t    acknowledged;   /* freed by custody signal - process */
     uint32_t    transmitted;    /* sent, includes re-sends - load */
     uint32_t    retransmitted;  /* timed-out and resent - load */
