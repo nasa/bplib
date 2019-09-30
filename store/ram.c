@@ -453,7 +453,7 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
     if(status > 0)
     {
         msgq_counts[handle]++;
-        return status;
+        return BP_SUCCESS;
     }
     else if(status == MSGQ_FULL)
     {

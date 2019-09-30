@@ -327,7 +327,7 @@ int bplib_flush(bp_desc_t channel)
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
 
-    /* Send Data Bundle */
+    /* Flush Data Bundles */
     int handle = ch->bundle_handle;
 
     /* Lock Active Table */

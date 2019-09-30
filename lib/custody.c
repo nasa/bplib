@@ -55,7 +55,7 @@ static int custody_enqueue(bp_custody_t* custody, bp_val_t sysnow, bp_generate_t
             {
                 /* Save first failed DACS enqueue to return later */
                 ret_status = send_status;
-                *flags |= BP_FLAG_STOREFAILURE;        
+                *flags |= BP_FLAG_STOREFAILURE; 
                 bplog(send_status, "Failed (%d) to store DACS for transmission, bundle dropped\n", send_status);
             }
             else 

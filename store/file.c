@@ -305,7 +305,7 @@ int bplib_store_file_destroy (int handle)
     
     file_stores[handle].in_use = false;
     
-    return 0;
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -420,7 +420,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
         bplib_os_signal(fs->lock);
 
         /* Return Success */
-        return bytes_written;
+        return BP_SUCCESS;
     }
 }
 
