@@ -27,9 +27,8 @@
  DEFINES
  ******************************************************************************/
 
-#define MAX_KEY_SIZE    512
 #define EMPTY_ENTRY     0 // must be 0 because rh_hash->table initialized to 0's
-#define NULL_INDEX      UINT_MAX
+#define NULL_INDEX      RH_HASH_MAX_INDEX
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -38,11 +37,11 @@
 /*----------------------------------------------------------------------------
  * hash_key
  *----------------------------------------------------------------------------*/
-unsigned int hash_key(bp_val_t key)
+uint32_t hash_key(bp_val_t key)
 {
-    uint8_t*        ptr = (uint8_t*)&key;
-    unsigned int    h   = 0;
-    unsigned int    i   = 0;
+    uint8_t*    ptr = (uint8_t*)&key;
+    uint32_t    h   = 0;
+    uint32_t    i   = 0;
 
     for(i = 0; i < sizeof(key); i++)
     {
@@ -65,124 +64,81 @@ unsigned int hash_key(bp_val_t key)
 int get_node(rh_hash_t* rh_hash, bp_val_t key)
 {
     /* Grab Hash Entry */
-    unsigned int index = hash_key(key) % rh_hash->size;
+    rh_index_t index = hash_key(key) % rh_hash->size;
 
     /* Search */
-    while(index != NULL_INDEX && rh_hash->table[index].chain != EMPTY_ENTRY)
+    if(rh_hash->table[index].chain != EMPTY_ENTRY)
     {
-        /* Compare Hash Key to Key */
-        if(rh_hash->table[index].key != key)
+        while(index != NULL_INDEX)
         {
-            /* Go to next */
-            index = rh_hash->table[index].next;
+            /* Compare Hash Key to Key */
+            if(rh_hash->table[index].key != key)
+            {
+                /* Go to next */
+                index = rh_hash->table[index].next;
+            }
+            else
+            {
+                /* Return match */
+                return index;
+            }                
         }
-        else
-        {
-            /* Return match */
-            return index;
-        }                
     }
 
     return NULL_INDEX;
 }
 
 /*----------------------------------------------------------------------------
- * add_node
+ * overwrite_node
  *----------------------------------------------------------------------------*/
-void add_node(rh_hash_t* rh_hash, bp_val_t key, void* data)
+int overwrite_node(rh_hash_t* rh_hash, rh_index_t index, void* data, bool overwrite)
 {
-    /* Constrain the Hash */
-    unsigned int hash = hash_key(key);
-    unsigned int curr_index = hash % rh_hash->size;
-    
-    /* Add Entry Directly to Hash */
-    if(rh_hash->table[curr_index].chain == EMPTY_ENTRY)
+    if(overwrite)
     {
-        rh_hash->table[curr_index].key   = key;
-        rh_hash->table[curr_index].data  = data;
-        rh_hash->table[curr_index].chain = 1;
-        rh_hash->table[curr_index].hash  = hash;
-        rh_hash->table[curr_index].next  = NULL_INDEX;
-        rh_hash->table[curr_index].prev  = NULL_INDEX;
+        /* Set Data */
+        rh_hash->table[index].data = data;
+
+        /* Bridge Over Entry */
+        rh_index_t before_index = rh_hash->table[index].before;
+        rh_index_t after_index = rh_hash->table[index].after;
+        if(before_index != NULL_INDEX) rh_hash->table[before_index].after = after_index;
+
+        /* Check if Overwriting Oldest */
+        if(index == rh_hash->oldest_entry)  rh_hash->oldest_entry = rh_hash->table[index].after;
+
+        /* Set Current Entry to Newest */
+        rh_hash->table[index].after    = NULL_INDEX;
+        rh_hash->table[index].before   = rh_hash->newest_entry;
+        rh_hash->newest_entry          = index;
+
+        /* Return Success */
+        return BP_SUCCESS;
     }
-    /* Add Entry Linked into Hash */
     else
     {
-        /* Find First Open Hash Slot */
-        unsigned int open_index = (curr_index + 1) % rh_hash->size;
-        while(rh_hash->table[open_index].chain != EMPTY_ENTRY)
-        {
-            assert(open_index != curr_index); // previous checks prevent this
-            open_index = (open_index + 1) % rh_hash->size;
-        }
-
-        /* Get Indices into List */
-        unsigned int next_index = rh_hash->table[curr_index].next;
-        unsigned int prev_index = rh_hash->table[curr_index].prev;
-
-        if(rh_hash->table[curr_index].chain == 1) // collision
-        {
-            /* Transverse to End of Chain */
-            prev_index = curr_index;
-            while(next_index != NULL_INDEX)
-            {
-                prev_index = next_index;
-                next_index = rh_hash->table[next_index].next;
-            }
-
-            /* Add Entry to Open Slot at End of Chain */
-            rh_hash->table[prev_index].next  = open_index;
-            rh_hash->table[open_index].key   = key;
-            rh_hash->table[open_index].data  = data;
-            rh_hash->table[open_index].chain = rh_hash->table[prev_index].chain + 1;
-            rh_hash->table[open_index].hash  = hash;
-            rh_hash->table[open_index].next  = NULL_INDEX;
-            rh_hash->table[open_index].prev  = prev_index;
-
-            /* Check For New Max Chain */
-            if(rh_hash->table[open_index].chain > rh_hash->max_chain)
-            {
-                rh_hash->max_chain = rh_hash->table[open_index].chain;
-            }
-        }
-        else // chain > 1, robin hood the slot
-        {
-            /* Bridge Over Current Slot */
-            if(next_index != NULL_INDEX) rh_hash->table[next_index].prev = prev_index;
-            rh_hash->table[prev_index].next = next_index;
-
-            /* Transverse to End of Chain */
-            while(next_index != NULL_INDEX)
-            {
-                rh_hash->table[next_index].chain--;
-                prev_index = next_index;
-                next_index = rh_hash->table[next_index].next;
-            }
-
-            /* Copy Current Slot to Open Slot at End of Chain */
-            rh_hash->table[prev_index].next  = open_index;
-            rh_hash->table[open_index].key   = rh_hash->table[curr_index].key;
-            rh_hash->table[open_index].data  = rh_hash->table[curr_index].data;
-            rh_hash->table[open_index].chain = rh_hash->table[prev_index].chain + 1;
-            rh_hash->table[open_index].hash  = rh_hash->table[curr_index].hash;
-            rh_hash->table[open_index].next  = NULL_INDEX;
-            rh_hash->table[open_index].prev  = prev_index;
-
-            /* Check For New Max Chain */
-            if(rh_hash->table[open_index].chain > rh_hash->max_chain)
-            {
-                rh_hash->max_chain = rh_hash->table[open_index].chain;
-            }
-
-            /* Add Entry to Current Slot */
-            rh_hash->table[curr_index].key   = key;
-            rh_hash->table[curr_index].data  = data;
-            rh_hash->table[curr_index].chain = 1;
-            rh_hash->table[curr_index].hash  = hash;
-            rh_hash->table[curr_index].next  = NULL_INDEX;
-            rh_hash->table[curr_index].prev  = NULL_INDEX;
-        }
+        /* Return Failure */
+        return BP_DUPLICATECID;
     }
+}
+
+/*----------------------------------------------------------------------------
+ * write_node
+ *----------------------------------------------------------------------------*/
+void write_node(rh_hash_t* rh_hash, rh_index_t index, bp_val_t key, void* data, uint32_t hash)
+{
+    rh_hash->table[index].key       = key;
+    rh_hash->table[index].data      = data;
+    rh_hash->table[index].hash      = hash;
+    rh_hash->table[index].chain     = rh_hash->table[index].chain + 1;
+    rh_hash->table[index].next      = NULL_INDEX;
+    rh_hash->table[index].prev      = NULL_INDEX;
+    rh_hash->table[index].after     = NULL_INDEX;
+    rh_hash->table[index].before    = rh_hash->newest_entry;
+
+    /* Update Time Order */
+    if(rh_hash->oldest_entry == NULL_INDEX) rh_hash->oldest_entry = index;
+    rh_hash->table[rh_hash->newest_entry].after = index;
+    rh_hash->newest_entry = index;
 }
 
 /******************************************************************************
@@ -196,14 +152,15 @@ int rh_hash_create(rh_hash_t* rh_hash, int hash_size)
 {
     int i;
     
-    if(hash_size <= 0) return BP_PARMERR;
+    if(hash_size <= 0 || hash_size > RH_HASH_MAX_INDEX) return BP_PARMERR;
 
     rh_hash->table = (rh_hash_node_t*)malloc(hash_size * sizeof(rh_hash_node_t));
     for(i = 0; i < hash_size; i++) rh_hash->table[i].chain = EMPTY_ENTRY;
 
     rh_hash->size = hash_size;
-    rh_hash->curr_index = 0;
     rh_hash->num_entries = 0;
+    rh_hash->oldest_entry = NULL_INDEX;
+    rh_hash->newest_entry = NULL_INDEX;
     rh_hash->max_chain = 0;
     
     return BP_SUCCESS;
@@ -226,29 +183,132 @@ int rh_hash_destroy(rh_hash_t* rh_hash)
  *----------------------------------------------------------------------------*/
 int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
 {
-    int status = BP_SUCCESS;
+    /* Constrain the Hash */
+    uint32_t hash = hash_key(key);
+    rh_index_t curr_index = hash % rh_hash->size;
     
-    /* Insert Entry into Dictionary */
-    unsigned int index = get_node(rh_hash, key); // TODO: is this necessary, roll into add_node
-    if(index == NULL_INDEX)
+    /* Add Entry to Hash */
+    if(rh_hash->table[curr_index].chain == EMPTY_ENTRY)
     {
-        /* Add Node */
-        add_node(rh_hash, key, data);
-        rh_hash->num_entries++;
+        write_node(rh_hash, curr_index, key, data, hash);
     }
-    else if(overwrite)
+    else /* collision */
     {
-        /* Overwrite with New Data */
-        rh_hash->table[index].data = data;
-    }
-    else
-    {
-        /* Refuse to Overwrite Existing Node */
-        status = BP_ERROR;
-    }
+        /* Check Current Slot for Duplicate */
+        if(rh_hash->table[curr_index].key == key)
+        {
+            return overwrite_node(rh_hash, curr_index, data, overwrite);
+        }
+        
+        /* Find First Open Hash Slot */
+        rh_index_t open_index = (curr_index + 1) % rh_hash->size;
+        while( (rh_hash->table[open_index].chain != EMPTY_ENTRY) &&
+               (open_index != curr_index) )
+        {
+            open_index = (open_index + 1) % rh_hash->size;
+        } 
 
-    /* Return Status */
-    return status;
+        /* Check for Full Hash */
+        if(open_index == curr_index)
+        {
+            return BP_ACTIVETABLEFULL;
+        }
+        
+        /* Get Indices into List */
+        rh_index_t next_index = rh_hash->table[curr_index].next;
+        rh_index_t prev_index = rh_hash->table[curr_index].prev;
+
+        /* Insert Node (chain == 1) */
+        if(rh_hash->table[curr_index].chain == 1)
+        {
+            /* Transverse to End of Chain */
+            prev_index = curr_index;
+            while(next_index != NULL_INDEX)
+            {
+                /* Check Next Slot for Duplicate */
+                if(rh_hash->table[next_index].key == key)
+                {
+                    return overwrite_node(rh_hash, next_index, data, overwrite);
+                }
+                
+                /* Go To Next Slot */
+                prev_index = next_index;
+                next_index = rh_hash->table[next_index].next;
+            }
+
+            /* Set Insertion Point to Open Slot */
+            curr_index = open_index;
+
+            /* Add Entry to Open Slot at End of Chain */
+            write_node(rh_hash, curr_index, key, data, hash);
+            rh_hash->table[prev_index].next = curr_index;
+            rh_hash->table[curr_index].prev = prev_index;
+            
+            /* Check For New Max Chain */
+            if(rh_hash->table[curr_index].chain > rh_hash->max_chain)
+            {
+                rh_hash->max_chain = rh_hash->table[curr_index].chain;
+            }
+        }
+        else /* Robin Hood Insertion (chain > 1) */
+        {
+            /* Scan for Duplicate */
+            rh_index_t scan_index = next_index;
+            while(scan_index != NULL_INDEX)
+            {
+                /* Check Scan Slot for Duplicate */
+                if(rh_hash->table[scan_index].key == key)
+                {
+                    return overwrite_node(rh_hash, scan_index, data, overwrite);
+                }
+                
+                /* Go To Next Slot */
+                scan_index = rh_hash->table[scan_index].next;
+            }
+
+            /* Bridge Over Current Slot */
+            if(next_index != NULL_INDEX) rh_hash->table[next_index].prev = prev_index;
+            rh_hash->table[prev_index].next = next_index;
+
+            /* Transverse to End of Chain */
+            while(next_index != NULL_INDEX)
+            {
+                /* Decrement Chain */
+                rh_hash->table[next_index].chain--;
+
+                /* Go To Next Slot */
+                prev_index = next_index;
+                next_index = rh_hash->table[next_index].next;
+            }
+
+            /* Copy Current Slot to Open Slot at End of Chain */
+            rh_hash->table[prev_index].next     = open_index;            
+            rh_hash->table[open_index].key      = rh_hash->table[curr_index].key;
+            rh_hash->table[open_index].data     = rh_hash->table[curr_index].data;
+            rh_hash->table[open_index].chain    = rh_hash->table[prev_index].chain + 1;
+            rh_hash->table[open_index].hash     = rh_hash->table[curr_index].hash;
+            rh_hash->table[open_index].next     = NULL_INDEX;
+            rh_hash->table[open_index].prev     = prev_index;
+            rh_hash->table[open_index].after    = rh_hash->table[curr_index].after;
+            rh_hash->table[open_index].before   = rh_hash->table[curr_index].before;
+            
+            /* Check to Update Oldest Entry */
+            if(rh_hash->oldest_entry == curr_index) rh_hash->oldest_entry = open_index;
+
+            /* Check For New Max Chain */
+            if(rh_hash->table[open_index].chain > rh_hash->max_chain)
+            {
+                rh_hash->max_chain = rh_hash->table[open_index].chain;
+            }
+
+            /* Add Entry to Current Slot */
+            write_node(rh_hash, open_index, key, data, hash);
+            rh_hash->table[curr_index].chain = 1;
+        }
+    }
+    
+    /* Return Success */
+    return BP_SUCCESS;
 }
 
 /*----------------------------------------------------------------------------
@@ -258,7 +318,7 @@ int rh_hash_get(rh_hash_t* rh_hash, bp_val_t key, void** data)
 {
     if(data == NULL) return BP_PARMERR;
     
-    unsigned int index = get_node(rh_hash, key);
+    rh_index_t index = get_node(rh_hash, key);
     if(index != NULL_INDEX)
     {
         *data = rh_hash->table[index].data;
@@ -273,7 +333,7 @@ int rh_hash_get(rh_hash_t* rh_hash, bp_val_t key, void** data)
  *----------------------------------------------------------------------------*/
 int rh_hash_find(rh_hash_t* rh_hash, bp_val_t key)
 {
-    unsigned int index = get_node(rh_hash, key);
+    rh_index_t index = get_node(rh_hash, key);
     if(index != NULL_INDEX)
     {
         return BP_SUCCESS;
@@ -290,12 +350,14 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t key)
     int status = BP_SUCCESS;
 
     /* Check Pointers */
-    unsigned int index = get_node(rh_hash, key);
+    rh_index_t index = get_node(rh_hash, key);
     if(index != NULL_INDEX)
     {
         /* Get List Indices */
-        unsigned int next_index = rh_hash->table[index].next;
-        unsigned int prev_index = rh_hash->table[index].prev;
+        rh_index_t next_index   = rh_hash->table[index].next;
+        rh_index_t prev_index   = rh_hash->table[index].prev;
+        rh_index_t after_index  = rh_hash->table[index].after;
+        rh_index_t before_index = rh_hash->table[index].before;
 
         if((rh_hash->table[index].chain == 1) && (next_index != NULL_INDEX))
         {
@@ -316,9 +378,15 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t key)
         {
             rh_hash->table[index].chain = EMPTY_ENTRY;
 
+            /* Update Time Order */
+            if(index == rh_hash->newest_entry)  rh_hash->newest_entry = before_index;
+            if(index == rh_hash->oldest_entry)  rh_hash->oldest_entry = after_index;
+            
             /* Bridge Over Removed Entry */
-            if(next_index != NULL_INDEX) rh_hash->table[next_index].prev = prev_index;
-            if(prev_index != NULL_INDEX) rh_hash->table[prev_index].next = next_index;
+            if(next_index != NULL_INDEX)    rh_hash->table[next_index].prev = prev_index;
+            if(prev_index != NULL_INDEX)    rh_hash->table[prev_index].next = next_index;
+            if(after_index != NULL_INDEX)   rh_hash->table[after_index].before = before_index;
+            if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = after_index;            
         }
 
         /* Transverse to End of Chain */
@@ -346,8 +414,10 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t key)
  *----------------------------------------------------------------------------*/
 int rh_hash_clear(rh_hash_t* rh_hash)
 {
+    uint32_t i;
+    
     /* Clear Hash */
-    for(unsigned int i = 0; rh_hash->num_entries > 0 && i < rh_hash->size; i++)
+    for(i = 0; rh_hash->num_entries > 0 && i < rh_hash->size; i++)
     {
         if(rh_hash->table[i].chain != EMPTY_ENTRY)
         {

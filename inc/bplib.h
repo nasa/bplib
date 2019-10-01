@@ -79,9 +79,11 @@ extern "C" {
 #define BP_FAILEDRESPONSE               (-17)
 #define BP_INVALIDEID                   (-18)
 #define BP_INVALIDCIPHERSUITEID         (-19)
-#define BP_PENDINGACKNOWLEDGMENT        (-20)
-#define BP_PENDINGFORWARD               (-21)
-#define BP_PENDINGACCEPTANCE            (-22)
+#define BP_DUPLICATECID                 (-20)
+#define BP_ACTIVETABLEFULL              (-21)
+#define BP_PENDINGACKNOWLEDGMENT        (-22)
+#define BP_PENDINGFORWARD               (-23)
+#define BP_PENDINGACCEPTANCE            (-24)
 
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
