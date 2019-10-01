@@ -31,18 +31,6 @@
 #include "crc.h"
 
 /******************************************************************************
- DEFINES
- ******************************************************************************/
-
-#ifndef LIBID
-#define LIBID                           "unversioned"
-#endif
-
-#ifndef BP_WRAP_TIMEOUT
-#define BP_WRAP_TIMEOUT                 1000    /* milliseconds */
-#endif
-
-/******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
@@ -56,7 +44,7 @@ typedef struct {
 /* Channel Control Block */
 typedef struct {
     bp_store_t          store;
-    bp_attr_t           attributes;
+    bp_attr_t           attributes;    
     bp_bundle_t         bundle;
     bp_custody_t        custody;
     int                 bundle_handle;
@@ -268,7 +256,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     /* Initialize Data */
     ch->oldest_active_cid   = 1;
     ch->current_active_cid  = 1;
-
+    
     /* Return Channel */
     return ch;
 }
@@ -550,12 +538,12 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     bp_channel_t* ch = (bp_channel_t*)channel;
     
     /* Setup State */
-    unsigned long       sysnow          = 0;                /* current system time used for timeouts (seconds) */
-    bp_object_t*        object          = NULL;             /* stare out assuming nothing to send */
-    bp_sid_t            sid             = BP_SID_VACANT;    /* store id points to nothing */
-    int                 ati             = -1;               /* active table index */
-    bool                newcid          = true;             /* whether to assign new custody id and active table entry */
-    int                 handle          = -1;               /* handle for store service being loaded */
+    unsigned long   sysnow  = 0;                /* current system time used for timeouts (seconds) */
+    bp_object_t*    object  = NULL;             /* stare out assuming nothing to send */
+    bp_sid_t        sid     = BP_SID_VACANT;    /* store id points to nothing */
+    int             ati     = -1;               /* active table index */
+    bool            newcid  = true;             /* whether to assign new custody id and active table entry */
+    int             handle  = -1;               /* handle for store service being loaded */
 
     /* Get Current Time */
     if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
@@ -669,14 +657,14 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                                 {
                                     /* Force Retransmit - Do Not Reuse Custody ID */
                                     ch->stats.retransmitted++;
-                                    bplib_os_waiton(ch->active_table_signal, BP_WRAP_TIMEOUT );
+                                    bplib_os_waiton(ch->active_table_signal, timeout);
                                 }
                             }
                             else if(ch->attributes.wrap_response == BP_WRAP_BLOCK)
                             {
                                 /* Custody ID Wrapped Around to Occupied Slot */                            
                                 status = BP_OVERFLOW;                   
-                                bplib_os_waiton(ch->active_table_signal, BP_WRAP_TIMEOUT );
+                                bplib_os_waiton(ch->active_table_signal, timeout);
                             }
                             else /* if(ch->wrap_response == BP_WRAP_DROP) */
                             {

@@ -70,6 +70,7 @@ APP_OBJ     += custody.o
 APP_OBJ     += sdnv.o
 APP_OBJ     += crc.o
 APP_OBJ     += rb_tree.o
+APP_OBJ     += rh_hash.o
 
 # storage service objects
 APP_OBJ     += file.o

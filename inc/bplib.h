@@ -145,7 +145,7 @@ extern "C" {
 /* Channel Descriptor */
 typedef void* bp_desc_t;
 
-/* Encoded Value */
+/* Encoded Value (must be consistent with Maximum Encoded Value)*/
 typedef unsigned long bp_val_t;
 
 /* IPN Schema Endpoint ID Integer Definition */
