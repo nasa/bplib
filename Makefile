@@ -124,7 +124,6 @@ include $(CONFIG)
 
 TGTLIB      :=   bp
 TGTVER      :=   $(shell cat version.txt)
-CONSOLE     :=   bpc
 LIBDIR      :=   $(PREFIX)/lib
 INCDIR      :=   $(PREFIX)/include/$(TGTLIB)
 BLDDIR      :=   build
@@ -198,8 +197,6 @@ $(LIBDIR):
 
 $(INCDIR):
 	-$(MKDIR) -p $(INCDIR)
-
-prep: $(BLDDIR)
 
 clean ::
 	-$(RM) -R $(BLDDIR)

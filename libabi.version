@@ -1,4 +1,4 @@
-CODEABI_1.0.0
+CODEABI_0.0.0
 { 
     global: *bplib_*; 
     local: *; 
