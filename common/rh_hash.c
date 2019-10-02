@@ -19,9 +19,8 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
-#include "bplib_os.h"
 #include "rh_hash.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  DEFINES
@@ -112,12 +111,12 @@ int overwrite_node(rh_hash_t* rh_hash, rh_index_t index, void* data, bool overwr
         rh_hash->newest_entry          = index;
 
         /* Return Success */
-        return BP_SUCCESS;
+        return RH_SUCCESS;
     }
     else
     {
         /* Return Failure */
-        return BP_DUPLICATECID;
+        return RH_INSERT_DUPLICATE;
     }
 }
 
@@ -152,18 +151,25 @@ int rh_hash_create(rh_hash_t* rh_hash, int hash_size)
 {
     int i;
     
-    if(hash_size <= 0 || hash_size > RH_HASH_MAX_INDEX) return BP_PARMERR;
+    /* Check Hash Size */
+    if(hash_size <= 0 || hash_size > RH_HASH_MAX_INDEX) return RH_INVALID_HASH_SIZE;
 
+    /* Allocate Hash Table */
     rh_hash->table = (rh_hash_node_t*)malloc(hash_size * sizeof(rh_hash_node_t));
+    if(rh_hash->table == NULL) return RH_MEMORY_ERROR;
+            
+    /* Initialize Hash Table to Empty */
     for(i = 0; i < hash_size; i++) rh_hash->table[i].chain = EMPTY_ENTRY;
 
+    /* Initialize Hash Table Attributes */
     rh_hash->size = hash_size;
     rh_hash->num_entries = 0;
     rh_hash->oldest_entry = NULL_INDEX;
     rh_hash->newest_entry = NULL_INDEX;
     rh_hash->max_chain = 0;
     
-    return BP_SUCCESS;
+    /* Return Success */
+    return RH_SUCCESS;
 }
 
 /*----------------------------------------------------------------------------
@@ -175,7 +181,7 @@ int rh_hash_destroy(rh_hash_t* rh_hash)
 
     free(rh_hash->table);
 
-    return BP_SUCCESS;
+    return RH_SUCCESS;
 }
 
 /*----------------------------------------------------------------------------
@@ -211,7 +217,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
         /* Check for Full Hash */
         if(open_index == curr_index)
         {
-            return BP_ACTIVETABLEFULL;
+            return RH_HASH_FULL;
         }
         
         /* Get Indices into List */
@@ -308,7 +314,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
     }
     
     /* Return Success */
-    return BP_SUCCESS;
+    return RH_SUCCESS;
 }
 
 /*----------------------------------------------------------------------------
@@ -316,30 +322,14 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
  *----------------------------------------------------------------------------*/
 int rh_hash_get(rh_hash_t* rh_hash, bp_val_t key, void** data)
 {
-    if(data == NULL) return BP_PARMERR;
-    
     rh_index_t index = get_node(rh_hash, key);
     if(index != NULL_INDEX)
     {
-        *data = rh_hash->table[index].data;
-        return BP_SUCCESS;
+        if(data) *data = rh_hash->table[index].data;
+        return RH_SUCCESS;
     }
 
-    return BP_ERROR;
-}
-
-/*----------------------------------------------------------------------------
- * Find
- *----------------------------------------------------------------------------*/
-int rh_hash_find(rh_hash_t* rh_hash, bp_val_t key)
-{
-    rh_index_t index = get_node(rh_hash, key);
-    if(index != NULL_INDEX)
-    {
-        return BP_SUCCESS;
-    }
-    
-    return BP_ERROR;
+    return RH_KEY_NOT_FOUND;
 }
 
 /*----------------------------------------------------------------------------
@@ -347,7 +337,7 @@ int rh_hash_find(rh_hash_t* rh_hash, bp_val_t key)
  *----------------------------------------------------------------------------*/
 int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t key)
 {
-    int status = BP_SUCCESS;
+    int status = RH_SUCCESS;
 
     /* Check Pointers */
     rh_index_t index = get_node(rh_hash, key);
@@ -402,7 +392,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t key)
     else
     {
         /* Key Not Found */
-        status = BP_ERROR;
+        status = RH_KEY_NOT_FOUND;
     }
 
     /* Return Status */
@@ -430,5 +420,5 @@ int rh_hash_clear(rh_hash_t* rh_hash)
     rh_hash->max_chain = 0;
     
     /* Return Success */
-    return BP_SUCCESS;
+    return RH_SUCCESS;
 }

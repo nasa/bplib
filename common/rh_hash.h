@@ -27,7 +27,15 @@
  DEFINES
  ******************************************************************************/
 
-#define RH_HASH_MAX_INDEX   UINT16_MAX
+#define RH_HASH_MAX_INDEX       UINT16_MAX
+
+#define RH_SUCCESS              1
+#define RH_INSERT_DUPLICATE     (-1)
+#define RH_HASH_FULL            (-2)
+#define RH_INVALID_HASH_SIZE    (-3)
+#define RH_INVALID_PARM         (-4)
+#define RH_MEMORY_ERROR         (-5)
+#define RH_KEY_NOT_FOUND        (-6)
 
 /******************************************************************************
  TYPEDEFS
@@ -63,7 +71,6 @@ int rh_hash_create  (rh_hash_t* rh_hash, int hash_size);
 int rh_hash_destroy (rh_hash_t* rh_hash);
 int rh_hash_add     (rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite);
 int rh_hash_get     (rh_hash_t* rh_hash, bp_val_t key, void** data);
-int rh_hash_find    (rh_hash_t* rh_hash, bp_val_t key);
 int rh_hash_remove  (rh_hash_t* rh_hash, bp_val_t key);
 int rh_hash_clear   (rh_hash_t* rh_hash);
 

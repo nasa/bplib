@@ -36,10 +36,10 @@
 
 /* Active Table */
 typedef struct {
-    bp_sid_t            sid;
-    bp_val_t            retx;
-    bp_val_t            cid;
-} bp_active_table_t;
+    bp_sid_t            sid;    /* storage id */
+    bp_val_t            retx;   /* retransmit time */
+    bp_val_t            cid;    /* custody id */
+} bp_active_bundle_t;
 
 /* Channel Control Block */
 typedef struct {
@@ -53,7 +53,7 @@ typedef struct {
     bp_val_t            oldest_active_cid;
     bp_val_t            current_active_cid;
     int                 active_table_signal;
-    bp_active_table_t*  active_table;
+    bp_active_bundle_t* active_table;
     bp_stats_t          stats;
 } bp_channel_t;
 
@@ -241,7 +241,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     }
 
     /* Allocate Memory for Active Table */
-    ch->active_table = (bp_active_table_t*)malloc(sizeof(bp_active_table_t) * ch->attributes.active_table_size);
+    ch->active_table = (bp_active_bundle_t*)malloc(sizeof(bp_active_bundle_t) * ch->attributes.active_table_size);
     if(ch->active_table == NULL)
     {
         bplib_close(ch);
@@ -250,7 +250,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     }
     else
     {
-        memset(ch->active_table, 0, sizeof(bp_active_table_t) * ch->attributes.active_table_size);
+        memset(ch->active_table, 0, sizeof(bp_active_bundle_t) * ch->attributes.active_table_size);
     }
 
     /* Initialize Data */

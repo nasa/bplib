@@ -81,9 +81,10 @@ extern "C" {
 #define BP_INVALIDCIPHERSUITEID         (-19)
 #define BP_DUPLICATECID                 (-20)
 #define BP_ACTIVETABLEFULL              (-21)
-#define BP_PENDINGACKNOWLEDGMENT        (-22)
-#define BP_PENDINGFORWARD               (-23)
-#define BP_PENDINGACCEPTANCE            (-24)
+#define BP_CIDNOTFOUND                  (-22)
+#define BP_PENDINGACKNOWLEDGMENT        (-23)
+#define BP_PENDINGFORWARD               (-24)
+#define BP_PENDINGACCEPTANCE            (-25)
 
 /* Processing, Acceptance,and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
@@ -136,9 +137,6 @@ extern "C" {
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
 #define BP_DEFAULT_STORAGE_SERVICE_PARM NULL
-
-/* Maximum Encoded Value */
-#define BP_MAX_ENCODED_VALUE            ULONG_MAX
     
 /******************************************************************************
  TYPEDEFS
@@ -146,9 +144,6 @@ extern "C" {
 
 /* Channel Descriptor */
 typedef void* bp_desc_t;
-
-/* Encoded Value (must be consistent with Maximum Encoded Value)*/
-typedef unsigned long bp_val_t;
 
 /* IPN Schema Endpoint ID Integer Definition */
 typedef bp_val_t bp_ipn_t;

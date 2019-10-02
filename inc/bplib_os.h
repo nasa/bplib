@@ -36,9 +36,13 @@
  DEFINES
  ******************************************************************************/
 
-#define BP_OS_SUCCESS 1
-#define BP_OS_TIMEOUT 0
-#define BP_OS_ERROR   (-1)
+/* Operating System Abstraction Return Codes */
+#define BP_OS_SUCCESS           1
+#define BP_OS_TIMEOUT           0
+#define BP_OS_ERROR             (-1)
+
+/* Maximum Encoded Value */
+#define BP_MAX_ENCODED_VALUE    ULONG_MAX
 
 /* Logging */
 #ifdef _GNU_
@@ -47,6 +51,13 @@
 #define VARG_CHECK(f, a, b)
 #endif
 #define bplog(err,...)  bplib_os_log(__FILE__,__LINE__,err,__VA_ARGS__)
+
+/******************************************************************************
+ TYPEDEFS
+ ******************************************************************************/
+
+/* Encoded Value (must be consistent with Maximum Encoded Value)*/
+typedef unsigned long bp_val_t;
 
 /******************************************************************************
  PROTOTYPES

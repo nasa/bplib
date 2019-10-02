@@ -23,8 +23,7 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "bplib_os.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -62,8 +61,7 @@ typedef struct rb_tree {
 } rb_tree_t;
 
 /* A status reflecting potential outcomes of a call to rb_tree_insert. */
-typedef enum rb_tree_status
-{
+typedef enum rb_tree_status {
     RB_SUCCESS,                  /* Success. */
     RB_FAIL_INSERT_DUPLICATE,    /* Value was not inserted because a duplicate existed. */
     RB_FAIL_TREE_FULL,           /* Value was not inserted because the rb_tree was full. */
