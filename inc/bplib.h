@@ -47,11 +47,6 @@ extern "C" {
 /* Storage IDs */
 #define BP_SID_VACANT                   0
 
-/* Wrap Responses */
-#define BP_WRAP_RESEND                  0
-#define BP_WRAP_BLOCK                   1
-#define BP_WRAP_DROP                    2
-
 /* Bundle Integrity Types */
 #define BP_BIB_NONE                     0
 #define BP_BIB_CRC16_X25                1
@@ -115,19 +110,17 @@ extern "C" {
 #define BP_OPT_CIPHER_SUITE             6
 #define BP_OPT_TIMEOUT                  7
 #define BP_OPT_MAX_LENGTH               8
-#define BP_OPT_WRAP_RESPONSE            9
-#define BP_OPT_CID_REUSE                10
-#define BP_OPT_DACS_RATE                11
+#define BP_OPT_CID_REUSE                9
+#define BP_OPT_DACS_RATE                10
     
 /* Default Dynamic Configuration */
-#define BP_DEFAULT_LIFETIME             0
+#define BP_DEFAULT_LIFETIME             86400 /* seconds, 1 day */
 #define BP_DEFAULT_REQUEST_CUSTODY      true
 #define BP_DEFAULT_ADMIN_RECORD         false
 #define BP_DEFAULT_INTEGRITY_CHECK      true
 #define BP_DEFAULT_ALLOW_FRAGMENTATION  false
 #define BP_DEFAULT_TIMEOUT              10 /* seconds */
-#define BP_DEFAULT_MAX_LENGTH           4096
-#define BP_DEFAULT_WRAP_RESPONSE        BP_WRAP_RESEND
+#define BP_DEFAULT_MAX_LENGTH           4096 /* bytes */
 #define BP_DEFAULT_CID_REUSE            false
 #define BP_DEFAULT_DACS_RATE            5 /* period in seconds */
 #define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
@@ -202,7 +195,6 @@ typedef struct {
     int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */
     int         timeout;                /* seconds, zero for infinite */
     int         max_length;             /* maximum size of bundle in bytes (includes header blocks) */
-    int         wrap_response;          /* what to do when active table wraps */
     int         cid_reuse;              /* reuse CID when retransmitting */
     int         dacs_rate;              /* number of seconds to wait between sending ACS bundles */
     /* Fixed Attributes */

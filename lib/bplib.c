@@ -50,9 +50,9 @@ typedef struct {
     int                 bundle_handle;
     int                 payload_handle;
     int                 record_handle;
-    bp_val_t            oldest_active_cid;
     bp_val_t            current_active_cid;
     int                 active_table_signal;
+    bp_val_t            oldest_active_cid;
     bp_active_bundle_t* active_table;
     bp_stats_t          stats;
 } bp_channel_t;
@@ -70,7 +70,6 @@ static const bp_attr_t default_attributes = {
     .cipher_suite           = BP_DEFAULT_CIPHER_SUITE,
     .timeout                = BP_DEFAULT_TIMEOUT,
     .max_length             = BP_DEFAULT_MAX_LENGTH,
-    .wrap_response          = BP_DEFAULT_WRAP_RESPONSE,
     .cid_reuse              = BP_DEFAULT_CID_REUSE,
     .dacs_rate              = BP_DEFAULT_DACS_RATE,
     .active_table_size      = BP_DEFAULT_ACTIVE_TABLE_SIZE,
@@ -432,15 +431,6 @@ int bplib_config(bp_desc_t channel, int mode, int opt, void* val, int len)
             else        *maxlen = ch->attributes.max_length;
             break;
         }
-        case BP_OPT_WRAP_RESPONSE:
-        {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* wrap = (int*)val;
-            if(setopt && *wrap != BP_WRAP_RESEND && *wrap != BP_WRAP_BLOCK && *wrap != BP_WRAP_DROP) return BP_PARMERR;
-            if(setopt)  ch->attributes.wrap_response = *wrap;
-            else        *wrap = ch->attributes.wrap_response;
-            break;
-        }
         case BP_OPT_CID_REUSE:
         {
             if(len != sizeof(int)) return BP_PARMERR;
@@ -637,45 +627,9 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                         sid = ch->active_table[ati].sid;
                         if(sid != BP_SID_VACANT) /* entry vacant */
                         {
+                            status = BP_OVERFLOW;                   
                             *flags |= BP_FLAG_ACTIVETABLEWRAP;
-
-                            if(ch->attributes.wrap_response == BP_WRAP_RESEND)
-                            {
-                                /* Bump Oldest Custody ID */
-                                ch->oldest_active_cid++;
-
-                                /* Retrieve Bundle from Storage */
-                                if(ch->store.retrieve(handle, sid, &object, BP_CHECK) != BP_SUCCESS)
-                                {
-                                    /* Failed to Retrieve - Clear Entry (and loop again) */
-                                    ch->store.relinquish(handle, sid);
-                                    ch->active_table[ati].sid = BP_SID_VACANT;
-                                    *flags |= BP_FLAG_STOREFAILURE;
-                                    ch->stats.lost++;
-                                }
-                                else
-                                {
-                                    /* Force Retransmit - Do Not Reuse Custody ID */
-                                    ch->stats.retransmitted++;
-                                    bplib_os_waiton(ch->active_table_signal, timeout);
-                                }
-                            }
-                            else if(ch->attributes.wrap_response == BP_WRAP_BLOCK)
-                            {
-                                /* Custody ID Wrapped Around to Occupied Slot */                            
-                                status = BP_OVERFLOW;                   
-                                bplib_os_waiton(ch->active_table_signal, timeout);
-                            }
-                            else /* if(ch->wrap_response == BP_WRAP_DROP) */
-                            {
-                                /* Bump Oldest Custody ID */
-                                ch->oldest_active_cid++;
-
-                                /* Clear Entry (and loop again) */
-                                ch->store.relinquish(handle, sid);
-                                ch->active_table[ati].sid = BP_SID_VACANT;
-                                ch->stats.lost++;
-                            }
+                            bplib_os_waiton(ch->active_table_signal, timeout);
                         }
 
                         /* Break Out of Loop */
@@ -698,7 +652,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     /*------------------------------------------------*/
     /* Try to Send Stored Bundle (if nothing to send) */
     /*------------------------------------------------*/
-    while(object == NULL)
+    while(object == NULL && status == BP_SUCCESS)
     {
         /* Dequeue Bundle from Storage Service */
         int deq_status = ch->store.dequeue(handle, &object, timeout);
@@ -720,14 +674,12 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
         {
             /* No Bundles in Storage to Send */
             status = BP_TIMEOUT;
-            break;
         }
         else
         {
             /* Failed Storage Service */
             status = BP_FAILEDSTORE;
             *flags |= BP_FLAG_STOREFAILURE;
-            break;
         }
     }
     
