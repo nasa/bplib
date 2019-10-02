@@ -160,7 +160,7 @@ $(BLDDIR)/%.o: %.c
 ##############################################################################
 ##  TARGET RULES
 
-all: clean $(BLDDIR) static-lib shared-lib
+all: clean $(BLDDIR) static-lib shared-lib bindings
 
 static-lib: $(BLDDIR) $(ALL_OBJ)
 	$(AR) crs $(BLDDIR)/lib$(TGTLIB).a $(ALL_OBJ)
@@ -168,8 +168,10 @@ static-lib: $(BLDDIR) $(ALL_OBJ)
 shared-lib: $(BLDDIR) $(ALL_OBJ)
 	$(CC) $(ALL_OBJ) $(ALL_LOPT) -shared -Wl,--version-script=libabi.version -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
 
-
-install: static-lib shared-lib install-headers install-static install-shared
+bindings:
+	make -C binding/lua
+	
+install: static-lib shared-lib install-headers install-static install-shared install-bindings
 
 install-headers: $(INCDIR)
 	$(CP) $(foreach element,$(API),$(subst -I,,$(element)/*.h)) $(INCDIR)
@@ -186,6 +188,9 @@ install-shared: $(PREFIX) $(LIBDIR)
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER)
 
+install-bindings:
+	make -C binding/lua install
+	
 $(BLDDIR):
 	-$(MKDIR) -p $(BLDDIR)
 
@@ -200,6 +205,7 @@ $(INCDIR):
 
 clean ::
 	-$(RM) -R $(BLDDIR)
+	-$(RM) -R binding/lua/build
 
 testcov:
 	lcov -c --directory build --output-file build/coverage.info
