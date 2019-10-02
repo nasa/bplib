@@ -33,6 +33,24 @@
 #include <limits.h>
 
 /******************************************************************************
+ COMPILE TIME CONFIGURATION SETTINGS
+ ******************************************************************************/
+
+#ifndef BP_VAL_TYPE
+#define BP_VAL_TYPE unsigned long
+#endif
+
+#ifndef BP_INDEX_TYPE
+#define BP_INDEX_TYPE uint16_t
+#endif
+
+#ifdef _GNU_
+#define VARG_CHECK(f, a, b) __attribute__((format(f, a, b)))
+#else
+#define VARG_CHECK(f, a, b)
+#endif
+
+/******************************************************************************
  DEFINES
  ******************************************************************************/
 
@@ -41,23 +59,21 @@
 #define BP_OS_TIMEOUT           0
 #define BP_OS_ERROR             (-1)
 
-/* Maximum Encoded Value */
-#define BP_MAX_ENCODED_VALUE    ULONG_MAX
-
-/* Logging */
-#ifdef _GNU_
-#define VARG_CHECK(f, a, b) __attribute__((format(f, a, b)))
-#else
-#define VARG_CHECK(f, a, b)
-#endif
-#define bplog(err,...)  bplib_os_log(__FILE__,__LINE__,err,__VA_ARGS__)
+/* Macros */
+#define BP_GET_MAXVAL(t)        (0xFFFFFFFFFFFFFFFFul >> (64 - (sizeof(t) * 8)))
+#define bplog(err,...)          bplib_os_log(__FILE__,__LINE__,err,__VA_ARGS__)
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
-/* Encoded Value (must be consistent with Maximum Encoded Value)*/
-typedef unsigned long bp_val_t;
+/* Encoded Value (bounds size of bundle fields) */
+typedef BP_VAL_TYPE bp_val_t;
+#define BP_MAX_ENCODED_VALUE BP_GET_MAXVAL(bp_val_t)
+
+/* Index (bounds size of active table) */
+typedef BP_INDEX_TYPE bp_index_t;
+#define BP_MAX_INDEX BP_GET_MAXVAL(bp_index_t)
 
 /******************************************************************************
  PROTOTYPES

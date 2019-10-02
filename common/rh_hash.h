@@ -27,8 +27,6 @@
  DEFINES
  ******************************************************************************/
 
-#define RH_HASH_MAX_INDEX       UINT16_MAX
-
 #define RH_SUCCESS              1
 #define RH_INSERT_DUPLICATE     (-1)
 #define RH_HASH_FULL            (-2)
@@ -41,26 +39,24 @@
  TYPEDEFS
  ******************************************************************************/
 
-typedef uint16_t    rh_index_t;
-
 typedef struct {
     bp_val_t        key;
     void*           data;
     uint32_t        hash;   // unconstrained hash value
-    rh_index_t      chain;  // depth of the chain to reach this entry, 0 indicates empty
-    rh_index_t      next;   // next entry in chain
-    rh_index_t      prev;   // previous entry in chain
-    rh_index_t      after;  // next entry added to hash (time ordered)
-    rh_index_t      before; // previous entry added to hash (time ordered)
+    bp_index_t      chain;  // depth of the chain to reach this entry, 0 indicates empty
+    bp_index_t      next;   // next entry in chain
+    bp_index_t      prev;   // previous entry in chain
+    bp_index_t      after;  // next entry added to hash (time ordered)
+    bp_index_t      before; // previous entry added to hash (time ordered)
 } rh_hash_node_t;
 
 typedef struct {
     rh_hash_node_t* table;
-    rh_index_t      size;
-    rh_index_t      num_entries;
-    rh_index_t      oldest_entry;
-    rh_index_t      newest_entry;
-    rh_index_t      max_chain;
+    bp_index_t      size;
+    bp_index_t      num_entries;
+    bp_index_t      oldest_entry;
+    bp_index_t      newest_entry;
+    bp_index_t      max_chain;
 } rh_hash_t;
 
 /******************************************************************************

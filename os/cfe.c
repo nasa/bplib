@@ -127,7 +127,7 @@ void bplib_os_sleep(int seconds)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_createlock(void)
 {
-    return 0;
+    return BP_OS_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ int bplib_os_waiton(int handle, int timeout_ms)
 {
     (void)handle;
     (void)timeout_ms;
-    return 0;
+    return BP_OS_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------

@@ -37,12 +37,12 @@ typedef int (*bp_acknowledge_t) (void* parm, bp_val_t cid);
 /* Custody Structure */
 typedef struct {
     bp_attr_t       attributes;     /* its own copy and version of attributes */
-    bp_val_t        last_time;      /* time of last dacs generated */
-    int             lock;           /* for thread safe operations on dacs */
-    rb_tree_t       tree;           /* balanced tree to store bundle ids */
+    bp_val_t        last_time;      /* time of last DACS generated */
+    int             lock;           /* for thread safe operations on DACS */
+    rb_tree_t       tree;           /* balanced tree to store bundle CID */
     uint8_t*        recbuf;         /* buffer to hold built DACS record */
-    int             recbuf_size;    /* size of the recbuf above */
-    bp_bundle_t     bundle;
+    int             recbuf_size;    /* size of the buffer above */
+    bp_bundle_t     bundle;         /* record bundle (DACS) */
 } bp_custody_t;
 
 /******************************************************************************
