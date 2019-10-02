@@ -30,15 +30,25 @@
 #include <unistd.h>
 #endif
 
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <errno.h>
 #include <ctype.h>
 #include <assert.h>
 
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+
+/******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+#define lualog(m,...) log_message(__FILE__,__LINE__,m,##__VA_ARGS__)
+#define LBPLIB_MAX_LOG_ENTRY 128
 
 /******************************************************************************
  EXTERNS
@@ -156,6 +166,40 @@ static const lbplib_store_t lbplib_stores[] =
  ******************************************************************************/
 
 /*----------------------------------------------------------------------------
+ * log_message
+ *----------------------------------------------------------------------------*/
+void log_message(const char* file_name, unsigned int line_number, const char* format_string, ...)
+{
+    char formatted_string[LBPLIB_MAX_LOG_ENTRY];
+    char entry_log_msg[LBPLIB_MAX_LOG_ENTRY];
+
+    /* Build Formatted Log Entry String */
+    va_list args;
+    va_start(args, format_string);
+    int vlen = vsnprintf(formatted_string, LBPLIB_MAX_LOG_ENTRY - 1, format_string, args);
+    int msglen = vlen < (LBPLIB_MAX_LOG_ENTRY - 1) ? vlen : (LBPLIB_MAX_LOG_ENTRY - 1);
+    va_end(args);
+
+    /* Terminate String */
+    if (msglen < 0) return;
+    formatted_string[msglen] = '\0';
+
+    /* Adjust Filename to Exclude Path */
+#ifdef _WINDOWS_
+    const char* last_path_delimeter = strrchr(file_name, '\\');
+#else
+    const char* last_path_delimeter = strrchr(file_name, '/');
+#endif
+    const char* file_name_only = last_path_delimeter ? last_path_delimeter + 1 : file_name;
+    
+    /* Build Message */
+    snprintf(entry_log_msg, LBPLIB_MAX_LOG_ENTRY, "%s:%d: %s", file_name_only, line_number, formatted_string);
+    
+    /* Print Message */
+    printf("%s", entry_log_msg);
+}
+
+/*----------------------------------------------------------------------------
  * set_errno
  *----------------------------------------------------------------------------*/
 static void set_errno (lua_State* L, int error_code)
@@ -264,7 +308,7 @@ int lbplib_open (lua_State* L)
     int minargs = 5;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushnil(L);
         return 1;
     }
@@ -276,7 +320,7 @@ int lbplib_open (lua_State* L)
        !lua_isnumber(L, 4) ||
        !lua_isstring(L, 5))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameter types\n");
         lua_pushnil(L);
         return 1;
     }
@@ -304,7 +348,7 @@ int lbplib_open (lua_State* L)
     /* Check Storage Service */
     if(store == NULL)
     {
-        printf("Invalid store provided: %s\n", storage_service ? storage_service : "nil");
+        lualog("invalid store provided: %s\n", storage_service ? storage_service : "nil");
         lua_pushnil(L);
         return 1;
     }        
@@ -336,7 +380,7 @@ int lbplib_route (lua_State* L)
     int minargs = 1;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -344,7 +388,7 @@ int lbplib_route (lua_State* L)
     /* Type Check Parameters */
     if(!lua_isstring(L, 1))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameter type\n");
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -372,7 +416,7 @@ int lbplib_eid2ipn (lua_State* L)
     int minargs = 1;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -380,7 +424,7 @@ int lbplib_eid2ipn (lua_State* L)
     /* Type Check Parameters */
     if(!lua_isstring(L, 1))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameter type\n");
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -408,7 +452,7 @@ int lbplib_ipn2eid (lua_State* L)
     int minargs = 2;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -417,7 +461,7 @@ int lbplib_ipn2eid (lua_State* L)
     if(!lua_isnumber(L, 1) ||
        !lua_isnumber(L, 2))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameter types\n");
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -464,7 +508,7 @@ int lbplib_sleep (lua_State* L)
     }
     else
     {
-        printf("Did not provide seconds to sleep");
+        lualog("did not provide seconds to sleep");
     }
 
     return 0;
@@ -483,7 +527,7 @@ int lbplib_delete (lua_State* L)
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
     if(!bplib_data) 
     {
-        printf("Unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
+        lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
     }
     else
     {
@@ -504,7 +548,7 @@ int lbplib_getopt (lua_State* L)
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
     if(!bplib_data) 
     {
-        printf("Unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
+        lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -513,7 +557,7 @@ int lbplib_getopt (lua_State* L)
     int minargs = 2;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -521,7 +565,7 @@ int lbplib_getopt (lua_State* L)
     /* Type Check Parameters */
     if(!lua_isstring(L, 2))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameters types\n");
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -630,7 +674,7 @@ int lbplib_getopt (lua_State* L)
     }
 
     /* Unrecognized Option */
-    printf("Unrecognized option: %s\n", optstr);
+    lualog("unrecognized option: %s\n", optstr);
     lua_pushboolean(L, false);
     return 1;
 }
@@ -644,7 +688,7 @@ int lbplib_setopt (lua_State* L)
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
     if(!bplib_data) 
     {
-        printf("Unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
+        lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -653,7 +697,7 @@ int lbplib_setopt (lua_State* L)
     int minargs = 3;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -661,7 +705,7 @@ int lbplib_setopt (lua_State* L)
     /* Type Check Parameters */
     if(!lua_isstring(L, 2))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameter type\n");
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -735,7 +779,7 @@ int lbplib_stats (lua_State* L)
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
     if(!bplib_data) 
     {
-        printf("Unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
+        lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -809,7 +853,7 @@ int lbplib_store (lua_State* L)
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
     if(!bplib_data) 
     {
-        printf("Unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
+        lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -818,7 +862,7 @@ int lbplib_store (lua_State* L)
     int minargs = 3;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -827,7 +871,7 @@ int lbplib_store (lua_State* L)
     if(!lua_isstring(L, 2) ||
        !lua_isnumber(L, 3))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameter types\n");
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -855,7 +899,7 @@ int lbplib_load (lua_State* L)
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
     if(!bplib_data) 
     {
-        printf("Unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
+        lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -864,7 +908,7 @@ int lbplib_load (lua_State* L)
     int minargs = 2;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -872,7 +916,7 @@ int lbplib_load (lua_State* L)
     /* Type Check Parameters */
     if(!lua_isnumber(L, 2))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameter type\n");
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -915,7 +959,7 @@ int lbplib_process (lua_State* L)
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
     if(!bplib_data) 
     {
-        printf("Unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
+        lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -924,7 +968,7 @@ int lbplib_process (lua_State* L)
     int minargs = 3;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -933,7 +977,7 @@ int lbplib_process (lua_State* L)
     if(!lua_isstring(L, 2) ||
        !lua_isnumber(L, 3))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameter types\n");
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -961,7 +1005,7 @@ int lbplib_accept (lua_State* L)
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
     if(!bplib_data) 
     {
-        printf("Unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
+        lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -970,7 +1014,7 @@ int lbplib_accept (lua_State* L)
     int minargs = 2;
     if(lua_gettop(L) != minargs)
     {
-        printf("Incorrect number of parameters - expected %d\n", minargs);
+        lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -978,7 +1022,7 @@ int lbplib_accept (lua_State* L)
     /* Type Check Parameters */
     if(!lua_isnumber(L, 2))
     {
-        printf("Incorrect parameters types\n");
+        lualog("incorrect parameter type\n");
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
@@ -1021,7 +1065,7 @@ int lbplib_flush (lua_State* L)
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
     if(!bplib_data) 
     {
-        printf("Unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
+        lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
     }
     else
     {

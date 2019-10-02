@@ -4,7 +4,7 @@ local src = runner.srcscript()
 
 -- Setup --
 
-local store = "MSGQ"
+local store = "RAM"
 
 local src_node = 4
 local src_serv = 3

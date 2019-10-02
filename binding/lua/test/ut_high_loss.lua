@@ -61,7 +61,7 @@ for k=1,num_bundles do
 	end
 	
 	if k % 64 == 0 then
-		cmd.exec(string.format('WAIT %d', timeout))
+        bplib.sleep(timeout)
 	end
 
 	-- load DACS --
