@@ -61,7 +61,7 @@ COPT        :=   -g -O$(O) $(INCLUDES) $(LUA_DEFS)
 COPT        +=   -Wall -Wextra -Wshadow
 COPT        :=   -fPIC
 
-LOPT        :=
+LOPT        :=   -llua -lbp
 
 ###############################################################################
 ##  TOOLS
@@ -95,6 +95,8 @@ extension: $(BLDDIR) $(ALL_OBJ)
 install: $(PREFIX) $(LIBDIR)
 	$(CP) $(BLDDIR)/$(TGTEXT).so $(LIBDIR)
 	chmod 644 $(LIBDIR)/$(TGTEXT).so
+	$(CP) bp.lua $(LIBDIR)
+	$(CP) bptest.lua $(LIBDIR)
 
 $(BLDDIR):
 	-$(MKDIR) -p $(BLDDIR)

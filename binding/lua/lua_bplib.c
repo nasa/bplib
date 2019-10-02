@@ -24,6 +24,12 @@
 #include <bp/bplib_store_ram.h>
 #include <bp/bplib_store_file.h>
 
+#ifdef _WINDOWS_
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -63,6 +69,7 @@ int lbplib_route    (lua_State* L);
 int lbplib_eid2ipn  (lua_State* L);
 int lbplib_ipn2eid  (lua_State* L);
 int lbplib_unittest (lua_State* L);
+int lbplib_sleep    (lua_State* L);
 
 /* Bundle Protocol Meta Functions */
 int lbplib_delete   (lua_State* L);
@@ -91,6 +98,7 @@ static const struct luaL_Reg lbplib_functions [] = {
     {"eid2ipn",     lbplib_eid2ipn},
     {"ipn2eid",     lbplib_ipn2eid},
     {"unittest",    lbplib_unittest},
+    {"sleep",       lbplib_sleep},
     {NULL, NULL}
 };
 
@@ -438,6 +446,28 @@ int lbplib_unittest (lua_State* L)
     lua_pushnumber(L, failures);
 
     return 1;
+}
+
+/*----------------------------------------------------------------------------
+ * lbplib_sleep - bplib.sleep(s) --> sleeps for 's' number of seconds
+ *----------------------------------------------------------------------------*/
+int lbplib_sleep (lua_State* L)
+{
+    if(lua_isnumber(L, 1))
+    {
+        int wait_time = lua_tonumber(L, 1); /* seconds */
+#ifdef _WINDOWS_
+        Sleep(wait_time * 1000); /* milliseconds */
+#else
+        sleep(wait_time); /* seconds */
+#endif
+    }
+    else
+    {
+        printf("Did not provide seconds to sleep");
+    }
+
+    return 0;
 }
 
 /******************************************************************************
