@@ -1,5 +1,6 @@
 local bplib = require("bplib")
 local runner = require("bptest")
+local bp = require("bp")
 local src = runner.srcscript()
 
 -- Setup --
@@ -14,7 +15,10 @@ local dst_serv = 43
 local sender = bplib.open(src_node, src_serv, dst_node, dst_serv, store)
 
 rc, flags = sender:store("HELLO WORLD", 1000)
+runner.check(rc)
 rc, bundle, flags = sender:load(1000)
+runner.check(rc)
+runner.check(bp.check_flags(flags, {}))
 
 -- Test --
 

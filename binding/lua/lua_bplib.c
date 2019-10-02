@@ -281,12 +281,21 @@ static void push_flag_table (lua_State* L, uint16_t flags)
  *----------------------------------------------------------------------------*/
 int luaopen_bplib (lua_State *L)
 {
+    /* Initialize Bundle Protocol Library */
+    bplib_init();
+    
+    /* Initialize Errno */
+    set_errno(L, 0);
+
+    /* Create User Data */
     luaL_newmetatable(L, LUA_BPLIBMETANAME);    /* metatable.__index = metatable */
     lua_pushvalue(L, -1);                       /* duplicates the metatable */
     lua_setfield(L, -2, "__index");
 
+    /* Associate Meta Data */
     luaL_setfuncs(L, lbplib_metadata, 0);
 
+    /* Create Functions */
     luaL_newlib(L, lbplib_functions);
 
     return 1;
@@ -928,7 +937,7 @@ int lbplib_load (lua_State* L)
     int timeout = (int)lua_tonumber(L, 2);
     int status = bplib_load(bplib_data->channel, (void**)&bundle, &size, timeout, &loadflags);
     set_errno(L, status);
-
+    
     /* Return Status */
     lua_pushboolean(L, status == BP_SUCCESS);
 

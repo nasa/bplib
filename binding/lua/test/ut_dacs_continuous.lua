@@ -8,7 +8,7 @@ local src = runner.srcscript()
 
 -- runner.set_exit_on_error(true)
 
-local store = arg[1] or "MSGQ"
+local store = arg[1] or "RAM"
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
     os.execute("mkdir -p .pfile")

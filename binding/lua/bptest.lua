@@ -78,6 +78,7 @@ Function:   check
    Notes:   status is boolean
 ]]
 local function check (expression, errmsg)
+    tracemsg = errmsg or string.format('errno=%d', errno)
     results[context]["asserts"] = results[context]["asserts"] + 1
     local status = true
     if type(expression) == "string" then
@@ -87,7 +88,7 @@ local function check (expression, errmsg)
         status = expression
     end
     if status == false or status == nil then
-        results[context]["messages"][results[context]["errors"]] = debug.traceback(errmsg)
+        results[context]["messages"][results[context]["errors"]] = debug.traceback(tracemsg)
         results[context]["errors"] = results[context]["errors"] + 1        
         if exit_on_error then os.exit() end
     end
