@@ -52,7 +52,7 @@ TOOLCHAIN   ?= gcc
 ###############################################################################
 ##  DEFINES
 
-TGTEXT      :=   lbp
+TGTEXT      :=   bplib
 LIBDIR      :=   $(PREFIX)/lib/lua/$(LUA_VERSION)
 BLDDIR      :=   build
 O           ?=   3 # default optimization level
