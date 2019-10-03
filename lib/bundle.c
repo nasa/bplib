@@ -19,9 +19,8 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
-#include "bplib_os.h"
 #include "bundle.h"
+#include "v6.h"
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -30,45 +29,89 @@
 /*--------------------------------------------------------------------------------------
  * bundle_initialize -
  *-------------------------------------------------------------------------------------*/
-int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t* attributes, uint16_t* flags)
+int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t* attributes, bp_generate_t generate, void* parm, uint16_t* flags)
 {
+    int status = BP_SUCCESS;
+    
     /* Initialize Bundle Parameters */
-    bundle->route      = route;
-    bundle->attributes = attributes;
+    bundle->route       = route;
+    bundle->attributes  = attributes;
+    bundle->generate    = generate;
+    bundle->genparm     = parm;
 
     /* Initialize New Bundle */
-    return v6_build(bundle, NULL, NULL, 0, flags);
+    if(bundle->attributes->protocol_version == 6)
+    {
+        bundle->blocks = (bp_v6blocks_t*)malloc(sizeof(bp_v6blocks_t));
+        if(bundle->blocks == NULL)
+        {
+            status = BP_FAILEDMEM;
+        }
+        else
+        {
+            status = v6_initialize(bundle, flags);
+        }
+    }
+    else
+    {
+        status = BP_UNSUPPORTED;        
+    }
+    
+    /* Return Status */
+    return status;
 }
 
 /*--------------------------------------------------------------------------------------
- * bundle_send -
+ * bundle_generate -
  *-------------------------------------------------------------------------------------*/
-int bundle_send(bp_bundle_t* bundle, bool set_time, uint8_t* pay, int pay_size, bp_generate_t gen, void* parm, int timeout, uint16_t* flags)
+int bundle_generate(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags)
 {
+    int status = BP_SUCCESS;
+    
     /* Check if Re-initialization Needed */
     if(bundle->prebuilt == false)
     {
-        v6_build(bundle, NULL, NULL, 0, flags);
+        status = v6_initialize(bundle, flags);
+    }
+
+    /* Send Bundle */
+    if(status == BP_SUCCESS)
+    {
+        status = v6_send(bundle, pay, pay_size, timeout, flags);
     }
     
-    /* Store Bundle */
-    return v6_write(bundle, set_time, pay, pay_size, gen, parm, timeout, flags);
+    /* Return Status */
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bundle_forward -
+ *-------------------------------------------------------------------------------------*/
+int bundle_forward(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags)
+{
+    return v6_send(bundle, pay, pay_size, timeout, flags);
 }
 
 /*--------------------------------------------------------------------------------------
  * bundle_receive -
  *-------------------------------------------------------------------------------------*/
-int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, uint16_t* flags)
+int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_custodian_t* custodian, uint16_t* flags)
 {
-    /* Read Bundle */
-    return v6_read(bundle, block, block_size, sysnow, custodian, flags);
+    return v6_receive(bundle, block, block_size, custodian, flags);
 }
 
 /*--------------------------------------------------------------------------------------
  * bundle_update -
  *-------------------------------------------------------------------------------------*/
-int bundle_update (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
+int bundle_update(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 {
     return v6_update(data, cid, flags);
+}
 
+/*--------------------------------------------------------------------------------------
+ * bundle_routeinfo -
+ *-------------------------------------------------------------------------------------*/
+int bundle_routeinfo(void* bundle, int size, bp_route_t* route)
+{
+    return v6_routeinfo(bundle, size, route);
 }

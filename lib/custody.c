@@ -20,10 +20,9 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bplib_os.h"
-#include "dacs.h"
 #include "bundle.h"
 #include "custody.h"
+#include "dacs.h"
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -34,7 +33,7 @@
  *
  *  Notes:
  *-------------------------------------------------------------------------------------*/
-static int custody_enqueue(bp_custody_t* custody, bp_val_t sysnow, bp_generate_t gen, void* parm, int timeout, uint16_t* flags)
+static int custody_enqueue(bp_custody_t* custody, unsigned long sysnow, int timeout, uint16_t* flags)
 {
     int send_status = BP_SUCCESS;
     int ret_status = BP_SUCCESS;
@@ -50,7 +49,7 @@ static int custody_enqueue(bp_custody_t* custody, bp_val_t sysnow, bp_generate_t
         int dacs_size = dacs_write(custody->recbuf, custody->recbuf_size, custody->bundle.attributes->max_fills_per_dacs, &custody->tree, &iter, flags);
         if(dacs_size > 0)
         {
-            send_status = bundle_send(&custody->bundle, true, custody->recbuf, dacs_size, gen, parm, timeout, flags);
+            send_status = bundle_generate(&custody->bundle, custody->recbuf, dacs_size, timeout, flags);
             if((send_status <= 0) && (ret_status == BP_SUCCESS))
             {
                 /* Save first failed DACS enqueue to return later */
@@ -77,7 +76,7 @@ static int custody_enqueue(bp_custody_t* custody, bp_val_t sysnow, bp_generate_t
 /*--------------------------------------------------------------------------------------
  * custody_initialize - Allocates resources for DACS and initializes control structures
  *-------------------------------------------------------------------------------------*/
-int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_attr_t* attributes, uint16_t* flags)
+int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_attr_t* attributes, bp_generate_t generate, bp_acknowledge_t acknowledge, void* parm, uint16_t* flags)
 {
     int status;
 
@@ -85,6 +84,8 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_attr_t* attri
     custody->attributes = *attributes;
     custody->attributes.request_custody = false;
     custody->attributes.admin_record = true;
+    custody->acknowledge = acknowledge;
+    custody->ackparm = parm;
     custody->last_time = 0;
     custody->lock = BP_INVALID_HANDLE;
     custody->recbuf = 0;
@@ -93,7 +94,7 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_attr_t* attri
     /* Initialize DACS Bundle */    
     route.destination_node = 0;
     route.destination_service = 0;
-    status = bundle_initialize(&custody->bundle, route, &custody->attributes, flags);
+    status = bundle_initialize(&custody->bundle, route, &custody->attributes, generate, parm, flags);
     if(status != BP_SUCCESS)
     {
         /* Does not un-initialize bundle since the bundle initialization 
@@ -166,19 +167,27 @@ void custody_uninitialize(bp_custody_t* custody)
  *  Notes:  may or may not perform enqueue depending if DACS needs to be sent
  *          based on whether or not it has been too long a time without sending a DACS
  *-------------------------------------------------------------------------------------*/
-int custody_send(bp_custody_t* custody, bp_val_t period, bp_val_t sysnow, bp_generate_t gen, void* parm, int timeout, uint16_t* flags)
+int custody_send(bp_custody_t* custody, bp_val_t period, int timeout, uint16_t* flags)
 {   
     int ret_status = BP_SUCCESS;
 
     /* Timeout Any Pending Acknowledgments */
     if(period > 0)
     {
+        /* Get Time */
+        unsigned long sysnow = 0;
+        if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+        {
+            *flags |= BP_FLAG_UNRELIABLETIME;
+        }
+
+        /* Check If Custody Ready to Send */
         bplib_os_lock(custody->lock);
         {
             if( (sysnow >= (custody->last_time + period)) && 
                 !rb_tree_is_empty(&custody->tree) )
             {
-                int status = custody_enqueue(custody, sysnow, gen, parm, timeout, flags);
+                int status = custody_enqueue(custody, sysnow, timeout, flags);
                 if(status != BP_SUCCESS && ret_status == BP_SUCCESS)
                 {
                     ret_status = status;
@@ -195,9 +204,18 @@ int custody_send(bp_custody_t* custody, bp_val_t period, bp_val_t sysnow, bp_gen
 /*--------------------------------------------------------------------------------------
  * custody_receive -
  *-------------------------------------------------------------------------------------*/
-int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t sysnow, bp_generate_t gen, void* parm, int timeout, uint16_t* flags)
+int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS;
+
+    /* Get Time */
+    unsigned long sysnow = 0;
+    if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+    {
+        *flags |= BP_FLAG_UNRELIABLETIME;
+    }
+
+    /* Take Custody */
     bplib_os_lock(custody->lock);
     {
         if(custody->bundle.route.destination_node == custodian->node && custody->bundle.route.destination_service == custodian->service)
@@ -210,7 +228,7 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t s
                 *flags |= BP_FLAG_RBTREEFULL;
 
                 /* Store DACS */
-                custody_enqueue(custody, sysnow, gen, parm, timeout, flags);
+                custody_enqueue(custody, sysnow, timeout, flags);
 
                 /* Start New DACS */
                 if(rb_tree_insert(custodian->cid, &custody->tree) != RB_SUCCESS)
@@ -235,7 +253,7 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t s
             /* Store DACS */
             if(!rb_tree_is_empty(&custody->tree))
             {
-                custody_enqueue(custody, sysnow, gen, parm, timeout, flags);
+                custody_enqueue(custody, sysnow, timeout, flags);
             }
 
             /* Initial New DACS Bundle */
@@ -260,9 +278,9 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t s
 /*--------------------------------------------------------------------------------------
  * custody_acknowledge -
  *-------------------------------------------------------------------------------------*/
-int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, bp_acknowledge_t ack, void* ack_parm, uint16_t* flags)
+int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags)
 {
     (void)custody;
     
-    return dacs_read(custodian->rec, custodian->rec_size, ack, ack_parm, flags);
+    return dacs_read(custodian->rec, custodian->rec_size, custody->acknowledge, custody->ackparm, flags);
 }

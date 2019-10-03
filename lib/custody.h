@@ -23,36 +23,34 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bplib_os.h"
-#include "bundle.h"
+#include "bundle_types.h"
 #include "rb_tree.h"
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
-/* Acknowledge Call-Back */
-typedef int (*bp_acknowledge_t) (void* parm, bp_val_t cid);
-
 /* Custody Structure */
 typedef struct {
-    bp_attr_t       attributes;     /* its own copy and version of attributes */
-    bp_val_t        last_time;      /* time of last DACS generated */
-    int             lock;           /* for thread safe operations on DACS */
-    rb_tree_t       tree;           /* balanced tree to store bundle CID */
-    uint8_t*        recbuf;         /* buffer to hold built DACS record */
-    int             recbuf_size;    /* size of the buffer above */
-    bp_bundle_t     bundle;         /* record bundle (DACS) */
+    bp_attr_t           attributes;     /* its own copy and version of attributes */
+    bp_acknowledge_t    acknowledge;    /* call-back that acknowledges bundle reception */
+    void*               ackparm;        /* parameter passed to acknowledge call-back */
+    bp_val_t            last_time;      /* time of last DACS generated */
+    int                 lock;           /* for thread safe operations on DACS */
+    rb_tree_t           tree;           /* balanced tree to store bundle CID */
+    uint8_t*            recbuf;         /* buffer to hold built DACS record */
+    int                 recbuf_size;    /* size of the buffer above */
+    bp_bundle_t         bundle;         /* record bundle (DACS) */
 } bp_custody_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int     custody_initialize      (bp_custody_t* custody, bp_route_t route, bp_attr_t* attributes, uint16_t* flags);
+int     custody_initialize      (bp_custody_t* custody, bp_route_t route, bp_attr_t* attributes, bp_generate_t generate, bp_acknowledge_t acknowledge, void* parm, uint16_t* flags);
 void    custody_uninitialize    (bp_custody_t* custody);
-int     custody_send            (bp_custody_t* custody, bp_val_t period, bp_val_t sysnow, bp_generate_t gen, void* parm, int timeout, uint16_t* flags);
-int     custody_receive         (bp_custody_t* custody, bp_custodian_t* custodian, bp_val_t sysnow, bp_generate_t gen, void* parm, int timeout, uint16_t* flags);
-int     custody_acknowledge     (bp_custody_t* custody, bp_custodian_t* custodian, bp_acknowledge_t ack, void* parm, uint16_t* flags);
+int     custody_send            (bp_custody_t* custody, bp_val_t period, int timeout, uint16_t* flags);
+int     custody_receive         (bp_custody_t* custody, bp_custodian_t* custodian, int timeout, uint16_t* flags);
+int     custody_acknowledge     (bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags);
 
 #endif  /* __BPLIB_CUSTODY_H__ */

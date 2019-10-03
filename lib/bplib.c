@@ -20,9 +20,8 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bplib_os.h"
-#include "custody.h"
 #include "bundle.h"
+#include "custody.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -59,6 +58,7 @@ static const bp_attr_t default_attributes = {
     .max_length             = BP_DEFAULT_MAX_LENGTH,
     .cid_reuse              = BP_DEFAULT_CID_REUSE,
     .dacs_rate              = BP_DEFAULT_DACS_RATE,
+    .protocol_version       = BP_DEFAULT_PROTOCOL_VERSION,
     .active_table_size      = BP_DEFAULT_ACTIVE_TABLE_SIZE,
     .max_fills_per_dacs     = BP_DEFAULT_MAX_FILLS_PER_DACS,
     .max_gaps_per_dacs      = BP_DEFAULT_MAX_GAPS_PER_DACS,
@@ -135,9 +135,6 @@ void bplib_init(void)
 {
     /* Initialize OS Interface */
     bplib_os_init();
-    
-    /* Initialize the Bundle Integrity Block Module */
-    bib_init();
 }
 
 /*--------------------------------------------------------------------------------------
@@ -208,11 +205,17 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
      *  un-initialize are safe to make.
      */
     uint16_t flags = 0;
-    int bundle_status = bundle_initialize(&ch->bundle, route, &ch->attributes, &flags);
-    int custody_status = custody_initialize(&ch->custody, route, &ch->attributes, &flags);
-    if(bundle_status != BP_SUCCESS || custody_status != BP_SUCCESS)
+    int bundle_status = bundle_initialize(&ch->bundle, route, &ch->attributes, generate, ch, &flags);
+    int custody_status = custody_initialize(&ch->custody, route, &ch->attributes, generate, acknowledge, ch, &flags);
+    if(bundle_status != BP_SUCCESS)
     {
-        bplog(BP_ERROR, "Failed to initialize channel, flags=%0X\n", flags);
+        bplog(bundle_status, "Failed to initialize bundle, flags=%0X\n", flags);
+        bplib_close(ch);
+        return NULL;
+    }
+    else if(custody_status != BP_SUCCESS)
+    {
+        bplog(custody_status, "Failed to initialize custody, flags=%0X\n", flags);
         bplib_close(ch);
         return NULL;
     }
@@ -492,7 +495,7 @@ int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_
     bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Lock Data Bundle */
-    status = bundle_send(&ch->bundle, true, payload, size, generate, ch, timeout, flags);
+    status = bundle_generate(&ch->bundle, payload, size, timeout, flags);
     if(status == BP_SUCCESS) ch->stats.generated++;
 
     /* Return Status */
@@ -534,7 +537,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     if(object == NULL)
     {
         /* Store any DACS currently being accumulated */
-        custody_send(&ch->custody, ch->attributes.dacs_rate, sysnow, generate, ch, BP_CHECK, flags);
+        custody_send(&ch->custody, ch->attributes.dacs_rate, BP_CHECK, flags);
 
         /* Dequeue any stored DACS */
         handle = ch->record_handle;    
@@ -726,17 +729,10 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     /* Count Reception */
     ch->stats.received++;
     
-    /* Get Time */
-    unsigned long sysnow = 0;
-    if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
-    {
-        *flags |= BP_FLAG_UNRELIABLETIME;
-    }
-
     /* Receive Bundle */
     bp_custodian_t custodian;
     bool custody_transfer = false;
-    status = bundle_receive(&ch->bundle, bundle, size, sysnow, &custodian, flags);
+    status = bundle_receive(&ch->bundle, bundle, size, &custodian, flags);
     if(status == BP_EXPIRED)
     {
         ch->stats.expired++;
@@ -746,7 +742,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         /* Process Aggregate Custody Signal - Process DACS */
         bplib_os_lock(ch->active_table_signal);
         {
-            int num_acks = custody_acknowledge(&ch->custody, &custodian, acknowledge, (void*)ch, flags);
+            int num_acks = custody_acknowledge(&ch->custody, &custodian, flags);
             if(num_acks > 0)
             {
                 ch->stats.acknowledged += num_acks;
@@ -772,7 +768,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     else if(status == BP_PENDINGFORWARD)
     {
         /* Store Forwarded Bundle */
-        status = bundle_send(&ch->bundle, false, custodian.rec, custodian.rec_size, generate, ch, timeout, flags);
+        status = bundle_forward(&ch->bundle, custodian.rec, custodian.rec_size, timeout, flags);
         if(status == BP_SUCCESS && custodian.node != BP_IPN_NULL)
         {
             custody_transfer = true;
@@ -782,7 +778,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     /* Acknowledge Custody Transfer - Update DACS */
     if(custody_transfer)
     {
-        status = custody_receive(&ch->custody, &custodian, sysnow, generate, ch, BP_CHECK, flags);
+        status = custody_receive(&ch->custody, &custodian, BP_CHECK, flags);
     }
     
     /* Return Status */
@@ -881,31 +877,7 @@ int bplib_ackpayload(bp_desc_t channel, void* payload)
  *-------------------------------------------------------------------------------------*/
 int bplib_routeinfo(void* bundle, int size, bp_route_t* route)
 {
-    int status;
-    bp_blk_pri_t pri_blk;
-    uint8_t* buffer = (uint8_t*)bundle;
-    uint16_t* flags = 0;
-
-    /* Check Parameters */
-    assert(buffer);
-
-    /* Parse Primary Block */
-    status = pri_read(buffer, size, &pri_blk, true, flags);
-    if(status <= 0) return status;
-
-    /* Set Addresses */
-    if(route)
-    {
-        route->local_node           = (bp_ipn_t)pri_blk.srcnode.value;
-        route->local_service        = (bp_ipn_t)pri_blk.srcserv.value;
-        route->destination_node     = (bp_ipn_t)pri_blk.dstnode.value;
-        route->destination_service  = (bp_ipn_t)pri_blk.dstserv.value;
-        route->report_node          = (bp_ipn_t)pri_blk.rptnode.value;
-        route->report_service       = (bp_ipn_t)pri_blk.rptserv.value;
-    }
-
-    /* Return Success */
-    return BP_SUCCESS;
+    return bundle_routeinfo(bundle, size, route);
 }
 
 /*--------------------------------------------------------------------------------------
