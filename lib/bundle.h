@@ -24,12 +24,7 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
-
-/* v6 blocks */
-#include "pri.h"
-#include "bib.h"
-#include "pay.h"
-#include "cteb.h"
+#include "v6.h"
 
 /******************************************************************************
  DEFINES
@@ -45,10 +40,17 @@
 /* Generate Call-Back */
 typedef int (*bp_generate_t) (void* parm, bool is_record, uint8_t* payload, int size, int timeout);
 
+/* Active Bundle */
+typedef struct {
+    bp_sid_t            sid;    /* storage id */
+    bp_val_t            retx;   /* retransmit time */
+    bp_val_t            cid;    /* custody id */
+} bp_active_bundle_t;
+
 /* Bundle Data */
 typedef struct {
     bp_val_t            exprtime;               /* absolute time when bundle expires */
-    bp_sdnv_t           cidsdnv;                /* SDNV of custody id field of bundle */
+    bp_field_t          cidsdnv;                /* SDNV of custody id field of bundle */
     int                 cteboffset;             /* offset of the CTEB block of bundle */
     int                 biboffset;              /* offset of the BIB block of bundle */
     int                 payoffset;              /* offset of the payload block of bundle */
@@ -57,21 +59,13 @@ typedef struct {
     uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; /* header portion of bundle */
 } bp_bundle_data_t;
 
-/* Version 6 Bundle Blocks */
-typedef struct {
-    bp_blk_pri_t        primary_block;
-    bp_blk_cteb_t       custody_block;
-    bp_blk_bib_t        integrity_block;
-    bp_blk_pay_t        payload_block;
-} bp_v6blocks_t;
-
 /* Custodian */
 typedef struct {
-    uint8_t*        rec;                    /* payload | aggregate custody signal */
-    int             rec_size;               /* size of payload | size of aggregate custody signal */
-    bp_ipn_t        node;                   /* custody node of bundle */
-    bp_ipn_t        service;                /* custody service of bundle */
-    bp_val_t        cid;                    /* custody id of bundle */
+    uint8_t*            rec;                    /* payload | aggregate custody signal */
+    int                 rec_size;               /* size of payload | size of aggregate custody signal */
+    bp_ipn_t            node;                   /* custody node of bundle */
+    bp_ipn_t            service;                /* custody service of bundle */
+    bp_val_t            cid;                    /* custody id of bundle */
 } bp_custodian_t;
 
 /* Bundle Control Structure */

@@ -19,6 +19,16 @@
 #define __BPLIB_V6_H__
 
 /******************************************************************************
+ INCLUDES
+ ******************************************************************************/
+
+/* v6 blocks */
+#include "pri.h"
+#include "bib.h"
+#include "pay.h"
+#include "cteb.h"
+
+/******************************************************************************
  DEFINES
  ******************************************************************************/
 
@@ -62,5 +72,17 @@
 #define BP_PCF_RPTFRW_MASK              0x010000    /* report forwarding */
 #define BP_PCF_RPTDLV_MASK              0x020000    /* report delivery */
 #define BP_PCF_RPTDLT_MASK              0x040000    /* report deletion */
+
+/******************************************************************************
+ TYPEDEFS
+ ******************************************************************************/
+
+/* Version 6 Bundle Blocks */
+typedef struct {
+    bp_blk_pri_t        primary_block;
+    bp_blk_cteb_t       custody_block;
+    bp_blk_bib_t        integrity_block;
+    bp_blk_pay_t        payload_block;
+} bp_v6blocks_t;
 
 #endif  /* __BPLIB_V6_H__ */

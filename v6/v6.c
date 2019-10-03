@@ -412,8 +412,8 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow
         }
         else if(blk_type != BP_PAY_BLK_TYPE) /* skip over block */
         {
-            bp_sdnv_t blk_flags = { 0, 1, 0 };
-            bp_sdnv_t blk_len = { 0, 0, 0 };
+            bp_field_t blk_flags = { 0, 1, 0 };
+            bp_field_t blk_len = { 0, 0, 0 };
             int start_index = index;
             int data_index = 0; /* start of the block after the block length, set below */
             

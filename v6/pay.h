@@ -24,16 +24,14 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
-#include "sdnv.h"
-#include "rb_tree.h"
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
 typedef struct {
-    bp_sdnv_t   bf;
-    bp_sdnv_t   blklen;
+    bp_field_t  bf;
+    bp_field_t  blklen;
     uint8_t*    payptr;
     int         paysize;
 } bp_blk_pay_t;

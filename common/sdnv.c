@@ -44,7 +44,7 @@
  *  flags - pointer to variable that will hold the flags set as result of read [output]
  *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
-int sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags)
+int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint16_t* flags)
 {
     assert(block);
     assert(sdnv);
@@ -84,7 +84,7 @@ int sdnv_read(uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags)
  *  flags - pointer to variable that will hold the flags set as result of write [output]
  *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
-int sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
+int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint16_t* flags)
 {
     assert(block);
     assert(flags);
@@ -138,7 +138,7 @@ int sdnv_write(uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags)
  *
  *  sdnv - pointer to sdnv that will be truncated [input/output]
  *-------------------------------------------------------------------------------------*/
-void sdnv_mask(bp_sdnv_t* sdnv)
+void sdnv_mask(bp_field_t* sdnv)
 {
     int num_bits = sdnv->width * 7;
     int max_bits = sizeof(bp_val_t) * 8;

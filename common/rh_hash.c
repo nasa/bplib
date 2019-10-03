@@ -20,7 +20,9 @@
  ******************************************************************************/
 
 #include "rh_hash.h"
+#include "bplib.h"
 #include "bplib_os.h"
+#include "bundle.h"
 
 /******************************************************************************
  DEFINES
@@ -34,15 +36,15 @@
  ******************************************************************************/
 
 /*----------------------------------------------------------------------------
- * hash_key
+ * hash_cid
  *----------------------------------------------------------------------------*/
-uint32_t hash_key(bp_val_t key)
+uint32_t hash_cid(bp_val_t cid)
 {
-    uint8_t*    ptr = (uint8_t*)&key;
+    uint8_t*    ptr = (uint8_t*)&cid;
     uint32_t    h   = 0;
     uint32_t    i   = 0;
 
-    for(i = 0; i < sizeof(key); i++)
+    for(i = 0; i < sizeof(cid); i++)
     {
         h += *ptr;
         h += ( h << 10 );
@@ -60,10 +62,10 @@ uint32_t hash_key(bp_val_t key)
 /*----------------------------------------------------------------------------
  * get_node
  *----------------------------------------------------------------------------*/
-int get_node(rh_hash_t* rh_hash, bp_val_t key)
+int get_node(rh_hash_t* rh_hash, bp_val_t cid)
 {
     /* Grab Hash Entry */
-    bp_index_t index = hash_key(key) % rh_hash->size;
+    bp_index_t index = hash_cid(cid) % rh_hash->size;
 
     /* Search */
     if(rh_hash->table[index].chain != EMPTY_ENTRY)
@@ -71,7 +73,7 @@ int get_node(rh_hash_t* rh_hash, bp_val_t key)
         while(index != NULL_INDEX)
         {
             /* Compare Hash Key to Key */
-            if(rh_hash->table[index].key != key)
+            if(rh_hash->table[index].bundle.cid != cid)
             {
                 /* Go to next */
                 index = rh_hash->table[index].next;
@@ -90,12 +92,12 @@ int get_node(rh_hash_t* rh_hash, bp_val_t key)
 /*----------------------------------------------------------------------------
  * overwrite_node
  *----------------------------------------------------------------------------*/
-int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, void* data, bool overwrite)
+int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, bool overwrite)
 {
     if(overwrite)
     {
         /* Set Data */
-        rh_hash->table[index].data = data;
+        rh_hash->table[index].bundle = bundle;
 
         /* Bridge Over Entry */
         bp_index_t before_index = rh_hash->table[index].before;
@@ -111,23 +113,22 @@ int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, void* data, bool overwr
         rh_hash->newest_entry          = index;
 
         /* Return Success */
-        return RH_SUCCESS;
+        return BP_SUCCESS;
     }
     else
     {
         /* Return Failure */
-        return RH_INSERT_DUPLICATE;
+        return BP_DUPLICATECID;
     }
 }
 
 /*----------------------------------------------------------------------------
  * write_node
  *----------------------------------------------------------------------------*/
-void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_val_t key, void* data, uint32_t hash)
+void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, uint32_t hash)
 {
-    rh_hash->table[index].key       = key;
-    rh_hash->table[index].data      = data;
     rh_hash->table[index].hash      = hash;
+    rh_hash->table[index].bundle    = bundle;
     rh_hash->table[index].chain     = rh_hash->table[index].chain + 1;
     rh_hash->table[index].next      = NULL_INDEX;
     rh_hash->table[index].prev      = NULL_INDEX;
@@ -147,29 +148,29 @@ void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_val_t key, void* data, 
 /*----------------------------------------------------------------------------
  * Create - initializes hash structure
  *----------------------------------------------------------------------------*/
-int rh_hash_create(rh_hash_t* rh_hash, int hash_size)
+int rh_hash_create(rh_hash_t* rh_hash, int size)
 {
     int i;
     
     /* Check Hash Size */
-    if(hash_size <= 0 || (unsigned long)hash_size > BP_MAX_INDEX) return RH_INVALID_HASH_SIZE;
+    if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_PARMERR;
 
     /* Allocate Hash Table */
-    rh_hash->table = (rh_hash_node_t*)malloc(hash_size * sizeof(rh_hash_node_t));
-    if(rh_hash->table == NULL) return RH_MEMORY_ERROR;
+    rh_hash->table = (rh_hash_node_t*)malloc(size * sizeof(rh_hash_node_t));
+    if(rh_hash->table == NULL) return BP_FAILEDMEM;
             
     /* Initialize Hash Table to Empty */
-    for(i = 0; i < hash_size; i++) rh_hash->table[i].chain = EMPTY_ENTRY;
+    for(i = 0; i < size; i++) rh_hash->table[i].chain = EMPTY_ENTRY;
 
     /* Initialize Hash Table Attributes */
-    rh_hash->size = hash_size;
+    rh_hash->size = size;
     rh_hash->num_entries = 0;
     rh_hash->oldest_entry = NULL_INDEX;
     rh_hash->newest_entry = NULL_INDEX;
     rh_hash->max_chain = 0;
     
     /* Return Success */
-    return RH_SUCCESS;
+    return BP_SUCCESS;
 }
 
 /*----------------------------------------------------------------------------
@@ -177,33 +178,31 @@ int rh_hash_create(rh_hash_t* rh_hash, int hash_size)
  *----------------------------------------------------------------------------*/
 int rh_hash_destroy(rh_hash_t* rh_hash)
 {
-    rh_hash_clear(rh_hash);
-
     free(rh_hash->table);
-
-    return RH_SUCCESS;
+    return BP_SUCCESS;
 }
 
 /*----------------------------------------------------------------------------
  * Add
  *----------------------------------------------------------------------------*/
-int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
+int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
 {
     /* Constrain the Hash */
-    uint32_t hash = hash_key(key);
+    bp_val_t cid = bundle.cid;    
+    uint32_t hash = hash_cid(cid);
     bp_index_t curr_index = hash % rh_hash->size;
     
     /* Add Entry to Hash */
     if(rh_hash->table[curr_index].chain == EMPTY_ENTRY)
     {
-        write_node(rh_hash, curr_index, key, data, hash);
+        write_node(rh_hash, curr_index, bundle, hash);
     }
     else /* collision */
     {
         /* Check Current Slot for Duplicate */
-        if(rh_hash->table[curr_index].key == key)
+        if(rh_hash->table[curr_index].bundle.cid == cid)
         {
-            return overwrite_node(rh_hash, curr_index, data, overwrite);
+            return overwrite_node(rh_hash, curr_index, bundle, overwrite);
         }
         
         /* Find First Open Hash Slot */
@@ -217,7 +216,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
         /* Check for Full Hash */
         if(open_index == curr_index)
         {
-            return RH_HASH_FULL;
+            return BP_ACTIVETABLEFULL;
         }
         
         /* Get Indices into List */
@@ -232,9 +231,9 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
             while(next_index != NULL_INDEX)
             {
                 /* Check Next Slot for Duplicate */
-                if(rh_hash->table[next_index].key == key)
+                if(rh_hash->table[next_index].bundle.cid == cid)
                 {
-                    return overwrite_node(rh_hash, next_index, data, overwrite);
+                    return overwrite_node(rh_hash, next_index, bundle, overwrite);
                 }
                 
                 /* Go To Next Slot */
@@ -246,7 +245,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
             curr_index = open_index;
 
             /* Add Entry to Open Slot at End of Chain */
-            write_node(rh_hash, curr_index, key, data, hash);
+            write_node(rh_hash, curr_index, bundle, hash);
             rh_hash->table[prev_index].next = curr_index;
             rh_hash->table[curr_index].prev = prev_index;
             
@@ -263,9 +262,9 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
             while(scan_index != NULL_INDEX)
             {
                 /* Check Scan Slot for Duplicate */
-                if(rh_hash->table[scan_index].key == key)
+                if(rh_hash->table[scan_index].bundle.cid == cid)
                 {
-                    return overwrite_node(rh_hash, scan_index, data, overwrite);
+                    return overwrite_node(rh_hash, scan_index, bundle, overwrite);
                 }
                 
                 /* Go To Next Slot */
@@ -289,8 +288,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
 
             /* Copy Current Slot to Open Slot at End of Chain */
             rh_hash->table[prev_index].next     = open_index;            
-            rh_hash->table[open_index].key      = rh_hash->table[curr_index].key;
-            rh_hash->table[open_index].data     = rh_hash->table[curr_index].data;
+            rh_hash->table[open_index].bundle   = rh_hash->table[curr_index].bundle;
             rh_hash->table[open_index].chain    = rh_hash->table[prev_index].chain + 1;
             rh_hash->table[open_index].hash     = rh_hash->table[curr_index].hash;
             rh_hash->table[open_index].next     = NULL_INDEX;
@@ -308,41 +306,44 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_val_t key, void* data, bool overwrite)
             }
 
             /* Add Entry to Current Slot */
-            write_node(rh_hash, open_index, key, data, hash);
+            write_node(rh_hash, open_index, bundle, hash);
             rh_hash->table[curr_index].chain = 1;
         }
     }
     
     /* Return Success */
-    return RH_SUCCESS;
+    return BP_SUCCESS;
 }
 
 /*----------------------------------------------------------------------------
  * Get
  *----------------------------------------------------------------------------*/
-int rh_hash_get(rh_hash_t* rh_hash, bp_val_t key, void** data)
+int rh_hash_get(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
 {
-    bp_index_t index = get_node(rh_hash, key);
+    bp_index_t index = get_node(rh_hash, cid);
     if(index != NULL_INDEX)
     {
-        if(data) *data = rh_hash->table[index].data;
-        return RH_SUCCESS;
+        if(bundle) *bundle = rh_hash->table[index].bundle;
+        return BP_SUCCESS;
     }
 
-    return RH_KEY_NOT_FOUND;
+    return BP_CIDNOTFOUND;
 }
 
 /*----------------------------------------------------------------------------
  * Remove
  *----------------------------------------------------------------------------*/
-int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t key)
+int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
 {
-    int status = RH_SUCCESS;
+    int status = BP_SUCCESS;
 
     /* Check Pointers */
-    bp_index_t index = get_node(rh_hash, key);
+    bp_index_t index = get_node(rh_hash, cid);
     if(index != NULL_INDEX)
     {
+        /* Return Bundle */
+        if(bundle) *bundle = rh_hash->table[index].bundle;
+        
         /* Get List Indices */
         bp_index_t next_index   = rh_hash->table[index].next;
         bp_index_t prev_index   = rh_hash->table[index].prev;
@@ -354,11 +355,10 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t key)
             rh_hash->table[next_index].chain = EMPTY_ENTRY;
 
             /* Copy Next Item into Start of Chain */
-            rh_hash->table[index].key   = rh_hash->table[next_index].key;
-            rh_hash->table[index].data  = rh_hash->table[next_index].data;
-            rh_hash->table[index].hash  = rh_hash->table[next_index].hash;
-            rh_hash->table[index].next  = rh_hash->table[next_index].next;
-            rh_hash->table[index].prev  = NULL_INDEX;
+            rh_hash->table[index].bundle    = rh_hash->table[next_index].bundle;
+            rh_hash->table[index].hash      = rh_hash->table[next_index].hash;
+            rh_hash->table[index].next      = rh_hash->table[next_index].next;
+            rh_hash->table[index].prev      = NULL_INDEX;
 
             /* Goto Next Entry (for later transversal) */
             next_index = rh_hash->table[index].next;
@@ -392,7 +392,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t key)
     else
     {
         /* Key Not Found */
-        status = RH_KEY_NOT_FOUND;
+        status = BP_CIDNOTFOUND;
     }
 
     /* Return Status */
@@ -404,7 +404,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t key)
  *----------------------------------------------------------------------------*/
 int rh_hash_clear(rh_hash_t* rh_hash)
 {
-    uint32_t i;
+    bp_index_t i;
     
     /* Clear Hash */
     for(i = 0; rh_hash->num_entries > 0 && i < rh_hash->size; i++)
@@ -420,5 +420,5 @@ int rh_hash_clear(rh_hash_t* rh_hash)
     rh_hash->max_chain = 0;
     
     /* Return Success */
-    return RH_SUCCESS;
+    return BP_SUCCESS;
 }

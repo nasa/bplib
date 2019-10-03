@@ -24,19 +24,18 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
-#include "sdnv.h"
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
 typedef struct {
-    bp_sdnv_t bf;
-    bp_sdnv_t blklen;
-    bp_sdnv_t cid;
-    char      csteid[BP_MAX_EID_STRING];
-    bp_ipn_t  cstnode;
-    bp_ipn_t  cstserv;
+    bp_field_t  bf;
+    bp_field_t  blklen;
+    bp_field_t  cid;
+    char        csteid[BP_MAX_EID_STRING];
+    bp_ipn_t    cstnode;
+    bp_ipn_t    cstserv;
 } bp_blk_cteb_t;
 
 /******************************************************************************

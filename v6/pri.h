@@ -24,8 +24,6 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
-#include "sdnv.h"
-#include "v6.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -35,22 +33,22 @@
 typedef struct {
     /* field data */
     uint8_t     version;
-    bp_sdnv_t   pcf;
-    bp_sdnv_t   blklen;
-    bp_sdnv_t   dstnode;
-    bp_sdnv_t   dstserv;
-    bp_sdnv_t   srcnode;
-    bp_sdnv_t   srcserv;
-    bp_sdnv_t   rptnode;
-    bp_sdnv_t   rptserv;
-    bp_sdnv_t   cstnode;
-    bp_sdnv_t   cstserv; 
-    bp_sdnv_t   createsec;
-    bp_sdnv_t   createseq;
-    bp_sdnv_t   lifetime;
-    bp_sdnv_t   dictlen;
-    bp_sdnv_t   fragoffset;
-    bp_sdnv_t   paylen;
+    bp_field_t  pcf;
+    bp_field_t  blklen;
+    bp_field_t  dstnode;
+    bp_field_t  dstserv;
+    bp_field_t  srcnode;
+    bp_field_t  srcserv;
+    bp_field_t  rptnode;
+    bp_field_t  rptserv;
+    bp_field_t  cstnode;
+    bp_field_t  cstserv; 
+    bp_field_t  createsec;
+    bp_field_t  createseq;
+    bp_field_t  lifetime;
+    bp_field_t  dictlen;
+    bp_field_t  fragoffset;
+    bp_field_t  paylen;
     /* meta information */
     bool        is_admin_rec;           /* 0: not admin, 1: is admin */
     bool        is_frag;                /* 0: is not a fragment, 1: is a fragment */

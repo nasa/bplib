@@ -25,21 +25,11 @@
 #include "bplib_os.h"
 
 /******************************************************************************
- TYPEDEFS
- ******************************************************************************/
-
-typedef struct {
-    bp_val_t    value;
-    bp_val_t    index;
-    bp_val_t    width;
-} bp_sdnv_t;
-
-/******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int     sdnv_read   (uint8_t* block, int size, bp_sdnv_t* sdnv, uint16_t* flags);
-int     sdnv_write  (uint8_t* block, int size, bp_sdnv_t sdnv, uint16_t* flags);
-void    sdnv_mask   (bp_sdnv_t* sdnv);
+int     sdnv_read   (uint8_t* block, int size, bp_field_t* sdnv, uint16_t* flags);
+int     sdnv_write  (uint8_t* block, int size, bp_field_t sdnv, uint16_t* flags);
+void    sdnv_mask   (bp_field_t* sdnv);
 
 #endif  /* __BPLIB_SDNV_H__ */

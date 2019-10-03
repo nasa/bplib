@@ -22,7 +22,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include "sdnv.h"
 #include "bplib_os.h"
 
 /******************************************************************************
@@ -30,16 +29,16 @@
  ******************************************************************************/
 
 typedef struct {
-    bp_sdnv_t   block_flags;
-    bp_sdnv_t   block_length;
-    bp_sdnv_t   security_target_count;
-    bp_sdnv_t   security_target_type;
-    bp_sdnv_t   security_target_sequence;
-    bp_sdnv_t   cipher_suite_id;
-    bp_sdnv_t   cipher_suite_flags;
-    bp_sdnv_t   security_result_count;
+    bp_field_t  block_flags;
+    bp_field_t  block_length;
+    bp_field_t  security_target_count;
+    bp_field_t  security_target_type;
+    bp_field_t  security_target_sequence;
+    bp_field_t  cipher_suite_id;
+    bp_field_t  cipher_suite_flags;
+    bp_field_t  security_result_count;
     uint8_t     security_result_type;
-    bp_sdnv_t   security_result_length;
+    bp_field_t  security_result_length;
     
     /* Security data is specified as a union here to avoid 
      * allocating arrays when creating block definitions. */

@@ -21,25 +21,12 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
-#include "sdnv.h"
-#include "pri.h"
-#include "cteb.h"
-#include "bib.h"
-#include "pay.h"
 #include "custody.h"
 #include "bundle.h"
-#include "crc.h"
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
-
-/* Active Table */
-typedef struct {
-    bp_sid_t            sid;    /* storage id */
-    bp_val_t            retx;   /* retransmit time */
-    bp_val_t            cid;    /* custody id */
-} bp_active_bundle_t;
 
 /* Channel Control Block */
 typedef struct {
@@ -119,7 +106,7 @@ static int acknowledge(void* parm, bp_val_t cid)
 {
     bp_channel_t*   ch      = (bp_channel_t*)parm;
     int             status  = BP_FAILEDRESPONSE;
-    int             ati     = cid % ch->attributes.active_table_size;
+    bp_index_t      ati     = cid % ch->attributes.active_table_size;
     bp_sid_t        sid     = ch->active_table[ati].sid;
 
     /* Check Active Table Entry */
@@ -324,7 +311,7 @@ int bplib_flush(bp_desc_t channel)
         while(ch->oldest_active_cid != ch->current_active_cid)
         {
             /* Get Storage ID of Oldest Active Bundle */
-            int ati = ch->oldest_active_cid % ch->attributes.active_table_size;
+            bp_index_t ati = ch->oldest_active_cid % ch->attributes.active_table_size;
             bp_sid_t sid = ch->active_table[ati].sid;
 
             /* Relinquish Bundle */
@@ -531,7 +518,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     unsigned long   sysnow  = 0;                /* current system time used for timeouts (seconds) */
     bp_object_t*    object  = NULL;             /* stare out assuming nothing to send */
     bp_sid_t        sid     = BP_SID_VACANT;    /* store id points to nothing */
-    int             ati     = -1;               /* active table index */
+    bp_index_t      ati     = -1;               /* active table index */
     bool            newcid  = true;             /* whether to assign new custody id and active table entry */
     int             handle  = -1;               /* handle for store service being loaded */
 
