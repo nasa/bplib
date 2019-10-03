@@ -54,6 +54,15 @@ PREFIX	    := /usr/local
 # application object files, library
 APP_OBJ     := bplib.o
 
+# protocol objects
+APP_OBJ     += bundle.o
+APP_OBJ     += custody.o
+APP_OBJ     += sdnv.o
+APP_OBJ     += crc.o
+APP_OBJ     += rb_tree.o
+APP_OBJ     += rh_hash.o
+APP_OBJ	    += cbuf.o
+
 # block objects 
 APP_OBJ     += v6.o
 APP_OBJ     += bib.o
@@ -61,17 +70,6 @@ APP_OBJ     += cteb.o
 APP_OBJ     += pay.o
 APP_OBJ     += pri.o
 APP_OBJ     += dacs.o
-
-# protocol objects
-APP_OBJ     += bundle.o
-APP_OBJ     += custody.o
-
-# common objects
-APP_OBJ     += sdnv.o
-APP_OBJ     += crc.o
-APP_OBJ     += rb_tree.o
-APP_OBJ     += rh_hash.o
-APP_OBJ	    += cbuf.o
 
 # storage service objects
 APP_OBJ     += file.o
@@ -93,7 +91,6 @@ APP_LOPT    ?= $(USER_LOPT)
 
 # search path for application objects (note this is a make system variable)
 VPATH	    := $(ROOT)/lib
-VPATH	    += $(ROOT)/common
 VPATH	    += $(ROOT)/v6
 VPATH	    += $(ROOT)/os
 VPATH	    += $(ROOT)/store
@@ -102,7 +99,6 @@ VPATH	    += $(ROOT)/unittest
 # compiler options for search path for include headers (in form of -I_header_)  
 INCLUDES    := -I$(ROOT)/inc
 INCLUDES    += -I$(ROOT)/lib
-INCLUDES    += -I$(ROOT)/common
 INCLUDES    += -I$(ROOT)/v6
 INCLUDES    += -I$(ROOT)/os
 INCLUDES    += -I$(ROOT)/store
