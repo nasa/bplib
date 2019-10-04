@@ -21,7 +21,6 @@
 
 #include "bplib.h"
 #include "bundle.h"
-#include "custody.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -32,13 +31,18 @@ typedef struct {
     bp_store_t          store;
     bp_attr_t           attributes;    
     bp_bundle_t         bundle;
-    bp_custody_t        custody;
+    bp_bundle_t         custody;
     int                 bundle_handle;
     int                 payload_handle;
     int                 record_handle;
+    uint8_t*            dacs_buffer;
+    uint8_t*            dacs_size;
+    bp_val_t            dacs_last_sent;
+    int                 custody_tree_lock;
+    rb_tree_t           custody_tree;
     bp_val_t            current_active_cid;
-    int                 active_table_signal;
     bp_val_t            oldest_active_cid;
+    int                 active_table_signal;
     bp_active_bundle_t* active_table;
     bp_stats_t          stats;
 } bp_channel_t;
@@ -70,9 +74,9 @@ static const bp_attr_t default_attributes = {
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * generate
+ * create_bundle
  *-------------------------------------------------------------------------------------*/
-static int generate(void* parm, bool is_record, uint8_t* payload, int size, int timeout)
+static int create_bundle(void* parm, bool is_record, uint8_t* payload, int size, int timeout)
 {
     bp_channel_t*       ch      = (bp_channel_t*)parm;
     int                 status  = BP_ERROR;
@@ -83,7 +87,7 @@ static int generate(void* parm, bool is_record, uint8_t* payload, int size, int 
     if(is_record)
     {
         handle = ch->record_handle;
-        data = &ch->custody.bundle.data;        
+        data = &ch->custody.data;        
     }
     else /* data bundle */
     {
@@ -100,9 +104,9 @@ static int generate(void* parm, bool is_record, uint8_t* payload, int size, int 
 }
 
 /*--------------------------------------------------------------------------------------
- * acknowledge
+ * remove_bundle
  *-------------------------------------------------------------------------------------*/
-static int acknowledge(void* parm, bp_val_t cid)
+static int remove_bundle(void* parm, bp_val_t cid)
 {
     bp_channel_t*   ch      = (bp_channel_t*)parm;
     int             status  = BP_FAILEDRESPONSE;
@@ -117,6 +121,45 @@ static int acknowledge(void* parm, bp_val_t cid)
             /* Free Bundle */
             status = ch->store.relinquish(ch->bundle_handle, sid);
             ch->active_table[ati].sid = BP_SID_VACANT;
+        }
+    }
+
+    /* Return Status */
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * create_custody -
+ *
+ *  Notes:
+ *-------------------------------------------------------------------------------------*/
+static int create_custody(bp_channel_t* ch, unsigned long sysnow, int timeout, uint16_t* flags)
+{
+    int status = BP_SUCCESS;
+
+    /* If the custody_tree has nodes, initialize the iterator for traversing the custody_tree in order */
+    rb_tree_goto_first(&ch->custody_tree);
+
+    /* Continue to delete nodes from the custody_tree and write them to DACS until the custody_tree is empty */
+    while (!rb_tree_is_empty(&ch->custody_tree))
+    {
+        /* Build Acknowledgment - will remove nodes from the custody_tree */
+        int size = bundle_acknowledge(custody, flags);
+        if(size > 0)
+        {
+            int send_status = bundle_generate(&custody->bundle, custody->recbuf, size, timeout, flags);
+            if((send_status <= 0) && (status == BP_SUCCESS))
+            {
+                /* Save first failed DACS enqueue to return later */
+                status = send_status;
+                *flags |= BP_FLAG_STOREFAILURE; 
+                bplog(send_status, "Failed (%d) to store DACS for transmission, bundle dropped\n", send_status);
+            }
+            else 
+            {
+                /* DACS successfully enqueued */
+                ch->dacs_last_sent = sysnow;
+            }
         }
     }
 
@@ -150,6 +193,9 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     assert(store.release);
     assert(store.relinquish);
     assert(store.getcount);
+
+    uint16_t flags = 0;
+    int status = BP_SUCCESS;
     
     /* Allocate Channel */
     bp_channel_t* ch = (bp_channel_t*)malloc(sizeof(bp_channel_t));
@@ -161,6 +207,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
 
     /* Clear Channel Memory and Initialize to Defaults */
     memset(ch, 0, sizeof(bp_channel_t));
+    ch->custody_tree_lock   = BP_INVALID_HANDLE;
     ch->active_table_signal = BP_INVALID_HANDLE;
     ch->bundle_handle       = BP_INVALID_HANDLE;
     ch->payload_handle      = BP_INVALID_HANDLE;
@@ -200,32 +247,74 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
         return NULL;
     }
 
-    /* Initialize Bundle and Custody Modules 
-     *  NOTE: this must occur first and together so that future calls to 
-     *  un-initialize are safe to make.
-     */
-    uint16_t flags = 0;
-    int bundle_status = bundle_initialize(&ch->bundle, route, &ch->attributes, generate, ch, &flags);
-    int custody_status = custody_initialize(&ch->custody, route, &ch->attributes, generate, acknowledge, ch, &flags);
-    if(bundle_status != BP_SUCCESS)
+    /* Initialize Bundle */
+    status = bundle_initialize(&ch->bundle, route, &ch->attributes, create_bundle, remove_bundle, ch, &flags);
+    if(status != BP_SUCCESS)
     {
-        bplog(bundle_status, "Failed to initialize bundle, flags=%0X\n", flags);
+        bplog(status, "Failed to initialize bundle, flags=%0X\n", flags);
         bplib_close(ch);
         return NULL;
     }
-    else if(custody_status != BP_SUCCESS)
+    
+    /* Build Custody Attributes */
+    bp_attr_t custody_attributes = attributes;
+    custody_attributes.request_custody = false;
+    custody_attributes.admin_record = true;
+
+    /* Build Custody Route */
+    bp_route_t custody_route = route
+    route.destination_node = 0;
+    route.destination_service = 0;
+
+    /* Initialize Custody */    
+    status = bundle_initialize(&ch->custody, custody_route, custody_attributes, create_bundle, remove_bundle, ch, &flags);
+    if(status != BP_SUCCESS)
     {
-        bplog(custody_status, "Failed to initialize custody, flags=%0X\n", flags);
+        bplog(status, "Failed to initialize custody, flags=%0X\n", flags);
         bplib_close(ch);
         return NULL;
     }
+    
+    /* Create DACS Lock */
+    ch->custody_tree_lock = bplib_os_createlock();
+    if(ch->custody_tree_lock == BP_INVALID_HANDLE)
+    {
+        bplog(BP_FAILEDOS, "Failed to create a lock for custody processing\n");
+        bplib_close(ch);
+        return NULL;
+    }
+
+    /* Allocate Memory for Channel DACS Bundle Fills */
+    ch->dacs_size = sizeof(bp_val_t) * ch->attributes.max_fills_per_dacs + 6; // 2 bytes per fill plus payload block header
+    ch->dacs_buffer = (uint8_t*)malloc(ch->dacs_size); 
+    if(ch->dacs_buffer == NULL)
+    {
+        bplog(BP_FAILEDMEM, "Failed to allocate memory for channel DACS\n");                    
+        bplib_close(ch);
+        return NULL;
+    }
+
+    /* Initialize DACS Buffer to Zeroes */
+    memset(ch->dacs_buffer, 0, ch->dacs_size);
+
+    /* Allocate Memory for DACS Channel Tree to Store Bundle IDs */
+    status = rb_tree_create(attributes.max_gaps_per_dacs, &ch->custody_tree);
+    if(status != BP_SUCCESS)
+    {
+        bplog(BP_FAILEDMEM, "Failed to allocate memory for channel DACS tree\n");
+        bplib_close(ch);
+        return NULL;
+    }
+
+    /* Initialize Last Time DACS Sent */
+    ch->dacs_last_sent = 0;
 
     /* Initialize Active Table */
     ch->active_table_signal = bplib_os_createlock();
     if(ch->active_table_signal < 0)
     {
         bplib_close(ch);
-        bplog(BP_FAILEDOS, "Failed to create lock for active table\n");
+        bplog(BP_FAILEDOS, "Failed to create custody_tree_lock for active table\n");
         return NULL;
     }
 
@@ -286,9 +375,26 @@ void bplib_close(bp_desc_t channel)
         ch->record_handle = BP_INVALID_HANDLE;
     }
 
+    /* Destroy Custody Tree Lock */
+    if(ch->custody_tree_lock != BP_INVALID_HANDLE)
+    {
+        bplib_os_destroylock(ch->custody_tree_lock);
+        ch->custody_tree_lock = BP_INVALID_HANDLE;
+    }
+
+    /* Free Buffer for DACS */
+    if(ch->dacs_buffer)
+    {
+        free(ch->dacs_buffer);
+        ch->dacs_buffer = NULL;
+    }
+
+    /* Free Custody Tree */
+    rb_tree_destroy(&ch->custody_tree);
+
     /* Un-initialize Bundle and Custody Modules */
     bundle_uninitialize(&ch->bundle);
-    custody_uninitialize(&ch->custody);
+    bundle_uninitialize(&ch->custody);
     
     /* Free Channel */
     free(ch);
@@ -537,8 +643,20 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     /*-------------------------*/
     if(object == NULL)
     {
-        /* Store any DACS currently being accumulated */
-        custody_send(&ch->custody, ch->attributes.dacs_rate, BP_CHECK, flags);
+        /* Timeout Any Pending Acknowledgments */
+        if(ch->attributes.dacs_rate > 0)
+        {
+            /* Check If Custody Ready to Send */
+            bplib_os_lock(ch->custody_tree_lock);
+            {
+                if( (sysnow >= (ch->dacs_last_sent + ch->attributes.dacs_rate)) && 
+                    !rb_tree_is_empty(&ch->custody_tree) )
+                {
+                    create_custody(ch->custody, sysnow, BP_CHECK, flags);
+                }
+            }
+            bplib_os_unlock(ch->custody_tree_lock);
+        }
 
         /* Dequeue any stored DACS */
         handle = ch->record_handle;    
@@ -743,7 +861,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         /* Process Aggregate Custody Signal - Process DACS */
         bplib_os_lock(ch->active_table_signal);
         {
-            int num_acks = custody_acknowledge(&ch->custody, &custodian, flags);
+            int num_acks = bundle_acknowledgment(&ch->custody, &custodian, flags);
             if(num_acks > 0)
             {
                 ch->stats.acknowledged += num_acks;
@@ -779,7 +897,68 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     /* Acknowledge Custody Transfer - Update DACS */
     if(custody_transfer)
     {
-        status = custody_receive(&ch->custody, &custodian, BP_CHECK, flags);
+        /* Get Time */
+        unsigned long sysnow = 0;
+        if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+        {
+            *flags |= BP_FLAG_UNRELIABLETIME;
+        }
+
+        /* Take Custody */
+        bplib_os_lock(ch->custody_tree_lock);
+        {
+            if(ch->custody.route.destination_node == custodian->node && ch->custody.route.destination_service == custodian->service)
+            {
+                /* Insert Custody ID directly into current custody custody_tree */
+                int insert_status = rb_tree_insert(custodian->cid, &ch->custody_tree);
+                if(insert_status == BP_CUSTODYTREEFULL) 
+                {
+                    /* Flag Full Tree - possibly the custody_tree size is configured to be too small */
+                    *flags |= BP_FLAG_RBTREEFULL;
+
+                    /* Store Custody Signal */
+                    create_custody(ch->custody, sysnow, BP_CHECK, flags);
+
+                    /* Start New DACS */
+                    if(rb_tree_insert(custodian->cid, &ch->custody_tree) != BP_SUCCESS)
+                    {
+                        /* There is no valid reason for an insert to fail on an empty custody_tree */
+                        status = BP_FAILEDRESPONSE;
+                    }
+                }
+                else if(insert_status == BP_DUPLICATECID)
+                {
+                    /* Duplicate values are fine and are treated as a success */
+                    *flags |= BP_FLAG_DUPLICATES;
+                }
+                else if(insert_status != BP_SUCCESS)
+                {
+                    /* Tree error unexpected */
+                    status = BP_FAILEDRESPONSE;        
+                }
+            }
+            else
+            {
+                /* Store Custody Signal */
+                if(!rb_tree_is_empty(&ch->custody_tree))
+                {
+                    create_custody(ch->custody, sysnow, BP_CHECK, flags);
+                }
+
+                /* Initial New DACS Bundle */
+                ch->custody.route.destination_node = custodian->node;
+                ch->custody.route.destination_service = custodian->service;
+                ch->custody.prebuilt = false;
+
+                /* Start New DACS */
+                if(rb_tree_insert(custodian->cid, &ch->custody_tree) != BP_SUCCESS)
+                {
+                    /* There is no valid reason for an insert to fail on an empty custody_tree */
+                    status = BP_FAILEDRESPONSE;
+                }
+            }
+        }
+        bplib_os_unlock(ch->custody_tree_lock);
     }
     
     /* Return Status */

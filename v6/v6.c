@@ -403,7 +403,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, 
         data->bundlesize = data->headersize + fragment_size;
 
         /* Enqueue Bundle */
-        status = bundle->generate(bundle->genparm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
+        status = bundle->create(bundle->genparm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
     }
@@ -720,7 +720,7 @@ int v6_populate_acknowledgment(bp_custody_t* custody, uint16_t* flags)
  *-------------------------------------------------------------------------------------*/
 int v6_receive_acknowledgment(bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags)
 {
-    return dacs_read(custodian->rec, custodian->rec_size, custody->acknowledge, custody->ackparm, flags);    
+    return dacs_read(custodian->rec, custodian->rec_size, custody->remove, custody->ackparm, flags);    
 }
 
 /*--------------------------------------------------------------------------------------

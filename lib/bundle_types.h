@@ -36,8 +36,8 @@
  ******************************************************************************/
 
 /* Call-Backs */
-typedef int (*bp_generate_t) (void* parm, bool is_record, uint8_t* payload, int size, int timeout);
-typedef int (*bp_acknowledge_t) (void* parm, bp_val_t cid);
+typedef int (*bp_create_func_t) (void* parm, bool is_record, uint8_t* payload, int size, int timeout);
+typedef int (*bp_remove_func_t) (void* parm, bp_val_t cid);
 
 /* Bundle Field (fixed size) */
 typedef struct {
@@ -77,25 +77,13 @@ typedef struct {
 /* Bundle Structure */
 typedef struct {
     bp_route_t          route;          /* addressing information */
-    bp_attr_t*          attributes;     /* -pointer- to the channel attributes */
-    bp_generate_t       generate;       /* function that puts bundle into storage */
-    void*               genparm;        /* pass through parameter for generate function */
+    bp_attr_t           attributes;     /* bundle attributes */
+    bp_create_func_t    create;         /* call-back that creates bundle in storage */
+    bp_remove_func_t    remove;         /* call-back that deletes bundle from storage */
+    void*               parm;           /* pass through parameter for create and delete functions */
     bp_bundle_data_t    data;           /* serialized and stored bundle data */
     bool                prebuilt;       /* does pre-built bundle header need initialization */
     void*               blocks;         /* populated in initialization function */
 } bp_bundle_t;
-
-/* Custody Structure */
-typedef struct {
-    bp_attr_t           attributes;     /* its own copy and version of attributes */
-    bp_acknowledge_t    acknowledge;    /* call-back that acknowledges bundle reception */
-    void*               ackparm;        /* parameter passed to acknowledge call-back */
-    bp_val_t            last_time;      /* time of last DACS generated */
-    int                 lock;           /* for thread safe operations on DACS */
-    rb_tree_t           tree;           /* balanced tree to store bundle CID */
-    uint8_t*            recbuf;         /* buffer to hold built DACS record */
-    int                 recbuf_size;    /* size of the buffer above */
-    bp_bundle_t         bundle;         /* record bundle (DACS) */
-} bp_custody_t;
 
 #endif  /* _bundle_types_h_ */

@@ -29,15 +29,16 @@
 /*--------------------------------------------------------------------------------------
  * bundle_initialize -
  *-------------------------------------------------------------------------------------*/
-int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t* attributes, bp_generate_t generate, void* parm, uint16_t* flags)
+int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes, bp_create_func_t create, bp_remove_func_t remove, void* parm, uint16_t* flags)
 {
     int status = BP_SUCCESS;
     
     /* Initialize Bundle Parameters */
     bundle->route       = route;
     bundle->attributes  = attributes;
-    bundle->generate    = generate;
-    bundle->genparm     = parm;
+    bundle->create      = create;
+    bundle->remove      = remove;
+    bundle->parm        = parm;
 
     /* Initialize New Bundle */
     if(bundle->attributes->protocol_version == 6)
@@ -106,6 +107,22 @@ int bundle_receive(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodian_
 int bundle_update(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 {
     return v6_update_bundle(data, cid, flags);
+}
+
+/*--------------------------------------------------------------------------------------
+ * bundle_acknowledge -
+ *-------------------------------------------------------------------------------------*/
+int bundle_acknowledge(bp_custody_t* custody, uint16_t* flags)
+{
+    return v6_populate_acknowledgment(custody, flags);
+}
+
+/*--------------------------------------------------------------------------------------
+ * bundle_acknowledgment -
+ *-------------------------------------------------------------------------------------*/
+int bundle_acknowledgment(bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags)
+{
+    return v6_receive_acknowledgment(custody, custodian, flags);
 }
 
 /*--------------------------------------------------------------------------------------
