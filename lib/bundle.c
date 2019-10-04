@@ -64,20 +64,20 @@ int bundle_uninitialize (bp_bundle_t* bundle)
 /*--------------------------------------------------------------------------------------
  * bundle_generate -
  *-------------------------------------------------------------------------------------*/
-int bundle_generate(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags)
+int bundle_generate(bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS;
     
     /* Check if Re-initialization Needed */
     if(bundle->prebuilt == false)
     {
-        status = v6_populate(bundle, flags);
+        status = v6_populate_bundle(bundle, flags);
     }
 
     /* Send Bundle */
     if(status == BP_SUCCESS)
     {
-        status = v6_send(bundle, pay, pay_size, timeout, flags);
+        status = v6_send_bundle(bundle, buffer, size, timeout, flags);
     }
     
     /* Return Status */
@@ -87,17 +87,17 @@ int bundle_generate(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout
 /*--------------------------------------------------------------------------------------
  * bundle_forward -
  *-------------------------------------------------------------------------------------*/
-int bundle_forward(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout, uint16_t* flags)
+int bundle_forward(bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, uint16_t* flags)
 {
-    return v6_send(bundle, pay, pay_size, timeout, flags);
+    return v6_send_bundle(bundle, buffer, size, timeout, flags);
 }
 
 /*--------------------------------------------------------------------------------------
  * bundle_receive -
  *-------------------------------------------------------------------------------------*/
-int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_custodian_t* custodian, uint16_t* flags)
+int bundle_receive(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodian_t* custodian, uint16_t* flags)
 {
-    return v6_receive(bundle, block, block_size, custodian, flags);
+    return v6_receive_bundle(bundle, buffer, size, custodian, flags);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ int bundle_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_custo
  *-------------------------------------------------------------------------------------*/
 int bundle_update(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 {
-    return v6_update(data, cid, flags);
+    return v6_update_bundle(data, cid, flags);
 }
 
 /*--------------------------------------------------------------------------------------

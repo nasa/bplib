@@ -1116,6 +1116,7 @@ int rb_tree_create(bp_val_t max_size, rb_tree_t* tree)
     tree->root = NULL;
     tree->free_node_head = NULL;
     tree->free_node_tail = NULL;
+    tree->iterator = NULL;
     tree->node_block = NULL;
     
 
@@ -1325,57 +1326,49 @@ int rb_tree_destroy(rb_tree_t* tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * rb_tree_get_first - Traverses a rb_tree_t inorder and finds the node
+ * rb_tree_goto_first - Traverses a rb_tree_t inorder and finds the node
  *      with the lowest cid to serve as an iterator. This must be called to prepare 
  *      the tree before future iteration calls to rb_tree_get_next.
  * 
  * tree: A ptr to a rb_tree_t to identify the lowest range. [OUTPUT]
- * iter: A ptr of a ptr to the next rb_node_t node from which to continue the inorder 
- *      traversal of the tree. After each call to this function iter is updated. If iter is 
- *      set to NULL then the traversal is complete. Providing a NULL iter to this function 
- *      will result in a NULL rb_range_t ptr. [OUTPUT]
  * returns: A status indicating the outcome of the function call.
  *--------------------------------------------------------------------------------------*/ 
-int rb_tree_get_first(rb_tree_t* tree, rb_node_t** iter )
+int rb_tree_goto_first(rb_tree_t* tree)
 {
     if (tree == NULL)
     {
         return BP_PARMERR;
     }
 
-    *iter = tree->root;
-    if (*iter == NULL)
+    tree->iterator = tree->root;
+    if (tree->iterator == NULL)
     {
         /* There exist no nodes within the tree. */
         return BP_ERROR;
     }
 
     /* Resets the is visited state of root. */
-    (*iter)->traversal_state = false;
+    tree->iterator->traversal_state = false;
 
-    while (has_left_child(*iter))
+    while (has_left_child(tree->iterator))
     {
-        /* Update iter to the left most child of root and reset is visited. */
-        *iter = (*iter)->left;
-        (*iter)->traversal_state = false;
+        /* Update iterator to the left most child of root and reset is visited. */
+        tree->iterator = tree->iterator->left;
+        tree->iterator->traversal_state = false;
     }
     
     return BP_SUCCESS;
 }
 
  /*--------------------------------------------------------------------------------------
- * rb_tree_get_next - Traverses a rb_tree_t inorder and returns the
+ * rb_tree_get_next - Traverses a rb_tree_t in order and returns the
  *      the ranges within the tree. This function performs no rebalancing and therefore if
  *      should_pop is true and should_rebalance is false, it should be called until no 
  *      nodes remain in the tree to ensure that the tree's operation does not degrade.
  *
  * tree: A ptr to a rb_tree_t to identify the lowest range. [OUTPUT]
- * iter: A ptr of a ptr to the next rb_node_t node from which to continue the inorder 
- *      traversal of the tree. After each call to this function iter is updated. If iter is 
- *      set to NULL then the traversal is complete. Providing a NULL iter to this function 
- *      will result in a NULL rb_range_t ptr. [OUTPUT]
  * range: A ptr to a bp_range_t to update with the next range. [OUTPUT]
- * should_pop: A boolean determining whether or not the node pointed to by iter at the start of
+ * should_pop: A boolean determining whether or not the node pointed to by iterator at the start of
  *      of the function call should be deleted from the tree. [INPUT]
  * should_rebalance: A boolean determining whether or not the tree should be balanced upon
  *      deletions. This variable is only used when should_pop is true. If should_rebalance is
@@ -1383,28 +1376,28 @@ int rb_tree_get_first(rb_tree_t* tree, rb_node_t** iter )
  *      or else the tree is no longer garunteed to operate properly.
  * returns: A status indicating the outcome of the function call.
  *--------------------------------------------------------------------------------------*/ 
-int rb_tree_get_next(rb_tree_t* tree, rb_node_t** iter, rb_range_t* range, bool should_pop, bool should_rebalance)
+int rb_tree_get_next(rb_tree_t* tree, rb_range_t* range, bool should_pop, bool should_rebalance)
 {
     /* There is either no next if the provided node is NULL or the 
      * range to fill is NULL and so the function must exit early */
-    if ((*iter == NULL) || (range == NULL))
+    if ((tree->iterator == NULL) || (range == NULL))
     {
         return BP_ERROR;
     }
 
     /* Fill the range from the current iter ptr. */
-    range->cid = (*iter)->range.cid;
-    range->offset = (*iter)->range.offset;
+    range->cid = tree->iterator->range.cid;
+    range->offset = tree->iterator->range.offset;
     
-    /* Set iter to visited and store node for deletion. */
-    rb_node_t* delete_node = *iter;
-    rb_node_t* node = *iter;
+    /* Set iterator to visited and store node for deletion. */
+    rb_node_t* delete_node = tree->iterator;
+    rb_node_t* node = tree->iterator;
    
     if (should_pop && should_rebalance)
     {
         /* Remove the node and rebalance the tree. Iter must be recalculated. */
         delete_rb_node(tree, delete_node);
-        rb_tree_get_first(tree, iter);
+        rb_tree_goto_first(tree);
         return BP_SUCCESS;
     }
 
@@ -1420,17 +1413,17 @@ int rb_tree_get_next(rb_tree_t* tree, rb_node_t** iter, rb_range_t* range, bool 
             node = node->left;
             node->traversal_state = false;
         }
-        *iter = node;
+        tree->iterator = node;
     }
     else
     {
-        /* Node has no children and so the tree is searched upward for an unvisted node. */
+        /* Node has no children and so the tree is searched upward for an unvisited node. */
         node->traversal_state = true;
         while (node != NULL && node->traversal_state)
         {
             node = node->parent;
         }
-        *iter = node;
+        tree->iterator = node;
     }
     
     if (should_pop && !should_rebalance)

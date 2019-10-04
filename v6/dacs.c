@@ -42,9 +42,8 @@
  * 
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, rb_node_t** iter, uint16_t* sdnvflags)
+int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, uint16_t* flags)
 {
-    uint16_t flags = 0;
     bp_field_t cid = { 0, 2, 0 };
     bp_field_t fill = { 0, 0, 0 };
  
@@ -60,35 +59,34 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
     rb_range_t prev_range;
 
     /* Get the first available range from the rb tree and fill it. */
-    rb_tree_get_next(tree, iter, &range, true, false);
+    rb_tree_get_next(tree, &range, true, false);
     cid.value = range.cid;
-    fill.index = sdnv_write(rec, size, cid, &flags);
+    fill.index = sdnv_write(rec, size, cid, flags);
     fill.value = range.offset + 1;
-    fill.index = sdnv_write(rec, size, fill, &flags);    
+    fill.index = sdnv_write(rec, size, fill, flags);    
     count_fills += 2;
 
     /* Traverse tree in order and write out fills to dacs. */
-    while (count_fills < max_fills_per_dacs && *iter != NULL)
+    while (count_fills < max_fills_per_dacs && !rb_tree_is_empty(tree))
     {
         prev_range = range;
-        rb_tree_get_next(tree, iter, &range, true, false);        
+        rb_tree_get_next(tree, &range, true, false);        
 
         /* Write range of missing cid.
            Calculate the missing values between the current and previous node. */
         fill.value = range.cid - (prev_range.cid + prev_range.offset + 1);
-        fill.index = sdnv_write(rec, size, fill, &flags);
+        fill.index = sdnv_write(rec, size, fill, flags);
 
         /* Write range of received cids. */
         fill.value = range.offset + 1;
-        fill.index = sdnv_write(rec, size, fill, &flags);    
+        fill.index = sdnv_write(rec, size, fill, flags);    
         count_fills += 2;        
     }
 
     /* Success Oriented Error Checking */
-    if(flags != 0)
+    if(*flags != 0)
     {
-        *sdnvflags |= flags;
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of DACS (%08X)\n", flags); 
+        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of DACS (%08X)\n", *flags); 
     } 
 
     /* Return Block Size */
@@ -98,10 +96,9 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
 /*--------------------------------------------------------------------------------------
  * dacs_read -
  *-------------------------------------------------------------------------------------*/
-int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, uint16_t* sdnvflags)
+int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, uint16_t* flags)
 {
     bp_val_t i;
-    uint16_t flags = 0;
     bp_field_t cid = { 0, 2, 0 };
     bp_field_t fill = { 0, 0, 0 };
     int cidin = true;
@@ -110,22 +107,20 @@ int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, 
     int ack_count = 0;
     
     /* Read First Custody ID */
-    fill.index = sdnv_read(rec, rec_size, &cid, &flags);
-    if(flags != 0)
+    fill.index = sdnv_read(rec, rec_size, &cid, flags);
+    if(*flags != 0)
     {
-        *sdnvflags |= flags;
-        return bplog(BP_BUNDLEPARSEERR, "Failed to read first custody ID (%08X)\n", flags);
+        return bplog(BP_BUNDLEPARSEERR, "Failed to read first custody ID (%08X)\n", *flags);
     }
 
     /* Process Fills */
     while((int)fill.index < rec_size)
     {
         /* Read Fill */
-        fill.index = sdnv_read(rec, rec_size, &fill, &flags);
-        if(flags != 0)
+        fill.index = sdnv_read(rec, rec_size, &fill, flags);
+        if(*flags != 0)
         {
-            *sdnvflags |= flags;
-            return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", flags);
+            return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", *flags);
         }
 
         /* Process Custody IDs */
@@ -137,8 +132,8 @@ int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, 
             {
                 int status = ack(ack_parm, cid.value + i);
                 if(status == BP_SUCCESS)                ack_count++;
-                else if(status == BP_FAILEDRESPONSE)    flags |= BP_FLAG_UNKNOWNCID;
-                else if(status == BP_FAILEDSTORE)       flags |= BP_FLAG_STOREFAILURE;
+                else if(status == BP_FAILEDRESPONSE)    *flags |= BP_FLAG_UNKNOWNCID;
+                else if(status == BP_FAILEDSTORE)       *flags |= BP_FLAG_STOREFAILURE;
             }
         }
         else
@@ -152,10 +147,9 @@ int dacs_read(uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, 
     }
 
     /* Success Oriented Error Checking */
-    if(flags != 0)
+    if(*flags != 0)
     {
-        *sdnvflags |= flags;
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of DACS (%08X)\n", flags); 
+        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of DACS (%08X)\n", *flags); 
     } 
 
     /* Return Number of Acknowledgments */

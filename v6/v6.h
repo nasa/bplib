@@ -73,12 +73,14 @@
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int     v6_initialize   (bp_bundle_t* bundle, uint16_t* flags);
-int     v6_uninitialize (bp_bundle_t* bundle);
-int     v6_populate     (bp_bundle_t* bundle, uint16_t* flags);
-int     v6_send         (bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags);
-int     v6_receive      (bp_bundle_t* bundle, uint8_t* block, int block_size, bp_custodian_t* custodian, uint16_t* flags);
-int     v6_update       (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags);
-int     v6_routeinfo    (void* bundle, int size, bp_route_t* route);
+int v6_initialize               (bp_bundle_t* bundle, uint16_t* flags);
+int v6_uninitialize             (bp_bundle_t* bundle);
+int v6_populate_bundle          (bp_bundle_t* bundle, uint16_t* flags);
+int v6_send_bundle              (bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, uint16_t* flags);
+int v6_receive_bundle           (bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodian_t* custodian, uint16_t* flags);
+int v6_update_bundle            (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags);
+int v6_populate_acknowledgment  (bp_custody_t* custody, uint16_t* flags);
+int v6_receive_acknowledgment   (bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags);
+int v6_routeinfo                (void* bundle, int size, bp_route_t* route);
 
 #endif  /* _v6_h_ */

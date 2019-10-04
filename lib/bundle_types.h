@@ -23,6 +23,7 @@
  ******************************************************************************/
 
 #include "bplib.h"
+#include "rb_tree.h"
 
 /******************************************************************************
  DEFINES
@@ -73,7 +74,7 @@ typedef struct {
     bp_val_t            cid;            /* custody id of bundle */
 } bp_custodian_t;
 
-/* Bundle Control Structure */
+/* Bundle Structure */
 typedef struct {
     bp_route_t          route;          /* addressing information */
     bp_attr_t*          attributes;     /* -pointer- to the channel attributes */
@@ -83,5 +84,18 @@ typedef struct {
     bool                prebuilt;       /* does pre-built bundle header need initialization */
     void*               blocks;         /* populated in initialization function */
 } bp_bundle_t;
+
+/* Custody Structure */
+typedef struct {
+    bp_attr_t           attributes;     /* its own copy and version of attributes */
+    bp_acknowledge_t    acknowledge;    /* call-back that acknowledges bundle reception */
+    void*               ackparm;        /* parameter passed to acknowledge call-back */
+    bp_val_t            last_time;      /* time of last DACS generated */
+    int                 lock;           /* for thread safe operations on DACS */
+    rb_tree_t           tree;           /* balanced tree to store bundle CID */
+    uint8_t*            recbuf;         /* buffer to hold built DACS record */
+    int                 recbuf_size;    /* size of the buffer above */
+    bp_bundle_t         bundle;         /* record bundle (DACS) */
+} bp_custody_t;
 
 #endif  /* _bundle_types_h_ */

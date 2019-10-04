@@ -297,19 +297,19 @@ int v6_uninitialize(bp_bundle_t* bundle)
 }
 
 /*--------------------------------------------------------------------------------------
- * v6_populate -
+ * v6_populate_bundle -
  *
  *  This populates a new bundle's fields
  *-------------------------------------------------------------------------------------*/
-int v6_populate(bp_bundle_t* bundle, uint16_t* flags)
+int v6_populate_bundle(bp_bundle_t* bundle, uint16_t* flags)
 {
     return v6_build(bundle, NULL, NULL, 0, flags);
 }
 
 /*--------------------------------------------------------------------------------------
- * v6_send -
+ * v6_send_bundle -
  *-------------------------------------------------------------------------------------*/
-int v6_send(bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags)
+int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, uint16_t* flags)
 {
     int                     status          = 0;
     int                     payload_offset  = 0;
@@ -320,8 +320,8 @@ int v6_send(bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout, uin
     bp_blk_pay_t*           pay             = &blocks->payload_block;
     
     /* Update Payload Block */
-    pay->payptr = pay_buf;
-    pay->paysize = pay_len;
+    pay->payptr = buffer;
+    pay->paysize = size;
 
     /* Check Fragmentation */
     if(pay->paysize > bundle->attributes->max_length)
@@ -420,14 +420,12 @@ int v6_send(bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout, uin
 }
 
 /*--------------------------------------------------------------------------------------
- * v6_receive -
+ * v6_receive_bundle -
  *-------------------------------------------------------------------------------------*/
-int v6_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_custodian_t* custodian, uint16_t* flags)
+int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodian_t* custodian, uint16_t* flags)
 {
     int                 status = BP_SUCCESS;
 
-    uint8_t*            buffer = block;
-    int                 size = block_size;
     int                 index = 0;
     int                 bytes = 0;
 
@@ -700,13 +698,29 @@ int v6_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_custodian
 }
 
 /*--------------------------------------------------------------------------------------
- * v6_update -
+ * v6_update_bundle -
  *-------------------------------------------------------------------------------------*/
-int v6_update(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
+int v6_update_bundle(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 {
     data->cidfield.value = cid;
     sdnv_mask(&data->cidfield);
     return sdnv_write(&data->header[data->cteboffset], data->bundlesize - data->cteboffset, data->cidfield, flags);
+}
+
+/*--------------------------------------------------------------------------------------
+ * v6_populate_acknowledgment -
+ *-------------------------------------------------------------------------------------*/
+int v6_populate_acknowledgment(bp_custody_t* custody, uint16_t* flags)
+{
+    return dacs_write(custody->recbuf, custody->recbuf_size, custody->bundle.attributes->max_fills_per_dacs, &custody->tree, flags);
+}
+
+/*--------------------------------------------------------------------------------------
+ * v6_receive_acknowledgment -
+ *-------------------------------------------------------------------------------------*/
+int v6_receive_acknowledgment(bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags)
+{
+    return dacs_read(custodian->rec, custodian->rec_size, custody->acknowledge, custody->ackparm, flags);    
 }
 
 /*--------------------------------------------------------------------------------------

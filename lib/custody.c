@@ -22,31 +22,30 @@
 #include "bplib.h"
 #include "bundle.h"
 #include "custody.h"
-#include "dacs.h"
+#include "v6.h"
 
 /******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * custody_enqueue -
+ * custody_generate -
  *
  *  Notes:
  *-------------------------------------------------------------------------------------*/
-static int custody_enqueue(bp_custody_t* custody, unsigned long sysnow, int timeout, uint16_t* flags)
+static int custody_generate(bp_custody_t* custody, unsigned long sysnow, int timeout, uint16_t* flags)
 {
     int send_status = BP_SUCCESS;
     int ret_status = BP_SUCCESS;
 
     /* If the tree has nodes, initialize the iterator for traversing the tree in order */
-    rb_node_t* iter;
-    rb_tree_get_first(&custody->tree, &iter);
+    rb_tree_goto_first(&custody->tree);
 
     /* Continue to delete nodes from the tree and write them to DACS until the tree is empty */
     while (!rb_tree_is_empty(&custody->tree))
     {
         /* Build DACS - will remove nodes from the tree */
-        int dacs_size = dacs_write(custody->recbuf, custody->recbuf_size, custody->bundle.attributes->max_fills_per_dacs, &custody->tree, &iter, flags);
+        int dacs_size = v6_populate_acknowledgment(custody, flags);
         if(dacs_size > 0)
         {
             send_status = bundle_generate(&custody->bundle, custody->recbuf, dacs_size, timeout, flags);
@@ -187,7 +186,7 @@ int custody_send(bp_custody_t* custody, bp_val_t period, int timeout, uint16_t* 
             if( (sysnow >= (custody->last_time + period)) && 
                 !rb_tree_is_empty(&custody->tree) )
             {
-                int status = custody_enqueue(custody, sysnow, timeout, flags);
+                int status = custody_generate(custody, sysnow, timeout, flags);
                 if(status != BP_SUCCESS && ret_status == BP_SUCCESS)
                 {
                     ret_status = status;
@@ -228,7 +227,7 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, int timeou
                 *flags |= BP_FLAG_RBTREEFULL;
 
                 /* Store DACS */
-                custody_enqueue(custody, sysnow, timeout, flags);
+                custody_generate(custody, sysnow, timeout, flags);
 
                 /* Start New DACS */
                 if(rb_tree_insert(custodian->cid, &custody->tree) != BP_SUCCESS)
@@ -253,7 +252,7 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, int timeou
             /* Store DACS */
             if(!rb_tree_is_empty(&custody->tree))
             {
-                custody_enqueue(custody, sysnow, timeout, flags);
+                custody_generate(custody, sysnow, timeout, flags);
             }
 
             /* Initial New DACS Bundle */
@@ -280,7 +279,5 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, int timeou
  *-------------------------------------------------------------------------------------*/
 int custody_acknowledge(bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags)
 {
-    (void)custody;
-    
-    return dacs_read(custodian->rec, custodian->rec_size, custody->acknowledge, custody->ackparm, flags);
+    return v6_receive_acknowledgment(custody, custodian, flags);
 }

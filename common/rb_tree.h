@@ -55,6 +55,7 @@ typedef struct rb_tree {
     rb_node_t*  root;           /* The root of the tree. When root is null size is also 0. */
     rb_node_t*  free_node_head; /* The memory location of the first unallocated rb_node. */
     rb_node_t*  free_node_tail; /* The memory location of the last unallocated rb_node. */
+    rb_node_t*  iterator;       /* The current node when using iterator functions */
     /* The starting memory address of the allocated memory for rb_nodes. 
      * This value is tracked so that the nodes can be deallocated in a single call to free. */
     rb_node_t*  node_block; 
@@ -79,7 +80,7 @@ bool    rb_tree_is_full     (rb_tree_t* tree);                      /* Checks wh
 int     rb_tree_insert      (bp_val_t cid, rb_tree_t* tree);        /* Inserts cid into a red black tree. Duplicates will not be inserted. */
 int     rb_tree_delete      (bp_val_t cid, rb_tree_t* tree);        /* Deletes a cid from a rb_tree_t and may lead to split nodes. */
 int     rb_tree_destroy     (rb_tree_t* tree);                      /* Frees all memory allocated for a rb_tree and recursively frees its nodes. */
-int     rb_tree_get_first   (rb_tree_t* tree, rb_node_t** iter);    /* Gets the node of lowest cid in the tree to serve as an iterator to calls of get next. */
-int     rb_tree_get_next    (rb_tree_t* tree, rb_node_t** iter, rb_range_t* range, bool should_pop, bool should_rebalance); /* Gets the next range inorder in the rb_tree_t and increments the iterator. */
+int     rb_tree_goto_first  (rb_tree_t* tree);                      /* Gets the node of lowest cid in the tree to serve as an iterator to calls of get next. */
+int     rb_tree_get_next    (rb_tree_t* tree, rb_range_t* range, bool should_pop, bool should_rebalance); /* Gets the next range in order in the rb_tree_t and increments the iterator. */
 
 #endif  /* _rb_tree_h_ */

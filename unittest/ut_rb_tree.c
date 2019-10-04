@@ -1043,31 +1043,29 @@ static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
     assert_rb_tree_is_valid(&tree);
     ut_assert(tree.size == 4);
 
-    rb_node_t* iter = tree.root;
     rb_range_t range;
 
-    ut_assert(rb_tree_get_first(NULL, &iter) == RB_PARMERR); 
-    ut_assert(rb_tree_get_first(&tree, &iter) == BP_SUCCESS);
-    ut_assert(rb_tree_get_next(&tree, &iter, NULL, true, true) == BP_ERROR); 
+    ut_assert(rb_tree_goto_first(NULL) == RB_PARMERR); 
+    ut_assert(rb_tree_goto_first(&tree) == BP_SUCCESS);
+    ut_assert(rb_tree_get_next(&tree, NULL, true, true) == BP_ERROR); 
     
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, true) == BP_SUCCESS); 
+    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS); 
     ut_assert(range.value == 2 && range.offset == 1);
     assert_rb_tree_is_valid(&tree);
     
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, true) == BP_SUCCESS); 
+    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS); 
     ut_assert(range.value == 6 && range.offset == 0);
     assert_rb_tree_is_valid(&tree);
     
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, true) == BP_SUCCESS); 
+    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS); 
     ut_assert(range.value == 8 && range.offset == 0);
     assert_rb_tree_is_valid(&tree);
     
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, true) == BP_SUCCESS);
+    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS);
     ut_assert(range.value == 10 && range.offset == 2); 
     assert_rb_tree_is_valid(&tree);
     
-    ut_assert(iter == NULL);
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, true) == BP_ERROR); 
+    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_ERROR); 
     ut_assert(tree.size == 0);
     
     if(f == ut_rb_tree_failures) printf("PASS\n");
@@ -1096,24 +1094,22 @@ static void test_tree_traversed_and_deleted_inorder_without_rebalancing()
     assert_rb_tree_is_valid(&tree);
     ut_assert(tree.size == 4);
 
-    rb_node_t* iter = tree.root;
     rb_range_t range;
 
-    ut_assert(rb_tree_get_first(&tree, &iter) == BP_SUCCESS);
+    ut_assert(rb_tree_goto_first(&tree) == BP_SUCCESS);
     
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, false) == BP_SUCCESS); 
+    ut_assert(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS); 
     ut_assert(range.value == 2 && range.offset == 1);
     
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, false) == BP_SUCCESS); 
+    ut_assert(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS); 
     ut_assert(range.value == 6 && range.offset == 0);
     
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, false) == BP_SUCCESS); 
+    ut_assert(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS); 
     ut_assert(range.value == 8 && range.offset == 0);
     
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, false) == BP_SUCCESS);
+    ut_assert(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS);
     ut_assert(range.value == 10 && range.offset == 2); 
-    ut_assert(iter == NULL);
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, false) == 
+    ut_assert(rb_tree_get_next(&tree, &range, true, false) == 
         BP_ERROR); 
     ut_assert(tree.size == 0);
     
@@ -1143,24 +1139,23 @@ static void test_tree_traversed_inorder_after_partial_traversal()
     assert_rb_tree_is_valid(&tree);
     ut_assert(tree.size == 8);
 
-    rb_node_t* iter = tree.root;
     rb_range_t range;
 
-    ut_assert(rb_tree_get_first(&tree, &iter) == BP_SUCCESS);
+    ut_assert(rb_tree_goto_first(&tree) == BP_SUCCESS);
     for (uint32_t i = 2; i <= 8; i += 2)
     {
-        ut_assert(rb_tree_get_next(&tree, &iter, &range, false, false) == BP_SUCCESS); 
+        ut_assert(rb_tree_get_next(&tree, &range, false, false) == BP_SUCCESS); 
         ut_assert(range.value == i && range.offset == 0);
     }
 
-    ut_assert(rb_tree_get_first(&tree, &iter) == BP_SUCCESS);
+    ut_assert(rb_tree_goto_first(&tree) == BP_SUCCESS);
     for (uint32_t i = 2; i <= 16; i += 2)
     {
-        ut_assert(rb_tree_get_next(&tree, &iter, &range, false, false) == BP_SUCCESS); 
+        ut_assert(rb_tree_get_next(&tree, &range, false, false) == BP_SUCCESS); 
         ut_assert(range.value == i && range.offset == 0);
     }
 
-    ut_assert(rb_tree_get_next(&tree, &iter, &range, true, false) == 
+    ut_assert(rb_tree_get_next(&tree, &range, true, false) == 
         BP_ERROR); 
     ut_assert(tree.size == 8);
     

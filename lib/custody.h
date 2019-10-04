@@ -24,24 +24,6 @@
 
 #include "bplib.h"
 #include "bundle_types.h"
-#include "rb_tree.h"
-
-/******************************************************************************
- TYPEDEFS
- ******************************************************************************/
-
-/* Custody Structure */
-typedef struct {
-    bp_attr_t           attributes;     /* its own copy and version of attributes */
-    bp_acknowledge_t    acknowledge;    /* call-back that acknowledges bundle reception */
-    void*               ackparm;        /* parameter passed to acknowledge call-back */
-    bp_val_t            last_time;      /* time of last DACS generated */
-    int                 lock;           /* for thread safe operations on DACS */
-    rb_tree_t           tree;           /* balanced tree to store bundle CID */
-    uint8_t*            recbuf;         /* buffer to hold built DACS record */
-    int                 recbuf_size;    /* size of the buffer above */
-    bp_bundle_t         bundle;         /* record bundle (DACS) */
-} bp_custody_t;
 
 /******************************************************************************
  PROTOTYPES
