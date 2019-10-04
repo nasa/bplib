@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_SDNV_H__
-#define __BPLIB_SDNV_H__
+#ifndef _sdnv_h_
+#define _sdnv_h_
 
 /******************************************************************************
  INCLUDES
@@ -33,4 +33,4 @@ int     sdnv_read   (uint8_t* block, int size, bp_field_t* sdnv, uint16_t* flags
 int     sdnv_write  (uint8_t* block, int size, bp_field_t sdnv, uint16_t* flags);
 void    sdnv_mask   (bp_field_t* sdnv);
 
-#endif  /* __BPLIB_SDNV_H__ */
+#endif  /* _sdnv_h_ */

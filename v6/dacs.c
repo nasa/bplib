@@ -20,11 +20,10 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bundle_types.h"
 #include "rb_tree.h"
+#include "v6.h"
 #include "sdnv.h"
 #include "dacs.h"
-#include "v6.h"
 
 /******************************************************************************
  EXPORTED FUNCTIONS

@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_DACS_H__
-#define __BPLIB_DACS_H__
+#ifndef _dacs_h_
+#define _dacs_h_
 
 /******************************************************************************
  INCLUDES
@@ -33,4 +33,4 @@
 int dacs_write  (uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, rb_node_t** iter, uint16_t* flags);
 int dacs_read   (uint8_t* rec, int rec_size, bp_acknowledge_t ack, void* ack_parm, uint16_t* flags);
 
-#endif  /* __BPLIB_DACS_H__ */
+#endif  /* _dacs_h_ */

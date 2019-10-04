@@ -20,7 +20,6 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bplib_os.h"
 #include "sdnv.h"
 #include "pay.h"
 #include "v6.h"
