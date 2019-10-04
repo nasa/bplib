@@ -204,7 +204,7 @@ $(INCDIR):
 
 clean ::
 	-$(RM) -R $(BLDDIR)
-	-$(RM) -R binding/lua/build
+	make -C binding/lua clean
 
 testcov:
 	lcov -c --directory build --output-file build/coverage.info
