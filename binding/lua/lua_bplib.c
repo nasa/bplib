@@ -21,9 +21,9 @@
 
 #include "lua_bplib.h"
 
-#include <bp/bplib.h>
-#include <bp/bplib_store_ram.h>
-#include <bp/bplib_store_file.h>
+#include "bplib.h"
+#include "bplib_store_ram.h"
+#include "bplib_store_file.h"
 
 #ifdef _WINDOWS_
 #include <windows.h>
@@ -98,7 +98,6 @@ int lbplib_flush    (lua_State* L);
  ******************************************************************************/
 
 /* Lua Environment Variables */
-static const char* LUA_BPLIBLIBNAME = "bplib";
 static const char* LUA_BPLIBMETANAME = "Lua.bplib";
 static const char* LUA_ERRNO = "errno";
 
@@ -311,7 +310,7 @@ int luaopen_bplib (lua_State *L)
  *----------------------------------------------------------------------------*/
 int lbplib_open (lua_State* L)
 {
-    int i;
+    unsigned int i;
     const bp_store_t* store = NULL;
     
     /* Check Number of Parameters */

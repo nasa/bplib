@@ -42,6 +42,7 @@ VPATH	    := $(ROOT)
 
 # compiler options for search path for include headers (in form of -I_header_)  
 INCLUDES    := -I$(ROOT)
+INCLUDES    += -I$(ROOT)/../../inc
 
 # c compiler and linker used for c file extensions
 COMPILER    ?= gcc
@@ -58,10 +59,10 @@ BLDDIR      :=   build
 O           ?=   3 # default optimization level
 
 COPT        :=   -g -O$(O) $(INCLUDES) $(LUA_DEFS)
-COPT        +=   -Wall -Wextra -Wshadow
-COPT        :=   -fPIC
+COPT        +=   -Wall -Wextra -Wshadow $(LUA_COPT)
+COPT        +=   -fPIC
 
-LOPT        :=   -llua -lbp
+LOPT        :=   -llua -lbp $(LUA_LOPT)
 
 ###############################################################################
 ##  TOOLS
@@ -78,8 +79,8 @@ MKDIR	     =   mkdir
 ##  COMPILER RULES
 
 ALL_OBJ     := $(addprefix $(BLDDIR)/, $(LUA_OBJ))
-ALL_COPT    := $(COPT) $(APP_COPT)
-ALL_LOPT    := $(LOPT) $(APP_LOPT)
+ALL_COPT    := $(COPT)
+ALL_LOPT    := $(LOPT)
 
 $(BLDDIR)/%.o: %.c
 	$(CC) -c $(ALL_COPT) -o $@ $<
