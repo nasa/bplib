@@ -16,24 +16,20 @@
  *
  *************************************************************************/
 
-#ifndef _BPLIB_CRC_H_
-#define _BPLIB_CRC_H_
+#ifndef _crc_h_
+#define _crc_h_
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
+#include "bplib.h"
 
 /******************************************************************************
  DEFINES
  ******************************************************************************/
 
 #define BYTE_COMBOS 256 /* Number of different possible bytes. */
-#define BP_CRC_INIT_SUCCESS 0 /* A sucessful return when initing a crc_parameters_t. */
-#define BP_CRC_INIT_FAIL_INVALID_LENGTH 1 /* The provided crc param struct has invalid length. */
 
 /******************************************************************************
  TYPEDEFS
@@ -82,4 +78,4 @@ typedef struct crc_parameters
 int         crc_init    (crc_parameters_t* params);
 uint32_t    crc_get     (const uint8_t* data, const uint32_t length, const crc_parameters_t* params);
 
-#endif /* _BPLIB_CRC_H_ */
+#endif /* _crc_h_ */

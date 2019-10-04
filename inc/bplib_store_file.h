@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_STORE_FILE__
-#define __BPLIB_STORE_FILE__
+#ifndef _bplib_store_file_h_
+#define _bplib_store_file_h_
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,4 +58,4 @@ int     bplib_store_file_getcount      (int handle);
 } // extern "C"
 #endif 
 
-#endif /* __BPLIB_STORE_FILE__ */
+#endif /* _bplib_store_file_h_ */

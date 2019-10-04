@@ -19,14 +19,31 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
-#include "bplib_os.h"
 #include "bundle.h"
-#include "sdnv.h"
+#include "bundle_types.h"
+#include "v6.h"
 #include "pri.h"
-#include "cteb.h"
 #include "bib.h"
 #include "pay.h"
+#include "cteb.h"
+#include "sdnv.h"
+
+/******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+#define BP_NUM_EXCLUDE_REGIONS 8
+
+/******************************************************************************
+ TYPEDEFS
+ ******************************************************************************/
+
+typedef struct {
+    bp_blk_pri_t        primary_block;
+    bp_blk_cteb_t       custody_block;
+    bp_blk_bib_t        integrity_block;
+    bp_blk_pay_t        payload_block;
+} bp_v6blocks_t;
 
 /******************************************************************************
  FILE DATA
@@ -97,14 +114,16 @@ static const bp_blk_pay_t bundle_pay_blk = {
     .paysize                  = 0
 };
 
+static bool v6_init = false;
+
 /******************************************************************************
- EXPORTED FUNCTIONS
+ LOCAL FUNCTIONS
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
  * v6_build -
  *
- *  This initializes a new bundle
+ *  This builds the bundle
  *-------------------------------------------------------------------------------------*/
 int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_len, uint16_t* flags)
 {
@@ -112,7 +131,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
     int hdr_index;
     
     bp_bundle_data_t* data = &bundle->data;
-    bp_v6blocks_t* blocks = &bundle->v6blocks;
+    bp_v6blocks_t* blocks = (bp_v6blocks_t*)bundle->blocks;
 
     /* Initialize Data Storage Memory */
     hdr_index = 0;
@@ -162,7 +181,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         bplib_ipn2eid(blocks->custody_block.csteid, BP_MAX_EID_STRING, bundle->route.local_node, bundle->route.local_service); /* Set Custodian EID */
 
         /* Populate Data with Block */
-        data->cidsdnv = blocks->custody_block.cid;
+        data->cidfield = blocks->custody_block.cid;
         data->cteboffset = hdr_index;
         status = cteb_write(&data->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, &blocks->custody_block, false, flags);
 
@@ -216,19 +235,90 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
     return BP_SUCCESS;
 }
 
+/******************************************************************************
+ EXPORTED FUNCTIONS
+ ******************************************************************************/
+
 /*--------------------------------------------------------------------------------------
- * v6_write -
+ * v6_initialize -
+ *
+ *  This initializes a bundle structure
  *-------------------------------------------------------------------------------------*/
-int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, bp_generate_t gen, void* parm, int timeout, uint16_t* flags)
+int v6_initialize(bp_bundle_t* bundle, uint16_t* flags)
+{
+    int status = BP_SUCCESS;
+
+    /* Check Initialization of v6 Module */
+    if(!v6_init)
+    {
+        v6_init = true;
+
+        /* Initialize the Bundle Integrity Block Module */
+        status = bib_init();
+    }
+
+    /* Initialize Blocks */
+    bundle->blocks = NULL;
+    
+    /* Allocate Blocks */
+    if(status == BP_SUCCESS)
+    {
+        bundle->blocks = (bp_v6blocks_t*)malloc(sizeof(bp_v6blocks_t));
+        if(bundle->blocks == NULL)
+        {
+            status = BP_FAILEDMEM;
+        }
+    }
+
+    /* Prebuild v6 Bundle */
+    if(status == BP_SUCCESS)
+    {
+        status = v6_build(bundle, NULL, NULL, 0, flags);
+        if(status != BP_SUCCESS)
+        {
+            v6_uninitialize(bundle);
+        }
+    }
+    
+    /* Return Status */
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * v6_uninitialize -
+ *
+ *  This initializes a bundle structure
+ *-------------------------------------------------------------------------------------*/
+int v6_uninitialize(bp_bundle_t* bundle)
+{
+    if(bundle->blocks) free(bundle->blocks);
+    bundle->blocks = NULL;    
+    return BP_SUCCESS;
+}
+
+/*--------------------------------------------------------------------------------------
+ * v6_populate -
+ *
+ *  This populates a new bundle's fields
+ *-------------------------------------------------------------------------------------*/
+int v6_populate(bp_bundle_t* bundle, uint16_t* flags)
+{
+    return v6_build(bundle, NULL, NULL, 0, flags);
+}
+
+/*--------------------------------------------------------------------------------------
+ * v6_send -
+ *-------------------------------------------------------------------------------------*/
+int v6_send(bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags)
 {
     int                     status          = 0;
     int                     payload_offset  = 0;
     bp_bundle_data_t*       data            = &bundle->data;
-    bp_v6blocks_t*          blocks          = &bundle->v6blocks;
+    bp_v6blocks_t*          blocks          = (bp_v6blocks_t*)bundle->blocks;
     bp_blk_pri_t*           pri             = &blocks->primary_block;
     bp_blk_bib_t*           bib             = &blocks->integrity_block;
     bp_blk_pay_t*           pay             = &blocks->payload_block;
-
+    
     /* Update Payload Block */
     pay->payptr = pay_buf;
     pay->paysize = pay_len;
@@ -247,7 +337,7 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
     }
 
     /* Check if Time Needs to be Set  */
-    if(set_time)
+    if(bundle->prebuilt)
     {
         /* Get Current Time */
         unsigned long sysnow = 0;
@@ -313,13 +403,13 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
         data->bundlesize = data->headersize + fragment_size;
 
         /* Enqueue Bundle */
-        status = gen(parm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
+        status = bundle->generate(bundle->genparm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
     }
 
     /* Increment Sequence Count (done here since now bundle successfully stored) */
-    if(set_time)
+    if(bundle->prebuilt)
     {
         pri->createseq.value++;
         sdnv_mask(&pri->createseq);
@@ -330,9 +420,9 @@ int v6_write(bp_bundle_t* bundle, bool set_time, uint8_t* pay_buf, int pay_len, 
 }
 
 /*--------------------------------------------------------------------------------------
- * v6_read -
+ * v6_receive -
  *-------------------------------------------------------------------------------------*/
-int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow, bp_custodian_t* custodian, uint16_t* flags)
+int v6_receive(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_custodian_t* custodian, uint16_t* flags)
 {
     int                 status = BP_SUCCESS;
 
@@ -356,6 +446,13 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow
 
     int                 pay_index = 0;
     bp_blk_pay_t        pay_blk;
+
+    /* Get Time */
+    unsigned long sysnow = 0;
+    if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+    {
+        *flags |= BP_FLAG_UNRELIABLETIME;
+    }
 
     /* Parse Primary Block */
     exclude[ei++] = index;
@@ -607,7 +704,37 @@ int v6_read(bp_bundle_t* bundle, uint8_t* block, int block_size, bp_val_t sysnow
  *-------------------------------------------------------------------------------------*/
 int v6_update(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 {
-    data->cidsdnv.value = cid;
-    sdnv_mask(&data->cidsdnv);
-    return sdnv_write(&data->header[data->cteboffset], data->bundlesize - data->cteboffset, data->cidsdnv, flags);
+    data->cidfield.value = cid;
+    sdnv_mask(&data->cidfield);
+    return sdnv_write(&data->header[data->cteboffset], data->bundlesize - data->cteboffset, data->cidfield, flags);
+}
+
+/*--------------------------------------------------------------------------------------
+ * v6_routeinfo -
+ *-------------------------------------------------------------------------------------*/
+int v6_routeinfo(void* bundle, int size, bp_route_t* route)
+{
+    bp_blk_pri_t pri_blk;
+    uint16_t* flags = 0;
+
+    /* Check Parameters */
+    if(bundle == NULL) return BP_PARMERR;
+    
+    /* Parse Primary Block */
+    int status = pri_read((uint8_t*)bundle, size, &pri_blk, true, flags);
+    if(status <= 0) return status;
+
+    /* Set Addresses */
+    if(route)
+    {
+        route->local_node           = (bp_ipn_t)pri_blk.srcnode.value;
+        route->local_service        = (bp_ipn_t)pri_blk.srcserv.value;
+        route->destination_node     = (bp_ipn_t)pri_blk.dstnode.value;
+        route->destination_service  = (bp_ipn_t)pri_blk.dstserv.value;
+        route->report_node          = (bp_ipn_t)pri_blk.rptnode.value;
+        route->report_service       = (bp_ipn_t)pri_blk.rptserv.value;
+    }
+
+    /* Return Success */
+    return BP_SUCCESS;    
 }

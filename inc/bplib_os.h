@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef _BPLIB_OS_H_
-#define _BPLIB_OS_H_
+#ifndef _bplib_os_h_
+#define _bplib_os_h_
 
 /******************************************************************************
  INCLUDES
@@ -75,13 +75,6 @@ typedef BP_VAL_TYPE bp_val_t;
 typedef BP_INDEX_TYPE bp_index_t;
 #define BP_MAX_INDEX BP_GET_MAXVAL(bp_index_t)
 
-/* Bundle Field (fixed size) */
-typedef struct {
-    bp_val_t    value;
-    bp_val_t    index;
-    bp_val_t    width;
-} bp_field_t;
-
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
@@ -99,4 +92,4 @@ int     bplib_os_waiton         (int handle, int timeout_ms);
 int     bplib_os_format         (char* dst, size_t len, const char* fmt, ...) VARG_CHECK(printf, 3, 4);
 int     bplib_os_strnlen        (const char* str, int maxlen);
 
-#endif /* _BPLIB_OS_H_ */
+#endif /* _bplib_os_h_ */

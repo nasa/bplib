@@ -42,15 +42,7 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t* attribut
     /* Initialize New Bundle */
     if(bundle->attributes->protocol_version == 6)
     {
-        bundle->blocks = (bp_v6blocks_t*)malloc(sizeof(bp_v6blocks_t));
-        if(bundle->blocks == NULL)
-        {
-            status = BP_FAILEDMEM;
-        }
-        else
-        {
-            status = v6_initialize(bundle, flags);
-        }
+        status = v6_initialize(bundle, flags);
     }
     else
     {
@@ -59,6 +51,14 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t* attribut
     
     /* Return Status */
     return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bundle_uninitialize -
+ *-------------------------------------------------------------------------------------*/
+int bundle_uninitialize (bp_bundle_t* bundle)
+{
+    return v6_uninitialize(bundle);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ int bundle_generate(bp_bundle_t* bundle, uint8_t* pay, int pay_size, int timeout
     /* Check if Re-initialization Needed */
     if(bundle->prebuilt == false)
     {
-        status = v6_initialize(bundle, flags);
+        status = v6_populate(bundle, flags);
     }
 
     /* Send Bundle */

@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_STORE_RAM__
-#define __BPLIB_STORE_RAM__
+#ifndef _bplib_store_ram_h_
+#define _bplib_store_ram_h_
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,4 +49,4 @@ int     bplib_store_ram_getcount       (int handle);
 } // extern "C"
 #endif 
 
-#endif /* __BPLIB_STORE_RAM__ */
+#endif /* _bplib_store_ram_h_ */

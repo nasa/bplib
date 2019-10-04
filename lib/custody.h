@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_CUSTODY_H__
-#define __BPLIB_CUSTODY_H__
+#ifndef _custody_h_
+#define _custody_h_
 
 /******************************************************************************
  INCLUDES
@@ -53,4 +53,4 @@ int     custody_send            (bp_custody_t* custody, bp_val_t period, int tim
 int     custody_receive         (bp_custody_t* custody, bp_custodian_t* custodian, int timeout, uint16_t* flags);
 int     custody_acknowledge     (bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags);
 
-#endif  /* __BPLIB_CUSTODY_H__ */
+#endif  /* _custody_h_ */

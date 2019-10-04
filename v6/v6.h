@@ -15,18 +15,14 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_V6_H__
-#define __BPLIB_V6_H__
+#ifndef _v6_h_
+#define _v6_h_
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-/* v6 blocks */
-#include "pri.h"
-#include "bib.h"
-#include "pay.h"
-#include "cteb.h"
+#include "bundle_types.h"
 
 /******************************************************************************
  DEFINES
@@ -54,9 +50,9 @@
 #define BP_ACS_REC_TYPE                 0x40 /* Aggregate Custody Signal */
 
 /* Aggregate Custody Signal Definitions */
-#define BP_ACS_REC_TYPE_INDEX       0
-#define BP_ACS_REC_STATUS_INDEX     1
-#define BP_ACS_ACK_MASK             0x80    /* if set, then custody successfully transfered */
+#define BP_ACS_REC_TYPE_INDEX           0
+#define BP_ACS_REC_STATUS_INDEX         1
+#define BP_ACS_ACK_MASK                 0x80    /* if set, then custody successfully transfered */
 
 /* Processing Control Flags */
 #define BP_PCF_FRAGMENT_MASK            0x000001    /* bundle is a fragement */
@@ -74,15 +70,15 @@
 #define BP_PCF_RPTDLT_MASK              0x040000    /* report deletion */
 
 /******************************************************************************
- TYPEDEFS
+ EXPORTED FUNCTIONS
  ******************************************************************************/
 
-/* Version 6 Bundle Blocks */
-typedef struct {
-    bp_blk_pri_t        primary_block;
-    bp_blk_cteb_t       custody_block;
-    bp_blk_bib_t        integrity_block;
-    bp_blk_pay_t        payload_block;
-} bp_v6blocks_t;
+int     v6_initialize   (bp_bundle_t* bundle, uint16_t* flags);
+int     v6_uninitialize (bp_bundle_t* bundle);
+int     v6_populate     (bp_bundle_t* bundle, uint16_t* flags);
+int     v6_send         (bp_bundle_t* bundle, uint8_t* pay_buf, int pay_len, int timeout, uint16_t* flags);
+int     v6_receive      (bp_bundle_t* bundle, uint8_t* block, int block_size, bp_custodian_t* custodian, uint16_t* flags);
+int     v6_update       (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags);
+int     v6_routeinfo    (void* bundle, int size, bp_route_t* route);
 
-#endif  /* __BPLIB_V6_H__ */
+#endif  /* _v6_h_ */

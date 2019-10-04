@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_H__
-#define __BPLIB_H__
+#ifndef _bplib_h_
+#define _bplib_h_
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,8 +33,8 @@ extern "C" {
  ******************************************************************************/
 
 /* Handles and Descriptors */
-#define BP_INVALID_HANDLE               (-1)    // used for integers (os locks, storage services)
-#define BP_INVALID_DESCRIPTOR           NULL    // used for pointers (channels)
+#define BP_INVALID_HANDLE               (-1)    /* used for integers (os locks, storage services) */
+#define BP_INVALID_DESCRIPTOR           NULL    /* used for pointers (channels) */
     
 /* Timeouts */
 #define BP_PEND                         (-1)
@@ -75,13 +75,14 @@ extern "C" {
 #define BP_INVALIDEID                   (-18)
 #define BP_INVALIDCIPHERSUITEID         (-19)
 #define BP_DUPLICATECID                 (-20)
-#define BP_ACTIVETABLEFULL              (-21)
-#define BP_CIDNOTFOUND                  (-22)
-#define BP_PENDINGACKNOWLEDGMENT        (-23)
-#define BP_PENDINGFORWARD               (-24)
-#define BP_PENDINGACCEPTANCE            (-25)
+#define BP_CUSTODYTREEFULL              (-21)
+#define BP_ACTIVETABLEFULL              (-22)
+#define BP_CIDNOTFOUND                  (-23)
+#define BP_PENDINGACKNOWLEDGMENT        (-24)
+#define BP_PENDINGFORWARD               (-25)
+#define BP_PENDINGACCEPTANCE            (-26)
 
-/* Processing, Acceptance,and Load Flags */
+/* Processing, Acceptance, and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
 #define BP_FLAG_INCOMPLETE              0x0002  /* block in bundle was not recognized */
 #define BP_FLAG_UNRELIABLETIME          0x0004  /* the os call to get time return a suspicious value */
@@ -126,6 +127,7 @@ extern "C" {
 #define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
 
 /* Default Fixed Configuration */
+#define BP_DEFAULT_PROTOCOL_VERSION     6
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
@@ -198,6 +200,7 @@ typedef struct {
     int         cid_reuse;              /* reuse CID when retransmitting */
     int         dacs_rate;              /* number of seconds to wait between sending ACS bundles */
     /* Fixed Attributes */
+    int         protocol_version;       /* bundle protocol version; currently only version 6 supported */
     int         active_table_size;      /* number of unacknowledged bundles to keep track of */
     int         max_fills_per_dacs;     /* limits the size of the DACS bundle */
     int         max_gaps_per_dacs;      /* number of gaps in custody IDs that can be kept track of */
@@ -244,10 +247,10 @@ int         bplib_ackpayload    (bp_desc_t channel, void* payload);
 int         bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
 int         bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
 int         bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
-int         bplib_attrinit      (bp_attr_t* attr);
+int         bplib_attrinit      (bp_attr_t* attributes);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif 
 
-#endif  /* __BPLIB_H__ */
+#endif  /* _bplib_h_ */

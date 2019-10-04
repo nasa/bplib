@@ -20,7 +20,6 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bplib_os.h"
 #include "sdnv.h"
 #include "crc.h"
 #include "v6.h"
@@ -104,8 +103,8 @@ int bib_init (void)
     int crc16_status = crc_init(&crc16_x25);
     int crc32_status = crc_init(&crc32_castagnoli);
     
-    if(crc16_status == BP_CRC_INIT_SUCCESS && 
-       crc32_status == BP_CRC_INIT_SUCCESS)
+    if(crc16_status == BP_SUCCESS && 
+       crc32_status == BP_SUCCESS)
     {
         return BP_SUCCESS;
     }

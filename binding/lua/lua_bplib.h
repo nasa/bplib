@@ -14,8 +14,8 @@
  *  Joe-Paul Swinski, Code 582 NASA GSFC
  *
  *************************************************************************/
-#ifndef __LUA_LIBRARY_BPLIB_H__
-#define __LUA_LIBRARY_BPLIB_H__
+#ifndef _lua_bplib_h_
+#define _lua_bplib_h_
 
 /******************************************************************************
  INCLUDES
@@ -29,4 +29,4 @@
 
 int luaopen_bplib (lua_State* L);
 
-#endif /* __LUA_LIBRARY_BPLIB_H__ */
+#endif /* _lua_bplib_h_ */

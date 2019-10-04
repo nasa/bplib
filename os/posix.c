@@ -29,7 +29,6 @@
 #include <unistd.h>
 
 #include "bplib.h"
-#include "bplib_os.h"
 
 /******************************************************************************
  DEFINES

@@ -287,6 +287,7 @@ void bplib_close(bp_desc_t channel)
     }
 
     /* Un-initialize Bundle and Custody Modules */
+    bundle_uninitialize(&ch->bundle);
     custody_uninitialize(&ch->custody);
     
     /* Free Channel */

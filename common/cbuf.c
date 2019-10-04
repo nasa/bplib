@@ -19,10 +19,9 @@
  INCLUDES
  ******************************************************************************/
 
-#include "cbuf.h"
 #include "bplib.h"
-#include "bplib_os.h"
-#include "bundle.h"
+#include "bundle_types.h"
+#include "cbuf.h"
 
 /******************************************************************************
  DEFINES

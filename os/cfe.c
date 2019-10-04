@@ -32,8 +32,7 @@
 
 #include "cfe.h"
 
-#include "bp/bplib.h"
-#include "bp/bplib_os.h"
+#include "bplib.h"
 
 /******************************************************************************
  DEFINES

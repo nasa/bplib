@@ -21,7 +21,6 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bplib_os.h"
 #include "crc.h"
 
 /******************************************************************************
@@ -227,16 +226,16 @@ int crc_init(crc_parameters_t* params)
     if (params->length == 16)
     {
         init_crc16_table(params); 
-        status = BP_CRC_INIT_SUCCESS;
+        status = BP_SUCCESS;
     }
     else if (params->length == 32)
     {
         init_crc32_table(params);
-        status = BP_CRC_INIT_SUCCESS;
+        status = BP_SUCCESS;
     }
     else
     {
-        status = BP_CRC_INIT_FAIL_INVALID_LENGTH;
+        status = BP_PARMERR;
     }
     
     return status;

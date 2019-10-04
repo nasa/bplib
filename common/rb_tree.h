@@ -16,28 +16,28 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_RB_TREE_H__
-#define __BPLIB_RB_TREE_H__
+#ifndef _rb_tree_h_
+#define _rb_tree_h_
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-#include "bplib_os.h"
+#include "bplib.h"
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
-/* A wrapper for a range from [value, value + offset). */
+/* A wrapper for a range from [cid, cid + offset). */
 typedef struct rb_range {
-    bp_val_t    value;              /* The starting value in the range. */
-    bp_val_t    offset;             /* The offset from the value. */
+    bp_val_t    cid;                /* The starting cid in the range. */
+    bp_val_t    offset;             /* The offset from the cid. */
 } rb_range_t;
 
 /* A node in the red black tree. */
 typedef struct rb_node {
-    rb_range_t  range;              /* The range of values represented by the node. */
+    rb_range_t  range;              /* The range of cids represented by the node. */
     bool        color;              /* The color of the node where RED (True) and BLACK (False).  */
     bool        traversal_state;    /* Tracks when a node is visited in a tree traversal. */    
     /* The respective ancestors of the current node within the red black tree.
@@ -60,20 +60,6 @@ typedef struct rb_tree {
     rb_node_t*  node_block; 
 } rb_tree_t;
 
-/* A status reflecting potential outcomes of a call to rb_tree_insert. */
-typedef enum rb_tree_status {
-    RB_SUCCESS,                  /* Success. */
-    RB_FAIL_INSERT_DUPLICATE,    /* Value was not inserted because a duplicate existed. */
-    RB_FAIL_TREE_FULL,           /* Value was not inserted because the rb_tree was full. */
-    RB_FAIL_SIZE_ZERO,           /* Maximum size of the rb_tree_t was set to zero. */
-    RB_FAIL_EXCEEDED_MAX_SIZE,   /* Exceeded the maximum allocatable size of the tree. */
-    RB_FAIL_NULL_TREE,           /* The provided rb_tree_t was NULL. */
-    RB_FAIL_MEM_ERR,             /* No memory was allocated. */
-    RB_FAIL_NULL_NODE,           /* The provided rb_node_t was NULL. */ 
-    RB_FAIL_NULL_RANGE,          /* The provided rb_range_t was NULL. */
-    RB_FAIL_VALUE_NOT_FOUND      /* The provided value did not exist in the tree. */
-} rb_tree_status_t;
-
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
@@ -86,14 +72,14 @@ typedef enum rb_tree_status {
  * 
  */
 
-rb_tree_status_t    rb_tree_create      (bp_val_t max_size, rb_tree_t* tree);   /* Creates am empty rb_tree. */
-rb_tree_status_t    rb_tree_clear       (rb_tree_t* tree);                      /* Clears the nodes in a rb_tree without deallocating any memory. */
-bool                rb_tree_is_empty    (rb_tree_t* tree);                      /* Checks whether a rb_tree is empty. */
-bool                rb_tree_is_full     (rb_tree_t* tree);                      /* Checks whether a rb_tree is full. */
-rb_tree_status_t    rb_tree_insert      (bp_val_t value, rb_tree_t* tree);      /* Inserts value into a red black tree. Duplicates will not be inserted. */
-rb_tree_status_t    rb_tree_delete      (bp_val_t value, rb_tree_t* tree);      /* Deletes a value from a rb_tree_t and may lead to split nodes. */
-rb_tree_status_t    rb_tree_destroy     (rb_tree_t* tree);                      /* Frees all memory allocated for a rb_tree and recursively frees its nodes. */
-rb_tree_status_t    rb_tree_get_first   (rb_tree_t* tree, rb_node_t** iter);    /* Gets the node of lowest value in the tree to serve as an iterator to calls of get next. */
-rb_tree_status_t    rb_tree_get_next    (rb_tree_t* tree, rb_node_t** iter, rb_range_t* range, bool should_pop, bool should_rebalance); /* Gets the next range inorder in the rb_tree_t and increments the iterator. */
+int     rb_tree_create      (bp_val_t max_size, rb_tree_t* tree);   /* Creates am empty rb_tree. */
+int     rb_tree_clear       (rb_tree_t* tree);                      /* Clears the nodes in a rb_tree without deallocating any memory. */
+bool    rb_tree_is_empty    (rb_tree_t* tree);                      /* Checks whether a rb_tree is empty. */
+bool    rb_tree_is_full     (rb_tree_t* tree);                      /* Checks whether a rb_tree is full. */
+int     rb_tree_insert      (bp_val_t cid, rb_tree_t* tree);        /* Inserts cid into a red black tree. Duplicates will not be inserted. */
+int     rb_tree_delete      (bp_val_t cid, rb_tree_t* tree);        /* Deletes a cid from a rb_tree_t and may lead to split nodes. */
+int     rb_tree_destroy     (rb_tree_t* tree);                      /* Frees all memory allocated for a rb_tree and recursively frees its nodes. */
+int     rb_tree_get_first   (rb_tree_t* tree, rb_node_t** iter);    /* Gets the node of lowest cid in the tree to serve as an iterator to calls of get next. */
+int     rb_tree_get_next    (rb_tree_t* tree, rb_node_t** iter, rb_range_t* range, bool should_pop, bool should_rebalance); /* Gets the next range inorder in the rb_tree_t and increments the iterator. */
 
-#endif  /* __BPLIB_RB_TREE_H__ */
+#endif  /* _rb_tree_h_ */

@@ -15,14 +15,15 @@
  *
  *************************************************************************/
 
-#ifndef __BPLIB_BLK_BIB_H__
-#define __BPLIB_BLK_BIB_H__
+#ifndef _bib_h_
+#define _bib_h_
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-#include "bplib_os.h"
+#include "bplib.h"
+#include "bundle_types.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -59,4 +60,4 @@ int     bib_write     (void* block, int size, bp_blk_bib_t* bib, bool update_ind
 int     bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib, uint16_t* flags);
 int     bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib, uint16_t* flags);
 
-#endif  /* __BPLIB_BLK_BIB_H__ */
+#endif  /* _bib_h_ */

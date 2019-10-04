@@ -126,7 +126,7 @@ int custody_initialize(bp_custody_t* custody, bp_route_t route, bp_attr_t* attri
 
     /* Allocate Memory for DACS Channel Tree to Store Bundle IDs */
     status = rb_tree_create(custody->bundle.attributes->max_gaps_per_dacs, &custody->tree);
-    if(status != RB_SUCCESS)
+    if(status != BP_SUCCESS)
     {
         custody_uninitialize(custody);
         return bplog(BP_FAILEDMEM, "Failed to allocate memory for channel DACS tree\n");
@@ -221,8 +221,8 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, int timeou
         if(custody->bundle.route.destination_node == custodian->node && custody->bundle.route.destination_service == custodian->service)
         {
             /* Insert Custody ID directly into current custody tree */
-            rb_tree_status_t insert_status = rb_tree_insert(custodian->cid, &custody->tree);
-            if(insert_status == RB_FAIL_TREE_FULL) 
+            int insert_status = rb_tree_insert(custodian->cid, &custody->tree);
+            if(insert_status == BP_CUSTODYTREEFULL) 
             {
                 /* Flag Full Tree - possibly the tree size is configured to be too small */
                 *flags |= BP_FLAG_RBTREEFULL;
@@ -231,18 +231,18 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, int timeou
                 custody_enqueue(custody, sysnow, timeout, flags);
 
                 /* Start New DACS */
-                if(rb_tree_insert(custodian->cid, &custody->tree) != RB_SUCCESS)
+                if(rb_tree_insert(custodian->cid, &custody->tree) != BP_SUCCESS)
                 {
                     /* There is no valid reason for an insert to fail on an empty tree */
                     status = BP_FAILEDRESPONSE;
                 }
             }
-            else if(insert_status == RB_FAIL_INSERT_DUPLICATE)
+            else if(insert_status == BP_DUPLICATECID)
             {
                 /* Duplicate values are fine and are treated as a success */
                 *flags |= BP_FLAG_DUPLICATES;
             }
-            else if(insert_status != RB_SUCCESS)
+            else if(insert_status != BP_SUCCESS)
             {
                 /* Tree error unexpected */
                 status = BP_FAILEDRESPONSE;        
@@ -262,7 +262,7 @@ int custody_receive(bp_custody_t* custody, bp_custodian_t* custodian, int timeou
             custody->bundle.prebuilt = false;
 
             /* Start New DACS */
-            if(rb_tree_insert(custodian->cid, &custody->tree) != RB_SUCCESS)
+            if(rb_tree_insert(custodian->cid, &custody->tree) != BP_SUCCESS)
             {
                 /* There is no valid reason for an insert to fail on an empty tree */
                 status = BP_FAILEDRESPONSE;
