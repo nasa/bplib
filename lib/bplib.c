@@ -144,10 +144,10 @@ static int create_custody(bp_channel_t* ch, unsigned long sysnow, int timeout, u
     while (!rb_tree_is_empty(&ch->custody_tree))
     {
         /* Build Acknowledgment - will remove nodes from the custody_tree */
-        int size = bundle_acknowledge(custody, flags);
+        int size = bundle_acknowledgment(ch->dacs_buffer, ch->dacs_size, ch->attributes.max_fills_per_dacs, &ch->custody_tree, flags);
         if(size > 0)
         {
-            int send_status = bundle_generate(&custody->bundle, custody->recbuf, size, timeout, flags);
+            int send_status = bundle_generate(&ch->custody, ch->dacs_buffer, ch->dacs_size, timeout, flags);
             if((send_status <= 0) && (status == BP_SUCCESS))
             {
                 /* Save first failed DACS enqueue to return later */
@@ -861,7 +861,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         /* Process Aggregate Custody Signal - Process DACS */
         bplib_os_lock(ch->active_table_signal);
         {
-            int num_acks = bundle_acknowledgment(&ch->custody, &custodian, flags);
+            int num_acks = bundle_acknowledge(&ch->custody, custodian.rec, custodian.rec_size, flags);
             if(num_acks > 0)
             {
                 ch->stats.acknowledged += num_acks;

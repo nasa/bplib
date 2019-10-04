@@ -24,6 +24,7 @@
 
 #include "bplib.h"
 #include "bundle_types.h"
+#include "rb_tree.h"
 
 /******************************************************************************
  PROTOTYPES
@@ -35,8 +36,8 @@ int bundle_generate         (bp_bundle_t* bundle, uint8_t* buffer, int size, int
 int bundle_forward          (bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, uint16_t* flags);
 int bundle_receive          (bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodian_t* custodian, uint16_t* flags);
 int bundle_update           (bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags);
-int bundle_acknowledgment   (bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags);
-int bundle_acknowledge      (bp_custody_t* custody, uint16_t* flags);
+int bundle_acknowledgment   (uint8_t* rec, int size, int max_fills, rb_tree_t* tree, uint16_t* flags);
+int bundle_acknowledge      (bp_bundle_t* bundle, uint8_t* rec, int size, uint16_t* flags);
 int bundle_routeinfo        (void* bundle, int size, bp_route_t* route);
 
 #endif  /* _bundle_h_ */

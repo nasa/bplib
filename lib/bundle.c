@@ -112,17 +112,17 @@ int bundle_update(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 /*--------------------------------------------------------------------------------------
  * bundle_acknowledge -
  *-------------------------------------------------------------------------------------*/
-int bundle_acknowledge(bp_custody_t* custody, uint16_t* flags)
+int bundle_acknowledgment(uint8_t* rec, int size, int max_fills, rb_tree_t* tree, uint16_t* flags)
 {
-    return v6_populate_acknowledgment(custody, flags);
+    return v6_populate_acknowledgment(rec, size, max_fills, tree, flags);
 }
 
 /*--------------------------------------------------------------------------------------
  * bundle_acknowledgment -
  *-------------------------------------------------------------------------------------*/
-int bundle_acknowledgment(bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags)
+int bundle_acknowledge(bp_bundle_t* bundle, uint8_t* rec, int size, uint16_t* flags)
 {
-    return v6_receive_acknowledgment(custody, custodian, flags);
+    return v6_receive_acknowledgment(rec, size, bundle->remove, bundle->parm, flags);
 }
 
 /*--------------------------------------------------------------------------------------

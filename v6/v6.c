@@ -710,17 +710,17 @@ int v6_update_bundle(bp_bundle_data_t* data, bp_val_t cid, uint16_t* flags)
 /*--------------------------------------------------------------------------------------
  * v6_populate_acknowledgment -
  *-------------------------------------------------------------------------------------*/
-int v6_populate_acknowledgment(bp_custody_t* custody, uint16_t* flags)
+int v6_populate_acknowledgment(uint8_t* rec, int size, int max_fills, rb_tree_t* tree, uint16_t* flags)
 {
-    return dacs_write(custody->recbuf, custody->recbuf_size, custody->bundle.attributes->max_fills_per_dacs, &custody->tree, flags);
+    return dacs_write(rec, size, max_fills, tree, flags);
 }
 
 /*--------------------------------------------------------------------------------------
  * v6_receive_acknowledgment -
  *-------------------------------------------------------------------------------------*/
-int v6_receive_acknowledgment(bp_custody_t* custody, bp_custodian_t* custodian, uint16_t* flags)
+int v6_receive_acknowledgment(uint8_t* rec, int size, bp_remove_func_t remove, void* parm, uint16_t* flags)
 {
-    return dacs_read(custodian->rec, custodian->rec_size, custody->remove, custody->ackparm, flags);    
+    return dacs_read(rec, size, remove, parm, flags);    
 }
 
 /*--------------------------------------------------------------------------------------
