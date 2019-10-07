@@ -77,9 +77,6 @@ typedef struct {
 typedef struct {
     bp_route_t          route;          /* addressing information */
     bp_attr_t           attributes;     /* bundle attributes */
-    bp_create_func_t    create;         /* call-back that creates bundle in storage */
-    bp_remove_func_t    remove;         /* call-back that deletes bundle from storage */
-    void*               parm;           /* pass through parameter for create and delete functions */
     bp_bundle_data_t    data;           /* serialized and stored bundle data */
     bool                prebuilt;       /* does pre-built bundle header need initialization */
     void*               blocks;         /* populated in initialization function */

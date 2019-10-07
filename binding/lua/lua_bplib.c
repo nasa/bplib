@@ -312,7 +312,7 @@ int lbplib_open (lua_State* L)
 {
     unsigned int i;
     const bp_store_t* store = NULL;
-    
+
     /* Check Number of Parameters */
     int minargs = 5;
     if(lua_gettop(L) != minargs)
@@ -363,7 +363,9 @@ int lbplib_open (lua_State* L)
     }        
     
     /* Create Bplib Channel */
-    bp_desc_t channel = bplib_open(route, *store, NULL);
+    bp_attr_t attributes;
+    bplib_attrinit(&attributes);
+    bp_desc_t channel = bplib_open(route, *store, attributes);
     if(channel == BP_INVALID_DESCRIPTOR)
     {
         lua_pushnil(L);

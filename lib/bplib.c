@@ -21,6 +21,7 @@
 
 #include "bplib.h"
 #include "v6.h"
+#include "rb_tree.h"
 #include "bundle_types.h"
 
 /******************************************************************************
@@ -151,15 +152,15 @@ static int create_custody(bp_channel_t* ch, unsigned long sysnow, int timeout, u
             int status = BP_SUCCESS;
             
             /* Check if Re-initialization Needed */
-            if(ch->custody->prebuilt == false)
+            if(ch->custody.prebuilt == false)
             {
-                status = v6_populate_bundle(ch->custody, flags);
+                status = v6_populate_bundle(&ch->custody, flags);
             }
 
             /* Send Bundle */
             if(status == BP_SUCCESS)
             {
-                status = v6_send_bundle(&ch->custody, ch->dacs_buffer, ch->dacs_size, timeout, flags);
+                status = v6_send_bundle(&ch->custody, ch->dacs_buffer, ch->dacs_size, create_bundle, ch, timeout, flags);
                 if(status == BP_SUCCESS)
                 {
                     /* DACS successfully enqueued */
@@ -170,7 +171,7 @@ static int create_custody(bp_channel_t* ch, unsigned long sysnow, int timeout, u
                     /* Save first failed DACS enqueue to return later */
                     ret_status = status;
                     *flags |= BP_FLAG_STOREFAILURE; 
-                    bplog(send_status, "Failed (%d) to store DACS for transmission, bundle dropped\n", send_status);
+                    bplog(status, "Failed (%d) to store DACS for transmission, bundle dropped\n", status);
                 }
             }            
         }
@@ -196,7 +197,7 @@ void bplib_init(void)
 /*--------------------------------------------------------------------------------------
  * bplib_open -
  *-------------------------------------------------------------------------------------*/
-bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
+bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 {
     assert(store.create);
     assert(store.destroy);
@@ -230,8 +231,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t* attributes)
     ch->store = store;
     
     /* Set Initial Attributes */
-    if(attributes)  ch->attributes = *attributes;
-    else            ch->attributes = default_attributes;
+    ch->attributes = attributes;
 
     /* Check Protocol Version */
     if(ch->attributes.protocol_version != 6)
@@ -623,15 +623,15 @@ int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_
     bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Check if Re-initialization Needed */
-    if(ch->bundle->prebuilt == false)
+    if(ch->bundle.prebuilt == false)
     {
-        status = v6_populate_bundle(ch->bundle, flags);
+        status = v6_populate_bundle(&ch->bundle, flags);
     }
 
     /* Send Bundle */
     if(status == BP_SUCCESS)
     {
-        status = v6_send_bundle(&ch->bundle, payload, size, timeout, flags);
+        status = v6_send_bundle(&ch->bundle, payload, size, create_bundle, ch, timeout, flags);
         if(status == BP_SUCCESS)
         {
             ch->stats.generated++;
@@ -920,7 +920,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     else if(status == BP_PENDINGFORWARD)
     {
         /* Store Forwarded Bundle */
-        status = v6_send_bundle(&ch->bundle, custodian.rec, custodian.rec_size, timeout, flags);
+        status = v6_send_bundle(&ch->bundle, custodian.rec, custodian.rec_size, create_bundle, ch, timeout, flags);
         if(status == BP_SUCCESS && custodian.node != BP_IPN_NULL)
         {
             custody_transfer = true;

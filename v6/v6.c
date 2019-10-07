@@ -158,10 +158,10 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         blocks->primary_block.rptserv.value     = bundle->route.report_service;
         blocks->primary_block.cstnode.value     = bundle->route.local_node;
         blocks->primary_block.cstserv.value     = bundle->route.local_service;
-        blocks->primary_block.lifetime.value    = bundle->attributes->lifetime;
-        blocks->primary_block.is_admin_rec      = bundle->attributes->admin_record;
-        blocks->primary_block.allow_frag        = bundle->attributes->allow_fragmentation;
-        blocks->primary_block.cst_rqst          = bundle->attributes->request_custody;
+        blocks->primary_block.lifetime.value    = bundle->attributes.lifetime;
+        blocks->primary_block.is_admin_rec      = bundle->attributes.admin_record;
+        blocks->primary_block.allow_frag        = bundle->attributes.allow_fragmentation;
+        blocks->primary_block.cst_rqst          = bundle->attributes.request_custody;
 
         /* Set Pre-Built Flag to TRUE */
         bundle->prebuilt = true;
@@ -195,11 +195,11 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
     }
 
     /* Write Integrity Block */
-    if(bundle->attributes->integrity_check)
+    if(bundle->attributes.integrity_check)
     {
         /* Initialize Block */
         blocks->integrity_block = bundle_bib_blk;
-        blocks->integrity_block.cipher_suite_id.value = bundle->attributes->cipher_suite;
+        blocks->integrity_block.cipher_suite_id.value = bundle->attributes.cipher_suite;
         
         /* Populate Data */
         data->biboffset = hdr_index;
@@ -313,7 +313,7 @@ int v6_populate_bundle(bp_bundle_t* bundle, uint16_t* flags)
 /*--------------------------------------------------------------------------------------
  * v6_send_bundle -
  *-------------------------------------------------------------------------------------*/
-int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, uint16_t* flags)
+int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_func_t create, void* parm, int timeout, uint16_t* flags)
 {
     int                     status          = 0;
     int                     payload_offset  = 0;
@@ -328,15 +328,15 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, 
     pay->paysize = size;
 
     /* Check Fragmentation */
-    if(pay->paysize > bundle->attributes->max_length)
+    if(pay->paysize > bundle->attributes.max_length)
     {
-        if(bundle->attributes->allow_fragmentation)
+        if(bundle->attributes.allow_fragmentation)
         {
             pri->is_frag = true;            
         }
         else
         {
-            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, bundle->attributes->max_length);
+            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, bundle->attributes.max_length);
         }
     }
 
@@ -382,7 +382,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, 
     {
         /* Calculate Storage Header Size and Fragment Size */
         int payload_remaining = pay->paysize - payload_offset;
-        int fragment_size = bundle->attributes->max_length <  payload_remaining ? bundle->attributes->max_length : payload_remaining;
+        int fragment_size = bundle->attributes.max_length <  payload_remaining ? bundle->attributes.max_length : payload_remaining;
 
         /* Update Primary Block Fragmentation */
         if(pri->is_frag)
@@ -407,7 +407,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, 
         data->bundlesize = data->headersize + fragment_size;
 
         /* Enqueue Bundle */
-        status = bundle->create(bundle->genparm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
+        status = create(parm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         payload_offset += fragment_size;
     }

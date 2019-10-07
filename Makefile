@@ -53,8 +53,6 @@ PREFIX	    := /usr/local
 	
 # library objects
 APP_OBJ     := bplib.o
-APP_OBJ     += bundle.o
-APP_OBJ     += custody.o
 
 # common objects
 APP_OBJ     += crc.o
