@@ -23,6 +23,7 @@
 #include "v6.h"
 #include "rb_tree.h"
 #include "bundle_types.h"
+#include "cbuf.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -43,9 +44,8 @@ typedef struct {
     int                 custody_tree_lock;
     rb_tree_t           custody_tree;
     bp_val_t            current_active_cid;
-    bp_val_t            oldest_active_cid;
     int                 active_table_signal;
-    bp_active_bundle_t* active_table;
+    cbuf_t              active_table;
     bp_stats_t          stats;
 } bp_channel_t;
 
@@ -110,22 +110,16 @@ static int create_bundle(void* parm, bool is_record, uint8_t* payload, int size,
  *-------------------------------------------------------------------------------------*/
 static int remove_bundle(void* parm, bp_val_t cid)
 {
-    bp_channel_t*   ch      = (bp_channel_t*)parm;
-    int             status  = BP_FAILEDRESPONSE;
-    bp_index_t      ati     = cid % ch->attributes.active_table_size;
-    bp_sid_t        sid     = ch->active_table[ati].sid;
-
-    /* Check Active Table Entry */
-    if(sid != BP_SID_VACANT)
+    bp_channel_t* ch = (bp_channel_t*)parm;
+   
+    /* Remove Bundle */
+    bp_active_bundle_t bundle;
+    int status = cbuf_remove(&ch->active_table, cid, &bundle); 
+    if(status == BP_SUCCESS)
     {
-        if(ch->active_table[ati].cid == cid)
-        {
-            /* Free Bundle */
-            status = ch->store.relinquish(ch->bundle_handle, sid);
-            ch->active_table[ati].sid = BP_SID_VACANT;
-        }
+        status = ch->store.relinquish(ch->bundle_handle, bundle.sid);
     }
-
+    
     /* Return Status */
     return status;
 }
@@ -330,7 +324,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     /* Initialize Last Time DACS Sent */
     ch->dacs_last_sent = 0;
 
-    /* Initialize Active Table */
+    /* Initialize Active Table Signal */
     ch->active_table_signal = bplib_os_createlock();
     if(ch->active_table_signal < 0)
     {
@@ -339,22 +333,17 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
         return NULL;
     }
 
-    /* Allocate Memory for Active Table */
-    ch->active_table = (bp_active_bundle_t*)malloc(sizeof(bp_active_bundle_t) * ch->attributes.active_table_size);
-    if(ch->active_table == NULL)
+    /* Initialize Active Table */
+    status = cbuf_create(&ch->active_table, ch->attributes.active_table_size);
+    if(status != BP_SUCCESS)
     {
         bplib_close(ch);
         bplog(BP_FAILEDMEM, "Failed to allocate memory for channel active table\n");
         return NULL;
     }
-    else
-    {
-        memset(ch->active_table, 0, sizeof(bp_active_bundle_t) * ch->attributes.active_table_size);
-    }
 
-    /* Initialize Data */
-    ch->oldest_active_cid   = 1;
-    ch->current_active_cid  = 1;
+    /* Initialize Current Custody ID */
+    ch->current_active_cid  = 0;
     
     /* Return Channel */
     return ch;
@@ -371,10 +360,6 @@ void bplib_close(bp_desc_t channel)
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
     
-    /* Un-initialize Active Table */
-    if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
-    if(ch->active_table) free(ch->active_table);
-
     /* Un-initialize Bundle Store */
     if(ch->bundle_handle >= 0)
     {
@@ -417,6 +402,10 @@ void bplib_close(bp_desc_t channel)
     v6_uninitialize(&ch->bundle);
     v6_uninitialize(&ch->custody);
     
+    /* Un-initialize Active Table */
+    if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
+    cbuf_destroy(&ch->active_table);
+
     /* Free Channel */
     free(ch);
 }
@@ -439,22 +428,12 @@ int bplib_flush(bp_desc_t channel)
     bplib_os_lock(ch->active_table_signal);
     {
         /* Relinquish All Active Bundles */
-        while(ch->oldest_active_cid != ch->current_active_cid)
+        bp_active_bundle_t bundle;
+        while(cbuf_next(&ch->active_table, ch->current_active_cid, &bundle) == BP_SUCCESS)
         {
-            /* Get Storage ID of Oldest Active Bundle */
-            bp_index_t ati = ch->oldest_active_cid % ch->attributes.active_table_size;
-            bp_sid_t sid = ch->active_table[ati].sid;
-
-            /* Relinquish Bundle */
-            if(sid != BP_SID_VACANT)
-            {
-                ch->store.relinquish(handle, sid);
-                ch->active_table[ati].sid = BP_SID_VACANT;
-                ch->stats.lost++;
-            }
-
-            /* Go To Next Active Table Entry */
-            ch->oldest_active_cid++;
+            cbuf_remove(&ch->active_table, bundle.cid, NULL);
+            ch->store.relinquish(handle, bundle.sid);
+            ch->stats.lost++;
         }
     }
     bplib_os_unlock(ch->active_table_signal);
@@ -598,7 +577,7 @@ int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
     ch->stats.records = ch->store.getcount(ch->record_handle);
     
     /* Update Active Statistic */
-    ch->stats.active = ch->current_active_cid - ch->oldest_active_cid;
+    ch->stats.active = ch->active_table.num_entries;
 
     /* Latch Statistics */
     *stats = ch->stats;
@@ -647,6 +626,7 @@ int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_
  *-------------------------------------------------------------------------------------*/
 int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_t* flags)
 {
+    bp_active_bundle_t active_bundle = { BP_SID_VACANT, 0, 0 };
     int status = BP_SUCCESS; /* success or error code */
 
     /* Check Parameters */
@@ -660,8 +640,6 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     /* Setup State */
     unsigned long   sysnow  = 0;                /* current system time used for timeouts (seconds) */
     bp_object_t*    object  = NULL;             /* stare out assuming nothing to send */
-    bp_sid_t        sid     = BP_SID_VACANT;    /* store id points to nothing */
-    bp_index_t      ati     = -1;               /* active table index */
     bool            newcid  = true;             /* whether to assign new custody id and active table entry */
     int             handle  = -1;               /* handle for store service being loaded */
 
@@ -695,7 +673,6 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
         handle = ch->record_handle;    
         if(ch->store.dequeue(handle, &object, BP_CHECK) == BP_SUCCESS)
         {
-            sid = object->sid;
             *flags |= BP_FLAG_ROUTENEEDED;
         }
     }
@@ -711,31 +688,24 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
         /* Process Active Table for Timeouts */
         bplib_os_lock(ch->active_table_signal);
         {
-            /* Try to Send Timed-out Bundle */
-            while((object == NULL) && (ch->oldest_active_cid != ch->current_active_cid))
+            /* Get Oldest Bundle */
+            while(cbuf_next(&ch->active_table, ch->current_active_cid, &active_bundle) == BP_SUCCESS)
             {
-                ati = ch->oldest_active_cid % ch->attributes.active_table_size;
-                sid = ch->active_table[ati].sid;
-                if(sid == BP_SID_VACANT) /* entry vacant */
-                {
-                    ch->oldest_active_cid++;
-                }
-                else if(ch->store.retrieve(handle, sid, &object, BP_CHECK) == BP_SUCCESS)
+                /* Retrieve Oldest Bundle */
+                if(ch->store.retrieve(handle, active_bundle.sid, &object, BP_CHECK) == BP_SUCCESS)
                 {
                     bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
                     if(data->exprtime != 0 && sysnow >= data->exprtime) /* check lifetime */
                     {
                         /* Bundle Expired - Clear Entry */
-                        ch->store.relinquish(handle, sid);
-                        ch->active_table[ati].sid = BP_SID_VACANT;
-                        ch->oldest_active_cid++;
+                        cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
+                        ch->store.relinquish(handle, active_bundle.sid);
                         ch->stats.expired++;
                         object = NULL;
                     }
-                    else if(ch->attributes.timeout != 0 && sysnow >= (ch->active_table[ati].retx + ch->attributes.timeout)) /* check timeout */
+                    else if(ch->attributes.timeout != 0 && sysnow >= (active_bundle.retx + ch->attributes.timeout)) /* check timeout */
                     {
                         /* Retransmit Bundle */
-                        ch->oldest_active_cid++;
                         ch->stats.retransmitted++;
 
                         /* Handle Active Table and Custody ID */
@@ -748,7 +718,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                         else
                         {
                             /* Clear Entry (it will be reinserted below at the current CID) */
-                            ch->active_table[ati].sid = BP_SID_VACANT;
+                            cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
                         }
                     }
                     else /* oldest active bundle still active */
@@ -765,9 +735,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                          * request custody transfer it could still go out, but the
                          * current design requires that at least one slot in the active
                          * table is open at all times. */
-                        ati = ch->current_active_cid % ch->attributes.active_table_size;
-                        sid = ch->active_table[ati].sid;
-                        if(sid != BP_SID_VACANT) /* entry vacant */
+                        if(ch->active_table.num_entries == ch->active_table.size)
                         {
                             status = BP_OVERFLOW;                   
                             *flags |= BP_FLAG_ACTIVETABLEWRAP;
@@ -781,8 +749,8 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                 else
                 {
                     /* Failed to Retrieve Bundle from Storage */
-                    ch->store.relinquish(handle, sid);
-                    ch->active_table[ati].sid = BP_SID_VACANT;
+                    cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
+                    ch->store.relinquish(handle, active_bundle.sid);
                     *flags |= BP_FLAG_STOREFAILURE;
                     ch->stats.lost++;
                 }
@@ -801,14 +769,13 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
         if(deq_status == BP_SUCCESS)
         {
             bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
-            sid = object->sid;
 
+            /* Check Expiration Time */
             if(data->exprtime != 0 && sysnow >= data->exprtime)
             {
                 /* Bundle Expired Clear Entry (and loop again) */
-                ch->store.relinquish(handle, sid);
+                ch->store.relinquish(handle, active_bundle.sid);
                 ch->stats.expired++;
-                sid = BP_SID_VACANT;
                 object = NULL;
             }
         }
@@ -838,17 +805,21 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
             /* Mark Bundle as Active */
             bplib_os_lock(ch->active_table_signal);
             {
-                /* Assign Custody ID and Active Table Entry */
-                if(newcid)
-                {
-                    ati = ch->current_active_cid % ch->attributes.active_table_size;
-                    ch->active_table[ati].sid = sid;
-                    ch->active_table[ati].cid = ch->current_active_cid;
-                    v6_update_bundle(data, ch->current_active_cid++, flags);
-                }
+                /* Save/Update Storage ID */
+                active_bundle.sid = object->sid;
 
                 /* Update Retransmit Time */
-                ch->active_table[ati].retx = sysnow;
+                active_bundle.retx = sysnow;
+                
+                /* Assign New Custody ID */
+                if(newcid)
+                {
+                    active_bundle.cid = ch->current_active_cid++;
+                    v6_update_bundle(data, active_bundle.cid, flags);
+                }
+
+                /* Update Active Table */
+                cbuf_add(&ch->active_table, active_bundle, !newcid);
             }
             bplib_os_unlock(ch->active_table_signal);
         }

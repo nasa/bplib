@@ -24,14 +24,6 @@
 #include "cbuf.h"
 
 /******************************************************************************
- DEFINES
- ******************************************************************************/
-
-/******************************************************************************
- LOCAL FUNCTIONS
- ******************************************************************************/
-
-/******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
@@ -50,10 +42,10 @@ int cbuf_create(cbuf_t* cbuf, int size)
     /* Initialize Circular to Empty */
     memset(cbuf->table, 0, sizeof(bp_active_bundle_t) * cbuf->size);
     
-    /* Initialize Hash Table Attributes */
+    /* Initialize Circular Buffer Attributes */
     cbuf->size = size;
     cbuf->num_entries = 0;
-//    cbuf->oldest_cid = NULL_INDEX;
+    cbuf->oldest_cid = 0;
     
     /* Return Success */
     return BP_SUCCESS;
@@ -64,7 +56,7 @@ int cbuf_create(cbuf_t* cbuf, int size)
  *----------------------------------------------------------------------------*/
 int cbuf_destroy(cbuf_t* cbuf)
 {
-    free(cbuf->table);
+    if(cbuf->table) free(cbuf->table);
     return BP_SUCCESS;
 }
 
@@ -90,18 +82,25 @@ int cbuf_add(cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite)
 }
 
 /*----------------------------------------------------------------------------
- * Get
+ * cbuf_next
  *----------------------------------------------------------------------------*/
-int cbuf_get(cbuf_t* cbuf, bp_val_t cid, bp_active_bundle_t* bundle)
+int cbuf_next(cbuf_t* cbuf, bp_val_t max_cid, bp_active_bundle_t* bundle)
 {
-    bp_index_t ati = cid % cbuf->size;
-    if(cbuf->table[ati].sid != BP_SID_VACANT)
+    while(cbuf->oldest_cid != max_cid)
     {
-        if(bundle) *bundle = cbuf->table[ati];
-        return BP_SUCCESS;
+        bp_index_t ati = cbuf->oldest_cid % cbuf->size;
+        if(cbuf->table[ati].sid == BP_SID_VACANT)
+        {
+            cbuf->oldest_cid++; 
+        }
+        else
+        {
+            *bundle = cbuf->table[ati];
+            return BP_SUCCESS;
+        }
     }
 
-    return BP_CIDNOTFOUND;
+    return BP_TIMEOUT;
 }
 
 /*----------------------------------------------------------------------------
@@ -120,25 +119,4 @@ int cbuf_remove(cbuf_t* cbuf, bp_val_t cid, bp_active_bundle_t* bundle)
     }
 
     return BP_CIDNOTFOUND;
-}
-
-/*----------------------------------------------------------------------------
- * Clear
- *----------------------------------------------------------------------------*/
-int cbuf_clear(cbuf_t* cbuf)
-{
-    bp_index_t ati;
-    
-    /* Clear Table */
-    for(ati = 0; ati < cbuf->size; ati++)
-    {
-        if(cbuf->table[ati].sid != BP_SID_VACANT)
-        {
-            cbuf->table[ati].sid = BP_SID_VACANT;
-            cbuf->num_entries--;
-        }
-    }
-
-    /* Return Success */
-    return BP_SUCCESS;
 }

@@ -42,8 +42,7 @@ typedef struct {
 int cbuf_create     (cbuf_t* cbuf, int size);
 int cbuf_destroy    (cbuf_t* cbuf);
 int cbuf_add        (cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite);
-int cbuf_get        (cbuf_t* cbuf, bp_val_t cid, bp_active_bundle_t* bundle);
+int cbuf_next       (cbuf_t* cbuf, bp_val_t max_cid, bp_active_bundle_t* bundle);
 int cbuf_remove     (cbuf_t* cbuf, bp_val_t cid, bp_active_bundle_t* bundle);
-int cbuf_clear      (cbuf_t* cbuf);
 
 #endif /* _cbuf_h_ */

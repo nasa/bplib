@@ -27,44 +27,21 @@
  DEFINES
  ******************************************************************************/
 
-#define EMPTY_ENTRY     0 // must be 0 because rh_hash->table initialized to 0's
-#define NULL_INDEX      BP_MAX_INDEX
+#define EMPTY_ENTRY     0               /* chain set to this value to indicate empty slot */
+#define NULL_INDEX      BP_MAX_INDEX    /* 0 is a valid index so max_val is used */
+#define HASH_CID(cid)   (cid)           /* identify function for now */
 
 /******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/
 
 /*----------------------------------------------------------------------------
- * hash_cid
- *----------------------------------------------------------------------------*/
-uint32_t hash_cid(bp_val_t cid)
-{
-    uint8_t*    ptr = (uint8_t*)&cid;
-    uint32_t    h   = 0;
-    uint32_t    i   = 0;
-
-    for(i = 0; i < sizeof(cid); i++)
-    {
-        h += *ptr;
-        h += ( h << 10 );
-        h ^= ( h >> 6 );
-        ptr++;
-    }
-
-    h += ( h << 3 );
-    h ^= ( h >> 11 );
-    h += ( h << 15 );
-
-    return h;
-}
-
-/*----------------------------------------------------------------------------
  * get_node
  *----------------------------------------------------------------------------*/
-int get_node(rh_hash_t* rh_hash, bp_val_t cid)
+static int get_node(rh_hash_t* rh_hash, bp_val_t cid)
 {
     /* Grab Hash Entry */
-    bp_index_t index = hash_cid(cid) % rh_hash->size;
+    bp_index_t index = HASH_CID(cid) % rh_hash->size;
 
     /* Search */
     if(rh_hash->table[index].chain != EMPTY_ENTRY)
@@ -91,7 +68,7 @@ int get_node(rh_hash_t* rh_hash, bp_val_t cid)
 /*----------------------------------------------------------------------------
  * overwrite_node
  *----------------------------------------------------------------------------*/
-int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, bool overwrite)
+static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, bool overwrite)
 {
     if(overwrite)
     {
@@ -124,7 +101,7 @@ int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bund
 /*----------------------------------------------------------------------------
  * write_node
  *----------------------------------------------------------------------------*/
-void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, uint32_t hash)
+static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, uint32_t hash)
 {
     rh_hash->table[index].hash      = hash;
     rh_hash->table[index].bundle    = bundle;
@@ -188,7 +165,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
 {
     /* Constrain the Hash */
     bp_val_t cid = bundle.cid;    
-    uint32_t hash = hash_cid(cid);
+    uint32_t hash = HASH_CID(cid);
     bp_index_t curr_index = hash % rh_hash->size;
     
     /* Add Entry to Hash */
