@@ -244,7 +244,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
  *
  *  This initializes a bundle structure
  *-------------------------------------------------------------------------------------*/
-int v6_initialize(bp_bundle_t* bundle, uint16_t* flags)
+int v6_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes, uint16_t* flags)
 {
     int status = BP_SUCCESS;
 
@@ -257,6 +257,10 @@ int v6_initialize(bp_bundle_t* bundle, uint16_t* flags)
         status = bib_init();
     }
 
+    /* Initialize Route and Attributes */
+    bundle->route = route;
+    bundle->attributes = attributes;
+    
     /* Initialize Blocks */
     bundle->blocks = NULL;
     

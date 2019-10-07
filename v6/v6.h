@@ -73,7 +73,7 @@
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int v6_initialize               (bp_bundle_t* bundle, uint16_t* flags);
+int v6_initialize               (bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes, uint16_t* flags);
 int v6_uninitialize             (bp_bundle_t* bundle);
 int v6_populate_bundle          (bp_bundle_t* bundle, uint16_t* flags);
 int v6_send_bundle              (bp_bundle_t* bundle, uint8_t* buffer, int size, int timeout, uint16_t* flags);

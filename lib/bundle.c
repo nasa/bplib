@@ -41,7 +41,7 @@ int bundle_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attribute
     bundle->parm        = parm;
 
     /* Initialize New Bundle */
-    if(bundle->attributes->protocol_version == 6)
+    if(bundle->attributes.protocol_version == 6)
     {
         status = v6_initialize(bundle, flags);
     }
