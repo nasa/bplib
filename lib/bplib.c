@@ -171,7 +171,7 @@ static int create_custody(bp_channel_t* ch, unsigned long sysnow, int timeout, u
                     /* Save first failed DACS enqueue to return later */
                     ret_status = status;
                     *flags |= BP_FLAG_STOREFAILURE; 
-                    bplog(status, "Failed (%d) to store DACS for transmission, bundle dropped\n", status);
+                    bplog(status, "Failed to store DACS for transmission, bundle dropped\n");
                 }
             }            
         }
@@ -894,12 +894,20 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         /* Process Aggregate Custody Signal - Process DACS */
         bplib_os_lock(ch->active_table_signal);
         {
-            int num_acks = v6_receive_acknowledgment(custodian.rec, custodian.rec_size, remove_bundle, ch, flags);            
-            if(num_acks > 0)
+            int num_acks = 0;
+            int bytes_read = v6_receive_acknowledgment(custodian.rec, custodian.rec_size, &num_acks, remove_bundle, ch, flags);            
+            ch->stats.acknowledged += num_acks;
+
+            /* Set Status */
+            if(bytes_read > 0)
             {
-                ch->stats.acknowledged += num_acks;
                 bplib_os_signal(ch->active_table_signal);
                 status = BP_SUCCESS;
+            }
+            else
+            {
+                /* Error Code */
+                status = bytes_read;
             }
         }
         bplib_os_unlock(ch->active_table_signal);

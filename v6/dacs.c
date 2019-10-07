@@ -96,7 +96,7 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
 /*--------------------------------------------------------------------------------------
  * dacs_read -
  *-------------------------------------------------------------------------------------*/
-int dacs_read(uint8_t* rec, int rec_size, bp_remove_func_t ack, void* ack_parm, uint16_t* flags)
+int dacs_read(uint8_t* rec, int rec_size, int* num_acks, bp_remove_func_t ack, void* ack_parm, uint16_t* flags)
 {
     bp_val_t i;
     bp_field_t cid = { 0, 2, 0 };
@@ -105,22 +105,26 @@ int dacs_read(uint8_t* rec, int rec_size, bp_remove_func_t ack, void* ack_parm, 
     uint8_t acs_status = rec[BP_ACS_REC_STATUS_INDEX];
     bool ack_success = (acs_status & BP_ACS_ACK_MASK) == BP_ACS_ACK_MASK;
     int ack_count = 0;
+    uint16_t sdnvflags = 0;
+    int ret_status = BP_SUCCESS;
     
     /* Read First Custody ID */
-    fill.index = sdnv_read(rec, rec_size, &cid, flags);
-    if(*flags != 0)
+    fill.index = sdnv_read(rec, rec_size, &cid, &sdnvflags);
+    if(sdnvflags != 0)
     {
-        return bplog(BP_BUNDLEPARSEERR, "Failed to read first custody ID (%08X)\n", *flags);
+        *flags |= sdnvflags;
+        return bplog(BP_BUNDLEPARSEERR, "Failed to read first custody ID (%08X)\n", sdnvflags);
     }
 
     /* Process Fills */
     while((int)fill.index < rec_size)
     {
         /* Read Fill */
-        fill.index = sdnv_read(rec, rec_size, &fill, flags);
-        if(*flags != 0)
+        fill.index = sdnv_read(rec, rec_size, &fill, &sdnvflags);
+        if(sdnvflags != 0)
         {
-            return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", *flags);
+            *flags |= sdnvflags;
+            return bplog(BP_BUNDLEPARSEERR, "Failed to read fill (%08X)\n", sdnvflags);
         }
 
         /* Process Custody IDs */
@@ -130,10 +134,19 @@ int dacs_read(uint8_t* rec, int rec_size, bp_remove_func_t ack, void* ack_parm, 
             cidin = false;
             for(i = 0; i < fill.value; i++)
             {
+                /* Acknowledge Bundle CID */
                 int status = ack(ack_parm, cid.value + i);
                 if(status == BP_SUCCESS)                ack_count++;
                 else if(status == BP_FAILEDRESPONSE)    *flags |= BP_FLAG_UNKNOWNCID;
                 else if(status == BP_FAILEDSTORE)       *flags |= BP_FLAG_STOREFAILURE;
+
+                /* Set Return Status */
+                if(status != BP_SUCCESS && ret_status != BP_SUCCESS)
+                {
+                    /* Save Off First Failure */
+                    ret_status = status;
+                    bplog(status, "Failed to acknowledge bundle, cid=%ld\n", (unsigned long)cid.value);
+                }
             }
         }
         else
@@ -146,12 +159,10 @@ int dacs_read(uint8_t* rec, int rec_size, bp_remove_func_t ack, void* ack_parm, 
         cid.value += fill.value;
     }
 
-    /* Success Oriented Error Checking */
-    if(*flags != 0)
-    {
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of DACS (%08X)\n", *flags); 
-    } 
+    /* Set Number of Acknowledgments */
+    *num_acks = ack_count;
 
-    /* Return Number of Acknowledgments */
-    return ack_count;
+    /* Return Bytes Read or Error Code */
+    if(ret_status > 0)  return fill.index;
+    else                return ret_status;
 }

@@ -722,9 +722,9 @@ int v6_populate_acknowledgment(uint8_t* rec, int size, int max_fills, rb_tree_t*
 /*--------------------------------------------------------------------------------------
  * v6_receive_acknowledgment -
  *-------------------------------------------------------------------------------------*/
-int v6_receive_acknowledgment(uint8_t* rec, int size, bp_remove_func_t remove, void* parm, uint16_t* flags)
+int v6_receive_acknowledgment(uint8_t* rec, int size, int* num_acks, bp_remove_func_t remove, void* parm, uint16_t* flags)
 {
-    return dacs_read(rec, size, remove, parm, flags);    
+    return dacs_read(rec, size, num_acks, remove, parm, flags);    
 }
 
 /*--------------------------------------------------------------------------------------
