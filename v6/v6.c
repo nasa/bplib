@@ -426,7 +426,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
 /*--------------------------------------------------------------------------------------
  * v6_receive_bundle -
  *-------------------------------------------------------------------------------------*/
-int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodian_t* custodian, uint16_t* flags)
+int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload_t* payload, uint16_t* flags)
 {
     int                 status = BP_SUCCESS;
 
@@ -614,8 +614,8 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodi
                 status = v6_build(bundle, &pri_blk, hdr_buf, hdr_index, flags);
                 if(status == BP_SUCCESS)
                 {
-                    custodian->rec = pay_blk.payptr;
-                    custodian->rec_size = pay_blk.paysize;
+                    payload->memptr = pay_blk.payptr;
+                    payload->size = pay_blk.paysize;
                     status = BP_PENDINGFORWARD;
 
                     /* Handle Custody Transfer */
@@ -628,15 +628,15 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodi
                         }
                         else
                         {
-                            custodian->node = cteb_blk.cstnode;
-                            custodian->service = cteb_blk.cstserv;
-                            custodian->cid = cteb_blk.cid.value;
+                            payload->node = cteb_blk.cstnode;
+                            payload->service = cteb_blk.cstserv;
+                            payload->cid = cteb_blk.cid.value;
                         }
                     }
                     else
                     {
-                        custodian->node = BP_IPN_NULL;
-                        custodian->service = BP_IPN_NULL;
+                        payload->node = BP_IPN_NULL;
+                        payload->service = BP_IPN_NULL;
                     }
                 }
             }
@@ -653,10 +653,10 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodi
                 if(rec_type == BP_ACS_REC_TYPE)
                 {
                     /* Return Aggregate Custody Signal for Custody Processing */
-                    custodian->rec = &buffer[index];
-                    custodian->rec_size = size - index;
-                    custodian->node = pri_blk.cstnode.value;
-                    custodian->service = pri_blk.cstserv.value;
+                    payload->memptr = &buffer[index];
+                    payload->size = size - index;
+                    payload->node = pri_blk.cstnode.value;
+                    payload->service = pri_blk.cstserv.value;
                     status = BP_PENDINGACKNOWLEDGMENT;
                 }
                 else if(rec_type == BP_CS_REC_TYPE)     status = bplog(BP_UNSUPPORTED, "Custody signal bundles are not supported\n");
@@ -666,8 +666,8 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodi
             else 
             {
                 /* Return Payload */
-                custodian->rec = &buffer[index];
-                custodian->rec_size = size - index;
+                payload->memptr = &buffer[index];
+                payload->size = size - index;
                 status = BP_PENDINGACCEPTANCE;
                 
                 /* Handle Custody Transfer */
@@ -675,9 +675,9 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodi
                 {
                     if(cteb_present)
                     {
-                        custodian->node = cteb_blk.cstnode;
-                        custodian->service = cteb_blk.cstserv;
-                        custodian->cid = cteb_blk.cid.value;
+                        payload->node = cteb_blk.cstnode;
+                        payload->service = cteb_blk.cstserv;
+                        payload->cid = cteb_blk.cid.value;
                     }
                     else                        
                     {
@@ -687,8 +687,8 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_custodi
                 }
                 else
                 {
-                    custodian->node = BP_IPN_NULL;
-                    custodian->service = BP_IPN_NULL;
+                    payload->node = BP_IPN_NULL;
+                    payload->service = BP_IPN_NULL;
                 }
             }
             

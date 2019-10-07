@@ -64,14 +64,14 @@ typedef struct {
     uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; /* header portion of bundle */
 } bp_bundle_data_t;
 
-/* Bundle Custodian */
+/* Pending Block */
 typedef struct {
-    uint8_t*            rec;            /* payload | aggregate custody signal */
-    int                 rec_size;       /* size of payload | size of aggregate custody signal */
-    bp_ipn_t            node;           /* custody node of bundle */
-    bp_ipn_t            service;        /* custody service of bundle */
-    bp_val_t            cid;            /* custody id of bundle */
-} bp_custodian_t;
+    uint8_t*            memptr;         /* pointer to payload */
+    int                 size;           /* size of payload */
+    bp_ipn_t            node;           /* custody node of payload */
+    bp_ipn_t            service;        /* custody service of payload */
+    bp_val_t            cid;            /* custody id of payload */
+} bp_payload_t;
 
 /* Bundle Structure */
 typedef struct {

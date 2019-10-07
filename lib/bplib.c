@@ -882,9 +882,9 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     ch->stats.received++;
     
     /* Receive Bundle */
-    bp_custodian_t custodian;
+    bp_payload_t payload;
     bool custody_transfer = false;
-    status = v6_receive_bundle(&ch->bundle, bundle, size, &custodian, flags);
+    status = v6_receive_bundle(&ch->bundle, bundle, size, &payload, flags);
     if(status == BP_EXPIRED)
     {
         ch->stats.expired++;
@@ -895,7 +895,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         bplib_os_lock(ch->active_table_signal);
         {
             int num_acks = 0;
-            int bytes_read = v6_receive_acknowledgment(custodian.rec, custodian.rec_size, &num_acks, remove_bundle, ch, flags);            
+            int bytes_read = v6_receive_acknowledgment(payload.memptr, payload.size, &num_acks, remove_bundle, ch, flags);            
             ch->stats.acknowledged += num_acks;
 
             /* Set Status */
@@ -915,8 +915,8 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     else if(status == BP_PENDINGACCEPTANCE)
     {
         /* Store Payload */
-        status = ch->store.enqueue(ch->payload_handle, custodian.rec, custodian.rec_size, NULL, 0, timeout);
-        if(status == BP_SUCCESS && custodian.node != BP_IPN_NULL)
+        status = ch->store.enqueue(ch->payload_handle, payload.memptr, payload.size, NULL, 0, timeout);
+        if(status == BP_SUCCESS && payload.node != BP_IPN_NULL)
         {
             custody_transfer = true;
         }
@@ -928,8 +928,8 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     else if(status == BP_PENDINGFORWARD)
     {
         /* Store Forwarded Bundle */
-        status = v6_send_bundle(&ch->bundle, custodian.rec, custodian.rec_size, create_bundle, ch, timeout, flags);
-        if(status == BP_SUCCESS && custodian.node != BP_IPN_NULL)
+        status = v6_send_bundle(&ch->bundle, payload.memptr, payload.size, create_bundle, ch, timeout, flags);
+        if(status == BP_SUCCESS && payload.node != BP_IPN_NULL)
         {
             custody_transfer = true;
         }
@@ -948,10 +948,10 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         /* Take Custody */
         bplib_os_lock(ch->custody_tree_lock);
         {
-            if(ch->custody.route.destination_node == custodian.node && ch->custody.route.destination_service == custodian.service)
+            if(ch->custody.route.destination_node == payload.node && ch->custody.route.destination_service == payload.service)
             {
                 /* Insert Custody ID directly into current custody custody_tree */
-                int insert_status = rb_tree_insert(custodian.cid, &ch->custody_tree);
+                int insert_status = rb_tree_insert(payload.cid, &ch->custody_tree);
                 if(insert_status == BP_CUSTODYTREEFULL) 
                 {
                     /* Flag Full Tree - possibly the custody_tree size is configured to be too small */
@@ -961,7 +961,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
                     create_custody(ch, sysnow, BP_CHECK, flags);
 
                     /* Start New DACS */
-                    if(rb_tree_insert(custodian.cid, &ch->custody_tree) != BP_SUCCESS)
+                    if(rb_tree_insert(payload.cid, &ch->custody_tree) != BP_SUCCESS)
                     {
                         /* There is no valid reason for an insert to fail on an empty custody_tree */
                         status = BP_FAILEDRESPONSE;
@@ -987,12 +987,12 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
                 }
 
                 /* Initial New DACS Bundle */
-                ch->custody.route.destination_node = custodian.node;
-                ch->custody.route.destination_service = custodian.service;
+                ch->custody.route.destination_node = payload.node;
+                ch->custody.route.destination_service = payload.service;
                 ch->custody.prebuilt = false;
 
                 /* Start New DACS */
-                if(rb_tree_insert(custodian.cid, &ch->custody_tree) != BP_SUCCESS)
+                if(rb_tree_insert(payload.cid, &ch->custody_tree) != BP_SUCCESS)
                 {
                     /* There is no valid reason for an insert to fail on an empty custody_tree */
                     status = BP_FAILEDRESPONSE;
