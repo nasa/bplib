@@ -95,7 +95,7 @@ extern "C" {
 #define BP_FLAG_SDNVOVERFLOW            0x0200  /* insufficient room in variable to read/write value */
 #define BP_FLAG_SDNVINCOMPLETE          0x0400  /* insufficient room in block to read/write value */
 #define BP_FLAG_ACTIVETABLEWRAP         0x0800  /* the active table wrapped */
-#define BP_FLAG_DUPLICATES              0x1000  /* duplicate bundle ids were identified when creating this dacs */
+#define BP_FLAG_DUPLICATES              0x1000  /* multiple bundles on the network have the same custody id */
 #define BP_FLAG_RBTREEFULL              0x2000  /* the dacs rb_tree was full */
 
 /* Set/Get Option Modes */
@@ -121,14 +121,14 @@ extern "C" {
 #define BP_DEFAULT_INTEGRITY_CHECK      true
 #define BP_DEFAULT_ALLOW_FRAGMENTATION  false
 #define BP_DEFAULT_TIMEOUT              10 /* seconds */
-#define BP_DEFAULT_MAX_LENGTH           4096 /* bytes */
+#define BP_DEFAULT_MAX_LENGTH           4096 /* bytes (must be smaller than BP_MAX_INDEX) */
 #define BP_DEFAULT_CID_REUSE            false
 #define BP_DEFAULT_DACS_RATE            5 /* period in seconds */
 #define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
 
 /* Default Fixed Configuration */
 #define BP_DEFAULT_PROTOCOL_VERSION     6
-#define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384
+#define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384 /* bundles (must be smaller than BP_MAX_INDEX) */
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
 #define BP_DEFAULT_STORAGE_SERVICE_PARM NULL
@@ -233,7 +233,7 @@ bp_desc_t   bplib_open          (bp_route_t route, bp_store_t store, bp_attr_t a
 void        bplib_close         (bp_desc_t channel);
 
 int         bplib_flush         (bp_desc_t channel);
-int         bplib_config        (bp_desc_t channel, int mode, int opt, void* val, int len);
+int         bplib_config        (bp_desc_t channel, int mode, int opt, int* val);
 int         bplib_latchstats    (bp_desc_t channel, bp_stats_t* stats);
 
 int         bplib_store         (bp_desc_t channel, void* payload, int size, int timeout, uint16_t* flags);

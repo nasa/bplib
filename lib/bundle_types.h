@@ -41,8 +41,8 @@ typedef int (*bp_remove_func_t) (void* parm, bp_val_t cid);
 /* Bundle Field (fixed size) */
 typedef struct {
     bp_val_t            value;          /* value of field */
-    bp_val_t            index;          /* offset into memory block to write value */
-    bp_val_t            width;          /* number of bytes in memory block value uses */
+    bp_index_t          index;          /* offset into memory block to write value */
+    bp_index_t          width;          /* number of bytes in memory block value uses */
 } bp_field_t;
 
 /* Active Bundle */

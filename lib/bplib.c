@@ -111,8 +111,7 @@ static int create_bundle(void* parm, bool is_record, uint8_t* payload, int size,
 static int remove_bundle(void* parm, bp_val_t cid)
 {
     bp_channel_t* ch = (bp_channel_t*)parm;
-   
-    /* Remove Bundle */
+
     bp_active_bundle_t bundle;
     int status = cbuf_remove(&ch->active_table, cid, &bundle); 
     if(status == BP_SUCCESS)
@@ -154,7 +153,7 @@ static int create_custody(bp_channel_t* ch, unsigned long sysnow, int timeout, u
             /* Send Bundle */
             if(status == BP_SUCCESS)
             {
-                status = v6_send_bundle(&ch->custody, ch->dacs_buffer, ch->dacs_size, create_bundle, ch, timeout, flags);
+                status = v6_send_bundle(&ch->custody, ch->dacs_buffer, size, create_bundle, ch, timeout, flags);
                 if(status == BP_SUCCESS)
                 {
                     /* DACS successfully enqueued */
@@ -428,11 +427,11 @@ int bplib_flush(bp_desc_t channel)
     bplib_os_lock(ch->active_table_signal);
     {
         /* Relinquish All Active Bundles */
-        bp_active_bundle_t bundle;
-        while(cbuf_next(&ch->active_table, ch->current_active_cid, &bundle) == BP_SUCCESS)
+        bp_active_bundle_t active_bundle;
+        while(cbuf_next(&ch->active_table, ch->current_active_cid, &active_bundle) == BP_SUCCESS)
         {
-            cbuf_remove(&ch->active_table, bundle.cid, NULL);
-            ch->store.relinquish(handle, bundle.sid);
+            cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
+            ch->store.relinquish(handle, active_bundle.sid);
             ch->stats.lost++;
         }
     }
@@ -445,7 +444,7 @@ int bplib_flush(bp_desc_t channel)
 /*--------------------------------------------------------------------------------------
  * bplib_config -
  *-------------------------------------------------------------------------------------*/
-int bplib_config(bp_desc_t channel, int mode, int opt, void* val, int len)
+int bplib_config(bp_desc_t channel, int mode, int opt, int* val)
 {
     /* Check Parameters */
     if(channel == NULL)     return BP_PARMERR;
@@ -462,87 +461,68 @@ int bplib_config(bp_desc_t channel, int mode, int opt, void* val, int len)
     {
         case BP_OPT_LIFETIME:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* lifetime = (int*)val;
-            if(setopt)  ch->attributes.lifetime = *lifetime;
-            else        *lifetime = ch->attributes.lifetime;
+            if(setopt)  ch->attributes.lifetime = *val;
+            else        *val = ch->attributes.lifetime;
             break;
         }
         case BP_OPT_REQUEST_CUSTODY:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
-            if(setopt)  ch->attributes.request_custody = *enable;
-            else        *enable = ch->attributes.request_custody;
+            if(setopt && *val != true && *val != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.request_custody = *val;
+            else        *val = ch->attributes.request_custody;
             break;
         }
         case BP_OPT_ADMIN_RECORD:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
-            if(setopt)  ch->attributes.admin_record = *enable;
-            else        *enable = ch->attributes.admin_record;
+            if(setopt && *val != true && *val != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.admin_record = *val;
+            else        *val = ch->attributes.admin_record;
             break;
         }
         case BP_OPT_INTEGRITY_CHECK:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
-            if(setopt)  ch->attributes.integrity_check = *enable;
-            else        *enable = ch->attributes.integrity_check;
+            if(setopt && *val != true && *val != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.integrity_check = *val;
+            else        *val = ch->attributes.integrity_check;
             break;
         }
         case BP_OPT_ALLOW_FRAGMENTATION:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
-            if(setopt)  ch->attributes.allow_fragmentation = *enable;
-            else        *enable = ch->attributes.allow_fragmentation;
+            if(setopt && *val != true && val != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.allow_fragmentation = *val;
+            else        *val = ch->attributes.allow_fragmentation;
             break;
         }
         case BP_OPT_CIPHER_SUITE:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* type = (int*)val;
-            if(setopt)  ch->attributes.cipher_suite = *type;
-            else        *type = ch->attributes.cipher_suite;
+            if(setopt)  ch->attributes.cipher_suite = *val;
+            else        *val = ch->attributes.cipher_suite;
             break;
         }
         case BP_OPT_TIMEOUT:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* timeout = (int*)val;
-            if(setopt)  ch->attributes.timeout = *timeout;
-            else        *timeout = ch->attributes.timeout;
+            if(setopt)  ch->attributes.timeout = *val;
+            else        *val = ch->attributes.timeout;
             break;
         }
         case BP_OPT_MAX_LENGTH:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* maxlen = (int*)val;
-            if(setopt)  ch->attributes.max_length = *maxlen;
-            else        *maxlen = ch->attributes.max_length;
+            if(setopt && (*val < 0 || (unsigned long)*val > BP_MAX_INDEX)) return BP_PARMERR;
+            if(setopt)  ch->attributes.max_length = *val;
+            else        *val = ch->attributes.max_length;
             break;
         }
         case BP_OPT_CID_REUSE:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* enable = (int*)val;
-            if(setopt && *enable != true && *enable != false) return BP_PARMERR;
-            if(setopt)  ch->attributes.cid_reuse = *enable;
-            else        *enable = ch->attributes.cid_reuse;
+            if(setopt && *val != true && *val != false) return BP_PARMERR;
+            if(setopt)  ch->attributes.cid_reuse = *val;
+            else        *val = ch->attributes.cid_reuse;
             break;
         }
         case BP_OPT_DACS_RATE:
         {
-            if(len != sizeof(int)) return BP_PARMERR;
-            int* rate = (int*)val;
-            if(setopt)  ch->attributes.dacs_rate = *rate;
-            else        *rate = ch->attributes.dacs_rate;
+            if(setopt)  ch->attributes.dacs_rate = *val;
+            else        *val = ch->attributes.dacs_rate;
             break;
         }
         default:
@@ -577,7 +557,7 @@ int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
     ch->stats.records = ch->store.getcount(ch->record_handle);
     
     /* Update Active Statistic */
-    ch->stats.active = ch->active_table.num_entries;
+    ch->stats.active = cbuf_count(&ch->active_table, ch->current_active_cid);
 
     /* Latch Statistics */
     *stats = ch->stats;
@@ -697,11 +677,13 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                     bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
                     if(data->exprtime != 0 && sysnow >= data->exprtime) /* check lifetime */
                     {
-                        /* Bundle Expired - Clear Entry */
+                        /* Bundle Expired */
+                        object = NULL;
+
+                        /* Clear Entry in Active Table and Storage */
                         cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
                         ch->store.relinquish(handle, active_bundle.sid);
                         ch->stats.expired++;
-                        object = NULL;
                     }
                     else if(ch->attributes.timeout != 0 && sysnow >= (active_bundle.retx + ch->attributes.timeout)) /* check timeout */
                     {
@@ -719,7 +701,13 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                         {
                             /* Clear Entry (it will be reinserted below at the current CID) */
                             cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
+                            
+                            /* Move to Next Oldest */
+                            cbuf_next(&ch->active_table, ch->current_active_cid, NULL);
                         }
+                        
+                        /* Break Out of Loop */
+                        break;
                     }
                     else /* oldest active bundle still active */
                     {
@@ -735,7 +723,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                          * request custody transfer it could still go out, but the
                          * current design requires that at least one slot in the active
                          * table is open at all times. */
-                        if(ch->active_table.num_entries == ch->active_table.size)
+                        if(cbuf_count(&ch->active_table, ch->current_active_cid) == ch->active_table.size)
                         {
                             status = BP_OVERFLOW;                   
                             *flags |= BP_FLAG_ACTIVETABLEWRAP;
@@ -819,7 +807,8 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                 }
 
                 /* Update Active Table */
-                cbuf_add(&ch->active_table, active_bundle, !newcid);
+                status = cbuf_add(&ch->active_table, active_bundle, !newcid);
+                if(status == BP_DUPLICATECID) *flags |= BP_FLAG_DUPLICATES;
             }
             bplib_os_unlock(ch->active_table_signal);
         }

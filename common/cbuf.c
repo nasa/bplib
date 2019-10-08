@@ -44,7 +44,6 @@ int cbuf_create(cbuf_t* cbuf, int size)
     
     /* Initialize Circular Buffer Attributes */
     cbuf->size = size;
-    cbuf->num_entries = 0;
     cbuf->oldest_cid = 0;
     
     /* Return Success */
@@ -67,13 +66,14 @@ int cbuf_add(cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite)
 {
     /* Add Bundle */
     bp_index_t ati = bundle.cid % cbuf->size;
-    if(cbuf->table[ati].cid == bundle.cid && !overwrite)
+    if( (!overwrite) &&
+        (cbuf->table[ati].sid != BP_SID_VACANT) && 
+        (cbuf->table[ati].cid == bundle.cid) )
     {        
         return BP_DUPLICATECID;
     }
     else
     {
-        if(cbuf->table[ati].cid != bundle.cid) cbuf->num_entries++;
         cbuf->table[ati] = bundle;
     }
     
@@ -95,7 +95,7 @@ int cbuf_next(cbuf_t* cbuf, bp_val_t max_cid, bp_active_bundle_t* bundle)
         }
         else
         {
-            *bundle = cbuf->table[ati];
+            if(bundle) *bundle = cbuf->table[ati];
             return BP_SUCCESS;
         }
     }
@@ -114,9 +114,24 @@ int cbuf_remove(cbuf_t* cbuf, bp_val_t cid, bp_active_bundle_t* bundle)
     {
         if(bundle) *bundle = cbuf->table[ati];
         cbuf->table[ati].sid = BP_SID_VACANT;
-        cbuf->num_entries--;
         return BP_SUCCESS;
     }
 
     return BP_CIDNOTFOUND;
 }
+
+/*----------------------------------------------------------------------------
+ * Count - returns number of entries in active table currently in use
+ *----------------------------------------------------------------------------*/
+int cbuf_count(cbuf_t* cbuf, bp_val_t max_cid)
+{
+    if(max_cid >= cbuf->oldest_cid)
+    {
+        return max_cid - cbuf->oldest_cid;        
+    }
+    else
+    {
+        return (BP_MAX_ENCODED_VALUE - cbuf->oldest_cid) + max_cid + 1;
+    }
+}
+

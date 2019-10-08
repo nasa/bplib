@@ -565,6 +565,10 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
             else            index += bytes;
             exclude[ei++] = index + pay_blk.paysize;
 
+            /* Set Returned Payload */
+            payload->memptr = pay_blk.payptr;
+            payload->size = pay_blk.paysize;
+            
             /* Perform Integrity Check */
             if(bib_present)
             {
@@ -614,8 +618,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                 status = v6_build(bundle, &pri_blk, hdr_buf, hdr_index, flags);
                 if(status == BP_SUCCESS)
                 {
-                    payload->memptr = pay_blk.payptr;
-                    payload->size = pay_blk.paysize;
+                    /* Return Bundle for Forwarding */
                     status = BP_PENDINGFORWARD;
 
                     /* Handle Custody Transfer */
@@ -653,8 +656,6 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                 if(rec_type == BP_ACS_REC_TYPE)
                 {
                     /* Return Aggregate Custody Signal for Custody Processing */
-                    payload->memptr = &buffer[index];
-                    payload->size = size - index;
                     payload->node = pri_blk.cstnode.value;
                     payload->service = pri_blk.cstserv.value;
                     status = BP_PENDINGACKNOWLEDGMENT;
@@ -665,9 +666,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
             }
             else 
             {
-                /* Return Payload */
-                payload->memptr = &buffer[index];
-                payload->size = size - index;
+                /* Return Payload for Accepting */
                 status = BP_PENDINGACCEPTANCE;
                 
                 /* Handle Custody Transfer */

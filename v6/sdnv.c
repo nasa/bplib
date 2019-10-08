@@ -95,8 +95,8 @@ int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint16_t* flags)
     {
         /* Calculate Bytes Needed to Hold Value */
         bp_val_t tmpval = sdnv.value;
-        fixedwidth = 0;
-        while(tmpval > 0)
+        fixedwidth = 1;
+        while(tmpval > 0x7F)
         {
             fixedwidth++;
             tmpval >>= 7;

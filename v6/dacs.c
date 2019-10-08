@@ -107,7 +107,7 @@ int dacs_read(uint8_t* rec, int rec_size, int* num_acks, bp_remove_func_t ack, v
     int ack_count = 0;
     uint16_t sdnvflags = 0;
     int ret_status = BP_SUCCESS;
-    
+
     /* Read First Custody ID */
     fill.index = sdnv_read(rec, rec_size, &cid, &sdnvflags);
     if(sdnvflags != 0)
