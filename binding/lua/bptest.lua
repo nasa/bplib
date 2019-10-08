@@ -4,6 +4,8 @@ local results = {}
 local context = "global"
 local argsave = {}
 local exit_on_error = false
+local wallclock_start = os.time()
+local wallclock_stop = 0
 
 --[[
 Function:   set_context
@@ -15,6 +17,8 @@ local function set_context (testname)
         results[testname] = {}
         results[testname]["asserts"] = 0
         results[testname]["errors"] = 0
+        results[testname]["start"] = 0.0
+        results[testname]["stop"] = 0.0
         results[testname]["messages"] = {}
     end
     context = testname
@@ -113,7 +117,9 @@ local function script (script_str, parms)
             numparms = numparms + 1
         end
     end
+	results[context]["start"] = os.clock()
     dofile(script_str)
+	results[context]["stop"] = os.clock()
     if parms then
         for i=1,numparms do
             arg[i] = nil        
@@ -163,6 +169,8 @@ local function report ()
     local total_asserts = 0
     local total_errors = 0
     if context == "global" then --suppress report until the end
+		results["global"]["stop"] = os.clock()
+		wallclock_stop = os.time()
         for testname in pairs(results) do
             set_context(testname)
             total_asserts = total_asserts + results[context]["asserts"]
@@ -173,11 +181,13 @@ local function report ()
             end 
             print("---------------------------------")
             print("Executed test: " .. context)
+            print("Elapsed time: " .. results[context]["stop"] - results[context]["start"] .. " seconds")
             print("Number of asserts: " .. tostring(results[context]["asserts"]))
             print("Number of errors: " .. tostring(results[context]["errors"]))
             print("---------------------------------")
         end
         print("\n*********************************")
+        print("Total elapsed time: " .. wallclock_stop - wallclock_start .. " seconds")
         print("Total number of asserts: " .. tostring(total_asserts))
         print("Total number of errors: " .. tostring(total_errors))
         print("*********************************")
@@ -188,6 +198,7 @@ end
 -- Export Package
 
 set_context(context)
+results["global"]["start"] = os.clock()
 
 for k,v in pairs(arg) do
     argsave[k] = v        

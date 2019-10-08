@@ -1,3 +1,4 @@
+local bplib = require("bplib")
 local runner = require("bptest")
 local rd = runner.rootdir(arg[0])
 

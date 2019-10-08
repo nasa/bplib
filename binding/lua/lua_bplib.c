@@ -41,7 +41,6 @@
 #include <stddef.h>
 #include <errno.h>
 #include <ctype.h>
-#include <time.h>
 #include <assert.h>
 
 
@@ -82,7 +81,6 @@ int lbplib_eid2ipn  (lua_State* L);
 int lbplib_ipn2eid  (lua_State* L);
 int lbplib_unittest (lua_State* L);
 int lbplib_sleep    (lua_State* L);
-int lbplib_time     (lua_State* L);
 
 /* Bundle Protocol Meta Functions */
 int lbplib_delete   (lua_State* L);
@@ -111,7 +109,6 @@ static const struct luaL_Reg lbplib_functions [] = {
     {"ipn2eid",     lbplib_ipn2eid},
     {"unittest",    lbplib_unittest},
     {"sleep",       lbplib_sleep},
-    {"time",        lbplib_time},
     {NULL, NULL}
 };
 
@@ -526,30 +523,6 @@ int lbplib_sleep (lua_State* L)
     }
 
     return 0;
-}
-
-/*----------------------------------------------------------------------------
- * lbplib_time - bplib.time() --> current system time in fractional seconds
- *----------------------------------------------------------------------------*/
-int lbplib_time (lua_State* L)
-{
-    double now = 0.0;
-    
-#ifdef _WINDOWS_
-    FILETIME os_time; // file time structure of upper and lower words of 100ns units
-    GetSystemTimeAsFileTime(&os_time); /* get current window file time */
-    uint64_t usecs = os_time.dwHighDateTime << 32;
-    usecs += os_time.dwLowDateTime;
-    now = (double)usecs / 1000000.0;
-#else
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    now = ((double)ts.tv_sec) + ((double)ts.tv_nsec / (double)1000000000.0);
-#endif
-    
-    lua_pushnumber(L, now);
-
-    return 1;
 }
 
 /******************************************************************************
