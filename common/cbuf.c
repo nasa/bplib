@@ -30,21 +30,24 @@
 /*----------------------------------------------------------------------------
  * Create - initializes circular buffer structure
  *----------------------------------------------------------------------------*/
-int cbuf_create(cbuf_t* cbuf, int size)
+int cbuf_create(cbuf_t** cbuf, int size)
 {
     /* Check Buffer Size */
     if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_PARMERR;
-           
+    
+    /* Allocate Structure */
+    *cbuf = (cbuf_t*)malloc(sizeof(cbuf_t));
+    
     /* Allocate Circular Buffer */
-    cbuf->table = (bp_active_bundle_t*)malloc(sizeof(bp_active_bundle_t) * size);
-    if(cbuf->table == NULL) return BP_FAILEDMEM;
+    (*cbuf)->table = (bp_active_bundle_t*)malloc(sizeof(bp_active_bundle_t) * size);
+    if((*cbuf)->table == NULL) return BP_FAILEDMEM;
             
     /* Initialize Circular to Empty */
-    memset(cbuf->table, 0, sizeof(bp_active_bundle_t) * size);
+    memset((*cbuf)->table, 0, sizeof(bp_active_bundle_t) * size);
     
     /* Initialize Circular Buffer Attributes */
-    cbuf->size = size;
-    cbuf->oldest_cid = 0;
+    (*cbuf)->size = size;
+    (*cbuf)->oldest_cid = 0;
     
     /* Return Success */
     return BP_SUCCESS;
@@ -55,7 +58,12 @@ int cbuf_create(cbuf_t* cbuf, int size)
  *----------------------------------------------------------------------------*/
 int cbuf_destroy(cbuf_t* cbuf)
 {
-    if(cbuf->table) free(cbuf->table);
+    if(cbuf)
+    {
+        if(cbuf->table) free(cbuf->table);
+        free(cbuf);
+    }
+    
     return BP_SUCCESS;
 }
 
@@ -134,4 +142,3 @@ int cbuf_count(cbuf_t* cbuf, bp_val_t max_cid)
         return (BP_MAX_ENCODED_VALUE - cbuf->oldest_cid) + max_cid + 1;
     }
 }
-

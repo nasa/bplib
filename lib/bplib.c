@@ -24,15 +24,36 @@
 #include "rb_tree.h"
 #include "bundle_types.h"
 #include "cbuf.h"
+#include "rh_hash.h"
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
+/* Table Functions */
+typedef int (*bp_table_create_t)   (void** table, int size);
+typedef int (*bp_table_destroy_t)  (void* table);
+typedef int (*bp_table_add_t)      (void* table, bp_active_bundle_t bundle, bool overwrite);
+typedef int (*bp_table_next_t)     (void* table, bp_val_t max_cid, bp_active_bundle_t* bundle);
+typedef int (*bp_table_remove_t)   (void* table, bp_val_t cid, bp_active_bundle_t* bundle);
+typedef int (*bp_table_count_t)    (void* table, bp_val_t max_cid);
+
+/* Active Table */
+typedef struct {
+    void*               table; 
+    bp_table_create_t   create;
+    bp_table_destroy_t  destroy;
+    bp_table_add_t      add;
+    bp_table_next_t     next;
+    bp_table_remove_t   remove;
+    bp_table_count_t    count;
+} bp_active_table_t;
+
 /* Channel Control Block */
 typedef struct {
     bp_store_t          store;
     bp_attr_t           attributes;    
+    bp_stats_t          stats;
     bp_bundle_t         bundle;
     bp_bundle_t         custody;
     int                 bundle_handle;
@@ -45,8 +66,7 @@ typedef struct {
     rb_tree_t           custody_tree;
     bp_val_t            current_active_cid;
     int                 active_table_signal;
-    cbuf_t              active_table;
-    bp_stats_t          stats;
+    bp_active_table_t   active_table;
 } bp_channel_t;
 
 /******************************************************************************
@@ -65,6 +85,7 @@ static const bp_attr_t default_attributes = {
     .cid_reuse              = BP_DEFAULT_CID_REUSE,
     .dacs_rate              = BP_DEFAULT_DACS_RATE,
     .protocol_version       = BP_DEFAULT_PROTOCOL_VERSION,
+    .retransmit_order       = BP_DEFAULT_RETRANSMIT_ORDER,
     .active_table_size      = BP_DEFAULT_ACTIVE_TABLE_SIZE,
     .max_fills_per_dacs     = BP_DEFAULT_MAX_FILLS_PER_DACS,
     .max_gaps_per_dacs      = BP_DEFAULT_MAX_GAPS_PER_DACS,
@@ -113,7 +134,7 @@ static int remove_bundle(void* parm, bp_val_t cid)
     bp_channel_t* ch = (bp_channel_t*)parm;
 
     bp_active_bundle_t bundle;
-    int status = cbuf_remove(&ch->active_table, cid, &bundle); 
+    int status = ch->active_table.remove(ch->active_table.table, cid, &bundle); 
     if(status == BP_SUCCESS)
     {
         status = ch->store.relinquish(ch->bundle_handle, bundle.sid);
@@ -332,12 +353,39 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
         return NULL;
     }
 
+    /* Initialize Active Table Functions */
+    if(ch->attributes.retransmit_order == BP_RETX_SMALLEST_CID)
+    {
+        ch->active_table.create     = (bp_table_create_t)cbuf_create;
+        ch->active_table.destroy    = (bp_table_destroy_t)cbuf_destroy;
+        ch->active_table.add        = (bp_table_add_t)cbuf_add;
+        ch->active_table.next       = (bp_table_next_t)cbuf_next;
+        ch->active_table.remove     = (bp_table_remove_t)cbuf_remove;
+        ch->active_table.count      = (bp_table_count_t)cbuf_count;
+    }
+    else if(ch->attributes.retransmit_order == BP_RETX_OLDEST_BUNDLE)
+    {
+        ch->active_table.create     = (bp_table_create_t)rh_hash_create;
+        ch->active_table.destroy    = (bp_table_destroy_t)rh_hash_destroy;
+        ch->active_table.add        = (bp_table_add_t)rh_hash_add;
+        ch->active_table.next       = (bp_table_next_t)rh_hash_next;
+        ch->active_table.remove     = (bp_table_remove_t)rh_hash_remove;
+        ch->active_table.count      = (bp_table_count_t)rh_hash_count;
+    }
+    else
+    {
+        bplib_close(ch);
+        bplog(BP_UNSUPPORTED, "Unrecognized attribute for creating active table: %d\n", ch->attributes.retransmit_order);
+        return NULL;        
+    }
+    
+
     /* Initialize Active Table */
-    status = cbuf_create(&ch->active_table, ch->attributes.active_table_size);
+    status = ch->active_table.create(&ch->active_table.table, ch->attributes.active_table_size);
     if(status != BP_SUCCESS)
     {
         bplib_close(ch);
-        bplog(BP_FAILEDMEM, "Failed to allocate memory for channel active table\n");
+        bplog(status, "Failed to create active table for channel\n");
         return NULL;
     }
 
@@ -403,7 +451,7 @@ void bplib_close(bp_desc_t channel)
     
     /* Un-initialize Active Table */
     if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
-    cbuf_destroy(&ch->active_table);
+    ch->active_table.destroy(ch->active_table.table);
 
     /* Free Channel */
     free(ch);
@@ -428,9 +476,9 @@ int bplib_flush(bp_desc_t channel)
     {
         /* Relinquish All Active Bundles */
         bp_active_bundle_t active_bundle;
-        while(cbuf_next(&ch->active_table, ch->current_active_cid, &active_bundle) == BP_SUCCESS)
+        while(ch->active_table.next(ch->active_table.table, ch->current_active_cid, &active_bundle) == BP_SUCCESS)
         {
-            cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
+            ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
             ch->store.relinquish(handle, active_bundle.sid);
             ch->stats.lost++;
         }
@@ -557,7 +605,7 @@ int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
     ch->stats.records = ch->store.getcount(ch->record_handle);
     
     /* Update Active Statistic */
-    ch->stats.active = cbuf_count(&ch->active_table, ch->current_active_cid);
+    ch->stats.active = ch->active_table.count(ch->active_table.table, ch->current_active_cid);
 
     /* Latch Statistics */
     *stats = ch->stats;
@@ -669,7 +717,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
         bplib_os_lock(ch->active_table_signal);
         {
             /* Get Oldest Bundle */
-            while(cbuf_next(&ch->active_table, ch->current_active_cid, &active_bundle) == BP_SUCCESS)
+            while(ch->active_table.next(ch->active_table.table, ch->current_active_cid, &active_bundle) == BP_SUCCESS)
             {
                 /* Retrieve Oldest Bundle */
                 if(ch->store.retrieve(handle, active_bundle.sid, &object, BP_CHECK) == BP_SUCCESS)
@@ -681,7 +729,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                         object = NULL;
 
                         /* Clear Entry in Active Table and Storage */
-                        cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
+                        ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
                         ch->store.relinquish(handle, active_bundle.sid);
                         ch->stats.expired++;
                     }
@@ -700,10 +748,10 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                         else
                         {
                             /* Clear Entry (it will be reinserted below at the current CID) */
-                            cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
+                            ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
                             
                             /* Move to Next Oldest */
-                            cbuf_next(&ch->active_table, ch->current_active_cid, NULL);
+                            ch->active_table.next(ch->active_table.table, ch->current_active_cid, NULL);
                         }
                         
                         /* Break Out of Loop */
@@ -723,7 +771,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                          * request custody transfer it could still go out, but the
                          * current design requires that at least one slot in the active
                          * table is open at all times. */
-                        if(cbuf_count(&ch->active_table, ch->current_active_cid) == ch->active_table.size)
+                        if(ch->active_table.count(ch->active_table.table, ch->current_active_cid) == ch->attributes.active_table_size)
                         {
                             status = BP_OVERFLOW;                   
                             *flags |= BP_FLAG_ACTIVETABLEWRAP;
@@ -737,7 +785,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                 else
                 {
                     /* Failed to Retrieve Bundle from Storage */
-                    cbuf_remove(&ch->active_table, active_bundle.cid, NULL);
+                    ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
                     ch->store.relinquish(handle, active_bundle.sid);
                     *flags |= BP_FLAG_STOREFAILURE;
                     ch->stats.lost++;
@@ -807,7 +855,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                 }
 
                 /* Update Active Table */
-                status = cbuf_add(&ch->active_table, active_bundle, !newcid);
+                status = ch->active_table.add(ch->active_table.table, active_bundle, !newcid);
                 if(status == BP_DUPLICATECID) *flags |= BP_FLAG_DUPLICATES;
             }
             bplib_os_unlock(ch->active_table_signal);

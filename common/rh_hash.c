@@ -124,26 +124,29 @@ static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t 
 /*----------------------------------------------------------------------------
  * Create - initializes hash structure
  *----------------------------------------------------------------------------*/
-int rh_hash_create(rh_hash_t* rh_hash, int size)
+int rh_hash_create(rh_hash_t** rh_hash, int size)
 {
     int i;
     
     /* Check Hash Size */
     if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_PARMERR;
 
+    /* Allocate Hash Structure */
+    *rh_hash = (rh_hash_t*)malloc(sizeof(rh_hash_t));
+    
     /* Allocate Hash Table */
-    rh_hash->table = (rh_hash_node_t*)malloc(size * sizeof(rh_hash_node_t));
-    if(rh_hash->table == NULL) return BP_FAILEDMEM;
+    (*rh_hash)->table = (rh_hash_node_t*)malloc(size * sizeof(rh_hash_node_t));
+    if((*rh_hash)->table == NULL) return BP_FAILEDMEM;
             
     /* Initialize Hash Table to Empty */
-    for(i = 0; i < size; i++) rh_hash->table[i].chain = EMPTY_ENTRY;
+    for(i = 0; i < size; i++) (*rh_hash)->table[i].chain = EMPTY_ENTRY;
 
     /* Initialize Hash Table Attributes */
-    rh_hash->size = size;
-    rh_hash->num_entries = 0;
-    rh_hash->oldest_entry = NULL_INDEX;
-    rh_hash->newest_entry = NULL_INDEX;
-    rh_hash->max_chain = 0;
+    (*rh_hash)->size = size;
+    (*rh_hash)->num_entries = 0;
+    (*rh_hash)->oldest_entry = NULL_INDEX;
+    (*rh_hash)->newest_entry = NULL_INDEX;
+    (*rh_hash)->max_chain = 0;
     
     /* Return Success */
     return BP_SUCCESS;
@@ -154,7 +157,12 @@ int rh_hash_create(rh_hash_t* rh_hash, int size)
  *----------------------------------------------------------------------------*/
 int rh_hash_destroy(rh_hash_t* rh_hash)
 {
-    free(rh_hash->table);
+    if(rh_hash)
+    {
+        if(rh_hash->table) free(rh_hash->table);
+        free(rh_hash);
+    }
+    
     return BP_SUCCESS;
 }
 
@@ -286,21 +294,26 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             rh_hash->table[curr_index].chain = 1;
         }
     }
-    
+
+    /* New Entry Added */
+    rh_hash->num_entries++;
+
     /* Return Success */
     return BP_SUCCESS;
 }
 
 /*----------------------------------------------------------------------------
- * Get
+ * Next
  *----------------------------------------------------------------------------*/
-int rh_hash_get(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
+int rh_hash_next(rh_hash_t* rh_hash, bp_val_t max_cid, bp_active_bundle_t* bundle)
 {
-    bp_index_t index = get_node(rh_hash, cid);
-    if(index != NULL_INDEX)
+    (void)max_cid;
+    
+    if(rh_hash->oldest_entry != NULL_INDEX)
     {
-        if(bundle) *bundle = rh_hash->table[index].bundle;
-        return BP_SUCCESS;
+        if(bundle) *bundle = rh_hash->table[rh_hash->oldest_entry].bundle;
+        rh_hash->oldest_entry = rh_hash->table[rh_hash->oldest_entry].after;
+        return BP_SUCCESS;        
     }
 
     return BP_CIDNOTFOUND;
@@ -376,25 +389,10 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
 }
 
 /*----------------------------------------------------------------------------
- * Clear
+ * rh_hash_count
  *----------------------------------------------------------------------------*/
-int rh_hash_clear(rh_hash_t* rh_hash)
+int rh_hash_count(rh_hash_t* rh_hash, bp_val_t max_cid)
 {
-    bp_index_t i;
-    
-    /* Clear Hash */
-    for(i = 0; rh_hash->num_entries > 0 && i < rh_hash->size; i++)
-    {
-        if(rh_hash->table[i].chain != EMPTY_ENTRY)
-        {
-            rh_hash->table[i].chain = EMPTY_ENTRY;
-            rh_hash->num_entries--;
-        }
-    }
-
-    /* Clear Attributes */
-    rh_hash->max_chain = 0;
-    
-    /* Return Success */
-    return BP_SUCCESS;
+    (void)max_cid;
+    return rh_hash->num_entries;
 }

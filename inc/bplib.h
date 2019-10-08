@@ -47,11 +47,6 @@ extern "C" {
 /* Storage IDs */
 #define BP_SID_VACANT                   0
 
-/* Bundle Integrity Types */
-#define BP_BIB_NONE                     0
-#define BP_BIB_CRC16_X25                1
-#define BP_BIB_CRC32_CASTAGNOLI         2
-
 /* Return Codes */            
 #define BP_SUCCESS                      1
 #define BP_TIMEOUT                      0
@@ -98,6 +93,15 @@ extern "C" {
 #define BP_FLAG_DUPLICATES              0x1000  /* multiple bundles on the network have the same custody id */
 #define BP_FLAG_RBTREEFULL              0x2000  /* the dacs rb_tree was full */
 
+/* Bundle Integrity Types */
+#define BP_BIB_NONE                     0
+#define BP_BIB_CRC16_X25                1
+#define BP_BIB_CRC32_CASTAGNOLI         2
+
+/* Retransmit Order */
+#define BP_RETX_OLDEST_BUNDLE           0
+#define BP_RETX_SMALLEST_CID            1
+    
 /* Set/Get Option Modes */
 #define BP_OPT_MODE_READ                0
 #define BP_OPT_MODE_WRITE               1
@@ -128,6 +132,7 @@ extern "C" {
 
 /* Default Fixed Configuration */
 #define BP_DEFAULT_PROTOCOL_VERSION     6
+#define BP_DEFAULT_RETRANSMIT_ORDER     BP_RETX_SMALLEST_CID
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384 /* bundles (must be smaller than BP_MAX_INDEX) */
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
@@ -164,26 +169,16 @@ typedef struct {
     char        data[];
 } bp_object_t;
 
-/* Storage API */
-typedef int (*bp_store_create_t)    (void* parm);
-typedef int (*bp_store_destroy_t)   (int handle);
-typedef int (*bp_store_enqueue_t)   (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
-typedef int (*bp_store_dequeue_t)   (int handle, bp_object_t** object, int timeout);
-typedef int (*bp_store_retrieve_t)  (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
-typedef int (*bp_store_release_t)   (int handle, bp_sid_t sid);
-typedef int (*bp_store_relinquish_t)(int handle, bp_sid_t sid);
-typedef int (*bp_store_getcount_t)  (int handle);
-
 /* Storage Service */
 typedef struct {
-    bp_store_create_t       create;
-    bp_store_destroy_t      destroy;
-    bp_store_enqueue_t      enqueue;
-    bp_store_dequeue_t      dequeue;
-    bp_store_retrieve_t     retrieve;
-    bp_store_release_t      release;
-    bp_store_relinquish_t   relinquish;
-    bp_store_getcount_t     getcount;
+    int (*create)       (void* parm);
+    int (*destroy)      (int handle);
+    int (*enqueue)      (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
+    int (*dequeue)      (int handle, bp_object_t** object, int timeout);
+    int (*retrieve)     (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
+    int (*release)      (int handle, bp_sid_t sid);
+    int (*relinquish)   (int handle, bp_sid_t sid);
+    int (*getcount)     (int handle);
 } bp_store_t;
 
 /* Channel Attributes */
@@ -201,6 +196,7 @@ typedef struct {
     int         dacs_rate;              /* number of seconds to wait between sending ACS bundles */
     /* Fixed Attributes */
     int         protocol_version;       /* bundle protocol version; currently only version 6 supported */
+    int         retransmit_order;       /* determination of which timed-out bundle is retransmitted first */
     int         active_table_size;      /* number of unacknowledged bundles to keep track of */
     int         max_fills_per_dacs;     /* limits the size of the DACS bundle */
     int         max_gaps_per_dacs;      /* number of gaps in custody IDs that can be kept track of */

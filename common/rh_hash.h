@@ -51,11 +51,11 @@ typedef struct {
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int rh_hash_create  (rh_hash_t* rh_hash, int size);
+int rh_hash_create  (rh_hash_t** rh_hash, int size);
 int rh_hash_destroy (rh_hash_t* rh_hash);
 int rh_hash_add     (rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite);
-int rh_hash_get     (rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle);
+int rh_hash_next    (rh_hash_t* rh_hash, bp_val_t max_cid, bp_active_bundle_t* bundle);
 int rh_hash_remove  (rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle);
-int rh_hash_clear   (rh_hash_t* rh_hash);
+int rh_hash_count   (rh_hash_t* rh_hash, bp_val_t max_cid);
 
 #endif /* _rh_hash_h_ */
