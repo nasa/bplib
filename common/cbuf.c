@@ -40,7 +40,7 @@ int cbuf_create(cbuf_t* cbuf, int size)
     if(cbuf->table == NULL) return BP_FAILEDMEM;
             
     /* Initialize Circular to Empty */
-    memset(cbuf->table, 0, sizeof(bp_active_bundle_t) * cbuf->size);
+    memset(cbuf->table, 0, sizeof(bp_active_bundle_t) * size);
     
     /* Initialize Circular Buffer Attributes */
     cbuf->size = size;

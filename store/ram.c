@@ -277,6 +277,7 @@ static void msgq_delete(msgq_t queue_handle)
     if(msgQ != NULL)
     {
         flush_queue(&msgQ->queue);
+        bplib_os_destroylock(msgQ->ready);
         free(msgQ);
     }
 }

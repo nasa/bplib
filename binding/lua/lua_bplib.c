@@ -41,6 +41,7 @@
 #include <stddef.h>
 #include <errno.h>
 #include <ctype.h>
+#include <time.h>
 #include <assert.h>
 
 
@@ -81,6 +82,7 @@ int lbplib_eid2ipn  (lua_State* L);
 int lbplib_ipn2eid  (lua_State* L);
 int lbplib_unittest (lua_State* L);
 int lbplib_sleep    (lua_State* L);
+int lbplib_time     (lua_State* L);
 
 /* Bundle Protocol Meta Functions */
 int lbplib_delete   (lua_State* L);
@@ -109,6 +111,7 @@ static const struct luaL_Reg lbplib_functions [] = {
     {"ipn2eid",     lbplib_ipn2eid},
     {"unittest",    lbplib_unittest},
     {"sleep",       lbplib_sleep},
+    {"time",        lbplib_time},
     {NULL, NULL}
 };
 
@@ -443,7 +446,7 @@ int lbplib_eid2ipn (lua_State* L)
     /* EID to IPN */
     size_t size = 0;
     const char* eid = lua_tolstring(L, 1, &size);
-    bp_ipn_t node, service;
+    bp_ipn_t node = BP_IPN_NULL, service = BP_IPN_NULL;
     int status = bplib_eid2ipn(eid, size, &node, &service);
     set_errno(L, status);
 
@@ -525,6 +528,30 @@ int lbplib_sleep (lua_State* L)
     return 0;
 }
 
+/*----------------------------------------------------------------------------
+ * lbplib_time - bplib.time() --> current system time in fractional seconds
+ *----------------------------------------------------------------------------*/
+int lbplib_time (lua_State* L)
+{
+    double now = 0.0;
+    
+#ifdef _WINDOWS_
+    FILETIME os_time; // file time structure of upper and lower words of 100ns units
+    GetSystemTimeAsFileTime(&os_time); /* get current window file time */
+    uint64_t usecs = os_time.dwHighDateTime << 32;
+    usecs += os_time.dwLowDateTime;
+    now = (double)usecs / 1000000.0;
+#else
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    now = ((double)ts.tv_sec) + ((double)ts.tv_nsec / (double)1000000000.0);
+#endif
+    
+    lua_pushnumber(L, now);
+
+    return 1;
+}
+
 /******************************************************************************
  BUNDLE PROTOCOL META FUNCTIONS
  ******************************************************************************/
@@ -542,7 +569,7 @@ int lbplib_delete (lua_State* L)
     }
     else
     {
-        /* Close Channel */
+        /* Close Channel */        
         bplib_close(bplib_data->channel);
         bplib_data->channel = BP_INVALID_DESCRIPTOR;
     }
@@ -985,8 +1012,8 @@ int lbplib_process (lua_State* L)
     }
     
     /* Type Check Parameters */
-    if(!lua_isstring(L, 2) ||
-       !lua_isnumber(L, 3))
+    if(!lua_isstring(L, 2) ||   /* bundle */
+       !lua_isnumber(L, 3))     /* timeout */
     {
         lualog("incorrect parameter types\n");
         lua_pushboolean(L, false); /* push result as fail */

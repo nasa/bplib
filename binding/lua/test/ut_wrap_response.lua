@@ -5,7 +5,7 @@ local src = runner.srcscript()
 
 -- Setup --
 
--- runner.set_exit_on_error(true)
+runner.set_exit_on_error(true)
 
 local store = arg[1] or "RAM"
 if store == "FILE" then
@@ -34,6 +34,8 @@ local exp_stats = {   lost = 0,
                       payloads = 0,
                       records = 0,
                       active = 0    }
+
+runner.check(sender:setopt("TIMEOUT", timeout))
 
 -- Test --
 
