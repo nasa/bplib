@@ -488,7 +488,7 @@ int bplib_config(bp_desc_t channel, int mode, int opt, int* val)
         }
         case BP_OPT_ALLOW_FRAGMENTATION:
         {
-            if(setopt && *val != true && val != false) return BP_PARMERR;
+            if(setopt && *val != true && *val != false) return BP_PARMERR;
             if(setopt)  ch->attributes.allow_fragmentation = *val;
             else        *val = ch->attributes.allow_fragmentation;
             break;
