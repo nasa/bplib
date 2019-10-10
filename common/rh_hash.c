@@ -101,11 +101,11 @@ static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle
 /*----------------------------------------------------------------------------
  * write_node
  *----------------------------------------------------------------------------*/
-static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, uint32_t hash)
+static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, bp_index_t chain, uint32_t hash)
 {
     rh_hash->table[index].hash      = hash;
     rh_hash->table[index].bundle    = bundle;
-    rh_hash->table[index].chain     = rh_hash->table[index].chain + 1;
+    rh_hash->table[index].chain     = chain;
     rh_hash->table[index].next      = NULL_INDEX;
     rh_hash->table[index].prev      = NULL_INDEX;
     rh_hash->table[index].after     = NULL_INDEX;
@@ -195,7 +195,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
     /* Add Entry to Hash */
     if(rh_hash->table[curr_index].chain == EMPTY_CHAIN)
     {
-        write_node(rh_hash, curr_index, bundle, hash);
+        write_node(rh_hash, curr_index, bundle, 1, hash);
     }
     else /* collision */
     {
@@ -219,44 +219,26 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             return BP_ACTIVETABLEFULL;
         }
         
-        /* Get Indices into List */
-        bp_index_t next_index = rh_hash->table[curr_index].next;
-        bp_index_t prev_index = rh_hash->table[curr_index].prev;
-
         /* Insert Node (chain == 1) */
         if(rh_hash->table[curr_index].chain == 1)
         {
-            /* Transverse to End of Chain */
-            prev_index = curr_index;
-            while(next_index != NULL_INDEX)
-            {
-                /* Check Next Slot for Duplicate */
-                if(rh_hash->table[next_index].bundle.cid == cid)
-                {
-                    return overwrite_node(rh_hash, next_index, bundle, overwrite);
-                }
-                
-                /* Go To Next Slot */
-                prev_index = next_index;
-                next_index = rh_hash->table[next_index].next;
-            }
-
-            /* Set Insertion Point to Open Slot */
-            curr_index = open_index;
-
             /* Add Entry to Open Slot at End of Chain */
-            write_node(rh_hash, curr_index, bundle, hash);
-            rh_hash->table[prev_index].next = curr_index;
-            rh_hash->table[curr_index].prev = prev_index;
+            bp_index_t prev_index = open_index;
+            write_node(rh_hash, open_index, bundle, 2, hash);
+            rh_hash->table[prev_index].next = open_index;
+            rh_hash->table[open_index].prev = prev_index;
             
             /* Check For New Max Chain */
-            if(rh_hash->table[curr_index].chain > rh_hash->max_chain)
+            if(rh_hash->table[open_index].chain > rh_hash->max_chain)
             {
-                rh_hash->max_chain = rh_hash->table[curr_index].chain;
+                rh_hash->max_chain = rh_hash->table[open_index].chain;
             }
         }
         else /* Robin Hood Insertion (chain > 1) */
         {
+            bp_index_t next_index = rh_hash->table[curr_index].next;
+            bp_index_t prev_index = rh_hash->table[curr_index].prev;
+            
             /* Scan for Duplicate */
             bp_index_t scan_index = next_index;
             while(scan_index != NULL_INDEX)
@@ -273,7 +255,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
 
             /* Bridge Over Current Slot */
             if(next_index != NULL_INDEX) rh_hash->table[next_index].prev = prev_index;
-            rh_hash->table[prev_index].next = next_index;
+            if(prev_index != NULL_INDEX) rh_hash->table[prev_index].next = next_index;
 
             /* Transverse to End of Chain */
             while(next_index != NULL_INDEX)
@@ -306,8 +288,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             }
 
             /* Add Entry to Current Slot */
-            write_node(rh_hash, open_index, bundle, hash);
-            rh_hash->table[curr_index].chain = 1;
+            write_node(rh_hash, curr_index, bundle, 1, hash);
         }
     }
 
