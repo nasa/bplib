@@ -68,7 +68,9 @@ static void print_hash(rh_hash_t* rh_hash)
             {
                 printf("%d ", j);
                 j = rh_hash->table[j].next;
-            }            
+            }
+
+            printf("| %d <-- time --> %d | %d <<-- hash -->> %d", rh_hash->table[i].before, rh_hash->table[i].after, rh_hash->table[i].prev, rh_hash->table[i].next);
         }
         printf("\n");
     }
@@ -171,11 +173,13 @@ static void test_2(void)
 
     max_cid = 11;
 
-    print_hash(rh_hash);
+    print_hash(rh_hash);    
 
     cid = 0;
     ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+
+    print_hash(rh_hash);    
 
     cid = 1;
     ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
@@ -218,7 +222,7 @@ static void test_2(void)
 
 int ut_rh_hash (void)
 {
-    test_1();
+//   test_1();
     test_2();
     
     return ut_failures();

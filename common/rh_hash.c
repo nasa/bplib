@@ -223,10 +223,9 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
         if(rh_hash->table[curr_index].chain == 1)
         {
             /* Add Entry to Open Slot at End of Chain */
-            bp_index_t prev_index = open_index;
             write_node(rh_hash, open_index, bundle, 2, hash);
-            rh_hash->table[prev_index].next = open_index;
-            rh_hash->table[open_index].prev = prev_index;
+            rh_hash->table[curr_index].next = open_index;
+            rh_hash->table[open_index].prev = curr_index;
             
             /* Check For New Max Chain */
             if(rh_hash->table[open_index].chain > rh_hash->max_chain)
@@ -326,50 +325,49 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     bp_index_t index = get_node(rh_hash, cid);
     if(index != NULL_INDEX)
     {
-        /* Return Bundle */
-        if(bundle) *bundle = rh_hash->table[index].bundle;
-        
-        /* Get List Indices */
-        bp_index_t next_index   = rh_hash->table[index].next;
-        bp_index_t prev_index   = rh_hash->table[index].prev;
+        bp_index_t next_index = rh_hash->table[index].next;
         bp_index_t after_index  = rh_hash->table[index].after;
         bp_index_t before_index = rh_hash->table[index].before;
+        bp_index_t end_index = index;
+        
+        /* Return Bundle */
+        if(bundle) *bundle = rh_hash->table[index].bundle;
 
-        if((rh_hash->table[index].chain == 1) && (next_index != NULL_INDEX))
-        {
-            rh_hash->table[next_index].chain = EMPTY_CHAIN;
-
-            /* Copy Next Item into Start of Chain */
-            rh_hash->table[index].bundle    = rh_hash->table[next_index].bundle;
-            rh_hash->table[index].hash      = rh_hash->table[next_index].hash;
-            rh_hash->table[index].next      = rh_hash->table[next_index].next;
-            rh_hash->table[index].prev      = NULL_INDEX;
-
-            /* Goto Next Entry (for later transversal) */
-            next_index = rh_hash->table[index].next;
-            if(next_index != NULL_INDEX) rh_hash->table[next_index].prev = index;
-        }
-        else
-        {
-            rh_hash->table[index].chain = EMPTY_CHAIN;
-
-            /* Update Time Order */
-            if(index == rh_hash->newest_entry)  rh_hash->newest_entry = before_index;
-            if(index == rh_hash->oldest_entry)  rh_hash->oldest_entry = after_index;
+        /* Update Time Order */
+        if(index == rh_hash->newest_entry)  rh_hash->newest_entry = before_index;
+        if(index == rh_hash->oldest_entry)  rh_hash->oldest_entry = after_index;
             
-            /* Bridge Over Removed Entry */
-            if(next_index != NULL_INDEX)    rh_hash->table[next_index].prev = prev_index;
-            if(prev_index != NULL_INDEX)    rh_hash->table[prev_index].next = next_index;
-            if(after_index != NULL_INDEX)   rh_hash->table[after_index].before = before_index;
-            if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = after_index;            
-        }
+        /* Bridge Time Over Removed Entry */
+        if(after_index != NULL_INDEX)   rh_hash->table[after_index].before = before_index;
+        if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = after_index;            
 
-        /* Transverse to End of Chain */
-        while(next_index != NULL_INDEX)
+        /* Condition: Not End of Chain */
+        if(next_index != NULL_INDEX)
         {
-            rh_hash->table[next_index].chain--;
-            next_index = rh_hash->table[next_index].next;
+            /* Transverse to End of Chain */
+            end_index = next_index;
+            while(rh_hash->table[end_index].next != NULL_INDEX)
+            {
+                end_index = rh_hash->table[end_index].next;
+            }
+            
+            /* Copy End of Chain into Removed Slot */
+            rh_hash->table[index].bundle = rh_hash->table[end_index].bundle;
+            rh_hash->table[index].before = rh_hash->table[end_index].before;
+            rh_hash->table[index].after  = rh_hash->table[end_index].after;
+            bp_index_t prev_index = rh_hash->table[end_index].prev;
+            rh_hash->table[prev_index].next = NULL_INDEX;            
         }
+        
+        /* Remove End of Chain */
+        bp_index_t update_index;
+        rh_hash->table[end_index].chain = EMPTY_CHAIN;
+        update_index = rh_hash->table[end_index].prev;
+        if(update_index != NULL_INDEX) rh_hash->table[update_index].next = NULL_INDEX;
+        update_index = rh_hash->table[end_index].before;
+        if(update_index != NULL_INDEX) rh_hash->table[update_index].after = rh_hash->table[end_index].after;
+        update_index = rh_hash->table[end_index].after;
+        if(update_index != NULL_INDEX) rh_hash->table[update_index].before = rh_hash->table[end_index].before;
 
         /* Update Statistics */
         rh_hash->num_entries--;
