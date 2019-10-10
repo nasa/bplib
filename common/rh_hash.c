@@ -27,7 +27,7 @@
  DEFINES
  ******************************************************************************/
 
-#define EMPTY_ENTRY     0               /* chain set to this value to indicate empty slot */
+#define EMPTY_CHAIN     0               /* chain set to this value to indicate empty slot */
 #define NULL_INDEX      BP_MAX_INDEX    /* 0 is a valid index so max_val is used */
 #define HASH_CID(cid)   (cid)           /* identify function for now */
 
@@ -44,7 +44,7 @@ static int get_node(rh_hash_t* rh_hash, bp_val_t cid)
     bp_index_t index = HASH_CID(cid) % rh_hash->size;
 
     /* Search */
-    if(rh_hash->table[index].chain != EMPTY_ENTRY)
+    if(rh_hash->table[index].chain != EMPTY_CHAIN)
     {
         while(index != NULL_INDEX)
         {
@@ -112,9 +112,18 @@ static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t 
     rh_hash->table[index].before    = rh_hash->newest_entry;
 
     /* Update Time Order */
-    if(rh_hash->oldest_entry == NULL_INDEX) rh_hash->oldest_entry = index;
-    rh_hash->table[rh_hash->newest_entry].after = index;
-    rh_hash->newest_entry = index;
+    if(rh_hash->oldest_entry == NULL_INDEX) 
+    {
+        /* First Entry */
+        rh_hash->oldest_entry = index;
+        rh_hash->newest_entry = index;
+    }
+    else
+    {
+        /* Not First Entry */
+        rh_hash->table[rh_hash->newest_entry].after = index;
+        rh_hash->newest_entry = index;
+    }
 }
 
 /******************************************************************************
@@ -139,14 +148,21 @@ int rh_hash_create(rh_hash_t** rh_hash, int size)
     if((*rh_hash)->table == NULL) return BP_FAILEDMEM;
             
     /* Initialize Hash Table to Empty */
-    for(i = 0; i < size; i++) (*rh_hash)->table[i].chain = EMPTY_ENTRY;
+    for(i = 0; i < size; i++)
+    {
+        (*rh_hash)->table[i].chain  = EMPTY_CHAIN;
+        (*rh_hash)->table[i].next   = NULL_INDEX;
+        (*rh_hash)->table[i].prev   = NULL_INDEX;
+        (*rh_hash)->table[i].before = NULL_INDEX;
+        (*rh_hash)->table[i].after  = NULL_INDEX;
+    }
 
     /* Initialize Hash Table Attributes */
-    (*rh_hash)->size = size;
-    (*rh_hash)->num_entries = 0;
-    (*rh_hash)->oldest_entry = NULL_INDEX;
-    (*rh_hash)->newest_entry = NULL_INDEX;
-    (*rh_hash)->max_chain = 0;
+    (*rh_hash)->size            = size;
+    (*rh_hash)->num_entries     = 0;
+    (*rh_hash)->max_chain       = 0;
+    (*rh_hash)->oldest_entry    = NULL_INDEX;
+    (*rh_hash)->newest_entry    = NULL_INDEX;
     
     /* Return Success */
     return BP_SUCCESS;
@@ -177,7 +193,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
     bp_index_t curr_index = hash % rh_hash->size;
     
     /* Add Entry to Hash */
-    if(rh_hash->table[curr_index].chain == EMPTY_ENTRY)
+    if(rh_hash->table[curr_index].chain == EMPTY_CHAIN)
     {
         write_node(rh_hash, curr_index, bundle, hash);
     }
@@ -191,7 +207,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
         
         /* Find First Open Hash Slot */
         bp_index_t open_index = (curr_index + 1) % rh_hash->size;
-        while( (rh_hash->table[open_index].chain != EMPTY_ENTRY) &&
+        while( (rh_hash->table[open_index].chain != EMPTY_CHAIN) &&
                (open_index != curr_index) )
         {
             open_index = (open_index + 1) % rh_hash->size;
@@ -341,7 +357,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
 
         if((rh_hash->table[index].chain == 1) && (next_index != NULL_INDEX))
         {
-            rh_hash->table[next_index].chain = EMPTY_ENTRY;
+            rh_hash->table[next_index].chain = EMPTY_CHAIN;
 
             /* Copy Next Item into Start of Chain */
             rh_hash->table[index].bundle    = rh_hash->table[next_index].bundle;
@@ -355,7 +371,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
         }
         else
         {
-            rh_hash->table[index].chain = EMPTY_ENTRY;
+            rh_hash->table[index].chain = EMPTY_CHAIN;
 
             /* Update Time Order */
             if(index == rh_hash->newest_entry)  rh_hash->newest_entry = before_index;

@@ -62,8 +62,6 @@ static bool are_consecutive(bp_val_t value_1, bp_val_t value_2)
 
 /*--------------------------------------------------------------------------------------
  * ut_assert -
- * 
- * node: A ptr to an rb_node to print. [INPUT]
  *--------------------------------------------------------------------------------------*/  
 static void ut_assert(bool e)
 {
@@ -1045,7 +1043,7 @@ static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
 
     rb_range_t range;
 
-    ut_assert(rb_tree_goto_first(NULL) == RB_PARMERR); 
+    ut_assert(rb_tree_goto_first(NULL) == BP_PARMERR); 
     ut_assert(rb_tree_goto_first(&tree) == BP_SUCCESS);
     ut_assert(rb_tree_get_next(&tree, NULL, true, true) == BP_ERROR); 
     

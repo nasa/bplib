@@ -60,7 +60,7 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
 
     /* Get the first available range from the rb tree and fill it. */
     rb_tree_get_next(tree, &range, true, false);
-    cid.value = range.cid;
+    cid.value = range.value;
     fill.index = sdnv_write(rec, size, cid, flags);
     fill.value = range.offset + 1;
     fill.index = sdnv_write(rec, size, fill, flags);    
@@ -74,7 +74,7 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
 
         /* Write range of missing cid.
            Calculate the missing values between the current and previous node. */
-        fill.value = range.cid - (prev_range.cid + prev_range.offset + 1);
+        fill.value = range.value - (prev_range.value + prev_range.offset + 1);
         fill.index = sdnv_write(rec, size, fill, flags);
 
         /* Write range of received cids. */

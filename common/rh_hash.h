@@ -42,9 +42,9 @@ typedef struct {
     rh_hash_node_t*     table;
     bp_index_t          size;
     bp_index_t          num_entries;
+    bp_index_t          max_chain;
     bp_index_t          oldest_entry;
     bp_index_t          newest_entry;
-    bp_index_t          max_chain;
 } rh_hash_t;
 
 /******************************************************************************

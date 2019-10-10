@@ -31,7 +31,7 @@
 
 /* A wrapper for a range from [cid, cid + offset). */
 typedef struct rb_range {
-    bp_val_t    cid;                /* The starting cid in the range. */
+    bp_val_t    value;              /* The starting number in the range. */
     bp_val_t    offset;             /* The offset from the cid. */
 } rb_range_t;
 
@@ -77,8 +77,8 @@ int     rb_tree_create      (bp_val_t max_size, rb_tree_t* tree);   /* Creates a
 int     rb_tree_clear       (rb_tree_t* tree);                      /* Clears the nodes in a rb_tree without deallocating any memory. */
 bool    rb_tree_is_empty    (rb_tree_t* tree);                      /* Checks whether a rb_tree is empty. */
 bool    rb_tree_is_full     (rb_tree_t* tree);                      /* Checks whether a rb_tree is full. */
-int     rb_tree_insert      (bp_val_t cid, rb_tree_t* tree);        /* Inserts cid into a red black tree. Duplicates will not be inserted. */
-int     rb_tree_delete      (bp_val_t cid, rb_tree_t* tree);        /* Deletes a cid from a rb_tree_t and may lead to split nodes. */
+int     rb_tree_insert      (bp_val_t value, rb_tree_t* tree);      /* Inserts number into a red black tree. Duplicates will not be inserted. */
+int     rb_tree_delete      (bp_val_t value, rb_tree_t* tree);      /* Deletes a number from a rb_tree_t and may lead to split nodes. */
 int     rb_tree_destroy     (rb_tree_t* tree);                      /* Frees all memory allocated for a rb_tree and recursively frees its nodes. */
 int     rb_tree_goto_first  (rb_tree_t* tree);                      /* Gets the node of lowest cid in the tree to serve as an iterator to calls of get next. */
 int     rb_tree_get_next    (rb_tree_t* tree, rb_range_t* range, bool should_pop, bool should_rebalance); /* Gets the next range in order in the rb_tree_t and increments the iterator. */

@@ -74,9 +74,11 @@ APP_OBJ     += file.o
 APP_OBJ     += ram.o
 
 # unit test objects #
+APP_OBJ     += ut_assert.o
 APP_OBJ     += unittest.o
 APP_OBJ     += ut_crc.o
 APP_OBJ     += ut_rb_tree.o
+APP_OBJ     += ut_rh_hash.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?= $(USER_DEFS)

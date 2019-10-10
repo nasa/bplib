@@ -335,14 +335,14 @@ static void rotate_right(rb_tree_t* tree, rb_node_t* node)
 }
 
 /*-------------------------------------------------------------------------------------
- * create_black_node - Creates a black colored rb_node with cid and with no children.
+ * create_black_node - Creates a black colored rb_node with value and with no children.
  *
- * cid: The cid to assign to the new rb_node. [INPUT]
+ * value: The value to assign to the new rb_node. [INPUT]
  * color: A boolean indicating the color of the newly created node. [INPUT]
  * tree: A ptr to a rb_tree_t from which to obtain free memory  the new node. [OUTPUT]
  * returns: A ptr to a new rb_node_t or NULL if no memory exists in the rb_tree_t.
  *-------------------------------------------------------------------------------------*/
-static rb_node_t* create_rb_node(bp_val_t cid, bool color, rb_tree_t* tree)
+static rb_node_t* create_rb_node(bp_val_t value, bool color, rb_tree_t* tree)
 {
     rb_node_t* node = pop_free_node(tree);
     if (node == NULL)
@@ -351,7 +351,7 @@ static rb_node_t* create_rb_node(bp_val_t cid, bool color, rb_tree_t* tree)
         return NULL;
     }
     
-    node->range.cid = cid;
+    node->range.value = value;
     node->range.offset = 0;
     node->parent = NULL;
     node->left = NULL;
@@ -388,7 +388,7 @@ static void insert_child(rb_node_t* node, rb_node_t* parent, rb_node_t** child_p
  *         5
  *
  * node: A ptr to the node to obtain its successor. [INPUT]
- * returns: A ptr to the successor node with a cid less than that contained by node. If
+ * returns: A ptr to the successor node with a value less than that contained by node. If
  *      no successor exists, NULL is returned.
  *-------------------------------------------------------------------------------------*/
 static rb_node_t* get_left_successor(rb_node_t* node)
@@ -419,7 +419,7 @@ static rb_node_t* get_left_successor(rb_node_t* node)
  *           12
  *
  * node: A ptr to the node to obtain its successor. [INPUT]
- * returns: A ptr to the successor node with a cid less than that contained by node. If
+ * returns: A ptr to the successor node with a value less than that contained by node. If
  *      no successor exists, NULL is returned.
  *-------------------------------------------------------------------------------------*/
 static rb_node_t* get_right_successor(rb_node_t* node)
@@ -464,9 +464,9 @@ static rb_node_t* get_successor(rb_node_t* node)
  *-------------------------------------------------------------------------------------*/
 static void swap_values(rb_node_t* n1, rb_node_t* n2)
 {
-    bp_val_t temp = n1->range.cid;
-    n1->range.cid = n2->range.cid;
-    n2->range.cid = temp;
+    bp_val_t temp = n1->range.value;
+    n1->range.value = n2->range.value;
+    n2->range.value = temp;
 }
 
 /*-------------------------------------------------------------------------------------
@@ -788,30 +788,30 @@ static void delete_rb_node(rb_tree_t* tree, rb_node_t* node)
 }
 
 /*--------------------------------------------------------------------------------------
- * are_consecutive - Checks if cid_2 is the consecutive integer after cid_1.
+ * are_consecutive - Checks if value_2 is the consecutive integer after value_1.
  *
- * cid_1: The lesser of the two potentially consecutive cids. [INPUT]
- * cid_2: The greater of the two potentially consecutive cids. [INPUT]
- * returns: Whether cid_2 is the consecutive integer after cid_1.
+ * value_1: The lesser of the two potentially consecutive values. [INPUT]
+ * value_2: The greater of the two potentially consecutive values. [INPUT]
+ * returns: Whether value_2 is the consecutive integer after value_1.
  *-------------------------------------------------------------------------------------*/
-static bool are_consecutive(bp_val_t cid_1, bp_val_t cid_2)
+static bool are_consecutive(bp_val_t value_1, bp_val_t value_2)
 {
-    return (cid_1 != BP_MAX_ENCODED_VALUE) && (cid_1 + 1 == cid_2);
+    return (value_1 != BP_MAX_ENCODED_VALUE) && (value_1 + 1 == value_2);
 }
 
 /*--------------------------------------------------------------------------------------
- * try_binary_insert_or_merge - Attempts to insert a new cid into a red black tree. If
- *      the cid is a duplicate it is ignored. If the cid is a consecutive number with
- *      any existing node cids then those nodes are merged and their offsets are incremented
- *      to reflect the range of cids the modified nodes will represent.
+ * try_binary_insert_or_merge - Attempts to insert a new value into a red black tree. If
+ *      the value is a duplicate it is ignored. If the value is a consecutive number with
+ *      any existing node values then those nodes are merged and their offsets are incremented
+ *      to reflect the range of values the modified nodes will represent.
  *
- * cid: The cid of the node to attempt to insert or merge into the red black tree. [INPUT]
- * tree: A ptr to the rb_tree_t to insert cids into. [OUTPUT]
+ * value: The value of the node to attempt to insert or merge into the red black tree. [INPUT]
+ * tree: A ptr to the rb_tree_t to insert values into. [OUTPUT]
  * inserted_node: A ptr to a ptr to the rb_node that was inserted. NULL if no node was 
  *      inserted. [OUTPUT]
  * returns: A rb_tree status indicating the result of the insertion attempt.
  *-------------------------------------------------------------------------------------*/
-static int try_binary_insert_or_merge(bp_val_t cid, rb_tree_t* tree, rb_node_t** inserted_node)
+static int try_binary_insert_or_merge(bp_val_t value, rb_tree_t* tree, rb_node_t** inserted_node)
 {
     int status;
     *inserted_node = NULL;
@@ -819,7 +819,7 @@ static int try_binary_insert_or_merge(bp_val_t cid, rb_tree_t* tree, rb_node_t**
     if (node == NULL) 
     {
         /* The tree is empty and so a root node is created. */
-        tree->root = create_rb_node(cid,  BLACK, tree);
+        tree->root = create_rb_node(value,  BLACK, tree);
         status = BP_SUCCESS;
         *inserted_node = tree->root;
     }
@@ -828,17 +828,17 @@ static int try_binary_insert_or_merge(bp_val_t cid, rb_tree_t* tree, rb_node_t**
         /* Root is not NULL and so a binary insertion is attempted. */
         while (true)
         {  
-            if (are_consecutive(cid, node->range.cid)) 
+            if (are_consecutive(value, node->range.value)) 
             {
-                /* The current node cid is greater than cid and consecutive and so we should
-                   merge the new cid into the tree. */
+                /* The current node value is greater than value and consecutive and so we should
+                   merge the new value into the tree. */
                 rb_node_t* successor = get_left_successor(node);
                 if (successor != NULL &&
-                    are_consecutive(successor->range.cid + successor->range.offset, cid))
+                    are_consecutive(successor->range.value + successor->range.offset, value))
                 {
                     /* The left child of the current node is also consecutive with the new
-                       cid and so we can merge the three cids into a single node. */
-                    node->range.cid = successor->range.cid;
+                       value and so we can merge the three values into a single node. */
+                    node->range.value = successor->range.value;
                     node->range.offset += successor->range.offset + 2;
                     delete_rb_node(tree, successor);
                     status = BP_SUCCESS;
@@ -846,16 +846,16 @@ static int try_binary_insert_or_merge(bp_val_t cid, rb_tree_t* tree, rb_node_t**
                 }
                 else 
                 {
-                    /* Merge the new cid into the current node. */
-                    node->range.cid = cid;
+                    /* Merge the new value into the current node. */
+                    node->range.value = value;
                     node->range.offset += 1;
                     status = BP_SUCCESS;
                     break;
                 }
             }
-            else if (cid < node->range.cid)
+            else if (value < node->range.value)
             {
-                /* Value is less than the current node's cid and is not consecutive 
+                /* Value is less than the current node's value and is not consecutive 
                    so we either search a subtree of the child or insert a new node. */
                 if (has_left_child(node))
                 {
@@ -866,7 +866,7 @@ static int try_binary_insert_or_merge(bp_val_t cid, rb_tree_t* tree, rb_node_t**
                 else
                 {
                     /* Memory was available for new node and it is added. */
-                    *inserted_node = create_rb_node(cid, RED, tree);
+                    *inserted_node = create_rb_node(value, RED, tree);
                     if (*inserted_node == NULL)
                     {
                         /* There was no memory remaining for inserting a new child. */
@@ -879,15 +879,15 @@ static int try_binary_insert_or_merge(bp_val_t cid, rb_tree_t* tree, rb_node_t**
                 }
                
             }
-            else if (are_consecutive(node->range.cid + node->range.offset, cid))
+            else if (are_consecutive(node->range.value + node->range.offset, value))
             {
-                /* The current node cid is lesser than cid and consecutive and so we should
-                   merge the new cid into the tree. */
+                /* The current node value is lesser than value and consecutive and so we should
+                   merge the new value into the tree. */
                 rb_node_t* successor = get_right_successor(node);
-                if (successor != NULL && are_consecutive(cid, successor->range.cid))
+                if (successor != NULL && are_consecutive(value, successor->range.value))
                 {
-                    /* The right child of the current node is also consecutive the the new cid
-                       and so we can merge the three cids into a single node. */
+                    /* The right child of the current node is also consecutive the the new value
+                       and so we can merge the three values into a single node. */
                     node->range.offset += successor->range.offset + 2;
                     delete_rb_node(tree, successor);
                     status = BP_SUCCESS;
@@ -900,9 +900,9 @@ static int try_binary_insert_or_merge(bp_val_t cid, rb_tree_t* tree, rb_node_t**
                     break;
                 }             
             }
-            else if (cid > node->range.cid)
+            else if (value > node->range.value)
             {    
-                /* Value is greater than the current node's cid and is not consecutive and so we
+                /* Value is greater than the current node's value and is not consecutive and so we
                    either search a subtree of the child or insert a new node. */
                 if (has_right_child(node))
                 {
@@ -913,7 +913,7 @@ static int try_binary_insert_or_merge(bp_val_t cid, rb_tree_t* tree, rb_node_t**
                 else
                 {
                     /* Memory was available for new node and it is added. */
-                    *inserted_node = create_rb_node(cid, RED, tree);
+                    *inserted_node = create_rb_node(value, RED, tree);
                     if (*inserted_node == NULL)
                     {
                         /* There was no memory remaining for inserting a new child. */
@@ -1064,25 +1064,25 @@ static void delete_rb_node_without_rebalancing(rb_tree_t* tree, rb_node_t* node)
 }
 
 /*--------------------------------------------------------------------------------------
- * rb_tree_binary_search - Searches a rb_tree for a node containing a given cid.
+ * rb_tree_binary_search - Searches a rb_tree for a node containing a given value.
  *
  * tree: A ptr to a rb_tree_t to search. [INPUT]
- * cid: The cid to search for within the rb_tree_t. [INPUT]
+ * value: The value to search for within the rb_tree_t. [INPUT]
  * returns: A ptr to a rb_node_t to populate with the identified node. This is set to NULL
  *      if no node is found.
  *--------------------------------------------------------------------------------------*/ 
-static rb_node_t* rb_tree_binary_search(rb_tree_t* tree, bp_val_t cid)
+static rb_node_t* rb_tree_binary_search(rb_tree_t* tree, bp_val_t value)
 {
     rb_node_t* node = tree->root;
     while(node != NULL)
     {
-        if ((node->range.cid <= cid) && 
-            ((node->range.cid + node->range.offset) >= cid))
+        if ((node->range.value <= value) && 
+            ((node->range.value + node->range.offset) >= value))
         {
-            /* Node contains the current cid. */
+            /* Node contains the current value. */
             break;
         }
-        else if (node->range.cid > cid)
+        else if (node->range.value > value)
         {
             node = node->left;
         }
@@ -1214,13 +1214,13 @@ bool rb_tree_is_full(rb_tree_t *tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * rb_tree_insert - Inserts a cid into the red black tree and rebalances it accordingly.
+ * rb_tree_insert - Inserts a value into the red black tree and rebalances it accordingly.
  *
- * cid - The cid to insert into the rb_tree_t. [INPUT]
- * tree: A ptr to a rb_tree_t to insert the cid into. [OUTPUT]
+ * value - The value to insert into the rb_tree_t. [INPUT]
+ * tree: A ptr to a rb_tree_t to insert the value into. [OUTPUT]
  * returns: An int enum indicating the result of the insertion. 
  *--------------------------------------------------------------------------------------*/ 
-int rb_tree_insert(bp_val_t cid, rb_tree_t* tree)
+int rb_tree_insert(bp_val_t value, rb_tree_t* tree)
 {
     if ((tree == NULL) || (tree->node_block == NULL) || (tree->max_size == 0))
     {
@@ -1228,7 +1228,7 @@ int rb_tree_insert(bp_val_t cid, rb_tree_t* tree)
     }   
     
     rb_node_t* inserted_node = NULL;
-    int status = try_binary_insert_or_merge(cid, tree, &inserted_node);
+    int status = try_binary_insert_or_merge(value, tree, &inserted_node);
 
     if (status == BP_SUCCESS && inserted_node != NULL)
     {
@@ -1240,43 +1240,43 @@ int rb_tree_insert(bp_val_t cid, rb_tree_t* tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * rb_tree_delete - Deletes a cid into the red black tree and rebalances it accordingly.
+ * rb_tree_delete - Deletes a value into the red black tree and rebalances it accordingly.
  *
- * cid - The cid to delete into the rb_tree_t. [INPUT]
- * tree: A ptr to a rb_tree_t to delete cid from. [OUTPUT]
+ * value - The value to delete into the rb_tree_t. [INPUT]
+ * tree: A ptr to a rb_tree_t to delete value from. [OUTPUT]
  * returns: An int enum indicating the result of the deletion. 
  *--------------------------------------------------------------------------------------*/ 
-int rb_tree_delete(bp_val_t cid, rb_tree_t* tree)
+int rb_tree_delete(bp_val_t value, rb_tree_t* tree)
 {
     if (tree == NULL)
     {
         return BP_PARMERR;
     }
 
-    rb_node_t* node = rb_tree_binary_search(tree, cid);
+    rb_node_t* node = rb_tree_binary_search(tree, value);
     int status = BP_SUCCESS;
     if (node == NULL)
     {
-        /* No node containing cid was found. */
+        /* No node containing value was found. */
         status = BP_CIDNOTFOUND;
     }
     else
     {
         if(node->range.offset == 0)
         {
-            /* Node contains a single cid so it can be deleted. */
+            /* Node contains a single value so it can be deleted. */
             delete_rb_node(tree, node);
         }
         else
         {
             /* Node contains a range and so it must be split. */
-            if (cid == node->range.cid && node->range.offset != 0)
+            if (value == node->range.value && node->range.offset != 0)
             {
                 /* Value is at the start of nodes range so we can redefine the range. */
-                node->range.cid += 1;
+                node->range.value += 1;
                 node->range.offset -= 1;
             }
-            else if (cid == node->range.cid + node->range.offset)
+            else if (value == node->range.value + node->range.offset)
             {
                 /* Value at the end of the nodes range so it can be redefind. */
                 node->range.offset -= 1;
@@ -1286,12 +1286,12 @@ int rb_tree_delete(bp_val_t cid, rb_tree_t* tree)
                 /* Value is somewhere within the range of the current node and so that
                    node must be split. */
                 rb_node_t* upper_node = NULL;
-                status = try_binary_insert_or_merge(cid + 1, tree, &upper_node);                
+                status = try_binary_insert_or_merge(value + 1, tree, &upper_node);                
                 if (status == BP_SUCCESS)
                 {
                     /* Memory was sucessfully allocated to the new node. */
-                    upper_node->range.offset = node->range.cid + node->range.offset - upper_node->range.cid;
-                    node->range.offset = cid - node->range.cid - 1;
+                    upper_node->range.offset = node->range.value + node->range.offset - upper_node->range.value;
+                    node->range.offset = value - node->range.value - 1;
                 }
 
                 /* Failure in inserting the new upper range node into the tree. In theory
@@ -1327,7 +1327,7 @@ int rb_tree_destroy(rb_tree_t* tree)
 
 /*--------------------------------------------------------------------------------------
  * rb_tree_goto_first - Traverses a rb_tree_t inorder and finds the node
- *      with the lowest cid to serve as an iterator. This must be called to prepare 
+ *      with the lowest value to serve as an iterator. This must be called to prepare 
  *      the tree before future iteration calls to rb_tree_get_next.
  * 
  * tree: A ptr to a rb_tree_t to identify the lowest range. [OUTPUT]
@@ -1386,7 +1386,7 @@ int rb_tree_get_next(rb_tree_t* tree, rb_range_t* range, bool should_pop, bool s
     }
 
     /* Fill the range from the current iter ptr. */
-    range->cid = tree->iterator->range.cid;
+    range->value = tree->iterator->range.value;
     range->offset = tree->iterator->range.offset;
     
     /* Set iterator to visited and store node for deletion. */
