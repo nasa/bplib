@@ -23,6 +23,7 @@
 
 #include "bplib.h"
 #include "crc.h"
+#include "ut_assert.h"
 
 /******************************************************************************
  HELPER FUNCTIONS
@@ -139,12 +140,12 @@ static bool validate_crc_parameters_t(const crc_parameters_t* params)
  *
  * params: A ptr crc_parameters_t for initing the XOR table and testing the check value. [INPUT]
  *--------------------------------------------------------------------------------------*/
-static bool test_crc(crc_parameters_t* params)
+static void test_crc(crc_parameters_t* params)
 {
     printf("Testing CRC %s\n", params->name);
     crc_init(params);
     print_xor_table(params);
-    return validate_crc_parameters_t(params);
+    ut_assert(validate_crc_parameters_t(params), "Failed to validate %s\n", params->name);
 }
 
 /******************************************************************************
@@ -153,10 +154,7 @@ static bool test_crc(crc_parameters_t* params)
 
 int ut_crc (void)
 {
-    int failures = 0;
-    
-    /* Test 1 */
-    
+    /* Test 1 */    
     crc_parameters_t p1 = {
         .name                     = "CRC-16 X25", 
         .length                   = 16,
@@ -168,15 +166,10 @@ int ut_crc (void)
             .initial_value        = 0xFFFF,
             .final_xor            = 0xFFFF,
             .check_value          = 0x906E
-    }}};
+    }}};    
+    test_crc(&p1);
     
-    if(!test_crc(&p1))
-    {
-        failures++;
-    }
-
-    /* Test 2 */
-    
+    /* Test 2 */   
     crc_parameters_t p2 = {
         .name                     = "CRC-32 Castagnoli", 
         .length                   = 32,
@@ -189,15 +182,10 @@ int ut_crc (void)
             .final_xor            = 0xFFFFFFFF,
             .check_value          = 0xE3069283
     }}};
-
-    if(!test_crc(&p2))
-    {
-        failures++;
-    }
+    test_crc(&p2);
     
     /* Return Failures */
-
-    return failures;
+    return ut_failures();
 }
 
 #endif /* UNITTESTS */

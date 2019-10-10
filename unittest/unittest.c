@@ -16,6 +16,12 @@
  *************************************************************************/
 
 /******************************************************************************
+ INCLUDES
+ ******************************************************************************/
+
+#include "ut_assert.h"
+
+/******************************************************************************
  EXTERNS
  ******************************************************************************/
 
@@ -29,17 +35,13 @@ extern int ut_rh_hash (void);
 
 int bplib_unittest (void)
 {
-    int failures = 0;
-    
     /* Run Unit Tests */
-    
 #ifdef UNITTESTS
-//    failures += ut_crc();
-//    failures += ut_rb_tree();
-    failures += ut_rh_hash();
+    ut_crc();
+    ut_rb_tree();
+    ut_rh_hash();
 #endif
     
     /* Return Failures */
-
-    return failures;
+    return ut_failures();
 }

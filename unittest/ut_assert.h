@@ -29,7 +29,8 @@
  DEFINES
  ******************************************************************************/
 
-#define ut_assert(e,...) _ut_assert(e,__FILE__,__LINE__,__VA_ARGS__)
+#define ut_assert(e,...)    _ut_assert(e,__FILE__,__LINE__,__VA_ARGS__)
+#define ut_check(e)         _ut_assert(e,__FILE__,__LINE__,"Failure")
 
 /******************************************************************************
  EXPORTED FUNCTIONS

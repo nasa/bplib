@@ -26,6 +26,7 @@
 
 #include "bplib.h"
 #include "rb_tree.h"
+#include "ut_assert.h"
 
 /******************************************************************************
  DEFINES
@@ -36,14 +37,9 @@
 #define BLACK false /* Boolean representing a black rb_node_t, */
 
 /******************************************************************************
- FILE DATA 
- ******************************************************************************/
-
-static int ut_rb_tree_failures = 0;
-
-/******************************************************************************
  TEST AND DEBUGGING HELPER FUNCTIONS 
  ******************************************************************************/
+
 /*--------------------------------------------------------------------------------------
  * is_black -
  *-------------------------------------------------------------------------------------*/
@@ -58,14 +54,6 @@ static bool is_black(rb_node_t* node)
 static bool are_consecutive(bp_val_t value_1, bp_val_t value_2)
 {
     return (value_1 != BP_MAX_ENCODED_VALUE) && (value_1 + 1 == value_2);
-}
-
-/*--------------------------------------------------------------------------------------
- * ut_assert -
- *--------------------------------------------------------------------------------------*/  
-static void ut_assert(bool e)
-{
-    if(!e) ut_rb_tree_failures++;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -113,7 +101,7 @@ static uint32_t assert_inorder_nodes_are(rb_node_t* node,
     if (node == NULL)
     {
         /* In the case where root is empty we should have no nodes.  */
-        ut_assert(length == 0);
+        ut_check(length == 0);
         return 0;
     }
 
@@ -124,12 +112,12 @@ static uint32_t assert_inorder_nodes_are(rb_node_t* node,
     }
 
     /* Check that there are not more nodes than expected. */
-    ut_assert(index < length);
+    ut_check(index < length);
     
     /* Check that the nodes matches those provided in the list. */
-    ut_assert(node->range.value == nodes[index + index_offset]->range.value);
-    ut_assert(node->range.offset == nodes[index + index_offset]->range.offset);   
-    ut_assert(node->color == nodes[index + index_offset]->color); 
+    ut_check(node->range.value == nodes[index + index_offset]->range.value);
+    ut_check(node->range.offset == nodes[index + index_offset]->range.offset);   
+    ut_check(node->color == nodes[index + index_offset]->color); 
 
     index_offset += 1;
 
@@ -159,13 +147,13 @@ static void assert_node_has_no_adjacent_red(rb_node_t* node)
     if (node->left != NULL)
     {
         /* Assert left child is black since current node is red. */
-        ut_assert(is_black(node->left));
+        ut_check(is_black(node->left));
         assert_node_has_no_adjacent_red(node->left);
     }
     if (node->right != NULL)
     {
         /* Assert right child is black since current node is red. */
-        ut_assert(is_black(node->right));
+        ut_check(is_black(node->right));
         assert_node_has_no_adjacent_red(node->right);
     }
 }
@@ -223,7 +211,7 @@ static uint32_t assert_tree_pathes_have_equal_black_depths(rb_node_t* node)
         right_count += 1;
     }
 
-    ut_assert (left_count == right_count);
+    ut_check (left_count == right_count);
     /* Need to only test one path since they are equal. */
     return count_is_black(node) + left_count; 
 }
@@ -244,12 +232,12 @@ static void assert_node_value_in_between_children(rb_node_t* node)
 
     if (node->left != NULL)
     {
-        ut_assert((node->range.value) > (node->left->range.value + node->left->range.offset));
+        ut_check((node->range.value) > (node->left->range.value + node->left->range.offset));
         assert_node_value_in_between_children(node->left);
     }
     if (node->right != NULL)
     {
-        ut_assert((node->range.value + node->range.offset) < node->right->range.value);
+        ut_check((node->range.value + node->range.offset) < node->right->range.value);
         assert_node_value_in_between_children(node->right);
     }
 }
@@ -261,7 +249,7 @@ static void assert_node_value_in_between_children(rb_node_t* node)
  *--------------------------------------------------------------------------------------*/  
 static void assert_rb_tree_is_valid(rb_tree_t* tree)
 {
-    ut_assert(is_black(tree->root));
+    ut_check(is_black(tree->root));
     assert_node_has_no_adjacent_red(tree->root);
     assert_tree_pathes_have_equal_black_depths(tree->root);
     assert_node_value_in_between_children(tree->root);
@@ -293,16 +281,16 @@ static void shuffle(uint32_t* array, uint32_t length)
  *--------------------------------------------------------------------------------------*/  
 static void test_new_tree_empty()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_new_empty_tree: ");
 
     rb_tree_t tree;
-    ut_assert(rb_tree_create(0, &tree) == BP_PARMERR);
-    ut_assert(tree.root == NULL);
-    ut_assert(tree.max_size == 0);
+    ut_check(rb_tree_create(0, &tree) == BP_PARMERR);
+    ut_check(tree.root == NULL);
+    ut_check(tree.max_size == 0);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -310,16 +298,16 @@ static void test_new_tree_empty()
  *--------------------------------------------------------------------------------------*/  
 static void test_unable_to_insert_into_empty_tree()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_unable_to_insert_into_empty_tree: ");
 
     rb_tree_t tree;
-    ut_assert(rb_tree_create(0, &tree) == BP_PARMERR);
-    ut_assert(rb_tree_is_full(&tree));
-    ut_assert(tree.root == NULL); 
+    ut_check(rb_tree_create(0, &tree) == BP_PARMERR);
+    ut_check(rb_tree_is_full(&tree));
+    ut_check(tree.root == NULL); 
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -327,13 +315,13 @@ static void test_unable_to_insert_into_empty_tree()
  *--------------------------------------------------------------------------------------*/  
 static void test_unable_to_insert_into_full_tree()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_unable_to_insert_into_full_tree: ");
 
     rb_tree_t tree;
     rb_tree_create(4, &tree);
-    ut_assert(tree.size == 0);
-    ut_assert(!rb_tree_is_full(&tree));
+    ut_check(tree.size == 0);
+    ut_check(!rb_tree_is_full(&tree));
     rb_tree_insert(0, &tree);
     assert_rb_tree_is_valid(&tree);
     rb_tree_insert(2, &tree);
@@ -342,15 +330,15 @@ static void test_unable_to_insert_into_full_tree()
     assert_rb_tree_is_valid(&tree);   
     rb_tree_insert(6, &tree);
     assert_rb_tree_is_valid(&tree);
-    ut_assert(tree.size == 4);
-    ut_assert(rb_tree_is_full(&tree));
+    ut_check(tree.size == 4);
+    ut_check(rb_tree_is_full(&tree));
     /* The final insert should fail when tree is full. */
-    ut_assert(rb_tree_insert(8, &tree) == BP_CUSTODYTREEFULL);
+    ut_check(rb_tree_insert(8, &tree) == BP_CUSTODYTREEFULL);
     assert_rb_tree_is_valid(&tree);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 
@@ -359,7 +347,7 @@ static void test_unable_to_insert_into_full_tree()
  *--------------------------------------------------------------------------------------*/  
 static void test_deletes_tree()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_deletes_tree: ");
 
     /* Tests deleting a tree with nodes. */
@@ -375,8 +363,8 @@ static void test_deletes_tree()
     rb_tree_create(0, &tree);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -384,7 +372,7 @@ static void test_deletes_tree()
  *--------------------------------------------------------------------------------------*/  
 static void test_insert_root()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_insert_root: ");
 
     rb_tree_t tree;
@@ -397,8 +385,8 @@ static void test_insert_root()
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -406,7 +394,7 @@ static void test_insert_root()
  *--------------------------------------------------------------------------------------*/  
 static void test_insert_left_subtree()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_insert_left_subtree: ");
 
     /* Tests a single insertion into the left subtree from root. */
@@ -438,8 +426,8 @@ static void test_insert_left_subtree()
     assert_inorder_nodes_are(tree.root, nodes_3, 4, 0);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-     else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+     else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -447,7 +435,7 @@ static void test_insert_left_subtree()
  *--------------------------------------------------------------------------------------*/  
 static void test_insert_right_subtree()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_insert_right_subtree: ");
 
     /* Tests a single insertion into the right subtree from root. */
@@ -479,8 +467,8 @@ static void test_insert_right_subtree()
     assert_inorder_nodes_are(tree.root, nodes_3, 4, 0);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -488,7 +476,7 @@ static void test_insert_right_subtree()
  *--------------------------------------------------------------------------------------*/  
 static void test_insert_merge_lower()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_insert_merge_lower: ");
 
     rb_tree_t tree;
@@ -528,8 +516,8 @@ static void test_insert_merge_lower()
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -537,7 +525,7 @@ static void test_insert_merge_lower()
  *--------------------------------------------------------------------------------------*/  
 static void test_insert_merge_upper()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_insert_merge_upper: ");
 
     rb_tree_t tree;
@@ -574,8 +562,8 @@ static void test_insert_merge_upper()
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -583,7 +571,7 @@ static void test_insert_merge_upper()
  *--------------------------------------------------------------------------------------*/  
 static void test_insert_merge_lower_and_child()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_insert_merge_lower_and_child: ");
 
     rb_tree_t tree;
@@ -619,8 +607,8 @@ static void test_insert_merge_lower_and_child()
     assert_inorder_nodes_are(tree.root, nodes_2, 6, 0);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -628,7 +616,7 @@ static void test_insert_merge_lower_and_child()
  *--------------------------------------------------------------------------------------*/  
 static void test_insert_merge_upper_and_child()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_insert_merge_upper_and_child: ");
 
     rb_tree_t tree;
@@ -656,8 +644,8 @@ static void test_insert_merge_upper_and_child()
     assert_inorder_nodes_are(tree.root, nodes_2, 3, 0);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -665,7 +653,7 @@ static void test_insert_merge_upper_and_child()
  *--------------------------------------------------------------------------------------*/  
 static void test_merge_to_single_node()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_merge_to_single_node: ");
 
     rb_tree_t tree;
@@ -707,8 +695,8 @@ static void test_merge_to_single_node()
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -716,7 +704,7 @@ static void test_merge_to_single_node()
  *--------------------------------------------------------------------------------------*/  
 static void test_no_duplicates()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_no_duplicates: ");
 
     rb_tree_t tree;
@@ -730,24 +718,24 @@ static void test_no_duplicates()
     rb_node_t* nodes[] = {&n1, &n2, &n3};
 
    
-    ut_assert(tree.size == 3);
+    ut_check(tree.size == 3);
     assert_rb_tree_is_valid(&tree); 
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
 
-    ut_assert(rb_tree_insert(5, &tree)  == BP_DUPLICATECID);
-    ut_assert(rb_tree_insert(5, &tree)  == BP_DUPLICATECID);
-    ut_assert(rb_tree_insert(10, &tree) == BP_DUPLICATECID);
-    ut_assert(rb_tree_insert(10, &tree) == BP_DUPLICATECID);
-    ut_assert(rb_tree_insert(15, &tree) == BP_DUPLICATECID);
-    ut_assert(rb_tree_insert(15, &tree) == BP_DUPLICATECID);
+    ut_check(rb_tree_insert(5, &tree)  == BP_DUPLICATECID);
+    ut_check(rb_tree_insert(5, &tree)  == BP_DUPLICATECID);
+    ut_check(rb_tree_insert(10, &tree) == BP_DUPLICATECID);
+    ut_check(rb_tree_insert(10, &tree) == BP_DUPLICATECID);
+    ut_check(rb_tree_insert(15, &tree) == BP_DUPLICATECID);
+    ut_check(rb_tree_insert(15, &tree) == BP_DUPLICATECID);
  
-    ut_assert(tree.size == 3);
+    ut_check(tree.size == 3);
     assert_rb_tree_is_valid(&tree); 
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
     rb_tree_destroy(&tree); 
 
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -755,16 +743,16 @@ static void test_no_duplicates()
  *--------------------------------------------------------------------------------------*/
 static void test_are_consecutive()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_are_consecutive: ");
 
-    ut_assert(are_consecutive(0, 1));
-    ut_assert(!are_consecutive(1, 0));
-    ut_assert(are_consecutive(UINT32_MAX - 1, UINT32_MAX));
-    ut_assert(!are_consecutive(UINT32_MAX, 0));
+    ut_check(are_consecutive(0, 1));
+    ut_check(!are_consecutive(1, 0));
+    ut_check(are_consecutive(UINT32_MAX - 1, UINT32_MAX));
+    ut_check(!are_consecutive(UINT32_MAX, 0));
  
-   if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+   if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -772,12 +760,12 @@ static void test_are_consecutive()
  *--------------------------------------------------------------------------------------*/
 static void test_max_range_offset()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_max_range_offset: ");
 
     rb_tree_t tree;
     int status = rb_tree_create(MAX_TREE_SIZE, &tree);
-    ut_assert(status == BP_SUCCESS || status == BP_FAILEDMEM);
+    ut_check(status == BP_SUCCESS || status == BP_FAILEDMEM);
     if (status == BP_FAILEDMEM)
     {
         /* Return early if no memory was allocated. */
@@ -797,8 +785,8 @@ static void test_max_range_offset()
     assert_inorder_nodes_are(tree.root, nodes, 1, 0);
     rb_tree_destroy(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -806,7 +794,7 @@ static void test_max_range_offset()
  *--------------------------------------------------------------------------------------*/
 static void test_unable_to_delete_value_that_does_not_exist()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_unable_to_delete_value_that_does_not_exist: ");
 
     rb_tree_t tree;
@@ -823,14 +811,14 @@ static void test_unable_to_delete_value_that_does_not_exist()
     }
     assert_rb_tree_is_valid(&tree);
 
-    ut_assert(tree.size == 5);
-    ut_assert(rb_tree_delete(6, &tree) == BP_CIDNOTFOUND);
-    ut_assert(rb_tree_delete(25, &tree) == BP_CIDNOTFOUND);
-    ut_assert(rb_tree_delete(39, &tree) == BP_CIDNOTFOUND);
-    ut_assert(tree.size == 5);
+    ut_check(tree.size == 5);
+    ut_check(rb_tree_delete(6, &tree) == BP_CIDNOTFOUND);
+    ut_check(rb_tree_delete(25, &tree) == BP_CIDNOTFOUND);
+    ut_check(rb_tree_delete(39, &tree) == BP_CIDNOTFOUND);
+    ut_check(tree.size == 5);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -838,7 +826,7 @@ static void test_unable_to_delete_value_that_does_not_exist()
  *--------------------------------------------------------------------------------------*/
 static void test_delete_single_node()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_delete_single_node: ");
 
     rb_tree_t tree;
@@ -847,7 +835,7 @@ static void test_delete_single_node()
     {
         rb_tree_insert(i, &tree);
     }
-    ut_assert(tree.size == 6);
+    ut_check(tree.size == 6);
     assert_rb_tree_is_valid(&tree);
 
     rb_node_t n1 = {.range = {.value = 0,  .offset = 0}, .color = BLACK};
@@ -865,11 +853,11 @@ static void test_delete_single_node()
     n6.color = BLACK;
     rb_node_t* nodes_end[] = {&n1, &n2, &n3, &n5, &n6};
     assert_inorder_nodes_are(tree.root, nodes_end, 5, 0);
-    ut_assert(tree.size == 5);
+    ut_check(tree.size == 5);
     assert_rb_tree_is_valid(&tree);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -877,7 +865,7 @@ static void test_delete_single_node()
  *--------------------------------------------------------------------------------------*/
 static void test_deletes_node_at_start_of_range()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_deletes_node_at_start_of_range: ");
 
     rb_tree_t tree;
@@ -894,7 +882,7 @@ static void test_deletes_node_at_start_of_range()
     rb_tree_insert(14, &tree);
     rb_tree_insert(16, &tree);
 
-    ut_assert(tree.size == 5);
+    ut_check(tree.size == 5);
 
     rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
     rb_node_t n2 = {.range = {.value = 5,  .offset = 2}, .color = BLACK};
@@ -907,20 +895,20 @@ static void test_deletes_node_at_start_of_range()
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
 
     rb_tree_delete(13, &tree);
-    ut_assert(tree.size == 5);
+    ut_check(tree.size == 5);
     n4.range.value = 14;
     n4.range.offset = 0;
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
     
     rb_tree_delete(5, &tree);
-    ut_assert(tree.size == 5);
+    ut_check(tree.size == 5);
     n2.range.value = 6;
     n2.range.offset = 1;
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
     assert_rb_tree_is_valid(&tree);
 
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -928,7 +916,7 @@ static void test_deletes_node_at_start_of_range()
  *--------------------------------------------------------------------------------------*/
 static void test_deletes_node_at_end_of_range()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_deletes_node_at_end_of_range: ");
 
     rb_tree_t tree;
@@ -945,7 +933,7 @@ static void test_deletes_node_at_end_of_range()
     rb_tree_insert(14, &tree);
     rb_tree_insert(16, &tree);
 
-    ut_assert(tree.size == 5);
+    ut_check(tree.size == 5);
 
     rb_node_t n1 = {.range = {.value = 0,  .offset = 2}, .color = BLACK};
     rb_node_t n2 = {.range = {.value = 5,  .offset = 2}, .color = BLACK};
@@ -958,18 +946,18 @@ static void test_deletes_node_at_end_of_range()
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
 
     rb_tree_delete(14, &tree);
-    ut_assert(tree.size == 5);
+    ut_check(tree.size == 5);
     n4.range.offset = 0;
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
     
     rb_tree_delete(7, &tree);
-    ut_assert(tree.size == 5);
+    ut_check(tree.size == 5);
     n2.range.offset = 1;
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
     assert_rb_tree_is_valid(&tree);
 
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -977,7 +965,7 @@ static void test_deletes_node_at_end_of_range()
  *--------------------------------------------------------------------------------------*/
 static void test_deletes_node_inside_of_range()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_deletes_node_inside_of_range: ");
 
     rb_tree_t tree;
@@ -1004,7 +992,7 @@ static void test_deletes_node_inside_of_range()
     rb_node_t* nodes_start[] = {&n1, &n2, &n3, &n4, &n5};
 
     assert_rb_tree_is_valid(&tree);
-    ut_assert(tree.size == 5);
+    ut_check(tree.size == 5);
     assert_inorder_nodes_are(tree.root, nodes_start, 5, 0);
 
     rb_tree_delete(6, &tree);
@@ -1012,12 +1000,12 @@ static void test_deletes_node_inside_of_range()
     n2.range.offset = 0;
     rb_node_t n6 = {.range = {.value = 7, .offset = 2}, .color = RED};
     rb_node_t* nodes_end[] = {&n1, &n2, &n6, &n3, &n4, &n5};
-    ut_assert(tree.size == 6);
+    ut_check(tree.size == 6);
     assert_inorder_nodes_are(tree.root, nodes_end, 6, 0);
     assert_rb_tree_is_valid(&tree);
 
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1025,49 +1013,49 @@ static void test_deletes_node_inside_of_range()
  *--------------------------------------------------------------------------------------*/
 static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_tree_traversed_and_deleted_inorder_with_rebalancing: ");
 
     rb_tree_t tree;
     uint32_t max_nodes = 10;
     rb_tree_create(max_nodes, &tree);
-    ut_assert(rb_tree_insert(6, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(2, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(3, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(8, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(10, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(12, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(11, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(6, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(2, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(3, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(8, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(10, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(12, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(11, &tree) == BP_SUCCESS);
     assert_rb_tree_is_valid(&tree);
-    ut_assert(tree.size == 4);
+    ut_check(tree.size == 4);
 
     rb_range_t range;
 
-    ut_assert(rb_tree_goto_first(NULL) == BP_PARMERR); 
-    ut_assert(rb_tree_goto_first(&tree) == BP_SUCCESS);
-    ut_assert(rb_tree_get_next(&tree, NULL, true, true) == BP_ERROR); 
+    ut_check(rb_tree_goto_first(NULL) == BP_PARMERR); 
+    ut_check(rb_tree_goto_first(&tree) == BP_SUCCESS);
+    ut_check(rb_tree_get_next(&tree, NULL, true, true) == BP_ERROR); 
     
-    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS); 
-    ut_assert(range.value == 2 && range.offset == 1);
+    ut_check(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS); 
+    ut_check(range.value == 2 && range.offset == 1);
     assert_rb_tree_is_valid(&tree);
     
-    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS); 
-    ut_assert(range.value == 6 && range.offset == 0);
+    ut_check(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS); 
+    ut_check(range.value == 6 && range.offset == 0);
     assert_rb_tree_is_valid(&tree);
     
-    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS); 
-    ut_assert(range.value == 8 && range.offset == 0);
+    ut_check(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS); 
+    ut_check(range.value == 8 && range.offset == 0);
     assert_rb_tree_is_valid(&tree);
     
-    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS);
-    ut_assert(range.value == 10 && range.offset == 2); 
+    ut_check(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS);
+    ut_check(range.value == 10 && range.offset == 2); 
     assert_rb_tree_is_valid(&tree);
     
-    ut_assert(rb_tree_get_next(&tree, &range, true, true) == BP_ERROR); 
-    ut_assert(tree.size == 0);
+    ut_check(rb_tree_get_next(&tree, &range, true, true) == BP_ERROR); 
+    ut_check(tree.size == 0);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures())  printf("PASS\n");
+    else                    printf("FAIL\n");
 }
 
 
@@ -1076,43 +1064,43 @@ static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
  *--------------------------------------------------------------------------------------*/
 static void test_tree_traversed_and_deleted_inorder_without_rebalancing()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_tree_traversed_and_deleted_inorder_without_rebalancing: ");
 
     rb_tree_t tree;
     uint32_t max_nodes = 10;
     rb_tree_create(max_nodes, &tree);
-    ut_assert(rb_tree_insert(6, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(2, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(3, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(8, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(10, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(12, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(11, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(6, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(2, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(3, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(8, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(10, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(12, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(11, &tree) == BP_SUCCESS);
     assert_rb_tree_is_valid(&tree);
-    ut_assert(tree.size == 4);
+    ut_check(tree.size == 4);
 
     rb_range_t range;
 
-    ut_assert(rb_tree_goto_first(&tree) == BP_SUCCESS);
+    ut_check(rb_tree_goto_first(&tree) == BP_SUCCESS);
     
-    ut_assert(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS); 
-    ut_assert(range.value == 2 && range.offset == 1);
+    ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS); 
+    ut_check(range.value == 2 && range.offset == 1);
     
-    ut_assert(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS); 
-    ut_assert(range.value == 6 && range.offset == 0);
+    ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS); 
+    ut_check(range.value == 6 && range.offset == 0);
     
-    ut_assert(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS); 
-    ut_assert(range.value == 8 && range.offset == 0);
+    ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS); 
+    ut_check(range.value == 8 && range.offset == 0);
     
-    ut_assert(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS);
-    ut_assert(range.value == 10 && range.offset == 2); 
-    ut_assert(rb_tree_get_next(&tree, &range, true, false) == 
+    ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS);
+    ut_check(range.value == 10 && range.offset == 2); 
+    ut_check(rb_tree_get_next(&tree, &range, true, false) == 
         BP_ERROR); 
-    ut_assert(tree.size == 0);
+    ut_check(tree.size == 0);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1120,45 +1108,45 @@ static void test_tree_traversed_and_deleted_inorder_without_rebalancing()
  *--------------------------------------------------------------------------------------*/
 static void test_tree_traversed_inorder_after_partial_traversal()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_tree_traversed_inorder_after_partial_traversal: ");
 
     rb_tree_t tree;
     uint32_t max_nodes = 10;
     rb_tree_create(max_nodes, &tree);
-    ut_assert(rb_tree_insert(2, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(4, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(6, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(8, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(10, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(12, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(14, &tree) == BP_SUCCESS);
-    ut_assert(rb_tree_insert(16, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(2, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(4, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(6, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(8, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(10, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(12, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(14, &tree) == BP_SUCCESS);
+    ut_check(rb_tree_insert(16, &tree) == BP_SUCCESS);
     assert_rb_tree_is_valid(&tree);
-    ut_assert(tree.size == 8);
+    ut_check(tree.size == 8);
 
     rb_range_t range;
 
-    ut_assert(rb_tree_goto_first(&tree) == BP_SUCCESS);
+    ut_check(rb_tree_goto_first(&tree) == BP_SUCCESS);
     for (uint32_t i = 2; i <= 8; i += 2)
     {
-        ut_assert(rb_tree_get_next(&tree, &range, false, false) == BP_SUCCESS); 
-        ut_assert(range.value == i && range.offset == 0);
+        ut_check(rb_tree_get_next(&tree, &range, false, false) == BP_SUCCESS); 
+        ut_check(range.value == i && range.offset == 0);
     }
 
-    ut_assert(rb_tree_goto_first(&tree) == BP_SUCCESS);
+    ut_check(rb_tree_goto_first(&tree) == BP_SUCCESS);
     for (uint32_t i = 2; i <= 16; i += 2)
     {
-        ut_assert(rb_tree_get_next(&tree, &range, false, false) == BP_SUCCESS); 
-        ut_assert(range.value == i && range.offset == 0);
+        ut_check(rb_tree_get_next(&tree, &range, false, false) == BP_SUCCESS); 
+        ut_check(range.value == i && range.offset == 0);
     }
 
-    ut_assert(rb_tree_get_next(&tree, &range, true, false) == 
+    ut_check(rb_tree_get_next(&tree, &range, true, false) == 
         BP_ERROR); 
-    ut_assert(tree.size == 8);
+    ut_check(tree.size == 8);
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1166,7 +1154,7 @@ static void test_tree_traversed_inorder_after_partial_traversal()
  *--------------------------------------------------------------------------------------*/  
 static void test_random_stress()
 {
-    int f = ut_rb_tree_failures;
+    int f = ut_failures();
     printf("test_random_stress: ");
     fflush(stdout);
 
@@ -1183,7 +1171,7 @@ static void test_random_stress()
 
     for (uint32_t i = 0; i < number_trees; i++)
     {
-        int subf = ut_rb_tree_failures;
+        int subf = ut_failures();
 
         rb_tree_t tree; 
         rb_tree_create(max_bundles, &tree);
@@ -1196,13 +1184,13 @@ static void test_random_stress()
         assert_inorder_nodes_are(tree.root, nodes, 1, 0);
         rb_tree_destroy(&tree);
 
-        if(subf == ut_rb_tree_failures) printf(".");
+        if(subf == ut_failures()) printf(".");
         else                            printf("!");
         fflush(stdout);
     }
     
-    if(f == ut_rb_tree_failures) printf("PASS\n");
-    else                         printf("FAIL\n");
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
 }
 
 
@@ -1278,7 +1266,7 @@ static int characterize_rb_tree_performance()
 
 
     uint32_t max_val = (max_size - 1) * 2;
-    ut_assert(max_val >= 2);
+    ut_check(max_val >= 2);
 
     clock_t start, end, elapsed;
 
@@ -1307,7 +1295,7 @@ static int characterize_rb_tree_performance()
             insert_stats.total += elapsed;
             insert_stats.count += 1;
         }
-        ut_assert(tree.size == 1);
+        ut_check(tree.size == 1);
         shuffle(bundle_ids, max_val);
         for (uint32_t i = 0; i <= max_val; i++)
         {
@@ -1322,7 +1310,7 @@ static int characterize_rb_tree_performance()
             delete_stats.total += elapsed;
             delete_stats.count += 1;
         }
-        ut_assert(rb_tree_is_empty(&tree));
+        ut_check(rb_tree_is_empty(&tree));
      }
 
     insert_stats.average = insert_stats.total / insert_stats.count;
@@ -1383,12 +1371,20 @@ void print_tree(rb_tree_t* tree)
 }
 
 /*--------------------------------------------------------------------------------------
+ * ut_rb_tree_perf - 
+ *--------------------------------------------------------------------------------------*/  
+int ut_rb_tree_perf (void)
+{
+    characterize_rb_tree_performance();
+
+    return 0;
+}
+
+/*--------------------------------------------------------------------------------------
  * ut_rb_tree - 
  *--------------------------------------------------------------------------------------*/  
 int ut_rb_tree (void)
 {
-    ut_rb_tree_failures = 0;
-
     test_new_tree_empty();
     test_unable_to_insert_into_empty_tree();
     test_unable_to_insert_into_full_tree();
@@ -1414,17 +1410,7 @@ int ut_rb_tree (void)
     test_tree_traversed_inorder_after_partial_traversal();
     test_random_stress();
 
-    return ut_rb_tree_failures;
-}
-
-/*--------------------------------------------------------------------------------------
- * ut_rb_tree_perf - 
- *--------------------------------------------------------------------------------------*/  
-int ut_rb_tree_perf (void)
-{
-    characterize_rb_tree_performance();
-
-    return 0;
+    return ut_failures();
 }
 
 #endif /* UNITTESTS */
