@@ -328,7 +328,6 @@ int rh_hash_next(rh_hash_t* rh_hash, bp_val_t max_cid, bp_active_bundle_t* bundl
     if(rh_hash->oldest_entry != NULL_INDEX)
     {
         if(bundle) *bundle = rh_hash->table[rh_hash->oldest_entry].bundle;
-        rh_hash->oldest_entry = rh_hash->table[rh_hash->oldest_entry].after;
         return BP_SUCCESS;        
     }
 
