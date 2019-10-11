@@ -29,7 +29,6 @@
  ******************************************************************************/
 
 typedef struct {
-    uint32_t            hash;   // unconstrained hash value
     bp_active_bundle_t  bundle;
     bp_index_t          chain;  // depth of the chain to reach this entry, 0 indicates empty
     bp_index_t          next;   // next entry in chain
