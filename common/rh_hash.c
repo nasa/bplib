@@ -154,7 +154,8 @@ int rh_hash_destroy(rh_hash_t* rh_hash)
  *----------------------------------------------------------------------------*/
 int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
 {
-    /* Constrain the Hash */
+    bp_index_t open_index, scan_index, end_index;
+    bp_index_t after_index, before_index, next_index, prev_index;
     bp_index_t curr_index = HASH_CID(bundle.cid) % rh_hash->size;
     
     /* Add Entry to Hash */
@@ -171,7 +172,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
         }
         
         /* Find First Open Hash Slot */
-        bp_index_t open_index = (curr_index + 1) % rh_hash->size;
+        open_index = (curr_index + 1) % rh_hash->size;
         while( (rh_hash->table[open_index].bundle.sid != BP_SID_VACANT) &&
                (open_index != curr_index) )
         {
@@ -185,8 +186,8 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
         }
         
         /* Transverse to End of Chain */
-        bp_index_t end_index = curr_index;
-        bp_index_t scan_index = rh_hash->table[curr_index].next;
+        end_index = curr_index;
+        scan_index = rh_hash->table[curr_index].next;
         while(scan_index != NULL_INDEX)
         {
             /* Check Slot for Duplicate */
@@ -210,8 +211,8 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
         }
         else /* Robin Hood Insertion (chain > 1) */
         {
-            bp_index_t next_index = rh_hash->table[curr_index].next;
-            bp_index_t prev_index = rh_hash->table[curr_index].prev;
+            next_index = rh_hash->table[curr_index].next;
+            prev_index = rh_hash->table[curr_index].prev;
             
             /* Bridge Over Current Slot */
             if(next_index != NULL_INDEX) rh_hash->table[next_index].prev = prev_index;
@@ -224,8 +225,14 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             rh_hash->table[open_index].prev     = end_index;
             rh_hash->table[open_index].after    = rh_hash->table[curr_index].after;
             rh_hash->table[open_index].before   = rh_hash->table[curr_index].before;
-            
-            /* Check to Update Oldest Entry */
+
+            /* Update Time Order (Move) */
+            after_index  = rh_hash->table[curr_index].after;
+            before_index = rh_hash->table[curr_index].before;
+            if(after_index != NULL_INDEX)   rh_hash->table[after_index].before = open_index;
+            if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = open_index;            
+
+            /* Update Oldest Entry */
             if(rh_hash->oldest_entry == curr_index) rh_hash->oldest_entry = open_index;
 
             /* Add Entry to Current Slot */
@@ -261,6 +268,7 @@ int rh_hash_next(rh_hash_t* rh_hash, bp_val_t max_cid, bp_active_bundle_t* bundl
  *----------------------------------------------------------------------------*/
 int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
 {
+    bp_index_t after_index, before_index, end_index, next_index, prev_index;
     bp_index_t curr_index = HASH_CID(cid) % rh_hash->size;
 
     /* Find Node to Remove */
@@ -282,17 +290,19 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     /* Return Bundle */
     if(bundle) *bundle = rh_hash->table[curr_index].bundle;
 
-    /* Bridge Over Removed Entry & Update Time Order */
-    bp_index_t after_index  = rh_hash->table[curr_index].after;
-    bp_index_t before_index = rh_hash->table[curr_index].before;
-    if(curr_index == rh_hash->newest_entry)  rh_hash->newest_entry = before_index;
-    if(curr_index == rh_hash->oldest_entry)  rh_hash->oldest_entry = after_index;
+    /* Update Time Order (Bridge) */
+    after_index  = rh_hash->table[curr_index].after;
+    before_index = rh_hash->table[curr_index].before;
     if(after_index != NULL_INDEX)   rh_hash->table[after_index].before = before_index;
     if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = after_index;            
 
+    /* Update Newest and Oldest Entry */
+    if(curr_index == rh_hash->newest_entry)  rh_hash->newest_entry = before_index;
+    if(curr_index == rh_hash->oldest_entry)  rh_hash->oldest_entry = after_index;
+    
     /* Remove End of Chain */
-    bp_index_t end_index = curr_index;
-    bp_index_t next_index = rh_hash->table[curr_index].next;
+    end_index = curr_index;
+    next_index = rh_hash->table[curr_index].next;
     if(next_index != NULL_INDEX)
     {
         /* Transverse to End of Chain */
@@ -304,17 +314,16 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
 
         /* Copy End of Chain into Removed Slot */
         rh_hash->table[curr_index].bundle = rh_hash->table[end_index].bundle;
-
-        /* Update Time Order */                                    
         rh_hash->table[curr_index].before = rh_hash->table[end_index].before;
         rh_hash->table[curr_index].after  = rh_hash->table[end_index].after;
 
+        /* Update Time Order (Move) */                                    
         after_index  = rh_hash->table[end_index].after;
         before_index = rh_hash->table[end_index].before;
-
         if(after_index != NULL_INDEX) rh_hash->table[after_index].before = curr_index;
         if(before_index != NULL_INDEX) rh_hash->table[before_index].after = curr_index;
 
+        /* Update Newest and Oldest Entry */
         if(end_index == rh_hash->newest_entry)  rh_hash->newest_entry = curr_index;
         if(end_index == rh_hash->oldest_entry)  rh_hash->oldest_entry = curr_index;
     }
@@ -323,7 +332,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     rh_hash->table[end_index].bundle.sid = BP_SID_VACANT;
 
     /* Update Hash Order */
-    bp_index_t prev_index = rh_hash->table[end_index].prev;
+    prev_index = rh_hash->table[end_index].prev;
     if(prev_index != NULL_INDEX) rh_hash->table[prev_index].next = NULL_INDEX;            
 
     /* Update Statistics */
