@@ -6,6 +6,7 @@ local rd = runner.rootdir(arg[0])
 
 runner.script(rd .. "ut_open_close.lua", {"RAM"})
 runner.script(rd .. "ut_open_close.lua", {"FILE"})
+runner.script(rd .. "ut_attributes.lua")
 runner.script(rd .. "ut_getset_opt.lua")
 runner.script(rd .. "ut_eid2ipn.lua")
 runner.script(rd .. "ut_ipn2eid.lua")

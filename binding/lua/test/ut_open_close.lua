@@ -1,10 +1,8 @@
 local bplib = require("bplib")
 local runner = require("bptest")
 local src = runner.srcscript()
-
 local rd = runner.rootdir(arg[0])
 
-print(rd)
 -- Setup --
 
 store = arg[1] or "RAM"

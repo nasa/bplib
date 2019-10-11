@@ -315,7 +315,7 @@ int lbplib_open (lua_State* L)
 
     /* Check Number of Parameters */
     int minargs = 5;
-    if(lua_gettop(L) != minargs)
+    if(lua_gettop(L) < minargs)
     {
         lualog("incorrect number of parameters - expected %d\n", minargs);
         lua_pushnil(L);
@@ -361,10 +361,51 @@ int lbplib_open (lua_State* L)
         lua_pushnil(L);
         return 1;
     }        
-    
-    /* Create Bplib Channel */
+
+    /* Initialize with Default Attributes */
     bp_attr_t attributes;
     bplib_attrinit(&attributes);
+
+    /* Override if Attribute Table Provided */
+    if(lua_type(L, 6) == LUA_TTABLE)
+    {
+        /* Set Attributes on Stack */    
+        lua_getfield(L, 6, "lifetime");
+        lua_getfield(L, 6, "request_custody");
+        lua_getfield(L, 6, "admin_record");
+        lua_getfield(L, 6, "integrity_check");
+        lua_getfield(L, 6, "allow_fragmentation");
+        lua_getfield(L, 6, "cipher_suite");
+        lua_getfield(L, 6, "timeout");
+        lua_getfield(L, 6, "max_length");
+        lua_getfield(L, 6, "cid_reuse");
+        lua_getfield(L, 6, "dacs_rate");
+        lua_getfield(L, 6, "protocol_version");
+        lua_getfield(L, 6, "retransmit_order");
+        lua_getfield(L, 6, "active_table_size");
+        lua_getfield(L, 6, "max_fills_per_dacs");
+        lua_getfield(L, 6, "max_gaps_per_dacs");
+
+        /* Get Attributes from Stack */
+        attributes.lifetime             = luaL_optnumber(L, -15, attributes.lifetime);
+        attributes.request_custody      = luaL_optnumber(L, -14, attributes.request_custody);
+        attributes.admin_record         = luaL_optnumber(L, -13, attributes.admin_record);
+        attributes.integrity_check      = luaL_optnumber(L, -12, attributes.integrity_check);
+        attributes.allow_fragmentation  = luaL_optnumber(L, -11, attributes.allow_fragmentation);
+        attributes.cipher_suite         = luaL_optnumber(L, -10, attributes.cipher_suite);
+        attributes.timeout              = luaL_optnumber(L, -9,  attributes.timeout);
+        attributes.max_length           = luaL_optnumber(L, -8,  attributes.max_length);
+        attributes.cid_reuse            = luaL_optnumber(L, -7,  attributes.cid_reuse);
+        attributes.dacs_rate            = luaL_optnumber(L, -6,  attributes.dacs_rate);
+        attributes.protocol_version     = luaL_optnumber(L, -5,  attributes.protocol_version);
+        attributes.retransmit_order     = luaL_optnumber(L, -4,  attributes.retransmit_order);
+        attributes.active_table_size    = luaL_optnumber(L, -3,  attributes.active_table_size);
+        attributes.max_fills_per_dacs   = luaL_optnumber(L, -2,  attributes.max_fills_per_dacs);
+        attributes.max_gaps_per_dacs    = luaL_optnumber(L, -1,  attributes.max_gaps_per_dacs);
+        attributes.storage_service_parm = NULL;      
+    }
+    
+    /* Create Bplib Channel */
     bp_desc_t channel = bplib_open(route, *store, attributes);
     if(channel == BP_INVALID_DESCRIPTOR)
     {
