@@ -96,9 +96,9 @@ int cbuf_add(cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite)
 /*----------------------------------------------------------------------------
  * cbuf_next
  *----------------------------------------------------------------------------*/
-int cbuf_next(cbuf_t* cbuf, bp_val_t max_cid, bp_active_bundle_t* bundle)
+int cbuf_next(cbuf_t* cbuf, bp_active_bundle_t* bundle)
 {
-    while(cbuf->oldest_cid != max_cid)
+    while(cbuf->oldest_cid != cbuf->newest_cid)
     {
         bp_index_t ati = cbuf->oldest_cid % cbuf->size;
         if(cbuf->table[ati].sid == BP_SID_VACANT)

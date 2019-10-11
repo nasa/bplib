@@ -120,49 +120,49 @@ static void test_1(void)
     print_hash(rh_hash, "Step 1.1");
 
     cid = 0;
-    ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 7, "Failed to get hash size of 7\n");
 
     cid = 1;
-    ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 6, "Failed to get hash size of 6\n");
 
     cid = 2;
-    ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 5, "Failed to get hash size of 5\n");
 
     cid = 3;
-    ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 4, "Failed to get hash size of 4\n");
 
     cid = 4;
-    ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 3, "Failed to get hash size of 3\n");
 
     cid = 5;
-    ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 2, "Failed to get hash size of 2\n");
 
     cid = 6;
-    ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 1, "Failed to get hash size of 1\n");
 
     cid = 7;
-    ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 0, "Failed to get hash size of 0\n");
 
 
     print_hash(rh_hash, "Step 1.2");
     
-    ut_assert(rh_hash_next(rh_hash, 7, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
+    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
     ut_assert(rh_hash->num_entries == 0, "Failed to remove all entries\n");    
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }
@@ -173,7 +173,7 @@ static void test_1(void)
 static void test_2(void)
 {
     rh_hash_t* rh_hash;
-    bp_val_t cid, max_cid;
+    bp_val_t cid;
 
     int hash_size = 8;    
     bp_active_bundle_t bundle = {&hash_size, 0, 0};
@@ -191,47 +191,45 @@ static void test_2(void)
     bundle.cid = 10; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
     bundle.cid = 11; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
 
-    max_cid = 11;
-
     print_hash(rh_hash, "Step 2.1");    
 
     cid = 0;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     print_hash(rh_hash, "Step 2.2");    
 
     cid = 1;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 2;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 3;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 8;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 9;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 10;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 11;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     print_hash(rh_hash, "Step 2.3");
     
-    ut_assert(rh_hash_next(rh_hash, max_cid, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
+    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
     ut_assert(rh_hash->num_entries == 0, "Failed to remove all entries\n");    
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }
@@ -242,7 +240,7 @@ static void test_2(void)
 static void test_3(void)
 {
     rh_hash_t* rh_hash;
-    bp_val_t cid, max_cid;
+    bp_val_t cid;
 
     int hash_size = 16;    
     bp_active_bundle_t bundle = {&hash_size, 0, 0};
@@ -269,83 +267,81 @@ static void test_3(void)
     bundle.cid = 8;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
     bundle.cid = 9;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
 
-    max_cid = 34;
-
     print_hash(rh_hash, "Step 3.1");    
 
     /* Remove First */
     
     cid = 0;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 16;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 32;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     /* Remove Middle */
 
     cid = 17;
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 33;
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 1;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     /* Remove Last */
     
     cid = 34;
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 18;
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 2;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     /* Walk Down List */
     
     print_hash(rh_hash, "Step 3.2");
     
     cid = 3;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 4;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 5;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 6;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 7;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 8;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     cid = 9;
-    ut_assert(rh_hash_next  (rh_hash, max_cid,  &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid,      &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
 
     /* Empty */
 
-    ut_assert(rh_hash_next(rh_hash, max_cid, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
+    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
     ut_assert(rh_hash->num_entries == 0, "Failed to remove all entries\n");    
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }

@@ -258,10 +258,8 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
 /*----------------------------------------------------------------------------
  * Next
  *----------------------------------------------------------------------------*/
-int rh_hash_next(rh_hash_t* rh_hash, bp_val_t max_cid, bp_active_bundle_t* bundle)
+int rh_hash_next(rh_hash_t* rh_hash, bp_active_bundle_t* bundle)
 {
-    (void)max_cid;
-    
     if(rh_hash->oldest_entry != NULL_INDEX)
     {
         if(bundle) *bundle = rh_hash->table[rh_hash->oldest_entry].bundle;

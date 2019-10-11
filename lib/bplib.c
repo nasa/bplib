@@ -34,7 +34,7 @@
 typedef int (*bp_table_create_t)    (void** table, int size);
 typedef int (*bp_table_destroy_t)   (void* table);
 typedef int (*bp_table_add_t)       (void* table, bp_active_bundle_t bundle, bool overwrite);
-typedef int (*bp_table_next_t)      (void* table, bp_val_t max_cid, bp_active_bundle_t* bundle);
+typedef int (*bp_table_next_t)      (void* table, bp_active_bundle_t* bundle);
 typedef int (*bp_table_remove_t)    (void* table, bp_val_t cid, bp_active_bundle_t* bundle);
 typedef int (*bp_table_available_t) (void* table, bp_val_t cid);
 typedef int (*bp_table_count_t)     (void* table);
@@ -480,7 +480,7 @@ int bplib_flush(bp_desc_t channel)
     {
         /* Relinquish All Active Bundles */
         bp_active_bundle_t active_bundle;
-        while(ch->active_table.next(ch->active_table.table, ch->current_active_cid, &active_bundle) == BP_SUCCESS)
+        while(ch->active_table.next(ch->active_table.table, &active_bundle) == BP_SUCCESS)
         {
             ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
             ch->store.relinquish(handle, active_bundle.sid);
@@ -721,7 +721,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
         bplib_os_lock(ch->active_table_signal);
         {
             /* Get Oldest Bundle */
-            while(ch->active_table.next(ch->active_table.table, ch->current_active_cid, &active_bundle) == BP_SUCCESS)
+            while(ch->active_table.next(ch->active_table.table, &active_bundle) == BP_SUCCESS)
             {
                 /* Retrieve Oldest Bundle */
                 if(ch->store.retrieve(handle, active_bundle.sid, &object, BP_CHECK) == BP_SUCCESS)
@@ -755,7 +755,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                             ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
                             
                             /* Move to Next Oldest */
-                            ch->active_table.next(ch->active_table.table, ch->current_active_cid, NULL);
+                            ch->active_table.next(ch->active_table.table, NULL);
                         }
                         
                         /* Break Out of Loop */
