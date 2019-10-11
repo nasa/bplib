@@ -351,10 +351,25 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
 }
 
 /*----------------------------------------------------------------------------
+ * rh_hash_available
+ *----------------------------------------------------------------------------*/
+int rh_hash_available(rh_hash_t* rh_hash, bp_val_t cid)
+{
+    (void)cid;
+    if(rh_hash->num_entries < rh_hash->size)
+    {
+        return BP_SUCCESS;
+    }
+    else
+    {
+        return BP_ACTIVETABLEFULL;
+    }
+}
+
+/*----------------------------------------------------------------------------
  * rh_hash_count
  *----------------------------------------------------------------------------*/
-int rh_hash_count(rh_hash_t* rh_hash, bp_val_t max_cid)
+int rh_hash_count(rh_hash_t* rh_hash)
 {
-    (void)max_cid;
     return rh_hash->num_entries;
 }

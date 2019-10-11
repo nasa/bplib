@@ -5,7 +5,7 @@ local src = runner.srcscript()
 
 -- Setup --
 
-runner.set_exit_on_error(true)
+-- runner.set_exit_on_error(true)
 
 local store = arg[1] or "RAM"
 if store == "FILE" then

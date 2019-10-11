@@ -115,49 +115,49 @@ static void test_1(void)
     bundle.cid = 6; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
     bundle.cid = 7; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
 
-    ut_assert(rh_hash_count(rh_hash, 7) == 8, "Failed to get hash size of 8\n");
+    ut_assert(rh_hash_count(rh_hash) == 8, "Failed to get hash size of 8\n");
     
     print_hash(rh_hash, "Step 1.1");
 
     cid = 0;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
-    ut_assert(rh_hash_count (rh_hash, 7) == 7, "Failed to get hash size of 7\n");
+    ut_assert(rh_hash_count (rh_hash) == 7, "Failed to get hash size of 7\n");
 
     cid = 1;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
-    ut_assert(rh_hash_count (rh_hash, 7) == 6, "Failed to get hash size of 6\n");
+    ut_assert(rh_hash_count (rh_hash) == 6, "Failed to get hash size of 6\n");
 
     cid = 2;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
-    ut_assert(rh_hash_count (rh_hash, 7) == 5, "Failed to get hash size of 5\n");
+    ut_assert(rh_hash_count (rh_hash) == 5, "Failed to get hash size of 5\n");
 
     cid = 3;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
-    ut_assert(rh_hash_count (rh_hash, 7) == 4, "Failed to get hash size of 4\n");
+    ut_assert(rh_hash_count (rh_hash) == 4, "Failed to get hash size of 4\n");
 
     cid = 4;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
-    ut_assert(rh_hash_count (rh_hash, 7) == 3, "Failed to get hash size of 3\n");
+    ut_assert(rh_hash_count (rh_hash) == 3, "Failed to get hash size of 3\n");
 
     cid = 5;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
-    ut_assert(rh_hash_count (rh_hash, 7) == 2, "Failed to get hash size of 2\n");
+    ut_assert(rh_hash_count (rh_hash) == 2, "Failed to get hash size of 2\n");
 
     cid = 6;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
-    ut_assert(rh_hash_count (rh_hash, 7) == 1, "Failed to get hash size of 1\n");
+    ut_assert(rh_hash_count (rh_hash) == 1, "Failed to get hash size of 1\n");
 
     cid = 7;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
-    ut_assert(rh_hash_count (rh_hash, 7) == 0, "Failed to get hash size of 0\n");
+    ut_assert(rh_hash_count (rh_hash) == 0, "Failed to get hash size of 0\n");
 
 
     print_hash(rh_hash, "Step 1.2");
@@ -431,7 +431,7 @@ static void test_4(void)
     /* Check Size */
     
     bundle.cid = 35; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_ACTIVETABLEFULL, "Failed to detect full active table\n");
-    ut_assert(rh_hash_count(rh_hash, hash_size) == hash_size, "Failed to get hash size of %d\n", hash_size);
+    ut_assert(rh_hash_count(rh_hash) == hash_size, "Failed to get hash size of %d\n", hash_size);
     
     /* Destroy */
 

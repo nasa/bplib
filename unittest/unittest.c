@@ -37,8 +37,8 @@ int bplib_unittest (void)
 {
 #ifdef UNITTESTS
     /* Run Unit Tests */
-//    ut_crc();
-//    ut_rb_tree();
+    ut_crc();
+    ut_rb_tree();
     ut_rh_hash();
 
     /* Return Failures */

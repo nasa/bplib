@@ -31,6 +31,8 @@
 typedef struct {
     bp_active_bundle_t* table;
     bp_index_t          size;
+    bp_index_t          num_entries;
+    bp_val_t            newest_cid;
     bp_val_t            oldest_cid;
 } cbuf_t;
 
@@ -43,6 +45,7 @@ int cbuf_destroy    (cbuf_t* cbuf);
 int cbuf_add        (cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite);
 int cbuf_next       (cbuf_t* cbuf, bp_val_t max_cid, bp_active_bundle_t* bundle);
 int cbuf_remove     (cbuf_t* cbuf, bp_val_t cid, bp_active_bundle_t* bundle);
-int cbuf_count      (cbuf_t* cbuf, bp_val_t max_cid);
+int cbuf_available  (cbuf_t* cbuf, bp_val_t cid);
+int cbuf_count      (cbuf_t* cbuf);
 
 #endif /* _cbuf_h_ */

@@ -31,42 +31,44 @@
  ******************************************************************************/
 
 /* Table Functions */
-typedef int (*bp_table_create_t)   (void** table, int size);
-typedef int (*bp_table_destroy_t)  (void* table);
-typedef int (*bp_table_add_t)      (void* table, bp_active_bundle_t bundle, bool overwrite);
-typedef int (*bp_table_next_t)     (void* table, bp_val_t max_cid, bp_active_bundle_t* bundle);
-typedef int (*bp_table_remove_t)   (void* table, bp_val_t cid, bp_active_bundle_t* bundle);
-typedef int (*bp_table_count_t)    (void* table, bp_val_t max_cid);
+typedef int (*bp_table_create_t)    (void** table, int size);
+typedef int (*bp_table_destroy_t)   (void* table);
+typedef int (*bp_table_add_t)       (void* table, bp_active_bundle_t bundle, bool overwrite);
+typedef int (*bp_table_next_t)      (void* table, bp_val_t max_cid, bp_active_bundle_t* bundle);
+typedef int (*bp_table_remove_t)    (void* table, bp_val_t cid, bp_active_bundle_t* bundle);
+typedef int (*bp_table_available_t) (void* table, bp_val_t cid);
+typedef int (*bp_table_count_t)     (void* table);
 
 /* Active Table */
 typedef struct {
-    void*               table; 
-    bp_table_create_t   create;
-    bp_table_destroy_t  destroy;
-    bp_table_add_t      add;
-    bp_table_next_t     next;
-    bp_table_remove_t   remove;
-    bp_table_count_t    count;
+    void*                   table; 
+    bp_table_create_t       create;
+    bp_table_destroy_t      destroy;
+    bp_table_add_t          add;
+    bp_table_next_t         next;
+    bp_table_remove_t       remove;
+    bp_table_available_t    available;
+    bp_table_count_t        count;
 } bp_active_table_t;
 
 /* Channel Control Block */
 typedef struct {
-    bp_store_t          store;
-    bp_attr_t           attributes;    
-    bp_stats_t          stats;
-    bp_bundle_t         bundle;
-    bp_bundle_t         custody;
-    int                 bundle_handle;
-    int                 payload_handle;
-    int                 record_handle;
-    uint8_t*            dacs_buffer;
-    int                 dacs_size;
-    bp_val_t            dacs_last_sent;
-    int                 custody_tree_lock;
-    rb_tree_t           custody_tree;
-    bp_val_t            current_active_cid;
-    int                 active_table_signal;
-    bp_active_table_t   active_table;
+    bp_store_t              store;
+    bp_attr_t               attributes;    
+    bp_stats_t              stats;
+    bp_bundle_t             bundle;
+    bp_bundle_t             custody;
+    int                     bundle_handle;
+    int                     payload_handle;
+    int                     record_handle;
+    uint8_t*                dacs_buffer;
+    int                     dacs_size;
+    bp_val_t                dacs_last_sent;
+    int                     custody_tree_lock;
+    rb_tree_t               custody_tree;
+    bp_val_t                current_active_cid;
+    int                     active_table_signal;
+    bp_active_table_t       active_table;
 } bp_channel_t;
 
 /******************************************************************************
@@ -361,6 +363,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
         ch->active_table.add        = (bp_table_add_t)cbuf_add;
         ch->active_table.next       = (bp_table_next_t)cbuf_next;
         ch->active_table.remove     = (bp_table_remove_t)cbuf_remove;
+        ch->active_table.available  = (bp_table_available_t)cbuf_available;
         ch->active_table.count      = (bp_table_count_t)cbuf_count;
     }
     else if(ch->attributes.retransmit_order == BP_RETX_OLDEST_BUNDLE)
@@ -370,6 +373,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
         ch->active_table.add        = (bp_table_add_t)rh_hash_add;
         ch->active_table.next       = (bp_table_next_t)rh_hash_next;
         ch->active_table.remove     = (bp_table_remove_t)rh_hash_remove;
+        ch->active_table.available  = (bp_table_available_t)rh_hash_available;
         ch->active_table.count      = (bp_table_count_t)rh_hash_count;
     }
     else
@@ -605,7 +609,7 @@ int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
     ch->stats.records = ch->store.getcount(ch->record_handle);
     
     /* Update Active Statistic */
-    ch->stats.active = ch->active_table.count(ch->active_table.table, ch->current_active_cid);
+    ch->stats.active = ch->active_table.count(ch->active_table.table);
 
     /* Latch Statistics */
     *stats = ch->stats;
@@ -771,7 +775,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                          * request custody transfer it could still go out, but the
                          * current design requires that at least one slot in the active
                          * table is open at all times. */
-                        if(ch->active_table.count(ch->active_table.table, ch->current_active_cid) == ch->attributes.active_table_size)
+                        if(ch->active_table.available(ch->active_table.table, ch->current_active_cid) == BP_ACTIVETABLEFULL)
                         {
                             status = BP_OVERFLOW;                   
                             *flags |= BP_FLAG_ACTIVETABLEWRAP;
