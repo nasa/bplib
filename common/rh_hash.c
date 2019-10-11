@@ -50,7 +50,11 @@ static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle
         if(before_index != NULL_INDEX) rh_hash->table[before_index].after = after_index;
 
         /* Check if Overwriting Oldest */
-        if(index == rh_hash->oldest_entry)  rh_hash->oldest_entry = rh_hash->table[index].after;
+        if(index == rh_hash->oldest_entry)
+        {
+            rh_hash->oldest_entry = rh_hash->table[index].after;
+            rh_hash->table[rh_hash->oldest_entry].before = NULL_INDEX;
+        }
 
         /* Set Current Entry to Newest */
         rh_hash->table[index].after                 = NULL_INDEX;
@@ -233,7 +237,11 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = open_index;            
 
             /* Update Oldest Entry */
-            if(rh_hash->oldest_entry == curr_index) rh_hash->oldest_entry = open_index;
+            if(rh_hash->oldest_entry == curr_index)
+            {
+                rh_hash->oldest_entry = open_index;
+                rh_hash->table[rh_hash->oldest_entry].before = NULL_INDEX;
+            }
 
             /* Add Entry to Current Slot */
             write_node(rh_hash, curr_index, bundle);

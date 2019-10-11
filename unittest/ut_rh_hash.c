@@ -115,40 +115,49 @@ static void test_1(void)
     bundle.cid = 6; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
     bundle.cid = 7; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
 
-
+    ut_assert(rh_hash_count(rh_hash, 7) == 8, "Failed to get hash size of 8\n");
+    
     print_hash(rh_hash, "Step 1.1");
 
     cid = 0;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash, 7) == 7, "Failed to get hash size of 7\n");
 
     cid = 1;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash, 7) == 6, "Failed to get hash size of 6\n");
 
     cid = 2;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash, 7) == 5, "Failed to get hash size of 5\n");
 
     cid = 3;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash, 7) == 4, "Failed to get hash size of 4\n");
 
     cid = 4;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash, 7) == 3, "Failed to get hash size of 3\n");
 
     cid = 5;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash, 7) == 2, "Failed to get hash size of 2\n");
 
     cid = 6;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash, 7) == 1, "Failed to get hash size of 1\n");
 
     cid = 7;
     ut_assert(rh_hash_next  (rh_hash, 7,   &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash, 7) == 0, "Failed to get hash size of 0\n");
 
 
     print_hash(rh_hash, "Step 1.2");
@@ -341,6 +350,93 @@ static void test_3(void)
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }
 
+/*--------------------------------------------------------------------------------------
+ * Test #4
+ *--------------------------------------------------------------------------------------*/
+static void test_4(void)
+{
+    rh_hash_t* rh_hash;
+
+    int hash_size = 16;    
+    bp_active_bundle_t bundle = {&hash_size, 0, 0};
+    
+    printf("\n==== Test 4: Duplicates ====\n");
+
+    ut_assert(rh_hash_create(&rh_hash, hash_size) == BP_SUCCESS, "Failed to create hash\n");
+
+    bundle.cid = 0;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 16; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 32; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 1;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 17; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 33; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 2;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 18; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 34; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+
+    print_hash(rh_hash, "Step 4.1");    
+
+    bundle.cid = 0;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 16; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 32; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 1;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 17; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 33; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 2;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 18; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 34; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+
+    print_hash(rh_hash, "Step 4.1.1");    
+    
+    bundle.cid = 0;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 16; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 32; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 1;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 17; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 33; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 2;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 18; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 34; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+
+    print_hash(rh_hash, "Step 4.1.2");    
+
+    bundle.cid = 3;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 4;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 5;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 6;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 7;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 8;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 9;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+
+    print_hash(rh_hash, "Step 4.2");    
+
+    bundle.cid = 0;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 16; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 32; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 1;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 17; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 33; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 2;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 18; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 34; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+
+    bundle.cid = 3;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 4;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 5;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 6;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 7;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 8;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+    bundle.cid = 9;  ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite duplicate CID %d\n", bundle.cid);
+
+    /* Check Size */
+    
+    ut_assert(rh_hash_count(rh_hash, hash_size) == hash_size, "Failed to get hash size of %d\n", hash_size);
+    
+    /* Destroy */
+
+    ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -350,6 +446,7 @@ int ut_rh_hash (void)
     test_1();
     test_2();
     test_3();
+    test_4();
     
     return ut_failures();
 }
