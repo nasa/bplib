@@ -430,6 +430,7 @@ static void test_4(void)
 
     /* Check Size */
     
+    bundle.cid = 35; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_ACTIVETABLEFULL, "Failed to detect full active table\n");
     ut_assert(rh_hash_count(rh_hash, hash_size) == hash_size, "Failed to get hash size of %d\n", hash_size);
     
     /* Destroy */

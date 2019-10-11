@@ -175,20 +175,6 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             return overwrite_node(rh_hash, curr_index, bundle, overwrite);
         }
         
-        /* Find First Open Hash Slot */
-        open_index = (curr_index + 1) % rh_hash->size;
-        while( (rh_hash->table[open_index].bundle.sid != BP_SID_VACANT) &&
-               (open_index != curr_index) )
-        {
-            open_index = (open_index + 1) % rh_hash->size;
-        } 
-
-        /* Check for Full Hash */
-        if(open_index == curr_index)
-        {
-            return BP_ACTIVETABLEFULL;
-        }
-        
         /* Transverse to End of Chain */
         end_index = curr_index;
         scan_index = rh_hash->table[curr_index].next;
@@ -203,6 +189,20 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             /* Go To Next Slot */
             end_index = scan_index;
             scan_index = rh_hash->table[scan_index].next;
+        }
+
+        /* Find First Open Hash Slot */
+        open_index = (curr_index + 1) % rh_hash->size;
+        while( (rh_hash->table[open_index].bundle.sid != BP_SID_VACANT) &&
+               (open_index != curr_index) )
+        {
+            open_index = (open_index + 1) % rh_hash->size;
+        } 
+
+        /* Check for Full Hash */
+        if(open_index == curr_index)
+        {
+            return BP_ACTIVETABLEFULL;
         }
 
         /* Insert Node */
