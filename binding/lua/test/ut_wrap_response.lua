@@ -13,6 +13,8 @@ if store == "FILE" then
     os.execute("mkdir -p .pfile")
 end
 
+local retx_order = arg[2] or bp.RETX_SMALLEST_CID
+
 local src_node = 4
 local src_serv = 3
 local dst_node = 72
@@ -20,8 +22,9 @@ local dst_serv = 43
 
 local num_bundles = 16384
 local timeout = 10
+local attributes = {retransmit_order=retx_order}
 
-local sender = bplib.open(src_node, src_serv, dst_node, dst_serv, store)
+local sender = bplib.open(src_node, src_serv, dst_node, dst_serv, store, attributes)
 
 local exp_stats = {   lost = 0,
                       expired = 0,

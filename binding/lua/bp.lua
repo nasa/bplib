@@ -123,7 +123,9 @@ local package = {
     match_payload = match_payload,
     BIB_NONE = 0,
     BIB_CRC16_X25 = 1,
-    BIB_CRC32_CASTAGNOLI = 2
+    BIB_CRC32_CASTAGNOLI = 2,
+    RETX_OLDEST_BUNDLE = 0,
+    RETX_SMALLEST_CID = 1
 }
 
 return package
