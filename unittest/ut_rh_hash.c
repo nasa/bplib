@@ -62,15 +62,29 @@ static void print_hash(rh_hash_t* rh_hash)
         {
             printf("%-4lu ", (unsigned long)rh_hash->table[i].bundle.cid);
             printf("%u -- ", (int)rh_hash->table[i].chain);
-            
+                        
             j = rh_hash->table[i].next;
+            if(j == BP_MAX_INDEX) printf("   ");
+
             while(j != BP_MAX_INDEX)
             {
-                printf("%d ", j);
+                printf("%-2d ", j);
                 j = rh_hash->table[j].next;
             }
 
-            printf("| %d <-- time --> %d | %d <<-- hash -->> %d", rh_hash->table[i].before, rh_hash->table[i].after, rh_hash->table[i].prev, rh_hash->table[i].next);
+            printf("| ");
+            if(rh_hash->table[i].before != BP_MAX_INDEX)    printf("%d", rh_hash->table[i].before);
+            else                                            printf("N");
+            printf(" <--t--> ");
+            if(rh_hash->table[i].after != BP_MAX_INDEX)     printf("%d", rh_hash->table[i].after);
+            else                                            printf("N");
+            printf(" | ");
+            if(rh_hash->table[i].prev != BP_MAX_INDEX)      printf("%d", rh_hash->table[i].prev);
+            else                                            printf("N");
+            printf(" <<-h->> ");
+            if(rh_hash->table[i].next != BP_MAX_INDEX)      printf("%d", rh_hash->table[i].next);
+            else                                            printf("N");            
+//            printf("| %d <-- time --> %d | %d <<-- hash -->> %d", rh_hash->table[i].before, rh_hash->table[i].after, rh_hash->table[i].prev, rh_hash->table[i].next);
         }
         printf("\n");
     }
