@@ -39,7 +39,6 @@ static void print_hash(rh_hash_t* rh_hash)
     printf("------------------------\n");
     printf("Size:               %d\n", (int)rh_hash->size);
     printf("Number of Entries:  %d\n", (int)rh_hash->num_entries);
-    printf("Maximum Chain:      %d\n", (int)rh_hash->max_chain);
     
     if(rh_hash->oldest_entry != BP_MAX_INDEX)
     {
@@ -54,14 +53,13 @@ static void print_hash(rh_hash_t* rh_hash)
     for(i = 0; i < rh_hash->size; i++)
     {
         printf("[%d] ", i);
-        if(rh_hash->table[i].chain == 0)
+        if(rh_hash->table[i].bundle.sid == BP_SID_VACANT)
         {
             printf("EMPTY");
         }
         else
         {
-            printf("%-4lu ", (unsigned long)rh_hash->table[i].bundle.cid);
-            printf("%u -- ", (int)rh_hash->table[i].chain);
+            printf("%-4lu -- ", (unsigned long)rh_hash->table[i].bundle.cid);
                         
             j = rh_hash->table[i].next;
             if(j == BP_MAX_INDEX) printf("   ");
@@ -102,8 +100,8 @@ static void test_1(void)
     rh_hash_t* rh_hash;
     bp_val_t cid;
 
-    const int hash_size = 8;    
-    bp_active_bundle_t bundle = {NULL, 0, 0};
+    int hash_size = 8;    
+    bp_active_bundle_t bundle = {&hash_size, 0, 0};
     
     printf("\n==== Test 1: Create/Destroy ====\n");
 
@@ -169,8 +167,8 @@ static void test_2(void)
     rh_hash_t* rh_hash;
     bp_val_t cid, max_cid;
 
-    const int hash_size = 8;    
-    bp_active_bundle_t bundle = {NULL, 0, 0};
+    int hash_size = 8;    
+    bp_active_bundle_t bundle = {&hash_size, 0, 0};
     
     printf("\n==== Test 2: Chaining ====\n");
 
@@ -236,7 +234,7 @@ static void test_2(void)
 
 int ut_rh_hash (void)
 {
-//   test_1();
+    test_1();
     test_2();
     
     return ut_failures();

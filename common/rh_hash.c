@@ -27,7 +27,6 @@
  DEFINES
  ******************************************************************************/
 
-#define EMPTY_CHAIN     0               /* chain set to this value to indicate empty slot */
 #define NULL_INDEX      BP_MAX_INDEX    /* 0 is a valid index so max_val is used */
 #define HASH_CID(cid)   (cid)           /* identify function for now */
 
@@ -72,10 +71,9 @@ static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle
 /*----------------------------------------------------------------------------
  * write_node
  *----------------------------------------------------------------------------*/
-static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, bp_index_t chain)
+static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle)
 {
     rh_hash->table[index].bundle    = bundle;
-    rh_hash->table[index].chain     = chain;
     rh_hash->table[index].next      = NULL_INDEX;
     rh_hash->table[index].prev      = NULL_INDEX;
     rh_hash->table[index].after     = NULL_INDEX;
@@ -120,7 +118,7 @@ int rh_hash_create(rh_hash_t** rh_hash, int size)
     /* Initialize Hash Table to Empty */
     for(i = 0; i < size; i++)
     {
-        (*rh_hash)->table[i].chain  = EMPTY_CHAIN;
+        (*rh_hash)->table[i].bundle.sid = BP_SID_VACANT;
         (*rh_hash)->table[i].next   = NULL_INDEX;
         (*rh_hash)->table[i].prev   = NULL_INDEX;
         (*rh_hash)->table[i].before = NULL_INDEX;
@@ -130,7 +128,6 @@ int rh_hash_create(rh_hash_t** rh_hash, int size)
     /* Initialize Hash Table Attributes */
     (*rh_hash)->size            = size;
     (*rh_hash)->num_entries     = 0;
-    (*rh_hash)->max_chain       = 0;
     (*rh_hash)->oldest_entry    = NULL_INDEX;
     (*rh_hash)->newest_entry    = NULL_INDEX;
     
@@ -161,9 +158,9 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
     bp_index_t curr_index = HASH_CID(bundle.cid) % rh_hash->size;
     
     /* Add Entry to Hash */
-    if(rh_hash->table[curr_index].chain == EMPTY_CHAIN)
+    if(rh_hash->table[curr_index].bundle.sid == BP_SID_VACANT)
     {
-        write_node(rh_hash, curr_index, bundle, 1);
+        write_node(rh_hash, curr_index, bundle);
     }
     else /* collision */
     {
@@ -175,7 +172,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
         
         /* Find First Open Hash Slot */
         bp_index_t open_index = (curr_index + 1) % rh_hash->size;
-        while( (rh_hash->table[open_index].chain != EMPTY_CHAIN) &&
+        while( (rh_hash->table[open_index].bundle.sid != BP_SID_VACANT) &&
                (open_index != curr_index) )
         {
             open_index = (open_index + 1) % rh_hash->size;
@@ -187,19 +184,13 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             return BP_ACTIVETABLEFULL;
         }
         
-        /* Insert Node (chain == 1) */
-        if(rh_hash->table[curr_index].chain == 1)
+        /* Insert Node */
+        if(rh_hash->table[curr_index].prev == NULL_INDEX) /* End of Chain Insertion (chain == 1) */
         {
             /* Add Entry to Open Slot at End of Chain */
-            write_node(rh_hash, open_index, bundle, 2);
+            write_node(rh_hash, open_index, bundle);
             rh_hash->table[curr_index].next = open_index;
             rh_hash->table[open_index].prev = curr_index;
-            
-            /* Check For New Max Chain */
-            if(rh_hash->table[open_index].chain > rh_hash->max_chain)
-            {
-                rh_hash->max_chain = rh_hash->table[open_index].chain;
-            }
         }
         else /* Robin Hood Insertion (chain > 1) */
         {
@@ -227,9 +218,6 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             /* Transverse to End of Chain */
             while(next_index != NULL_INDEX)
             {
-                /* Decrement Chain */
-                rh_hash->table[next_index].chain--;
-
                 /* Go To Next Slot */
                 prev_index = next_index;
                 next_index = rh_hash->table[next_index].next;
@@ -238,7 +226,6 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             /* Copy Current Slot to Open Slot at End of Chain */
             rh_hash->table[prev_index].next     = open_index;            
             rh_hash->table[open_index].bundle   = rh_hash->table[curr_index].bundle;
-            rh_hash->table[open_index].chain    = rh_hash->table[prev_index].chain + 1;
             rh_hash->table[open_index].next     = NULL_INDEX;
             rh_hash->table[open_index].prev     = prev_index;
             rh_hash->table[open_index].after    = rh_hash->table[curr_index].after;
@@ -247,14 +234,8 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             /* Check to Update Oldest Entry */
             if(rh_hash->oldest_entry == curr_index) rh_hash->oldest_entry = open_index;
 
-            /* Check For New Max Chain */
-            if(rh_hash->table[open_index].chain > rh_hash->max_chain)
-            {
-                rh_hash->max_chain = rh_hash->table[open_index].chain;
-            }
-
             /* Add Entry to Current Slot */
-            write_node(rh_hash, curr_index, bundle, 1);
+            write_node(rh_hash, curr_index, bundle);
         }
     }
 
@@ -289,21 +270,12 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     bp_index_t curr_index = HASH_CID(cid) % rh_hash->size;
 
     /* Find Node to Remove */
-    if(rh_hash->table[curr_index].chain != EMPTY_CHAIN)
+    if(rh_hash->table[curr_index].bundle.sid != BP_SID_VACANT)
     {
         while(curr_index != NULL_INDEX)
         {
-            /* Compare Hash Key to Key */
-            if(rh_hash->table[curr_index].bundle.cid != cid)
-            {
-                /* Go to next */
-                curr_index = rh_hash->table[curr_index].next;
-            }
-            else
-            {
-                /* Match */
-                break;
-            }                
+            if(rh_hash->table[curr_index].bundle.cid == cid) break; /* Match */
+            else curr_index = rh_hash->table[curr_index].next; /* Go to next */
         }
     }
 
@@ -354,7 +326,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     }
 
     /* Remove End of Chain */
-    rh_hash->table[end_index].chain = EMPTY_CHAIN;
+    rh_hash->table[end_index].bundle.sid = BP_SID_VACANT;
 
     /* Update Hash Order */
     bp_index_t prev_index = rh_hash->table[end_index].prev;

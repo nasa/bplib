@@ -30,7 +30,6 @@
 
 typedef struct {
     bp_active_bundle_t  bundle;
-    bp_index_t          chain;  // depth of the chain to reach this entry, 0 indicates empty
     bp_index_t          next;   // next entry in chain
     bp_index_t          prev;   // previous entry in chain
     bp_index_t          after;  // next entry added to hash (time ordered)
@@ -41,7 +40,6 @@ typedef struct {
     rh_hash_node_t*     table;
     bp_index_t          size;
     bp_index_t          num_entries;
-    bp_index_t          max_chain;
     bp_index_t          oldest_entry;
     bp_index_t          newest_entry;
 } rh_hash_t;
