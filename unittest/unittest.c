@@ -35,13 +35,16 @@ extern int ut_rh_hash (void);
 
 int bplib_unittest (void)
 {
-    /* Run Unit Tests */
 #ifdef UNITTESTS
+    /* Run Unit Tests */
 //    ut_crc();
 //    ut_rb_tree();
     ut_rh_hash();
-#endif
-    
+
     /* Return Failures */
     return ut_failures();
+#else
+    return 0;
+#endif
+    
 }

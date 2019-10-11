@@ -184,50 +184,44 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             return BP_ACTIVETABLEFULL;
         }
         
+        /* Transverse to End of Chain */
+        bp_index_t end_index = curr_index;
+        bp_index_t scan_index = rh_hash->table[curr_index].next;
+        while(scan_index != NULL_INDEX)
+        {
+            /* Check Slot for Duplicate */
+            if(rh_hash->table[scan_index].bundle.cid == bundle.cid)
+            {
+                return overwrite_node(rh_hash, scan_index, bundle, overwrite);
+            }
+
+            /* Go To Next Slot */
+            end_index = scan_index;
+            scan_index = rh_hash->table[scan_index].next;
+        }
+
         /* Insert Node */
         if(rh_hash->table[curr_index].prev == NULL_INDEX) /* End of Chain Insertion (chain == 1) */
         {
             /* Add Entry to Open Slot at End of Chain */
             write_node(rh_hash, open_index, bundle);
-            rh_hash->table[curr_index].next = open_index;
-            rh_hash->table[open_index].prev = curr_index;
+            rh_hash->table[end_index].next = open_index;
+            rh_hash->table[open_index].prev = end_index;
         }
         else /* Robin Hood Insertion (chain > 1) */
         {
             bp_index_t next_index = rh_hash->table[curr_index].next;
             bp_index_t prev_index = rh_hash->table[curr_index].prev;
             
-            /* Scan for Duplicate */
-            bp_index_t scan_index = next_index;
-            while(scan_index != NULL_INDEX)
-            {
-                /* Check Scan Slot for Duplicate */
-                if(rh_hash->table[scan_index].bundle.cid == bundle.cid)
-                {
-                    return overwrite_node(rh_hash, scan_index, bundle, overwrite);
-                }
-                
-                /* Go To Next Slot */
-                scan_index = rh_hash->table[scan_index].next;
-            }
-
             /* Bridge Over Current Slot */
             if(next_index != NULL_INDEX) rh_hash->table[next_index].prev = prev_index;
             if(prev_index != NULL_INDEX) rh_hash->table[prev_index].next = next_index;
 
-            /* Transverse to End of Chain */
-            while(next_index != NULL_INDEX)
-            {
-                /* Go To Next Slot */
-                prev_index = next_index;
-                next_index = rh_hash->table[next_index].next;
-            }
-
             /* Copy Current Slot to Open Slot at End of Chain */
-            rh_hash->table[prev_index].next     = open_index;            
+            rh_hash->table[end_index].next      = open_index;            
             rh_hash->table[open_index].bundle   = rh_hash->table[curr_index].bundle;
             rh_hash->table[open_index].next     = NULL_INDEX;
-            rh_hash->table[open_index].prev     = prev_index;
+            rh_hash->table[open_index].prev     = end_index;
             rh_hash->table[open_index].after    = rh_hash->table[curr_index].after;
             rh_hash->table[open_index].before   = rh_hash->table[curr_index].before;
             
