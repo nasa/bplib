@@ -27,7 +27,16 @@
 #       make COMPILER=clang TOOLCHAIN=llvm USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address 
 #		sudo make COMPILER=clang TOOLCHAIN=llvm USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address install
 #
-#  3. The libabi.version script controls the export of any symbols in the library.  By convention
+#  3. Running the clang static code analysis is accomplished by preceding whichever 
+#     build command you use with "scan-build".  For example, a nominal scan is performed by:
+#
+#       scan-build make
+#
+#     Once the scan is complete, the use of scan-view prompted by the program on error, requires
+#     python2.7 to be the default python interpreter.  Check the system path if scan-view reports
+#     a SyntaxError when it tries to run.
+#
+#  4. The libabi.version script controls the export of any symbols in the library.  By convention
 #     anything that starts with bplib_ is exported.  Run the following command to verify which
 #     symbols are available to a linking application:
 #
@@ -206,6 +215,24 @@ $(INCDIR):
 clean ::
 	-$(RM) -R $(BLDDIR)
 	make -C binding/lua clean
+
+##############################################################################
+##  TEST RULES
+
+luaexec = lua5.3
+
+testcase ?= bindings/lua/test/test_runner.lua
+
+testmem:
+	valgrind --leak-check=full --track-origins=yes --track-fds=yes $(luaexec) $(testcase)
+
+testcpu:
+	valgrind --tool=callgrind $(luaexec) $(testcase)
+	# kcachegrind callgrind.out.<pid>
+
+testheap:
+	valgrind --tool=massif --time-unit=B --pages-as-heap=yes $(luaexec) $(testcase)
+	# ms_print massif.out.<pid>
 
 testcov:
 	lcov -c --directory build --output-file build/coverage.info

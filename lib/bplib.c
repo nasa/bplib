@@ -252,8 +252,8 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     /* Check Protocol Version */
     if(ch->attributes.protocol_version != 6)
     {
-        bplib_close(ch);
         bplog(BP_UNSUPPORTED, "Unsupported bundle protocol version: %d\n", ch->attributes.protocol_version);
+        bplib_close(ch);
         return NULL;
     }
 
@@ -261,8 +261,8 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     ch->bundle_handle = ch->store.create(ch->attributes.storage_service_parm);
     if(ch->bundle_handle < 0)
     {
-        bplib_close(ch);
         bplog(BP_FAILEDSTORE, "Failed to create storage handle for bundles\n");
+        bplib_close(ch);
         return NULL;
     }
     
@@ -270,8 +270,8 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     ch->payload_handle = ch->store.create(ch->attributes.storage_service_parm);
     if(ch->payload_handle < 0)
     {
-        bplib_close(ch);
         bplog(BP_FAILEDSTORE, "Failed to create storage handle for payloads\n");
+        bplib_close(ch);
         return NULL;
     }
 
@@ -279,8 +279,8 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     ch->record_handle = ch->store.create(ch->attributes.storage_service_parm);
     if(ch->record_handle < 0)
     {
-        bplib_close(ch);
         bplog(BP_FAILEDSTORE, "Failed to create storage handle for records\n");
+        bplib_close(ch);
         return NULL;
     }
 
@@ -350,8 +350,8 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     ch->active_table_signal = bplib_os_createlock();
     if(ch->active_table_signal < 0)
     {
-        bplib_close(ch);
         bplog(BP_FAILEDOS, "Failed to create custody_tree_lock for active table\n");
+        bplib_close(ch);
         return NULL;
     }
 
@@ -378,8 +378,8 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
     else
     {
-        bplib_close(ch);
         bplog(BP_UNSUPPORTED, "Unrecognized attribute for creating active table: %d\n", ch->attributes.retransmit_order);
+        bplib_close(ch);
         return NULL;        
     }
     
@@ -388,8 +388,8 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     status = ch->active_table.create(&ch->active_table.table, ch->attributes.active_table_size);
     if(status != BP_SUCCESS)
     {
-        bplib_close(ch);
         bplog(status, "Failed to create active table for channel\n");
+        bplib_close(ch);
         return NULL;
     }
 

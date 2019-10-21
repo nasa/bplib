@@ -1009,6 +1009,30 @@ static void test_deletes_node_inside_of_range()
 }
 
 /*--------------------------------------------------------------------------------------
+ * test_deletes_node_inside_of_small_range - 
+ *--------------------------------------------------------------------------------------*/
+static void test_deletes_node_inside_of_small_range()
+{
+    int f = ut_failures();
+    printf("test_deletes_node_inside_of_small_range: ");
+
+    rb_tree_t tree;
+    rb_tree_create(10, &tree);
+    rb_tree_insert(0, &tree);
+    rb_tree_insert(1, &tree);
+    rb_tree_insert(2, &tree);
+
+    assert_rb_tree_is_valid(&tree);
+
+    rb_tree_delete(1, &tree);
+
+    assert_rb_tree_is_valid(&tree);
+
+    if(f == ut_failures()) printf("PASS\n");
+    else                   printf("FAIL\n");
+}
+
+/*--------------------------------------------------------------------------------------
  * test_tree_traversed_and_deleted_inorder_with_rebalancing - 
  *--------------------------------------------------------------------------------------*/
 static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
@@ -1405,6 +1429,7 @@ int ut_rb_tree (void)
     test_deletes_node_at_start_of_range();
     test_deletes_node_at_end_of_range();
     test_deletes_node_inside_of_range();
+    test_deletes_node_inside_of_small_range();
     test_tree_traversed_and_deleted_inorder_with_rebalancing();
     test_tree_traversed_and_deleted_inorder_without_rebalancing();
     test_tree_traversed_inorder_after_partial_traversal();

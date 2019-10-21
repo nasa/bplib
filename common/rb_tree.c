@@ -1270,7 +1270,7 @@ int rb_tree_delete(bp_val_t value, rb_tree_t* tree)
         else
         {
             /* Node contains a range and so it must be split. */
-            if (value == node->range.value && node->range.offset != 0)
+            if (value == node->range.value)
             {
                 /* Value is at the start of nodes range so we can redefine the range. */
                 node->range.value += 1;
@@ -1278,7 +1278,7 @@ int rb_tree_delete(bp_val_t value, rb_tree_t* tree)
             }
             else if (value == node->range.value + node->range.offset)
             {
-                /* Value at the end of the nodes range so it can be redefind. */
+                /* Value at the end of the nodes range so it can be redefined. */
                 node->range.offset -= 1;
             }
             else
@@ -1289,6 +1289,13 @@ int rb_tree_delete(bp_val_t value, rb_tree_t* tree)
                 status = try_binary_insert_or_merge(value + 1, tree, &upper_node);                
                 if (status == BP_SUCCESS)
                 {
+                    /* The checks above that determine that the value is not at the 
+                       beginning or end of the range necessitates that adding one to
+                       the value will make it so that the try_binary_insert_or_merge
+                       function is inserting a non-consecutive value.  This forces
+                       upper_node to be populated on success. */
+                    assert(upper_node != NULL);
+                    
                     /* Memory was sucessfully allocated to the new node. */
                     upper_node->range.offset = node->range.value + node->range.offset - upper_node->range.value;
                     node->range.offset = value - node->range.value - 1;
