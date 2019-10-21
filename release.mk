@@ -1,5 +1,5 @@
 ###############################################################################
-# File: posix.mk
+# File: release.mk
 #
 #   Copyright 2019 United States Government as represented by the 
 #   Administrator of the National Aeronautics and Space Administration. 
@@ -25,18 +25,8 @@ APP_OBJ += posix.o
 ###############################################################################
 ##  OPTIONS
 
-# Optimization Level #
-O = 0
-
-# Build Unit Tests #
-APP_COPT += -DUNITTESTS
-
-# GNU Code Coverage # 
-APP_COPT += -fprofile-arcs -ftest-coverage
-APP_LOPT += -lgcov --coverage
-
-# Enable Stack Checker #
-APP_COPT += -fstack-protector-all
+# Disable Asserts #
+APP_COPT += -DNDEBUG
 
 # Enable Toolchain Specific Checks #
 ifeq ($(TOOLCHAIN), gcc)

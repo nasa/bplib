@@ -33,11 +33,6 @@
 #
 #       nm -CD /usr/local/lib/libbp.so | grep " T "
 #
-#  4. In order to build the unit tests, use the following commands:
-#
-#       make USER_DEFS=-DUNITTESTS
-#       sudo make install
-#
 
 ##############################################################################
 ## DEFINITIONS and CONFIGURATION (populated/overridden in application includes)
@@ -132,8 +127,11 @@ COPT        :=   -g -Wall -Wextra -O$(O) -D'LIBID="$(TGTVER)"' $(INCLUDES) $(APP
 COPT        +=   -DLIBPATH=\"$(LIBDIR)\"
 COPT        +=   -DINCPATH=\"$(INCDIR)\"
 COPT        +=   -Wshadow
- 
-LOPT        :=
+COPT        +=   -pthread
+COPT        +=   -fPIC # position independent code needed for shared library 
+
+LOPT        :=   -lrt
+LOPT        +=   -lpthread
 
 ###############################################################################
 ##  TOOLS
@@ -170,7 +168,8 @@ shared-lib: $(BLDDIR) $(ALL_OBJ)
 bindings:
 	make -C binding/lua
 	
-install: static-lib shared-lib install-headers install-static install-shared install-bindings
+
+install: install-headers install-static install-shared install-bindings
 
 install-headers: $(INCDIR)
 	$(CP) $(foreach element,$(API),$(subst -I,,$(element)/*.h)) $(INCDIR)
@@ -190,6 +189,7 @@ install-shared: $(PREFIX) $(LIBDIR)
 install-bindings:
 	make -C binding/lua install
 	
+
 $(BLDDIR):
 	-$(MKDIR) -p $(BLDDIR)
 
@@ -201,6 +201,7 @@ $(LIBDIR):
 
 $(INCDIR):
 	-$(MKDIR) -p $(INCDIR)
+
 
 clean ::
 	-$(RM) -R $(BLDDIR)
