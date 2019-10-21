@@ -221,7 +221,7 @@ clean ::
 
 luaexec = lua5.3
 
-testcase ?= bindings/lua/test/test_runner.lua
+testcase ?= binding/lua/test/test_runner.lua
 
 testmem:
 	valgrind --leak-check=full --track-origins=yes --track-fds=yes $(luaexec) $(testcase)
