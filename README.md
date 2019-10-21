@@ -7,8 +7,8 @@
 [5. Storage Service](#5-storage-service)  
 
 [Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
-[Note #2 - Library Development Guidelines](doc/dev_notes.md)
-[Note #3 - Confuguration Parameter Trades](doc/parm_notes.md)
+[Note #2 - Library Development Guidelines](doc/dev_notes.md)  
+[Note #3 - Confuguration Parameter Trades](doc/parm_notes.md)  
 
 ----------------------------------------------------------------------
 ## 1. Overview

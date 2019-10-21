@@ -133,24 +133,20 @@ The size of the active table represents the maximum number of bundles that can b
 What follows is a notional configuration of a bplib channel which serves more to suggest the relationship between the different parameters more than any actualy setting or margin used.
 
 __Rate Related Parameters__:
->  
-> DACS Rate = Round Trip Time x 1.5  
->  
-> Timeout = DACS Rate x 1.5  
->  
-> Active Table Size = Timeout x Bundle Rate x 1.5  
->  
-> Max Gaps per DACS = Active Table Size
->  
+ 
+* DACS Rate = Round Trip Time x 1.5  
+* Timeout = DACS Rate x 1.5  
+* Active Table Size = Timeout x Bundle Rate x 1.5  
+* Max Gaps per DACS = Active Table Size
+
 
 __Volume Related Parameters__:
->  
-> Lifetime = Storage Service Partition Size / Bundle Rate / 1.5
->  
+  
+* Lifetime = Storage Service Partition Size / Bundle Rate / 1.5
+  
 
 __Behavior Related Parameters__:
->  
->  CID Reuse = True
->  
->  Retransmit Order = Oldest Bundle
->  
+  
+*  CID Reuse = True
+*  Retransmit Order = Oldest Bundle
+
