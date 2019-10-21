@@ -8,14 +8,15 @@
 
 [Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
 [Note #2 - Library Development Guidelines](doc/dev_notes.md)
+[Note #3 - Confuguration Parameter Trades](doc/parm_notes.md)
 
 ----------------------------------------------------------------------
 ## 1. Overview
 ----------------------------------------------------------------------
 
-The Bundle Protocol library (bplib) implements a subset of the RFC5050 Bundle Protocol necessary for embedded space flight applications. The library uses the concept of a bundle channel to manage the process of encapsulating application data in bundles, and extracting application data out of bundles.  A channel specifies how the bundles are created (e.g. primary header block fields), and how bundles are processed (e.g. payloads extracted from payload block). Bplib contains no threads and relies entirely on the calling application for its execution context and implements a thread-safe synchronous blocking I/O model where requested operations will either block according to the provided timeout, or return an error code immediately if the operation cannot be performed. 
+The Bundle Protocol library (bplib) implements a subset of the RFC5050 Bundle Protocol necessary for embedded space flight applications. The library uses the concept of a bundle channel to manage the process of encapsulating application data in bundles, and extracting application data out of bundles.  A channel specifies how the bundles are created (e.g. primary header block fields), and how bundles are processed (e.g. payloads extracted from payload block). Bplib contains no threads and relies entirely on the calling application for its execution context and implements a thread-safe blocking I/O model where requested operations will either block according to the provided timeout, or return an error code immediately if the operation cannot be performed. 
 
-Bplib assumes the availability of a persistent queued storage system for managing the rate buffering that must occur between data and bundle processing. This storage system is provided at run-time by the application, which can either use its own or can use one of the bplib included storage services. In addition to the storage service, bplib needs an operating system interface provided at compile-time. By default a POSIX compliant operating systems interface is built with the included makefile - see below for further instructions on changing the operating system interface.
+Bplib assumes the availAPIlity of a persistent queued storage system for managing the rate buffering that must occur between data and bundle processing. This storage system is provided at run-time by the application, which can either use its own or can use one of the bplib included storage services. In addition to the storage service, bplib needs an operating system interface provided at compile-time. By default a POSIX compliant operating systems interface is built with the included makefile - see below for further instructions on changing the operating system interface.
 
 ----------------------------------------------------------------------
 ## 2. Application Design
@@ -23,21 +24,21 @@ Bplib assumes the availability of a persistent queued storage system for managin
 
 ![Figure 1](doc/bp_api_architecture.png "BP Library API (Architecture)")
 
-Bplib is written in "vanilla C" and is intended to be linked in as either a shared or static library into an application with an ABI for reading/writing application data and reading/writing bundles.  
+Bplib is written in "vanilla C" and is intended to be linked in as either a shared or static library into an application with an API for reading/writing application data and reading/writing bundles.  
 
-Conceptually, the library is meant to exist inside a board support package for an operating system and be presented to the application as a service.  In such a design only the interface to reading/writing data would be provided to the application, and the interface for reading/writing bundles would be kept inside the board support package.  This use case would look a lot like a typical socket application where a bundle channel (socket) is opened, data is read/written to/from it, and then at some later time the channel is closed.  Underneath the operating system (via the board support packet) would take care of sending and receiving the bundles.
+Conceptually, the library is meant to exist inside a board support package for an operating system and be presented to the application as a service.  In such a design only the interface for reading/writing data would be provided to the application, and the interface for reading/writing bundles would be kept inside the board support package.  This use case would look a lot like a typical socket application where a bundle channel (socket) is opened, data is read/written, and then at some later time the channel is closed.  Underneath the operating system (via the board support packet) would take care of sending and receiving the bundles.
 
-In order to support bplib being used directly by the application, both the data and the bundle interfaces are provided in the ABI. In these cases, the application is also responsible for sending and receiving the bundles.
+In order to support bplib being used directly by the application, both the data and the bundle interfaces are provided in the API. In these cases, the application is also responsible for sending and receiving the bundles.
 
-An example applicatino design that manages both the data and bundle interfaces could look as follows:
-1. A __bundle reader__ thread that receives bundles from a convergence layer and calls bplib to _processes_ them
+An example application design that manages both the data and bundle interfaces could look as follows:
+1. A __bundle reader__ thread that receives bundles from a convergence layer and calls bplib to _process_ them
 2. A __data writer__ thread that _accepts_ application data from bplib
 3. A __bundle writer__ thread that _loads_ bundles from bplib and sends bundles over a convergence layer
 4. A __data reader__ thread that _stores_ application data to bplib
 
 The stream of bundles received by the application is handled by the bundle reader and data writer threads. The __bundle reader__ uses the `bplib_process` function to pass bundles read from the convergence layer into the library.  If those bundles contain payload data bound for the application, that data is pulled out of the bundles and queued in storage until the __data writer__ thread calls the `bplib_accept` function to dequeue the data out of storage and write it to the application.  
 
-Conversely, the stream of bundles sent by the application is handled by the data reader and bundler writer threasd. The __data reader__ thread calls `bplib_store` to pass data from the application into the library to be bundled.  Those bundles are queued in storage until the __bundle writer__ threads calls the `bplib_load` function to dequeue them out of storage and write them to the convergence layer.
+Conversely, the stream of bundles sent by the application is handled by the data reader and bundler writer threads. The __data reader__ thread calls `bplib_store` to pass data from the application into the library to be bundled.  Those bundles are queued in storage until the __bundle writer__ threads calls the `bplib_load` function to dequeue them out of storage and write them to the convergence layer.
 
 ----------------------------------------------------------------------
 ## 3. Build with Make
@@ -59,11 +60,18 @@ And perform the following installations:
 
 Additional make commands are as follows:
 * `make clean` will remove all generated files and directories
-* `make testcov` will generate a line coverage report (if built and run with gcov)
+* `make testmem` will call valgrind for detecting memory leaks
+* `make testcpu` will call valgrind/callgrind for detecting cpu bottlenecks
+* `make testheap` will call valgrind/massif for detecting sources of memory bloat
+* `make testcov` will generate a line coverage report (if built and run with gcov, which is enabled by default)
 
 On CentOS you may need to create a file with the conf extension in /etc/ld.so.conf.d that contains the line '/usr/local/lib'.
 * `sudo echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf`
 * `sudo ldconfig` 
+
+Tailoring the build is accomplished by providing a custom configuration makefile.  By default `posix.mk` is used.  For example:
+* `make CONFIG=<my_config_makefile>`
+* `sudo make CONFIG=<my_config_makefile> install`
 
 
 ----------------------------------------------------------------------
@@ -138,7 +146,7 @@ This function returns a channel handle that is used for all future operations on
 
 * __allow_fragmentation__: Bundle generation parameter - if set then any generated or forwarded bundles on the channel will be fragmented if the size of the bundle exceeds the __max_length__ attribute of the channel; if not set, then any bundle generated or forwarded that exceeds the __max_length__ will be dropped.
 
-* __cipher_suite__: Bundle generation parameter - provides the CRC type used inside the BIB extension block.  If the __integrity_check__ attribute is not set, then this setting is ignored.  IF the __integrity_check__ attribute is set and this attribute is set to 0, then a BIB is included but the cipher result length is zero (this provide unambigous indication that no integrity check is included).
+* __cipher_suite__: Bundle generation parameter - provides the CRC type used inside the BIB extension block.  If the __integrity_check__ attribute is not set, then this setting is ignored.  If the __integrity_check__ attribute is set and this attribute is set to BP_BIB_NONE, then a BIB is included but the cipher result length is zero (this provide unambigous indication that no integrity check is included). Currently supported cipher suites are: BP_BIB_CRC16_X25, and BP_BIB_CRC32_CASTAGNOLI.
 
 * __timeout__: The number of seconds the library waits before re-loading an unacknowledged bundle.
 
@@ -148,7 +156,9 @@ This function returns a channel handle that is used for all future operations on
 
 * __dacs_rate__: The maximum number of seconds to wait before an Aggregate Custody Signal which has accumulated acknowledgments is sent.  Every time a call to `bplib_load` is made, the code checks to see if there is an Aggregate Custody Signal which exists in memory but has not been sent for at least __dacs_rate__ seconds.
 
-* __protocol_version__:  Which version of the bundle protocol to use; currently the library only supports version 6.
+* __protocol_version__: Which version of the bundle protocol to use; currently the library only supports version 6.
+
+* __retransmit_order__: The order in which bundles that have timed-out are retransmitted. There are currently two retransmission orders supported: BP_RETX_OLDEST_BUNDLE, and BP_RETX_SMALLEST_CID.
 
 * __active_table_size__:  The number of unacknowledged bundles to keep track of. The larger this number, the more bundles can be sent before a "wrap" occurs (see BP_OPT_WRAP_RESPONSE).  But every unacknowledged bundle consumes 8 bytes of CPU memory making this attribute the primary driver for a channel's memory usage.
 
