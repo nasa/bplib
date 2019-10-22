@@ -86,7 +86,7 @@ int cbuf_add(cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite)
     {
         cbuf->table[ati] = bundle;
         cbuf->num_entries++;
-        if(!overwrite) cbuf->newest_cid = bundle.cid;
+        if(!overwrite) cbuf->newest_cid = bundle.cid + 1;
     }
     
     /* Return Success */
