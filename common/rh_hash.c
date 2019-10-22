@@ -52,8 +52,11 @@ static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle
         /* Check if Overwriting Oldest */
         if(index == rh_hash->oldest_entry)
         {
-            rh_hash->oldest_entry = rh_hash->table[index].after;
-            rh_hash->table[rh_hash->oldest_entry].before = NULL_INDEX;
+            if(rh_hash->table[index].after != NULL_INDEX)
+            {
+                rh_hash->oldest_entry = rh_hash->table[index].after;                
+                rh_hash->table[rh_hash->oldest_entry].before = NULL_INDEX;
+            }
         }
 
         /* Set Current Entry to Newest */
