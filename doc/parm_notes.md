@@ -5,9 +5,9 @@
 [3. Active Bundle Management](#3-active-bundle-management)  
 [4. Example Configuration](#4-example-configuration)
 
-Bplib provides a set of APIs that perform the delay-tolerant networking functions of a single node within the network that node operates in.  So while bplib does not define the characteristics of the overall network, the configuration of the local node which uses bplib must be consistent with the characteristics of the network as a whole.  It is exactly for this reason that so many configuration options are available in bplib.  Nodes participating in different networks with different performance goals and physical constraints need to be configured differently in order to maximize the efficiency, reliability, and throughput of the overall network.
+Bplib provides a set of APIs that perform the delay-tolerant networking functions of a single node within a network.  So while bplib does not define the characteristics of the overall network, the configuration of the local node which uses bplib must be consistent with the characteristics of the network as a whole.  For this reason, many configuration options are available in bplib.  Nodes participating in different networks with different performance goals and physical constraints need to be configured differently in order to maximize the efficiency, reliability, and throughput of the overall network.
 
-What follows is a series of explanations surrounding the key configuration parameters provided by bplib.  Each explanation is really a discussion of a trade between resources and desired behaviors - these notes will hopefully allow you to select which behaviors you want for your network given the resource constraints of your local node. 
+What follows is a series of explanations surrounding the key configuration parameters provided by bplib.  Each explanation is a discussion of a trade between resources and desired behaviors - these notes will help you to select which behaviors you want for your network given the resource constraints of your local node. 
 
 ## 1. Bundle Transmission
 
@@ -23,9 +23,9 @@ What follows is a series of explanations surrounding the key configuration param
 
 #### Description
 
-Bplib is implemented as an "aggressive sender" for all outgoing bundles.  What this means is that bplib will keep trying to send a bundle until it is positively acknowledged.  The two parameters that control this behavior are the bundle's _lifetime_ and _timeout_.  The `lifetime` is how long bplib will keep trying; once the lifetime of a bundle is reached, even if the bundle has not been acknowledged, bplib will stop trying to resend it and will delete it.  The `timeout` is the rate at which bplib will keep trying; a bundle that has been sent but not acknowledged will not be resent until the timeout period expires.  Put together, bplib will keep resending a bundle at a rate defined by the _timeout_, for a period of time defined by the _lifetime_.
+Bplib is implemented as an "aggressive sender" for all outgoing bundles that request custody transfer.  What this means is that bplib will keep trying to send a bundle until it is positively acknowledged.  The two parameters that control this behavior are the bundle's `lifetime` and `timeout`.  The lifetime is how long bplib will keep trying to send a bundle; once the lifetime of a bundle is reached, even if the bundle has not been acknowledged, bplib will stop trying to resend it and will delete it.  The timeout is the rate at which bplib will keep trying send the bundle; a bundle that has been sent but not acknowledged will not be resent until the timeout period expires.  In summary, bplib will keep resending a bundle until it is acknowledged at a rate defined by the _timeout_, for a period of time defined by the _lifetime_.
 
-One nuance for each of these parameters is that they are lazily evaluated - in other words, they are only used when a bundle is retrieved to be sent.  So it is possible (and likely) for bundles to exist in both storage and in the active table that have expired (their lifetime has been reached), but they will remain there until it is their turn to be sent.  Similarly, there will be bundles in the active table which have timed-out and may not be resent for sometime due to other bundles taking priority over them.  Therefore it should be understood that the lifetime and timeout values of a bundle represent minimum periods of time.
+One nuance for both lifetime and timeout is that they are only used when a bundle is retrieved to be sent.  So it is possible (and likely) for bundles to exist in both storage and in the active table that have expired (their lifetime has been reached), but they will remain there until it is their turn to be sent.  Similarly, there will be bundles in the active table which have timed-out and may not be resent for sometime due to other bundles taking priority over them.  Therefore it should be understood that the lifetime and timeout values of a bundle represent minimum periods of time.
 
 All bundle transmissions begin with a call to the `bplib_load` function which returns the next bundle to be sent by the calling application.  The order in which bundles are returned are as follows:
 - DTN Aggregate Custody Signals (DACS)
@@ -65,9 +65,9 @@ There are three things that cause a DACS bundle to be sent:
 In all cases, the generation of DACS bundles may produce more than one DACS bundle.  The DACS bundle is limited in size by the `max_fills_per_dacs` attribute, so that when the library interrogates the state information for the bundles it has accepted custody of, it may need to generate multiple DACS bundles in order to acknowledge all the bundles.
 
 >  
-> Possible Issue #2: If the DACS rate of the receiver is slower than timeout period of the sender, then bundles will always timeout before they are acknowledged.  If timed-out bundles uses the same custody ID (see `CID_REUSE`) then the effect of this configuration is reduced throughput as the sending node will be throttled in sending bundles down to the rate of the bundle acknowledgment (i.e. if a link allows 100 bundles per second to be sent, but the receiver is only able to acknowledge 10 bundles per second, then the sender will ultimately only be able to achieve sending 10 bundles per second).  If, on the other hand, timed-out bundles use new custody IDs (see `CID_REUSE`), then the acknowledged bundles will no longer reference valid custody IDs by the time they are received by the sender since the bundles will have already timed-out and been assigned new custody IDs.  The effect of this misconfiguration is that no bundles will ever be acknowledged. 
+> Possible Issue #2: If the DACS rate of the receiver is slower than the timeout period of the sender, then bundles will always timeout before they are acknowledged.  If timed-out bundles use the same custody ID (see `CID_REUSE`) then the sending node will be throttled down to the rate of the bundle acknowledgment (i.e. if a link allows 100 bundles per second to be sent, but the receiver is only able to acknowledge 10 bundles per second, then the sender will ultimately only be able to achieve sending 10 bundles per second).  If, on the other hand, timed-out bundles use new custody IDs (see `CID_REUSE`), then the acknowledged bundles will no longer reference valid custody IDs by the time they are received by the sender since the bundles will have already timed-out and been assigned new custody IDs.  The effect of this misconfiguration is that no bundles will ever be acknowledged. 
 >  
-> Possible Issue #3: If bundles from multiple senders are received by a single bplib channel, the benefits are aggregating acknowledgments within a single DACS bundle is greatly reduced as everytime there is a transition between receiving bundles from one sender to another the library will generate a new DACS bundle and start over.
+> Possible Issue #3: If bundles from multiple senders are received by a single bplib channel, the benefits are aggregating acknowledgments within a single DACS bundle is greatly reduced as everytime there is a transition between receiving bundles from one sender to another the library will generate a new DACS bundle and start over aggregating the acknowledgments.
 >  
 
 ## 3. Active Bundle Management
@@ -98,7 +98,7 @@ The combined need of determining if a bundle has timed-out and which of the time
 __Oldest Bundle__
 - Behavior: 
   * When the retransmit order is set to `BP_RETX_OLDEST_BUNDLE` at channel creation, the library allocates a fixed size hash table (set via the `active_table_size` attribute) that also keeps track of the order in which the bundles were sent.
-  * When a bundle is loaded, only the bundle with the oldest transmission time is checked for timing-out, and if it has, then it is returned.
+  * When a bundle is loaded, only the bundle with the oldest transmission time is checked for timing-out.
   * On acknowledgment, the custody ID is hashed and used to directly index the bundle's stored information.  
 - Disadvantages:
   * Linking the bundles in time order, along with managing hash collisions requires more than twice the memory needed to store the essential information listed above.
@@ -110,15 +110,14 @@ __Oldest Bundle__
 __Smallest Custody ID__
 - Behavior:
   * When the retransmit order is set to `BP_RETX_SMALLEST_CID` at channel creation, the library allocates a fixed size circular buffer (set via the `active_table_size` attribute) that maintains a running FIFO of bundles based solely on their custody ID.
-  * When a bundle is loaded, the bundle with the smallest custody ID is transmitted.  The design handles the rollover of custody IDs and it can be assumed that from the libraries perspective custody IDs grow infinitely for the purpose of storing them in the active table.
+  * When a bundle is loaded, only the bundle with the smallest custody ID is checked for timing-out.  The design handles the rollover of custody IDs and it can be assumed that from the libraries perspective custody IDs grow infinitely for the purpose of storing them in the active table.
   * On acknowledgment, the custody ID is used to directly index the bundle's stored information.
 - Disadvantages:
-  * If custody IDs are reused, then the same bundle will keep timing out until it is acknowledged.
-  * New bundles added to the active table cannot have a custody ID that is greater than the smallest custody ID plus the size of the active table.  In other words, the active table could be mostly empty (due to bundles being acknowledged), but if there remains an old bundle which has not been acknowledged, and there have been enough bundles sent since that old bundle that the active table has been transversed, then the process of sending new bundles is held up until the old bundle is acknowledged.  This drives the use of active table sizes that are larger than what would otherwise be needed, limiting the memory gains otherwised realized by using a simpler data structure.
+  * If custody IDs are reused, then the same bundle will keep timing-out, and no other bundles will be able to time-out, until it is acknowledged.
+  * New bundles added to the active table cannot have a custody ID that is greater than the smallest custody ID plus the size of the active table.  For example, the active table could be mostly empty (due to bundles being acknowledged), but if there remains an old bundle which has not been acknowledged, and there have been enough bundles sent since that old bundle that the active table has been transversed, then the process of sending new bundles is held up until the old bundle is acknowledged.  This drives the active table size to be larger than what would otherwise be needed, limiting the memory gains otherwised realized by using a simple circular buffer data structure.
 - Advantages
-  * The logic is much simpler to understand and maintain.
   * The check for which bundle needs to be resent as well as looking up a bundle that needs to be acknowledged is extremely efficient.
-  * Only the three pieces of information listed above are stored for each bundle - there is no additional per-bundle overhead for the data structure.
+  * Only the three pieces of information listed above are stored for each bundle - there is no additional per-bundle overhead.
 
 The size of the active table represents the maximum number of bundles that can be pending acknowledgment.  In other words, it is the maximum number of bundles that can be currently enroute.  Therefore, the size of the active table must correspond to the anticipated round-trip time of a bundle on the network between the local sender and the next custody accepting hop.
 
@@ -130,7 +129,7 @@ The size of the active table represents the maximum number of bundles that can b
 
 ## 4. Example Configuration
 
-What follows is a notional configuration of a bplib channel which serves more to suggest the relationship between the different parameters more than any actualy setting or margin used.
+What follows is a notional configuration of a bplib channel which serves more to suggest the relationship between the different parameters  than recommending an actual setting.
 
 __Rate Related Parameters__:
  
