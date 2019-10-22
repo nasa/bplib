@@ -71,7 +71,7 @@
 typedef BP_VAL_TYPE bp_val_t;
 #define BP_MAX_ENCODED_VALUE BP_GET_MAXVAL(bp_val_t)
 
-/* Index (bounds size of active table and bundle size) */
+/* Index (bounds size of active table) */
 typedef BP_INDEX_TYPE bp_index_t;
 #define BP_MAX_INDEX BP_GET_MAXVAL(bp_index_t)
 

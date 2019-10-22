@@ -41,8 +41,8 @@ typedef int (*bp_remove_func_t) (void* parm, bp_val_t cid);
 /* Bundle Field (fixed size) */
 typedef struct {
     bp_val_t            value;          /* value of field */
-    bp_index_t          index;          /* offset into memory block to write value */
-    bp_index_t          width;          /* number of bytes in memory block value uses */
+    int                 index;          /* offset into memory block to write value */
+    int                 width;          /* number of bytes in memory block value uses */
 } bp_field_t;
 
 /* Active Bundle */
@@ -76,7 +76,7 @@ typedef struct {
 /* Bundle Structure */
 typedef struct {
     bp_route_t          route;          /* addressing information */
-    bp_attr_t           attributes;     /* bundle attributes */
+    bp_attr_t*          attributes;     /* bundle attributes (pointer) */
     bp_bundle_data_t    data;           /* serialized and stored bundle data */
     bool                prebuilt;       /* does pre-built bundle header need initialization */
     void*               blocks;         /* populated in initialization function */

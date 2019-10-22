@@ -54,7 +54,8 @@ typedef struct {
 /* Channel Control Block */
 typedef struct {
     bp_store_t              store;
-    bp_attr_t               attributes;    
+    bp_attr_t               attributes;  
+    bp_attr_t               custody_attributes;
     bp_stats_t              stats;
     bp_bundle_t             bundle;
     bp_bundle_t             custody;
@@ -285,7 +286,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
 
     /* Initialize Bundle */
-    status = v6_initialize(&ch->bundle, route, ch->attributes, &flags);
+    status = v6_initialize(&ch->bundle, route, &ch->attributes, &flags);
     if(status != BP_SUCCESS)
     {
         bplog(status, "Failed to initialize bundle, flags=%0X\n", flags);
@@ -294,9 +295,9 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
     
     /* Build Custody Attributes */
-    bp_attr_t custody_attributes = ch->attributes;
-    custody_attributes.request_custody = false;
-    custody_attributes.admin_record = true;
+    ch->custody_attributes = ch->attributes;
+    ch->custody_attributes.request_custody = false;
+    ch->custody_attributes.admin_record = true;
 
     /* Build Custody Route */
     bp_route_t custody_route = route;
@@ -304,7 +305,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     custody_route.destination_service = BP_IPN_NULL;
 
     /* Initialize Custody */    
-    status = v6_initialize(&ch->custody, custody_route, custody_attributes, &flags);
+    status = v6_initialize(&ch->custody, custody_route, &ch->custody_attributes, &flags);
     if(status != BP_SUCCESS)
     {
         bplog(status, "Failed to initialize custody, flags=%0X\n", flags);
@@ -559,7 +560,7 @@ int bplib_config(bp_desc_t channel, int mode, int opt, int* val)
         }
         case BP_OPT_MAX_LENGTH:
         {
-            if(setopt && (*val < 0 || (unsigned long)*val > BP_MAX_INDEX)) return BP_PARMERR;
+            if(setopt && *val < 0) return BP_PARMERR;
             if(setopt)  ch->attributes.max_length = *val;
             else        *val = ch->attributes.max_length;
             break;
