@@ -473,7 +473,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     /* Check Life Time */
     if((pri_blk.lifetime.value != 0) && (sysnow >= (pri_blk.lifetime.value + pri_blk.createsec.value)))
     {
-        return bplog(BP_EXPIRED, "Expired bundled attempted to be processed \n");
+        return bplog(BP_EXPIRED, "Expired bundle attempted to be processed \n");
     }
 
     /* Parse and Process Remaining Blocks */
