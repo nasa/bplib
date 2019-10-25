@@ -48,23 +48,23 @@ static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle
         bp_index_t before_index = rh_hash->table[index].before;
         bp_index_t after_index = rh_hash->table[index].after;
         if(before_index != NULL_INDEX) rh_hash->table[before_index].after = after_index;
+        if(after_index != NULL_INDEX) rh_hash->table[after_index].before = before_index;
 
-        /* Check if Overwriting Oldest */
-        if(index == rh_hash->oldest_entry)
-        {
-            if(rh_hash->table[index].after != NULL_INDEX)
-            {
-                rh_hash->oldest_entry = rh_hash->table[index].after;                
-                rh_hash->table[rh_hash->oldest_entry].before = NULL_INDEX;
-            }
-        }
+        /* Check if Overwriting Oldest/Newest */
+        if(index == rh_hash->oldest_entry) rh_hash->oldest_entry = after_index;  
+        if(index == rh_hash->newest_entry) rh_hash->newest_entry = before_index;  
 
-        /* Set Current Entry to Newest */
-        rh_hash->table[index].after                 = NULL_INDEX;
-        rh_hash->table[index].before                = rh_hash->newest_entry;
-        rh_hash->table[rh_hash->newest_entry].after = index;
-        rh_hash->newest_entry                       = index;
+        /* Set Current Entry as Newest */
+        bp_index_t oldest_index = rh_hash->oldest_entry;
+        bp_index_t newest_index = rh_hash->newest_entry;
+        rh_hash->table[index].after = NULL_INDEX;
+        rh_hash->table[index].before = newest_index;
+        rh_hash->newest_entry = index;
 
+        /* Update Newest/Oldest */
+        if(newest_index != NULL_INDEX) rh_hash->table[newest_index].after = index;
+        if(oldest_index == NULL_INDEX) rh_hash->oldest_entry = index;
+        
         /* Return Success */
         return BP_SUCCESS;
     }
@@ -307,7 +307,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     if(bundle) *bundle = rh_hash->table[curr_index].bundle;
 
     /* Update Time Order (Bridge) */
-    after_index  = rh_hash->table[curr_index].after;
+        after_index  = rh_hash->table[curr_index].after;
     before_index = rh_hash->table[curr_index].before;
     if(after_index != NULL_INDEX)   rh_hash->table[after_index].before = before_index;
     if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = after_index;            

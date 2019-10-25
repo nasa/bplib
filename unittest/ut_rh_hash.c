@@ -44,10 +44,18 @@ static void print_hash(rh_hash_t* rh_hash, const char* message)
     {
         printf("Oldest Entry:       [%d] %lu\n", rh_hash->oldest_entry, (unsigned long)rh_hash->table[rh_hash->oldest_entry].bundle.cid);
     }
+    else
+    {
+        printf("Oldest Entry:       N\n");
+    }
     
     if(rh_hash->newest_entry != BP_MAX_INDEX)
     {
         printf("Newest Entry:       [%d] %lu\n", rh_hash->newest_entry, (unsigned long)rh_hash->table[rh_hash->newest_entry].bundle.cid);
+    }
+    else
+    {
+        printf("Newest Entry:       N\n");
     }
     
     for(i = 0; i < rh_hash->size; i++)
@@ -455,21 +463,18 @@ static void test_5(void)
 
     ut_assert(rh_hash_count(rh_hash) == 3, "Failed to get hash size of 3\n");
     
-    print_hash(rh_hash, "Step 5.1");
+    print_hash(rh_hash, "Step 5.1 - Waiting for DACS");
 
     cid = 0;
     ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
 
-    cid = 1;
+    cid = 0;
     ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
 
-    cid = 2;
+    cid = 0;
     ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
-    ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
 
-    print_hash(rh_hash, "Step 5.2");
+    print_hash(rh_hash, "Step 5.2 - Received Partial Acknowledgment");
 
     cid = 0;
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
@@ -482,23 +487,38 @@ static void test_5(void)
     cid = 2;
     ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
 
-    print_hash(rh_hash, "Step 5.3");
+    cid = 2;
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+
+    print_hash(rh_hash, "Step 5.3 - Retransmit and Acknowledgment");
+
+    cid = 2;
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+
+    print_hash(rh_hash, "Step 5.3.1");
+
+    cid = 2;
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid);
 
     cid = 2;
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 0, "Failed to get hash size of 0\n");
 
+    print_hash(rh_hash, "Step 5.4 - Empty");
+
     cid = 2;
-    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error for %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error when removing %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_CIDNOTFOUND && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash) == 0, "Failed to get hash size of 0\n");
+
+    cid = 2;
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_CIDNOTFOUND && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash) == 0, "Failed to get hash size of 0\n");
 
     cid = 2;
     ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error for %d\n", cid);
     ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error when removing %d\n", cid);
-
-    cid = 2;
-    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error for %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error when removing %d\n", cid);
+    ut_assert(rh_hash_count (rh_hash) == 0, "Failed to get hash size of 0\n");
 
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }
