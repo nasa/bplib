@@ -57,17 +57,34 @@ int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint16_t* flags)
     else                 width = sdnv->width;
 
     /* Read SDNV */
-    for(i = sdnv->index; (i < width) && (i < size); i++)
+    for(i = sdnv->index; (i < (sdnv->index + width)) && (i < size); i++)
     {
+        /* Shift value and check for overflow */
+        bp_val_t tmpval = sdnv->value;
         sdnv->value <<= 7;
-        sdnv->value |= (block[i] & 0x7F);
-        if((block[i] & 0x80) == 0x00)  return (i + 1);
+        if(sdnv->value >> 7 != tmpval)
+        {
+            /* Set Overflow:
+             *  The right shift caused bits to be lost which means
+             *  the encoded value could not be stored in a bp_val_t */
+            *flags |= BP_FLAG_SDNVOVERFLOW;
+        }
         
-        else if(size < (i + 2)) *flags |= BP_FLAG_SDNVINCOMPLETE;
+        /* OR in next byte */
+        sdnv->value |= (block[i] & 0x7F);
+        
+        /* Check for end of SDNV */
+        if((block[i] & 0x80) == 0x00)
+        {
+            /* Success: return the next index */
+            return (i + 1);
+        }
     }
 
-    /* Set Overflow  */
-    *flags |= BP_FLAG_SDNVOVERFLOW;
+    /* Set Incomplete:
+     *  The SDNV wanted to keep going but the
+     *  block ended before it was complete */
+    *flags |= BP_FLAG_SDNVINCOMPLETE;
 
     /* Return Next Index */
     return i;

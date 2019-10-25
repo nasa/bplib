@@ -132,7 +132,7 @@ extern "C" {
 
 /* Default Fixed Configuration */
 #define BP_DEFAULT_PROTOCOL_VERSION     6
-#define BP_DEFAULT_RETRANSMIT_ORDER     BP_RETX_SMALLEST_CID
+#define BP_DEFAULT_RETRANSMIT_ORDER     BP_RETX_OLDEST_BUNDLE
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384 /* bundles (must be smaller than BP_MAX_INDEX) */
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028

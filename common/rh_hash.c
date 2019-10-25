@@ -281,12 +281,19 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     bp_index_t curr_index = HASH_CID(cid) % rh_hash->size;
 
     /* Find Node to Remove */
-    if(rh_hash->table[curr_index].bundle.sid != BP_SID_VACANT)
+    while(curr_index != NULL_INDEX)
     {
-        while(curr_index != NULL_INDEX)
+        if(rh_hash->table[curr_index].bundle.sid == BP_SID_VACANT) /* end of chain */
         {
-            if(rh_hash->table[curr_index].bundle.cid == cid) break; /* Match */
-            else curr_index = rh_hash->table[curr_index].next; /* Go to next */
+            curr_index = NULL_INDEX;
+        }
+        else if(rh_hash->table[curr_index].bundle.cid == cid) /* matched custody ID */
+        {
+            break;
+        }
+        else /* go to next */ 
+        {
+            curr_index = rh_hash->table[curr_index].next;   
         }
     }
 
