@@ -218,20 +218,14 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
         }
         else /* Robin Hood Insertion (chain > 1) */
         {
+            /* Copy Current Slot to Open Slot */
+            rh_hash->table[open_index] = rh_hash->table[curr_index];
+
+            /* Update Hash Links */
             next_index = rh_hash->table[curr_index].next;
             prev_index = rh_hash->table[curr_index].prev;
-            
-            /* Bridge Over Current Slot */
-            if(next_index != NULL_INDEX) rh_hash->table[next_index].prev = prev_index;
-            if(prev_index != NULL_INDEX) rh_hash->table[prev_index].next = next_index;
-
-            /* Copy Current Slot to Open Slot at End of Chain */
-            rh_hash->table[end_index].next      = open_index;            
-            rh_hash->table[open_index].bundle   = rh_hash->table[curr_index].bundle;
-            rh_hash->table[open_index].next     = NULL_INDEX;
-            rh_hash->table[open_index].prev     = end_index;
-            rh_hash->table[open_index].after    = rh_hash->table[curr_index].after;
-            rh_hash->table[open_index].before   = rh_hash->table[curr_index].before;
+            if(next_index != NULL_INDEX) rh_hash->table[next_index].prev = open_index;
+            if(prev_index != NULL_INDEX) rh_hash->table[prev_index].next = open_index;
 
             /* Update Time Order (Move) */
             after_index  = rh_hash->table[curr_index].after;
@@ -307,7 +301,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     if(bundle) *bundle = rh_hash->table[curr_index].bundle;
 
     /* Update Time Order (Bridge) */
-        after_index  = rh_hash->table[curr_index].after;
+    after_index  = rh_hash->table[curr_index].after;
     before_index = rh_hash->table[curr_index].before;
     if(after_index != NULL_INDEX)   rh_hash->table[after_index].before = before_index;
     if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = after_index;            

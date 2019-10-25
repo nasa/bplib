@@ -453,7 +453,7 @@ static void test_5(void)
     int hash_size = 8;    
     bp_active_bundle_t bundle = {&hash_size, 0, 0};
     
-    printf("\n==== Test 1: Retransverse ====\n");
+    printf("\n==== Test 5: Retransverse ====\n");
 
     ut_assert(rh_hash_create(&rh_hash, hash_size) == BP_SUCCESS, "Failed to create hash\n");
 
@@ -523,6 +523,113 @@ static void test_5(void)
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }
 
+/*--------------------------------------------------------------------------------------
+ * Test #6
+ *--------------------------------------------------------------------------------------*/
+static void test_6(void)
+{
+    rh_hash_t* rh_hash;
+    bp_val_t cid, newcid;
+    int i, j;
+
+    int hash_size = 8;    
+    bp_active_bundle_t bundle = {&hash_size, 0, 0};
+    
+    printf("\n==== Test 6: Full Hash ====\n");
+
+    ut_assert(rh_hash_create(&rh_hash, hash_size) == BP_SUCCESS, "Failed to create hash\n");
+
+    bundle.cid = 0; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 1; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 2; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 3; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 4; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 5; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 6; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+    bundle.cid = 7; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+
+    ut_assert(rh_hash_count(rh_hash) == 8, "Failed to get hash size of 8\n");
+    
+    print_hash(rh_hash, "Step 6.1 - Verify Failed Add on Full Hash");
+
+    bundle.cid = 0; ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+    bundle.cid = 8; ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+    bundle.cid = 9; ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+
+    print_hash(rh_hash, "Step 6.2 - Verify Failed Add on Changing Full Hash");
+
+    for(cid = 0; cid < (unsigned int)hash_size; cid++)
+    {
+        bundle.cid = cid;
+        
+        ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+        ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS, "Failed to remove CID %d\n", cid);
+
+        ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+
+        bundle.cid = cid + hash_size;
+        ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+
+        bundle.cid = cid + hash_size + 1;
+        ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+    }
+
+    print_hash(rh_hash, "Step 6.3 - Verify Failed Add on Overwritten Full Hash");
+
+    for(cid = 0; cid < (unsigned int)hash_size; cid++)
+    {
+        bundle.cid = cid;
+        
+        ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+        ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite CID %d\n", bundle.cid);
+
+        bundle.cid = cid + hash_size;
+        ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+
+        bundle.cid = cid + hash_size + 1;
+        ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+    }
+
+    print_hash(rh_hash, "Step 6.4 - Verify Failed Add on Changing/Overwritten Full Hash");
+
+    newcid = hash_size;
+    for(j = 0; j < 10; j++)
+    {
+        for(i = 0; i < hash_size/2; i++)
+        {            
+            bundle.cid = rh_hash->table[i].bundle.cid;
+            cid = bundle.cid;
+            
+            ut_assert(rh_hash_add(rh_hash, bundle, false) != BP_SUCCESS, "Failed to error on adding CID to full hash, %d\n", bundle.cid);
+
+            /* Overwrite CID */
+            ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to overwrite CID %d\n", bundle.cid);
+
+            /* Replace CID (in place) */
+            ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS, "Failed to remove CID %d\n", cid);
+            bundle.cid = cid + newcid++;
+            ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+
+            /* Replace CID (out of place) */
+            cid = rh_hash->table[(i + (hash_size/2)) % hash_size].bundle.cid;
+            ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS, "Failed to remove CID %d\n", cid);
+            bundle.cid = cid + newcid++;
+            ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_SUCCESS, "Failed to add CID %d\n", bundle.cid);
+
+            /* Check Size */
+            bundle.cid = newcid;
+            rh_hash_add(rh_hash, bundle, false);
+            bundle.cid = newcid + 1;
+            rh_hash_add(rh_hash, bundle, false);
+            ut_assert(rh_hash_count(rh_hash) == 8, "Failed to get hash size of 8: %d\n", rh_hash_count(rh_hash));
+        }
+    }
+
+    print_hash(rh_hash, "Step 6.5 - Final Hash");
+
+    ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -534,6 +641,7 @@ int ut_rh_hash (void)
     test_3();
     test_4();
     test_5();
+    test_6();
     
     return ut_failures();
 }

@@ -436,26 +436,25 @@ Initialize an attribute structure with the library default values.  This is usef
 | BP_EXPIRED              | -4    | A bundle expired due to its lifetime and was deleted |
 | BP_DROPPED              | -5    | A bundle was dropped because it could not be processed |
 | BP_INVALIDHANDLE        | -6    | The handle passed into a storage service function was invalid |
-| BP_OVERFLOW             | -7    | An SDNV was not able to be written or read due to their being insufficient space in the variable or bundle buffer |
-| BP_WRONGVERSION         | -8    | The primary block bundle version number did not match the CCSDS recommended version |
-| BP_BUNDLEPARSEERR       | -9    | An error was encountered when trying to read or write a bundle, usually associated with either an SDNV overflow or a buffer that is too small |
-| BP_UNKNOWNREC           | -10   | The administrative record type was unrecognized by the library |
-| BP_BUNDLETOOLARGE       | -11   | The size of the bundle exceeded the maximum size bundle that is able to be processed by the library |
-| BP_WRONGCHANNEL         | -12   | The destination service number did not match the channel's source service number when trying to processing a bundle destined for the local node |
-| BP_FAILEDINTEGRITYCHECK | -13   | A bundle processed by the library contained a Bundle Integrity Block, but the checksum contained in that block did not match the calculated checksum |
-| BP_FAILEDSTORE          | -14   | The library encountered an error originating from the storage service |
-| BP_FAILEDOS             | -15   | The library encountered an error originating from the operation system abstraction layer |
-| BP_FAILEDMEM            | -16   | The library encountered an error allocating memory for a channel |
-| BP_FAILEDRESPONSE       | -17   | The library was unable to report back to another node, e.g. a DACS bundle could not be created or sent due to there being too many sources to track |
-| BP_INVALIDEID           | -18   | An EID string did not contain a valid IPN address |
-| BP_INVALIDCIPHERSUITEID | -19   | A BIB block as an unrecognized Cipher Suite ID  |
-| BP_DUPLICATECID         | -20   | A custody ID was already present in the system either when loading a new bundle or acknowledging a received bundle  |
-| BP_CUSTODYTREEFULL      | -21   | The receiption and custody transfer of a bundle exhausted the memory allocated to keep track of custody and caused a DACS bundle to be immediately issued |
-| BP_ACTIVETABLEFULL      | -22   | No bundle can be loaded because the active table cannot accept any more bundles |
-| BP_CIDNOTFOUND          | -23   | The custody ID provided in an acknowledgement did not match any active bundle |
-| BP_PENDINGACKNOWLEDGMENT| -24   | An aggregate custody signal was unable to be processed due to a library failure |
-| BP_PENDINGFORWARD       | -25   | A forwarded bundle requesting custody transfer failed to be acknowledged due to a library failure |
-| BP_PENDINGACCEPTANCE    | -26   | A bundle destined for the local node requesting custody transfer failed to be acknowledged due to a library failure |
+| BP_WRONGVERSION         | -7    | The primary block bundle version number did not match the CCSDS recommended version |
+| BP_BUNDLEPARSEERR       | -8    | An error was encountered when trying to read or write a bundle, usually associated with either an SDNV overflow or a buffer that is too small |
+| BP_UNKNOWNREC           | -9    | The administrative record type was unrecognized by the library |
+| BP_BUNDLETOOLARGE       | -10   | The size of the bundle exceeded the maximum size bundle that is able to be processed by the library |
+| BP_WRONGCHANNEL         | -11   | The destination service number did not match the channel's source service number when trying to processing a bundle destined for the local node |
+| BP_FAILEDINTEGRITYCHECK | -12   | A bundle processed by the library contained a Bundle Integrity Block, but the checksum contained in that block did not match the calculated checksum |
+| BP_FAILEDSTORE          | -13   | The library encountered an error originating from the storage service |
+| BP_FAILEDOS             | -14   | The library encountered an error originating from the operation system abstraction layer |
+| BP_FAILEDMEM            | -15   | The library encountered an error allocating memory for a channel |
+| BP_FAILEDRESPONSE       | -16   | The library was unable to report back to another node, e.g. a DACS bundle could not be created or sent due to there being too many sources to track |
+| BP_INVALIDEID           | -17   | An EID string did not contain a valid IPN address |
+| BP_INVALIDCIPHERSUITEID | -18   | A BIB block as an unrecognized Cipher Suite ID  |
+| BP_DUPLICATECID         | -19   | A custody ID was already present in the system either when loading a new bundle or acknowledging a received bundle  |
+| BP_CUSTODYTREEFULL      | -20   | The receiption and custody transfer of a bundle exhausted the memory allocated to keep track of custody and caused a DACS bundle to be immediately issued |
+| BP_ACTIVETABLEFULL      | -21   | No bundle can be loaded because the active table cannot accept any more bundles |
+| BP_CIDNOTFOUND          | -22   | The custody ID provided in an acknowledgement did not match any active bundle |
+| BP_PENDINGACKNOWLEDGMENT| -23   | An aggregate custody signal was unable to be processed due to a library failure |
+| BP_PENDINGFORWARD       | -24   | A forwarded bundle requesting custody transfer failed to be acknowledged due to a library failure |
+| BP_PENDINGACCEPTANCE    | -25   | A bundle destined for the local node requesting custody transfer failed to be acknowledged due to a library failure |
 
 ----------------------------------------------------------------------
 #### 4.3 Flag Definitions

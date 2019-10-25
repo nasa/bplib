@@ -776,9 +776,9 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                          * request custody transfer it could still go out, but the
                          * current design requires that at least one slot in the active
                          * table is open at all times. */
-                        if(ch->active_table.available(ch->active_table.table, ch->current_active_cid) == BP_ACTIVETABLEFULL)
+                        status = ch->active_table.available(ch->active_table.table, ch->current_active_cid);
+                        if(status != BP_SUCCESS)
                         {
-                            status = BP_OVERFLOW;                   
                             *flags |= BP_FLAG_ACTIVETABLEWRAP;
                             bplib_os_waiton(ch->active_table_signal, timeout);
                         }
