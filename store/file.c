@@ -58,11 +58,15 @@
  ******************************************************************************/
 
 #ifdef  BP_FILE_CUSTOM_INCLUDE
-#include "bplib_store_file_custom.h"
+#include BP_FILE_CUSTOM_INCLUDE
 #endif
 
 #ifndef BP_FILE
 #define BP_FILE         FILE*
+#endif
+
+#ifndef BP_FILE_NULL
+#define BP_FILE_NULL    NULL
 #endif
 
 #ifndef BP_FILE_OPEN
@@ -79,6 +83,14 @@
 
 #ifndef BP_FILE_WRITE
 #define BP_FILE_WRITE   fwrite
+#endif
+
+#ifndef BP_FILE_SEEK
+#define BP_FILE_SEEK    fseek
+#endif
+
+#ifndef BP_FILE_FLUSH
+#define BP_FILE_FLUSH   fflush
 #endif
 
 /******************************************************************************
@@ -151,7 +163,7 @@ static BP_FILE open_dat_file (int service_id, char* file_root, uint32_t file_id,
     else
     {
         fd = BP_FILE_OPEN(filename, "ab");
-        if(fd == NULL)
+        if(fd == BP_FILE_NULL)
         {
             bplog(BP_FAILEDSTORE, "failed to open %s data file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
         }
@@ -197,7 +209,7 @@ static BP_FILE open_tbl_file (int service_id, char* file_root, uint32_t file_id,
     else
     { 
         fd = BP_FILE_OPEN(filename, "wb");
-        if(fd == NULL) 
+        if(fd == BP_FILE_NULL) 
         {
             bplog(BP_FAILEDSTORE, "failed to open %s table file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
         }
@@ -252,6 +264,10 @@ int bplib_store_file_create (void* parm)
         {
             /* Clear File Store (pointers set to NULL) */
             memset(&file_stores[s], 0, sizeof(file_stores[s]));
+            file_stores[s].write_fd = BP_FILE_NULL;
+            file_stores[s].read_fd = BP_FILE_NULL;
+            file_stores[s].retrieve_fd = BP_FILE_NULL;
+            file_stores[s].relinquish_fd = BP_FILE_NULL;
 
             /* Set In Use (necessary to be able to destroy later) */
             file_stores[s].in_use = true;
@@ -325,9 +341,9 @@ int bplib_store_file_destroy (int handle)
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
-    if(file_stores[handle].write_fd != NULL)            BP_FILE_CLOSE(file_stores[handle].write_fd);
-    if(file_stores[handle].read_fd != NULL)             BP_FILE_CLOSE(file_stores[handle].read_fd);
-    if(file_stores[handle].retrieve_fd != NULL)         BP_FILE_CLOSE(file_stores[handle].retrieve_fd);
+    if(file_stores[handle].write_fd != BP_FILE_NULL)    BP_FILE_CLOSE(file_stores[handle].write_fd);
+    if(file_stores[handle].read_fd != BP_FILE_NULL)     BP_FILE_CLOSE(file_stores[handle].read_fd);
+    if(file_stores[handle].retrieve_fd != BP_FILE_NULL) BP_FILE_CLOSE(file_stores[handle].retrieve_fd);
     if(file_stores[handle].file_root != NULL)           free(file_stores[handle].file_root);  
     if(file_stores[handle].lock != BP_INVALID_HANDLE)   bplib_os_destroylock(file_stores[handle].lock);
     if(file_stores[handle].data_cache != NULL)          free(file_stores[handle].data_cache);
@@ -360,11 +376,11 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     uint32_t data_offset = GET_DATAOFFSET(data_id);
     
     /* Check Need to Open Write File */
-    if(fs->write_fd == NULL)
+    if(fs->write_fd == BP_FILE_NULL)
     {
         /* Open Write File */
         fs->write_fd = open_dat_file(fs->service_id, fs->file_root, file_id, false);
-        if(fs->write_fd == NULL) return BP_FAILEDSTORE;
+        if(fs->write_fd == BP_FILE_NULL) return BP_FAILEDSTORE;
         
         /* Seek to Current Position */
         if(fs->write_error)
@@ -375,7 +391,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
             int status;
             
             /* Start at Beginning of File */
-            status = fseek(fs->write_fd, 0, SEEK_SET);
+            status = BP_FILE_SEEK(fs->write_fd, 0, SEEK_SET);
             if(status < 0) return BP_FAILEDSTORE;
             
             for(pos = 0; pos < data_offset; pos++)
@@ -385,7 +401,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
                 if(bytes_read != sizeof(current_size)) return BP_FAILEDSTORE;
 
                 /* Seek to End of Current Data */
-                status = fseek(fs->write_fd, current_size, SEEK_CUR);
+                status = BP_FILE_SEEK(fs->write_fd, current_size, SEEK_CUR);
                 if(status < 0) return BP_FAILEDSTORE;
             }
         }
@@ -413,7 +429,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     /* Flush File Data */
     if(file_flush)
     {
-        int status = fflush(fs->write_fd);
+        int status = BP_FILE_FLUSH(fs->write_fd);
         if(status < 0) flush_error = true;
     }
 
@@ -424,7 +440,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
         if(fs->write_fd)
         {
             BP_FILE_CLOSE(fs->write_fd);
-            fs->write_fd = NULL;
+            fs->write_fd = BP_FILE_NULL;
         }
         
         /* Return Failure */
@@ -439,7 +455,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
         if(fs->write_data_id % FILE_DATA_COUNT == 0)
         {
             BP_FILE_CLOSE(fs->write_fd);
-            fs->write_fd = NULL;
+            fs->write_fd = BP_FILE_NULL;
         }
 
         /* Set Write State */
@@ -495,11 +511,11 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
         }
 
         /* Check Need to Open Read File */
-        if(fs->read_fd == NULL)
+        if(fs->read_fd == BP_FILE_NULL)
         {
             /* Open Read File */
             fs->read_fd = open_dat_file(fs->service_id, fs->file_root, file_id, true);
-            if(fs->read_fd == NULL)
+            if(fs->read_fd == BP_FILE_NULL)
             {
                 bplib_os_unlock(fs->lock);
                 return BP_FAILEDSTORE;
@@ -514,7 +530,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             int status;
 
             /* Start at Beginning of File */
-            status = fseek(fs->read_fd, 0, SEEK_SET);
+            status = BP_FILE_SEEK(fs->read_fd, 0, SEEK_SET);
             if(status < 0)
             {
                 bplib_os_unlock(fs->lock);
@@ -532,7 +548,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
                 }
 
                 /* Seek to End of Current Data */
-                status = fseek(fs->read_fd, current_size, SEEK_CUR);
+                status = BP_FILE_SEEK(fs->read_fd, current_size, SEEK_CUR);
                 if(status < 0)
                 {
                     bplib_os_unlock(fs->lock);
@@ -566,7 +582,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             if(fs->read_fd)
             {
                 BP_FILE_CLOSE(fs->read_fd);
-                fs->read_fd = NULL;
+                fs->read_fd = BP_FILE_NULL;
             }
             
             /* Free Object Pointer */
@@ -615,7 +631,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
         if(fs->read_data_id % FILE_DATA_COUNT == 0)
         {
             BP_FILE_CLOSE(fs->read_fd);
-            fs->read_fd = NULL;
+            fs->read_fd = BP_FILE_NULL;
         }
 
         /* Set Read State */
@@ -680,16 +696,16 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             if(fs->retrieve_fd)
             {
                 BP_FILE_CLOSE(fs->retrieve_fd);
-                fs->retrieve_fd = NULL;
+                fs->retrieve_fd = BP_FILE_NULL;
             }
         }
 
         /* Check Need to Open Retrieve File */
-        if(fs->retrieve_fd == NULL)
+        if(fs->retrieve_fd == BP_FILE_NULL)
         {        
             /* Open Retrieve File */
             fs->retrieve_fd = open_dat_file(fs->service_id, fs->file_root, file_id, true);
-            if(fs->retrieve_fd == NULL)
+            if(fs->retrieve_fd == BP_FILE_NULL)
             {
                 bplib_os_unlock(fs->lock);
                 return BP_FAILEDSTORE;
@@ -703,7 +719,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             {
                 /* Handling Seeking Backwards */
                 offset_delta = data_offset;
-                seek_status = fseek(fs->retrieve_fd, 0, SEEK_SET);
+                seek_status = BP_FILE_SEEK(fs->retrieve_fd, 0, SEEK_SET);
                 if(seek_status < 0)
                 {
                     bplib_os_unlock(fs->lock);
@@ -729,7 +745,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
                 }
 
                 /* Seek to End of Current Data */
-                seek_status = fseek(fs->retrieve_fd, current_size, SEEK_CUR);
+                seek_status = BP_FILE_SEEK(fs->retrieve_fd, current_size, SEEK_CUR);
                 if(seek_status < 0)
                 {
                     bplib_os_unlock(fs->lock);
@@ -758,7 +774,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
                 if(fs->retrieve_fd)
                 {
                     BP_FILE_CLOSE(fs->retrieve_fd);
-                    fs->retrieve_fd = NULL;
+                    fs->retrieve_fd = BP_FILE_NULL;
                 }
 
                 /* Return Failure */
@@ -887,10 +903,10 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
             if(fs->relinquish_table.free_cnt > 0)
             {
                 /* Open Previous Relinquish File */
-                if(fs->relinquish_fd == NULL)
+                if(fs->relinquish_fd == BP_FILE_NULL)
                 {
                     fs->relinquish_fd = open_tbl_file(fs->service_id, fs->file_root, prev_file_id, false);
-                    if(fs->relinquish_fd == NULL) 
+                    if(fs->relinquish_fd == BP_FILE_NULL) 
                     {
                         bplib_os_unlock(fs->lock);
                         return BP_FAILEDSTORE;
@@ -902,7 +918,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
 
                 /* Close Previous Relinquish File */
                 BP_FILE_CLOSE(fs->relinquish_fd);
-                fs->relinquish_fd = NULL;
+                fs->relinquish_fd = BP_FILE_NULL;
 
                 /* Check Status of Write */
                 if(bytes_written != sizeof(fs->relinquish_table))
@@ -914,7 +930,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
 
             /* Open New Relinquish File */
             fs->relinquish_fd = open_tbl_file(fs->service_id, fs->file_root, file_id, true);
-            if(fs->relinquish_fd == NULL)
+            if(fs->relinquish_fd == BP_FILE_NULL)
             {
                 /* Initialize New Relinquish Table */
                 memset(&fs->relinquish_table, 0, sizeof(fs->relinquish_table));
@@ -926,7 +942,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
 
                 /* Close New Relinquish File */
                 BP_FILE_CLOSE(fs->relinquish_fd);
-                fs->relinquish_fd = NULL;
+                fs->relinquish_fd = BP_FILE_NULL;
 
                 /* Check for Error */
                 if(bytes_read != sizeof(fs->relinquish_table))
