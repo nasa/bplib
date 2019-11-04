@@ -408,7 +408,12 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
 
         /* Enqueue Bundle */
         status = create(parm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
-        if(status <= 0) return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
+        if(status <= 0)
+        {
+            *flags |= BP_FLAG_STOREFAILURE;
+            return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
+        }
+            
         payload_offset += fragment_size;
     }
 

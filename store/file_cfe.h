@@ -39,6 +39,6 @@ size_t  bp_cfe_fread    (void* ptr, size_t size, size_t count, BP_FILE stream);
 size_t  bp_cfe_fwrite   (const void* ptr, size_t size, size_t count, BP_FILE stream);
 size_t  bp_cfe_fwrite   (const void* ptr, size_t size, size_t count, BP_FILE stream);
 int     bp_cfe_fseek    (BP_FILE stream, long int offset, int origin);
-int     bp_cfe_fflush    (BP_FILE stream);
+int     bp_cfe_fflush   (BP_FILE stream);
 
 #endif /* _bplib_store_file_custom_h_ */

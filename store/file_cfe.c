@@ -23,35 +23,24 @@
  *-------------------------------------------------------------------------------------*/
 BP_FILE bp_cfe_fopen(const char* filename, const char* mode)
 {
+    int32 rc = OS_FS_ERROR;
+    
     if(mode[0] == 'r')
     {
-        int32 rc = OS_open(filename, OS_READ_ONLY, 0xFFFFFFFF);
-        return (rc >= 0) ? rc : OS_FS_ERROR;
+        rc = OS_open(filename, OS_READ_ONLY, S_IRUSR | S_IWUSR);
     }
     else if(mode[0] == 'w')
     {
-        int32 rc = OS_open(filename, OS_WRITE_ONLY, 0xFFFFFFFF);
-        return (rc >= 0) ? rc : OS_FS_ERROR;        
+        rc = OS_open(filename, OS_WRITE_ONLY, S_IRUSR | S_IWUSR);
     }
     else if(mode[0] == 'a')
     {
-        int32 rc = OS_open(filename, OS_WRITE_ONLY, 0xFFFFFFFF);
-        if(rc >= 0)
-        {
-            OS_lseek(rc, 0, OS_SEEK_END);
-            return rc;
-        }
-        else
-        {
-            return OS_FS_ERROR;
-        }
+        rc = OS_open(filename, OS_READ_WRITE, S_IRUSR | S_IWUSR);
+        if(rc >= 0) OS_lseek(rc, 0, OS_SEEK_END);
     }
-    else
-    {
-        return OS_FS_ERROR;
-    }
-}
 
+    return (rc >= 0) ? rc : OS_FS_ERROR;
+}
 
 /*--------------------------------------------------------------------------------------
  * bp_cfe_fclose -
