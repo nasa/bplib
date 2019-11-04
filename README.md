@@ -44,16 +44,32 @@ Conversely, the stream of bundles sent by the application is handled by the data
 ## 3. Build with Make
 ----------------------------------------------------------------------
 
-Go to repository root directory and execute the following commands:
+#### Prerequisites
+
+1. To build the static and shared libraries, the only prerequisites are the __make__ build system and a compiler toolchain (by default __gcc__).
+
+2. To build the Lua extension used for unit testing (and useful for any user implemented Lua applications), then you need to have Lua installed on your system.  For Ubuntu, type `sudo apt install lua5.3`, and for CentOS, type `yum install epel-release && yum install lua`. Only Lua version 5.3 has been tested.
+
+3. Tailoring the build to provide unique system prerequisites is accomplished by providing a custom configuration makefile.  See `posix.mk` as an example. If you custom file is called `{my_config_makefile}` then the following commands would be used:
+   * `make CONFIG={my_config_makefile}`
+   * `sudo make CONFIG={my_config_makefile} install`
+
+#### Building 
+
+To build everything, including the language bindings, go to repository root directory and execute the following commands:
 * `make`
 * `sudo make install`
 
-This will build the following binaries:
+To build only the static and shared libraries, use the following commands:
+* `make lib`
+* `sudo make install`
+
+The default makefile produces the following binaries:
 * `build/libbp.so.<version>` - shared library
 * `build/libbp.a` - static library
 * `bindings/lua/build/bplib.so` - lua extension module
 
-And perform the following installations:
+And performs the following installations:
 * `/usr/local/lib`: bplib libraries
 * `/usr/local/inc`: bplib includes
 * `/usr/local/lib/lua/5.3`: lua extensions and helper scripts
@@ -69,9 +85,18 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
 * `sudo echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf`
 * `sudo ldconfig` 
 
-Tailoring the build is accomplished by providing a custom configuration makefile.  By default `posix.mk` is used.  For example:
-* `make CONFIG=<my_config_makefile>`
-* `sudo make CONFIG=<my_config_makefile> install`
+#### Unit Tests
+
+To manually run the unit test suite:
+* `lua5.3 binding/lua/test/test_runner.lua`
+
+To run a specific unit test using one of the test targets provided in the makefile:
+* make test{mem|cpu|heap|cov} testcase=binding/lua/test/ut_{test}.lua
+
+#### Releases
+
+The default `posix.mk` configuration makefile is for development and builds additional C unit tests, code coverage profiling, stack protector, and uses minimum compiler optimizations. When releasing the code, the library should be built with `release.mk` as follows:
+* `make CONFIG=release.mk`
 
 
 ----------------------------------------------------------------------

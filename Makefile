@@ -166,7 +166,10 @@ $(BLDDIR)/%.o: %.c
 ##############################################################################
 ##  TARGET RULES
 
-all: clean $(BLDDIR) static-lib shared-lib bindings
+all: clean lib bindings
+
+lib: static-lib shared-lib
+
 
 static-lib: $(BLDDIR) $(ALL_OBJ)
 	$(AR) crs $(BLDDIR)/lib$(TGTLIB).a $(ALL_OBJ)
