@@ -388,24 +388,23 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
         /* Seek to Current Position */
         if(fs->write_error)
         {
-            uint32_t current_size;
-            uint32_t bytes_read;
-            unsigned int pos;
-            int status;
-            
             /* Start at Beginning of File */
-            status = BP_FILE_SEEK(fs->write_fd, 0, SEEK_SET);
-            if(status < 0) return bplog(BP_FAILEDSTORE, "Failed (%d) to set write position after error to start of file\n", status);
-            
+            int seek_status = BP_FILE_SEEK(fs->write_fd, 0, SEEK_SET);
+            if(seek_status < 0) return bplog(BP_FAILEDSTORE, "Failed (%d) to set write position after error to start of file\n", seek_status);
+
+            /* Read/Seek Through File */
+            unsigned int pos;
             for(pos = 0; pos < data_offset; pos++)
             {
+                uint32_t current_size;
+                
                 /* Read Current Data Size */
-                bytes_read = BP_FILE_READ(&current_size, 1, sizeof(current_size), fs->write_fd);
+                uint32_t bytes_read = BP_FILE_READ(&current_size, 1, sizeof(current_size), fs->write_fd);
                 if(bytes_read != sizeof(current_size)) return bplog(BP_FAILEDSTORE, "Failed to read data size for write after error (%d != %d)\n", bytes_read, sizeof(current_size));
 
                 /* Seek to End of Current Data */
-                status = BP_FILE_SEEK(fs->write_fd, current_size, SEEK_CUR);
-                if(status < 0) return bplog(BP_FAILEDSTORE, "Failed (%d) to jump over data for write after error\n", status);
+                seek_status = BP_FILE_SEEK(fs->write_fd, current_size, SEEK_CUR);
+                if(seek_status < 0) return bplog(BP_FAILEDSTORE, "Failed (%d) to jump over data for write after error\n", seek_status);
             }
         }
     }
@@ -432,10 +431,10 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     /* Flush File Data */
     if(file_flush)
     {
-        int status = BP_FILE_FLUSH(fs->write_fd);
-        if(status < 0)
+        int flush_status = BP_FILE_FLUSH(fs->write_fd);
+        if(flush_status < 0)
         {
-            bplog(BP_FAILEDSTORE, "Failed (%d) to flush data write\n", status);
+            bplog(BP_FAILEDSTORE, "Failed (%d) to flush data write\n", flush_status);
             flush_error = true;
         }
     }
@@ -485,16 +484,16 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
     assert(file_stores[handle].in_use);
     assert(object);
 
-    /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
-    uint32_t bytes_read = 0;
-    uint32_t object_size = 0;
-    unsigned char* object_ptr = NULL;
-    uint32_t cache_index = 0;
-    bool read_success = false;
-
     bplib_os_lock(fs->lock);
     {
+        /* Initialize Variables */
+        uint32_t bytes_read = 0;
+        uint32_t object_size = 0;
+        unsigned char* object_ptr = NULL;
+        uint32_t cache_index = 0;
+        bool read_success = false;
+        
         /* Get IDs */
         uint32_t data_id = GET_DATAID(fs->read_data_id);
         uint32_t file_id = GET_FILEID(data_id);
@@ -532,20 +531,20 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
         /* Seek to Current Position */
         if(fs->read_error)
         {
-            uint32_t current_size;
-            unsigned int pos;
-            int status;
-
             /* Start at Beginning of File */
-            status = BP_FILE_SEEK(fs->read_fd, 0, SEEK_SET);
-            if(status < 0)
+            int seek_status = BP_FILE_SEEK(fs->read_fd, 0, SEEK_SET);
+            if(seek_status < 0)
             {
                 bplib_os_unlock(fs->lock);
-                return bplog(BP_FAILEDSTORE, "Failed (%d) to set read position after error to start of file\n", status);
+                return bplog(BP_FAILEDSTORE, "Failed (%d) to set read position after error to start of file\n", seek_status);
             }
 
+            /* Read/Seek Through File */
+            unsigned int pos;
             for(pos = 0; pos < data_offset; pos++)
             {
+                uint32_t current_size;
+                
                 /* Read Current Object Size */
                 bytes_read = BP_FILE_READ(&current_size, 1, sizeof(current_size), fs->read_fd);
                 if(bytes_read != sizeof(current_size))
@@ -556,11 +555,11 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
                 }
 
                 /* Seek to End of Current Data */
-                status = BP_FILE_SEEK(fs->read_fd, current_size, SEEK_CUR);
-                if(status < 0)
+                seek_status = BP_FILE_SEEK(fs->read_fd, current_size, SEEK_CUR);
+                if(seek_status < 0)
                 {
                     bplib_os_unlock(fs->lock);
-                    return bplog(BP_FAILEDSTORE, "Failed (%d) to jump over data for read after error\n", status);;
+                    return bplog(BP_FAILEDSTORE, "Failed (%d) to jump over data for read after error\n", seek_status);
                 }
             }
         }
@@ -660,24 +659,23 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
  *-------------------------------------------------------------------------------------*/
 int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, int timeout)
 {
+    (void)timeout;
+
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
     assert(object);
     
-    (void)timeout;
-    
-    /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
-    int seek_status = 0;
-    uint32_t bytes_read = 0;
-    uint32_t object_size = 0;
-    unsigned char* object_ptr = NULL;
-    uint32_t cache_index = 0;
-    int offset_delta = 0;
-    bool retrieve_success = false;
-
     bplib_os_lock(fs->lock);
     {
+        /* Initialize Variables */
+        uint32_t bytes_read = 0;
+        uint32_t object_size = 0;
+        unsigned char* object_ptr = NULL;
+        uint32_t cache_index = 0;
+        int offset_delta = 0;
+        bool retrieve_success = false;
+
         /* Get IDs */
         uint32_t data_id = GET_DATAID(sid);
         uint32_t file_id = GET_FILEID(data_id);
@@ -728,7 +726,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             {
                 /* Handling Seeking Backwards */
                 offset_delta = data_offset;
-                seek_status = BP_FILE_SEEK(fs->retrieve_fd, 0, SEEK_SET);
+                int seek_status = BP_FILE_SEEK(fs->retrieve_fd, 0, SEEK_SET);
                 if(seek_status < 0)
                 {
                     bplib_os_unlock(fs->lock);
@@ -754,7 +752,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
                 }
 
                 /* Seek to End of Current Data */
-                seek_status = BP_FILE_SEEK(fs->retrieve_fd, current_size, SEEK_CUR);
+                int seek_status = BP_FILE_SEEK(fs->retrieve_fd, current_size, SEEK_CUR);
                 if(seek_status < 0)
                 {
                     bplib_os_unlock(fs->lock);

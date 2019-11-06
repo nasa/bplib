@@ -98,7 +98,7 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     else pathptr = (char*)file;
 
     /* Create Log Message */
-    snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%d:%d:%s", pathptr, line, error, formatted_string);
+    snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%d:%s", pathptr, line, error, formatted_string);
     
     /* Display Log Message */
     printf("%s", log_message);
@@ -148,11 +148,11 @@ void bplib_os_sleep(int seconds)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_createlock(void)
 {
-    int i;
     int handle = BP_INVALID_HANDLE;
     
     pthread_mutex_lock(&lock_of_locks);
     {
+        int i;
         for(i = 0; i < BP_MAX_LOCKS; i++)
         {
             if(locks[i] == NULL)

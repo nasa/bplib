@@ -242,4 +242,10 @@ testcov:
 	genhtml build/coverage.info --output-directory build/coverage_html
 	# firefox build/coverage_html/index.html
 
+##############################################################################
+##  STATIC ANALYSIS RULES
+
+check:
+	cppcheck $(ROOT) --enable=all $(INCLUDES) $(APP_DEFS)
+
 # end of file

@@ -108,12 +108,11 @@ static uint32_t reflect32(uint32_t num)
 static uint16_t get_crc16(const uint8_t* data, const uint32_t length, const crc_parameters_t* params)
 {
     uint16_t crc = params->n_bit_params.crc16.initial_value;
-    uint8_t current_byte;
     uint32_t i;
     
     for (i = 0; i < length; i++)
     {
-        current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
+        uint8_t current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
         crc = (crc << 8) ^ params->n_bit_params.crc16.xor_table[current_byte ^ (crc >> 8)];
     }
 
@@ -140,14 +139,12 @@ static uint16_t get_crc16(const uint8_t* data, const uint32_t length, const crc_
 static uint32_t get_crc32(const uint8_t* data, const uint32_t length, const crc_parameters_t* params)
 {
     uint32_t crc = params->n_bit_params.crc32.initial_value;
-    uint8_t current_byte;
     uint32_t i;
     
     for (i = 0; i < length; i++)
     {
-        current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
-        crc = ((crc << 8) ^ 
-               params->n_bit_params.crc32.xor_table[current_byte ^ (crc >> 24)]);
+        uint8_t current_byte = params->should_reflect_input ? reflect8(data[i]) : data[i];
+        crc = ((crc << 8) ^ params->n_bit_params.crc32.xor_table[current_byte ^ (crc >> 24)]);
     }
 
     if (params->should_reflect_output)

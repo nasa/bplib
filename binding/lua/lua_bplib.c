@@ -193,7 +193,7 @@ void log_message(const char* file_name, unsigned int line_number, const char* fo
     const char* file_name_only = last_path_delimeter ? last_path_delimeter + 1 : file_name;
     
     /* Build Message */
-    snprintf(entry_log_msg, LBPLIB_MAX_LOG_ENTRY, "%s:%d: %s", file_name_only, line_number, formatted_string);
+    snprintf(entry_log_msg, LBPLIB_MAX_LOG_ENTRY, "%s:%u: %s", file_name_only, line_number, formatted_string);
     
     /* Print Message */
     printf("%s", entry_log_msg);

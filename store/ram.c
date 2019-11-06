@@ -132,8 +132,6 @@ static int isempty(queue_t* q)
  *----------------------------------------------------------------------------*/
 static int enqueue(queue_t* q, void* data, int size)
 {
-    queue_node_t* temp;
-
     /* check if queue is full */
     if((q->depth != MSGQ_DEPTH_INFINITY) && (q->len >= q->depth))
     {
@@ -149,13 +147,13 @@ static int enqueue(queue_t* q, void* data, int size)
     }
 
     /* create temp node */
-    temp = (queue_node_t*)malloc((int)sizeof(queue_node_t));
+    queue_node_t* temp = (queue_node_t*)malloc((int)sizeof(queue_node_t));
     if(!temp) return MSGQ_MEMORY_ERROR;
 
     /* construct node to be added */
-    temp->data      = data;
-    temp->size      = size;
-    temp->next      = NULL;
+    temp->data  = data;
+    temp->size  = size;
+    temp->next  = NULL;
 
     /* place temp node into queue */
     if(q->rear == NULL)
@@ -163,7 +161,7 @@ static int enqueue(queue_t* q, void* data, int size)
         q->rear = temp;
         q->front = temp;
     }
-    else if(q->rear != NULL)
+    else /* q->rear != NULL */
     {
         q->rear->next = temp;
         q->rear = q->rear->next;
@@ -179,7 +177,6 @@ static int enqueue(queue_t* q, void* data, int size)
  *----------------------------------------------------------------------------*/
 static void* dequeue(queue_t* q, int* size)
 {
-    queue_node_t* tmp;
     void *data;
 
     if(q->front != NULL)
@@ -189,7 +186,7 @@ static void* dequeue(queue_t* q, int* size)
         if(size) *size = q->front->size;
 
         /* remove */
-        tmp = q->front;
+        queue_node_t* tmp = q->front;
         if(q->front == q->rear)
         {
             q->front = q->rear = NULL;

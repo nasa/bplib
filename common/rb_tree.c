@@ -525,13 +525,13 @@ static void replace_node(rb_node_t* node, rb_node_t* child)
  *--------------------------------------------------------------------------------------*/ 
 static void delete_rebalance(rb_tree_t* tree, rb_node_t* node) {
 
-    /* Allocate parent and sibling ptrs. */
-    rb_node_t* sibling;
-    rb_node_t* parent;
-
     /* DELETE_CASE_1 - If node is ever set to root rebalancing for deletion is complete. */
     while (!is_root(node))
     {
+        /* Allocate parent and sibling ptrs. */
+        rb_node_t* sibling;
+        rb_node_t* parent;
+
         /*-----------------------------------------------------------------------------------
         * DELETE_CASE_2 - If sibling is red the colors of it and parent are swapped and
         *      and the tree is rotated such that sibling becomes node's grandparent. This stage
