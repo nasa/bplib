@@ -555,7 +555,7 @@ int lbplib_sleep (lua_State* L)
 #ifdef _WINDOWS_
         Sleep(wait_time * 1000); /* milliseconds */
 #else
-        sleep(wait_time); /* seconds */
+        usleep(wait_time * 1000000.0); /* seconds */
 #endif
     }
     else
