@@ -51,7 +51,7 @@ static void print_binary(const void* ptr, const size_t size, const int num_space
     {
         for (int i = 8 - 1; i >= 0; i--)
         {
-            printf("%c", number_ptr[current_byte] & (1 << i) ? '1' : '0');
+            printf("%c", (number_ptr[current_byte] & (1 << i)) ? '1' : '0');
         }
     }
     printf("\n");

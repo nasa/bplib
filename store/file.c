@@ -876,11 +876,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
-    /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
-    uint32_t bytes_read = 0;
-    uint32_t bytes_written = 0;
-
     bplib_os_lock(fs->lock);
     {
         /* Get IDs */
@@ -924,7 +920,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
                 }
 
                 /* Write Previous Relinquish Table */
-                bytes_written = BP_FILE_WRITE(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+                uint32_t bytes_written = BP_FILE_WRITE(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
 
                 /* Close Previous Relinquish File */
                 BP_FILE_CLOSE(fs->relinquish_fd);
@@ -948,7 +944,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
             else
             {
                 /* Read Relinquish Table */
-                bytes_read = BP_FILE_READ(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+                uint32_t bytes_read = BP_FILE_READ(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
 
                 /* Close New Relinquish File */
                 BP_FILE_CLOSE(fs->relinquish_fd);

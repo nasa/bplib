@@ -1364,9 +1364,10 @@ void print_node(rb_node_t* node)
         printf("NULL NODE\n");
         return;
     }
+
     printf("[ C: %5s || N: %3d || P: %3d || L: %3d || R: %3d || O: %3lu]\n",
         node->color ? "RED" : "BLACK",
-        node != NULL ? (int) node->range.value : -1,
+        (int) node->range.value,
         node->parent != NULL ? (int) node->parent->range.value : -1,
         node->left != NULL ? (int) node->left->range.value : -1,
         node->right != NULL ? (int) node->right->range.value : -1,

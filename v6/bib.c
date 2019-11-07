@@ -181,7 +181,6 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25 && bib->security_result_length.value == 2)
     {
         if (bytes_read + 2 > size) return BP_BUNDLEPARSEERR;
-        bib->security_result_data.crc16 = *((uint16_t*) (buffer + bytes_read));
         uint8_t* valptr = buffer + bytes_read; 
         bib->security_result_data.crc16 = 0;
         bib->security_result_data.crc16 |= (((uint16_t) valptr[0]) << 8);
@@ -191,7 +190,6 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI && bib->security_result_length.value == 4)
     {
         if (bytes_read + 4 > size) return BP_BUNDLEPARSEERR;
-        bib->security_result_data.crc32 = *((uint32_t*) (buffer + bytes_read));
         uint8_t* valptr = buffer + bytes_read; 
         bib->security_result_data.crc32 = 0;
         bib->security_result_data.crc32 |= ((uint32_t) valptr[0]) << 24;

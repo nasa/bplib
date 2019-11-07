@@ -315,7 +315,6 @@ int v6_populate_bundle(bp_bundle_t* bundle, uint16_t* flags)
  *-------------------------------------------------------------------------------------*/
 int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_func_t create, void* parm, int timeout, uint16_t* flags)
 {
-    int                     status          = 0;
     int                     payload_offset  = 0;
     bp_bundle_data_t*       data            = &bundle->data;
     bp_v6blocks_t*          blocks          = (bp_v6blocks_t*)bundle->blocks;
@@ -401,13 +400,13 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
         
         /* Write Payload Block (static portion) */
         pay->blklen.value = fragment_size;
-        status = pay_write(&data->header[data->payoffset], BP_BUNDLE_HDR_BUF_SIZE - data->payoffset, pay, false, flags);
-        if(status <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write payload block (static portion) of bundle\n", status);
-        data->headersize = data->payoffset + status;
+        int bytes_written = pay_write(&data->header[data->payoffset], BP_BUNDLE_HDR_BUF_SIZE - data->payoffset, pay, false, flags);
+        if(bytes_written <= 0) return bplog(BP_BUNDLEPARSEERR, "Failed (%d) to write payload block (static portion) of bundle\n", bytes_written);
+        data->headersize = data->payoffset + bytes_written;
         data->bundlesize = data->headersize + fragment_size;
 
         /* Enqueue Bundle */
-        status = create(parm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
+        int status = create(parm, pri->is_admin_rec, &pay->payptr[payload_offset], fragment_size, timeout);
         if(status <= 0)
         {
             *flags |= BP_FLAG_STOREFAILURE;

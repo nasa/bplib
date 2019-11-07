@@ -276,32 +276,3 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, ui
         return bytes_written;
     }
 }
-
-/*--------------------------------------------------------------------------------------
- * pri_display -
- *
- *  pri - pointer to a primary bundle block structure to display [INPUT]
- *
- *  Returns: success / fail
- *-------------------------------------------------------------------------------------*/
-int pri_display (bp_blk_pri_t* pri)
-{
-    if(!pri) return false;
-
-    bplog(BP_SUCCESS, "Bundle Primary Block (admin: %d, frag:%d, rqst: %d, allow: %d)\n",
-        pri->is_admin_rec, pri->is_frag, pri->cst_rqst, pri->allow_frag);
-
-    bplog(BP_SUCCESS, "PCF: %08X\n",    (unsigned int)pri->pcf.value);
-    bplog(BP_SUCCESS, "DST: %ld.%ld\n", (long)pri->dstnode.value, (long)pri->dstserv.value);
-    bplog(BP_SUCCESS, "SRC: %ld.%ld\n", (long)pri->srcnode.value, (long)pri->srcserv.value);
-    bplog(BP_SUCCESS, "RPT: %ld.%ld\n", (long)pri->rptnode.value, (long)pri->rptserv.value);
-    bplog(BP_SUCCESS, "CST: %ld.%ld\n", (long)pri->cstnode.value, (long)pri->cstserv.value);
-    bplog(BP_SUCCESS, "SEC: %ld\n",     (long)pri->createsec.value);
-    bplog(BP_SUCCESS, "SEQ: %ld\n",     (long)pri->createseq.value);
-    bplog(BP_SUCCESS, "LFT: %ld\n",     (long)pri->lifetime.value);
-    bplog(BP_SUCCESS, "DCT: %ld\n",     (long)pri->dictlen.value);
-    bplog(BP_SUCCESS, "FRG; %ld\n",     (long)pri->fragoffset.value);
-    bplog(BP_SUCCESS, "PAY: %ld\n",     (long)pri->paylen.value);
-
-    return true;
-}

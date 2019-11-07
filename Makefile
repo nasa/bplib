@@ -245,7 +245,9 @@ testcov:
 ##############################################################################
 ##  STATIC ANALYSIS RULES
 
+CHECK_OPT = --enable=all --inconclusive --std=posix
+
 check:
-	cppcheck $(ROOT) --enable=all $(INCLUDES) $(APP_DEFS)
+	cppcheck $(ROOT) $(CHECK_OPT) $(INCLUDES) $(APP_DEFS)
 
 # end of file
