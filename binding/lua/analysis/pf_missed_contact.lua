@@ -5,25 +5,27 @@ local src = runner.srcscript()
 
 -- Parameters --
 
-local store 		= arg[1] or "RAM"
-local retx_order 	= arg[2] or bp.RETX_SMALLEST_CID
-local bundle_rate 	= arg[3] or 16 -- bundles/second
-local timeout 		= arg[4] or 20 -- seconds
-local dacs_rate 	= arg[5] or 10 -- seconds per dacs
-local active_table  = arg[6] or 200 -- bundles
-local contact_time  = arg[7] or 300 -- seconds
-local perf_filename = arg[8] or 'perf.csv'
+local retx_order 		= arg[1] or bp.RETX_SMALLEST_CID
+local bundle_tx_rate 	= arg[2] or 16 -- bundles/second
+local timeout 			= arg[3] or 20 -- seconds
+local dacs_rate 		= arg[4] or 10 -- seconds per dacs
+local active_table  	= arg[5] or 200 -- bundles
+local contact_time  	= arg[6] or 420 -- seconds (7 minutes)
+local bundles_per_orbit	= arg[7] or 5300 -- bundles
+local store 			= arg[8] or "RAM"
+local perf_filename 	= arg[9] or 'perf.csv'
 
 -- Write Meta File --
 
 local meta = io.open(perf_filename .. '.meta', 'w')
 meta:write('Store: ' .. store .. '\n')
 meta:write('Retx Order: ' .. retx_order .. '\n')
-meta:write('Bundle Rate: ' .. bundle_rate .. '\n')
+meta:write('Bundle Rate: ' .. bundle_tx_rate .. '\n')
 meta:write('Timeout: ' .. timeout .. '\n')
 meta:write('DACS Rate: ' .. dacs_rate .. '\n')
 meta:write('Active Table: ' .. active_table .. '\n')
 meta:write('Contact Time: ' .. contact_time .. '\n')
+meta:write('Bundles per Orbit: ' .. bundles_per_orbit .. '\n')
 
 -- Create Sender --
 
@@ -47,65 +49,85 @@ end
 -- Start Performance File --
 
 local perf = io.open(perf_filename, 'w')
-perf:write('time,bidir,new,retran,ack\n')
+perf:write('time,bidir,new,retran,ack,bundles,bid\n')
+
+
+-- Utility Functions --
+
+bundle_id = 0
+
+local function simulate_back_orbit() 
+	for i=1,bundles_per_orbit do
+		payload = string.format('%d', bundle_id)
+		rc, flags = sender:store(payload, 0)
+		bundle_id = bundle_id + 1
+	end
+end
+
+local function simulate_contact(bidirectional)
+	now = os.time()
+	for i=1,contact_time do
+		if bidirectional then
+            smallest_bundle_id = bundle_id
+        else
+            smallest_bundle_id = 0
+        end
+		for j=1,bundle_tx_rate do
+			rc, bundle, flags = sender:load(0)
+			if bidirectional then
+				rc, flags = receiver:process(bundle, 0)
+				rc, payload, flags = receiver:accept(0)
+				payload_bundle_id = tonumber(payload)
+				if payload_bundle_id < smallest_bundle_id then 
+					smallest_bundle_id = payload_bundle_id
+				end
+			end
+		end
+
+		-- check for and process dacs --
+		if bidirectional then
+			rc, bundle, flags = receiver:load(0)
+			if rc then rc, flags = sender:process(bundle, 0) end
+		end
+
+		-- collect stats --
+		rc, stats = sender:stats()
+		perf:write(string.format('%d,%d,%d,%d,%d,%d,%d\n', os.time() - start, bidirectional and 1 or 0, stats["transmitted"] - stats["retransmitted"], stats["retransmitted"], stats["acknowledged"], stats["bundles"], smallest_bundle_id))
+		perf:flush()
+
+		-- synchronize time to 1 execution per second --
+		time_adjust = (now + i) - os.time()
+		if time_adjust > 0 then bplib.sleep(time_adjust)
+	 	elseif time_adjust < 0 then print(string.format('Simulation slower than real-time by %d seconds', time_adjust)) end
+	end
+end
 
 -- Performance Test --
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Step 1 - store bundles', store, src))
-local num_bundles = contact_time * bundle_rate * 2
-for i=1,num_bundles do
-    payload = string.format('HELLO WORLD %d', i)
-    rc, flags = sender:store(payload, 0)
-end
-
-rc, stats = sender:stats()
-meta:write('Number of Bundles: ' .. stats["bundles"] .. '\n')
-
+print(string.format('%s/%s: Step 1 - store first orbit of bundles (orbit 1)', store, src))
+simulate_back_orbit()
 start = os.time()
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Step 2 - send bundles with no acknowledgments (missed contact)', store, src))
-now = os.time()
-for i=1,contact_time do
-	for j=1,bundle_rate do
-	    rc, bundle, flags = sender:load(0)
-	end
-	
-	-- collect stats --
-    rc, stats = sender:stats()
-	perf:write(string.format('%d,0,%d,%d,%d\n', os.time() - start, stats["transmitted"] - stats["retransmitted"], stats["retransmitted"], stats["acknowledged"]))
-	perf:flush()
-
-	-- synchronize time to 1 execution per second --
-	time_adjust = (now + i) - os.time()
-	if time_adjust > 0 then bplib.sleep(time_adjust)
- 	elseif time_adjust < 0 then print(string.format('Simulation (step 2) slower than real-time by %d seconds', time_adjust)) end
-end
+print(string.format('%s/%s: Step 2 - send bundles with no acknowledgments (missed contact 1)', store, src))
+simulate_contact(false)
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Step 3 - resend bundles with acknowledgments', store, src))
-now = os.time()
-for i=1,contact_time do
-	for j=1,bundle_rate do
-	    rc, bundle, flags = sender:load(0)
-		rc, flags = receiver:process(bundle, 0)
-	end
+print(string.format('%s/%s: Step 3 - store second orbit of bundles (orbit 2)', store, src))
+simulate_back_orbit()
 
-	-- check for and process dacs --
-    rc, bundle, flags = receiver:load(0)
-	if rc then rc, flags = sender:process(bundle, 0) end
+-----------------------------------------------------------------------
+print(string.format('%s/%s: Step 4 - send bundles with acknowledgments (contact 2)', store, src))
+simulate_contact(true)
 
-	-- collect stats --
-    rc, stats = sender:stats()
-	perf:write(string.format('%d,1,%d,%d,%d\n', os.time() - start, stats["transmitted"] - stats["retransmitted"], stats["retransmitted"], stats["acknowledged"]))
-	perf:flush()
+-----------------------------------------------------------------------
+print(string.format('%s/%s: Step 5 - store third orbit of bundles (orbit 3)', store, src))
+simulate_back_orbit()
 
-	-- synchronize time to 1 execution per second --
-	time_adjust = (now + i) - os.time()
-	if time_adjust > 0 then bplib.sleep(time_adjust)
- 	elseif time_adjust < 0 then print(string.format('Simulation (step 3) slower than real-time by %d seconds', time_adjust)) end
-end
+-----------------------------------------------------------------------
+print(string.format('%s/%s: Step 6 - send bundles with acknowledgments (contact 3)', store, src))
+simulate_contact(true)
 
 -- Clean Up --
 
