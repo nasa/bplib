@@ -9,6 +9,7 @@
 [Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
 [Note #2 - Library Development Guidelines](doc/dev_notes.md)  
 [Note #3 - Configuration Parameter Trades](doc/parm_notes.md)  
+[Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)
 
 ----------------------------------------------------------------------
 ## 1. Overview

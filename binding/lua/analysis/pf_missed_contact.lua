@@ -5,39 +5,42 @@ local src = runner.srcscript()
 
 -- Parameters --
 
-local retx_order 		= arg[1] or bp.RETX_SMALLEST_CID
-local bundle_tx_rate 	= arg[2] or 16 -- bundles/second
-local timeout 			= arg[3] or 20 -- seconds
-local dacs_rate 		= arg[4] or 10 -- seconds per dacs
-local active_table  	= arg[5] or 200 -- bundles
-local contact_time  	= arg[6] or 420 -- seconds (7 minutes)
-local bundles_per_orbit	= arg[7] or 5300 -- bundles
-local store 			= arg[8] or "RAM"
-local perf_filename 	= arg[9] or 'perf.csv'
+local retx_order 		= arg[1] or bp.RETX_OLDEST_BUNDLE
+local cid_reuse         = arg[2] or 1 -- true
+local active_table  	= arg[3] or 200 -- bundles
+local bundle_tx_rate 	= arg[4] or 16 -- bundles/second
+local timeout 			= arg[5] or 20 -- seconds
+local dacs_rate 		= arg[6] or 10 -- seconds per dacs
+local contact_time  	= arg[7] or 210 -- seconds (3.5 minutes)
+local bundles_per_orbit	= arg[8] or 2650 -- bundles
+local store 			= arg[9] or "RAM"
+local perf_filename 	= arg[10] or 'perf.csv'
 
 -- Write Meta File --
 
 local meta = io.open(perf_filename .. '.meta', 'w')
-meta:write('Store: ' .. store .. '\n')
 meta:write('Retx Order: ' .. retx_order .. '\n')
+meta:write('CID Reuse: ' .. ((cid_reuse == 1) and "true" or "false") .. '\n')
 meta:write('Bundle Rate: ' .. bundle_tx_rate .. '\n')
 meta:write('Timeout: ' .. timeout .. '\n')
 meta:write('DACS Rate: ' .. dacs_rate .. '\n')
 meta:write('Active Table: ' .. active_table .. '\n')
 meta:write('Contact Time: ' .. contact_time .. '\n')
 meta:write('Bundles per Orbit: ' .. bundles_per_orbit .. '\n')
+meta:write('Store: ' .. store .. '\n')
 
 -- Create Sender --
 
 if retx_order == "SMALLEST_CID" then retx_order = bp.RETX_SMALLEST_CID 
 elseif retx_order == "OLDEST_BUNDLE" then retx_order = bp.RETX_OLDEST_BUNDLE end
-local attributes = {retransmit_order=retx_order, timeout=timeout, active_table_size=active_table}
+local attributes = {retransmit_order=retx_order, timeout=timeout, cid_reuse=cid_reuse, active_table_size=active_table}
 local sender = bplib.open(4, 3, 72, 43, store, attributes)
 
 -- Create Receiver --
 
 local attributes = {dacs_rate=dacs_rate}
 local receiver = bplib.open(72, 43, 4, 3, store, attributes)
+local bitbucket = bplib.open(72, 43, 4, 3, store, attributes)
 
 -- Handle File Storage Service --
 
@@ -67,21 +70,29 @@ end
 local function simulate_contact(bidirectional)
 	now = os.time()
 	for i=1,contact_time do
-		if bidirectional then
-            smallest_bundle_id = bundle_id
-        else
-            smallest_bundle_id = 0
-        end
+        smallest_bundle_id = bundle_id
 		for j=1,bundle_tx_rate do
 			rc, bundle, flags = sender:load(0)
-			if bidirectional then
-				rc, flags = receiver:process(bundle, 0)
-				rc, payload, flags = receiver:accept(0)
-				payload_bundle_id = tonumber(payload)
-				if payload_bundle_id < smallest_bundle_id then 
-					smallest_bundle_id = payload_bundle_id
+			if bundle then
+				if bidirectional then
+					rc, flags = receiver:process(bundle, 0)
+					rc, payload, flags = receiver:accept(0)
+				else
+					rc, flags = bitbucket:process(bundle, 0)
+					rc, payload, flags = bitbucket:accept(0)
+				end
+				if payload then
+					payload_bundle_id = tonumber(payload)
+					if payload_bundle_id < smallest_bundle_id then 
+						smallest_bundle_id = payload_bundle_id
+					end
 				end
 			end
+		end
+
+		-- sanity check smallest bundle -- 
+		if smallest_bundle_id == bundle_id then 
+			smallest_bundle_id = 0
 		end
 
 		-- check for and process dacs --
@@ -116,6 +127,7 @@ simulate_contact(false)
 -----------------------------------------------------------------------
 print(string.format('%s/%s: Step 3 - store second orbit of bundles (orbit 2)', store, src))
 simulate_back_orbit()
+bplib.sleep(timeout + 1)
 
 -----------------------------------------------------------------------
 print(string.format('%s/%s: Step 4 - send bundles with acknowledgments (contact 2)', store, src))
@@ -124,6 +136,7 @@ simulate_contact(true)
 -----------------------------------------------------------------------
 print(string.format('%s/%s: Step 5 - store third orbit of bundles (orbit 3)', store, src))
 simulate_back_orbit()
+bplib.sleep(timeout + 1)
 
 -----------------------------------------------------------------------
 print(string.format('%s/%s: Step 6 - send bundles with acknowledgments (contact 3)', store, src))
@@ -135,6 +148,7 @@ sender:flush()
 sender:close()
 
 receiver:close()
+bitbucket:close()
 
 meta:close()
 perf:close()
