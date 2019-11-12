@@ -55,7 +55,7 @@ The `binding/lua/pf_missed_contact.lua` script simulates a LEO spaceraft accumul
 >  - During the first contact from seconds 0 to 220, no bundles were received by the receiver and as a result, no bundles were acknowledged.  The "New" line (blue) shows early activity where new bundles were sent until the active table was full.  After that, the "Retransmitted" line (red) begins to grow as the bundles in the active table time out.  Since none of them are acknowledged, they keep timing out and no new bundles can be sent.   
 >  - During the second contact from seconds 220 to 440, the additional bundles from the back-orbit are added and are seen to slowly drain.  Retransmissions cease as new bundles and acknowledged bundles grow in lock step. Towards the end of the contact the number of bundles stored drops below the starting value.
 >  - At the start of the second contact no new bundles are sent at first because all the bundles in the active table have timed out and will be sent first.
->  - The third contact continues the process of started during the second contact.
+>  - The third contact continues the process started during the second contact.
 > 
 > Analysis:
 >  - By the end of the third contact, there are still bundles being held over in the sender's storage.
@@ -71,7 +71,7 @@ The `binding/lua/pf_missed_contact.lua` script simulates a LEO spaceraft accumul
 >  - The order of the bundles being sent are roughly from oldest to newest
 > 
 > Analysis: 
->  - The small active table size nominally bounds out of order bundles to the depth of the table (this does not take into account periodically lost bundles)
+>  - The small active table size nominally bounds out-of-order bundles to the depth of the table (this does not take into account periodically lost bundles)
 >  - The timeout is sufficiently large that under nominal transmission rates, no bundles timeout
 >  - At the start of each pass there are perturbations in the time order, but they are constrained to be no greater than the size of the active table.  After the active table clears, the bundles are in strict time order.
 > 
