@@ -453,13 +453,6 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     int                 pay_index = 0;
     bp_blk_pay_t        pay_blk;
 
-    /* Get Time */
-    unsigned long sysnow = 0;
-    if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
-    {
-        *flags |= BP_FLAG_UNRELIABLETIME;
-    }
-
     /* Parse Primary Block */
     exclude[ei++] = index;
     bytes = pri_read(buffer, size, &pri_blk, true, flags);
@@ -474,10 +467,20 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
         return bplog(BP_UNSUPPORTED, "Unsupported bundle attempted to be processed (%d)\n", pri_blk.dictlen.value);
     }
 
-    /* Check Life Time */
-    if((pri_blk.lifetime.value != 0) && (sysnow >= (pri_blk.lifetime.value + pri_blk.createsec.value)))
+    /* Get Time */
+    unsigned long sysnow = 0;
+    if(bplib_os_systime(&sysnow) != BP_OS_ERROR)
     {
-        return bplog(BP_EXPIRED, "Expired bundle attempted to be processed \n");
+        /* Check Life Time */
+        if((pri_blk.createsec.value != 0) && (sysnow >= (pri_blk.lifetime.value + pri_blk.createsec.value)))
+        {
+            return bplog(BP_EXPIRED, "Expired bundle attempted to be processed \n");
+        }
+    }
+    else
+    {
+        /* Set Flag for Unreliable Time and Skip Expiration Check */
+        *flags |= BP_FLAG_UNRELIABLETIME;
     }
 
     /* Parse and Process Remaining Blocks */
