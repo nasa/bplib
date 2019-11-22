@@ -79,7 +79,8 @@ static const bp_blk_pri_t bundle_pri_blk = {
     .is_admin_rec       = false,
     .is_frag            = false,
     .allow_frag         = false,
-    .cst_rqst           = true
+    .cst_rqst           = true,
+    .ack_app            = false
 };
 
 static const bp_blk_cteb_t bundle_cteb_blk = {
@@ -467,20 +468,25 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
         return bplog(BP_UNSUPPORTED, "Unsupported bundle attempted to be processed (%d)\n", pri_blk.dictlen.value);
     }
 
-    /* Get Time */
+
+    /* Check Expiration */
     unsigned long sysnow = 0;
-    if(bplib_os_systime(&sysnow) != BP_OS_ERROR)
+    bp_val_t exprtime = pri_blk.lifetime.value + pri_blk.createsec.value;
+    if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
     {
-        /* Check Life Time */
-        if((pri_blk.createsec.value != 0) && (sysnow >= (pri_blk.lifetime.value + pri_blk.createsec.value)))
-        {
-            return bplog(BP_EXPIRED, "Expired bundle attempted to be processed \n");
-        }
-    }
-    else
-    {
-        /* Set Flag for Unreliable Time and Skip Expiration Check */
+        /* Handle Unreliable Time */
         *flags |= BP_FLAG_UNRELIABLETIME;
+        exprtime = 0;
+    }
+    else if(pri_blk.createsec.value == 0)
+    {
+        /* Explicitly Ignore Expiration Time */
+        exprtime = 0;
+    }
+    else if(sysnow >= exprtime)
+    {
+        /* Expire Bundle */
+        return bplog(BP_EXPIRED, "Expired bundle attempted to be processed\n");
     }
 
     /* Parse and Process Remaining Blocks */
@@ -573,9 +579,11 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
             exclude[ei++] = index + pay_blk.paysize;
 
             /* Set Returned Payload */
+            payload->data.exprtime = exprtime;
+            payload->data.ackapp = pri_blk.ack_app;
+            payload->data.payloadsize = pay_blk.paysize;
             payload->memptr = pay_blk.payptr;
-            payload->size = pay_blk.paysize;
-            
+
             /* Perform Integrity Check */
             if(bib_present)
             {

@@ -54,6 +54,7 @@ typedef struct {
     bool        is_frag;                /* 0: is not a fragment, 1: is a fragment */
     bool        allow_frag;             /* 0: fragmentation not allowed, 1: fragmentation allowed */
     bool        cst_rqst;               /* 0: custody not requested, 1: custody requested */
+    bool        ack_app;                /* 0: no acknowledgement from application, 1: acknowledgement requested */
 } bp_blk_pri_t;
 
 /******************************************************************************

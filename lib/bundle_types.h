@@ -64,13 +64,21 @@ typedef struct {
     uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; /* header portion of bundle */
 } bp_bundle_data_t;
 
+/* Payload Data */
+typedef struct {
+    bp_val_t            exprtime;       /* absolute time when payload expires */
+    bool                ackapp;         /* acknowledgement by application is requested */
+    int                 payloadsize;    /* size of payload */
+    uint8_t             payload[];      /* variable length payload */
+} bp_payload_data_t;
+
 /* Pending Block */
 typedef struct {
-    uint8_t*            memptr;         /* pointer to payload */
-    int                 size;           /* size of payload */
+    bp_val_t            cid;            /* custody id of payload */
     bp_ipn_t            node;           /* custody node of payload */
     bp_ipn_t            service;        /* custody service of payload */
-    bp_val_t            cid;            /* custody id of payload */
+    bp_payload_data_t   data;           /* serialized and stored payload data */
+    uint8_t*            memptr;         /* pointer to payload */
 } bp_payload_t;
 
 /* Bundle Structure */

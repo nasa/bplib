@@ -64,6 +64,13 @@
 #### 1.12 Payload Block
 * The library assumes that the last block of every bundle is the payload block and stops processing the bundle when the payload block is reached.
 
+#### 1.13 Bundle Protocol Agent (BPA) Services
+* The concept of a BPA corresponds to a bundle channel.
+* There is no concept of __switchin__ between an Active and Passive state for the BPA.  A registration is __commenced__ when a channel is opened, and __terminated__ when a channel is closed.
+* There is no concept of __polling__ the state of the BPA as there is no concept of an Active or Passive state.
+* Bundles are __transmitted__ via the `bplib_store` and `bplib_load` APIs, but __transmission__ cannot be __cancelled__.
+* Bundles are __delivered__ via the `bplib_process` and `bplib_accept` APIs.
+
 ----------------------------------------------------------------------
 ## 2. Bundle Formats
 ----------------------------------------------------------------------

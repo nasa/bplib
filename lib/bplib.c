@@ -908,7 +908,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         bplib_os_lock(ch->active_table_signal);
         {
             int num_acks = 0;
-            int bytes_read = v6_receive_acknowledgment(payload.memptr, payload.size, &num_acks, remove_bundle, ch, flags);            
+            int bytes_read = v6_receive_acknowledgment(payload.memptr, payload.data.payloadsize, &num_acks, remove_bundle, ch, flags);            
             ch->stats.acknowledged += num_acks;
 
             /* Set Status */
@@ -928,7 +928,8 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     else if(status == BP_PENDINGACCEPTANCE)
     {
         /* Store Payload */
-        status = ch->store.enqueue(ch->payload_handle, payload.memptr, payload.size, NULL, 0, timeout);
+        int storage_header_size = offsetof(bp_payload_data_t, payload);
+        status = ch->store.enqueue(ch->payload_handle, &payload.data, storage_header_size, payload.memptr, payload.data.payloadsize, timeout);
         if(status == BP_SUCCESS && payload.node != BP_IPN_NULL)
         {
             custody_transfer = true;
@@ -941,7 +942,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     else if(status == BP_PENDINGFORWARD)
     {
         /* Store Forwarded Bundle */
-        status = v6_send_bundle(&ch->bundle, payload.memptr, payload.size, create_bundle, ch, timeout, flags);
+        status = v6_send_bundle(&ch->bundle, payload.memptr, payload.data.payloadsize, create_bundle, ch, timeout, flags);
         if(status == BP_SUCCESS && payload.node != BP_IPN_NULL)
         {
             custody_transfer = true;
@@ -1043,10 +1044,35 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
     status = ch->store.dequeue(ch->payload_handle, &object, timeout);
     if(status > 0)
     {
-        /* Return Payload to Application */
-        *payload = object->data;
-        if(size) *size = object->size;
-        ch->stats.delivered++;
+        bp_payload_data_t* data = (bp_payload_data_t*)object->data;
+
+        /* Get Current Time */
+        unsigned long sysnow = 0;
+        if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+        {
+            *flags |= BP_FLAG_UNRELIABLETIME;
+            sysnow = 0; /* prevents expiration below */
+        }
+
+        /* Check Expiration Time */
+        if(data->exprtime != 0 && data->exprtime <= sysnow)
+        {
+            ch->store.relinquish(ch->payload_handle, object->sid);
+            ch->stats.expired++;
+            status = BP_EXPIRED;
+        }
+        else
+        {
+            /* Return Payload to Application */
+            *payload = data->payload;
+            if(size) *size = data->payloadsize;        
+
+            /* Check for Application Acknowledgement Request */
+            if(data->ackapp) status = BP_PENDINGAPPLICATION;
+            
+            /* Count as Delivered */
+            ch->stats.delivered++;
+        }
     }
 
     /* Return Status */
@@ -1084,7 +1110,8 @@ int bplib_ackpayload(bp_desc_t channel, void* payload)
 {
     int status = BP_SUCCESS;
     bp_channel_t* ch = (bp_channel_t*)channel;
-    bp_object_t* object = (bp_object_t*)((uint8_t*)payload - offsetof(bp_object_t, data));
+    bp_payload_data_t* data = (bp_payload_data_t*)((uint8_t*)payload - offsetof(bp_payload_data_t, payload));
+    bp_object_t* object = (bp_object_t*)((uint8_t*)data - offsetof(bp_object_t, data));
 
     /* Check Parameters */
     if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;

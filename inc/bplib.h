@@ -47,7 +47,7 @@ extern "C" {
 /* Storage IDs */
 #define BP_SID_VACANT                   0
 
-/* Return Codes */            
+/* Return Codes */
 #define BP_SUCCESS                      1
 #define BP_TIMEOUT                      0
 #define BP_ERROR                        (-1)
@@ -75,6 +75,7 @@ extern "C" {
 #define BP_PENDINGACKNOWLEDGMENT        (-25)
 #define BP_PENDINGFORWARD               (-26)
 #define BP_PENDINGACCEPTANCE            (-27)
+#define BP_PENDINGAPPLICATION           (-28)
 
 /* Processing, Acceptance, and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
@@ -83,7 +84,7 @@ extern "C" {
 #define BP_FLAG_FILLOVERFLOW            0x0008  /* a gap in the CIDs exceeds the max fill */
 #define BP_FLAG_TOOMANYFILLS            0x0010  /* all the fills in the ACS are used */
 #define BP_FLAG_CIDWENTBACKWARDS        0x0020  /* the custody ID went backwards */
-#define BP_FLAG_ROUTENEEDED             0x0040  /* the bundle returned needs to be routed before transmission */
+#define BP_FLAG_ROUTENEEDED             0x0040  /* the bundle returned should be routed before transmission */
 #define BP_FLAG_STOREFAILURE            0x0080  /* storage service failed to deliver data */
 #define BP_FLAG_UNKNOWNCID              0x0100  /* received CID in acknowledgment for which no bundle was found */
 #define BP_FLAG_SDNVOVERFLOW            0x0200  /* insufficient room in variable to read/write value */
@@ -133,8 +134,8 @@ extern "C" {
 #define BP_DEFAULT_PROTOCOL_VERSION     6
 #define BP_DEFAULT_RETRANSMIT_ORDER     BP_RETX_OLDEST_BUNDLE
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384 /* bundles (must be smaller than BP_MAX_INDEX) */
-#define BP_DEFAULT_MAX_FILLS_PER_DACS   64
-#define BP_DEFAULT_MAX_GAPS_PER_DACS    1028
+#define BP_DEFAULT_MAX_FILLS_PER_DACS   64 /* constrains size of DACS bundle */
+#define BP_DEFAULT_MAX_GAPS_PER_DACS    1028 /* sets size of internal memory used to aggregate custody */
 #define BP_DEFAULT_STORAGE_SERVICE_PARM NULL
     
 /******************************************************************************
