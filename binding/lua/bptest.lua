@@ -92,6 +92,7 @@ local function check (expression, errmsg)
         status = expression
     end
     if status == false or status == nil then
+        if errmsg then print(errmsg) end
         results[context]["messages"][results[context]["errors"]] = debug.traceback(tracemsg)
         results[context]["errors"] = results[context]["errors"] + 1        
         if exit_on_error then os.exit() end
