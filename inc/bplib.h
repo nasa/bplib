@@ -48,6 +48,7 @@ extern "C" {
 #define BP_SID_VACANT                   0
 
 /* Return Codes */
+#define BP_DEBUG                        2
 #define BP_SUCCESS                      1
 #define BP_TIMEOUT                      0
 #define BP_ERROR                        (-1)

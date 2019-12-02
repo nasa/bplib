@@ -98,7 +98,8 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     else pathptr = (char*)file;
 
     /* Create Log Message */
-    snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%d:%s", pathptr, line, error, formatted_string);
+    if(error != BP_DEBUG)   snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%d:%s", pathptr, line, error, formatted_string);
+    else                    snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s", formatted_string);
     
     /* Display Log Message */
     printf("%s", log_message);
