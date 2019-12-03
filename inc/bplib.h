@@ -242,6 +242,7 @@ int         bplib_ackbundle     (bp_desc_t channel, void* bundle);
 int         bplib_ackpayload    (bp_desc_t channel, void* payload);
 
 int         bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
+int         bplib_display       (uint8_t* buffer, int size, uint16_t* flags);
 int         bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
 int         bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
 int         bplib_attrinit      (bp_attr_t* attributes);

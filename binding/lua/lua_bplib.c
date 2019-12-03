@@ -77,6 +77,7 @@ typedef struct {
 /* Bundle Protocol Library */
 int lbplib_open     (lua_State* L);
 int lbplib_route    (lua_State* L);
+int lbplib_display  (lua_State* L);
 int lbplib_eid2ipn  (lua_State* L);
 int lbplib_ipn2eid  (lua_State* L);
 int lbplib_unittest (lua_State* L);
@@ -105,6 +106,7 @@ static const char* LUA_ERRNO = "errno";
 static const struct luaL_Reg lbplib_functions [] = {
     {"open",        lbplib_open},
     {"route",       lbplib_route},
+    {"display",     lbplib_display},
     {"eid2ipn",     lbplib_eid2ipn},
     {"ipn2eid",     lbplib_ipn2eid},
     {"unittest",    lbplib_unittest},
@@ -457,6 +459,102 @@ int lbplib_route (lua_State* L)
     lua_pushnumber(L, route.destination_node);
     lua_pushnumber(L, route.destination_service);
     return 3;
+}
+
+/*----------------------------------------------------------------------------
+ * lbplib_display - bplib.lbplib_display(<bundle>,<ascii flag>) --> return code, flags
+ *----------------------------------------------------------------------------*/
+int lbplib_display (lua_State* L)
+{
+    /* Check Number of Parameters */
+    int minargs = 1;
+    if(lua_gettop(L) < minargs)
+    {
+        lualog("insufficient number of parameters - need at least %d\n", minargs);
+        lua_pushboolean(L, false); /* push result as fail */
+        return 1;
+    }
+    
+    /* Type Check Parameters */
+    if(!lua_isstring(L, 1))
+    {
+        lualog("incorrect parameter type\n");
+        lua_pushboolean(L, false); /* push result as fail */
+        return 1;
+    }
+
+    /* Get Bundle */
+    size_t size = 0;
+    const char* bundle = lua_tolstring(L, 1, &size);
+
+    /* Check for Optional Parameter */
+    bool ascii_bundle = false;
+    if(lua_isboolean(L, 2))
+    {
+        ascii_bundle = lua_toboolean(L, 2);
+    }
+
+    /* Convert Bundle String */
+    unsigned len = size;
+    unsigned char* buffer = (unsigned char*)bundle;
+    if(ascii_bundle == true)
+    {
+        /* Check Size of String */
+        if(size % 2 != 0)
+        {
+            lualog("ASCII bundle must be even length: %d\n", size);
+            lua_pushboolean(L, false); /* push result as fail */
+            return 1;
+        }
+
+        /* Parse String */
+        len = size / 2;
+        buffer = (unsigned char*)malloc(size);    
+        char b[5] = {'0', 'x', '\0', '\0', '\0'};
+        unsigned int n = 0, s = 0, d = 0;
+        while(s < size)
+        {
+            /* Read Next Character from Bundle */
+            char ch = bundle[s++];
+
+            /* Load Character into Character Array */
+            b[2 + (n++ % 2)] = (char)ch;
+            if(n % 2 == 0)
+            {
+                /* Convert Arrary into Binary Value */
+                char *endptr;
+                errno = 0;
+                unsigned long result = strtoul(b, &endptr, 0);
+                if( (endptr == b) ||
+                    ((result == ULONG_MAX || result == 0) && errno == ERANGE) )
+                {
+                    free(buffer);
+                    lualog("Invalid data in ASCII bundle: %s\n", b);
+                    lua_pushboolean(L, false); /* push result as fail */
+                    return 1;
+                }
+
+                /* Load Binary Value into Result Buffer */
+                buffer[d++] = (unsigned char)result;
+            }
+        }            
+    }
+
+    /* Display */
+    uint16_t flags = 0;
+    int status = bplib_display((void*)buffer, len, &flags);
+    set_errno(L, status);
+
+    /* Clean Up from ASCII Bundle */
+    if(ascii_bundle == true)
+    {
+        free(buffer);
+    }
+    
+    /* Return */
+    lua_pushboolean(L, status == BP_SUCCESS);
+    lua_pushnumber(L, flags);
+    return 2;
 }
 
 /*----------------------------------------------------------------------------

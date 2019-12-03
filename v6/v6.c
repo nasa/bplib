@@ -157,8 +157,16 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         blocks->primary_block.srcserv.value     = bundle->route.local_service;
         blocks->primary_block.rptnode.value     = bundle->route.report_node;
         blocks->primary_block.rptserv.value     = bundle->route.report_service;
-        blocks->primary_block.cstnode.value     = bundle->route.local_node;
-        blocks->primary_block.cstserv.value     = bundle->route.local_service;
+        if(bundle->attributes->request_custody)
+        {
+            blocks->primary_block.cstnode.value = bundle->route.local_node;
+            blocks->primary_block.cstserv.value = bundle->route.local_service;
+        }
+        else
+        {
+            blocks->primary_block.cstnode.value = 0;
+            blocks->primary_block.cstserv.value = 0;
+        }
         blocks->primary_block.lifetime.value    = bundle->attributes->lifetime;
         blocks->primary_block.is_admin_rec      = bundle->attributes->admin_record;
         blocks->primary_block.allow_frag        = bundle->attributes->allow_fragmentation;
@@ -787,98 +795,92 @@ int v6_display(uint8_t* buffer, int size, uint16_t* flags)
 
     /* Display Primary Block */
     bplog(BP_DEBUG, "@@@@\n");
-    bplog(BP_DEBUG, "Primary Block of Version %d\n", pri_blk.version);
+    bplog(BP_DEBUG, "Bundle of Size %d, Version %d\n", size, pri_blk.version);
+    bplog(BP_DEBUG, "Primary Block Length:          %d\n", pri_blk.blklen);
     bplog(BP_DEBUG, "Adminstrtive Record:           %s\n", pri_blk.is_admin_rec ? "TRUE" : "FALSE");
     bplog(BP_DEBUG, "Fragmented:                    %s\n", pri_blk.is_frag ? "TRUE" : "FALSE");
     bplog(BP_DEBUG, "Fragmentation Allowed:         %s\n", pri_blk.allow_frag ? "TRUE" : "FALSE");
     bplog(BP_DEBUG, "Custody Requested:             %s\n", pri_blk.cst_rqst ? "TRUE" : "FALSE");
     bplog(BP_DEBUG, "Application Acknowledgement:   %s\n", pri_blk.ack_app ? "TRUE" : "FALSE");
-    bplog(BP_DEBUG, "PCF: %08X\n",    (unsigned int)pri_blk.pcf.value);
-    bplog(BP_DEBUG, "DST: %ld.%ld\n", (long)pri_blk.dstnode.value, (long)pri_blk.dstserv.value);
-    bplog(BP_DEBUG, "SRC: %ld.%ld\n", (long)pri_blk.srcnode.value, (long)pri_blk.srcserv.value);
-    bplog(BP_DEBUG, "RPT: %ld.%ld\n", (long)pri_blk.rptnode.value, (long)pri_blk.rptserv.value);
-    bplog(BP_DEBUG, "CST: %ld.%ld\n", (long)pri_blk.cstnode.value, (long)pri_blk.cstserv.value);
-    bplog(BP_DEBUG, "SEC: %ld\n",     (long)pri_blk.createsec.value);
-    bplog(BP_DEBUG, "SEQ: %ld\n",     (long)pri_blk.createseq.value);
-    bplog(BP_DEBUG, "LFT: %ld\n",     (long)pri_blk.lifetime.value);
-    bplog(BP_DEBUG, "DCT: %ld\n",     (long)pri_blk.dictlen.value);
-    bplog(BP_DEBUG, "FRG; %ld\n",     (long)pri_blk.fragoffset.value);
-    bplog(BP_DEBUG, "PAY: %ld\n",     (long)pri_blk.paylen.value);
+    bplog(BP_DEBUG, "Processing Control Flags:      0x%X\n",    (unsigned int)pri_blk.pcf.value);
+    bplog(BP_DEBUG, "Destination EID:               %ld.%ld\n", (long)pri_blk.dstnode.value, (long)pri_blk.dstserv.value);
+    bplog(BP_DEBUG, "Source EID:                    %ld.%ld\n", (long)pri_blk.srcnode.value, (long)pri_blk.srcserv.value);
+    bplog(BP_DEBUG, "Report To EID:                 %ld.%ld\n", (long)pri_blk.rptnode.value, (long)pri_blk.rptserv.value);
+    bplog(BP_DEBUG, "Custody EID:                   %ld.%ld\n", (long)pri_blk.cstnode.value, (long)pri_blk.cstserv.value);
+    bplog(BP_DEBUG, "Creation Timestamp:            %ld\n",     (long)pri_blk.createsec.value);
+    bplog(BP_DEBUG, "Creation Sequence:             %ld\n",     (long)pri_blk.createseq.value);
+    bplog(BP_DEBUG, "Lifetime:                      %ld\n",     (long)pri_blk.lifetime.value);
+    bplog(BP_DEBUG, "Dictionary Length:             %ld\n",     (long)pri_blk.dictlen.value);
+    if(pri_blk.dictlen.value != 0)
+    {
+        bplog(BP_DEBUG, "Fragmentation Offset;          %ld\n",     (long)pri_blk.fragoffset.value);
+        bplog(BP_DEBUG, "Payload Length:                %ld\n",     (long)pri_blk.paylen.value);
+    }
 
     /* Parse Remaining Blocks */
     while(index < size)
     {
         /* Read Block Information */
         uint8_t blk_type = buffer[index];
-        if(blk_type != BP_PAY_BLK_TYPE)
+        bp_field_t blk_flags = { 0, 1, 0 };
+        bp_field_t blk_len = { 0, 0, 0 };
+        int start_index = index;
+        int data_index = 0; /* start of the block after the block length, set below */
+
+        blk_len.index = sdnv_read(&buffer[start_index], size - start_index, &blk_flags, flags);
+        data_index = sdnv_read(&buffer[start_index], size - start_index, &blk_len, flags);
+
+        /* Check Parsing Status */
+        if(*flags & (BP_FLAG_SDNVOVERFLOW | BP_FLAG_SDNVINCOMPLETE))
         {
-            bp_field_t blk_flags = { 0, 1, 0 };
-            bp_field_t blk_len = { 0, 0, 0 };
-            int start_index = index;
-            int data_index = 0; /* start of the block after the block length, set below */
-            
-            blk_len.index = sdnv_read(&buffer[start_index], size - start_index, &blk_flags, flags);
-            data_index = sdnv_read(&buffer[start_index], size - start_index, &blk_len, flags);
-
-            /* Check Parsing Status */
-            if(*flags & (BP_FLAG_SDNVOVERFLOW | BP_FLAG_SDNVINCOMPLETE))
-            {
-                return bplog(BP_BUNDLEPARSEERR, "Failed (%0X) to parse block at index %d\n", *flags, start_index);
-            }
-            else
-            {
-                index += data_index + blk_len.value;
-            }
-
-            /* Display Extension Block */
-            bplog(BP_DEBUG, "----\n");
-            bplog(BP_DEBUG, "Extension Block at Offset %d\n", start_index);
-            bplog(BP_DEBUG, "Extension Block Data Size    = %d\n", blk_len.value);
-            bplog(BP_DEBUG, "Extension Block Type         = 0x%02X\n", blk_type);
-            bplog(BP_DEBUG, "Must Replicate in Fragments:   %s\n", blk_flags.value & BP_BLK_REPALL_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Status on Failure:             %s\n", blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Delete Bundle on Failure:      %s\n", blk_flags.value & BP_BLK_DELETENOPROC_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Last Block:                    %s\n", blk_flags.value & BP_BLK_LASTBLOCK_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Drop Block on Failure:         %s\n", blk_flags.value & BP_BLK_DROPNOPROC_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Forwarded w/o Processing:      %s\n", blk_flags.value & BP_BLK_FORWARDNOPROC_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "EID Reference:                 %s\n", blk_flags.value & BP_BLK_EIDREF_MASK ? "SET" : "CLEAR");
+            return bplog(BP_BUNDLEPARSEERR, "Failed (%0X) to parse block at index %d\n", *flags, start_index);
         }
-        else /* payload block */
+        else
+        {
+            index += data_index + blk_len.value;
+        }
+
+        /* Display Extension Block */
+        bplog(BP_DEBUG, "---------------------------------\n");
+        bplog(BP_DEBUG, "Block Type 0x%02X at Offset %d\n", blk_type, start_index);
+        bplog(BP_DEBUG, "Block Data Size:               %d\n", blk_len.value);
+        bplog(BP_DEBUG, "Must Replicate in Fragments:   %s\n", blk_flags.value & BP_BLK_REPALL_MASK ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Status on Failure:             %s\n", blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Delete Bundle on Failure:      %s\n", blk_flags.value & BP_BLK_DELETENOPROC_MASK ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Last Block:                    %s\n", blk_flags.value & BP_BLK_LASTBLOCK_MASK ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Drop Block on Failure:         %s\n", blk_flags.value & BP_BLK_DROPNOPROC_MASK ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Forwarded w/o Processing:      %s\n", blk_flags.value & BP_BLK_FORWARDNOPROC_MASK ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "EID Reference:                 %s\n", blk_flags.value & BP_BLK_EIDREF_MASK ? "SET" : "CLEAR");
+
+        /* Payload Block */
+        if(blk_type == BP_PAY_BLK_TYPE)
         {
             bp_blk_pay_t    pay_blk;
-            int             pay_index = index;
+            int             pay_index = start_index;
     
             bytes = pay_read(&buffer[pay_index], size - pay_index, &pay_blk, true, flags);
             if(bytes <= 0)  return bplog(bytes, "Failed (%d) to read payload block\n", bytes);
-            else            index += bytes;
+            else            pay_index += bytes;
 
             /* Display Payload Block */
-            bplog(BP_DEBUG, "####\n");
-            bplog(BP_DEBUG, "Payload Block at Offset %d\n", pay_index);
-
+            bplog(BP_DEBUG, "#################################\n");
             if(pri_blk.is_admin_rec)
             {
-                uint8_t rec_type = buffer[index];
-                bplog(BP_DEBUG, "Administrative Record Type:    ");
-                if(rec_type == BP_ACS_REC_TYPE) bplog(BP_DEBUG, "ACS\n");
-                else if(rec_type == BP_CS_REC_TYPE) bplog(BP_DEBUG, "CS\n");
-                else if(rec_type == BP_STAT_REC_TYPE) bplog(BP_DEBUG, "STATUS\n");
-                else bplog(BP_DEBUG, "UNKNOWN\n");
+                uint8_t rec_type = buffer[pay_index++];
+                bplog(BP_DEBUG, "Administrative Record - 0x%02X (", rec_type);
+                if(rec_type == BP_ACS_REC_TYPE) bplog(BP_DEBUG, "ACS) - ");
+                else if(rec_type == BP_CS_REC_TYPE) bplog(BP_DEBUG, "CS) - ");
+                else if(rec_type == BP_STAT_REC_TYPE) bplog(BP_DEBUG, "STATUS) - ");
+                else bplog(BP_DEBUG, "UNKNOWN) - ");
             }
             else
             {
-                bplog(BP_DEBUG, "Data Bundle\n");
+                bplog(BP_DEBUG, "User Data Payload - ");
             }
 
-            bplog(BP_DEBUG, "Payload Block Data Size      = %d\n", pay_blk.blklen.value);
-            bplog(BP_DEBUG, "Payload Block Type           = 0x%02X\n", blk_type);
-            bplog(BP_DEBUG, "Must Replicate in Fragments:   %s\n", pay_blk.bf.value & BP_BLK_REPALL_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Status on Failure:             %s\n", pay_blk.bf.value & BP_BLK_NOTIFYNOPROC_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Delete Bundle on Failure:      %s\n", pay_blk.bf.value & BP_BLK_DELETENOPROC_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Last Block:                    %s\n", pay_blk.bf.value & BP_BLK_LASTBLOCK_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Drop Block on Failure:         %s\n", pay_blk.bf.value & BP_BLK_DROPNOPROC_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "Forwarded w/o Processing:      %s\n", pay_blk.bf.value & BP_BLK_FORWARDNOPROC_MASK ? "SET" : "CLEAR");
-            bplog(BP_DEBUG, "EID Reference:                 %s\n", pay_blk.bf.value & BP_BLK_EIDREF_MASK ? "SET" : "CLEAR");
+            /* Display Payload Data */
+            while(pay_index < size) bplog(BP_DEBUG, "%02X", buffer[pay_index++]);
+            bplog(BP_DEBUG, "\n");
         }
     }
     

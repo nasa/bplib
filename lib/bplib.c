@@ -1142,6 +1142,19 @@ int bplib_routeinfo(void* bundle, int size, bp_route_t* route)
 }
 
 /*--------------------------------------------------------------------------------------
+ * bplib_display -
+ *
+ *  bundle -                pointer to a bundle (byte array) [INPUT]
+ *  size -                  size of bundle being pointed to [INPUT]
+ *  flags -                 processing flags [OUTPUT]
+ *  Returns:                BP_SUCCESS or error code
+ *-------------------------------------------------------------------------------------*/
+int bplib_display(uint8_t* buffer, int size, uint16_t* flags)
+{
+    return v6_display(buffer, size, flags);
+}
+
+/*--------------------------------------------------------------------------------------
  * bplib_eid2ipn -
  *
  *  eid -                   null-terminated string representation of End Point ID [INPUT]
