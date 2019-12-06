@@ -121,6 +121,7 @@ The default `posix.mk` configuration makefile is for development and builds addi
 | [bplib_ackbundle](#acknowledge-bundle)   | Release bundle memory pointer for reuse (needed after bplib_load) |
 | [bplib_ackpayload](#acknowledge-payload) | Release payload memory pointer for reuse (needed after bplib_accept) |
 | [bplib_routeinfo](#route-information)    | Parse bundle and return routing information |
+| [bplib_display](#display-bundle)         | Parse bundle and log a break-down of the bundle elements |
 | [bplib_eid2ipn](#eid-to-ipn)             | Utility function to translate an EID string into node and service numbers |
 | [bplib_ipn2eid](#ipn-to-eid)             | Utility function to translate node and service numbers into an EID string |
 | [bplib_attrinit](#attr-init)             | Utility to initialize a channel attribute structure with default values.  Useful if the calling application only wants to change a few attributes without setting them all. |
@@ -268,25 +269,29 @@ Retrieve channel statistics populated in the structure pointed to by _stats_.
 
 * __expired__: number of deleted bundles due to their lifetime expiring
 
-* __acknowledged__: number of deleted bundes due to a custody signal acknowledgment
+* __transmitted_bundles__: number of bundles returned by the `bplib_load` function for the first time (does not include retransmissions)
 
-* __transmitted__: number of bundles returned by the `bplib_load` function
+* __transmitted_dacs__: number of dacs returned by the `bplib_load` function
 
-* __retransmitted__: number of bundles returned by the `bplib_load` function because the bundle timed-out and is being resent
+* __retransmitted_bundles__: number of bundles returned by the `bplib_load` function because the bundle timed-out and is being resent
 
-* __received__: number of bundles passed to the `bplib_process` function; includes bundles that are mal-formed and return an error
+* __delivered_payloads__: number of bundle payloads delivered to the application via the `bplib_accept` function
 
-* __generated__: number of bundles successfully generated via the `bplib_store` function
+* __received_bundles__: number of bundles destined for the local node that were successfully processed by the `bplib_process` function; the payload was successfully stored by the storage service and is awaiting acceptance
 
-* __delivered__: number of bundle payloads delivered to the application via the `bplib_accept` function
+* __forwarded_bundles__: number of bundles destined for the another node that were successfully processed by the `bplib_process` function; this does not indicated that the forwarded bundle was transmitted, only that it was successfully stored by the storage service and is awaiting transmission.
 
-* __bundles__: number of data bundles currently in storage
+* __received_dacs__: number of DACS destined for the local node that were successfully processed by the `bplib_process` function; this only counts the DACS bundles received by the local node, not the bundles acknowledged by the DACS - that is represented in the acknowledged_bundles statistic.
 
-* __payloads__: number of payloads currently in storage
+* __stored_bundles__: number of data bundles currently in storage
 
-* __records__: number of aggregate custody signal bundles currently in storage
+* __stored_payloads__: number of payloads currently in storage
 
-* __active__: number of bundles that have been loaded for which no acknowledgment has been received
+* __stored_dacs__: number of aggregate custody signal bundles currently in storage
+
+* __acknowledged_bundles__: number of locally stored bundles positively acknowleged and deleted due to a custody signal acknowledgment
+
+* __active_bundles__: number of bundles that have been loaded for which no acknowledgment has been received
 
 ----------------------------------------------------------------------
 ##### Store Payload
@@ -407,6 +412,21 @@ Parses the provided bundle and supplies its endpoint ID node and service numbers
 `size` - size of the bundle
 
 `route` - pointer to a route structure that is populated by the function (see [Open Channel](#open-channel) for more details on the structure contents).
+
+`returns` - [return code](#4.2-return-codes)
+
+----------------------------------------------------------------------
+##### Display Bundle
+
+`int bplib_display (void* bundle, int size, uint16_t* flags)`
+
+Parses the provided bundle (transversing the primary block, extension blocks, and payload block), and logs debug information about the bundle.
+
+`bundle` - pointer to a buffer of memory containing a properly formatted bundle
+
+`size` - size of the bundle
+
+`flags` - flags that provide additional information on the result of the accept operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
 `returns` - [return code](#4.2-return-codes)
 

@@ -206,18 +206,24 @@ typedef struct {
 
 /* Channel Statistics */
 typedef struct {
-    uint32_t    lost;           /* storage or copy failure, unable to retrieve load, accept */
-    uint32_t    expired;        /* lifetime expired, deliberately removed - load, process */
-    uint32_t    acknowledged;   /* freed by custody signal - process */
-    uint32_t    transmitted;    /* sent, includes re-sends - load */
-    uint32_t    retransmitted;  /* timed-out and resent - load */
-    uint32_t    received;       /* bundles processed - process */
-    uint32_t    generated;      /* bundles generated - store */
-    uint32_t    delivered;      /* payloads accepted  - accept */
-    uint32_t    bundles;        /* number of data bundles currently in storage */
-    uint32_t    payloads;       /* number of payloads currently in storage */
-    uint32_t    records;        /* number of dacs bundles currently in storage */
-    uint32_t    active;         /* number of slots in active table in use */
+    /* Errors */
+    uint32_t    lost;                   /* storage, memory, or parsing failure (load, process, accept) */
+    uint32_t    expired;                /* bundles, dacs, and payloads with expired lifetime (load, process, accept) */
+    /* Data Flow */
+    uint32_t    transmitted_bundles;    /* bundles sent for first time, does not includes re-sends (load) */
+    uint32_t    transmitted_dacs;       /* dacs sent (load) */
+    uint32_t    retransmitted_bundles;  /* bundles timed-out and resent (load) */
+    uint32_t    delivered_payloads;     /* payloads delivered to application (accept) */
+    uint32_t    received_bundles;       /* bundles destined for local node (process) */
+    uint32_t    forwarded_bundles;      /* bundles received by local node but destined for another node (process) */
+    uint32_t    received_dacs;          /* dacs destined for local node (process) */
+    /* Storage */
+    uint32_t    stored_bundles;         /* number of data bundles currently in storage */
+    uint32_t    stored_payloads;        /* number of payloads currently in storage */
+    uint32_t    stored_dacs;            /* number of dacs bundles currently in storage */
+    /* Active */
+    uint32_t    acknowledged_bundles;   /* freed by custody signal - process */
+    uint32_t    active_bundles;         /* number of slots in active table in use */
 } bp_stats_t;
 
 /******************************************************************************
@@ -242,7 +248,7 @@ int         bplib_ackbundle     (bp_desc_t channel, void* bundle);
 int         bplib_ackpayload    (bp_desc_t channel, void* payload);
 
 int         bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
-int         bplib_display       (uint8_t* buffer, int size, uint16_t* flags);
+int         bplib_display       (void* bundle, int size, uint16_t* flags);
 int         bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
 int         bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
 int         bplib_attrinit      (bp_attr_t* attributes);

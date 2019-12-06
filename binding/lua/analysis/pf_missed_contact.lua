@@ -103,7 +103,7 @@ local function simulate_contact(bidirectional)
 
 		-- collect stats --
 		rc, stats = sender:stats()
-		perf:write(string.format('%d,%d,%d,%d,%d,%d,%d\n', os.time() - start, bidirectional and 1 or 0, stats["transmitted"] - stats["retransmitted"], stats["retransmitted"], stats["acknowledged"], stats["bundles"], smallest_bundle_id))
+		perf:write(string.format('%d,%d,%d,%d,%d,%d,%d\n', os.time() - start, bidirectional and 1 or 0, stats["transmitted_bundles"], stats["retransmitted_bundles"], stats["acknowledged_bundles"], stats["stored_bundles"], smallest_bundle_id))
 		perf:flush()
 
 		-- synchronize time to 1 execution per second --

@@ -57,7 +57,7 @@ end
 
 -- check stats -- 
 rc, stats = receiver:stats()
-runner.check(bp.check_stats(stats, {payloads=(num_bundles/2)}))
+runner.check(bp.check_stats(stats, {stored_payloads=(num_bundles/2)}))
 
 for i=1,num_bundles do
     payload = string.format('HELLO WORLD %d', i)
@@ -73,9 +73,9 @@ end
 
 -- check stats -- 
 rc, stats = sender:stats()
-runner.check(bp.check_stats(stats, {transmitted=num_bundles, bundles=num_bundles, active=num_bundles}))
+runner.check(bp.check_stats(stats, {transmitted_bundles=num_bundles, stored_bundles=num_bundles, active_bundles=num_bundles}))
 rc, stats = receiver:stats()
-runner.check(bp.check_stats(stats, {received=(num_bundles/2), delivered=(num_bundles/2)}))
+runner.check(bp.check_stats(stats, {received_bundles=(num_bundles/2), delivered_payloads=(num_bundles/2)}))
 
 -- load DACS --
 local drain = 0
@@ -99,7 +99,7 @@ end
 
 -- check stats -- 
 rc, stats = receiver:stats()
-runner.check(bp.check_stats(stats, {records=0, transmitted=8}))
+runner.check(bp.check_stats(stats, {stored_dacs=0, transmitted_dacs=8}))
 
 -- reload timed out bundles --
 for i=1,num_bundles do
@@ -158,9 +158,9 @@ runner.check(bp.check_flags(flags, {}), "Flags set on sender load, when timeout 
 
 -- check stats -- 
 rc, stats = sender:stats()
-runner.check(bp.check_stats(stats, {transmitted=(num_bundles * 1.5), bundles=0, active=0, acknowledged=512}))
+runner.check(bp.check_stats(stats, {transmitted_bundles=num_bundles, retransmitted_bundles=(num_bundles * 0.5), stored_bundles=0, active_bundles=0, acknowledged_bundles=512}))
 rc, stats = receiver:stats()
-runner.check(bp.check_stats(stats, {payloads=0, received=num_bundles, delivered=num_bundles}))
+runner.check(bp.check_stats(stats, {stored_payloads=0, received_bundles=num_bundles, delivered_payloads=num_bundles}))
 
 -- Clean Up --
 

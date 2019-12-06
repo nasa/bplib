@@ -74,7 +74,7 @@
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int v6_initialize               (bp_bundle_t* bundle, bp_route_t route, bp_attr_t* attributes, uint16_t* flags);
+int v6_initialize               (bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes, uint16_t* flags);
 int v6_uninitialize             (bp_bundle_t* bundle);
 int v6_populate_bundle          (bp_bundle_t* bundle, uint16_t* flags);
 int v6_send_bundle              (bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_func_t create, void* parm, int timeout, uint16_t* flags);
@@ -83,6 +83,6 @@ int v6_update_bundle            (bp_bundle_data_t* data, bp_val_t cid, uint16_t*
 int v6_populate_acknowledgment  (uint8_t* rec, int size, int max_fills, rb_tree_t* tree, uint16_t* flags);
 int v6_receive_acknowledgment   (uint8_t* rec, int size, int* num_acks, bp_remove_func_t remove, void* parm, uint16_t* flags);
 int v6_routeinfo                (void* bundle, int size, bp_route_t* route);
-int v6_display                  (uint8_t* buffer, int size, uint16_t* flags);
+int v6_display                  (void* bundle, int size, uint16_t* flags);
 
 #endif  /* _v6_h_ */

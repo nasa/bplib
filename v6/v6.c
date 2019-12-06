@@ -157,7 +157,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         blocks->primary_block.srcserv.value     = bundle->route.local_service;
         blocks->primary_block.rptnode.value     = bundle->route.report_node;
         blocks->primary_block.rptserv.value     = bundle->route.report_service;
-        if(bundle->attributes->request_custody)
+        if(bundle->attributes.request_custody)
         {
             blocks->primary_block.cstnode.value = bundle->route.local_node;
             blocks->primary_block.cstserv.value = bundle->route.local_service;
@@ -167,10 +167,10 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
             blocks->primary_block.cstnode.value = 0;
             blocks->primary_block.cstserv.value = 0;
         }
-        blocks->primary_block.lifetime.value    = bundle->attributes->lifetime;
-        blocks->primary_block.is_admin_rec      = bundle->attributes->admin_record;
-        blocks->primary_block.allow_frag        = bundle->attributes->allow_fragmentation;
-        blocks->primary_block.cst_rqst          = bundle->attributes->request_custody;
+        blocks->primary_block.lifetime.value    = bundle->attributes.lifetime;
+        blocks->primary_block.is_admin_rec      = bundle->attributes.admin_record;
+        blocks->primary_block.allow_frag        = bundle->attributes.allow_fragmentation;
+        blocks->primary_block.cst_rqst          = bundle->attributes.request_custody;
 
         /* Set Pre-Built Flag to TRUE */
         bundle->prebuilt = true;
@@ -204,11 +204,11 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
     }
 
     /* Write Integrity Block */
-    if(bundle->attributes->integrity_check)
+    if(bundle->attributes.integrity_check)
     {
         /* Initialize Block */
         blocks->integrity_block = bundle_bib_blk;
-        blocks->integrity_block.cipher_suite_id.value = bundle->attributes->cipher_suite;
+        blocks->integrity_block.cipher_suite_id.value = bundle->attributes.cipher_suite;
         
         /* Populate Data */
         data->biboffset = hdr_index;
@@ -253,7 +253,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
  *
  *  This initializes a bundle structure
  *-------------------------------------------------------------------------------------*/
-int v6_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t* attributes, uint16_t* flags)
+int v6_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes, uint16_t* flags)
 {
     int status = BP_SUCCESS;
 
@@ -336,15 +336,15 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
     pay->paysize = size;
 
     /* Check Fragmentation */
-    if(pay->paysize > bundle->attributes->max_length)
+    if(pay->paysize > bundle->attributes.max_length)
     {
-        if(bundle->attributes->allow_fragmentation)
+        if(bundle->attributes.allow_fragmentation)
         {
             pri->is_frag = true;            
         }
         else
         {
-            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, bundle->attributes->max_length);
+            return bplog(BP_BUNDLETOOLARGE, "Unable (%d) to fragment forwarded bundle (%d > %d)\n", BP_UNSUPPORTED, pay->paysize, bundle->attributes.max_length);
         }
     }
 
@@ -390,7 +390,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
     {
         /* Calculate Storage Header Size and Fragment Size */
         int payload_remaining = pay->paysize - payload_offset;
-        int fragment_size = bundle->attributes->max_length <  payload_remaining ? bundle->attributes->max_length : payload_remaining;
+        int fragment_size = bundle->attributes.max_length <  payload_remaining ? bundle->attributes.max_length : payload_remaining;
 
         /* Update Primary Block Fragmentation */
         if(pri->is_frag)
@@ -782,11 +782,12 @@ int v6_routeinfo(void* bundle, int size, bp_route_t* route)
 /*--------------------------------------------------------------------------------------
  * v6_display -
  *-------------------------------------------------------------------------------------*/
-int v6_display(uint8_t* buffer, int size, uint16_t* flags)
+int v6_display(void* bundle, int size, uint16_t* flags)
 {
-    int                 index = 0;
-    int                 bytes = 0;
-    bp_blk_pri_t        pri_blk;
+    uint8_t*        buffer = (uint8_t*)bundle;
+    int             index = 0;
+    int             bytes = 0;
+    bp_blk_pri_t    pri_blk;
 
     /* Parse Primary Block */
     bytes = pri_read(buffer, size, &pri_blk, true, flags);

@@ -54,7 +54,7 @@ end
 
 -- check stats -- 
 rc, stats = receiver:stats()
-runner.check(bp.check_stats(stats, {payloads=num_bundles}))
+runner.check(bp.check_stats(stats, {stored_payloads=num_bundles}))
 
 for i=1,num_bundles do
     payload = string.format('HELLO WORLD %d', i)
@@ -68,9 +68,9 @@ end
 
 -- check stats -- 
 rc, stats = sender:stats()
-runner.check(bp.check_stats(stats, {transmitted=num_bundles, bundles=num_bundles, active=num_bundles}))
+runner.check(bp.check_stats(stats, {transmitted_bundles=num_bundles, stored_bundles=num_bundles, active_bundles=num_bundles}))
 rc, stats = receiver:stats()
-runner.check(bp.check_stats(stats, {payloads=0, received=num_bundles, delivered=num_bundles}))
+runner.check(bp.check_stats(stats, {stored_payloads=0, received_bundles=num_bundles, delivered_payloads=num_bundles}))
 
 -- load DACS --
 bplib.sleep(timeout)
@@ -92,9 +92,9 @@ runner.check(bp.check_flags(flags, {}))
 
 -- check stats -- 
 rc, stats = sender:stats()
-runner.check(bp.check_stats(stats, {transmitted=num_bundles, bundles=0, active=0, acknowledged=512, received=1}))
+runner.check(bp.check_stats(stats, {transmitted_bundles=num_bundles, stored_bundles=0, active_bundles=0, acknowledged_bundles=512, received_dacs=1}))
 rc, stats = receiver:stats()
-runner.check(bp.check_stats(stats, {payloads=0, received=num_bundles, delivered=num_bundles, transmitted=1}))
+runner.check(bp.check_stats(stats, {stored_payloads=0, received_bundles=num_bundles, delivered_payloads=num_bundles, transmitted_dacs=1}))
 
 -- Clean Up --
 

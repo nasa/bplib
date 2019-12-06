@@ -53,7 +53,7 @@ for i=1,num_bundles do
     runner.check(bp.check_flags(flags, {}), "flags set on store")
     rc, stats = sender:stats()
     runner.check(rc)
-    exp_stats["bundles"] = exp_stats["bundles"] + 1
+    exp_stats["stored_bundles"] = exp_stats["stored_bundles"] + 1
     runner.check(bp.check_stats(stats, exp_stats))
 
     -- load bundle --
@@ -63,8 +63,8 @@ for i=1,num_bundles do
     runner.check(bp.check_flags(flags, {}), "flags set on load")
     rc, stats = sender:stats()
     runner.check(rc)
-    exp_stats["active"] = exp_stats["active"] + 1
-    exp_stats["transmitted"] = exp_stats["transmitted"] + 1
+    exp_stats["active_bundles"] = exp_stats["active_bundles"] + 1
+    exp_stats["transmitted_bundles"] = exp_stats["transmitted_bundles"] + 1
     runner.check(bp.check_stats(stats, exp_stats))
     
     -- check payload --
@@ -84,8 +84,7 @@ for i=1,num_bundles do
     runner.check(bp.check_flags(flags, {}))
     rc, stats = sender:stats()
     runner.check(rc)
-    exp_stats["transmitted"] = exp_stats["transmitted"] + 1
-    exp_stats["retransmitted"] = exp_stats["retransmitted"] + 1
+    exp_stats["retransmitted_bundles"] = exp_stats["retransmitted_bundles"] + 1
     runner.check(bp.check_stats(stats, exp_stats))
     
     -- check payload --

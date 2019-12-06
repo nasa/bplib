@@ -81,9 +81,9 @@ end
 -- check stats -- 
 rc, rx_stats = receiver:stats()
 rc, tx_stats = sender:stats()
-acks = tx_stats["acknowledged"]
-runner.check(bp.check_stats(rx_stats, {payloads=stored_payloads}))
-runner.check(bp.check_stats(tx_stats, {bundles=stored_bundles - acks}))
+acks = tx_stats["acknowledged_bundles"]
+runner.check(bp.check_stats(rx_stats, {stored_payloads=stored_payloads}))
+runner.check(bp.check_stats(tx_stats, {stored_bundles=stored_bundles - acks}))
 
 -- drain remaining bundles --
 runner.check(sender:setopt("TIMEOUT", 5))
@@ -120,20 +120,20 @@ repeat
 	-- print loop stats --
 	num_loops = num_loops + 1
 	rc, tx_stats = sender:stats()
-	if prev_bundles ~= tx_stats["bundles"] then
-		print("Loop " .. num_loops .. ": " .. tx_stats["bundles"] .. "/" .. new_bundles_sent)
+	if prev_bundles ~= tx_stats["stored_bundles"] then
+		print("Loop " .. num_loops .. ": " .. tx_stats["stored_bundles"] .. "/" .. new_bundles_sent)
 	end
-	prev_bundles = tx_stats["bundles"]
+	prev_bundles = tx_stats["stored_bundles"]
 
-until (tx_stats["bundles"] == 0)
+until (tx_stats["stored_bundles"] == 0)
 
 -- check stats -- 
 rc, rx_stats = receiver:stats()
 rc, tx_stats = sender:stats()
-acks = tx_stats["acknowledged"]
-stored_payloads = tx_stats["transmitted"]
-runner.check(bp.check_stats(rx_stats, {payloads=stored_payloads}))
-runner.check(bp.check_stats(tx_stats, {bundles=stored_bundles - acks}))
+acks = tx_stats["acknowledged_bundles"]
+stored_payloads = tx_stats["transmitted_bundles"]
+runner.check(bp.check_stats(rx_stats, {stored_payloads=stored_payloads}))
+runner.check(bp.check_stats(tx_stats, {stored_bundles=stored_bundles - acks}))
 
 print("Stored: " .. stored_bundles .. ", Acknowledged: " .. acks)
 

@@ -951,44 +951,52 @@ int lbplib_stats (lua_State* L)
     lua_pushnumber(L, stats.expired);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "acknowledged");
-    lua_pushnumber(L, stats.acknowledged);
+    lua_pushstring(L, "transmitted_bundles");
+    lua_pushnumber(L, stats.transmitted_bundles);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "transmitted");
-    lua_pushnumber(L, stats.transmitted);
+    lua_pushstring(L, "transmitted_dacs");
+    lua_pushnumber(L, stats.transmitted_bundles);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "retransmitted");
-    lua_pushnumber(L, stats.retransmitted);
+    lua_pushstring(L, "retransmitted_bundles");
+    lua_pushnumber(L, stats.retransmitted_bundles);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "received");
-    lua_pushnumber(L, stats.received);
+    lua_pushstring(L, "delivered_payloads");
+    lua_pushnumber(L, stats.delivered_payloads);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "generated");
-    lua_pushnumber(L, stats.generated);
+    lua_pushstring(L, "received_bundles");
+    lua_pushnumber(L, stats.received_bundles);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "delivered");
-    lua_pushnumber(L, stats.delivered);
+    lua_pushstring(L, "forwarded_bundles");
+    lua_pushnumber(L, stats.forwarded_bundles);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "bundles");
-    lua_pushnumber(L, stats.bundles);
+    lua_pushstring(L, "received_dacs");
+    lua_pushnumber(L, stats.received_dacs);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "payloads");
-    lua_pushnumber(L, stats.payloads);
+    lua_pushstring(L, "stored_bundles");
+    lua_pushnumber(L, stats.stored_bundles);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "records");
-    lua_pushnumber(L, stats.records);
+    lua_pushstring(L, "stored_payloads");
+    lua_pushnumber(L, stats.stored_payloads);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "active");
-    lua_pushnumber(L, stats.active);
+    lua_pushstring(L, "stored_dacs");
+    lua_pushnumber(L, stats.stored_dacs);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "acknowledged_bundles");
+    lua_pushnumber(L, stats.acknowledged_bundles);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "active_bundles");
+    lua_pushnumber(L, stats.active_bundles);
     lua_settable(L, -3);
 
     return 2;

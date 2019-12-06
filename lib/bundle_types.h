@@ -52,6 +52,23 @@ typedef struct {
     bp_val_t            cid;            /* custody id */
 } bp_active_bundle_t;
 
+/* Payload Data */
+typedef struct {
+    bp_val_t            exprtime;       /* absolute time when payload expires */
+    bool                ackapp;         /* acknowledgement by application is requested */
+    int                 payloadsize;    /* size of payload */
+    uint8_t             payload[];      /* variable length payload */
+} bp_payload_data_t;
+
+/* Pending Structure */
+typedef struct {
+    bp_val_t            cid;            /* custody id of payload */
+    bp_ipn_t            node;           /* custody node of payload */
+    bp_ipn_t            service;        /* custody service of payload */
+    bp_payload_data_t   data;           /* serialized and stored payload data */
+    uint8_t*            memptr;         /* pointer to payload */
+} bp_payload_t;
+
 /* Bundle Data */
 typedef struct {
     bp_val_t            exprtime;       /* absolute time when bundle expires */
@@ -64,27 +81,10 @@ typedef struct {
     uint8_t             header[BP_BUNDLE_HDR_BUF_SIZE]; /* header portion of bundle */
 } bp_bundle_data_t;
 
-/* Payload Data */
-typedef struct {
-    bp_val_t            exprtime;       /* absolute time when payload expires */
-    bool                ackapp;         /* acknowledgement by application is requested */
-    int                 payloadsize;    /* size of payload */
-    uint8_t             payload[];      /* variable length payload */
-} bp_payload_data_t;
-
-/* Pending Block */
-typedef struct {
-    bp_val_t            cid;            /* custody id of payload */
-    bp_ipn_t            node;           /* custody node of payload */
-    bp_ipn_t            service;        /* custody service of payload */
-    bp_payload_data_t   data;           /* serialized and stored payload data */
-    uint8_t*            memptr;         /* pointer to payload */
-} bp_payload_t;
-
 /* Bundle Structure */
 typedef struct {
     bp_route_t          route;          /* addressing information */
-    bp_attr_t*          attributes;     /* bundle attributes (pointer) */
+    bp_attr_t           attributes;     /* bundle attributes */
     bp_bundle_data_t    data;           /* serialized and stored bundle data */
     bool                prebuilt;       /* does pre-built bundle header need initialization */
     void*               blocks;         /* populated in initialization function */
