@@ -252,7 +252,7 @@ __NOTE__: _transmitted_ bundles include both bundles generated on the channel fr
 
 `len` - the length in bytes of the memory pointed to by _val_
 
-`returns` - [return code](#4.2-return-codes).
+`returns` - [return code](#4-2-return-codes).
 
 ----------------------------------------------------------------------
 ##### Latch Statistics
@@ -310,7 +310,7 @@ Initiates sending the data pointed to by _payload_ as a bundle. The data will be
 
 `flags` - flags that provide additional information on the result of the store operation (see [flags](#6-3-flag-definitions)).  The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
-`returns` - size of bundle created in bytes, or [return code](#4.2-return-codes) on error.
+`returns` - size of bundle created in bytes, or [return code](#4-2-return-codes) on error.
 
 ----------------------------------------------------------------------
 ##### Load Bundle
@@ -329,7 +329,7 @@ Reads the next bundle from storage to be sent by the application over the conver
 
 `flags` - flags that provide additional information on the result of the load operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
-`returns` - the bundle reference, the size of the bundle, and [return code](#4.2-return-codes)
+`returns` - the bundle reference, the size of the bundle, and [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Process Bundle
@@ -353,7 +353,7 @@ There are three types of bundles processed by this function:
 
 `flags` - flags that provide additional information on the result of the process operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
-`returns` - [return code](#4.2-return-codes).
+`returns` - [return code](#4-2-return-codes).
 
 ----------------------------------------------------------------------
 ##### Accept Payload
@@ -372,7 +372,7 @@ Returns the next available bundle payload (from bundles that have been received 
 
 `flags` - flags that provide additional information on the result of the accept operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
-`returns` - the payload reference, the size of the payload, and [return code](#4.2-return-codes)
+`returns` - the payload reference, the size of the payload, and [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Acknowledge Bundle
@@ -385,7 +385,7 @@ Informs the library that the memory and storage used for the payload can be free
 
 `bundle` - pointer to the bundle buffer to be acknowledged
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Acknowledge Payload
@@ -398,7 +398,7 @@ Informs the library that the memory and storage used for the payload can be free
 
 `payload` - pointer to the payload buffer to be acknowledged
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Route Information
@@ -413,7 +413,7 @@ Parses the provided bundle and supplies its endpoint ID node and service numbers
 
 `route` - pointer to a route structure that is populated by the function (see [Open Channel](#open-channel) for more details on the structure contents).
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Display Bundle
@@ -428,7 +428,7 @@ Parses the provided bundle (transversing the primary block, extension blocks, an
 
 `flags` - flags that provide additional information on the result of the accept operation (see [flags](#6-3-flag-definitions)). The flags variable is not initialized inside the function, so any value it has prior to the function call will be retained.
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### EID to IPN
@@ -548,7 +548,7 @@ Destroys a storage service.  This does not mean that the data stored in the serv
 
 `handle` - handle to the storage service
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Enqueue Storage Service
@@ -569,7 +569,7 @@ Stores the pointed to data into the storage service.
 
 `timeout` - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Dequeue Storage Service
@@ -588,7 +588,7 @@ Retrieves the oldest data block stored in the storage service that has not yet b
 
 `timeout` - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Retrieve Storage Service
@@ -607,7 +607,7 @@ Retrieves the data block stored in the storage service identified by the _Storag
 
 `timeout` - 0: check, -1: pend, 1 and above: timeout in milliseconds
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Release Storage Service
@@ -620,7 +620,7 @@ Releases any in-memory resources associated with the dequeueing or retrieval of 
 
 `sid` - the _Storage ID_ that identifies the data block for which memory resources are released.
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Relinquish Storage Service
@@ -633,7 +633,7 @@ Deletes the stored data block identified by the _Storage ID_ sid parameter.
 
 `sid` - the _Storage ID_ that identifies which data block to delete from storage
 
-`returns` - [return code](#4.2-return-codes)
+`returns` - [return code](#4-2-return-codes)
 
 ----------------------------------------------------------------------
 ##### Get Count Storage Service
