@@ -5,7 +5,7 @@ local src = runner.srcscript()
 
 -- Setup --
 
--- runner.set_exit_on_error(true)
+runner.set_exit_on_error(true)
 
 local store = arg[1] or "RAM"
 if store == "FILE" then
@@ -28,15 +28,18 @@ local sender = bplib.open(src_node, src_serv, dst_node, dst_serv, store, attribu
 
 local exp_stats = {   lost = 0,
                       expired = 0,
-                      acknowledged = 0,
-                      transmitted = 0,
-                      retransmitted = 0,
-                      received = 0,
-                      delivered = 0,
-                      bundles = 0,
-                      payloads = 0,
-                      records = 0,
-                      active = 0    }
+                      transmitted_bundles = 0,
+                      transmitted_dacs = 0,
+                      retransmitted_bundles = 0,
+                      delivered_payloads = 0,
+                      received_bundles = 0,
+                      forwarded_bundles = 0,
+                      received_dacs = 0,
+                      stored_bundles = 0,
+                      stored_payloads = 0,
+                      stored_dacs = 0,
+                      acknowledged_bundles = 0,
+                      active_bundles = 0    }
 
 runner.check(sender:setopt("TIMEOUT", timeout))
 

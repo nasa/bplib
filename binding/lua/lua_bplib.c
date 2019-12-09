@@ -956,7 +956,7 @@ int lbplib_stats (lua_State* L)
     lua_settable(L, -3);
 
     lua_pushstring(L, "transmitted_dacs");
-    lua_pushnumber(L, stats.transmitted_bundles);
+    lua_pushnumber(L, stats.transmitted_dacs);
     lua_settable(L, -3);
 
     lua_pushstring(L, "retransmitted_bundles");

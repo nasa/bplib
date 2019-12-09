@@ -43,7 +43,7 @@
 /* Block Type Definitions */
 #define BP_PAY_BLK_TYPE                 0x1
 #define BP_CTEB_BLK_TYPE                0xA
-#define BP_BIB_BLK_TYPE                 0xD
+#define BP_BIB_BLK_TYPE                 0x3
 
 /* Record Type Definitions */    
 #define BP_STAT_REC_TYPE                0x10 /* Status Report */
