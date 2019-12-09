@@ -171,6 +171,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         blocks->primary_block.is_admin_rec      = bundle->attributes.admin_record;
         blocks->primary_block.allow_frag        = bundle->attributes.allow_fragmentation;
         blocks->primary_block.cst_rqst          = bundle->attributes.request_custody;
+        blocks->primary_block.cos               = bundle->attributes.class_of_service;
 
         /* Set Pre-Built Flag to TRUE */
         bundle->prebuilt = true;
@@ -253,7 +254,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
  *
  *  This initializes a bundle structure
  *-------------------------------------------------------------------------------------*/
-int v6_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes, uint16_t* flags)
+int v6_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes)
 {
     int status = BP_SUCCESS;
 
@@ -283,15 +284,8 @@ int v6_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes, u
         }
     }
 
-    /* Prebuild v6 Bundle */
-    if(status == BP_SUCCESS)
-    {
-        status = v6_build(bundle, NULL, NULL, 0, flags);
-        if(status != BP_SUCCESS)
-        {
-            v6_uninitialize(bundle);
-        }
-    }
+    /* Mark Bundle to Prebuild */
+    bundle->prebuilt = false;
     
     /* Return Status */
     return status;

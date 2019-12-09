@@ -94,6 +94,11 @@ extern "C" {
 #define BP_FLAG_DUPLICATES              0x1000  /* multiple bundles on the network have the same custody id */
 #define BP_FLAG_RBTREEFULL              0x2000  /* the dacs rb_tree was full */
 
+/* Class of Service */
+#define BP_COS_BULK                     0
+#define BP_COS_NORMAL                   1
+#define BP_COS_EXPEDITED                2
+
 /* Bundle Integrity Types */
 #define BP_BIB_NONE                     0
 #define BP_BIB_CRC16_X25                1
@@ -113,11 +118,12 @@ extern "C" {
 #define BP_OPT_ADMIN_RECORD             3
 #define BP_OPT_INTEGRITY_CHECK          4
 #define BP_OPT_ALLOW_FRAGMENTATION      5
-#define BP_OPT_CIPHER_SUITE             6
-#define BP_OPT_TIMEOUT                  7
-#define BP_OPT_MAX_LENGTH               8
-#define BP_OPT_CID_REUSE                9
-#define BP_OPT_DACS_RATE                10
+#define BP_OPT_CID_REUSE                6
+#define BP_OPT_CIPHER_SUITE             7
+#define BP_OPT_CLASS_OF_SERVICE         8
+#define BP_OPT_TIMEOUT                  9
+#define BP_OPT_MAX_LENGTH               10
+#define BP_OPT_DACS_RATE                11
     
 /* Default Dynamic Configuration */
 #define BP_DEFAULT_LIFETIME             86400 /* seconds, 1 day */
@@ -125,11 +131,12 @@ extern "C" {
 #define BP_DEFAULT_ADMIN_RECORD         false
 #define BP_DEFAULT_INTEGRITY_CHECK      true
 #define BP_DEFAULT_ALLOW_FRAGMENTATION  false
+#define BP_DEFAULT_CID_REUSE            false
+#define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
+#define BP_DEFAULT_CLASS_OF_SERVICE     BP_COS_NORMAL
 #define BP_DEFAULT_TIMEOUT              10 /* seconds */
 #define BP_DEFAULT_MAX_LENGTH           4096 /* bytes (must be smaller than BP_MAX_INDEX) */
-#define BP_DEFAULT_CID_REUSE            false
 #define BP_DEFAULT_DACS_RATE            5 /* period in seconds */
-#define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
 
 /* Default Fixed Configuration */
 #define BP_DEFAULT_PROTOCOL_VERSION     6
@@ -186,14 +193,15 @@ typedef struct {
 typedef struct {    
     /* Dynamic Attributes */
     bp_val_t    lifetime;               /* Number of seconds from creation time before bundle expires */
-    bool        request_custody;        /* 0: not requested, 1: requested */
+    bool        request_custody;        /* 0: custody not requested, 1: custody requested */
     bool        admin_record;           /* 0: payload data, 1: administrative record */ 
     bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
     bool        allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
+    int         cid_reuse;              /* 0: new CID when retransmitting, 1: reuse CID when retransmitting */
     int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */
+    int         class_of_service;       /* priority of generated bundles */
     int         timeout;                /* seconds, zero for infinite */
     int         max_length;             /* maximum size of bundle in bytes (includes header blocks) */
-    int         cid_reuse;              /* reuse CID when retransmitting */
     int         dacs_rate;              /* number of seconds to wait between sending ACS bundles */
     /* Fixed Attributes */
     int         protocol_version;       /* bundle protocol version; currently only version 6 supported */

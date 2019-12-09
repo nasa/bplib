@@ -50,11 +50,12 @@ typedef struct {
     bp_field_t  fragoffset;
     bp_field_t  paylen;
     /* meta information */
-    bool        is_admin_rec;           /* 0: not admin, 1: is admin */
-    bool        is_frag;                /* 0: is not a fragment, 1: is a fragment */
-    bool        allow_frag;             /* 0: fragmentation not allowed, 1: fragmentation allowed */
-    bool        cst_rqst;               /* 0: custody not requested, 1: custody requested */
-    bool        ack_app;                /* 0: no acknowledgement from application, 1: acknowledgement requested */
+    bool        is_admin_rec;   /* 0: not admin, 1: is admin */
+    bool        is_frag;        /* 0: is not a fragment, 1: is a fragment */
+    bool        allow_frag;     /* 0: fragmentation not allowed, 1: fragmentation allowed */
+    bool        cst_rqst;       /* 0: custody not requested, 1: custody requested */
+    bool        ack_app;        /* 0: no acknowledgement from application, 1: acknowledgement requested */
+    uint8_t     cos;            /* class of service - 0: bulk, 1: normal, 2: expedited */
 } bp_blk_pri_t;
 
 /******************************************************************************

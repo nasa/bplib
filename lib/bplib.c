@@ -84,10 +84,11 @@ static const bp_attr_t default_attributes = {
     .admin_record           = BP_DEFAULT_ADMIN_RECORD,
     .integrity_check        = BP_DEFAULT_INTEGRITY_CHECK,
     .allow_fragmentation    = BP_DEFAULT_ALLOW_FRAGMENTATION,
+    .cid_reuse              = BP_DEFAULT_CID_REUSE,
     .cipher_suite           = BP_DEFAULT_CIPHER_SUITE,
+    .class_of_service       = BP_DEFAULT_CLASS_OF_SERVICE,
     .timeout                = BP_DEFAULT_TIMEOUT,
     .max_length             = BP_DEFAULT_MAX_LENGTH,
-    .cid_reuse              = BP_DEFAULT_CID_REUSE,
     .dacs_rate              = BP_DEFAULT_DACS_RATE,
     .protocol_version       = BP_DEFAULT_PROTOCOL_VERSION,
     .retransmit_order       = BP_DEFAULT_RETRANSMIT_ORDER,
@@ -227,7 +228,6 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     assert(store.relinquish);
     assert(store.getcount);
 
-    uint16_t flags = 0;
     int status = BP_SUCCESS;
 
     /* Allocate Channel */
@@ -285,10 +285,10 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
 
     /* Initialize Bundle */
-    status = v6_initialize(&ch->bundle, route, attributes, &flags);
+    status = v6_initialize(&ch->bundle, route, attributes);
     if(status != BP_SUCCESS)
     {
-        bplog(status, "Failed to initialize bundle, flags=%0X\n", flags);
+        bplog(status, "Failed to initialize bundle\n");
         bplib_close(ch);
         return NULL;
     }
@@ -304,10 +304,10 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     custody_route.destination_service = BP_IPN_NULL;
 
     /* Initialize DACS */    
-    status = v6_initialize(&ch->dacs, custody_route, dacs_attributes, &flags);
+    status = v6_initialize(&ch->dacs, custody_route, dacs_attributes);
     if(status != BP_SUCCESS)
     {
-        bplog(status, "Failed to initialize dacs, flags=%0X\n", flags);
+        bplog(status, "Failed to initialize dacs\n");
         bplib_close(ch);
         return NULL;
     }
@@ -545,10 +545,23 @@ int bplib_config(bp_desc_t channel, int mode, int opt, int* val)
             else        *val = ch->bundle.attributes.allow_fragmentation;
             break;
         }
+        case BP_OPT_CID_REUSE:
+        {
+            if(setopt && *val != true && *val != false) return BP_PARMERR;
+            if(setopt)  ch->bundle.attributes.cid_reuse = *val;
+            else        *val = ch->bundle.attributes.cid_reuse;
+            break;
+        }
         case BP_OPT_CIPHER_SUITE:
         {
             if(setopt)  ch->bundle.attributes.cipher_suite = *val;
             else        *val = ch->bundle.attributes.cipher_suite;
+            break;
+        }
+        case BP_OPT_CLASS_OF_SERVICE:
+        {
+            if(setopt)  ch->bundle.attributes.class_of_service = *val;
+            else        *val = ch->bundle.attributes.class_of_service;
             break;
         }
         case BP_OPT_TIMEOUT:
@@ -562,13 +575,6 @@ int bplib_config(bp_desc_t channel, int mode, int opt, int* val)
             if(setopt && *val < 0) return BP_PARMERR;
             if(setopt)  ch->bundle.attributes.max_length = *val;
             else        *val = ch->bundle.attributes.max_length;
-            break;
-        }
-        case BP_OPT_CID_REUSE:
-        {
-            if(setopt && *val != true && *val != false) return BP_PARMERR;
-            if(setopt)  ch->bundle.attributes.cid_reuse = *val;
-            else        *val = ch->bundle.attributes.cid_reuse;
             break;
         }
         case BP_OPT_DACS_RATE:

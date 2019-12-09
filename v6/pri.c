@@ -146,6 +146,9 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
     if(pri->pcf.value & BP_PCF_ACKRQST_MASK)    pri->ack_app = true;
     else                                        pri->ack_app = false;
 
+    /* Set Class of Service */
+    pri->cos = (pri->pcf.value & BP_PCF_COS_MASK) >> BP_PCF_COS_SHIFT;
+
     /* Success Oriented Error Checking */
     if(flags != 0)
     {
@@ -182,12 +185,15 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, ui
     if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of primary block: %d\n", size);
 
     /* Set Process Control Flags */
-    pri->pcf.value |= BP_PCF_SINGLETON_MASK;
+    pri->pcf.value = BP_PCF_SINGLETON_MASK;
     if(pri->is_admin_rec == true)   pri->pcf.value |= BP_PCF_ADMIN_MASK;
     if(pri->is_frag == true)        pri->pcf.value |= BP_PCF_FRAGMENT_MASK;
     if(pri->allow_frag == false)    pri->pcf.value |= BP_PCF_NOFRAG_MASK;
     if(pri->cst_rqst == true)       pri->pcf.value |= BP_PCF_CSTRQST_MASK;
     if(pri->ack_app == true)        pri->pcf.value |= BP_PCF_ACKRQST_MASK;
+
+    /* Set Class of Service */
+    pri->pcf.value |= (pri->cos << BP_PCF_COS_SHIFT) & BP_PCF_COS_MASK;
 
     /* Write Block */
     buffer[0] = pri->version;
