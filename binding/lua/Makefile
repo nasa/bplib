@@ -28,14 +28,11 @@ LUA_VERSION	:= 5.3
 # object files
 LUA_OBJ     := lua_bplib.o
 
-# definitions needed by the extension
-LUA_DEFS    ?= $(USER_DEFS)
-
 # compiler options needed by the extension
-LUA_COPT    ?= $(USER_COPT)
+LUA_COPT    ?= -I/usr/include/lua$(LUA_VERSION)
 
 # linker options needed by the application
-LUA_LOPT    ?= $(USER_LOPT)
+LUA_LOPT    ?= -L/usr/lib/x86_64-linux-gnu
 
 # search path for extension objects (note this is a make system variable)
 VPATH	    := $(ROOT)
@@ -58,11 +55,11 @@ LIBDIR      :=   $(PREFIX)/lib/lua/$(LUA_VERSION)
 BLDDIR      :=   build
 O           ?=   3 # default optimization level
 
-COPT        :=   -g -O$(O) $(INCLUDES) $(LUA_DEFS)
+COPT        :=   -g -O$(O) $(INCLUDES)
 COPT        +=   -Wall -Wextra -Wshadow $(LUA_COPT)
 COPT        +=   -fPIC
 
-LOPT        :=   -llua -lbp $(LUA_LOPT)
+LOPT        :=   -llua$(LUA_VERSION) -lbp -L../../build $(LUA_LOPT)
 
 ###############################################################################
 ##  TOOLS
