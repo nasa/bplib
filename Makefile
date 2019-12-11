@@ -170,16 +170,15 @@ all: clean lib bindings
 
 lib: static-lib shared-lib
 
-
 static-lib: $(BLDDIR) $(ALL_OBJ)
 	$(AR) crs $(BLDDIR)/lib$(TGTLIB).a $(ALL_OBJ)
 
 shared-lib: $(BLDDIR) $(ALL_OBJ)
 	$(CC) $(ALL_OBJ) $(ALL_LOPT) -shared -Wl,--version-script=libabi.version -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
+	$(LN) -sf lib$(TGTLIB).so.$(TGTVER) $(BLDDIR)/lib$(TGTLIB).so
 
 bindings:
 	make -C binding/lua
-	
 
 install: install-headers install-static install-shared install-bindings
 
