@@ -208,10 +208,19 @@ static int create_dacs(bp_channel_t* ch, unsigned long sysnow, int timeout, uint
 /*--------------------------------------------------------------------------------------
  * bplib_init - initializes bp library
  *-------------------------------------------------------------------------------------*/
-void bplib_init(void)
+int bplib_init(void)
 {
+    int status;
+
     /* Initialize OS Interface */
     bplib_os_init();
+
+    /* Initialize v6 Module */
+    status = v6_initialize();
+    if(status != BP_SUCCESS) return status;
+
+    /* Return Success */
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -285,7 +294,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
 
     /* Initialize Bundle */
-    status = v6_initialize(&ch->bundle, route, attributes);
+    status = v6_create(&ch->bundle, route, attributes);
     if(status != BP_SUCCESS)
     {
         bplog(status, "Failed to initialize bundle\n");
@@ -304,7 +313,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     custody_route.destination_service = BP_IPN_NULL;
 
     /* Initialize DACS */    
-    status = v6_initialize(&ch->dacs, custody_route, dacs_attributes);
+    status = v6_create(&ch->dacs, custody_route, dacs_attributes);
     if(status != BP_SUCCESS)
     {
         bplog(status, "Failed to initialize dacs\n");
@@ -450,8 +459,8 @@ void bplib_close(bp_desc_t channel)
     rb_tree_destroy(&ch->custody_tree);
 
     /* Un-initialize Bundle and DACS */
-    v6_uninitialize(&ch->bundle);
-    v6_uninitialize(&ch->dacs);
+    v6_destroy(&ch->bundle);
+    v6_destroy(&ch->dacs);
     
     /* Un-initialize Active Table */
     if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);

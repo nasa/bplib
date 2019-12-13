@@ -238,7 +238,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-void        bplib_init          (void);
+int         bplib_init          (void);
 
 bp_desc_t   bplib_open          (bp_route_t route, bp_store_t store, bp_attr_t attributes);
 void        bplib_close         (bp_desc_t channel);

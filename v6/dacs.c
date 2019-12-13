@@ -46,6 +46,7 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
 {
     bp_field_t cid = { 0, 2, 0 };
     bp_field_t fill = { 0, 0, 0 };
+    uint16_t sdnvflags = 0;
  
     /* Write Record Information */
     rec[BP_ACS_REC_TYPE_INDEX] = BP_ACS_REC_TYPE; /* record type */
@@ -61,9 +62,9 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
     /* Get the first available range from the rb tree and fill it. */
     rb_tree_get_next(tree, &range, true, false);
     cid.value = range.value;
-    fill.index = sdnv_write(rec, size, cid, flags);
+    fill.index = sdnv_write(rec, size, cid, &sdnvflags);
     fill.value = range.offset + 1;
-    fill.index = sdnv_write(rec, size, fill, flags);    
+    fill.index = sdnv_write(rec, size, fill, &sdnvflags);    
     count_fills += 2;
 
     /* Traverse tree in order and write out fills to dacs. */
@@ -75,18 +76,19 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
         /* Write range of missing cid.
            Calculate the missing values between the current and previous node. */
         fill.value = range.value - (prev_range.value + prev_range.offset + 1);
-        fill.index = sdnv_write(rec, size, fill, flags);
+        fill.index = sdnv_write(rec, size, fill, &sdnvflags);
 
         /* Write range of received cids. */
         fill.value = range.offset + 1;
-        fill.index = sdnv_write(rec, size, fill, flags);    
+        fill.index = sdnv_write(rec, size, fill, &sdnvflags);    
         count_fills += 2;        
     }
 
     /* Success Oriented Error Checking */
-    if(*flags != 0)
+    if(sdnvflags != 0)    
     {
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of DACS (%08X)\n", *flags); 
+        *flags |= sdnvflags;
+        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of DACS (%08X)\n", sdnvflags); 
     } 
 
     /* Return Block Size */

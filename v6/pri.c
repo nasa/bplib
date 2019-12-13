@@ -38,11 +38,11 @@
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint16_t* sdnvflags)
+int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint16_t* flags)
 {
     uint8_t* blkbuf = (uint8_t*)block;
     int bytes_read = 0;
-    uint16_t flags = 0;
+    uint16_t sdnvflags = 0;
  
     /* Check Size */
     if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of primary block: %d\n", size);
@@ -51,30 +51,30 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
     pri->version = blkbuf[0];
     if(!update_indices)
     {
-        sdnv_read(blkbuf, size, &pri->pcf,        &flags);
-        sdnv_read(blkbuf, size, &pri->blklen,     &flags);
-        sdnv_read(blkbuf, size, &pri->dstnode,    &flags);
-        sdnv_read(blkbuf, size, &pri->dstserv,    &flags);
-        sdnv_read(blkbuf, size, &pri->srcnode,    &flags);
-        sdnv_read(blkbuf, size, &pri->srcserv,    &flags);
-        sdnv_read(blkbuf, size, &pri->rptnode,    &flags);
-        sdnv_read(blkbuf, size, &pri->rptserv,    &flags);
-        sdnv_read(blkbuf, size, &pri->cstnode,    &flags);
-        sdnv_read(blkbuf, size, &pri->cstserv,    &flags);
-        sdnv_read(blkbuf, size, &pri->createsec,  &flags);
-        sdnv_read(blkbuf, size, &pri->createseq,  &flags);
-        sdnv_read(blkbuf, size, &pri->lifetime,   &flags);
+        sdnv_read(blkbuf, size, &pri->pcf,        &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->blklen,     &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->dstnode,    &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->dstserv,    &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->srcnode,    &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->srcserv,    &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->rptnode,    &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->rptserv,    &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->cstnode,    &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->cstserv,    &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->createsec,  &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->createseq,  &sdnvflags);
+        sdnv_read(blkbuf, size, &pri->lifetime,   &sdnvflags);
 
         /* Handle Fragment Fields */
         if(pri->pcf.value & BP_PCF_FRAGMENT_MASK) /* fields are present in bundle */
         {
-            sdnv_read(blkbuf, size, &pri->dictlen,    &flags);
-            sdnv_read(blkbuf, size, &pri->fragoffset, &flags);
-            bytes_read = sdnv_read(blkbuf, size, &pri->paylen,  &flags);
+            sdnv_read(blkbuf, size, &pri->dictlen,    &sdnvflags);
+            sdnv_read(blkbuf, size, &pri->fragoffset, &sdnvflags);
+            bytes_read = sdnv_read(blkbuf, size, &pri->paylen,  &sdnvflags);
         }
         else
         {
-            bytes_read = sdnv_read(blkbuf, size, &pri->dictlen, &flags);
+            bytes_read = sdnv_read(blkbuf, size, &pri->dictlen, &sdnvflags);
         }
     }
     else
@@ -96,19 +96,19 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
         pri->dictlen.width      = 0;
 
         pri->pcf.index          = 1;
-        pri->blklen.index       = sdnv_read(blkbuf, size, &pri->pcf,        &flags);
-        pri->dstnode.index      = sdnv_read(blkbuf, size, &pri->blklen,     &flags);
-        pri->dstserv.index      = sdnv_read(blkbuf, size, &pri->dstnode,    &flags);
-        pri->srcnode.index      = sdnv_read(blkbuf, size, &pri->dstserv,    &flags);
-        pri->srcserv.index      = sdnv_read(blkbuf, size, &pri->srcnode,    &flags);
-        pri->rptnode.index      = sdnv_read(blkbuf, size, &pri->srcserv,    &flags);
-        pri->rptserv.index      = sdnv_read(blkbuf, size, &pri->rptnode,    &flags);
-        pri->cstnode.index      = sdnv_read(blkbuf, size, &pri->rptserv,    &flags);
-        pri->cstserv.index      = sdnv_read(blkbuf, size, &pri->cstnode,    &flags);
-        pri->createsec.index    = sdnv_read(blkbuf, size, &pri->cstserv,    &flags);
-        pri->createseq.index    = sdnv_read(blkbuf, size, &pri->createsec,  &flags);
-        pri->lifetime.index     = sdnv_read(blkbuf, size, &pri->createseq,  &flags);
-        pri->dictlen.index      = sdnv_read(blkbuf, size, &pri->lifetime,   &flags);
+        pri->blklen.index       = sdnv_read(blkbuf, size, &pri->pcf,        &sdnvflags);
+        pri->dstnode.index      = sdnv_read(blkbuf, size, &pri->blklen,     &sdnvflags);
+        pri->dstserv.index      = sdnv_read(blkbuf, size, &pri->dstnode,    &sdnvflags);
+        pri->srcnode.index      = sdnv_read(blkbuf, size, &pri->dstserv,    &sdnvflags);
+        pri->srcserv.index      = sdnv_read(blkbuf, size, &pri->srcnode,    &sdnvflags);
+        pri->rptnode.index      = sdnv_read(blkbuf, size, &pri->srcserv,    &sdnvflags);
+        pri->rptserv.index      = sdnv_read(blkbuf, size, &pri->rptnode,    &sdnvflags);
+        pri->cstnode.index      = sdnv_read(blkbuf, size, &pri->rptserv,    &sdnvflags);
+        pri->cstserv.index      = sdnv_read(blkbuf, size, &pri->cstnode,    &sdnvflags);
+        pri->createsec.index    = sdnv_read(blkbuf, size, &pri->cstserv,    &sdnvflags);
+        pri->createseq.index    = sdnv_read(blkbuf, size, &pri->createsec,  &sdnvflags);
+        pri->lifetime.index     = sdnv_read(blkbuf, size, &pri->createseq,  &sdnvflags);
+        pri->dictlen.index      = sdnv_read(blkbuf, size, &pri->lifetime,   &sdnvflags);
 
         /* Handle Fragment Fields */
         if(pri->pcf.value & BP_PCF_FRAGMENT_MASK) /* fields are present in bundle */
@@ -116,13 +116,13 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
             pri->fragoffset.width   = 0;
             pri->paylen.width       = 0;
 
-            pri->fragoffset.index   = sdnv_read(blkbuf, size, &pri->dictlen,      &flags);
-            pri->paylen.index       = sdnv_read(blkbuf, size, &pri->fragoffset,   &flags);
-            bytes_read              = sdnv_read(blkbuf, size, &pri->paylen,       &flags);
+            pri->fragoffset.index   = sdnv_read(blkbuf, size, &pri->dictlen,      &sdnvflags);
+            pri->paylen.index       = sdnv_read(blkbuf, size, &pri->fragoffset,   &sdnvflags);
+            bytes_read              = sdnv_read(blkbuf, size, &pri->paylen,       &sdnvflags);
         }
         else
         {
-            bytes_read              = sdnv_read(blkbuf, size, &pri->dictlen,      &flags);
+            bytes_read              = sdnv_read(blkbuf, size, &pri->dictlen,      &sdnvflags);
         }
     }
 
@@ -150,10 +150,10 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
     pri->cos = (pri->pcf.value & BP_PCF_COS_MASK) >> BP_PCF_COS_SHIFT;
 
     /* Success Oriented Error Checking */
-    if(flags != 0)
+    if(sdnvflags != 0)
     {
-        *sdnvflags |= flags;
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of primary block (%08X)\n", flags);
+        *flags |= sdnvflags;
+        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of primary block (%08X)\n", sdnvflags);
     }
     else if(pri->version != BP_PRI_VERSION)
     {
@@ -175,11 +175,11 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint16_t* sdnvflags)
+int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint16_t* flags)
 {
     uint8_t*    buffer = (uint8_t*)block;
     int         bytes_written = 0;
-    uint16_t    flags = 0;
+    uint16_t    sdnvflags = 0;
 
     /* Check Size */
     if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of primary block: %d\n", size);
@@ -199,29 +199,29 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, ui
     buffer[0] = pri->version;
     if(!update_indices)
     {
-        sdnv_write(buffer, size, pri->pcf,        &flags);
-        sdnv_write(buffer, size, pri->dstnode,    &flags);
-        sdnv_write(buffer, size, pri->dstserv,    &flags);
-        sdnv_write(buffer, size, pri->srcnode,    &flags);
-        sdnv_write(buffer, size, pri->srcserv,    &flags);
-        sdnv_write(buffer, size, pri->rptnode,    &flags);
-        sdnv_write(buffer, size, pri->rptserv,    &flags);
-        sdnv_write(buffer, size, pri->cstnode,    &flags);
-        sdnv_write(buffer, size, pri->cstserv,    &flags);
-        sdnv_write(buffer, size, pri->createsec,  &flags);
-        sdnv_write(buffer, size, pri->createseq,  &flags);
-        sdnv_write(buffer, size, pri->lifetime,   &flags);
+        sdnv_write(buffer, size, pri->pcf,        &sdnvflags);
+        sdnv_write(buffer, size, pri->dstnode,    &sdnvflags);
+        sdnv_write(buffer, size, pri->dstserv,    &sdnvflags);
+        sdnv_write(buffer, size, pri->srcnode,    &sdnvflags);
+        sdnv_write(buffer, size, pri->srcserv,    &sdnvflags);
+        sdnv_write(buffer, size, pri->rptnode,    &sdnvflags);
+        sdnv_write(buffer, size, pri->rptserv,    &sdnvflags);
+        sdnv_write(buffer, size, pri->cstnode,    &sdnvflags);
+        sdnv_write(buffer, size, pri->cstserv,    &sdnvflags);
+        sdnv_write(buffer, size, pri->createsec,  &sdnvflags);
+        sdnv_write(buffer, size, pri->createseq,  &sdnvflags);
+        sdnv_write(buffer, size, pri->lifetime,   &sdnvflags);
 
         /* Handle Optional Fragmentation Fields */
         if(pri->allow_frag)
         {
-            sdnv_write(buffer, size, pri->dictlen,    &flags);
-            sdnv_write(buffer, size, pri->fragoffset, &flags);
-            bytes_written = sdnv_write(buffer, size, pri->paylen, &flags);
+            sdnv_write(buffer, size, pri->dictlen,    &sdnvflags);
+            sdnv_write(buffer, size, pri->fragoffset, &sdnvflags);
+            bytes_written = sdnv_write(buffer, size, pri->paylen, &sdnvflags);
         }
         else
         {
-            bytes_written = sdnv_write(buffer, size, pri->dictlen, &flags);
+            bytes_written = sdnv_write(buffer, size, pri->dictlen, &sdnvflags);
         }
     }
     else
@@ -242,19 +242,19 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, ui
         pri->lifetime.width     = 0;
         pri->dictlen.width      = 0;
 
-        pri->blklen.index       = sdnv_write(buffer, size, pri->pcf,          &flags);
+        pri->blklen.index       = sdnv_write(buffer, size, pri->pcf,          &sdnvflags);
         pri->dstnode.index      = pri->blklen.index + pri->blklen.width;
-        pri->dstserv.index      = sdnv_write(buffer, size, pri->dstnode,      &flags);
-        pri->srcnode.index      = sdnv_write(buffer, size, pri->dstserv,      &flags);
-        pri->srcserv.index      = sdnv_write(buffer, size, pri->srcnode,      &flags);
-        pri->rptnode.index      = sdnv_write(buffer, size, pri->srcserv,      &flags);
-        pri->rptserv.index      = sdnv_write(buffer, size, pri->rptnode,      &flags);
-        pri->cstnode.index      = sdnv_write(buffer, size, pri->rptserv,      &flags);
-        pri->cstserv.index      = sdnv_write(buffer, size, pri->cstnode,      &flags);
-        pri->createsec.index    = sdnv_write(buffer, size, pri->cstserv,      &flags);
-        pri->createseq.index    = sdnv_write(buffer, size, pri->createsec,    &flags);
-        pri->lifetime.index     = sdnv_write(buffer, size, pri->createseq,    &flags);
-        pri->dictlen.index      = sdnv_write(buffer, size, pri->lifetime,     &flags);
+        pri->dstserv.index      = sdnv_write(buffer, size, pri->dstnode,      &sdnvflags);
+        pri->srcnode.index      = sdnv_write(buffer, size, pri->dstserv,      &sdnvflags);
+        pri->srcserv.index      = sdnv_write(buffer, size, pri->srcnode,      &sdnvflags);
+        pri->rptnode.index      = sdnv_write(buffer, size, pri->srcserv,      &sdnvflags);
+        pri->rptserv.index      = sdnv_write(buffer, size, pri->rptnode,      &sdnvflags);
+        pri->cstnode.index      = sdnv_write(buffer, size, pri->rptserv,      &sdnvflags);
+        pri->cstserv.index      = sdnv_write(buffer, size, pri->cstnode,      &sdnvflags);
+        pri->createsec.index    = sdnv_write(buffer, size, pri->cstserv,      &sdnvflags);
+        pri->createseq.index    = sdnv_write(buffer, size, pri->createsec,    &sdnvflags);
+        pri->lifetime.index     = sdnv_write(buffer, size, pri->createseq,    &sdnvflags);
+        pri->dictlen.index      = sdnv_write(buffer, size, pri->lifetime,     &sdnvflags);
 
         /* Handle Optional Fragmentation Fields */
         if(pri->is_frag)
@@ -262,25 +262,25 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, ui
             pri->fragoffset.width   = 0;
             pri->paylen.width       = 0;
 
-            pri->fragoffset.index   = sdnv_write(buffer, size, pri->dictlen,      &flags);
-            pri->paylen.index       = sdnv_write(buffer, size, pri->fragoffset,   &flags);
-            bytes_written           = sdnv_write(buffer, size, pri->paylen,       &flags);
+            pri->fragoffset.index   = sdnv_write(buffer, size, pri->dictlen,      &sdnvflags);
+            pri->paylen.index       = sdnv_write(buffer, size, pri->fragoffset,   &sdnvflags);
+            bytes_written           = sdnv_write(buffer, size, pri->paylen,       &sdnvflags);
         }
         else
         {
-            bytes_written           = sdnv_write(buffer, size, pri->dictlen,      &flags);
+            bytes_written           = sdnv_write(buffer, size, pri->dictlen,      &sdnvflags);
         }
     }
 
     /* Write Block Length */
     pri->blklen.value = bytes_written - pri->dstnode.index;
-    sdnv_write(buffer, size, pri->blklen, &flags);
+    sdnv_write(buffer, size, pri->blklen, &sdnvflags);
 
     /* Success Oriented Error Checking */
-    if(flags != 0)
+    if(sdnvflags != 0)
     {
-        *sdnvflags |= flags;
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of primary block (%08X)\n", flags);
+        *flags |= sdnvflags;
+        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of primary block (%08X)\n", sdnvflags);
     }
     else
     {

@@ -80,7 +80,8 @@ static const bp_blk_pri_t bundle_pri_blk = {
     .is_frag            = false,
     .allow_frag         = false,
     .cst_rqst           = true,
-    .ack_app            = false
+    .ack_app            = false,
+    .cos                = BP_DEFAULT_CLASS_OF_SERVICE
 };
 
 static const bp_blk_cteb_t bundle_cteb_blk = {
@@ -114,8 +115,6 @@ static const bp_blk_pay_t bundle_pay_blk = {
     .payptr                   = NULL,
     .paysize                  = 0
 };
-
-static bool v6_init = false;
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -252,20 +251,27 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
 /*--------------------------------------------------------------------------------------
  * v6_initialize -
  *
+ *  This initializes the v6 module
+ *-------------------------------------------------------------------------------------*/
+int v6_initialize(void)
+{
+    int status;
+
+    /* Initialize the Bundle Integrity Block Module */
+    status = bib_init();
+
+    /* Return Status */
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * v6_create -
+ *
  *  This initializes a bundle structure
  *-------------------------------------------------------------------------------------*/
-int v6_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes)
+int v6_create(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes)
 {
     int status = BP_SUCCESS;
-
-    /* Check Initialization of v6 Module */
-    if(!v6_init)
-    {
-        v6_init = true;
-
-        /* Initialize the Bundle Integrity Block Module */
-        status = bib_init();
-    }
 
     /* Initialize Route and Attributes */
     bundle->route = route;
@@ -292,11 +298,11 @@ int v6_initialize(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes)
 }
 
 /*--------------------------------------------------------------------------------------
- * v6_uninitialize -
+ * v6_destroy -
  *
  *  This initializes a bundle structure
  *-------------------------------------------------------------------------------------*/
-int v6_uninitialize(bp_bundle_t* bundle)
+int v6_destroy(bp_bundle_t* bundle)
 {
     if(bundle->blocks) free(bundle->blocks);
     bundle->blocks = NULL;    

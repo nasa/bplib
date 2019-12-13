@@ -128,6 +128,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
 {
     uint8_t* buffer = (uint8_t*)block;
     int bytes_read = 0;
+    uint16_t sdnvflags = 0;
 
     /* Check Size */
     if(size < 1) return BP_BUNDLEPARSEERR;
@@ -138,17 +139,18 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     /* Read Integrity Information */
     if(!update_indices)
     {
-        sdnv_read(buffer, size, &bib->block_flags, flags);
-        sdnv_read(buffer, size, &bib->block_length, flags);
-        sdnv_read(buffer, size, &bib->security_target_count, flags);
-        sdnv_read(buffer, size, &bib->security_target_type, flags);
-        sdnv_read(buffer, size, &bib->security_target_sequence, flags);
-        sdnv_read(buffer, size, &bib->cipher_suite_id, flags);
-        sdnv_read(buffer, size, &bib->cipher_suite_flags, flags);
-        bytes_read = sdnv_read(buffer, size, &bib->security_result_count, flags);
+        sdnv_read(buffer, size, &bib->block_flags, &sdnvflags);
+        sdnv_read(buffer, size, &bib->block_length, &sdnvflags);
+        sdnv_read(buffer, size, &bib->security_target_count, &sdnvflags);
+        sdnv_read(buffer, size, &bib->security_target_type, &sdnvflags);
+        sdnv_read(buffer, size, &bib->security_target_sequence, &sdnvflags);
+        sdnv_read(buffer, size, &bib->cipher_suite_id, &sdnvflags);
+        sdnv_read(buffer, size, &bib->cipher_suite_flags, &sdnvflags);
+        bytes_read = sdnv_read(buffer, size, &bib->security_result_count, &sdnvflags);
+        
         if (bytes_read + 1 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_type = buffer[bytes_read];
-        bytes_read = sdnv_read(buffer, size, &bib->security_result_length, flags);
+        bytes_read = sdnv_read(buffer, size, &bib->security_result_length, &sdnvflags);
     }
     else
     {
@@ -163,19 +165,19 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
         bib->security_result_length.width = 0;
 
         bib->block_flags.index = 1;
-        bib->block_length.index = sdnv_read(buffer, size, &bib->block_flags, flags);
-        bib->security_target_count.index = sdnv_read(buffer, size, &bib->block_length, flags);
-        bib->security_target_type.index = sdnv_read(buffer, size, &bib->security_target_count, flags);
-        bib->security_target_sequence.index = sdnv_read(buffer, size, &bib->security_target_type, flags);
-        bib->cipher_suite_id.index = sdnv_read(buffer, size, &bib->security_target_sequence, flags);
-        bib->cipher_suite_flags.index = sdnv_read(buffer, size, &bib->cipher_suite_id, flags);       
-        bib->security_result_count.index = sdnv_read(buffer, size, &bib->cipher_suite_flags, flags);
-        bytes_read = sdnv_read(buffer, size, &bib->security_result_count, flags);
+        bib->block_length.index             = sdnv_read(buffer, size, &bib->block_flags,                &sdnvflags);
+        bib->security_target_count.index    = sdnv_read(buffer, size, &bib->block_length,               &sdnvflags);
+        bib->security_target_type.index     = sdnv_read(buffer, size, &bib->security_target_count,      &sdnvflags);
+        bib->security_target_sequence.index = sdnv_read(buffer, size, &bib->security_target_type,       &sdnvflags);
+        bib->cipher_suite_id.index          = sdnv_read(buffer, size, &bib->security_target_sequence,   &sdnvflags);
+        bib->cipher_suite_flags.index       = sdnv_read(buffer, size, &bib->cipher_suite_id,            &sdnvflags);       
+        bib->security_result_count.index    = sdnv_read(buffer, size, &bib->cipher_suite_flags,         &sdnvflags);
+        bytes_read                          = sdnv_read(buffer, size, &bib->security_result_count,      &sdnvflags);
+        
         if (bytes_read + 1 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_type = buffer[bytes_read];
-        /* Reads the security_result length. */
         bib->security_result_length.index = bytes_read + 1;
-        bytes_read = sdnv_read(buffer, size, &bib->security_result_length, flags);
+        bytes_read = sdnv_read(buffer, size, &bib->security_result_length, &sdnvflags);
     }
 
     if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25 && bib->security_result_length.value == 2)
@@ -204,8 +206,15 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     }
 
     /* Success Oriented Error Checking */
-    if(*flags != 0) return BP_BUNDLEPARSEERR;
-    else            return bytes_read;
+    if(sdnvflags != 0)
+    {
+        *flags |= sdnvflags;
+        return BP_BUNDLEPARSEERR;
+    }
+    else
+    {
+        return bytes_read;
+    }
 }
 
 /*--------------------------------------------------------------------------------------
@@ -222,6 +231,7 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
 {
     uint8_t* buffer = (uint8_t*)block;
     int bytes_written = 0;
+    uint16_t sdnvflags = 0;
 
     /* Check Size */
     if(size < 1) return BP_BUNDLEPARSEERR;
@@ -233,14 +243,15 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     buffer[0] = BP_BIB_BLK_TYPE; /* block type */
     if(!update_indices)
     {
-        sdnv_write(buffer, size, bib->block_flags, flags);
-        sdnv_write(buffer, size, bib->block_length, flags); 
-        sdnv_write(buffer, size, bib->security_target_count, flags);
-        sdnv_write(buffer, size, bib->security_target_type, flags);
-        sdnv_write(buffer, size, bib->security_target_sequence, flags);
-        sdnv_write(buffer, size, bib->cipher_suite_id, flags);
-        sdnv_write(buffer, size, bib->cipher_suite_flags, flags);
-        bytes_written = sdnv_write(buffer, size, bib->security_result_count, flags);
+        sdnv_write(buffer, size, bib->block_flags,              &sdnvflags);
+        sdnv_write(buffer, size, bib->block_length,             &sdnvflags); 
+        sdnv_write(buffer, size, bib->security_target_count,    &sdnvflags);
+        sdnv_write(buffer, size, bib->security_target_type,     &sdnvflags);
+        sdnv_write(buffer, size, bib->security_target_sequence, &sdnvflags);
+        sdnv_write(buffer, size, bib->cipher_suite_id,          &sdnvflags);
+        sdnv_write(buffer, size, bib->cipher_suite_flags,       &sdnvflags);
+        bytes_written = sdnv_write(buffer, size, bib->security_result_count, &sdnvflags);
+
         if (bytes_written + 1 > size) return BP_BUNDLEPARSEERR;
         buffer[bytes_written] = bib->security_result_type;
     }
@@ -257,14 +268,15 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
         bib->security_result_length.width = 0;
 
         bib->block_flags.index = 1;
-        bib->block_length.index = sdnv_write(buffer, size, bib->block_flags, flags);
-        bib->security_target_count.index = sdnv_write(buffer, size, bib->block_length, flags);
-        bib->security_target_type.index = sdnv_write(buffer, size, bib->security_target_count, flags);
-        bib->security_target_sequence.index = sdnv_write(buffer, size, bib->security_target_type, flags);
-        bib->cipher_suite_id.index = sdnv_write(buffer, size, bib->security_target_sequence, flags);
-        bib->cipher_suite_flags.index = sdnv_write(buffer, size, bib->cipher_suite_id, flags);       
-        bib->security_result_count.index = sdnv_write(buffer, size, bib->cipher_suite_flags, flags);
-        bytes_written = sdnv_write(buffer, size, bib->security_result_count, flags);
+        bib->block_length.index             = sdnv_write(buffer, size, bib->block_flags,                &sdnvflags);
+        bib->security_target_count.index    = sdnv_write(buffer, size, bib->block_length,               &sdnvflags);
+        bib->security_target_type.index     = sdnv_write(buffer, size, bib->security_target_count,      &sdnvflags);
+        bib->security_target_sequence.index = sdnv_write(buffer, size, bib->security_target_type,       &sdnvflags);
+        bib->cipher_suite_id.index          = sdnv_write(buffer, size, bib->security_target_sequence,   &sdnvflags);
+        bib->cipher_suite_flags.index       = sdnv_write(buffer, size, bib->cipher_suite_id,            &sdnvflags);       
+        bib->security_result_count.index    = sdnv_write(buffer, size, bib->cipher_suite_flags,         &sdnvflags);
+        bytes_written                       = sdnv_write(buffer, size, bib->security_result_count,      &sdnvflags);
+        
         if (bytes_written + 1 > size) return BP_BUNDLEPARSEERR;
         buffer[bytes_written] = bib->security_result_type;
         bib->security_result_length.index = bytes_written + 1;
@@ -274,7 +286,7 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     {
         if (bytes_written + 2 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_length.value = 2; 
-        bytes_written = sdnv_write(buffer, size, bib->security_result_length, flags);
+        bytes_written = sdnv_write(buffer, size, bib->security_result_length, &sdnvflags);
         to_big_endian16(bib->security_result_data.crc16, buffer + bytes_written);
         bytes_written += 2;
     }
@@ -282,7 +294,7 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     {
         if (bytes_written + 4 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_length.value = 4;
-        bytes_written = sdnv_write(buffer, size, bib->security_result_length, flags);
+        bytes_written = sdnv_write(buffer, size, bib->security_result_length, &sdnvflags);
         to_big_endian32(bib->security_result_data.crc32, buffer + bytes_written);
         bytes_written += 4;
     }
@@ -292,11 +304,18 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     }
 
     bib->block_length.value = bytes_written - bib->security_target_count.index;
-    sdnv_write(buffer, size, bib->block_length, flags);
+    sdnv_write(buffer, size, bib->block_length, &sdnvflags);
 
     /* Success Oriented Error Checking */
-    if(*flags != 0) return BP_BUNDLEPARSEERR;
-    else            return bytes_written;
+    if(sdnvflags != 0)
+    {
+        *flags |= sdnvflags;
+        return BP_BUNDLEPARSEERR;
+    }
+    else
+    {   
+        return bytes_written;
+    }
 }
 
 /*--------------------------------------------------------------------------------------
@@ -334,9 +353,9 @@ int bib_update (void* block, int size, void* payload, int payload_size, bp_blk_b
         to_big_endian32(bib->security_result_data.crc32, valptr);
     }
 
-    /* Check for Errors */
-    if(*flags != 0) return BP_BUNDLEPARSEERR;
-    else            return BP_SUCCESS;
+    /* Return Success */
+    (void)flags; /* typically would check flags here */
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -353,8 +372,6 @@ int bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib, uint16_t* fl
     assert(payload);
     assert(bib);
     
-    (void)flags;
-
     /* Calculate and Verify Payload CRC */
     if(bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
@@ -376,5 +393,6 @@ int bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib, uint16_t* fl
     }
 
     /* Return Success */
+    (void)flags; /* typically would check flags here */
     return BP_SUCCESS;
 }
