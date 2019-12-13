@@ -165,12 +165,19 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         {
             blocks->primary_block.cstnode.value = 0;
             blocks->primary_block.cstserv.value = 0;
-        }
+        }        
         blocks->primary_block.lifetime.value    = bundle->attributes.lifetime;
         blocks->primary_block.is_admin_rec      = bundle->attributes.admin_record;
         blocks->primary_block.allow_frag        = bundle->attributes.allow_fragmentation;
         blocks->primary_block.cst_rqst          = bundle->attributes.request_custody;
-        blocks->primary_block.cos               = bundle->attributes.class_of_service;
+        if((unsigned)bundle->attributes.class_of_service > BP_COS_EXPEDITED)
+        {
+            blocks->primary_block.cos           = BP_COS_EXTENDED;
+        }
+        else
+        {
+            blocks->primary_block.cos           = bundle->attributes.class_of_service;
+        }
 
         /* Set Pre-Built Flag to TRUE */
         bundle->prebuilt = true;

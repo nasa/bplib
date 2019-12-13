@@ -98,6 +98,7 @@ extern "C" {
 #define BP_COS_BULK                     0
 #define BP_COS_NORMAL                   1
 #define BP_COS_EXPEDITED                2
+#define BP_COS_EXTENDED                 3
 
 /* Bundle Integrity Types */
 #define BP_BIB_NONE                     0
