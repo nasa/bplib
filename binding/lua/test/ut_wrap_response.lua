@@ -28,6 +28,7 @@ local sender = bplib.open(src_node, src_serv, dst_node, dst_serv, store, attribu
 
 local exp_stats = {   lost = 0,
                       expired = 0,
+                      unrecognized = 0,
                       transmitted_bundles = 0,
                       transmitted_dacs = 0,
                       retransmitted_bundles = 0,

@@ -191,7 +191,7 @@ static int create_dacs(bp_channel_t* ch, unsigned long sysnow, int timeout, uint
                     /* Save first failed DACS enqueue to return later */
                     ret_status = status;
                     *flags |= BP_FLAG_STOREFAILURE; 
-                    bplog(status, "Failed to store DACS for transmission, bundle dropped\n");
+                    ch->stats.lost++;
                 }
             }            
         }
@@ -961,6 +961,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         else if(status != BP_SUCCESS)
         {
             *flags |= BP_FLAG_STOREFAILURE;
+            ch->stats.lost++;
         }
     }
     else if(status == BP_PENDINGFORWARD)
@@ -983,7 +984,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     else
     {
         /* Increment Statistics */
-        ch->stats.lost++;        
+        ch->stats.unrecognized++;        
     }
     
 

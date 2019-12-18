@@ -216,8 +216,9 @@ typedef struct {
 /* Channel Statistics */
 typedef struct {
     /* Errors */
-    uint32_t    lost;                   /* storage, memory, or parsing failure (load, process, accept) */
+    uint32_t    lost;                   /* storage failure (load, process, accept) */
     uint32_t    expired;                /* bundles, dacs, and payloads with expired lifetime (load, process, accept) */
+    uint32_t    unrecognized;           /* unable to parse input OR bundle type not supported (process) */
     /* Data Flow */
     uint32_t    transmitted_bundles;    /* bundles sent for first time, does not includes re-sends (load) */
     uint32_t    transmitted_dacs;       /* dacs sent (load) */

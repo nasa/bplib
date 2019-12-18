@@ -951,6 +951,10 @@ int lbplib_stats (lua_State* L)
     lua_pushnumber(L, stats.expired);
     lua_settable(L, -3);
 
+    lua_pushstring(L, "unrecognized");
+    lua_pushnumber(L, stats.unrecognized);
+    lua_settable(L, -3);
+
     lua_pushstring(L, "transmitted_bundles");
     lua_pushnumber(L, stats.transmitted_bundles);
     lua_settable(L, -3);

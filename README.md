@@ -269,6 +269,8 @@ Retrieve channel statistics populated in the structure pointed to by _stats_.
 
 * __expired__: number of deleted bundles due to their lifetime expiring
 
+* __unrecognized__: number of bundles that were attempted to be processed but either could not be parsed or were of an unsupported type
+
 * __transmitted_bundles__: number of bundles returned by the `bplib_load` function for the first time (does not include retransmissions)
 
 * __transmitted_dacs__: number of dacs returned by the `bplib_load` function
