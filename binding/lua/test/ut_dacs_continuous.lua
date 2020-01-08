@@ -38,19 +38,24 @@ for i=1,num_bundles do
     -- store payload -- 
     rc, flags = sender:store(payload, 1000)
     runner.check(rc)
-    runner.check(bp.check_flags(flags, {}))
+    runner.check(bp.check_flags(flags, {}), "flags set on store")
 
     -- load bundle --
     rc, bundle, flags = sender:load(1000)
     runner.check(rc)
     runner.check(bundle ~= nil)
-    runner.check(bp.check_flags(flags, {}))
+    runner.check(bp.check_flags(flags, {}), "flags set on load")
 
     -- process bundle -- 
     rc, flags = receiver:process(bundle, 1000)
     runner.check(rc)
-    runner.check(bp.check_flags(flags, {}))
+    runner.check(bp.check_flags(flags, {}), "flags set on process")
 end
+
+do return end
+
+
+
 
 -- check stats -- 
 rc, stats = receiver:stats()

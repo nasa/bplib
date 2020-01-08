@@ -79,13 +79,6 @@ APP_OBJ     += ram.o
 APP_OBJ     += flash.o
 APP_OBJ     += flash_sim.o 
 
-# unit test objects #
-APP_OBJ     += ut_assert.o
-APP_OBJ     += unittest.o
-APP_OBJ     += ut_crc.o
-APP_OBJ     += ut_rb_tree.o
-APP_OBJ     += ut_rh_hash.o
-
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?= $(USER_DEFS)
 
@@ -123,6 +116,17 @@ CONFIG      ?= posix.mk
 
 # include configuration makefile to override and add to above definitions
 include $(CONFIG)
+
+
+# unit test objects #
+APP_OBJ     += unittest.o
+ifeq ($(BUILD_UNITTESTS),1)
+APP_OBJ     += ut_assert.o
+APP_OBJ     += ut_crc.o
+APP_OBJ     += ut_rb_tree.o
+APP_OBJ     += ut_rh_hash.o
+APP_OBJ     += ut_flash.o
+endif
 
 ###############################################################################
 ##  DEFINES

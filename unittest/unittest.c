@@ -28,6 +28,7 @@
 extern int ut_crc (void);
 extern int ut_rb_tree (void);
 extern int ut_rh_hash (void);
+extern int ut_flash (void);
 
 /******************************************************************************
  EXPORTED FUNCTIONS
@@ -37,9 +38,10 @@ int bplib_unittest (void)
 {
 #ifdef UNITTESTS
     /* Run Unit Tests */
-    ut_crc();
-    ut_rb_tree();
-    ut_rh_hash();
+//    ut_crc();
+//    ut_rb_tree();
+//    ut_rh_hash();
+    ut_flash();
 
     /* Return Failures */
     return ut_failures();

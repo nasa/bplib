@@ -29,7 +29,9 @@ APP_OBJ += posix.o
 O = 0
 
 # Build Unit Tests #
+BUILD_UNITTESTS=1
 APP_COPT += -DUNITTESTS
+APP_COPT += -DBP_LOCAL_SCOPE="" # removes static designator so that local functions can be unit tested
 
 # GNU Code Coverage # 
 APP_COPT += -fprofile-arcs -ftest-coverage

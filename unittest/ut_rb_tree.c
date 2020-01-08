@@ -15,7 +15,6 @@
  *  Joe-Paul Swinski, Code 582 NASA GSFC
  *
  *************************************************************************/
-#ifdef UNITTESTS
 
 /******************************************************************************
  INCLUDES
@@ -1438,6 +1437,3 @@ int ut_rb_tree (void)
 
     return ut_failures();
 }
-
-#endif /* UNITTESTS */
-
