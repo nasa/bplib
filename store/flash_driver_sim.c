@@ -55,9 +55,9 @@ flash_driver_device_t flash_driver_device;
  EXPORTED FUNCTIONS
  ******************************************************************************/
 /*--------------------------------------------------------------------------------------
- * flash_driver_initialize -
+ * bplib_flash_sim_initialize -
  *-------------------------------------------------------------------------------------*/
-int flash_driver_initialize (void)
+int bplib_flash_sim_initialize (void)
 {
     int b, p;
 
@@ -83,9 +83,9 @@ int flash_driver_initialize (void)
 }
 
 /*--------------------------------------------------------------------------------------
- * flash_driver_page_read -
+ * bplib_flash_sim_page_read -
  *-------------------------------------------------------------------------------------*/
-int flash_driver_page_read (bp_flash_addr_t addr, void* data, int size)
+int bplib_flash_sim_page_read (bp_flash_addr_t addr, void* data, int size)
 {
     if(addr.type == BP_FLASH_DATA_TYPE)
     {
@@ -107,9 +107,9 @@ int flash_driver_page_read (bp_flash_addr_t addr, void* data, int size)
 }
 
 /*--------------------------------------------------------------------------------------
- * flash_driver_page_write -
+ * bplib_flash_sim_page_write -
  *-------------------------------------------------------------------------------------*/
-int flash_driver_page_write (bp_flash_addr_t addr, void* data, int size)
+int bplib_flash_sim_page_write (bp_flash_addr_t addr, void* data, int size)
 {
     int i;
     uint8_t* byte_ptr = (uint8_t*)data;
@@ -140,9 +140,9 @@ int flash_driver_page_write (bp_flash_addr_t addr, void* data, int size)
 }
 
 /*--------------------------------------------------------------------------------------
- * flash_driver_block_erase -
+ * bplib_flash_sim_block_erase -
  *-------------------------------------------------------------------------------------*/
-int flash_driver_block_erase (bp_flash_index_t block)
+int bplib_flash_sim_block_erase (bp_flash_index_t block)
 {
     int p;
 

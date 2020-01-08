@@ -32,7 +32,7 @@ extern "C" {
  DEFINES
  ******************************************************************************/
 
-#define FLASH_DRIVER_NUM_BLOCKS         2048
+#define FLASH_DRIVER_NUM_BLOCKS         256
 #define FLASH_DRIVER_PAGES_PER_BLOCK    128
 #define FLASH_DRIVER_DATA_SIZE          4096
 #define FLASH_DRIVER_SPARE_SIZE         128
@@ -41,9 +41,10 @@ extern "C" {
  PROTOTYPES
  ******************************************************************************/
 
-int     flash_driver_page_read      (bp_flash_addr_t addr, void* data, int size);
-int     flash_driver_page_write     (bp_flash_addr_t addr, void* data, int size);
-int     flash_driver_block_erase    (bp_flash_index_t block);
+int bplib_flash_sim_initialize  (void);
+int bplib_flash_sim_page_read   (bp_flash_addr_t addr, void* data, int size);
+int bplib_flash_sim_page_write  (bp_flash_addr_t addr, void* data, int size);
+int bplib_flash_sim_block_erase (bp_flash_index_t block);
 
 #ifdef __cplusplus
 } // extern "C"

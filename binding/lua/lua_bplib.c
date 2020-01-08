@@ -24,6 +24,8 @@
 #include "bplib.h"
 #include "bplib_store_ram.h"
 #include "bplib_store_file.h"
+#include "bplib_store_flash.h"
+#include "bplib_flash_sim.h"
 
 #ifdef _WINDOWS_
 #include <windows.h>
@@ -158,6 +160,20 @@ static const lbplib_store_t lbplib_stores[] =
             .relinquish = bplib_store_file_relinquish,
             .getcount   = bplib_store_file_getcount,
         }
+    },
+    {
+        .name = "FLASH",
+        .store = 
+        {
+            .create     = bplib_store_flash_create,
+            .destroy    = bplib_store_flash_destroy,
+            .enqueue    = bplib_store_flash_enqueue,
+            .dequeue    = bplib_store_flash_dequeue,
+            .retrieve   = bplib_store_flash_retrieve,
+            .release    = bplib_store_flash_release,
+            .relinquish = bplib_store_flash_relinquish,
+            .getcount   = bplib_store_flash_getcount,
+        }
     }
 };
 
@@ -285,6 +301,25 @@ int luaopen_bplib (lua_State *L)
 {
     /* Initialize Bundle Protocol Library */
     bplib_init();
+
+    /* Initialize RAM Storage Services */
+    bplib_store_ram_init();
+
+    /* Initialize FILE Storage Services */
+    bplib_store_file_init();
+
+    /* Initialize FLASH Storage Services */
+    bp_flash_driver_t flash_driver = {
+        .num_blocks = FLASH_DRIVER_NUM_BLOCKS,
+        .pages_per_block = FLASH_DRIVER_PAGES_PER_BLOCK,
+        .data_size = FLASH_DRIVER_DATA_SIZE,
+        .spare_size = FLASH_DRIVER_SPARE_SIZE,
+        .read = bplib_flash_sim_page_read,
+        .write = bplib_flash_sim_page_write,
+        .erase = bplib_flash_sim_block_erase
+    };
+    bplib_flash_sim_initialize();
+    bplib_store_flash_init(flash_driver);
     
     /* Initialize Errno */
     set_errno(L, 0);

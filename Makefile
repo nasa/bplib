@@ -77,7 +77,6 @@ APP_OBJ     += sdnv.o
 APP_OBJ     += file.o
 APP_OBJ     += ram.o
 APP_OBJ     += flash.o
-APP_OBJ     += flash_driver_sim.o
 
 # unit test objects #
 APP_OBJ     += ut_assert.o
