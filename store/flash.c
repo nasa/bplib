@@ -99,7 +99,7 @@ static flash_free_blocks_t  flash_free_blocks;
 
 /******************************************************************************
  LOCAL FUNCTIONS
- ******************************************************************************/}
+ ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
  * flash_free_reclaim -
@@ -210,7 +210,7 @@ static int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int size)
 
         /* Write Data into Page */
         int bytes_to_copy = bytes_left < FLASH_DRIVER.data_size ? bytes_left : FLASH_DRIVER.data_size;
-        int status = FLASH_DRIVER.write(*addr, &data[data_index], bytes_to_copy);
+        status = FLASH_DRIVER.write(*addr, &data[data_index], bytes_to_copy);
         if(status == BP_SUCCESS)
         {
             data_index += bytes_to_copy;
@@ -284,7 +284,7 @@ static int flash_data_delete (bp_flash_addr_t* addr, int size)
     
     flash_free_control_t control = {BP_FLASH_INVALID_INDEX, {0}};
     bp_flash_index_t current_block = BP_FLASH_INVALID_INDEX;
-    int current_block_free_pages = 0;
+    unsigned int current_block_free_pages = 0;
     int bytes_left = size;
     
     while(bytes_left > 0)
@@ -292,9 +292,8 @@ static int flash_data_delete (bp_flash_addr_t* addr, int size)
         /* Check if Page Available to Delete */
         if(addr->page == FLASH_DRIVER.pages_per_block)
         {
-            flash_data_control_t control;
             bp_flash_addr_t page_addr = {addr->block, FLASH_MASTER_DATA_PAGE, BP_FLASH_SPARE_TYPE};
-            int status = FLASH_DRIVER.read(page_addr, &control, sizeof(control));
+            status = FLASH_DRIVER.read(page_addr, &control, sizeof(control));
             if(status == BP_SUCCESS)
             {
                 addr->block = control.next_block;
@@ -333,7 +332,7 @@ static int flash_data_delete (bp_flash_addr_t* addr, int size)
             }
             
             /* Count Number of Free Pages */
-            int byte_index, bit_index;
+            unsigned int byte_index, bit_index;
             current_block_free_pages = 0;
             for(byte_index = 0; byte_index < (FLASH_DRIVER.pages_per_block / 8); byte_index++)
             {
@@ -404,7 +403,7 @@ static int flash_object_read (flash_store_t* fs, bp_flash_addr_t* addr, bp_objec
             uint64_t sid = FLASH_GET_SID(*addr);       
             int cache_index = FLASH_GET_CACHE_INDEX(sid, fs->attributes);
             bp_object_t* object_hdr = (bp_object_t*)&fs->data_cache[cache_index];
-            if(object_hdr->sid == sid)
+            if((uint64_t)object_hdr->sid == sid)
             {
                 /* Cache Hit */
                 memcpy(fs->object_stage, object_hdr, object_hdr->size + sizeof(bp_object_t));
@@ -617,8 +616,8 @@ int bplib_store_flash_enqueue (int handle, void* data1, int data1_size, void* da
         if(status == BP_SUCCESS)
         {
             /* Check if Room Available */
-            uint64 bytes_available = flash_free_blocks.count * FLASH_DRIVER.pages_per_block * FLASH_DRIVER.data_size;
-            uint64 bytes_needed = sizeof(bp_object_t) + data1_size + data2_size;
+            int bytes_available = flash_free_blocks.count * FLASH_DRIVER.pages_per_block * FLASH_DRIVER.data_size;
+            int bytes_needed = sizeof(bp_object_t) + data1_size + data2_size;
             if(bytes_available >= bytes_needed && fs->attributes.max_data_size >= bytes_needed)
             {            
                 /* Calculate Object Information */
@@ -632,7 +631,7 @@ int bplib_store_flash_enqueue (int handle, void* data1, int data1_size, void* da
                 if(data2) memcpy(&fs->data_cache[cache_index + sizeof(object_hdr) + data1_size], data2, data2_size);
 
                 /* Write Data into Flash */
-                status = flash_data_write(fs, &fs->data_cache[cache_index], bytes_needed);
+                status = flash_data_write(&fs->write_addr, &fs->data_cache[cache_index], bytes_needed);
                 if(status == BP_SUCCESS)
                 {
                     fs->object_count++;
@@ -690,7 +689,7 @@ int bplib_store_flash_retrieve (int handle, bp_sid_t sid, bp_object_t** object, 
     
     bplib_os_lock(flash_device_lock);
     {          
-        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK(sid), FLASH_GET_PAGE(sid), BP_FLASH_DATA_TYPE};
+        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid), BP_FLASH_DATA_TYPE};
         status = flash_object_read(fs, &page_addr, object);
     }
     bplib_os_unlock(flash_device_lock);
@@ -707,8 +706,16 @@ int bplib_store_flash_release (int handle, bp_sid_t sid)
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
     assert(flash_stores[handle].in_use);
     
-    flash_store_t* fs = (flash_store_t*)&flash_stores[handle];
-    
+    flash_store_t* fs = (flash_store_t*)&flash_stores[handle];    
+
+    /* Check SID Matches */
+    bp_object_t* object = (bp_object_t*)fs->object_stage;
+    if(object->sid != sid)
+    {
+        return bplog(BP_FAILEDSTORE, "Object being released does not have correct SID, requested: %llu, actual: %llu\n", (uint64_t)sid, (uint64_t)object->sid);
+    }
+
+    /* Unlock Stage */
     fs->stage_locked = false;
     
     /* Return Success */
@@ -731,12 +738,12 @@ int bplib_store_flash_relinquish (int handle, bp_sid_t sid)
         /* Check and Clear Cache */
         int cache_index = FLASH_GET_CACHE_INDEX((uint64_t)sid, fs->attributes);
         bp_object_t* cache_object_hdr = (bp_object_t*)&fs->data_cache[cache_index];
-        if(cache_object_hdr->sid == sid) object_hdr->sid = BP_SID_VACANT;
+        if(cache_object_hdr->sid == sid) cache_object_hdr->sid = BP_SID_VACANT;
         
         /* Retrieve Object Header */
         bp_object_t flash_object_hdr;
-        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK(sid), FLASH_GET_PAGE(sid), BP_FLASH_DATA_TYPE};
-        status = flash_data_read(&page_addr, &flash_object_hdr, sizeof(flash_object_hdr));
+        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid), BP_FLASH_DATA_TYPE};
+        status = flash_data_read(&page_addr, (uint8_t*)&flash_object_hdr, sizeof(flash_object_hdr));
         if(status == BP_SUCCESS)
         {
             /* Delete Pages Containing Object */

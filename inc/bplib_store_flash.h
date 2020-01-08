@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef _flash_store_h_
-#define _flash_store_h_
+#ifndef _bplib_store_flash_h_
+#define _bplib_store_flash_h_
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,13 +48,13 @@ typedef struct {
     int                 type;
 } bp_flash_addr_t;
 
-typedef int (*bp_flash_page_read_t)     (bp_flash_addr_t addr, void** data, int* size);
+typedef int (*bp_flash_page_read_t)     (bp_flash_addr_t addr, void* data, int size);
 typedef int (*bp_flash_page_write_t)    (bp_flash_addr_t addr, void* data, int size);
 typedef int (*bp_flash_block_erase_t)   (bp_flash_index_t block);
 
 typedef struct {
-    int                     num_blocks;
-    int                     pages_per_block;
+    bp_flash_index_t        num_blocks;
+    bp_flash_index_t        pages_per_block;
     int                     data_size; /* bytes */
     int                     spare_size; /* bytes */
     bp_flash_page_read_t    read;
@@ -88,4 +88,4 @@ int     bplib_store_flash_getcount      (int handle);
 } // extern "C"
 #endif 
 
-#endif /* _flash_store_h_ */
+#endif /* _bplib_store_flash_h_ */
