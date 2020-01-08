@@ -1,5 +1,5 @@
 /************************************************************************
- * File: flash_driver_sim.h
+ * File: bplib_flash_sim.h
  *
  *  Copyright 2019 United States Government as represented by the 
  *  Administrator of the National Aeronautics and Space Administration. 
@@ -15,8 +15,8 @@
  *
  *************************************************************************/
 
-#ifndef _flash_driver_sim_h_
-#define _flash_driver_sim_h_
+#ifndef _bplib_flash_sim_h_
+#define _bplib_flash_sim_h_
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,10 +32,10 @@ extern "C" {
  DEFINES
  ******************************************************************************/
 
-#define FLASH_DRIVER_NUM_BLOCKS         256
-#define FLASH_DRIVER_PAGES_PER_BLOCK    128
-#define FLASH_DRIVER_DATA_SIZE          4096
-#define FLASH_DRIVER_SPARE_SIZE         128
+#define FLASH_SIM_NUM_BLOCKS        256
+#define FLASH_SIM_PAGES_PER_BLOCK   128
+#define FLASH_SIM_DATA_SIZE         4096
+#define FLASH_SIM_SPARE_SIZE        128
 
 /******************************************************************************
  PROTOTYPES
@@ -50,4 +50,4 @@ int bplib_flash_sim_block_erase (bp_flash_index_t block);
 } // extern "C"
 #endif 
 
-#endif /* _flash_driver_sim_h_ */
+#endif /* _bplib_flash_sim_h_ */

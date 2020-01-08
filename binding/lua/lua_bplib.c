@@ -310,10 +310,10 @@ int luaopen_bplib (lua_State *L)
 
     /* Initialize FLASH Storage Services */
     bp_flash_driver_t flash_driver = {
-        .num_blocks = FLASH_DRIVER_NUM_BLOCKS,
-        .pages_per_block = FLASH_DRIVER_PAGES_PER_BLOCK,
-        .data_size = FLASH_DRIVER_DATA_SIZE,
-        .spare_size = FLASH_DRIVER_SPARE_SIZE,
+        .num_blocks = FLASH_SIM_NUM_BLOCKS,
+        .pages_per_block = FLASH_SIM_PAGES_PER_BLOCK,
+        .data_size = FLASH_SIM_DATA_SIZE,
+        .spare_size = FLASH_SIM_SPARE_SIZE,
         .read = bplib_flash_sim_page_read,
         .write = bplib_flash_sim_page_write,
         .erase = bplib_flash_sim_block_erase

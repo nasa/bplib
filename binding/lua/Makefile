@@ -27,16 +27,13 @@ LUA_VERSION	:= 5.3
 	
 # object files
 LUA_OBJ     := lua_bplib.o
-LUA_OBJ     += flash_driver_sim.o
 
 # search path for extension objects (note this is a make system variable)
 VPATH	    := $(ROOT)
-VPATH	    += $(ROOT)/../../store
 
 # compiler options for search path for include headers (in form of -I_header_)  
 INCLUDES    := -I$(ROOT)
 INCLUDES    += -I$(ROOT)/../../inc
-INCLUDES    += -I$(ROOT)/../../store
 INCLUDES    += -I/usr/include/lua$(LUA_VERSION)
 
 # c compiler and linker used for c file extensions
