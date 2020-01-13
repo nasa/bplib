@@ -29,18 +29,16 @@
 /* Configurable Options */
 
 #ifndef FLASH_MAX_STORES
-#define FLASH_MAX_STORES            24
+#define FLASH_MAX_STORES                    24
 #endif
 
 #ifndef FLASH_MAX_PAGES_PER_BLOCK
-#define FLASH_MAX_PAGES_PER_BLOCK   128
+#define FLASH_MAX_PAGES_PER_BLOCK           128
 #endif
 
 /* Local Definitions */
 
-#define FLASH_BUFFER                1
-#define FLASH_USE_EDAC              0
-#define FLASH_PAGE_USE_BYTES        (FLASH_MAX_PAGES_PER_BLOCK / 8)
+#define FLASH_PAGE_USE_BYTES                (FLASH_MAX_PAGES_PER_BLOCK / 8)
 
 /******************************************************************************
  MACROS
@@ -56,19 +54,16 @@
  ******************************************************************************/
 
 typedef struct {
+    bp_flash_index_t    next_block;
+    bp_flash_index_t    prev_block;
+    uint8_t             page_use[FLASH_PAGE_USE_BYTES];
+} flash_block_control_t;
+
+typedef struct {
     bp_flash_index_t    out;
     bp_flash_index_t    in;
     int                 count;
-} flash_free_blocks_t;
-
-typedef struct {
-    bp_flash_index_t    next_block;
-    uint8_t             page_use[FLASH_PAGE_USE_BYTES];
-} flash_free_control_t;
-
-typedef struct {
-    bp_flash_index_t    next_block;
-} flash_data_control_t;
+} flash_block_list_t;
 
 typedef struct {
     bool                in_use;
@@ -87,15 +82,14 @@ typedef struct {
 
 /* Constants - set only in initialization function */
 
-static bp_flash_driver_t    FLASH_DRIVER;
-static bp_flash_index_t     FLASH_MASTER_FREE_PAGE;
-static bp_flash_index_t     FLASH_MASTER_DATA_PAGE;
+static bp_flash_driver_t        FLASH_DRIVER;
 
 /* Globals */
 
-static flash_store_t        flash_stores[FLASH_MAX_STORES];
-static int                  flash_device_lock;
-static flash_free_blocks_t  flash_free_blocks;
+static flash_store_t            flash_stores[FLASH_MAX_STORES];
+static int                      flash_device_lock;
+static flash_block_list_t       flash_free_blocks;
+static flash_block_control_t*   flash_blocks;
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -106,33 +100,36 @@ static flash_free_blocks_t  flash_free_blocks;
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
 {
-    int status;
-    
-    /* Erase Block */
-    status = FLASH_DRIVER.erase(block);
-    if(status == BP_SUCCESS)
+    int status = BP_ERROR;
+
+    /* Check if Block Bad */
+    if(!FLASH_DRIVER.is_bad(block))
     {
         if(flash_free_blocks.out == BP_FLASH_INVALID_INDEX)
         {
             /* First Block Successfully Reclaimed */
             flash_free_blocks.out = block;
-            flash_free_blocks.in = block;
-            flash_free_blocks.count++;
         }
         else
         {
-            /* Insert In Free Block List */
-            flash_free_control_t control = {block, {0}};
-            bp_flash_addr_t page_addr = {flash_free_blocks.in, FLASH_MASTER_FREE_PAGE, BP_FLASH_SPARE_TYPE};
-            status = FLASH_DRIVER.write(page_addr, &control, sizeof(control));
-            if(status == BP_SUCCESS)
-            {
-                flash_free_blocks.in = block;
-                flash_free_blocks.count++;
-            }
+            /* Link from Previous Free Block  */
+            flash_blocks[flash_free_blocks.in].next_block = block;
         }
+
+        /* Add Block to Free List */
+        flash_free_blocks.in = block;
+        flash_free_blocks.count++;
+
+        /* Set Status to Success */
+        status = BP_SUCCESS;
     }
     
+    /* Reset Flash Block Control */
+    memset(flash_blocks[block].page_use, 0xFF, sizeof(flash_blocks[block].page_use));
+    flash_blocks[block].next_block = BP_FLASH_INVALID_INDEX;
+    flash_blocks[block].prev_block = BP_FLASH_INVALID_INDEX;
+
+    /* Return Status */
     return status;
 }
 
@@ -144,27 +141,14 @@ BP_LOCAL_SCOPE int flash_free_allocate (bp_flash_index_t* block)
     /* Check if Block Available */
     if(flash_free_blocks.out == BP_FLASH_INVALID_INDEX)
     {
-        return bplog(BP_FAILEDSTORE, "No more free blocks available\n");
+        return bplog(BP_FAILEDSTORE, "No free blocks available\n");
     }
 
-    /* Read Control Information from End of Free Block List */
-    flash_free_control_t control;
-    bp_flash_addr_t page_addr = {flash_free_blocks.out, FLASH_MASTER_FREE_PAGE, BP_FLASH_SPARE_TYPE};
-    int status = FLASH_DRIVER.read(page_addr, &control, sizeof(control));
-    if(status != BP_SUCCESS) return bplog(BP_FAILEDSTORE, "Failed to read free block information: %d\n", status);
-    
     /* Return Block and Update List */
     *block = flash_free_blocks.out;
-    flash_free_blocks.out = control.next_block;
+    flash_free_blocks.out = flash_blocks[flash_free_blocks.out].next_block;
     flash_free_blocks.count--;
     
-    /* Check for Empty List */
-    if(flash_free_blocks.count <= 0)
-    {
-        flash_free_blocks.out = BP_FLASH_INVALID_INDEX;
-        flash_free_blocks.in = BP_FLASH_INVALID_INDEX;        
-    }
-
     return BP_SUCCESS;
 }
 
@@ -183,23 +167,14 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
         /* Check if Page Available to Write */
         if(addr->page == FLASH_DRIVER.pages_per_block)
         {
-            bp_flash_index_t next_write_block = addr->block;
+            bp_flash_index_t next_write_block;
             status = flash_free_allocate(&next_write_block);
             if(status == BP_SUCCESS)
             {
-                flash_data_control_t control = {addr->block};
-                bp_flash_addr_t page_addr = {addr->block, FLASH_MASTER_DATA_PAGE, BP_FLASH_SPARE_TYPE};
-                status = FLASH_DRIVER.write(page_addr, &control, sizeof(control));
-                if(status == BP_SUCCESS)
-                {
-                    addr->block = next_write_block;
-                    addr->page = 0;
-                }
-                else
-                {
-                    /* Next Block Write Failed */
-                    return bplog(status, "Failed to write master data page in middle of flash write at block: %ld\n", addr->block);
-                }
+                flash_blocks[addr->block].next_block = next_write_block;
+                flash_blocks[next_write_block].prev_block = addr->block;
+                addr->block = next_write_block;
+                addr->page = 0;
             }
             else
             {
@@ -241,19 +216,16 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
         /* Check if Page Available to Read */
         if(addr->page == FLASH_DRIVER.pages_per_block)
         {
-            flash_data_control_t control;
-            bp_flash_addr_t page_addr = {addr->block, FLASH_MASTER_DATA_PAGE, BP_FLASH_SPARE_TYPE};
-            int status = FLASH_DRIVER.read(page_addr, &control, sizeof(control));
-            if(status == BP_SUCCESS)
-            {
-                addr->block = control.next_block;
-                addr->page = 0;
-            }
-            else
+            bp_flash_index_t next_read_block = flash_blocks[addr->block].next_block;            
+            if(next_read_block == BP_FLASH_INVALID_INDEX)            
             {
                 /* Next Block Retrieval Failed */
-                return bplog(status, "Failed in middle of flash read at block: %ld\n", addr->block);
+                return bplog(BP_ERROR, "Failed to retrieve next block in middle of flash read at block: %ld\n", addr->block);
             }
+
+            /* Goto Next Read Block */
+            addr->block = next_read_block;
+            addr->page = 0;
         }            
 
         /* Read Data from Page */
@@ -282,7 +254,6 @@ BP_LOCAL_SCOPE int flash_data_delete (bp_flash_addr_t* addr, int size)
 {
     int status;
     
-    flash_free_control_t control = {BP_FLASH_INVALID_INDEX, {0}};
     bp_flash_index_t current_block = BP_FLASH_INVALID_INDEX;
     unsigned int current_block_free_pages = 0;
     int bytes_left = size;
@@ -292,53 +263,31 @@ BP_LOCAL_SCOPE int flash_data_delete (bp_flash_addr_t* addr, int size)
         /* Check if Page Available to Delete */
         if(addr->page == FLASH_DRIVER.pages_per_block)
         {
-            bp_flash_addr_t page_addr = {addr->block, FLASH_MASTER_DATA_PAGE, BP_FLASH_SPARE_TYPE};
-            status = FLASH_DRIVER.read(page_addr, &control, sizeof(control));
-            if(status == BP_SUCCESS)
-            {
-                addr->block = control.next_block;
-                addr->page = 0;
-            }
-            else
+            bp_flash_index_t next_delete_block = flash_blocks[addr->block].next_block;            
+            if(next_delete_block == BP_FLASH_INVALID_INDEX)            
             {
                 /* Next Block Retrieval Failed */
-                return bplog(status, "Failed in middle of flash delete at block: %ld\n", addr->block);
+                return bplog(BP_ERROR, "Failed to retrieve next block in middle of flash delete at block: %ld\n", addr->block);
             }
+
+            /* Goto Next Block to Delete */
+            addr->block = next_delete_block;
+            addr->page = 0;
         }            
 
-        /* Page Control Information */
+        /* Count Number of Free Pages in Current Block */
         if(current_block != addr->block)
         {
-            bp_flash_addr_t page_addr = {BP_FLASH_INVALID_INDEX, FLASH_MASTER_FREE_PAGE, BP_FLASH_SPARE_TYPE};
-
-            /* Write Out Previous Blocks Control Information */
-            if(control.next_block == BP_FLASH_INVALID_INDEX)
-            {
-                page_addr.block = current_block;
-                status = FLASH_DRIVER.write(page_addr, &control, sizeof(control));
-                if(status != BP_SUCCESS)
-                {
-                    return bplog(BP_FAILEDSTORE, "Failed to write free page information at block: %ld\n", current_block);
-                }
-            }
-            
-            /* Get Next Block's Control Information */
             current_block = addr->block;
-            page_addr.block = current_block;
-            status = FLASH_DRIVER.read(page_addr, &control, sizeof(control));
-            if(status != BP_SUCCESS)
-            {
-                return bplog(BP_FAILEDSTORE, "Failed to read free page information at block: %ld\n", current_block);
-            }
-            
-            /* Count Number of Free Pages */
+
+            /* Iterate over Page Use Array and Count '0' Bits */
             unsigned int byte_index, bit_index;
             current_block_free_pages = 0;
             for(byte_index = 0; byte_index < (FLASH_DRIVER.pages_per_block / 8); byte_index++)
             {
                 for(bit_index = 0; bit_index < 8; bit_index++)
                 {
-                    if(control.page_use[byte_index] & (0x80 >> bit_index))
+                    if(flash_blocks[current_block].page_use[byte_index] & (0x80 >> bit_index))
                     {
                         current_block_free_pages++;
                     }
@@ -349,8 +298,12 @@ BP_LOCAL_SCOPE int flash_data_delete (bp_flash_addr_t* addr, int size)
         /* Mark Data on Page as Deleted */
         int byte_offset = addr->page / 8;
         int bit_offset = addr->page % 8;
-        control.page_use[byte_offset] &= ~(0x80 >> bit_offset);
-        current_block_free_pages++;
+        uint8_t bit_byte = 0x80 >> bit_offset;
+        if(flash_blocks[addr->block].page_use[byte_offset] & bit_byte)
+        {
+            flash_blocks[addr->block].page_use[byte_offset] &= ~bit_byte;
+            current_block_free_pages++;
+        }
                         
         /* Update Bytes Left and Address */
         int bytes_to_delete = bytes_left < FLASH_DRIVER.data_size ? bytes_left : FLASH_DRIVER.data_size;
@@ -360,29 +313,22 @@ BP_LOCAL_SCOPE int flash_data_delete (bp_flash_addr_t* addr, int size)
         /* Check if Block can be Erased */
         if(current_block_free_pages >= FLASH_DRIVER.pages_per_block)
         {
-            /* Check Page Consistency */
-            if(bytes_left != 0 && addr->page != FLASH_DRIVER.pages_per_block)
-            {
-                bplog(BP_FAILEDSTORE, "Inconsistent page %ld.%ld - block is erasable, yet page contains data\n", addr->block, addr->page);
-            }
-            
+            /* Bridge Over Block */
+            bp_flash_index_t prev_block = flash_blocks[current_block].prev_block;
+            bp_flash_index_t next_block = flash_blocks[current_block].next_block;
+            if(prev_block != BP_FLASH_INVALID_INDEX) flash_blocks[prev_block].next_block = next_block;
+            if(next_block != BP_FLASH_INVALID_INDEX) flash_blocks[next_block].prev_block = prev_block;
+
             /* Reclaim Block as Free */
             status = flash_free_reclaim (current_block);
             if(status != BP_SUCCESS)
             {
-                bplog(BP_FAILEDSTORE, "Failed (%d) to reclaim block %ld as a free block\n", status, addr->block);                
+                bplog(BP_FAILEDSTORE, "Failed (%d) to reclaim block %ld as a free block\n", status, current_block);                
             }
         }
     }
 
-    /* Write Last Block's Control Information */
-    bp_flash_addr_t page_addr = {current_block, FLASH_MASTER_FREE_PAGE, BP_FLASH_SPARE_TYPE};
-    status = FLASH_DRIVER.write(page_addr, &control, sizeof(control));
-    if(status != BP_SUCCESS)
-    {
-        return bplog(BP_FAILEDSTORE, "Failed (%d) to write free page information at block: %ld\n", status, current_block);
-    }
-    
+    /* Return Success */
     return BP_SUCCESS;
 }
 
@@ -454,7 +400,7 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, bp_flash_addr_t* addr, 
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_init -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_init (bp_flash_driver_t driver)
+int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode)
 {
     /* Initialize Flash Stores to Zero */
     memset(flash_stores, 0, sizeof(flash_stores));
@@ -473,20 +419,28 @@ int bplib_store_flash_init (bp_flash_driver_t driver)
     flash_free_blocks.out = BP_FLASH_INVALID_INDEX;
     flash_free_blocks.in = BP_FLASH_INVALID_INDEX;
     flash_free_blocks.count = 0;
-
-    /* Initialize Flash Master Pages */
-    FLASH_MASTER_FREE_PAGE = driver.pages_per_block - 2;
-    FLASH_MASTER_DATA_PAGE = driver.pages_per_block - 1;
     
-    /* Format Flash - Iterate over all Blocks */
-    int reclaimed_blocks = 0;
-    bp_flash_index_t block;
-    for(block = 0; block < FLASH_DRIVER.num_blocks; block++)
+    /* Allocate Memory for Block Control */
+    flash_blocks = (flash_block_control_t*)malloc(sizeof(flash_block_control_t) * FLASH_DRIVER.num_blocks);
+    if(flash_blocks == NULL)
     {
-        int status = flash_free_reclaim(block);
-        if(status == BP_SUCCESS) reclaimed_blocks++;
+        bplib_os_destroylock(flash_device_lock);
+        return bplog(BP_FAILEDMEM, "Unable to allocate memory for flash block control information\n");
     }
-    
+
+    /* Format Flash for Use */
+    int reclaimed_blocks = 0;
+    if(init_mode == BP_FLASH_INIT_FORMAT)
+    {
+        /* Build Free Block List */
+        bp_flash_index_t block;
+        for(block = 0; block < FLASH_DRIVER.num_blocks; block++)
+        {
+            int status = flash_free_reclaim(block);
+            if(status == BP_SUCCESS) reclaimed_blocks++;
+        }
+    }
+        
     /* Return Number of Reclaimed Blocks */
     return reclaimed_blocks;
 }
@@ -533,10 +487,8 @@ int bplib_store_flash_create (void* parm)
             /* Initialize Read/Write Pointers */
             flash_stores[s].write_addr.block    = BP_FLASH_INVALID_INDEX;
             flash_stores[s].write_addr.page     = 0;
-            flash_stores[s].write_addr.type     = BP_FLASH_DATA_TYPE;            
             flash_stores[s].read_addr.block     = BP_FLASH_INVALID_INDEX;
             flash_stores[s].read_addr.page      = 0;
-            flash_stores[s].read_addr.type      = BP_FLASH_DATA_TYPE;
 
             /* Allocate Cache */   
             int data_cache_size = flash_stores[s].attributes.cache_size * flash_stores[s].attributes.max_data_size;
@@ -689,7 +641,7 @@ int bplib_store_flash_retrieve (int handle, bp_sid_t sid, bp_object_t** object, 
     
     bplib_os_lock(flash_device_lock);
     {          
-        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid), BP_FLASH_DATA_TYPE};
+        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid)};
         status = flash_object_read(fs, &page_addr, object);
     }
     bplib_os_unlock(flash_device_lock);
@@ -742,7 +694,7 @@ int bplib_store_flash_relinquish (int handle, bp_sid_t sid)
         
         /* Retrieve Object Header */
         bp_object_t flash_object_hdr;
-        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid), BP_FLASH_DATA_TYPE};
+        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid)};
         status = flash_data_read(&page_addr, (uint8_t*)&flash_object_hdr, sizeof(flash_object_hdr));
         if(status == BP_SUCCESS)
         {

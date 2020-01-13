@@ -22,6 +22,11 @@
 #include "bplib_store_flash.h"
 #include "bplib_flash_sim.h"
 
+/******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+#define FLASH_SIM_BAD_BLOCK_MARK    0xA5
 
 /******************************************************************************
  TYPEDEFS
@@ -82,22 +87,8 @@ int bplib_flash_sim_initialize (void)
  *-------------------------------------------------------------------------------------*/
 int bplib_flash_sim_page_read (bp_flash_addr_t addr, void* data, int size)
 {
-    if(addr.type == BP_FLASH_DATA_TYPE)
-    {
-        if(size > FLASH_SIM_DATA_SIZE) return BP_ERROR;
-        memcpy(data, flash_driver_device.blocks[addr.block].pages[addr.page].data, size);
-    }
-    else if(addr.type == BP_FLASH_SPARE_TYPE)
-    {
-        if(size > FLASH_SIM_SPARE_SIZE) return BP_ERROR;
-        memcpy(data, flash_driver_device.blocks[addr.block].pages[addr.page].spare, size);
-    }
-    else
-    {
-        bplog(BP_DEBUG, "Invalid flash type to read: %d\n", addr.type);
-        return BP_ERROR;
-    }    
-    
+    if(size > FLASH_SIM_DATA_SIZE) return BP_ERROR;
+    memcpy(data, flash_driver_device.blocks[addr.block].pages[addr.page].data, size);    
     return BP_SUCCESS;
 }
 
@@ -108,29 +99,11 @@ int bplib_flash_sim_page_write (bp_flash_addr_t addr, void* data, int size)
 {
     int i;
     uint8_t* byte_ptr = (uint8_t*)data;
-
-    if(addr.type == BP_FLASH_DATA_TYPE)
-    {        
-        if(size > FLASH_SIM_DATA_SIZE) return BP_ERROR;
-        for(i = 0; i < size; i++)
-        {
-            flash_driver_device.blocks[addr.block].pages[addr.page].data[i] &= byte_ptr[i];
-        }
-    }
-    else if(addr.type == BP_FLASH_SPARE_TYPE)
+    if(size > FLASH_SIM_DATA_SIZE) return BP_ERROR;
+    for(i = 0; i < size; i++)
     {
-        if(size > FLASH_SIM_SPARE_SIZE) return BP_ERROR;
-        for(i = 0; i < size; i++)
-        {
-            flash_driver_device.blocks[addr.block].pages[addr.page].spare[i] &= byte_ptr[i];
-        }
+        flash_driver_device.blocks[addr.block].pages[addr.page].data[i] &= byte_ptr[i];
     }
-    else
-    {
-        bplog(BP_DEBUG, "Invalid flash type to write: %d\n", addr.type);
-        return BP_ERROR;
-    }    
-    
     return BP_SUCCESS;
 }
 
@@ -147,5 +120,22 @@ int bplib_flash_sim_block_erase (bp_flash_index_t block)
         memset(flash_driver_device.blocks[block].pages[p].spare, 0xFF, FLASH_SIM_SPARE_SIZE);
     }
     
+    return BP_SUCCESS;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_flash_sim_block_is_bad -
+ *-------------------------------------------------------------------------------------*/
+int bplib_flash_sim_block_is_bad (bp_flash_index_t block)
+{
+    return flash_driver_device.blocks[block].pages[0].spare[0] == FLASH_SIM_BAD_BLOCK_MARK;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_flash_sim_block_mark_bad -
+ *-------------------------------------------------------------------------------------*/
+int bplib_flash_sim_block_mark_bad (bp_flash_index_t block)
+{
+    flash_driver_device.blocks[block].pages[0].spare[0] = FLASH_SIM_BAD_BLOCK_MARK;
     return BP_SUCCESS;
 }

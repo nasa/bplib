@@ -41,10 +41,11 @@ bp_flash_driver_t flash_driver = {
     .num_blocks = FLASH_SIM_NUM_BLOCKS,
     .pages_per_block = FLASH_SIM_PAGES_PER_BLOCK,
     .data_size = FLASH_SIM_DATA_SIZE,
-    .spare_size = FLASH_SIM_SPARE_SIZE,
     .read = bplib_flash_sim_page_read,
     .write = bplib_flash_sim_page_write,
-    .erase = bplib_flash_sim_block_erase
+    .erase = bplib_flash_sim_block_erase,
+    .is_bad = bplib_flash_sim_block_is_bad,
+    .mark_bad = bplib_flash_sim_block_mark_bad
 };
 
 /******************************************************************************
@@ -66,7 +67,7 @@ static void test_1(void)
 
     printf("\n==== Test 1: Free Block Management ====\n");
 
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
     printf("Number of Blocks Reclaimed: %d\n", reclaimed_blocks);
 
     printf("\n==== Step 1.1: Allocate All ====\n");

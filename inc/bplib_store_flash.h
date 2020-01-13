@@ -32,34 +32,43 @@ extern "C" {
  TYPEDEFS
  ******************************************************************************/
 
-#define BP_FLASH_DATA_TYPE          0
-#define BP_FLASH_SPARE_TYPE         1
-#define BP_FLASH_INVALID_INDEX      UINT32_MAX
+#define BP_FLASH_INIT_FORMAT        0
+#define BP_FLASH_INIT_RECOVER       1
+
+#ifndef BP_FLASH_INVALID_INDEX
+#define BP_FLASH_INVALID_INDEX      UINT16_MAX
+#endif
+
+#ifndef BP_FLASH_INDEX_TYPE
+#define BP_FLASH_INDEX_TYPE         uint16_t
+#endif
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
-typedef uint32_t bp_flash_index_t;
+typedef BP_FLASH_INDEX_TYPE bp_flash_index_t;
 
 typedef struct {
     bp_flash_index_t    block;
     bp_flash_index_t    page;
-    int                 type;
 } bp_flash_addr_t;
 
-typedef int (*bp_flash_page_read_t)     (bp_flash_addr_t addr, void* data, int size);
-typedef int (*bp_flash_page_write_t)    (bp_flash_addr_t addr, void* data, int size);
-typedef int (*bp_flash_block_erase_t)   (bp_flash_index_t block);
+typedef int (*bp_flash_page_read_t)         (bp_flash_addr_t addr, void* data, int size);
+typedef int (*bp_flash_page_write_t)        (bp_flash_addr_t addr, void* data, int size);
+typedef int (*bp_flash_block_erase_t)       (bp_flash_index_t block);
+typedef int (*bp_flash_block_is_bad_t)      (bp_flash_index_t block);
+typedef int (*bp_flash_block_mark_bad_t)    (bp_flash_index_t block);
 
 typedef struct {
-    bp_flash_index_t        num_blocks;
-    bp_flash_index_t        pages_per_block;
-    int                     data_size; /* bytes */
-    int                     spare_size; /* bytes */
-    bp_flash_page_read_t    read;
-    bp_flash_page_write_t   write;
-    bp_flash_block_erase_t  erase;
+    bp_flash_index_t            num_blocks;
+    bp_flash_index_t            pages_per_block;
+    int                         data_size; /* bytes */
+    bp_flash_page_read_t        read;
+    bp_flash_page_write_t       write;
+    bp_flash_block_erase_t      erase;
+    bp_flash_block_is_bad_t     is_bad;
+    bp_flash_block_mark_bad_t   mark_bad;
 } bp_flash_driver_t;
 
 typedef struct {
@@ -72,7 +81,7 @@ typedef struct {
  ******************************************************************************/
 
 /* Application API */
-int     bplib_store_flash_init          (bp_flash_driver_t driver);
+int     bplib_store_flash_init          (bp_flash_driver_t driver, int init_mode);
 
 /* Service API */
 int     bplib_store_flash_create        (void* parm);
