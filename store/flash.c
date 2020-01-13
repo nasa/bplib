@@ -260,13 +260,21 @@ BP_LOCAL_SCOPE int flash_data_delete (bp_flash_addr_t* addr, int size)
     bp_flash_index_t current_block = BP_FLASH_INVALID_INDEX;
     unsigned int current_block_free_pages = 0;
     int bytes_left = size;
-    
+
+
+
+//TODO - the current block gets clobbered when it is reclaimed at the end of this function
+// so this code cannot be where it was...
+    bp_flash_index_t next_delete_block = flash_blocks[addr->block].next_block;            
+
+
+
+
     while(bytes_left > 0)
     {
         /* Check if Page Available to Delete */
         if(addr->page == FLASH_DRIVER.pages_per_block)
         {
-            bp_flash_index_t next_delete_block = flash_blocks[addr->block].next_block;            
             if(next_delete_block == BP_FLASH_INVALID_INDEX)            
             {
                 /* Next Block Retrieval Failed */

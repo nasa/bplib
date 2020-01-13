@@ -24,6 +24,12 @@
 #include "bplib_flash_sim.h"
 
 /******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+#define TEST_DATA_SIZE (FLASH_SIM_DATA_SIZE + 50)
+
+/******************************************************************************
  EXTERNAL PROTOTYPES
  ******************************************************************************/
 
@@ -37,7 +43,7 @@ extern int flash_data_delete (bp_flash_addr_t* addr, int size);
  FILE DATA
  ******************************************************************************/
 
-bp_flash_driver_t flash_driver = {
+static bp_flash_driver_t flash_driver = {
     .num_blocks = FLASH_SIM_NUM_BLOCKS,
     .pages_per_block = FLASH_SIM_PAGES_PER_BLOCK,
     .data_size = FLASH_SIM_DATA_SIZE,
@@ -48,10 +54,7 @@ bp_flash_driver_t flash_driver = {
     .mark_bad = bplib_flash_sim_block_mark_bad
 };
 
-/******************************************************************************
- LOCAL FUNCTIONS
- ******************************************************************************/
-
+static uint8_t test_data[TEST_DATA_SIZE], read_data[TEST_DATA_SIZE];
 
 /******************************************************************************
  TEST FUNCTIONS
@@ -141,16 +144,17 @@ static void test_2(void)
 /*--------------------------------------------------------------------------------------
  * Test #3
  *--------------------------------------------------------------------------------------*/
-#define TEST_DATA_SIZE 50
-//#define TEST_DATA_SIZE (FLASH_SIM_DATA_SIZE * 1.5)
 static void test_3(void)
 {
     int status, i;
     bp_flash_index_t saved_block;
     bp_flash_addr_t addr;
-    static uint8_t test_data[TEST_DATA_SIZE], read_data[TEST_DATA_SIZE];
 
     printf("\n==== Test 3: Read/Write Data ====\n");
+
+    /* Initialize Driver */
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
+    printf("Number of Blocks Reclaimed: %d\n", reclaimed_blocks);
 
     /* Initialize Test Data */
     for(i = 0; i < TEST_DATA_SIZE; i++)
@@ -160,22 +164,83 @@ static void test_3(void)
     }
 
     /* Write Test Data */
-    ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate free block\n");
-    saved_block = addr.block;
-    addr.page = 0;    
-    status = flash_data_write (&addr, test_data, TEST_DATA_SIZE);
-    ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
-    ut_assert(addr.page == 2, "Failed to increment page number: %d\n", addr.page);
+    status = flash_free_allocate(&addr.block);
+    ut_assert(status == BP_SUCCESS, "Failed to allocate free block\n");
+    if(status == BP_SUCCESS)
+    {
+        saved_block = addr.block;
+        addr.page = 0;    
+        status = flash_data_write (&addr, test_data, TEST_DATA_SIZE);
+        ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
+        ut_assert(addr.page == 2, "Failed to increment page number: %d\n", addr.page);
 
-    /* Read Test Data */
-    addr.block = saved_block;
-    addr.page = 0;
-    status = flash_data_read (&addr, read_data, TEST_DATA_SIZE);
-    ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
-    ut_assert(addr.page == 2, "Failed to increment page number: %d\n", addr.page);
+        /* Read Test Data */
+        addr.block = saved_block;
+        addr.page = 0;
+        status = flash_data_read (&addr, read_data, TEST_DATA_SIZE);
+        ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
+        ut_assert(addr.page == 2, "Failed to increment page number: %d\n", addr.page);
+        for(i = 0; i < TEST_DATA_SIZE; i++)
+        {
+            ut_assert(read_data[i] == test_data[i], "Failed to read correct data at %d, %02X != %02X\n", i, read_data[i], test_data[i]);
+        }
+    }
+}
+
+/*--------------------------------------------------------------------------------------
+ * Test #4
+ *--------------------------------------------------------------------------------------*/
+static void test_4(void)
+{
+    int status, i;
+    bp_flash_index_t saved_block;
+    bp_flash_addr_t addr;
+
+    printf("\n==== Test 4: Delete Data ====\n");
+
+    /* Initialize Driver */
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
+    printf("Number of Blocks Reclaimed: %d\n", reclaimed_blocks);
+
+    /* Initialize Test Data */
     for(i = 0; i < TEST_DATA_SIZE; i++)
     {
-        ut_assert(read_data[i] == test_data[i], "Failed to read correct data at %d, %02X != %02X\n", i, read_data[i], test_data[i]);
+        test_data[i] = i % 0xFF;
+        read_data[i] = 0;
+    }
+
+    /* Write & Delete Test Data */
+    status = flash_free_allocate(&addr.block);
+    ut_assert(status == BP_SUCCESS, "Failed to allocate first free block\n");
+    if(status == BP_SUCCESS)
+    {
+        saved_block = addr.block;
+        addr.page = 0;    
+            
+        /* Write Data */
+        int bytes_written = 0;
+        int bytes_to_write = flash_driver.data_size * flash_driver.pages_per_block;
+        while(bytes_written < bytes_to_write)
+        {
+            ut_assert(flash_data_write (&addr, test_data, TEST_DATA_SIZE) == BP_SUCCESS, "Failed to write data at %d.%d\n", addr.block, addr.page); 
+            bytes_written += TEST_DATA_SIZE;
+        }
+
+        /* Allocate Rest of Blocks */
+        while(flash_free_allocate(&addr.block) == BP_SUCCESS);
+
+        /* Delete Data */
+        addr.block = saved_block;
+        addr.page = 0;
+        int bytes_deleted = 0;
+        while(bytes_deleted < bytes_to_write)
+        {
+            ut_assert(flash_data_delete (&addr, TEST_DATA_SIZE) == BP_SUCCESS, "Failed to delete data at %d.%d\n", addr.block, addr.page); 
+            bytes_deleted += TEST_DATA_SIZE;
+        }
+
+        /* Verify Allocation Succeeds - showing at least one block was freed above */
+        ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate a block that should have been freed\n");
     }
 }
 
@@ -188,6 +253,7 @@ int ut_flash (void)
     test_1();
     test_2();
     test_3();
+    test_4();
 
     return ut_failures();
 }
