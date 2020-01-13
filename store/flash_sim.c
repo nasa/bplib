@@ -102,7 +102,9 @@ int bplib_flash_sim_page_write (bp_flash_addr_t addr, void* data, int size)
     if(size > FLASH_SIM_DATA_SIZE) return BP_ERROR;
     for(i = 0; i < size; i++)
     {
+        printf("Writing %d.%d[%d] ... ", addr.block, addr.page, i);
         flash_driver_device.blocks[addr.block].pages[addr.page].data[i] &= byte_ptr[i];
+        printf("%02X\n", flash_driver_device.blocks[addr.block].pages[addr.page].data[i]);
     }
     return BP_SUCCESS;
 }

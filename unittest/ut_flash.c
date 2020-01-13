@@ -58,7 +58,7 @@ bp_flash_driver_t flash_driver = {
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * Test #1 - Free Block Management
+ * Test #1
  *--------------------------------------------------------------------------------------*/
 static void test_1(void)
 {
@@ -99,10 +99,84 @@ static void test_1(void)
  *--------------------------------------------------------------------------------------*/
 static void test_2(void)
 {
+    int i, j;
+    int h[FLASH_MAX_STORES];
+
     printf("\n==== Test 2: Service Creation/Deletion ====\n");
 
-    int h = bplib_store_flash_create(NULL);
-    printf("Handle Created: %d\n", h);
+    printf("\n==== Step 2.1: Create Max ====\n");
+    for(i = 0; i < FLASH_MAX_STORES; i++)
+    {
+        h[i] = bplib_store_flash_create(NULL);
+        ut_assert(h[i] != BP_INVALID_HANDLE, "Failed to create store on %dth iteration\n", i);
+    }
+
+    printf("\n==== Step 2.2: Check Full ====\n");
+    j = bplib_store_flash_create(NULL);
+    ut_assert(j == BP_INVALID_HANDLE, "Incorrectly created store when no more handles available\n");
+
+    printf("\n==== Step 2.2: Clean Up Stores ====\n");
+    for(i = 0; i < FLASH_MAX_STORES; i++)
+    {
+        ut_assert(bplib_store_flash_destroy(h[i]), "Failed to destroy handle %d\n", h[i]);
+    }
+
+    printf("\n==== Step 2.3: Check Holes ====\n");
+    for(i = 0; i < FLASH_MAX_STORES; i++)
+    {
+        h[i] = bplib_store_flash_create(NULL);
+        ut_assert(h[i] != BP_INVALID_HANDLE, "Failed to create store on %dth iteration\n", i);
+    }
+    ut_assert(bplib_store_flash_destroy(h[3]), "Failed to destroy handle %d\n", h[i]);
+    h[3] = bplib_store_flash_create(NULL);
+    ut_assert(h[3] != BP_INVALID_HANDLE, "Failed to create store\n", i);
+
+    printf("\n==== Step 2.4: Clean Up Stores ====\n");
+    for(i = 0; i < FLASH_MAX_STORES; i++)
+    {
+        ut_assert(bplib_store_flash_destroy(h[i]), "Failed to destroy handle %d\n", h[i]);
+    }
+}
+
+/*--------------------------------------------------------------------------------------
+ * Test #3
+ *--------------------------------------------------------------------------------------*/
+#define TEST_DATA_SIZE 50
+//#define TEST_DATA_SIZE (FLASH_SIM_DATA_SIZE * 1.5)
+static void test_3(void)
+{
+    int status, i;
+    bp_flash_index_t saved_block;
+    bp_flash_addr_t addr;
+    static uint8_t test_data[TEST_DATA_SIZE], read_data[TEST_DATA_SIZE];
+
+    printf("\n==== Test 3: Read/Write Data ====\n");
+
+    /* Initialize Test Data */
+    for(i = 0; i < TEST_DATA_SIZE; i++)
+    {
+        test_data[i] = i % 0xFF;
+        read_data[i] = 0;
+    }
+
+    /* Write Test Data */
+    ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate free block\n");
+    saved_block = addr.block;
+    addr.page = 0;    
+    status = flash_data_write (&addr, test_data, TEST_DATA_SIZE);
+    ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
+    ut_assert(addr.page == 2, "Failed to increment page number: %d\n", addr.page);
+
+    /* Read Test Data */
+    addr.block = saved_block;
+    addr.page = 0;
+    status = flash_data_read (&addr, read_data, TEST_DATA_SIZE);
+    ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
+    ut_assert(addr.page == 2, "Failed to increment page number: %d\n", addr.page);
+    for(i = 0; i < TEST_DATA_SIZE; i++)
+    {
+        ut_assert(read_data[i] == test_data[i], "Failed to read correct data at %d, %02X != %02X\n", i, read_data[i], test_data[i]);
+    }
 }
 
 /******************************************************************************
@@ -113,6 +187,7 @@ int ut_flash (void)
 {
     test_1();
     test_2();
-    
+    test_3();
+
     return ut_failures();
 }

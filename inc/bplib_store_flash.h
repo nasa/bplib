@@ -43,6 +43,14 @@ extern "C" {
 #define BP_FLASH_INDEX_TYPE         uint16_t
 #endif
 
+#ifndef FLASH_MAX_STORES
+#define FLASH_MAX_STORES                    24
+#endif
+
+#ifndef FLASH_MAX_PAGES_PER_BLOCK
+#define FLASH_MAX_PAGES_PER_BLOCK           128
+#endif
+
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/

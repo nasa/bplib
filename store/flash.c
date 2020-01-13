@@ -26,18 +26,6 @@
  DEFINES
  ******************************************************************************/
 
-/* Configurable Options */
-
-#ifndef FLASH_MAX_STORES
-#define FLASH_MAX_STORES                    24
-#endif
-
-#ifndef FLASH_MAX_PAGES_PER_BLOCK
-#define FLASH_MAX_PAGES_PER_BLOCK           128
-#endif
-
-/* Local Definitions */
-
 #define FLASH_PAGE_USE_BYTES                (FLASH_MAX_PAGES_PER_BLOCK / 8)
 
 /******************************************************************************
@@ -138,18 +126,30 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE int flash_free_allocate (bp_flash_index_t* block)
 {
+    int status;
+
     /* Check if Block Available */
     if(flash_free_blocks.out == BP_FLASH_INVALID_INDEX)
     {
         return bplog(BP_FAILEDSTORE, "No free blocks available\n");
     }
 
-    /* Return Block and Update List */
-    *block = flash_free_blocks.out;
-    flash_free_blocks.out = flash_blocks[flash_free_blocks.out].next_block;
-    flash_free_blocks.count--;
+    /* Erase Block */
+    status = FLASH_DRIVER.erase(flash_free_blocks.out);
+    if(status == BP_SUCCESS)
+    {
+        /* Return Block and Update List */
+        *block = flash_free_blocks.out;
+        flash_free_blocks.out = flash_blocks[flash_free_blocks.out].next_block;
+        flash_free_blocks.count--;
+    }
+    else
+    {
+        bplog(status, "Failed to erase block %d when allocating it\n", flash_free_blocks.out);
+    }
     
-    return BP_SUCCESS;
+    /* Return Status */
+    return status;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -190,13 +190,16 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
         {
             data_index += bytes_to_copy;
             bytes_left -= bytes_to_copy;
-            addr->page++;
         }
         else
         {
             /* Write Failed */
             return bplog(status, "Failed to write data to flash address: %d.%d\n", addr->block, addr->page);
         }
+
+        /* Always Increment Page */
+        addr->page++;
+
     }
     
     return BP_SUCCESS;
