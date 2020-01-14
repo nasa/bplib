@@ -1,13 +1,13 @@
 /************************************************************************
  * File: flash_store.h
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -20,7 +20,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 /******************************************************************************
  INCLUDES
@@ -80,8 +80,7 @@ typedef struct {
 } bp_flash_driver_t;
 
 typedef struct {
-    int cache_size; /* number of data items to cache */
-    int max_data_size; /* max size of data being cached */ 
+    int max_data_size; /* max size of data being cached */
 } bp_flash_attr_t;
 
 /******************************************************************************
@@ -103,6 +102,6 @@ int     bplib_store_flash_getcount      (int handle);
 
 #ifdef __cplusplus
 } // extern "C"
-#endif 
+#endif
 
 #endif /* _bplib_store_flash_h_ */

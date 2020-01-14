@@ -266,7 +266,7 @@ static void test_5(void)
     }
 
     /* Create Storage Service */
-    bp_flash_attr_t attr = {1, TEST_DATA_SIZE};
+    bp_flash_attr_t attr = {TEST_DATA_SIZE};
     h = bplib_store_flash_create(&attr);
     ut_assert(h != BP_INVALID_HANDLE, "Failed to create storage service\n", i);
 
