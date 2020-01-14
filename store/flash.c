@@ -90,6 +90,11 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
 {
     int status = BP_ERROR;
 
+    /* Clear Block Control Entry */
+    memset(flash_blocks[block].page_use, 0xFF, sizeof(flash_blocks[block].page_use));
+    flash_blocks[block].next_block = BP_FLASH_INVALID_INDEX;
+    flash_blocks[block].prev_block = BP_FLASH_INVALID_INDEX;
+
     /* Check if Block Bad */
     if(!FLASH_DRIVER.is_bad(block))
     {
@@ -105,18 +110,14 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
         }
 
         /* Add Block to Free List */
+        flash_blocks[block].prev_block = flash_free_blocks.in;
         flash_free_blocks.in = block;
         flash_free_blocks.count++;
 
         /* Set Status to Success */
         status = BP_SUCCESS;
     }
-    
-    /* Reset Flash Block Control */
-    memset(flash_blocks[block].page_use, 0xFF, sizeof(flash_blocks[block].page_use));
-    flash_blocks[block].next_block = BP_FLASH_INVALID_INDEX;
-    flash_blocks[block].prev_block = BP_FLASH_INVALID_INDEX;
-
+        
     /* Return Status */
     return status;
 }
@@ -261,31 +262,15 @@ BP_LOCAL_SCOPE int flash_data_delete (bp_flash_addr_t* addr, int size)
     unsigned int current_block_free_pages = 0;
     int bytes_left = size;
 
+    /* Check for Valid Address */
+    if(addr->page >= FLASH_DRIVER.pages_per_block || addr->block >= FLASH_DRIVER.num_blocks)
+    {
+        return bplog(BP_ERROR, "Invalid address provided to delete function: %d.%d\n", addr->block, addr->page);
+    }
 
-
-//TODO - the current block gets clobbered when it is reclaimed at the end of this function
-// so this code cannot be where it was...
-    bp_flash_index_t next_delete_block = flash_blocks[addr->block].next_block;            
-
-
-
-
+    /* Delete Each Page of Data */
     while(bytes_left > 0)
     {
-        /* Check if Page Available to Delete */
-        if(addr->page == FLASH_DRIVER.pages_per_block)
-        {
-            if(next_delete_block == BP_FLASH_INVALID_INDEX)            
-            {
-                /* Next Block Retrieval Failed */
-                return bplog(BP_ERROR, "Failed to retrieve next block in middle of flash delete at block: %ld\n", addr->block);
-            }
-
-            /* Goto Next Block to Delete */
-            addr->block = next_delete_block;
-            addr->page = 0;
-        }            
-
         /* Count Number of Free Pages in Current Block */
         if(current_block != addr->block)
         {
@@ -298,7 +283,7 @@ BP_LOCAL_SCOPE int flash_data_delete (bp_flash_addr_t* addr, int size)
             {
                 for(bit_index = 0; bit_index < 8; bit_index++)
                 {
-                    if(flash_blocks[current_block].page_use[byte_index] & (0x80 >> bit_index))
+                    if((flash_blocks[current_block].page_use[byte_index] & (0x80 >> bit_index)) == 0x00)
                     {
                         current_block_free_pages++;
                     }
@@ -320,6 +305,21 @@ BP_LOCAL_SCOPE int flash_data_delete (bp_flash_addr_t* addr, int size)
         int bytes_to_delete = bytes_left < FLASH_DRIVER.data_size ? bytes_left : FLASH_DRIVER.data_size;
         bytes_left -= bytes_to_delete;
         addr->page++;
+
+        /* Check if Address Needs to go to Next Page */
+        if(addr->page == FLASH_DRIVER.pages_per_block)
+        {
+            bp_flash_index_t next_delete_block = flash_blocks[addr->block].next_block;            
+            if(next_delete_block == BP_FLASH_INVALID_INDEX)            
+            {
+                /* Next Block Retrieval Failed */
+                return bplog(BP_ERROR, "Failed to retrieve next block in middle of flash delete at block: %ld\n", addr->block);
+            }
+
+            /* Goto Next Block to Delete */
+            addr->block = next_delete_block;
+            addr->page = 0;
+        }            
 
         /* Check if Block can be Erased */
         if(current_block_free_pages >= FLASH_DRIVER.pages_per_block)

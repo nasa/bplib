@@ -27,7 +27,7 @@
  DEFINES
  ******************************************************************************/
 
-#define TEST_DATA_SIZE (FLASH_SIM_DATA_SIZE + 50)
+#define TEST_DATA_SIZE (FLASH_SIM_DATA_SIZE * 3)
 
 /******************************************************************************
  EXTERNAL PROTOTYPES
@@ -172,14 +172,14 @@ static void test_3(void)
         addr.page = 0;    
         status = flash_data_write (&addr, test_data, TEST_DATA_SIZE);
         ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
-        ut_assert(addr.page == 2, "Failed to increment page number: %d\n", addr.page);
+        ut_assert(addr.page == 3, "Failed to increment page number: %d\n", addr.page);
 
         /* Read Test Data */
         addr.block = saved_block;
         addr.page = 0;
         status = flash_data_read (&addr, read_data, TEST_DATA_SIZE);
         ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
-        ut_assert(addr.page == 2, "Failed to increment page number: %d\n", addr.page);
+        ut_assert(addr.page == 3, "Failed to increment page number: %d\n", addr.page);
         for(i = 0; i < TEST_DATA_SIZE; i++)
         {
             ut_assert(read_data[i] == test_data[i], "Failed to read correct data at %d, %02X != %02X\n", i, read_data[i], test_data[i]);
@@ -219,7 +219,7 @@ static void test_4(void)
             
         /* Write Data */
         int bytes_written = 0;
-        int bytes_to_write = flash_driver.data_size * flash_driver.pages_per_block;
+        int bytes_to_write = flash_driver.data_size * flash_driver.pages_per_block * 2;
         while(bytes_written < bytes_to_write)
         {
             ut_assert(flash_data_write (&addr, test_data, TEST_DATA_SIZE) == BP_SUCCESS, "Failed to write data at %d.%d\n", addr.block, addr.page); 
@@ -239,8 +239,9 @@ static void test_4(void)
             bytes_deleted += TEST_DATA_SIZE;
         }
 
-        /* Verify Allocation Succeeds - showing at least one block was freed above */
-        ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate a block that should have been freed\n");
+        /* Verify Allocation Succeeds - showing at least two blocks were freed above */
+        ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate first block that should have been freed\n");
+        ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate second block that should have been freed\n");
     }
 }
 
