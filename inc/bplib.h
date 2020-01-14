@@ -1,13 +1,13 @@
 /************************************************************************
  * File: bplib.h
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -20,8 +20,8 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
-    
+#endif
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -35,15 +35,15 @@ extern "C" {
 /* Handles and Descriptors */
 #define BP_INVALID_HANDLE               (-1)    /* used for integers (os locks, storage services) */
 #define BP_INVALID_DESCRIPTOR           NULL    /* used for pointers (channels) */
-    
+
 /* Timeouts */
 #define BP_PEND                         (-1)
 #define BP_CHECK                        0
 
-/* Endpoint IDs */    
+/* Endpoint IDs */
 #define BP_MAX_EID_STRING               128
 #define BP_IPN_NULL                     0
-    
+
 /* Storage IDs */
 #define BP_SID_VACANT                   0
 
@@ -108,7 +108,7 @@ extern "C" {
 /* Retransmit Order */
 #define BP_RETX_OLDEST_BUNDLE           0
 #define BP_RETX_SMALLEST_CID            1
-    
+
 /* Set/Get Option Modes */
 #define BP_OPT_MODE_READ                0
 #define BP_OPT_MODE_WRITE               1
@@ -125,7 +125,7 @@ extern "C" {
 #define BP_OPT_TIMEOUT                  9
 #define BP_OPT_MAX_LENGTH               10
 #define BP_OPT_DACS_RATE                11
-    
+
 /* Default Dynamic Configuration */
 #define BP_DEFAULT_LIFETIME             86400 /* seconds, 1 day */
 #define BP_DEFAULT_REQUEST_CUSTODY      true
@@ -146,7 +146,7 @@ extern "C" {
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64 /* constrains size of DACS bundle */
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028 /* sets size of internal memory used to aggregate custody */
 #define BP_DEFAULT_STORAGE_SERVICE_PARM NULL
-    
+
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
@@ -173,8 +173,8 @@ typedef void* bp_sid_t;
 /* Storage Object */
 typedef struct {
     int         handle;
-    bp_sid_t    sid;
     int         size;
+    bp_sid_t    sid;
     char        data[];
 } bp_object_t;
 
@@ -191,11 +191,11 @@ typedef struct {
 } bp_store_t;
 
 /* Channel Attributes */
-typedef struct {    
+typedef struct {
     /* Dynamic Attributes */
     bp_val_t    lifetime;               /* Number of seconds from creation time before bundle expires */
     bool        request_custody;        /* 0: custody not requested, 1: custody requested */
-    bool        admin_record;           /* 0: payload data, 1: administrative record */ 
+    bool        admin_record;           /* 0: payload data, 1: administrative record */
     bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
     bool        allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
     int         cid_reuse;              /* 0: new CID when retransmitting, 1: reuse CID when retransmitting */
@@ -250,7 +250,7 @@ int         bplib_config        (bp_desc_t channel, int mode, int opt, int* val)
 int         bplib_latchstats    (bp_desc_t channel, bp_stats_t* stats);
 
 int         bplib_store         (bp_desc_t channel, void* payload, int size, int timeout, uint16_t* flags);
-int         bplib_load          (bp_desc_t channel, void** bundle, int* size, int timeout, uint16_t* flags); 
+int         bplib_load          (bp_desc_t channel, void** bundle, int* size, int timeout, uint16_t* flags);
 int         bplib_process       (bp_desc_t channel, void* bundle, int size, int timeout, uint16_t* flags);
 int         bplib_accept        (bp_desc_t channel, void** payload, int* size, int timeout, uint16_t* flags);
 
@@ -265,6 +265,6 @@ int         bplib_attrinit      (bp_attr_t* attributes);
 
 #ifdef __cplusplus
 } // extern "C"
-#endif 
+#endif
 
 #endif  /* _bplib_h_ */

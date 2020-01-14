@@ -1,13 +1,13 @@
 /************************************************************************
  * File: ut_flash.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -77,7 +77,7 @@ static void test_1(void)
     for(i = 0; i < flash_driver.num_blocks; i++)
     {
         ut_assert(flash_free_allocate(&block) == BP_SUCCESS, "Failed to allocate block\n");
-        ut_assert(block == i, "Failed to allocate block %d, allocated %d instead\n", i, block);        
+        ut_assert(block == i, "Failed to allocate block %d, allocated %d instead\n", i, block);
     }
 
     printf("\n==== Step 1.2: Reclaim All In Reverse Order ====\n");
@@ -90,7 +90,7 @@ static void test_1(void)
     for(i = 0; i < flash_driver.num_blocks; i++)
     {
         ut_assert(flash_free_allocate(&block) == BP_SUCCESS, "Failed to allocate block\n");
-        ut_assert(block == flash_driver.num_blocks - i - 1, "Failed to allocate block %d, allocated %d instead\n", flash_driver.num_blocks - i - 1, block);        
+        ut_assert(block == flash_driver.num_blocks - i - 1, "Failed to allocate block %d, allocated %d instead\n", flash_driver.num_blocks - i - 1, block);
     }
 
     printf("\n==== Step 1.4: Attempt Allocate On Empty List ====\n");
@@ -169,7 +169,7 @@ static void test_3(void)
     if(status == BP_SUCCESS)
     {
         saved_block = addr.block;
-        addr.page = 0;    
+        addr.page = 0;
         status = flash_data_write (&addr, test_data, TEST_DATA_SIZE);
         ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
         ut_assert(addr.page == 3, "Failed to increment page number: %d\n", addr.page);
@@ -215,14 +215,14 @@ static void test_4(void)
     if(status == BP_SUCCESS)
     {
         saved_block = addr.block;
-        addr.page = 0;    
-            
+        addr.page = 0;
+
         /* Write Data */
         int bytes_written = 0;
         int bytes_to_write = flash_driver.data_size * flash_driver.pages_per_block * 2;
         while(bytes_written < bytes_to_write)
         {
-            ut_assert(flash_data_write (&addr, test_data, TEST_DATA_SIZE) == BP_SUCCESS, "Failed to write data at %d.%d\n", addr.block, addr.page); 
+            ut_assert(flash_data_write (&addr, test_data, TEST_DATA_SIZE) == BP_SUCCESS, "Failed to write data at %d.%d\n", addr.block, addr.page);
             bytes_written += TEST_DATA_SIZE;
         }
 
@@ -235,13 +235,50 @@ static void test_4(void)
         int bytes_deleted = 0;
         while(bytes_deleted < bytes_to_write)
         {
-            ut_assert(flash_data_delete (&addr, TEST_DATA_SIZE) == BP_SUCCESS, "Failed to delete data at %d.%d\n", addr.block, addr.page); 
+            ut_assert(flash_data_delete (&addr, TEST_DATA_SIZE) == BP_SUCCESS, "Failed to delete data at %d.%d\n", addr.block, addr.page);
             bytes_deleted += TEST_DATA_SIZE;
         }
 
         /* Verify Allocation Succeeds - showing at least two blocks were freed above */
         ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate first block that should have been freed\n");
         ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate second block that should have been freed\n");
+    }
+}
+
+/*--------------------------------------------------------------------------------------
+ * Test #5
+ *--------------------------------------------------------------------------------------*/
+static void test_5(void)
+{
+    int i, h;
+
+    printf("\n==== Test 5: Enqueue/Dequeue ====\n");
+
+    /* Initialize Driver */
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
+    printf("Number of Blocks Reclaimed: %d\n", reclaimed_blocks);
+
+    /* Initialize Test Data */
+    for(i = 0; i < TEST_DATA_SIZE; i++)
+    {
+        test_data[i] = i % 0xFF;
+        read_data[i] = 0;
+    }
+
+    /* Create Storage Service */
+    bp_flash_attr_t attr = {1, TEST_DATA_SIZE};
+    h = bplib_store_flash_create(&attr);
+    ut_assert(h != BP_INVALID_HANDLE, "Failed to create storage service\n", i);
+
+    /* Enqueue/Dequeue Test Data */
+    bp_object_t* object = NULL;
+    ut_assert(bplib_store_flash_enqueue(h, test_data, TEST_DATA_SIZE, NULL, 0, BP_CHECK) == BP_SUCCESS, "Failed to enqueue test data\n");
+    ut_assert(bplib_store_flash_dequeue(h, &object, BP_CHECK) == BP_SUCCESS, "Failed to enqueue test data\n");
+    ut_assert(object->handle == h, "Incorrect handle in dequeued object: %d != %d\n", object->handle, h);
+    ut_assert(object->size == TEST_DATA_SIZE, "Incorrect size in dequeued object: %d != %d\n", object->size, TEST_DATA_SIZE);
+    for(i = 0; i < TEST_DATA_SIZE; i++)
+    {
+        ut_assert((uint8_t)object->data[i] == test_data[i], "Failed to dequeue correct data at %d, %02X != %02X\n", i, (uint8_t)object->data[i], test_data[i]);
     }
 }
 
@@ -255,6 +292,7 @@ int ut_flash (void)
     test_2();
     test_3();
     test_4();
+    test_5();
 
     return ut_failures();
 }
