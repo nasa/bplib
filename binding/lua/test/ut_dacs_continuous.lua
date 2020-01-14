@@ -6,7 +6,7 @@ local src = runner.srcscript()
 
 -- Setup --
 
--- runner.set_exit_on_error(true)
+runner.set_exit_on_error(true)
 
 local store = arg[1] or "RAM"
 if store == "FILE" then
@@ -35,7 +35,7 @@ print(string.format('%s/%s: Test 1 - continuous sequence', store, src))
 for i=1,num_bundles do
     payload = string.format('HELLO WORLD %d', i)
 
-    -- store payload -- 
+    -- store payload --
     rc, flags = sender:store(payload, 1000)
     runner.check(rc)
     runner.check(bp.check_flags(flags, {}), "flags set on store")
@@ -45,33 +45,29 @@ for i=1,num_bundles do
     runner.check(rc)
     runner.check(bundle ~= nil)
     runner.check(bp.check_flags(flags, {}), "flags set on load")
+    runner.check(bp.find_payload(bundle, payload), string.format('Error - wrong payload when checking for %s', payload))
 
-    -- process bundle -- 
+    -- process bundle --
     rc, flags = receiver:process(bundle, 1000)
     runner.check(rc)
     runner.check(bp.check_flags(flags, {}), "flags set on process")
 end
 
-do return end
-
-
-
-
--- check stats -- 
+-- check stats --
 rc, stats = receiver:stats()
 runner.check(bp.check_stats(stats, {stored_payloads=num_bundles}))
 
 for i=1,num_bundles do
     payload = string.format('HELLO WORLD %d', i)
 
-    -- accept bundle -- 
+    -- accept bundle --
     rc, app_payload, flags = receiver:accept(1000)
     runner.check(rc)
     runner.check(bp.check_flags(flags, {}))
     runner.check(bp.match_payload(app_payload, payload), string.format('Error - payload %s did not match: %s', app_payload, payload))
 end
 
--- check stats -- 
+-- check stats --
 rc, stats = sender:stats()
 runner.check(bp.check_stats(stats, {transmitted_bundles=num_bundles, stored_bundles=num_bundles, active_bundles=num_bundles}))
 rc, stats = receiver:stats()
@@ -95,7 +91,7 @@ runner.check(rc == false)
 runner.check(bundle == nil)
 runner.check(bp.check_flags(flags, {}))
 
--- check stats -- 
+-- check stats --
 rc, stats = sender:stats()
 runner.check(bp.check_stats(stats, {transmitted_bundles=num_bundles, stored_bundles=0, active_bundles=0, acknowledged_bundles=512, received_dacs=1}))
 rc, stats = receiver:stats()

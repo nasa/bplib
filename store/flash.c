@@ -360,6 +360,7 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, bp_flash_addr_t* addr, 
             uint64_t sid = FLASH_GET_SID(*addr);
             int cache_index = FLASH_GET_CACHE_INDEX(sid, fs->attributes);
             bp_object_t* object_hdr = (bp_object_t*)&fs->data_cache[cache_index];
+//if(object_hdr->handle == 0) printf("READING %d.%d, sid=%llu, object->sid=%llu, cache_index=%d\n", addr->block, addr->page, sid, (uint64_t)object_hdr->sid, cache_index);
             if((uint64_t)object_hdr->sid == sid)
             {
                 /* Cache Hit */
@@ -594,7 +595,14 @@ int bplib_store_flash_enqueue (int handle, void* data1, int data1_size, void* da
                 if(data2) memcpy(&fs->data_cache[cache_index + sizeof(object_hdr) + data1_size], data2, data2_size);
 
                 /* Write Data into Flash */
+//if(handle == 0) printf("ENQUEUEING[%d] OBJECT TO: %d.%d\n", handle, fs->write_addr.block, fs->write_addr.page);
                 status = flash_data_write(&fs->write_addr, &fs->data_cache[cache_index], bytes_needed);
+//if(handle == 0 && status == BP_SUCCESS)
+//{
+//int i; printf("[%d]: ", bytes_needed);
+//for(i = 0; i < bytes_needed; i++) printf("%02X", fs->data_cache[cache_index + i]);
+//printf("\n");
+//}
                 if(status == BP_SUCCESS)
                 {
                     fs->object_count++;
@@ -628,7 +636,15 @@ int bplib_store_flash_dequeue (int handle, bp_object_t** object, int timeout)
 
     bplib_os_lock(flash_device_lock);
     {
+if(handle == 0) printf("DEQUEUEING[%d] OBJECT FROM: %d.%d\n", handle, fs->read_addr.block, fs->read_addr.page);
         status = flash_object_read(fs, &fs->read_addr, object);
+if(handle == 0) printf("NEW ADDR[%d]: %d.%d\n", handle, fs->read_addr.block, fs->read_addr.page);
+//if(handle == 0 && status == BP_SUCCESS)
+//{
+//int i; printf("[%d]: ", (*object)->size);
+//for(i = 0; i < (*object)->size; i++) printf("%02X", (uint8_t)(*object)->data[i]);
+//printf("\n");
+//}
     }
     bplib_os_unlock(flash_device_lock);
 
@@ -653,6 +669,7 @@ int bplib_store_flash_retrieve (int handle, bp_sid_t sid, bp_object_t** object, 
     bplib_os_lock(flash_device_lock);
     {
         bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid)};
+//if(handle == 0) printf("RETRIEVING[%d] OBJECT FROM: %d.%d\n", handle, page_addr.block, page_addr.page);
         status = flash_object_read(fs, &page_addr, object);
     }
     bplib_os_unlock(flash_device_lock);

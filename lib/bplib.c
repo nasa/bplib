@@ -1,15 +1,15 @@
 /************************************************************************
  * File: bplib.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
- * 
+ *
  * Maintainer(s):
  *  Joe-Paul Swinski, Code 582 NASA GSFC
  *
@@ -41,7 +41,7 @@ typedef int (*bp_table_count_t)     (void* table);
 
 /* Active Table */
 typedef struct {
-    void*                   table; 
+    void*                   table;
     bp_table_create_t       create;
     bp_table_destroy_t      destroy;
     bp_table_add_t          add;
@@ -54,7 +54,7 @@ typedef struct {
 /* Channel Control Block */
 typedef struct {
     /* Storage Service */
-    bp_store_t              store;    
+    bp_store_t              store;
     /* Statistics */
     bp_stats_t              stats;
     /* Data Bundles */
@@ -111,17 +111,17 @@ static int create_bundle(void* parm, bool is_record, uint8_t* payload, int size,
     int                 status  = BP_ERROR;
     bp_bundle_data_t*   data    = NULL;
     int                 handle  = BP_INVALID_HANDLE;
-    
+
     /* Set Type of Bundle */
     if(is_record)
     {
         handle = ch->dacs_handle;
-        data = &ch->dacs.data;        
+        data = &ch->dacs.data;
     }
     else /* data bundle */
     {
         handle = ch->bundle_handle;
-        data = &ch->bundle.data;        
+        data = &ch->bundle.data;
     }
 
     /* Enqueue Bundle */
@@ -140,12 +140,12 @@ static int remove_bundle(void* parm, bp_val_t cid)
     bp_channel_t* ch = (bp_channel_t*)parm;
 
     bp_active_bundle_t bundle;
-    int status = ch->active_table.remove(ch->active_table.table, cid, &bundle); 
+    int status = ch->active_table.remove(ch->active_table.table, cid, &bundle);
     if(status == BP_SUCCESS)
     {
         status = ch->store.relinquish(ch->bundle_handle, bundle.sid);
     }
-    
+
     /* Return Status */
     return status;
 }
@@ -170,7 +170,7 @@ static int create_dacs(bp_channel_t* ch, unsigned long sysnow, int timeout, uint
         if(size > 0)
         {
             int status = BP_SUCCESS;
-            
+
             /* Check if Re-initialization Needed */
             if(ch->dacs.prebuilt == false)
             {
@@ -186,14 +186,14 @@ static int create_dacs(bp_channel_t* ch, unsigned long sysnow, int timeout, uint
                     /* DACS successfully enqueued */
                     ch->dacs_last_sent = sysnow;
                 }
-                else if(ret_status == BP_SUCCESS) 
+                else if(ret_status == BP_SUCCESS)
                 {
                     /* Save first failed DACS enqueue to return later */
                     ret_status = status;
-                    *flags |= BP_FLAG_STOREFAILURE; 
+                    *flags |= BP_FLAG_STOREFAILURE;
                     ch->stats.lost++;
                 }
-            }            
+            }
         }
     }
 
@@ -257,7 +257,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Set Store */
     ch->store = store;
-    
+
     /* Check Protocol Version */
     if(attributes.protocol_version != 6)
     {
@@ -274,7 +274,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
         bplib_close(ch);
         return NULL;
     }
-    
+
     /* Initialize Payload Store */
     ch->payload_handle = ch->store.create(attributes.storage_service_parm);
     if(ch->payload_handle < 0)
@@ -301,7 +301,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
         bplib_close(ch);
         return NULL;
     }
-    
+
     /* Build DACS Attributes */
     bp_attr_t dacs_attributes = attributes;
     dacs_attributes.request_custody = false;
@@ -312,7 +312,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     custody_route.destination_node = BP_IPN_NULL;
     custody_route.destination_service = BP_IPN_NULL;
 
-    /* Initialize DACS */    
+    /* Initialize DACS */
     status = v6_create(&ch->dacs, custody_route, dacs_attributes);
     if(status != BP_SUCCESS)
     {
@@ -320,7 +320,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
         bplib_close(ch);
         return NULL;
     }
-    
+
     /* Create DACS Lock */
     ch->custody_tree_lock = bplib_os_createlock();
     if(ch->custody_tree_lock == BP_INVALID_HANDLE)
@@ -332,10 +332,10 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Allocate Memory for Channel DACS Bundle Fills */
     ch->dacs_size = sizeof(bp_val_t) * attributes.max_fills_per_dacs + 6; // 2 bytes per fill plus payload block header
-    ch->dacs_buffer = (uint8_t*)malloc(ch->dacs_size); 
+    ch->dacs_buffer = (uint8_t*)malloc(ch->dacs_size);
     if(ch->dacs_buffer == NULL)
     {
-        bplog(BP_FAILEDMEM, "Failed to allocate memory for channel DACS\n");                    
+        bplog(BP_FAILEDMEM, "Failed to allocate memory for channel DACS\n");
         bplib_close(ch);
         return NULL;
     }
@@ -389,9 +389,9 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     {
         bplog(BP_UNSUPPORTED, "Unrecognized attribute for creating active table: %d\n", attributes.retransmit_order);
         bplib_close(ch);
-        return NULL;        
+        return NULL;
     }
-    
+
 
     /* Initialize Active Table */
     status = ch->active_table.create(&ch->active_table.table, attributes.active_table_size);
@@ -404,7 +404,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Initialize Current Custody ID */
     ch->current_active_cid  = 0;
-    
+
     /* Return Channel */
     return ch;
 }
@@ -416,17 +416,17 @@ void bplib_close(bp_desc_t channel)
 {
     /* Check Parameters */
     if(channel == BP_INVALID_DESCRIPTOR) return;
-    
+
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
-    
+
     /* Un-initialize Bundle Store */
     if(ch->bundle_handle >= 0)
     {
         ch->store.destroy(ch->bundle_handle);
         ch->bundle_handle = BP_INVALID_HANDLE;
     }
-    
+
     /* Un-initialize Payload Store */
     if(ch->payload_handle >= 0)
     {
@@ -461,7 +461,7 @@ void bplib_close(bp_desc_t channel)
     /* Un-initialize Bundle and DACS */
     v6_destroy(&ch->bundle);
     v6_destroy(&ch->dacs);
-    
+
     /* Un-initialize Active Table */
     if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
     ch->active_table.destroy(ch->active_table.table);
@@ -477,7 +477,7 @@ int bplib_flush(bp_desc_t channel)
 {
     /* Check Parameters */
     if(channel == BP_INVALID_DESCRIPTOR) return BP_PARMERR;
-    
+
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
 
@@ -510,13 +510,13 @@ int bplib_config(bp_desc_t channel, int mode, int opt, int* val)
     /* Check Parameters */
     if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
     else if(val == NULL)                    return BP_PARMERR;
-    
+
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
 
     /* Set Mode */
     bool setopt = mode == BP_OPT_MODE_WRITE ? true : false;
-    
+
     /* Select and Process Option */
     switch(opt)
     {
@@ -622,7 +622,7 @@ int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
     ch->stats.stored_bundles = ch->store.getcount(ch->bundle_handle);
     ch->stats.stored_payloads = ch->store.getcount(ch->payload_handle);
     ch->stats.stored_dacs = ch->store.getcount(ch->dacs_handle);
-    
+
     /* Update Active Statistic */
     ch->stats.active_bundles = ch->active_table.count(ch->active_table.table);
 
@@ -659,7 +659,7 @@ int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_
     {
         status = v6_send_bundle(&ch->bundle, payload, size, create_bundle, ch, timeout, flags);
     }
-    
+
     /* Return Status */
     return status;
 }
@@ -679,7 +679,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
 
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)channel;
-    
+
     /* Setup State */
     unsigned long   sysnow  = 0;                /* current system time used for timeouts (seconds) */
     bp_object_t*    object  = NULL;             /* stare out assuming nothing to send */
@@ -692,7 +692,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     {
         *flags |= BP_FLAG_UNRELIABLETIME;
     }
-    
+
     /*-------------------------*/
     /* Try to Send DACS Bundle */
     /*-------------------------*/
@@ -704,7 +704,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
             /* Check If DACS Ready to Send */
             bplib_os_lock(ch->custody_tree_lock);
             {
-                if( (sysnow >= (ch->dacs_last_sent + ch->dacs.attributes.dacs_rate)) && 
+                if( (sysnow >= (ch->dacs_last_sent + ch->dacs.attributes.dacs_rate)) &&
                     !rb_tree_is_empty(&ch->custody_tree) )
                 {
                     create_dacs(ch, sysnow, BP_CHECK, flags);
@@ -719,7 +719,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
             isdacs = true;
         }
     }
-    
+
     /*------------------------------------------------*/
     /* Try to Send Active Bundle (if nothing to send) */
     /*------------------------------------------------*/
@@ -753,7 +753,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                         /* Handle Active Table and Custody ID */
                         if(ch->bundle.attributes.cid_reuse)
                         {
-                            /* Set flag to reuse custody id and active table entry, 
+                            /* Set flag to reuse custody id and active table entry,
                              * active table entry is not cleared, since CID is being reused */
                             newcid = false;
                         }
@@ -761,17 +761,18 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                         {
                             /* Clear Entry (it will be reinserted below at the current CID) */
                             ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
-                            
+
                             /* Move to Next Oldest */
                             ch->active_table.next(ch->active_table.table, NULL);
                         }
-                        
+
                         /* Break Out of Loop */
                         break;
                     }
                     else /* oldest active bundle still active */
                     {
                         /* Bundle Not Ready to Retransmit */
+                        ch->store.release(ch->bundle_handle, object->sid);
                         object = NULL;
 
                         /* Check Active Table Has Room
@@ -839,7 +840,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
             *flags |= BP_FLAG_STOREFAILURE;
         }
     }
-    
+
     /*------------------------------*/
     /* Load Bundle if Ready to Send */
     /*------------------------------*/
@@ -858,7 +859,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
 
                 /* Update Retransmit Time */
                 active_bundle.retx = sysnow;
-                
+
                 /* Assign New Custody ID */
                 if(newcid)
                 {
@@ -929,7 +930,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         bplib_os_lock(ch->active_table_signal);
         {
             int num_acks = 0;
-            int bytes_read = v6_receive_acknowledgment(payload.memptr, payload.data.payloadsize, &num_acks, remove_bundle, ch, flags);            
+            int bytes_read = v6_receive_acknowledgment(payload.memptr, payload.data.payloadsize, &num_acks, remove_bundle, ch, flags);
             ch->stats.acknowledged_bundles += num_acks;
 
             /* Set Status */
@@ -984,9 +985,9 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     else
     {
         /* Increment Statistics */
-        ch->stats.unrecognized++;        
+        ch->stats.unrecognized++;
     }
-    
+
 
     /* Acknowledge Custody Transfer - Update DACS */
     if(custody_transfer)
@@ -1005,7 +1006,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
             {
                 /* Insert Custody ID directly into current custody_tree */
                 int insert_status = rb_tree_insert(payload.cid, &ch->custody_tree);
-                if(insert_status == BP_CUSTODYTREEFULL) 
+                if(insert_status == BP_CUSTODYTREEFULL)
                 {
                     /* Flag Full Tree - possibly the custody_tree size is configured to be too small */
                     *flags |= BP_FLAG_RBTREEFULL;
@@ -1028,7 +1029,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
                 else if(insert_status != BP_SUCCESS)
                 {
                     /* Tree error unexpected */
-                    status = BP_FAILEDRESPONSE;        
+                    status = BP_FAILEDRESPONSE;
                 }
             }
             else
@@ -1054,7 +1055,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         }
         bplib_os_unlock(ch->custody_tree_lock);
     }
-    
+
     /* Return Status */
     return status;
 }
@@ -1067,7 +1068,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
 int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint16_t* flags)
 {
     (void)flags;
-    
+
     int status = BP_SUCCESS;
     bp_object_t* object = NULL;
 
@@ -1104,11 +1105,11 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
         {
             /* Return Payload to Application */
             *payload = data->payload;
-            if(size) *size = data->payloadsize;        
+            if(size) *size = data->payloadsize;
 
             /* Check for Application Acknowledgement Request */
             if(data->ackapp) status = BP_PENDINGAPPLICATION;
-            
+
             /* Count as Delivered */
             ch->stats.delivered_payloads++;
         }
@@ -1134,7 +1135,7 @@ int bplib_ackbundle(bp_desc_t channel, void* bundle)
 
     /* Release Memory */
     ch->store.release(object->handle, object->sid);
-    
+
     /* Free Memory - only when no custody transfer is requested */
     if(data->cteboffset == 0) ch->store.relinquish(object->handle, object->sid);
 
@@ -1158,7 +1159,7 @@ int bplib_ackpayload(bp_desc_t channel, void* payload)
 
     /* Release Memory */
     ch->store.release(object->handle, object->sid);
-    
+
     /* Free Memory */
     ch->store.relinquish(object->handle, object->sid);
 
