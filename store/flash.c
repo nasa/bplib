@@ -496,9 +496,18 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode)
         bp_flash_index_t block;
         for(block = 0; block < FLASH_DRIVER.num_blocks; block++)
         {
-            int status = flash_free_reclaim(block);
-            if(status == BP_SUCCESS) reclaimed_blocks++;
+            if(FLASH_DRIVER.erase(block) == BP_SUCCESS)
+            {
+                if(flash_free_reclaim(block) == BP_SUCCESS)
+                {
+                    reclaimed_blocks++;
+                }
+            }
         }
+    }
+    else
+    {
+        /* TODO Implement Recovery Logic */
     }
 
     /* Return Number of Reclaimed Blocks */
