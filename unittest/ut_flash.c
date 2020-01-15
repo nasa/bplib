@@ -215,11 +215,18 @@ static void test_4(void)
     bp_object_t* object = NULL;
     ut_assert(bplib_store_flash_enqueue(h, test_data, TEST_DATA_SIZE, NULL, 0, BP_CHECK) == BP_SUCCESS, "Failed to enqueue test data\n");
     ut_assert(bplib_store_flash_dequeue(h, &object, BP_CHECK) == BP_SUCCESS, "Failed to enqueue test data\n");
-    ut_assert(object->handle == h, "Incorrect handle in dequeued object: %d != %d\n", object->handle, h);
-    ut_assert(object->size == TEST_DATA_SIZE, "Incorrect size in dequeued object: %d != %d\n", object->size, TEST_DATA_SIZE);
-    for(i = 0; i < TEST_DATA_SIZE; i++)
+    if(object != NULL)
     {
-        ut_assert((uint8_t)object->data[i] == test_data[i], "Failed to dequeue correct data at %d, %02X != %02X\n", i, (uint8_t)object->data[i], test_data[i]);
+        ut_assert(object->handle == h, "Incorrect handle in dequeued object: %d != %d\n", object->handle, h);
+        ut_assert(object->size == TEST_DATA_SIZE, "Incorrect size in dequeued object: %d != %d\n", object->size, TEST_DATA_SIZE);
+        for(i = 0; i < TEST_DATA_SIZE; i++)
+        {
+            ut_assert((uint8_t)object->data[i] == test_data[i], "Failed to dequeue correct data at %d, %02X != %02X\n", i, (uint8_t)object->data[i], test_data[i]);
+        }
+    }
+    else
+    {
+        ut_assert(false, "Failed to dequeue object\n");
     }
 }
 
