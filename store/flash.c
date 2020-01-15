@@ -272,7 +272,7 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
     if(bytes_available >= bytes_needed && fs->attributes.max_data_size >= bytes_needed)
     {
         /* Calculate Object Information */
-        uint64_t sid = FLASH_GET_SID(fs->write_addr);
+        unsigned long sid = FLASH_GET_SID(fs->write_addr);
         bp_object_t object_hdr = {handle, data1_size + data2_size, (bp_sid_t)sid};
 
         /* Copy into Write Stage */
@@ -349,7 +349,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
     int status;
 
     /* Get Address from SID */
-    bp_flash_addr_t addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid)};
+    bp_flash_addr_t addr = {FLASH_GET_BLOCK((unsigned long)sid), FLASH_GET_PAGE((unsigned long)sid)};
     if(addr.page >= FLASH_DRIVER.pages_per_block || addr.block >= FLASH_DRIVER.num_blocks)
     {
         return bplog(BP_FAILEDSTORE, "Invalid address provided to delete function: %d.%d\n", addr.block, addr.page);
@@ -663,7 +663,7 @@ int bplib_store_flash_retrieve (int handle, bp_sid_t sid, bp_object_t** object, 
 
     bplib_os_lock(flash_device_lock);
     {
-        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid)};
+        bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((unsigned long)sid), FLASH_GET_PAGE((unsigned long)sid)};
         status = flash_object_read(fs, &page_addr, object);
     }
     bplib_os_unlock(flash_device_lock);
@@ -686,7 +686,7 @@ int bplib_store_flash_release (int handle, bp_sid_t sid)
     bp_object_t* object = (bp_object_t*)fs->read_stage;
     if(object->sid != sid)
     {
-        return bplog(BP_FAILEDSTORE, "Object being released does not have correct SID, requested: %llu, actual: %llu\n", (uint64_t)sid, (uint64_t)object->sid);
+        return bplog(BP_FAILEDSTORE, "Object being released does not have correct SID, requested: %lu, actual: %lu\n", (unsigned long)sid, (unsigned long)object->sid);
     }
 
     /* Unlock Stage */
