@@ -37,7 +37,6 @@ extern int flash_free_reclaim (bp_flash_index_t block);
 extern int flash_free_allocate (bp_flash_index_t* block);
 extern int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int size);
 extern int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int size);
-extern int flash_data_delete (bp_flash_addr_t* addr, int size);
 
 /******************************************************************************
  FILE DATA
@@ -192,67 +191,9 @@ static void test_3(void)
  *--------------------------------------------------------------------------------------*/
 static void test_4(void)
 {
-    int status, i;
-    bp_flash_index_t saved_block;
-    bp_flash_addr_t addr;
-
-    printf("\n==== Test 4: Delete Data ====\n");
-
-    /* Initialize Driver */
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
-    printf("Number of Blocks Reclaimed: %d\n", reclaimed_blocks);
-
-    /* Initialize Test Data */
-    for(i = 0; i < TEST_DATA_SIZE; i++)
-    {
-        test_data[i] = i % 0xFF;
-        read_data[i] = 0;
-    }
-
-    /* Write & Delete Test Data */
-    status = flash_free_allocate(&addr.block);
-    ut_assert(status == BP_SUCCESS, "Failed to allocate first free block\n");
-    if(status == BP_SUCCESS)
-    {
-        saved_block = addr.block;
-        addr.page = 0;
-
-        /* Write Data */
-        int bytes_written = 0;
-        int bytes_to_write = flash_driver.data_size * flash_driver.pages_per_block * 2;
-        while(bytes_written < bytes_to_write)
-        {
-            ut_assert(flash_data_write (&addr, test_data, TEST_DATA_SIZE) == BP_SUCCESS, "Failed to write data at %d.%d\n", addr.block, addr.page);
-            bytes_written += TEST_DATA_SIZE;
-        }
-
-        /* Allocate Rest of Blocks */
-        while(flash_free_allocate(&addr.block) == BP_SUCCESS);
-
-        /* Delete Data */
-        addr.block = saved_block;
-        addr.page = 0;
-        int bytes_deleted = 0;
-        while(bytes_deleted < bytes_to_write)
-        {
-            ut_assert(flash_data_delete (&addr, TEST_DATA_SIZE) == BP_SUCCESS, "Failed to delete data at %d.%d\n", addr.block, addr.page);
-            bytes_deleted += TEST_DATA_SIZE;
-        }
-
-        /* Verify Allocation Succeeds - showing at least two blocks were freed above */
-        ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate first block that should have been freed\n");
-        ut_assert(flash_free_allocate(&addr.block) == BP_SUCCESS, "Failed to allocate second block that should have been freed\n");
-    }
-}
-
-/*--------------------------------------------------------------------------------------
- * Test #5
- *--------------------------------------------------------------------------------------*/
-static void test_5(void)
-{
     int i, h;
 
-    printf("\n==== Test 5: Enqueue/Dequeue ====\n");
+    printf("\n==== Test 4: Enqueue/Dequeue ====\n");
 
     /* Initialize Driver */
     int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
@@ -292,7 +233,6 @@ int ut_flash (void)
     test_2();
     test_3();
     test_4();
-    test_5();
 
     return ut_failures();
 }
