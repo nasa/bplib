@@ -61,6 +61,7 @@ typedef struct {
     uint8_t*            read_stage; /* lockable buffer that returns data object */
     bool                stage_locked;
     int                 object_count;
+    int                 queue_count;
 } flash_store_t;
 
 /******************************************************************************
@@ -302,34 +303,25 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, bp_flash_addr_t* addr, 
     /* Check Stage Lock */
     if(fs->stage_locked == false)
     {
-        /* Check if Data Objects Available */
-        if(fs->object_count > 0)
+        /* Read Object Header from Flash */
+        status = flash_data_read(addr, fs->read_stage, FLASH_DRIVER.data_size);
+        if(status == BP_SUCCESS)
         {
-            /* Read Object Header from Flash */
-            status = flash_data_read(addr, fs->read_stage, FLASH_DRIVER.data_size);
-            if(status == BP_SUCCESS)
+            bp_object_t* object_hdr = (bp_object_t*)fs->read_stage;
+            int bytes_read = FLASH_DRIVER.data_size - sizeof(bp_object_t);
+            int remaining_bytes = object_hdr->size - bytes_read;
+            if(remaining_bytes > 0)
             {
-                bp_object_t* object_hdr = (bp_object_t*)fs->read_stage;
-                int bytes_read = FLASH_DRIVER.data_size - sizeof(bp_object_t);
-                int remaining_bytes = object_hdr->size - bytes_read;
-                if(remaining_bytes > 0)
-                {
-                    status = flash_data_read(addr, &fs->read_stage[FLASH_DRIVER.data_size], remaining_bytes);
-                }
-            }
-
-            /* Object Successfully Dequeued */
-            if(status == BP_SUCCESS)
-            {
-                /* Return Locked Object */
-                *object = (bp_object_t*)fs->read_stage;
-                fs->stage_locked = true;
+                status = flash_data_read(addr, &fs->read_stage[FLASH_DRIVER.data_size], remaining_bytes);
             }
         }
-        else
+
+        /* Object Successfully Dequeued */
+        if(status == BP_SUCCESS)
         {
-            /* No Data to Return */
-            status = BP_TIMEOUT;
+            /* Return Locked Object */
+            *object = (bp_object_t*)fs->read_stage;
+            fs->stage_locked = true;
         }
     }
     else
@@ -565,9 +557,10 @@ int bplib_store_flash_create (void* parm)
                 return bplog(BP_INVALID_HANDLE, "Unable to allocate data stages\n");
             }
 
-            /* Set Object Count to Zero */
+            /* Set Counts to Zero */
             flash_stores[s].object_count = 0;
-
+            flash_stores[s].queue_count = 0;
+            
             /* Set In Use (necessary to be able to destroy later) */
             flash_stores[s].in_use = true;
 
@@ -624,6 +617,7 @@ int bplib_store_flash_enqueue (int handle, void* data1, int data1_size, void* da
         if(status == BP_SUCCESS)
         {
             fs->object_count++;
+            fs->queue_count++;
         }
     }
     bplib_os_unlock(flash_device_lock);
@@ -648,7 +642,20 @@ int bplib_store_flash_dequeue (int handle, bp_object_t** object, int timeout)
 
     bplib_os_lock(flash_device_lock);
     {
-        status = flash_object_read(fs, &fs->read_addr, object);
+        /* Check if Data Objects Available */
+        if(fs->queue_count > 0)
+        {
+            status = flash_object_read(fs, &fs->read_addr, object);
+            if(status == BP_SUCCESS)
+            {
+                fs->queue_count--;
+            }
+        }
+        else
+        {
+            /* No Data to Return */
+            status = BP_TIMEOUT;
+        }
     }
     bplib_os_unlock(flash_device_lock);
 
