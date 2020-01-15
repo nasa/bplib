@@ -117,7 +117,6 @@ CONFIG      ?= posix.mk
 # include configuration makefile to override and add to above definitions
 include $(CONFIG)
 
-
 # unit test objects #
 APP_OBJ     += unittest.o
 ifeq ($(BUILD_UNITTESTS),1)

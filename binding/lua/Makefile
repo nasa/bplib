@@ -34,7 +34,6 @@ VPATH	    := $(ROOT)
 # compiler options for search path for include headers (in form of -I_header_)  
 INCLUDES    := -I$(ROOT)
 INCLUDES    += -I$(ROOT)/../../inc
-INCLUDES    += -I/usr/include/lua$(LUA_VERSION)
 
 # c compiler and linker used for c file extensions
 COMPILER    ?= gcc
@@ -42,21 +41,34 @@ COMPILER    ?= gcc
 # tool chain used as prefix for binary utilities like archival tool
 TOOLCHAIN   ?= gcc
 
+# user customized options
+MY_COPT     ?= 
+MY_LOPT     ?=
+
+###############################################################################
+##  CUSTOMIZATION
+
+LIBDIR      := $(PREFIX)/lib/lua/$(LUA_VERSION)
+MY_COPT     += -I/usr/include/lua$(LUA_VERSION)
+MY_LOPT     += -llua$(LUA_VERSION)
+
+#MY_COPT     += -I/opt/lua_i386/include/lua -m32
+#MY_LOPT     += -m32 -L/opt/lua_i386/lib -llua
+
 ###############################################################################
 ##  DEFINES
 
 TGTEXT      :=   bplib
-LIBDIR      :=   $(PREFIX)/lib/lua/$(LUA_VERSION)
 BLDDIR      :=   build
 O           ?=   3 # default optimization level
 
-COPT        :=   -g -O$(O) $(INCLUDES)
+COPT        :=   -g -O$(O) $(INCLUDES) $(MY_COPT)
 COPT        +=   -Wall -Wextra -Wshadow
 COPT        +=   -fPIC
 
+LOPT        :=    $(MY_LOPT)
 LOPT        :=   -L../../build 
-LOPT        +=   -L/usr/lib/x86_64-linux-gnu
-LOPT        +=   -llua$(LUA_VERSION) -lbp
+LOPT        +=   -lbp
 
 ###############################################################################
 ##  TOOLS
