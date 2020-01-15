@@ -1,13 +1,13 @@
 /************************************************************************
  * File: unittest.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -38,9 +38,9 @@ int bplib_unittest (void)
 {
 #ifdef UNITTESTS
     /* Run Unit Tests */
-//    ut_crc();
-//    ut_rb_tree();
-//    ut_rh_hash();
+    ut_crc();
+    ut_rb_tree();
+    ut_rh_hash();
     ut_flash();
 
     /* Return Failures */
@@ -48,5 +48,5 @@ int bplib_unittest (void)
 #else
     return 0;
 #endif
-    
+
 }

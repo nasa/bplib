@@ -87,7 +87,7 @@ static flash_block_control_t*   flash_blocks;
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
 {
-    int status = BP_ERROR;
+    int status = BP_FAILEDSTORE;
 
     /* Clear Block Control Entry */
     memset(flash_blocks[block].page_use, 0xFF, sizeof(flash_blocks[block].page_use));
@@ -164,7 +164,7 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
     /* Check for Valid Address */
     if(addr->page >= FLASH_DRIVER.pages_per_block || addr->block >= FLASH_DRIVER.num_blocks)
     {
-        return bplog(BP_ERROR, "Invalid address provided to write function: %d.%d\n", addr->block, addr->page);
+        return bplog(BP_FAILEDSTORE, "Invalid address provided to write function: %d.%d\n", addr->block, addr->page);
     }
 
     /* Copy Into and Write Pages */
@@ -220,7 +220,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
     /* Check for Valid Address */
     if(addr->page >= FLASH_DRIVER.pages_per_block || addr->block >= FLASH_DRIVER.num_blocks)
     {
-        return bplog(BP_ERROR, "Invalid address provided to read function: %d.%d\n", addr->block, addr->page);
+        return bplog(BP_FAILEDSTORE, "Invalid address provided to read function: %d.%d\n", addr->block, addr->page);
     }
 
     /* Copy Into and Write Pages */
@@ -247,7 +247,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
             bp_flash_index_t next_read_block = flash_blocks[addr->block].next_block;
             if(next_read_block == BP_FLASH_INVALID_INDEX)
             {
-                return bplog(BP_ERROR, "Failed to retrieve next block in middle of flash read at block: %ld\n", addr->block);
+                return bplog(BP_FAILEDSTORE, "Failed to retrieve next block in middle of flash read at block: %ld\n", addr->block);
             }
 
             /* Goto Next Read Block */
@@ -285,7 +285,7 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
     }
     else
     {
-        status = bplog(BP_FAILEDSTORE, "Insufficient room in flash storage, max: %llu, available: %llu, needed: %llu\n", (long long unsigned)fs->attributes.max_data_size, (long long unsigned)bytes_available, (long long unsigned)bytes_needed);
+        status = bplog(BP_STOREFULL, "Insufficient room in flash storage, max: %llu, available: %llu, needed: %llu\n", (long long unsigned)fs->attributes.max_data_size, (long long unsigned)bytes_available, (long long unsigned)bytes_needed);
     }
 
     /* Return Status */
@@ -334,7 +334,7 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, bp_flash_addr_t* addr, 
     }
     else
     {
-        status = bplog(BP_ERROR, "Object read cannot proceed when object stage is locked\n");
+        status = bplog(BP_FAILEDSTORE, "Object read cannot proceed when object stage is locked\n");
     }
 
     /* Return Status */
@@ -352,7 +352,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
     bp_flash_addr_t addr = {FLASH_GET_BLOCK((uint64_t)sid), FLASH_GET_PAGE((uint64_t)sid)};
     if(addr.page >= FLASH_DRIVER.pages_per_block || addr.block >= FLASH_DRIVER.num_blocks)
     {
-        return bplog(BP_ERROR, "Invalid address provided to delete function: %d.%d\n", addr.block, addr.page);
+        return bplog(BP_FAILEDSTORE, "Invalid address provided to delete function: %d.%d\n", addr.block, addr.page);
     }
 
     /* Retrieve Object Header */
@@ -365,7 +365,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
     }
     else if(flash_object_hdr.sid != sid)
     {
-        return bplog(BP_ERROR, "Attempting to delete object with invalid SID: %lu != %lu\n", (unsigned long)flash_object_hdr.sid, (unsigned long)sid);
+        return bplog(BP_FAILEDSTORE, "Attempting to delete object with invalid SID: %lu != %lu\n", (unsigned long)flash_object_hdr.sid, (unsigned long)sid);
     }
 
     /* Setup Loop Parameters */
@@ -417,7 +417,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
             bp_flash_index_t next_delete_block = flash_blocks[addr.block].next_block;
             if(next_delete_block == BP_FLASH_INVALID_INDEX)
             {
-                return bplog(BP_ERROR, "Failed to retrieve next block in middle of flash delete at block: %d\n", addr.block);
+                return bplog(BP_FAILEDSTORE, "Failed to retrieve next block in middle of flash delete at block: %d\n", addr.block);
             }
 
             /* Goto Next Block to Delete */
