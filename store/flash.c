@@ -43,6 +43,7 @@
 typedef struct {
     bp_flash_index_t    next_block;
     bp_flash_index_t    prev_block;
+    bp_flash_index_t    max_page;
     uint8_t             page_use[FLASH_PAGE_USE_BYTES];
 } flash_block_control_t;
 
@@ -113,9 +114,10 @@ BP_LOCAL_SCOPE void flash_block_list_add (flash_block_list_t* list, bp_flash_ind
 BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
 {
     /* Clear Block Control Entry */
-    memset(flash_blocks[block].page_use, 0xFF, sizeof(flash_blocks[block].page_use));
     flash_blocks[block].next_block = BP_FLASH_INVALID_INDEX;
     flash_blocks[block].prev_block = BP_FLASH_INVALID_INDEX;
+    flash_blocks[block].max_page = FLASH_DRIVER.pages_per_block;
+    memset(flash_blocks[block].page_use, 0xFF, sizeof(flash_blocks[block].page_use));
 
     /* Add to Free or Bad List */
     if(!FLASH_DRIVER.isbad(block))
