@@ -1,13 +1,13 @@
 /************************************************************************
  * File: blocks.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -129,7 +129,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
 {
     int status;
     int hdr_index;
-    
+
     bp_bundle_data_t* data = &bundle->data;
     bp_v6blocks_t* blocks = (bp_v6blocks_t*)bundle->blocks;
 
@@ -165,7 +165,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         {
             blocks->primary_block.cstnode.value = 0;
             blocks->primary_block.cstserv.value = 0;
-        }        
+        }
         blocks->primary_block.lifetime.value    = bundle->attributes.lifetime;
         blocks->primary_block.is_admin_rec      = bundle->attributes.admin_record;
         blocks->primary_block.allow_frag        = bundle->attributes.allow_fragmentation;
@@ -216,7 +216,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         /* Initialize Block */
         blocks->integrity_block = bundle_bib_blk;
         blocks->integrity_block.cipher_suite_id.value = bundle->attributes.cipher_suite;
-        
+
         /* Populate Data */
         data->biboffset = hdr_index;
         status = bib_write(&data->header[hdr_index], BP_BUNDLE_HDR_BUF_SIZE - hdr_index, &blocks->integrity_block, false, flags);
@@ -240,7 +240,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
     {
         return bplog(BP_BUNDLETOOLARGE, "Non-excluded forwarded bundle exceed maximum header size (%d)\n", hdr_index);
     }
-        
+
     /* Initialize Payload Block */
     blocks->payload_block = bundle_pay_blk;
 
@@ -283,10 +283,10 @@ int v6_create(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes)
     /* Initialize Route and Attributes */
     bundle->route = route;
     bundle->attributes = attributes;
-    
+
     /* Initialize Blocks */
     bundle->blocks = NULL;
-    
+
     /* Allocate Blocks */
     if(status == BP_SUCCESS)
     {
@@ -299,7 +299,7 @@ int v6_create(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes)
 
     /* Mark Bundle to Prebuild */
     bundle->prebuilt = false;
-    
+
     /* Return Status */
     return status;
 }
@@ -312,7 +312,7 @@ int v6_create(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes)
 int v6_destroy(bp_bundle_t* bundle)
 {
     if(bundle->blocks) free(bundle->blocks);
-    bundle->blocks = NULL;    
+    bundle->blocks = NULL;
     return BP_SUCCESS;
 }
 
@@ -337,7 +337,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
     bp_blk_pri_t*           pri             = &blocks->primary_block;
     bp_blk_bib_t*           bib             = &blocks->integrity_block;
     bp_blk_pay_t*           pay             = &blocks->payload_block;
-    
+
     /* Update Payload Block */
     pay->payptr = buffer;
     pay->paysize = size;
@@ -347,7 +347,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
     {
         if(bundle->attributes.allow_fragmentation)
         {
-            pri->is_frag = true;            
+            pri->is_frag = true;
         }
         else
         {
@@ -360,11 +360,11 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
     {
         /* Get Current Time */
         unsigned long sysnow = 0;
-        if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+        if(bplib_os_systime(&sysnow) == BP_ERROR)
         {
-            /* NOTE: creation time set to zero in this special case 
+            /* NOTE: creation time set to zero in this special case
              * to protect against unintended bundle expiration */
-            sysnow = 0; 
+            sysnow = 0;
             *flags |= BP_FLAG_UNRELIABLETIME;
         }
 
@@ -413,7 +413,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
         {
             bib_update(&data->header[data->biboffset], BP_BUNDLE_HDR_BUF_SIZE - data->biboffset, &pay->payptr[payload_offset], fragment_size, bib, flags);
         }
-        
+
         /* Write Payload Block (static portion) */
         pay->blklen.value = fragment_size;
         int bytes_written = pay_write(&data->header[data->payoffset], BP_BUNDLE_HDR_BUF_SIZE - data->payoffset, pay, false, flags);
@@ -428,7 +428,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
             *flags |= BP_FLAG_STOREFAILURE;
             return bplog(status, "Failed (%d) to store bundle in storage system\n", status);
         }
-            
+
         payload_offset += fragment_size;
     }
 
@@ -487,7 +487,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     /* Check Expiration */
     unsigned long sysnow = 0;
     bp_val_t exprtime = pri_blk.lifetime.value + pri_blk.createsec.value;
-    if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+    if(bplib_os_systime(&sysnow) == BP_ERROR)
     {
         /* Handle Unreliable Time */
         *flags |= BP_FLAG_UNRELIABLETIME;
@@ -517,7 +517,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
             bib_present = true;
             bib_index = index;
             exclude[ei++] = index;
-            
+
             /* Read BIB */
             bytes = bib_read(&buffer[bib_index], size - bib_index, &bib_blk, true, flags);
             if(bytes <= 0)  return bplog(bytes, "Failed to parse BIB block at offset %d\n", bib_index);
@@ -543,7 +543,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
             bp_field_t blk_len = { 0, 0, 0 };
             int start_index = index;
             int data_index = 0; /* start of the block after the block length, set below */
-            
+
             blk_len.index = sdnv_read(&buffer[start_index], size - start_index, &blk_flags, flags);
             data_index = sdnv_read(&buffer[start_index], size - start_index, &blk_len, flags);
 
@@ -557,7 +557,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                 index += data_index + blk_len.value;
             }
 
-            /* Mark Processing as Incomplete */            
+            /* Mark Processing as Incomplete */
             *flags |= BP_FLAG_INCOMPLETE;
             bplog(BP_UNSUPPORTED, "Skipping over unrecognized block of type 0x%02X and size %d\n", blk_type, blk_len.value);
 
@@ -569,7 +569,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
             {
                 status = bplog(BP_DROPPED, "Dropping bundle with unrecognized block\n");
             }
-    
+
             /* Check if Block Should be Included */
             if(blk_flags.value & BP_BLK_DROPNOPROC_MASK)
             {
@@ -621,7 +621,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                     pri_blk.rptnode.value = 0;
                     pri_blk.rptserv.value = 0;
                     pri_blk.cstnode.value = bundle->route.local_node;
-                    pri_blk.cstserv.value = bundle->route.local_service;                        
+                    pri_blk.cstserv.value = bundle->route.local_service;
                 }
 
                 /* Copy Non-excluded Header Regions */
@@ -694,11 +694,11 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                 else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(BP_UNSUPPORTED, "Status report bundles are not supported\n");
                 else                                    status = bplog(BP_UNKNOWNREC, "Unknown administrative record: %u\n", (unsigned int)rec_type);
             }
-            else 
+            else
             {
                 /* Return Payload for Accepting */
                 status = BP_PENDINGACCEPTANCE;
-                
+
                 /* Handle Custody Transfer */
                 if(pri_blk.cst_rqst)
                 {
@@ -708,7 +708,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                         payload->service = cteb_blk.cstserv;
                         payload->cid = cteb_blk.cid.value;
                     }
-                    else                        
+                    else
                     {
                         *flags |= BP_FLAG_NONCOMPLIANT;
                         status = bplog(BP_UNSUPPORTED, "Bundle requesting custody, but only aggregate custody supported\n");
@@ -720,12 +720,12 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                     payload->service = BP_IPN_NULL;
                 }
             }
-            
+
             /* Force Exit After Payload Block */
             break;
         }
     }
-    
+
     /* Return Status */
     return status;
 }
@@ -753,7 +753,7 @@ int v6_populate_acknowledgment(uint8_t* rec, int size, int max_fills, rb_tree_t*
  *-------------------------------------------------------------------------------------*/
 int v6_receive_acknowledgment(uint8_t* rec, int size, int* num_acks, bp_remove_func_t remove, void* parm, uint16_t* flags)
 {
-    return dacs_read(rec, size, num_acks, remove, parm, flags);    
+    return dacs_read(rec, size, num_acks, remove, parm, flags);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -766,7 +766,7 @@ int v6_routeinfo(void* bundle, int size, bp_route_t* route)
 
     /* Check Parameters */
     if(bundle == NULL) return BP_PARMERR;
-    
+
     /* Parse Primary Block */
     int status = pri_read((uint8_t*)bundle, size, &pri_blk, true, flags);
     if(status <= 0) return status;
@@ -783,7 +783,7 @@ int v6_routeinfo(void* bundle, int size, bp_route_t* route)
     }
 
     /* Return Success */
-    return BP_SUCCESS;    
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -865,7 +865,7 @@ int v6_display(void* bundle, int size, uint16_t* flags)
         {
             bp_blk_pay_t    pay_blk;
             int             pay_index = start_index;
-    
+
             bytes = pay_read(&buffer[pay_index], size - pay_index, &pay_blk, true, flags);
             if(bytes <= 0)  return bplog(bytes, "Failed (%d) to read payload block\n", bytes);
             else            pay_index += bytes;
@@ -891,7 +891,7 @@ int v6_display(void* bundle, int size, uint16_t* flags)
             bplog(BP_DEBUG, "\n");
         }
     }
-    
+
     /* Return Success */
     return BP_SUCCESS;
 }

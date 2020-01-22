@@ -688,7 +688,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     bool            isdacs  = false;            /* is loaded bundle a dacs */
 
     /* Get Current Time */
-    if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+    if(bplib_os_systime(&sysnow) == BP_ERROR)
     {
         *flags |= BP_FLAG_UNRELIABLETIME;
     }
@@ -714,9 +714,15 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
         }
 
         /* Dequeue any Stored DACS */
-        if(ch->store.dequeue(ch->dacs_handle, &object, BP_CHECK) == BP_SUCCESS)
+        int dacs_status = ch->store.dequeue(ch->dacs_handle, &object, BP_CHECK);
+        if(dacs_status == BP_SUCCESS)
         {
             isdacs = true;
+        }
+        else if(dacs_status != BP_TIMEOUT)
+        {
+            /* Failed Storage Service */
+            *flags |= BP_FLAG_STOREFAILURE;
         }
     }
 
@@ -994,7 +1000,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
     {
         /* Get Time */
         unsigned long sysnow = 0;
-        if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+        if(bplib_os_systime(&sysnow) == BP_ERROR)
         {
             *flags |= BP_FLAG_UNRELIABLETIME;
         }
@@ -1082,13 +1088,13 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
 
     /* Dequeue Payload from Storage */
     status = ch->store.dequeue(ch->payload_handle, &object, timeout);
-    if(status > 0)
+    if(status == BP_SUCCESS)
     {
         bp_payload_data_t* data = (bp_payload_data_t*)object->data;
 
         /* Get Current Time */
         unsigned long sysnow = 0;
-        if(bplib_os_systime(&sysnow) == BP_OS_ERROR)
+        if(bplib_os_systime(&sysnow) == BP_ERROR)
         {
             *flags |= BP_FLAG_UNRELIABLETIME;
             sysnow = 0; /* prevents expiration below */
@@ -1113,6 +1119,11 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
             /* Count as Delivered */
             ch->stats.delivered_payloads++;
         }
+    }
+    else if(status != BP_TIMEOUT)
+    {
+        /* Failed Storage Service */
+        *flags |= BP_FLAG_STOREFAILURE;
     }
 
     /* Return Status */

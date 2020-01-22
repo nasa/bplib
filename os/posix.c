@@ -1,13 +1,13 @@
 /************************************************************************
  * File: posix.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -100,7 +100,7 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     /* Create Log Message */
     if(error != BP_DEBUG)   snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%d:%s", pathptr, line, error, formatted_string);
     else                    snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s", formatted_string);
-    
+
     /* Display Log Message */
     printf("%s", log_message);
 
@@ -113,7 +113,7 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
  *-------------------------------------------------------------------------------------*/
 int bplib_os_systime(unsigned long* sysnow)
 {
-    int status = BP_OS_SUCCESS;
+    int status = BP_SUCCESS;
 
     /* Get System Time */
     struct timespec now;
@@ -121,15 +121,15 @@ int bplib_os_systime(unsigned long* sysnow)
     unsigned long elapsed_secs = now.tv_sec - UNIX_SECS_AT_2000;
     unsigned long previous_secs = prevnow.tv_sec - UNIX_SECS_AT_2000;
     prevnow = now;
-    
+
     /* Return Time */
     if(sysnow) *sysnow = elapsed_secs;
-    
+
     /* Check Reliability */
     if( (now.tv_sec < UNIX_SECS_AT_2000) || /* time nonsensical */
         (previous_secs > elapsed_secs) )    /* time going backwards */
     {
-        status = BP_OS_ERROR;
+        status = BP_ERROR;
     }
 
     /* Return Status */
@@ -150,7 +150,7 @@ void bplib_os_sleep(int seconds)
 int bplib_os_createlock(void)
 {
     int handle = BP_INVALID_HANDLE;
-    
+
     pthread_mutex_lock(&lock_of_locks);
     {
         int i;
@@ -170,7 +170,7 @@ int bplib_os_createlock(void)
         }
     }
     pthread_mutex_unlock(&lock_of_locks);
-    
+
     return handle;
 }
 
@@ -183,7 +183,7 @@ void bplib_os_destroylock(int handle)
     {
         if(locks[handle] != NULL)
         {
-            pthread_mutex_destroy(&locks[handle]->mutex); 
+            pthread_mutex_destroy(&locks[handle]->mutex);
             pthread_cond_destroy(&locks[handle]->cond);
             free(locks[handle]);
             locks[handle] = NULL;
@@ -228,7 +228,7 @@ int bplib_os_waiton(int handle, int timeout_ms)
     {
         /* Block Forever until Success */
         status = pthread_cond_wait(&locks[handle]->cond, &locks[handle]->mutex);
-        if(status != 0) status = BP_OS_ERROR;
+        if(status != 0) status = BP_ERROR;
         else            status = BP_SUCCESS;
     }
     else if(timeout_ms > 0)
@@ -246,14 +246,14 @@ int bplib_os_waiton(int handle, int timeout_ms)
 
         /* Block on Timed Wait and Update Timeout */
         status = pthread_cond_timedwait(&locks[handle]->cond, &locks[handle]->mutex, &ts);
-        if(status == ETIMEDOUT) status = BP_OS_TIMEOUT;
+        if(status == ETIMEDOUT) status = BP_TIMEOUT;
         else                    status = BP_SUCCESS;
     }
     else /* timeout_ms = 0 */
     {
         /* conditional does not support a non-blocking attempt
          * so treat it as an immediate timeout */
-        status = BP_OS_TIMEOUT;
+        status = BP_TIMEOUT;
     }
 
     /* Return Status */

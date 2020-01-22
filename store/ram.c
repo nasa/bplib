@@ -1,13 +1,13 @@
 /************************************************************************
  * File: ram.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -338,8 +338,8 @@ static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
             if(isempty(&msgQ->queue))
             {
                 int wait_status = bplib_os_waiton(msgQ->ready, block);
-                if(wait_status == BP_OS_TIMEOUT) recv_state = MSGQ_TIMEOUT;
-                else if(wait_status == BP_OS_ERROR) recv_state = MSGQ_ERROR;
+                if(wait_status == BP_TIMEOUT) recv_state = MSGQ_TIMEOUT;
+                else if(wait_status == BP_ERROR) recv_state = MSGQ_ERROR;
             }
         }
 
@@ -377,7 +377,7 @@ void bplib_store_ram_init (void)
 int bplib_store_ram_create (void* parm)
 {
     (void)parm;
-    
+
     int slot, i;
 
     /* Build Queue Name */
@@ -472,7 +472,7 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
 int bplib_store_ram_dequeue(int handle, bp_object_t** object, int timeout)
 {
     int size;
-    
+
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
     assert(object);
@@ -499,7 +499,7 @@ int bplib_store_ram_dequeue(int handle, bp_object_t** object, int timeout)
 /*----------------------------------------------------------------------------
  * bplib_store_ram_retrieve -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_retrieve(int handle, bp_sid_t sid, 
+int bplib_store_ram_retrieve(int handle, bp_sid_t sid,
                              bp_object_t** object, int timeout)
 {
     (void)handle;
@@ -510,7 +510,7 @@ int bplib_store_ram_retrieve(int handle, bp_sid_t sid,
     assert(object);
 
     *object = (bp_object_t*)sid;
-    
+
     return BP_SUCCESS;
 }
 
@@ -521,7 +521,7 @@ int bplib_store_ram_release (int handle, bp_sid_t sid)
 {
     (void)handle;
     (void)sid;
-    
+
     return BP_SUCCESS;
 }
 
@@ -531,7 +531,7 @@ int bplib_store_ram_release (int handle, bp_sid_t sid)
 int bplib_store_ram_relinquish (int handle, bp_sid_t sid)
 {
     (void)handle;
-    
+
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
 

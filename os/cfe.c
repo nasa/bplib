@@ -73,7 +73,7 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
 {
     (void)file;
     (void)line;
-    
+
     char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
     va_list args;
     int vlen, msglen;
@@ -99,17 +99,17 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
 int bplib_os_systime(unsigned long* sysnow)
 {
     assert(sysnow);
-    
+
     CFE_TIME_SysTime_t sys_time = CFE_TIME_GetTime();
     if(sys_time.Seconds < BPLIB_CFE_SECS_AT_2000)
     {
         *sysnow = sys_time.Seconds;
-        return BP_OS_ERROR;
+        return BP_ERROR;
     }
     else
     {
         *sysnow = sys_time.Seconds - BPLIB_CFE_SECS_AT_2000;
-        return BP_OS_SUCCESS;
+        return BP_SUCCESS;
     }
 }
 
@@ -126,7 +126,7 @@ void bplib_os_sleep(int seconds)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_createlock(void)
 {
-    return BP_OS_SUCCESS;
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -168,7 +168,7 @@ int bplib_os_waiton(int handle, int timeout_ms)
 {
     (void)handle;
     (void)timeout_ms;
-    return BP_OS_SUCCESS;
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
