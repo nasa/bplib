@@ -66,18 +66,24 @@ typedef int (*bp_flash_page_read_t)         (bp_flash_addr_t addr, void* data, i
 typedef int (*bp_flash_page_write_t)        (bp_flash_addr_t addr, void* data, int size);
 typedef int (*bp_flash_block_erase_t)       (bp_flash_index_t block);
 typedef int (*bp_flash_block_is_bad_t)      (bp_flash_index_t block);
-typedef int (*bp_flash_block_mark_bad_t)    (bp_flash_index_t block);
+typedef int (*bp_flash_physical_block_t)    (bp_flash_index_t logblk);
 
 typedef struct {
     bp_flash_index_t            num_blocks;
     bp_flash_index_t            pages_per_block;
-    int                         data_size; /* bytes */
+    int                         page_size; /* bytes */
     bp_flash_page_read_t        read;
     bp_flash_page_write_t       write;
     bp_flash_block_erase_t      erase;
-    bp_flash_block_is_bad_t     is_bad;
-    bp_flash_block_mark_bad_t   mark_bad;
+    bp_flash_block_is_bad_t     isbad;
+    bp_flash_physical_block_t   phyblk;
 } bp_flash_driver_t;
+
+typedef struct {
+    int num_free_blocks;
+    int num_bad_blocks;
+    int error_count;
+} bp_flash_stats_t;
 
 typedef struct {
     int max_data_size; /* max size of data being cached */
@@ -89,6 +95,7 @@ typedef struct {
 
 /* Application API */
 int     bplib_store_flash_init          (bp_flash_driver_t driver, int init_mode);
+void    bplib_store_flash_stats         (bp_flash_stats_t* stats, bool log_stats, bool reset_stats);
 
 /* Service API */
 int     bplib_store_flash_create        (void* parm);
