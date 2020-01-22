@@ -46,6 +46,7 @@ int bplib_flash_sim_page_read       (bp_flash_addr_t addr, void* data, int size)
 int bplib_flash_sim_page_write      (bp_flash_addr_t addr, void* data, int size);
 int bplib_flash_sim_block_erase     (bp_flash_index_t block);
 int bplib_flash_sim_block_is_bad    (bp_flash_index_t block);
+int bplib_flash_sim_physical_block  (bp_flash_index_t logblk);
 int bplib_flash_sim_block_mark_bad  (bp_flash_index_t block);
 
 #ifdef __cplusplus

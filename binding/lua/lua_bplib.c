@@ -131,6 +131,7 @@ static const struct luaL_Reg lbplib_metadata [] = {
     {NULL, NULL}
 };
 
+/* Lua Bplib Storage Services */
 static const lbplib_store_t lbplib_stores[] = 
 {
     {
@@ -178,6 +179,18 @@ static const lbplib_store_t lbplib_stores[] =
 };
 
 #define LBPLIB_NUM_STORES (sizeof(lbplib_stores) / sizeof(lbplib_store_t))
+
+/* Lua Bplib Flash Driver */
+static bp_flash_driver_t lbplib_flash_driver = {
+    .num_blocks = FLASH_SIM_NUM_BLOCKS,
+    .pages_per_block = FLASH_SIM_PAGES_PER_BLOCK,
+    .page_size = FLASH_SIM_DATA_SIZE,
+    .read = bplib_flash_sim_page_read,
+    .write = bplib_flash_sim_page_write,
+    .erase = bplib_flash_sim_block_erase,
+    .isbad = bplib_flash_sim_block_is_bad,
+    .phyblk = bplib_flash_sim_physical_block
+};
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -309,18 +322,8 @@ int luaopen_bplib (lua_State *L)
     bplib_store_file_init();
 
     /* Initialize FLASH Storage Services */
-    bp_flash_driver_t flash_driver = {
-        .num_blocks = FLASH_SIM_NUM_BLOCKS,
-        .pages_per_block = FLASH_SIM_PAGES_PER_BLOCK,
-        .data_size = FLASH_SIM_DATA_SIZE,
-        .read = bplib_flash_sim_page_read,
-        .write = bplib_flash_sim_page_write,
-        .erase = bplib_flash_sim_block_erase,
-        .is_bad = bplib_flash_sim_block_is_bad,
-        .mark_bad = bplib_flash_sim_block_mark_bad
-    };
     bplib_flash_sim_initialize();
-    bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
+    bplib_store_flash_init(lbplib_flash_driver, BP_FLASH_INIT_FORMAT);
     
     /* Initialize Errno */
     set_errno(L, 0);

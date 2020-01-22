@@ -132,6 +132,14 @@ int bplib_flash_sim_block_is_bad (bp_flash_index_t block)
 }
 
 /*--------------------------------------------------------------------------------------
+ * bp_flash_physical_block -
+ *-------------------------------------------------------------------------------------*/
+int bplib_flash_sim_physical_block (bp_flash_index_t logblk)
+{
+    return (int)logblk;
+}
+
+/*--------------------------------------------------------------------------------------
  * bplib_flash_sim_block_mark_bad -
  *-------------------------------------------------------------------------------------*/
 int bplib_flash_sim_block_mark_bad (bp_flash_index_t block)

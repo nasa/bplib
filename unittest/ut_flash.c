@@ -45,12 +45,12 @@ extern int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int size);
 static bp_flash_driver_t flash_driver = {
     .num_blocks = FLASH_SIM_NUM_BLOCKS,
     .pages_per_block = FLASH_SIM_PAGES_PER_BLOCK,
-    .data_size = FLASH_SIM_DATA_SIZE,
+    .page_size = FLASH_SIM_DATA_SIZE,
     .read = bplib_flash_sim_page_read,
     .write = bplib_flash_sim_page_write,
     .erase = bplib_flash_sim_block_erase,
-    .is_bad = bplib_flash_sim_block_is_bad,
-    .mark_bad = bplib_flash_sim_block_mark_bad
+    .isbad = bplib_flash_sim_block_is_bad,
+    .phyblk = bplib_flash_sim_physical_block
 };
 
 static uint8_t test_data[TEST_DATA_SIZE], read_data[TEST_DATA_SIZE];
