@@ -70,13 +70,12 @@ static void test_1(void)
     printf("\n==== Test 1: Free Block Management ====\n");
 
     int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
-    printf("Number of Blocks Reclaimed: %d\n", reclaimed_blocks);
+    ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     printf("\n==== Step 1.1: Allocate All ====\n");
     for(i = 0; i < flash_driver.num_blocks; i++)
     {
-        ut_assert(flash_free_allocate(&block) == BP_SUCCESS, "Failed to allocate block\n");
-        ut_assert(block == i, "Failed to allocate block %d, allocated %d instead\n", i, block);
+        ut_assert(flash_free_allocate(&block) == BP_SUCCESS, "Failed to allocate block on %dth iteration\n", i);
     }
 
     printf("\n==== Step 1.2: Reclaim All In Reverse Order ====\n");
@@ -153,7 +152,7 @@ static void test_3(void)
 
     /* Initialize Driver */
     int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
-    printf("Number of Blocks Reclaimed: %d\n", reclaimed_blocks);
+    ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     /* Initialize Test Data */
     for(i = 0; i < TEST_DATA_SIZE; i++)
@@ -197,7 +196,7 @@ static void test_4(void)
 
     /* Initialize Driver */
     int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
-    printf("Number of Blocks Reclaimed: %d\n", reclaimed_blocks);
+    ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     /* Initialize Test Data */
     for(i = 0; i < TEST_DATA_SIZE; i++)
