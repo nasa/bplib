@@ -81,6 +81,7 @@ typedef struct {
 
 typedef struct {
     int num_free_blocks;
+    int num_used_blocks;
     int num_bad_blocks;
     int error_count;
 } bp_flash_stats_t;

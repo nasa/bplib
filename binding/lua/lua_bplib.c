@@ -1,13 +1,13 @@
 /************************************************************************
  * File: lua_bplib.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -77,24 +77,25 @@ typedef struct {
  ******************************************************************************/
 
 /* Bundle Protocol Library */
-int lbplib_open     (lua_State* L);
-int lbplib_route    (lua_State* L);
-int lbplib_display  (lua_State* L);
-int lbplib_eid2ipn  (lua_State* L);
-int lbplib_ipn2eid  (lua_State* L);
-int lbplib_unittest (lua_State* L);
-int lbplib_sleep    (lua_State* L);
+int lbplib_open         (lua_State* L);
+int lbplib_route        (lua_State* L);
+int lbplib_display      (lua_State* L);
+int lbplib_eid2ipn      (lua_State* L);
+int lbplib_ipn2eid      (lua_State* L);
+int lbplib_unittest     (lua_State* L);
+int lbplib_sleep        (lua_State* L);
+int lbplib_flashstats   (lua_State* L);
 
 /* Bundle Protocol Meta Functions */
-int lbplib_delete   (lua_State* L);
-int lbplib_getopt   (lua_State* L);
-int lbplib_setopt   (lua_State* L);
-int lbplib_stats    (lua_State* L);
-int lbplib_store    (lua_State* L);
-int lbplib_load     (lua_State* L);
-int lbplib_process  (lua_State* L);
-int lbplib_accept   (lua_State* L);
-int lbplib_flush    (lua_State* L);
+int lbplib_delete       (lua_State* L);
+int lbplib_getopt       (lua_State* L);
+int lbplib_setopt       (lua_State* L);
+int lbplib_stats        (lua_State* L);
+int lbplib_store        (lua_State* L);
+int lbplib_load         (lua_State* L);
+int lbplib_process      (lua_State* L);
+int lbplib_accept       (lua_State* L);
+int lbplib_flush        (lua_State* L);
 
 /******************************************************************************
  FILE DATA
@@ -113,6 +114,7 @@ static const struct luaL_Reg lbplib_functions [] = {
     {"ipn2eid",     lbplib_ipn2eid},
     {"unittest",    lbplib_unittest},
     {"sleep",       lbplib_sleep},
+    {"flashstats",  lbplib_flashstats},
     {NULL, NULL}
 };
 
@@ -124,7 +126,7 @@ static const struct luaL_Reg lbplib_metadata [] = {
     {"store",       lbplib_store},
     {"load",        lbplib_load},
     {"process",     lbplib_process},
-    {"accept",      lbplib_accept},    
+    {"accept",      lbplib_accept},
     {"flush",       lbplib_flush},
     {"close",       lbplib_delete},
     {"__gc",        lbplib_delete},
@@ -132,11 +134,11 @@ static const struct luaL_Reg lbplib_metadata [] = {
 };
 
 /* Lua Bplib Storage Services */
-static const lbplib_store_t lbplib_stores[] = 
+static const lbplib_store_t lbplib_stores[] =
 {
     {
         .name = "RAM",
-        .store = 
+        .store =
         {
             .create     = bplib_store_ram_create,
             .destroy    = bplib_store_ram_destroy,
@@ -150,7 +152,7 @@ static const lbplib_store_t lbplib_stores[] =
     },
     {
         .name = "FILE",
-        .store = 
+        .store =
         {
             .create     = bplib_store_file_create,
             .destroy    = bplib_store_file_destroy,
@@ -164,7 +166,7 @@ static const lbplib_store_t lbplib_stores[] =
     },
     {
         .name = "FLASH",
-        .store = 
+        .store =
         {
             .create     = bplib_store_flash_create,
             .destroy    = bplib_store_flash_destroy,
@@ -222,10 +224,10 @@ void log_message(const char* file_name, unsigned int line_number, const char* fo
     const char* last_path_delimeter = strrchr(file_name, '/');
 #endif
     const char* file_name_only = last_path_delimeter ? last_path_delimeter + 1 : file_name;
-    
+
     /* Build Message */
     snprintf(entry_log_msg, LBPLIB_MAX_LOG_ENTRY, "%s:%u: %s", file_name_only, line_number, formatted_string);
-    
+
     /* Print Message */
     printf("%s", entry_log_msg);
 }
@@ -236,7 +238,7 @@ void log_message(const char* file_name, unsigned int line_number, const char* fo
 static void set_errno (lua_State* L, int error_code)
 {
     lua_pushnumber(L, error_code);
-    lua_setglobal(L, LUA_ERRNO);    
+    lua_setglobal(L, LUA_ERRNO);
 }
 
 /*----------------------------------------------------------------------------
@@ -249,7 +251,7 @@ static void push_flag_table (lua_State* L, uint16_t flags)
     lua_pushstring(L, "noncompliant");
     lua_pushboolean(L, (flags & BP_FLAG_NONCOMPLIANT) != 0);
     lua_settable(L, -3);
-   
+
     lua_pushstring(L, "incomplete");
     lua_pushboolean(L, (flags & BP_FLAG_INCOMPLETE) != 0);
     lua_settable(L, -3);
@@ -324,7 +326,7 @@ int luaopen_bplib (lua_State *L)
     /* Initialize FLASH Storage Services */
     bplib_flash_sim_initialize();
     bplib_store_flash_init(lbplib_flash_driver, BP_FLASH_INIT_FORMAT);
-    
+
     /* Initialize Errno */
     set_errno(L, 0);
 
@@ -362,11 +364,11 @@ int lbplib_open (lua_State* L)
         lua_pushnil(L);
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isnumber(L, 1) ||
-       !lua_isnumber(L, 2) || 
-       !lua_isnumber(L, 3) || 
+       !lua_isnumber(L, 2) ||
+       !lua_isnumber(L, 3) ||
        !lua_isnumber(L, 4) ||
        !lua_isstring(L, 5))
     {
@@ -375,7 +377,7 @@ int lbplib_open (lua_State* L)
         return 1;
     }
 
-    /* Get IPNs */  
+    /* Get IPNs */
     bp_route_t route;
     route.local_node            = lua_tonumber(L, 1);
     route.local_service         = lua_tonumber(L, 2);
@@ -401,7 +403,7 @@ int lbplib_open (lua_State* L)
         lualog("invalid store provided: %s\n", storage_service ? storage_service : "nil");
         lua_pushnil(L);
         return 1;
-    }        
+    }
 
     /* Initialize with Default Attributes */
     bp_attr_t attributes;
@@ -410,7 +412,7 @@ int lbplib_open (lua_State* L)
     /* Override if Attribute Table Provided */
     if(lua_type(L, 6) == LUA_TTABLE)
     {
-        /* Set Attributes on Stack */    
+        /* Set Attributes on Stack */
         lua_getfield(L, 6, "lifetime");
         lua_getfield(L, 6, "request_custody");
         lua_getfield(L, 6, "admin_record");
@@ -443,9 +445,9 @@ int lbplib_open (lua_State* L)
         attributes.active_table_size    = luaL_optnumber(L, -3,  attributes.active_table_size);
         attributes.max_fills_per_dacs   = luaL_optnumber(L, -2,  attributes.max_fills_per_dacs);
         attributes.max_gaps_per_dacs    = luaL_optnumber(L, -1,  attributes.max_gaps_per_dacs);
-        attributes.storage_service_parm = NULL;      
+        attributes.storage_service_parm = NULL;
     }
-    
+
     /* Create Bplib Channel */
     bp_desc_t channel = bplib_open(route, *store, attributes);
     if(channel == BP_INVALID_DESCRIPTOR)
@@ -477,7 +479,7 @@ int lbplib_route (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isstring(L, 1))
     {
@@ -492,7 +494,7 @@ int lbplib_route (lua_State* L)
     bp_route_t route;
     int status = bplib_routeinfo((void*)bundle, size, &route);
     set_errno(L, status);
-    
+
     /* Return */
     lua_pushboolean(L, status == BP_SUCCESS);
     lua_pushnumber(L, route.destination_node);
@@ -513,7 +515,7 @@ int lbplib_display (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isstring(L, 1))
     {
@@ -548,7 +550,7 @@ int lbplib_display (lua_State* L)
 
         /* Parse String */
         len = size / 2;
-        buffer = (unsigned char*)malloc(size);    
+        buffer = (unsigned char*)malloc(size);
         char b[5] = {'0', 'x', '\0', '\0', '\0'};
         unsigned int n = 0, s = 0, d = 0;
         while(s < size)
@@ -576,7 +578,7 @@ int lbplib_display (lua_State* L)
                 /* Load Binary Value into Result Buffer */
                 buffer[d++] = (unsigned char)result;
             }
-        }            
+        }
     }
 
     /* Display */
@@ -589,7 +591,7 @@ int lbplib_display (lua_State* L)
     {
         free(buffer);
     }
-    
+
     /* Return */
     lua_pushboolean(L, status == BP_SUCCESS);
     lua_pushnumber(L, flags);
@@ -597,7 +599,7 @@ int lbplib_display (lua_State* L)
 }
 
 /*----------------------------------------------------------------------------
- * lbplib_eid2ipn - bplib.eid2ipn(<eid>) --> return code, node, service, 
+ * lbplib_eid2ipn - bplib.eid2ipn(<eid>) --> return code, node, service,
  *----------------------------------------------------------------------------*/
 int lbplib_eid2ipn (lua_State* L)
 {
@@ -609,7 +611,7 @@ int lbplib_eid2ipn (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isstring(L, 1))
     {
@@ -645,7 +647,7 @@ int lbplib_ipn2eid (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isnumber(L, 1) ||
        !lua_isnumber(L, 2))
@@ -703,6 +705,47 @@ int lbplib_sleep (lua_State* L)
     return 0;
 }
 
+/*----------------------------------------------------------------------------
+ * lbplib_flashstats - bplib.flashstats(l, r) -->   flash statistics
+ *                                                  l is boolean for logging
+ *                                                  r is boolean for resetting
+ *----------------------------------------------------------------------------*/
+int lbplib_flashstats (lua_State* L)
+{
+    bool log_stats = true;
+    bool reset_stats = false;
+
+    /* Get Parameters */
+    if(lua_isboolean(L, 1))
+    {
+        log_stats = lua_toboolean(L, 1);
+        if(lua_isboolean(L, 2))
+        {
+            reset_stats = lua_toboolean(L, 2);
+        }
+    }
+
+    /* Get Stats */
+    bp_flash_stats_t stats;
+    bplib_store_flash_stats(&stats, log_stats, reset_stats);
+
+    /* Return Stats */
+    lua_newtable(L);
+    lua_pushstring(L, "free");
+    lua_pushnumber(L, stats.num_free_blocks);
+    lua_settable(L, -3);
+    lua_pushstring(L, "used");
+    lua_pushnumber(L, stats.num_used_blocks);
+    lua_settable(L, -3);
+    lua_pushstring(L, "bad");
+    lua_pushnumber(L, stats.num_bad_blocks);
+    lua_settable(L, -3);
+    lua_pushstring(L, "errors");
+    lua_pushnumber(L, stats.error_count);
+    lua_settable(L, -3);
+    return 1;
+}
+
 /******************************************************************************
  BUNDLE PROTOCOL META FUNCTIONS
  ******************************************************************************/
@@ -714,13 +757,13 @@ int lbplib_delete (lua_State* L)
 {
     /* Get User Data */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
-    if(!bplib_data) 
+    if(!bplib_data)
     {
         lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
     }
     else
     {
-        /* Close Channel */        
+        /* Close Channel */
         bplib_close(bplib_data->channel);
         bplib_data->channel = BP_INVALID_DESCRIPTOR;
     }
@@ -735,7 +778,7 @@ int lbplib_getopt (lua_State* L)
 {
     /* Get User Data */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
-    if(!bplib_data) 
+    if(!bplib_data)
     {
         lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
@@ -750,7 +793,7 @@ int lbplib_getopt (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isstring(L, 2))
     {
@@ -767,7 +810,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_LIFETIME, &lifetime);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
-        double lua_lifetime = (double)lifetime;         
+        double lua_lifetime = (double)lifetime;
         lua_pushnumber(L, lua_lifetime);
         return 2;
     }
@@ -777,7 +820,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_REQUEST_CUSTODY, &cstrqst);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
-        bool lua_cstrqst = cstrqst == 1;         
+        bool lua_cstrqst = cstrqst == 1;
         lua_pushboolean(L, lua_cstrqst);
         return 2;
     }
@@ -787,7 +830,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_ADMIN_RECORD, &admin);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
-        bool lua_admin = admin == 1;         
+        bool lua_admin = admin == 1;
         lua_pushboolean(L, lua_admin);
         return 2;
     }
@@ -797,7 +840,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_INTEGRITY_CHECK, &icheck);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
-        bool lua_icheck = icheck == 1;         
+        bool lua_icheck = icheck == 1;
         lua_pushboolean(L, lua_icheck);
         return 2;
     }
@@ -807,7 +850,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_ALLOW_FRAGMENTATION, &frag);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
-        bool lua_frag = frag == 1;         
+        bool lua_frag = frag == 1;
         lua_pushboolean(L, lua_frag);
         return 2;
     }
@@ -817,7 +860,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_CIPHER_SUITE, &paycrc);
         lua_pushboolean(L, status == BP_SUCCESS);
         set_errno(L, status);
-        double lua_paycrc = (double)paycrc;         
+        double lua_paycrc = (double)paycrc;
         lua_pushnumber(L, lua_paycrc);
         return 2;
     }
@@ -827,7 +870,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_TIMEOUT, &timeout);
         lua_pushboolean(L, status == BP_SUCCESS);
         set_errno(L, status);
-        double lua_timeout = (double)timeout;         
+        double lua_timeout = (double)timeout;
         lua_pushnumber(L, lua_timeout);
         return 2;
     }
@@ -837,7 +880,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_MAX_LENGTH, &len);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
-        double lua_len = (double)len;         
+        double lua_len = (double)len;
         lua_pushnumber(L, lua_len);
         return 2;
     }
@@ -847,7 +890,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_CID_REUSE, &reuse);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
-        bool lua_reuse = reuse == 1;         
+        bool lua_reuse = reuse == 1;
         lua_pushboolean(L, lua_reuse);
         return 2;
     }
@@ -857,7 +900,7 @@ int lbplib_getopt (lua_State* L)
         int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_DACS_RATE, &rate);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
-        double lua_rate = (double)rate;         
+        double lua_rate = (double)rate;
         lua_pushnumber(L, lua_rate);
         return 2;
     }
@@ -875,7 +918,7 @@ int lbplib_setopt (lua_State* L)
 {
     /* Get User Data */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
-    if(!bplib_data) 
+    if(!bplib_data)
     {
         lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
@@ -890,7 +933,7 @@ int lbplib_setopt (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isstring(L, 2))
     {
@@ -966,7 +1009,7 @@ int lbplib_stats (lua_State* L)
 {
     /* Get User Data */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
-    if(!bplib_data) 
+    if(!bplib_data)
     {
         lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
@@ -978,7 +1021,7 @@ int lbplib_stats (lua_State* L)
     int status = bplib_latchstats(bplib_data->channel, &stats);
     set_errno(L, status);
     lua_pushboolean(L, status == BP_SUCCESS);
-    
+
     /* Create Statistics Table */
     lua_newtable(L);
 
@@ -1052,7 +1095,7 @@ int lbplib_store (lua_State* L)
 {
     /* Get User Data */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
-    if(!bplib_data) 
+    if(!bplib_data)
     {
         lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
@@ -1067,7 +1110,7 @@ int lbplib_store (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isstring(L, 2) ||
        !lua_isnumber(L, 3))
@@ -1084,11 +1127,11 @@ int lbplib_store (lua_State* L)
     int timeout = (int)lua_tonumber(L, 3);
     int status = bplib_store(bplib_data->channel, (void*)payload, (int)size, timeout, &storflags);
     set_errno(L, status);
-    
+
     /* Return Status */
     lua_pushboolean(L, status == BP_SUCCESS);
     push_flag_table(L, storflags);
-    return 2;    
+    return 2;
 }
 
 /*----------------------------------------------------------------------------
@@ -1098,7 +1141,7 @@ int lbplib_load (lua_State* L)
 {
     /* Get User Data */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
-    if(!bplib_data) 
+    if(!bplib_data)
     {
         lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
@@ -1113,7 +1156,7 @@ int lbplib_load (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isnumber(L, 2))
     {
@@ -1121,7 +1164,7 @@ int lbplib_load (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Load Bundle */
     uint16_t loadflags = 0;
     char* bundle = NULL;
@@ -1129,24 +1172,24 @@ int lbplib_load (lua_State* L)
     int timeout = (int)lua_tonumber(L, 2);
     int status = bplib_load(bplib_data->channel, (void**)&bundle, &size, timeout, &loadflags);
     set_errno(L, status);
-    
+
     /* Return Status */
     lua_pushboolean(L, status == BP_SUCCESS);
 
     /* Return Bundle */
     if(status == BP_SUCCESS)
     {
-        lua_pushlstring(L, bundle, size);        
+        lua_pushlstring(L, bundle, size);
         bplib_ackbundle(bplib_data->channel, bundle);
     }
     else
     {
-        lua_pushnil(L);                
+        lua_pushnil(L);
     }
 
     /* Return Flags */
     push_flag_table(L, loadflags);
-    
+
     /* Return Number of Results */
     return 3;
 }
@@ -1158,7 +1201,7 @@ int lbplib_process (lua_State* L)
 {
     /* Get User Data */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
-    if(!bplib_data) 
+    if(!bplib_data)
     {
         lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
@@ -1173,7 +1216,7 @@ int lbplib_process (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isstring(L, 2) ||   /* bundle */
        !lua_isnumber(L, 3))     /* timeout */
@@ -1194,7 +1237,7 @@ int lbplib_process (lua_State* L)
     /* Return Status */
     lua_pushboolean(L, status == BP_SUCCESS);
     push_flag_table(L, procflags);
-    return 2;    
+    return 2;
 }
 
 /*----------------------------------------------------------------------------
@@ -1204,7 +1247,7 @@ int lbplib_accept (lua_State* L)
 {
     /* Get User Data */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
-    if(!bplib_data) 
+    if(!bplib_data)
     {
         lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
         lua_pushboolean(L, false); /* push result as fail */
@@ -1219,7 +1262,7 @@ int lbplib_accept (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Type Check Parameters */
     if(!lua_isnumber(L, 2))
     {
@@ -1227,7 +1270,7 @@ int lbplib_accept (lua_State* L)
         lua_pushboolean(L, false); /* push result as fail */
         return 1;
     }
-    
+
     /* Accept Payload */
     uint16_t acptflags = 0;
     char* payload = NULL;
@@ -1242,17 +1285,17 @@ int lbplib_accept (lua_State* L)
     /* Return Payload */
     if(status == BP_SUCCESS)
     {
-        lua_pushlstring(L, payload, size);        
+        lua_pushlstring(L, payload, size);
         bplib_ackpayload(bplib_data->channel, payload);
     }
     else
     {
-        lua_pushnil(L);                
+        lua_pushnil(L);
     }
 
     /* Return Flags */
     push_flag_table(L, acptflags);
-        
+
     /* Return Number of Results */
     return 3;
 }
@@ -1264,7 +1307,7 @@ int lbplib_flush (lua_State* L)
 {
     /* Get User Data */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)luaL_checkudata(L, 1, LUA_BPLIBMETANAME);
-    if(!bplib_data) 
+    if(!bplib_data)
     {
         lualog("unable to retrieve user data object: %s\n", LUA_BPLIBMETANAME);
     }

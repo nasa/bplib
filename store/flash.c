@@ -66,8 +66,8 @@ typedef struct {
     bp_flash_attr_t     attributes;
     bp_flash_addr_t     write_addr;
     bp_flash_addr_t     read_addr;
-    uint8_t*            write_stage;
-    uint8_t*            read_stage; /* lockable buffer that returns data object */
+    uint8_t*            write_stage; /* holding buffer to construct data object before write */
+    uint8_t*            read_stage; /* lockable buffer that holds data object for read */
     bool                stage_locked;
     int                 object_count;
 } flash_store_t;
@@ -88,6 +88,7 @@ static flash_block_list_t       flash_free_blocks;
 static flash_block_list_t       flash_bad_blocks;
 static flash_block_control_t*   flash_blocks;
 static int                      flash_error_count;
+static int                      flash_used_block_count;
 
 /******************************************************************************
  LOCAL FUNCTIONS - BLOCK LEVEL
@@ -126,6 +127,9 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
     flash_blocks[block].max_pages = FLASH_DRIVER.pages_per_block;
     memset(flash_blocks[block].page_use, 0xFF, sizeof(flash_blocks[block].page_use));
 
+    /* Block No Longer In Use */
+    flash_used_block_count--;
+
     /* Add to Free or Bad List */
     if(!FLASH_DRIVER.isbad(block))
     {
@@ -154,6 +158,7 @@ BP_LOCAL_SCOPE int flash_free_allocate (bp_flash_index_t* block)
         {
             /* Return Block */
             *block = flash_free_blocks.out;
+            flash_used_block_count++;
         }
         else
         {
@@ -225,10 +230,17 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
             }
 
             /* Move to Next Block */
-            status = flash_free_allocate(&addr->block);
+            bp_flash_index_t next_write_block;
+            status = flash_free_allocate(&next_write_block);
             if(status == BP_SUCCESS)
             {
+                /* Link in New Next Block */
+                bp_flash_index_t prev_write_block = flash_blocks[addr->block].prev_block;
+                if(prev_write_block != BP_FLASH_INVALID_INDEX) flash_blocks[prev_write_block].next_block = next_write_block;
+                flash_blocks[next_write_block].prev_block = prev_write_block;
+
                 /* Try Again with Next Block */
+                addr->block = next_write_block;
                 addr->page = 0;
                 continue;
             }
@@ -622,8 +634,9 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode)
         /* TODO Implement Recovery Logic */
     }
 
-    /* Zero Error Count */
+    /* Zero Counters */
     flash_error_count = 0;
+    flash_used_block_count = 0;
 
     /* Return Number of Reclaimed Blocks */
     return reclaimed_blocks;
@@ -638,6 +651,7 @@ void bplib_store_flash_stats (bp_flash_stats_t* stats, bool log_stats, bool rese
     if(stats)
     {
         stats->num_free_blocks = flash_free_blocks.count;
+        stats->num_used_blocks = flash_used_block_count;
         stats->num_bad_blocks = flash_bad_blocks.count;
         stats->error_count = flash_error_count;
     }
@@ -646,6 +660,7 @@ void bplib_store_flash_stats (bp_flash_stats_t* stats, bool log_stats, bool rese
     if(log_stats)
     {
         bplog(BP_DEBUG, "Number of free blocks: %d\n", flash_free_blocks.count);
+        bplog(BP_DEBUG, "Number of used blocks: %d\n", flash_used_block_count);
         bplog(BP_DEBUG, "Number of bad blocks: %d\n", flash_bad_blocks.count);
         bplog(BP_DEBUG, "Number of flash errors: %d\n", flash_error_count);
 
@@ -695,7 +710,7 @@ int bplib_store_flash_create (void* parm)
             }
 
             /* Account for Overhead */
-            flash_stores[s].attributes.max_data_size += sizeof(bp_object_t);
+            flash_stores[s].attributes.max_data_size += sizeof(flash_object_hdr_t);
 
             /* Initialize Read/Write Pointers */
             flash_stores[s].write_addr.block    = BP_FLASH_INVALID_INDEX;
