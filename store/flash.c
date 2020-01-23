@@ -70,7 +70,6 @@ typedef struct {
     uint8_t*            read_stage; /* lockable buffer that returns data object */
     bool                stage_locked;
     int                 object_count;
-    int                 queue_count;
 } flash_store_t;
 
 /******************************************************************************
@@ -718,7 +717,6 @@ int bplib_store_flash_create (void* parm)
 
             /* Set Counts to Zero */
             flash_stores[s].object_count = 0;
-            flash_stores[s].queue_count = 0;
 
             /* Set In Use (necessary to be able to destroy later) */
             flash_stores[s].in_use = true;
@@ -782,7 +780,6 @@ int bplib_store_flash_enqueue (int handle, void* data1, int data1_size, void* da
         if(status == BP_SUCCESS)
         {
             fs->object_count++;
-            fs->queue_count++;
         }
     }
     bplib_os_unlock(flash_device_lock);
@@ -808,23 +805,16 @@ int bplib_store_flash_dequeue (int handle, bp_object_t** object, int timeout)
     bplib_os_lock(flash_device_lock);
     {
         /* Check if Data Objects Available */
-//        if(fs->queue_count > 0)
-// TODO: remove queue_count if no longer needed
-        if(fs->read_addr.block != BP_FLASH_INVALID_INDEX)
+        if((fs->read_addr.block != fs->write_addr.block) || (fs->read_addr.page != fs->write_addr.page))
         {
             status = flash_object_read(fs, handle, &fs->read_addr, object);
-            if(status == BP_SUCCESS)
-            {
-                fs->queue_count--;
-            }
-            else
+            if(status != BP_SUCCESS)
             {
                 /* Scan to Next Address
                  *  yet still return an error so that
                  *  bplib can report failure of store */
                 flash_object_scan(&fs->read_addr);
             }
-
         }
         else
         {
@@ -874,10 +864,10 @@ int bplib_store_flash_release (int handle, bp_sid_t sid)
     flash_store_t* fs = (flash_store_t*)&flash_stores[handle];
 
     /* Check SID Matches */
-    bp_object_t* object = (bp_object_t*)fs->read_stage;
-    if(object->sid != sid)
+    flash_object_hdr_t* object_hdr = (flash_object_hdr_t*)fs->read_stage;
+    if(object_hdr->object.sid != sid)
     {
-        return bplog(BP_FAILEDSTORE, "Object being released does not have correct SID, requested: %lu, actual: %lu\n", (unsigned long)sid, (unsigned long)object->sid);
+        return bplog(BP_FAILEDSTORE, "Object being released does not have correct SID, requested: %lu, actual: %lu\n", (unsigned long)sid, (unsigned long)object_hdr->object.sid);
     }
 
     /* Unlock Stage */
