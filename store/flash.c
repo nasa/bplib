@@ -27,7 +27,8 @@
  DEFINES
  ******************************************************************************/
 
-#define FLASH_OBJECT_SYNC                   0x425020464C415348LLU
+#define FLASH_OBJECT_SYNC_HI                0x42502046
+#define FLASH_OBJECT_SYNC_LO                0x4C415348
 #define FLASH_PAGE_USE_BYTES                (FLASH_MAX_PAGES_PER_BLOCK / 8)
 
 /******************************************************************************
@@ -44,8 +45,9 @@
  ******************************************************************************/
 
 typedef struct {
-    uint64_t    sync;
-    uint64_t    timestamp;
+    uint32_t    synchi;
+    uint32_t    synclo;
+    uint32_t    timestamp;
     bp_object_t object;
 } flash_object_hdr_t;
 
@@ -351,8 +353,9 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
         /* Calculate Object Information */
         unsigned long sid = FLASH_GET_SID(fs->write_addr);
         flash_object_hdr_t object_hdr = {
-            .sync = FLASH_OBJECT_SYNC,
-            .timestamp = sysnow,
+            .synchi = FLASH_OBJECT_SYNC_HI,
+            .synclo = FLASH_OBJECT_SYNC_LO,
+            .timestamp = (uint32_t)sysnow,
             .object = {
                 .handle = handle,
                 .size = data1_size + data2_size,
@@ -395,7 +398,8 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
         {
             if( (object_hdr->object.size <= fs->attributes.max_data_size) &&
                 (object_hdr->object.handle == handle) &&
-                (object_hdr->sync == FLASH_OBJECT_SYNC) )
+                (object_hdr->synchi == FLASH_OBJECT_SYNC_HI) &&
+                (object_hdr->synclo == FLASH_OBJECT_SYNC_LO) )
             {
                 int bytes_read = FLASH_DRIVER.page_size - sizeof(flash_object_hdr_t);
                 int remaining_bytes = object_hdr->object.size - bytes_read;
@@ -406,10 +410,10 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
             }
             else
             {
-                status = bplog(BP_FAILEDSTORE, "Object read from flash fails validation, size (%d, %d), handle (%d, %d), sync (%016X, %016X)\n",
+                status = bplog(BP_FAILEDSTORE, "Object read from flash fails validation, size (%d, %d), handle (%d, %d), sync (%08Xl%08Xl, %018Xl%08Xl)\n",
                                                 object_hdr->object.size, fs->attributes.max_data_size,
                                                 object_hdr->object.handle, handle,
-                                                object_hdr->sync, FLASH_OBJECT_SYNC);
+                                                object_hdr->synchi, object_hdr->synclo, FLASH_OBJECT_SYNC_HI, FLASH_OBJECT_SYNC_LO);
             }
         }
 
@@ -445,7 +449,8 @@ BP_LOCAL_SCOPE int flash_object_scan (bp_flash_addr_t* addr)
         flash_object_hdr_t object_hdr;
         int read_status = flash_data_read(addr, (uint8_t*)&object_hdr, sizeof(object_hdr));
         if( (read_status == BP_SUCCESS) &&
-            (object_hdr.sync == FLASH_OBJECT_SYNC) )
+            (object_hdr.synchi == FLASH_OBJECT_SYNC_HI) &&
+            (object_hdr.synclo == FLASH_OBJECT_SYNC_LO) )
         {
             status = BP_SUCCESS;
         }
