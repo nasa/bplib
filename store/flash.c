@@ -629,7 +629,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode)
         unsigned long seed = 0;
         bplib_os_systime(&seed);
         unsigned int start_block = FLASH_HASH(seed);
-        bplog(BP_DEBUG, "Starting flash block: %d, seed: %lu\n", start_block % FLASH_DRIVER.num_blocks, seed);
+        bplog(BP_DEBUG, "Starting flash block: %d, seed: %lu\n", FLASH_DRIVER.phyblk(start_block % FLASH_DRIVER.num_blocks), seed);
 
         /* Build Free Block List */
         unsigned int block;
