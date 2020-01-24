@@ -12,12 +12,13 @@ if store == "FILE" then
     os.execute("mkdir -p .pfile")
 end
 
+local num_bundles = arg[2] or 256
+
 local src_node = 4
 local src_serv = 3
 local dst_node = 72
 local dst_serv = 43
 
-local num_bundles = 256
 local timeout = 2
 local cidreuse = false
 

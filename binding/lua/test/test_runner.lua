@@ -26,6 +26,7 @@ runner.script(rd .. "ut_dacs_skip.lua", {"FILE"})
 runner.script(rd .. "ut_dacs_skip.lua", {"FLASH"})
 runner.script(rd .. "ut_high_loss.lua", {"RAM"})
 runner.script(rd .. "ut_high_loss.lua", {"FILE"})
+runner.script(rd .. "ut_high_loss.lua", {"FLASH", 100})
 runner.script(rd .. "ut_unittest.lua")
 
 -- Report Results --
