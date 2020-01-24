@@ -557,9 +557,8 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                 index += data_index + blk_len.value;
             }
 
-            /* Mark Processing as Incomplete */
+            /* Mark Processing as Incomplete (unrecognized extension block) */
             *flags |= BP_FLAG_INCOMPLETE;
-            bplog(BP_UNSUPPORTED, "Skipping over unrecognized block of type 0x%02X and size %d\n", blk_type, blk_len.value);
 
             /* Should transmit status report that block cannot be processed */
             if(blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK) *flags |= BP_FLAG_NONCOMPLIANT;
