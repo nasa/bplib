@@ -303,7 +303,12 @@ BP_LOCAL_SCOPE int flash_page_write (bp_flash_addr_t addr, uint8_t* data, int si
     assert(size <= FLASH_PAGE_DATA_SIZE);
 
     memcpy(flash_page_buffer, data, size);
-    flash_page_encode(flash_page_buffer);
+
+    if(FLASH_ECC_CODE_SIZE > 0)
+    {
+        flash_page_encode(flash_page_buffer);
+    }
+
     return FLASH_DRIVER.write(addr, flash_page_buffer);
 }
 
@@ -314,28 +319,29 @@ BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* data, int siz
 {
     assert(size <= FLASH_PAGE_DATA_SIZE);
 
-    int status;
-
-    status = FLASH_DRIVER.read(addr, flash_page_buffer);
+    int status = FLASH_DRIVER.read(addr, flash_page_buffer);
     if(status == BP_SUCCESS)
     {
-        int decode_status = flash_page_decode(flash_page_buffer);
-        memcpy(data, flash_page_buffer, size);
+        if(FLASH_ECC_CODE_SIZE > 0)
+        {
+            int decode_status = flash_page_decode(flash_page_buffer);
+            if(decode_status == FLASH_ECC_NO_ERRORS)
+            {
+                status = BP_SUCCESS;
+            }
+            else if(decode_status == FLASH_ECC_COR_ERRORS)
+            {
+                bplog(BP_DEBUG, "Single-bit error corrected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
+                status = BP_SUCCESS;
+            }
+            else /* decode_status == FLASH_ECC_UNCOR_ERRORS */
+            {
+                bplog(BP_DEBUG, "Multiple-bit error detected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
+                status = BP_FAILEDMEM;
+            }
+        }
 
-        if(decode_status == FLASH_ECC_NO_ERRORS)
-        {
-            status = BP_SUCCESS;
-        }
-        else if(decode_status == FLASH_ECC_COR_ERRORS)
-        {
-            bplog(BP_DEBUG, "Single-bit error corrected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
-            status = BP_SUCCESS;
-        }
-        else /* decode_status == FLASH_ECC_UNCOR_ERRORS */
-        {
-            bplog(BP_DEBUG, "Multiple-bit error detected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
-            status = BP_FAILEDMEM;
-        }
+        memcpy(data, flash_page_buffer, size);
     }
 
     return status;
