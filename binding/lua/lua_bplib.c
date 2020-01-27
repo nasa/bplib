@@ -27,6 +27,8 @@
 #include "bplib_store_flash.h"
 #include "bplib_flash_sim.h"
 
+#include "unittest.h"
+
 #ifdef _WINDOWS_
 #include <windows.h>
 #else
@@ -52,12 +54,6 @@
 
 #define lualog(m,...) log_message(__FILE__,__LINE__,m,##__VA_ARGS__)
 #define LBPLIB_MAX_LOG_ENTRY 128
-
-/******************************************************************************
- EXTERNS
- ******************************************************************************/
-
-int bplib_unittest (void);
 
 /******************************************************************************
  TYPEDEFS
@@ -676,7 +672,34 @@ int lbplib_ipn2eid (lua_State* L)
  *----------------------------------------------------------------------------*/
 int lbplib_unittest (lua_State* L)
 {
-    int failures = bplib_unittest();
+    int t;
+    int failures = 0;
+    int num_tests = lua_gettop(L);
+
+    for(t = 0; t < num_tests; t++)
+    {
+        size_t size = 0;
+        const char* test = lua_tolstring(L, t + 1, &size);
+        if(test)
+        {
+            if((strcmp("ALL", test) == 0) || (strcmp("CRC", test) == 0))
+            {
+                failures += bplib_unittest_crc();
+            }
+            else if((strcmp("ALL", test) == 0) || (strcmp("TREE", test) == 0))
+            {
+                failures += bplib_unittest_rb_tree();
+            }
+            else if((strcmp("ALL", test) == 0) || (strcmp("HASH", test) == 0))
+            {
+                failures += bplib_unittest_rh_hash();
+            }
+            else if((strcmp("ALL", test) == 0) || (strcmp("FLASH", test) == 0))
+            {
+                failures += bplib_unittest_flash();
+            }
+        }
+    }
 
     lua_pushnumber(L, failures);
 

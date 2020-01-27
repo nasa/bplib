@@ -1,13 +1,13 @@
 ###############################################################################
 # File: Makefile
 #
-#   Copyright 2019 United States Government as represented by the 
-#   Administrator of the National Aeronautics and Space Administration. 
-#   All Other Rights Reserved.  
+#   Copyright 2019 United States Government as represented by the
+#   Administrator of the National Aeronautics and Space Administration.
+#   All Other Rights Reserved.
 #
 #   This software was created at NASA's Goddard Space Flight Center.
-#   This software is governed by the NASA Open Source Agreement and may be 
-#   used, distributed and modified only pursuant to the terms of that 
+#   This software is governed by the NASA Open Source Agreement and may be
+#   used, distributed and modified only pursuant to the terms of that
 #   agreement.
 #
 # Maintainer(s):
@@ -22,12 +22,12 @@
 #
 #  2. In order to use clang instead of gcc, set the COMPILER and TOOLCHAIN variables.
 #     For example, if you wanted to run AddressSanitizer via clang, issue the following
-#     commands to build the library:  
-# 
-#       make COMPILER=clang TOOLCHAIN=llvm USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address 
+#     commands to build the library:
+#
+#       make COMPILER=clang TOOLCHAIN=llvm USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address
 #		sudo make COMPILER=clang TOOLCHAIN=llvm USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address install
 #
-#  3. Running the clang static code analysis is accomplished by preceding whichever 
+#  3. Running the clang static code analysis is accomplished by preceding whichever
 #     build command you use with "scan-build".  For example, a nominal scan is performed by:
 #
 #       scan-build make
@@ -48,13 +48,13 @@
 
 # bplib repository root directory
 ROOT	    := .
-	
+
 # bplib repository application interface include directory
 API         := $(ROOT)/inc
 
 # location to install bplib
 PREFIX	    := /usr/local
-	
+
 # library objects
 APP_OBJ     := bplib.o
 
@@ -64,7 +64,7 @@ APP_OBJ     += rb_tree.o
 APP_OBJ     += rh_hash.o
 APP_OBJ	    += cbuf.o
 
-# version 6 objects 
+# version 6 objects
 APP_OBJ     += v6.o
 APP_OBJ     += bib.o
 APP_OBJ     += cteb.o
@@ -77,7 +77,7 @@ APP_OBJ     += sdnv.o
 APP_OBJ     += file.o
 APP_OBJ     += ram.o
 APP_OBJ     += flash.o
-APP_OBJ     += flash_sim.o 
+APP_OBJ     += flash_sim.o
 
 # definitions needed by the application (used to declare things like -D_APP_NAME_)
 APP_DEFS    ?= $(USER_DEFS)
@@ -96,7 +96,7 @@ VPATH	    += $(ROOT)/os
 VPATH	    += $(ROOT)/store
 VPATH	    += $(ROOT)/unittest
 
-# compiler options for search path for include headers (in form of -I_header_)  
+# compiler options for search path for include headers (in form of -I_header_)
 INCLUDES    := -I$(ROOT)/inc
 INCLUDES    += -I$(ROOT)/lib
 INCLUDES    += -I$(ROOT)/common
@@ -111,16 +111,16 @@ COMPILER    ?= gcc
 # tool chain used as prefix for binary utilities like archival tool
 TOOLCHAIN   ?= gcc
 
-# configuration makefile, if not set then uses default 
-CONFIG      ?= posix.mk 
+# configuration makefile, if not set then uses default
+CONFIG      ?= posix.mk
 
 # include configuration makefile to override and add to above definitions
 include $(CONFIG)
 
 # unit test objects #
 APP_OBJ     += unittest.o
-ifeq ($(BUILD_UNITTESTS),1)
 APP_OBJ     += ut_assert.o
+ifeq ($(BUILD_UNITTESTS),1)
 APP_OBJ     += ut_crc.o
 APP_OBJ     += ut_rb_tree.o
 APP_OBJ     += ut_rh_hash.o
@@ -142,7 +142,7 @@ COPT        +=   -DLIBPATH=\"$(LIBDIR)\"
 COPT        +=   -DINCPATH=\"$(INCDIR)\"
 COPT        +=   -Wshadow
 COPT        +=   -pthread
-COPT        +=   -fPIC # position independent code needed for shared library 
+COPT        +=   -fPIC # position independent code needed for shared library
 
 LOPT        :=   -lrt
 LOPT        +=   -lpthread
@@ -204,7 +204,7 @@ install-shared: $(PREFIX) $(LIBDIR)
 
 install-bindings:
 	make -C binding/lua install
-	
+
 
 $(BLDDIR):
 	-$(MKDIR) -p $(BLDDIR)

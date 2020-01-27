@@ -229,16 +229,89 @@ static void test_4(void)
     }
 }
 
+/*--------------------------------------------------------------------------------------
+ * Test #5 -
+ *-------------------------------------------------------------------------------------*/
+static void test_5 (void)
+{
+    extern void flash_page_encode(uint8_t* page_buffer);
+    extern int flash_page_decode(uint8_t* page_buffer);
+
+    int i, status1, status2;
+    bp_flash_index_t block = 0;
+    uint8_t test_buffer[2][FLASH_SIM_DATA_SIZE];
+
+    printf("\n==== Test 5: ECC Encode/Decode ====\n");
+
+    /* Initialize Driver */
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, true);
+    ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
+
+    /* Duplicate Internal Parameters of ECC */
+    int data_per_code_byte = 4;
+    int page_data_size = (data_per_code_byte * FLASH_SIM_DATA_SIZE) / (data_per_code_byte + 1);
+    int FLASH_ECC_NO_ERRORS    = -1;
+    int FLASH_ECC_UNCOR_ERRORS = -2;
+    int FLASH_ECC_COR_ERRORS   = -3;
+
+    /* initialize test buffers */
+    for(i = 0; i < page_data_size; i++)
+    {
+        test_buffer[0][i] = 0xA5;
+        test_buffer[1][i] = 0x5A;
+    }
+
+    /* encode page */
+    flash_page_encode(test_buffer[0]);
+    flash_page_encode(test_buffer[1]);
+
+    /* decode page - nominal, no errors */
+    printf("\n==== Step 5.1: Nominal Decode - No Errors ====\n");
+    status1 = flash_page_decode(test_buffer[0]);
+    status2 = flash_page_decode(test_buffer[1]);
+    ut_assert(status1 == FLASH_ECC_NO_ERRORS, "Failed to decode page buffer[0] with no errors (%d)\n", status1);
+    ut_assert(status2 == FLASH_ECC_NO_ERRORS, "Failed to decode page buffer[1] with no errors (%d)\n", status2);
+
+    /* decode page - SBE and ECC errors */
+    printf("\n==== Step 5.2: Correctable Errors ====\n");
+    test_buffer[0][0] ^= 0x40;
+    test_buffer[0][8] ^= 0x10;
+    test_buffer[0][100] ^= 0x02;
+    test_buffer[1][page_data_size] ^= 0x01;
+    test_buffer[1][page_data_size+8] ^= 0x08;
+    test_buffer[1][page_data_size+100] ^= 0x08;
+    status1 = flash_page_decode(test_buffer[0]);
+    status2 = flash_page_decode(test_buffer[1]);
+    ut_assert(status1 == FLASH_ECC_COR_ERRORS, "Failed to decode page buffer[0] with correctable errors (%d)\n", status1);
+    ut_assert(status2 == FLASH_ECC_COR_ERRORS, "Failed to decode page buffer[1] with correctable errors (%d)\n", status2);
+
+    /* decode page - MBEerrors */
+    printf("\n==== Step 5.3: Uncorrectable Errors ====\n");
+    test_buffer[0][0+1] ^= 0x40;
+    test_buffer[0][8+1] ^= 0x10;
+    test_buffer[0][100+1] ^= 0x02;
+    test_buffer[1][page_data_size+1] ^= 0x01;
+    test_buffer[1][page_data_size+8+1] ^= 0x08;
+    test_buffer[1][page_data_size+100+1] ^= 0x08;
+    status1 = flash_page_decode(test_buffer[0]);
+    status2 = flash_page_decode(test_buffer[1]);
+    ut_assert(status1 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[0]: (%d)\n", status1);
+    ut_assert(status2 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[1]: (%d)\n", status2);
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
 int ut_flash (void)
 {
-    test_1();
-    test_2();
-    test_3();
-    test_4();
+    ut_reset();
+
+//    test_1();
+//    test_2();
+//    test_3();
+//    test_4();
+    test_5();
 
     return ut_failures();
 }

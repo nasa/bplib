@@ -1,13 +1,13 @@
 /************************************************************************
  * File: ut_assert.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -41,8 +41,16 @@ static int _ut_failures = 0;
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
+ * ut_reset - sets failures to zero
+ *--------------------------------------------------------------------------------------*/
+void ut_reset(void)
+{
+    _ut_failures = 0;
+}
+
+/*--------------------------------------------------------------------------------------
  * _ut_assert - called through ut_assert macro
- *--------------------------------------------------------------------------------------*/  
+ *--------------------------------------------------------------------------------------*/
 void _ut_assert(bool e, const char* file, int line, const char* fmt, ...)
 {
     if(!e)
@@ -71,7 +79,7 @@ void _ut_assert(bool e, const char* file, int line, const char* fmt, ...)
 
         /* Display Log Message */
         printf("%s", log_message);
-        
+
         /* Count Error */
         _ut_failures++;
     }
@@ -79,7 +87,7 @@ void _ut_assert(bool e, const char* file, int line, const char* fmt, ...)
 
 /*--------------------------------------------------------------------------------------
  * ut_failures -
- *--------------------------------------------------------------------------------------*/  
+ *--------------------------------------------------------------------------------------*/
 int ut_failures (void)
 {
     return _ut_failures;

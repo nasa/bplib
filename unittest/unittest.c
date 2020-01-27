@@ -34,19 +34,50 @@ extern int ut_flash (void);
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int bplib_unittest (void)
+/*--------------------------------------------------------------------------------------
+ * CRC Unit Test -
+ *--------------------------------------------------------------------------------------*/
+int bplib_unittest_crc (void)
 {
-#ifdef UNITTESTS
-    /* Run Unit Tests */
-    ut_crc();
-    ut_rb_tree();
-    ut_rh_hash();
-    ut_flash();
+    #ifdef UNITTESTS
+        return ut_crc();
+    #else
+        return 0;
+    #endif
+}
 
-    /* Return Failures */
-    return ut_failures();
-#else
-    return 0;
-#endif
+/*--------------------------------------------------------------------------------------
+ * RB Tree Unit Test -
+ *--------------------------------------------------------------------------------------*/
+int bplib_unittest_rb_tree (void)
+{
+    #ifdef UNITTESTS
+        return ut_rb_tree();
+    #else
+        return 0;
+    #endif
+}
 
+/*--------------------------------------------------------------------------------------
+ * RH Hash Unit Test -
+ *--------------------------------------------------------------------------------------*/
+int bplib_unittest_rh_hash (void)
+{
+    #ifdef UNITTESTS
+        return ut_rh_hash();
+    #else
+        return 0;
+    #endif
+}
+
+/*--------------------------------------------------------------------------------------
+ * Flash Unit Test -
+ *--------------------------------------------------------------------------------------*/
+int bplib_unittest_flash (void)
+{
+    #ifdef UNITTESTS
+        return ut_flash();
+    #else
+        return 0;
+    #endif
 }

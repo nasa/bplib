@@ -1,13 +1,13 @@
 ###############################################################################
 # File: Makefile
 #
-#   Copyright 2019 United States Government as represented by the 
-#   Administrator of the National Aeronautics and Space Administration. 
-#   All Other Rights Reserved.  
+#   Copyright 2019 United States Government as represented by the
+#   Administrator of the National Aeronautics and Space Administration.
+#   All Other Rights Reserved.
 #
 #   This software was created at NASA's Goddard Space Flight Center.
-#   This software is governed by the NASA Open Source Agreement and may be 
-#   used, distributed and modified only pursuant to the terms of that 
+#   This software is governed by the NASA Open Source Agreement and may be
+#   used, distributed and modified only pursuant to the terms of that
 #   agreement.
 #
 # Maintainer(s):
@@ -20,20 +20,21 @@
 
 # repository root directory
 ROOT	    := .
-	
+
 # location to install extension
 PREFIX	    := /usr/local
 LUA_VERSION	:= 5.3
-	
+
 # object files
 LUA_OBJ     := lua_bplib.o
 
 # search path for extension objects (note this is a make system variable)
 VPATH	    := $(ROOT)
 
-# compiler options for search path for include headers (in form of -I_header_)  
+# compiler options for search path for include headers (in form of -I_header_)
 INCLUDES    := -I$(ROOT)
 INCLUDES    += -I$(ROOT)/../../inc
+INCLUDES    += -I$(ROOT)/../../unittest
 
 # c compiler and linker used for c file extensions
 COMPILER    ?= gcc
@@ -42,7 +43,7 @@ COMPILER    ?= gcc
 TOOLCHAIN   ?= gcc
 
 # user customized options
-MY_COPT     ?= 
+MY_COPT     ?=
 MY_LOPT     ?=
 
 ###############################################################################
@@ -67,7 +68,7 @@ COPT        +=   -Wall -Wextra -Wshadow
 COPT        +=   -fPIC
 
 LOPT        :=    $(MY_LOPT)
-LOPT        :=   -L../../build 
+LOPT        :=   -L../../build
 LOPT        +=   -lbp
 
 ###############################################################################

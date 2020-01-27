@@ -1,5 +1,5 @@
 /************************************************************************
- * File: ut_assert.h
+ * File: unittest.h
  *
  *  Copyright 2019 United States Government as represented by the
  *  Administrator of the National Aeronautics and Space Administration.
@@ -14,30 +14,16 @@
  *  Joe-Paul Swinski, Code 582 NASA GSFC
  *
  *************************************************************************/
-#ifndef _ut_assert_h_
-#define _ut_assert_h_
-
-/******************************************************************************
- INCLUDES
- ******************************************************************************/
-
-#include "stdio.h"
-#include "stdarg.h"
-#include "stdbool.h"
-
-/******************************************************************************
- DEFINES
- ******************************************************************************/
-
-#define ut_assert(e,...)    _ut_assert(e,__FILE__,__LINE__,__VA_ARGS__)
-#define ut_check(e)         _ut_assert(e,__FILE__,__LINE__,"Failure")
+#ifndef _unittest_h_
+#define _unittest_h_
 
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-void    ut_reset        (void);
-void    _ut_assert      (bool e, const char* file, int line, const char* fmt, ...);
-int     ut_failures     (void);
+int bplib_unittest_crc      (void);
+int bplib_unittest_rb_tree  (void);
+int bplib_unittest_rh_hash  (void);
+int bplib_unittest_flash    (void);
 
-#endif /* _ut_assert_h_ */
+#endif /* _unittest_h_ */

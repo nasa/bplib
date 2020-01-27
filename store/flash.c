@@ -153,7 +153,7 @@ BP_LOCAL_SCOPE void flash_build_xor_table(uint8_t* table)
  * flash_build_ecc_table -
  *  -1:     no errors (FLASH_ECC_NO_ERRORS)
  *  -2:     multiple errors (FLASH_ECC_UNCOR_ERRORS)
- *  >=0:    row/column of error
+ *  >=0:    row/column of error (FLASH_ECC_COR_ERRORS)
  *
  *  table[256] = {
  *   -1,  0,  1, -2,  2, -2, -2, -2,  3, -2, -2, -2, -2, -2, -2, -2, // 0x00 - 0x0F
@@ -203,24 +203,28 @@ BP_LOCAL_SCOPE void flash_build_ecc_table(int8_t* table)
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE void flash_page_encode(uint8_t* page_buffer)
 {
-    int i, j;
-
+    int block_index = 0;
     int data_index = 0;
-    int ecc1_index = FLASH_PAGE_DATA_SIZE;
-    int ecc2_index = FLASH_PAGE_DATA_SIZE + 1;
+    int ecc_index = FLASH_PAGE_DATA_SIZE - 2;
 
-    for(i = 0; i < FLASH_ECC_CODE_SIZE; i++)
+    while(data_index < FLASH_PAGE_DATA_SIZE)
     {
-        page_buffer[ecc1_index] = 0;
-        page_buffer[ecc2_index] = 0;
-        for(j = 0; j < FLASH_ECC_BLOCK_SIZE; j++)
+        block_index = data_index % FLASH_ECC_BLOCK_SIZE;
+
+        /* Go to Next ECC Index */
+        if(block_index == 0)
         {
-            page_buffer[ecc1_index] ^= page_buffer[data_index];
-            page_buffer[ecc2_index] |= flash_xor_table[page_buffer[data_index]] << j;
-            data_index += 1;
+            ecc_index += 2;
+            page_buffer[ecc_index + 0] = 0;
+            page_buffer[ecc_index + 1] = 0;
         }
-        ecc1_index += 2;
-        ecc2_index += 2;
+
+        /* Encode Current ECC Block */
+        page_buffer[ecc_index + 0] ^= page_buffer[data_index]; /* column */
+        page_buffer[ecc_index + 1] |= flash_xor_table[page_buffer[data_index]] << block_index; /* row */
+
+        /* Go to Next Data Index */
+        data_index += 1;
     }
 }
 
@@ -231,59 +235,60 @@ BP_LOCAL_SCOPE int flash_page_decode(uint8_t* page_buffer)
 {
     int status = FLASH_ECC_NO_ERRORS;
 
-    int i, j;
-    uint8_t ecc1, ecc2;
-
     int block_index = 0;
     int data_index = 0;
-    int ecc1_index = FLASH_PAGE_DATA_SIZE;
-    int ecc2_index = FLASH_PAGE_DATA_SIZE + 1;
+    int ecc_index = FLASH_PAGE_DATA_SIZE;
+    uint8_t ecc_col = 0, ecc_row = 0;
 
-    for(i = 0; i < FLASH_ECC_CODE_SIZE; i++)
+    while(data_index < FLASH_PAGE_DATA_SIZE)
     {
-        /* Calculate ECC */
-        ecc1 = 0;
-        ecc2 = 0;
-        block_index = data_index;
-        for(j = 0; j < FLASH_ECC_BLOCK_SIZE; j++)
-        {
-            ecc1 ^= page_buffer[data_index];
-            ecc2 |= flash_xor_table[page_buffer[data_index]] << j;
-            data_index += 1;
-        }
+        block_index = data_index % FLASH_ECC_BLOCK_SIZE;
+
+        /* Encode Current ECC Block */
+        ecc_col ^= page_buffer[data_index]; /* column */
+        ecc_row |= flash_xor_table[page_buffer[data_index]] << block_index; /* row */
+
+        /* Go to Next Data Index */
+        data_index += 1;
 
         /* Check ECC */
-        if(ecc1 != page_buffer[ecc1_index] || ecc2 != page_buffer[ecc2_index])
+        if(block_index == 0 || data_index >= FLASH_PAGE_DATA_SIZE)
         {
-            uint8_t delta1 = ecc1 ^ page_buffer[ecc1_index];
-            uint8_t delta2 = ecc2 ^ page_buffer[ecc2_index];
+            /* Check ECC */
+            if(ecc_col != page_buffer[ecc_index] || ecc_row != page_buffer[ecc_index + 1])
+            {
+                uint8_t delta_col = ecc_col ^ page_buffer[ecc_index];
+                uint8_t delta_row = ecc_row ^ page_buffer[ecc_index + 1];
 
-            /* Find Row & Column Error */
-            int column = flash_ecc_table[delta1];
-            int row = flash_ecc_table[delta2];
+                /* Find Row & Column Error */
+                int column = flash_ecc_table[delta_col];
+                int row = flash_ecc_table[delta_row];
 
-            /* Attempt to Correct Error */
-            if(column >= 0 && row >= 0)
-            {
-                /* correct bit at row:column */
-                page_buffer[block_index + row] ^= (1 << column);
-                status = FLASH_ECC_COR_ERRORS;
+                /* Attempt to Correct Error */
+                if(column >= 0 && row >= 0)
+                {
+                    /* correct bit at row:column */
+                    page_buffer[block_index + row] ^= (1 << column);
+                    status = FLASH_ECC_COR_ERRORS;
+                }
+                else if( ((column == FLASH_ECC_NO_ERRORS) && (row >= 0)) ||
+                        ((row    == FLASH_ECC_NO_ERRORS) && (column >= 0)) )
+                {
+                    /* do nothing - error in ECC */
+                }
+                else
+                {
+                    /* uncorrectable error */
+                    status = FLASH_ECC_UNCOR_ERRORS;
+                    break;
+                }
             }
-            else if( ((column == -1) && (row >= 0)) ||
-                     ((column >= 0) && (row == -1)) )
-            {
-                /* do nothing - error in ECC */
-            }
-            else
-            {
-                /* uncorrectable error */
-                status = FLASH_ECC_UNCOR_ERRORS;
-            }
+
+            /* Go to Next ECC Index */
+            ecc_index += 2;
+            ecc_col = 0;
+            ecc_row = 0;
         }
-
-        /* Bump ECC Indices */
-        ecc1_index += 2;
-        ecc2_index += 2;
     }
 
     return status;
@@ -323,13 +328,13 @@ BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* page_data)
         }
         else /* decode_status == FLASH_ECC_UNCOR_ERRORS */
         {
+            bplog(BP_DEBUG, "Multiple-bit error detected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
             status = BP_FAILEDMEM;
         }
     }
 
     return status;
 }
-
 
 /******************************************************************************
  LOCAL FUNCTIONS - BLOCK LEVEL

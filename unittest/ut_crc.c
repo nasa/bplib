@@ -103,12 +103,12 @@ static void print_xor_table(const crc_parameters_t* params)
  * validate_crc_parameters_t - Validates that a crc_parameters properly computes its check
  *      value when passed 123456789.
  *
- * params: A ptr to a crc_parameters_t struct defining how to calculate the crc and check it
+ * params: A ptr to a crc_parameters struct defining how to calculate the crc and check it
  *      value. [INPUT]
  *
  * returns: True or false indicating whether or not the crc matched its check value.
  *-------------------------------------------------------------------------------------*/
-static bool validate_crc_parameters_t(const crc_parameters_t* params)
+static bool validate_crc_parameters(const crc_parameters_t* params)
 {
     uint8_t check_message[9] = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39};
     printf("Input Message:\n");
@@ -117,9 +117,9 @@ static bool validate_crc_parameters_t(const crc_parameters_t* params)
     {
         uint16_t check_value = params->n_bit_params.crc16.check_value;
         uint16_t crc = (uint16_t)crc_get(check_message, 9, params);
-        printf("Check Value:\n");
+        printf("Check Value [%04X]: ", check_value);
         print_binary(&check_value, 2, 0);
-        printf("CRC Output:\n");
+        printf("CRC Output [%04X]: ", crc);
         print_binary(&crc, 2, 0);
         return crc == check_value;
     }
@@ -127,14 +127,23 @@ static bool validate_crc_parameters_t(const crc_parameters_t* params)
     {
         uint32_t check_value = params->n_bit_params.crc32.check_value;
         uint32_t crc = (uint32_t)crc_get(check_message, 9, params);
-        printf("Check Value:\n");
+        printf("Check Value [%08X]: ", check_value);
         print_binary(&check_value, 4, 0);
-        printf("CRC Output:\n");
+        printf("CRC Output [%08X]: ", crc);
         print_binary(&crc, 4, 0);
         return crc == check_value;
     }
 
     return false;
+}
+
+/*--------------------------------------------------------------------------------------
+ * test_crc16_vectors - generates the CRC for testing
+ *-------------------------------------------------------------------------------------*/
+static uint16_t test_crc16_vectors(crc_parameters_t* params, const uint8_t* vector, const int size)
+{
+    crc_init(params);
+    return (uint16_t)crc_get(vector, size, params);
 }
 
 /******************************************************************************
@@ -151,7 +160,7 @@ static void test_crc(crc_parameters_t* params)
     printf("Testing CRC %s\n", params->name);
     crc_init(params);
     print_xor_table(params);
-    ut_assert(validate_crc_parameters_t(params), "Failed to validate %s\n", params->name);
+    ut_assert(validate_crc_parameters(params), "Failed to validate %s\n", params->name);
 }
 
 /******************************************************************************
@@ -160,11 +169,31 @@ static void test_crc(crc_parameters_t* params)
 
 int ut_crc (void)
 {
+    ut_reset();
+
     /* Test 1 */
     test_crc(&crc16_x25);
 
     /* Test 2 */
     test_crc(&crc32_castagnoli);
+
+    /* Test 3 */
+    uint8_t v3[] = {0x7, 0x46, 0x57, 0x37, 0x43, 0x25, 0xf7, 0x47, 0x26, 0x16, 0x36, 0x50};
+    uint16_t v3_crc = 0x0A58;
+    uint16_t v3_crc_calc = test_crc16_vectors(&crc16_x25, v3, sizeof(v3));
+    ut_assert(v3_crc_calc == v3_crc, "Failed to caluclate correct CRC16 for V3, %04X != %04X\n", v3_crc_calc, v3_crc);
+
+    /* Test 4 */
+    uint8_t v4[] = {0x07, 0x46, 0x57, 0x37, 0x45, 0xf7, 0x47, 0x26, 0x16, 0x36, 0x53, 0x60};
+    uint16_t v4_crc = 0xD9A2;
+    uint16_t v4_crc_calc = test_crc16_vectors(&crc16_x25, v4, sizeof(v4));
+    ut_assert(v4_crc_calc == v4_crc, "Failed to caluclate correct CRC16 for V4, %04X != %04X\n", v4_crc_calc, v4_crc);
+
+    /* Test 5 */
+    uint8_t v5[] = {0x74, 0x65, 0x73, 0x74, 0x5f, 0x74, 0x72, 0x61, 0x63, 0x65, 0x37};
+    uint16_t v5_crc = 0x441A;
+    uint16_t v5_crc_calc = test_crc16_vectors(&crc16_x25, v5, sizeof(v5));
+    ut_assert(v5_crc_calc == v5_crc, "Failed to caluclate correct CRC16 for V5, %04X != %04X\n", v5_crc_calc, v5_crc);
 
     /* Return Failures */
     return ut_failures();
