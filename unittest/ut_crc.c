@@ -1,13 +1,13 @@
 /************************************************************************
  * File: ut_crc.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -23,6 +23,13 @@
 #include "bplib.h"
 #include "crc.h"
 #include "ut_assert.h"
+
+/******************************************************************************
+ EXPORTED FUNCTIONS
+ ******************************************************************************/
+
+extern crc_parameters_t crc16_x25;
+extern crc_parameters_t crc32_castagnoli;
 
 /******************************************************************************
  HELPER FUNCTIONS
@@ -153,36 +160,12 @@ static void test_crc(crc_parameters_t* params)
 
 int ut_crc (void)
 {
-    /* Test 1 */    
-    crc_parameters_t p1 = {
-        .name                     = "CRC-16 X25", 
-        .length                   = 16,
-        .should_reflect_input     = true,
-        .should_reflect_output    = true,
-        .n_bit_params = {
-            .crc16 = {
-            .generator_polynomial = 0x1021,
-            .initial_value        = 0xFFFF,
-            .final_xor            = 0xFFFF,
-            .check_value          = 0x906E
-    }}};    
-    test_crc(&p1);
-    
-    /* Test 2 */   
-    crc_parameters_t p2 = {
-        .name                     = "CRC-32 Castagnoli", 
-        .length                   = 32,
-        .should_reflect_input     = true,
-        .should_reflect_output    = true,
-        .n_bit_params = {
-            .crc32 = {
-            .generator_polynomial = 0x1EDC6F41,
-            .initial_value        = 0xFFFFFFFF,
-            .final_xor            = 0xFFFFFFFF,
-            .check_value          = 0xE3069283
-    }}};
-    test_crc(&p2);
-    
+    /* Test 1 */
+    test_crc(&crc16_x25);
+
+    /* Test 2 */
+    test_crc(&crc32_castagnoli);
+
     /* Return Failures */
     return ut_failures();
 }

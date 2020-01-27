@@ -1,13 +1,13 @@
 /************************************************************************
  * File: bib.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -29,8 +29,8 @@
  CRC DEFINITIONS
  ******************************************************************************/
 
-static crc_parameters_t crc16_x25 = {
-    .name                            = "CRC-16 X25", 
+BP_LOCAL_SCOPE crc_parameters_t crc16_x25 = {
+    .name                            = "CRC-16 X25",
     .length                          = 16,
     .should_reflect_input            = true,
     .should_reflect_output           = true,
@@ -38,14 +38,14 @@ static crc_parameters_t crc16_x25 = {
         .crc16 = {
             .generator_polynomial    = 0x1021,
             .initial_value           = 0xFFFF,
-            .final_xor               = 0xF0B8,
+            .final_xor               = 0xFFFF,
             .check_value             = 0x906E
         }
     }
 };
 
-static crc_parameters_t crc32_castagnoli = {
-    .name                         = "CRC-32 Castagnoli", 
+BP_LOCAL_SCOPE crc_parameters_t crc32_castagnoli = {
+    .name                         = "CRC-32 Castagnoli",
     .length                       = 32,
     .should_reflect_input         = true,
     .should_reflect_output        = true,
@@ -102,8 +102,8 @@ int bib_init (void)
 {
     int crc16_status = crc_init(&crc16_x25);
     int crc32_status = crc_init(&crc32_castagnoli);
-    
-    if(crc16_status == BP_SUCCESS && 
+
+    if(crc16_status == BP_SUCCESS &&
        crc32_status == BP_SUCCESS)
     {
         return BP_SUCCESS;
@@ -112,7 +112,7 @@ int bib_init (void)
     {
         return BP_ERROR;
     }
-} 
+}
 
 /*--------------------------------------------------------------------------------------
  * bib_read -
@@ -147,7 +147,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
         sdnv_read(buffer, size, &bib->cipher_suite_id, &sdnvflags);
         sdnv_read(buffer, size, &bib->cipher_suite_flags, &sdnvflags);
         bytes_read = sdnv_read(buffer, size, &bib->security_result_count, &sdnvflags);
-        
+
         if (bytes_read + 1 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_type = buffer[bytes_read];
         bytes_read = sdnv_read(buffer, size, &bib->security_result_length, &sdnvflags);
@@ -170,10 +170,10 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
         bib->security_target_type.index     = sdnv_read(buffer, size, &bib->security_target_count,      &sdnvflags);
         bib->security_target_sequence.index = sdnv_read(buffer, size, &bib->security_target_type,       &sdnvflags);
         bib->cipher_suite_id.index          = sdnv_read(buffer, size, &bib->security_target_sequence,   &sdnvflags);
-        bib->cipher_suite_flags.index       = sdnv_read(buffer, size, &bib->cipher_suite_id,            &sdnvflags);       
+        bib->cipher_suite_flags.index       = sdnv_read(buffer, size, &bib->cipher_suite_id,            &sdnvflags);
         bib->security_result_count.index    = sdnv_read(buffer, size, &bib->cipher_suite_flags,         &sdnvflags);
         bytes_read                          = sdnv_read(buffer, size, &bib->security_result_count,      &sdnvflags);
-        
+
         if (bytes_read + 1 > size) return BP_BUNDLEPARSEERR;
         bib->security_result_type = buffer[bytes_read];
         bib->security_result_length.index = bytes_read + 1;
@@ -183,7 +183,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25 && bib->security_result_length.value == 2)
     {
         if (bytes_read + 2 > size) return BP_BUNDLEPARSEERR;
-        uint8_t* valptr = buffer + bytes_read; 
+        uint8_t* valptr = buffer + bytes_read;
         bib->security_result_data.crc16 = 0;
         bib->security_result_data.crc16 |= (((uint16_t) valptr[0]) << 8);
         bib->security_result_data.crc16 |= ((uint16_t) valptr[1]);
@@ -192,7 +192,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI && bib->security_result_length.value == 4)
     {
         if (bytes_read + 4 > size) return BP_BUNDLEPARSEERR;
-        uint8_t* valptr = buffer + bytes_read; 
+        uint8_t* valptr = buffer + bytes_read;
         bib->security_result_data.crc32 = 0;
         bib->security_result_data.crc32 |= ((uint32_t) valptr[0]) << 24;
         bib->security_result_data.crc32 |= ((uint32_t) valptr[1]) << 16;
@@ -244,7 +244,7 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     if(!update_indices)
     {
         sdnv_write(buffer, size, bib->block_flags,              &sdnvflags);
-        sdnv_write(buffer, size, bib->block_length,             &sdnvflags); 
+        sdnv_write(buffer, size, bib->block_length,             &sdnvflags);
         sdnv_write(buffer, size, bib->security_target_count,    &sdnvflags);
         sdnv_write(buffer, size, bib->security_target_type,     &sdnvflags);
         sdnv_write(buffer, size, bib->security_target_sequence, &sdnvflags);
@@ -273,19 +273,19 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
         bib->security_target_type.index     = sdnv_write(buffer, size, bib->security_target_count,      &sdnvflags);
         bib->security_target_sequence.index = sdnv_write(buffer, size, bib->security_target_type,       &sdnvflags);
         bib->cipher_suite_id.index          = sdnv_write(buffer, size, bib->security_target_sequence,   &sdnvflags);
-        bib->cipher_suite_flags.index       = sdnv_write(buffer, size, bib->cipher_suite_id,            &sdnvflags);       
+        bib->cipher_suite_flags.index       = sdnv_write(buffer, size, bib->cipher_suite_id,            &sdnvflags);
         bib->security_result_count.index    = sdnv_write(buffer, size, bib->cipher_suite_flags,         &sdnvflags);
         bytes_written                       = sdnv_write(buffer, size, bib->security_result_count,      &sdnvflags);
-        
+
         if (bytes_written + 1 > size) return BP_BUNDLEPARSEERR;
         buffer[bytes_written] = bib->security_result_type;
         bib->security_result_length.index = bytes_written + 1;
     }
-    
+
     if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
         if (bytes_written + 2 > size) return BP_BUNDLEPARSEERR;
-        bib->security_result_length.value = 2; 
+        bib->security_result_length.value = 2;
         bytes_written = sdnv_write(buffer, size, bib->security_result_length, &sdnvflags);
         to_big_endian16(bib->security_result_data.crc16, buffer + bytes_written);
         bytes_written += 2;
@@ -313,7 +313,7 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
         return BP_BUNDLEPARSEERR;
     }
     else
-    {   
+    {
         return bytes_written;
     }
 }
@@ -342,7 +342,7 @@ int bib_update (void* block, int size, void* payload, int payload_size, bp_blk_b
     /* Calculate and Write Fragment Payload CRC */
     if(bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
-        bib->security_result_data.crc16 = (uint16_t) crc_get((uint8_t*)payload, payload_size, &crc16_x25); 
+        bib->security_result_data.crc16 = (uint16_t) crc_get((uint8_t*)payload, payload_size, &crc16_x25);
         uint8_t* valptr = buffer + bib->security_result_length.index + bib->security_result_length.width;
         to_big_endian16(bib->security_result_data.crc16, valptr);
     }
@@ -371,7 +371,7 @@ int bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib, uint16_t* fl
 {
     assert(payload);
     assert(bib);
-    
+
     /* Calculate and Verify Payload CRC */
     if(bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
