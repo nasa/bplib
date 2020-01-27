@@ -89,6 +89,8 @@ typedef struct {
 static bp_flash_driver_t        FLASH_DRIVER;
 static int                      FLASH_PAGE_DATA_SIZE;   /* size in bytes of data being written to page */
 static int                      FLASH_ECC_CODE_SIZE;    /* size in bytes of encoding */
+static uint8_t*                 FLASH_XOR_TABLE;
+static int8_t*                  FLASH_ECC_TABLE;
 
 /* Globals */
 
@@ -99,8 +101,6 @@ static flash_block_list_t       flash_bad_blocks;
 static flash_block_control_t*   flash_blocks;
 static int                      flash_error_count;
 static int                      flash_used_block_count;
-static uint8_t*                 flash_xor_table;
-static int8_t*                  flash_ecc_table;
 static uint8_t*                 flash_page_buffer;
 
 /******************************************************************************
@@ -145,7 +145,7 @@ BP_LOCAL_SCOPE void flash_build_xor_table(uint8_t* table)
             }
         }
 
-        table[i] = ((bit_count % 2) == 0);
+        table[i] = ((bit_count % 2) == 1);
     }
 }
 
@@ -187,7 +187,7 @@ BP_LOCAL_SCOPE void flash_build_ecc_table(int8_t* table)
             {
                 if(table[i] == FLASH_ECC_NO_ERRORS)
                 {
-                    table[i] = i;
+                    table[i] = k;
                 }
                 else
                 {
@@ -221,7 +221,7 @@ BP_LOCAL_SCOPE void flash_page_encode(uint8_t* page_buffer)
 
         /* Encode Current ECC Block */
         page_buffer[ecc_index + 0] ^= page_buffer[data_index]; /* column */
-        page_buffer[ecc_index + 1] |= flash_xor_table[page_buffer[data_index]] << block_index; /* row */
+        page_buffer[ecc_index + 1] |= FLASH_XOR_TABLE[page_buffer[data_index]] << block_index; /* row */
 
         /* Go to Next Data Index */
         data_index += 1;
@@ -246,13 +246,13 @@ BP_LOCAL_SCOPE int flash_page_decode(uint8_t* page_buffer)
 
         /* Encode Current ECC Block */
         ecc_col ^= page_buffer[data_index]; /* column */
-        ecc_row |= flash_xor_table[page_buffer[data_index]] << block_index; /* row */
+        ecc_row |= FLASH_XOR_TABLE[page_buffer[data_index]] << block_index; /* row */
 
         /* Go to Next Data Index */
         data_index += 1;
 
         /* Check ECC */
-        if(block_index == 0 || data_index >= FLASH_PAGE_DATA_SIZE)
+        if((data_index % FLASH_ECC_BLOCK_SIZE) == 0 || data_index >= FLASH_PAGE_DATA_SIZE)
         {
             /* Check ECC */
             if(ecc_col != page_buffer[ecc_index] || ecc_row != page_buffer[ecc_index + 1])
@@ -261,8 +261,8 @@ BP_LOCAL_SCOPE int flash_page_decode(uint8_t* page_buffer)
                 uint8_t delta_row = ecc_row ^ page_buffer[ecc_index + 1];
 
                 /* Find Row & Column Error */
-                int column = flash_ecc_table[delta_col];
-                int row = flash_ecc_table[delta_row];
+                int column = FLASH_ECC_TABLE[delta_col];
+                int row = FLASH_ECC_TABLE[delta_row];
 
                 /* Attempt to Correct Error */
                 if(column >= 0 && row >= 0)
@@ -272,9 +272,10 @@ BP_LOCAL_SCOPE int flash_page_decode(uint8_t* page_buffer)
                     status = FLASH_ECC_COR_ERRORS;
                 }
                 else if( ((column == FLASH_ECC_NO_ERRORS) && (row >= 0)) ||
-                        ((row    == FLASH_ECC_NO_ERRORS) && (column >= 0)) )
+                         ((row    == FLASH_ECC_NO_ERRORS) && (column >= 0)) )
                 {
                     /* do nothing - error in ECC */
+                    status = FLASH_ECC_COR_ERRORS;
                 }
                 else
                 {
@@ -872,30 +873,30 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
         FLASH_ECC_CODE_SIZE = FLASH_DRIVER.page_size - FLASH_PAGE_DATA_SIZE;
 
         /* Allocate ECC Tables and Buffers */
-        flash_xor_table = (uint8_t*)malloc(256);
-        flash_ecc_table = (int8_t*)malloc(256);
+        FLASH_XOR_TABLE = (uint8_t*)malloc(256);
+        FLASH_ECC_TABLE = (int8_t*)malloc(256);
         flash_page_buffer = (uint8_t*)malloc(FLASH_DRIVER.page_size);
-        if(!flash_xor_table || !flash_ecc_table || !flash_page_buffer)
+        if(!FLASH_XOR_TABLE || !FLASH_ECC_TABLE || !flash_page_buffer)
         {
             free(flash_blocks);
-            if(flash_xor_table) free(flash_xor_table);
-            if(flash_ecc_table) free(flash_ecc_table);
+            if(FLASH_XOR_TABLE) free(FLASH_XOR_TABLE);
+            if(FLASH_ECC_TABLE) free(FLASH_ECC_TABLE);
             if(flash_page_buffer) free(flash_page_buffer);
             bplib_os_destroylock(flash_device_lock);
             return bplog(BP_FAILEDMEM, "Unable to allocate memory for flash sw ecc information\n");
         }
 
         /* Initialize ECC Tables */
-        flash_build_xor_table(flash_xor_table);
-        flash_build_ecc_table(flash_ecc_table);
+        flash_build_xor_table(FLASH_XOR_TABLE);
+        flash_build_ecc_table(FLASH_ECC_TABLE);
     }
     else
     {
         /* EDAC Handled Elsewhere */
         FLASH_PAGE_DATA_SIZE = FLASH_DRIVER.page_size;
         FLASH_ECC_CODE_SIZE = 0;
-        flash_xor_table = NULL;
-        flash_ecc_table = NULL;
+        FLASH_XOR_TABLE = NULL;
+        FLASH_ECC_TABLE = NULL;
         flash_page_buffer = NULL;
     }
 
@@ -930,7 +931,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
     flash_used_block_count = 0;
 
     /* Return Number of Reclaimed Blocks */
-    bplog(BP_DEBUG, "Flash storage service reclaimed %d blocks", reclaimed_blocks);
+    bplog(BP_DEBUG, "Flash storage service reclaimed %d blocks\n", reclaimed_blocks);
     return reclaimed_blocks;
 }
 

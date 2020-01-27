@@ -67,7 +67,7 @@ static void test_1(void)
     unsigned int i;
     bp_flash_index_t block;
 
-    printf("\n==== Test 1: Free Block Management ====\n");
+    printf("==== Test 1: Free Block Management ====\n");
 
     int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, false);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
@@ -170,14 +170,14 @@ static void test_3(void)
         addr.page = 0;
         status = flash_data_write (&addr, test_data, TEST_DATA_SIZE);
         ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
-        ut_assert(addr.page == 3, "Failed to increment page number: %d\n", addr.page);
+        ut_assert(addr.page > 0, "Failed to increment page number: %d\n", addr.page);
 
         /* Read Test Data */
         addr.block = saved_block;
         addr.page = 0;
         status = flash_data_read (&addr, read_data, TEST_DATA_SIZE);
         ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);
-        ut_assert(addr.page == 3, "Failed to increment page number: %d\n", addr.page);
+        ut_assert(addr.page > 0, "Failed to increment page number: %d\n", addr.page);
         for(i = 0; i < TEST_DATA_SIZE; i++)
         {
             ut_assert(read_data[i] == test_data[i], "Failed to read correct data at %d, %02X != %02X\n", i, read_data[i], test_data[i]);
@@ -238,7 +238,6 @@ static void test_5 (void)
     extern int flash_page_decode(uint8_t* page_buffer);
 
     int i, status1, status2;
-    bp_flash_index_t block = 0;
     uint8_t test_buffer[2][FLASH_SIM_DATA_SIZE];
 
     printf("\n==== Test 5: ECC Encode/Decode ====\n");
@@ -272,31 +271,38 @@ static void test_5 (void)
     ut_assert(status1 == FLASH_ECC_NO_ERRORS, "Failed to decode page buffer[0] with no errors (%d)\n", status1);
     ut_assert(status2 == FLASH_ECC_NO_ERRORS, "Failed to decode page buffer[1] with no errors (%d)\n", status2);
 
-    /* decode page - SBE and ECC errors */
-    printf("\n==== Step 5.2: Correctable Errors ====\n");
+    /* decode page - SBE errors */
+    printf("\n==== Step 5.2: Correctable Errors in Data ====\n");
     test_buffer[0][0] ^= 0x40;
     test_buffer[0][8] ^= 0x10;
     test_buffer[0][100] ^= 0x02;
+    status1 = flash_page_decode(test_buffer[0]);
+    ut_assert(status1 == FLASH_ECC_COR_ERRORS, "Failed to decode page buffer[0] with correctable errors (%d)\n", status1);
+
+    /* decode page - ECC errors */
+    printf("\n==== Step 5.3: Correctable Errors in Spare ====\n");
     test_buffer[1][page_data_size] ^= 0x01;
     test_buffer[1][page_data_size+8] ^= 0x08;
     test_buffer[1][page_data_size+100] ^= 0x08;
-    status1 = flash_page_decode(test_buffer[0]);
     status2 = flash_page_decode(test_buffer[1]);
-    ut_assert(status1 == FLASH_ECC_COR_ERRORS, "Failed to decode page buffer[0] with correctable errors (%d)\n", status1);
     ut_assert(status2 == FLASH_ECC_COR_ERRORS, "Failed to decode page buffer[1] with correctable errors (%d)\n", status2);
 
     /* decode page - MBEerrors */
-    printf("\n==== Step 5.3: Uncorrectable Errors ====\n");
+    printf("\n==== Step 5.4: Uncorrectable Errors in Data ====\n");
     test_buffer[0][0+1] ^= 0x40;
     test_buffer[0][8+1] ^= 0x10;
     test_buffer[0][100+1] ^= 0x02;
-    test_buffer[1][page_data_size+1] ^= 0x01;
-    test_buffer[1][page_data_size+8+1] ^= 0x08;
-    test_buffer[1][page_data_size+100+1] ^= 0x08;
     status1 = flash_page_decode(test_buffer[0]);
-    status2 = flash_page_decode(test_buffer[1]);
     ut_assert(status1 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[0]: (%d)\n", status1);
+
+    /* decode page - MBEerrors in Spare */
+    printf("\n==== Step 5.5: Uncorrectable Errors in Spare ====\n");
+    test_buffer[1][page_data_size] ^= 0x02;
+    test_buffer[1][page_data_size+8] ^= 0x10;
+    test_buffer[1][page_data_size+100] ^= 0x10;
+    status2 = flash_page_decode(test_buffer[1]);
     ut_assert(status2 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[1]: (%d)\n", status2);
+
 }
 
 /******************************************************************************
@@ -307,10 +313,10 @@ int ut_flash (void)
 {
     ut_reset();
 
-//    test_1();
-//    test_2();
-//    test_3();
-//    test_4();
+    test_1();
+    test_2();
+    test_3();
+    test_4();
     test_5();
 
     return ut_failures();
