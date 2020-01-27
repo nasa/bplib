@@ -1,13 +1,13 @@
 /************************************************************************
  * File: flash_sim.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -85,22 +85,20 @@ int bplib_flash_sim_initialize (void)
 /*--------------------------------------------------------------------------------------
  * bplib_flash_sim_page_read -
  *-------------------------------------------------------------------------------------*/
-int bplib_flash_sim_page_read (bp_flash_addr_t addr, void* data, int size)
+int bplib_flash_sim_page_read (bp_flash_addr_t addr, void* page_data)
 {
-    if(size > FLASH_SIM_DATA_SIZE) return BP_ERROR;
-    memcpy(data, flash_driver_device.blocks[addr.block].pages[addr.page].data, size);    
+    memcpy(page_data, flash_driver_device.blocks[addr.block].pages[addr.page].data, FLASH_SIM_DATA_SIZE);
     return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_flash_sim_page_write -
  *-------------------------------------------------------------------------------------*/
-int bplib_flash_sim_page_write (bp_flash_addr_t addr, void* data, int size)
+int bplib_flash_sim_page_write (bp_flash_addr_t addr, void* page_data)
 {
     int i;
-    uint8_t* byte_ptr = (uint8_t*)data;
-    if(size > FLASH_SIM_DATA_SIZE) return BP_ERROR;
-    for(i = 0; i < size; i++)
+    uint8_t* byte_ptr = (uint8_t*)page_data;
+    for(i = 0; i < FLASH_SIM_DATA_SIZE; i++)
     {
         flash_driver_device.blocks[addr.block].pages[addr.page].data[i] &= byte_ptr[i];
     }
@@ -119,7 +117,7 @@ int bplib_flash_sim_block_erase (bp_flash_index_t block)
         memset(flash_driver_device.blocks[block].pages[p].data, 0xFF, FLASH_SIM_DATA_SIZE);
         memset(flash_driver_device.blocks[block].pages[p].spare, 0xFF, FLASH_SIM_SPARE_SIZE);
     }
-    
+
     return BP_SUCCESS;
 }
 

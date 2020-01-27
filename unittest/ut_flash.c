@@ -69,7 +69,7 @@ static void test_1(void)
 
     printf("\n==== Test 1: Free Block Management ====\n");
 
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, false);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     printf("\n==== Step 1.1: Allocate All ====\n");
@@ -151,7 +151,7 @@ static void test_3(void)
     printf("\n==== Test 3: Read/Write Data ====\n");
 
     /* Initialize Driver */
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, true);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     /* Initialize Test Data */
@@ -195,7 +195,7 @@ static void test_4(void)
     printf("\n==== Test 4: Enqueue/Dequeue ====\n");
 
     /* Initialize Driver */
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, true);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     /* Initialize Test Data */

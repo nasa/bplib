@@ -325,7 +325,7 @@ int luaopen_bplib (lua_State *L)
 
     /* Initialize FLASH Storage Services */
     bplib_flash_sim_initialize();
-    bplib_store_flash_init(lbplib_flash_driver, BP_FLASH_INIT_FORMAT);
+    bplib_store_flash_init(lbplib_flash_driver, BP_FLASH_INIT_FORMAT, true);
 
     /* Initialize Errno */
     set_errno(L, 0);

@@ -1,13 +1,13 @@
 /************************************************************************
  * File: bplib_flash_sim.h
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -20,7 +20,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 /******************************************************************************
  INCLUDES
@@ -42,8 +42,8 @@ extern "C" {
  ******************************************************************************/
 
 int bplib_flash_sim_initialize      (void);
-int bplib_flash_sim_page_read       (bp_flash_addr_t addr, void* data, int size);
-int bplib_flash_sim_page_write      (bp_flash_addr_t addr, void* data, int size);
+int bplib_flash_sim_page_read       (bp_flash_addr_t addr, void* page_data);
+int bplib_flash_sim_page_write      (bp_flash_addr_t addr, void* page_data);
 int bplib_flash_sim_block_erase     (bp_flash_index_t block);
 int bplib_flash_sim_block_is_bad    (bp_flash_index_t block);
 int bplib_flash_sim_physical_block  (bp_flash_index_t logblk);
@@ -51,6 +51,6 @@ int bplib_flash_sim_block_mark_bad  (bp_flash_index_t block);
 
 #ifdef __cplusplus
 } // extern "C"
-#endif 
+#endif
 
 #endif /* _bplib_flash_sim_h_ */

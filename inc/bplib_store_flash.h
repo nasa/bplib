@@ -62,8 +62,8 @@ typedef struct {
     bp_flash_index_t    page;
 } bp_flash_addr_t;
 
-typedef int (*bp_flash_page_read_t)         (bp_flash_addr_t addr, void* data, int size);
-typedef int (*bp_flash_page_write_t)        (bp_flash_addr_t addr, void* data, int size);
+typedef int (*bp_flash_page_read_t)         (bp_flash_addr_t addr, void* page_data);
+typedef int (*bp_flash_page_write_t)        (bp_flash_addr_t addr, void* page_data);
 typedef int (*bp_flash_block_erase_t)       (bp_flash_index_t block);
 typedef int (*bp_flash_block_is_bad_t)      (bp_flash_index_t block);
 typedef int (*bp_flash_physical_block_t)    (bp_flash_index_t logblk);
@@ -95,7 +95,7 @@ typedef struct {
  ******************************************************************************/
 
 /* Application API */
-int     bplib_store_flash_init          (bp_flash_driver_t driver, int init_mode);
+int     bplib_store_flash_init          (bp_flash_driver_t driver, int init_mode, bool sw_edac);
 void    bplib_store_flash_stats         (bp_flash_stats_t* stats, bool log_stats, bool reset_stats);
 
 /* Service API */

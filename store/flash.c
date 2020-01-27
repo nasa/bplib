@@ -30,6 +30,11 @@
 #define FLASH_OBJECT_SYNC_HI                0x42502046
 #define FLASH_OBJECT_SYNC_LO                0x4C415348
 #define FLASH_PAGE_USE_BYTES                (FLASH_MAX_PAGES_PER_BLOCK / 8)
+#define FLASH_ECC_DATA_PER_CODE_BYTE        4
+#define FLASH_ECC_BLOCK_SIZE                8
+#define FLASH_ECC_NO_ERRORS                 (-1)
+#define FLASH_ECC_UNCOR_ERRORS              (-2)
+#define FLASH_ECC_COR_ERRORS                (-3)
 
 /******************************************************************************
  MACROS
@@ -45,10 +50,10 @@
  ******************************************************************************/
 
 typedef struct {
-    uint32_t    synchi;
-    uint32_t    synclo;
-    uint32_t    timestamp;
-    bp_object_t object;
+    uint32_t            synchi;
+    uint32_t            synclo;
+    uint32_t            timestamp;
+    bp_object_t         object;
 } flash_object_hdr_t;
 
 typedef struct {
@@ -82,6 +87,8 @@ typedef struct {
 /* Constants - set only in initialization function */
 
 static bp_flash_driver_t        FLASH_DRIVER;
+static int                      FLASH_PAGE_DATA_SIZE;   /* size in bytes of data being written to page */
+static int                      FLASH_ECC_CODE_SIZE;    /* size in bytes of encoding */
 
 /* Globals */
 
@@ -92,6 +99,237 @@ static flash_block_list_t       flash_bad_blocks;
 static flash_block_control_t*   flash_blocks;
 static int                      flash_error_count;
 static int                      flash_used_block_count;
+static uint8_t*                 flash_xor_table;
+static int8_t*                  flash_ecc_table;
+static uint8_t*                 flash_page_buffer;
+
+/******************************************************************************
+ LOCAL FUNCTIONS - PAGE LEVEL
+ ******************************************************************************/
+
+/*--------------------------------------------------------------------------------------
+ * flash_build_xor_table -
+ *
+ * table[256] = {
+ *   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+ *   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+ *   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+ *   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+ *   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+ *   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+ *   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+ *   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+ *   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+ *   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+ *   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+ *   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+ *   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+ *   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+ *   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+ *   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0
+ *  }
+ *-------------------------------------------------------------------------------------*/
+BP_LOCAL_SCOPE void flash_build_xor_table(uint8_t* table)
+{
+    int i, k;
+
+    for(i = 0; i < 256; i++)
+    {
+        int bit_count = 0;
+
+        for(k = 0; k < 8; k++)
+        {
+            if((1 << k) & i)
+            {
+                bit_count++;
+            }
+        }
+
+        table[i] = ((bit_count % 2) == 0);
+    }
+}
+
+/*--------------------------------------------------------------------------------------
+ * flash_build_ecc_table -
+ *  -1:     no errors (FLASH_ECC_NO_ERRORS)
+ *  -2:     multiple errors (FLASH_ECC_UNCOR_ERRORS)
+ *  >=0:    row/column of error
+ *
+ *  table[256] = {
+ *   -1,  0,  1, -2,  2, -2, -2, -2,  3, -2, -2, -2, -2, -2, -2, -2, // 0x00 - 0x0F
+ *    4, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0x10 - 0x1F
+ *    5, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0x20 - 0x2F
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0x30 - 0x3F
+ *    6, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0x40 - 0x4F
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0x50 - 0x5F
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0x60 - 0x6F
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0x70 - 0x7F
+ *    7, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0x80 - 0x8F
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0x90 - 0x9F
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0xA0 - 0xAF
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0xB0 - 0xBF
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0xC0 - 0xCF
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0xD0 - 0xDF
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, // 0xE0 - 0xEF
+ *   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2  // 0xF0 - 0xFF
+ *  }
+ *-------------------------------------------------------------------------------------*/
+BP_LOCAL_SCOPE void flash_build_ecc_table(int8_t* table)
+{
+    int i, k;
+
+    for(i = 0; i < 256; i++)
+    {
+        table[i] = FLASH_ECC_NO_ERRORS;
+        for(k = 0; k < 8; k++)
+        {
+            if((1 << k) & i)
+            {
+                if(table[i] == FLASH_ECC_NO_ERRORS)
+                {
+                    table[i] = i;
+                }
+                else
+                {
+                    table[i] = FLASH_ECC_UNCOR_ERRORS;
+                }
+            }
+        }
+    }
+}
+
+/*--------------------------------------------------------------------------------------
+ * flash_page_encode -
+ *-------------------------------------------------------------------------------------*/
+BP_LOCAL_SCOPE void flash_page_encode(uint8_t* page_buffer)
+{
+    int i, j;
+
+    int data_index = 0;
+    int ecc1_index = FLASH_PAGE_DATA_SIZE;
+    int ecc2_index = FLASH_PAGE_DATA_SIZE + 1;
+
+    for(i = 0; i < FLASH_ECC_CODE_SIZE; i++)
+    {
+        page_buffer[ecc1_index] = 0;
+        page_buffer[ecc2_index] = 0;
+        for(j = 0; j < FLASH_ECC_BLOCK_SIZE; j++)
+        {
+            page_buffer[ecc1_index] ^= page_buffer[data_index];
+            page_buffer[ecc2_index] |= flash_xor_table[page_buffer[data_index]] << j;
+            data_index += 1;
+        }
+        ecc1_index += 2;
+        ecc2_index += 2;
+    }
+}
+
+/*--------------------------------------------------------------------------------------
+ * flash_page_decode -
+ *-------------------------------------------------------------------------------------*/
+BP_LOCAL_SCOPE int flash_page_decode(uint8_t* page_buffer)
+{
+    int status = FLASH_ECC_NO_ERRORS;
+
+    int i, j;
+    uint8_t ecc1, ecc2;
+
+    int block_index = 0;
+    int data_index = 0;
+    int ecc1_index = FLASH_PAGE_DATA_SIZE;
+    int ecc2_index = FLASH_PAGE_DATA_SIZE + 1;
+
+    for(i = 0; i < FLASH_ECC_CODE_SIZE; i++)
+    {
+        /* Calculate ECC */
+        ecc1 = 0;
+        ecc2 = 0;
+        block_index = data_index;
+        for(j = 0; j < FLASH_ECC_BLOCK_SIZE; j++)
+        {
+            ecc1 ^= page_buffer[data_index];
+            ecc2 |= flash_xor_table[page_buffer[data_index]] << j;
+            data_index += 1;
+        }
+
+        /* Check ECC */
+        if(ecc1 != page_buffer[ecc1_index] || ecc2 != page_buffer[ecc2_index])
+        {
+            uint8_t delta1 = ecc1 ^ page_buffer[ecc1_index];
+            uint8_t delta2 = ecc2 ^ page_buffer[ecc2_index];
+
+            /* Find Row & Column Error */
+            int column = flash_ecc_table[delta1];
+            int row = flash_ecc_table[delta2];
+
+            /* Attempt to Correct Error */
+            if(column >= 0 && row >= 0)
+            {
+                /* correct bit at row:column */
+                page_buffer[block_index + row] ^= (1 << column);
+                status = FLASH_ECC_COR_ERRORS;
+            }
+            else if( ((column == -1) && (row >= 0)) ||
+                     ((column >= 0) && (row == -1)) )
+            {
+                /* do nothing - error in ECC */
+            }
+            else
+            {
+                /* uncorrectable error */
+                status = FLASH_ECC_UNCOR_ERRORS;
+            }
+        }
+
+        /* Bump ECC Indices */
+        ecc1_index += 2;
+        ecc2_index += 2;
+    }
+
+    return status;
+}
+
+/*--------------------------------------------------------------------------------------
+ * flash_page_write -
+ *-------------------------------------------------------------------------------------*/
+BP_LOCAL_SCOPE int flash_page_write (bp_flash_addr_t addr, uint8_t* page_data)
+{
+    memcpy(flash_page_buffer, page_data, FLASH_PAGE_DATA_SIZE);
+    flash_page_encode(flash_page_buffer);
+    return FLASH_DRIVER.write(addr, flash_page_buffer);
+}
+
+/*--------------------------------------------------------------------------------------
+ * flash_page_read -
+ *-------------------------------------------------------------------------------------*/
+BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* page_data)
+{
+    int status;
+
+    status = FLASH_DRIVER.read(addr, flash_page_buffer);
+    if(status == BP_SUCCESS)
+    {
+        int decode_status = flash_page_decode(flash_page_buffer);
+        memcpy(page_data, flash_page_buffer, FLASH_PAGE_DATA_SIZE);
+
+        if(decode_status == FLASH_ECC_NO_ERRORS)
+        {
+            status = BP_SUCCESS;
+        }
+        else if(decode_status == FLASH_ECC_COR_ERRORS)
+        {
+            bplog(BP_DEBUG, "Single-bit error corrected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
+            status = BP_SUCCESS;
+        }
+        else /* decode_status == FLASH_ECC_UNCOR_ERRORS */
+        {
+            status = BP_FAILEDMEM;
+        }
+    }
+
+    return status;
+}
+
 
 /******************************************************************************
  LOCAL FUNCTIONS - BLOCK LEVEL
@@ -205,8 +443,8 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
     while(bytes_left > 0)
     {
         /* Write Data into Page */
-        int bytes_to_copy = bytes_left < FLASH_DRIVER.page_size ? bytes_left : FLASH_DRIVER.page_size;
-        status = FLASH_DRIVER.write(*addr, &data[data_index], bytes_to_copy);
+        int bytes_to_copy = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
+        status = flash_page_write(*addr, &data[data_index]);
         if(status == BP_SUCCESS)
         {
             data_index += bytes_to_copy;
@@ -297,8 +535,8 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
     while(bytes_left > 0)
     {
         /* Read Data from Page */
-        int bytes_to_copy = bytes_left < FLASH_DRIVER.page_size ? bytes_left : FLASH_DRIVER.page_size;
-        int status = FLASH_DRIVER.read(*addr, &data[data_index], bytes_to_copy);
+        int bytes_to_copy = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
+        int status = flash_page_read(*addr, &data[data_index]);
         if(status == BP_SUCCESS)
         {
             data_index += bytes_to_copy;
@@ -342,7 +580,7 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
     int status = BP_SUCCESS;
 
     /* Check if Room Available */
-    uint64_t bytes_available = (uint64_t)flash_free_blocks.count * (uint64_t)FLASH_DRIVER.pages_per_block * (uint64_t)FLASH_DRIVER.page_size;
+    uint64_t bytes_available = (uint64_t)flash_free_blocks.count * (uint64_t)FLASH_DRIVER.pages_per_block * (uint64_t)FLASH_PAGE_DATA_SIZE;
     int bytes_needed = sizeof(flash_object_hdr_t) + data1_size + data2_size;
     if(bytes_available >= (uint64_t)bytes_needed && fs->attributes.max_data_size >= bytes_needed)
     {
@@ -393,7 +631,7 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
         flash_object_hdr_t* object_hdr = (flash_object_hdr_t*)fs->read_stage;
 
         /* Read Object Header from Flash */
-        status = flash_data_read(addr, fs->read_stage, FLASH_DRIVER.page_size);
+        status = flash_data_read(addr, fs->read_stage, FLASH_PAGE_DATA_SIZE);
         if(status == BP_SUCCESS)
         {
             if( (object_hdr->object.size <= fs->attributes.max_data_size) &&
@@ -401,11 +639,11 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
                 (object_hdr->synchi == FLASH_OBJECT_SYNC_HI) &&
                 (object_hdr->synclo == FLASH_OBJECT_SYNC_LO) )
             {
-                int bytes_read = FLASH_DRIVER.page_size - sizeof(flash_object_hdr_t);
+                int bytes_read = FLASH_PAGE_DATA_SIZE - sizeof(flash_object_hdr_t);
                 int remaining_bytes = object_hdr->object.size - bytes_read;
                 if(remaining_bytes > 0)
                 {
-                    status = flash_data_read(addr, &fs->read_stage[FLASH_DRIVER.page_size], remaining_bytes);
+                    status = flash_data_read(addr, &fs->read_stage[FLASH_PAGE_DATA_SIZE], remaining_bytes);
                 }
             }
             else
@@ -535,7 +773,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
         }
 
         /* Update Bytes Left and Address */
-        int bytes_to_delete = bytes_left < FLASH_DRIVER.page_size ? bytes_left : FLASH_DRIVER.page_size;
+        int bytes_to_delete = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
         bytes_left -= bytes_to_delete;
         addr.page++;
 
@@ -588,7 +826,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_init -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode)
+int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_edac)
 {
     /* Initialize Flash Stores to Zero */
     memset(flash_stores, 0, sizeof(flash_stores));
@@ -619,6 +857,41 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode)
     {
         bplib_os_destroylock(flash_device_lock);
         return bplog(BP_FAILEDMEM, "Unable to allocate memory for flash block control information\n");
+    }
+
+    /* Configure for EDAC */
+    if(sw_edac)
+    {
+        /* Calculate Segment Sizes */
+        FLASH_PAGE_DATA_SIZE = (FLASH_ECC_DATA_PER_CODE_BYTE * FLASH_DRIVER.page_size) / (FLASH_ECC_DATA_PER_CODE_BYTE + 1);
+        FLASH_ECC_CODE_SIZE = FLASH_DRIVER.page_size - FLASH_PAGE_DATA_SIZE;
+
+        /* Allocate ECC Tables and Buffers */
+        flash_xor_table = (uint8_t*)malloc(256);
+        flash_ecc_table = (int8_t*)malloc(256);
+        flash_page_buffer = (uint8_t*)malloc(FLASH_DRIVER.page_size);
+        if(!flash_xor_table || !flash_ecc_table || !flash_page_buffer)
+        {
+            free(flash_blocks);
+            if(flash_xor_table) free(flash_xor_table);
+            if(flash_ecc_table) free(flash_ecc_table);
+            if(flash_page_buffer) free(flash_page_buffer);
+            bplib_os_destroylock(flash_device_lock);
+            return bplog(BP_FAILEDMEM, "Unable to allocate memory for flash sw ecc information\n");
+        }
+
+        /* Initialize ECC Tables */
+        flash_build_xor_table(flash_xor_table);
+        flash_build_ecc_table(flash_ecc_table);
+    }
+    else
+    {
+        /* EDAC Handled Elsewhere */
+        FLASH_PAGE_DATA_SIZE = FLASH_DRIVER.page_size;
+        FLASH_ECC_CODE_SIZE = 0;
+        flash_xor_table = NULL;
+        flash_ecc_table = NULL;
+        flash_page_buffer = NULL;
     }
 
     /* Format Flash for Use */
@@ -709,7 +982,7 @@ int bplib_store_flash_create (void* parm)
             if(attr)
             {
                 /* Check User Provided Attributes */
-                if(attr->max_data_size < FLASH_DRIVER.page_size)
+                if(attr->max_data_size < FLASH_PAGE_DATA_SIZE)
                 {
                    return bplog(BP_INVALID_HANDLE, "Invalid attributes - must supply sufficient sizes\n");
                 }
@@ -720,7 +993,7 @@ int bplib_store_flash_create (void* parm)
             else
             {
                 /* Use Default Attributes */
-                flash_stores[s].attributes.max_data_size = FLASH_DRIVER.page_size;
+                flash_stores[s].attributes.max_data_size = FLASH_PAGE_DATA_SIZE;
             }
 
             /* Account for Overhead */
