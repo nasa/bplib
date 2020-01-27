@@ -298,9 +298,11 @@ BP_LOCAL_SCOPE int flash_page_decode(uint8_t* page_buffer)
 /*--------------------------------------------------------------------------------------
  * flash_page_write -
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int flash_page_write (bp_flash_addr_t addr, uint8_t* page_data)
+BP_LOCAL_SCOPE int flash_page_write (bp_flash_addr_t addr, uint8_t* data, int size)
 {
-    memcpy(flash_page_buffer, page_data, FLASH_PAGE_DATA_SIZE);
+    assert(size <= FLASH_PAGE_DATA_SIZE);
+
+    memcpy(flash_page_buffer, data, size);
     flash_page_encode(flash_page_buffer);
     return FLASH_DRIVER.write(addr, flash_page_buffer);
 }
@@ -308,15 +310,17 @@ BP_LOCAL_SCOPE int flash_page_write (bp_flash_addr_t addr, uint8_t* page_data)
 /*--------------------------------------------------------------------------------------
  * flash_page_read -
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* page_data)
+BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* data, int size)
 {
+    assert(size <= FLASH_PAGE_DATA_SIZE);
+
     int status;
 
     status = FLASH_DRIVER.read(addr, flash_page_buffer);
     if(status == BP_SUCCESS)
     {
         int decode_status = flash_page_decode(flash_page_buffer);
-        memcpy(page_data, flash_page_buffer, FLASH_PAGE_DATA_SIZE);
+        memcpy(data, flash_page_buffer, size);
 
         if(decode_status == FLASH_ECC_NO_ERRORS)
         {
@@ -372,7 +376,7 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
     flash_blocks[block].next_block = BP_FLASH_INVALID_INDEX;
     flash_blocks[block].prev_block = BP_FLASH_INVALID_INDEX;
     flash_blocks[block].max_pages = FLASH_DRIVER.pages_per_block;
-    memset(flash_blocks[block].page_use, 0xFF, sizeof(flash_blocks[block].page_use));
+    memset(flash_blocks[block].page_use, 0xFF, FLASH_PAGE_USE_BYTES);
 
     /* Block No Longer In Use */
     flash_used_block_count--;
@@ -450,7 +454,7 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
     {
         /* Write Data into Page */
         int bytes_to_copy = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
-        status = flash_page_write(*addr, &data[data_index]);
+        status = flash_page_write(*addr, &data[data_index], bytes_to_copy);
         if(status == BP_SUCCESS)
         {
             data_index += bytes_to_copy;
@@ -542,7 +546,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
     {
         /* Read Data from Page */
         int bytes_to_copy = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
-        int status = flash_page_read(*addr, &data[data_index]);
+        int status = flash_page_read(*addr, &data[data_index], bytes_to_copy);
         if(status == BP_SUCCESS)
         {
             data_index += bytes_to_copy;
@@ -756,7 +760,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
             /* Iterate over Page Use Array and Count '0' Bits */
             unsigned int byte_index, bit_index;
             current_block_free_pages = 0;
-            for(byte_index = 0; byte_index < (FLASH_DRIVER.pages_per_block / 8); byte_index++)
+            for(byte_index = 0; byte_index < FLASH_PAGE_USE_BYTES; byte_index++)
             {
                 for(bit_index = 0; bit_index < 8; bit_index++)
                 {

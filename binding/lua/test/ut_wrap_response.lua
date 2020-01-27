@@ -51,7 +51,7 @@ print(string.format('%s/%s: Test 1 - store/load bundles', store, src))
 for i=1,num_bundles do
     payload = string.format('HELLO WORLD %d', i)
 
-    -- store payload -- 
+    -- store payload --
     rc, flags = sender:store(payload, 1000)
     runner.check(rc)
     runner.check(bp.check_flags(flags, {}), "flags set on store")
@@ -70,7 +70,7 @@ for i=1,num_bundles do
     exp_stats["active_bundles"] = exp_stats["active_bundles"] + 1
     exp_stats["transmitted_bundles"] = exp_stats["transmitted_bundles"] + 1
     runner.check(bp.check_stats(stats, exp_stats))
-    
+
     -- check payload --
     runner.check(bp.find_payload(bundle, payload), string.format('Error - could not find payload: %s', payload))
 end
@@ -90,7 +90,7 @@ for i=1,num_bundles do
     runner.check(rc)
     exp_stats["retransmitted_bundles"] = exp_stats["retransmitted_bundles"] + 1
     runner.check(bp.check_stats(stats, exp_stats))
-    
+
     -- check payload --
     runner.check(bp.find_payload(bundle, payload), string.format('Error - could not find payload: %s', payload))
 end
