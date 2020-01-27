@@ -686,15 +686,18 @@ int lbplib_unittest (lua_State* L)
             {
                 failures += bplib_unittest_crc();
             }
-            else if((strcmp("ALL", test) == 0) || (strcmp("TREE", test) == 0))
+
+            if((strcmp("ALL", test) == 0) || (strcmp("TREE", test) == 0))
             {
                 failures += bplib_unittest_rb_tree();
             }
-            else if((strcmp("ALL", test) == 0) || (strcmp("HASH", test) == 0))
+
+            if((strcmp("ALL", test) == 0) || (strcmp("HASH", test) == 0))
             {
                 failures += bplib_unittest_rh_hash();
             }
-            else if((strcmp("ALL", test) == 0) || (strcmp("FLASH", test) == 0))
+
+            if((strcmp("ALL", test) == 0) || (strcmp("FLASH", test) == 0))
             {
                 failures += bplib_unittest_flash();
             }
