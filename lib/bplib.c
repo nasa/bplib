@@ -857,15 +857,15 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
         /* Check Custody Transfer */
         if(data->cteboffset != 0)
         {
-            /* Mark Bundle as Active */
+            /* Save/Update Storage ID */
+            active_bundle.sid = object->sid;
+
+            /* Update Retransmit Time */
+            active_bundle.retx = sysnow;
+
+            /* Save Bundle as Active */
             bplib_os_lock(ch->active_table_signal);
             {
-                /* Save/Update Storage ID */
-                active_bundle.sid = object->sid;
-
-                /* Update Retransmit Time */
-                active_bundle.retx = sysnow;
-
                 /* Assign New Custody ID */
                 if(newcid) active_bundle.cid = ch->current_active_cid++;
 
@@ -874,10 +874,12 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                 if(status == BP_DUPLICATECID) *flags |= BP_FLAG_DUPLICATES;
             }
             bplib_os_unlock(ch->active_table_signal);
+
+            /* Jam Custody ID */
+            v6_update_bundle(data, active_bundle.cid, flags);
         }
 
-        /* Jam Custody ID and Load Bundle */
-        v6_update_bundle(data, active_bundle.cid, flags);
+        /* Load Bundle */
         *bundle = data->header;
         if(size) *size = data->bundlesize;
 
