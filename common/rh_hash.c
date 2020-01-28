@@ -1,13 +1,13 @@
 /************************************************************************
  * File: rh_hash.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -51,8 +51,8 @@ static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle
         if(after_index != NULL_INDEX) rh_hash->table[after_index].before = before_index;
 
         /* Check if Overwriting Oldest/Newest */
-        if(index == rh_hash->oldest_entry) rh_hash->oldest_entry = after_index;  
-        if(index == rh_hash->newest_entry) rh_hash->newest_entry = before_index;  
+        if(index == rh_hash->oldest_entry) rh_hash->oldest_entry = after_index;
+        if(index == rh_hash->newest_entry) rh_hash->newest_entry = before_index;
 
         /* Set Current Entry as Newest */
         bp_index_t oldest_index = rh_hash->oldest_entry;
@@ -64,7 +64,7 @@ static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle
         /* Update Newest/Oldest */
         if(newest_index != NULL_INDEX) rh_hash->table[newest_index].after = index;
         if(oldest_index == NULL_INDEX) rh_hash->oldest_entry = index;
-        
+
         /* Return Success */
         return BP_SUCCESS;
     }
@@ -87,7 +87,7 @@ static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t 
     rh_hash->table[index].before    = rh_hash->newest_entry;
 
     /* Update Time Order */
-    if(rh_hash->oldest_entry == NULL_INDEX) 
+    if(rh_hash->oldest_entry == NULL_INDEX)
     {
         /* First Entry */
         rh_hash->oldest_entry = index;
@@ -111,17 +111,17 @@ static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t 
 int rh_hash_create(rh_hash_t** rh_hash, int size)
 {
     int i;
-    
+
     /* Check Hash Size */
     if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_PARMERR;
 
     /* Allocate Hash Structure */
     *rh_hash = (rh_hash_t*)malloc(sizeof(rh_hash_t));
-    
+
     /* Allocate Hash Table */
     (*rh_hash)->table = (rh_hash_node_t*)malloc(size * sizeof(rh_hash_node_t));
     if((*rh_hash)->table == NULL) return BP_FAILEDMEM;
-            
+
     /* Initialize Hash Table to Empty */
     for(i = 0; i < size; i++)
     {
@@ -137,7 +137,7 @@ int rh_hash_create(rh_hash_t** rh_hash, int size)
     (*rh_hash)->num_entries     = 0;
     (*rh_hash)->oldest_entry    = NULL_INDEX;
     (*rh_hash)->newest_entry    = NULL_INDEX;
-    
+
     /* Return Success */
     return BP_SUCCESS;
 }
@@ -152,7 +152,7 @@ int rh_hash_destroy(rh_hash_t* rh_hash)
         if(rh_hash->table) free(rh_hash->table);
         free(rh_hash);
     }
-    
+
     return BP_SUCCESS;
 }
 
@@ -162,7 +162,7 @@ int rh_hash_destroy(rh_hash_t* rh_hash)
 int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
 {
     bp_index_t curr_index = HASH_CID(bundle.cid) % rh_hash->size;
-    
+
     /* Add Entry to Hash */
     if(rh_hash->table[curr_index].bundle.sid == BP_SID_VACANT)
     {
@@ -175,7 +175,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
         {
             return overwrite_node(rh_hash, curr_index, bundle, overwrite);
         }
-        
+
         /* Transverse to End of Chain */
         bp_index_t end_index = curr_index;
         bp_index_t scan_index = rh_hash->table[curr_index].next;
@@ -198,7 +198,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
                (open_index != curr_index) )
         {
             open_index = (open_index + 1) % rh_hash->size;
-        } 
+        }
 
         /* Check for Full Hash */
         if(open_index == curr_index)
@@ -229,13 +229,20 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
             bp_index_t after_index  = rh_hash->table[curr_index].after;
             bp_index_t before_index = rh_hash->table[curr_index].before;
             if(after_index != NULL_INDEX)   rh_hash->table[after_index].before = open_index;
-            if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = open_index;            
+            if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = open_index;
 
             /* Update Oldest Entry */
             if(rh_hash->oldest_entry == curr_index)
             {
                 rh_hash->oldest_entry = open_index;
                 rh_hash->table[rh_hash->oldest_entry].before = NULL_INDEX;
+            }
+
+            /* Update Newest Entry */
+            if(rh_hash->newest_entry == curr_index)
+            {
+                rh_hash->newest_entry = open_index;
+                rh_hash->table[rh_hash->newest_entry].after = NULL_INDEX;
             }
 
             /* Add Entry to Current Slot */
@@ -258,7 +265,7 @@ int rh_hash_next(rh_hash_t* rh_hash, bp_active_bundle_t* bundle)
     if(rh_hash->oldest_entry != NULL_INDEX)
     {
         if(bundle) *bundle = rh_hash->table[rh_hash->oldest_entry].bundle;
-        return BP_SUCCESS;        
+        return BP_SUCCESS;
     }
 
     return BP_CIDNOTFOUND;
@@ -282,9 +289,9 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
         {
             break;
         }
-        else /* go to next */ 
+        else /* go to next */
         {
-            curr_index = rh_hash->table[curr_index].next;   
+            curr_index = rh_hash->table[curr_index].next;
         }
     }
 
@@ -301,12 +308,12 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     bp_index_t after_index  = rh_hash->table[curr_index].after;
     bp_index_t before_index = rh_hash->table[curr_index].before;
     if(after_index != NULL_INDEX)   rh_hash->table[after_index].before = before_index;
-    if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = after_index;            
+    if(before_index != NULL_INDEX)  rh_hash->table[before_index].after = after_index;
 
     /* Update Newest and Oldest Entry */
     if(curr_index == rh_hash->newest_entry)  rh_hash->newest_entry = before_index;
     if(curr_index == rh_hash->oldest_entry)  rh_hash->oldest_entry = after_index;
-    
+
     /* Remove End of Chain */
     bp_index_t end_index = curr_index;
     bp_index_t next_index = rh_hash->table[curr_index].next;
@@ -324,7 +331,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
         rh_hash->table[curr_index].before = rh_hash->table[end_index].before;
         rh_hash->table[curr_index].after  = rh_hash->table[end_index].after;
 
-        /* Update Time Order (Move) */                                    
+        /* Update Time Order (Move) */
         after_index  = rh_hash->table[end_index].after;
         before_index = rh_hash->table[end_index].before;
         if(after_index != NULL_INDEX) rh_hash->table[after_index].before = curr_index;
@@ -340,7 +347,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
 
     /* Update Hash Order */
     bp_index_t prev_index = rh_hash->table[end_index].prev;
-    if(prev_index != NULL_INDEX) rh_hash->table[prev_index].next = NULL_INDEX;            
+    if(prev_index != NULL_INDEX) rh_hash->table[prev_index].next = NULL_INDEX;
 
     /* Update Statistics */
     rh_hash->num_entries--;
