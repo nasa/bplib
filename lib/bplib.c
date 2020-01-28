@@ -867,11 +867,7 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
                 active_bundle.retx = sysnow;
 
                 /* Assign New Custody ID */
-                if(newcid)
-                {
-                    active_bundle.cid = ch->current_active_cid++;
-                    v6_update_bundle(data, active_bundle.cid, flags);
-                }
+                if(newcid) active_bundle.cid = ch->current_active_cid++;
 
                 /* Update Active Table */
                 status = ch->active_table.add(ch->active_table.table, active_bundle, !newcid);
@@ -880,7 +876,8 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
             bplib_os_unlock(ch->active_table_signal);
         }
 
-        /* Load Bundle */
+        /* Jam Custody ID and Load Bundle */
+        v6_update_bundle(data, active_bundle.cid, flags);
         *bundle = data->header;
         if(size) *size = data->bundlesize;
 
