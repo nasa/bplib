@@ -866,8 +866,15 @@ int v6_display(void* bundle, int size, uint16_t* flags)
             int             pay_index = start_index;
 
             bytes = pay_read(&buffer[pay_index], size - pay_index, &pay_blk, true, flags);
-            if(bytes <= 0)  return bplog(bytes, "Failed (%d) to read payload block\n", bytes);
-            else            pay_index += bytes;
+            if(bytes <= 0)
+            {
+                bplog(bytes, "Failed (%d) to read payload block\n", bytes);
+                continue;
+            }
+            else
+            {
+                pay_index += bytes;
+            }
 
             /* Display Payload Block */
             bplog(BP_DEBUG, "#################################\n");
@@ -888,6 +895,39 @@ int v6_display(void* bundle, int size, uint16_t* flags)
             /* Display Payload Data */
             while(pay_index < size) bplog(BP_DEBUG, "%02X", buffer[pay_index++]);
             bplog(BP_DEBUG, "\n");
+        }
+        else if(blk_type == BP_CTEB_BLK_TYPE)
+        {
+            bp_blk_cteb_t   cteb_blk;
+            int             cteb_index = start_index;
+
+            /* Display Custody Transfer Enhancement Block */
+            bplog(BP_DEBUG, "#################################\n");
+            bytes = cteb_read(&buffer[cteb_index], size - cteb_index, &cteb_blk, true, flags);
+            if(bytes <= 0)
+            {
+                bplog(bytes, "Failed to parse CTEB block at offset %d\n", cteb_index);
+                continue;
+            }
+
+            bplog(BP_DEBUG, "Custody ID:        %d\n", cteb_blk.cid.value);
+            bplog(BP_DEBUG, "Custodian IPN:     %d.%d\n", cteb_blk.cstnode, cteb_blk.cstserv);
+        }
+        else if(blk_type == BP_BIB_BLK_TYPE)
+        {
+            bp_blk_bib_t    bib_blk;
+            int             bib_index = start_index;
+
+            /* Display Bundle Integrity Block */
+            bplog(BP_DEBUG, "#################################\n");
+            bytes = bib_read(&buffer[bib_index], size - bib_index, &bib_blk, true, flags);
+            if(bytes <= 0)
+            {
+                bplog(bytes, "Failed to parse BIB block at offset %d\n", bib_index);
+                continue;
+            }
+
+            bplog(BP_DEBUG, "Bundle Payload CRC: %04X\n", bib_blk.security_result_data.crc16);
         }
     }
 
