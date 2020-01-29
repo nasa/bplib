@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include "cfe.h"
+#include "cfe_time_utils.h"
 
 #include "bplib.h"
 
@@ -127,8 +128,9 @@ void bplib_os_sleep(int seconds)
  *-------------------------------------------------------------------------------------*/
 uint32_t bplib_os_random(void)
 {
-    CFE_TIME_SysTime_t sys_time = CFE_TIME_GetTime();
-    return (uint32_t)BP_RAND_HASH(sys_time.Subseconds);
+    CFE_TIME_SysTime_t sys_time = CFE_TIME_LatchClock();
+    unsigned long seed = sys_time.Seconds + sys_time.Subseconds;
+    return (uint32_t)BP_RAND_HASH(seed);
 }
 
 /*--------------------------------------------------------------------------------------
