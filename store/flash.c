@@ -43,7 +43,6 @@
 #define FLASH_GET_SID(addr)                 ((((addr).block * FLASH_DRIVER.pages_per_block) + (addr).page) + 1)
 #define FLASH_GET_BLOCK(sid)                (((sid)-1) / FLASH_DRIVER.pages_per_block)
 #define FLASH_GET_PAGE(sid)                 (((sid)-1) % FLASH_DRIVER.pages_per_block)
-#define FLASH_HASH(seed)                    ((seed)*2654435761) /* knuth multiplier */
 
 /******************************************************************************
  TYPEDEFS
@@ -912,14 +911,9 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
 
     /* Format Flash for Use */
     int reclaimed_blocks = 0;
+    unsigned int start_block = bplib_os_random();
     if(init_mode == BP_FLASH_INIT_FORMAT)
     {
-        /* Choose Random Startnig Location */
-        unsigned long seed = 0;
-        bplib_os_systime(&seed);
-        unsigned int start_block = FLASH_HASH(seed);
-        bplog(BP_DEBUG, "Starting flash block: %d, seed: %lu\n", FLASH_DRIVER.phyblk(start_block % FLASH_DRIVER.num_blocks), seed);
-
         /* Build Free Block List */
         unsigned int block;
         for(block = 0; block < FLASH_DRIVER.num_blocks; block++)
@@ -941,7 +935,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
     flash_used_block_count = 0;
 
     /* Return Number of Reclaimed Blocks */
-    bplog(BP_DEBUG, "Flash storage service reclaimed %d blocks\n", reclaimed_blocks);
+    bplog(BP_DEBUG, "Flash storage service reclaimed %d blocks, starting at block %d\n", reclaimed_blocks, start_block % FLASH_DRIVER.num_blocks);
     return reclaimed_blocks;
 }
 

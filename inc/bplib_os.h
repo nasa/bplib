@@ -78,17 +78,18 @@ typedef BP_INDEX_TYPE bp_index_t;
  PROTOTYPES
  ******************************************************************************/
 
-void    bplib_os_init           (void);
-int     bplib_os_log            (const char* file, unsigned int line, int error, const char* fmt, ...) VARG_CHECK(printf, 4, 5);
-int     bplib_os_systime        (unsigned long* sysnow); /* seconds */
-void    bplib_os_sleep          (int seconds);
-int     bplib_os_createlock     (void);
-void    bplib_os_destroylock    (int handle);
-void    bplib_os_lock           (int handle);
-void    bplib_os_unlock         (int handle);
-void    bplib_os_signal         (int handle);
-int     bplib_os_waiton         (int handle, int timeout_ms);
-int     bplib_os_format         (char* dst, size_t len, const char* fmt, ...) VARG_CHECK(printf, 3, 4);
-int     bplib_os_strnlen        (const char* str, int maxlen);
+void        bplib_os_init           (void);
+int         bplib_os_log            (const char* file, unsigned int line, int error, const char* fmt, ...) VARG_CHECK(printf, 4, 5);
+int         bplib_os_systime        (unsigned long* sysnow); /* seconds */
+void        bplib_os_sleep          (int seconds);
+uint32_t    bplib_os_random         (void);
+int         bplib_os_createlock     (void);
+void        bplib_os_destroylock    (int handle);
+void        bplib_os_lock           (int handle);
+void        bplib_os_unlock         (int handle);
+void        bplib_os_signal         (int handle);
+int         bplib_os_waiton         (int handle, int timeout_ms);
+int         bplib_os_format         (char* dst, size_t len, const char* fmt, ...) VARG_CHECK(printf, 3, 4);
+int         bplib_os_strnlen        (const char* str, int maxlen);
 
 #endif /* _bplib_os_h_ */

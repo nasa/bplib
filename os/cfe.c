@@ -39,6 +39,7 @@
  ******************************************************************************/
 
 #define BP_MAX_LOG_ENTRY_SIZE       256
+#define BP_RAND_HASH(seed)          ((seed)*2654435761) /* knuth multiplier */
 
 #ifndef BPLIB_CFE_SECS_AT_2000
 #define BPLIB_CFE_SECS_AT_2000      630720013
@@ -119,6 +120,15 @@ int bplib_os_systime(unsigned long* sysnow)
 void bplib_os_sleep(int seconds)
 {
     OS_TaskDelay(seconds * 1000);
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_os_random -
+ *-------------------------------------------------------------------------------------*/
+uint32_t bplib_os_random(void)
+{
+    CFE_TIME_SysTime_t sys_time = CFE_TIME_GetTime();
+    return (uint32_t)BP_RAND_HASH(sys_time.Subseconds);
 }
 
 /*--------------------------------------------------------------------------------------

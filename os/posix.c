@@ -68,7 +68,10 @@ void bplib_os_init()
     pthread_mutexattr_init(&locks_attr);
     pthread_mutexattr_settype(&locks_attr, PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&lock_of_locks, &locks_attr);
+
     clock_gettime(CLOCK_REALTIME, &prevnow);
+
+    srand((unsigned int)prevnow.tv_nsec);
 }
 
 /*--------------------------------------------------------------------------------------
@@ -142,6 +145,14 @@ int bplib_os_systime(unsigned long* sysnow)
 void bplib_os_sleep(int seconds)
 {
     sleep(seconds);
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_os_random -
+ *-------------------------------------------------------------------------------------*/
+uint32_t bplib_os_random(void)
+{
+    return (uint32_t)rand();
 }
 
 /*--------------------------------------------------------------------------------------
