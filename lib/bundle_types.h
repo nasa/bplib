@@ -57,7 +57,6 @@ typedef struct {
     bp_val_t            exprtime;       /* absolute time when payload expires */
     bool                ackapp;         /* acknowledgement by application is requested */
     int                 payloadsize;    /* size of payload */
-    uint8_t             payload[];      /* variable length payload */
 } bp_payload_data_t;
 
 /* Pending Structure */

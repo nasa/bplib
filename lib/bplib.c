@@ -958,8 +958,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
         ch->stats.received_bundles++;
 
         /* Store Payload */
-        int storage_header_size = offsetof(bp_payload_data_t, payload);
-        status = ch->store.enqueue(ch->payload_handle, &payload.data, storage_header_size, payload.memptr, payload.data.payloadsize, timeout);
+        status = ch->store.enqueue(ch->payload_handle, &payload.data, sizeof(bp_payload_data_t), payload.memptr, payload.data.payloadsize, timeout);
         if(status == BP_SUCCESS && payload.node != BP_IPN_NULL)
         {
             custody_transfer = true;
@@ -1109,7 +1108,7 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
         else
         {
             /* Return Payload to Application */
-            *payload = data->payload;
+            *payload = (void*)((uint8_t*)data) + sizeof(bp_payload_data_t);
             if(size) *size = data->payloadsize;
 
             /* Check for Application Acknowledgement Request */
@@ -1160,7 +1159,7 @@ int bplib_ackpayload(bp_desc_t channel, void* payload)
 {
     int status = BP_SUCCESS;
     bp_channel_t* ch = (bp_channel_t*)channel;
-    bp_payload_data_t* data = (bp_payload_data_t*)((uint8_t*)payload - offsetof(bp_payload_data_t, payload));
+    bp_payload_data_t* data = (bp_payload_data_t*)((uint8_t*)payload - sizeof(bp_payload_data_t));
     bp_object_t* object = (bp_object_t*)((uint8_t*)data - sizeof(bp_object_hdr_t));
 
     /* Check Parameters */
