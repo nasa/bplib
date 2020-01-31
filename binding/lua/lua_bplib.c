@@ -427,10 +427,10 @@ int lbplib_open (lua_State* L)
 
         /* Get Attributes from Stack */
         attributes.lifetime             = luaL_optnumber(L, -15, attributes.lifetime);
-        attributes.request_custody      = luaL_optnumber(L, -14, attributes.request_custody);
-        attributes.admin_record         = luaL_optnumber(L, -13, attributes.admin_record);
-        attributes.integrity_check      = luaL_optnumber(L, -12, attributes.integrity_check);
-        attributes.allow_fragmentation  = luaL_optnumber(L, -11, attributes.allow_fragmentation);
+        attributes.request_custody      = luaL_optnumber(L, -14, attributes.request_custody) != 0.0;
+        attributes.admin_record         = luaL_optnumber(L, -13, attributes.admin_record) != 0.0;
+        attributes.integrity_check      = luaL_optnumber(L, -12, attributes.integrity_check) != 0.0;
+        attributes.allow_fragmentation  = luaL_optnumber(L, -11, attributes.allow_fragmentation) != 0.0;
         attributes.cipher_suite         = luaL_optnumber(L, -10, attributes.cipher_suite);
         attributes.timeout              = luaL_optnumber(L, -9,  attributes.timeout);
         attributes.max_length           = luaL_optnumber(L, -8,  attributes.max_length);
