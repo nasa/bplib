@@ -25,11 +25,8 @@ APP_OBJ += posix.o
 ###############################################################################
 ##  OPTIONS
 
+# Optimization Level #
+APP_COPT += -O3
+
 # Disable Asserts #
 APP_COPT += -DNDEBUG
-
-# Enable Toolchain Specific Checks #
-ifeq ($(TOOLCHAIN), gcc)
-APP_COPT += -Wlogical-op
-endif
-

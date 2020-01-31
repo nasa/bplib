@@ -20,12 +20,12 @@
 #
 #       make CONFIG=config.mk
 #
-#  2. In order to use clang instead of gcc, set the COMPILER and TOOLCHAIN variables.
+#  2. In order to use clang instead of gcc, set the CC and AR variables.
 #     For example, if you wanted to run AddressSanitizer via clang, issue the following
 #     commands to build the library:
 #
-#       make COMPILER=clang TOOLCHAIN=llvm USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address
-#		sudo make COMPILER=clang TOOLCHAIN=llvm USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address install
+#       make CC=clang USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address
+#		sudo make CC=clang USER_COPT=-fsanitize=address USER_LOPT=-fsanitize=address install
 #
 #  3. Running the clang static code analysis is accomplished by preceding whichever
 #     build command you use with "scan-build".  For example, a nominal scan is performed by:
@@ -105,9 +105,6 @@ INCLUDES    += -I$(ROOT)/os
 INCLUDES    += -I$(ROOT)/store
 INCLUDES    += -I$(ROOT)/unittest
 
-# c compiler and linker used for c file extensions
-COMPILER    ?= gcc
-
 # tool chain used as prefix for binary utilities like archival tool
 TOOLCHAIN   ?= gcc
 
@@ -135,9 +132,8 @@ TGTVER      :=   $(shell cat version.txt)
 LIBDIR      :=   $(PREFIX)/lib
 INCDIR      :=   $(PREFIX)/include/$(TGTLIB)
 BLDDIR      :=   build
-O           ?=   3 # default optimization level
 
-COPT        :=   -g -Wall -Wextra -O$(O) -D'LIBID="$(TGTVER)"' $(INCLUDES) $(APP_DEFS)
+COPT        :=   -g -Wall -Wextra -D'LIBID="$(TGTVER)"' $(INCLUDES) $(APP_DEFS)
 COPT        +=   -DLIBPATH=\"$(LIBDIR)\"
 COPT        +=   -DINCPATH=\"$(INCDIR)\"
 COPT        +=   -Wshadow
@@ -150,11 +146,8 @@ LOPT        +=   -lpthread
 ###############################################################################
 ##  TOOLS
 
-CC           =   $(COMPILER)
-AR           =   $(TOOLCHAIN)-ar
 RM           =   rm -f
 CP           =   cp
-DIFF         =   diff
 LN           =   ln
 MKDIR	     =   mkdir
 

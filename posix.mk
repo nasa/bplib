@@ -26,7 +26,7 @@ APP_OBJ += posix.o
 ##  OPTIONS
 
 # Optimization Level #
-O = 0
+APP_COPT += -O0
 
 # Build Unit Tests #
 BUILD_UNITTESTS=1
@@ -41,7 +41,7 @@ APP_LOPT += -lgcov --coverage
 APP_COPT += -fstack-protector-all
 
 # Enable Toolchain Specific Checks #
-ifeq ($(TOOLCHAIN), gcc)
+ifeq ($(CC), cc)
 APP_COPT += -Wlogical-op
 endif
 
