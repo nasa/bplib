@@ -216,8 +216,8 @@ static void test_4(void)
     ut_assert(bplib_store_flash_dequeue(h, &object, BP_CHECK) == BP_SUCCESS, "Failed to enqueue test data\n");
     if(object != NULL)
     {
-        ut_assert(object->handle == h, "Incorrect handle in dequeued object: %d != %d\n", object->handle, h);
-        ut_assert(object->size == TEST_DATA_SIZE, "Incorrect size in dequeued object: %d != %d\n", object->size, TEST_DATA_SIZE);
+        ut_assert(object->header.handle == h, "Incorrect handle in dequeued object: %d != %d\n", object->header.handle, h);
+        ut_assert(object->header.size == TEST_DATA_SIZE, "Incorrect size in dequeued object: %d != %d\n", object->header.size, TEST_DATA_SIZE);
         for(i = 0; i < TEST_DATA_SIZE; i++)
         {
             ut_assert((uint8_t)object->data[i] == test_data[i], "Failed to dequeue correct data at %d, %02X != %02X\n", i, (uint8_t)object->data[i], test_data[i]);

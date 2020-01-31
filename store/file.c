@@ -369,7 +369,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
     uint32_t data_size = data1_size + data2_size;
-    uint32_t object_size = offsetof(bp_object_t, data) + data_size;
+    uint32_t object_size = sizeof(bp_object_hdr_t) + data_size;
     uint32_t bytes_written = 0;
     bool flush_error = false;
 
@@ -410,7 +410,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     }
 
     /* Create Object */
-    bp_object_t object = {
+    bp_object_hdr_t object_header = {
         .handle = handle,
         .sid = BP_SID_VACANT,
         .size = data_size
@@ -420,7 +420,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     bytes_written += BP_FILE_WRITE(&object_size, 1, sizeof(object_size), fs->write_fd);
 
     /* Write Object */
-    bytes_written += BP_FILE_WRITE(&object, 1, offsetof(bp_object_t, data), fs->write_fd);
+    bytes_written += BP_FILE_WRITE(&object_header, 1, sizeof(bp_object_hdr_t), fs->write_fd);
 
     /* Write Data Buffer 1 */
     bytes_written += BP_FILE_WRITE(data1, 1, data1_size, fs->write_fd);
@@ -573,8 +573,8 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             if(bytes_read == object_size)
             {
                 /* Update SID */
-                bp_object_t* dequeued_object = (bp_object_t*)object_ptr;
-                dequeued_object->sid = (bp_sid_t)(unsigned long)fs->read_data_id;
+                bp_object_hdr_t* dequeued_object_header = (bp_object_hdr_t*)object_ptr;
+                dequeued_object_header->sid = (bp_sid_t)(unsigned long)fs->read_data_id;
                 read_success = true;
             }
         }
@@ -769,8 +769,8 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             bytes_read = BP_FILE_READ(object_ptr, 1, object_size, fs->retrieve_fd);
             if(bytes_read == object_size)
             {
-                bp_object_t* retrieved_object = (bp_object_t*)object_ptr;
-                retrieved_object->sid = sid;
+                bp_object_hdr_t* retrieved_object_header = (bp_object_hdr_t*)object_ptr;
+                retrieved_object_header->sid = sid;
                 fs->retrieve_data_id = (uint64_t)(unsigned long)sid;
                 retrieve_success = true;
             }

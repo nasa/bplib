@@ -433,16 +433,16 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
 
     int status;
     int data_size = data1_size + data2_size;
-    int object_size = offsetof(bp_object_t, data) + data_size;
+    int object_size = sizeof(bp_object_hdr_t) + data_size;
     bp_object_t* object = (bp_object_t*)malloc(object_size);
 
     /* Check memory allocation */
     if(!object) return BP_FAILEDSTORE;
 
     /* Populate Object */
-    object->handle = handle;
-    object->sid = BP_SID_VACANT;
-    object->size = data_size;
+    object->header.handle = handle;
+    object->header.sid = BP_SID_VACANT;
+    object->header.size = data_size;
     memcpy(object->data, data1, data1_size);
     memcpy(&object->data[data1_size], data2, data2_size);
 
@@ -482,7 +482,7 @@ int bplib_store_ram_dequeue(int handle, bp_object_t** object, int timeout)
     if(status == MSGQ_OKAY)
     {
         (void)size; /* unused */
-        dequeued_object->sid = dequeued_object; /* only update sid */
+        dequeued_object->header.sid = dequeued_object; /* only update sid */
         *object = dequeued_object;
         return BP_SUCCESS;
     }

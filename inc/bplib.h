@@ -171,12 +171,17 @@ typedef struct {
 /* Storage ID */
 typedef void* bp_sid_t;
 
+/* Storage Object Header */
+typedef struct {
+    int             handle;
+    int             size;
+    bp_sid_t        sid;
+} bp_object_hdr_t;
+
 /* Storage Object */
 typedef struct {
-    int         handle;
-    int         size;
-    bp_sid_t    sid;
-    char        data[];
+    bp_object_hdr_t header;
+    char            data[];
 } bp_object_t;
 
 /* Storage Service */

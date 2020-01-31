@@ -52,7 +52,7 @@ typedef struct {
     uint32_t            synchi;
     uint32_t            synclo;
     uint32_t            timestamp;
-    bp_object_t         object;
+    bp_object_hdr_t     object_hdr;
 } flash_object_hdr_t;
 
 typedef struct {
@@ -605,11 +605,11 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
 
         /* Calculate Object Information */
         unsigned long sid = FLASH_GET_SID(fs->write_addr);
-        flash_object_hdr_t object_hdr = {
+        flash_object_hdr_t flash_object_hdr = {
             .synchi = FLASH_OBJECT_SYNC_HI,
             .synclo = FLASH_OBJECT_SYNC_LO,
             .timestamp = (uint32_t)sysnow,
-            .object = {
+            .object_hdr = {
                 .handle = handle,
                 .size = data1_size + data2_size,
                 .sid = (bp_sid_t)sid
@@ -617,9 +617,9 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
         };
 
         /* Copy into Write Stage */
-        memcpy(&fs->write_stage[0], &object_hdr, sizeof(object_hdr));
-        if(data1) memcpy(&fs->write_stage[sizeof(object_hdr)], data1, data1_size);
-        if(data2) memcpy(&fs->write_stage[sizeof(object_hdr) + data1_size], data2, data2_size);
+        memcpy(&fs->write_stage[0], &flash_object_hdr, sizeof(flash_object_hdr_t));
+        if(data1) memcpy(&fs->write_stage[sizeof(flash_object_hdr_t)], data1, data1_size);
+        if(data2) memcpy(&fs->write_stage[sizeof(flash_object_hdr_t) + data1_size], data2, data2_size);
 
         /* Write Data into Flash */
         status = flash_data_write(&fs->write_addr, fs->write_stage, bytes_needed);
@@ -643,19 +643,19 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
     /* Check Stage Lock */
     if(fs->stage_locked == false)
     {
-        flash_object_hdr_t* object_hdr = (flash_object_hdr_t*)fs->read_stage;
+        flash_object_hdr_t* flash_object_hdr = (flash_object_hdr_t*)fs->read_stage;
 
         /* Read Object Header from Flash */
         status = flash_data_read(addr, fs->read_stage, FLASH_PAGE_DATA_SIZE);
         if(status == BP_SUCCESS)
         {
-            if( (object_hdr->object.size <= fs->attributes.max_data_size) &&
-                (object_hdr->object.handle == handle) &&
-                (object_hdr->synchi == FLASH_OBJECT_SYNC_HI) &&
-                (object_hdr->synclo == FLASH_OBJECT_SYNC_LO) )
+            if( (flash_object_hdr->object_hdr.size <= fs->attributes.max_data_size) &&
+                (flash_object_hdr->object_hdr.handle == handle) &&
+                (flash_object_hdr->synchi == FLASH_OBJECT_SYNC_HI) &&
+                (flash_object_hdr->synclo == FLASH_OBJECT_SYNC_LO) )
             {
                 int bytes_read = FLASH_PAGE_DATA_SIZE - sizeof(flash_object_hdr_t);
-                int remaining_bytes = object_hdr->object.size - bytes_read;
+                int remaining_bytes = flash_object_hdr->object_hdr.size - bytes_read;
                 if(remaining_bytes > 0)
                 {
                     status = flash_data_read(addr, &fs->read_stage[FLASH_PAGE_DATA_SIZE], remaining_bytes);
@@ -664,9 +664,9 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
             else
             {
                 status = bplog(BP_FAILEDSTORE, "Object read from flash fails validation, size (%d, %d), handle (%d, %d), sync (%08Xl%08Xl, %018Xl%08Xl)\n",
-                                                object_hdr->object.size, fs->attributes.max_data_size,
-                                                object_hdr->object.handle, handle,
-                                                object_hdr->synchi, object_hdr->synclo, FLASH_OBJECT_SYNC_HI, FLASH_OBJECT_SYNC_LO);
+                                                flash_object_hdr->object_hdr.size, fs->attributes.max_data_size,
+                                                flash_object_hdr->object_hdr.handle, handle,
+                                                flash_object_hdr->synchi, flash_object_hdr->synclo, FLASH_OBJECT_SYNC_HI, FLASH_OBJECT_SYNC_LO);
             }
         }
 
@@ -674,7 +674,7 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
         if(status == BP_SUCCESS)
         {
             /* Return Locked Object */
-            *object = &object_hdr->object;
+            *object = (bp_object_t*)&flash_object_hdr->object_hdr;
             fs->stage_locked = true;
         }
     }
@@ -737,22 +737,22 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
     }
 
     /* Retrieve Object Header */
-    flash_object_hdr_t object_hdr;
+    flash_object_hdr_t flash_object_hdr;
     bp_flash_addr_t hdr_addr = addr;
-    status = flash_data_read(&hdr_addr, (uint8_t*)&object_hdr, sizeof(object_hdr));
+    status = flash_data_read(&hdr_addr, (uint8_t*)&flash_object_hdr, sizeof(flash_object_hdr_t));
     if(status != BP_SUCCESS)
     {
         return bplog(status, "Unable to read object header at %d.%d in delete function\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
     }
-    else if(object_hdr.object.sid != sid)
+    else if(flash_object_hdr.object_hdr.sid != sid)
     {
-        return bplog(BP_FAILEDSTORE, "Attempting to delete object with invalid SID: %lu != %lu\n", (unsigned long)object_hdr.object.sid, (unsigned long)sid);
+        return bplog(BP_FAILEDSTORE, "Attempting to delete object with invalid SID: %lu != %lu\n", (unsigned long)flash_object_hdr.object_hdr.sid, (unsigned long)sid);
     }
 
     /* Setup Loop Parameters */
     bp_flash_index_t current_block = BP_FLASH_INVALID_INDEX;
     unsigned int current_block_free_pages = 0;
-    int bytes_left = object_hdr.object.size;
+    int bytes_left = flash_object_hdr.object_hdr.size;
 
     /* Delete Each Page of Data */
     while(bytes_left > 0)
@@ -1176,10 +1176,10 @@ int bplib_store_flash_release (int handle, bp_sid_t sid)
     flash_store_t* fs = (flash_store_t*)&flash_stores[handle];
 
     /* Check SID Matches */
-    flash_object_hdr_t* object_hdr = (flash_object_hdr_t*)fs->read_stage;
-    if(object_hdr->object.sid != sid)
+    flash_object_hdr_t* flash_object_hdr = (flash_object_hdr_t*)fs->read_stage;
+    if(flash_object_hdr->object_hdr.sid != sid)
     {
-        return bplog(BP_FAILEDSTORE, "Object being released does not have correct SID, requested: %lu, actual: %lu\n", (unsigned long)sid, (unsigned long)object_hdr->object.sid);
+        return bplog(BP_FAILEDSTORE, "Object being released does not have correct SID, requested: %lu, actual: %lu\n", (unsigned long)sid, (unsigned long)flash_object_hdr->object_hdr.sid);
     }
 
     /* Unlock Stage */
