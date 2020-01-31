@@ -696,34 +696,30 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
     /*-------------------------*/
     /* Try to Send DACS Bundle */
     /*-------------------------*/
-    if(object == NULL)
+    if(ch->dacs.attributes.dacs_rate > 0)
     {
-        /* Timeout Any Pending Acknowledgments */
-        if(ch->dacs.attributes.dacs_rate > 0)
+        /* Check If DACS Ready to Send */
+        bplib_os_lock(ch->custody_tree_lock);
         {
-            /* Check If DACS Ready to Send */
-            bplib_os_lock(ch->custody_tree_lock);
+            if( (sysnow >= (ch->dacs_last_sent + ch->dacs.attributes.dacs_rate)) &&
+                !rb_tree_is_empty(&ch->custody_tree) )
             {
-                if( (sysnow >= (ch->dacs_last_sent + ch->dacs.attributes.dacs_rate)) &&
-                    !rb_tree_is_empty(&ch->custody_tree) )
-                {
-                    create_dacs(ch, sysnow, BP_CHECK, flags);
-                }
+                create_dacs(ch, sysnow, BP_CHECK, flags);
             }
-            bplib_os_unlock(ch->custody_tree_lock);
         }
+        bplib_os_unlock(ch->custody_tree_lock);
+    }
 
-        /* Dequeue any Stored DACS */
-        int dacs_status = ch->store.dequeue(ch->dacs_handle, &object, BP_CHECK);
-        if(dacs_status == BP_SUCCESS)
-        {
-            isdacs = true;
-        }
-        else if(dacs_status != BP_TIMEOUT)
-        {
-            /* Failed Storage Service */
-            *flags |= BP_FLAG_STOREFAILURE;
-        }
+    /* Dequeue any Stored DACS */
+    int dacs_status = ch->store.dequeue(ch->dacs_handle, &object, BP_CHECK);
+    if(dacs_status == BP_SUCCESS)
+    {
+        isdacs = true;
+    }
+    else if(dacs_status != BP_TIMEOUT)
+    {
+        /* Failed Storage Service */
+        *flags |= BP_FLAG_STOREFAILURE;
     }
 
     /*------------------------------------------------*/
@@ -1108,7 +1104,7 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
         else
         {
             /* Return Payload to Application */
-            *payload = (void*)((uint8_t*)data) + sizeof(bp_payload_data_t);
+            *payload = (void*)((uint8_t*)data + sizeof(bp_payload_data_t));
             if(size) *size = data->payloadsize;
 
             /* Check for Application Acknowledgement Request */
@@ -1134,13 +1130,15 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
 int bplib_ackbundle(bp_desc_t channel, void* bundle)
 {
     int status = BP_SUCCESS;
-    bp_channel_t* ch = (bp_channel_t*)channel;
-    bp_bundle_data_t* data = (bp_bundle_data_t*)((uint8_t*)bundle - offsetof(bp_bundle_data_t, header));
-    bp_object_t* object = (bp_object_t*)((uint8_t*)data - sizeof(bp_object_hdr_t));
 
     /* Check Parameters */
     if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
     else if(bundle == NULL)                 return BP_PARMERR;
+
+    /* Determine Storage Object Pointer */
+    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_bundle_data_t* data = (bp_bundle_data_t*)((uint8_t*)bundle - offsetof(bp_bundle_data_t, header));
+    bp_object_t* object = (bp_object_t*)((uint8_t*)data - sizeof(bp_object_hdr_t));
 
     /* Release Memory */
     ch->store.release(object->header.handle, object->header.sid);
@@ -1158,13 +1156,15 @@ int bplib_ackbundle(bp_desc_t channel, void* bundle)
 int bplib_ackpayload(bp_desc_t channel, void* payload)
 {
     int status = BP_SUCCESS;
-    bp_channel_t* ch = (bp_channel_t*)channel;
-    bp_payload_data_t* data = (bp_payload_data_t*)((uint8_t*)payload - sizeof(bp_payload_data_t));
-    bp_object_t* object = (bp_object_t*)((uint8_t*)data - sizeof(bp_object_hdr_t));
 
     /* Check Parameters */
     if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
     else if(payload == NULL)                return BP_PARMERR;
+
+    /* Determine Storage Object Pointer */
+    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_payload_data_t* data = (bp_payload_data_t*)((uint8_t*)payload - sizeof(bp_payload_data_t));
+    bp_object_t* object = (bp_object_t*)((uint8_t*)data - sizeof(bp_object_hdr_t));
 
     /* Release Memory */
     ch->store.release(object->header.handle, object->header.sid);
@@ -1323,11 +1323,11 @@ int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t service)
  *  attr -                  pointer to attribute structure that needs to be initialized
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_attrinit(bp_attr_t* attr)
+int bplib_attrinit(bp_attr_t* attributes)
 {
-    if(attr)
+    if(attributes)
     {
-        *attr = default_attributes;
+        *attributes = default_attributes;
         return BP_SUCCESS;
     }
     else

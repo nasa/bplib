@@ -19,6 +19,8 @@
  INCLUDES
  ******************************************************************************/
 
+#include <assert.h>
+
 #include "bplib.h"
 #include "bplib_os.h"
 #include "bplib_store_flash.h"
@@ -738,6 +740,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
 
     /* Retrieve Object Header */
     flash_object_hdr_t flash_object_hdr;
+    flash_object_hdr.object_hdr.sid = BP_SID_VACANT;
     bp_flash_addr_t hdr_addr = addr;
     status = flash_data_read(&hdr_addr, (uint8_t*)&flash_object_hdr, sizeof(flash_object_hdr_t));
     if(status != BP_SUCCESS)
@@ -843,6 +846,15 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
  *-------------------------------------------------------------------------------------*/
 int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_edac)
 {
+    assert(driver.num_blocks > 0);
+    assert(driver.pages_per_block > 0);
+    assert(driver.page_size > 0);
+    assert(driver.read);
+    assert(driver.write);
+    assert(driver.erase);
+    assert(driver.isbad);
+    assert(driver.phyblk);
+
     /* Initialize Flash Stores to Zero */
     memset(flash_stores, 0, sizeof(flash_stores));
 
@@ -935,7 +947,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
     flash_used_block_count = 0;
 
     /* Return Number of Reclaimed Blocks */
-    bplog(BP_DEBUG, "Flash storage service reclaimed %d blocks, starting at block %d\n", reclaimed_blocks, start_block % FLASH_DRIVER.num_blocks);
+    bplog(BP_DEBUG, "Flash storage service reclaimed %d blocks, starting at block %d\n", reclaimed_blocks, start_block % driver.num_blocks);
     return reclaimed_blocks;
 }
 
@@ -1200,6 +1212,7 @@ int bplib_store_flash_relinquish (int handle, bp_sid_t sid)
 {
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
     assert(flash_stores[handle].in_use);
+    assert(sid != BP_SID_VACANT);
 
     flash_store_t* fs = (flash_store_t*)&flash_stores[handle];
     int status = BP_SUCCESS;
