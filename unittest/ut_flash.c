@@ -128,7 +128,7 @@ static void test_2(void)
         h[i] = bplib_store_flash_create(NULL);
         ut_assert(h[i] != BP_INVALID_HANDLE, "Failed to create store on %dth iteration\n", i);
     }
-    ut_assert(bplib_store_flash_destroy(h[3]), "Failed to destroy handle %d\n", h[i]);
+    ut_assert(bplib_store_flash_destroy(h[3]), "Failed to destroy handle %d\n", h[3]);
     h[3] = bplib_store_flash_create(NULL);
     ut_assert(h[3] != BP_INVALID_HANDLE, "Failed to create store\n", i);
 
@@ -145,7 +145,6 @@ static void test_2(void)
 static void test_3(void)
 {
     int status, i;
-    bp_flash_index_t saved_block;
     bp_flash_addr_t addr;
 
     printf("\n==== Test 3: Read/Write Data ====\n");
@@ -166,7 +165,7 @@ static void test_3(void)
     ut_assert(status == BP_SUCCESS, "Failed to allocate free block\n");
     if(status == BP_SUCCESS)
     {
-        saved_block = addr.block;
+        bp_flash_index_t saved_block = addr.block;
         addr.page = 0;
         status = flash_data_write (&addr, test_data, TEST_DATA_SIZE);
         ut_assert(status == BP_SUCCESS, "Failed to write data: %d\n", status);

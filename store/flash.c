@@ -204,13 +204,12 @@ BP_LOCAL_SCOPE void flash_build_ecc_table(int8_t* table)
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE void flash_page_encode(uint8_t* page_buffer)
 {
-    int block_index = 0;
     int data_index = 0;
     int ecc_index = FLASH_PAGE_DATA_SIZE - 2;
 
     while(data_index < FLASH_PAGE_DATA_SIZE)
     {
-        block_index = data_index % FLASH_ECC_BLOCK_SIZE;
+        int block_index = data_index % FLASH_ECC_BLOCK_SIZE;
 
         /* Go to Next ECC Index */
         if(block_index == 0)
@@ -236,14 +235,13 @@ BP_LOCAL_SCOPE int flash_page_decode(uint8_t* page_buffer)
 {
     int status = FLASH_ECC_NO_ERRORS;
 
-    int block_index = 0;
     int data_index = 0;
     int ecc_index = FLASH_PAGE_DATA_SIZE;
     uint8_t ecc_col = 0, ecc_row = 0;
 
     while(data_index < FLASH_PAGE_DATA_SIZE)
     {
-        block_index = data_index % FLASH_ECC_BLOCK_SIZE;
+        int block_index = data_index % FLASH_ECC_BLOCK_SIZE;
 
         /* Encode Current ECC Block */
         ecc_col ^= page_buffer[data_index]; /* column */
@@ -446,7 +444,6 @@ BP_LOCAL_SCOPE int flash_free_allocate (bp_flash_index_t* block)
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int size)
 {
-    int status;
     int data_index = 0;
     int bytes_left = size;
 
@@ -461,7 +458,7 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
     {
         /* Write Data into Page */
         int bytes_to_copy = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
-        status = flash_page_write(*addr, &data[data_index], bytes_to_copy);
+        int status = flash_page_write(*addr, &data[data_index], bytes_to_copy);
         if(status == BP_SUCCESS)
         {
             data_index += bytes_to_copy;

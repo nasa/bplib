@@ -32,7 +32,7 @@
 #ifdef _WINDOWS_
 #include <windows.h>
 #else
-#include <unistd.h>
+#include <time.h>
 #endif
 
 #include <lua.h>
@@ -716,11 +716,15 @@ int lbplib_sleep (lua_State* L)
 {
     if(lua_isnumber(L, 1))
     {
-        int wait_time = lua_tonumber(L, 1); /* seconds */
+        double wait_time = lua_tonumber(L, 1); /* seconds */
 #ifdef _WINDOWS_
-        Sleep(wait_time * 1000); /* milliseconds */
+        int wait_msecs = (int)(wait_time * 1000);
+        Sleep(wait_msecs); /* milliseconds */
 #else
-        usleep(wait_time * 1000000.0); /* seconds */
+        struct timespec req;
+        req.tv_sec = (time_t)wait_time;
+        req.tv_nsec = wait_time - (double)req.tv_sec;
+        nanosleep(&req, NULL);
 #endif
     }
     else

@@ -851,13 +851,13 @@ int v6_display(void* bundle, int size, uint16_t* flags)
         bplog(BP_DEBUG, "---------------------------------\n");
         bplog(BP_DEBUG, "Block Type 0x%02X at Offset %d\n", blk_type, start_index);
         bplog(BP_DEBUG, "Block Data Size:               %d\n", blk_len.value);
-        bplog(BP_DEBUG, "Must Replicate in Fragments:   %s\n", blk_flags.value & BP_BLK_REPALL_MASK ? "SET" : "CLEAR");
-        bplog(BP_DEBUG, "Status on Failure:             %s\n", blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK ? "SET" : "CLEAR");
-        bplog(BP_DEBUG, "Delete Bundle on Failure:      %s\n", blk_flags.value & BP_BLK_DELETENOPROC_MASK ? "SET" : "CLEAR");
-        bplog(BP_DEBUG, "Last Block:                    %s\n", blk_flags.value & BP_BLK_LASTBLOCK_MASK ? "SET" : "CLEAR");
-        bplog(BP_DEBUG, "Drop Block on Failure:         %s\n", blk_flags.value & BP_BLK_DROPNOPROC_MASK ? "SET" : "CLEAR");
-        bplog(BP_DEBUG, "Forwarded w/o Processing:      %s\n", blk_flags.value & BP_BLK_FORWARDNOPROC_MASK ? "SET" : "CLEAR");
-        bplog(BP_DEBUG, "EID Reference:                 %s\n", blk_flags.value & BP_BLK_EIDREF_MASK ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Must Replicate in Fragments:   %s\n", (blk_flags.value & BP_BLK_REPALL_MASK) ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Status on Failure:             %s\n", (blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK) ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Delete Bundle on Failure:      %s\n", (blk_flags.value & BP_BLK_DELETENOPROC_MASK) ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Last Block:                    %s\n", (blk_flags.value & BP_BLK_LASTBLOCK_MASK) ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Drop Block on Failure:         %s\n", (blk_flags.value & BP_BLK_DROPNOPROC_MASK) ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "Forwarded w/o Processing:      %s\n", (blk_flags.value & BP_BLK_FORWARDNOPROC_MASK) ? "SET" : "CLEAR");
+        bplog(BP_DEBUG, "EID Reference:                 %s\n", (blk_flags.value & BP_BLK_EIDREF_MASK) ? "SET" : "CLEAR");
 
         /* Payload Block */
         if(blk_type == BP_PAY_BLK_TYPE)

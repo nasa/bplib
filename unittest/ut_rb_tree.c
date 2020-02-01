@@ -1235,7 +1235,7 @@ typedef struct rb_tree_stats
  *--------------------------------------------------------------------------------------*/
 static void print_stats(rb_tree_stats_t* stats)
 {
-    printf("%s -> ( Count: %d | Total %f | Max: %f | Min: %f | Average: %f )\n",
+    printf("%s -> ( Count: %u | Total %f | Max: %f | Min: %f | Average: %f )\n",
                 stats->name,
                 stats->count,
                 stats->total / CLOCKS_PER_SEC,
@@ -1338,7 +1338,7 @@ static int characterize_rb_tree_performance()
 
     insert_stats.average = insert_stats.total / insert_stats.count;
     delete_stats.average = delete_stats.total/ delete_stats.count;
-    printf("Results calculated from creating and destroying %d rb_trees of size %d\n",
+    printf("Results calculated from creating and destroying %u rb_trees of size %u\n",
             max_trees,
             max_size);
     print_stats(&insert_stats);
