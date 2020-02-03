@@ -1,13 +1,13 @@
 /************************************************************************
  * File: crc.h
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -58,7 +58,7 @@ typedef struct crc32_parameters
 /* Standard parameters for calculating a CRC. */
 typedef struct crc_parameters
 {
-    char* name;                 /* Name of the CRC. */
+    const char* name;           /* Name of the CRC. */
     int length;                 /* The number of bits in the CRC. */
     bool should_reflect_input;  /* Whether to reflect the bits of the input bytes. */
     bool should_reflect_output; /* Whether to reflect the bits of the output crc. */
