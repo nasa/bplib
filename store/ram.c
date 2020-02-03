@@ -99,7 +99,7 @@ static unsigned long store_id;
 /*----------------------------------------------------------------------------
  * Function:        flush_queue
  *----------------------------------------------------------------------------*/
-static void flush_queue(queue_t* q)
+BP_LOCAL_SCOPE void flush_queue(queue_t* q)
 {
     queue_node_t* temp;
 
@@ -115,7 +115,7 @@ static void flush_queue(queue_t* q)
 /*----------------------------------------------------------------------------
  * Function:        isempty
  *----------------------------------------------------------------------------*/
-static int isempty(queue_t* q)
+BP_LOCAL_SCOPE int isempty(queue_t* q)
 {
     if(q->front == NULL)
     {
@@ -130,7 +130,7 @@ static int isempty(queue_t* q)
 /*----------------------------------------------------------------------------
  * Function:        enqueue
  *----------------------------------------------------------------------------*/
-static int enqueue(queue_t* q, void* data, int size)
+BP_LOCAL_SCOPE int enqueue(queue_t* q, void* data, int size)
 {
     /* check if queue is full */
     if((q->depth != MSGQ_DEPTH_INFINITY) && (q->len >= q->depth))
@@ -175,7 +175,7 @@ static int enqueue(queue_t* q, void* data, int size)
 /*----------------------------------------------------------------------------
  * Function:        dequeue
  *----------------------------------------------------------------------------*/
-static void* dequeue(queue_t* q, int* size)
+BP_LOCAL_SCOPE void* dequeue(queue_t* q, int* size)
 {
     void *data;
 
@@ -221,7 +221,7 @@ static void* dequeue(queue_t* q, int* size)
  *           is allowed to infinitely grow until all the memory in the
  *           system is consumed.
  *----------------------------------------------------------------------------*/
-static msgq_t msgq_create(const char* name, int depth, int data_size)
+BP_LOCAL_SCOPE msgq_t msgq_create(const char* name, int depth, int data_size)
 {
     message_queue_t* msgQ;
     int ready_lock;
@@ -268,7 +268,7 @@ static msgq_t msgq_create(const char* name, int depth, int data_size)
  * Notes: 1. de-allocates memory associated with message queue
  *        2. removes queue from system list
  *----------------------------------------------------------------------------*/
-static void msgq_delete(msgq_t queue_handle)
+BP_LOCAL_SCOPE void msgq_delete(msgq_t queue_handle)
 {
     message_queue_t* msgQ = (message_queue_t*)queue_handle;
     if(msgQ != NULL)
@@ -282,7 +282,7 @@ static void msgq_delete(msgq_t queue_handle)
 /*----------------------------------------------------------------------------
  * Function:        msgq_post
  *----------------------------------------------------------------------------*/
-static int msgq_post(msgq_t queue_handle, void* data, int size)
+BP_LOCAL_SCOPE int msgq_post(msgq_t queue_handle, void* data, int size)
 {
     int post_state;
 
@@ -313,7 +313,7 @@ static int msgq_post(msgq_t queue_handle, void* data, int size)
  * Notes:           returns a pointer to the data and the size of the data by
  *                  populating the size parameter passed in by pointer
  *----------------------------------------------------------------------------*/
-static int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
+BP_LOCAL_SCOPE int msgq_receive(msgq_t queue_handle, void** data, int* size, int block)
 {
     message_queue_t* msgQ = (message_queue_t*)queue_handle;
     if(msgQ == NULL) return MSGQ_ERROR;

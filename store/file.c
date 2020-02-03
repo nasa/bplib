@@ -117,7 +117,7 @@ static bp_file_driver_t file_driver = {
 /*--------------------------------------------------------------------------------------
  * open_dat_file -
  *-------------------------------------------------------------------------------------*/
-static FILE* open_dat_file (int service_id, char* file_root, uint32_t file_id, bool read_only)
+BP_LOCAL_SCOPE FILE* open_dat_file (int service_id, char* file_root, uint32_t file_id, bool read_only)
 {
     FILE* fd;
 
@@ -143,7 +143,7 @@ static FILE* open_dat_file (int service_id, char* file_root, uint32_t file_id, b
 /*--------------------------------------------------------------------------------------
  * delete_dat_file -
  *-------------------------------------------------------------------------------------*/
-static int delete_dat_file (int service_id, char* file_root, uint32_t file_id)
+BP_LOCAL_SCOPE int delete_dat_file (int service_id, char* file_root, uint32_t file_id)
 {
     char filename[FILE_MAX_FILENAME];
     bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.dat", file_root, service_id, file_id);
@@ -163,7 +163,7 @@ static int delete_dat_file (int service_id, char* file_root, uint32_t file_id)
 /*--------------------------------------------------------------------------------------
  * open_tbl_file -
  *-------------------------------------------------------------------------------------*/
-static FILE* open_tbl_file (int service_id, char* file_root, uint32_t file_id, bool read_only)
+BP_LOCAL_SCOPE FILE* open_tbl_file (int service_id, char* file_root, uint32_t file_id, bool read_only)
 {
     FILE* fd;
 
@@ -189,7 +189,7 @@ static FILE* open_tbl_file (int service_id, char* file_root, uint32_t file_id, b
 /*--------------------------------------------------------------------------------------
  * delete_tbl_file -
  *-------------------------------------------------------------------------------------*/
-static int delete_tbl_file (int service_id, char* file_root, uint32_t file_id)
+BP_LOCAL_SCOPE int delete_tbl_file (int service_id, char* file_root, uint32_t file_id)
 {
     char filename[FILE_MAX_FILENAME];
     bplib_os_format(filename, FILE_MAX_FILENAME, "%s/%d_%u.tbl", file_root, service_id, file_id);

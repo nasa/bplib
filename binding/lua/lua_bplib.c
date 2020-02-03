@@ -231,7 +231,7 @@ void log_message(const char* file_name, unsigned int line_number, const char* fo
 /*----------------------------------------------------------------------------
  * set_errno
  *----------------------------------------------------------------------------*/
-static void set_errno (lua_State* L, int error_code)
+BP_LOCAL_SCOPE void set_errno (lua_State* L, int error_code)
 {
     lua_pushnumber(L, error_code);
     lua_setglobal(L, LUA_ERRNO);
@@ -240,7 +240,7 @@ static void set_errno (lua_State* L, int error_code)
 /*----------------------------------------------------------------------------
  * push_flag_table
  *----------------------------------------------------------------------------*/
-static void push_flag_table (lua_State* L, uint16_t flags)
+BP_LOCAL_SCOPE void push_flag_table (lua_State* L, uint16_t flags)
 {
     lua_newtable(L);
 

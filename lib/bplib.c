@@ -105,7 +105,7 @@ static const bp_attr_t default_attributes = {
 /*--------------------------------------------------------------------------------------
  * create_bundle
  *-------------------------------------------------------------------------------------*/
-static int create_bundle(void* parm, bool is_record, uint8_t* payload, int size, int timeout)
+BP_LOCAL_SCOPE int create_bundle(void* parm, bool is_record, uint8_t* payload, int size, int timeout)
 {
     bp_channel_t*       ch      = (bp_channel_t*)parm;
     int                 status  = BP_ERROR;
@@ -135,7 +135,7 @@ static int create_bundle(void* parm, bool is_record, uint8_t* payload, int size,
 /*--------------------------------------------------------------------------------------
  * remove_bundle
  *-------------------------------------------------------------------------------------*/
-static int remove_bundle(void* parm, bp_val_t cid)
+BP_LOCAL_SCOPE int remove_bundle(void* parm, bp_val_t cid)
 {
     bp_channel_t* ch = (bp_channel_t*)parm;
 
@@ -155,7 +155,7 @@ static int remove_bundle(void* parm, bp_val_t cid)
  *
  *  Notes:
  *-------------------------------------------------------------------------------------*/
-static int create_dacs(bp_channel_t* ch, unsigned long sysnow, int timeout, uint16_t* flags)
+BP_LOCAL_SCOPE int create_dacs(bp_channel_t* ch, unsigned long sysnow, int timeout, uint16_t* flags)
 {
     int ret_status = BP_SUCCESS;
 

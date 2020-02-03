@@ -37,7 +37,7 @@
 /*----------------------------------------------------------------------------
  * overwrite_node
  *----------------------------------------------------------------------------*/
-static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, bool overwrite)
+BP_LOCAL_SCOPE int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle, bool overwrite)
 {
     if(overwrite)
     {
@@ -78,7 +78,7 @@ static int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle
 /*----------------------------------------------------------------------------
  * write_node
  *----------------------------------------------------------------------------*/
-static void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle)
+BP_LOCAL_SCOPE void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_bundle_t bundle)
 {
     rh_hash->table[index].bundle    = bundle;
     rh_hash->table[index].next      = NULL_INDEX;

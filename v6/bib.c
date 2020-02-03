@@ -70,7 +70,7 @@ BP_LOCAL_SCOPE crc_parameters_t crc32_castagnoli = {
  * val: The uint16_t to convert to big endian. [INPUT]
  * buffer: The buffer to write the converted value to. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static inline void to_big_endian16(uint16_t val, uint8_t* buffer)
+BP_LOCAL_SCOPE inline void to_big_endian16(uint16_t val, uint8_t* buffer)
 {
     buffer[0] = (val >> 8) & 0xFF;
     buffer[1] = (val     ) & 0xFF;
@@ -83,7 +83,7 @@ static inline void to_big_endian16(uint16_t val, uint8_t* buffer)
  * val: The uint32_t to convert to big endian. [INPUT]
  * buffer: The buffer to write the converted value to. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static inline void to_big_endian32(uint32_t val, uint8_t* buffer)
+BP_LOCAL_SCOPE inline void to_big_endian32(uint32_t val, uint8_t* buffer)
 {
     buffer[0] = (val >> 24) & 0xFF;
     buffer[1] = (val >> 16) & 0xFF;
