@@ -32,7 +32,7 @@
  DEFINES
  ******************************************************************************/
 
-#define BP_NUM_EXCLUDE_REGIONS 8
+#define BP_NUM_EXCLUDE_REGIONS 16
 
 /******************************************************************************
  TYPEDEFS
@@ -509,6 +509,13 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     {
         /* Read Block Information */
         uint8_t blk_type = buffer[index];
+
+        /* Check for Room in Exclude Region Array */
+        if(ei >= (BP_NUM_EXCLUDE_REGIONS - 2))
+        {
+            *flags |= BP_FLAG_INCOMPLETE;
+            return bplog(BP_UNSUPPORTED, "Bundle has too many extension blocks, %d\n", (BP_NUM_EXCLUDE_REGIONS / 2) - 2);
+        }
 
         /* Check Block Type */
         if(blk_type == BP_BIB_BLK_TYPE)
