@@ -317,7 +317,7 @@ int luaopen_bplib (lua_State *L)
     bplib_store_ram_init();
 
     /* Initialize FILE Storage Services */
-    bplib_store_file_init();
+    bplib_store_file_init(NULL);
 
     /* Initialize FLASH Storage Services */
     bplib_flash_sim_initialize();

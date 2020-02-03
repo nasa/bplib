@@ -1,48 +1,26 @@
 # bplib
 
-[1. Overview](#1-overview)  
-[2. Application Design](#2-application-design)  
-[3. Build with Make](#3-build-with-make)  
-[4. Application Programming Interface](#4-application-programming-interface)  
-[5. Storage Service](#5-storage-service)  
+[1. Overview](#1-overview)
+[1. Build with Make](#3-build-with-make)
+[2. Application Design](#2-application-design)
+[4. Application Programming Interface](#4-application-programming-interface)
+[5. Storage Service](#5-storage-service)
 
-[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
-[Note #2 - Library Development Guidelines](doc/dev_notes.md)  
-[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)  
+[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)
+[Note #2 - Library Development Guidelines](doc/dev_notes.md)
+[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)
 [Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)
 
 ----------------------------------------------------------------------
 ## 1. Overview
 ----------------------------------------------------------------------
 
-The Bundle Protocol library (bplib) implements a subset of the RFC5050 Bundle Protocol necessary for embedded space flight applications. The library uses the concept of a bundle channel to manage the process of encapsulating application data in bundles, and extracting application data out of bundles.  A channel specifies how the bundles are created (e.g. primary header block fields), and how bundles are processed (e.g. payloads extracted from payload block). Bplib contains no threads and relies entirely on the calling application for its execution context and implements a thread-safe blocking I/O model where requested operations will either block according to the provided timeout, or return an error code immediately if the operation cannot be performed. 
+The Bundle Protocol library (bplib) implements a subset of the RFC5050 Bundle Protocol and targets embedded space flight applications. The library uses the concept of a bundle channel to manage the process of encapsulating application data in bundles, and extracting application data out of bundles.  A channel specifies how the bundles are created (e.g. primary header block fields), and how bundles are processed (e.g. payloads extracted from payload block). Bplib contains no threads and relies entirely on the calling application for its execution context and implements a thread-safe blocking I/O model where requested operations will either block according to the provided timeout, or return an error code immediately if the operation cannot be performed.
 
 Bplib assumes the availability of a persistent queued storage system for managing the rate buffering that must occur between data and bundle processing. This storage system is provided at run-time by the application, which can either use its own or can use one of the included storage services. In addition to the storage service, bplib needs an operating system interface provided at compile-time. By default a POSIX compliant operating systems interface is built with the included makefile - see below for further instructions on changing the operating system interface.
 
 ----------------------------------------------------------------------
-## 2. Application Design
-----------------------------------------------------------------------
-
-![Figure 1](doc/bp_api_architecture.png "BP Library API (Architecture)")
-
-Bplib is written in "vanilla C" and is intended to be linked in as either a shared or static library into an application with an API for reading/writing application data and reading/writing bundles.  
-
-Conceptually, the library is meant to exist inside a board support package for an operating system and be presented to the application as a service.  In such a design only the interface for reading/writing data would be provided to the application, and the interface for reading/writing bundles would be kept inside the board support package.  This use case would look a lot like a typical socket application where a bundle channel (socket) is opened, data is read/written, and then at some later time the channel is closed.  Underneath, the operating system would take care of sending and receiving bundles.
-
-In order to support bplib being used directly by the application, both the data and the bundle interfaces are provided in the API. In these cases, the application is also responsible for sending and receiving the bundles.
-
-An example application design that manages both the data and bundle interfaces could look as follows:
-1. A __bundle reader__ thread that receives bundles from a convergence layer and calls bplib to _process_ them
-2. A __data writer__ thread that _accepts_ application data from bplib
-3. A __bundle writer__ thread that _loads_ bundles from bplib and sends bundles over a convergence layer
-4. A __data reader__ thread that _stores_ application data to bplib
-
-The stream of bundles received by the application is handled by the bundle reader and data writer threads. The __bundle reader__ uses the `bplib_process` function to pass bundles read from the convergence layer into the library.  If those bundles contain payload data bound for the application, that data is pulled out of the bundles and queued in storage until the __data writer__ thread calls the `bplib_accept` function to dequeue the data out of storage and write it to the application.  
-
-Conversely, the stream of bundles sent by the application is handled by the data reader and bundler writer threads. The __data reader__ thread calls `bplib_store` to pass data from the application into the library to be bundled.  Those bundles are queued in storage until the __bundle writer__ threads calls the `bplib_load` function to dequeue them out of storage and write them to the convergence layer.
-
-----------------------------------------------------------------------
-## 3. Build with Make
+## 2. Build with Make
 ----------------------------------------------------------------------
 
 #### Prerequisites
@@ -55,7 +33,7 @@ Conversely, the stream of bundles sent by the application is handled by the data
    * `make CONFIG={my_config_makefile}`
    * `sudo make CONFIG={my_config_makefile} install`
 
-#### Building 
+#### Building
 
 To build everything, including the language bindings, go to repository root directory and execute the following commands:
 * `make`
@@ -63,7 +41,7 @@ To build everything, including the language bindings, go to repository root dire
 
 To build only the static and shared libraries, use the following commands:
 * `make lib`
-* `sudo make install`
+* `sudo make install-lib`
 
 The default makefile produces the following binaries:
 * `build/libbp.so.<version>` - shared library
@@ -84,7 +62,7 @@ Additional make commands are as follows:
 
 On CentOS you may need to create a file with the conf extension in /etc/ld.so.conf.d that contains the line '/usr/local/lib'.
 * `sudo echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf`
-* `sudo ldconfig` 
+* `sudo ldconfig`
 
 #### Unit Tests
 
@@ -99,6 +77,27 @@ To run a specific unit test using one of the test targets provided in the makefi
 The default `posix.mk` configuration makefile is for development and builds additional C unit tests, code coverage profiling, stack protector, and uses minimum compiler optimizations. When releasing the code, the library should be built with `release.mk` as follows:
 * `make CONFIG=release.mk`
 
+----------------------------------------------------------------------
+## 3. Application Design
+----------------------------------------------------------------------
+
+![Figure 1](doc/bp_api_architecture.png "BP Library API (Architecture)")
+
+Bplib is written in "vanilla C" and is intended to be linked in as either a shared or static library into an application with an API for reading/writing application data and reading/writing bundles.
+
+Conceptually, the library is meant to exist inside a board support package for an operating system and be presented to the application as a service.  In such a design only the interface for reading/writing data would be provided to the application, and the interface for reading/writing bundles would be kept inside the board support package.  This use case would look a lot like a typical socket application where a bundle channel (socket) is opened, data is read/written, and then at some later time the channel is closed.  Underneath, the operating system would take care of sending and receiving bundles.
+
+In order to support bplib being used directly by the application, both the data and the bundle interfaces are provided in the API. In these cases, the application is also responsible for sending and receiving the bundles.
+
+An example application design that manages both the data and bundle interfaces could look as follows:
+1. A __bundle reader__ thread that receives bundles from a convergence layer and calls bplib to _process_ them
+2. A __data writer__ thread that _accepts_ application data from bplib
+3. A __bundle writer__ thread that _loads_ bundles from bplib and sends bundles over a convergence layer
+4. A __data reader__ thread that _stores_ application data to bplib
+
+The stream of bundles received by the application is handled by the bundle reader and data writer threads. The __bundle reader__ uses the `bplib_process` function to pass bundles read from the convergence layer into the library.  If those bundles contain payload data bound for the application, that data is pulled out of the bundles and queued in storage until the __data writer__ thread calls the `bplib_accept` function to dequeue the data out of storage and write it to the application.
+
+Conversely, the stream of bundles sent by the application is handled by the data reader and bundler writer threads. The __data reader__ thread calls `bplib_store` to pass data from the application into the library to be bundled.  Those bundles are queued in storage until the __bundle writer__ threads calls the `bplib_load` function to dequeue them out of storage and write them to the convergence layer.
 
 ----------------------------------------------------------------------
 ## 4. Application Programming Interface
@@ -107,7 +106,7 @@ The default `posix.mk` configuration makefile is for development and builds addi
 #### 4.1 Functions
 
 | Function        | Purpose |
-| --------------- | ------- | 
+| --------------- | ------- |
 | [bplib_init](#initialize)                | Initialize the BP library - called once at program start |
 | [bplib_open](#open-channel)              | Open a channel - provides handle to channel for future channel operations |
 | [bplib_close](#close-channel)            | Close a channel |
@@ -141,7 +140,7 @@ Initializes the BP library.  This must be called before any other call to the li
 
 `bp_desc_t bplib_open (bp_route_t route, bp_store_t store, bp_attr_t* attributes)`
 
-Opens a bundle channel that uses the provided endpoint IDs, storage service, and attributes. 
+Opens a bundle channel that uses the provided endpoint IDs, storage service, and attributes.
 
 This function returns a channel handle that is used for all future operations on the channel.  The open and close calls are mutex'ed against other open and close calls, but once a channel is created, operations on that channel are only mutex'ed against other operations on the same channel.  A channel persists until it is closed.
 
@@ -195,7 +194,7 @@ This function returns a channel handle that is used for all future operations on
 
 * __storage_service_parm__: A pass through to the storage service `create` function.
 
-`returns` - channel descriptor. 
+`returns` - channel descriptor.
 
 ----------------------------------------------------------------------
 ##### Close Channel
@@ -528,7 +527,7 @@ Initialize an attribute structure with the library default values.  This is usef
 ## 5. Storage Service
 ----------------------------------------------------------------------
 
-The application is responsible for providing the storage service to the library at run-time through call-backs passed to the `bplib_open` function.  
+The application is responsible for providing the storage service to the library at run-time through call-backs passed to the `bplib_open` function.
 
 ----------------------------------------------------------------------
 ##### Create Storage Service
@@ -655,4 +654,4 @@ The storage service call-backs must have the following characteristics:
 * The memory returned by the dequeue and retrieve function is valid until the release function call.  Every dequeue and retrieve issued by the library will be followed by a release.
 * The _Storage ID (SID)_ returned by the storage service cannot be zero since that is marked as a _VACANT_ SID
 
- 
+

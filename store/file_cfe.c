@@ -21,10 +21,11 @@
 /*--------------------------------------------------------------------------------------
  * bp_cfe_fopen -
  *-------------------------------------------------------------------------------------*/
-BP_FILE bp_cfe_fopen(const char* filename, const char* mode)
+FILE* bp_cfe_fopen(const char* filename, const char* mode)
 {
     int32 rc = OS_FS_ERROR;
-    
+    FILE* fhandle = NULL;
+
     if(mode[0] == 'r')
     {
         rc = OS_open(filename, OS_READ_ONLY, S_IRUSR | S_IWUSR);
@@ -39,45 +40,54 @@ BP_FILE bp_cfe_fopen(const char* filename, const char* mode)
         if(rc >= 0) OS_lseek(rc, 0, OS_SEEK_END);
     }
 
-    return (rc >= 0) ? rc : OS_FS_ERROR;
+    if(rc >= 0)
+    {
+        fhandle = (FILE*)(unsigned long)(rc + 1);
+    }
+
+    return fhandle;
 }
 
 /*--------------------------------------------------------------------------------------
  * bp_cfe_fclose -
  *-------------------------------------------------------------------------------------*/
-int bp_cfe_fclose(BP_FILE stream)
+int bp_cfe_fclose(FILE* stream)
 {
-    return (OS_close(stream) == OS_FS_SUCCESS) ? 0 : OS_FS_ERROR;
+    int32 rc = (int32)((unsigned long)stream - 1);
+    return (OS_close(rc) == OS_FS_SUCCESS) ? 0 : -1;
 }
 
 /*--------------------------------------------------------------------------------------
  * bp_cfe_fread -
  *-------------------------------------------------------------------------------------*/
-size_t bp_cfe_fread(void* ptr, size_t size, size_t count, BP_FILE stream)
+size_t bp_cfe_fread(void* ptr, size_t size, size_t count, FILE* stream)
 {
-    return OS_read(stream, ptr, size * count);
+    int32 rc = (int32)((unsigned long)stream - 1);
+    return OS_read(rc, ptr, size * count);
 }
 
 /*--------------------------------------------------------------------------------------
  * bp_cfe_fwrite -
  *-------------------------------------------------------------------------------------*/
-size_t bp_cfe_fwrite(const void* ptr, size_t size, size_t count, BP_FILE stream)
+size_t bp_cfe_fwrite(const void* ptr, size_t size, size_t count, FILE* stream)
 {
-    return OS_write(stream, ptr, size * count);
+    int32 rc = (int32)((unsigned long)stream - 1);
+    return OS_write(rc, ptr, size * count);
 }
 
 /*--------------------------------------------------------------------------------------
  * bp_cfe_fseek -
  *-------------------------------------------------------------------------------------*/
-int bp_cfe_fseek(BP_FILE stream, long int offset, int origin)
+int bp_cfe_fseek(FILE* stream, long int offset, int origin)
 {
-    return OS_lseek(stream, offset, origin);
+    int32 rc = (int32)((unsigned long)stream - 1);
+    return OS_lseek(rc, offset, origin);
 }
 
 /*--------------------------------------------------------------------------------------
  * bp_cfe_fflush -
  *-------------------------------------------------------------------------------------*/
-int bp_cfe_fflush(BP_FILE stream)
+int bp_cfe_fflush(FILE* stream)
 {
     (void)stream;
     return 0;

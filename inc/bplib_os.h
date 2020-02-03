@@ -40,12 +40,12 @@
 #define BP_VAL_TYPE unsigned long
 #endif
 
-#ifndef BP_LOCAL_SCOPE
-#define BP_LOCAL_SCOPE static
-#endif
-
 #ifndef BP_INDEX_TYPE
 #define BP_INDEX_TYPE uint16_t
+#endif
+
+#ifndef BP_LOCAL_SCOPE
+#define BP_LOCAL_SCOPE static
 #endif
 
 #ifdef _GNU_

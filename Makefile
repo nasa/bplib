@@ -178,7 +178,9 @@ shared-lib: $(BLDDIR) $(ALL_OBJ)
 bindings:
 	make -C binding/lua
 
-install: install-headers install-static install-shared install-bindings
+install: install-lib install-bindings
+
+install-lib: install-headers install-static install-shared
 
 install-headers: $(INCDIR)
 	$(CP) $(foreach element,$(API),$(subst -I,,$(element)/*.h)) $(INCDIR)
@@ -242,7 +244,7 @@ testcov:
 ##############################################################################
 ##  STATIC ANALYSIS RULES
 
-CHECK_OPT = --enable=all --inconclusive --std=posix
+CHECK_OPT = --enable=all --inconclusive --std=posix --error-exitcode=1
 
 check:
 	cppcheck $(ROOT) $(CHECK_OPT) $(INCLUDES) $(APP_DEFS)
