@@ -990,6 +990,10 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint16_t
         {
             custody_transfer = true;
         }
+        else if(status != BP_SUCCESS)
+        {
+            ch->stats.lost++;
+        }
     }
     else if(status == BP_SUCCESS) /* Bundle Destined for Local Node w/o Custody Transfer */
     {
