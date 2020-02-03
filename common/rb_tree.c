@@ -92,7 +92,7 @@ BP_LOCAL_SCOPE void push_free_node(rb_tree_t* tree, rb_node_t* node)
  *
  * node: A ptr to an rb_node_t to set the color to black. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline void set_black(rb_node_t* node)
+static inline void set_black(rb_node_t* node)
 {
     node->color = BLACK;
 }
@@ -102,7 +102,7 @@ BP_LOCAL_SCOPE inline void set_black(rb_node_t* node)
  *
  * node: A ptr to an rb_node_t to set the color to red. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline void set_red(rb_node_t* node)
+static inline void set_red(rb_node_t* node)
 {
     node->color = RED;
 }
@@ -114,7 +114,7 @@ BP_LOCAL_SCOPE inline void set_red(rb_node_t* node)
  * node: A rb_node_t to check its color. [INPUT]
  * returns: Whether or not the provided rb_node_t is black.
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline bool is_black(rb_node_t* node)
+static inline bool is_black(rb_node_t* node)
 {
     return node == NULL || node->color == BLACK;
 }
@@ -125,7 +125,7 @@ BP_LOCAL_SCOPE inline bool is_black(rb_node_t* node)
  * node: A rb_node_t to check its color. [INPUT]
  * returns: Whether or not the provided rb_node_t is red.
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline bool is_red(rb_node_t* node)
+static inline bool is_red(rb_node_t* node)
 {
     return node != NULL && node->color == RED;
 }
@@ -137,7 +137,7 @@ BP_LOCAL_SCOPE inline bool is_red(rb_node_t* node)
  * node: A ptr to an rb_node_t to get its grandparent. [INPUT]
  * returns: A ptr to the node grandparent or NULL
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline rb_node_t* get_grandparent(rb_node_t* node)
+static inline rb_node_t* get_grandparent(rb_node_t* node)
 {
     return node->parent == NULL ? NULL : node->parent->parent;
 }
@@ -148,7 +148,7 @@ BP_LOCAL_SCOPE inline rb_node_t* get_grandparent(rb_node_t* node)
  * node: A ptr to an rb_node_t to check if it is the root of an red black tree. [INPUT]
  * returns: Whether or not the provided node is the tree root.
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline bool is_root(rb_node_t* node)
+static inline bool is_root(rb_node_t* node)
 {
     return node->parent == NULL;
 }
@@ -160,7 +160,7 @@ BP_LOCAL_SCOPE inline bool is_root(rb_node_t* node)
  * returns: Whether or not the provided node is the left child of its parent. If the
  *      provided node is root then this returns false.
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline bool is_left_child(rb_node_t* node)
+static inline bool is_left_child(rb_node_t* node)
 {
     return !is_root(node) && node == node->parent->left;
 }
@@ -171,7 +171,7 @@ BP_LOCAL_SCOPE inline bool is_left_child(rb_node_t* node)
  * node: A ptr to an rb_node_t to get its sibling. [INPUT]
  * returns: A ptr to the sibling or NULL of node.
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline rb_node_t* get_sibling(rb_node_t* node)
+static inline rb_node_t* get_sibling(rb_node_t* node)
 {
     return node->parent == NULL ? NULL : /* If parent is NULL return NULL else. */
            is_left_child(node)  ? node->parent->right : node->parent->left; /* Return left child if it exists. Else return right child, which may be NULL. */
@@ -183,7 +183,7 @@ BP_LOCAL_SCOPE inline rb_node_t* get_sibling(rb_node_t* node)
  * node: A ptr to an rb_node to get its uncle. [INPUT]
  * returns: A ptr to the nodes uncle or or NULL.
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline rb_node_t* get_uncle(rb_node_t* node)
+static inline rb_node_t* get_uncle(rb_node_t* node)
 {
     return node->parent == NULL          ? NULL : /* If parent is NULL Return NULL. */
            get_grandparent(node) == NULL ? NULL : get_sibling(node->parent); /* If grandparent is NULL return NULL. Else return parent's sibling. */
@@ -195,7 +195,7 @@ BP_LOCAL_SCOPE inline rb_node_t* get_uncle(rb_node_t* node)
  * node: A ptr to an rb_node_t to check if it has a left child. [INPUT]
  * returns: Whether or not the provided node has a non NULL left child.
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline bool has_left_child(rb_node_t* node)
+static inline bool has_left_child(rb_node_t* node)
 {
     return node->left != NULL;
 }
@@ -206,7 +206,7 @@ BP_LOCAL_SCOPE inline bool has_left_child(rb_node_t* node)
  * node: A ptr to an rb_node_t to check if it has a right child. [INPUT]
  * returns: Whether or not the provided node has a non NULL right child.
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE inline bool has_right_child(rb_node_t* node)
+static inline bool has_right_child(rb_node_t* node)
 {
     return node->right != NULL;
 }

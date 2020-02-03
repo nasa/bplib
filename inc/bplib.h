@@ -32,9 +32,8 @@ extern "C" {
  DEFINES
  ******************************************************************************/
 
-/* Handles and Descriptors */
+/* Handles */
 #define BP_INVALID_HANDLE               (-1)    /* used for integers (os locks, storage services) */
-#define BP_INVALID_DESCRIPTOR           NULL    /* used for pointers (channels) */
 
 /* Timeouts */
 #define BP_PEND                         (-1)
@@ -153,7 +152,9 @@ extern "C" {
  ******************************************************************************/
 
 /* Channel Descriptor */
-typedef void* bp_desc_t;
+typedef struct {
+    void* channel;
+} bp_desc_t;
 
 /* IPN Schema Endpoint ID Integer Definition */
 typedef bp_val_t bp_ipn_t;
@@ -169,13 +170,13 @@ typedef struct {
 } bp_route_t;
 
 /* Storage ID */
-typedef void* bp_sid_t;
+typedef unsigned long bp_sid_t;
 
 /* Storage Object Header */
 typedef struct {
-    int             handle;
-    int             size;
-    bp_sid_t        sid;
+    int         handle;
+    int         size;
+    bp_sid_t    sid;
 } bp_object_hdr_t;
 
 /* Storage Object */
@@ -248,20 +249,20 @@ typedef struct {
 
 int         bplib_init          (void);
 
-bp_desc_t   bplib_open          (bp_route_t route, bp_store_t store, bp_attr_t attributes);
-void        bplib_close         (bp_desc_t channel);
+bp_desc_t*  bplib_open          (bp_route_t route, bp_store_t store, bp_attr_t attributes);
+void        bplib_close         (bp_desc_t* desc);
 
-int         bplib_flush         (bp_desc_t channel);
-int         bplib_config        (bp_desc_t channel, int mode, int opt, int* val);
-int         bplib_latchstats    (bp_desc_t channel, bp_stats_t* stats);
+int         bplib_flush         (bp_desc_t* desc);
+int         bplib_config        (bp_desc_t* desc, int mode, int opt, int* val);
+int         bplib_latchstats    (bp_desc_t* desc, bp_stats_t* stats);
 
-int         bplib_store         (bp_desc_t channel, void* payload, int size, int timeout, uint16_t* flags);
-int         bplib_load          (bp_desc_t channel, void** bundle, int* size, int timeout, uint16_t* flags);
-int         bplib_process       (bp_desc_t channel, void* bundle, int size, int timeout, uint16_t* flags);
-int         bplib_accept        (bp_desc_t channel, void** payload, int* size, int timeout, uint16_t* flags);
+int         bplib_store         (bp_desc_t* desc, void* payload, int size, int timeout, uint16_t* flags);
+int         bplib_load          (bp_desc_t* desc, void** bundle, int* size, int timeout, uint16_t* flags);
+int         bplib_process       (bp_desc_t* desc, void* bundle, int size, int timeout, uint16_t* flags);
+int         bplib_accept        (bp_desc_t* desc, void** payload, int* size, int timeout, uint16_t* flags);
 
-int         bplib_ackbundle     (bp_desc_t channel, void* bundle);
-int         bplib_ackpayload    (bp_desc_t channel, void* payload);
+int         bplib_ackbundle     (bp_desc_t* desc, void* bundle);
+int         bplib_ackpayload    (bp_desc_t* desc, void* payload);
 
 int         bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
 int         bplib_display       (void* bundle, int size, uint16_t* flags);

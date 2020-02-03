@@ -482,7 +482,7 @@ int bplib_store_ram_dequeue(int handle, bp_object_t** object, int timeout)
     if(status == MSGQ_OKAY)
     {
         (void)size; /* unused */
-        dequeued_object->header.sid = dequeued_object; /* only update sid */
+        dequeued_object->header.sid = (unsigned long)dequeued_object; /* only update sid */
         *object = dequeued_object;
         return BP_SUCCESS;
     }

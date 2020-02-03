@@ -55,8 +55,6 @@ static const uint8_t byte_reflections_table[BYTE_COMBOS] =
 /*--------------------------------------------------------------------------------------
  * reflect8 - Reflects the bits of a uint8_t.
  *
- * Note: this function be static as it inlines access to a static variable
- *
  * num: A uint32_t to reflect. [INPUT]
  *-------------------------------------------------------------------------------------*/
 static inline uint8_t reflect8(uint8_t num)

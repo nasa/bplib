@@ -60,7 +60,7 @@
  ******************************************************************************/
 
 typedef struct {
-    bp_desc_t channel;
+    bp_desc_t* desc;
 } lbplib_user_data_t;
 
 typedef struct {
@@ -445,8 +445,8 @@ int lbplib_open (lua_State* L)
     }
 
     /* Create Bplib Channel */
-    bp_desc_t channel = bplib_open(route, *store, attributes);
-    if(channel == BP_INVALID_DESCRIPTOR)
+    bp_desc_t* desc = bplib_open(route, *store, attributes);
+    if(desc == NULL)
     {
         lua_pushnil(L);
         return 1;
@@ -454,7 +454,7 @@ int lbplib_open (lua_State* L)
 
     /* Create Lua User Data Object */
     lbplib_user_data_t* bplib_data = (lbplib_user_data_t*)lua_newuserdata(L, sizeof(lbplib_user_data_t));
-    bplib_data->channel = channel;
+    bplib_data->desc = desc;
 
     /* Return lbplib_user_data_t to Lua */
     luaL_getmetatable(L, LUA_BPLIBMETANAME);
@@ -794,8 +794,8 @@ int lbplib_delete (lua_State* L)
     else
     {
         /* Close Channel */
-        bplib_close(bplib_data->channel);
-        bplib_data->channel = BP_INVALID_DESCRIPTOR;
+        bplib_close(bplib_data->desc);
+        bplib_data->desc = NULL;
     }
 
     return 0;
@@ -837,7 +837,7 @@ int lbplib_getopt (lua_State* L)
     if(strcmp(optstr, "LIFETIME") == 0)
     {
         int lifetime;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_LIFETIME, &lifetime);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_LIFETIME, &lifetime);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
         double lua_lifetime = (double)lifetime;
@@ -847,7 +847,7 @@ int lbplib_getopt (lua_State* L)
     else if(strcmp(optstr, "REQUEST_CUSTODY") == 0)
     {
         int cstrqst;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_REQUEST_CUSTODY, &cstrqst);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_REQUEST_CUSTODY, &cstrqst);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
         bool lua_cstrqst = cstrqst == 1;
@@ -857,7 +857,7 @@ int lbplib_getopt (lua_State* L)
     else if(strcmp(optstr, "ADMIN_RECORD") == 0)
     {
         int admin;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_ADMIN_RECORD, &admin);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_ADMIN_RECORD, &admin);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
         bool lua_admin = admin == 1;
@@ -867,7 +867,7 @@ int lbplib_getopt (lua_State* L)
     else if(strcmp(optstr, "INTEGRITY_CHECK") == 0)
     {
         int icheck;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_INTEGRITY_CHECK, &icheck);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_INTEGRITY_CHECK, &icheck);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
         bool lua_icheck = icheck == 1;
@@ -877,7 +877,7 @@ int lbplib_getopt (lua_State* L)
     else if(strcmp(optstr, "ALLOW_FRAGMENTATION") == 0)
     {
         int frag;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_ALLOW_FRAGMENTATION, &frag);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_ALLOW_FRAGMENTATION, &frag);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
         bool lua_frag = frag == 1;
@@ -887,7 +887,7 @@ int lbplib_getopt (lua_State* L)
     else if(strcmp(optstr, "CIPHER_SUITE") == 0)
     {
         int paycrc;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_CIPHER_SUITE, &paycrc);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_CIPHER_SUITE, &paycrc);
         lua_pushboolean(L, status == BP_SUCCESS);
         set_errno(L, status);
         double lua_paycrc = (double)paycrc;
@@ -897,7 +897,7 @@ int lbplib_getopt (lua_State* L)
     else if(strcmp(optstr, "TIMEOUT") == 0)
     {
         int timeout;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_TIMEOUT, &timeout);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_TIMEOUT, &timeout);
         lua_pushboolean(L, status == BP_SUCCESS);
         set_errno(L, status);
         double lua_timeout = (double)timeout;
@@ -907,7 +907,7 @@ int lbplib_getopt (lua_State* L)
     else if(strcmp(optstr, "MAX_LENGTH") == 0)
     {
         int len;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_MAX_LENGTH, &len);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_MAX_LENGTH, &len);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
         double lua_len = (double)len;
@@ -917,7 +917,7 @@ int lbplib_getopt (lua_State* L)
     else if(strcmp(optstr, "CID_REUSE") == 0)
     {
         int reuse;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_CID_REUSE, &reuse);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_CID_REUSE, &reuse);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
         bool lua_reuse = reuse == 1;
@@ -927,7 +927,7 @@ int lbplib_getopt (lua_State* L)
     else if(strcmp(optstr, "DACS_RATE") == 0)
     {
         int rate;
-        int status = bplib_config(bplib_data->channel, BP_OPT_MODE_READ, BP_OPT_DACS_RATE, &rate);
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_DACS_RATE, &rate);
         set_errno(L, status);
         lua_pushboolean(L, status == BP_SUCCESS);
         double lua_rate = (double)rate;
@@ -978,52 +978,52 @@ int lbplib_setopt (lua_State* L)
     if((strcmp(optstr, "LIFETIME") == 0) && lua_isnumber(L, 3))
     {
         int lifetime = (int)lua_tonumber(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_LIFETIME, &lifetime);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_LIFETIME, &lifetime);
     }
     else if((strcmp(optstr, "REQUEST_CUSTODY") == 0) && lua_isboolean(L, 3))
     {
         int cstrqst = (int)lua_toboolean(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_REQUEST_CUSTODY, &cstrqst);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_REQUEST_CUSTODY, &cstrqst);
     }
     else if((strcmp(optstr, "ADMIN_RECORD") == 0) && lua_isboolean(L, 3))
     {
         int admin = (int)lua_toboolean(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_ADMIN_RECORD, &admin);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_ADMIN_RECORD, &admin);
     }
     else if((strcmp(optstr, "INTEGRITY_CHECK") == 0) && lua_isboolean(L, 3))
     {
         int icheck = (int)lua_toboolean(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_INTEGRITY_CHECK, &icheck);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_INTEGRITY_CHECK, &icheck);
     }
     else if((strcmp(optstr, "ALLOW_FRAGMENTATION") == 0) && lua_isboolean(L, 3))
     {
         int frag = (int)lua_toboolean(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_ALLOW_FRAGMENTATION, &frag);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_ALLOW_FRAGMENTATION, &frag);
     }
     else if((strcmp(optstr, "CIPHER_SUITE") == 0) && lua_isnumber(L, 3))
     {
         int paycrc = (int)lua_tonumber(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_CIPHER_SUITE, &paycrc);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_CIPHER_SUITE, &paycrc);
     }
     else if((strcmp(optstr, "TIMEOUT") == 0) && lua_isnumber(L, 3))
     {
         int timeout = (int)lua_tonumber(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_TIMEOUT, &timeout);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_TIMEOUT, &timeout);
     }
     else if((strcmp(optstr, "MAX_LENGTH") == 0) && lua_isnumber(L, 3))
     {
         int len = (int)lua_tonumber(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_MAX_LENGTH, &len);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_MAX_LENGTH, &len);
     }
     else if((strcmp(optstr, "CID_REUSE") == 0) && lua_isboolean(L, 3))
     {
         int reuse = (int)lua_toboolean(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_CID_REUSE, &reuse);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_CID_REUSE, &reuse);
     }
     else if((strcmp(optstr, "DACS_RATE") == 0) && lua_isnumber(L, 3))
     {
         int rate = (int)lua_tonumber(L, 3);
-        status = bplib_config(bplib_data->channel, BP_OPT_MODE_WRITE, BP_OPT_DACS_RATE, &rate);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_DACS_RATE, &rate);
     }
 
     /* Return Status */
@@ -1048,7 +1048,7 @@ int lbplib_stats (lua_State* L)
 
     /* Get Statistics */
     bp_stats_t stats;
-    int status = bplib_latchstats(bplib_data->channel, &stats);
+    int status = bplib_latchstats(bplib_data->desc, &stats);
     set_errno(L, status);
     lua_pushboolean(L, status == BP_SUCCESS);
 
@@ -1155,7 +1155,7 @@ int lbplib_store (lua_State* L)
     size_t size = 0;
     const char* payload = lua_tolstring(L, 2, &size);
     int timeout = (int)lua_tonumber(L, 3);
-    int status = bplib_store(bplib_data->channel, (void*)payload, (int)size, timeout, &storflags);
+    int status = bplib_store(bplib_data->desc, (void*)payload, (int)size, timeout, &storflags);
     set_errno(L, status);
 
     /* Return Status */
@@ -1200,7 +1200,7 @@ int lbplib_load (lua_State* L)
     char* bundle = NULL;
     int size = 0;
     int timeout = (int)lua_tonumber(L, 2);
-    int status = bplib_load(bplib_data->channel, (void**)&bundle, &size, timeout, &loadflags);
+    int status = bplib_load(bplib_data->desc, (void**)&bundle, &size, timeout, &loadflags);
     set_errno(L, status);
 
     /* Return Status */
@@ -1210,7 +1210,7 @@ int lbplib_load (lua_State* L)
     if(status == BP_SUCCESS)
     {
         lua_pushlstring(L, bundle, size);
-        bplib_ackbundle(bplib_data->channel, bundle);
+        bplib_ackbundle(bplib_data->desc, bundle);
     }
     else
     {
@@ -1261,7 +1261,7 @@ int lbplib_process (lua_State* L)
     size_t size = 0;
     const char* bundle = lua_tolstring(L, 2, &size);
     int timeout = (int)lua_tonumber(L, 3);
-    int status = bplib_process(bplib_data->channel, (void*)bundle, (int)size, timeout, &procflags);
+    int status = bplib_process(bplib_data->desc, (void*)bundle, (int)size, timeout, &procflags);
     set_errno(L, status);
 
     /* Return Status */
@@ -1306,7 +1306,7 @@ int lbplib_accept (lua_State* L)
     char* payload = NULL;
     int size = 0;
     int timeout = (int)lua_tonumber(L, 2);
-    int status = bplib_accept(bplib_data->channel, (void**)&payload, &size, timeout, &acptflags);
+    int status = bplib_accept(bplib_data->desc, (void**)&payload, &size, timeout, &acptflags);
     set_errno(L, status);
 
     /* Return Status */
@@ -1316,7 +1316,7 @@ int lbplib_accept (lua_State* L)
     if(status == BP_SUCCESS)
     {
         lua_pushlstring(L, payload, size);
-        bplib_ackpayload(bplib_data->channel, payload);
+        bplib_ackpayload(bplib_data->desc, payload);
     }
     else
     {
@@ -1344,7 +1344,7 @@ int lbplib_flush (lua_State* L)
     else
     {
         /* Flush Channel */
-        bplib_flush(bplib_data->channel);
+        bplib_flush(bplib_data->desc);
     }
 
     return 0;

@@ -107,7 +107,7 @@ static void test_1(void)
     bp_val_t cid;
 
     int hash_size = 8;
-    bp_active_bundle_t bundle = {&hash_size, 0, 0};
+    bp_active_bundle_t bundle = {1, 0, 0};
 
     printf("\n==== Test 1: Create/Destroy ====\n");
 
@@ -183,7 +183,7 @@ static void test_2(void)
     bp_val_t cid;
 
     int hash_size = 8;
-    bp_active_bundle_t bundle = {&hash_size, 0, 0};
+    bp_active_bundle_t bundle = {1, 0, 0};
 
     printf("\n==== Test 2: Chaining ====\n");
 
@@ -250,7 +250,7 @@ static void test_3(void)
     bp_val_t cid;
 
     int hash_size = 16;
-    bp_active_bundle_t bundle = {&hash_size, 0, 0};
+    bp_active_bundle_t bundle = {1, 0, 0};
 
     printf("\n==== Test 3: Remove First, Middle, Last in Chain ====\n");
 
@@ -361,7 +361,7 @@ static void test_4(void)
     rh_hash_t* rh_hash;
 
     int hash_size = 16;
-    bp_active_bundle_t bundle = {&hash_size, 0, 0};
+    bp_active_bundle_t bundle = {1, 0, 0};
 
     printf("\n==== Test 4: Duplicates ====\n");
 
@@ -450,7 +450,7 @@ static void test_5(void)
     bp_val_t cid;
 
     int hash_size = 8;
-    bp_active_bundle_t bundle = {&hash_size, 0, 0};
+    bp_active_bundle_t bundle = {1, 0, 0};
 
     printf("\n==== Test 5: Retransverse ====\n");
 
@@ -532,7 +532,7 @@ static void test_6(void)
     int i, j;
 
     int hash_size = 8;
-    bp_active_bundle_t bundle = {&hash_size, 0, 0};
+    bp_active_bundle_t bundle = {1, 0, 0};
 
     printf("\n==== Test 6: Full Hash ====\n");
 
@@ -638,7 +638,7 @@ static void test_7(void)
     bp_val_t cid;
 
     int hash_size = 16;
-    bp_active_bundle_t bundle = {&hash_size, 0, 0};
+    bp_active_bundle_t bundle = {1, 0, 0};
 
     printf("\n==== Test 7: Collisions - First, Middle, Last in Chain ====\n");
 

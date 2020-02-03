@@ -47,8 +47,8 @@
  MACROS
  ******************************************************************************/
 
-#define GET_DATAID(sid)     ((uint32_t)((unsigned long)sid - 1))
-#define GET_FILEID(did)     ((uint32_t)((did) >> 8))
+#define GET_DATAID(sid)     (sid - 1)
+#define GET_FILEID(did)     ((did) >> 8)
 #define GET_DATAOFFSET(did) ((uint8_t)((did) & 0xFF))
 
 /******************************************************************************
@@ -57,8 +57,8 @@
 
 typedef struct {
     void*           mem_ptr;
-    uint32_t        mem_locked; /* 0: available, 1: locked */
-    uint32_t        mem_data_id;
+    bool            mem_locked;
+    unsigned long   mem_data_id;
 } data_cache_t;
 
 typedef struct {
@@ -74,18 +74,18 @@ typedef struct {
     int             data_count;
 
     FILE*           write_fd;
-    uint64_t        write_data_id;
+    unsigned long   write_data_id;
     bool            write_error;
 
     FILE*           read_fd;
-    uint64_t        read_data_id;
+    unsigned long   read_data_id;
     bool            read_error;
 
     FILE*           retrieve_fd;
-    uint64_t        retrieve_data_id;
+    unsigned long  retrieve_data_id;
 
     FILE*           relinquish_fd;
-    uint64_t        relinquish_data_id;
+    unsigned long   relinquish_data_id;
     free_table_t    relinquish_table;
 
     data_cache_t*   data_cache;
@@ -318,9 +318,9 @@ int bplib_store_file_destroy (int handle)
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
-    if(file_stores[handle].write_fd != NULL)    file_driver.close(file_stores[handle].write_fd);
-    if(file_stores[handle].read_fd != NULL)     file_driver.close(file_stores[handle].read_fd);
-    if(file_stores[handle].retrieve_fd != NULL) file_driver.close(file_stores[handle].retrieve_fd);
+    if(file_stores[handle].write_fd != NULL)            file_driver.close(file_stores[handle].write_fd);
+    if(file_stores[handle].read_fd != NULL)             file_driver.close(file_stores[handle].read_fd);
+    if(file_stores[handle].retrieve_fd != NULL)         file_driver.close(file_stores[handle].retrieve_fd);
     if(file_stores[handle].file_root != NULL)           free(file_stores[handle].file_root);
     if(file_stores[handle].lock != BP_INVALID_HANDLE)   bplib_os_destroylock(file_stores[handle].lock);
     if(file_stores[handle].data_cache != NULL)          free(file_stores[handle].data_cache);
@@ -342,15 +342,15 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
 
     /* Initialize Variables */
     file_store_t* fs = (file_store_t*)&file_stores[handle];
-    uint32_t data_size = data1_size + data2_size;
-    uint32_t object_size = sizeof(bp_object_hdr_t) + data_size;
-    uint32_t bytes_written = 0;
+    unsigned long data_size = data1_size + data2_size;
+    unsigned long object_size = sizeof(bp_object_hdr_t) + data_size;
+    unsigned long bytes_written = 0;
     bool flush_error = false;
 
     /* Get IDs */
-    uint32_t data_id = GET_DATAID(fs->write_data_id);
-    uint32_t file_id = GET_FILEID(data_id);
-    uint32_t data_offset = GET_DATAOFFSET(data_id);
+    unsigned long data_id = GET_DATAID(fs->write_data_id);
+    unsigned long file_id = GET_FILEID(data_id);
+    unsigned long data_offset = GET_DATAOFFSET(data_id);
 
     /* Check Need to Open Write File */
     if(fs->write_fd == NULL)
@@ -367,13 +367,13 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
             if(seek_status < 0) return bplog(BP_FAILEDSTORE, "Failed (%d) to set write position after error to start of file\n", seek_status);
 
             /* Read/Seek Through File */
-            unsigned int pos;
+            unsigned long pos;
             for(pos = 0; pos < data_offset; pos++)
             {
-                uint32_t current_size;
+                unsigned long current_size;
 
                 /* Read Current Data Size */
-                uint32_t bytes_read = file_driver.read(&current_size, 1, sizeof(current_size), fs->write_fd);
+                unsigned long bytes_read = file_driver.read(&current_size, 1, sizeof(current_size), fs->write_fd);
                 if(bytes_read != sizeof(current_size)) return bplog(BP_FAILEDSTORE, "Failed to read data size for write after error (%d != %d)\n", bytes_read, sizeof(current_size));
 
                 /* Seek to End of Current Data */
@@ -462,16 +462,16 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
     bplib_os_lock(fs->lock);
     {
         /* Initialize Variables */
-        uint32_t bytes_read = 0;
-        uint32_t object_size = 0;
+        unsigned long bytes_read = 0;
+        unsigned long object_size = 0;
         unsigned char* object_ptr = NULL;
-        uint32_t cache_index = 0;
+        unsigned long cache_index = 0;
         bool read_success = false;
 
         /* Get IDs */
-        uint32_t data_id = GET_DATAID(fs->read_data_id);
-        uint32_t file_id = GET_FILEID(data_id);
-        uint32_t data_offset = GET_DATAOFFSET(data_id);
+        unsigned long data_id = GET_DATAID(fs->read_data_id);
+        unsigned long file_id = GET_FILEID(data_id);
+        unsigned long data_offset = GET_DATAOFFSET(data_id);
 
         /* Check if Data Available */
         if(fs->read_data_id == fs->write_data_id)
@@ -517,7 +517,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             unsigned int pos;
             for(pos = 0; pos < data_offset; pos++)
             {
-                uint32_t current_size;
+                unsigned long current_size;
 
                 /* Read Current Object Size */
                 bytes_read = file_driver.read(&current_size, 1, sizeof(current_size), fs->read_fd);
@@ -548,7 +548,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             {
                 /* Update SID */
                 bp_object_hdr_t* dequeued_object_header = (bp_object_hdr_t*)object_ptr;
-                dequeued_object_header->sid = (bp_sid_t)(unsigned long)fs->read_data_id;
+                dequeued_object_header->sid = (bp_sid_t)fs->read_data_id;
                 read_success = true;
             }
         }
@@ -643,20 +643,20 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
     bplib_os_lock(fs->lock);
     {
         /* Initialize Variables */
-        uint32_t bytes_read = 0;
-        uint32_t object_size = 0;
+        unsigned long bytes_read = 0;
+        unsigned long object_size = 0;
         unsigned char* object_ptr = NULL;
-        uint32_t cache_index = 0;
-        int offset_delta = 0;
+        unsigned long cache_index = 0;
+        long offset_delta = 0;
         bool retrieve_success = false;
 
         /* Get IDs */
-        uint32_t data_id = GET_DATAID(sid);
-        uint32_t file_id = GET_FILEID(data_id);
-        uint32_t data_offset = GET_DATAOFFSET(data_id);
-        uint32_t prev_data_id = GET_DATAID(fs->retrieve_data_id);
-        uint32_t prev_file_id = GET_FILEID(prev_data_id);
-        uint32_t prev_data_offset = GET_DATAOFFSET(prev_data_id);
+        unsigned long data_id = GET_DATAID(sid);
+        unsigned long file_id = GET_FILEID(data_id);
+        unsigned long data_offset = GET_DATAOFFSET(data_id);
+        unsigned long prev_data_id = GET_DATAID(fs->retrieve_data_id);
+        unsigned long prev_file_id = GET_FILEID(prev_data_id);
+        unsigned long prev_data_offset = GET_DATAOFFSET(prev_data_id);
 
         /* Check Data Cache */
         cache_index = data_id % fs->cache_size;
@@ -712,8 +712,8 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
         /* Seek Forward */
         if(offset_delta > 0)
         {
-            uint32_t current_size;
-            int pos;
+            unsigned long current_size;
+            long pos;
 
             for(pos = 0; pos < offset_delta; pos++)
             {
@@ -745,7 +745,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             {
                 bp_object_hdr_t* retrieved_object_header = (bp_object_hdr_t*)object_ptr;
                 retrieved_object_header->sid = sid;
-                fs->retrieve_data_id = (uint64_t)(unsigned long)sid;
+                fs->retrieve_data_id = (unsigned long)sid;
                 retrieve_success = true;
             }
         }
@@ -820,8 +820,8 @@ int bplib_store_file_release (int handle, bp_sid_t sid)
     bplib_os_lock(fs->lock);
     {
         /* Get Cache Index */
-        uint32_t data_id = GET_DATAID(sid);
-        uint32_t cache_index = data_id % fs->cache_size;
+        unsigned long data_id = GET_DATAID(sid);
+        unsigned long cache_index = data_id % fs->cache_size;
 
         /* Check Data Cache */
         if((fs->data_cache[cache_index].mem_ptr == NULL) ||
@@ -854,14 +854,14 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
     bplib_os_lock(fs->lock);
     {
         /* Get IDs */
-        uint32_t data_id = GET_DATAID(sid);
-        uint32_t file_id = GET_FILEID(data_id);
-        uint32_t data_offset = GET_DATAOFFSET(data_id);
-        uint32_t prev_data_id = GET_DATAID(fs->relinquish_data_id);
-        uint32_t prev_file_id = GET_FILEID(prev_data_id);
+        unsigned long data_id = GET_DATAID(sid);
+        unsigned long file_id = GET_FILEID(data_id);
+        unsigned long data_offset = GET_DATAOFFSET(data_id);
+        unsigned long prev_data_id = GET_DATAID(fs->relinquish_data_id);
+        unsigned long prev_file_id = GET_FILEID(prev_data_id);
 
         /* Clear Data Cache */
-        uint32_t cache_index = data_id % fs->cache_size;
+        unsigned long cache_index = data_id % fs->cache_size;
         if(fs->data_cache[cache_index].mem_ptr)
         {
             if(fs->data_cache[cache_index].mem_data_id == data_id)
@@ -877,7 +877,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
         if(file_id != prev_file_id)
         {
             /* Set Current Relinquish Table */
-            fs->relinquish_data_id = (uint64_t)(unsigned long)sid;
+            fs->relinquish_data_id = (unsigned long)sid;
 
             /* Check Need to Save Off Previous Relinquish Table */
             if(fs->relinquish_table.free_cnt > 0)
@@ -894,7 +894,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
                 }
 
                 /* Write Previous Relinquish Table */
-                uint32_t bytes_written = file_driver.write(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+                unsigned long bytes_written = file_driver.write(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
 
                 /* Close Previous Relinquish File */
                 file_driver.close(fs->relinquish_fd);
@@ -918,7 +918,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
             else
             {
                 /* Read Relinquish Table */
-                uint32_t bytes_read = file_driver.read(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
+                unsigned long bytes_read = file_driver.read(&fs->relinquish_table, 1, sizeof(fs->relinquish_table), fs->relinquish_fd);
 
                 /* Close New Relinquish File */
                 file_driver.close(fs->relinquish_fd);

@@ -226,7 +226,7 @@ int bplib_init(void)
 /*--------------------------------------------------------------------------------------
  * bplib_open -
  *-------------------------------------------------------------------------------------*/
-bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
+bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 {
     assert(store.create);
     assert(store.destroy);
@@ -240,11 +240,18 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     int status = BP_SUCCESS;
 
     /* Allocate Channel */
+    bp_desc_t* desc = (bp_desc_t*)malloc(sizeof(bp_desc_t));
     bp_channel_t* ch = (bp_channel_t*)malloc(sizeof(bp_channel_t));
-    if(ch == NULL)
+    if(desc == NULL || ch == NULL)
     {
+        if(desc) free(desc);
+        if(ch) free(ch);
         bplog(BP_FAILEDMEM, "Cannot open channel: not enough memory\n");
         return NULL;
+    }
+    else
+    {
+        desc->channel = ch;
     }
 
     /* Clear Channel Memory and Initialize to Defaults */
@@ -262,7 +269,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(attributes.protocol_version != 6)
     {
         bplog(BP_UNSUPPORTED, "Unsupported bundle protocol version: %d\n", attributes.protocol_version);
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -271,7 +278,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(ch->bundle_handle < 0)
     {
         bplog(BP_FAILEDSTORE, "Failed to create storage handle for bundles\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -280,7 +287,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(ch->payload_handle < 0)
     {
         bplog(BP_FAILEDSTORE, "Failed to create storage handle for payloads\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -289,7 +296,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(ch->dacs_handle < 0)
     {
         bplog(BP_FAILEDSTORE, "Failed to create storage handle for dacs\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -298,7 +305,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(status != BP_SUCCESS)
     {
         bplog(status, "Failed to initialize bundle\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -317,7 +324,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(status != BP_SUCCESS)
     {
         bplog(status, "Failed to initialize dacs\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -326,7 +333,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(ch->custody_tree_lock == BP_INVALID_HANDLE)
     {
         bplog(BP_FAILEDOS, "Failed to create a lock for dacs processing\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -336,7 +343,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(ch->dacs_buffer == NULL)
     {
         bplog(BP_FAILEDMEM, "Failed to allocate memory for channel DACS\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -348,7 +355,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(status != BP_SUCCESS)
     {
         bplog(BP_FAILEDMEM, "Failed to allocate memory for channel DACS tree\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -360,7 +367,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(ch->active_table_signal < 0)
     {
         bplog(BP_FAILEDOS, "Failed to create custody_tree_lock for active table\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -388,7 +395,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     else
     {
         bplog(BP_UNSUPPORTED, "Unrecognized attribute for creating active table: %d\n", attributes.retransmit_order);
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -398,7 +405,7 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     if(status != BP_SUCCESS)
     {
         bplog(status, "Failed to create active table for channel\n");
-        bplib_close(ch);
+        bplib_close(desc);
         return NULL;
     }
 
@@ -406,19 +413,19 @@ bp_desc_t bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     ch->current_active_cid  = 0;
 
     /* Return Channel */
-    return ch;
+    return desc;
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_close -
  *-------------------------------------------------------------------------------------*/
-void bplib_close(bp_desc_t channel)
+void bplib_close(bp_desc_t* desc)
 {
     /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR) return;
+    if(desc == NULL || desc->channel == NULL) return;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Un-initialize Bundle Store */
     if(ch->bundle_handle >= 0)
@@ -468,18 +475,20 @@ void bplib_close(bp_desc_t channel)
 
     /* Free Channel */
     free(ch);
+    free(desc);
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_flush -
  *-------------------------------------------------------------------------------------*/
-int bplib_flush(bp_desc_t channel)
+int bplib_flush(bp_desc_t* desc)
 {
     /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR) return BP_PARMERR;
+    if(desc == NULL)                return BP_PARMERR;
+    else if(desc->channel == NULL)  return BP_PARMERR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Flush Data Bundles */
     int handle = ch->bundle_handle;
@@ -505,14 +514,15 @@ int bplib_flush(bp_desc_t channel)
 /*--------------------------------------------------------------------------------------
  * bplib_config -
  *-------------------------------------------------------------------------------------*/
-int bplib_config(bp_desc_t channel, int mode, int opt, int* val)
+int bplib_config(bp_desc_t* desc, int mode, int opt, int* val)
 {
     /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
-    else if(val == NULL)                    return BP_PARMERR;
+    if(desc == NULL)                return BP_PARMERR;
+    else if(desc->channel == NULL)  return BP_PARMERR;
+    else if(val == NULL)            return BP_PARMERR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Set Mode */
     bool setopt = mode == BP_OPT_MODE_WRITE ? true : false;
@@ -609,14 +619,15 @@ int bplib_config(bp_desc_t channel, int mode, int opt, int* val)
 /*--------------------------------------------------------------------------------------
  * bplib_latchstats -
  *-------------------------------------------------------------------------------------*/
-int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
+int bplib_latchstats(bp_desc_t* desc, bp_stats_t* stats)
 {
      /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
-    else if(stats == NULL)                  return BP_PARMERR;
+    if(desc == NULL)                return BP_PARMERR;
+    else if(desc->channel == NULL)  return BP_PARMERR;
+    else if(stats == NULL)          return BP_PARMERR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Update Store Counts */
     ch->stats.stored_bundles = ch->store.getcount(ch->bundle_handle);
@@ -636,17 +647,18 @@ int bplib_latchstats(bp_desc_t channel, bp_stats_t* stats)
 /*--------------------------------------------------------------------------------------
  * bplib_store -
  *-------------------------------------------------------------------------------------*/
-int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_t* flags)
+int bplib_store(bp_desc_t* desc, void* payload, int size, int timeout, uint16_t* flags)
 {
     int status = BP_SUCCESS;
 
      /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
-    else if(payload == NULL)                return BP_PARMERR;
-    else if(flags == NULL)                  return BP_PARMERR;
+    if(desc == NULL)                return BP_PARMERR;
+    else if(desc->channel == NULL)  return BP_PARMERR;
+    else if(payload == NULL)        return BP_PARMERR;
+    else if(flags == NULL)          return BP_PARMERR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Check if Re-initialization Needed */
     if(ch->bundle.prebuilt == false)
@@ -667,18 +679,19 @@ int bplib_store(bp_desc_t channel, void* payload, int size, int timeout, uint16_
 /*--------------------------------------------------------------------------------------
  * bplib_load -
  *-------------------------------------------------------------------------------------*/
-int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_t* flags)
+int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint16_t* flags)
 {
     bp_active_bundle_t active_bundle = { BP_SID_VACANT, 0, 0 };
     int status = BP_SUCCESS; /* success or error code */
 
     /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
-    else if(bundle == NULL)                 return BP_PARMERR;
-    else if(flags == NULL)                  return BP_PARMERR;
+    if(desc == NULL)                return BP_PARMERR;
+    else if(desc->channel == NULL)  return BP_PARMERR;
+    else if(bundle == NULL)         return BP_PARMERR;
+    else if(flags == NULL)          return BP_PARMERR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Setup State */
     unsigned long   sysnow  = 0;                /* current system time used for timeouts (seconds) */
@@ -902,17 +915,18 @@ int bplib_load(bp_desc_t channel, void** bundle, int* size, int timeout, uint16_
 /*--------------------------------------------------------------------------------------
  * bplib_process -
  *-------------------------------------------------------------------------------------*/
-int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16_t* flags)
+int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint16_t* flags)
 {
     int status;
 
     /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
-    else if(bundle == NULL)                 return BP_PARMERR;
-    else if(flags == NULL)                  return BP_PARMERR;
+    if(desc == NULL)                return BP_PARMERR;
+    else if(desc->channel == NULL)  return BP_PARMERR;
+    else if(bundle == NULL)         return BP_PARMERR;
+    else if(flags == NULL)          return BP_PARMERR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Receive Bundle */
     bp_payload_t payload;
@@ -1065,7 +1079,7 @@ int bplib_process(bp_desc_t channel, void* bundle, int size, int timeout, uint16
  *
  *  Returns success if payload copied, or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
-int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint16_t* flags)
+int bplib_accept(bp_desc_t* desc, void** payload, int* size, int timeout, uint16_t* flags)
 {
     (void)flags;
 
@@ -1073,12 +1087,13 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
     bp_object_t* object = NULL;
 
     /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
-    else if(payload == NULL)                return BP_PARMERR;
-    else if(flags == NULL)                  return BP_PARMERR;
+    if(desc == NULL)                return BP_PARMERR;
+    else if(desc->channel == NULL)  return BP_PARMERR;
+    else if(payload == NULL)        return BP_PARMERR;
+    else if(flags == NULL)          return BP_PARMERR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Dequeue Payload from Storage */
     status = ch->store.dequeue(ch->payload_handle, &object, timeout);
@@ -1127,16 +1142,17 @@ int bplib_accept(bp_desc_t channel, void** payload, int* size, int timeout, uint
 /*--------------------------------------------------------------------------------------
  * bplib_ackbundle -
  *-------------------------------------------------------------------------------------*/
-int bplib_ackbundle(bp_desc_t channel, void* bundle)
+int bplib_ackbundle(bp_desc_t* desc, void* bundle)
 {
     int status = BP_SUCCESS;
 
     /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
-    else if(bundle == NULL)                 return BP_PARMERR;
+    if(desc == NULL)                return BP_PARMERR;
+    else if(desc->channel == NULL)  return BP_PARMERR;
+    else if(bundle == NULL)         return BP_PARMERR;
 
     /* Determine Storage Object Pointer */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
     bp_bundle_data_t* data = (bp_bundle_data_t*)((uint8_t*)bundle - offsetof(bp_bundle_data_t, header));
     bp_object_t* object = (bp_object_t*)((uint8_t*)data - sizeof(bp_object_hdr_t));
 
@@ -1153,16 +1169,17 @@ int bplib_ackbundle(bp_desc_t channel, void* bundle)
 /*--------------------------------------------------------------------------------------
  * bplib_ackpayload -
  *-------------------------------------------------------------------------------------*/
-int bplib_ackpayload(bp_desc_t channel, void* payload)
+int bplib_ackpayload(bp_desc_t* desc, void* payload)
 {
     int status = BP_SUCCESS;
 
     /* Check Parameters */
-    if(channel == BP_INVALID_DESCRIPTOR)    return BP_PARMERR;
-    else if(payload == NULL)                return BP_PARMERR;
+    if(desc == NULL)                return BP_PARMERR;
+    else if(desc->channel == NULL)  return BP_PARMERR;
+    else if(payload == NULL)        return BP_PARMERR;
 
     /* Determine Storage Object Pointer */
-    bp_channel_t* ch = (bp_channel_t*)channel;
+    bp_channel_t* ch = (bp_channel_t*)desc->channel;
     bp_payload_data_t* data = (bp_payload_data_t*)((uint8_t*)payload - sizeof(bp_payload_data_t));
     bp_object_t* object = (bp_object_t*)((uint8_t*)data - sizeof(bp_object_hdr_t));
 
