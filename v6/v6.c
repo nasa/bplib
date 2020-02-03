@@ -459,14 +459,14 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     bp_blk_pri_t        pri_blk;
 
     bool                cteb_present = false;
-    int                 cteb_index = 0;
+    int                 cteb_index;
     bp_blk_cteb_t       cteb_blk;
 
     bool                bib_present = false;
-    int                 bib_index = 0;
+    int                 bib_index;
     bp_blk_bib_t        bib_blk;
 
-    int                 pay_index = 0;
+    int                 pay_index;
     bp_blk_pay_t        pay_blk;
 
     /* Parse Primary Block */

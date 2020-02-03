@@ -244,7 +244,9 @@ testcov:
 ##############################################################################
 ##  STATIC ANALYSIS RULES
 
-CHECK_OPT = --enable=all --inconclusive --std=posix --error-exitcode=1
+CHECK_OPT  = --enable=all --inconclusive --error-exitcode=1 -q
+CHECK_OPT += --suppress=unusedFunction --suppress=missingInclude --suppress=objectIndex:common/crc.c
+CHECK_OPT += --suppress=redundantAssignment:v6/dacs.c
 
 check:
 	cppcheck $(ROOT) $(CHECK_OPT) $(INCLUDES) $(APP_DEFS)

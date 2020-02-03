@@ -70,7 +70,7 @@ static void print_binary(const void* ptr, const size_t size, const int num_space
  *-------------------------------------------------------------------------------------*/
 static void print_xor_table(const crc_parameters_t* params)
 {
-    int index = 0;
+    int index;
     if (params->length == 16)
     {
         const uint16_t* table = params->n_bit_params.crc16.xor_table;
