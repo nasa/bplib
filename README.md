@@ -1,15 +1,15 @@
 # bplib
 
-[1. Overview](#1-overview)
-[1. Build with Make](#3-build-with-make)
-[2. Application Design](#2-application-design)
-[4. Application Programming Interface](#4-application-programming-interface)
-[5. Storage Service](#5-storage-service)
+[1. Overview](#1-overview)  
+[1. Build with Make](#3-build-with-make)  
+[2. Application Design](#2-application-design)  
+[4. Application Programming Interface](#4-application-programming-interface)  
+[5. Storage Service](#5-storage-service)  
 
-[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)
-[Note #2 - Library Development Guidelines](doc/dev_notes.md)
-[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)
-[Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)
+[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
+[Note #2 - Library Development Guidelines](doc/dev_notes.md)  
+[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)  
+[Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)  
 
 ----------------------------------------------------------------------
 ## 1. Overview
