@@ -61,8 +61,6 @@ bool flash_sim_initialized = false;
  *-------------------------------------------------------------------------------------*/
 int bplib_flash_sim_initialize (void)
 {
-    int b, p;
-
     if(flash_sim_initialized == false)
     {
         flash_sim_initialized = true;
@@ -71,11 +69,13 @@ int bplib_flash_sim_initialize (void)
 
         if(flash_driver_device.blocks == NULL) return BP_ERROR;
 
+        int b;
         for(b = 0; b < FLASH_SIM_NUM_BLOCKS; b++)
         {
             flash_driver_device.blocks[b].pages = (flash_driver_page_t*)malloc(FLASH_SIM_PAGES_PER_BLOCK * sizeof(flash_driver_page_t));
             if(flash_driver_device.blocks[b].pages == NULL) return BP_ERROR;
 
+            int p;
             for(p = 0; p < FLASH_SIM_PAGES_PER_BLOCK; p++)
             {
                 flash_driver_device.blocks[b].pages[p].data = (uint8_t*)malloc(FLASH_SIM_DATA_SIZE);
@@ -96,14 +96,14 @@ int bplib_flash_sim_initialize (void)
  *-------------------------------------------------------------------------------------*/
 int bplib_flash_sim_uninitialize (void)
 {
-    int b, p;
-
     if(flash_sim_initialized == true)
     {
         flash_sim_initialized = false;
 
+        int b;
         for(b = 0; b < FLASH_SIM_NUM_BLOCKS; b++)
         {
+            int p;
             for(p = 0; p < FLASH_SIM_PAGES_PER_BLOCK; p++)
             {
                 free(flash_driver_device.blocks[b].pages[p].data);
