@@ -20,6 +20,7 @@
  ******************************************************************************/
 
 #include "ut_assert.h"
+#include "bplib_store_flash.h"
 
 /******************************************************************************
  EXTERNS
@@ -76,6 +77,7 @@ int bplib_unittest_rh_hash (void)
 int bplib_unittest_flash (void)
 {
     #ifdef UNITTESTS
+        bplib_store_flash_uninit(); /* should always be safe to call */
         return ut_flash();
     #else
         return 0;

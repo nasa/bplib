@@ -10,6 +10,8 @@ local store = arg[1] or "RAM"
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
     os.execute("mkdir -p .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("INIT")
 end
 
 local num_bundles = arg[2] or 256
@@ -40,7 +42,7 @@ for k=1,num_bundles do
 	for i=1,k do
 		payload = string.format('HELLO WORLD %d.%d', k, i)
 
-		-- store payload -- 
+		-- store payload --
 		rc, flags = sender:store(payload, 1000)
 		runner.check(rc)
 		runner.check(bp.check_flags(flags, {}))
@@ -54,13 +56,13 @@ for k=1,num_bundles do
 		runner.check(bundle ~= nil)
 		runner.check(bp.check_flags(flags, {}))
 
-		-- process bundle -- 
+		-- process bundle --
 		rc, flags = receiver:process(bundle, 1000)
 		runner.check(rc)
 		runner.check(bp.check_flags(flags, {}))
 		stored_payloads = stored_payloads + 1
 	end
-	
+
 	if k % 64 == 0 then
         bplib.sleep(timeout)
 	end
@@ -79,7 +81,7 @@ for k=1,num_bundles do
 	end
 end
 
--- check stats -- 
+-- check stats --
 rc, rx_stats = receiver:stats()
 rc, tx_stats = sender:stats()
 acks = tx_stats["acknowledged_bundles"]
@@ -100,7 +102,7 @@ repeat
 		runner.check(bundle ~= nil)
 		new_bundles_sent = new_bundles_sent + 1
 
-		-- process bundle -- 
+		-- process bundle --
 		rc, flags = receiver:process(bundle, 0)
 		runner.check(rc)
 		runner.check(bp.check_flags(flags, {}))
@@ -128,7 +130,7 @@ repeat
 
 until (tx_stats["stored_bundles"] == 0)
 
--- check stats -- 
+-- check stats --
 rc, rx_stats = receiver:stats()
 rc, tx_stats = sender:stats()
 acks = tx_stats["acknowledged_bundles"]
@@ -144,6 +146,8 @@ receiver:close()
 
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("DEINIT")
 end
 
 -- Report Results --

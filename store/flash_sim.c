@@ -50,10 +50,12 @@ typedef struct {
  ******************************************************************************/
 
 flash_driver_device_t flash_driver_device;
+bool flash_sim_initialized = false;
 
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
+
 /*--------------------------------------------------------------------------------------
  * bplib_flash_sim_initialize -
  *-------------------------------------------------------------------------------------*/
@@ -61,22 +63,55 @@ int bplib_flash_sim_initialize (void)
 {
     int b, p;
 
-    flash_driver_device.blocks = (flash_driver_block_t*)malloc(FLASH_SIM_NUM_BLOCKS * sizeof(flash_driver_block_t));
-    if(flash_driver_device.blocks == NULL) return BP_ERROR;
-
-    for(b = 0; b < FLASH_SIM_NUM_BLOCKS; b++)
+    if(flash_sim_initialized == false)
     {
-        flash_driver_device.blocks[b].pages = (flash_driver_page_t*)malloc(FLASH_SIM_PAGES_PER_BLOCK * sizeof(flash_driver_page_t));
-        if(flash_driver_device.blocks[b].pages == NULL) return BP_ERROR;
+        flash_sim_initialized = true;
 
-        for(p = 0; p < FLASH_SIM_PAGES_PER_BLOCK; p++)
+        flash_driver_device.blocks = (flash_driver_block_t*)malloc(FLASH_SIM_NUM_BLOCKS * sizeof(flash_driver_block_t));
+
+        if(flash_driver_device.blocks == NULL) return BP_ERROR;
+
+        for(b = 0; b < FLASH_SIM_NUM_BLOCKS; b++)
         {
-            flash_driver_device.blocks[b].pages[p].data = (uint8_t*)malloc(FLASH_SIM_DATA_SIZE);
-            if(flash_driver_device.blocks[b].pages[p].data == NULL) return BP_ERROR;
+            flash_driver_device.blocks[b].pages = (flash_driver_page_t*)malloc(FLASH_SIM_PAGES_PER_BLOCK * sizeof(flash_driver_page_t));
+            if(flash_driver_device.blocks[b].pages == NULL) return BP_ERROR;
 
-            flash_driver_device.blocks[b].pages[p].spare = (uint8_t*)malloc(FLASH_SIM_SPARE_SIZE);
-            if(flash_driver_device.blocks[b].pages[p].spare == NULL) return BP_ERROR;
+            for(p = 0; p < FLASH_SIM_PAGES_PER_BLOCK; p++)
+            {
+                flash_driver_device.blocks[b].pages[p].data = (uint8_t*)malloc(FLASH_SIM_DATA_SIZE);
+                if(flash_driver_device.blocks[b].pages[p].data == NULL) return BP_ERROR;
+
+                flash_driver_device.blocks[b].pages[p].spare = (uint8_t*)malloc(FLASH_SIM_SPARE_SIZE);
+                if(flash_driver_device.blocks[b].pages[p].spare == NULL) return BP_ERROR;
+                flash_driver_device.blocks[b].pages[0].spare[0] = 0xFF; /* initialize to good block */
+            }
         }
+    }
+
+    return BP_SUCCESS;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_flash_sim_uninitialize -
+ *-------------------------------------------------------------------------------------*/
+int bplib_flash_sim_uninitialize (void)
+{
+    int b, p;
+
+    if(flash_sim_initialized == true)
+    {
+        flash_sim_initialized = false;
+
+        for(b = 0; b < FLASH_SIM_NUM_BLOCKS; b++)
+        {
+            for(p = 0; p < FLASH_SIM_PAGES_PER_BLOCK; p++)
+            {
+                free(flash_driver_device.blocks[b].pages[p].data);
+                free(flash_driver_device.blocks[b].pages[p].spare);
+            }
+            free(flash_driver_device.blocks[b].pages);
+        }
+        free(flash_driver_device.blocks);
     }
 
     return BP_SUCCESS;

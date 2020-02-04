@@ -11,6 +11,8 @@ local store = arg[1] or "RAM"
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
     os.execute("mkdir -p .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("INIT")
 end
 
 local retx_order = arg[2] or bp.RETX_SMALLEST_CID
@@ -114,6 +116,8 @@ sender:close()
 
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("DEINIT")
 end
 
 -- Report Results --

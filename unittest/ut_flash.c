@@ -93,6 +93,9 @@ static void test_1(void)
 
     printf("\n==== Step 1.4: Attempt Allocate On Empty List ====\n");
     ut_assert(flash_free_allocate(&block) == BP_FAILEDSTORE, "Incorrectly succeeded to allocate block when no blocks available\n");
+
+    /* Uninitialize Driver */
+    bplib_store_flash_uninit();
 }
 
 /*--------------------------------------------------------------------------------------
@@ -137,6 +140,9 @@ static void test_2(void)
     {
         ut_assert(bplib_store_flash_destroy(h[i]), "Failed to destroy handle %d\n", h[i]);
     }
+
+    /* Uninitialize Driver */
+    bplib_store_flash_uninit();
 }
 
 /*--------------------------------------------------------------------------------------
@@ -182,6 +188,9 @@ static void test_3(void)
             ut_assert(read_data[i] == test_data[i], "Failed to read correct data at %d, %02X != %02X\n", i, read_data[i], test_data[i]);
         }
     }
+
+    /* Uninitialize Driver */
+    bplib_store_flash_uninit();
 }
 
 /*--------------------------------------------------------------------------------------
@@ -226,6 +235,9 @@ static void test_4(void)
     {
         ut_assert(false, "Failed to dequeue object\n");
     }
+
+    /* Uninitialize Driver */
+    bplib_store_flash_uninit();
 }
 
 /*--------------------------------------------------------------------------------------
@@ -302,6 +314,8 @@ static void test_5 (void)
     status2 = flash_page_decode(test_buffer[1]);
     ut_assert(status2 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[1]: (%d)\n", status2);
 
+    /* Uninitialize Driver */
+    bplib_store_flash_uninit();
 }
 
 /******************************************************************************
@@ -312,11 +326,21 @@ int ut_flash (void)
 {
     ut_reset();
 
+    /* Global Setup */
+
+    bplib_flash_sim_initialize();
+
+    /* Test Cases */
+
     test_1();
     test_2();
     test_3();
     test_4();
     test_5();
+
+    /* Clean Up */
+
+    bplib_flash_sim_uninitialize();
 
     return ut_failures();
 }

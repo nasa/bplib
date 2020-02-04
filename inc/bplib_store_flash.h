@@ -96,6 +96,7 @@ typedef struct {
 
 /* Application API */
 int     bplib_store_flash_init          (bp_flash_driver_t driver, int init_mode, bool sw_edac);
+void    bplib_store_flash_uninit        (void);
 void    bplib_store_flash_stats         (bp_flash_stats_t* stats, bool log_stats, bool reset_stats);
 
 /* Service API */

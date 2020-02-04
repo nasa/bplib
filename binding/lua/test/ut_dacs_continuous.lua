@@ -12,6 +12,8 @@ local store = arg[1] or "RAM"
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
     os.execute("mkdir -p .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("INIT")
 end
 
 local src_node = 4
@@ -104,6 +106,8 @@ receiver:close()
 
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("DEINIT")
 end
 
 -- Report Results --

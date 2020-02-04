@@ -11,11 +11,13 @@ local store = arg[1] or "RAM"
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
     os.execute("mkdir -p .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("INIT")
 end
 
 local retx_order = arg[2] or "SMALLEST"
-if retx_order == "SMALLEST" then 
-	retx_order = bp.RETX_SMALLEST_CID 
+if retx_order == "SMALLEST" then
+	retx_order = bp.RETX_SMALLEST_CID
 else
 	retx_order = bp.RETX_OLDEST_BUNDLE
 end
@@ -40,7 +42,7 @@ for i=1,num_bundles do
     payload = string.format('HELLO WORLD %d', i)
 	print("Generating... " .. payload)
 
-	-- store payload -- 
+	-- store payload --
 	rc, flags = sender:store(payload, 1000)
 	runner.check(rc)
 	runner.check(bp.check_flags(flags, {}), "flags set on store")
@@ -68,7 +70,7 @@ for i=1,num_bundles do
 		-- check payload --
 		if bundle then
 			runner.check(bp.find_payload(bundle, payload), string.format('Error - could not find payload: %s', payload))
-		end	
+		end
 	end
 end
 
@@ -79,6 +81,8 @@ sender:close()
 
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("DEINIT")
 end
 
 -- Report Results --

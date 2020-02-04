@@ -88,21 +88,23 @@ typedef struct {
 /* Constants - set only in initialization function */
 
 static bp_flash_driver_t        FLASH_DRIVER;
-static int                      FLASH_PAGE_DATA_SIZE;   /* size in bytes of data being written to page */
-static int                      FLASH_ECC_CODE_SIZE;    /* size in bytes of encoding */
-static uint8_t*                 FLASH_XOR_TABLE;
-static int8_t*                  FLASH_ECC_TABLE;
+
+static int                      FLASH_PAGE_DATA_SIZE = 0;   /* size in bytes of data being written to page */
+static int                      FLASH_ECC_CODE_SIZE = 0;    /* size in bytes of encoding */
+static uint8_t*                 FLASH_XOR_TABLE = NULL;
+static int8_t*                  FLASH_ECC_TABLE = NULL;
 
 /* Globals */
 
 static flash_store_t            flash_stores[FLASH_MAX_STORES];
-static int                      flash_device_lock;
 static flash_block_list_t       flash_free_blocks;
 static flash_block_list_t       flash_bad_blocks;
-static flash_block_control_t*   flash_blocks;
-static int                      flash_error_count;
-static int                      flash_used_block_count;
-static uint8_t*                 flash_page_buffer;
+
+static int                      flash_device_lock = BP_INVALID_HANDLE;
+static flash_block_control_t*   flash_blocks = NULL;
+static int                      flash_error_count = 0;
+static int                      flash_used_block_count = 0;
+static uint8_t*                 flash_page_buffer = NULL;
 
 /******************************************************************************
  LOCAL FUNCTIONS - PAGE LEVEL
@@ -852,18 +854,27 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
     assert(driver.isbad);
     assert(driver.phyblk);
 
-    /* Initialize Flash Stores to Zero */
-    memset(flash_stores, 0, sizeof(flash_stores));
+    int reclaimed_blocks = 0;
+    unsigned int start_block = bplib_os_random();
 
     /* Initialize Flash Driver */
     FLASH_DRIVER = driver;
 
-    /* Initialize Flash Device Lock */
-    flash_device_lock = bplib_os_createlock();
-    if(flash_device_lock < 0)
-    {
-        return bplog(BP_FAILEDOS, "Failed (%d) to create flash device lock\n", flash_device_lock);
-    }
+    /* Default Constants */
+    FLASH_PAGE_DATA_SIZE = FLASH_DRIVER.page_size;
+    FLASH_ECC_CODE_SIZE = 0;
+    FLASH_XOR_TABLE = NULL;
+    FLASH_ECC_TABLE = NULL;
+
+    /* Default Variables  */
+    flash_device_lock = BP_INVALID_HANDLE;
+    flash_blocks = NULL;
+    flash_error_count = 0;
+    flash_used_block_count = 0;
+    flash_page_buffer = NULL;
+
+    /* Zero Out Flash Stores */
+    memset(flash_stores, 0, sizeof(flash_stores));
 
     /* Initialize Free Blocks List */
     flash_free_blocks.out = BP_FLASH_INVALID_INDEX;
@@ -875,77 +886,115 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
     flash_bad_blocks.in = BP_FLASH_INVALID_INDEX;
     flash_bad_blocks.count = 0;
 
-    /* Allocate Memory for Block Control */
-    flash_blocks = (flash_block_control_t*)malloc(sizeof(flash_block_control_t) * FLASH_DRIVER.num_blocks);
-    if(flash_blocks == NULL)
+    do
     {
-        bplib_os_destroylock(flash_device_lock);
-        return bplog(BP_FAILEDMEM, "Unable to allocate memory for flash block control information\n");
-    }
-
-    /* Configure for EDAC */
-    if(sw_edac)
-    {
-        /* Calculate Segment Sizes */
-        FLASH_PAGE_DATA_SIZE = (FLASH_ECC_DATA_PER_CODE_BYTE * FLASH_DRIVER.page_size) / (FLASH_ECC_DATA_PER_CODE_BYTE + 1);
-        FLASH_ECC_CODE_SIZE = FLASH_DRIVER.page_size - FLASH_PAGE_DATA_SIZE;
-
-        /* Allocate ECC Tables and Buffers */
-        FLASH_XOR_TABLE = (uint8_t*)malloc(256);
-        FLASH_ECC_TABLE = (int8_t*)malloc(256);
-        flash_page_buffer = (uint8_t*)malloc(FLASH_DRIVER.page_size);
-        if(!FLASH_XOR_TABLE || !FLASH_ECC_TABLE || !flash_page_buffer)
+        /* Initialize Flash Device Lock */
+        flash_device_lock = bplib_os_createlock();
+        if(flash_device_lock < 0)
         {
-            free(flash_blocks);
-            if(FLASH_XOR_TABLE) free(FLASH_XOR_TABLE);
-            if(FLASH_ECC_TABLE) free(FLASH_ECC_TABLE);
-            if(flash_page_buffer) free(flash_page_buffer);
-            bplib_os_destroylock(flash_device_lock);
-            return bplog(BP_FAILEDMEM, "Unable to allocate memory for flash sw ecc information\n");
+            bplog(BP_FAILEDOS, "Failed (%d) to create flash device lock\n", flash_device_lock);
+            break;
         }
 
-        /* Initialize ECC Tables */
-        flash_build_xor_table(FLASH_XOR_TABLE);
-        flash_build_ecc_table(FLASH_ECC_TABLE);
+        /* Allocate Memory for Block Control */
+        flash_blocks = (flash_block_control_t*)malloc(sizeof(flash_block_control_t) * FLASH_DRIVER.num_blocks);
+        if(flash_blocks == NULL)
+        {
+            bplog(BP_FAILEDMEM, "Unable to allocate memory for flash block control information\n");
+            break;
+        }
+
+        /* Configure for EDAC */
+        if(sw_edac)
+        {
+            /* Calculate Segment Sizes */
+            FLASH_PAGE_DATA_SIZE = (FLASH_ECC_DATA_PER_CODE_BYTE * FLASH_DRIVER.page_size) / (FLASH_ECC_DATA_PER_CODE_BYTE + 1);
+            FLASH_ECC_CODE_SIZE = FLASH_DRIVER.page_size - FLASH_PAGE_DATA_SIZE;
+
+            /* Allocate ECC Tables and Buffers */
+            FLASH_XOR_TABLE = (uint8_t*)malloc(256);
+            FLASH_ECC_TABLE = (int8_t*)malloc(256);
+            flash_page_buffer = (uint8_t*)malloc(FLASH_DRIVER.page_size);
+            if(!FLASH_XOR_TABLE || !FLASH_ECC_TABLE || !flash_page_buffer)
+            {
+                bplog(BP_FAILEDMEM, "Unable to allocate memory for flash sw ecc information\n");
+                break;
+            }
+
+            /* Initialize ECC Tables */
+            flash_build_xor_table(FLASH_XOR_TABLE);
+            flash_build_ecc_table(FLASH_ECC_TABLE);
+        }
+
+        /* Format Flash for Use */
+        if(init_mode == BP_FLASH_INIT_FORMAT)
+        {
+            /* Build Free Block List */
+            unsigned int block;
+            for(block = 0; block < FLASH_DRIVER.num_blocks; block++)
+            {
+                bp_flash_index_t block_to_reclaim = (block + start_block) % FLASH_DRIVER.num_blocks;
+                if(flash_free_reclaim(block_to_reclaim) == BP_SUCCESS)
+                {
+                    reclaimed_blocks++;
+                }
+            }
+        }
+        else if(init_mode == BP_FLASH_INIT_RECOVER)
+        {
+            /* TODO Implement Recovery Logic */
+        }
+    } while(false);
+
+    /* Check for Success */
+    if(reclaimed_blocks > 0)
+    {
+        bplog(BP_DEBUG, "Flash storage service reclaimed %d blocks, starting at block %d\n", reclaimed_blocks, start_block % driver.num_blocks);
     }
     else
     {
-        /* EDAC Handled Elsewhere */
-        FLASH_PAGE_DATA_SIZE = FLASH_DRIVER.page_size;
-        FLASH_ECC_CODE_SIZE = 0;
-        FLASH_XOR_TABLE = NULL;
-        FLASH_ECC_TABLE = NULL;
-        flash_page_buffer = NULL;
+        bplog(BP_DEBUG, "Failed to initialize flash storage service\n");
+        bplib_store_flash_uninit();
     }
-
-    /* Format Flash for Use */
-    int reclaimed_blocks = 0;
-    unsigned int start_block = bplib_os_random();
-    if(init_mode == BP_FLASH_INIT_FORMAT)
-    {
-        /* Build Free Block List */
-        unsigned int block;
-        for(block = 0; block < FLASH_DRIVER.num_blocks; block++)
-        {
-            bp_flash_index_t block_to_reclaim = (block + start_block) % FLASH_DRIVER.num_blocks;
-            if(flash_free_reclaim(block_to_reclaim) == BP_SUCCESS)
-            {
-                reclaimed_blocks++;
-            }
-        }
-    }
-    else if(init_mode == BP_FLASH_INIT_RECOVER)
-    {
-        /* TODO Implement Recovery Logic */
-    }
-
-    /* Zero Counters */
-    flash_error_count = 0;
-    flash_used_block_count = 0;
 
     /* Return Number of Reclaimed Blocks */
-    bplog(BP_DEBUG, "Flash storage service reclaimed %d blocks, starting at block %d\n", reclaimed_blocks, start_block % driver.num_blocks);
     return reclaimed_blocks;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_store_flash_uninit -
+ *-------------------------------------------------------------------------------------*/
+void bplib_store_flash_uninit (void)
+{
+    if(flash_device_lock != BP_INVALID_HANDLE)
+    {
+        bplib_os_destroylock(flash_device_lock);
+        flash_device_lock = BP_INVALID_HANDLE;
+    }
+
+    if(flash_blocks)
+    {
+        free(flash_blocks);
+        flash_blocks = NULL;
+    }
+
+    if(FLASH_XOR_TABLE)
+    {
+        free(FLASH_XOR_TABLE);
+        FLASH_XOR_TABLE = NULL;
+    }
+
+    if(FLASH_ECC_TABLE)
+    {
+        free(FLASH_ECC_TABLE);
+        FLASH_ECC_TABLE = NULL;
+    }
+
+    if(flash_page_buffer)
+    {
+        free(flash_page_buffer);
+        flash_page_buffer = NULL;
+    }
 }
 
 /*--------------------------------------------------------------------------------------

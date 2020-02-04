@@ -65,6 +65,8 @@ typedef struct {
 
 typedef struct {
     const char* name;
+    bool        initialized;
+    void        (*initfunc) (void);
     bp_store_t  store;
 } lbplib_store_t;
 
@@ -80,7 +82,7 @@ int lbplib_eid2ipn      (lua_State* L);
 int lbplib_ipn2eid      (lua_State* L);
 int lbplib_unittest     (lua_State* L);
 int lbplib_sleep        (lua_State* L);
-int lbplib_flashstats   (lua_State* L);
+int lbplib_flashsim     (lua_State* L);
 
 /* Bundle Protocol Meta Functions */
 int lbplib_delete       (lua_State* L);
@@ -92,6 +94,11 @@ int lbplib_load         (lua_State* L);
 int lbplib_process      (lua_State* L);
 int lbplib_accept       (lua_State* L);
 int lbplib_flush        (lua_State* L);
+
+/* Storage Service Initialization Functions */
+static void local_store_ram_init    (void);
+static void local_store_file_init   (void);
+static void local_store_flash_init  (void);
 
 /******************************************************************************
  FILE DATA
@@ -110,7 +117,7 @@ static const struct luaL_Reg lbplib_functions [] = {
     {"ipn2eid",     lbplib_ipn2eid},
     {"unittest",    lbplib_unittest},
     {"sleep",       lbplib_sleep},
-    {"flashstats",  lbplib_flashstats},
+    {"flashsim",    lbplib_flashsim},
     {NULL, NULL}
 };
 
@@ -130,10 +137,12 @@ static const struct luaL_Reg lbplib_metadata [] = {
 };
 
 /* Lua Bplib Storage Services */
-static const lbplib_store_t lbplib_stores[] =
+static lbplib_store_t lbplib_stores[] =
 {
     {
         .name = "RAM",
+        .initialized = false,
+        .initfunc = local_store_ram_init,
         .store =
         {
             .create     = bplib_store_ram_create,
@@ -148,6 +157,8 @@ static const lbplib_store_t lbplib_stores[] =
     },
     {
         .name = "FILE",
+        .initialized = false,
+        .initfunc = local_store_file_init,
         .store =
         {
             .create     = bplib_store_file_create,
@@ -162,6 +173,8 @@ static const lbplib_store_t lbplib_stores[] =
     },
     {
         .name = "FLASH",
+        .initialized = false,
+        .initfunc = local_store_flash_init,
         .store =
         {
             .create     = bplib_store_flash_create,
@@ -189,6 +202,9 @@ static bp_flash_driver_t lbplib_flash_driver = {
     .isbad = bplib_flash_sim_block_is_bad,
     .phyblk = bplib_flash_sim_physical_block
 };
+
+/* Lua Flash Simulation */
+static bool lbplib_flash_sim_initialized = false;
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -231,7 +247,7 @@ void log_message(const char* file_name, unsigned int line_number, const char* fo
 /*----------------------------------------------------------------------------
  * set_errno
  *----------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE void set_errno (lua_State* L, int error_code)
+static void set_errno (lua_State* L, int error_code)
 {
     lua_pushnumber(L, error_code);
     lua_setglobal(L, LUA_ERRNO);
@@ -240,7 +256,7 @@ BP_LOCAL_SCOPE void set_errno (lua_State* L, int error_code)
 /*----------------------------------------------------------------------------
  * push_flag_table
  *----------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE void push_flag_table (lua_State* L, uint16_t flags)
+static void push_flag_table (lua_State* L, uint16_t flags)
 {
     lua_newtable(L);
 
@@ -301,6 +317,30 @@ BP_LOCAL_SCOPE void push_flag_table (lua_State* L, uint16_t flags)
     lua_settable(L, -3);
 }
 
+/*----------------------------------------------------------------------------
+ * local_store_ram_init
+ *----------------------------------------------------------------------------*/
+static void local_store_ram_init(void)
+{
+    bplib_store_ram_init();
+}
+
+/*----------------------------------------------------------------------------
+ * local_store_file_init
+ *----------------------------------------------------------------------------*/
+static void local_store_file_init(void)
+{
+    bplib_store_file_init(NULL);
+}
+
+/*----------------------------------------------------------------------------
+ * local_store_flash_init
+ *----------------------------------------------------------------------------*/
+static void local_store_flash_init(void)
+{
+    bplib_store_flash_init(lbplib_flash_driver, BP_FLASH_INIT_FORMAT, true);
+}
+
 /******************************************************************************
  LIBRARY FUNCTIONS
  ******************************************************************************/
@@ -312,16 +352,6 @@ int luaopen_bplib (lua_State *L)
 {
     /* Initialize Bundle Protocol Library */
     bplib_init();
-
-    /* Initialize RAM Storage Services */
-    bplib_store_ram_init();
-
-    /* Initialize FILE Storage Services */
-    bplib_store_file_init(NULL);
-
-    /* Initialize FLASH Storage Services */
-    bplib_flash_sim_initialize();
-    bplib_store_flash_init(lbplib_flash_driver, BP_FLASH_INIT_FORMAT, true);
 
     /* Initialize Errno */
     set_errno(L, 0);
@@ -350,7 +380,7 @@ int luaopen_bplib (lua_State *L)
 int lbplib_open (lua_State* L)
 {
     unsigned int i;
-    const bp_store_t* store = NULL;
+    lbplib_store_t* service = NULL;
 
     /* Check Number of Parameters */
     int minargs = 5;
@@ -388,17 +418,22 @@ int lbplib_open (lua_State* L)
     {
         if(strcmp(storage_service, lbplib_stores[i].name) == 0)
         {
-            store = &lbplib_stores[i].store;
+            service = &lbplib_stores[i];
             break;
         }
     }
 
     /* Check Storage Service */
-    if(store == NULL)
+    if(service == NULL)
     {
         lualog("invalid store provided: %s\n", storage_service ? storage_service : "nil");
         lua_pushnil(L);
         return 1;
+    }
+    else if(service->initialized == false)
+    {
+        service->initialized = true;
+        service->initfunc();
     }
 
     /* Initialize with Default Attributes */
@@ -445,7 +480,7 @@ int lbplib_open (lua_State* L)
     }
 
     /* Create Bplib Channel */
-    bp_desc_t* desc = bplib_open(route, *store, attributes);
+    bp_desc_t* desc = bplib_open(route, service->store, attributes);
     if(desc == NULL)
     {
         lua_pushnil(L);
@@ -736,44 +771,82 @@ int lbplib_sleep (lua_State* L)
 }
 
 /*----------------------------------------------------------------------------
- * lbplib_flashstats - bplib.flashstats(l, r) -->   flash statistics
- *                                                  l is boolean for logging
- *                                                  r is boolean for resetting
+ * lbplib_flashstats - bplib.flashsim("STAT", l, r) -->     flash statistics
+ *                                                          l is boolean for logging
+ *                                                          r is boolean for resetting
+ *                          .flashsim("INIT") -->           flash initialization
+ *                          .flashsim("DEINIT") -->         flash cleanup
  *----------------------------------------------------------------------------*/
-int lbplib_flashstats (lua_State* L)
+int lbplib_flashsim (lua_State* L)
 {
-    bool log_stats = true;
-    bool reset_stats = false;
-
-    /* Get Parameters */
-    if(lua_isboolean(L, 1))
+    if(!lua_isstring(L,1))
     {
-        log_stats = lua_toboolean(L, 1);
-        if(lua_isboolean(L, 2))
-        {
-            reset_stats = lua_toboolean(L, 2);
-        }
+        lualog("flashsim requires command string");
+        return 0;
     }
+    else
+    {
+        const char* cmdstr = lua_tostring(L,1);
+        if(strcmp(cmdstr, "STAT") == 0)
+        {
+            bool log_stats = true;
+            bool reset_stats = false;
 
-    /* Get Stats */
-    bp_flash_stats_t stats;
-    bplib_store_flash_stats(&stats, log_stats, reset_stats);
+            /* Get Parameters */
+            if(lua_isboolean(L, 2))
+            {
+                log_stats = lua_toboolean(L, 2);
+                if(lua_isboolean(L, 3))
+                {
+                    reset_stats = lua_toboolean(L, 3);
+                }
+            }
 
-    /* Return Stats */
-    lua_newtable(L);
-    lua_pushstring(L, "free");
-    lua_pushnumber(L, stats.num_free_blocks);
-    lua_settable(L, -3);
-    lua_pushstring(L, "used");
-    lua_pushnumber(L, stats.num_used_blocks);
-    lua_settable(L, -3);
-    lua_pushstring(L, "bad");
-    lua_pushnumber(L, stats.num_bad_blocks);
-    lua_settable(L, -3);
-    lua_pushstring(L, "errors");
-    lua_pushnumber(L, stats.error_count);
-    lua_settable(L, -3);
-    return 1;
+            /* Get Stats */
+            bp_flash_stats_t stats;
+            bplib_store_flash_stats(&stats, log_stats, reset_stats);
+
+            /* Return Stats */
+            lua_newtable(L);
+            lua_pushstring(L, "free");
+            lua_pushnumber(L, stats.num_free_blocks);
+            lua_settable(L, -3);
+            lua_pushstring(L, "used");
+            lua_pushnumber(L, stats.num_used_blocks);
+            lua_settable(L, -3);
+            lua_pushstring(L, "bad");
+            lua_pushnumber(L, stats.num_bad_blocks);
+            lua_settable(L, -3);
+            lua_pushstring(L, "errors");
+            lua_pushnumber(L, stats.error_count);
+            lua_settable(L, -3);
+            return 1;
+        }
+        else if(strcmp(cmdstr, "INIT") == 0)
+        {
+            if(lbplib_flash_sim_initialized == false)
+            {
+                lbplib_flash_sim_initialized = true;
+                bplib_flash_sim_initialize();
+            }
+            return 0;
+        }
+        else if(strcmp(cmdstr, "DEINIT") == 0)
+        {
+            if(lbplib_flash_sim_initialized == true)
+            {
+                lbplib_flash_sim_initialized = false;
+                bplib_flash_sim_uninitialize();
+            }
+            return 0;
+        }
+        else
+        {
+            lualog("unrecognized command string: %s", cmdstr);
+            return 0;
+        }
+
+    }
 }
 
 /******************************************************************************

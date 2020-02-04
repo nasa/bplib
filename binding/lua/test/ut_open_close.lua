@@ -9,6 +9,10 @@ store = arg[1] or "RAM"
 max_channels = 4
 ch = {}
 
+if store == "FLASH" then
+	bplib.flashsim("INIT")
+end
+
 -- Test --
 
 -----------------------------------------------------------------------
@@ -63,6 +67,10 @@ ch[1] = bplib.open(4, 1, 72, 43, "PARSLEY")
 runner.check('ch[1] == nil')
 
 -- Clean Up --
+
+if store == "FLASH" then
+	bplib.flashsim("DEINIT")
+end
 
 -- Report Results --
 

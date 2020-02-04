@@ -12,6 +12,8 @@ local store = arg[1] or "RAM"
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
     os.execute("mkdir -p .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("INIT")
 end
 
 local cidreuse = (arg[2] == "CID_REUSE") or false
@@ -38,7 +40,7 @@ print(string.format('%s/%s: Test 1 - skip every other one', store, src))
 for i=1,num_bundles do
     payload = string.format('HELLO WORLD %d', i)
 
-    -- store payload -- 
+    -- store payload --
     rc, flags = sender:store(payload, 1000)
     runner.check(rc)
     runner.check(bp.check_flags(flags, {}), "Flags set on sender store")
@@ -55,14 +57,14 @@ for i=1,num_bundles do
     end
 end
 
--- check stats -- 
+-- check stats --
 rc, stats = receiver:stats()
 runner.check(bp.check_stats(stats, {stored_payloads=(num_bundles/2)}))
 
 for i=1,num_bundles do
     payload = string.format('HELLO WORLD %d', i)
 
-    -- accept bundle -- 
+    -- accept bundle --
     if i % 2 == 0 then
         rc, app_payload, flags = receiver:accept(1000)
         runner.check(rc)
@@ -71,7 +73,7 @@ for i=1,num_bundles do
     end
 end
 
--- check stats -- 
+-- check stats --
 rc, stats = sender:stats()
 runner.check(bp.check_stats(stats, {transmitted_bundles=num_bundles, stored_bundles=num_bundles, active_bundles=num_bundles}))
 rc, stats = receiver:stats()
@@ -97,7 +99,7 @@ while true do
     end
 end
 
--- check stats -- 
+-- check stats --
 rc, stats = receiver:stats()
 runner.check(bp.check_stats(stats, {stored_dacs=0, transmitted_dacs=8}))
 
@@ -121,7 +123,7 @@ end
 for i=1,num_bundles do
     payload = string.format('HELLO WORLD %d', i)
 
-    -- accept bundle -- 
+    -- accept bundle --
     if i % 2 == 1 then
         rc, app_payload, flags = receiver:accept(1000)
         runner.check(rc)
@@ -156,7 +158,7 @@ runner.check(rc == false)
 runner.check(bundle == nil)
 runner.check(bp.check_flags(flags, {}), "Flags set on sender load, when timeout expected")
 
--- check stats -- 
+-- check stats --
 rc, stats = sender:stats()
 runner.check(bp.check_stats(stats, {transmitted_bundles=num_bundles, retransmitted_bundles=(num_bundles * 0.5), stored_bundles=0, active_bundles=0, acknowledged_bundles=512}))
 rc, stats = receiver:stats()
@@ -169,6 +171,8 @@ receiver:close()
 
 if store == "FILE" then
     os.execute("rm -Rf .pfile")
+elseif store == "FLASH" then
+	bplib.flashsim("DEINIT")
 end
 
 -- Report Results --
