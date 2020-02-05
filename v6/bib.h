@@ -33,11 +33,10 @@ typedef struct {
     bp_field_t  block_flags;
     bp_field_t  block_length;
     bp_field_t  security_target_count;
-    bp_field_t  security_target_type;
-    bp_field_t  security_target_sequence;
+    uint8_t     security_target_type;
     bp_field_t  cipher_suite_id;
     bp_field_t  cipher_suite_flags;
-    bp_field_t  security_result_count;
+    bp_field_t  compound_length;
     uint8_t     security_result_type;
     bp_field_t  security_result_length;
 

@@ -69,14 +69,16 @@ extern "C" {
 #define BP_FAILEDRESPONSE               (-19)
 #define BP_INVALIDEID                   (-20)
 #define BP_INVALIDCIPHERSUITEID         (-21)
-#define BP_DUPLICATECID                 (-22)
-#define BP_CUSTODYTREEFULL              (-23)
-#define BP_ACTIVETABLEFULL              (-24)
-#define BP_CIDNOTFOUND                  (-25)
-#define BP_PENDINGACKNOWLEDGMENT        (-26)
-#define BP_PENDINGFORWARD               (-27)
-#define BP_PENDINGACCEPTANCE            (-28)
-#define BP_PENDINGAPPLICATION           (-29)
+#define BP_INVALIDBIBRESULTTYPE         (-22)
+#define BP_INVALIDBIBTARGETTYPE         (-23)
+#define BP_DUPLICATECID                 (-24)
+#define BP_CUSTODYTREEFULL              (-25)
+#define BP_ACTIVETABLEFULL              (-26)
+#define BP_CIDNOTFOUND                  (-27)
+#define BP_PENDINGACKNOWLEDGMENT        (-28)
+#define BP_PENDINGFORWARD               (-29)
+#define BP_PENDINGACCEPTANCE            (-30)
+#define BP_PENDINGAPPLICATION           (-31)
 
 /* Processing, Acceptance, and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
@@ -102,8 +104,8 @@ extern "C" {
 
 /* Bundle Integrity Types */
 #define BP_BIB_NONE                     0
-#define BP_BIB_CRC16_X25                1
-#define BP_BIB_CRC32_CASTAGNOLI         2
+#define BP_BIB_CRC16_X25                10
+#define BP_BIB_CRC32_CASTAGNOLI         11
 
 /* Retransmit Order */
 #define BP_RETX_OLDEST_BUNDLE           0

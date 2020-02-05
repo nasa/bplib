@@ -194,21 +194,20 @@
  |-----------|-----------|-----------------------| 0 --> Bundle Integrity Block
  |    0xD    | Blk Flags |     Block Length ...      
  |-----------|-----------|-----------|-----------| 4 
-    ...                  |    STC    |    STT    |
+    ...                  |    STC    |    SBT    |
  |-----------|-----------|-----------|-----------| 8
- |    STS    |    CSI    |    CSF    |    SRC    |
+ |    CSI    |    CSF    |     CL    |    SRT    |
  |-----------|-----------|-----------|-----------| 12
- |    SRT    |    SRL    |   Security Result ...
+ |    SRL    |   Security Result ...
  |-----------|-----------|-----------|-----------| Variable
 
  STC: Security Target Count (hardcoded to 1)
- STT: Security Target Type (hardcoded to 1)
- STS: Security Target Sequence
+ SBT: Security Target Block Type (hardcoded to 1)
  CSI: Cipher Suite ID
  CSF: Cipher Suite Flags
- SRC: Security Result Count (hardcoded to 1)
- SRT: Security Result Type
- SRL: Security Result Length
+ SRC: Compound Length (number of bytes that follow)
+ SRT: Security Result Type (hardcoded to 5)
+ SRL: Security Result Length (2 if CRC16, 4 if CRC32)
 ```
 
 #### 2.6 Aggregate Custody Signal Block

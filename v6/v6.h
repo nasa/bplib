@@ -45,6 +45,9 @@
 #define BP_CTEB_BLK_TYPE                0xA
 #define BP_BIB_BLK_TYPE                 0x3
 
+/* BIB Definitions */
+#define BP_BIB_INTEGRITY_SIGNATURE      5
+
 /* Record Type Definitions */    
 #define BP_STAT_REC_TYPE                0x10 /* Status Report */
 #define BP_CS_REC_TYPE                  0x20 /* Custody Signal */

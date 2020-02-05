@@ -99,13 +99,12 @@ static const bp_blk_bib_t bundle_bib_blk = {
     .block_flags              = {  0,       1,     1   },
     .block_length             = {  0,       2,     4   },
     .security_target_count    = {  1,       6,     1   },
-    .security_target_type     = {  1,       7,     1   },
-    .security_target_sequence = {  0,       8,     1   },
-    .cipher_suite_id          = {  0,       9,     1   },
-    .cipher_suite_flags       = {  0,       10,    1   },
-    .security_result_count    = {  1,       11,    1   },
-    .security_result_type     =    0,
-    .security_result_length   = {  1,       13,    1   },
+    .security_target_type     = BP_PAY_BLK_TYPE,
+    .cipher_suite_id          = {  0,       8,     1   },
+    .cipher_suite_flags       = {  0,       9,     1   },
+    .compound_length          = {  0,       10,    1   },
+    .security_result_type     = BP_BIB_INTEGRITY_SIGNATURE,
+    .security_result_length   = {  0,       12,    1   },
 };
 
 static const bp_blk_pay_t bundle_pay_blk = {
