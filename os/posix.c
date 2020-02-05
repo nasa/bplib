@@ -172,13 +172,16 @@ int bplib_os_createlock(void)
             if(locks[i] == NULL)
             {
                 locks[i] = (bplib_os_lock_t*)bplib_os_calloc(sizeof(bplib_os_lock_t));
-                pthread_mutexattr_t attr;
-                pthread_mutexattr_init(&attr);
-                pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-                pthread_mutex_init(&locks[i]->mutex, &attr);
-                pthread_cond_init(&locks[i]->cond, NULL);
-                handle = i;
-                break;
+                if(locks[i] != NULL)
+                {
+                    pthread_mutexattr_t attr;
+                    pthread_mutexattr_init(&attr);
+                    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+                    pthread_mutex_init(&locks[i]->mutex, &attr);
+                    pthread_cond_init(&locks[i]->cond, NULL);
+                    handle = i;
+                    break;
+                }
             }
         }
     }
