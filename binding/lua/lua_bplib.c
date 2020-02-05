@@ -67,6 +67,7 @@ typedef struct {
     const char* name;
     bool        initialized;
     void        (*initfunc) (void);
+    void        (*deinitfunc) (void);
     bp_store_t  store;
 } lbplib_store_t;
 
@@ -84,6 +85,7 @@ int lbplib_unittest     (lua_State* L);
 int lbplib_sleep        (lua_State* L);
 int lbplib_flashsim     (lua_State* L);
 int lbplib_memstat      (lua_State* L);
+int lbplib_shutdown     (lua_State* L);
 
 /* Bundle Protocol Meta Functions */
 int lbplib_delete       (lua_State* L);
@@ -97,9 +99,10 @@ int lbplib_accept       (lua_State* L);
 int lbplib_flush        (lua_State* L);
 
 /* Storage Service Initialization Functions */
-static void local_store_ram_init    (void);
-static void local_store_file_init   (void);
-static void local_store_flash_init  (void);
+static void local_store_ram_init        (void);
+static void local_store_file_init       (void);
+static void local_store_flash_init      (void);
+static void local_store_flash_deinit    (void);
 
 /******************************************************************************
  FILE DATA
@@ -120,6 +123,7 @@ static const struct luaL_Reg lbplib_functions [] = {
     {"sleep",       lbplib_sleep},
     {"flashsim",    lbplib_flashsim},
     {"memstat",     lbplib_memstat},
+    {"shutdown",    lbplib_shutdown},
     {NULL, NULL}
 };
 
@@ -145,6 +149,7 @@ static lbplib_store_t lbplib_stores[] =
         .name = "RAM",
         .initialized = false,
         .initfunc = local_store_ram_init,
+        .deinitfunc = NULL,
         .store =
         {
             .create     = bplib_store_ram_create,
@@ -161,6 +166,7 @@ static lbplib_store_t lbplib_stores[] =
         .name = "FILE",
         .initialized = false,
         .initfunc = local_store_file_init,
+        .deinitfunc = NULL,
         .store =
         {
             .create     = bplib_store_file_create,
@@ -177,6 +183,7 @@ static lbplib_store_t lbplib_stores[] =
         .name = "FLASH",
         .initialized = false,
         .initfunc = local_store_flash_init,
+        .deinitfunc = local_store_flash_deinit,
         .store =
         {
             .create     = bplib_store_flash_create,
@@ -343,6 +350,14 @@ static void local_store_flash_init(void)
     bplib_store_flash_init(lbplib_flash_driver, BP_FLASH_INIT_FORMAT, true);
 }
 
+/*----------------------------------------------------------------------------
+ * local_store_flash_deinit
+ *----------------------------------------------------------------------------*/
+static void local_store_flash_deinit(void)
+{
+    bplib_store_flash_uninit();
+}
+
 /******************************************************************************
  LIBRARY FUNCTIONS
  ******************************************************************************/
@@ -435,7 +450,7 @@ int lbplib_open (lua_State* L)
     else if(service->initialized == false)
     {
         service->initialized = true;
-        service->initfunc();
+        if(service->initfunc) service->initfunc();
     }
 
     /* Initialize with Default Attributes */
@@ -859,6 +874,27 @@ int lbplib_memstat (lua_State* L)
     lua_pushnumber(L, bplib_os_memused());
     lua_pushnumber(L, bplib_os_memhigh());
     return 2;
+}
+
+/*----------------------------------------------------------------------------
+ * lbplib_shutdown - bplib.shutdown()
+ *----------------------------------------------------------------------------*/
+int lbplib_shutdown (lua_State* L)
+{
+    (void)L;
+    
+    unsigned int i;
+    for(i = 0; i < LBPLIB_NUM_STORES; i++)
+    {
+        lbplib_store_t* service = &lbplib_stores[i];
+        if(service->initialized == true)
+        {
+            service->initialized = false;
+            if(service->deinitfunc) service->deinitfunc();
+        }
+    }
+
+    return 0;
 }
 
 /******************************************************************************

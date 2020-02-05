@@ -7,12 +7,7 @@ local src = runner.srcscript()
 -- Setup --
 
 local store = arg[1] or "RAM"
-if store == "FILE" then
-    os.execute("rm -Rf .pfile")
-    os.execute("mkdir -p .pfile")
-elseif store == "FLASH" then
-	bplib.flashsim("INIT")
-end
+runner.setup(bplib, store)
 
 local src_node = 4
 local src_serv = 3
@@ -130,11 +125,7 @@ runner.check(bp.check_stats(stats, {expired=2}))
 sender:close()
 receiver:close()
 
-if store == "FILE" then
-    os.execute("rm -Rf .pfile")
-elseif store == "FLASH" then
-	bplib.flashsim("DEINIT")
-end
+runner.cleanup(bplib, store)
 
 -- Report Results --
 

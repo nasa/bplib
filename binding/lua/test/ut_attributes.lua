@@ -7,6 +7,7 @@ local rd = runner.rootdir(arg[0])
 -- Setup --
 
 store = arg[1] or "RAM"
+runner.setup(bplib, store)
 
 -- Test --
 
@@ -57,6 +58,8 @@ if ch then
 end
 
 -- Clean Up --
+
+runner.cleanup(bplib, store)
 
 -- Report Results --
 

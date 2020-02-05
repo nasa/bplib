@@ -5,6 +5,8 @@ local src = runner.srcscript()
 -- Setup --
 
 store = arg[1] or "RAM"
+runner.setup(bplib, store)
+
 src_node = 4
 src_serv = 3
 dst_node = 72
@@ -94,6 +96,8 @@ check_option("DACS_RATE", dflt_dacsrate, 60, "tea")
 -- Clean Up --
 
 ch:close()
+
+runner.cleanup(bplib, store)
 
 -- Report Results --
 

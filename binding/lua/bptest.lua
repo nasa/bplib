@@ -162,6 +162,34 @@ local function compare(str1, str2)
 end
 
 --[[
+Function:   setup
+ Purpose:   create bplib test environment
+   Notes:   none
+]]
+local function setup(bplib, store)
+    if store == "FILE" then
+        os.execute("rm -Rf .pfile")
+        os.execute("mkdir -p .pfile")
+    elseif store == "FLASH" then
+        bplib.flashsim("INIT")
+    end
+end
+
+--[[
+Function:   cleanup
+ Purpose:   tear down bplib test environment
+   Notes:   none
+]]
+local function cleanup(bplib, store)
+    if store == "FILE" then
+        os.execute("rm -Rf .pfile")
+    elseif store == "FLASH" then
+        bplib.flashsim("DEINIT")
+    end
+    bplib.shutdown();
+end
+
+--[[
 Function:   report
  Purpose:   display the results of the asserts as a summary
    Notes:   none
@@ -217,6 +245,8 @@ local package = {
     check = check,
     script = script,
     compare = compare,
+    setup = setup,
+    cleanup = cleanup,
     report = report,
 }
 

@@ -9,12 +9,7 @@ local src = runner.srcscript()
 -- runner.set_exit_on_error(true)
 
 local store = arg[1] or "RAM"
-if store == "FILE" then
-    os.execute("rm -Rf .pfile")
-    os.execute("mkdir -p .pfile")
-elseif store == "FLASH" then
-	bplib.flashsim("INIT")
-end
+runner.setup(bplib, store)
 
 local cidreuse = (arg[2] == "CID_REUSE") or false
 
@@ -169,11 +164,7 @@ runner.check(bp.check_stats(stats, {stored_payloads=0, received_bundles=num_bund
 sender:close()
 receiver:close()
 
-if store == "FILE" then
-    os.execute("rm -Rf .pfile")
-elseif store == "FLASH" then
-	bplib.flashsim("DEINIT")
-end
+runner.cleanup(bplib, store)
 
 -- Report Results --
 

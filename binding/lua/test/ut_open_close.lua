@@ -6,12 +6,10 @@ local rd = runner.rootdir(arg[0])
 -- Setup --
 
 store = arg[1] or "RAM"
+runner.setup(bplib, store)
+
 max_channels = 4
 ch = {}
-
-if store == "FLASH" then
-	bplib.flashsim("INIT")
-end
 
 -- Test --
 
@@ -68,9 +66,7 @@ runner.check('ch[1] == nil')
 
 -- Clean Up --
 
-if store == "FLASH" then
-	bplib.flashsim("DEINIT")
-end
+runner.cleanup(bplib, store)
 
 -- Report Results --
 

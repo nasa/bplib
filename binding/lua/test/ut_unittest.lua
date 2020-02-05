@@ -5,6 +5,8 @@ local src = runner.srcscript()
 -- Setup --
 
 local test = arg[1] or "ALL"
+runner.setup(bplib, "RAM")
+
 -- Test --
 
 -----------------------------------------------------------------------
@@ -13,6 +15,8 @@ local numfails = bplib.unittest(test)
 runner.check(numfails == 0, string.format('Failures detected by bplib unittest: %d', numfails))
 
 -- Clean Up --
+
+runner.cleanup(bplib, store)
 
 -- Report Results --
 

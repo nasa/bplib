@@ -7,12 +7,7 @@ local src = runner.srcscript()
 -- Setup --
 
 local store = arg[1] or "RAM"
-if store == "FILE" then
-    os.execute("rm -Rf .pfile")
-    os.execute("mkdir -p .pfile")
-elseif store == "FLASH" then
-	bplib.flashsim("INIT")
-end
+runner.setup(bplib, store)
 
 local num_bundles = arg[2] or 256
 
@@ -144,11 +139,7 @@ print("Stored: " .. stored_bundles .. ", Acknowledged: " .. acks)
 sender:close()
 receiver:close()
 
-if store == "FILE" then
-    os.execute("rm -Rf .pfile")
-elseif store == "FLASH" then
-	bplib.flashsim("DEINIT")
-end
+runner.cleanup(bplib, store)
 
 -- Report Results --
 

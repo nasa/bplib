@@ -6,6 +6,7 @@ local src = runner.srcscript()
 -- Setup --
 
 local store = "RAM"
+runner.setup(bplib, store)
 
 local src_node = 4
 local src_serv = 3
@@ -33,6 +34,8 @@ runner.check(serv == dst_serv)
 
 sender:flush()
 sender:close()
+
+runner.cleanup(bplib, store)
 
 -- Report Results --
 

@@ -8,12 +8,7 @@ local src = runner.srcscript()
 -- runner.set_exit_on_error(true)
 
 local store = arg[1] or "RAM"
-if store == "FILE" then
-    os.execute("rm -Rf .pfile")
-    os.execute("mkdir -p .pfile")
-elseif store == "FLASH" then
-	bplib.flashsim("INIT")
-end
+runner.setup(bplib, store)
 
 local retx_order = arg[2] or "SMALLEST"
 if retx_order == "SMALLEST" then
@@ -79,11 +74,7 @@ end
 sender:flush()
 sender:close()
 
-if store == "FILE" then
-    os.execute("rm -Rf .pfile")
-elseif store == "FLASH" then
-	bplib.flashsim("DEINIT")
-end
+runner.cleanup(bplib, store)
 
 -- Report Results --
 

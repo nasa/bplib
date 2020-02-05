@@ -4,6 +4,8 @@ local src = runner.srcscript()
 
 -- Setup --
 
+runner.setup(bplib, "RAM")
+
 -- Test --
 
 -----------------------------------------------------------------------
@@ -29,6 +31,8 @@ rc, eid = bplib.ipn2eid(72, "forty three")
 runner.check('rc == false')
 
 -- Clean Up --
+
+runner.cleanup(bplib, store)
 
 -- Report Results --
 
