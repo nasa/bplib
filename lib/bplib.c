@@ -240,12 +240,12 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     int status = BP_SUCCESS;
 
     /* Allocate Channel */
-    bp_desc_t* desc = (bp_desc_t*)malloc(sizeof(bp_desc_t));
-    bp_channel_t* ch = (bp_channel_t*)malloc(sizeof(bp_channel_t));
+    bp_desc_t* desc = (bp_desc_t*)bplib_os_calloc(sizeof(bp_desc_t));
+    bp_channel_t* ch = (bp_channel_t*)bplib_os_calloc(sizeof(bp_channel_t));
     if(desc == NULL || ch == NULL)
     {
-        if(desc) free(desc);
-        if(ch) free(ch);
+        if(desc) bplib_os_free(desc);
+        if(ch) bplib_os_free(ch);
         bplog(BP_FAILEDMEM, "Cannot open channel: not enough memory\n");
         return NULL;
     }
@@ -255,7 +255,6 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
 
     /* Clear Channel Memory and Initialize to Defaults */
-    memset(ch, 0, sizeof(bp_channel_t));
     ch->custody_tree_lock   = BP_INVALID_HANDLE;
     ch->active_table_signal = BP_INVALID_HANDLE;
     ch->bundle_handle       = BP_INVALID_HANDLE;
@@ -339,16 +338,13 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Allocate Memory for Channel DACS Bundle Fills */
     ch->dacs_size = sizeof(bp_val_t) * attributes.max_fills_per_dacs + 6; // 2 bytes per fill plus payload block header
-    ch->dacs_buffer = (uint8_t*)malloc(ch->dacs_size);
+    ch->dacs_buffer = (uint8_t*)bplib_os_calloc(ch->dacs_size);
     if(ch->dacs_buffer == NULL)
     {
         bplog(BP_FAILEDMEM, "Failed to allocate memory for channel DACS\n");
         bplib_close(desc);
         return NULL;
     }
-
-    /* Initialize DACS Buffer to Zeroes */
-    memset(ch->dacs_buffer, 0, ch->dacs_size);
 
     /* Allocate Memory for DACS Channel Tree to Store Bundle IDs */
     status = rb_tree_create(attributes.max_gaps_per_dacs, &ch->custody_tree);
@@ -458,7 +454,7 @@ void bplib_close(bp_desc_t* desc)
     /* Free Buffer for DACS */
     if(ch->dacs_buffer)
     {
-        free(ch->dacs_buffer);
+        bplib_os_free(ch->dacs_buffer);
         ch->dacs_buffer = NULL;
     }
 
@@ -474,8 +470,8 @@ void bplib_close(bp_desc_t* desc)
     ch->active_table.destroy(ch->active_table.table);
 
     /* Free Channel */
-    free(ch);
-    free(desc);
+    bplib_os_free(ch);
+    bplib_os_free(desc);
 }
 
 /*--------------------------------------------------------------------------------------

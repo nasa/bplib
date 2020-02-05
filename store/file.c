@@ -265,7 +265,7 @@ int bplib_store_file_create (void* parm)
             int root_path_len = bplib_os_strnlen(root_path, FILE_MAX_FILENAME) + 1;
             if(root_path_len <= FILE_MAX_FILENAME)
             {
-                file_stores[s].file_root = (char*)malloc(root_path_len);
+                file_stores[s].file_root = (char*)bplib_os_calloc(root_path_len);
                 if(file_stores[s].file_root)
                 {
                     memcpy(file_stores[s].file_root, root_path, root_path_len);
@@ -284,11 +284,7 @@ int bplib_store_file_create (void* parm)
             int cache_size = FILE_DEFAULT_CACHE_SIZE;
             if(attr && attr->cache_size) cache_size = attr->cache_size;
             file_stores[s].cache_size = cache_size;
-            file_stores[s].data_cache = (data_cache_t*)malloc(cache_size * sizeof(data_cache_t));
-            if(file_stores[s].data_cache)
-            {
-                memset(file_stores[s].data_cache, 0, cache_size * sizeof(data_cache_t));
-            }
+            file_stores[s].data_cache = (data_cache_t*)bplib_os_calloc(cache_size * sizeof(data_cache_t));
 
             /* Set Flush Attribute */
             if(attr)    file_stores[s].flush_on_write = attr->flush_on_write;
@@ -321,9 +317,9 @@ int bplib_store_file_destroy (int handle)
     if(file_stores[handle].write_fd != NULL)            file_driver.close(file_stores[handle].write_fd);
     if(file_stores[handle].read_fd != NULL)             file_driver.close(file_stores[handle].read_fd);
     if(file_stores[handle].retrieve_fd != NULL)         file_driver.close(file_stores[handle].retrieve_fd);
-    if(file_stores[handle].file_root != NULL)           free(file_stores[handle].file_root);
+    if(file_stores[handle].file_root != NULL)           bplib_os_free(file_stores[handle].file_root);
     if(file_stores[handle].lock != BP_INVALID_HANDLE)   bplib_os_destroylock(file_stores[handle].lock);
-    if(file_stores[handle].data_cache != NULL)          free(file_stores[handle].data_cache);
+    if(file_stores[handle].data_cache != NULL)          bplib_os_free(file_stores[handle].data_cache);
 
     file_stores[handle].in_use = false;
 
@@ -542,7 +538,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
         bytes_read = file_driver.read(&object_size, 1, sizeof(object_size), fs->read_fd);
         if(bytes_read == sizeof(object_size))
         {
-            object_ptr = (unsigned char*)malloc(object_size);
+            object_ptr = (unsigned char*)bplib_os_calloc(object_size);
             bytes_read = file_driver.read(object_ptr, 1, object_size, fs->read_fd);
             if(bytes_read == object_size)
             {
@@ -567,7 +563,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             }
 
             /* Free Object Pointer */
-            if(object_ptr) free(object_ptr);
+            if(object_ptr) bplib_os_free(object_ptr);
 
             /* Return Failure */
             bplib_os_unlock(fs->lock);
@@ -581,14 +577,14 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             int wait_status = bplib_os_waiton(fs->lock, timeout);
             if(wait_status == BP_ERROR)
             {
-                free(object_ptr);
+                bplib_os_free(object_ptr);
                 bplib_os_unlock(fs->lock);
                 return bplog(BP_FAILEDSTORE, "Failed (%d) to get lock to update cache\n", wait_status);
             }
             else if((wait_status == BP_TIMEOUT) ||
                     (fs->data_cache[cache_index].mem_locked))
             {
-                free(object_ptr);
+                bplib_os_free(object_ptr);
                 bplib_os_unlock(fs->lock);
                 return BP_TIMEOUT;
             }
@@ -597,7 +593,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
         /* Free Previous Entry in Data Cache */
         if(fs->data_cache[cache_index].mem_ptr)
         {
-            free(fs->data_cache[cache_index].mem_ptr);
+            bplib_os_free(fs->data_cache[cache_index].mem_ptr);
         }
 
         /* Update Data Cache */
@@ -739,7 +735,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
         bytes_read = file_driver.read(&object_size, 1, sizeof(object_size), fs->retrieve_fd);
         if(bytes_read == sizeof(object_size))
         {
-            object_ptr = (unsigned char*)malloc(object_size);
+            object_ptr = (unsigned char*)bplib_os_calloc(object_size);
             bytes_read = file_driver.read(object_ptr, 1, object_size, fs->retrieve_fd);
             if(bytes_read == object_size)
             {
@@ -753,7 +749,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
         /* Check Success */
         if(!retrieve_success)
         {
-            free(object_ptr);
+            bplib_os_free(object_ptr);
 
             /* Close Read File */
             if(fs->retrieve_fd)
@@ -774,14 +770,14 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             int wait_status = bplib_os_waiton(fs->lock, timeout);
             if(wait_status == BP_ERROR)
             {
-                free(object_ptr);
+                bplib_os_free(object_ptr);
                 bplib_os_unlock(fs->lock);
                 return bplog(BP_FAILEDSTORE, "Failed (%d) to update data cache on retrieval\n", wait_status);
             }
             else if((wait_status == BP_TIMEOUT) ||
                     (fs->data_cache[cache_index].mem_locked))
             {
-                free(object_ptr);
+                bplib_os_free(object_ptr);
                 bplib_os_unlock(fs->lock);
                 return BP_TIMEOUT;
             }
@@ -790,7 +786,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
         /* Free Previous Entry in Data Cache */
         if(fs->data_cache[cache_index].mem_ptr)
         {
-            free(fs->data_cache[cache_index].mem_ptr);
+            bplib_os_free(fs->data_cache[cache_index].mem_ptr);
         }
 
         /* Update Data Cache */
@@ -866,7 +862,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
         {
             if(fs->data_cache[cache_index].mem_data_id == data_id)
             {
-                free(fs->data_cache[cache_index].mem_ptr);
+                bplib_os_free(fs->data_cache[cache_index].mem_ptr);
                 fs->data_cache[cache_index].mem_ptr = NULL;
                 fs->data_cache[cache_index].mem_data_id = BP_SID_VACANT;
                 fs->data_cache[cache_index].mem_locked = FILE_MEM_AVAIABLE;

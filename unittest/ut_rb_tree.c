@@ -31,7 +31,6 @@
  DEFINES
  ******************************************************************************/
 
-#define MAX_TREE_SIZE ((BP_MAX_ENCODED_VALUE  / 2) + 1)
 #define RED   true  /* Boolean representing a red rb_node_t. */
 #define BLACK false /* Boolean representing a black rb_node_t, */
 
@@ -757,6 +756,7 @@ static void test_are_consecutive()
 /*--------------------------------------------------------------------------------------
  * test_max_range_offset -
  *--------------------------------------------------------------------------------------*/
+#define MAX_TREE_SIZE ((BP_MAX_ENCODED_VALUE / sizeof(rb_node_t)) + 1)
 static void test_max_range_offset()
 {
     int f = ut_failures();
@@ -771,18 +771,20 @@ static void test_max_range_offset()
         printf("PASS\n");
         return;
     }
-
-    for (uint32_t i = 0; i <= UINT32_MAX - 1; i++)
+    else if(status == BP_SUCCESS)
     {
-        rb_tree_insert(i, &tree);
-    }
-    rb_tree_insert(UINT32_MAX, &tree);
-    assert_rb_tree_is_valid(&tree);
+        for (uint32_t i = 0; i <= UINT32_MAX - 1; i++)
+        {
+            rb_tree_insert(i, &tree);
+        }
+        rb_tree_insert(UINT32_MAX, &tree);
+        assert_rb_tree_is_valid(&tree);
 
-    rb_node_t n = {.range = {.value = 0, .offset = UINT32_MAX}, .color = BLACK};
-    rb_node_t* nodes[] = {&n};
-    assert_inorder_nodes_are(tree.root, nodes, 1, 0);
-    rb_tree_destroy(&tree);
+        rb_node_t n = {.range = {.value = 0, .offset = UINT32_MAX}, .color = BLACK};
+        rb_node_t* nodes[] = {&n};
+        assert_inorder_nodes_are(tree.root, nodes, 1, 0);
+        rb_tree_destroy(&tree);
+    }
 
     if(f == ut_failures()) printf("PASS\n");
     else                   printf("FAIL\n");

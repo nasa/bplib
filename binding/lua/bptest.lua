@@ -44,7 +44,7 @@ local function rootdir (filepath)
         return filepath:sub(1,path_index)
     else
         return "./"
-    end 
+    end
 end
 
 --[[
@@ -68,7 +68,7 @@ local function command (cmd_str)
     local status = cmd.exec(cmd_str)
     if status < 0 then
         results[context]["messages"][results[context]["errors"]] = debug.traceback(cmd_str)
-        results[context]["errors"] = results[context]["errors"] + 1        
+        results[context]["errors"] = results[context]["errors"] + 1
     end
     if status == false then
         if exit_on_error then os.exit() end
@@ -94,7 +94,7 @@ local function check (expression, errmsg)
     if status == false or status == nil then
         if errmsg then print(errmsg) end
         results[context]["messages"][results[context]["errors"]] = debug.traceback(tracemsg)
-        results[context]["errors"] = results[context]["errors"] + 1        
+        results[context]["errors"] = results[context]["errors"] + 1
         if exit_on_error then os.exit() end
     end
     return status
@@ -114,7 +114,7 @@ local function script (script_str, parms)
     print("--------------------------------------------\n")
     if parms then
         for k,v in pairs(parms) do
-            arg[k] = v        
+            arg[k] = v
             numparms = numparms + 1
         end
     end
@@ -123,10 +123,10 @@ local function script (script_str, parms)
 	results[context]["stop"] = os.clock()
     if parms then
         for i=1,numparms do
-            arg[i] = nil        
+            arg[i] = nil
         end
         for k,v in pairs(argsave) do
-            arg[k] = v        
+            arg[k] = v
         end
     end
     set_context("global")
@@ -137,7 +137,7 @@ Function:   compare
  Purpose:   do a binary comparison of two arbitrary strings
    Notes:   necessary to work around strings created from userdata
 ]]
-local function compare(str1, str2) 
+local function compare(str1, str2)
     local status = true
     bytes1 = {string.byte(str1, 0, -1)}
     bytes2 = {string.byte(str2, 0, -1)}
@@ -155,7 +155,7 @@ local function compare(str1, str2)
     end
     if status == false then
         results[context]["messages"][results[context]["errors"]] = debug.traceback(errmsg)
-        results[context]["errors"] = results[context]["errors"] + 1        
+        results[context]["errors"] = results[context]["errors"] + 1
         if exit_on_error then os.exit() end
     end
     return status
@@ -166,10 +166,14 @@ Function:   report
  Purpose:   display the results of the asserts as a summary
    Notes:   none
 ]]
-local function report ()
+local function report (bplib)
     local total_asserts = 0
     local total_errors = 0
-    if context == "global" then --suppress report until the end
+    if bplib ~= nil then
+        currmem, highmem = bplib.memstat()
+        print("Memory Usage: " .. currmem .. "/" .. highmem)
+    end
+    if context == "global" then --suppress final report until the end
 		results["global"]["stop"] = os.clock()
 		wallclock_stop = os.time()
         for testname in pairs(results) do
@@ -179,7 +183,7 @@ local function report ()
             print("\n---------------------------------")
             for i = 0, (results[context]["errors"]-1) do
                 print("FAIL: " .. results[context]["messages"][i])
-            end 
+            end
             print("---------------------------------")
             print("Executed test: " .. context)
             print("Elapsed time: " .. results[context]["stop"] - results[context]["start"] .. " seconds")
@@ -202,7 +206,7 @@ set_context(context)
 results["global"]["start"] = os.clock()
 
 for k,v in pairs(arg) do
-    argsave[k] = v        
+    argsave[k] = v
 end
 
 local package = {

@@ -31,7 +31,7 @@
    than the max data size because since we are representing ranges. Thus in the worse case
    scenario where values are added one apart so that a new node is added for each insertion
    once we reach half + 1 nodes then merging will occur. */
-#define MAX_TREE_SIZE ((BP_MAX_ENCODED_VALUE  / 2) + 1)
+#define MAX_TREE_SIZE ((BP_MAX_ENCODED_VALUE / 2) + 1)
 #define RED   true  /* Boolean representing a red rb_node_t. */
 #define BLACK false /* Boolean representing a black rb_node_t, */
 
@@ -1122,7 +1122,13 @@ int rb_tree_create(bp_val_t max_size, rb_tree_t* tree)
 
     if ((max_size == 0) || (max_size > MAX_TREE_SIZE))
     {
+        /* Tree values are not able to represent requested range */
         return BP_PARMERR;
+    }
+    else if(max_size >= (BP_MAX_ENCODED_VALUE / sizeof(rb_node_t)))
+    {
+        /* Memory allocation request below will rollover */
+        return BP_FAILEDMEM;
     }
 
     /* Size starts maxed out until free blocks are allocated. */
@@ -1131,8 +1137,7 @@ int rb_tree_create(bp_val_t max_size, rb_tree_t* tree)
 
     /* Allocate a block of memory for the nodes in the tree and add them all to the
        the free nodes queue. */
-    tree->node_block = (rb_node_t*) calloc(max_size, sizeof(rb_node_t));
-
+    tree->node_block = (rb_node_t*) bplib_os_calloc(max_size * sizeof(rb_node_t));
     if (tree->node_block == NULL)
     {
         /* If no memory is allocated return an empty tree. */
@@ -1325,7 +1330,7 @@ int rb_tree_destroy(rb_tree_t* tree)
 
     if(tree->node_block != NULL)
     {
-        free(tree->node_block);
+        bplib_os_free(tree->node_block);
         tree->node_block = NULL;
     }
 

@@ -290,7 +290,7 @@ int v6_create(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes)
     /* Allocate Blocks */
     if(status == BP_SUCCESS)
     {
-        bundle->blocks = (bp_v6blocks_t*)malloc(sizeof(bp_v6blocks_t));
+        bundle->blocks = (bp_v6blocks_t*)bplib_os_calloc(sizeof(bp_v6blocks_t));
         if(bundle->blocks == NULL)
         {
             status = BP_FAILEDMEM;
@@ -311,7 +311,7 @@ int v6_create(bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes)
  *-------------------------------------------------------------------------------------*/
 int v6_destroy(bp_bundle_t* bundle)
 {
-    if(bundle->blocks) free(bundle->blocks);
+    if(bundle->blocks) bplib_os_free(bundle->blocks);
     bundle->blocks = NULL;
     return BP_SUCCESS;
 }

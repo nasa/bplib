@@ -83,6 +83,7 @@ int lbplib_ipn2eid      (lua_State* L);
 int lbplib_unittest     (lua_State* L);
 int lbplib_sleep        (lua_State* L);
 int lbplib_flashsim     (lua_State* L);
+int lbplib_memstat      (lua_State* L);
 
 /* Bundle Protocol Meta Functions */
 int lbplib_delete       (lua_State* L);
@@ -118,6 +119,7 @@ static const struct luaL_Reg lbplib_functions [] = {
     {"unittest",    lbplib_unittest},
     {"sleep",       lbplib_sleep},
     {"flashsim",    lbplib_flashsim},
+    {"memstat",     lbplib_memstat},
     {NULL, NULL}
 };
 
@@ -847,6 +849,16 @@ int lbplib_flashsim (lua_State* L)
         }
 
     }
+}
+
+/*----------------------------------------------------------------------------
+ * lbplib_memstat - bplib.memstat() --> current, high water
+ *----------------------------------------------------------------------------*/
+int lbplib_memstat (lua_State* L)
+{
+    lua_pushnumber(L, bplib_os_memused());
+    lua_pushnumber(L, bplib_os_memhigh());
+    return 2;
 }
 
 /******************************************************************************

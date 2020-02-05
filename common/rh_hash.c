@@ -116,10 +116,10 @@ int rh_hash_create(rh_hash_t** rh_hash, int size)
     if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_PARMERR;
 
     /* Allocate Hash Structure */
-    *rh_hash = (rh_hash_t*)malloc(sizeof(rh_hash_t));
+    *rh_hash = (rh_hash_t*)bplib_os_calloc(sizeof(rh_hash_t));
 
     /* Allocate Hash Table */
-    (*rh_hash)->table = (rh_hash_node_t*)malloc(size * sizeof(rh_hash_node_t));
+    (*rh_hash)->table = (rh_hash_node_t*)bplib_os_calloc(size * sizeof(rh_hash_node_t));
     if((*rh_hash)->table == NULL) return BP_FAILEDMEM;
 
     /* Initialize Hash Table to Empty */
@@ -149,8 +149,8 @@ int rh_hash_destroy(rh_hash_t* rh_hash)
 {
     if(rh_hash)
     {
-        if(rh_hash->table) free(rh_hash->table);
-        free(rh_hash);
+        if(rh_hash->table) bplib_os_free(rh_hash->table);
+        bplib_os_free(rh_hash);
     }
 
     return BP_SUCCESS;

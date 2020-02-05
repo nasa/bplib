@@ -59,7 +59,7 @@
  ******************************************************************************/
 
 /* Macros */
-#define BP_GET_MAXVAL(t)        (0xFFFFFFFFFFFFFFFFul >> (64 - (sizeof(t) * 8)))
+#define BP_GET_MAXVAL(t)        (0xFFFFFFFFFFFFFFFFllu >> (64 - (sizeof(t) * 8)))
 #define bplog(err,...)          bplib_os_log(__FILE__,__LINE__,err,__VA_ARGS__)
 
 /******************************************************************************
@@ -91,5 +91,9 @@ void        bplib_os_signal         (int handle);
 int         bplib_os_waiton         (int handle, int timeout_ms);
 int         bplib_os_format         (char* dst, size_t len, const char* fmt, ...) VARG_CHECK(printf, 3, 4);
 int         bplib_os_strnlen        (const char* str, int maxlen);
+void*       bplib_os_calloc         (size_t size);
+void        bplib_os_free           (void* ptr);
+size_t      bplib_os_memused        (void);
+size_t      bplib_os_memhigh        (void);
 
 #endif /* _bplib_os_h_ */

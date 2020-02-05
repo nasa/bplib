@@ -32,5 +32,5 @@ runner.check('rc == false')
 
 -- Report Results --
 
-runner.report()
+runner.report(bplib)
 

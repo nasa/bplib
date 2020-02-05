@@ -106,7 +106,7 @@ BP_LOCAL_SCOPE void flush_queue(queue_t* q)
     while(q->front != NULL)
     {
         temp = q->front->next;
-        free(q->front);
+        bplib_os_free(q->front);
         q->front = temp;
     }
     q->rear = NULL;
@@ -147,7 +147,7 @@ BP_LOCAL_SCOPE int enqueue(queue_t* q, void* data, int size)
     }
 
     /* create temp node */
-    queue_node_t* temp = (queue_node_t*)malloc((int)sizeof(queue_node_t));
+    queue_node_t* temp = (queue_node_t*)bplib_os_calloc((int)sizeof(queue_node_t));
     if(!temp) return MSGQ_MEMORY_ERROR;
 
     /* construct node to be added */
@@ -195,7 +195,7 @@ BP_LOCAL_SCOPE void* dequeue(queue_t* q, int* size)
         {
             q->front = q->front->next;
         }
-        free(tmp);
+        bplib_os_free(tmp);
 
         q->len--;
     }
@@ -241,7 +241,7 @@ BP_LOCAL_SCOPE msgq_t msgq_create(const char* name, int depth, int data_size)
     }
 
     /* Allocate MSG Q */
-    msgQ = (message_queue_t*)malloc(sizeof(message_queue_t));
+    msgQ = (message_queue_t*)bplib_os_calloc(sizeof(message_queue_t));
     if(msgQ == NULL)
     {
         printf("ERROR, Unable to allocate message queue: %s\n", name);
@@ -275,7 +275,7 @@ BP_LOCAL_SCOPE void msgq_delete(msgq_t queue_handle)
     {
         flush_queue(&msgQ->queue);
         bplib_os_destroylock(msgQ->ready);
-        free(msgQ);
+        bplib_os_free(msgQ);
     }
 }
 
@@ -434,7 +434,7 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
     int status;
     int data_size = data1_size + data2_size;
     int object_size = sizeof(bp_object_hdr_t) + data_size;
-    bp_object_t* object = (bp_object_t*)malloc(object_size);
+    bp_object_t* object = (bp_object_t*)bplib_os_calloc(object_size);
 
     /* Check memory allocation */
     if(!object) return BP_FAILEDSTORE;
@@ -455,13 +455,13 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
     }
     else if(status == MSGQ_FULL)
     {
-        free(object);
+        bplib_os_free(object);
         bplib_os_sleep(timeout / 1000);
         return BP_TIMEOUT;
     }
     else
     {
-        free(object);
+        bplib_os_free(object);
         return BP_FAILEDSTORE;
     }
 }
@@ -536,7 +536,7 @@ int bplib_store_ram_relinquish (int handle, bp_sid_t sid)
     assert(msgq_stores[handle]);
 
     bp_object_t* object = (void*)sid;
-    free(object);
+    bplib_os_free(object);
     msgq_counts[handle]--;
 
     return BP_SUCCESS;

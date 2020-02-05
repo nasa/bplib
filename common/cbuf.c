@@ -1,13 +1,13 @@
 /************************************************************************
  * File: cbuf.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -34,23 +34,20 @@ int cbuf_create(cbuf_t** cbuf, int size)
 {
     /* Check Buffer Size */
     if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_PARMERR;
-    
+
     /* Allocate Structure */
-    *cbuf = (cbuf_t*)malloc(sizeof(cbuf_t));
-    
+    *cbuf = (cbuf_t*)bplib_os_calloc(sizeof(cbuf_t));
+
     /* Allocate Circular Buffer */
-    (*cbuf)->table = (bp_active_bundle_t*)malloc(sizeof(bp_active_bundle_t) * size);
+    (*cbuf)->table = (bp_active_bundle_t*)bplib_os_calloc(sizeof(bp_active_bundle_t) * size);
     if((*cbuf)->table == NULL) return BP_FAILEDMEM;
-            
-    /* Initialize Circular to Empty */
-    memset((*cbuf)->table, 0, sizeof(bp_active_bundle_t) * size);
-    
+
     /* Initialize Circular Buffer Attributes */
     (*cbuf)->size = size;
     (*cbuf)->num_entries = 0;
     (*cbuf)->newest_cid = 0;
     (*cbuf)->oldest_cid = 0;
-    
+
     /* Return Success */
     return BP_SUCCESS;
 }
@@ -62,10 +59,10 @@ int cbuf_destroy(cbuf_t* cbuf)
 {
     if(cbuf)
     {
-        if(cbuf->table) free(cbuf->table);
-        free(cbuf);
+        if(cbuf->table) bplib_os_free(cbuf->table);
+        bplib_os_free(cbuf);
     }
-    
+
     return BP_SUCCESS;
 }
 
@@ -77,9 +74,9 @@ int cbuf_add(cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite)
     /* Add Bundle */
     bp_index_t ati = bundle.cid % cbuf->size;
     if( (!overwrite) &&
-        (cbuf->table[ati].sid != BP_SID_VACANT) && 
+        (cbuf->table[ati].sid != BP_SID_VACANT) &&
         (cbuf->table[ati].cid == bundle.cid) )
-    {        
+    {
         return BP_DUPLICATECID;
     }
     else
@@ -88,7 +85,7 @@ int cbuf_add(cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite)
         cbuf->num_entries++;
         if(!overwrite) cbuf->newest_cid = bundle.cid + 1;
     }
-    
+
     /* Return Success */
     return BP_SUCCESS;
 }
@@ -103,7 +100,7 @@ int cbuf_next(cbuf_t* cbuf, bp_active_bundle_t* bundle)
         bp_index_t ati = cbuf->oldest_cid % cbuf->size;
         if(cbuf->table[ati].sid == BP_SID_VACANT)
         {
-            cbuf->oldest_cid++; 
+            cbuf->oldest_cid++;
         }
         else
         {
@@ -141,7 +138,7 @@ int cbuf_available(cbuf_t* cbuf, bp_val_t cid)
     bp_index_t ati = cid % cbuf->size;
     if(cbuf->table[ati].sid == BP_SID_VACANT)
     {
-        return BP_SUCCESS;        
+        return BP_SUCCESS;
     }
     else
     {

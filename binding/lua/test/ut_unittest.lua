@@ -16,5 +16,5 @@ runner.check(numfails == 0, string.format('Failures detected by bplib unittest: 
 
 -- Report Results --
 
-runner.report()
+runner.report(bplib)
 

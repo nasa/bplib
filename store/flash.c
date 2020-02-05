@@ -22,7 +22,6 @@
 #include <assert.h>
 
 #include "bplib.h"
-#include "bplib_os.h"
 #include "bplib_store_flash.h"
 
 /******************************************************************************
@@ -897,7 +896,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
         }
 
         /* Allocate Memory for Block Control */
-        flash_blocks = (flash_block_control_t*)malloc(sizeof(flash_block_control_t) * FLASH_DRIVER.num_blocks);
+        flash_blocks = (flash_block_control_t*)bplib_os_calloc(sizeof(flash_block_control_t) * FLASH_DRIVER.num_blocks);
         if(flash_blocks == NULL)
         {
             bplog(BP_FAILEDMEM, "Unable to allocate memory for flash block control information\n");
@@ -912,9 +911,9 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
             FLASH_ECC_CODE_SIZE = FLASH_DRIVER.page_size - FLASH_PAGE_DATA_SIZE;
 
             /* Allocate ECC Tables and Buffers */
-            FLASH_XOR_TABLE = (uint8_t*)malloc(256);
-            FLASH_ECC_TABLE = (int8_t*)malloc(256);
-            flash_page_buffer = (uint8_t*)malloc(FLASH_DRIVER.page_size);
+            FLASH_XOR_TABLE = (uint8_t*)bplib_os_calloc(256);
+            FLASH_ECC_TABLE = (int8_t*)bplib_os_calloc(256);
+            flash_page_buffer = (uint8_t*)bplib_os_calloc(FLASH_DRIVER.page_size);
             if(!FLASH_XOR_TABLE || !FLASH_ECC_TABLE || !flash_page_buffer)
             {
                 bplog(BP_FAILEDMEM, "Unable to allocate memory for flash sw ecc information\n");
@@ -974,25 +973,25 @@ void bplib_store_flash_uninit (void)
 
     if(flash_blocks)
     {
-        free(flash_blocks);
+        bplib_os_free(flash_blocks);
         flash_blocks = NULL;
     }
 
     if(FLASH_XOR_TABLE)
     {
-        free(FLASH_XOR_TABLE);
+        bplib_os_free(FLASH_XOR_TABLE);
         FLASH_XOR_TABLE = NULL;
     }
 
     if(FLASH_ECC_TABLE)
     {
-        free(FLASH_ECC_TABLE);
+        bplib_os_free(FLASH_ECC_TABLE);
         FLASH_ECC_TABLE = NULL;
     }
 
     if(flash_page_buffer)
     {
-        free(flash_page_buffer);
+        bplib_os_free(flash_page_buffer);
         flash_page_buffer = NULL;
     }
 }
@@ -1075,13 +1074,13 @@ int bplib_store_flash_create (void* parm)
 
             /* Allocate Stage */
             flash_stores[s].stage_locked = false;
-            flash_stores[s].write_stage = (uint8_t*)malloc(flash_stores[s].attributes.max_data_size);
-            flash_stores[s].read_stage = (uint8_t*)malloc(flash_stores[s].attributes.max_data_size);
+            flash_stores[s].write_stage = (uint8_t*)bplib_os_calloc(flash_stores[s].attributes.max_data_size);
+            flash_stores[s].read_stage = (uint8_t*)bplib_os_calloc(flash_stores[s].attributes.max_data_size);
             if((flash_stores[s].write_stage == NULL) ||
                (flash_stores[s].read_stage == NULL) )
             {
-                if(flash_stores[s].write_stage) free(flash_stores[s].write_stage);
-                if(flash_stores[s].read_stage) free(flash_stores[s].read_stage);
+                if(flash_stores[s].write_stage) bplib_os_free(flash_stores[s].write_stage);
+                if(flash_stores[s].read_stage) bplib_os_free(flash_stores[s].read_stage);
                 return bplog(BP_INVALID_HANDLE, "Unable to allocate data stages\n");
             }
 
@@ -1107,8 +1106,8 @@ int bplib_store_flash_destroy (int handle)
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
     assert(flash_stores[handle].in_use);
 
-    free(flash_stores[handle].write_stage);
-    free(flash_stores[handle].read_stage);
+    bplib_os_free(flash_stores[handle].write_stage);
+    bplib_os_free(flash_stores[handle].read_stage);
     flash_stores[handle].in_use = false;
 
     return BP_SUCCESS;

@@ -31,5 +31,5 @@ runner.script(rd .. "ut_unittest.lua")
 
 -- Report Results --
 
-runner.report()
+runner.report(bplib)
 
