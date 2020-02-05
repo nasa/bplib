@@ -29,6 +29,11 @@ runner.script(rd .. "ut_high_loss.lua", {"FILE"})
 runner.script(rd .. "ut_high_loss.lua", {"FLASH", 100})
 runner.script(rd .. "ut_unittest.lua")
 
+-- Check for Memory Leaks --
+
+currmem, highmem = bplib.memstat()
+runner.check(currmem == 0, string.format('Memory leak detected: %d!', currmem))
+
 -- Report Results --
 
 runner.report(bplib)

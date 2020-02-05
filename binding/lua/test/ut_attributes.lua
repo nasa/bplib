@@ -54,6 +54,7 @@ if ch then
 	runner.check(bp.check_flags(flags, {"activetablewrap"}))
 
 	-- close channel --
+	ch:flush()
 	ch:close()
 end
 

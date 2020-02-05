@@ -135,6 +135,22 @@ runner.check(bp.check_stats(tx_stats, {stored_bundles=stored_bundles - acks}))
 
 print("Stored: " .. stored_bundles .. ", Acknowledged: " .. acks)
 
+-- drain payloads --
+while true do
+	rc, payload, flags = receiver:accept(1000)
+	if rc then
+		runner.check(payload ~= nil)
+		runner.check(bp.check_flags(flags, {}))
+	else
+		break
+	end
+end
+
+-- check stats --
+rc, rx_stats = receiver:stats()
+stored_payloads = rx_stats["stored_payloads"]
+runner.check(stored_payloads == 0, "Failed to drain all payloads from receiver")
+
 -- Clean Up --
 sender:close()
 receiver:close()

@@ -119,9 +119,9 @@ runner.check(bp.check_flags(flags, {}))
 rc, stats = receiver:stats()
 runner.check(bp.check_stats(stats, {expired=2}))
 
-
 -- Clean Up --
 
+sender:flush()
 sender:close()
 receiver:close()
 

@@ -818,6 +818,8 @@ static void test_unable_to_delete_value_that_does_not_exist()
     ut_check(rb_tree_delete(39, &tree) == BP_CIDNOTFOUND);
     ut_check(tree.size == 5);
 
+    rb_tree_destroy(&tree);
+
     if(f == ut_failures()) printf("PASS\n");
     else                   printf("FAIL\n");
 }
@@ -856,6 +858,8 @@ static void test_delete_single_node()
     assert_inorder_nodes_are(tree.root, nodes_end, 5, 0);
     ut_check(tree.size == 5);
     assert_rb_tree_is_valid(&tree);
+
+    rb_tree_destroy(&tree);
 
     if(f == ut_failures()) printf("PASS\n");
     else                   printf("FAIL\n");
@@ -908,6 +912,8 @@ static void test_deletes_node_at_start_of_range()
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
     assert_rb_tree_is_valid(&tree);
 
+    rb_tree_destroy(&tree);
+
     if(f == ut_failures()) printf("PASS\n");
     else                   printf("FAIL\n");
 }
@@ -957,6 +963,8 @@ static void test_deletes_node_at_end_of_range()
     assert_inorder_nodes_are(tree.root, nodes, 5, 0);
     assert_rb_tree_is_valid(&tree);
 
+    rb_tree_destroy(&tree);
+
     if(f == ut_failures()) printf("PASS\n");
     else                   printf("FAIL\n");
 }
@@ -1005,6 +1013,8 @@ static void test_deletes_node_inside_of_range()
     assert_inorder_nodes_are(tree.root, nodes_end, 6, 0);
     assert_rb_tree_is_valid(&tree);
 
+    rb_tree_destroy(&tree);
+
     if(f == ut_failures()) printf("PASS\n");
     else                   printf("FAIL\n");
 }
@@ -1028,6 +1038,8 @@ static void test_deletes_node_inside_of_small_range()
     rb_tree_delete(1, &tree);
 
     assert_rb_tree_is_valid(&tree);
+
+    rb_tree_destroy(&tree);
 
     if(f == ut_failures()) printf("PASS\n");
     else                   printf("FAIL\n");
@@ -1079,6 +1091,8 @@ static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
     ut_check(rb_tree_get_next(&tree, &range, true, true) == BP_ERROR);
     ut_check(tree.size == 0);
 
+    rb_tree_destroy(&tree);
+
     if(f == ut_failures())  printf("PASS\n");
     else                    printf("FAIL\n");
 }
@@ -1120,9 +1134,10 @@ static void test_tree_traversed_and_deleted_inorder_without_rebalancing()
 
     ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS);
     ut_check(range.value == 10 && range.offset == 2);
-    ut_check(rb_tree_get_next(&tree, &range, true, false) ==
-        BP_ERROR);
+    ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_ERROR);
     ut_check(tree.size == 0);
+
+    rb_tree_destroy(&tree);
 
     if(f == ut_failures()) printf("PASS\n");
     else                   printf("FAIL\n");
@@ -1166,9 +1181,10 @@ static void test_tree_traversed_inorder_after_partial_traversal()
         ut_check(range.value == i && range.offset == 0);
     }
 
-    ut_check(rb_tree_get_next(&tree, &range, true, false) ==
-        BP_ERROR);
+    ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_ERROR);
     ut_check(tree.size == 8);
+
+    rb_tree_destroy(&tree);
 
     if(f == ut_failures()) printf("PASS\n");
     else                   printf("FAIL\n");

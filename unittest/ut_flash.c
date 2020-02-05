@@ -108,6 +108,9 @@ static void test_2(void)
 
     printf("\n==== Test 2: Service Creation/Deletion ====\n");
 
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, false);
+    ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
+
     printf("\n==== Step 2.1: Create Max ====\n");
     for(i = 0; i < FLASH_MAX_STORES; i++)
     {
@@ -235,6 +238,9 @@ static void test_4(void)
     {
         ut_assert(false, "Failed to dequeue object\n");
     }
+
+    /* Destroy Storage Service */
+    bplib_store_flash_destroy(h);
 
     /* Uninitialize Driver */
     bplib_store_flash_uninit();
