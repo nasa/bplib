@@ -34,17 +34,8 @@
 #define FLASH_ECC_NO_ERRORS                 (-1)
 #define FLASH_ECC_UNCOR_ERRORS              (-2)
 #define FLASH_ECC_COR_ERRORS                (-3)
-#define FLASH_ECC_HAMMING                   1
-#define FLASH_ECC_LRC                       2 /* longitudinal redundancy check */
-#define FLASH_ECC_CODEC                     FLASH_ECC_LRC
-
-#if FLASH_ECC_CODEC == FLASH_ECC_LRC
 #define FLASH_ECC_BLOCK_SIZE                7
 #define FLASH_ECC_CODE_BYTES_PER_BLOCK      2
-#elif FLASH_ECC_CODEC == FLASH_ECC_HAMMING
-#define FLASH_ECC_BLOCK_SIZE                4
-#define FLASH_ECC_CODE_BYTES_PER_BLOCK      1
-#endif
 
 /******************************************************************************
  MACROS
@@ -210,42 +201,104 @@ BP_LOCAL_SCOPE void flash_build_lrc_table(int8_t* table)
 }
 
 /*--------------------------------------------------------------------------------------
+ * flash_block_encode -
+ *-------------------------------------------------------------------------------------*/
+BP_LOCAL_SCOPE void flash_block_encode(uint8_t* src_block, uint8_t* src_code, int bytes_to_ecc, uint8_t* dst_code)
+{
+    int index = 0;
+    uint8_t ecc_col = 0;
+    uint8_t ecc_row = 0;
+
+    /* Loop Through All Bytes in Block */
+    while(index < bytes_to_ecc)
+    {
+        /* Encode Current ECC Block */
+        ecc_col ^= src_block[index]; /* column */
+        ecc_row |= FLASH_XOR_TABLE[src_block[index]] << index;
+
+        /* Go to Next Index */
+        index++;
+    }
+
+    /* Encode Row Parity */
+    if(src_code)
+    {
+        ecc_row |= FLASH_XOR_TABLE[src_code[0]] << index;
+    }
+    else
+    {
+        ecc_row |= FLASH_XOR_TABLE[ecc_col] << index;
+    }
+
+    /* Write ECC */
+    dst_code[0] = ecc_col;
+    dst_code[1] = ecc_row;
+}
+
+/*--------------------------------------------------------------------------------------
+ * flash_block_decode -
+ *-------------------------------------------------------------------------------------*/
+BP_LOCAL_SCOPE int flash_block_decode(uint8_t* src_block, uint8_t* src_code, uint8_t* calc_code)
+{
+    uint8_t src_col = src_code[0];
+    uint8_t src_row = src_code[1];
+    uint8_t calc_col = calc_code[0];
+    uint8_t calc_row = calc_code[1];
+
+    /* Check ECC */
+    if(calc_col != src_col || calc_row != src_row)
+    {
+        uint8_t delta_col = calc_col ^ src_col;
+        uint8_t delta_row = calc_row ^ src_row;
+
+        /* Find Row & Column Error */
+        int column = FLASH_LRC_TABLE[delta_col];
+        int row = FLASH_LRC_TABLE[delta_row];
+
+        /* Attempt to Correct Error */
+        if(column >= 0 && row >= 0)
+        {
+            /* correct bit at row:column */
+            src_block[row] ^= (1 << column);
+            return FLASH_ECC_COR_ERRORS;
+        }
+        /* this only checks for errors in the row ecc byte since the column ecc byte
+            is parity checked; there is no case where a column has a single bit error,
+            and it doesn't show up in the row ecc */
+        else if((column == FLASH_ECC_NO_ERRORS) && (row >= 0))
+        {
+            /* do nothing - error in row ECC byte */
+            return FLASH_ECC_COR_ERRORS;
+        }
+        else
+        {
+            /* uncorrectable error */
+            return FLASH_ECC_UNCOR_ERRORS;
+        }
+    }
+
+    return FLASH_ECC_NO_ERRORS;
+}
+
+/*--------------------------------------------------------------------------------------
  * flash_page_encode -
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE void flash_page_encode(uint8_t* page_buffer)
 {
-    int block_index = 0;
     int data_index = 0;
     int ecc_index = FLASH_PAGE_DATA_SIZE;
-
-    /* Zero First ECC Words */
-    page_buffer[ecc_index + 0] = 0;
-    page_buffer[ecc_index + 1] = 0;
 
     /* Loop Through All Data in Page */
     while(data_index < FLASH_PAGE_DATA_SIZE)
     {
-        /* Encode Current ECC Block */
-        page_buffer[ecc_index + 0] ^= page_buffer[data_index]; /* column */
-        page_buffer[ecc_index + 1] |= FLASH_XOR_TABLE[page_buffer[data_index]] << block_index; /* row */
+        /* Encode ECC for Block */
+        int bytes_left = FLASH_PAGE_DATA_SIZE - data_index;
+        int bytes_to_ecc = bytes_left < FLASH_ECC_BLOCK_SIZE ? bytes_left : FLASH_ECC_BLOCK_SIZE;
+        flash_block_encode(&page_buffer[data_index], NULL, bytes_to_ecc, &page_buffer[ecc_index]);
 
-        /* Go to Next Index */
-        block_index++;
-        data_index++;
-
-        /* Check for Completed Block */
-        if(data_index % FLASH_ECC_BLOCK_SIZE == 0)
-        {
-            /* Encode Row Parity */
-            page_buffer[ecc_index + 1] |= FLASH_XOR_TABLE[page_buffer[ecc_index + 0]] << block_index; /* row */
-            block_index = 0;
-
-            /* Go to Next ECC Index */
-            ecc_index += 2;
-            page_buffer[ecc_index + 0] = 0;
-            page_buffer[ecc_index + 1] = 0;
-        }
-
+        /* Goto Next Block */
+        data_index += FLASH_ECC_BLOCK_SIZE;
+        ecc_index += 2;
     }
 }
 
@@ -254,72 +307,38 @@ BP_LOCAL_SCOPE void flash_page_encode(uint8_t* page_buffer)
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE int flash_page_decode(uint8_t* page_buffer)
 {
-    int status = FLASH_ECC_NO_ERRORS;
+    int ret_status = FLASH_ECC_NO_ERRORS;
 
     int data_index = 0;
     int ecc_index = FLASH_PAGE_DATA_SIZE;
-    uint8_t ecc_col = 0, ecc_row = 0;
+    uint8_t ecc_code[FLASH_ECC_CODE_BYTES_PER_BLOCK];
 
+    /* Loop Through All Data in Page */
     while(data_index < FLASH_PAGE_DATA_SIZE)
     {
-        int block_index = data_index % FLASH_ECC_BLOCK_SIZE;
+        /* Genereate ECC for Block */
+        int bytes_left = FLASH_PAGE_DATA_SIZE - data_index;
+        int bytes_to_ecc = bytes_left < FLASH_ECC_BLOCK_SIZE ? bytes_left : FLASH_ECC_BLOCK_SIZE;
+        flash_block_encode(&page_buffer[data_index], &page_buffer[ecc_index], bytes_to_ecc, ecc_code);
 
-        /* Encode Current ECC Block */
-        ecc_col ^= page_buffer[data_index]; /* column */
-        ecc_row |= FLASH_XOR_TABLE[page_buffer[data_index]] << block_index; /* row */
-
-        /* Go to Next Index */
-        block_index++;
-        data_index++;
-
-        /* Check for Completed Block */
-        if((data_index % FLASH_ECC_BLOCK_SIZE) == 0)
+        /* Check (and correct) ECC for Block */
+        int status = flash_block_decode(&page_buffer[data_index], &page_buffer[ecc_index], ecc_code);
+        if(status == FLASH_ECC_UNCOR_ERRORS)
         {
-            /* Decode Row Parity */
-            ecc_row |= FLASH_XOR_TABLE[ecc_col] << block_index; /* row */
-            block_index = 0;
-
-            /* Check ECC */
-            if(ecc_col != page_buffer[ecc_index] || ecc_row != page_buffer[ecc_index + 1])
-            {
-                uint8_t delta_col = ecc_col ^ page_buffer[ecc_index];
-                uint8_t delta_row = ecc_row ^ page_buffer[ecc_index + 1];
-
-                /* Find Row & Column Error */
-                int column = FLASH_LRC_TABLE[delta_col];
-                int row = FLASH_LRC_TABLE[delta_row];
-
-                /* Attempt to Correct Error */
-                if(column >= 0 && row >= 0)
-                {
-                    /* correct bit at row:column */
-                    page_buffer[block_index + row] ^= (1 << column);
-                    status = FLASH_ECC_COR_ERRORS;
-                }
-                /* this only checks for errors in the row ecc byte since the column ecc byte
-                    is parity checked; there is no case where a column has a single bit error,
-                    and it doesn't show up in the row ecc */
-                else if((column == FLASH_ECC_NO_ERRORS) && (row >= 0))
-                {
-                    /* do nothing - error in row ECC byte */
-                    status = FLASH_ECC_COR_ERRORS;
-                }
-                else
-                {
-                    /* uncorrectable error */
-                    status = FLASH_ECC_UNCOR_ERRORS;
-                    break;
-                }
-            }
-
-            /* Go to Next ECC Index */
-            ecc_index += 2;
-            ecc_col = 0;
-            ecc_row = 0;
+            ret_status = status;
+            break;
         }
+        else if(status == FLASH_ECC_COR_ERRORS)
+        {
+            ret_status = status;
+        }
+
+        /* Goto Next Block */
+        data_index += FLASH_ECC_BLOCK_SIZE;
+        ecc_index += 2;
     }
 
-    return status;
+    return ret_status;
 }
 
 /*--------------------------------------------------------------------------------------

@@ -204,7 +204,7 @@ static lbplib_store_t lbplib_stores[] =
 static bp_flash_driver_t lbplib_flash_driver = {
     .num_blocks = FLASH_SIM_NUM_BLOCKS,
     .pages_per_block = FLASH_SIM_PAGES_PER_BLOCK,
-    .page_size = FLASH_SIM_DATA_SIZE,
+    .page_size = FLASH_SIM_PAGE_SIZE,
     .read = bplib_flash_sim_page_read,
     .write = bplib_flash_sim_page_write,
     .erase = bplib_flash_sim_block_erase,
@@ -882,7 +882,7 @@ int lbplib_memstat (lua_State* L)
 int lbplib_shutdown (lua_State* L)
 {
     (void)L;
-    
+
     unsigned int i;
     for(i = 0; i < LBPLIB_NUM_STORES; i++)
     {

@@ -78,7 +78,7 @@ int bplib_flash_sim_initialize (void)
             int p;
             for(p = 0; p < FLASH_SIM_PAGES_PER_BLOCK; p++)
             {
-                flash_driver_device.blocks[b].pages[p].data = (uint8_t*)malloc(FLASH_SIM_DATA_SIZE);
+                flash_driver_device.blocks[b].pages[p].data = (uint8_t*)malloc(FLASH_SIM_PAGE_SIZE);
                 if(flash_driver_device.blocks[b].pages[p].data == NULL) return BP_ERROR;
 
                 flash_driver_device.blocks[b].pages[p].spare = (uint8_t*)malloc(FLASH_SIM_SPARE_SIZE);
@@ -122,7 +122,7 @@ int bplib_flash_sim_uninitialize (void)
  *-------------------------------------------------------------------------------------*/
 int bplib_flash_sim_page_read (bp_flash_addr_t addr, void* page_data)
 {
-    memcpy(page_data, flash_driver_device.blocks[addr.block].pages[addr.page].data, FLASH_SIM_DATA_SIZE);
+    memcpy(page_data, flash_driver_device.blocks[addr.block].pages[addr.page].data, FLASH_SIM_PAGE_SIZE);
     return BP_SUCCESS;
 }
 
@@ -133,7 +133,7 @@ int bplib_flash_sim_page_write (bp_flash_addr_t addr, void* page_data)
 {
     int i;
     uint8_t* byte_ptr = (uint8_t*)page_data;
-    for(i = 0; i < FLASH_SIM_DATA_SIZE; i++)
+    for(i = 0; i < FLASH_SIM_PAGE_SIZE; i++)
     {
         flash_driver_device.blocks[addr.block].pages[addr.page].data[i] &= byte_ptr[i];
     }
@@ -149,7 +149,7 @@ int bplib_flash_sim_block_erase (bp_flash_index_t block)
 
     for(p = 0; p < FLASH_SIM_PAGES_PER_BLOCK; p++)
     {
-        memset(flash_driver_device.blocks[block].pages[p].data, 0xFF, FLASH_SIM_DATA_SIZE);
+        memset(flash_driver_device.blocks[block].pages[p].data, 0xFF, FLASH_SIM_PAGE_SIZE);
         memset(flash_driver_device.blocks[block].pages[p].spare, 0xFF, FLASH_SIM_SPARE_SIZE);
     }
 

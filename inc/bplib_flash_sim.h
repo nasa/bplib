@@ -34,7 +34,7 @@ extern "C" {
 
 #define FLASH_SIM_NUM_BLOCKS        256
 #define FLASH_SIM_PAGES_PER_BLOCK   128
-#define FLASH_SIM_DATA_SIZE         4096
+#define FLASH_SIM_PAGE_SIZE         4096
 #define FLASH_SIM_SPARE_SIZE        128
 
 /******************************************************************************
