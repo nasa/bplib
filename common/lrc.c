@@ -263,10 +263,10 @@ void lrc_uninit (void)
 /*--------------------------------------------------------------------------------------
  * lrc_encode -
  *-------------------------------------------------------------------------------------*/
-void lrc_encode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
+void lrc_encode(uint8_t* frame_buffer, int data_size)
 {
     int data_index = 0;
-    int ecc_index = 0;
+    int ecc_index = data_size;
 
     /* Loop Through All Data in Page */
     while(data_index < data_size)
@@ -274,7 +274,7 @@ void lrc_encode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
         /* Encode ECC for Block */
         int bytes_left = data_size - data_index;
         int bytes_to_ecc = bytes_left < LRC_BLOCK_SIZE ? bytes_left : LRC_BLOCK_SIZE;
-        lrc_block_encode(&data_buffer[data_index], NULL, bytes_to_ecc, &ecc_buffer[ecc_index]);
+        lrc_block_encode(&frame_buffer[data_index], NULL, bytes_to_ecc, &frame_buffer[ecc_index]);
 
         /* Goto Next Block */
         data_index += LRC_BLOCK_SIZE;
@@ -285,12 +285,12 @@ void lrc_encode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
 /*--------------------------------------------------------------------------------------
  * lrc_decode -
  *-------------------------------------------------------------------------------------*/
-int lrc_decode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
+int lrc_decode(uint8_t* frame_buffer, int data_size)
 {
     int ret_status = BP_ECC_NO_ERRORS;
 
     int data_index = 0;
-    int ecc_index = 0;
+    int ecc_index = data_size;
     uint8_t ecc_code[LRC_CODE_BYTES_PER_BLOCK];
 
     /* Loop Through All Data in Page */
@@ -299,10 +299,10 @@ int lrc_decode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
         /* Genereate ECC for Block */
         int bytes_left = data_size - data_index;
         int bytes_to_ecc = bytes_left < LRC_BLOCK_SIZE ? bytes_left : LRC_BLOCK_SIZE;
-        lrc_block_encode(&data_buffer[data_index], &ecc_buffer[ecc_index], bytes_to_ecc, ecc_code);
+        lrc_block_encode(&frame_buffer[data_index], &frame_buffer[ecc_index], bytes_to_ecc, ecc_code);
 
         /* Check (and correct) ECC for Block */
-        int status = lrc_block_decode(&data_buffer[data_index], &ecc_buffer[ecc_index], ecc_code);
+        int status = lrc_block_decode(&frame_buffer[data_index], &frame_buffer[ecc_index], ecc_code);
         if(status == BP_ECC_UNCOR_ERRORS)
         {
             ret_status = status;
