@@ -111,7 +111,7 @@ BP_LOCAL_SCOPE int flash_page_write (bp_flash_addr_t addr, uint8_t* data, int si
 
     if(FLASH_ECC_CODE_SIZE > 0)
     {
-        lrc_buffer_encode(flash_page_buffer, FLASH_PAGE_DATA_SIZE, &flash_page_buffer[FLASH_PAGE_DATA_SIZE]);
+        lrc_encode(flash_page_buffer, FLASH_PAGE_DATA_SIZE, &flash_page_buffer[FLASH_PAGE_DATA_SIZE]);
     }
 
     return FLASH_DRIVER.write(addr, flash_page_buffer);
@@ -129,7 +129,7 @@ BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* data, int siz
     {
         if(FLASH_ECC_CODE_SIZE > 0)
         {
-            int decode_status = lrc_buffer_decode(flash_page_buffer, FLASH_PAGE_DATA_SIZE, &flash_page_buffer[FLASH_PAGE_DATA_SIZE]);
+            int decode_status = lrc_decode(flash_page_buffer, FLASH_PAGE_DATA_SIZE, &flash_page_buffer[FLASH_PAGE_DATA_SIZE]);
             if(decode_status == BP_ECC_NO_ERRORS)
             {
                 status = BP_SUCCESS;

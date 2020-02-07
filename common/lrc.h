@@ -27,9 +27,9 @@
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int     lrc_init            (int frame_size);
-void    lrc_uninit          (void);
-void    lrc_buffer_encode   (uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer);
-int     lrc_buffer_decode   (uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer);
+int     lrc_init    (int frame_size);
+void    lrc_uninit  (void);
+void    lrc_encode  (uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer);
+int     lrc_decode  (uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer);
 
 #endif /* _lrc_h_ */

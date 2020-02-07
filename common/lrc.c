@@ -261,9 +261,9 @@ void lrc_uninit (void)
 }
 
 /*--------------------------------------------------------------------------------------
- * lrc_buffer_encode -
+ * lrc_encode -
  *-------------------------------------------------------------------------------------*/
-void lrc_buffer_encode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
+void lrc_encode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
 {
     int data_index = 0;
     int ecc_index = 0;
@@ -283,9 +283,9 @@ void lrc_buffer_encode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
 }
 
 /*--------------------------------------------------------------------------------------
- * lrc_buffer_decode -
+ * lrc_decode -
  *-------------------------------------------------------------------------------------*/
-int lrc_buffer_decode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
+int lrc_decode(uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer)
 {
     int ret_status = BP_ECC_NO_ERRORS;
 
