@@ -1,5 +1,5 @@
 /************************************************************************
- * File: cbuf.h
+ * File: lrc.h
  *
  *  Copyright 2019 United States Government as represented by the
  *  Administrator of the National Aeronautics and Space Administration.
@@ -14,38 +14,22 @@
  *  Joe-Paul Swinski, Code 582 NASA GSFC
  *
  *************************************************************************/
-#ifndef _cbuf_h_
-#define _cbuf_h_
+#ifndef _lrc_h_
+#define _lrc_h_
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bundle_types.h"
-
-/******************************************************************************
- TYPEDEFS
- ******************************************************************************/
-
-typedef struct {
-    bp_active_bundle_t* table;
-    bp_index_t          size;
-    bp_index_t          num_entries;
-    bp_val_t            newest_cid;
-    bp_val_t            oldest_cid;
-} cbuf_t;
 
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int cbuf_create     (cbuf_t** cbuf, int size);
-int cbuf_destroy    (cbuf_t* cbuf);
-int cbuf_add        (cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite);
-int cbuf_next       (cbuf_t* cbuf, bp_active_bundle_t* bundle);
-int cbuf_remove     (cbuf_t* cbuf, bp_val_t cid, bp_active_bundle_t* bundle);
-int cbuf_available  (cbuf_t* cbuf, bp_val_t cid);
-int cbuf_count      (cbuf_t* cbuf);
+int     lrc_init            (int frame_size);
+void    lrc_uninit          (void);
+void    lrc_buffer_encode   (uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer);
+int     lrc_buffer_decode   (uint8_t* data_buffer, int data_size, uint8_t* ecc_buffer);
 
-#endif /* _cbuf_h_ */
+#endif /* _lrc_h_ */

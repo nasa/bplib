@@ -63,6 +63,7 @@ APP_OBJ     += crc.o
 APP_OBJ     += rb_tree.o
 APP_OBJ     += rh_hash.o
 APP_OBJ	    += cbuf.o
+APP_OBJ     += lrc.o
 
 # version 6 objects
 APP_OBJ     += v6.o

@@ -80,6 +80,11 @@ extern "C" {
 #define BP_PENDINGACCEPTANCE            (-30)
 #define BP_PENDINGAPPLICATION           (-31)
 
+/* Error Correcting Codes */
+#define BP_ECC_NO_ERRORS                (-1)
+#define BP_ECC_UNCOR_ERRORS             (-2)
+#define BP_ECC_COR_ERRORS               (-3)
+
 /* Processing, Acceptance, and Load Flags */
 #define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
 #define BP_FLAG_INCOMPLETE              0x0002  /* block in bundle was not recognized */
