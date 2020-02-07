@@ -32,15 +32,15 @@ extern "C" {
  TYPEDEFS
  ******************************************************************************/
 
-#define BP_FLASH_INIT_FORMAT        0
-#define BP_FLASH_INIT_RECOVER       1
+#define BP_FLASH_INIT_FORMAT                0
+#define BP_FLASH_INIT_RECOVER               1
 
 #ifndef BP_FLASH_INVALID_INDEX
-#define BP_FLASH_INVALID_INDEX      UINT16_MAX
+#define BP_FLASH_INVALID_INDEX              UINT16_MAX
 #endif
 
 #ifndef BP_FLASH_INDEX_TYPE
-#define BP_FLASH_INDEX_TYPE         uint16_t
+#define BP_FLASH_INDEX_TYPE                 uint16_t
 #endif
 
 #ifndef FLASH_MAX_STORES
