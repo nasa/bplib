@@ -73,7 +73,7 @@ void bplib_os_init(void)
  *
  * 	Returns - the error code passed in (for convenience)
  *-------------------------------------------------------------------------------------*/
-int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt, ...)
+int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t event, const char* fmt, ...)
 {
     (void)file;
     (void)line;
@@ -91,10 +91,18 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     formatted_string[msglen] = '\0';
 
     /* Handle Log Message */
-    CFE_EVS_SendEvent(BPLIB_CFE_LOG_EID, CFE_EVS_INFORMATION, "[%d] %s", error, formatted_string);
+    CFE_EVS_SendEvent(BPLIB_CFE_LOG_EID, CFE_EVS_INFORMATION, "[%08X] %s", event, formatted_string);
 
-    /* Return Error Code */
-    return error;
+    /* Set EVent Flag and Return */
+    if(event > 0)
+    {
+        if(flags) *flags |= event;
+        return BP_ERROR;
+    }
+    else
+    {
+        return BP_SUCCESS;
+    }
 }
 
 /*--------------------------------------------------------------------------------------
