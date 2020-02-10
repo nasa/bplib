@@ -71,7 +71,7 @@ BP_LOCAL_SCOPE int overwrite_node(rh_hash_t* rh_hash, bp_index_t index, bp_activ
     else
     {
         /* Return Failure */
-        return BP_DUPLICATECID;
+        return BP_DUPLICATE;
     }
 }
 
@@ -113,14 +113,14 @@ int rh_hash_create(rh_hash_t** rh_hash, int size)
     int i;
 
     /* Check Hash Size */
-    if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_PARMERR;
+    if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_ERROR;
 
     /* Allocate Hash Structure */
     *rh_hash = (rh_hash_t*)bplib_os_calloc(sizeof(rh_hash_t));
 
     /* Allocate Hash Table */
     (*rh_hash)->table = (rh_hash_node_t*)bplib_os_calloc(size * sizeof(rh_hash_node_t));
-    if((*rh_hash)->table == NULL) return BP_FAILEDMEM;
+    if((*rh_hash)->table == NULL) return BP_ERROR;
 
     /* Initialize Hash Table to Empty */
     for(i = 0; i < size; i++)
@@ -203,7 +203,7 @@ int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
         /* Check for Full Hash */
         if(open_index == curr_index)
         {
-            return BP_ACTIVETABLEFULL;
+            return BP_ERROR;
         }
 
         /* Insert Node */
@@ -268,7 +268,7 @@ int rh_hash_next(rh_hash_t* rh_hash, bp_active_bundle_t* bundle)
         return BP_SUCCESS;
     }
 
-    return BP_CIDNOTFOUND;
+    return BP_ERROR;
 }
 
 /*----------------------------------------------------------------------------
@@ -298,7 +298,7 @@ int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
     /* Check if Node Found */
     if(curr_index == NULL_INDEX)
     {
-        return BP_CIDNOTFOUND;
+        return BP_ERROR;
     }
 
     /* Return Bundle */
@@ -368,7 +368,7 @@ int rh_hash_available(rh_hash_t* rh_hash, bp_val_t cid)
     }
     else
     {
-        return BP_ACTIVETABLEFULL;
+        return BP_ERROR;
     }
 }
 

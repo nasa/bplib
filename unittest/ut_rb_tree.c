@@ -283,7 +283,7 @@ static void test_new_tree_empty()
     printf("test_new_empty_tree: ");
 
     rb_tree_t tree;
-    ut_check(rb_tree_create(0, &tree) == BP_PARMERR);
+    ut_check(rb_tree_create(0, &tree) == BP_ERROR);
     ut_check(tree.root == NULL);
     ut_check(tree.max_size == 0);
 
@@ -300,7 +300,7 @@ static void test_unable_to_insert_into_empty_tree()
     printf("test_unable_to_insert_into_empty_tree: ");
 
     rb_tree_t tree;
-    ut_check(rb_tree_create(0, &tree) == BP_PARMERR);
+    ut_check(rb_tree_create(0, &tree) == BP_ERROR);
     ut_check(rb_tree_is_full(&tree));
     ut_check(tree.root == NULL);
 
@@ -331,7 +331,7 @@ static void test_unable_to_insert_into_full_tree()
     ut_check(tree.size == 4);
     ut_check(rb_tree_is_full(&tree));
     /* The final insert should fail when tree is full. */
-    ut_check(rb_tree_insert(8, &tree) == BP_CUSTODYTREEFULL);
+    ut_check(rb_tree_insert(8, &tree) == BP_FULL);
     assert_rb_tree_is_valid(&tree);
     rb_tree_destroy(&tree);
 
@@ -720,12 +720,12 @@ static void test_no_duplicates()
     assert_rb_tree_is_valid(&tree);
     assert_inorder_nodes_are(tree.root, nodes, 3, 0);
 
-    ut_check(rb_tree_insert(5, &tree)  == BP_DUPLICATECID);
-    ut_check(rb_tree_insert(5, &tree)  == BP_DUPLICATECID);
-    ut_check(rb_tree_insert(10, &tree) == BP_DUPLICATECID);
-    ut_check(rb_tree_insert(10, &tree) == BP_DUPLICATECID);
-    ut_check(rb_tree_insert(15, &tree) == BP_DUPLICATECID);
-    ut_check(rb_tree_insert(15, &tree) == BP_DUPLICATECID);
+    ut_check(rb_tree_insert(5, &tree)  == BP_DUPLICATE);
+    ut_check(rb_tree_insert(5, &tree)  == BP_DUPLICATE);
+    ut_check(rb_tree_insert(10, &tree) == BP_DUPLICATE);
+    ut_check(rb_tree_insert(10, &tree) == BP_DUPLICATE);
+    ut_check(rb_tree_insert(15, &tree) == BP_DUPLICATE);
+    ut_check(rb_tree_insert(15, &tree) == BP_DUPLICATE);
 
     ut_check(tree.size == 3);
     assert_rb_tree_is_valid(&tree);
@@ -764,8 +764,8 @@ static void test_max_range_offset()
 
     rb_tree_t tree;
     int status = rb_tree_create(MAX_TREE_SIZE, &tree);
-    ut_check(status == BP_SUCCESS || status == BP_FAILEDMEM);
-    if (status == BP_FAILEDMEM)
+    ut_check(status == BP_SUCCESS || status == BP_ERROR);
+    if (status == BP_ERROR)
     {
         /* Return early if no memory was allocated. */
         printf("PASS\n");
@@ -813,9 +813,9 @@ static void test_unable_to_delete_value_that_does_not_exist()
     assert_rb_tree_is_valid(&tree);
 
     ut_check(tree.size == 5);
-    ut_check(rb_tree_delete(6, &tree) == BP_CIDNOTFOUND);
-    ut_check(rb_tree_delete(25, &tree) == BP_CIDNOTFOUND);
-    ut_check(rb_tree_delete(39, &tree) == BP_CIDNOTFOUND);
+    ut_check(rb_tree_delete(6, &tree) == BP_ERROR);
+    ut_check(rb_tree_delete(25, &tree) == BP_ERROR);
+    ut_check(rb_tree_delete(39, &tree) == BP_ERROR);
     ut_check(tree.size == 5);
 
     rb_tree_destroy(&tree);
@@ -1068,9 +1068,7 @@ static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
 
     rb_range_t range;
 
-    ut_check(rb_tree_goto_first(NULL) == BP_PARMERR);
     ut_check(rb_tree_goto_first(&tree) == BP_SUCCESS);
-    ut_check(rb_tree_get_next(&tree, NULL, true, true) == BP_ERROR);
 
     ut_check(rb_tree_get_next(&tree, &range, true, true) == BP_SUCCESS);
     ut_check(range.value == 2 && range.offset == 1);
@@ -1088,7 +1086,6 @@ static void test_tree_traversed_and_deleted_inorder_with_rebalancing()
     ut_check(range.value == 10 && range.offset == 2);
     assert_rb_tree_is_valid(&tree);
 
-    ut_check(rb_tree_get_next(&tree, &range, true, true) == BP_ERROR);
     ut_check(tree.size == 0);
 
     rb_tree_destroy(&tree);
@@ -1134,7 +1131,6 @@ static void test_tree_traversed_and_deleted_inorder_without_rebalancing()
 
     ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_SUCCESS);
     ut_check(range.value == 10 && range.offset == 2);
-    ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_ERROR);
     ut_check(tree.size == 0);
 
     rb_tree_destroy(&tree);
@@ -1181,7 +1177,6 @@ static void test_tree_traversed_inorder_after_partial_traversal()
         ut_check(range.value == i && range.offset == 0);
     }
 
-    ut_check(rb_tree_get_next(&tree, &range, true, false) == BP_ERROR);
     ut_check(tree.size == 8);
 
     rb_tree_destroy(&tree);

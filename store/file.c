@@ -133,7 +133,7 @@ BP_LOCAL_SCOPE FILE* open_dat_file (int service_id, char* file_root, uint32_t fi
         fd = file_driver.open(filename, "ab");
         if(fd == NULL)
         {
-            bplog(BP_FAILEDSTORE, "failed to open %s data file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "failed to open %s data file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
         }
     }
 
@@ -152,7 +152,7 @@ BP_LOCAL_SCOPE int delete_dat_file (int service_id, char* file_root, uint32_t fi
 
     if(status < 0)
     {
-        return bplog(BP_FAILEDSTORE, "failed to remove %s data file: %s\n", filename, strerror(errno));
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "failed to remove %s data file: %s\n", filename, strerror(errno));
     }
     else
     {
@@ -179,7 +179,7 @@ BP_LOCAL_SCOPE FILE* open_tbl_file (int service_id, char* file_root, uint32_t fi
         fd = file_driver.open(filename, "wb");
         if(fd == NULL)
         {
-            bplog(BP_FAILEDSTORE, "failed to open %s table file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "failed to open %s table file %s: %s\n", read_only ? "read only" : "appended", filename, strerror(errno));
         }
     }
 
@@ -198,7 +198,7 @@ BP_LOCAL_SCOPE int delete_tbl_file (int service_id, char* file_root, uint32_t fi
 
     if(status < 0 && errno != 2)
     {
-        return bplog(BP_FAILEDSTORE, "failed to remove %s table file: %d %s\n", filename, errno, strerror(errno));
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "failed to remove %s table file: %d %s\n", filename, errno, strerror(errno));
     }
     else
     {
@@ -254,7 +254,7 @@ int bplib_store_file_create (void* parm)
             file_stores[s].lock = bplib_os_createlock();
             if(file_stores[s].lock < 0)
             {
-                bplog(BP_FAILEDOS, "Failed (%d) to create FSS lock\n", file_stores[s].lock);
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed (%d) to create FSS lock\n", file_stores[s].lock);
                 bplib_store_file_destroy(s);
                 break;
             }
@@ -275,7 +275,7 @@ int bplib_store_file_create (void* parm)
             /* Check File Root Setup */
             if(file_stores[s].file_root == NULL)
             {
-                bplog(BP_FAILEDMEM, "Failed to set FSS root path\n");
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to set FSS root path\n");
                 bplib_store_file_destroy(s);
                 break;
             }
@@ -293,7 +293,7 @@ int bplib_store_file_create (void* parm)
             /* Check Data Cache Setup */
             if(file_stores[s].data_cache == NULL)
             {
-                bplog(BP_FAILEDMEM, "Failed to allocate FSS data cache\n");
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to allocate FSS data cache\n");
                 bplib_store_file_destroy(s);
                 break;
             }
@@ -353,14 +353,14 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
     {
         /* Open Write File */
         fs->write_fd = open_dat_file(fs->service_id, fs->file_root, file_id, false);
-        if(fs->write_fd == NULL) return bplog(BP_FAILEDSTORE, "Failed to enqueue data\n");;
+        if(fs->write_fd == NULL) return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to enqueue data\n");;
 
         /* Seek to Current Position */
         if(fs->write_error)
         {
             /* Start at Beginning of File */
             int seek_status = file_driver.seek(fs->write_fd, 0, SEEK_SET);
-            if(seek_status < 0) return bplog(BP_FAILEDSTORE, "Failed (%d) to set write position after error to start of file\n", seek_status);
+            if(seek_status < 0) return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to set write position after error to start of file\n", seek_status);
 
             /* Read/Seek Through File */
             unsigned long pos;
@@ -370,11 +370,11 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
 
                 /* Read Current Data Size */
                 unsigned long bytes_read = file_driver.read(&current_size, 1, sizeof(current_size), fs->write_fd);
-                if(bytes_read != sizeof(current_size)) return bplog(BP_FAILEDSTORE, "Failed to read data size for write after error (%d != %d)\n", bytes_read, sizeof(current_size));
+                if(bytes_read != sizeof(current_size)) return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read data size for write after error (%d != %d)\n", bytes_read, sizeof(current_size));
 
                 /* Seek to End of Current Data */
                 seek_status = file_driver.seek(fs->write_fd, current_size, SEEK_CUR);
-                if(seek_status < 0) return bplog(BP_FAILEDSTORE, "Failed (%d) to jump over data for write after error\n", seek_status);
+                if(seek_status < 0) return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to jump over data for write after error\n", seek_status);
             }
         }
     }
@@ -404,7 +404,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
         int flush_status = file_driver.flush(fs->write_fd);
         if(flush_status < 0)
         {
-            bplog(BP_FAILEDSTORE, "Failed (%d) to flush data write\n", flush_status);
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to flush data write\n", flush_status);
             flush_error = true;
         }
     }
@@ -420,7 +420,7 @@ int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* dat
         }
 
         /* Return Failure */
-        return bplog(BP_FAILEDSTORE, "Failed to write data to file (%d ?= %d)\n", bytes_written, object_size + sizeof(object_size));
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to write data to file (%d ?= %d)\n", bytes_written, object_size + sizeof(object_size));
     }
     else
     {
@@ -476,7 +476,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             if(wait_status == BP_ERROR)
             {
                 bplib_os_unlock(fs->lock);
-                return bplog(BP_FAILEDSTORE, "Failed (%d) to wait for FSS lock\n", wait_status);
+                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to wait for FSS lock\n", wait_status);
             }
             else if((wait_status == BP_TIMEOUT) ||
                     (fs->read_data_id == fs->write_data_id))
@@ -494,7 +494,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             if(fs->read_fd == NULL)
             {
                 bplib_os_unlock(fs->lock);
-                return bplog(BP_FAILEDSTORE, "Failed to dequeue data\n");
+                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to dequeue data\n");
             }
         }
 
@@ -506,7 +506,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             if(seek_status < 0)
             {
                 bplib_os_unlock(fs->lock);
-                return bplog(BP_FAILEDSTORE, "Failed (%d) to set read position after error to start of file\n", seek_status);
+                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to set read position after error to start of file\n", seek_status);
             }
 
             /* Read/Seek Through File */
@@ -520,7 +520,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
                 if(bytes_read != sizeof(current_size))
                 {
                     bplib_os_unlock(fs->lock);
-                    return bplog(BP_FAILEDSTORE, "Failed to read data size for read after error (%d != %d)\n", bytes_read, sizeof(current_size));
+                    return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read data size for read after error (%d != %d)\n", bytes_read, sizeof(current_size));
 
                 }
 
@@ -529,7 +529,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
                 if(seek_status < 0)
                 {
                     bplib_os_unlock(fs->lock);
-                    return bplog(BP_FAILEDSTORE, "Failed (%d) to jump over data for read after error\n", seek_status);
+                    return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to jump over data for read after error\n", seek_status);
                 }
             }
         }
@@ -567,7 +567,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
 
             /* Return Failure */
             bplib_os_unlock(fs->lock);
-            return bplog(BP_FAILEDSTORE, "Failed (%d) to read data from file\n", bytes_read);
+            return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to read data from file\n", bytes_read);
         }
 
         /* Check State of Data Cache */
@@ -579,7 +579,7 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
             {
                 bplib_os_free(object_ptr);
                 bplib_os_unlock(fs->lock);
-                return bplog(BP_FAILEDSTORE, "Failed (%d) to get lock to update cache\n", wait_status);
+                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to get lock to update cache\n", wait_status);
             }
             else if((wait_status == BP_TIMEOUT) ||
                     (fs->data_cache[cache_index].mem_locked))
@@ -685,7 +685,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             if(fs->retrieve_fd == NULL)
             {
                 bplib_os_unlock(fs->lock);
-                return bplog(BP_FAILEDSTORE, "Failed to retrieve data\n");
+                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to retrieve data\n");
             }
         }
         else
@@ -700,7 +700,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
                 if(seek_status < 0)
                 {
                     bplib_os_unlock(fs->lock);
-                    return bplog(BP_FAILEDSTORE, "Failed (%d) to set retrieve position to start of file\n", seek_status);
+                    return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to set retrieve position to start of file\n", seek_status);
                 }
             }
         }
@@ -718,7 +718,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
                 if(bytes_read != sizeof(current_size))
                 {
                     bplib_os_unlock(fs->lock);
-                    return bplog(BP_FAILEDSTORE, "Failed to read data size on retrieval (%d != %d)\n", bytes_read, sizeof(current_size));
+                    return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read data size on retrieval (%d != %d)\n", bytes_read, sizeof(current_size));
                 }
 
                 /* Seek to End of Current Data */
@@ -726,7 +726,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
                 if(seek_status < 0)
                 {
                     bplib_os_unlock(fs->lock);
-                    return bplog(BP_FAILEDSTORE, "Failed (%d) to jump to end of data on retrieval\n", seek_status);
+                    return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to jump to end of data on retrieval\n", seek_status);
                 }
             }
         }
@@ -760,7 +760,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
 
             /* Return Failure */
             bplib_os_unlock(fs->lock);
-            return bplog(BP_FAILEDSTORE, "Failed (%d) to retrieve data from file\n", bytes_read);
+            return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to retrieve data from file\n", bytes_read);
         }
 
         /* Check State of Data Cache */
@@ -772,7 +772,7 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
             {
                 bplib_os_free(object_ptr);
                 bplib_os_unlock(fs->lock);
-                return bplog(BP_FAILEDSTORE, "Failed (%d) to update data cache on retrieval\n", wait_status);
+                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to update data cache on retrieval\n", wait_status);
             }
             else if((wait_status == BP_TIMEOUT) ||
                     (fs->data_cache[cache_index].mem_locked))
@@ -825,7 +825,7 @@ int bplib_store_file_release (int handle, bp_sid_t sid)
         {
             /* Releasing Invalid Resource */
             bplib_os_unlock(fs->lock);
-            return bplog(BP_FAILEDSTORE, "Failed to release invalid resource: %lu\n", (unsigned long)sid);
+            return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to release invalid resource: %lu\n", (unsigned long)sid);
         }
 
         /* Unlock Cache Entry */
@@ -885,7 +885,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
                     if(fs->relinquish_fd == NULL)
                     {
                         bplib_os_unlock(fs->lock);
-                        return bplog(BP_FAILEDSTORE, "Failed to relinquish data\n");
+                        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to relinquish data\n");
                     }
                 }
 
@@ -900,7 +900,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
                 if(bytes_written != sizeof(fs->relinquish_table))
                 {
                     bplib_os_unlock(fs->lock);
-                    return bplog(BP_FAILEDSTORE, "Failed to update relinquish table (%d != %d)\n", bytes_written, sizeof(fs->relinquish_table));
+                    return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to update relinquish table (%d != %d)\n", bytes_written, sizeof(fs->relinquish_table));
                 }
             }
 
@@ -924,7 +924,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
                 if(bytes_read != sizeof(fs->relinquish_table))
                 {
                     bplib_os_unlock(fs->lock);
-                    return bplog(BP_FAILEDSTORE, "Failed to read new relinquish table (%d != %d)\n", bytes_read, sizeof(fs->relinquish_table));
+                    return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read new relinquish table (%d != %d)\n", bytes_read, sizeof(fs->relinquish_table));
                 }
             }
         }
@@ -950,7 +950,7 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
                 if(dat_status < 0)
                 {
                     bplib_os_unlock(fs->lock);
-                    return bplog(BP_FAILEDSTORE, "Failed (%d) to relinquish file\n", dat_status);
+                    return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to relinquish file\n", dat_status);
                 }
             }
         }

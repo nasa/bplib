@@ -42,7 +42,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int cteb_read     (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* flags);
-int cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint16_t* flags);
+int cteb_read     (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint32_t* flags);
+int cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint32_t* flags);
 
 #endif  /* _cteb_h_ */

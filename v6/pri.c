@@ -38,14 +38,14 @@
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint16_t* flags)
+int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint32_t* flags)
 {
     uint8_t* blkbuf = (uint8_t*)block;
     int bytes_read = 0;
-    uint16_t sdnvflags = 0;
+    uint32_t sdnvflags = 0;
  
     /* Check Size */
-    if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of primary block: %d\n", size);
+    if(size < 1) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of primary block: %d\n", size);
 
     /* Read Block */
     pri->version = blkbuf[0];
@@ -153,11 +153,11 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
     if(sdnvflags != 0)
     {
         *flags |= sdnvflags;
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of primary block (%08X)\n", sdnvflags);
+        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of primary block (%08X)\n", sdnvflags);
     }
     else if(pri->version != BP_PRI_VERSION)
     {
-        return bplog(BP_WRONGVERSION, "Incorrect version of bundle reported: %d\n", pri->version);
+        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Incorrect version of bundle reported: %d\n", pri->version);
     }
     else
     {
@@ -175,14 +175,14 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint16_t* flags)
+int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint32_t* flags)
 {
     uint8_t*    buffer = (uint8_t*)block;
     int         bytes_written = 0;
-    uint16_t    sdnvflags = 0;
+    uint32_t    sdnvflags = 0;
 
     /* Check Size */
-    if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of primary block: %d\n", size);
+    if(size < 1) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of primary block: %d\n", size);
 
     /* Set Process Control Flags */
     pri->pcf.value = BP_PCF_SINGLETON_MASK;
@@ -280,7 +280,7 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, ui
     if(sdnvflags != 0)
     {
         *flags |= sdnvflags;
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of primary block (%08X)\n", sdnvflags);
+        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of primary block (%08X)\n", sdnvflags);
     }
     else
     {

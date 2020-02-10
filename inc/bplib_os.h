@@ -60,7 +60,7 @@
 
 /* Macros */
 #define BP_GET_MAXVAL(t)        (0xFFFFFFFFFFFFFFFFllu >> (64 - (sizeof(t) * 8)))
-#define bplog(err,...)          bplib_os_log(__FILE__,__LINE__,err,__VA_ARGS__)
+#define bplog(flags,evt,...)    bplib_os_log(__FILE__,__LINE__,flags,evt,__VA_ARGS__)
 
 /******************************************************************************
  TYPEDEFS
@@ -79,7 +79,7 @@ typedef BP_INDEX_TYPE bp_index_t;
  ******************************************************************************/
 
 void        bplib_os_init           (void);
-int         bplib_os_log            (const char* file, unsigned int line, int error, const char* fmt, ...) VARG_CHECK(printf, 4, 5);
+int         bplib_os_log            (const char* file, unsigned int line, uint32_t* flags, uint32_t error, const char* fmt, ...) VARG_CHECK(printf, 4, 5);
 int         bplib_os_systime        (unsigned long* sysnow); /* seconds */
 void        bplib_os_sleep          (int seconds);
 uint32_t    bplib_os_random         (void);

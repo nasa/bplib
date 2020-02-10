@@ -98,7 +98,7 @@ static void test_1(void)
     }
 
     printf("\n==== Step 1.4: Attempt Allocate On Empty List ====\n");
-    ut_assert(flash_free_allocate(&block) == BP_FAILEDSTORE, "Incorrectly succeeded to allocate block when no blocks available\n");
+    ut_assert(flash_free_allocate(&block) == BP_ERROR, "Incorrectly succeeded to allocate block when no blocks available\n");
 
     /* Uninitialize Driver */
     bplib_store_flash_uninit();
@@ -131,7 +131,7 @@ static void test_2(void)
     printf("\n==== Step 2.2: Clean Up Stores ====\n");
     for(i = 0; i < FLASH_MAX_STORES; i++)
     {
-        ut_assert(bplib_store_flash_destroy(h[i]), "Failed to destroy handle %d\n", h[i]);
+        ut_assert(bplib_store_flash_destroy(h[i]) == BP_SUCCESS, "Failed to destroy handle %d\n", h[i]);
     }
 
     printf("\n==== Step 2.3: Check Holes ====\n");
@@ -140,14 +140,14 @@ static void test_2(void)
         h[i] = bplib_store_flash_create(NULL);
         ut_assert(h[i] != BP_INVALID_HANDLE, "Failed to create store on %dth iteration\n", i);
     }
-    ut_assert(bplib_store_flash_destroy(h[3]), "Failed to destroy handle %d\n", h[3]);
+    ut_assert(bplib_store_flash_destroy(h[3]) == BP_SUCCESS, "Failed to destroy handle %d\n", h[3]);
     h[3] = bplib_store_flash_create(NULL);
     ut_assert(h[3] != BP_INVALID_HANDLE, "Failed to create store\n", i);
 
     printf("\n==== Step 2.4: Clean Up Stores ====\n");
     for(i = 0; i < FLASH_MAX_STORES; i++)
     {
-        ut_assert(bplib_store_flash_destroy(h[i]), "Failed to destroy handle %d\n", h[i]);
+        ut_assert(bplib_store_flash_destroy(h[i]) == BP_SUCCESS, "Failed to destroy handle %d\n", h[i]);
     }
 
     /* Uninitialize Driver */

@@ -437,7 +437,7 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
     bp_object_t* object = (bp_object_t*)bplib_os_calloc(object_size);
 
     /* Check memory allocation */
-    if(!object) return BP_FAILEDSTORE;
+    if(!object) return BP_ERROR;
 
     /* Populate Object */
     object->header.handle = handle;
@@ -462,7 +462,7 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
     else
     {
         bplib_os_free(object);
-        return BP_FAILEDSTORE;
+        return BP_ERROR;
     }
 }
 
@@ -492,7 +492,7 @@ int bplib_store_ram_dequeue(int handle, bp_object_t** object, int timeout)
     }
     else
     {
-        return BP_FAILEDSTORE;
+        return BP_ERROR;
     }
 }
 

@@ -169,7 +169,7 @@ static void test_1(void)
 
     print_hash(rh_hash, "Step 1.2");
 
-    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
+    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_ERROR, "Failed to get CIDNOTFOUND error\n");
     ut_assert(rh_hash->num_entries == 0, "Failed to remove all entries\n");
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }
@@ -236,7 +236,7 @@ static void test_2(void)
 
     print_hash(rh_hash, "Step 2.3");
 
-    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
+    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_ERROR, "Failed to get CIDNOTFOUND error\n");
     ut_assert(rh_hash->num_entries == 0, "Failed to remove all entries\n");
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }
@@ -348,7 +348,7 @@ static void test_3(void)
 
     /* Empty */
 
-    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
+    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_ERROR, "Failed to get CIDNOTFOUND error\n");
     ut_assert(rh_hash->num_entries == 0, "Failed to remove all entries\n");
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }
@@ -379,15 +379,15 @@ static void test_4(void)
 
     print_hash(rh_hash, "Step 4.1");
 
-    bundle.cid = 0;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
-    bundle.cid = 16; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
-    bundle.cid = 32; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
-    bundle.cid = 1;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
-    bundle.cid = 17; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
-    bundle.cid = 33; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
-    bundle.cid = 2;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
-    bundle.cid = 18; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
-    bundle.cid = 34; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATECID, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 0;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATE, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 16; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATE, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 32; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATE, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 1;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATE, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 17; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATE, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 33; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATE, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 2;  ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATE, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 18; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATE, "Failed to reject duplicate CID %d\n", bundle.cid);
+    bundle.cid = 34; ut_assert(rh_hash_add(rh_hash, bundle, false) == BP_DUPLICATE, "Failed to reject duplicate CID %d\n", bundle.cid);
 
     print_hash(rh_hash, "Step 4.1.1");
 
@@ -433,7 +433,7 @@ static void test_4(void)
 
     /* Check Size */
 
-    bundle.cid = 35; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_ACTIVETABLEFULL, "Failed to detect full active table\n");
+    bundle.cid = 35; ut_assert(rh_hash_add(rh_hash, bundle, true) == BP_ERROR, "Failed to detect full active table\n");
     ut_assert(rh_hash_count(rh_hash) == hash_size, "Failed to get hash size of %d\n", hash_size);
 
     /* Destroy */
@@ -507,16 +507,16 @@ static void test_5(void)
     print_hash(rh_hash, "Step 5.4 - Empty");
 
     cid = 2;
-    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_CIDNOTFOUND && bundle.cid == cid, "Failed to get next CID %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_ERROR && bundle.cid == cid, "Failed to get next CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 0, "Failed to get hash size of 0\n");
 
     cid = 2;
-    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_CIDNOTFOUND && bundle.cid == cid, "Failed to remove CID %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_ERROR && bundle.cid == cid, "Failed to remove CID %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 0, "Failed to get hash size of 0\n");
 
     cid = 2;
-    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error for %d\n", cid);
-    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error when removing %d\n", cid);
+    ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_ERROR, "Failed to get CIDNOTFOUND error for %d\n", cid);
+    ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_ERROR, "Failed to get CIDNOTFOUND error when removing %d\n", cid);
     ut_assert(rh_hash_count (rh_hash) == 0, "Failed to get hash size of 0\n");
 
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
@@ -726,7 +726,7 @@ static void test_7(void)
 
     /* Empty */
 
-    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_CIDNOTFOUND, "Failed to get CIDNOTFOUND error\n");
+    ut_assert(rh_hash_next(rh_hash, &bundle) == BP_ERROR, "Failed to get CIDNOTFOUND error\n");
     ut_assert(rh_hash->num_entries == 0, "Failed to remove all entries\n");
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }

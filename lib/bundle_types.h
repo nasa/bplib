@@ -36,7 +36,7 @@
 
 /* Call-Backs */
 typedef int (*bp_create_func_t) (void* parm, bool is_record, uint8_t* payload, int size, int timeout);
-typedef int (*bp_remove_func_t) (void* parm, bp_val_t cid);
+typedef int (*bp_delete_func_t) (void* parm, bp_val_t cid, uint32_t* flags);
 
 /* Bundle Field (fixed size) */
 typedef struct {

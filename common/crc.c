@@ -232,7 +232,7 @@ int crc_init(crc_parameters_t* params)
     }
     else
     {
-        status = BP_PARMERR;
+        status = BP_ERROR;
     }
 
     return status;

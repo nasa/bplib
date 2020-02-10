@@ -33,14 +33,14 @@
 int cbuf_create(cbuf_t** cbuf, int size)
 {
     /* Check Buffer Size */
-    if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_PARMERR;
+    if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_ERROR;
 
     /* Allocate Structure */
     *cbuf = (cbuf_t*)bplib_os_calloc(sizeof(cbuf_t));
 
     /* Allocate Circular Buffer */
     (*cbuf)->table = (bp_active_bundle_t*)bplib_os_calloc(sizeof(bp_active_bundle_t) * size);
-    if((*cbuf)->table == NULL) return BP_FAILEDMEM;
+    if((*cbuf)->table == NULL) return BP_ERROR;
 
     /* Initialize Circular Buffer Attributes */
     (*cbuf)->size = size;
@@ -77,7 +77,7 @@ int cbuf_add(cbuf_t* cbuf, bp_active_bundle_t bundle, bool overwrite)
         (cbuf->table[ati].sid != BP_SID_VACANT) &&
         (cbuf->table[ati].cid == bundle.cid) )
     {
-        return BP_DUPLICATECID;
+        return BP_DUPLICATE;
     }
     else
     {
@@ -127,7 +127,7 @@ int cbuf_remove(cbuf_t* cbuf, bp_val_t cid, bp_active_bundle_t* bundle)
         return BP_SUCCESS;
     }
 
-    return BP_CIDNOTFOUND;
+    return BP_ERROR;
 }
 
 /*----------------------------------------------------------------------------
@@ -142,7 +142,7 @@ int cbuf_available(cbuf_t* cbuf, bp_val_t cid)
     }
     else
     {
-        return BP_ACTIVETABLEFULL;
+        return BP_ERROR;
     }
 }
 

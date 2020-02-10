@@ -297,7 +297,7 @@ Retrieve channel statistics populated in the structure pointed to by _stats_.
 ----------------------------------------------------------------------
 ##### Store Payload
 
-`int bplib_store (bp_desc_t* desc, void* payload, int size, int timeout, uint16_t* flags)`
+`int bplib_store (bp_desc_t* desc, void* payload, int size, int timeout, uint32_t* flags)`
 
 Initiates sending the data pointed to by _payload_ as a bundle. The data will be encapsulated in a bundle (or many bundles if the channel allows fragmentation and the payload exceeds the maximum bundle length) and queued in storage for later retrieval and transmission.
 
@@ -316,7 +316,7 @@ Initiates sending the data pointed to by _payload_ as a bundle. The data will be
 ----------------------------------------------------------------------
 ##### Load Bundle
 
-`int bplib_load (bp_desc_t* desc, void** bundle,  int* size, int timeout, uint16_t* flags)`
+`int bplib_load (bp_desc_t* desc, void** bundle,  int* size, int timeout, uint32_t* flags)`
 
 Reads the next bundle from storage to be sent by the application over the convergence layer.  From the perspective of the library, once a bundle is loaded to the application, it is as good as sent.  Any failure of the application to send the bundle is treated no differently that a failure downstream in the bundle reaching its destination.  On the other hand, the memory containing the bundle returned by the library is kept valid until the `bplib_ackbundle` function is called, which must be called once for every returned bundle.  So while subsequent calls to `bplib_load` will continue to provide the next bundle the library determines should be sent, the application is free to hold onto the bundle buffer and keep trying to send it until it acknowledges the bundle to the library.
 
@@ -335,7 +335,7 @@ Reads the next bundle from storage to be sent by the application over the conver
 ----------------------------------------------------------------------
 ##### Process Bundle
 
-`int bplib_process (bp_desc_t* desc, void* bundle,  int size, int timeout, uint16_t* flags)`
+`int bplib_process (bp_desc_t* desc, void* bundle,  int size, int timeout, uint32_t* flags)`
 
 Processes the provided bundle.
 
@@ -359,7 +359,7 @@ There are three types of bundles processed by this function:
 ----------------------------------------------------------------------
 ##### Accept Payload
 
-`int bplib_accept (bp_desc_t* desc, void** payload, int* size, int timeout, uint16_t* flags)`
+`int bplib_accept (bp_desc_t* desc, void** payload, int* size, int timeout, uint32_t* flags)`
 
 Returns the next available bundle payload (from bundles that have been received and processed via the `bplib_process` function) to the application. The memory containing the payload returned by the library is kept valid until the `bplib_ackpayload` function is called, which must be called once for every returned payload.  So while subsequent calls to `bplib_accept` will continue to provide the next payload the library determines should be accepted, the payload will not be deleted from the library's storage service until it is acknowledged by the application.
 
@@ -419,7 +419,7 @@ Parses the provided bundle and supplies its endpoint ID node and service numbers
 ----------------------------------------------------------------------
 ##### Display Bundle
 
-`int bplib_display (void* bundle, int size, uint16_t* flags)`
+`int bplib_display (void* bundle, int size, uint32_t* flags)`
 
 Parses the provided bundle (transversing the primary block, extension blocks, and payload block), and logs debug information about the bundle.
 
@@ -478,30 +478,30 @@ Initialize an attribute structure with the library default values.  This is usef
 | BP_SUCCESS              | 1     | Operation successfully performed |
 | BP_TIMEOUT              | 0     | A timeout occurred when a blocking operation was performed |
 | BP_ERROR                | -1    | Generic error occurred; further information provided in flags to determine root cause |
-| BP_PARMERR              | -2    | Parameter passed into function was invalid |
+| BP_ERROR              | -2    | Parameter passed into function was invalid |
 | BP_UNSUPPORTED          | -3    | A valid bundle could not be processed by the library because the requested functionality is not yet implemented |
 | BP_EXPIRED              | -4    | A bundle expired due to its lifetime and was deleted |
 | BP_DROPPED              | -5    | A bundle was dropped because it could not be processed |
 | BP_INVALIDHANDLE        | -6    | The handle passed into a storage service function was invalid |
 | BP_WRONGVERSION         | -7    | The primary block bundle version number did not match the CCSDS recommended version |
-| BP_BUNDLEPARSEERR       | -8    | An error was encountered when trying to read or write a bundle, usually associated with either an SDNV overflow or a buffer that is too small |
+| BP_FLAG_FAILED_TO_PARSE       | -8    | An error was encountered when trying to read or write a bundle, usually associated with either an SDNV overflow or a buffer that is too small |
 | BP_UNKNOWNREC           | -9    | The administrative record type was unrecognized by the library |
-| BP_BUNDLETOOLARGE       | -10   | The size of the bundle exceeded the maximum size bundle that is able to be processed by the library |
+| BP_FLAG_BUNDLE_TOO_LARGE       | -10   | The size of the bundle exceeded the maximum size bundle that is able to be processed by the library |
 | BP_WRONGCHANNEL         | -11   | The destination service number did not match the channel's source service number when trying to processing a bundle destined for the local node |
 | BP_FAILEDINTEGRITYCHECK | -12   | A bundle processed by the library contained a Bundle Integrity Block, but the checksum contained in that block did not match the calculated checksum |
 | BP_FAILEDSTORE          | -13   | The library encountered an error originating from the storage service |
-| BP_FAILEDOS             | -14   | The library encountered an error originating from the operation system abstraction layer |
-| BP_FAILEDMEM            | -15   | The library encountered an error allocating memory for a channel |
+| BP_ERROR             | -14   | The library encountered an error originating from the operation system abstraction layer |
+| BP_ERROR            | -15   | The library encountered an error allocating memory for a channel |
 | BP_FAILEDRESPONSE       | -16   | The library was unable to report back to another node, e.g. a DACS bundle could not be created or sent due to there being too many sources to track |
-| BP_INVALIDEID           | -17   | An EID string did not contain a valid IPN address |
-| BP_INVALIDCIPHERSUITEID | -18   | A BIB block as an unrecognized Cipher Suite ID  |
-| BP_DUPLICATECID         | -19   | A custody ID was already present in the system either when loading a new bundle or acknowledging a received bundle  |
-| BP_CUSTODYTREEFULL      | -20   | The receiption and custody transfer of a bundle exhausted the memory allocated to keep track of custody and caused a DACS bundle to be immediately issued |
+| BP_ERROR           | -17   | An EID string did not contain a valid IPN address |
+| BP_FLAG_INVALID_CIPHER_SUITEID | -18   | A BIB block as an unrecognized Cipher Suite ID  |
+| BP_DUPLICATE         | -19   | A custody ID was already present in the system either when loading a new bundle or acknowledging a received bundle  |
+| BP_FULL      | -20   | The receiption and custody transfer of a bundle exhausted the memory allocated to keep track of custody and caused a DACS bundle to be immediately issued |
 | BP_ACTIVETABLEFULL      | -21   | No bundle can be loaded because the active table cannot accept any more bundles |
-| BP_CIDNOTFOUND          | -22   | The custody ID provided in an acknowledgement did not match any active bundle |
-| BP_PENDINGACKNOWLEDGMENT| -23   | An aggregate custody signal was unable to be processed due to a library failure |
-| BP_PENDINGFORWARD       | -24   | A forwarded bundle requesting custody transfer failed to be acknowledged due to a library failure |
-| BP_PENDINGACCEPTANCE    | -25   | A bundle destined for the local node requesting custody transfer failed to be acknowledged due to a library failure |
+| BP_ERROR          | -22   | The custody ID provided in an acknowledgement did not match any active bundle |
+| BP_PENDING_ACKNOWLEDGMENT| -23   | An aggregate custody signal was unable to be processed due to a library failure |
+| BP_PENDING_FORWARD       | -24   | A forwarded bundle requesting custody transfer failed to be acknowledged due to a library failure |
+| BP_PENDING_ACCEPTANCE    | -25   | A bundle destined for the local node requesting custody transfer failed to be acknowledged due to a library failure |
 
 ----------------------------------------------------------------------
 #### 4.3 Flag Definitions
@@ -510,18 +510,18 @@ Initialize an attribute structure with the library default values.  This is usef
 | ------------------------ | ----- | ----------- |
 | BP_FLAG_NONCOMPLIANT     | 0x0001 | Valid bundle but the library was not able to comply with the standard |
 | BP_FLAG_INCOMPLETE       | 0x0002 | At least one block in bundle was not recognized |
-| BP_FLAG_UNRELIABLETIME   | 0x0004 | The time returned by the O.S. preceded the January 2000 epoch, or went backwards |
+| BP_FLAG_UNRELIABLE_TIME   | 0x0004 | The time returned by the O.S. preceded the January 2000 epoch, or went backwards |
 | BP_FLAG_FILLOVERFLOW     | 0x0008 | A gap in the CIDs exceeds the max fill value allowed in an ACS bundle |
 | BP_FLAG_TOOMANYFILLS     | 0x0010 | All the fills in the ACS are used |
 | BP_FLAG_CIDWENTBACKWARDS | 0x0020 | The custody ID went backwards |
-| BP_FLAG_ROUTENEEDED      | 0x0040 | The bundle returned needs to be routed before transmission |
-| BP_FLAG_STOREFAILURE     | 0x0080 | Storage service failed to deliver data |
-| BP_FLAG_UNKNOWNCID       | 0x0100 | An ACS bundle acknowledged a CID for which no bundle was found |
-| BP_FLAG_SDNVOVERFLOW     | 0x0200 | The local variable used to read/write and the value was of insufficient width |
-| BP_FLAG_SDNVINCOMPLETE   | 0x0400 | There was insufficient room in block to read/write value |
-| BP_FLAG_ACTIVETABLEWRAP  | 0x0800 | The active table wrapped; see BP_OPT_WRAP_RESPONSE |
+| BP_FLAG_ROUTE_NEEDED      | 0x0040 | The bundle returned needs to be routed before transmission |
+| BP_FLAG_STORE_FAILURE     | 0x0080 | Storage service failed to deliver data |
+| BP_FLAG_UNKNOWN_CID       | 0x0100 | An ACS bundle acknowledged a CID for which no bundle was found |
+| BP_FLAG_SDNV_OVERFLOW     | 0x0200 | The local variable used to read/write and the value was of insufficient width |
+| BP_FLAG_SDNV_INCOMPLETE   | 0x0400 | There was insufficient room in block to read/write value |
+| BP_FLAG_ACTIVE_TABLE_WRAP  | 0x0800 | The active table wrapped; see BP_OPT_WRAP_RESPONSE |
 | BP_FLAG_DUPLICATES       | 0x1000 | The custody ID was already acknowledged |
-| BP_FLAG_RBTREEFULL       | 0x2000 | An aggregate custody signal was generated due the number of custody ID gaps exceeded the maximum allowed |
+| BP_FLAG_CUSTODY_FULL       | 0x2000 | An aggregate custody signal was generated due the number of custody ID gaps exceeded the maximum allowed |
 
 ----------------------------------------------------------------------
 ## 5. Storage Service

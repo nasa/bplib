@@ -43,7 +43,7 @@
  *  flags - pointer to variable that will hold the flags set as result of read [output]
  *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
-int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint16_t* flags)
+int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint32_t* flags)
 {
     assert(block);
     assert(sdnv);
@@ -67,7 +67,7 @@ int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint16_t* flags)
             /* Set Overflow:
              *  The right shift caused bits to be lost which means
              *  the encoded value could not be stored in a bp_val_t */
-            *flags |= BP_FLAG_SDNVOVERFLOW;
+            *flags |= BP_FLAG_SDNV_OVERFLOW;
         }
         
         /* OR in next byte */
@@ -84,7 +84,7 @@ int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint16_t* flags)
     /* Set Incomplete:
      *  The SDNV wanted to keep going but the
      *  block ended before it was complete */
-    *flags |= BP_FLAG_SDNVINCOMPLETE;
+    *flags |= BP_FLAG_SDNV_INCOMPLETE;
 
     /* Return Next Index */
     return i;
@@ -100,7 +100,7 @@ int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint16_t* flags)
  *  flags - pointer to variable that will hold the flags set as result of write [output]
  *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
-int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint16_t* flags)
+int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint32_t* flags)
 {
     assert(block);
     assert(flags);
@@ -129,7 +129,7 @@ int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint16_t* flags)
     if(fixedwidth > (size - (int)sdnv.index))
     {
         /* Truncate Width */
-        *flags |= BP_FLAG_SDNVINCOMPLETE;
+        *flags |= BP_FLAG_SDNV_INCOMPLETE;
         fixedwidth = size - sdnv.index;
     }
 
@@ -143,7 +143,7 @@ int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint16_t* flags)
     }
 
     /* Set Overflow  */
-    if(sdnv.value > 0) *flags |= BP_FLAG_SDNVOVERFLOW;
+    if(sdnv.value > 0) *flags |= BP_FLAG_SDNV_OVERFLOW;
 
     /* Return Next Index */
     return fixedwidth + sdnv.index;

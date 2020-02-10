@@ -62,7 +62,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int pri_read      (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint16_t* flags);
-int pri_write     (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint16_t* flags);
+int pri_read      (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint32_t* flags);
+int pri_write     (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint32_t* flags);
 
 #endif  /* _pri_h_ */

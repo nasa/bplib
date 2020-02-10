@@ -81,7 +81,7 @@ void bplib_os_init()
  *
  * 	Returns - the error code passed in (for convenience)
  *-------------------------------------------------------------------------------------*/
-int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt, ...)
+int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t event, const char* fmt, ...)
 {
     char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
     char log_message[BP_MAX_LOG_ENTRY_SIZE];
@@ -94,7 +94,7 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     vlen = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
     msglen = vlen < BP_MAX_LOG_ENTRY_SIZE - 1 ? vlen : BP_MAX_LOG_ENTRY_SIZE - 1;
     va_end(args);
-    if (msglen < 0) return error; /* nothing to do */
+    if (msglen < 0) return BP_SUCCESS; /* nothing to do */
     formatted_string[msglen] = '\0';
 
     /* Chop Path in Filename */
@@ -103,14 +103,22 @@ int bplib_os_log(const char* file, unsigned int line, int error, const char* fmt
     else pathptr = (char*)file;
 
     /* Create Log Message */
-    if(error != BP_DEBUG)   snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%d:%s", pathptr, line, error, formatted_string);
-    else                    snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s", formatted_string);
+    if(event != BP_FLAG_DIAGNOSTIC) snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%08X:%s", pathptr, line, event, formatted_string);
+    else                            snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s", formatted_string);
 
     /* Display Log Message */
     printf("%s", log_message);
 
-    /* Return Error Code */
-    return error;
+    /* Set EVent Flag and Return */
+    if(event > 0)
+    {
+        *flags |= event;
+        return BP_ERROR;
+    }
+    else
+    {
+        return BP_SUCCESS;
+    }
 }
 
 /*--------------------------------------------------------------------------------------

@@ -870,7 +870,7 @@ BP_LOCAL_SCOPE int try_binary_insert_or_merge(bp_val_t value, rb_tree_t* tree, r
                     if (*inserted_node == NULL)
                     {
                         /* There was no memory remaining for inserting a new child. */
-                        status = BP_CUSTODYTREEFULL;
+                        status = BP_FULL;
                         break;
                     }
                     insert_child(*inserted_node, node, &node->left);
@@ -917,7 +917,7 @@ BP_LOCAL_SCOPE int try_binary_insert_or_merge(bp_val_t value, rb_tree_t* tree, r
                     if (*inserted_node == NULL)
                     {
                         /* There was no memory remaining for inserting a new child. */
-                        status = BP_CUSTODYTREEFULL;
+                        status = BP_FULL;
                         break;
                     }
                     insert_child(*inserted_node, node, &node->right);
@@ -928,7 +928,7 @@ BP_LOCAL_SCOPE int try_binary_insert_or_merge(bp_val_t value, rb_tree_t* tree, r
             else
             {
                 /* Value already exists within the tree. Do not insert any duplicates. */
-                status = BP_DUPLICATECID;
+                status = BP_DUPLICATE;
                 break;
             }
         }
@@ -1108,7 +1108,7 @@ int rb_tree_create(bp_val_t max_size, rb_tree_t* tree)
 {
     if (tree == NULL)
     {
-        return BP_PARMERR;
+        return BP_ERROR;
     }
 
     tree->size = 0;
@@ -1123,12 +1123,12 @@ int rb_tree_create(bp_val_t max_size, rb_tree_t* tree)
     if ((max_size == 0) || (max_size > MAX_TREE_SIZE))
     {
         /* Tree values are not able to represent requested range */
-        return BP_PARMERR;
+        return BP_ERROR;
     }
     else if(max_size >= (BP_MAX_ENCODED_VALUE / sizeof(rb_node_t)))
     {
         /* Memory allocation request below will rollover */
-        return BP_FAILEDMEM;
+        return BP_ERROR;
     }
 
     /* Size starts maxed out until free blocks are allocated. */
@@ -1141,7 +1141,7 @@ int rb_tree_create(bp_val_t max_size, rb_tree_t* tree)
     if (tree->node_block == NULL)
     {
         /* If no memory is allocated return an empty tree. */
-        return BP_FAILEDMEM;
+        return BP_ERROR;
     }
 
     rb_node_t* start = tree->node_block;
@@ -1166,7 +1166,7 @@ int rb_tree_clear(rb_tree_t* tree)
 {
     if (tree == NULL)
     {
-        return BP_PARMERR;
+        return BP_ERROR;
     }
 
     if (rb_tree_is_empty(tree))
@@ -1229,7 +1229,7 @@ int rb_tree_insert(bp_val_t value, rb_tree_t* tree)
 {
     if ((tree == NULL) || (tree->node_block == NULL) || (tree->max_size == 0))
     {
-        return BP_PARMERR;
+        return BP_ERROR;
     }
 
     rb_node_t* inserted_node = NULL;
@@ -1255,7 +1255,7 @@ int rb_tree_delete(bp_val_t value, rb_tree_t* tree)
 {
     if (tree == NULL)
     {
-        return BP_PARMERR;
+        return BP_ERROR;
     }
 
     rb_node_t* node = rb_tree_binary_search(tree, value);
@@ -1263,7 +1263,7 @@ int rb_tree_delete(bp_val_t value, rb_tree_t* tree)
     if (node == NULL)
     {
         /* No node containing value was found. */
-        status = BP_CIDNOTFOUND;
+        status = BP_ERROR;
     }
     else
     {
@@ -1308,7 +1308,7 @@ int rb_tree_delete(bp_val_t value, rb_tree_t* tree)
 
                 /* Failure in inserting the new upper range node into the tree. In theory
                    this should only ever be caused by a lack of memory in the tree. */
-                assert(status == BP_SUCCESS || status == BP_CUSTODYTREEFULL);
+                assert(status == BP_SUCCESS || status == BP_FULL);
             }
         }
     }
@@ -1325,7 +1325,7 @@ int rb_tree_destroy(rb_tree_t* tree)
 {
     if (tree == NULL)
     {
-        return BP_PARMERR;
+        return BP_ERROR;
     }
 
     if(tree->node_block != NULL)
@@ -1347,26 +1347,21 @@ int rb_tree_destroy(rb_tree_t* tree)
  *--------------------------------------------------------------------------------------*/
 int rb_tree_goto_first(rb_tree_t* tree)
 {
-    if (tree == NULL)
-    {
-        return BP_PARMERR;
-    }
+    assert(tree != NULL);
 
-    tree->iterator = tree->root;
-    if (tree->iterator == NULL)
+    if(tree->root)
     {
-        /* There exist no nodes within the tree. */
-        return BP_ERROR;
-    }
+        tree->iterator = tree->root;
 
-    /* Resets the is visited state of root. */
-    tree->iterator->traversal_state = false;
-
-    while (has_left_child(tree->iterator))
-    {
-        /* Update iterator to the left most child of root and reset is visited. */
-        tree->iterator = tree->iterator->left;
+        /* Resets the is visited state of root. */
         tree->iterator->traversal_state = false;
+
+        while (has_left_child(tree->iterator))
+        {
+            /* Update iterator to the left most child of root and reset is visited. */
+            tree->iterator = tree->iterator->left;
+            tree->iterator->traversal_state = false;
+        }
     }
 
     return BP_SUCCESS;
@@ -1392,10 +1387,9 @@ int rb_tree_get_next(rb_tree_t* tree, rb_range_t* range, bool should_pop, bool s
 {
     /* There is either no next if the provided node is NULL or the
      * range to fill is NULL and so the function must exit early */
-    if ((tree->iterator == NULL) || (range == NULL))
-    {
-        return BP_ERROR;
-    }
+    assert(tree != NULL);
+    assert(tree->iterator != NULL);
+    assert(range != NULL);
 
     /* Fill the range from the current iter ptr. */
     range->value = tree->iterator->range.value;

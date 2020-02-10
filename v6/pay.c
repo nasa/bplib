@@ -38,14 +38,14 @@
  *
  *  Returns:    Next index
  *-------------------------------------------------------------------------------------*/
-int pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint16_t* flags)
+int pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint32_t* flags)
 {
     uint8_t* buffer = (uint8_t*)block;
     int bytes_read = 0;
-    uint16_t sdnvflags = 0;
+    uint32_t sdnvflags = 0;
 
     /* Check Size */
-    if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of payload block: %d\n", size);
+    if(size < 1) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of payload block: %d\n", size);
 
     /* Read Block Information */
     if(!update_indices)
@@ -67,7 +67,7 @@ int pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uin
     if(sdnvflags != 0)
     {
         *flags |= sdnvflags;
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of payload block (%08X)\n", sdnvflags);
+        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of payload block (%08X)\n", sdnvflags);
     }
     else
     {
@@ -87,14 +87,14 @@ int pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uin
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint16_t* flags)
+int pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint32_t* flags)
 {
     uint8_t* buffer = (uint8_t*)block;
     int bytes_written = 0;
-    uint16_t sdnvflags = 0;
+    uint32_t sdnvflags = 0;
 
     /* Check Size */
-    if(size < 1) return bplog(BP_BUNDLEPARSEERR, "Invalid size of payload block: %d\n", size);
+    if(size < 1) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of payload block: %d\n", size);
 
     /* Set Block Flags */
     pay->bf.value = 0;
@@ -125,7 +125,7 @@ int pay_write (void* block, int size, bp_blk_pay_t* pay, bool update_indices, ui
     if(sdnvflags != 0)
     {
         *flags |= sdnvflags;
-        return bplog(BP_BUNDLEPARSEERR, "Flags raised during processing of payload block (%08X)\n", sdnvflags);
+        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of payload block (%08X)\n", sdnvflags);
     }
     else
     {

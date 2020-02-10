@@ -278,51 +278,71 @@ static void push_flag_table (lua_State* L, uint16_t flags)
     lua_settable(L, -3);
 
     lua_pushstring(L, "unreliabletime");
-    lua_pushboolean(L, (flags & BP_FLAG_UNRELIABLETIME) != 0);
+    lua_pushboolean(L, (flags & BP_FLAG_UNRELIABLE_TIME) != 0);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "filloverflow");
-    lua_pushboolean(L, (flags & BP_FLAG_FILLOVERFLOW) != 0);
+    lua_pushstring(L, "dropped");
+    lua_pushboolean(L, (flags & BP_FLAG_DROPPED) != 0);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "toomanyfills");
-    lua_pushboolean(L, (flags & BP_FLAG_TOOMANYFILLS) != 0);
+    lua_pushstring(L, "failedintegritycheck");
+    lua_pushboolean(L, (flags & BP_FLAG_FAILED_INTEGRITY_CHECK) != 0);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "cidwentbackwards");
-    lua_pushboolean(L, (flags & BP_FLAG_CIDWENTBACKWARDS) != 0);
+    lua_pushstring(L, "bundletoolarge");
+    lua_pushboolean(L, (flags & BP_FLAG_BUNDLE_TOO_LARGE) != 0);
     lua_settable(L, -3);
 
     lua_pushstring(L, "routeneeded");
-    lua_pushboolean(L, (flags & BP_FLAG_ROUTENEEDED) != 0);
+    lua_pushboolean(L, (flags & BP_FLAG_ROUTE_NEEDED) != 0);
     lua_settable(L, -3);
 
     lua_pushstring(L, "storefailure");
-    lua_pushboolean(L, (flags & BP_FLAG_STOREFAILURE) != 0);
+    lua_pushboolean(L, (flags & BP_FLAG_STORE_FAILURE) != 0);
     lua_settable(L, -3);
 
     lua_pushstring(L, "unknowncid");
-    lua_pushboolean(L, (flags & BP_FLAG_UNKNOWNCID) != 0);
+    lua_pushboolean(L, (flags & BP_FLAG_UNKNOWN_CID) != 0);
     lua_settable(L, -3);
 
     lua_pushstring(L, "sdnvoverflow");
-    lua_pushboolean(L, (flags & BP_FLAG_SDNVOVERFLOW) != 0);
+    lua_pushboolean(L, (flags & BP_FLAG_SDNV_OVERFLOW) != 0);
     lua_settable(L, -3);
 
     lua_pushstring(L, "sdnincomplete");
-    lua_pushboolean(L, (flags & BP_FLAG_SDNVINCOMPLETE) != 0);
+    lua_pushboolean(L, (flags & BP_FLAG_SDNV_INCOMPLETE) != 0);
     lua_settable(L, -3);
 
     lua_pushstring(L, "activetablewrap");
-    lua_pushboolean(L, (flags & BP_FLAG_ACTIVETABLEWRAP) != 0);
+    lua_pushboolean(L, (flags & BP_FLAG_ACTIVE_TABLE_WRAP) != 0);
     lua_settable(L, -3);
 
     lua_pushstring(L, "duplicates");
     lua_pushboolean(L, (flags & BP_FLAG_DUPLICATES) != 0);
     lua_settable(L, -3);
 
-    lua_pushstring(L, "rbtreefull");
-    lua_pushboolean(L, (flags & BP_FLAG_RBTREEFULL) != 0);
+    lua_pushstring(L, "custodyfull");
+    lua_pushboolean(L, (flags & BP_FLAG_CUSTODY_FULL) != 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "unknownrec");
+    lua_pushboolean(L, (flags & BP_FLAG_UNKNOWNREC) != 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "invalidciphersuite");
+    lua_pushboolean(L, (flags & BP_FLAG_INVALID_CIPHER_SUITEID) != 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "invalidbibresulttype");
+    lua_pushboolean(L, (flags & BP_FLAG_INVALID_BIB_RESULT_TYPE) != 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "invalidbibtargettype");
+    lua_pushboolean(L, (flags & BP_FLAG_INVALID_BIB_TARGET_TYPE) != 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "failedtoparse");
+    lua_pushboolean(L, (flags & BP_FLAG_FAILED_TO_PARSE) != 0);
     lua_settable(L, -3);
 }
 
@@ -630,7 +650,7 @@ int lbplib_display (lua_State* L)
     }
 
     /* Display */
-    uint16_t flags = 0;
+    uint32_t flags = 0;
     int status = bplib_display((void*)buffer, len, &flags);
     set_errno(L, status);
 
@@ -1094,7 +1114,7 @@ int lbplib_setopt (lua_State* L)
     }
 
     /* Get Option */
-    int status = BP_PARMERR;
+    int status = BP_ERROR;
     const char* optstr = lua_tostring(L, 2);
     if((strcmp(optstr, "LIFETIME") == 0) && lua_isnumber(L, 3))
     {
@@ -1272,7 +1292,7 @@ int lbplib_store (lua_State* L)
     }
 
     /* Store Data */
-    uint16_t storflags = 0;
+    uint32_t storflags = 0;
     size_t size = 0;
     const char* payload = lua_tolstring(L, 2, &size);
     int timeout = (int)lua_tonumber(L, 3);
@@ -1317,7 +1337,7 @@ int lbplib_load (lua_State* L)
     }
 
     /* Load Bundle */
-    uint16_t loadflags = 0;
+    uint32_t loadflags = 0;
     char* bundle = NULL;
     int size = 0;
     int timeout = (int)lua_tonumber(L, 2);
@@ -1378,7 +1398,7 @@ int lbplib_process (lua_State* L)
     }
 
     /* Store Data */
-    uint16_t procflags = 0;
+    uint32_t procflags = 0;
     size_t size = 0;
     const char* bundle = lua_tolstring(L, 2, &size);
     int timeout = (int)lua_tonumber(L, 3);
@@ -1423,7 +1443,7 @@ int lbplib_accept (lua_State* L)
     }
 
     /* Accept Payload */
-    uint16_t acptflags = 0;
+    uint32_t acptflags = 0;
     char* payload = NULL;
     int size = 0;
     int timeout = (int)lua_tonumber(L, 2);

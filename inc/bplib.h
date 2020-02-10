@@ -32,6 +32,40 @@ extern "C" {
  DEFINES
  ******************************************************************************/
 
+/* Return Codes */
+#define BP_SUCCESS                      0
+#define BP_ERROR                        (-1)
+#define BP_TIMEOUT                      (-2)
+#define BP_EXPIRED                      (-3)
+#define BP_DUPLICATE                    (-4)
+#define BP_FULL                         (-5)
+#define BP_PENDING_ACKNOWLEDGMENT       (-6)
+#define BP_PENDING_FORWARD              (-7)
+#define BP_PENDING_ACCEPTANCE           (-8)
+#define BP_PENDING_APPLICATION          (-9)
+
+/* Event Flags */
+#define BP_FLAG_DIAGNOSTIC              0x0000000
+#define BP_FLAG_NONCOMPLIANT            0x0000001   /* valid bundle but agent not able to comply with standard */
+#define BP_FLAG_INCOMPLETE              0x0000002   /* block in bundle was not recognized */
+#define BP_FLAG_UNRELIABLE_TIME         0x0000004   /* the os call to get time return a suspicious value */
+#define BP_FLAG_DROPPED                 0x0000008   /* bundle dropped because a required extension block could not be processed */
+#define BP_FLAG_FAILED_INTEGRITY_CHECK  0x0000010   /* bundle with BIB failed the integrity check on the payload */
+#define BP_FLAG_BUNDLE_TOO_LARGE        0x0000020   /* size of bundle exceeds capacity allowed by library */
+#define BP_FLAG_ROUTE_NEEDED            0x0000040   /* the bundle returned should be routed before transmission */
+#define BP_FLAG_STORE_FAILURE           0x0000080   /* storage service failed to deliver data */
+#define BP_FLAG_UNKNOWN_CID             0x0000100   /* received CID in acknowledgment for which no bundle was found */
+#define BP_FLAG_SDNV_OVERFLOW           0x0000200   /* insufficient room in variable to read/write value */
+#define BP_FLAG_SDNV_INCOMPLETE         0x0000400   /* insufficient room in block to read/write value */
+#define BP_FLAG_ACTIVE_TABLE_WRAP       0x0000800   /* the active table wrapped */
+#define BP_FLAG_DUPLICATES              0x0001000   /* multiple bundles on the network have the same custody id */
+#define BP_FLAG_CUSTODY_FULL            0x0002000   /* the dacs rb_tree was full */
+#define BP_FLAG_UNKNOWNREC              0x0004000   /* bundle contained unknown adminstrative record */
+#define BP_FLAG_INVALID_CIPHER_SUITEID  0x0008000   /* invalid cipher suite ID found in BIB */
+#define BP_FLAG_INVALID_BIB_RESULT_TYPE 0x0010000   /* invalid result type found in BIB */
+#define BP_FLAG_INVALID_BIB_TARGET_TYPE 0x0020000   /* invalid target type found in BIB */
+#define BP_FLAG_FAILED_TO_PARSE         0x0040000   /* unable to parse bundle due to internal inconsistencies in bundle */
+
 /* Handles */
 #define BP_INVALID_HANDLE               (-1)    /* used for integers (os locks, storage services) */
 
@@ -46,60 +80,10 @@ extern "C" {
 /* Storage IDs */
 #define BP_SID_VACANT                   0
 
-/* Return Codes */
-#define BP_DEBUG                        2
-#define BP_SUCCESS                      1
-#define BP_TIMEOUT                      0
-#define BP_ERROR                        (-1)
-#define BP_PARMERR                      (-2)
-#define BP_UNSUPPORTED                  (-3)
-#define BP_EXPIRED                      (-4)
-#define BP_DROPPED                      (-5)
-#define BP_INVALIDHANDLE                (-6)
-#define BP_WRONGVERSION                 (-9)
-#define BP_BUNDLEPARSEERR               (-10)
-#define BP_UNKNOWNREC                   (-11)
-#define BP_BUNDLETOOLARGE               (-12)
-#define BP_STOREFULL                    (-13)
-#define BP_WRONGCHANNEL                 (-14)
-#define BP_FAILEDINTEGRITYCHECK         (-15)
-#define BP_FAILEDSTORE                  (-16)
-#define BP_FAILEDOS                     (-17)
-#define BP_FAILEDMEM                    (-18)
-#define BP_FAILEDRESPONSE               (-19)
-#define BP_INVALIDEID                   (-20)
-#define BP_INVALIDCIPHERSUITEID         (-21)
-#define BP_INVALIDBIBRESULTTYPE         (-22)
-#define BP_INVALIDBIBTARGETTYPE         (-23)
-#define BP_DUPLICATECID                 (-24)
-#define BP_CUSTODYTREEFULL              (-25)
-#define BP_ACTIVETABLEFULL              (-26)
-#define BP_CIDNOTFOUND                  (-27)
-#define BP_PENDINGACKNOWLEDGMENT        (-28)
-#define BP_PENDINGFORWARD               (-29)
-#define BP_PENDINGACCEPTANCE            (-30)
-#define BP_PENDINGAPPLICATION           (-31)
-
 /* Error Correcting Codes */
-#define BP_ECC_NO_ERRORS                (-1)
+#define BP_ECC_NO_ERRORS                0
+#define BP_ECC_COR_ERRORS               (-1)
 #define BP_ECC_UNCOR_ERRORS             (-2)
-#define BP_ECC_COR_ERRORS               (-3)
-
-/* Processing, Acceptance, and Load Flags */
-#define BP_FLAG_NONCOMPLIANT            0x0001  /* valid bundle but agent not able to comply with standard */
-#define BP_FLAG_INCOMPLETE              0x0002  /* block in bundle was not recognized */
-#define BP_FLAG_UNRELIABLETIME          0x0004  /* the os call to get time return a suspicious value */
-#define BP_FLAG_FILLOVERFLOW            0x0008  /* a gap in the CIDs exceeds the max fill */
-#define BP_FLAG_TOOMANYFILLS            0x0010  /* all the fills in the ACS are used */
-#define BP_FLAG_CIDWENTBACKWARDS        0x0020  /* the custody ID went backwards */
-#define BP_FLAG_ROUTENEEDED             0x0040  /* the bundle returned should be routed before transmission */
-#define BP_FLAG_STOREFAILURE            0x0080  /* storage service failed to deliver data */
-#define BP_FLAG_UNKNOWNCID              0x0100  /* received CID in acknowledgment for which no bundle was found */
-#define BP_FLAG_SDNVOVERFLOW            0x0200  /* insufficient room in variable to read/write value */
-#define BP_FLAG_SDNVINCOMPLETE          0x0400  /* insufficient room in block to read/write value */
-#define BP_FLAG_ACTIVETABLEWRAP         0x0800  /* the active table wrapped */
-#define BP_FLAG_DUPLICATES              0x1000  /* multiple bundles on the network have the same custody id */
-#define BP_FLAG_RBTREEFULL              0x2000  /* the dacs rb_tree was full */
 
 /* Class of Service */
 #define BP_COS_BULK                     0
@@ -263,16 +247,16 @@ int         bplib_flush         (bp_desc_t* desc);
 int         bplib_config        (bp_desc_t* desc, int mode, int opt, int* val);
 int         bplib_latchstats    (bp_desc_t* desc, bp_stats_t* stats);
 
-int         bplib_store         (bp_desc_t* desc, void* payload, int size, int timeout, uint16_t* flags);
-int         bplib_load          (bp_desc_t* desc, void** bundle, int* size, int timeout, uint16_t* flags);
-int         bplib_process       (bp_desc_t* desc, void* bundle, int size, int timeout, uint16_t* flags);
-int         bplib_accept        (bp_desc_t* desc, void** payload, int* size, int timeout, uint16_t* flags);
+int         bplib_store         (bp_desc_t* desc, void* payload, int size, int timeout, uint32_t* flags);
+int         bplib_load          (bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t* flags);
+int         bplib_process       (bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t* flags);
+int         bplib_accept        (bp_desc_t* desc, void** payload, int* size, int timeout, uint32_t* flags);
 
 int         bplib_ackbundle     (bp_desc_t* desc, void* bundle);
 int         bplib_ackpayload    (bp_desc_t* desc, void* payload);
 
 int         bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
-int         bplib_display       (void* bundle, int size, uint16_t* flags);
+int         bplib_display       (void* bundle, int size, uint32_t* flags);
 int         bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
 int         bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
 int         bplib_attrinit      (bp_attr_t* attributes);
