@@ -275,9 +275,6 @@ static void test_5 (void)
     int ecc_block_size = 7;
     int ecc_code_bytes_per_block = 2;
     int page_data_size = (ecc_block_size * flash_driver.page_size) / (ecc_block_size + ecc_code_bytes_per_block);
-    int FLASH_ECC_NO_ERRORS    = -1;
-    int FLASH_ECC_UNCOR_ERRORS = -2;
-    int FLASH_ECC_COR_ERRORS   = -3;
     /****************************************/
 
     /* initialize test buffers */
@@ -295,8 +292,8 @@ static void test_5 (void)
     printf("\n==== Step 5.1: Nominal Decode - No Errors ====\n");
     status1 = lrc_decode(test_buffer[0], page_data_size);
     status2 = lrc_decode(test_buffer[1], page_data_size);
-    ut_assert(status1 == FLASH_ECC_NO_ERRORS, "Failed to decode page buffer[0] with no errors (%d)\n", status1);
-    ut_assert(status2 == FLASH_ECC_NO_ERRORS, "Failed to decode page buffer[1] with no errors (%d)\n", status2);
+    ut_assert(status1 == BP_ECC_NO_ERRORS, "Failed to decode page buffer[0] with no errors (%d)\n", status1);
+    ut_assert(status2 == BP_ECC_NO_ERRORS, "Failed to decode page buffer[1] with no errors (%d)\n", status2);
 
     /* decode page - SBE errors */
     printf("\n==== Step 5.2: Correctable Errors in Data ====\n");
@@ -304,7 +301,7 @@ static void test_5 (void)
     test_buffer[0][8] ^= 0x10;
     test_buffer[0][50] ^= 0x02;
     status1 = lrc_decode(test_buffer[0], page_data_size);
-    ut_assert(status1 == FLASH_ECC_COR_ERRORS, "Failed to decode page buffer[0] with correctable errors (%d)\n", status1);
+    ut_assert(status1 == BP_ECC_COR_ERRORS, "Failed to decode page buffer[0] with correctable errors (%d)\n", status1);
 
     /* decode page - ECC errors */
     printf("\n==== Step 5.3: Correctable Errors in ECC ====\n");
@@ -312,38 +309,38 @@ static void test_5 (void)
     test_buffer[1][page_data_size+8] ^= 0x08;
     test_buffer[1][page_data_size+50] ^= 0x08;
     status2 = lrc_decode(test_buffer[1], page_data_size);
-    ut_assert(status2 == FLASH_ECC_COR_ERRORS, "Failed to decode page buffer[1] with correctable errors (%d)\n", status2);
+    ut_assert(status2 == BP_ECC_COR_ERRORS, "Failed to decode page buffer[1] with correctable errors (%d)\n", status2);
 
     /* decode page - MBEerrors */
     printf("\n==== Step 5.4: Uncorrectable Errors in Data ====\n");
     test_buffer[0][0] ^= 0x40;
     test_buffer[0][0+1] ^= 0x40;
     status1 = lrc_decode(test_buffer[0], page_data_size);
-    ut_assert(status1 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[0]: (%d)\n", status1);
+    ut_assert(status1 == BP_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[0]: (%d)\n", status1);
 
     test_buffer[0][8] ^= 0x10;
     test_buffer[0][8+1] ^= 0x10;
     status1 = lrc_decode(test_buffer[0], page_data_size);
-    ut_assert(status1 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[0]: (%d)\n", status1);
+    ut_assert(status1 == BP_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[0]: (%d)\n", status1);
 
     test_buffer[0][50] ^= 0x02;
     test_buffer[0][50+1] ^= 0x02;
     status1 = lrc_decode(test_buffer[0], page_data_size);
-    ut_assert(status1 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[0]: (%d)\n", status1);
+    ut_assert(status1 == BP_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[0]: (%d)\n", status1);
 
     /* decode page - MBEerrors in Spare */
     printf("\n==== Step 5.5: Uncorrectable Errors in ECC ====\n");
     test_buffer[1][page_data_size + 20] ^= 0x03;
     status2 = lrc_decode(test_buffer[1], page_data_size);
-    ut_assert(status2 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[1]: (%d)\n", status2);
+    ut_assert(status2 == BP_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[1]: (%d)\n", status2);
 
     test_buffer[1][page_data_size + 28] ^= 0x18;
     status2 = lrc_decode(test_buffer[1], page_data_size);
-    ut_assert(status2 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[1]: (%d)\n", status2);
+    ut_assert(status2 == BP_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[1]: (%d)\n", status2);
 
     test_buffer[1][page_data_size+44] ^= 0x24;
     status2 = lrc_decode(test_buffer[1], page_data_size);
-    ut_assert(status2 == FLASH_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[1]: (%d)\n", status2);
+    ut_assert(status2 == BP_ECC_UNCOR_ERRORS, "Failed to detect uncorrectable errors in page buffer[1]: (%d)\n", status2);
 
     /* Uninitialize Driver */
     bplib_store_flash_uninit();

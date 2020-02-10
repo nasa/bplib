@@ -123,7 +123,7 @@ BP_LOCAL_SCOPE void build_rci_table(int8_t* table)
             {
                 if(table[i] == BP_ECC_NO_ERRORS)
                 {
-                    table[i] = k;
+                    table[i] = k + 1;
                 }
                 else
                 {

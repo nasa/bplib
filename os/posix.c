@@ -112,7 +112,7 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     /* Set EVent Flag and Return */
     if(event > 0)
     {
-        *flags |= event;
+        if(flags) *flags |= event;
         return BP_ERROR;
     }
     else

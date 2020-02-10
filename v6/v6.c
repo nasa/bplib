@@ -495,7 +495,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     else if(sysnow >= exprtime)
     {
         /* Expire Bundle */
-        return bplog(flags, BP_EXPIRED, "Expired bundle attempted to be processed\n");
+        return BP_PENDING_EXPIRATION;
     }
 
     /* Parse and Process Remaining Blocks */

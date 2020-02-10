@@ -2,6 +2,8 @@ local bplib = require("bplib")
 local runner = require("bptest")
 local rd = runner.rootdir(arg[0])
 
+--runner.set_exit_on_error(true)
+
 -- Run Unit Tests --
 
 runner.script(rd .. "ut_open_close.lua", {"RAM"})

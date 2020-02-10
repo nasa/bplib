@@ -140,7 +140,7 @@ BP_LOCAL_SCOPE int delete_bundle(void* parm, bp_val_t cid, uint32_t* flags)
     if(status == BP_SUCCESS)
     {
         status = ch->store.relinquish(ch->bundle_handle, bundle.sid);
-        if(status != BP_SUCCESS) 
+        if(status != BP_SUCCESS)
         {
             *flags |= BP_FLAG_STORE_FAILURE;
         }
@@ -931,7 +931,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
     bp_payload_t payload;
     bool custody_transfer = false;
     status = v6_receive_bundle(&ch->bundle, bundle, size, &payload, flags);
-    if(status == BP_EXPIRED)
+    if(status == BP_PENDING_EXPIRATION)
     {
         ch->stats.expired++;
     }
@@ -1033,7 +1033,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
 
                     /* Start New DACS */
                     insert_status = rb_tree_insert(payload.cid, &ch->custody_tree);
-                    
+
                     /* There is no valid reason for an insert to fail on an empty custody_tree */
                     assert(insert_status == BP_SUCCESS);
                 }
@@ -1114,7 +1114,8 @@ int bplib_accept(bp_desc_t* desc, void** payload, int* size, int timeout, uint32
         {
             ch->store.relinquish(ch->payload_handle, object->header.sid);
             ch->stats.expired++;
-            status = BP_EXPIRED;
+            status = BP_ERROR;
+// TODO            status = BP_EXPIRED;
         }
         else
         {

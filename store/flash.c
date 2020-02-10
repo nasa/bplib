@@ -210,7 +210,7 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE int flash_free_allocate (bp_flash_index_t* block)
 {
-    int status = BP_FLAG_STORE_FAILURE;
+    int status = BP_ERROR;
 
     /* Erase Block */
     while(status != BP_SUCCESS && flash_free_blocks.out != BP_FLASH_INVALID_INDEX)
@@ -753,7 +753,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
     /* Check for Success */
     if(reclaimed_blocks > 0)
     {
-        bplog(NULL, BP_FLAG_STORE_FAILURE, "Flash storage service reclaimed %d blocks, starting at block %d\n", reclaimed_blocks, start_block % driver.num_blocks);
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Flash storage service reclaimed %d blocks, starting at block %d\n", reclaimed_blocks, start_block % driver.num_blocks);
     }
     else
     {

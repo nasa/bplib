@@ -1,7 +1,8 @@
-local all_flags = {   "noncompliant", "incomplete", "unreliabletime", "filloverflow", 
-                      "toomanyfills", "cidwentbackwards", "routeneeded", "storefailure", 
+local all_flags = {   "noncompliant", "incomplete", "unreliabletime", "dropped",
+                      "failedintegritycheck", "bundletoolarge", "routeneeded", "storefailure",
                       "sdnvoverflow", "sdnincomplete", "activetablewrap",
-                      "duplicates", "rbtreefull"  }
+                      "duplicates", "custodyfull", "unknownrec", "invalidciphersuite",
+                      "invalidbibresulttype", "invalidbibtargettype", "failedtoparse"  }
 
 --------------------------------------------------------------------------------------
 -- check_flags  -
@@ -72,7 +73,7 @@ end
 --
 --  finds the payload inside the bundle
 --------------------------------------------------------------------------------------
-local function find_payload(bundle, payload) 
+local function find_payload(bundle, payload)
     if bundle == nil or payload == nil then
         return false
     end
@@ -94,7 +95,7 @@ end
 --
 --  compares both payloads and verifies that they are the same
 --------------------------------------------------------------------------------------
-local function match_payload(payload1, payload2) 
+local function match_payload(payload1, payload2)
     if payload1 == nil or payload2 == nil then
         return false
     end

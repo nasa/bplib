@@ -36,13 +36,13 @@ extern "C" {
 #define BP_SUCCESS                      0
 #define BP_ERROR                        (-1)
 #define BP_TIMEOUT                      (-2)
-#define BP_EXPIRED                      (-3)
-#define BP_DUPLICATE                    (-4)
-#define BP_FULL                         (-5)
-#define BP_PENDING_ACKNOWLEDGMENT       (-6)
-#define BP_PENDING_FORWARD              (-7)
-#define BP_PENDING_ACCEPTANCE           (-8)
-#define BP_PENDING_APPLICATION          (-9)
+#define BP_DUPLICATE                    (-3)
+#define BP_FULL                         (-4)
+#define BP_PENDING_ACKNOWLEDGMENT       (-5)
+#define BP_PENDING_FORWARD              (-6)
+#define BP_PENDING_ACCEPTANCE           (-7)
+#define BP_PENDING_APPLICATION          (-8)
+#define BP_PENDING_EXPIRATION           (-9)
 
 /* Event Flags */
 #define BP_FLAG_DIAGNOSTIC              0x0000000
