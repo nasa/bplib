@@ -424,21 +424,21 @@ void bplib_close(bp_desc_t* desc)
     bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Un-initialize Bundle Store */
-    if(ch->bundle_handle >= 0)
+    if(ch->bundle_handle != BP_INVALID_HANDLE)
     {
         ch->store.destroy(ch->bundle_handle);
         ch->bundle_handle = BP_INVALID_HANDLE;
     }
 
     /* Un-initialize Payload Store */
-    if(ch->payload_handle >= 0)
+    if(ch->payload_handle != BP_INVALID_HANDLE)
     {
         ch->store.destroy(ch->payload_handle);
         ch->payload_handle = BP_INVALID_HANDLE;
     }
 
     /* Un-initialize Record Store */
-    if(ch->dacs_handle >= 0)
+    if(ch->dacs_handle != BP_INVALID_HANDLE)
     {
         ch->store.destroy(ch->dacs_handle);
         ch->dacs_handle = BP_INVALID_HANDLE;

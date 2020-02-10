@@ -26,12 +26,12 @@
  * DEFINES
  ******************************************************************************/
 
-#define MSGQ_OKAY               (1)
-#define MSGQ_TIMEOUT            (0)
-#define MSGQ_ERROR              (-1)
-#define MSGQ_FULL               (-2)
-#define MSGQ_MEMORY_ERROR       (-3)
-#define MSGQ_UNDERFLOW          (-4)
+#define MSGQ_OKAY               (0)
+#define MSGQ_TIMEOUT            (-1)
+#define MSGQ_ERROR              (-2)
+#define MSGQ_FULL               (-3)
+#define MSGQ_MEMORY_ERROR       (-4)
+#define MSGQ_UNDERFLOW          (-5)
 #define MSGQ_INVALID_HANDLE     ((msgq_t)NULL)
 #define MSGQ_MAX_NAME_CHARS     64
 #define MSGQ_DEPTH_INFINITY     0
@@ -448,7 +448,7 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
 
     /* Post object */
     status = msgq_post(msgq_stores[handle], object, object_size);
-    if(status > 0)
+    if(status == MSGQ_OKAY)
     {
         msgq_counts[handle]++;
         return BP_SUCCESS;

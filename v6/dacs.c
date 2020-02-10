@@ -165,6 +165,6 @@ int dacs_read(uint8_t* rec, int rec_size, int* num_acks, bp_remove_func_t ack, v
     *num_acks = ack_count;
 
     /* Return Bytes Read or Error Code */
-    if(ret_status > 0)  return fill.index;
-    else                return ret_status;
+    if(ret_status == BP_SUCCESS)    return fill.index;
+    else                            return ret_status;
 }
