@@ -138,7 +138,7 @@ Initializes the BP library.  This must be called before any other call to the li
 ----------------------------------------------------------------------
 ##### Open Channel
 
-`bp_desc_t bplib_open (bp_route_t route, bp_store_t store, bp_attr_t* attributes)`
+`bp_desc_t* bplib_open (bp_route_t route, bp_store_t store, bp_attr_t* attributes)`
 
 Opens a bundle channel that uses the provided endpoint IDs, storage service, and attributes.
 
@@ -194,34 +194,34 @@ This function returns a channel handle that is used for all future operations on
 
 * __storage_service_parm__: A pass through to the storage service `create` function.
 
-`returns` - channel descriptor.
+`returns` - pointer to a channel descriptor.  On error, NULL is returned.
 
 ----------------------------------------------------------------------
 ##### Close Channel
 
-`void bplib_close (bp_desc_t channel)`
+`void bplib_close (bp_desc_t* desc)`
 
 Closes the specified bundle channel and releases all run-time resources associated with it; this does not include the bundles stored in the storage service; nor does it include bundles that have been transmitted but not yet acknowledged (active bundles).  The close call is not mutex'ed against other channel operations - it is the caller's responsibility that the close call is made non-concurrently with any other library function call on that channel.
 
-`channel` - which channel to close
+`desc` - a descriptor for which channel to close
 
 ----------------------------------------------------------------------
 ##### Flush Channel
 
-`int bplib_flush (bp_desc_t channel)`
+`int bplib_flush (bp_desc_t* desc)`
 
 Flushes all active bundles on a channel; this treats each bundle that has been transmitted but not yet acknowledged as if it was immediately acknowledged.  This function is separate from the bplib_close function because it is possible that a storage service supports resuming where it left off after a channel is closed.  In such a case, closing the channel would occur without flushing the data since the next time the channel was opened, the data that had not yet been relinquished would resume being sent.
 
-`channel` - which channel to flush
+`channel` - a descriptor for which channel to flush
 
 ----------------------------------------------------------------------
 ##### Config Channel
 
-`int bplib_config (bp_desc_t channel, int mode, int opt, void* val, int len)`
+`int bplib_config (bp_desc_t* desc, int mode, int opt, void* val, int len)`
 
 Configures or retrieves an attribute on a channel.
 
-`channel` - which channel to configure or retrieve attribute
+`desc` - a descriptor for which channel to configure or retrieve attribute
 
 `mode` - whether to read or write the attribute
 
@@ -256,11 +256,11 @@ __NOTE__: _transmitted_ bundles include both bundles generated on the channel fr
 ----------------------------------------------------------------------
 ##### Latch Statistics
 
-`int bplib_latchstats (bp_desc_t channel, bp_stats_t* stats)`
+`int bplib_latchstats (bp_desc_t* desc, bp_stats_t* stats)`
 
 Retrieve channel statistics populated in the structure pointed to by _stats_.
 
-`channel` - channel to retrieve statistics on
+`desc` - a descriptor for channel to retrieve statistics on
 
 `stats` - pointer to the statistics structure to be populated
 
@@ -297,11 +297,11 @@ Retrieve channel statistics populated in the structure pointed to by _stats_.
 ----------------------------------------------------------------------
 ##### Store Payload
 
-`int bplib_store (bp_desc_t channel, void* payload, int size, int timeout, uint16_t* flags)`
+`int bplib_store (bp_desc_t* desc, void* payload, int size, int timeout, uint16_t* flags)`
 
 Initiates sending the data pointed to by _payload_ as a bundle. The data will be encapsulated in a bundle (or many bundles if the channel allows fragmentation and the payload exceeds the maximum bundle length) and queued in storage for later retrieval and transmission.
 
-`channel` - channel to create bundle on
+`desc` - a descriptor for channel to create bundle on
 
 `payload` - pointer to data to be bundled
 
@@ -316,11 +316,11 @@ Initiates sending the data pointed to by _payload_ as a bundle. The data will be
 ----------------------------------------------------------------------
 ##### Load Bundle
 
-`int bplib_load (bp_desc_t channel, void** bundle,  int* size, int timeout, uint16_t* flags)`
+`int bplib_load (bp_desc_t* desc, void** bundle,  int* size, int timeout, uint16_t* flags)`
 
 Reads the next bundle from storage to be sent by the application over the convergence layer.  From the perspective of the library, once a bundle is loaded to the application, it is as good as sent.  Any failure of the application to send the bundle is treated no differently that a failure downstream in the bundle reaching its destination.  On the other hand, the memory containing the bundle returned by the library is kept valid until the `bplib_ackbundle` function is called, which must be called once for every returned bundle.  So while subsequent calls to `bplib_load` will continue to provide the next bundle the library determines should be sent, the application is free to hold onto the bundle buffer and keep trying to send it until it acknowledges the bundle to the library.
 
-`channel` - channel to retrieve bundle from
+`desc` - a descriptor for channel to retrieve bundle from
 
 `bundle` - pointer to a bundle buffer pointer; on success, the library will populate this pointer with the address of a buffer containing the bundle that is loaded.
 
@@ -335,7 +335,7 @@ Reads the next bundle from storage to be sent by the application over the conver
 ----------------------------------------------------------------------
 ##### Process Bundle
 
-`int bplib_process (bp_desc_t channel, void* bundle,  int size, int timeout, uint16_t* flags)`
+`int bplib_process (bp_desc_t* desc, void* bundle,  int size, int timeout, uint16_t* flags)`
 
 Processes the provided bundle.
 
@@ -344,7 +344,7 @@ There are three types of bundles processed by this function:
 (2) If the bundle is destined for the local node, then the payload data will be extracted and queued for retrieval by the application; and if custody is requested, then the current aggregate custody signal will be updated and queued for transmission if necessary.
 (3) If the bundle is not destined for the local node, then the bundle will be queued for transmission as a forwarded bundle; and if custody is requested, then the current aggregate custody signal will be updated and queued for transmission if necessary.
 
-`channel` - channel to process bundle on
+`desc` - a descriptor for channel to process bundle on
 
 `bundle` - pointer to a bundle
 
@@ -359,11 +359,11 @@ There are three types of bundles processed by this function:
 ----------------------------------------------------------------------
 ##### Accept Payload
 
-`int bplib_accept (bp_desc_t channel, void** payload, int* size, int timeout, uint16_t* flags)`
+`int bplib_accept (bp_desc_t* desc, void** payload, int* size, int timeout, uint16_t* flags)`
 
 Returns the next available bundle payload (from bundles that have been received and processed via the `bplib_process` function) to the application. The memory containing the payload returned by the library is kept valid until the `bplib_ackpayload` function is called, which must be called once for every returned payload.  So while subsequent calls to `bplib_accept` will continue to provide the next payload the library determines should be accepted, the payload will not be deleted from the library's storage service until it is acknowledged by the application.
 
-`channel` - channel to accept payload from
+`desc` - a descriptor for channel to accept payload from
 
 `payload` - pointer to a payload buffer pointer; on success, the library will populate this pointer with the address of a buffer containing the payload that is accepted.
 
@@ -378,11 +378,11 @@ Returns the next available bundle payload (from bundles that have been received 
 ----------------------------------------------------------------------
 ##### Acknowledge Bundle
 
-`int bplib_ackbundle (bp_desc_t channel, void* bundle)`
+`int bplib_ackbundle (bp_desc_t* desc, void* bundle)`
 
 Informs the library that the memory and storage used for the payload can be freed.  The memory will be immediately freed, the storage will be freed immediately only if the bundle is not requesting custody transfer (otherwise, if the bundle is requesting custody transfer, then the ACS acknowledgment frees the storage).  This must be called at some point after every bundle that is loaded.
 
-`channel` - channel to acknowlwedge bundle
+`desc` - a descriptor for channel to acknowlwedge bundle
 
 `bundle` - pointer to the bundle buffer to be acknowledged
 
@@ -391,11 +391,11 @@ Informs the library that the memory and storage used for the payload can be free
 ----------------------------------------------------------------------
 ##### Acknowledge Payload
 
-`int bplib_ackpayload (bp_desc_t channel, void* payload)`
+`int bplib_ackpayload (bp_desc_t* desc, void* payload)`
 
 Informs the library that the memory and storage used for the payload can be freed.  This must be called at some point after every payload that is accepted.
 
-`channel` - channel to acknowlwedge payload
+`desc` - a descriptor for channel to acknowlwedge payload
 
 `payload` - pointer to the payload buffer to be acknowledged
 
