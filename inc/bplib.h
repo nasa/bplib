@@ -36,35 +36,28 @@ extern "C" {
 #define BP_SUCCESS                      0
 #define BP_ERROR                        (-1)
 #define BP_TIMEOUT                      (-2)
-#define BP_DUPLICATE                    (-3)
-#define BP_FULL                         (-4)
-#define BP_PENDING_ACKNOWLEDGMENT       (-5)
-#define BP_PENDING_FORWARD              (-6)
-#define BP_PENDING_ACCEPTANCE           (-7)
-#define BP_PENDING_APPLICATION          (-8)
-#define BP_PENDING_EXPIRATION           (-9)
 
 /* Event Flags */
-#define BP_FLAG_DIAGNOSTIC              0x0000000
-#define BP_FLAG_NONCOMPLIANT            0x0000001   /* valid bundle but agent not able to comply with standard */
-#define BP_FLAG_INCOMPLETE              0x0000002   /* block in bundle was not recognized */
-#define BP_FLAG_UNRELIABLE_TIME         0x0000004   /* the os call to get time return a suspicious value */
-#define BP_FLAG_DROPPED                 0x0000008   /* bundle dropped because a required extension block could not be processed */
-#define BP_FLAG_FAILED_INTEGRITY_CHECK  0x0000010   /* bundle with BIB failed the integrity check on the payload */
-#define BP_FLAG_BUNDLE_TOO_LARGE        0x0000020   /* size of bundle exceeds capacity allowed by library */
-#define BP_FLAG_ROUTE_NEEDED            0x0000040   /* the bundle returned should be routed before transmission */
-#define BP_FLAG_STORE_FAILURE           0x0000080   /* storage service failed to deliver data */
-#define BP_FLAG_UNKNOWN_CID             0x0000100   /* received CID in acknowledgment for which no bundle was found */
-#define BP_FLAG_SDNV_OVERFLOW           0x0000200   /* insufficient room in variable to read/write value */
-#define BP_FLAG_SDNV_INCOMPLETE         0x0000400   /* insufficient room in block to read/write value */
-#define BP_FLAG_ACTIVE_TABLE_WRAP       0x0000800   /* the active table wrapped */
-#define BP_FLAG_DUPLICATES              0x0001000   /* multiple bundles on the network have the same custody id */
-#define BP_FLAG_CUSTODY_FULL            0x0002000   /* the dacs rb_tree was full */
-#define BP_FLAG_UNKNOWNREC              0x0004000   /* bundle contained unknown adminstrative record */
-#define BP_FLAG_INVALID_CIPHER_SUITEID  0x0008000   /* invalid cipher suite ID found in BIB */
-#define BP_FLAG_INVALID_BIB_RESULT_TYPE 0x0010000   /* invalid result type found in BIB */
-#define BP_FLAG_INVALID_BIB_TARGET_TYPE 0x0020000   /* invalid target type found in BIB */
-#define BP_FLAG_FAILED_TO_PARSE         0x0040000   /* unable to parse bundle due to internal inconsistencies in bundle */
+#define BP_FLAG_DIAGNOSTIC              0x00000000
+#define BP_FLAG_NONCOMPLIANT            0x00000001   /* valid bundle but agent not able to comply with standard */
+#define BP_FLAG_INCOMPLETE              0x00000002   /* block in bundle was not recognized */
+#define BP_FLAG_UNRELIABLE_TIME         0x00000004   /* the os call to get time return a suspicious value */
+#define BP_FLAG_DROPPED                 0x00000008   /* bundle dropped because a required extension block could not be processed */
+#define BP_FLAG_FAILED_INTEGRITY_CHECK  0x00000010   /* bundle with BIB failed the integrity check on the payload */
+#define BP_FLAG_BUNDLE_TOO_LARGE        0x00000020   /* size of bundle exceeds capacity allowed by library */
+#define BP_FLAG_ROUTE_NEEDED            0x00000040   /* the bundle returned should be routed before transmission */
+#define BP_FLAG_STORE_FAILURE           0x00000080   /* storage service failed to deliver data */
+#define BP_FLAG_UNKNOWN_CID             0x00000100   /* received CID in acknowledgment for which no bundle was found */
+#define BP_FLAG_SDNV_OVERFLOW           0x00000200   /* insufficient room in variable to read/write value */
+#define BP_FLAG_SDNV_INCOMPLETE         0x00000400   /* insufficient room in block to read/write value */
+#define BP_FLAG_ACTIVE_TABLE_WRAP       0x00000800   /* the active table wrapped */
+#define BP_FLAG_DUPLICATES              0x00001000   /* multiple bundles on the network have the same custody id */
+#define BP_FLAG_CUSTODY_FULL            0x00002000   /* the dacs rb_tree was full */
+#define BP_FLAG_UNKNOWNREC              0x00004000   /* bundle contained unknown adminstrative record */
+#define BP_FLAG_INVALID_CIPHER_SUITEID  0x00008000   /* invalid cipher suite ID found in BIB */
+#define BP_FLAG_INVALID_BIB_RESULT_TYPE 0x00010000   /* invalid result type found in BIB */
+#define BP_FLAG_INVALID_BIB_TARGET_TYPE 0x00020000   /* invalid target type found in BIB */
+#define BP_FLAG_FAILED_TO_PARSE         0x00040000   /* unable to parse bundle due to internal inconsistencies in bundle */
 
 /* Handles */
 #define BP_INVALID_HANDLE               (-1)    /* used for integers (os locks, storage services) */

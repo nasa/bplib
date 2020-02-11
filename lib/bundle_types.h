@@ -1,13 +1,13 @@
 /************************************************************************
  * File: bundle_types.h
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -28,7 +28,15 @@
  DEFINES
  ******************************************************************************/
 
-#define BP_BUNDLE_HDR_BUF_SIZE  128
+#define BP_BUNDLE_HDR_BUF_SIZE          128
+
+#define BP_DUPLICATE                    (-100)
+#define BP_FULL                         (-101)
+#define BP_PENDING_ACKNOWLEDGMENT       (-102)
+#define BP_PENDING_FORWARD              (-103)
+#define BP_PENDING_ACCEPTANCE           (-104)
+#define BP_PENDING_APPLICATION          (-105)
+#define BP_PENDING_EXPIRATION           (-106)
 
 /******************************************************************************
  TYPEDEFS

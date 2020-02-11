@@ -24,6 +24,7 @@
 #include <time.h>
 
 #include "bplib.h"
+#include "bundle_types.h"
 #include "rb_tree.h"
 #include "ut_assert.h"
 

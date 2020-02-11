@@ -1095,45 +1095,47 @@ int bplib_accept(bp_desc_t* desc, void** payload, int* size, int timeout, uint32
     /* Get Channel */
     bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
-    /* Dequeue Payload from Storage */
-    status = ch->store.dequeue(ch->payload_handle, &object, timeout);
-    if(status == BP_SUCCESS)
+    while(object == NULL && status == BP_SUCCESS)
     {
-        bp_payload_data_t* data = (bp_payload_data_t*)object->data;
-
-        /* Get Current Time */
-        unsigned long sysnow = 0;
-        if(bplib_os_systime(&sysnow) == BP_ERROR)
+        /* Dequeue Payload from Storage */
+        status = ch->store.dequeue(ch->payload_handle, &object, timeout);
+        if(status == BP_SUCCESS)
         {
-            *flags |= BP_FLAG_UNRELIABLE_TIME;
-            sysnow = 0; /* prevents expiration below */
-        }
+            bp_payload_data_t* data = (bp_payload_data_t*)object->data;
 
-        /* Check Expiration Time */
-        if(data->exprtime != 0 && data->exprtime <= sysnow)
+            /* Get Current Time */
+            unsigned long sysnow = 0;
+            if(bplib_os_systime(&sysnow) == BP_ERROR)
+            {
+                *flags |= BP_FLAG_UNRELIABLE_TIME;
+                sysnow = 0; /* prevents expiration below */
+            }
+
+            /* Check Expiration Time */
+            if(data->exprtime != 0 && data->exprtime <= sysnow)
+            {
+                ch->store.relinquish(ch->payload_handle, object->header.sid);
+                ch->stats.expired++;
+                object = NULL;
+            }
+            else
+            {
+                /* Return Payload to Application */
+                *payload = (void*)((uint8_t*)data + sizeof(bp_payload_data_t));
+                if(size) *size = data->payloadsize;
+
+                /* Check for Application Acknowledgement Request */
+                if(data->ackapp) status = BP_PENDING_APPLICATION;
+
+                /* Count as Delivered */
+                ch->stats.delivered_payloads++;
+            }
+        }
+        else if(status != BP_TIMEOUT)
         {
-            ch->store.relinquish(ch->payload_handle, object->header.sid);
-            ch->stats.expired++;
-            status = BP_ERROR;
-// TODO            status = BP_EXPIRED;
+            /* Failed Storage Service */
+            *flags |= BP_FLAG_STORE_FAILURE;
         }
-        else
-        {
-            /* Return Payload to Application */
-            *payload = (void*)((uint8_t*)data + sizeof(bp_payload_data_t));
-            if(size) *size = data->payloadsize;
-
-            /* Check for Application Acknowledgement Request */
-            if(data->ackapp) status = BP_PENDING_APPLICATION;
-
-            /* Count as Delivered */
-            ch->stats.delivered_payloads++;
-        }
-    }
-    else if(status != BP_TIMEOUT)
-    {
-        /* Failed Storage Service */
-        *flags |= BP_FLAG_STORE_FAILURE;
     }
 
     /* Return Status */

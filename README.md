@@ -1,15 +1,15 @@
 # bplib
 
-[1. Overview](#1-overview)  
-[1. Build with Make](#3-build-with-make)  
-[2. Application Design](#2-application-design)  
-[4. Application Programming Interface](#4-application-programming-interface)  
-[5. Storage Service](#5-storage-service)  
+[1. Overview](#1-overview)
+[1. Build with Make](#3-build-with-make)
+[2. Application Design](#2-application-design)
+[4. Application Programming Interface](#4-application-programming-interface)
+[5. Storage Service](#5-storage-service)
 
-[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
-[Note #2 - Library Development Guidelines](doc/dev_notes.md)  
-[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)  
-[Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)  
+[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)
+[Note #2 - Library Development Guidelines](doc/dev_notes.md)
+[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)
+[Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)
 
 ----------------------------------------------------------------------
 ## 1. Overview
@@ -475,53 +475,35 @@ Initialize an attribute structure with the library default values.  This is usef
 
 | Code                    | Value | Description |
 | ----------------------- | ----- | ----------- |
-| BP_SUCCESS              | 1     | Operation successfully performed |
-| BP_TIMEOUT              | 0     | A timeout occurred when a blocking operation was performed |
+| BP_SUCCESS              | 0     | Operation successfully performed |
 | BP_ERROR                | -1    | Generic error occurred; further information provided in flags to determine root cause |
-| BP_ERROR              | -2    | Parameter passed into function was invalid |
-| BP_UNSUPPORTED          | -3    | A valid bundle could not be processed by the library because the requested functionality is not yet implemented |
-| BP_EXPIRED              | -4    | A bundle expired due to its lifetime and was deleted |
-| BP_DROPPED              | -5    | A bundle was dropped because it could not be processed |
-| BP_INVALIDHANDLE        | -6    | The handle passed into a storage service function was invalid |
-| BP_WRONGVERSION         | -7    | The primary block bundle version number did not match the CCSDS recommended version |
-| BP_FLAG_FAILED_TO_PARSE       | -8    | An error was encountered when trying to read or write a bundle, usually associated with either an SDNV overflow or a buffer that is too small |
-| BP_UNKNOWNREC           | -9    | The administrative record type was unrecognized by the library |
-| BP_FLAG_BUNDLE_TOO_LARGE       | -10   | The size of the bundle exceeded the maximum size bundle that is able to be processed by the library |
-| BP_WRONGCHANNEL         | -11   | The destination service number did not match the channel's source service number when trying to processing a bundle destined for the local node |
-| BP_FAILEDINTEGRITYCHECK | -12   | A bundle processed by the library contained a Bundle Integrity Block, but the checksum contained in that block did not match the calculated checksum |
-| BP_FAILEDSTORE          | -13   | The library encountered an error originating from the storage service |
-| BP_ERROR             | -14   | The library encountered an error originating from the operation system abstraction layer |
-| BP_ERROR            | -15   | The library encountered an error allocating memory for a channel |
-| BP_FAILEDRESPONSE       | -16   | The library was unable to report back to another node, e.g. a DACS bundle could not be created or sent due to there being too many sources to track |
-| BP_ERROR           | -17   | An EID string did not contain a valid IPN address |
-| BP_FLAG_INVALID_CIPHER_SUITEID | -18   | A BIB block as an unrecognized Cipher Suite ID  |
-| BP_DUPLICATE         | -19   | A custody ID was already present in the system either when loading a new bundle or acknowledging a received bundle  |
-| BP_FULL      | -20   | The receiption and custody transfer of a bundle exhausted the memory allocated to keep track of custody and caused a DACS bundle to be immediately issued |
-| BP_ACTIVETABLEFULL      | -21   | No bundle can be loaded because the active table cannot accept any more bundles |
-| BP_ERROR          | -22   | The custody ID provided in an acknowledgement did not match any active bundle |
-| BP_PENDING_ACKNOWLEDGMENT| -23   | An aggregate custody signal was unable to be processed due to a library failure |
-| BP_PENDING_FORWARD       | -24   | A forwarded bundle requesting custody transfer failed to be acknowledged due to a library failure |
-| BP_PENDING_ACCEPTANCE    | -25   | A bundle destined for the local node requesting custody transfer failed to be acknowledged due to a library failure |
+| BP_TIMEOUT              | -2    | A timeout occurred when a blocking operation was performed |
 
 ----------------------------------------------------------------------
 #### 4.3 Flag Definitions
 
-| Flag                     | Value | Description |
-| ------------------------ | ----- | ----------- |
-| BP_FLAG_NONCOMPLIANT     | 0x0001 | Valid bundle but the library was not able to comply with the standard |
-| BP_FLAG_INCOMPLETE       | 0x0002 | At least one block in bundle was not recognized |
-| BP_FLAG_UNRELIABLE_TIME   | 0x0004 | The time returned by the O.S. preceded the January 2000 epoch, or went backwards |
-| BP_FLAG_FILLOVERFLOW     | 0x0008 | A gap in the CIDs exceeds the max fill value allowed in an ACS bundle |
-| BP_FLAG_TOOMANYFILLS     | 0x0010 | All the fills in the ACS are used |
-| BP_FLAG_CIDWENTBACKWARDS | 0x0020 | The custody ID went backwards |
-| BP_FLAG_ROUTE_NEEDED      | 0x0040 | The bundle returned needs to be routed before transmission |
-| BP_FLAG_STORE_FAILURE     | 0x0080 | Storage service failed to deliver data |
-| BP_FLAG_UNKNOWN_CID       | 0x0100 | An ACS bundle acknowledged a CID for which no bundle was found |
-| BP_FLAG_SDNV_OVERFLOW     | 0x0200 | The local variable used to read/write and the value was of insufficient width |
-| BP_FLAG_SDNV_INCOMPLETE   | 0x0400 | There was insufficient room in block to read/write value |
-| BP_FLAG_ACTIVE_TABLE_WRAP  | 0x0800 | The active table wrapped; see BP_OPT_WRAP_RESPONSE |
-| BP_FLAG_DUPLICATES       | 0x1000 | The custody ID was already acknowledged |
-| BP_FLAG_CUSTODY_FULL       | 0x2000 | An aggregate custody signal was generated due the number of custody ID gaps exceeded the maximum allowed |
+| Flag                           | Value | Description |
+| ------------------------------ | ----- | ----------- |
+| BP_FLAG_DIAGNOSTIC             | 0x00000000 | No event issued - diagnostic message only |
+| BP_FLAG_NONCOMPLIANT           | 0x00000001 | Valid bundle but the library was not able to comply with the standard |
+| BP_FLAG_INCOMPLETE             | 0x00000002 | At least one block in bundle was not recognized |
+| BP_FLAG_UNRELIABLE_TIME        | 0x00000004 | The time returned by the O.S. preceded the January 2000 epoch, or went backwards |
+| BP_FLAG_DROPPED                | 0x00000008 | A bundle was dropped because a required extension block could not be processed |
+| BP_FLAG_FAILED_INTEGRITY_CHECK | 0x00000010 | A bundle with a BIB failed the integrity check on the payload |
+| BP_FLAG_BUNDLE_TOO_LARGE       | 0x00000020 | The size of a bundle exceeds the capacity allowed by library |
+| BP_FLAG_ROUTE_NEEDED           | 0x00000040 | A bundle needs to be routed before transmission |
+| BP_FLAG_STORE_FAILURE          | 0x00000080 | Storage service failed to deliver data |
+| BP_FLAG_UNKNOWN_CID            | 0x00000100 | An ACS bundle acknowledged a CID for which no bundle was found |
+| BP_FLAG_SDNV_OVERFLOW          | 0x00000200 | The local variable used to read/write and the value was of insufficient width |
+| BP_FLAG_SDNV_INCOMPLETE        | 0x00000400 | There was insufficient room in block to read/write value |
+| BP_FLAG_ACTIVE_TABLE_WRAP      | 0x00000800 | The active table wrapped; see BP_OPT_WRAP_RESPONSE |
+| BP_FLAG_DUPLICATES             | 0x00001000 | The custody ID was already acknowledged |
+| BP_FLAG_CUSTODY_FULL           | 0x00002000 | An aggregate custody signal was generated due the number of custody ID gaps exceeded the maximum allowed |
+| BP_FLAG_UNKNOWNREC             | 0x00004000 | A bundle contained unknown adminstrative record |
+| BP_FLAG_INVALID_CIPHER_SUITEID | 0x00008000 | An invalid cipher suite ID was found in a BIB |
+| BP_FLAG_INVALID_BIB_RESULT_TYPE| 0x00010000 | An invalid result type was found in a BIB |
+| BP_FLAG_INVALID_BIB_TARGET_TYPE| 0x00020000 | An invalid target type was found in a BIB |
+| BP_FLAG_FAILED_TO_PARSE        | 0x00040000 | Unable to parse a bundle due to internal inconsistencies in bundle |
 
 ----------------------------------------------------------------------
 ## 5. Storage Service
