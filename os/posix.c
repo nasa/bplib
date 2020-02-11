@@ -94,22 +94,26 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     vlen = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
     msglen = vlen < BP_MAX_LOG_ENTRY_SIZE - 1 ? vlen : BP_MAX_LOG_ENTRY_SIZE - 1;
     va_end(args);
-    if (msglen < 0) return BP_SUCCESS; /* nothing to do */
-    formatted_string[msglen] = '\0';
 
-    /* Chop Path in Filename */
-    pathptr = strrchr(file, '/');
-    if(pathptr) pathptr++;
-    else pathptr = (char*)file;
+    /* Log Message */
+    if(msglen > 0)
+    {
+        formatted_string[msglen] = '\0';
 
-    /* Create Log Message */
-    if(event != BP_FLAG_DIAGNOSTIC) snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%08X:%s", pathptr, line, event, formatted_string);
-    else                            snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s", formatted_string);
+        /* Chop Path in Filename */
+        pathptr = strrchr(file, '/');
+        if(pathptr) pathptr++;
+        else pathptr = (char*)file;
 
-    /* Display Log Message */
-    printf("%s", log_message);
+        /* Create Log Message */
+        if(event != BP_FLAG_DIAGNOSTIC) snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%08X:%s", pathptr, line, event, formatted_string);
+        else                            snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s", formatted_string);
 
-    /* Set EVent Flag and Return */
+        /* Display Log Message */
+        printf("%s", log_message);
+    }
+
+    /* Set Event Flag and Return */
     if(event > 0)
     {
         if(flags) *flags |= event;
