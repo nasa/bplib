@@ -87,11 +87,13 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     vlen = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
     msglen = vlen < BP_MAX_LOG_ENTRY_SIZE - 1 ? vlen : BP_MAX_LOG_ENTRY_SIZE - 1;
     va_end(args);
-    if (msglen < 0) return error; // nothing to do
-    formatted_string[msglen] = '\0';
 
     /* Handle Log Message */
-    CFE_EVS_SendEvent(BPLIB_CFE_LOG_EID, CFE_EVS_INFORMATION, "[%08X] %s", event, formatted_string);
+    if(msglen > 0)
+    {
+        formatted_string[msglen] = '\0';
+        CFE_EVS_SendEvent(BPLIB_CFE_LOG_EID, CFE_EVS_INFORMATION, "[%08X] %s", event, formatted_string);
+    }
 
     /* Set EVent Flag and Return */
     if(event > 0)
