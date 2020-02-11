@@ -695,7 +695,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
 
     /* Setup State */
     unsigned long   sysnow  = 0;                /* current system time used for timeouts (seconds) */
-    bp_object_t*    object  = NULL;             /* stare out assuming nothing to send */
+    bp_object_t*    object  = NULL;             /* start out assuming nothing to send */
     bool            newcid  = true;             /* whether to assign new custody id and active table entry */
     bool            resend  = false;            /* is loaded bundle a retransmission */
     bool            isdacs  = false;            /* is loaded bundle a dacs */
@@ -738,90 +738,85 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
     /*------------------------------------------------*/
     /* Try to Send Active Bundle (if nothing to send) */
     /*------------------------------------------------*/
-    if(object == NULL)
+    bplib_os_lock(ch->active_table_signal);
     {
-        /* Process Active Table for Timeouts */
-        bplib_os_lock(ch->active_table_signal);
+        /* Get Oldest Bundle */
+        while(object == NULL && ch->active_table.next(ch->active_table.table, &active_bundle) == BP_SUCCESS)
         {
-            /* Get Oldest Bundle */
-            while(ch->active_table.next(ch->active_table.table, &active_bundle) == BP_SUCCESS)
-            {
-                /* Retrieve Oldest Bundle */
+            /* Check if Bundle has Timed Out */
+            if(ch->bundle.attributes.timeout != 0 && sysnow >= (active_bundle.retx + ch->bundle.attributes.timeout))
+              {
+                /* Retrieve Timed Out Bundle from Storage */
                 if(ch->store.retrieve(ch->bundle_handle, active_bundle.sid, &object, BP_CHECK) == BP_SUCCESS)
                 {
                     bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
-                    if(data->exprtime != 0 && sysnow >= data->exprtime) /* check lifetime */
+
+                    /* Check Lifetime of Bundle */
+                    if(data->exprtime != 0 && sysnow >= data->exprtime)
                     {
                         /* Bundle Expired */
                         object = NULL;
-
-                        /* Clear Entry in Active Table and Storage */
-                        ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
-                        ch->store.relinquish(ch->bundle_handle, active_bundle.sid);
                         ch->stats.expired++;
-                    }
-                    else if(ch->bundle.attributes.timeout != 0 && sysnow >= (active_bundle.retx + ch->bundle.attributes.timeout)) /* check timeout */
-                    {
-                        /* This bundle is a retransmission */
-                        resend = true;
-
-                        /* Handle Active Table and Custody ID */
-                        if(ch->bundle.attributes.cid_reuse)
-                        {
-                            /* Set flag to reuse custody id and active table entry,
-                             * active table entry is not cleared, since CID is being reused */
-                            newcid = false;
-                        }
-                        else
-                        {
-                            /* Clear Entry (it will be reinserted below at the current CID) */
-                            ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
-
-                            /* Move to Next Oldest */
-                            ch->active_table.next(ch->active_table.table, NULL);
-                        }
-
-                        /* Break Out of Loop */
-                        break;
-                    }
-                    else /* oldest active bundle still active */
-                    {
-                        /* Bundle Not Ready to Retransmit */
-                        ch->store.release(ch->bundle_handle, object->header.sid);
-                        object = NULL;
-
-                        /* Check Active Table Has Room
-                         * Since next step is to dequeue from store, need to make
-                         * sure that there is room in the active table since we don't
-                         * want to dequeue a bundle from store and have no place
-                         * to put it.  Note that it is possible that even if the
-                         * active table was full, if the bundle dequeued did not
-                         * request custody transfer it could still go out, but the
-                         * current design requires that at least one slot in the active
-                         * table is open at all times. */
-                        status = ch->active_table.available(ch->active_table.table, ch->current_active_cid);
-                        if(status != BP_SUCCESS)
-                        {
-                            *flags |= BP_FLAG_ACTIVE_TABLE_WRAP;
-                            bplib_os_waiton(ch->active_table_signal, timeout);
-                        }
-
-                        /* Break Out of Loop */
-                        break;
                     }
                 }
                 else
                 {
                     /* Failed to Retrieve Bundle from Storage */
-                    ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
-                    ch->store.relinquish(ch->bundle_handle, active_bundle.sid);
                     *flags |= BP_FLAG_STORE_FAILURE;
                     ch->stats.lost++;
                 }
+                
+                /* Check Success of Retrieving Valid Timed Out Bundle */
+                if(object)
+                {
+                    /* Bundle is a Retransmission */
+                    resend = true;
+
+                    /* Handle Active Table and Custody ID */
+                    if(ch->bundle.attributes.cid_reuse)
+                    {
+                        /* Set flag to reuse custody id and active table entry,
+                        * active table entry is not cleared, since CID is being reused */
+                        newcid = false;
+                    }
+                    else
+                    {
+                        /* Clear Entry (it will be reinserted below at the current CID) */
+                        ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
+
+                        /* Move to Next Oldest */
+                        ch->active_table.next(ch->active_table.table, NULL);
+                    }
+                }
+                else
+                {
+                    /* Clear Entry in Active Table and Storage */
+                    ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
+                    ch->store.relinquish(ch->bundle_handle, active_bundle.sid);
+                }
+            }
+            else /* oldest active bundle still active */
+            {
+                /* Check Active Table Has Room
+                    * Since next step is to dequeue from store, need to make sure that there is room 
+                    * in the active table since we don't want to dequeue a bundle from store and have 
+                    * no place to put it.  Note that it is possible that even if the active table was 
+                    * full, if the bundle dequeued did not request custody transfer it could still go 
+                    * out, but the current design requires that at least one slot in the active table 
+                    * is open at all times. */
+                status = ch->active_table.available(ch->active_table.table, ch->current_active_cid);
+                if(status != BP_SUCCESS)
+                {
+                    *flags |= BP_FLAG_ACTIVE_TABLE_WRAP;
+                    status = bplib_os_waiton(ch->active_table_signal, timeout);
+                }
+
+                /* Break Out of Loop */
+                break;
             }
         }
-        bplib_os_unlock(ch->active_table_signal);
     }
+    bplib_os_unlock(ch->active_table_signal);
 
     /*------------------------------------------------*/
     /* Try to Send Stored Bundle (if nothing to send) */

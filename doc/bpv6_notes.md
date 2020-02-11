@@ -26,6 +26,7 @@
 * The BP library calculates an absolute time for a bundles expiration at the time the bundle is created.
 * The expiration time is checked prior to transmission and on receipt (in `bplib_load` and `bplib_process` functions).
 * A value of zero has special meaning when using bplib and specifies an infinite lifetime, this is different than the protocol specification which interprets zero as an immediate expiration.  In order to be compatible with other BP nodes, ULONG_MAX - 1 should be used to set the maximum lifetime (136 years on 32-bit machine).
+* The lifetime setting of a bundle is the ***minimal*** amount of time the bundle will remain in the system.  It is possible and likely that the bundle will exist in the system and consume storage resources longer than its lifetime as the lifetime is only checked at certain points in the code.  What can be said is that a bundle with an expired lifetime will not be transmitted by the library, nor will the payload of an expired bundle be passed to the application.
 
 #### 1.5 Administrative Records
 * The only supported administrative record type is the aggregate custody signal, all other record types are ignored.
