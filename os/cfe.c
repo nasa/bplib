@@ -192,7 +192,7 @@ int bplib_os_waiton(int handle, int timeout_ms)
 {
     (void)handle;
     (void)timeout_ms;
-    return BP_SUCCESS;
+    return BP_TIMEOUT;
 }
 
 /*--------------------------------------------------------------------------------------
