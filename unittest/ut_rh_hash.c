@@ -731,6 +731,88 @@ static void test_7(void)
     ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
 }
 
+/*--------------------------------------------------------------------------------------
+ * Test #8
+ *--------------------------------------------------------------------------------------*/
+static void test_8(void)
+{
+    int i, j;
+    rh_hash_t* rh_hash;
+
+    int test_cycles = 65536;
+    int hash_size = 64;
+    int cid_range = 0xFFFFFFFF;
+
+    bool found_error = false;
+    bp_active_bundle_t bundle = {1, 0, 0};
+    bp_val_t* order_of_cids = (bp_val_t*)malloc(hash_size * sizeof(bp_val_t));
+    int num_added = 0;
+
+    printf("\n==== Test 8: Stress ====\n");
+
+    ut_assert(rh_hash_create(&rh_hash, hash_size) == BP_SUCCESS, "Failed to create hash\n");
+
+    /* Cycle Tests */
+    for(j = 0; j < test_cycles; j++)
+    {
+        /* Reset Test */
+        num_added = 0;
+        found_error = false;
+
+        /* Load Hash */
+        for(i = 0; i < hash_size; i++)
+        {
+            bundle.cid = bplib_os_random() % cid_range;
+            if(rh_hash_add(rh_hash, bundle, false) == BP_SUCCESS)
+            {
+                order_of_cids[num_added++] = bundle.cid;
+            }
+        }
+
+        /* Check Hash */
+        for(i = 0; i < num_added; i++)
+        {
+            bp_val_t cid = order_of_cids[i];
+
+            if(!ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get next CID %d\n", cid))
+            {
+                found_error = true;
+            }
+            
+            if(!ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get same CID %d\n", cid))
+            {
+                found_error = true;
+            }
+            
+            if(!ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid))
+            {
+                found_error = true;
+            }
+        }
+
+        /* Check Empty */
+        ut_assert(rh_hash_next(rh_hash, &bundle) == BP_ERROR, "Failed to get CIDNOTFOUND error\n");
+        ut_assert(rh_hash->num_entries == 0, "Failed to remove all entries\n");
+
+        /* Diagnostics if Error Found */
+        if(found_error)
+        {
+            printf("[%d] = { ", num_added);
+            for(i = 0; i < num_added; i++)
+            {
+                printf("%lu, ", order_of_cids[i]);
+            }
+            printf("}\n");
+        }
+    }
+
+    /* Clean Up */
+
+    ut_assert(rh_hash_destroy(rh_hash) == BP_SUCCESS, "Failed to destroy hash\n");
+
+    free(order_of_cids);
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -746,6 +828,7 @@ int ut_rh_hash (void)
     test_5();
     test_6();
     test_7();
+    test_8();
 
     return ut_failures();
 }

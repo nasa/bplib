@@ -37,7 +37,7 @@
  ******************************************************************************/
 
 void    ut_reset        (void);
-void    _ut_assert      (bool e, const char* file, int line, const char* fmt, ...);
+bool    _ut_assert      (bool e, const char* file, int line, const char* fmt, ...);
 int     ut_failures     (void);
 
 #endif /* _ut_assert_h_ */

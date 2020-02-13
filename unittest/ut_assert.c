@@ -51,7 +51,7 @@ void ut_reset(void)
 /*--------------------------------------------------------------------------------------
  * _ut_assert - called through ut_assert macro
  *--------------------------------------------------------------------------------------*/
-void _ut_assert(bool e, const char* file, int line, const char* fmt, ...)
+bool _ut_assert(bool e, const char* file, int line, const char* fmt, ...)
 {
     if(!e)
     {
@@ -83,6 +83,8 @@ void _ut_assert(bool e, const char* file, int line, const char* fmt, ...)
         /* Count Error */
         _ut_failures++;
     }
+
+    return e;
 }
 
 /*--------------------------------------------------------------------------------------
