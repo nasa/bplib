@@ -30,12 +30,19 @@ runner.check(receiver:setopt("DACS_RATE", timeout/2))
 print(string.format('%s/%s: Test 1 - load', store, src))
 payload = string.format('TEST 1')
 
--- store payload --
+-- store payloads --
+rc, flags = sender:store(payload, 1000)
+runner.check(rc)
+runner.check(bp.check_flags(flags, {}))
 rc, flags = sender:store(payload, 1000)
 runner.check(rc)
 runner.check(bp.check_flags(flags, {}))
 
--- load bundle --
+-- load bundles --
+rc, bundle, flags = sender:load(1000)
+runner.check(rc)
+runner.check(bundle ~= nil)
+runner.check(bp.check_flags(flags, {}))
 rc, bundle, flags = sender:load(1000)
 runner.check(rc)
 runner.check(bundle ~= nil)
@@ -59,9 +66,15 @@ runner.check(rc == false)
 runner.check(bundle == nil, "Sender incorrectly returned expired bundle")
 runner.check(bp.check_flags(flags, {}))
 
+-- reattempt load of expired bundle --
+rc, bundle, flags = sender:load(1000)
+runner.check(rc == false)
+runner.check(bundle == nil, "Sender incorrectly returned expired bundle")
+runner.check(bp.check_flags(flags, {}))
+
 -- check stats --
 rc, stats = sender:stats()
-runner.check(bp.check_stats(stats, {expired=1}))
+runner.check(bp.check_stats(stats, {expired=2}))
 
 -----------------------------------------------------------------------
 print(string.format('%s/%s: Test 2 - process', store, src))

@@ -792,6 +792,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                 {
                     /* Clear Entry in Active Table and Storage */
                     ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
+                    ch->store.release(ch->bundle_handle, active_bundle.sid);
                     ch->store.relinquish(ch->bundle_handle, active_bundle.sid);
                 }
             }
@@ -833,6 +834,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
             if(data->exprtime != 0 && sysnow >= data->exprtime)
             {
                 /* Bundle Expired Clear Entry (and loop again) */
+                ch->store.release(ch->bundle_handle, active_bundle.sid);
                 ch->store.relinquish(ch->bundle_handle, active_bundle.sid);
                 ch->stats.expired++;
                 object = NULL;
@@ -1109,6 +1111,7 @@ int bplib_accept(bp_desc_t* desc, void** payload, int* size, int timeout, uint32
             /* Check Expiration Time */
             if(data->exprtime != 0 && data->exprtime <= sysnow)
             {
+                ch->store.release(ch->payload_handle, object->header.sid);
                 ch->store.relinquish(ch->payload_handle, object->header.sid);
                 ch->stats.expired++;
                 object = NULL;
