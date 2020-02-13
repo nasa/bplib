@@ -27,7 +27,7 @@ runner.check(receiver:setopt("DACS_RATE", timeout/2))
 -- Test --
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Test 1 - load', store, src))
+print(string.format('%s/%s: Test 1 - load expired', store, src))
 payload = string.format('TEST 1')
 
 -- store payloads --
@@ -77,7 +77,7 @@ rc, stats = sender:stats()
 runner.check(bp.check_stats(stats, {expired=2}))
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Test 2 - process', store, src))
+print(string.format('%s/%s: Test 2 - process expired', store, src))
 payload = string.format('TEST 2')
 
 -- store payload --
@@ -102,7 +102,7 @@ rc, stats = receiver:stats()
 runner.check(bp.check_stats(stats, {expired=1}))
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Test 3 - accept', store, src))
+print(string.format('%s/%s: Test 3 - accept expired', store, src))
 payload = string.format('TEST 3')
 
 -- store payload --
@@ -131,6 +131,35 @@ runner.check(bp.check_flags(flags, {}))
 -- check stats --
 rc, stats = receiver:stats()
 runner.check(bp.check_stats(stats, {expired=2}))
+
+-----------------------------------------------------------------------
+print(string.format('%s/%s: Test 4 - expired stored', store, src))
+payload = string.format('TEST 4')
+
+-- store payloads --
+rc, flags = sender:store(payload, 1000)
+runner.check(rc)
+runner.check(bp.check_flags(flags, {}))
+rc, flags = sender:store(payload, 1000)
+runner.check(rc)
+runner.check(bp.check_flags(flags, {}))
+
+-- attempt load of expired bundle --
+bplib.sleep(lifetime)
+rc, bundle, flags = sender:load(1000)
+runner.check(rc == false)
+runner.check(bundle == nil, "Sender incorrectly returned expired bundle")
+runner.check(bp.check_flags(flags, {}))
+
+-- reattempt load of expired bundle --
+rc, bundle, flags = sender:load(1000)
+runner.check(rc == false)
+runner.check(bundle == nil, "Sender incorrectly returned expired bundle")
+runner.check(bp.check_flags(flags, {}))
+
+-- check stats --
+rc, stats = sender:stats()
+runner.check(bp.check_stats(stats, {expired=6}))
 
 -- Clean Up --
 

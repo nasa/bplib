@@ -834,8 +834,8 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
             if(data->exprtime != 0 && sysnow >= data->exprtime)
             {
                 /* Bundle Expired Clear Entry (and loop again) */
-                ch->store.release(ch->bundle_handle, active_bundle.sid);
-                ch->store.relinquish(ch->bundle_handle, active_bundle.sid);
+                ch->store.release(ch->bundle_handle, object->header.sid);
+                ch->store.relinquish(ch->bundle_handle, object->header.sid);
                 ch->stats.expired++;
                 object = NULL;
             }
