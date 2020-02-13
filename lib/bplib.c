@@ -745,7 +745,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
         {
             /* Check if Bundle has Timed Out */
             if(ch->bundle.attributes.timeout != 0 && sysnow >= (active_bundle.retx + ch->bundle.attributes.timeout))
-              {
+            {
                 /* Retrieve Timed Out Bundle from Storage */
                 if(ch->store.retrieve(ch->bundle_handle, active_bundle.sid, &object, BP_CHECK) == BP_SUCCESS)
                 {

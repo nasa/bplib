@@ -254,7 +254,7 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
     int bytes_left = size;
 
     /* Check for Valid Address */
-    if(addr->page >= flash_blocks[addr->block].max_pages || addr->block >= FLASH_DRIVER.num_blocks)
+    if(addr->block >= FLASH_DRIVER.num_blocks || addr->page >= flash_blocks[addr->block].max_pages)
     {
         return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to write function: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
     }
@@ -346,7 +346,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
     int bytes_left = size;
 
     /* Check for Valid Address */
-    if(addr->page >= flash_blocks[addr->block].max_pages || addr->block >= FLASH_DRIVER.num_blocks)
+    if(addr->block >= FLASH_DRIVER.num_blocks || addr->page >= flash_blocks[addr->block].max_pages)
     {
         return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to read function: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
     }
@@ -536,7 +536,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
 
     /* Get Address from SID */
     bp_flash_addr_t addr = {FLASH_GET_BLOCK((unsigned long)sid), FLASH_GET_PAGE((unsigned long)sid)};
-    if(addr.page >= flash_blocks[addr.block].max_pages || addr.block >= FLASH_DRIVER.num_blocks)
+    if(addr.block >= FLASH_DRIVER.num_blocks || addr.page >= flash_blocks[addr.block].max_pages)
     {
         return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to delete function: %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
     }
@@ -1062,7 +1062,6 @@ int bplib_store_flash_relinquish (int handle, bp_sid_t sid)
 {
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
     assert(flash_stores[handle].in_use);
-    assert(sid != BP_SID_VACANT);
 
     flash_store_t* fs = (flash_store_t*)&flash_stores[handle];
     int status = BP_SUCCESS;
