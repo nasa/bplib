@@ -765,7 +765,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                     *flags |= BP_FLAG_STORE_FAILURE;
                     ch->stats.lost++;
                 }
-                
+
                 /* Check Success of Retrieving Valid Timed Out Bundle */
                 if(object)
                 {
@@ -799,11 +799,11 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
             else /* oldest active bundle still active */
             {
                 /* Check Active Table Has Room
-                    * Since next step is to dequeue from store, need to make sure that there is room 
-                    * in the active table since we don't want to dequeue a bundle from store and have 
-                    * no place to put it.  Note that it is possible that even if the active table was 
-                    * full, if the bundle dequeued did not request custody transfer it could still go 
-                    * out, but the current design requires that at least one slot in the active table 
+                    * Since next step is to dequeue from store, need to make sure that there is room
+                    * in the active table since we don't want to dequeue a bundle from store and have
+                    * no place to put it.  Note that it is possible that even if the active table was
+                    * full, if the bundle dequeued did not request custody transfer it could still go
+                    * out, but the current design requires that at least one slot in the active table
                     * is open at all times. */
                 status = ch->active_table.available(ch->active_table.table, ch->current_active_cid);
                 if(status != BP_SUCCESS)
@@ -1060,10 +1060,10 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
 
                 /* Start New DACS */
                 int insert_status = rb_tree_insert(payload.cid, &ch->custody_tree);
-                {
-                    /* There is no valid reason for an insert to fail on an empty custody_tree */
-                    assert(insert_status == BP_SUCCESS);
-                }
+
+                /* There is no valid reason for an insert to fail on an empty custody_tree */
+                assert(insert_status == BP_SUCCESS);
+                (void)insert_status; /* when asserts compiled out, insert_status becomes unused */
             }
         }
         bplib_os_unlock(ch->custody_tree_lock);
