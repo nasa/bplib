@@ -585,6 +585,7 @@ int bplib_config(bp_desc_t* desc, int mode, int opt, int* val)
         }
         case BP_OPT_TIMEOUT:
         {
+            if(setopt && *val < 0) return BP_ERROR;
             if(setopt)  ch->bundle.attributes.timeout = *val;
             else        *val = ch->bundle.attributes.timeout;
             break;
