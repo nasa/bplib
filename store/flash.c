@@ -94,6 +94,7 @@ static int                      flash_device_lock = BP_INVALID_HANDLE;
 static flash_block_control_t*   flash_blocks = NULL;
 static int                      flash_error_count = 0;
 static int                      flash_used_block_count = 0;
+static uint8_t*                 flash_page_buffer = NULL;
 
 /******************************************************************************
  LOCAL FUNCTIONS - PAGE LEVEL
@@ -108,10 +109,14 @@ BP_LOCAL_SCOPE int flash_page_write (bp_flash_addr_t addr, uint8_t* data, int si
 
     if(FLASH_ECC_CODE_SIZE > 0)
     {
-        lrc_encode(data, size);
+        memcpy(flash_page_buffer, data, size);
+        lrc_encode(flash_page_buffer, FLASH_PAGE_DATA_SIZE);
+        return FLASH_DRIVER.write(addr, flash_page_buffer);
     }
-
-    return FLASH_DRIVER.write(addr, data);
+    else
+    {
+        return FLASH_DRIVER.write(addr, data);
+    }
 }
 
 /*--------------------------------------------------------------------------------------
@@ -121,25 +126,37 @@ BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* data, int siz
 {
     assert(size <= FLASH_PAGE_DATA_SIZE);
 
-    int status = FLASH_DRIVER.read(addr, data);
-    if(status == BP_SUCCESS && FLASH_ECC_CODE_SIZE > 0)
+    int status;
+
+    if(FLASH_ECC_CODE_SIZE > 0)
     {
-        int decode_status = lrc_decode(data, size);
-        if(decode_status == BP_ECC_NO_ERRORS)
+        status = FLASH_DRIVER.read(addr, flash_page_buffer);
+        if(status == BP_SUCCESS)
         {
-            status = BP_SUCCESS;
-        }
-        else if(decode_status == BP_ECC_COR_ERRORS)
-        {
-            bplog(NULL, BP_FLAG_STORE_FAILURE, "Single-bit error corrected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
-            status = BP_SUCCESS;
-        }
-        else /* decode_status == BP_ECC_UNCOR_ERRORS */
-        {
-            bplog(NULL, BP_FLAG_STORE_FAILURE, "Multiple-bit error detected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
-            status = BP_ERROR;
+            int decode_status = lrc_decode(flash_page_buffer, FLASH_PAGE_DATA_SIZE);
+            if(decode_status == BP_ECC_NO_ERRORS)
+            {
+                status = BP_SUCCESS;
+            }
+            else if(decode_status == BP_ECC_COR_ERRORS)
+            {
+                bplog(NULL, BP_FLAG_STORE_FAILURE, "Single-bit error corrected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
+                status = BP_SUCCESS;
+            }
+            else /* decode_status == BP_ECC_UNCOR_ERRORS */
+            {
+                bplog(NULL, BP_FLAG_STORE_FAILURE, "Multiple-bit error detected at %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
+                status = BP_ERROR;
+            }
+
+            memcpy(data, flash_page_buffer, size);
         }
     }
+    else
+    {
+        status = FLASH_DRIVER.read(addr, data);
+    }
+
 
     return status;
 }
@@ -665,6 +682,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
     flash_blocks = NULL;
     flash_error_count = 0;
     flash_used_block_count = 0;
+    flash_page_buffer = NULL;
 
     /* Zero Out Flash Stores */
     memset(flash_stores, 0, sizeof(flash_stores));
@@ -706,6 +724,14 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
             if(FLASH_ECC_CODE_SIZE == 0)
             {
                 bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unable to allocate memory for software ECC\n");
+                break; /* Skip rest of initialization */
+            }
+
+            /* Allocate Page Buffer for ECC */
+            flash_page_buffer = (uint8_t*)bplib_os_calloc(FLASH_DRIVER.page_size);
+            if(!flash_page_buffer)
+            {
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unable to allocate memory for page buffer needed by software ECC\n");
                 break; /* Skip rest of initialization */
             }
         }
@@ -768,6 +794,12 @@ void bplib_store_flash_uninit (void)
     if(FLASH_ECC_CODE_SIZE > 0)
     {
         lrc_uninit();
+    }
+
+    if(flash_page_buffer)
+    {
+        bplib_os_free(flash_page_buffer);
+        flash_page_buffer = NULL;
     }
 }
 
