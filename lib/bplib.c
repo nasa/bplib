@@ -733,7 +733,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
     else if(dacs_status != BP_TIMEOUT)
     {
         /* Failed Storage Service */
-        *flags |= BP_FLAG_STORE_FAILURE;
+        bplog(flags, BP_FLAG_STORE_FAILURE, "Failed (%d) to dequeue dacs bundle from storage service\n", dacs_status);
     }
 
     /*------------------------------------------------*/
