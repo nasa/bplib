@@ -35,13 +35,13 @@ Bplib assumes the availability of a persistent queued storage system for managin
 
 #### Building
 
-To build everything, including the language bindings, go to repository root directory and execute the following commands:
-* `make`
-* `sudo make install`
-
 To build only the static and shared libraries, use the following commands:
 * `make lib`
 * `sudo make install-lib`
+
+To build everything, including the language bindings, go to repository root directory and execute the following commands:
+* `make dev`
+* `sudo make install-dev`
 
 The default makefile produces the following binaries:
 * `build/libbp.so.<version>` - shared library
@@ -238,11 +238,11 @@ Configures or retrieves an attribute on a channel.
 | BP_OPT_ADMIN_RECORD    | int      | 0 | Sets whether generated bundles are administrative records, 0: false, 1: true |
 | BP_OPT_INTEGRITY_CHECK | int      | 1 | Sets whether transmitted bundles include a BIB extension block, 0: false, 1: true |
 | BP_OPT_ALLOW_FRAGMENTATION | int  | 1 | Sets whether transmitted bundles are allowed to be fragmented, 0: false, 1: true |
-| BP_OPT_CID_REUSE       | int      | 0 | Sets whether retransmitted bundles reuse their original custody ID, 0: false, 1: true |
 | BP_OPT_CIPHER_SUITE    | int      | BP_BIB_CRC16_X25 | The type of Cyclic Redundancy Check used in the BIB extension block - BP_BIB_NONE, BP_BIB_CRC16_X25, BP_BIB_CRC32_CASTAGNOLI |
-| BP_OPT_CLASS_OF_SERVICE| int      | 1 | Priority of the bundle, 0: bulk, 1: normal, 2: expedited |
 | BP_OPT_TIMEOUT         | int      | 10 | Amount of time in seconds to wait for positive acknowledgment of transmitted bundles before retransmitting, 0: infinite |
-| BP_OPT_MAX_LENGTH      | int      | 4096 | Maximum length of the transmitted bundles |
+| BP_OPT_MAX_LENGTH      | int      | 4096 | Maximum length of the transmitetd bundles |
+BP_WRAP_BLOCK, BP_WRAP_DROP |
+| BP_OPT_CID_REUSE       | int      | 0 | Sets whether retransmitted bundles reuse their original custody ID, 0: false, 1: true |
 | BP_OPT_DACS_RATE       | int      | 5 | Sets minimum rate of ACS generation |
 
 __NOTE__: _transmitted_ bundles include both bundles generated on the channel from local data that is stored, as well as bundles that are received and forwarded by the channel.
