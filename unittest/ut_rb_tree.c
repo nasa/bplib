@@ -262,7 +262,8 @@ static void assert_rb_tree_is_valid(rb_tree_t* tree)
  *--------------------------------------------------------------------------------------*/
 static void shuffle(uint32_t* array, uint32_t length)
 {
-    for (uint32_t i = 0; i < length; i++)
+    uint32_t i;
+    for (i = 0; i < length; i++)
     {
         uint32_t j = i + rand() / (RAND_MAX / (length - i) + 1);
         uint32_t temp = array[j];
@@ -774,7 +775,8 @@ static void test_max_range_offset()
     }
     else if(status == BP_SUCCESS)
     {
-        for (uint32_t i = 0; i <= UINT32_MAX - 1; i++)
+        uint32_t i;
+        for (i = 0; i <= UINT32_MAX - 1; i++)
         {
             rb_tree_insert(i, &tree);
         }
@@ -803,7 +805,8 @@ static void test_unable_to_delete_value_that_does_not_exist()
     rb_tree_create(30, &tree);
 
     /* Write out 5 bundles and then skip 5 bundles. */
-    for (uint32_t i = 0; i < 50; i += 10)
+    uint32_t i;
+    for (i = 0; i < 50; i += 10)
     {
         rb_tree_insert(i, &tree);
         rb_tree_insert(i + 1, &tree);
@@ -835,7 +838,8 @@ static void test_delete_single_node()
 
     rb_tree_t tree;
     rb_tree_create(10, &tree);
-    for (uint32_t i = 0; i <= 10; i += 2)
+    uint32_t i;
+    for (i = 0; i <= 10; i += 2)
     {
         rb_tree_insert(i, &tree);
     }
@@ -1163,16 +1167,17 @@ static void test_tree_traversed_inorder_after_partial_traversal()
     ut_check(tree.size == 8);
 
     rb_range_t range;
+    uint32_t i;
 
     ut_check(rb_tree_goto_first(&tree) == BP_SUCCESS);
-    for (uint32_t i = 2; i <= 8; i += 2)
+    for (i = 2; i <= 8; i += 2)
     {
         ut_check(rb_tree_get_next(&tree, &range, false, false) == BP_SUCCESS);
         ut_check(range.value == i && range.offset == 0);
     }
 
     ut_check(rb_tree_goto_first(&tree) == BP_SUCCESS);
-    for (uint32_t i = 2; i <= 16; i += 2)
+    for (i = 2; i <= 16; i += 2)
     {
         ut_check(rb_tree_get_next(&tree, &range, false, false) == BP_SUCCESS);
         ut_check(range.value == i && range.offset == 0);
@@ -1199,21 +1204,22 @@ static void test_random_stress()
     uint32_t max_bundles = 16000;
     rb_node_t n = {.range = {.value = 0, .offset = max_bundles - 1}, .color = BLACK};
     rb_node_t* nodes[] = {&n};
+    uint32_t i, j;
 
     uint32_t bundle_ids[max_bundles];
-    for (uint32_t i = 0; i < max_bundles; i++)
+    for (i = 0; i < max_bundles; i++)
     {
         bundle_ids[i] = i;
     }
 
-    for (uint32_t i = 0; i < number_trees; i++)
+    for (i = 0; i < number_trees; i++)
     {
         int subf = ut_failures();
 
         rb_tree_t tree;
         rb_tree_create(max_bundles, &tree);
         shuffle(bundle_ids, max_bundles);
-        for (uint32_t j = 0; j < max_bundles; j++)
+        for (j = 0; j < max_bundles; j++)
         {
             rb_tree_insert(bundle_ids[j], &tree);
             assert_rb_tree_is_valid(&tree);
@@ -1306,9 +1312,10 @@ static int characterize_rb_tree_performance()
     ut_check(max_val >= 2);
 
     clock_t start, end, elapsed;
+    uint32_t i, j;
 
     uint32_t bundle_ids[max_val];
-    for (uint32_t i = 0; i < max_val; i++)
+    for (i = 0; i < max_val; i++)
     {
         bundle_ids[i] = i;
     }
@@ -1316,10 +1323,10 @@ static int characterize_rb_tree_performance()
 
     /* Seed random test. */
     srand(0);
-    for (uint32_t j = 0; j < max_trees; j++)
+    for (j = 0; j < max_trees; j++)
     {
         shuffle(bundle_ids, max_val);
-        for (uint32_t i = 0; i <= max_val; i++)
+        for (i = 0; i <= max_val; i++)
         {
             start = clock();
             rb_tree_insert(i, &tree);
@@ -1334,7 +1341,7 @@ static int characterize_rb_tree_performance()
         }
         ut_check(tree.size == 1);
         shuffle(bundle_ids, max_val);
-        for (uint32_t i = 0; i <= max_val; i++)
+        for (i = 0; i <= max_val; i++)
         {
             start = clock();
             rb_tree_delete(i, &tree);

@@ -165,7 +165,9 @@ $(BLDDIR)/%.o: %.c
 ##############################################################################
 ##  TARGET RULES
 
-all: clean lib bindings
+all: clean lib
+
+dev: clean lib bindings
 
 lib: static-lib shared-lib
 
@@ -179,7 +181,9 @@ shared-lib: $(BLDDIR) $(ALL_OBJ)
 bindings:
 	make -C binding/lua
 
-install: install-lib install-bindings
+install: install-lib
+
+install-dev: install-lib install-bindings
 
 install-lib: install-headers install-static install-shared
 

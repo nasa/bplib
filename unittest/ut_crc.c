@@ -46,16 +46,17 @@ extern crc_parameters_t crc32_castagnoli;
 static void print_binary(const void* ptr, const size_t size, const int num_spaces)
 {
     unsigned char * number_ptr = (unsigned char *) ptr;
+    int i, current_byte;
 
     /* Print spaces to help align the bits. */
-    for (int i = 0; i < num_spaces; i++)
+    for (i = 0; i < num_spaces; i++)
     {
         printf(" ");
     }
 
-    for (int current_byte = size - 1; current_byte >= 0; current_byte--)
+    for (current_byte = size - 1; current_byte >= 0; current_byte--)
     {
-        for (int i = 8 - 1; i >= 0; i--)
+        for (i = 8 - 1; i >= 0; i--)
         {
             printf("%c", (number_ptr[current_byte] & (1 << i)) ? '1' : '0');
         }
@@ -70,13 +71,13 @@ static void print_binary(const void* ptr, const size_t size, const int num_space
  *-------------------------------------------------------------------------------------*/
 static void print_xor_table(const crc_parameters_t* params)
 {
-    int index;
+    int index, i, j;
     if (params->length == 16)
     {
         const uint16_t* table = params->n_bit_params.crc16.xor_table;
-        for (int i = 0; i < 16; i++)
+        for (i = 0; i < 16; i++)
         {
-            for (int j = 0; j < 16; j++)
+            for (j = 0; j < 16; j++)
             {
                 index = (16 * i) + j;
                 printf("%4x|", table[index]);
@@ -87,9 +88,9 @@ static void print_xor_table(const crc_parameters_t* params)
     else if (params->length == 32)
     {
         const uint32_t* table = params->n_bit_params.crc32.xor_table;
-        for (int i = 0; i < 16; i++)
+        for (i = 0; i < 16; i++)
         {
-            for (int j = 0; j < 16; j++)
+            for (j = 0; j < 16; j++)
             {
                 index = (16 * i) + j;
                 printf("%8x|", table[index]);
