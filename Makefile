@@ -44,16 +44,13 @@
 #
 
 ##############################################################################
-## DEFINITIONS and CONFIGURATION (populated/overridden in application includes)
+## DEFINITIONS 
 
 # bplib repository root directory
 ROOT	    := .
 
 # bplib repository application interface include directory
 API         := $(ROOT)/inc
-
-# location to install bplib
-PREFIX	    := /usr/local
 
 # library objects
 APP_OBJ     := bplib.o
@@ -80,15 +77,6 @@ APP_OBJ     += ram.o
 APP_OBJ     += flash.o
 APP_OBJ     += flash_sim.o
 
-# definitions needed by the application (used to declare things like -D_APP_NAME_)
-APP_DEFS    ?= $(USER_DEFS)
-
-# compiler options needed by the application
-APP_COPT    ?= $(USER_COPT)
-
-# linker options needed by the application
-APP_LOPT    ?= $(USER_LOPT)
-
 # search path for application objects (note this is a make system variable)
 VPATH	    := $(ROOT)/lib
 VPATH	    += $(ROOT)/common
@@ -106,8 +94,20 @@ INCLUDES    += -I$(ROOT)/os
 INCLUDES    += -I$(ROOT)/store
 INCLUDES    += -I$(ROOT)/unittest
 
-# tool chain used as prefix for binary utilities like archival tool
-TOOLCHAIN   ?= gcc
+##############################################################################
+## CUSTOMIZATION
+
+# definitions needed by the application (used to declare things like -D_APP_NAME_)
+APP_DEFS    ?= $(USER_DEFS)
+
+# compiler options needed by the application
+APP_COPT    ?= $(USER_COPT)
+
+# linker options needed by the application
+APP_LOPT    ?= $(USER_LOPT)
+
+# location to install bplib
+PREFIX	    ?= /usr/local
 
 # configuration makefile, if not set then uses default
 CONFIG      ?= posix.mk
@@ -126,7 +126,7 @@ APP_OBJ     += ut_flash.o
 endif
 
 ###############################################################################
-##  DEFINES
+##  COMPILER/LINKER CONFIGURATION
 
 TGTLIB      :=   bp
 TGTVER      :=   $(shell cat version.txt)
@@ -144,20 +144,12 @@ COPT        +=   -fPIC # position independent code needed for shared library
 LOPT        :=   -lrt
 LOPT        +=   -lpthread
 
-###############################################################################
-##  TOOLS
-
-RM           =   rm -f
-CP           =   cp
-LN           =   ln
-MKDIR	     =   mkdir
-
-###############################################################################
-##  COMPILER RULES
-
 ALL_OBJ     := $(addprefix $(BLDDIR)/, $(APP_OBJ))
 ALL_COPT    := $(COPT) $(APP_COPT)
 ALL_LOPT    := $(LOPT) $(APP_LOPT)
+
+###############################################################################
+##  COMPILER RULES
 
 $(BLDDIR)/%.o: %.c
 	$(CC) -c $(ALL_COPT) -o $@ $<
@@ -176,7 +168,7 @@ static-lib: $(BLDDIR) $(ALL_OBJ)
 
 shared-lib: $(BLDDIR) $(ALL_OBJ)
 	$(CC) $(ALL_OBJ) $(ALL_LOPT) -shared -Wl,--version-script=libabi.version -o $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER)
-	$(LN) -sf lib$(TGTLIB).so.$(TGTVER) $(BLDDIR)/lib$(TGTLIB).so
+	ln -sf lib$(TGTLIB).so.$(TGTVER) $(BLDDIR)/lib$(TGTLIB).so
 
 bindings:
 	make -C binding/lua
@@ -188,16 +180,16 @@ install-dev: install-lib install-bindings
 install-lib: install-headers install-static install-shared
 
 install-headers: $(INCDIR)
-	$(CP) $(foreach element,$(API),$(subst -I,,$(element)/*.h)) $(INCDIR)
+	cp $(foreach element,$(API),$(subst -I,,$(element)/*.h)) $(INCDIR)
 	chmod 644 $(INCDIR)/*
 
 install-static: $(PREFIX) $(LIBDIR)
-	$(CP) $(BLDDIR)/lib$(TGTLIB).a $(LIBDIR)
+	cp $(BLDDIR)/lib$(TGTLIB).a $(LIBDIR)
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).a
 
 install-shared: $(PREFIX) $(LIBDIR)
-	$(CP) $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)
-	$(LN) -sf $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)/lib$(TGTLIB).so
+	cp $(BLDDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)
+	ln -sf $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER) $(LIBDIR)/lib$(TGTLIB).so
 	ldconfig
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so
 	chmod 644 $(LIBDIR)/lib$(TGTLIB).so.$(TGTVER)
@@ -207,21 +199,20 @@ install-bindings:
 
 
 $(BLDDIR):
-	-$(MKDIR) -p $(BLDDIR)
+	-mkdir -p $(BLDDIR)
 
 $(PREFIX):
-	-$(MKDIR) -p $(PREFIX)
+	-mkdir -p $(PREFIX)
 
 $(LIBDIR):
-	-$(MKDIR) -p $(LIBDIR)
+	-mkdir -p $(LIBDIR)
 
 $(INCDIR):
-	-$(MKDIR) -p $(INCDIR)
+	-mkdir -p $(INCDIR)
 
 
 clean ::
-	-$(RM) -R $(BLDDIR)
-	make -C binding/lua clean
+	-rm -Rf $(BLDDIR)
 
 ##############################################################################
 ##  TEST RULES

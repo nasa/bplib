@@ -27,11 +27,19 @@ Bplib assumes the availability of a persistent queued storage system for managin
 
 1. To build the static and shared libraries, the only prerequisites are the __make__ build system and a compiler toolchain (by default __gcc__).
 
-2. To build the Lua extension used for unit testing (and useful for any user implemented Lua applications), then you need to have Lua installed on your system.  For Ubuntu, type `sudo apt install lua5.3`, and for CentOS, type `yum install epel-release && yum install lua`. Only Lua version 5.3 has been tested.
-
-3. Tailoring the build to provide unique system prerequisites is accomplished by providing a custom configuration makefile.  See `posix.mk` as an example. If you custom file is called `{my_config_makefile}` then the following commands would be used:
+2. Tailoring the build to provide unique system prerequisites is accomplished by providing a custom configuration makefile.  See `posix.mk` as an example. If your custom file is called `{my_config_makefile}` then the following commands would be used:
    * `make CONFIG={my_config_makefile}`
    * `sudo make CONFIG={my_config_makefile} install`
+
+3. To build the Lua extension used for unit testing (and useful for any user implemented Lua applications), then you need to have Lua installed on your system.  Given the various versions and configurations Lua can be found in for different systems, the default behavior of the makefile is to look for Lua 5.3 in `/opt/lua5.3` which assumes you've downloaded and installed Lua yourself.  This can be accomplished via the followings steps:
+   * Download Lua 5.3 from `www.lua.org`
+   * `tar -xvzf lua-5.3.X.tar.gz` where X is whatever the latest stable version of Lau 5.3 is.
+   * `cd lua-5.3.X`
+   * `make MYCFLAGS="-fpic" linux`
+   * `sudo make install INSTALL_TOP=/opt/lua5.3`
+   * `alias bplua="LUA_CPATH=/opt/lua5.3/lib/lua/5.3/?.so LUA_PATH=/opt/lua5.3/lib/lua/5.3/?.lua /opt/lua5.3/bin/lua"`
+
+4. If you want to use a different Lua installation, you must run the Makefile found in `binding/lua` directly.  From the command line: the `PREFIX` variable can be set to the installed version of Lua you want to use (e.g. __/usr__), and the `LIBDIR` variable can be set to where the bplib.so extension module should be installed (e.g. __/usr/lib64/lua/5.1__).  Managing multiple Lua distributions on a single system can be a little tricky - the biggest problem being that as of 5.3 there is still a global search path for shared objects and Lua files that is indenpendent of the location of the binary Lua interpreter.  To get around this problem you can either set the `package.cpath` and `package.path` variables within your Lua scripts or you can alias the call to start the Lua interpreter with the paths called out in the command (as shown above).
 
 #### Building
 

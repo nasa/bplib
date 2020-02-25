@@ -13,17 +13,12 @@
 # Maintainer(s):
 #  Joe-Paul Swinski, Code 582 NASA GSFC
 #
-#
 
 ##############################################################################
 ## DEFINITIONS and CONFIGURATION (populated/overridden in application includes)
 
 # repository root directory
 ROOT	    := .
-
-# location to install extension
-PREFIX	    := /usr/local
-LUA_VERSION	:= 5.3
 
 # object files
 LUA_OBJ     := lua_bplib.o
@@ -36,12 +31,6 @@ INCLUDES    := -I$(ROOT)
 INCLUDES    += -I$(ROOT)/../../inc
 INCLUDES    += -I$(ROOT)/../../unittest
 
-# c compiler and linker used for c file extensions
-COMPILER    ?= gcc
-
-# tool chain used as prefix for binary utilities like archival tool
-TOOLCHAIN   ?= gcc
-
 # user customized options
 MY_COPT     ?=
 MY_LOPT     ?=
@@ -49,38 +38,26 @@ MY_LOPT     ?=
 ###############################################################################
 ##  CUSTOMIZATION
 
-LIBDIR      := $(PREFIX)/lib/lua/$(LUA_VERSION)
-MY_COPT     += -I/usr/include/lua$(LUA_VERSION)
-MY_LOPT     += -llua$(LUA_VERSION)
+# location of installed lua
+PREFIX	    ?= /opt/lua5.3
 
-#MY_COPT     += -I/opt/lua_i386/include/lua -m32
-#MY_LOPT     += -m32 -L/opt/lua_i386/lib -llua
+# location to install extension
+LIBDIR      ?= $(PREFIX)/lib/lua/5.3
 
 ###############################################################################
 ##  DEFINES
 
 TGTEXT      :=   bplib
 BLDDIR      :=   build
-O           ?=   3 # default optimization level
 
-COPT        :=   -g -O$(O) $(INCLUDES) $(MY_COPT)
+COPT        :=   -g -O0 $(INCLUDES) $(MY_COPT)
+COPT        +=   -I$(PREFIX)/include
 COPT        +=   -Wall -Wextra -Wshadow
 COPT        +=   -fPIC
 
 LOPT        :=    $(MY_LOPT)
-LOPT        :=   -L../../build
+LOPT        +=   -L../../build
 LOPT        +=   -lbp
-
-###############################################################################
-##  TOOLS
-
-CC           =   $(COMPILER)
-AR           =   $(TOOLCHAIN)-ar
-RM           =   rm -f
-CP           =   cp
-DIFF         =   diff
-LN           =   ln
-MKDIR	     =   mkdir
 
 ###############################################################################
 ##  COMPILER RULES
@@ -101,21 +78,22 @@ extension: $(BLDDIR) $(ALL_OBJ)
 	$(CC) $(ALL_OBJ) $(ALL_LOPT) -shared -o $(BLDDIR)/$(TGTEXT).so
 
 install: $(PREFIX) $(LIBDIR)
-	$(CP) $(BLDDIR)/$(TGTEXT).so $(LIBDIR)
+	cp $(BLDDIR)/$(TGTEXT).so $(LIBDIR)
 	chmod 644 $(LIBDIR)/$(TGTEXT).so
-	$(CP) bp.lua $(LIBDIR)
-	$(CP) bptest.lua $(LIBDIR)
+	cp bp.lua $(LIBDIR)
+	cp bptest.lua $(LIBDIR)
 
 $(BLDDIR):
-	-$(MKDIR) -p $(BLDDIR)
+	-mkdir -p $(BLDDIR)
 
 $(PREFIX):
-	-$(MKDIR) -p $(PREFIX)
+	-mkdir -p $(PREFIX)
 
 $(LIBDIR):
-	-$(MKDIR) -p $(LIBDIR)
+	-mkdir -p $(LIBDIR)
 
 clean ::
-	-$(RM) -R $(BLDDIR)
+	ls
+	-rm -R $(BLDDIR)
 
 # end of file
