@@ -376,7 +376,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
         {
             /* Read Failed */
             flash_error_count++;
-            return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read data to flash address: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
+            return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read data from flash address: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
         }
 
         /* Check Need to go to Next Block */
@@ -478,9 +478,9 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
             else
             {
                 status = bplog(NULL, BP_FLAG_STORE_FAILURE, "Object read from flash fails validation, size (%d, %d), handle (%d, %d), sync (%08Xl%08Xl, %018Xl%08Xl)\n",
-                                                flash_object_hdr->object_hdr.size, fs->attributes.max_data_size,
-                                                flash_object_hdr->object_hdr.handle, handle,
-                                                flash_object_hdr->synchi, flash_object_hdr->synclo, FLASH_OBJECT_SYNC_HI, FLASH_OBJECT_SYNC_LO);
+                                                            flash_object_hdr->object_hdr.size, fs->attributes.max_data_size,
+                                                            flash_object_hdr->object_hdr.handle, handle,
+                                                            flash_object_hdr->synchi, flash_object_hdr->synclo, FLASH_OBJECT_SYNC_HI, FLASH_OBJECT_SYNC_LO);
             }
         }
 
@@ -502,41 +502,6 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
 }
 
 /*--------------------------------------------------------------------------------------
- * flash_object_scan -
- *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int flash_object_scan (bp_flash_addr_t* addr)
-{
-    int status = BP_ERROR;
-
-    /* Loop while you have a valid address and you have not found the next sync;
-     *   this will exit with an error if the address goes invalid before a sync is found */
-    while(addr->block != BP_FLASH_INVALID_INDEX && status != BP_SUCCESS)
-    {
-        /* Read Object Header from Flash */
-        flash_object_hdr_t object_hdr;
-        int read_status = flash_data_read(addr, (uint8_t*)&object_hdr, sizeof(object_hdr));
-        if( (read_status == BP_SUCCESS) &&
-            (object_hdr.synchi == FLASH_OBJECT_SYNC_HI) &&
-            (object_hdr.synclo == FLASH_OBJECT_SYNC_LO) )
-        {
-            status = BP_SUCCESS;
-        }
-        else
-        {
-            /* Go To Next Page */
-            addr->page++;
-            if(addr->page == flash_blocks[addr->block].max_pages)
-            {
-                addr->block = flash_blocks[addr->block].next_block;
-                addr->page = 0;
-            }
-        }
-    }
-
-    return status;
-}
-
-/*--------------------------------------------------------------------------------------
  * flash_object_delete -
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
@@ -551,23 +516,23 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
     }
 
     /* Retrieve Object Header */
-    flash_object_hdr_t flash_object_hdr;
-    flash_object_hdr.object_hdr.sid = BP_SID_VACANT;
+    flash_object_hdr_t* flash_object_hdr = (flash_object_hdr_t*)flash_page_buffer;
+    flash_object_hdr->object_hdr.sid = BP_SID_VACANT;
     bp_flash_addr_t hdr_addr = addr;
-    status = flash_data_read(&hdr_addr, (uint8_t*)&flash_object_hdr, sizeof(flash_object_hdr_t));
+    status = flash_data_read(&hdr_addr, (uint8_t*)flash_object_hdr, sizeof(flash_object_hdr_t));
     if(status != BP_SUCCESS)
     {
         return bplog(NULL, BP_FLAG_STORE_FAILURE, "Unable to read object header at %d.%d in delete function\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
     }
-    else if(flash_object_hdr.object_hdr.sid != sid)
+    else if(flash_object_hdr->object_hdr.sid != sid)
     {
-        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Attempting to delete object with invalid SID: %lu != %lu\n", (unsigned long)flash_object_hdr.object_hdr.sid, (unsigned long)sid);
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Attempting to delete object with invalid SID: %lu != %lu\n", (unsigned long)flash_object_hdr->object_hdr.sid, (unsigned long)sid);
     }
 
     /* Setup Loop Parameters */
     bp_flash_index_t current_block = BP_FLASH_INVALID_INDEX;
     unsigned int current_block_free_pages = 0;
-    int bytes_left = flash_object_hdr.object_hdr.size;
+    int bytes_left = flash_object_hdr->object_hdr.size;
 
     /* Delete Each Page of Data */
     while(bytes_left > 0)
@@ -726,14 +691,14 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
                 bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unable to allocate memory for software ECC\n");
                 break; /* Skip rest of initialization */
             }
+        }
 
-            /* Allocate Page Buffer for ECC */
-            flash_page_buffer = (uint8_t*)bplib_os_calloc(FLASH_DRIVER.page_size);
-            if(!flash_page_buffer)
-            {
-                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unable to allocate memory for page buffer needed by software ECC\n");
-                break; /* Skip rest of initialization */
-            }
+        /* Allocate Page Buffer (used by ECC and for object deletes) */
+        flash_page_buffer = (uint8_t*)bplib_os_calloc(FLASH_DRIVER.page_size);
+        if(!flash_page_buffer)
+        {
+            bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unable to allocate memory for flash page buffer\n");
+            break; /* Skip rest of initialization */
         }
 
         /* Format Flash for Use */
@@ -993,13 +958,6 @@ int bplib_store_flash_dequeue (int handle, bp_object_t** object, int timeout)
         if((fs->read_addr.block != fs->write_addr.block) || (fs->read_addr.page != fs->write_addr.page))
         {
             status = flash_object_read(fs, handle, &fs->read_addr, object);
-            if(status != BP_SUCCESS)
-            {
-                /* Scan to Next Address
-                 *  yet still return an error so that
-                 *  bplib can report failure of store */
-                flash_object_scan(&fs->read_addr);
-            }
         }
         else
         {
