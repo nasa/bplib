@@ -33,7 +33,8 @@
 #error "Test page data size exceeds physical size of flash simulation page data size"
 #endif
 
-#define TEST_DATA_SIZE          (TEST_PAGE_DATA_SIZE * 3)
+#define TEST_DATA_SIZE          (TEST_PAGE_DATA_SIZE * 3 + 200)
+#define NUM_BUNDLES             200
 
 /******************************************************************************
  EXTERNAL PROTOTYPES
@@ -346,6 +347,60 @@ static void test_5 (void)
     bplib_store_flash_uninit();
 }
 
+/*--------------------------------------------------------------------------------------
+ * Test #6
+ *--------------------------------------------------------------------------------------*/
+static void test_6(void)
+{
+    int i, h, b;
+    bp_sid_t sids[NUM_BUNDLES];
+
+    printf("\n==== Test 6: Relinquish ====\n");
+
+    /* Initialize Driver */
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, true);
+    ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
+
+    /* Initialize Test Data */
+    for(i = 0; i < TEST_DATA_SIZE; i++)
+    {
+        test_data[i] = i % 0xFF;
+        read_data[i] = 0;
+    }
+
+    /* Create Storage Service */
+    bp_flash_attr_t attr = {TEST_DATA_SIZE};
+    h = bplib_store_flash_create(&attr);
+    ut_assert(h != BP_INVALID_HANDLE, "Failed to create storage service\n", i);
+
+    /* Enqueue Test Data */
+    for(b = 0; b < NUM_BUNDLES; b++)
+    {
+        ut_assert(bplib_store_flash_enqueue(h, test_data, TEST_DATA_SIZE, NULL, 0, BP_CHECK) == BP_SUCCESS, "Failed to enqueue test data\n");
+    }
+
+    /* Dequeue Test Data */
+    for(b = 0; b < NUM_BUNDLES; b++)
+    {
+        bp_object_t* object = NULL;
+        ut_assert(bplib_store_flash_dequeue(h, &object, BP_CHECK) == BP_SUCCESS, "Failed to enqueue test data\n");
+        bplib_store_flash_release(h, object->header.sid);
+        sids[b] = object->header.sid;
+    }
+
+    /* Relinquish Test Data */
+    for(b = 0; b < NUM_BUNDLES ; b++)
+    {
+        ut_assert(bplib_store_flash_relinquish(h, sids[b]) == BP_SUCCESS, "Failed to relinquish test data\n");
+    }
+
+    /* Destroy Storage Service */
+    bplib_store_flash_destroy(h);
+
+    /* Uninitialize Driver */
+    bplib_store_flash_uninit();
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -365,6 +420,7 @@ int ut_flash (void)
     test_3();
     test_4();
     test_5();
+    test_6();
 
     /* Clean Up */
 

@@ -589,12 +589,6 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
         /* Check if Block can be Erased */
         if(current_block_free_pages >= flash_blocks[current_block].max_pages)
         {
-            /* Consistency Check */
-            if(bytes_left != 0)
-            {
-                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Reclaiming block %d which contains undeleted data at page %d\n", FLASH_DRIVER.phyblk(current_block), addr.page);
-            }
-
             /* Bridge Over Block */
             bp_flash_index_t prev_block = flash_blocks[current_block].prev_block;
             bp_flash_index_t next_block = flash_blocks[current_block].next_block;
