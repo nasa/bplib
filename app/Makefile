@@ -22,6 +22,7 @@ ROOT	    := .
 
 # object files
 APP_OBJ     := bpsend.o
+APP_OBJ     += bpsock.o
 
 # search path for extension objects (note this is a make system variable)
 VPATH	    := $(ROOT)
@@ -30,7 +31,7 @@ VPATH	    := $(ROOT)
 INCLUDES    := -I$(ROOT)
 
 # user customized options
-MY_COPT     ?=
+MY_COPT     ?= -DSOCK_VERBOSE
 MY_LOPT     ?=
 
 ###############################################################################

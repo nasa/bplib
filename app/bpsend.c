@@ -26,6 +26,7 @@
 #include <signal.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "bp/bplib.h"
 #include "bp/bplib_store_ram.h"
@@ -45,6 +46,10 @@
 
 typedef struct {
     bp_desc_t* bpc;
+    bool is_server;
+    bool is_udp;
+    const char* ip_addr;
+    int port;    
 } thread_parm_t;
 
 /*************************************************************************
@@ -122,6 +127,7 @@ static void* reader_thread (void* parm)
     
     thread_parm_t* info = (thread_parm_t*)parm;
 
+    /* Reader Loop */
     while(app_running)
     {
         char* payload = fgets(line_buffer, LINE_STR_SIZE, stdin);
@@ -136,6 +142,11 @@ static void* reader_thread (void* parm)
                 fprintf(stderr, "Failed (%d) to store payload [%08X]\n", lib_status, flags);
             }
         }
+        else
+        {
+            fprintf(stderr, "EOF detected... exiting reader thread\n");
+            break;
+        }
     }
 
     return NULL;
@@ -146,7 +157,58 @@ static void* reader_thread (void* parm)
  */
 static void* writer_thread (void* parm)
 {
-    (void)parm;
+    thread_parm_t* info = (thread_parm_t*)parm;
+
+    int sock = SOCK_INVALID;
+
+    /* Write Loop */
+    while(app_running)
+    {
+        uint8_t* bundle = NULL;
+        int bundle_size = 0;
+        uint32_t flags = 0;
+
+        /* Make Connection */
+        if(sock == SOCK_INVALID)
+        {
+            if(info->is_udp) sock = sockdatagram(info->ip_addr, info->port, info->is_server, NULL);
+            else             sock = sockstream(info->ip_addr, info->port, info->is_server, NULL);
+        }
+
+        /* Check for Connection */
+        if(sock == SOCK_INVALID)
+        {
+            fprintf(stderr, "Connection unavailable... trying again\n");
+            sleep(1);
+            continue;
+        }
+
+        /* Load Bundle */
+        int lib_status = bplib_load(info->bpc, (void**)&bundle, &bundle_size, BP_CHECK, &flags);
+        if(lib_status == BP_SUCCESS)
+        {
+            /* Send Bundle */
+            int bytes_sent = socksend(sock, bundle, bundle_size, SOCK_TIMEOUT);
+            if(bytes_sent != bundle_size)
+            {
+                fprintf(stderr, "Failed (%d) to send bundle over socket: %s\n", bytes_sent, strerror(errno));
+            }
+
+            /* Acknowledge bundle */
+            bplib_ackbundle(info->bpc, bundle);
+        }
+        else if(lib_status != BP_TIMEOUT)
+        {
+            fprintf(stderr, "Failed (%d) to load bundle [%08X]\n", lib_status, flags);
+        }
+    }
+
+    /* Close Connection */
+    if(sock != SOCK_INVALID)
+    {
+        sockclose(sock);
+    }    
+
     return NULL;
 }
 
@@ -311,8 +373,13 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    /* Create Thread Parameters */
-    thread_parm_t thread_parm = { .bpc = bpc };
+    /* Create Thread Parameters (note it's on the stack) */
+    thread_parm_t thread_parm = { 
+        .bpc        = bpc,
+        .is_server  = is_server,
+        .is_udp     = is_udp, 
+        .ip_addr    = ip_addr, 
+        .port       = port };
 
     /* Create Reader Thread */
     pthread_t read_pid;
