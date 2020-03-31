@@ -159,7 +159,7 @@ $(BLDDIR)/%.o: %.c
 
 all: clean lib
 
-dev: clean lib bindings
+dev: clean lib bindings example
 
 lib: static-lib shared-lib
 
@@ -173,9 +173,12 @@ shared-lib: $(BLDDIR) $(ALL_OBJ)
 bindings:
 	make -C binding/lua
 
+example:
+	make -C app
+
 install: install-lib
 
-install-dev: install-lib install-bindings
+install-dev: install-lib install-bindings install-example
 
 install-lib: install-headers install-static install-shared
 
@@ -197,6 +200,8 @@ install-shared: $(PREFIX) $(LIBDIR)
 install-bindings:
 	make -C binding/lua install
 
+install-example:
+	make -C app install
 
 $(BLDDIR):
 	-mkdir -p $(BLDDIR)

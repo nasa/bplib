@@ -44,22 +44,25 @@ Bplib assumes the availability of a persistent queued storage system for managin
 #### Building
 
 To build only the static and shared libraries, use the following commands:
-* `make lib`
-* `sudo make install-lib`
+* `make`
+* `sudo make install`
 
-To build everything, including the language bindings, go to repository root directory and execute the following commands:
+To build everything, including the language bindings and example application, go to repository root directory and execute the following commands:
 * `make dev`
 * `sudo make install-dev`
 
-The default makefile produces the following binaries:
+The dev target of the makefile produces the following binaries:
 * `build/libbp.so.<version>` - shared library
 * `build/libbp.a` - static library
 * `bindings/lua/build/bplib.so` - lua extension module
+* `app/build/bpsend` - example application that sends bundles
+* `app/build/bprecv` - example program that receives bundles
 
 And performs the following installations:
 * `/usr/local/lib`: bplib libraries
 * `/usr/local/inc`: bplib includes
 * `/usr/local/lib/lua/5.3`: lua extensions and helper scripts
+* `/opt/bpio/bin`: example application binaries
 
 Additional make commands are as follows:
 * `make clean` will remove all generated files and directories
@@ -72,6 +75,16 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
 * `sudo echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf`
 * `sudo ldconfig`
 
+#### Example Application
+
+For those that learn better through examples, an example application is also provided in the `apps` directory.  This example program is in no way complete, but provides a quick way to see how to use the library.  After building and installing bplib on your system, you can do a simple test to see if the application will run by doing the following:
+
+* `cd apps`
+* `make`
+* `./test_run.sh`
+
+This will create two windows, the first executing the **bprecv** program, and the second executing the **bpsend** program.  Any line you type in the **bpsend** window is bundled and sent over UDP to the **bprecv** program.  Custody transfer is employed and the **bpsend** program will keep track of the number of messages it's sent vs. the number of messages that have been acknowledged.
+
 #### Unit Tests
 
 To manually run the unit test suite:
@@ -79,6 +92,8 @@ To manually run the unit test suite:
 
 To run a specific unit test using one of the test targets provided in the makefile:
 * make test{mem|cpu|heap|cov} testcase=binding/lua/test/ut_{test}.lua
+
+Note that getting the lua extension to compile for your specific linux distribution can be difficult as they often come with different versions and named in different ways.  Please see the makefile in `bindline/lua` for hints to how to get your version of Lua working with this library. In some cases, I end up downloading the source to Lua 5.3, building it myself, and then creating an alias to it (e.g. `alias bplua='LUA_CPATH=/opt/lua5.3/lib/lua/5.3/?.so LUA_PATH=/opt/lua5.3/lib/lua/5.3/?.lua /opt/lua5.3/bin/lua'`).
 
 #### Releases
 
