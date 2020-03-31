@@ -32,7 +32,7 @@
 
 #include "cfe.h"
 #include "cfe_time_utils.h"
-
+#include "bp_cfg.h"
 #include "bplib.h"
 
 /******************************************************************************
@@ -42,12 +42,12 @@
 #define BP_MAX_LOG_ENTRY_SIZE       256
 #define BP_RAND_HASH(seed)          ((seed)*2654435761) /* knuth multiplier */
 
-#ifndef BPLIB_CFE_SECS_AT_2000
-#define BPLIB_CFE_SECS_AT_2000      630720013
+#ifndef BP_CFE_SECS_AT_2000
+#define BP_CFE_SECS_AT_2000         1325376023 /* TAI */
 #endif
 
-#ifndef BPLIB_CFE_LOG_EID
-#define BPLIB_CFE_LOG_EID           0xFFFF
+#ifndef BP_BPLIB_INFO_EID
+#define BP_BPLIB_INFO_EID           0xFF
 #endif
 
 /******************************************************************************
@@ -92,7 +92,7 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     if(msglen > 0)
     {
         formatted_string[msglen] = '\0';
-        CFE_EVS_SendEvent(BPLIB_CFE_LOG_EID, CFE_EVS_INFORMATION, "[%08X] %s", event, formatted_string);
+        CFE_EVS_SendEvent(BP_BPLIB_INFO_EID, CFE_EVS_INFORMATION, "[%08X] %s", event, formatted_string);
     }
 
     /* Set EVent Flag and Return */
@@ -115,14 +115,14 @@ int bplib_os_systime(unsigned long* sysnow)
     assert(sysnow);
 
     CFE_TIME_SysTime_t sys_time = CFE_TIME_GetTime();
-    if(sys_time.Seconds < BPLIB_CFE_SECS_AT_2000)
+    if(sys_time.Seconds < BP_CFE_SECS_AT_2000)
     {
         *sysnow = sys_time.Seconds;
         return BP_ERROR;
     }
     else
     {
-        *sysnow = sys_time.Seconds - BPLIB_CFE_SECS_AT_2000;
+        *sysnow = sys_time.Seconds - BP_CFE_SECS_AT_2000;
         return BP_SUCCESS;
     }
 }
