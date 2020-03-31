@@ -31,7 +31,7 @@ Bplib assumes the availability of a persistent queued storage system for managin
    * `make CONFIG={my_config_makefile}`
    * `sudo make CONFIG={my_config_makefile} install`
 
-3. To build the Lua extension used for unit testing (and useful for any user implemented Lua applications), then you need to have Lua installed on your system.  Given the various versions and configurations Lua can be found in for different systems, the default behavior of the makefile is to look for Lua 5.3 in `/opt/lua5.3` which assumes you've downloaded and installed Lua yourself.  This can be accomplished via the followings steps:
+3. To build the optional Lua extension used for unit testing (and useful for any user implemented Lua applications), then you need to have Lua installed on your system.  Given the various versions and configurations Lua can be found in for different systems, the default behavior of the makefile is to look for Lua 5.3 in `/opt/lua5.3` which assumes you've downloaded and installed Lua yourself.  This can be accomplished via the followings steps:
    * Download Lua 5.3 from `www.lua.org`
    * `tar -xvzf lua-5.3.X.tar.gz` where X is whatever the latest stable version of Lau 5.3 is.
    * `cd lua-5.3.X`
@@ -39,11 +39,11 @@ Bplib assumes the availability of a persistent queued storage system for managin
    * `sudo make install INSTALL_TOP=/opt/lua5.3`
    * `alias bplua="LUA_CPATH=/opt/lua5.3/lib/lua/5.3/?.so LUA_PATH=/opt/lua5.3/lib/lua/5.3/?.lua /opt/lua5.3/bin/lua"`
 
-4. If you want to use a different Lua installation, you must run the Makefile found in `binding/lua` directly.  From the command line: the `PREFIX` variable can be set to the installed version of Lua you want to use (e.g. __/usr__), and the `LIBDIR` variable can be set to where the bplib.so extension module should be installed (e.g. __/usr/lib64/lua/5.1__).  Managing multiple Lua distributions on a single system can be a little tricky - the biggest problem being that as of 5.3 there is still a global search path for shared objects and Lua files that is indenpendent of the location of the binary Lua interpreter.  To get around this problem you can either set the `package.cpath` and `package.path` variables within your Lua scripts or you can alias the call to start the Lua interpreter with the paths called out in the command (as shown above).
+4. If you want to use a different Lua installation, you must run the Makefile found in `binding/lua` directly.  From the command line: the `PREFIX` variable can be set to the installed version of Lua you want to use (e.g. __/usr__), and the `LIBDIR` variable can be set to where the bplib.so extension module should be installed (e.g. __/usr/lib64/lua/5.1__).  Managing multiple Lua distributions on a single system can be a little tricky - the biggest problem being that as of 5.3 there is still a global search path for shared objects and Lua files that is independent of the location of the binary Lua interpreter.  To get around this problem you can either set the `package.cpath` and `package.path` variables within your Lua scripts or you can alias the call to start the Lua interpreter with the paths called out in the command (as shown above).
 
 #### Building
 
-To build only the static and shared libraries, use the following commands:
+To build only the static and shared libraries (which is recommended), use the following commands:
 * `make`
 * `sudo make install`
 
@@ -77,13 +77,13 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
 
 #### Example Application
 
-For those that learn better through examples, an example application is also provided in the `apps` directory.  This example program is in no way complete, but provides a quick way to see how to use the library.  After building and installing bplib on your system, you can do a simple test to see if the application will run by doing the following:
+For those that learn better through examples, an example application is provided in the `apps` directory.  This example program is not intended to be complete, but provides a quick way to see how to use the library.  After building and installing bplib on your system, you can do a simple test to see if the application will run by doing the following:
 
 * `cd apps`
 * `make`
 * `./test_run.sh`
 
-This will create two windows, the first executing the **bprecv** program, and the second executing the **bpsend** program.  Any line you type in the **bpsend** window is bundled and sent over UDP to the **bprecv** program.  Custody transfer is employed and the **bpsend** program will keep track of the number of messages it's sent vs. the number of messages that have been acknowledged.
+This will create two windows, the first executing the **bprecv** program, and the second executing the **bpsend** program.  Any line you type in the **bpsend** window is bundled and sent over UDP to the **bprecv** program.  Custody transfer is employed and the **bpsend** program will keep track of the number of messages it has sent vs. the number of messages that have been acknowledged.
 
 #### Unit Tests
 
@@ -93,7 +93,7 @@ To manually run the unit test suite:
 To run a specific unit test using one of the test targets provided in the makefile:
 * make test{mem|cpu|heap|cov} testcase=binding/lua/test/ut_{test}.lua
 
-Note that getting the lua extension to compile for your specific linux distribution can be difficult as they often come with different versions and named in different ways.  Please see the makefile in `bindline/lua` for hints to how to get your version of Lua working with this library. In some cases, I end up downloading the source to Lua 5.3, building it myself, and then creating an alias to it (e.g. `alias bplua='LUA_CPATH=/opt/lua5.3/lib/lua/5.3/?.so LUA_PATH=/opt/lua5.3/lib/lua/5.3/?.lua /opt/lua5.3/bin/lua'`).
+Note that getting the lua extension to compile for your specific linux distribution can be difficult as they often come with different versions and named in different ways.  Please see the prerequisites section above and the makefile in `bindline/lua` for hints to how to get your version of Lua working with this library.
 
 #### Releases
 
