@@ -20,9 +20,13 @@
 # repository root directory
 ROOT	    := .
 
-# object files
-APP_OBJ     := bpsend.o
-APP_OBJ     += bpsock.o
+# send object files
+SEND_OBJ     := bpsend.o
+SEND_OBJ     += bpsock.o
+
+# recv object files
+RECV_OBJ     := bprecv.o
+RECV_OBJ     += bpsock.o
 
 # search path for extension objects (note this is a make system variable)
 VPATH	    := $(ROOT)
@@ -44,7 +48,8 @@ BINDIR       = $(PREFIX)/bin
 ###############################################################################
 ##  DEFINES
 
-TGTEXE      :=   bpsend
+SENDEXE     :=   bpsend
+RECVEXE     :=   bprecv
 BLDDIR      :=   build
 
 COPT        :=   -g -O3 $(INCLUDES) $(MY_COPT)
@@ -57,9 +62,10 @@ LOPT        +=   -lpthread
 ###############################################################################
 ##  COMPILER RULES
 
-ALL_OBJ     := $(addprefix $(BLDDIR)/, $(APP_OBJ))
-ALL_COPT    := $(COPT)
-ALL_LOPT    := $(LOPT)
+SEND_ALL_OBJ    := $(addprefix $(BLDDIR)/, $(SEND_OBJ))
+RECV_ALL_OBJ    := $(addprefix $(BLDDIR)/, $(RECV_OBJ))
+ALL_COPT    	:= $(COPT)
+ALL_LOPT    	:= $(LOPT)
 
 $(BLDDIR)/%.o: %.c
 	$(CC) -c $(ALL_COPT) -o $@ $<
@@ -67,15 +73,19 @@ $(BLDDIR)/%.o: %.c
 ##############################################################################
 ##  TARGET RULES
 
-all: clean $(BLDDIR) app
+all: clean $(BLDDIR) send recv
 
-app: $(BLDDIR) $(ALL_OBJ)
-	$(CC) $(ALL_OBJ) $(ALL_LOPT) -o $(BLDDIR)/$(TGTEXE)
+send: $(BLDDIR) $(SEND_ALL_OBJ)
+	$(CC) $(SEND_ALL_OBJ) $(ALL_LOPT) -o $(BLDDIR)/$(SENDEXE)
+
+recv: $(BLDDIR) $(RECV_ALL_OBJ)
+	$(CC) $(RECV_ALL_OBJ) $(ALL_LOPT) -o $(BLDDIR)/$(RECVEXE)
 
 install: $(BINDIR)
-	cp $(BLDDIR)/$(TGTEXE) $(BINDIR)
-	chmod 755 $(BINDIR)/$(TGTEXE)
-	cp bptest.lua $(LIBDIR)
+	cp $(BLDDIR)/$(SENDEXE) $(BINDIR)
+	cp $(BLDDIR)/$(RECVEXE) $(BINDIR)
+	chmod 755 $(BINDIR)/$(SENDEXE)
+	chmod 755 $(BINDIR)/$(SENDEXE)
 
 $(BLDDIR):
 	-mkdir -p $(BLDDIR)

@@ -420,6 +420,7 @@ int sockrecv(int fd, void* buf, int size, int timeout)
         c = recv(fd, buf, size, MSG_DONTWAIT);
         if(c == 0)
         {
+            display_error("Shutting down socket\n");
             c = SOCK_INVALID;
         }
         else if(c < 0)

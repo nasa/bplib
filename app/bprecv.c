@@ -1,5 +1,5 @@
 /************************************************************************
- * File: bpsend.c
+ * File: bprecv.c
  *
  *  Copyright 2019 United States Government as represented by the
  *  Administrator of the National Aeronautics and Space Administration.
@@ -38,7 +38,7 @@
  *************************************************************************/
 
 #define PARM_STR_SIZE   64
-#define DFLT_SRC_NODE   4
+#define DFLT_SRC_NODE   5
 #define DFLT_SRC_SERV   1
 #define DFLT_IP_ADDR    "127.0.0.1"
 #define DFLT_PORT       34500
@@ -122,34 +122,32 @@ static void* signal_thread (void* parm)
 }
 
 /*
- * reader_thread - Reads data from stdin and stores as bundles
+ * writer_thread - Accepts payloads and writes them to stdout
  */
-static void* reader_thread (void* parm)
-{
-    #define LINE_STR_SIZE 1024
-    static char line_buffer[LINE_STR_SIZE];
-    
+static void* writer_thread (void* parm)
+{   
     thread_parm_t* info = (thread_parm_t*)parm;
 
     /* Reader Loop */
     while(app_running)
     {
-        fprintf(stderr, "$ ");
-        char* payload = fgets(line_buffer, LINE_STR_SIZE, stdin);
-        if(payload)
+        char* payload = NULL;
+        int payload_size = 0;
+        uint32_t flags = 0;
+
+        /* Accept Payload */
+        int lib_status = bplib_accept(info->bpc, (void**)&payload, &payload_size, BPLIB_TIMEOUT, &flags);
+        if(lib_status == BP_SUCCESS)
         {
-            uint32_t flags;
-            int payload_len = strnlen(line_buffer, LINE_STR_SIZE);
-            int lib_status = bplib_store(info->bpc, payload, payload_len, BP_CHECK, &flags);
-            if(lib_status != BP_SUCCESS)
-            {
-                fprintf(stderr, "Failed (%d) to store payload [%08X]\n", lib_status, flags);
-            }
+            /* Write Line */
+            fprintf(stdout, "%s", payload);        
+
+            /* Acknowledge PAyload */
+            bplib_ackpayload(info->bpc, payload);
         }
-        else
+        else if(lib_status != BP_TIMEOUT)
         {
-            fprintf(stderr, "EOF detected... exiting reader thread\n");
-            break;
+            fprintf(stderr, "Failed (%d) to accept payload [%08X]\n", lib_status, flags);
         }
     }
 
@@ -157,10 +155,12 @@ static void* reader_thread (void* parm)
 }
 
 /*
- * writer_thread - Loads bundles from storage and writes them to socket
+ * reader_thread - Reads bundles from socket and processes them
  */
-static void* writer_thread (void* parm)
+static void* reader_thread (void* parm)
 {
+    static uint8_t bundle[BP_DEFAULT_MAX_LENGTH];
+
     thread_parm_t* info = (thread_parm_t*)parm;
 
     int sock = SOCK_INVALID;
@@ -168,8 +168,6 @@ static void* writer_thread (void* parm)
     /* Write Loop */
     while(app_running)
     {
-        uint8_t* bundle = NULL;
-        int bundle_size = 0;
         uint32_t flags = 0;
 
         /* Make Connection */
@@ -186,23 +184,19 @@ static void* writer_thread (void* parm)
             continue;
         }
 
-        /* Load Bundle */
-        int lib_status = bplib_load(info->bpc, (void**)&bundle, &bundle_size, BPLIB_TIMEOUT, &flags);
-        if(lib_status == BP_SUCCESS)
+        /* Read Socket */
+        int bytes_recv = sockrecv(sock, bundle, BP_DEFAULT_MAX_LENGTH, SOCK_TIMEOUT);
+        if(bytes_recv > 0)
         {
-            /* Send Bundle */
-            int bytes_sent = socksend(sock, bundle, bundle_size, SOCK_TIMEOUT);
-            if(bytes_sent != bundle_size)
+            int lib_status = bplib_process(info->bpc, bundle, bytes_recv, BP_CHECK, &flags);
+            if(lib_status != BP_SUCCESS)
             {
-                fprintf(stderr, "Failed (%d) to send bundle over socket: %s\n", bytes_sent, strerror(errno));
-            }            
-
-            /* Acknowledge bundle */
-            bplib_ackbundle(info->bpc, bundle);
+                fprintf(stderr, "Failed (%d) to process bundle [%08X]\n", lib_status, flags);
+            }
         }
-        else if(lib_status != BP_TIMEOUT)
+        else if(bytes_recv != 0)
         {
-            fprintf(stderr, "Failed (%d) to load bundle [%08X]\n", lib_status, flags);
+            fprintf(stderr, "Failed (%d) to receive bundle over socket: %s\n", bytes_recv, strerror(errno));
         }
     }
 
@@ -220,15 +214,13 @@ static void* writer_thread (void* parm)
  ******************************************************************************/
 int main(int argc, char *argv[])
 {
-    bool is_server = false;
+    bool is_server = true;
     int src_node = DFLT_SRC_NODE, src_serv = DFLT_SRC_SERV;
-    int dst_node = 0, dst_serv = 0;
 
     char ip_addr[PARM_STR_SIZE] = DFLT_IP_ADDR;
     int port = DFLT_PORT;
 
-    int timeout = BP_DEFAULT_TIMEOUT;
-    int lifetime = BP_DEFAULT_LIFETIME;
+    int dacs_rate = BP_DEFAULT_DACS_RATE;
 
     int i;
     char parm[PARM_STR_SIZE];
@@ -247,40 +239,27 @@ int main(int argc, char *argv[])
     pthread_attr_setdetachstate(&signal_pthread_attr, PTHREAD_CREATE_DETACHED);
     pthread_create(&signal_pid, &signal_pthread_attr, &signal_thread, (void *) &signal_set);    
 
-    /* Initialize from Environment */
-    char* sys_src_node_str = getenv("BP_SEND_NODE");
-    if(sys_src_node_str) src_node = (int)strtol(sys_src_node_str, NULL, 0);
-
-    char* sys_src_serv_str = getenv("BP_SEND_SERVICE");
-    if(sys_src_serv_str) src_serv = (int)strtol(sys_src_serv_str, NULL, 0);
-
     /* Display Welcome Banner */
     fprintf(stderr, "\n***************************************************************************");
-    fprintf(stderr, "\n                              BP Send                                      ");
+    fprintf(stderr, "\n                              BP Receive                                   ");
     fprintf(stderr, "\n***************************************************************************");
-    fprintf(stderr, "\n bpsend [options] ipn:<node>.<service> udp://<ip address>:<port>           ");
-    fprintf(stderr, "\n   --server: listens for connections on provided ip address and port       ");
-    fprintf(stderr, "\n   --client: connects to provided ip address and port [DEFAULT]            ");
-    fprintf(stderr, "\n   --node <n>: overrides local node number of BP agent to n                ");
-    fprintf(stderr, "\n   --service <s>: overrides local service number of BP agent to s          ");
-    fprintf(stderr, "\n   --timeout <t>: sets timeout of BP agent to t                            ");
-    fprintf(stderr, "\n   --lifetime <l>: sets lifetime of BP agent to l                          ");
+    fprintf(stderr, "\n bprecv [options] ipn:<node>.<service> udp://<ip address>:<port>           ");
+    fprintf(stderr, "\n   --server: listens for connections on ip address and port [DEFAULT]      ");
+    fprintf(stderr, "\n   --client: connects to provided ip address and port                      ");
+    fprintf(stderr, "\n   --dacsrate <r>: sets DACS rate of BP agent to r                         ");
     fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n   Creates a local BP agent with a source endpoint ID of:                  ");
+    fprintf(stderr, "\n   Creates a local BP agent with a local endpoint ID of:                   ");
     fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n         ipn:BP_SEND_NODE.BP_SEND_SERVICE                                  ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n   where BP_SEND_NODE, and BP_SEND_SERVICE are sytem environment variables ");
-    fprintf(stderr, "\n   optionally overriden by the --node and --service parameters.            ");
+    fprintf(stderr, "\n         ipn:<node>.<service>                                              ");
     fprintf(stderr, "\n                                                                           ");
     fprintf(stderr, "\n   A connection is made to the ip address and port number provided on the  ");
-    fprintf(stderr, "\n   command line, and anything read from stdin is bundled and sent to the   ");
-    fprintf(stderr, "\n   destination endpoint ID specified by the ipn address provided on the    ");
-    fprintf(stderr, "\n   command line.                                                           ");
+    fprintf(stderr, "\n   command line, and anything read from the socket treated as a bundle and ");
+    fprintf(stderr, "\n   processed by the BP Agent.  All payloads retrieved from the bundles are ");
+    fprintf(stderr, "\n   writeen to stdout.                                                      ");
     fprintf(stderr, "\n                                                                           ");
     fprintf(stderr, "\n   Example usage:                                                          ");
     fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n         ./bpsend --client ipn:1.5 udp://10.1.215.5:34404                  ");
+    fprintf(stderr, "\n         ./bprecv --server ipn:1.5 udp://10.1.215.5:34404                  ");
     fprintf(stderr, "\n***************************************************************************");
     fprintf(stderr, "\n\n");
        
@@ -297,24 +276,20 @@ int main(int argc, char *argv[])
         {
             is_server = false;
         }
-        else if(strcmp(argv[i],"--node") == 0)
+        else if(strcmp(argv[i],"--dacsrate") == 0)
         {
-            src_node = (int)strtol(argv[++i], NULL, 0);
-        }
-        else if(strcmp(argv[i],"--service") == 0)
-        {
-            src_serv = (int)strtol(argv[++i], NULL, 0);
+            dacs_rate = (int)strtol(argv[++i], NULL, 0);
         }
         else if(strstr(argv[i], "ipn") != NULL)
         {
             char* serv_str = strrchr(parm, '.');
             *serv_str = '\0';
             serv_str++;
-            dst_serv = (int)strtol(serv_str, NULL, 0);
+            src_serv = (int)strtol(serv_str, NULL, 0);
 
             char* node_str = strrchr(parm, ':');
             node_str++;
-            dst_node = (int)strtol(node_str, NULL, 0);
+            src_node = (int)strtol(node_str, NULL, 0);
         }
         else if(strstr(argv[i], "udp") != NULL)
         {
@@ -334,20 +309,18 @@ int main(int argc, char *argv[])
     }
 
     /* Echo Command Line Options */
-    fprintf(stderr, "Creating %s BP agent at ipn:%d.%d and sending bundles to ipn:%d.%d over udp://%s:%d\n", is_server ? "server" : "client", src_node, src_serv, dst_node, dst_serv, ip_addr, port);
+    fprintf(stderr, "Creating %s BP agent at ipn:%d.%d to receiving bundles over udp://%s:%d\n", is_server ? "server" : "client", src_node, src_serv, ip_addr, port);
 
     /* Initialize bplib */
     bplib_init();
     bplib_store_ram_init();
 
     /* Create bplib Channel */
-    bp_route_t route = { src_node, src_serv, dst_node, dst_serv, 0, 0 };
+    bp_route_t route = { src_node, src_serv, 0, 0, 0, 0 };
 
     bp_attr_t attributes;
     bplib_attrinit(&attributes);
-    attributes.lifetime = lifetime;
-    attributes.timeout = timeout;
-    attributes.cid_reuse = true;
+    attributes.dacs_rate = dacs_rate;
 
     bp_desc_t* bpc = bplib_open(route, storage_service, attributes);
     if(bpc == NULL)
