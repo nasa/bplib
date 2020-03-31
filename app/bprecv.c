@@ -31,7 +31,7 @@
 #include "bp/bplib.h"
 #include "bp/bplib_store_ram.h"
 
-#include "bpsock.h"
+#include "sock.h"
 #include "bpio.h"
 
 /*************************************************************************

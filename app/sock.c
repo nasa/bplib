@@ -40,7 +40,7 @@
 #include <errno.h>
 #include <poll.h>
 
-#include "bpsock.h"
+#include "sock.h"
 
 /******************************************************************************
  * Defines

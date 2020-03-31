@@ -22,11 +22,11 @@ ROOT	    := .
 
 # send object files
 SEND_OBJ     := bpsend.o
-SEND_OBJ     += bpsock.o
+SEND_OBJ     += sock.o
 
 # recv object files
 RECV_OBJ     := bprecv.o
-RECV_OBJ     += bpsock.o
+RECV_OBJ     += sock.o
 
 # search path for extension objects (note this is a make system variable)
 VPATH	    := $(ROOT)
