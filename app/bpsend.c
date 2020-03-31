@@ -54,6 +54,9 @@ static bp_store_t storage_service =
     .getcount   = bplib_store_ram_getcount,
 };
 
+static int msgs = 0;
+static int acks = 0;
+
 /******************************************************************************
  * Local Functions
  ******************************************************************************/
@@ -113,14 +116,18 @@ static void* reader_thread (void* parm)
     /* Reader Loop */
     while(app_running)
     {
-        fprintf(stderr, "$ ");
+        fprintf(stderr, "(%d/%d) $ ", acks, msgs);
         char* payload = fgets(line_buffer, LINE_STR_SIZE, stdin);
         if(payload)
         {
             uint32_t flags;
             int payload_len = strnlen(line_buffer, LINE_STR_SIZE);
             int lib_status = bplib_store(info->bpc, payload, payload_len, BP_CHECK, &flags);
-            if(lib_status != BP_SUCCESS)
+            if(lib_status == BP_SUCCESS)
+            {
+                msgs++;
+            }
+            else
             {
                 fprintf(stderr, "Failed (%d) to store payload [%08X]\n", lib_status, flags);
             }
@@ -213,7 +220,13 @@ static void* custody_thread (void* parm)
         if(bytes_recv > 0)
         {
             int lib_status = bplib_process(info->bpc, dacs, bytes_recv, BP_CHECK, &flags);
-            if(lib_status != BP_SUCCESS)
+            if(lib_status == BP_SUCCESS)
+            {
+                bp_stats_t stats;
+                bplib_latchstats(info->bpc, &stats);
+                acks = stats.acknowledged_bundles;
+            }
+            else
             {
                 fprintf(stderr, "Failed (%d) to process dacs [%08X]\n", lib_status, flags);
             }
