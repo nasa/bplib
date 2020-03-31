@@ -32,28 +32,7 @@
 #include "bp/bplib_store_ram.h"
 
 #include "bpsock.h"
-
-/*************************************************************************
- * Defines
- *************************************************************************/
-
-#define PARM_STR_SIZE   64
-#define DFLT_SRC_NODE   4
-#define DFLT_SRC_SERV   1
-#define DFLT_IP_ADDR    "127.0.0.1"
-#define DFLT_PORT       34500
-#define BPLIB_TIMEOUT   1
-
-/*************************************************************************
- * Typedefs
- *************************************************************************/
-
-typedef struct {
-    bp_desc_t* bpc;
-    bool is_server;
-    const char* ip_addr;
-    int port;    
-} thread_parm_t;
+#include "bpio.h"
 
 /*************************************************************************
  * File Data
@@ -86,7 +65,7 @@ static void app_quick_exit(int parm)
 {
     (void)parm;
     if(app_immediate_abort) exit(0);
-    printf("\n...Shutting down!\n");
+    printf("\n...Shutting down! (press Enter to exit)\n");
     app_running = false;
     app_immediate_abort = true; // multiple control-c will exit immediately
 }
@@ -163,28 +142,20 @@ static void* writer_thread (void* parm)
 {
     thread_parm_t* info = (thread_parm_t*)parm;
 
-    int sock = SOCK_INVALID;
+    /* Make Socket Connection */
+    int sock = sockdatagram(info->data_ip_addr, info->data_port, false, NULL);;
+    if(sock == SOCK_INVALID)
+    {
+        fprintf(stderr, "Connection unavailable... exiting writer thread\n");
+        return NULL;
+    }
 
     /* Write Loop */
-    while(app_running)
+    while(app_running && sock != SOCK_INVALID)
     {
         uint8_t* bundle = NULL;
         int bundle_size = 0;
         uint32_t flags = 0;
-
-        /* Make Connection */
-        if(sock == SOCK_INVALID)
-        {
-            sock = sockdatagram(info->ip_addr, info->port, info->is_server, NULL);
-        }
-
-        /* Check for Connection */
-        if(sock == SOCK_INVALID)
-        {
-            fprintf(stderr, "Connection unavailable... trying again\n");
-            sleep(1);
-            continue;
-        }
 
         /* Load Bundle */
         int lib_status = bplib_load(info->bpc, (void**)&bundle, &bundle_size, BPLIB_TIMEOUT, &flags);
@@ -206,7 +177,54 @@ static void* writer_thread (void* parm)
         }
     }
 
-    /* Close Connection */
+    /* Close Socket Connection */
+    if(sock != SOCK_INVALID)
+    {
+        sockclose(sock);
+    }    
+
+    return NULL;
+}
+
+/*
+ * custody_thread - Receive and process custody acknowledgements
+ */
+static void* custody_thread (void* parm)
+{
+    static uint8_t dacs[BP_DEFAULT_MAX_LENGTH];
+
+    thread_parm_t* info = (thread_parm_t*)parm;
+
+    /* Make Socke Connection */
+    int sock = sockdatagram(info->dacs_ip_addr, info->dacs_port, true, NULL);
+    if(sock == SOCK_INVALID)
+    {
+        fprintf(stderr, "Connection unavailable... exiting custody thread\n");
+        return NULL;
+    }
+
+    /* Write Loop */
+    while(app_running && sock != SOCK_INVALID)
+    {
+        uint32_t flags = 0;
+
+        /* Read Socket */
+        int bytes_recv = sockrecv(sock, dacs, BP_DEFAULT_MAX_LENGTH, SOCK_TIMEOUT);
+        if(bytes_recv > 0)
+        {
+            int lib_status = bplib_process(info->bpc, dacs, bytes_recv, BP_CHECK, &flags);
+            if(lib_status != BP_SUCCESS)
+            {
+                fprintf(stderr, "Failed (%d) to process dacs [%08X]\n", lib_status, flags);
+            }
+        }
+        else if(bytes_recv != 0)
+        {
+            fprintf(stderr, "Failed (%d) to receive dacs over socket: %s\n", bytes_recv, strerror(errno));
+        }
+    }
+
+    /* Close Socket Connection */
     if(sock != SOCK_INVALID)
     {
         sockclose(sock);
@@ -220,15 +238,19 @@ static void* writer_thread (void* parm)
  ******************************************************************************/
 int main(int argc, char *argv[])
 {
-    bool is_server = false;
     int src_node = DFLT_SRC_NODE, src_serv = DFLT_SRC_SERV;
     int dst_node = 0, dst_serv = 0;
 
-    char ip_addr[PARM_STR_SIZE] = DFLT_IP_ADDR;
-    int port = DFLT_PORT;
-
     int timeout = BP_DEFAULT_TIMEOUT;
     int lifetime = BP_DEFAULT_LIFETIME;
+
+    thread_parm_t info = {
+        .bpc            = NULL,
+        .data_ip_addr   = DFLT_DATA_IP_ADDR,
+        .data_port      = DFLT_DATA_PORT,
+        .dacs_ip_addr   = DFLT_DACS_IP_ADDR,
+        .dacs_port      = DFLT_DACS_PORT
+    };
 
     int i;
     char parm[PARM_STR_SIZE];
@@ -255,33 +277,31 @@ int main(int argc, char *argv[])
     if(sys_src_serv_str) src_serv = (int)strtol(sys_src_serv_str, NULL, 0);
 
     /* Display Welcome Banner */
-    fprintf(stderr, "\n***************************************************************************");
-    fprintf(stderr, "\n                              BP Send                                      ");
-    fprintf(stderr, "\n***************************************************************************");
-    fprintf(stderr, "\n bpsend [options] ipn:<node>.<service> udp://<ip address>:<port>           ");
-    fprintf(stderr, "\n   --server: listens for connections on provided ip address and port       ");
-    fprintf(stderr, "\n   --client: connects to provided ip address and port [DEFAULT]            ");
-    fprintf(stderr, "\n   --node <n>: overrides local node number of BP agent to n                ");
-    fprintf(stderr, "\n   --service <s>: overrides local service number of BP agent to s          ");
-    fprintf(stderr, "\n   --timeout <t>: sets timeout of BP agent to t                            ");
-    fprintf(stderr, "\n   --lifetime <l>: sets lifetime of BP agent to l                          ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n   Creates a local BP agent with a source endpoint ID of:                  ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n         ipn:BP_SEND_NODE.BP_SEND_SERVICE                                  ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n   where BP_SEND_NODE, and BP_SEND_SERVICE are sytem environment variables ");
-    fprintf(stderr, "\n   optionally overriden by the --node and --service parameters.            ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n   A connection is made to the ip address and port number provided on the  ");
-    fprintf(stderr, "\n   command line, and anything read from stdin is bundled and sent to the   ");
-    fprintf(stderr, "\n   destination endpoint ID specified by the ipn address provided on the    ");
-    fprintf(stderr, "\n   command line.                                                           ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n   Example usage:                                                          ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n         ./bpsend --client ipn:1.5 udp://10.1.215.5:34404                  ");
-    fprintf(stderr, "\n***************************************************************************");
+    fprintf(stderr, "\n*********************************************************************************************");
+    fprintf(stderr, "\n                                        BP Send                                              ");
+    fprintf(stderr, "\n*********************************************************************************************");
+    fprintf(stderr, "\n bpsend [options] ipn:<node>.<service> data://<ip address>:<port> dacs://<ip address>:<port> ");
+    fprintf(stderr, "\n   --node <n>: overrides local node number of BP agent to n                                  ");
+    fprintf(stderr, "\n   --service <s>: overrides local service number of BP agent to s                            ");
+    fprintf(stderr, "\n   --timeout <t>: sets timeout of BP agent to t                                              ");
+    fprintf(stderr, "\n   --lifetime <l>: sets lifetime of BP agent to l                                            ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n   Creates a local BP agent with a source endpoint ID of:                                    ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n         ipn:BP_SEND_NODE.BP_SEND_SERVICE                                                    ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n   where BP_SEND_NODE, and BP_SEND_SERVICE are sytem environment variables                   ");
+    fprintf(stderr, "\n   optionally overriden by the --node and --service parameters.                              ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n   A connection is made to the ip address and port number provided on the                    ");
+    fprintf(stderr, "\n   command line, and anything read from stdin is bundled and sent to the                     ");
+    fprintf(stderr, "\n   destination endpoint ID specified by the ipn address provided on the                      ");
+    fprintf(stderr, "\n   command line.                                                                             ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n   Example usage:                                                                            ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n         ./bpsend ipn:1.5 udp://10.1.215.5:34404                                             ");
+    fprintf(stderr, "\n*********************************************************************************************");
     fprintf(stderr, "\n\n");
        
     /* Process Command Line */
@@ -289,15 +309,7 @@ int main(int argc, char *argv[])
     {
         snprintf(parm, PARM_STR_SIZE, "%s", argv[i]);
 
-        if(strcmp(argv[i],"--server") == 0)
-        {
-            is_server = true;
-        }
-        else if(strcmp(argv[i],"--client") == 0)
-        {
-            is_server = false;
-        }
-        else if(strcmp(argv[i],"--node") == 0)
+        if(strcmp(argv[i],"--node") == 0)
         {
             src_node = (int)strtol(argv[++i], NULL, 0);
         }
@@ -316,16 +328,27 @@ int main(int argc, char *argv[])
             node_str++;
             dst_node = (int)strtol(node_str, NULL, 0);
         }
-        else if(strstr(argv[i], "udp") != NULL)
+        else if(strstr(argv[i], "data") != NULL)
         {
             char* port_str = strrchr(parm, ':');
             *port_str = '\0';
             port_str++;
-            port = (int)strtol(port_str, NULL, 0);            
+            info.data_port = (int)strtol(port_str, NULL, 0);            
 
             char* ip_str = strrchr(parm, '/');
             ip_str++;
-            snprintf(ip_addr, PARM_STR_SIZE, "%s", ip_str);
+            snprintf(info.data_ip_addr, PARM_STR_SIZE, "%s", ip_str);
+        }
+        else if(strstr(argv[i], "dacs") != NULL)
+        {
+            char* port_str = strrchr(parm, ':');
+            *port_str = '\0';
+            port_str++;
+            info.dacs_port = (int)strtol(port_str, NULL, 0);            
+
+            char* ip_str = strrchr(parm, '/');
+            ip_str++;
+            snprintf(info.dacs_ip_addr, PARM_STR_SIZE, "%s", ip_str);
         }
         else
         {
@@ -334,7 +357,7 @@ int main(int argc, char *argv[])
     }
 
     /* Echo Command Line Options */
-    fprintf(stderr, "Creating %s BP agent at ipn:%d.%d and sending bundles to ipn:%d.%d over udp://%s:%d\n", is_server ? "server" : "client", src_node, src_serv, dst_node, dst_serv, ip_addr, port);
+    fprintf(stderr, "Creating BP agent at ipn:%d.%d and sending bundles to ipn:%d.%d over udp://%s:%d\n", src_node, src_serv, dst_node, dst_serv, info.data_ip_addr, info.data_port);
 
     /* Initialize bplib */
     bplib_init();
@@ -349,27 +372,24 @@ int main(int argc, char *argv[])
     attributes.timeout = timeout;
     attributes.cid_reuse = true;
 
-    bp_desc_t* bpc = bplib_open(route, storage_service, attributes);
-    if(bpc == NULL)
+    info.bpc = bplib_open(route, storage_service, attributes);
+    if(info.bpc == NULL)
     {
         fprintf(stderr, "Failed to create bplib channel... exiting\n");
         return -1;
     }
 
-    /* Create Thread Parameters (note it's on the stack) */
-    thread_parm_t thread_parm = { 
-        .bpc        = bpc,
-        .is_server  = is_server,
-        .ip_addr    = ip_addr, 
-        .port       = port };
-
     /* Create Reader Thread */
     pthread_t read_pid;
-    pthread_create(&read_pid, NULL, &reader_thread, &thread_parm);    
+    pthread_create(&read_pid, NULL, &reader_thread, &info);    
 
     /* Create Writer Thread */
     pthread_t write_pid;
-    pthread_create(&write_pid, NULL, &writer_thread, &thread_parm);    
+    pthread_create(&write_pid, NULL, &writer_thread, &info);    
+
+    /* Create Custody Thread */
+    pthread_t custody_pid;
+    pthread_create(&custody_pid, NULL, &custody_thread, &info);    
 
     /* Idle Loop */
     while(app_running)
@@ -391,7 +411,7 @@ int main(int argc, char *argv[])
     }
 
     /* Close bplib Channel */
-    bplib_close(bpc);
+    bplib_close(info.bpc);
 
     return 0;
 }

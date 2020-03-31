@@ -32,28 +32,7 @@
 #include "bp/bplib_store_ram.h"
 
 #include "bpsock.h"
-
-/*************************************************************************
- * Defines
- *************************************************************************/
-
-#define PARM_STR_SIZE   64
-#define DFLT_SRC_NODE   5
-#define DFLT_SRC_SERV   1
-#define DFLT_IP_ADDR    "127.0.0.1"
-#define DFLT_PORT       34500
-#define BPLIB_TIMEOUT   1
-
-/*************************************************************************
- * Typedefs
- *************************************************************************/
-
-typedef struct {
-    bp_desc_t* bpc;
-    bool is_server;
-    const char* ip_addr;
-    int port;    
-} thread_parm_t;
+#include "bpio.h"
 
 /*************************************************************************
  * File Data
@@ -122,6 +101,53 @@ static void* signal_thread (void* parm)
 }
 
 /*
+ * reader_thread - Reads bundles from socket and processes them
+ */
+static void* reader_thread (void* parm)
+{
+    static uint8_t bundle[BP_DEFAULT_MAX_LENGTH];
+
+    thread_parm_t* info = (thread_parm_t*)parm;
+
+    /* Make Socke Connection */
+    int sock = sockdatagram(info->data_ip_addr, info->data_port, true, NULL);
+    if(sock == SOCK_INVALID)
+    {
+        fprintf(stderr, "Connection unavailable... exiting reader thread\n");
+        return NULL;
+    }
+
+    /* Write Loop */
+    while(app_running && sock != SOCK_INVALID)
+    {
+        uint32_t flags = 0;
+
+        /* Read Socket */
+        int bytes_recv = sockrecv(sock, bundle, BP_DEFAULT_MAX_LENGTH, SOCK_TIMEOUT);
+        if(bytes_recv > 0)
+        {
+            int lib_status = bplib_process(info->bpc, bundle, bytes_recv, BP_CHECK, &flags);
+            if(lib_status != BP_SUCCESS)
+            {
+                fprintf(stderr, "Failed (%d) to process bundle [%08X]\n", lib_status, flags);
+            }
+        }
+        else if(bytes_recv != 0)
+        {
+            fprintf(stderr, "Failed (%d) to receive bundle over socket: %s\n", bytes_recv, strerror(errno));
+        }
+    }
+
+    /* Close Socket Connection */
+    if(sock != SOCK_INVALID)
+    {
+        sockclose(sock);
+    }    
+
+    return NULL;
+}
+
+/*
  * writer_thread - Accepts payloads and writes them to stdout
  */
 static void* writer_thread (void* parm)
@@ -155,52 +181,48 @@ static void* writer_thread (void* parm)
 }
 
 /*
- * reader_thread - Reads bundles from socket and processes them
+ * custody_thread - Load and send custody acknowledgements
  */
-static void* reader_thread (void* parm)
+static void* custody_thread (void* parm)
 {
-    static uint8_t bundle[BP_DEFAULT_MAX_LENGTH];
-
     thread_parm_t* info = (thread_parm_t*)parm;
 
-    int sock = SOCK_INVALID;
+    /* Make Socket Connection */
+    int sock = sockdatagram(info->dacs_ip_addr, info->dacs_port, false, NULL);;
+    if(sock == SOCK_INVALID)
+    {
+        fprintf(stderr, "Connection unavailable... exiting custody thread\n");
+        return NULL;
+    }
 
     /* Write Loop */
-    while(app_running)
+    while(app_running && sock != SOCK_INVALID)
     {
+        uint8_t* dacs = NULL;
+        int dacs_size = 0;
         uint32_t flags = 0;
 
-        /* Make Connection */
-        if(sock == SOCK_INVALID)
+        /* Load Bundle */
+        int lib_status = bplib_load(info->bpc, (void**)&dacs, &dacs_size, BPLIB_TIMEOUT, &flags);
+        if(lib_status == BP_SUCCESS)
         {
-            sock = sockdatagram(info->ip_addr, info->port, info->is_server, NULL);
-        }
-
-        /* Check for Connection */
-        if(sock == SOCK_INVALID)
-        {
-            fprintf(stderr, "Connection unavailable... trying again\n");
-            sleep(1);
-            continue;
-        }
-
-        /* Read Socket */
-        int bytes_recv = sockrecv(sock, bundle, BP_DEFAULT_MAX_LENGTH, SOCK_TIMEOUT);
-        if(bytes_recv > 0)
-        {
-            int lib_status = bplib_process(info->bpc, bundle, bytes_recv, BP_CHECK, &flags);
-            if(lib_status != BP_SUCCESS)
+            /* Send Bundle */
+            int bytes_sent = socksend(sock, dacs, dacs_size, SOCK_TIMEOUT);
+            if(bytes_sent != dacs_size)
             {
-                fprintf(stderr, "Failed (%d) to process bundle [%08X]\n", lib_status, flags);
-            }
+                fprintf(stderr, "Failed (%d) to send dacs over socket: %s\n", bytes_sent, strerror(errno));
+            }            
+
+            /* Acknowledge bundle */
+            bplib_ackbundle(info->bpc, dacs);
         }
-        else if(bytes_recv != 0)
+        else if(lib_status != BP_TIMEOUT)
         {
-            fprintf(stderr, "Failed (%d) to receive bundle over socket: %s\n", bytes_recv, strerror(errno));
+            fprintf(stderr, "Failed (%d) to load dacs [%08X]\n", lib_status, flags);
         }
     }
 
-    /* Close Connection */
+    /* Close Socket Connection */
     if(sock != SOCK_INVALID)
     {
         sockclose(sock);
@@ -214,13 +236,16 @@ static void* reader_thread (void* parm)
  ******************************************************************************/
 int main(int argc, char *argv[])
 {
-    bool is_server = true;
     int src_node = DFLT_SRC_NODE, src_serv = DFLT_SRC_SERV;
-
-    char ip_addr[PARM_STR_SIZE] = DFLT_IP_ADDR;
-    int port = DFLT_PORT;
-
     int dacs_rate = BP_DEFAULT_DACS_RATE;
+
+    thread_parm_t info = {
+        .bpc            = NULL,
+        .data_ip_addr   = DFLT_DATA_IP_ADDR,
+        .data_port      = DFLT_DATA_PORT,
+        .dacs_ip_addr   = DFLT_DACS_IP_ADDR,
+        .dacs_port      = DFLT_DACS_PORT
+    };
 
     int i;
     char parm[PARM_STR_SIZE];
@@ -240,27 +265,25 @@ int main(int argc, char *argv[])
     pthread_create(&signal_pid, &signal_pthread_attr, &signal_thread, (void *) &signal_set);    
 
     /* Display Welcome Banner */
-    fprintf(stderr, "\n***************************************************************************");
-    fprintf(stderr, "\n                              BP Receive                                   ");
-    fprintf(stderr, "\n***************************************************************************");
-    fprintf(stderr, "\n bprecv [options] ipn:<node>.<service> udp://<ip address>:<port>           ");
-    fprintf(stderr, "\n   --server: listens for connections on ip address and port [DEFAULT]      ");
-    fprintf(stderr, "\n   --client: connects to provided ip address and port                      ");
-    fprintf(stderr, "\n   --dacsrate <r>: sets DACS rate of BP agent to r                         ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n   Creates a local BP agent with a local endpoint ID of:                   ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n         ipn:<node>.<service>                                              ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n   A connection is made to the ip address and port number provided on the  ");
-    fprintf(stderr, "\n   command line, and anything read from the socket treated as a bundle and ");
-    fprintf(stderr, "\n   processed by the BP Agent.  All payloads retrieved from the bundles are ");
-    fprintf(stderr, "\n   writeen to stdout.                                                      ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n   Example usage:                                                          ");
-    fprintf(stderr, "\n                                                                           ");
-    fprintf(stderr, "\n         ./bprecv --server ipn:1.5 udp://10.1.215.5:34404                  ");
-    fprintf(stderr, "\n***************************************************************************");
+    fprintf(stderr, "\n*********************************************************************************************");
+    fprintf(stderr, "\n                                      BP Receive                                             ");
+    fprintf(stderr, "\n*********************************************************************************************");
+    fprintf(stderr, "\n bprecv [options] ipn:<node>.<service> data://<ip address>:<port> dacs://<ip address>:<port> ");
+    fprintf(stderr, "\n   --dacsrate <r>: sets DACS rate of BP agent to r                                           ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n   Creates a local BP agent with a local endpoint ID of:                                     ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n         ipn:<node>.<service>                                                                ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n   A socket is bound to the ip address and port number provided on the                       ");
+    fprintf(stderr, "\n   command line, and anything read from the socket treated as a bundle and                   ");
+    fprintf(stderr, "\n   processed by the BP Agent.  All payloads retrieved from the bundles are                   ");
+    fprintf(stderr, "\n   writeen to stdout.                                                                        ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n   Example usage:                                                                            ");
+    fprintf(stderr, "\n                                                                                             ");
+    fprintf(stderr, "\n         ./bprecv ipn:1.5 udp://10.1.215.5:34404                                             ");
+    fprintf(stderr, "\n*********************************************************************************************");
     fprintf(stderr, "\n\n");
        
     /* Process Command Line */
@@ -268,15 +291,7 @@ int main(int argc, char *argv[])
     {
         snprintf(parm, PARM_STR_SIZE, "%s", argv[i]);
 
-        if(strcmp(argv[i],"--server") == 0)
-        {
-            is_server = true;
-        }
-        else if(strcmp(argv[i],"--client") == 0)
-        {
-            is_server = false;
-        }
-        else if(strcmp(argv[i],"--dacsrate") == 0)
+        if(strcmp(argv[i],"--dacsrate") == 0)
         {
             dacs_rate = (int)strtol(argv[++i], NULL, 0);
         }
@@ -291,16 +306,27 @@ int main(int argc, char *argv[])
             node_str++;
             src_node = (int)strtol(node_str, NULL, 0);
         }
-        else if(strstr(argv[i], "udp") != NULL)
+        else if(strstr(argv[i], "data") != NULL)
         {
             char* port_str = strrchr(parm, ':');
             *port_str = '\0';
             port_str++;
-            port = (int)strtol(port_str, NULL, 0);            
+            info.data_port = (int)strtol(port_str, NULL, 0);            
 
             char* ip_str = strrchr(parm, '/');
             ip_str++;
-            snprintf(ip_addr, PARM_STR_SIZE, "%s", ip_str);
+            snprintf(info.data_ip_addr, PARM_STR_SIZE, "%s", ip_str);
+        }
+        else if(strstr(argv[i], "dacs") != NULL)
+        {
+            char* port_str = strrchr(parm, ':');
+            *port_str = '\0';
+            port_str++;
+            info.dacs_port = (int)strtol(port_str, NULL, 0);            
+
+            char* ip_str = strrchr(parm, '/');
+            ip_str++;
+            snprintf(info.dacs_ip_addr, PARM_STR_SIZE, "%s", ip_str);
         }
         else
         {
@@ -309,7 +335,7 @@ int main(int argc, char *argv[])
     }
 
     /* Echo Command Line Options */
-    fprintf(stderr, "Creating %s BP agent at ipn:%d.%d to receiving bundles over udp://%s:%d\n", is_server ? "server" : "client", src_node, src_serv, ip_addr, port);
+    fprintf(stderr, "Creating BP agent at ipn:%d.%d to receiving bundles over udp://%s:%d\n", src_node, src_serv, info.data_ip_addr, info.data_port);
 
     /* Initialize bplib */
     bplib_init();
@@ -322,27 +348,24 @@ int main(int argc, char *argv[])
     bplib_attrinit(&attributes);
     attributes.dacs_rate = dacs_rate;
 
-    bp_desc_t* bpc = bplib_open(route, storage_service, attributes);
-    if(bpc == NULL)
+    info.bpc = bplib_open(route, storage_service, attributes);
+    if(info.bpc == NULL)
     {
         fprintf(stderr, "Failed to create bplib channel... exiting\n");
         return -1;
     }
 
-    /* Create Thread Parameters (note it's on the stack) */
-    thread_parm_t thread_parm = { 
-        .bpc        = bpc,
-        .is_server  = is_server,
-        .ip_addr    = ip_addr, 
-        .port       = port };
-
     /* Create Reader Thread */
     pthread_t read_pid;
-    pthread_create(&read_pid, NULL, &reader_thread, &thread_parm);    
+    pthread_create(&read_pid, NULL, &reader_thread, &info);    
 
     /* Create Writer Thread */
     pthread_t write_pid;
-    pthread_create(&write_pid, NULL, &writer_thread, &thread_parm);    
+    pthread_create(&write_pid, NULL, &writer_thread, &info);    
+
+    /* Create Custody Thread */
+    pthread_t custody_pid;
+    pthread_create(&custody_pid, NULL, &custody_thread, &info);    
 
     /* Idle Loop */
     while(app_running)
@@ -364,7 +387,7 @@ int main(int argc, char *argv[])
     }
 
     /* Close bplib Channel */
-    bplib_close(bpc);
+    bplib_close(info.bpc);
 
     return 0;
 }
