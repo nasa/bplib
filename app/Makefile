@@ -51,6 +51,7 @@ COPT        +=   -Wall -Wextra -Wshadow
 
 LOPT        :=    $(MY_LOPT)
 LOPT        +=   -lbp
+LOPT        +=   -lpthread
 
 ###############################################################################
 ##  COMPILER RULES
