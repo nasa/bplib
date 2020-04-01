@@ -107,7 +107,7 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
 
         /* Create Log Message */
         if(event != BP_FLAG_DIAGNOSTIC) snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%08X:%s", pathptr, line, event, formatted_string);
-        else                            snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s", formatted_string);
+        else                            snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%s", pathptr, line, formatted_string);
 
         /* Display Log Message */
         printf("%s", log_message);

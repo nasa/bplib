@@ -606,7 +606,7 @@ int bplib_config(bp_desc_t* desc, int mode, int opt, int* val)
         default:
         {
             /* Option Not Found */
-            return bplog(NULL, BP_ERROR, "Config. Option Not Found (%d)\n", opt);
+            return bplog(NULL, BP_FLAG_API_ERROR, "Config. Option Not Found (%d)\n", opt);
         }
     }
 
@@ -1244,23 +1244,23 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
     /* Sanity Check EID Pointer */
     if(eid == NULL)
     {
-        return bplog(NULL, BP_ERROR, "EID is null\n");
+        return bplog(NULL, BP_FLAG_API_ERROR, "EID is null\n");
     }
 
     /* Sanity Check Length of EID */
     if(len < 7)
     {
-        return bplog(NULL, BP_ERROR, "EID must be at least 7 characters, act: %d\n", len);
+        return bplog(NULL, BP_FLAG_API_ERROR, "EID must be at least 7 characters, act: %d\n", len);
     }
     else if(len > BP_MAX_EID_STRING)
     {
-        return bplog(NULL, BP_ERROR, "EID cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING, len);
+        return bplog(NULL, BP_FLAG_API_ERROR, "EID cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING, len);
     }
 
     /* Check IPN Scheme */
     if(eid[0] != 'i' || eid[1] != 'p' || eid[2] != 'n' || eid[3] != ':')
     {
-        return bplog(NULL, BP_ERROR, "EID (%s) must start with 'ipn:'\n", eid);
+        return bplog(NULL, BP_FLAG_API_ERROR, "EID (%s) must start with 'ipn:'\n", eid);
     }
 
     /* Copy EID to Temporary Buffer and Set Pointers */
@@ -1276,7 +1276,7 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
     }
     else
     {
-        return bplog(NULL, BP_ERROR, "Unable to find dotted notation in EID (%s)\n", eid);
+        return bplog(NULL, BP_FLAG_API_ERROR, "Unable to find dotted notation in EID (%s)\n", eid);
     }
 
     /* Parse Node Number */
@@ -1285,7 +1285,7 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
     if( (endptr == node_ptr) ||
         ((node_result == ULONG_MAX || node_result == 0) && errno == ERANGE) )
     {
-        return bplog(NULL, BP_ERROR, "Unable to parse EID (%s) node number\n", eid);
+        return bplog(NULL, BP_FLAG_API_ERROR, "Unable to parse EID (%s) node number\n", eid);
     }
 
     /* Parse Service Number */
@@ -1294,7 +1294,7 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
     if( (endptr == service_ptr) ||
         ((service_result == ULONG_MAX || service_result == 0) && errno == ERANGE) )
     {
-        return bplog(NULL, BP_ERROR, "Unable to parse EID (%s) service number\n", eid);
+        return bplog(NULL, BP_FLAG_API_ERROR, "Unable to parse EID (%s) service number\n", eid);
     }
 
     /* Set Outputs */
@@ -1317,17 +1317,17 @@ int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t service)
     /* Sanity Check EID Buffer Pointer */
     if(eid == NULL)
     {
-        return bplog(NULL, BP_ERROR, "EID buffer is null\n");
+        return bplog(NULL, BP_FLAG_API_ERROR, "EID buffer is null\n");
     }
 
     /* Sanity Check Length of EID Buffer */
     if(len < 7)
     {
-        return bplog(NULL, BP_ERROR, "EID buffer must be at least 7 characters, act: %d\n", len);
+        return bplog(NULL, BP_FLAG_API_ERROR, "EID buffer must be at least 7 characters, act: %d\n", len);
     }
     else if(len > BP_MAX_EID_STRING)
     {
-        return bplog(NULL, BP_ERROR, "EID buffer cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING, len);
+        return bplog(NULL, BP_FLAG_API_ERROR, "EID buffer cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING, len);
     }
 
     /* Write EID */

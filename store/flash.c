@@ -29,7 +29,6 @@
 
 #define FLASH_OBJECT_SYNC_HI                0x42502046
 #define FLASH_OBJECT_SYNC_LO                0x4C415348
-#define FLASH_PAGE_USE_BYTES                (FLASH_MAX_PAGES_PER_BLOCK / 8)
 
 /******************************************************************************
  MACROS
@@ -53,7 +52,7 @@ typedef struct {
 typedef struct {
     bp_flash_index_t    next_block;
     bp_flash_index_t    prev_block;
-    uint8_t             page_use[FLASH_PAGE_USE_BYTES];
+    bp_flash_index_t    pages_in_use;
 } flash_block_control_t;
 
 typedef struct {
@@ -148,14 +147,16 @@ BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* data, int siz
                 status = BP_ERROR;
             }
 
-            memcpy(data, flash_page_buffer, size);
+            if(data != flash_page_buffer) 
+            {
+                memcpy(data, flash_page_buffer, size);
+            }
         }
     }
     else
     {
         status = FLASH_DRIVER.read(addr, data);
     }
-
 
     return status;
 }
@@ -194,7 +195,7 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
     /* Clear Block Control Entry */
     flash_blocks[block].next_block = BP_FLASH_INVALID_INDEX;
     flash_blocks[block].prev_block = BP_FLASH_INVALID_INDEX;
-    memset(flash_blocks[block].page_use, 0xFF, FLASH_PAGE_USE_BYTES);
+    flash_blocks[block].pages_in_use = FLASH_DRIVER.pages_per_block;
 
     /* Block No Longer In Use */
     flash_used_block_count--;
@@ -271,32 +272,28 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
     {
         /* Write Data into Page */
         int bytes_to_copy = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
-        int status = flash_page_write(*addr, &data[data_index], bytes_to_copy);
-        if(status == BP_SUCCESS)
+        int flash_status = flash_page_write(*addr, &data[data_index], bytes_to_copy);
+
+        /* Check if Write Failed 
+         *  don't set return status of function to failure
+         *  but instead count and log the error and keep going */
+        if(flash_status != BP_SUCCESS)
         {
-            data_index += bytes_to_copy;
-            bytes_left -= bytes_to_copy;
-        }
-        else /* Write Failed */
-        {
-            /* Log and Count Error */
             flash_error_count++;
             bplog(NULL, BP_FLAG_STORE_FAILURE, "Error encountered writing data to flash address: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
-
-            // TODO - retry once and then give up
-
-
         }
 
-        /* Increment Page
-         *  - always increment page as data cannot start in the middle of a page
-         *  - check for new block needing to be allocated  */
+        /* Always Continue with Write */
+        data_index += bytes_to_copy;
+        bytes_left -= bytes_to_copy;
         addr->page++;
+
+        /* Check Need to go to Next Block */
         if(addr->page >= FLASH_DRIVER.pages_per_block)
         {
             bp_flash_index_t next_write_block;
-            status = flash_free_allocate(&next_write_block);
-            if(status == BP_SUCCESS)
+            flash_status = flash_free_allocate(&next_write_block);
+            if(flash_status == BP_SUCCESS)
             {
                 flash_blocks[addr->block].next_block = next_write_block;
                 flash_blocks[next_write_block].prev_block = addr->block;
@@ -332,19 +329,21 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
     {
         /* Read Data from Page */
         int bytes_to_copy = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
-        int status = flash_page_read(*addr, &data[data_index], bytes_to_copy);
-        if(status == BP_SUCCESS)
+        int flash_status = flash_page_read(*addr, &data[data_index], bytes_to_copy);
+
+        /* Check if Read Failed
+         *  don't set return status of function to failure
+         *  but instead count and log the error and keep going */
+        if(flash_status != BP_SUCCESS)
         {
-            data_index += bytes_to_copy;
-            bytes_left -= bytes_to_copy;
-            addr->page++;
-        }
-        else
-        {
-            /* Read Failed */
             flash_error_count++;
-            return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read data from flash address: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read data from flash address: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
         }
+
+        /* Always Continue with Write */
+        data_index += bytes_to_copy;
+        bytes_left -= bytes_to_copy;
+        addr->page++;
 
         /* Check Need to go to Next Block */
         if(addr->page >= FLASH_DRIVER.pages_per_block)
@@ -498,41 +497,19 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
 
     /* Setup Loop Parameters */
     bp_flash_index_t current_block = BP_FLASH_INVALID_INDEX;
-    unsigned int current_block_free_pages = 0;
     int bytes_left = flash_object_hdr->object_hdr.size;
 
     /* Delete Each Page of Data */
     while(bytes_left > 0)
     {
-        /* Count Number of Free Pages in Current Block */
+        /* Set Current Block */
         if(current_block != addr.block)
         {
             current_block = addr.block;
-
-            /* Iterate over Page Use Array and Count '0' Bits */
-            unsigned int byte_index, bit_index;
-            current_block_free_pages = 0;
-            for(byte_index = 0; byte_index < FLASH_PAGE_USE_BYTES; byte_index++)
-            {
-                for(bit_index = 0; bit_index < 8; bit_index++)
-                {
-                    if((flash_blocks[current_block].page_use[byte_index] & (0x80 >> bit_index)) == 0x00)
-                    {
-                        current_block_free_pages++;
-                    }
-                }
-            }
         }
 
         /* Mark Data on Page as Deleted */
-        int byte_offset = addr.page / 8;
-        int bit_offset = addr.page % 8;
-        uint8_t bit_byte = 0x80 >> bit_offset;
-        if(flash_blocks[addr.block].page_use[byte_offset] & bit_byte)
-        {
-            flash_blocks[addr.block].page_use[byte_offset] &= ~bit_byte;
-            current_block_free_pages++;
-        }
+        flash_blocks[current_block].pages_in_use--;
 
         /* Update Bytes Left and Address */
         int bytes_to_delete = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
@@ -554,7 +531,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
         }
 
         /* Check if Block can be Erased */
-        if(current_block_free_pages >= FLASH_DRIVER.pages_per_block)
+        if(flash_blocks[current_block].pages_in_use == 0)
         {
             /* Bridge Over Block */
             bp_flash_index_t prev_block = flash_blocks[current_block].prev_block;
