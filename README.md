@@ -1,8 +1,8 @@
 # bplib
 
 [1. Overview](#1-overview)  
-[1. Build with Make](#3-build-with-make)  
-[2. Application Design](#2-application-design)  
+[2. Build with Make](#3-build-with-make)  
+[3. Application Design](#2-application-design)  
 [4. Application Programming Interface](#4-application-programming-interface)  
 [5. Storage Service](#5-storage-service)  
 
