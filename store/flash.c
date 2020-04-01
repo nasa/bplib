@@ -53,7 +53,6 @@ typedef struct {
 typedef struct {
     bp_flash_index_t    next_block;
     bp_flash_index_t    prev_block;
-    bp_flash_index_t    max_pages;
     uint8_t             page_use[FLASH_PAGE_USE_BYTES];
 } flash_block_control_t;
 
@@ -195,7 +194,6 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
     /* Clear Block Control Entry */
     flash_blocks[block].next_block = BP_FLASH_INVALID_INDEX;
     flash_blocks[block].prev_block = BP_FLASH_INVALID_INDEX;
-    flash_blocks[block].max_pages = FLASH_DRIVER.pages_per_block;
     memset(flash_blocks[block].page_use, 0xFF, FLASH_PAGE_USE_BYTES);
 
     /* Block No Longer In Use */
@@ -263,7 +261,7 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
     int bytes_left = size;
 
     /* Check for Valid Address */
-    if(addr->block >= FLASH_DRIVER.num_blocks || addr->page >= flash_blocks[addr->block].max_pages)
+    if(addr->block >= FLASH_DRIVER.num_blocks || addr->page >= FLASH_DRIVER.pages_per_block)
     {
         return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to write function: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
     }
@@ -285,47 +283,16 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
             flash_error_count++;
             bplog(NULL, BP_FLAG_STORE_FAILURE, "Error encountered writing data to flash address: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
 
-            /* Set Maximum Number of Pages for Block */
-            if(addr->page > 0)
-            {
-                flash_blocks[addr->block].max_pages = addr->page;
-            }
-            else
-            {
-                status = flash_free_reclaim(addr->block);
-                if(status != BP_SUCCESS)
-                {
-                    bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to reclaim block %d as a free block after write error\n", status, FLASH_DRIVER.phyblk(addr->block));
-                }
-            }
+            // TODO - retry once and then give up
 
-            /* Move to Next Block */
-            bp_flash_index_t next_write_block;
-            status = flash_free_allocate(&next_write_block);
-            if(status == BP_SUCCESS)
-            {
-                /* Link in New Next Block */
-                bp_flash_index_t prev_write_block = flash_blocks[addr->block].prev_block;
-                if(prev_write_block != BP_FLASH_INVALID_INDEX) flash_blocks[prev_write_block].next_block = next_write_block;
-                flash_blocks[next_write_block].prev_block = prev_write_block;
 
-                /* Try Again with Next Block */
-                addr->block = next_write_block;
-                addr->page = 0;
-                continue;
-            }
-            else
-            {
-                /* Cannot Proceed */
-                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to write data to flash address: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
-            }
         }
 
         /* Increment Page
          *  - always increment page as data cannot start in the middle of a page
          *  - check for new block needing to be allocated  */
         addr->page++;
-        if(addr->page == flash_blocks[addr->block].max_pages)
+        if(addr->page >= FLASH_DRIVER.pages_per_block)
         {
             bp_flash_index_t next_write_block;
             status = flash_free_allocate(&next_write_block);
@@ -355,7 +322,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
     int bytes_left = size;
 
     /* Check for Valid Address */
-    if(addr->block >= FLASH_DRIVER.num_blocks || addr->page >= flash_blocks[addr->block].max_pages)
+    if(addr->block >= FLASH_DRIVER.num_blocks || addr->page >= FLASH_DRIVER.pages_per_block)
     {
         return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to read function: %d.%d\n", FLASH_DRIVER.phyblk(addr->block), addr->page);
     }
@@ -380,7 +347,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
         }
 
         /* Check Need to go to Next Block */
-        if(addr->page == flash_blocks[addr->block].max_pages)
+        if(addr->page >= FLASH_DRIVER.pages_per_block)
         {
             bp_flash_index_t next_read_block = flash_blocks[addr->block].next_block;
             if(next_read_block == BP_FLASH_INVALID_INDEX)
@@ -510,7 +477,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
 
     /* Get Address from SID */
     bp_flash_addr_t addr = {FLASH_GET_BLOCK((unsigned long)sid), FLASH_GET_PAGE((unsigned long)sid)};
-    if(addr.block >= FLASH_DRIVER.num_blocks || addr.page >= flash_blocks[addr.block].max_pages)
+    if(addr.block >= FLASH_DRIVER.num_blocks || addr.page >= FLASH_DRIVER.pages_per_block)
     {
         return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to delete function: %d.%d\n", FLASH_DRIVER.phyblk(addr.block), addr.page);
     }
@@ -573,7 +540,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
         addr.page++;
 
         /* Check if Address Needs to go to Next Block */
-        if(addr.page == flash_blocks[addr.block].max_pages)
+        if(addr.page >= FLASH_DRIVER.pages_per_block)
         {
             bp_flash_index_t next_delete_block = flash_blocks[addr.block].next_block;
             if(next_delete_block == BP_FLASH_INVALID_INDEX)
@@ -587,7 +554,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
         }
 
         /* Check if Block can be Erased */
-        if(current_block_free_pages >= flash_blocks[current_block].max_pages)
+        if(current_block_free_pages >= FLASH_DRIVER.pages_per_block)
         {
             /* Bridge Over Block */
             bp_flash_index_t prev_block = flash_blocks[current_block].prev_block;
