@@ -477,7 +477,6 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
         return bplog(flags, BP_FLAG_NONCOMPLIANT, "Unsupported bundle attempted to be processed (%d)\n", pri_blk.dictlen.value);
     }
 
-
     /* Check Expiration */
     unsigned long sysnow = 0;
     bp_val_t exprtime = pri_blk.lifetime.value + pri_blk.createsec.value;

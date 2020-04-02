@@ -32,9 +32,6 @@ extern "C" {
  TYPEDEFS
  ******************************************************************************/
 
-#define BP_FLASH_INIT_FORMAT                0
-#define BP_FLASH_INIT_RECOVER               1
-
 #ifndef BP_FLASH_INVALID_INDEX
 #define BP_FLASH_INVALID_INDEX              UINT16_MAX
 #endif
@@ -95,12 +92,12 @@ typedef struct {
  ******************************************************************************/
 
 /* Application API */
-int     bplib_store_flash_init          (bp_flash_driver_t driver, int init_mode, bool sw_edac);
+int     bplib_store_flash_init          (bp_flash_driver_t driver, bool sw_edac);
 void    bplib_store_flash_uninit        (void);
 void    bplib_store_flash_stats         (bp_flash_stats_t* stats, bool log_stats, bool reset_stats);
 
 /* Service API */
-int     bplib_store_flash_create        (void* parm);
+int     bplib_store_flash_create        (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
 int     bplib_store_flash_destroy       (int handle);
 int     bplib_store_flash_enqueue       (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
 int     bplib_store_flash_dequeue       (int handle, bp_object_t** object, int timeout);

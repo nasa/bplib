@@ -223,8 +223,13 @@ void bplib_store_file_init (bp_file_driver_t* driver)
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_create -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_create (void* parm)
+int bplib_store_file_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
 {
+    (void)type;
+    (void)node;
+    (void)service;
+    (void)recover;
+
     bp_file_attr_t* attr = (bp_file_attr_t*)parm;
 
     int s;

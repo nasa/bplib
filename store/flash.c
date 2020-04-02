@@ -45,7 +45,10 @@
 typedef struct {
     uint32_t            synchi;
     uint32_t            synclo;
+    uint32_t            type;
     uint32_t            timestamp;
+    bp_ipn_t            node;
+    bp_ipn_t            service;
     bp_object_hdr_t     object_hdr;
 } flash_object_hdr_t;
 
@@ -63,6 +66,9 @@ typedef struct {
 
 typedef struct {
     bool                in_use;
+    int                 type; /* bp store type */
+    bp_ipn_t            node;
+    bp_ipn_t            service;
     bp_flash_attr_t     attributes;
     bp_flash_addr_t     write_addr;
     bp_flash_addr_t     read_addr;
@@ -388,7 +394,10 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
         flash_object_hdr_t flash_object_hdr = {
             .synchi = FLASH_OBJECT_SYNC_HI,
             .synclo = FLASH_OBJECT_SYNC_LO,
+            .type = (uint32_t)fs->type,            
             .timestamp = (uint32_t)sysnow,
+            .node = fs->node,
+            .service = fs->service,
             .object_hdr = {
                 .handle = handle,
                 .size = data1_size + data2_size,
@@ -552,6 +561,20 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
     return BP_SUCCESS;
 }
 
+/*--------------------------------------------------------------------------------------
+ * flash_object_recover -
+ *-------------------------------------------------------------------------------------*/
+BP_LOCAL_SCOPE int flash_object_recover (int type, bp_ipn_t node, bp_ipn_t service)
+{
+    (void)type;
+    (void)node;
+    (void)service;
+
+    int recovered_objects = 0;
+
+    return recovered_objects;
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -559,7 +582,7 @@ BP_LOCAL_SCOPE int flash_object_delete (bp_sid_t sid)
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_init -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_edac)
+int bplib_store_flash_init (bp_flash_driver_t driver, bool sw_edac)
 {
     assert(driver.num_blocks > 0);
     assert(driver.pages_per_block > 0);
@@ -639,27 +662,19 @@ int bplib_store_flash_init (bp_flash_driver_t driver, int init_mode, bool sw_eda
             break; /* Skip rest of initialization */
         }
 
-        /* Format Flash for Use */
-        if(init_mode == BP_FLASH_INIT_FORMAT)
+        /* Build Free Block List */
+        unsigned int block;
+        for(block = 0; block < FLASH_DRIVER.num_blocks; block++)
         {
-            /* Build Free Block List */
-            unsigned int block;
-            for(block = 0; block < FLASH_DRIVER.num_blocks; block++)
+            bp_flash_index_t block_to_reclaim = (block + start_block) % FLASH_DRIVER.num_blocks;
+            if(flash_free_reclaim(block_to_reclaim) == BP_SUCCESS)
             {
-                bp_flash_index_t block_to_reclaim = (block + start_block) % FLASH_DRIVER.num_blocks;
-                if(flash_free_reclaim(block_to_reclaim) == BP_SUCCESS)
-                {
-                    reclaimed_blocks++;
-                }
+                reclaimed_blocks++;
             }
+        }
 
-            /* Zero Out Used Flash Blocks */
-            flash_used_block_count = 0;
-        }
-        else if(init_mode == BP_FLASH_INIT_RECOVER)
-        {
-            /* TODO Implement Recovery Logic */
-        }
+        /* Zero Out Used Flash Blocks */
+        flash_used_block_count = 0;
     } while(false);
 
     /* Check for Success */
@@ -746,7 +761,7 @@ void bplib_store_flash_stats (bp_flash_stats_t* stats, bool log_stats, bool rese
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_create -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_create (void* parm)
+int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
 {
     bp_flash_attr_t* attr = (bp_flash_attr_t*)parm;
 
@@ -761,8 +776,8 @@ int bplib_store_flash_create (void* parm)
                 /* Check User Provided Attributes */
                 if(attr->max_data_size < FLASH_PAGE_DATA_SIZE)
                 {
-                   bplog(NULL, BP_FLAG_DIAGNOSTIC, "Invalid attributes - must supply sufficient sizes\n");
-                   return BP_INVALID_HANDLE;
+                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Invalid attributes - must supply sufficient sizes\n");
+                    return BP_INVALID_HANDLE;
                 }
 
                 /* Copy User Provided Attributes */
@@ -780,6 +795,12 @@ int bplib_store_flash_create (void* parm)
             /* Round Up to Next Full Page (to optimize driver operations on page boundaries) */
             int num_pages_in_stage = (flash_stores[s].attributes.max_data_size + FLASH_DRIVER.page_size - 1) / FLASH_DRIVER.page_size;
             flash_stores[s].attributes.max_data_size = FLASH_DRIVER.page_size * num_pages_in_stage;
+
+
+            /* Initialize Store Identifiers */
+            flash_stores[s].type    = type;
+            flash_stores[s].node    = node;
+            flash_stores[s].service = service;
 
             /* Initialize Read/Write Pointers */
             flash_stores[s].write_addr.block    = BP_FLASH_INVALID_INDEX;
@@ -805,6 +826,17 @@ int bplib_store_flash_create (void* parm)
 
             /* Set In Use (necessary to be able to destroy later) */
             flash_stores[s].in_use = true;
+
+            /* Attempt Data Recovery */
+            if(recover)
+            {
+                int objects_recovered = flash_object_recover(type, node, service);
+                const char* type_str = "objects";
+                if(type == BP_STORE_DATA_TYPE) type_str = "bundle(s)";
+                else if(type == BP_STORE_PAYLOAD_TYPE) type_str = "payload(s)";
+                else if(type == BP_STORE_DACS_TYPE) type_str = "dacs(s)";
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Recovered %d %s from ipn:%d.%d\n", objects_recovered, type_str, node, service);
+            }
 
             /* Return Handle */
             return s;

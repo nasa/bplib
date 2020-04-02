@@ -76,7 +76,7 @@ static void test_1(void)
 
     printf("==== Test 1: Free Block Management ====\n");
 
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, false);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, false);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     printf("\n==== Step 1.1: Allocate All ====\n");
@@ -115,18 +115,18 @@ static void test_2(void)
 
     printf("\n==== Test 2: Service Creation/Deletion ====\n");
 
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, false);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, false);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     printf("\n==== Step 2.1: Create Max ====\n");
     for(i = 0; i < FLASH_MAX_STORES; i++)
     {
-        h[i] = bplib_store_flash_create(NULL);
+        h[i] = bplib_store_flash_create(0, 0, 0, false, NULL);
         ut_assert(h[i] != BP_INVALID_HANDLE, "Failed to create store on %dth iteration\n", i);
     }
 
     printf("\n==== Step 2.2: Check Full ====\n");
-    j = bplib_store_flash_create(NULL);
+    j = bplib_store_flash_create(0, 0, 0, false, NULL);
     ut_assert(j == BP_INVALID_HANDLE, "Incorrectly created store when no more handles available\n");
 
     printf("\n==== Step 2.2: Clean Up Stores ====\n");
@@ -138,11 +138,11 @@ static void test_2(void)
     printf("\n==== Step 2.3: Check Holes ====\n");
     for(i = 0; i < FLASH_MAX_STORES; i++)
     {
-        h[i] = bplib_store_flash_create(NULL);
+        h[i] = bplib_store_flash_create(0, 0, 0, false, NULL);
         ut_assert(h[i] != BP_INVALID_HANDLE, "Failed to create store on %dth iteration\n", i);
     }
     ut_assert(bplib_store_flash_destroy(h[3]) == BP_SUCCESS, "Failed to destroy handle %d\n", h[3]);
-    h[3] = bplib_store_flash_create(NULL);
+    h[3] = bplib_store_flash_create(0, 0, 0, false, NULL);
     ut_assert(h[3] != BP_INVALID_HANDLE, "Failed to create store\n", i);
 
     printf("\n==== Step 2.4: Clean Up Stores ====\n");
@@ -166,7 +166,7 @@ static void test_3(void)
     printf("\n==== Test 3: Read/Write Data ====\n");
 
     /* Initialize Driver */
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, true);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, true);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     /* Initialize Test Data */
@@ -213,7 +213,7 @@ static void test_4(void)
     printf("\n==== Test 4: Enqueue/Dequeue ====\n");
 
     /* Initialize Driver */
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, true);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, true);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     /* Initialize Test Data */
@@ -225,7 +225,7 @@ static void test_4(void)
 
     /* Create Storage Service */
     bp_flash_attr_t attr = {TEST_DATA_SIZE};
-    h = bplib_store_flash_create(&attr);
+    h = bplib_store_flash_create(0, 0, 0, false, &attr);
     ut_assert(h != BP_INVALID_HANDLE, "Failed to create storage service\n", i);
 
     /* Enqueue/Dequeue Test Data */
@@ -267,7 +267,7 @@ static void test_5 (void)
     printf("\n==== Test 5: ECC Encode/Decode ====\n");
 
     /* Initialize Driver */
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, true);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, true);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     /****************************************/
@@ -358,7 +358,7 @@ static void test_6(void)
     printf("\n==== Test 6: Relinquish ====\n");
 
     /* Initialize Driver */
-    int reclaimed_blocks = bplib_store_flash_init(flash_driver, BP_FLASH_INIT_FORMAT, true);
+    int reclaimed_blocks = bplib_store_flash_init(flash_driver, true);
     ut_assert(reclaimed_blocks == 256, "Failed to reclaim all blocks\n");
 
     /* Initialize Test Data */
@@ -370,7 +370,7 @@ static void test_6(void)
 
     /* Create Storage Service */
     bp_flash_attr_t attr = {TEST_DATA_SIZE};
-    h = bplib_store_flash_create(&attr);
+    h = bplib_store_flash_create(0, 0, 0, false, &attr);
     ut_assert(h != BP_INVALID_HANDLE, "Failed to create storage service\n", i);
 
     /* Enqueue Test Data */

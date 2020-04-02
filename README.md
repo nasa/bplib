@@ -215,6 +215,8 @@ This function returns a channel handle that is used for all future operations on
 
 * __max_gaps_per_dacs__: The maximum number of Custody ID gaps a channel can keep track up when receiving bundles requesting custody transfer.  If this gap limit is reached, the Aggregate Custody Signal is sent and a new one immediately begins to accumulate acknowledgments.
 
+* recover_storage: Instructs the storage service to attempt to recover the bundles and payloads assocaited with a previous channel with the same local node and service.
+
 * __storage_service_parm__: A pass through to the storage service `create` function.
 
 `returns` - pointer to a channel descriptor.  On error, NULL is returned.
@@ -527,6 +529,7 @@ Initialize an attribute structure with the library default values.  This is usef
 | BP_FLAG_INVALID_BIB_RESULT_TYPE| 0x00010000 | An invalid result type was found in a BIB |
 | BP_FLAG_INVALID_BIB_TARGET_TYPE| 0x00020000 | An invalid target type was found in a BIB |
 | BP_FLAG_FAILED_TO_PARSE        | 0x00040000 | Unable to parse a bundle due to internal inconsistencies in bundle |
+| BP_FLAG_API_ERROR              | 0x00080000 | Calling program incorrectly used a library function, e.g. passing in invalid parameter |
 
 ----------------------------------------------------------------------
 ## 5. Storage Service

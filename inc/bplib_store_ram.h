@@ -36,7 +36,7 @@ extern "C" {
 void    bplib_store_ram_init           (void);
 
 /* Service API */
-int     bplib_store_ram_create         (void* parm);
+int     bplib_store_ram_create         (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
 int     bplib_store_ram_destroy        (int handle);
 int     bplib_store_ram_enqueue        (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
 int     bplib_store_ram_dequeue        (int handle, bp_object_t** object, int timeout);

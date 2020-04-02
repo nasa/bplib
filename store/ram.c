@@ -374,8 +374,12 @@ void bplib_store_ram_init (void)
 /*----------------------------------------------------------------------------
  * bplib_store_ram_create -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_create (void* parm)
+int bplib_store_ram_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
 {
+    (void)type;
+    (void)node;
+    (void)service;
+    (void)recover;
     (void)parm;
 
     int slot, i;

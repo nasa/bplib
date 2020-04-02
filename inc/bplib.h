@@ -74,6 +74,11 @@ extern "C" {
 /* Storage IDs */
 #define BP_SID_VACANT                   0
 
+/* Storage Service Types */
+#define BP_STORE_DATA_TYPE              0xB0
+#define BP_STORE_DACS_TYPE              0xB1
+#define BP_STORE_PAYLOAD_TYPE           0xB2
+
 /* Error Correcting Codes */
 #define BP_ECC_NO_ERRORS                0
 #define BP_ECC_COR_ERRORS               (-1)
@@ -130,6 +135,7 @@ extern "C" {
 #define BP_DEFAULT_ACTIVE_TABLE_SIZE    16384 /* bundles (must be smaller than BP_MAX_INDEX) */
 #define BP_DEFAULT_MAX_FILLS_PER_DACS   64 /* constrains size of DACS bundle */
 #define BP_DEFAULT_MAX_GAPS_PER_DACS    1028 /* sets size of internal memory used to aggregate custody */
+#define BP_DEFAULT_RECOVER_STORAGE      false
 #define BP_DEFAULT_STORAGE_SERVICE_PARM NULL
 
 /******************************************************************************
@@ -172,7 +178,7 @@ typedef struct {
 
 /* Storage Service */
 typedef struct {
-    int (*create)       (void* parm);
+    int (*create)       (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
     int (*destroy)      (int handle);
     int (*enqueue)      (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
     int (*dequeue)      (int handle, bp_object_t** object, int timeout);
@@ -202,6 +208,7 @@ typedef struct {
     int         active_table_size;      /* number of unacknowledged bundles to keep track of */
     int         max_fills_per_dacs;     /* limits the size of the DACS bundle */
     int         max_gaps_per_dacs;      /* number of gaps in custody IDs that can be kept track of */
+    bool        recover_storage;        /* attempt to recover bundles and payloads from storage service */
     void*       storage_service_parm;   /* pass through of parameters needed by storage service */
 } bp_attr_t;
 
