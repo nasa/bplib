@@ -95,7 +95,7 @@ static const bp_attr_t default_attributes = {
     .active_table_size      = BP_DEFAULT_ACTIVE_TABLE_SIZE,
     .max_fills_per_dacs     = BP_DEFAULT_MAX_FILLS_PER_DACS,
     .max_gaps_per_dacs      = BP_DEFAULT_MAX_GAPS_PER_DACS,
-    .recover_storage        = BP_DEFAULT_RECOVER_STORAGE,
+    .persistent_storage     = BP_DEFAULT_PERSISTENT_STORAGE,
     .storage_service_parm   = BP_DEFAULT_STORAGE_SERVICE_PARM
 };
 
@@ -278,7 +278,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
 
     /* Initialize Bundle Store */
-    ch->bundle_handle = ch->store.create(BP_STORE_DATA_TYPE, route.local_node, route.local_service, attributes.recover_storage, attributes.storage_service_parm);
+    ch->bundle_handle = ch->store.create(BP_STORE_DATA_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
     if(ch->bundle_handle < 0)
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to create storage handle for bundles\n");
@@ -287,7 +287,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
 
     /* Initialize Payload Store */
-    ch->payload_handle = ch->store.create(BP_STORE_PAYLOAD_TYPE, route.local_node, route.local_service, attributes.recover_storage, attributes.storage_service_parm);
+    ch->payload_handle = ch->store.create(BP_STORE_PAYLOAD_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
     if(ch->payload_handle < 0)
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to create storage handle for payloads\n");
@@ -296,7 +296,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
 
     /* Initialize DACS Store */
-    ch->dacs_handle = ch->store.create(BP_STORE_DACS_TYPE, route.local_node, route.local_service, attributes.recover_storage, attributes.storage_service_parm);
+    ch->dacs_handle = ch->store.create(BP_STORE_DACS_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
     if(ch->dacs_handle < 0)
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to create storage handle for dacs\n");

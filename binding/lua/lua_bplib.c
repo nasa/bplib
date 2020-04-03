@@ -496,7 +496,7 @@ int lbplib_open (lua_State* L)
         lua_getfield(L, 6, "active_table_size");
         lua_getfield(L, 6, "max_fills_per_dacs");
         lua_getfield(L, 6, "max_gaps_per_dacs");
-        lua_getfield(L, 6, "recover_storage");
+        lua_getfield(L, 6, "persistent_storage");
 
         /* Get Attributes from Stack */
         attributes.lifetime             = luaL_optnumber(L, -16, attributes.lifetime);
@@ -514,7 +514,7 @@ int lbplib_open (lua_State* L)
         attributes.active_table_size    = luaL_optnumber(L, -4,  attributes.active_table_size);
         attributes.max_fills_per_dacs   = luaL_optnumber(L, -3,  attributes.max_fills_per_dacs);
         attributes.max_gaps_per_dacs    = luaL_optnumber(L, -2,  attributes.max_gaps_per_dacs);
-        attributes.recover_storage      = luaL_optnumber(L, -1,  attributes.recover_storage) != 0.0;
+        attributes.persistent_storage   = luaL_optnumber(L, -1,  attributes.persistent_storage) != 0.0;
         attributes.storage_service_parm = NULL;
     }
 
