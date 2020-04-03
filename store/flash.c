@@ -762,7 +762,8 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
                 break;
             }
             /* Create New Store */
-            else if(flash_stores[s].preserve == false)
+            else if( (!flash_stores[s].in_use) &&
+                     (flash_stores[s].preserve == false) )
             {
                 /* Initialize Attributes */
                 if(attr)
