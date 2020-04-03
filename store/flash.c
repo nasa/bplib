@@ -45,10 +45,6 @@
 typedef struct {
     uint32_t            synchi;
     uint32_t            synclo;
-    uint32_t            type;
-    uint32_t            timestamp;
-    bp_ipn_t            node;
-    bp_ipn_t            service;
     bp_object_hdr_t     object_hdr;
 } flash_object_hdr_t;
 
@@ -65,6 +61,7 @@ typedef struct {
 
 typedef struct {
     bool                in_use;
+    bool                preserve;
     int                 type; /* bp store type */
     bp_ipn_t            node;
     bp_ipn_t            service;
@@ -382,19 +379,11 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
     int bytes_needed = sizeof(flash_object_hdr_t) + data1_size + data2_size;
     if(bytes_available >= (uint64_t)bytes_needed && fs->attributes.max_data_size >= bytes_needed)
     {
-        /* Get Current Time */
-        unsigned long sysnow = 0;
-        bplib_os_systime(&sysnow);
-
         /* Calculate Object Information */
         unsigned long sid = FLASH_GET_SID(fs->write_addr);
         flash_object_hdr_t flash_object_hdr = {
             .synchi = FLASH_OBJECT_SYNC_HI,
             .synclo = FLASH_OBJECT_SYNC_LO,
-            .type = (uint32_t)fs->type,            
-            .timestamp = (uint32_t)sysnow,
-            .node = fs->node,
-            .service = fs->service,
             .object_hdr = {
                 .handle = handle,
                 .size = data1_size + data2_size,
@@ -557,20 +546,6 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
 
     /* Return Success */
     return BP_SUCCESS;
-}
-
-/*--------------------------------------------------------------------------------------
- * flash_object_recover -
- *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int flash_object_recover (int type, bp_ipn_t node, bp_ipn_t service)
-{
-    (void)type;
-    (void)node;
-    (void)service;
-
-    int recovered_objects = 0;
-
-    return recovered_objects;
 }
 
 /******************************************************************************
@@ -762,87 +737,103 @@ void bplib_store_flash_stats (bp_flash_stats_t* stats, bool log_stats, bool rese
 int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
 {
     bp_flash_attr_t* attr = (bp_flash_attr_t*)parm;
+    int handle = BP_INVALID_HANDLE;
 
-    int s;
+    int s;    
     for(s = 0; s < FLASH_MAX_STORES; s++)
     {
-        if(flash_stores[s].in_use == false)
+        if(!flash_stores[s].in_use || recover)
         {
-            /* Initialize Attributes */
-            if(attr)
+            /* Check for Existing Store */
+            if( (recover) && 
+                (flash_stores[s].preserve == true) && 
+                (flash_stores[s].type == type) &&
+                (flash_stores[s].node == node) && 
+                (flash_stores[s].service == service) )
             {
-                /* Check User Provided Attributes */
-                if(attr->max_data_size < FLASH_PAGE_DATA_SIZE)
-                {
-                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Invalid attributes - must supply sufficient sizes\n");
-                    return BP_INVALID_HANDLE;
-                }
-
-                /* Copy User Provided Attributes */
-                flash_stores[s].attributes = *attr;
-            }
-            else
-            {
-                /* Use Default Attributes */
-                flash_stores[s].attributes.max_data_size = FLASH_PAGE_DATA_SIZE;
-            }
-
-            /* Account for Object Header Overhead */
-            flash_stores[s].attributes.max_data_size += sizeof(flash_object_hdr_t);
-
-            /* Round Up to Next Full Page (to optimize driver operations on page boundaries) */
-            int num_pages_in_stage = (flash_stores[s].attributes.max_data_size + FLASH_DRIVER.page_size - 1) / FLASH_DRIVER.page_size;
-            flash_stores[s].attributes.max_data_size = FLASH_DRIVER.page_size * num_pages_in_stage;
-
-
-            /* Initialize Store Identifiers */
-            flash_stores[s].type    = type;
-            flash_stores[s].node    = node;
-            flash_stores[s].service = service;
-
-            /* Initialize Read/Write Pointers */
-            flash_stores[s].write_addr.block    = BP_FLASH_INVALID_INDEX;
-            flash_stores[s].write_addr.page     = 0;
-            flash_stores[s].read_addr.block     = BP_FLASH_INVALID_INDEX;
-            flash_stores[s].read_addr.page      = 0;
-            flash_stores[s].active_block        = BP_FLASH_INVALID_INDEX;
-
-            /* Allocate Stage */
-            flash_stores[s].stage_locked = false;
-            flash_stores[s].write_stage = (uint8_t*)bplib_os_calloc(flash_stores[s].attributes.max_data_size);
-            flash_stores[s].read_stage = (uint8_t*)bplib_os_calloc(flash_stores[s].attributes.max_data_size);
-            if((flash_stores[s].write_stage == NULL) ||
-               (flash_stores[s].read_stage == NULL) )
-            {
-                if(flash_stores[s].write_stage) bplib_os_free(flash_stores[s].write_stage);
-                if(flash_stores[s].read_stage) bplib_os_free(flash_stores[s].read_stage);
-                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unable to allocate data stages\n");
-                return BP_INVALID_HANDLE;
-            }
-
-            /* Set Counts to Zero */
-            flash_stores[s].object_count = 0;
-
-            /* Set In Use (necessary to be able to destroy later) */
-            flash_stores[s].in_use = true;
-
-            /* Attempt Data Recovery */
-            if(recover)
-            {
-                int objects_recovered = flash_object_recover(type, node, service);
                 const char* type_str = "objects";
                 if(type == BP_STORE_DATA_TYPE) type_str = "bundle(s)";
                 else if(type == BP_STORE_PAYLOAD_TYPE) type_str = "payload(s)";
                 else if(type == BP_STORE_DACS_TYPE) type_str = "dacs(s)";
-                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Recovered %d %s from ipn:%d.%d\n", objects_recovered, type_str, node, service);
-            }
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Recovered %d %s from ipn:%d.%d\n", flash_stores[s].object_count, type_str, node, service);
 
-            /* Return Handle */
-            return s;
+                /* Update Handle and Break Out of Loop */
+                handle = s;
+                break;
+            }
+            /* Create New Store */
+            else if(flash_stores[s].preserve == false)
+            {
+                /* Initialize Attributes */
+                if(attr)
+                {
+                    /* Check User Provided Attributes */
+                    if(attr->max_data_size < FLASH_PAGE_DATA_SIZE)
+                    {
+                        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Invalid attributes - must supply sufficient sizes\n");
+                        return BP_INVALID_HANDLE;
+                    }
+
+                    /* Copy User Provided Attributes */
+                    flash_stores[s].attributes = *attr;
+                }
+                else
+                {
+                    /* Use Default Attributes */
+                    flash_stores[s].attributes.max_data_size = FLASH_PAGE_DATA_SIZE;
+                }
+
+                /* Account for Object Header Overhead */
+                flash_stores[s].attributes.max_data_size += sizeof(flash_object_hdr_t);
+
+                /* Round Up to Next Full Page (to optimize driver operations on page boundaries) */
+                int num_pages_in_stage = (flash_stores[s].attributes.max_data_size + FLASH_DRIVER.page_size - 1) / FLASH_DRIVER.page_size;
+                flash_stores[s].attributes.max_data_size = FLASH_DRIVER.page_size * num_pages_in_stage;
+
+                /* Initialize Store Identifiers */
+                flash_stores[s].type                = type;
+                flash_stores[s].node                = node;
+                flash_stores[s].service             = service;
+
+                /* Initialize Read/Write Pointers */
+                flash_stores[s].write_addr.block    = BP_FLASH_INVALID_INDEX;
+                flash_stores[s].write_addr.page     = 0;
+                flash_stores[s].read_addr.block     = BP_FLASH_INVALID_INDEX;
+                flash_stores[s].read_addr.page      = 0;
+                flash_stores[s].active_block        = BP_FLASH_INVALID_INDEX;
+
+                /* Set Counts to Zero */
+                flash_stores[s].object_count = 0;
+
+                /* Update Store Index and Break Out of Loop */
+                handle = s;
+                break;
+            }
         }
     }
 
-    return BP_INVALID_HANDLE;
+    /* General Initialization */
+    if(handle != BP_INVALID_HANDLE)
+    {
+        /* Allocate Stage */
+        flash_stores[s].stage_locked = false;
+        flash_stores[s].write_stage = (uint8_t*)bplib_os_calloc(flash_stores[s].attributes.max_data_size);
+        flash_stores[s].read_stage = (uint8_t*)bplib_os_calloc(flash_stores[s].attributes.max_data_size);
+        if((flash_stores[s].write_stage == NULL) ||
+        (flash_stores[s].read_stage == NULL) )
+        {
+            if(flash_stores[s].write_stage) bplib_os_free(flash_stores[s].write_stage);
+            if(flash_stores[s].read_stage) bplib_os_free(flash_stores[s].read_stage);
+            bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unable to allocate data stages\n");
+            return BP_INVALID_HANDLE;
+        }
+
+        /* Set Store Properties */
+        flash_stores[handle].in_use = true;
+        flash_stores[handle].preserve = recover;
+    }
+
+    return handle;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -853,8 +844,42 @@ int bplib_store_flash_destroy (int handle)
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
     assert(flash_stores[handle].in_use);
 
+    /* If Not Preserving */
+    if(!flash_stores[handle].preserve)
+    {
+        /* Cleanup Store Identification */
+        flash_stores[handle].type = 0;
+        flash_stores[handle].node = 0;
+        flash_stores[handle].service = 0;
+
+        /* Drain All Objects */
+        bp_object_t* object = NULL;
+        while(bplib_store_flash_dequeue(handle, &object, BP_CHECK) != BP_TIMEOUT)        
+        {
+            bplib_store_flash_release(handle, object->header.sid);
+            bplib_store_flash_relinquish(handle, object->header.sid);
+        }
+    }
+
+    /* Cleanup Write Stage */
     bplib_os_free(flash_stores[handle].write_stage);
+    flash_stores[handle].write_stage = NULL;
+
+    /* Cleanup Write Stage */
     bplib_os_free(flash_stores[handle].read_stage);
+    flash_stores[handle].read_stage = NULL;
+    flash_stores[handle].stage_locked = false;
+
+    /* Reset Read Address tp Active Block 
+     *  This will cause any bundles that are active to be resent when the channel
+     *  comes back up.  This is preferable to losing the active bundles.  The
+     *  reason for this compromise is that we don't want to use the memory needed 
+     *  to store the state of all freed pages within the blocks, and the distance 
+     *  between the active block and the read block can be quite large. */
+    flash_stores[handle].read_addr.block = flash_stores[handle].active_block;
+    flash_stores[handle].read_addr.page = 0;
+
+    /* Set Store Properties */
     flash_stores[handle].in_use = false;
 
     return BP_SUCCESS;
