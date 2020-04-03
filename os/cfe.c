@@ -40,7 +40,7 @@
  ******************************************************************************/
 
 #define BP_MAX_LOG_ENTRY_SIZE       256
-#define BP_RAND_HASH(seed)          ((seed)*2654435761) /* knuth multiplier */
+#define BP_RAND_HASH(seed)          ((seed)*2654435761UL) /* knuth multiplier */
 
 #ifndef BP_CFE_SECS_AT_2000
 #define BP_CFE_SECS_AT_2000         1325376023 /* TAI */
