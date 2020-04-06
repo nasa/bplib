@@ -538,7 +538,7 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
                 status = flash_free_reclaim(fs->active_block);
                 if(status != BP_SUCCESS)
                 {
-                    bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to reclaim block %d as a free block\n", status, FLASH_DRIVER.phyblk(current_block));
+                    bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to reclaim block %d as a free block\n", status, FLASH_DRIVER.phyblk(fs->active_block));
                 }
 
                 /* Update Active Block */
@@ -856,13 +856,34 @@ int bplib_store_flash_destroy (int handle)
         flash_stores[handle].node = 0;
         flash_stores[handle].service = 0;
 
-        /* Drain All Objects */
+        /* Drain all Objects */
         bp_object_t* object = NULL;
         while(bplib_store_flash_dequeue(handle, &object, BP_CHECK) != BP_TIMEOUT)        
         {
             bplib_store_flash_release(handle, object->header.sid);
             bplib_store_flash_relinquish(handle, object->header.sid);
         }
+    }
+
+    /* Reset Active Block to Read Address
+     *  This will cause any bundles that are active to be lost.  Since this store
+     *  doesn't keep track of individual free pages, there is no way to reset the
+     *  active address to the exact page (the active address only keeps track
+     *  of the block for this reason). */
+    while(flash_stores[handle].active_block != BP_FLASH_INVALID_INDEX && flash_stores[handle].active_block != flash_stores[handle].read_addr.block)
+    {
+        /* Get Next Block */
+        bp_flash_index_t next_active_block = flash_blocks[flash_stores[handle].active_block].next_block;
+
+        /* Reclaim Block as Free */
+        int status = flash_free_reclaim(flash_stores[handle].active_block);
+        if(status != BP_SUCCESS)
+        {
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to reclaim block %d as a free block\n", status, FLASH_DRIVER.phyblk(flash_stores[handle].active_block));
+        }
+
+        /* Update Active Block */
+        flash_stores[handle].active_block = next_active_block;
     }
 
     /* Cleanup Write Stage */
@@ -873,15 +894,6 @@ int bplib_store_flash_destroy (int handle)
     bplib_os_free(flash_stores[handle].read_stage);
     flash_stores[handle].read_stage = NULL;
     flash_stores[handle].stage_locked = false;
-
-    /* Reset Read Address tp Active Block 
-     *  This will cause any bundles that are active to be resent when the channel
-     *  comes back up.  This is preferable to losing the active bundles.  The
-     *  reason for this compromise is that we don't want to use the memory needed 
-     *  to store the state of all freed pages within the blocks, and the distance 
-     *  between the active block and the read block can be quite large. */
-    flash_stores[handle].read_addr.block = flash_stores[handle].active_block;
-    flash_stores[handle].read_addr.page = 0;
 
     /* Set Store Properties */
     flash_stores[handle].in_use = false;
