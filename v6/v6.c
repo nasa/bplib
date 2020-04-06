@@ -352,16 +352,23 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
     }
 
     /* Check if Time Needs to be Set  */
+    bp_field_t lifetime = pri->lifetime;
     if(bundle->prebuilt)
     {
         /* Get Current Time */
         unsigned long sysnow = 0;
         if(bplib_os_systime(&sysnow) == BP_ERROR)
         {
-            /* NOTE: creation time set to zero in this special case
-             * to protect against unintended bundle expiration */
-            sysnow = 0;
+            /* Unreliable Time Detected */
             *flags |= BP_FLAG_UNRELIABLE_TIME;
+
+            /* NOTE: creation time and lifetime set to zero in this special 
+             * case to protect against unintended bundle expiration */
+            lifetime.value = BP_MAX_ENCODED_VALUE;
+            sysnow = 0;
+
+            /* Jam Lifetime */
+            sdnv_write(data->header, BP_BUNDLE_HDR_BUF_SIZE, lifetime, flags);
         }
 
         /* Set Creation Time */
@@ -373,18 +380,22 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
     }
 
     /* Set Expiration Time of Bundle */
-    if(pri->lifetime.value != 0)
+    if(lifetime.value != 0)
     {
-        data->exprtime = pri->createsec.value + pri->lifetime.value;
+        data->exprtime = pri->createsec.value + lifetime.value;
         if(data->exprtime < pri->createsec.value)
         {
-            /* In rollover condition, set expiration time to maximum value
-             * as a best effort attempt to avoid unintended bundle expiration */
+            /* Rollover Detected */
+            *flags |= BP_FLAG_SDNV_OVERFLOW;
+
+            /* Set expiration time to maximum value as a best 
+             * effort attempt to avoid unintended bundle expiration */
             data->exprtime = BP_MAX_ENCODED_VALUE;
         }
     }
     else
     {
+        /* If Lifetime Zero, Mark No Expiration */
         data->exprtime = 0;
     }
 

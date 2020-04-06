@@ -531,6 +531,9 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
             /* Check if Block can be Reclaimed */
             while(fs->active_block != BP_FLASH_INVALID_INDEX && flash_blocks[fs->active_block].pages_in_use == 0)
             {
+                /* Get Next Block */
+                bp_flash_index_t next_active_block = flash_blocks[fs->active_block].next_block;
+
                 /* Reclaim Block as Free */
                 status = flash_free_reclaim(fs->active_block);
                 if(status != BP_SUCCESS)
@@ -539,7 +542,7 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
                 }
 
                 /* Update Active Block */
-                fs->active_block = flash_blocks[fs->active_block].next_block;
+                fs->active_block = next_active_block;
             }
         }
     }

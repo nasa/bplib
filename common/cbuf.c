@@ -33,14 +33,22 @@
 int cbuf_create(cbuf_t** cbuf, int size)
 {
     /* Check Buffer Size */
-    if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_ERROR;
+    if(size < 0 || (unsigned long)size > BP_MAX_INDEX) return BP_ERROR;
 
-    /* Allocate Structure */
-    *cbuf = (cbuf_t*)bplib_os_calloc(sizeof(cbuf_t));
+    if(size > 0)
+    {
+        /* Allocate Structure */
+        *cbuf = (cbuf_t*)bplib_os_calloc(sizeof(cbuf_t));
 
-    /* Allocate Circular Buffer */
-    (*cbuf)->table = (bp_active_bundle_t*)bplib_os_calloc(sizeof(bp_active_bundle_t) * size);
-    if((*cbuf)->table == NULL) return BP_ERROR;
+        /* Allocate Circular Buffer */
+        (*cbuf)->table = (bp_active_bundle_t*)bplib_os_calloc(sizeof(bp_active_bundle_t) * size);
+        if((*cbuf)->table == NULL) return BP_ERROR;
+    }
+    else
+    {
+        /* Empty Table */
+        (*cbuf)->table = NULL;
+    }
 
     /* Initialize Circular Buffer Attributes */
     (*cbuf)->size = size;

@@ -113,23 +113,31 @@ int rh_hash_create(rh_hash_t** rh_hash, int size)
     int i;
 
     /* Check Hash Size */
-    if(size <= 0 || (unsigned long)size > BP_MAX_INDEX) return BP_ERROR;
+    if(size < 0 || (unsigned long)size > BP_MAX_INDEX) return BP_ERROR;
 
     /* Allocate Hash Structure */
     *rh_hash = (rh_hash_t*)bplib_os_calloc(sizeof(rh_hash_t));
 
-    /* Allocate Hash Table */
-    (*rh_hash)->table = (rh_hash_node_t*)bplib_os_calloc(size * sizeof(rh_hash_node_t));
-    if((*rh_hash)->table == NULL) return BP_ERROR;
-
-    /* Initialize Hash Table to Empty */
-    for(i = 0; i < size; i++)
+    if(size > 0)
     {
-        (*rh_hash)->table[i].bundle.sid = BP_SID_VACANT;
-        (*rh_hash)->table[i].next   = NULL_INDEX;
-        (*rh_hash)->table[i].prev   = NULL_INDEX;
-        (*rh_hash)->table[i].before = NULL_INDEX;
-        (*rh_hash)->table[i].after  = NULL_INDEX;
+        /* Allocate Hash Table */
+        (*rh_hash)->table = (rh_hash_node_t*)bplib_os_calloc(size * sizeof(rh_hash_node_t));
+        if((*rh_hash)->table == NULL) return BP_ERROR;
+
+        /* Initialize Hash Table to Empty */
+        for(i = 0; i < size; i++)
+        {
+            (*rh_hash)->table[i].bundle.sid = BP_SID_VACANT;
+            (*rh_hash)->table[i].next   = NULL_INDEX;
+            (*rh_hash)->table[i].prev   = NULL_INDEX;
+            (*rh_hash)->table[i].before = NULL_INDEX;
+            (*rh_hash)->table[i].after  = NULL_INDEX;
+        }
+    }
+    else
+    {
+        /* Empty Table */
+        (*rh_hash)->table = NULL;
     }
 
     /* Initialize Hash Table Attributes */
