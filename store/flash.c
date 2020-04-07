@@ -698,6 +698,47 @@ void bplib_store_flash_uninit (void)
 }
 
 /*--------------------------------------------------------------------------------------
+ * bplib_store_flash_restore_bad_blocks -
+ *-------------------------------------------------------------------------------------*/
+void bplib_store_flash_restore_bad_blocks (void)
+{
+    flash_block_list_t new_bad_blocks = {
+        .out = BP_FLASH_INVALID_INDEX,
+        .in = BP_FLASH_INVALID_INDEX,
+        .count = 0
+    };
+
+    /* Loop Through Bad Blocks */
+    int block = flash_bad_blocks.out;
+    while(block != BP_FLASH_INVALID_INDEX)
+    {
+        bp_flash_index_t next_block = flash_blocks[block].next_block;
+
+        /* Clear Block Control Entry */
+        flash_blocks[block].next_block = BP_FLASH_INVALID_INDEX;
+        flash_blocks[block].pages_in_use = FLASH_DRIVER.pages_per_block;
+
+        /* Add to Free or Bad List */
+        if(!FLASH_DRIVER.isbad(block))
+        {
+            flash_block_list_add(&flash_free_blocks, block);
+            return BP_SUCCESS;
+        }
+        else
+        {
+            flash_block_list_add(&new_bad_blocks, block);
+            return BP_ERROR;
+        }
+
+        /* Go to Next Bad Block */
+        block = next_block;
+    }
+
+    /* Update Bad Blocks List */
+    flash_bad_blocks = new_bad_blocks;
+}
+
+/*--------------------------------------------------------------------------------------
  * bplib_store_flash_stats -
  *-------------------------------------------------------------------------------------*/
 void bplib_store_flash_stats (bp_flash_stats_t* stats, bool log_stats, bool reset_stats)
@@ -775,7 +816,7 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
                     if(attr->max_data_size < FLASH_PAGE_DATA_SIZE)
                     {
                         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Invalid attributes - must supply sufficient sizes\n");
-                        return BP_INVALID_HANDLE;
+                        break;
                     }
 
                     /* Copy User Provided Attributes */

@@ -279,7 +279,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Initialize Bundle Store */
     ch->bundle_handle = ch->store.create(BP_STORE_DATA_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
-    if(ch->bundle_handle < 0)
+    if(ch->bundle_handle == BP_INVALID_HANDLE)
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to create storage handle for bundles\n");
         bplib_close(desc);
@@ -288,7 +288,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Initialize Payload Store */
     ch->payload_handle = ch->store.create(BP_STORE_PAYLOAD_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
-    if(ch->payload_handle < 0)
+    if(ch->payload_handle == BP_INVALID_HANDLE)
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to create storage handle for payloads\n");
         bplib_close(desc);
@@ -297,7 +297,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Initialize DACS Store */
     ch->dacs_handle = ch->store.create(BP_STORE_DACS_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
-    if(ch->dacs_handle < 0)
+    if(ch->dacs_handle == BP_INVALID_HANDLE)
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to create storage handle for dacs\n");
         bplib_close(desc);
@@ -365,7 +365,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Initialize Active Table Signal */
     ch->active_table_signal = bplib_os_createlock();
-    if(ch->active_table_signal < 0)
+    if(ch->active_table_signal == BP_INVALID_HANDLE)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to create custody_tree_lock for active table\n");
         bplib_close(desc);
@@ -399,7 +399,6 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
         bplib_close(desc);
         return NULL;
     }
-
 
     /* Initialize Active Table */
     status = ch->active_table.create(&ch->active_table.table, attributes.active_table_size);
@@ -472,7 +471,7 @@ void bplib_close(bp_desc_t* desc)
 
     /* Un-initialize Active Table */
     if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
-    ch->active_table.destroy(ch->active_table.table);
+    if(ch->active_table.destroy) ch->active_table.destroy(ch->active_table.table);
 
     /* Free Channel */
     bplib_os_free(ch);
