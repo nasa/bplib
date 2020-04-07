@@ -722,12 +722,10 @@ void bplib_store_flash_restore_bad_blocks (void)
         if(!FLASH_DRIVER.isbad(block))
         {
             flash_block_list_add(&flash_free_blocks, block);
-            return BP_SUCCESS;
         }
         else
         {
             flash_block_list_add(&new_bad_blocks, block);
-            return BP_ERROR;
         }
 
         /* Go to Next Bad Block */
