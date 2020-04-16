@@ -656,7 +656,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, bool sw_edac)
     /* Check for Success */
     if(reclaimed_blocks > 0)
     {
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Flash storage service reclaimed %d blocks, starting at block %d\n", reclaimed_blocks, start_block % driver.num_blocks);
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Flash storage service reclaimed %d blocks, starting at block %d\n", reclaimed_blocks, FLASH_DRIVER.phyblk(start_block % driver.num_blocks));
     }
     else
     {

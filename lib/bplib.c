@@ -244,6 +244,18 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     int status = BP_SUCCESS;
 
+    /* Validate Attributes */
+    if(attributes.protocol_version != 6)
+    {
+        bplog(NULL, BP_FLAG_NONCOMPLIANT, "Unsupported bundle protocol version: %d\n", attributes.protocol_version);
+        return NULL;
+    }
+    else if(attributes.timeout > 0 && attributes.active_table_size <= 0)
+    {
+        bplog(NULL, BP_FLAG_API_ERROR, "Active table size must be greater than zero when a timeout is specified\n");
+        return NULL;
+    }
+
     /* Allocate Channel */
     bp_desc_t* desc = (bp_desc_t*)bplib_os_calloc(sizeof(bp_desc_t));
     bp_channel_t* ch = (bp_channel_t*)bplib_os_calloc(sizeof(bp_channel_t));
@@ -268,14 +280,6 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Set Store */
     ch->store = store;
-
-    /* Check Protocol Version */
-    if(attributes.protocol_version != 6)
-    {
-        bplog(NULL, BP_FLAG_NONCOMPLIANT, "Unsupported bundle protocol version: %d\n", attributes.protocol_version);
-        bplib_close(desc);
-        return NULL;
-    }
 
     /* Initialize Bundle Store */
     ch->bundle_handle = ch->store.create(BP_STORE_DATA_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
