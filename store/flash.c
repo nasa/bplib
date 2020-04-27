@@ -713,7 +713,7 @@ void bplib_store_flash_uninit (void)
 
     for(s = 0; s < FLASH_MAX_STORES; s++)
     {
-        if(flash_stores[s].preserve || flash_stores[s].in_use);
+        if(flash_stores[s].preserve || flash_stores[s].in_use)
         {
             flash_stores[s].in_use = true;
             flash_stores[s].preserve = false;
