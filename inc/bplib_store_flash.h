@@ -92,19 +92,21 @@ typedef struct {
  ******************************************************************************/
 
 /* Application API */
-int     bplib_store_flash_init          (bp_flash_driver_t driver, bool sw_edac);
-void    bplib_store_flash_uninit        (void);
-void    bplib_store_flash_stats         (bp_flash_stats_t* stats, bool log_stats, bool reset_stats);
+int     bplib_store_flash_init                  (bp_flash_driver_t driver, bool sw_edac);
+void    bplib_store_flash_uninit                (void);
+void    bplib_store_flash_reclaim_used_blocks   (bp_ipn_t node, bp_ipn_t service);
+void    bplib_store_flash_restore_bad_blocks    (void);
+void    bplib_store_flash_stats                 (bp_flash_stats_t* stats, bool log_stats, bool reset_stats);
 
 /* Service API */
-int     bplib_store_flash_create        (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
-int     bplib_store_flash_destroy       (int handle);
-int     bplib_store_flash_enqueue       (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
-int     bplib_store_flash_dequeue       (int handle, bp_object_t** object, int timeout);
-int     bplib_store_flash_retrieve      (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
-int     bplib_store_flash_release       (int handle, bp_sid_t sid);
-int     bplib_store_flash_relinquish    (int handle, bp_sid_t sid);
-int     bplib_store_flash_getcount      (int handle);
+int     bplib_store_flash_create                (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
+int     bplib_store_flash_destroy               (int handle);
+int     bplib_store_flash_enqueue               (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
+int     bplib_store_flash_dequeue               (int handle, bp_object_t** object, int timeout);
+int     bplib_store_flash_retrieve              (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
+int     bplib_store_flash_release               (int handle, bp_sid_t sid);
+int     bplib_store_flash_relinquish            (int handle, bp_sid_t sid);
+int     bplib_store_flash_getcount              (int handle);
 
 #ifdef __cplusplus
 } // extern "C"
