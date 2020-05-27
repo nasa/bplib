@@ -505,7 +505,8 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     else if(sysnow >= exprtime)
     {
         /* Expire Bundle */
-        return BP_PENDING_EXPIRATION;
+		exprtime = 0;
+//        return BP_PENDING_EXPIRATION;
     }
 
     /* Parse and Process Remaining Blocks */
@@ -811,7 +812,7 @@ int v6_display(void* bundle, int size, uint32_t* flags)
     /* Display Primary Block */
     bplog(NULL, BP_FLAG_DIAGNOSTIC, "@@@@\n");
     bplog(NULL, BP_FLAG_DIAGNOSTIC, "Bundle of Size %d, Version %d\n", size, pri_blk.version);
-    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Primary Block Length:          %d\n", pri_blk.blklen);
+    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Primary Block Length:          %d\n", pri_blk.blklen.value);
     bplog(NULL, BP_FLAG_DIAGNOSTIC, "Adminstrtive Record:           %s\n", pri_blk.is_admin_rec ? "TRUE" : "FALSE");
     bplog(NULL, BP_FLAG_DIAGNOSTIC, "Fragmented:                    %s\n", pri_blk.is_frag ? "TRUE" : "FALSE");
     bplog(NULL, BP_FLAG_DIAGNOSTIC, "Fragmentation Allowed:         %s\n", pri_blk.allow_frag ? "TRUE" : "FALSE");
