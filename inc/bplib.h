@@ -109,12 +109,13 @@ extern "C" {
 #define BP_OPT_ADMIN_RECORD             3
 #define BP_OPT_INTEGRITY_CHECK          4
 #define BP_OPT_ALLOW_FRAGMENTATION      5
-#define BP_OPT_CID_REUSE                6
-#define BP_OPT_CIPHER_SUITE             7
-#define BP_OPT_CLASS_OF_SERVICE         8
-#define BP_OPT_TIMEOUT                  9
-#define BP_OPT_MAX_LENGTH               10
-#define BP_OPT_DACS_RATE                11
+#define BP_OPT_IGNORE_EXPIRATION        6
+#define BP_OPT_CID_REUSE                7
+#define BP_OPT_CIPHER_SUITE             8
+#define BP_OPT_CLASS_OF_SERVICE         9
+#define BP_OPT_TIMEOUT                  10
+#define BP_OPT_MAX_LENGTH               11
+#define BP_OPT_DACS_RATE                12
 
 /* Default Dynamic Configuration */
 #define BP_DEFAULT_LIFETIME             86400 /* seconds, 1 day */
@@ -122,6 +123,7 @@ extern "C" {
 #define BP_DEFAULT_ADMIN_RECORD         false
 #define BP_DEFAULT_INTEGRITY_CHECK      true
 #define BP_DEFAULT_ALLOW_FRAGMENTATION  false
+#define BP_DEFAULT_IGNORE_EXPIRATION    false
 #define BP_DEFAULT_CID_REUSE            false
 #define BP_DEFAULT_CIPHER_SUITE         BP_BIB_CRC16_X25
 #define BP_DEFAULT_CLASS_OF_SERVICE     BP_COS_NORMAL
@@ -196,6 +198,7 @@ typedef struct {
     bool        admin_record;           /* 0: payload data, 1: administrative record */
     bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
     bool        allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
+    bool        ignore_expiration;      /* 0: delete expired bundles, 1: ignore lifetime and do not delete expired bundles */
     int         cid_reuse;              /* 0: new CID when retransmitting, 1: reuse CID when retransmitting */
     int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */
     int         class_of_service;       /* priority of generated bundles */

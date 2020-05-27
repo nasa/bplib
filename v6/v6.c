@@ -497,7 +497,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
         *flags |= BP_FLAG_UNRELIABLE_TIME;
         exprtime = 0;
     }
-    else if(pri_blk.createsec.value == 0)
+    else if(pri_blk.createsec.value == 0 || bundle->attributes.ignore_expiration)
     {
         /* Explicitly Ignore Expiration Time */
         exprtime = 0;
@@ -505,8 +505,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     else if(sysnow >= exprtime)
     {
         /* Expire Bundle */
-		exprtime = 0;
-//        return BP_PENDING_EXPIRATION;
+        return BP_PENDING_EXPIRATION;
     }
 
     /* Parse and Process Remaining Blocks */

@@ -74,23 +74,27 @@ print(string.format('%s/%s: Test 5 - allow fragmentation', store, src))
 check_option("ALLOW_FRAGMENTATION", false, true, "tightrope")
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Test 6 - payload crc', store, src))
+print(string.format('%s/%s: Test 6 - ignore expiration', store, src))
+check_option("IGNORE_EXPIRATION", false, true, "ballgame")
+
+-----------------------------------------------------------------------
+print(string.format('%s/%s: Test 7 - payload crc', store, src))
 check_option("CIPHER_SUITE", dflt_paytype, 3, "billy")
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Test 7 - timeout', store, src))
+print(string.format('%s/%s: Test 8 - timeout', store, src))
 check_option("TIMEOUT", dflt_timeout, 50, "santa")
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Test 8 - bundle length', store, src))
+print(string.format('%s/%s: Test 9 - bundle length', store, src))
 check_option("MAX_LENGTH", dflt_bundlelen, 5000, "elves")
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Test 9 - custody id reuse', store, src))
+print(string.format('%s/%s: Test 10 - custody id reuse', store, src))
 check_option("CID_REUSE", false, true, "organ")
 
 -----------------------------------------------------------------------
-print(string.format('%s/%s: Test 10 - acs rate', store, src))
+print(string.format('%s/%s: Test 11 - acs rate', store, src))
 check_option("DACS_RATE", dflt_dacsrate, 60, "tea")
 
 -- Clean Up --

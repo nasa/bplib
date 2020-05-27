@@ -84,6 +84,7 @@ static const bp_attr_t default_attributes = {
     .admin_record           = BP_DEFAULT_ADMIN_RECORD,
     .integrity_check        = BP_DEFAULT_INTEGRITY_CHECK,
     .allow_fragmentation    = BP_DEFAULT_ALLOW_FRAGMENTATION,
+    .ignore_expiration      = BP_DEFAULT_IGNORE_EXPIRATION,
     .cid_reuse              = BP_DEFAULT_CID_REUSE,
     .cipher_suite           = BP_DEFAULT_CIPHER_SUITE,
     .class_of_service       = BP_DEFAULT_CLASS_OF_SERVICE,
@@ -566,6 +567,13 @@ int bplib_config(bp_desc_t* desc, int mode, int opt, int* val)
             if(setopt && *val != true && *val != false) return BP_ERROR;
             if(setopt)  ch->bundle.attributes.allow_fragmentation = *val;
             else        *val = ch->bundle.attributes.allow_fragmentation;
+            break;
+        }
+        case BP_OPT_IGNORE_EXPIRATION:
+        {
+            if(setopt && *val != true && *val != false) return BP_ERROR;
+            if(setopt)  ch->bundle.attributes.ignore_expiration = *val;
+            else        *val = ch->bundle.attributes.ignore_expiration;
             break;
         }
         case BP_OPT_CID_REUSE:

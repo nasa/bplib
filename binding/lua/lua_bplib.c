@@ -486,6 +486,7 @@ int lbplib_open (lua_State* L)
         lua_getfield(L, 6, "admin_record");
         lua_getfield(L, 6, "integrity_check");
         lua_getfield(L, 6, "allow_fragmentation");
+        lua_getfield(L, 6, "ignore_expiration");
         lua_getfield(L, 6, "cipher_suite");
         lua_getfield(L, 6, "timeout");
         lua_getfield(L, 6, "max_length");
@@ -499,11 +500,12 @@ int lbplib_open (lua_State* L)
         lua_getfield(L, 6, "persistent_storage");
 
         /* Get Attributes from Stack */
-        attributes.lifetime             = luaL_optnumber(L, -16, attributes.lifetime);
-        attributes.request_custody      = luaL_optnumber(L, -15, attributes.request_custody) != 0.0;
-        attributes.admin_record         = luaL_optnumber(L, -14, attributes.admin_record) != 0.0;
-        attributes.integrity_check      = luaL_optnumber(L, -13, attributes.integrity_check) != 0.0;
-        attributes.allow_fragmentation  = luaL_optnumber(L, -12, attributes.allow_fragmentation) != 0.0;
+        attributes.lifetime             = luaL_optnumber(L, -17, attributes.lifetime);
+        attributes.request_custody      = luaL_optnumber(L, -16, attributes.request_custody) != 0.0;
+        attributes.admin_record         = luaL_optnumber(L, -15, attributes.admin_record) != 0.0;
+        attributes.integrity_check      = luaL_optnumber(L, -14, attributes.integrity_check) != 0.0;
+        attributes.allow_fragmentation  = luaL_optnumber(L, -13, attributes.allow_fragmentation) != 0.0;
+        attributes.ignore_expiration    = luaL_optnumber(L, -12, attributes.ignore_expiration) != 0.0;
         attributes.cipher_suite         = luaL_optnumber(L, -11, attributes.cipher_suite);
         attributes.timeout              = luaL_optnumber(L, -10, attributes.timeout);
         attributes.max_length           = luaL_optnumber(L, -9,  attributes.max_length);
@@ -1027,6 +1029,16 @@ int lbplib_getopt (lua_State* L)
         lua_pushboolean(L, lua_frag);
         return 2;
     }
+    else if(strcmp(optstr, "IGNORE_EXPIRATION") == 0)
+    {
+        int ign;
+        int status = bplib_config(bplib_data->desc, BP_OPT_MODE_READ, BP_OPT_IGNORE_EXPIRATION, &ign);
+        set_errno(L, status);
+        lua_pushboolean(L, status == BP_SUCCESS);
+        bool lua_ign = ign == 1;
+        lua_pushboolean(L, lua_ign);
+        return 2;
+    }
     else if(strcmp(optstr, "CIPHER_SUITE") == 0)
     {
         int paycrc;
@@ -1142,6 +1154,11 @@ int lbplib_setopt (lua_State* L)
     {
         int frag = (int)lua_toboolean(L, 3);
         status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_ALLOW_FRAGMENTATION, &frag);
+    }
+    else if((strcmp(optstr, "IGNORE_EXPIRATION") == 0) && lua_isboolean(L, 3))
+    {
+        int ign = (int)lua_toboolean(L, 3);
+        status = bplib_config(bplib_data->desc, BP_OPT_MODE_WRITE, BP_OPT_IGNORE_EXPIRATION, &ign);
     }
     else if((strcmp(optstr, "CIPHER_SUITE") == 0) && lua_isnumber(L, 3))
     {
