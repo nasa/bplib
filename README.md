@@ -540,9 +540,17 @@ The application is responsible for providing the storage service to the library 
 ----------------------------------------------------------------------
 ##### Create Storage Service
 
-`int create (void* parm)`
+`int create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)`
 
 Creates a storage service.
+
+`type` - the type of bundle being stored, will be one of the following (defined in bplib.h): BP_STORE_DATA_TYPE, BP_STORE_DACS_TYPE, BP_STORE_PAYLOAD_TYPE
+
+`node` - the {node} number of the ipn:{node}.{service} endpoint ID used for the source of bundles generated on the channel
+
+`service` - the {service} number of the ipn:{node}.{service} endpoint ID used for the source of bundles generated on the channel
+
+`recover` - _true_: attempt to recover bundles from existing storage that matches the type, node, and service; _false_: do not recover any bundles. Note that a storage service does not need to provide a recovery capability, in which case this parameter is ignored and bundles are never recovered.
 
 `parm` - service specific parameters pass through library to this function.  See the storage_service_parm of the attributes structure passed to the `bplib_open` function.
 
