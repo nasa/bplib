@@ -242,28 +242,29 @@ BP_LOCAL_SCOPE int flash_free_allocate (bp_flash_index_t* block)
     /* Erase Block */
     while(status != BP_SUCCESS && flash_free_blocks.out != BP_FLASH_INVALID_INDEX)
     {
-        status = FLASH_DRIVER.erase(flash_free_blocks.out);
+        bp_flash_index_t block_out = flash_free_blocks.out;
+        status = FLASH_DRIVER.erase(block_out);
         if(status == BP_SUCCESS)
         {
             /* Return Block */
-            *block = flash_free_blocks.out;
+            *block = block_out;
             flash_used_block_count++;
         }
         else
         {
             /* Failed to Erase - Add to Bad Block List */
             flash_error_count++;
-            flash_block_list_add(&flash_bad_blocks, flash_free_blocks.out);
+            flash_block_list_add(&flash_bad_blocks, block_out);
             bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to erase block %d when allocating it... adding as bad block\n", 
-                                                FLASH_DRIVER.phyblk(flash_free_blocks.out));
+                                                FLASH_DRIVER.phyblk(block_out));
         }
 
         /* Move to Next Free Block */
-        flash_free_blocks.out = flash_blocks[flash_free_blocks.out].next_block;
+        flash_free_blocks.out = flash_blocks[block_out].next_block;
         flash_free_blocks.count--;
 
         /* Mark Next Block Invalid */
-        flash_blocks[*block].next_block = BP_FLASH_INVALID_INDEX;
+        flash_blocks[block_out].next_block = BP_FLASH_INVALID_INDEX;
     }
 
     /* Log Error */
@@ -871,7 +872,7 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
                 }
                 else
                 {
-                    //* Node.Service Already In User */
+                    /* Node.Service Already In User */
                     bplog(NULL, BP_FLAG_DIAGNOSTIC, "Store of %s for ipn:%d.%d already in use!\n", 
                                                     type2str(type), node, service);
                     in_error = true;

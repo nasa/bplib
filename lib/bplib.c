@@ -347,7 +347,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
 
     /* Allocate Memory for Channel DACS Bundle Fills */
-    ch->dacs_size = sizeof(bp_val_t) * attributes.max_fills_per_dacs + 6; // 2 bytes per fill plus payload block header
+    ch->dacs_size = sizeof(bp_val_t) * attributes.max_fills_per_dacs + 6; /* 2 bytes per fill plus payload block header */
     ch->dacs_buffer = (uint8_t*)bplib_os_calloc(ch->dacs_size);
     if(ch->dacs_buffer == NULL)
     {
