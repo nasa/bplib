@@ -106,6 +106,7 @@ BP_LOCAL_SCOPE void flush_queue(queue_t* q)
     while(q->front != NULL)
     {
         temp = q->front->next;
+        bplib_os_free(q->front->data);
         bplib_os_free(q->front);
         q->front = temp;
     }
