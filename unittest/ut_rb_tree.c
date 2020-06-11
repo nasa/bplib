@@ -101,30 +101,36 @@ static uint32_t assert_inorder_nodes_are(rb_node_t* node,
     {
         /* In the case where root is empty we should have no nodes.  */
         ut_check(length == 0);
-        return 0;
     }
-
-    if (node->left != NULL)
+    else if(index < length)
     {
-        /* Check left subtree values. */
-        index_offset += assert_inorder_nodes_are(node->left, nodes, length, index);
+        if (node->left != NULL)
+        {
+            /* Check left subtree values. */
+            index_offset += assert_inorder_nodes_are(node->left, nodes, length, index);
+        }
+
+        /* Check that the nodes matches those provided in the list. */
+        if(index + index_offset < length)
+        {
+            ut_check(node->range.value == nodes[index + index_offset]->range.value);
+            ut_check(node->range.offset == nodes[index + index_offset]->range.offset);
+            ut_check(node->color == nodes[index + index_offset]->color);
+        }
+
+        index_offset += 1;
+
+        if (node->right != NULL)
+        {
+            /* Check right subtree values. */
+            index_offset += assert_inorder_nodes_are(node->right, nodes, length,
+                                                     index + index_offset);
+        }
     }
-
-    /* Check that there are not more nodes than expected. */
-    ut_check(index < length);
-
-    /* Check that the nodes matches those provided in the list. */
-    ut_check(node->range.value == nodes[index + index_offset]->range.value);
-    ut_check(node->range.offset == nodes[index + index_offset]->range.offset);
-    ut_check(node->color == nodes[index + index_offset]->color);
-
-    index_offset += 1;
-
-    if (node->right != NULL)
+    else
     {
-        /* Check right subtre values. */
-        index_offset += assert_inorder_nodes_are(node->right, nodes, length,
-                                                 index + index_offset);
+        /* Show failure that there are more nodes than expected. */
+        ut_check(index < length);
     }
 
     return index_offset;
