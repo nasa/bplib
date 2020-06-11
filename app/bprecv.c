@@ -76,7 +76,7 @@ static void app_quick_exit(int parm)
 static void* signal_thread (void* parm)
 {
     sigset_t* signal_set = (sigset_t*)parm;
-    
+
     while(true)
     {
         int sig = 0;
@@ -95,8 +95,8 @@ static void* signal_thread (void* parm)
         {
             app_quick_exit(0);
         }
-    }    
-    
+    }
+
     return NULL;
 }
 
@@ -142,7 +142,7 @@ static void* reader_thread (void* parm)
     if(sock != SOCK_INVALID)
     {
         sockclose(sock);
-    }    
+    }
 
     return NULL;
 }
@@ -151,7 +151,7 @@ static void* reader_thread (void* parm)
  * writer_thread - Accepts payloads and writes them to stdout
  */
 static void* writer_thread (void* parm)
-{   
+{
     thread_parm_t* info = (thread_parm_t*)parm;
 
     /* Reader Loop */
@@ -166,7 +166,7 @@ static void* writer_thread (void* parm)
         if(lib_status == BP_SUCCESS)
         {
             /* Write Line */
-            fprintf(stdout, "%s", payload);        
+            fprintf(stdout, "%s", payload);
 
             /* Acknowledge PAyload */
             bplib_ackpayload(info->bpc, payload);
@@ -211,7 +211,7 @@ static void* custody_thread (void* parm)
             if(bytes_sent != dacs_size)
             {
                 fprintf(stderr, "Failed (%d) to send dacs over socket: %s\n", bytes_sent, strerror(errno));
-            }            
+            }
 
             /* Acknowledge bundle */
             bplib_ackbundle(info->bpc, dacs);
@@ -226,7 +226,7 @@ static void* custody_thread (void* parm)
     if(sock != SOCK_INVALID)
     {
         sockclose(sock);
-    }    
+    }
 
     return NULL;
 }
@@ -250,19 +250,19 @@ int main(int argc, char *argv[])
     int i;
     char parm[PARM_STR_SIZE];
 
-    /* Block SIGINT and SIGTERM for all future threads created */    
+    /* Block SIGINT and SIGTERM for all future threads created */
     sigset_t signal_set;
     sigemptyset(&signal_set);
     sigaddset(&signal_set, SIGINT);
     sigaddset(&signal_set, SIGTERM);
     pthread_sigmask(SIG_BLOCK, &signal_set, NULL);
-    
+
     /* Create dedicated signal thread to handle SIGINT and SIGTERM */
     pthread_t signal_pid;
     pthread_attr_t signal_pthread_attr;
     pthread_attr_init(&signal_pthread_attr);
     pthread_attr_setdetachstate(&signal_pthread_attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(&signal_pid, &signal_pthread_attr, &signal_thread, (void *) &signal_set);    
+    pthread_create(&signal_pid, &signal_pthread_attr, &signal_thread, (void *) &signal_set);
 
     /* Display Welcome Banner */
     fprintf(stderr, "\n*********************************************************************************************");
@@ -282,10 +282,10 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\n                                                                                             ");
     fprintf(stderr, "\n   Example usage:                                                                            ");
     fprintf(stderr, "\n                                                                                             ");
-    fprintf(stderr, "\n         ./bprecv ipn:1.5 udp://10.1.215.5:34404                                             ");
+    fprintf(stderr, "\n         ./bprecv ipn:5.1 data://127.0.0.1:37405 dacs://127.0.0.1:37406                      ");
     fprintf(stderr, "\n*********************************************************************************************");
     fprintf(stderr, "\n\n");
-       
+
     /* Process Command Line */
     for(i = 1; i < argc; i++)
     {
@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
             char* port_str = strrchr(parm, ':');
             *port_str = '\0';
             port_str++;
-            info.data_port = (int)strtol(port_str, NULL, 0);            
+            info.data_port = (int)strtol(port_str, NULL, 0);
 
             char* ip_str = strrchr(parm, '/');
             ip_str++;
@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
             char* port_str = strrchr(parm, ':');
             *port_str = '\0';
             port_str++;
-            info.dacs_port = (int)strtol(port_str, NULL, 0);            
+            info.dacs_port = (int)strtol(port_str, NULL, 0);
 
             char* ip_str = strrchr(parm, '/');
             ip_str++;
@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
         else
         {
             fprintf(stderr, "Unrecognized parameter: %s\n", argv[i]);
-        }   
+        }
     }
 
     /* Echo Command Line Options */
@@ -357,15 +357,15 @@ int main(int argc, char *argv[])
 
     /* Create Reader Thread */
     pthread_t read_pid;
-    pthread_create(&read_pid, NULL, &reader_thread, &info);    
+    pthread_create(&read_pid, NULL, &reader_thread, &info);
 
     /* Create Writer Thread */
     pthread_t write_pid;
-    pthread_create(&write_pid, NULL, &writer_thread, &info);    
+    pthread_create(&write_pid, NULL, &writer_thread, &info);
 
     /* Create Custody Thread */
     pthread_t custody_pid;
-    pthread_create(&custody_pid, NULL, &custody_thread, &info);    
+    pthread_create(&custody_pid, NULL, &custody_thread, &info);
 
     /* Idle Loop */
     while(app_running)
@@ -379,7 +379,7 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "Failed (%d) to join reader thread: %s\n", read_rc, strerror(read_rc));
     }
- 
+
     int write_rc = pthread_join(write_pid, NULL);
     if(write_rc != 0)
     {

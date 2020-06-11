@@ -247,7 +247,11 @@ void log_message(const char* file_name, unsigned int line_number, const char* fo
     const char* file_name_only = last_path_delimeter ? last_path_delimeter + 1 : file_name;
 
     /* Build Message */
-    snprintf(entry_log_msg, LBPLIB_MAX_LOG_ENTRY, "%s:%u: %s", file_name_only, line_number, formatted_string);
+    msglen = snprintf(entry_log_msg, LBPLIB_MAX_LOG_ENTRY, "%s:%u: %s", file_name_only, line_number, formatted_string);
+    if(msglen > (LBPLIB_MAX_LOG_ENTRY - 1))
+    {
+        entry_log_msg[LBPLIB_MAX_LOG_ENTRY - 1] = '#';
+    }
 
     /* Print Message */
     printf("%s", entry_log_msg);
