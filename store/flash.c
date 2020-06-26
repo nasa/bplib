@@ -866,7 +866,7 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
                 if(!flash_stores[s].in_use)
                 {
                     /* Recover Bundles */
-                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Recovered %d %s from ipn:%d.%d\n", 
+                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Recovered %d %s from ipn:%d.%d in flash store\n", 
                                                     flash_stores[s].object_count, type2str(type), node, service);
                     handle = s;
                 }
@@ -1018,14 +1018,14 @@ int bplib_store_flash_destroy (int handle)
     /* Generate Status Message */
     if(!flash_stores[handle].preserve)
     {
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Deleting %d unpreserved %s from ipn:%d.%d\n", 
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Deleting %d unpreserved %s from ipn:%d.%d in flash store\n", 
                                         flash_stores[handle].object_count, type2str(flash_stores[handle].type), 
                                         flash_stores[handle].node, flash_stores[handle].service);
     }
     else
     {
         int active_bundles = flash_stores[handle].object_count - flash_stores[handle].unactive_count;
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Deleting %d abandoned %s from ipn:%d.%d\n", 
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Deleting %d abandoned %s from ipn:%d.%d in flash store\n", 
                                         active_bundles, type2str(flash_stores[handle].type), 
                                         flash_stores[handle].node, flash_stores[handle].service);
     }
