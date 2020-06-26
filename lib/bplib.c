@@ -263,7 +263,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
     }
     else if(attributes.max_length < 0)
     {
-        bplog(NULL, BP_FLAG_API_ERROR, "Max length cannot be netagive\n");
+        bplog(NULL, BP_FLAG_API_ERROR, "Max length cannot be negative\n");
         return NULL;
     }
 
