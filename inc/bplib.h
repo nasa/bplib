@@ -199,12 +199,12 @@ typedef struct {
     bool        integrity_check;        /* 0: do not include an integrity check, 1: include bundle integrity block */
     bool        allow_fragmentation;    /* 0: do not allow, 1: allow (for created bundles, if allowed, it will be used) */
     bool        ignore_expiration;      /* 0: delete expired bundles, 1: ignore lifetime and do not delete expired bundles */
-    int         cid_reuse;              /* 0: new CID when retransmitting, 1: reuse CID when retransmitting */
+    bool        cid_reuse;              /* 0: new CID when retransmitting, 1: reuse CID when retransmitting */
     int         cipher_suite;           /* 0: present but un-populated, all other values identify a cipher suite */
     int         class_of_service;       /* priority of generated bundles */
     int         timeout;                /* seconds, zero for infinite */
-    int         max_length;             /* maximum size of bundle in bytes (includes header blocks) */
-    int         dacs_rate;              /* number of seconds to wait between sending ACS bundles */
+    int         max_length;             /* maximum size of bundle in bytes */
+    int         dacs_rate;              /* number of seconds to wait between sending ACS bundles (<=0: no periodic dacs) */
     /* Fixed Attributes */
     int         protocol_version;       /* bundle protocol version; currently only version 6 supported */
     int         retransmit_order;       /* determination of which timed-out bundle is retransmitted first */

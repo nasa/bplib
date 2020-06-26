@@ -339,7 +339,8 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
     pay->paysize = size;
 
     /* Check Fragmentation */
-    if(pay->paysize > bundle->attributes.max_length)
+    int max_paysize = bundle->attributes.max_length - data->headersize;
+    if(pay->paysize > max_paysize)
     {
         if(bundle->attributes.allow_fragmentation)
         {
@@ -347,8 +348,12 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
         }
         else
         {
-            return bplog(flags, BP_FLAG_BUNDLE_TOO_LARGE, "Unable to fragment forwarded bundle (%d > %d)\n", pay->paysize, bundle->attributes.max_length);
+            return bplog(flags, BP_FLAG_BUNDLE_TOO_LARGE, "Unable to fragment forwarded bundle (%d > %d)\n", pay->paysize, max_paysize);
         }
+    }
+    else if(max_paysize <= 0)
+    {
+        return bplog(flags, BP_FLAG_BUNDLE_TOO_LARGE, "Bundle header blocks exceed maximum size of bundle (%d > %d)\n", data->headersize, bundle->attributes.max_length);
     }
 
     /* Check if Time Needs to be Set  */
@@ -404,7 +409,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
     {
         /* Calculate Storage Header Size and Fragment Size */
         int payload_remaining = pay->paysize - payload_offset;
-        int fragment_size = bundle->attributes.max_length <  payload_remaining ? bundle->attributes.max_length : payload_remaining;
+        int fragment_size = max_paysize <  payload_remaining ? max_paysize : payload_remaining;
 
         /* Update Primary Block Fragmentation */
         if(pri->is_frag)

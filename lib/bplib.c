@@ -256,6 +256,16 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
         bplog(NULL, BP_FLAG_API_ERROR, "Active table size must be greater than zero when a timeout is specified\n");
         return NULL;
     }
+    else if(attributes.timeout < 0)
+    {
+        bplog(NULL, BP_FLAG_API_ERROR, "Timeout cannot be negative\n");
+        return NULL;
+    }
+    else if(attributes.max_length < 0)
+    {
+        bplog(NULL, BP_FLAG_API_ERROR, "Max length cannot be netagive\n");
+        return NULL;
+    }
 
     /* Allocate Channel */
     bp_desc_t* desc = (bp_desc_t*)bplib_os_calloc(sizeof(bp_desc_t));
