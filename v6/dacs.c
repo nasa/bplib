@@ -53,7 +53,7 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
     rec[BP_ACS_REC_STATUS_INDEX] = BP_ACS_ACK_MASK;
 
     /* Write First CID and Fills */
-    int count_fills = 0; /* The number of fills that have occured so far. */
+    int count_fills = 0; /* The number of fills that have occurred so far. */
 
     /* Store the previous and next range fills. */
     rb_range_t range;

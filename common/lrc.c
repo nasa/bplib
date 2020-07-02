@@ -296,7 +296,7 @@ int lrc_decode(uint8_t* frame_buffer, int data_size)
     /* Loop Through All Data in Page */
     while(data_index < data_size)
     {
-        /* Genereate ECC for Block */
+        /* Generate ECC for Block */
         int bytes_left = data_size - data_index;
         int bytes_to_ecc = bytes_left < LRC_BLOCK_SIZE ? bytes_left : LRC_BLOCK_SIZE;
         lrc_block_encode(&frame_buffer[data_index], &frame_buffer[ecc_index], bytes_to_ecc, ecc_code);

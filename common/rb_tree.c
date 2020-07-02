@@ -568,9 +568,9 @@ BP_LOCAL_SCOPE void delete_rebalance(rb_tree_t* tree, rb_node_t* node) {
 
         /*-----------------------------------------------------------------------------------
         * DELETE_CASE_3 - If parent, its siblings and its children are black then sibling can
-        *      be recolored such that pathes through sibling have one less black node which
-        *      allows us to delete node and maintain balance in tree. Pathes through parent
-        *      however now have one fewer black node than other pathes and so we must return
+        *      be recolored such that paths through sibling have one less black node which
+        *      allows us to delete node and maintain balance in tree. Paths through parent
+        *      however now have one fewer black node than other paths and so we must return
         *      to DELETE_CASE_1 to fix parent. If nodes are not recolored as described above,
         *      this function casecades
         *      into cases 4, 5 & 6.
@@ -1161,7 +1161,7 @@ int rb_tree_create(bp_val_t max_size, rb_tree_t* tree)
  *      are simply appended to the free stack.
  *
  * tree - A ptr to an rb_tree_t to clear all of its nodes. [OUTPUT]
- * returns: A status indicating the sucess of the clear operation.
+ * returns: A status indicating the success of the clear operation.
  *--------------------------------------------------------------------------------------*/
 int rb_tree_clear(rb_tree_t* tree)
 {
@@ -1302,7 +1302,7 @@ int rb_tree_delete(bp_val_t value, rb_tree_t* tree)
                        upper_node to be populated on success. */
                     assert(upper_node != NULL);
 
-                    /* Memory was sucessfully allocated to the new node. */
+                    /* Memory was successfully allocated to the new node. */
                     upper_node->range.offset = node->range.value + node->range.offset - upper_node->range.value;
                     node->range.offset = value - node->range.value - 1;
                 }
