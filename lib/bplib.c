@@ -157,9 +157,7 @@ BP_LOCAL_SCOPE int delete_bundle(void* parm, bp_val_t cid, uint32_t* flags)
 }
 
 /*--------------------------------------------------------------------------------------
- * create_dacs -
- *
- *  Notes:
+ * create_dacs
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE int create_dacs(bp_channel_t* ch, unsigned long sysnow, int timeout, uint32_t* flags)
 {
@@ -723,10 +721,12 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
     bool            newcid  = true;             /* whether to assign new custody id and active table entry */
     bool            resend  = false;            /* is loaded bundle a retransmission */
     bool            isdacs  = false;            /* is loaded bundle a dacs */
+    bool            unrelt  = false;            /* is time unreliable */
 
     /* Get Current Time */
     if(bplib_os_systime(&sysnow) == BP_ERROR)
     {
+        unrelt = true; /* time is unreliable */
         *flags |= BP_FLAG_UNRELIABLE_TIME;
     }
 
@@ -776,7 +776,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                     bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
 
                     /* Check Lifetime of Bundle */
-                    if(data->exprtime != 0 && sysnow >= data->exprtime)
+                    if(v6_is_expired(&ch->bundle, sysnow, data->exprtime, unrelt))
                     {
                         /* Bundle Expired */
                         object = NULL;
@@ -855,7 +855,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
             bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
 
             /* Check Expiration Time */
-            if(data->exprtime != 0 && sysnow >= data->exprtime)
+            if(v6_is_expired(&ch->bundle, sysnow, data->exprtime, unrelt))
             {
                 /* Bundle Expired Clear Entry (and loop again) */
                 ch->store.release(ch->bundle_handle, object->header.sid);
@@ -1034,6 +1034,10 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
         unsigned long sysnow = 0;
         if(bplib_os_systime(&sysnow) == BP_ERROR)
         {
+            /* Other than raise the flag, no further action is taken;
+             * the use of sysnow in the create_dacs function calls below
+             * are only for keeping track of when the dacs is sent and
+             * do not make their way into the bundle creation time. */
             *flags |= BP_FLAG_UNRELIABLE_TIME;
         }
 
@@ -1126,14 +1130,15 @@ int bplib_accept(bp_desc_t* desc, void** payload, int* size, int timeout, uint32
 
             /* Get Current Time */
             unsigned long sysnow = 0;
+            bool unrelt = false;
             if(bplib_os_systime(&sysnow) == BP_ERROR)
             {
+                unrelt = true; /* time is unreliable */
                 *flags |= BP_FLAG_UNRELIABLE_TIME;
-                sysnow = 0; /* prevents expiration below */
             }
 
             /* Check Expiration Time */
-            if(data->exprtime != 0 && data->exprtime <= sysnow)
+            if(v6_is_expired(&ch->bundle, sysnow, data->exprtime, unrelt))
             {
                 ch->store.release(ch->payload_handle, object->header.sid);
                 ch->store.relinquish(ch->payload_handle, object->header.sid);

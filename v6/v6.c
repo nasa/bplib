@@ -366,27 +366,35 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
         {
             /* Unreliable Time Detected */
             *flags |= BP_FLAG_UNRELIABLE_TIME;
+            pri->createsec.value = BP_UNKNOWN_CREATION_TIME;
 
-            /* NOTE: creation time and lifetime set to zero in this special 
-             * case to protect against unintended bundle expiration */
+            /* Lifetime hardcoded in this special case to protect against 
+             * unintended bundle expiration */
             lifetime.value = BP_MAX_ENCODED_VALUE;
-            sysnow = 0;
-
-            /* Jam Lifetime */
             sdnv_write(data->header, BP_BUNDLE_HDR_BUF_SIZE, lifetime, flags);
         }
-
-        /* Set Creation Time */
-        pri->createsec.value = (bp_val_t)sysnow;
+        else
+        {
+            /* Creation time set to current system time */
+            pri->createsec.value = sysnow;
+        }
+        
+        /* Set Creation Time and Sequence */
         sdnv_write(data->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, flags);
-
-        /* Set Sequence */
         sdnv_write(data->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, flags);
     }
 
     /* Set Expiration Time of Bundle */
-    if(lifetime.value != 0)
+    if(pri->createsec.value == BP_TTL_CREATION_TIME)
     {
+        data->exprtime = BP_TTL_CREATION_TIME;
+    }
+    else if(pri->createsec.value == BP_UNKNOWN_CREATION_TIME)
+    {
+        data->exprtime = BP_UNKNOWN_CREATION_TIME;
+    }
+    else
+    {    
         data->exprtime = pri->createsec.value + lifetime.value;
         if(data->exprtime < pri->createsec.value)
         {
@@ -394,14 +402,9 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
             *flags |= BP_FLAG_SDNV_OVERFLOW;
 
             /* Set expiration time to maximum value as a best 
-             * effort attempt to avoid unintended bundle expiration */
+             * effort attempt to handle rollver */
             data->exprtime = BP_MAX_ENCODED_VALUE;
         }
-    }
-    else
-    {
-        /* If Lifetime Zero, Mark No Expiration */
-        data->exprtime = 0;
     }
 
     /* Enqueue Bundle */
@@ -493,23 +496,40 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
         return bplog(flags, BP_FLAG_NONCOMPLIANT, "Unsupported bundle attempted to be processed (%d)\n", pri_blk.dictlen.value);
     }
 
-    /* Check Expiration */
+    /* Calculate Bundle's Expiration Time */
+    bp_val_t exprtime = pri_blk.createsec.value + pri_blk.lifetime.value;
+    if(pri_blk.createsec.value == BP_UNKNOWN_CREATION_TIME)
+    {
+        /* Bundle Source has Unreliable Time */
+        exprtime = BP_UNKNOWN_CREATION_TIME;
+    }
+    else if(pri_blk.createsec.value == BP_TTL_CREATION_TIME)
+    {
+        /* Request for Time-To-Live Extension */
+        exprtime = BP_TTL_CREATION_TIME;
+    }
+    else if(exprtime < pri_blk.createsec.value)
+    {
+        /* Rollover Detected */
+        *flags |= BP_FLAG_SDNV_OVERFLOW;
+
+        /* Set expiration time to maximum value as a best 
+         * effort attempt to handle rollver */
+        exprtime = BP_MAX_ENCODED_VALUE;
+    }
+
+    /* Get Current Time */
+    bool unrelt = false;
     unsigned long sysnow = 0;
-    bp_val_t exprtime = pri_blk.lifetime.value + pri_blk.createsec.value;
     if(bplib_os_systime(&sysnow) == BP_ERROR)
     {
-        /* Handle Unreliable Time */
+        unrelt = true; /* time is unreliable */
         *flags |= BP_FLAG_UNRELIABLE_TIME;
-        exprtime = 0;
     }
-    else if(pri_blk.createsec.value == 0 || bundle->attributes.ignore_expiration)
+
+    /* Check Expiration */
+    if(v6_is_expired(bundle, sysnow, exprtime, unrelt))
     {
-        /* Explicitly Ignore Expiration Time */
-        exprtime = 0;
-    }
-    else if(sysnow >= exprtime)
-    {
-        /* Expire Bundle */
         return BP_PENDING_EXPIRATION;
     }
 
@@ -766,6 +786,25 @@ int v6_populate_acknowledgment(uint8_t* rec, int size, int max_fills, rb_tree_t*
 int v6_receive_acknowledgment(uint8_t* rec, int size, int* num_acks, bp_delete_func_t remove, void* parm, uint32_t* flags)
 {
     return dacs_read(rec, size, num_acks, remove, parm, flags);
+}
+
+/*--------------------------------------------------------------------------------------
+ * v6_is_expired
+ *-------------------------------------------------------------------------------------*/
+int v6_is_expired(bp_bundle_t* bundle, unsigned long sysnow, unsigned long exprtime, bool unrelt)
+{
+    if( !unrelt && /* time must be reliable */
+        !bundle->attributes.ignore_expiration && /* expiration cannot be ignored */
+        exprtime != BP_UNKNOWN_CREATION_TIME && /* the expiration time must be set */
+        exprtime != BP_TTL_CREATION_TIME &&  /* the expiration time cannot indicate use of a time-to-live extension block */
+        sysnow >= exprtime ) /* the current time must equal or exceed the expiration time */
+    {
+        return (int)true;
+    }
+    else
+    {
+        return (int)false;
+    }
 }
 
 /*--------------------------------------------------------------------------------------

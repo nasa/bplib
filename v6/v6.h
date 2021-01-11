@@ -48,6 +48,10 @@
 /* BIB Definitions */
 #define BP_BIB_INTEGRITY_SIGNATURE      5
 
+/* Bundle Creation Time Handling */
+#define BP_TTL_CREATION_TIME            0   /* time-to-live extension block may be used */
+#define BP_UNKNOWN_CREATION_TIME        1   /* unreliable time source */
+
 /* Record Type Definitions */    
 #define BP_STAT_REC_TYPE                0x10 /* Status Report */
 #define BP_CS_REC_TYPE                  0x20 /* Custody Signal */
@@ -86,6 +90,7 @@ int v6_receive_bundle           (bp_bundle_t* bundle, uint8_t* buffer, int size,
 int v6_update_bundle            (bp_bundle_data_t* data, bp_val_t cid, uint32_t* flags);
 int v6_populate_acknowledgment  (uint8_t* rec, int size, int max_fills, rb_tree_t* tree, uint32_t* flags);
 int v6_receive_acknowledgment   (uint8_t* rec, int size, int* num_acks, bp_delete_func_t remove, void* parm, uint32_t* flags);
+int v6_is_expired               (bp_bundle_t* bundle, unsigned long sysnow, unsigned long exprtime, bool unrelt);
 int v6_routeinfo                (void* bundle, int size, bp_route_t* route);
 int v6_display                  (void* bundle, int size, uint32_t* flags);
 
