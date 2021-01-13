@@ -101,7 +101,7 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     (void)file;
     (void)line;
 
-    if(flag_log_enable & event == event)
+    if((flag_log_enable & event) == event)
     {
         char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
         va_list args;
