@@ -427,8 +427,7 @@ int bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* fl
         if(bib->security_result_data.crc16 != crc)
         {
             /* Return Failure */
-            *flags |= BP_FLAG_FAILED_INTEGRITY_CHECK;
-            return BP_ERROR;
+            return bplog(flags, BP_FLAG_FAILED_INTEGRITY_CHECK, "Failed X25 integrity check, exp=%04X, act=%04X \n", bib->security_result_data.crc16, crc);
         }
     }
     else if(bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
@@ -437,8 +436,7 @@ int bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* fl
         if(bib->security_result_data.crc32 != crc)
         {
             /* Return Failure */
-            *flags |= BP_FLAG_FAILED_INTEGRITY_CHECK;
-            return BP_ERROR;
+            return bplog(flags, BP_FLAG_FAILED_INTEGRITY_CHECK, "Failed CASTAGNOLI integrity check, exp=%08Xl, act=%08Xl \n", bib->security_result_data.crc32, crc);
         }
     }
 

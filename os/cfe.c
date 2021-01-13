@@ -57,6 +57,29 @@
 static size_t   current_memory_allocated = 0;
 static size_t   highest_memory_allocated = 0;
 
+static uint32_t flag_log_enable = BP_FLAG_NONCOMPLIANT |
+                                  BP_FLAG_INCOMPLETE |
+                                  BP_FLAG_DROPPED |
+                                  BP_FLAG_BUNDLE_TOO_LARGE |
+                                  BP_FLAG_UNKNOWNREC |
+                                  BP_FLAG_INVALID_CIPHER_SUITEID |
+                                  BP_FLAG_INVALID_BIB_RESULT_TYPE |
+                                  BP_FLAG_INVALID_BIB_TARGET_TYPE |
+                                  BP_FLAG_FAILED_TO_PARSE |
+                                  BP_FLAG_API_ERROR;
+
+/******************************************************************************
+ EXPORTED UTILITY FUNCTIONS
+ ******************************************************************************/
+
+/*--------------------------------------------------------------------------------------
+ * bplib_os_enable_log_flags -
+ *-------------------------------------------------------------------------------------*/
+void bplib_os_enable_log_flags(uint32_t enable_mask)
+{
+    flag_log_enable = enable_mask;
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -78,21 +101,24 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     (void)file;
     (void)line;
 
-    char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
-    va_list args;
-    int vlen, msglen;
-
-    /* Build Formatted String */
-    va_start(args, fmt);
-    vlen = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
-    msglen = vlen < BP_MAX_LOG_ENTRY_SIZE - 1 ? vlen : BP_MAX_LOG_ENTRY_SIZE - 1;
-    va_end(args);
-
-    /* Handle Log Message */
-    if(msglen > 0)
+    if(flag_log_enable & event == event)
     {
-        formatted_string[msglen] = '\0';
-        CFE_EVS_SendEvent(BP_BPLIB_INFO_EID, CFE_EVS_INFORMATION, "[%08X] %s", event, formatted_string);
+        char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
+        va_list args;
+        int vlen, msglen;
+
+        /* Build Formatted String */
+        va_start(args, fmt);
+        vlen = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
+        msglen = vlen < BP_MAX_LOG_ENTRY_SIZE - 1 ? vlen : BP_MAX_LOG_ENTRY_SIZE - 1;
+        va_end(args);
+
+        /* Handle Log Message */
+        if(msglen > 0)
+        {
+            formatted_string[msglen] = '\0';
+            CFE_EVS_SendEvent(BP_BPLIB_INFO_EID, CFE_EVS_INFORMATION, "[%08X] %s", event, formatted_string);
+        }
     }
 
     /* Set EVent Flag and Return */

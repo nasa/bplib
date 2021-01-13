@@ -67,7 +67,7 @@ int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint32_t* flags)
             /* Set Overflow:
              *  The right shift caused bits to be lost which means
              *  the encoded value could not be stored in a bp_val_t */
-            *flags |= BP_FLAG_SDNV_OVERFLOW;
+            bplog(flags, BP_FLAG_SDNV_OVERFLOW, "Encoded value was too large to fit into local variable\n");
         }
         
         /* OR in next byte */
@@ -82,9 +82,8 @@ int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint32_t* flags)
     }
 
     /* Set Incomplete:
-     *  The SDNV wanted to keep going but the
-     *  block ended before it was complete */
-    *flags |= BP_FLAG_SDNV_INCOMPLETE;
+     *  The SDNV wanted to keep going but the block ended before it was complete */
+    bplog(flags, BP_FLAG_SDNV_INCOMPLETE, "Encoded value continued past the end of the bundle block\n");
 
     /* Return Next Index */
     return i;
@@ -129,7 +128,7 @@ int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint32_t* flags)
     if(fixedwidth > (size - (int)sdnv.index))
     {
         /* Truncate Width */
-        *flags |= BP_FLAG_SDNV_INCOMPLETE;
+        bplog(flags, BP_FLAG_SDNV_INCOMPLETE, "Fixed-width allocation for value extends past end of bundle block\n");
         fixedwidth = size - sdnv.index;
     }
 
@@ -143,7 +142,10 @@ int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint32_t* flags)
     }
 
     /* Set Overflow  */
-    if(sdnv.value > 0) *flags |= BP_FLAG_SDNV_OVERFLOW;
+    if(sdnv.value > 0)
+    {
+        bplog(flags, BP_FLAG_SDNV_OVERFLOW, "Value takes more bytes to encode than bytes allocated to it\n");
+    }
 
     /* Return Next Index */
     return fixedwidth + sdnv.index;

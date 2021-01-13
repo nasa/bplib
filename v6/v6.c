@@ -365,7 +365,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
         if(bplib_os_systime(&sysnow) == BP_ERROR)
         {
             /* Unreliable Time Detected */
-            *flags |= BP_FLAG_UNRELIABLE_TIME;
+            bplog(flags, BP_FLAG_UNRELIABLE_TIME, "Unreliable time detected: %ld\n", sysnow);
             pri->createsec.value = BP_UNKNOWN_CREATION_TIME;
 
             /* Lifetime hardcoded in this special case to protect against 
@@ -399,7 +399,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
         if(data->exprtime < pri->createsec.value)
         {
             /* Rollover Detected */
-            *flags |= BP_FLAG_SDNV_OVERFLOW;
+            bplog(flags, BP_FLAG_SDNV_OVERFLOW, "Calculation of expiration time of bundle rolled over\n");
 
             /* Set expiration time to maximum value as a best 
              * effort attempt to handle rollver */
@@ -511,7 +511,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     else if(exprtime < pri_blk.createsec.value)
     {
         /* Rollover Detected */
-        *flags |= BP_FLAG_SDNV_OVERFLOW;
+        bplog(flags, BP_FLAG_SDNV_OVERFLOW, "Calculation of expiration time of bundle rolled over\n");
 
         /* Set expiration time to maximum value as a best 
          * effort attempt to handle rollver */
@@ -524,7 +524,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
     if(bplib_os_systime(&sysnow) == BP_ERROR)
     {
         unrelt = true; /* time is unreliable */
-        *flags |= BP_FLAG_UNRELIABLE_TIME;
+        bplog(flags, BP_FLAG_UNRELIABLE_TIME, "Unreliable time detected: %ld\n", sysnow);
     }
 
     /* Check Expiration */
@@ -593,10 +593,13 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
             }
 
             /* Mark Processing as Incomplete (unrecognized extension block) */
-            *flags |= BP_FLAG_INCOMPLETE;
+            bplog(flags, BP_FLAG_INCOMPLETE, "Unrecognized extension block of type %d skipped\n", blk_type);
 
             /* Should transmit status report that block cannot be processed */
-            if(blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK) *flags |= BP_FLAG_NONCOMPLIANT;
+            if(blk_flags.value & BP_BLK_NOTIFYNOPROC_MASK)
+            {
+                bplog(flags, BP_FLAG_NONCOMPLIANT, "Request to notify on unprocessed extension block ignored\n");
+            }
 
             /* Delete bundle since block not recognized */
             if(blk_flags.value & BP_BLK_DELETENOPROC_MASK)

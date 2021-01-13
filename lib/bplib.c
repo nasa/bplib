@@ -144,12 +144,12 @@ BP_LOCAL_SCOPE int delete_bundle(void* parm, bp_val_t cid, uint32_t* flags)
         status = ch->store.relinquish(ch->bundle_handle, bundle.sid);
         if(status != BP_SUCCESS)
         {
-            *flags |= BP_FLAG_STORE_FAILURE;
+            bplog(flags, BP_FLAG_STORE_FAILURE, "Failed (%d) to relinquish bundle\n", status);
         }
     }
     else
     {
-        *flags |= BP_FLAG_UNKNOWN_CID;
+        bplog(flags, BP_FLAG_UNKNOWN_CID, "Failed (%d) to remove bundle with CID=%lu from active table\n", status, (unsigned long)cid);
     }
 
     /* Return Status */
@@ -193,8 +193,8 @@ BP_LOCAL_SCOPE int create_dacs(bp_channel_t* ch, unsigned long sysnow, int timeo
                 else if(ret_status == BP_SUCCESS)
                 {
                     /* Save first failed DACS enqueue to return later */
+                    bplog(flags, BP_FLAG_STORE_FAILURE, "Failed (%d) to send DACS bundle\n", status);
                     ret_status = status;
-                    *flags |= BP_FLAG_STORE_FAILURE;
                     ch->stats.lost++;
                 }
             }
@@ -727,7 +727,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
     if(bplib_os_systime(&sysnow) == BP_ERROR)
     {
         unrelt = true; /* time is unreliable */
-        *flags |= BP_FLAG_UNRELIABLE_TIME;
+        bplog(flags, BP_FLAG_UNRELIABLE_TIME, "Unreliable time detected: %ld\n", sysnow);
     }
 
     /*-------------------------*/
@@ -786,7 +786,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                 else
                 {
                     /* Failed to Retrieve Bundle from Storage */
-                    *flags |= BP_FLAG_STORE_FAILURE;
+                    bplog(flags, BP_FLAG_STORE_FAILURE, "Failed to retrieve timed-out bundle\n");
                     ch->stats.lost++;
                 }
 
@@ -832,7 +832,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                 status = ch->active_table.available(ch->active_table.table, ch->current_active_cid);
                 if(status != BP_SUCCESS)
                 {
-                    *flags |= BP_FLAG_ACTIVE_TABLE_WRAP;
+                    bplog(flags, BP_FLAG_ACTIVE_TABLE_WRAP, "No more room in active table for bundles\n");
                     status = bplib_os_waiton(ch->active_table_signal, timeout);
                 }
 
@@ -900,7 +900,10 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
 
                 /* Update Active Table */
                 status = ch->active_table.add(ch->active_table.table, active_bundle, !newcid);
-                if(status == BP_DUPLICATE) *flags |= BP_FLAG_DUPLICATES;
+                if(status == BP_DUPLICATE)
+                {
+                    bplog(flags, BP_FLAG_DUPLICATES, "Duplicate bundle detected in active table, CID=%lu\n", (unsigned long)active_bundle.cid);
+                }
             }
             bplib_os_unlock(ch->active_table_signal);
 
@@ -916,7 +919,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
         if(isdacs)
         {
             ch->stats.transmitted_dacs++;
-            *flags |= BP_FLAG_ROUTE_NEEDED;
+            bplog(flags, BP_FLAG_ROUTE_NEEDED, "DACS bundle needs routing\n");
         }
         else if(resend)
         {
@@ -995,7 +998,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
         }
         else if(status != BP_SUCCESS)
         {
-            *flags |= BP_FLAG_STORE_FAILURE;
+            bplog(flags, BP_FLAG_STORE_FAILURE, "Failed (%d) to store payload\n", status);
             ch->stats.lost++;
         }
     }
@@ -1038,7 +1041,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
              * the use of sysnow in the create_dacs function calls below
              * are only for keeping track of when the dacs is sent and
              * do not make their way into the bundle creation time. */
-            *flags |= BP_FLAG_UNRELIABLE_TIME;
+            bplog(flags, BP_FLAG_UNRELIABLE_TIME, "Unreliable time detected: %ld\n", sysnow);
         }
 
         /* Take Custody */
@@ -1051,7 +1054,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
                 if(insert_status == BP_FULL)
                 {
                     /* Flag Full Tree - possibly the custody_tree size is configured to be too small */
-                    *flags |= BP_FLAG_CUSTODY_FULL;
+                    bplog(flags, BP_FLAG_CUSTODY_FULL, "Generating DACS because no more room to track custody\n");
 
                     /* Store Custody Signal */
                     create_dacs(ch, sysnow, BP_CHECK, flags);
@@ -1065,7 +1068,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
                 else if(insert_status == BP_DUPLICATE)
                 {
                     /* Duplicate values are fine and are treated as a success */
-                    *flags |= BP_FLAG_DUPLICATES;
+                    bplog(flags, BP_FLAG_DUPLICATES, "Same bundle received multiple times\n");
                 }
                 else if(insert_status != BP_SUCCESS)
                 {
@@ -1134,7 +1137,7 @@ int bplib_accept(bp_desc_t* desc, void** payload, int* size, int timeout, uint32
             if(bplib_os_systime(&sysnow) == BP_ERROR)
             {
                 unrelt = true; /* time is unreliable */
-                *flags |= BP_FLAG_UNRELIABLE_TIME;
+                bplog(flags, BP_FLAG_UNRELIABLE_TIME, "Unreliable time detected: %ld\n", sysnow);
             }
 
             /* Check Expiration Time */
@@ -1161,7 +1164,7 @@ int bplib_accept(bp_desc_t* desc, void** payload, int* size, int timeout, uint32
         else if(status != BP_TIMEOUT)
         {
             /* Failed Storage Service */
-            *flags |= BP_FLAG_STORE_FAILURE;
+            bplog(flags, BP_FLAG_STORE_FAILURE, "Failed (%d) to retrieve payload\n", status);
         }
     }
 
