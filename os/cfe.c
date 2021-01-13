@@ -58,7 +58,6 @@ static size_t   current_memory_allocated = 0;
 static size_t   highest_memory_allocated = 0;
 
 static uint32_t flag_log_enable = BP_FLAG_NONCOMPLIANT |
-                                  BP_FLAG_INCOMPLETE |
                                   BP_FLAG_DROPPED |
                                   BP_FLAG_BUNDLE_TOO_LARGE |
                                   BP_FLAG_UNKNOWNREC |
