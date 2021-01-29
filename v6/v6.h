@@ -51,6 +51,7 @@
 /* Bundle Creation Time Handling */
 #define BP_TTL_CREATION_TIME            0   /* time-to-live extension block may be used */
 #define BP_UNKNOWN_CREATION_TIME        1   /* unreliable time source */
+#define BP_MAX_LIFETIME                 1576800000; /* 50 years; ground systems using 'int' type for time have maximum of 68 years */
 
 /* Record Type Definitions */    
 #define BP_STAT_REC_TYPE                0x10 /* Status Report */

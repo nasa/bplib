@@ -368,9 +368,8 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
             bplog(flags, BP_FLAG_UNRELIABLE_TIME, "Unreliable time detected: %ld\n", sysnow);
             pri->createsec.value = BP_UNKNOWN_CREATION_TIME;
 
-            /* Lifetime hardcoded in this special case to protect against 
-             * unintended bundle expiration */
-            lifetime.value = BP_MAX_ENCODED_VALUE;
+            /* Lifetime hardcoded in this special case to protect against unintended bundle expiration */
+            lifetime.value = BP_MAX_LIFETIME;
             sdnv_write(data->header, BP_BUNDLE_HDR_BUF_SIZE, lifetime, flags);
         }
         else
@@ -401,8 +400,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
             /* Rollover Detected */
             bplog(flags, BP_FLAG_SDNV_OVERFLOW, "Calculation of expiration time of bundle rolled over\n");
 
-            /* Set expiration time to maximum value as a best 
-             * effort attempt to handle rollver */
+            /* Set expiration time to maximum value as a best effort attempt to handle rollver */
             data->exprtime = BP_MAX_ENCODED_VALUE;
         }
     }
@@ -513,8 +511,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
         /* Rollover Detected */
         bplog(flags, BP_FLAG_SDNV_OVERFLOW, "Calculation of expiration time of bundle rolled over\n");
 
-        /* Set expiration time to maximum value as a best 
-         * effort attempt to handle rollver */
+        /* Set expiration time to maximum value as a best effort attempt to handle rollver */
         exprtime = BP_MAX_ENCODED_VALUE;
     }
 
