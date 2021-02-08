@@ -879,7 +879,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
     /*------------------------------*/
     /* Load Bundle if Ready to Send */
     /*------------------------------*/
-    if(object != NULL)
+    if(object)
     {
         bp_bundle_data_t* data = (bp_bundle_data_t*)object->data;
 
@@ -1300,7 +1300,7 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
     eidtmp[tmplen] = '\0';
     node_ptr = eidtmp;
     service_ptr = strchr(node_ptr, '.');
-    if(service_ptr != NULL)
+    if(service_ptr)
     {
         *service_ptr = '\0';
         service_ptr++;

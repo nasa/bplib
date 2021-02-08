@@ -887,7 +887,7 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
     {
         for(s = 0; s < FLASH_MAX_STORES; s++)
         {
-            if( (!flash_stores[s].in_use) && (flash_stores[s].preserve == false) )
+            if( (!flash_stores[s].in_use) && (!flash_stores[s].preserve) )
             {
                 /* Initialize Attributes */
                 if(attr)

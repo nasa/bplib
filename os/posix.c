@@ -225,7 +225,7 @@ int bplib_os_createlock(void)
             if(locks[i] == NULL)
             {
                 locks[i] = (bplib_os_lock_t*)bplib_os_calloc(sizeof(bplib_os_lock_t));
-                if(locks[i] != NULL)
+                if(locks[i])
                 {
                     pthread_mutexattr_t attr;
                     pthread_mutexattr_init(&attr);
@@ -250,7 +250,7 @@ void bplib_os_destroylock(int handle)
 {
     pthread_mutex_lock(&lock_of_locks);
     {
-        if(locks[handle] != NULL)
+        if(locks[handle])
         {
             pthread_mutex_destroy(&locks[handle]->mutex);
             pthread_cond_destroy(&locks[handle]->cond);

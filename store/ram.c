@@ -103,7 +103,7 @@ BP_LOCAL_SCOPE void flush_queue(queue_t* q)
 {
     queue_node_t* temp;
 
-    while(q->front != NULL)
+    while(q->front)
     {
         temp = q->front->next;
         bplib_os_free(q->front->data);
@@ -180,7 +180,7 @@ BP_LOCAL_SCOPE void* dequeue(queue_t* q, int* size)
 {
     void *data;
 
-    if(q->front != NULL)
+    if(q->front)
     {
         /* extract */
         data = q->front->data;
@@ -272,7 +272,7 @@ BP_LOCAL_SCOPE msgq_t msgq_create(const char* name, int depth, int data_size)
 BP_LOCAL_SCOPE void msgq_delete(msgq_t queue_handle)
 {
     message_queue_t* msgQ = (message_queue_t*)queue_handle;
-    if(msgQ != NULL)
+    if(msgQ)
     {
         flush_queue(&msgQ->queue);
         bplib_os_destroylock(msgQ->ready);
