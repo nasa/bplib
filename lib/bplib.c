@@ -830,12 +830,23 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                     * no place to put it.  Note that it is possible that even if the active table was
                     * full, if the bundle dequeued did not request custody transfer it could still go
                     * out, but the current design requires that at least one slot in the active table
-                    * is open at all times. */
+                    * is open at all times regardless if the bundle is requesting custody. */
                 status = ch->active_table.available(ch->active_table.table, ch->current_active_cid);
                 if(status != BP_SUCCESS)
                 {
                     bplog(flags, BP_FLAG_ACTIVE_TABLE_WRAP, "No more room in active table for bundles\n");
                     status = bplib_os_waiton(ch->active_table_signal, timeout);
+                    if(status == BP_SUCCESS)
+                    {
+                        /* Recheck Table Availability 
+                            * The conditional active_table_signal can notify that the table has space but
+                            * another thread could claim the space before this current context is able to proceed;
+                            * therefore the check for room in the table must be remade. Furthermore, the check
+                            * is only made once as we don't want to stay trapped inside this function; as such
+                            * any failed check is overwritten to be a TIMEOUT. */
+                        status = ch->active_table.available(ch->active_table.table, ch->current_active_cid);
+                        if(status != BP_SUCCESS) status = BP_TIMEOUT;
+                    }
                 }
 
                 /* Break Out of Loop */
@@ -906,6 +917,10 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                 {
                     bplog(flags, BP_FLAG_DUPLICATES, "Duplicate bundle detected in active table, CID=%lu\n", (unsigned long)active_bundle.cid);
                 }
+                else if(status != BP_SUCCESS)
+                {
+                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unexpected error adding bundle to active table: %d\n", status);
+                }
             }
             bplib_os_unlock(ch->active_table_signal);
 
@@ -957,11 +972,11 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
     bp_payload_t payload;
     bool custody_transfer = false;
     status = v6_receive_bundle(&ch->bundle, bundle, size, &payload, flags);
-    if(status == BP_PENDING_EXPIRATION)
+    if(status == BP_PENDING_EXPIRATION) /* received bundle is expired */
     {
         ch->stats.expired++;
     }
-    else if(status == BP_PENDING_ACKNOWLEDGMENT)
+    else if(status == BP_PENDING_ACKNOWLEDGMENT) /* received bundle is a DACS */
     {
         /* Increment Statistics */
         ch->stats.received_dacs++;
@@ -987,7 +1002,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
         }
         bplib_os_unlock(ch->active_table_signal);
     }
-    else if(status == BP_PENDING_ACCEPTANCE)
+    else if(status == BP_PENDING_ACCEPTANCE) /* received bundle is a payload for local node.service */
     {
         /* Increment Statistics */
         ch->stats.received_bundles++;
@@ -1004,7 +1019,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
             ch->stats.lost++;
         }
     }
-    else if(status == BP_PENDING_FORWARD)
+    else if(status == BP_PENDING_FORWARD) /* received bundle is for another node */
     {
         /* Increment Statistics */
         ch->stats.forwarded_bundles++;
