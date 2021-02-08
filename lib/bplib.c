@@ -1073,7 +1073,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
                 else if(insert_status != BP_SUCCESS)
                 {
                     /* Tree error unexpected */
-                    assert(false);
+                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unexpected error saving custody information: %d\n", insert_status);
                 }
             }
             else
@@ -1091,10 +1091,11 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
 
                 /* Start New DACS */
                 int insert_status = rb_tree_insert(payload.cid, &ch->custody_tree);
-
-                /* There is no valid reason for an insert to fail on an empty custody_tree */
-                assert(insert_status == BP_SUCCESS);
-                (void)insert_status; /* when asserts compiled out, insert_status becomes unused */
+                if(insert_status != BP_SUCCESS)
+                {
+                    /* There is no valid reason for an insert to fail on an empty custody_tree */
+                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Unexpected error encountered on empty custody tree: %d\n", insert_status);
+                }
             }
         }
         bplib_os_unlock(ch->custody_tree_lock);
