@@ -860,7 +860,7 @@ int lbplib_flashsim (lua_State* L)
             lua_pushnumber(L, stats.num_used_blocks);
             lua_settable(L, -3);
             lua_pushstring(L, "bad");
-            lua_pushnumber(L, stats.num_bad_blocks);
+            lua_pushnumber(L, stats.num_fail_blocks);
             lua_settable(L, -3);
             lua_pushstring(L, "errors");
             lua_pushnumber(L, stats.error_count);

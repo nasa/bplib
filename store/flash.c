@@ -1,5 +1,5 @@
 /************************************************************************
- * File: flash_store.c
+ * File: flash.c
  *
  *  Copyright 2019 United States Government as represented by the
  *  Administrator of the National Aeronautics and Space Administration.
@@ -73,7 +73,7 @@ typedef struct {
     uint8_t*            read_stage; /* lockable buffer that holds data object for read */
     bool                stage_locked;
     int                 object_count;
-    int                 unactive_count;
+    int                 inactive_count;
 } flash_store_t;
 
 /******************************************************************************
@@ -82,22 +82,21 @@ typedef struct {
 
 /* Constants - set only in initialization function */
 
-static bp_flash_driver_t        FLASH_DRIVER;
-static int                      FLASH_PAGE_DATA_SIZE = 0;   /* size in bytes of data being written to page */
-static int                      FLASH_ECC_CODE_SIZE = 0;    /* size in bytes of encoding */
+static bp_flash_driver_t        FLASH_DRIVER;                           /* function pointers and meta data needed to use flash */
+static int                      FLASH_PAGE_DATA_SIZE = 0;               /* size in bytes of data being written to page */
+static int                      FLASH_ECC_CODE_SIZE = 0;                /* size in bytes of encoding */
 
 /* Globals */
 
-static flash_store_t            flash_stores[FLASH_MAX_STORES];
-static flash_block_list_t       flash_free_blocks;
-static flash_block_list_t       flash_bad_blocks;
+static flash_store_t            flash_stores[FLASH_MAX_STORES];         /* available set of storage service control structures */
+static flash_block_list_t       flash_free_blocks;                      /* linked list of flash blocks available for use */
+static flash_block_list_t       flash_fail_blocks;                      /* linked list of flash blocks that have failed during runtime use */
 
-static int                      flash_device_lock = BP_INVALID_HANDLE;
-static flash_block_control_t*   flash_blocks = NULL;
-static int                      flash_error_count = 0;
-static int                      flash_used_block_count = 0;
-static uint8_t*                 flash_page_buffer = NULL;
-
+static int                      flash_device_lock = BP_INVALID_HANDLE;  /* mutex for accessing flash control structures */
+static flash_block_control_t*   flash_blocks = NULL;                    /* memory array of per block meta data, one per flash block */
+static int                      flash_error_count = 0;                  /* total number of flash errors encountered across all storage services */
+static int                      flash_used_block_count = 0;             /* total number of flash blocks currently in use by all storage services */
+static uint8_t*                 flash_page_buffer = NULL;               /* memory buffer used for ECC and for object deletes */
 
 /******************************************************************************
  LOCAL FUNCTIONS - UTILITY
@@ -219,7 +218,7 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
     /* Block No Longer In Use */
     flash_used_block_count--;
 
-    /* Add to Free or Bad List */
+    /* Add to Free or Failed List */
     if(!FLASH_DRIVER.isbad(block))
     {
         flash_block_list_add(&flash_free_blocks, block);
@@ -227,7 +226,7 @@ BP_LOCAL_SCOPE int flash_free_reclaim (bp_flash_index_t block)
     }
     else
     {
-        flash_block_list_add(&flash_bad_blocks, block);
+        flash_block_list_add(&flash_fail_blocks, block);
         return BP_ERROR;
     }
 }
@@ -252,10 +251,10 @@ BP_LOCAL_SCOPE int flash_free_allocate (bp_flash_index_t* block)
         }
         else
         {
-            /* Failed to Erase - Add to Bad Block List */
+            /* Failed to Erase - Add to Failed Block List */
             flash_error_count++;
-            flash_block_list_add(&flash_bad_blocks, block_out);
-            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to erase block %d when allocating it... adding as bad block\n", 
+            flash_block_list_add(&flash_fail_blocks, block_out);
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to erase block %d when allocating it... adding as failed block\n", 
                                                 FLASH_DRIVER.phyblk(block_out));
         }
 
@@ -630,10 +629,10 @@ int bplib_store_flash_init (bp_flash_driver_t driver, bool sw_edac)
     flash_free_blocks.in = BP_FLASH_INVALID_INDEX;
     flash_free_blocks.count = 0;
 
-    /* Initialize Bad Blocks List */
-    flash_bad_blocks.out = BP_FLASH_INVALID_INDEX;
-    flash_bad_blocks.in = BP_FLASH_INVALID_INDEX;
-    flash_bad_blocks.count = 0;
+    /* Initialize Failed Blocks List */
+    flash_fail_blocks.out = BP_FLASH_INVALID_INDEX;
+    flash_fail_blocks.in = BP_FLASH_INVALID_INDEX;
+    flash_fail_blocks.count = 0;
 
     do
     {
@@ -666,7 +665,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, bool sw_edac)
             }
         }
 
-        /* Allocate Page Buffer (used by ECC and for object deletes) */
+        /* Allocate Page Buffer */
         flash_page_buffer = (uint8_t*)bplib_os_calloc(FLASH_DRIVER.page_size);
         if(!flash_page_buffer)
         {
@@ -768,18 +767,18 @@ void bplib_store_flash_reclaim_used_blocks (bp_ipn_t node, bp_ipn_t service)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_store_flash_restore_bad_blocks -
+ * bplib_store_flash_restore_failed_blocks -
  *-------------------------------------------------------------------------------------*/
-void bplib_store_flash_restore_bad_blocks (void)
+void bplib_store_flash_restore_failed_blocks (void)
 {
-    flash_block_list_t new_bad_blocks = {
+    flash_block_list_t new_fail_blocks = {
         .out = BP_FLASH_INVALID_INDEX,
         .in = BP_FLASH_INVALID_INDEX,
         .count = 0
     };
 
-    /* Loop Through Bad Blocks */
-    int block = flash_bad_blocks.out;
+    /* Loop Through Failed Blocks */
+    int block = flash_fail_blocks.out;
     while(block != BP_FLASH_INVALID_INDEX)
     {
         bp_flash_index_t next_block = flash_blocks[block].next_block;
@@ -788,22 +787,22 @@ void bplib_store_flash_restore_bad_blocks (void)
         flash_blocks[block].next_block = BP_FLASH_INVALID_INDEX;
         flash_blocks[block].pages_in_use = FLASH_DRIVER.pages_per_block;
 
-        /* Add to Free or Bad List */
+        /* Add to Free or Failed List */
         if(!FLASH_DRIVER.isbad(block))
         {
             flash_block_list_add(&flash_free_blocks, block);
         }
         else
         {
-            flash_block_list_add(&new_bad_blocks, block);
+            flash_block_list_add(&new_fail_blocks, block);
         }
 
-        /* Go to Next Bad Block */
+        /* Go to Next Failed Block */
         block = next_block;
     }
 
-    /* Update Bad Blocks List */
-    flash_bad_blocks = new_bad_blocks;
+    /* Update Failed Blocks List */
+    flash_fail_blocks = new_fail_blocks;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -816,7 +815,7 @@ void bplib_store_flash_stats (bp_flash_stats_t* stats, bool log_stats, bool rese
     {
         stats->num_free_blocks = flash_free_blocks.count;
         stats->num_used_blocks = flash_used_block_count;
-        stats->num_bad_blocks = flash_bad_blocks.count;
+        stats->num_fail_blocks = flash_fail_blocks.count;
         stats->error_count = flash_error_count;
     }
 
@@ -825,13 +824,13 @@ void bplib_store_flash_stats (bp_flash_stats_t* stats, bool log_stats, bool rese
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Number of free blocks: %d\n", flash_free_blocks.count);
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Number of used blocks: %d\n", flash_used_block_count);
-        bplog(NULL, BP_FLAG_STORE_FAILURE, "Number of bad blocks: %d\n", flash_bad_blocks.count);
+        bplog(NULL, BP_FLAG_STORE_FAILURE, "Number of failed blocks: %d\n", flash_fail_blocks.count);
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Number of flash errors: %d\n", flash_error_count);
 
-        int block = flash_bad_blocks.out;
+        int block = flash_fail_blocks.out;
         while(block != BP_FLASH_INVALID_INDEX)
         {
-            bplog(NULL, BP_FLAG_STORE_FAILURE, "Block <%d> bad\n", FLASH_DRIVER.phyblk(block));
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "Block <%d> failed\n", FLASH_DRIVER.phyblk(block));
             block = flash_blocks[block].next_block;
         }
     }
@@ -872,7 +871,7 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
                 }
                 else
                 {
-                    /* Node.Service Already In User */
+                    /* Node.Service Already In Use */
                     bplog(NULL, BP_FLAG_DIAGNOSTIC, "Store of %s for ipn:%d.%d already in use!\n", 
                                                     type2str(type), node, service);
                     in_error = true;
@@ -929,7 +928,7 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
 
                 /* Set Counts to Zero */
                 flash_stores[s].object_count = 0;
-                flash_stores[s].unactive_count = 0;
+                flash_stores[s].inactive_count = 0;
 
                 /* Update Store Index and Break Out of Loop */
                 handle = s;
@@ -1007,7 +1006,7 @@ int bplib_store_flash_destroy (int handle)
         flash_stores[handle].write_stage = NULL;
     }
 
-    /* Cleanup Write Stage */
+    /* Cleanup Read Stage */
     if(flash_stores[handle].read_stage)
     {
         bplib_os_free(flash_stores[handle].read_stage);
@@ -1024,7 +1023,7 @@ int bplib_store_flash_destroy (int handle)
     }
     else
     {
-        int active_bundles = flash_stores[handle].object_count - flash_stores[handle].unactive_count;
+        int active_bundles = flash_stores[handle].object_count - flash_stores[handle].inactive_count;
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Deleting %d abandoned %s from ipn:%d.%d in flash store\n", 
                                         active_bundles, type2str(flash_stores[handle].type), 
                                         flash_stores[handle].node, flash_stores[handle].service);
@@ -1032,7 +1031,7 @@ int bplib_store_flash_destroy (int handle)
 
 
     /* Set Store Properties */
-    flash_stores[handle].object_count = flash_stores[handle].unactive_count;
+    flash_stores[handle].object_count = flash_stores[handle].inactive_count;
     flash_stores[handle].in_use = false;
 
     return BP_SUCCESS;
@@ -1082,7 +1081,7 @@ int bplib_store_flash_enqueue (int handle, void* data1, int data1_size, void* da
             if(status == BP_SUCCESS)
             {
                 fs->object_count++;
-                fs->unactive_count++;
+                fs->inactive_count++;
             }
         }
     }
@@ -1114,7 +1113,7 @@ int bplib_store_flash_dequeue (int handle, bp_object_t** object, int timeout)
             status = flash_object_read(fs, handle, &fs->read_addr, object);
             if(status == BP_SUCCESS)
             {
-                fs->unactive_count--;
+                fs->inactive_count--;
             }
         }
         else

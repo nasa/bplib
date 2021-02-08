@@ -778,7 +778,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                     /* Check Lifetime of Bundle */
                     if(v6_is_expired(&ch->bundle, sysnow, data->exprtime, unrelt))
                     {
-                        /* Bundle Expired */
+                        /* Bundle Expired (bundle deleted below) */
                         object = NULL;
                         ch->stats.expired++;
                     }
@@ -814,7 +814,9 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                 }
                 else
                 {
-                    /* Clear Entry in Active Table and Storage */
+                    /* Clear Entry in Active Table and Storage 
+                     *  - when the retrieval of the bundle failed above OR
+                     *  - when the retrieved bundle has expired */
                     ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
                     ch->store.release(ch->bundle_handle, active_bundle.sid);
                     ch->store.relinquish(ch->bundle_handle, active_bundle.sid);

@@ -79,7 +79,7 @@ typedef struct {
 typedef struct {
     int num_free_blocks;
     int num_used_blocks;
-    int num_bad_blocks;
+    int num_fail_blocks;
     int error_count;
 } bp_flash_stats_t;
 
@@ -95,7 +95,7 @@ typedef struct {
 int     bplib_store_flash_init                  (bp_flash_driver_t driver, bool sw_edac);
 void    bplib_store_flash_uninit                (void);
 void    bplib_store_flash_reclaim_used_blocks   (bp_ipn_t node, bp_ipn_t service);
-void    bplib_store_flash_restore_bad_blocks    (void);
+void    bplib_store_flash_restore_failed_blocks (void);
 void    bplib_store_flash_stats                 (bp_flash_stats_t* stats, bool log_stats, bool reset_stats);
 
 /* Service API */
