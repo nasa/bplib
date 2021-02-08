@@ -1035,11 +1035,6 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
             ch->stats.lost++;
         }
     }
-    else if(status == BP_SUCCESS) /* Bundle Destined for Local Node w/o Custody Transfer */
-    {
-        /* Increment Statistics */
-        ch->stats.received_bundles++;
-    }
     else
     {
         /* Increment Statistics */

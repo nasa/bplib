@@ -682,27 +682,24 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                 status = v6_build(bundle, &pri_blk, hdr_buf, hdr_index, flags);
                 if(status == BP_SUCCESS)
                 {
-                    /* Return Bundle for Forwarding */
+                    /* Indicate Bundle Ready for Forwarding */
                     status = BP_PENDING_FORWARD;
 
                     /* Handle Custody Transfer */
+                    payload->node = BP_IPN_NULL;
+                    payload->service = BP_IPN_NULL;
                     if(pri_blk.cst_rqst)
                     {
-                        if(!cteb_present)
-                        {
-                            status = bplog(flags, BP_FLAG_NONCOMPLIANT, "Only aggregate custody supported\n");
-                        }
-                        else
+                        if(cteb_present)
                         {
                             payload->node = cteb_blk.cstnode;
                             payload->service = cteb_blk.cstserv;
                             payload->cid = cteb_blk.cid.value;
                         }
-                    }
-                    else
-                    {
-                        payload->node = BP_IPN_NULL;
-                        payload->service = BP_IPN_NULL;
+                        else
+                        {
+                            status = bplog(flags, BP_FLAG_NONCOMPLIANT, "Only aggregate custody supported\n");
+                        }
                     }
                 }
             }
@@ -718,7 +715,7 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                 /* Process Record */
                 if(rec_type == BP_ACS_REC_TYPE)
                 {
-                    /* Return Aggregate Custody Signal for Custody Processing */
+                    /* Indicate Aggregate Custody Signal Ready for Custody Processing */
                     payload->node = pri_blk.cstnode.value;
                     payload->service = pri_blk.cstserv.value;
                     status = BP_PENDING_ACKNOWLEDGMENT;
@@ -727,12 +724,14 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                 else if(rec_type == BP_STAT_REC_TYPE)   status = bplog(flags, BP_FLAG_NONCOMPLIANT, "Status report bundles are not supported\n");
                 else                                    status = bplog(flags, BP_FLAG_UNKNOWNREC, "Unknown administrative record: %u\n", (unsigned int)rec_type);
             }
-            else
+            else /* bundle with payload destined for local node */
             {
-                /* Return Payload for Accepting */
+                /* Indicate Payload Ready for Acceptance */
                 status = BP_PENDING_ACCEPTANCE;
 
                 /* Handle Custody Transfer */
+                payload->node = BP_IPN_NULL;
+                payload->service = BP_IPN_NULL;
                 if(pri_blk.cst_rqst)
                 {
                     if(cteb_present)
@@ -745,11 +744,6 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                     {
                         status = bplog(flags, BP_FLAG_NONCOMPLIANT, "Bundle requesting custody, but only aggregate custody supported\n");
                     }
-                }
-                else
-                {
-                    payload->node = BP_IPN_NULL;
-                    payload->service = BP_IPN_NULL;
                 }
             }
 
