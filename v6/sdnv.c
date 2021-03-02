@@ -152,7 +152,10 @@ int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint32_t* flags)
 }
 
 /*--------------------------------------------------------------------------------------
- * sdnv_mask - truncates value to width
+ * sdnv_mask -  truncates value to width so that values that are larger than their
+ *              allocated fixed-width within the bundle can be written into the bundle
+ *              without any overflow errors (i.e. it rolls the value over at the specified
+ *              width)
  *
  *  sdnv - pointer to sdnv that will be truncated [input/output]
  *-------------------------------------------------------------------------------------*/

@@ -213,7 +213,7 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, ui
         sdnv_write(buffer, size, pri->lifetime,   &sdnvflags);
 
         /* Handle Optional Fragmentation Fields */
-        if(pri->allow_frag)
+        if(pri->is_frag)
         {
             sdnv_write(buffer, size, pri->dictlen,    &sdnvflags);
             sdnv_write(buffer, size, pri->fragoffset, &sdnvflags);
@@ -243,7 +243,7 @@ int pri_write (void* block, int size, bp_blk_pri_t* pri, bool update_indices, ui
         pri->dictlen.width      = 0;
 
         pri->blklen.index       = sdnv_write(buffer, size, pri->pcf,          &sdnvflags);
-        pri->dstnode.index      = pri->blklen.index + pri->blklen.width;
+        pri->dstnode.index      = pri->blklen.index + pri->blklen.width; /* block length written below (once size is known) */
         pri->dstserv.index      = sdnv_write(buffer, size, pri->dstnode,      &sdnvflags);
         pri->srcnode.index      = sdnv_write(buffer, size, pri->dstserv,      &sdnvflags);
         pri->srcserv.index      = sdnv_write(buffer, size, pri->srcnode,      &sdnvflags);

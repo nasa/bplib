@@ -167,6 +167,21 @@ BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* data, int siz
                 status = BP_ERROR;
             }
 
+            /*
+             * Inside flash_object_delete, the flash_page_buffer is used to read the first
+             * page of an object - this is a shortcut so that the code doesn't need to allocate
+             * a separate buffer just to read the beginning of the object.  It is the only
+             * time in the code when this is done, and it is hardcoded to only read one page
+             * and have the offset into the flash_page_buffer be zero.
+             * 
+             * When this occurs, we not only don't need to copy the contents out of the flash_page_buffer
+             * since the "data" pointer already points to it, but on many architectures, calling
+             * memcpy with overlapping address ranges causes an exception.
+             * 
+             * Note that there is no case in the code where the data buffer is pointing to a location
+             * in memory that overlaps with the flash_page_buffer; so the check for equivalence is 
+             * sufficient.
+             */ 
             if(data != flash_page_buffer) 
             {
                 memcpy(data, flash_page_buffer, size);
@@ -403,7 +418,8 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
     int status = BP_SUCCESS;
 
     /* Check if Room Available */
-    uint64_t bytes_available = (uint64_t)flash_free_blocks.count * (uint64_t)FLASH_DRIVER.pages_per_block * (uint64_t)FLASH_PAGE_DATA_SIZE;
+    uint64_t bytes_available = ((uint64_t)flash_free_blocks.count * (uint64_t)FLASH_DRIVER.pages_per_block * (uint64_t)FLASH_PAGE_DATA_SIZE) + /* full blocks remaining */
+                               (((uint64_t)FLASH_DRIVER.pages_per_block - fs->write_addr.page) * (uint64_t)FLASH_PAGE_DATA_SIZE); /* current block remaining */
     int bytes_needed = sizeof(flash_object_hdr_t) + data1_size + data2_size;
     if(bytes_available >= (uint64_t)bytes_needed && fs->attributes.max_data_size >= bytes_needed)
     {
@@ -548,7 +564,7 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
         if(addr.page >= FLASH_DRIVER.pages_per_block)
         {
             bp_flash_index_t next_delete_block = flash_blocks[addr.block].next_block;
-            if(next_delete_block == BP_FLASH_INVALID_INDEX)
+            if((next_delete_block == BP_FLASH_INVALID_INDEX) && (bytes_left > 0))
             {
                 return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to retrieve next block in middle of flash delete at block: %d\n", 
                                                             FLASH_DRIVER.phyblk(addr.block));

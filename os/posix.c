@@ -135,18 +135,16 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
             if(event != BP_FLAG_DIAGNOSTIC)
             {
                 msglen = snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%08X:%s", pathptr, line, event, formatted_string);
-                if(msglen > (BP_MAX_LOG_ENTRY_SIZE - 1))
-                {
-                    log_message[BP_MAX_LOG_ENTRY_SIZE - 1] = '#';
-                }
             }
             else
             {
                 msglen = snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%s", pathptr, line, formatted_string);
-                if(msglen > (BP_MAX_LOG_ENTRY_SIZE - 1))
-                {
-                    log_message[BP_MAX_LOG_ENTRY_SIZE - 1] = '#';
-                }
+            }
+
+            /* Provide Truncation Indicator */
+            if(msglen > (BP_MAX_LOG_ENTRY_SIZE - 2))
+            {
+                log_message[BP_MAX_LOG_ENTRY_SIZE - 2] = '#';
             }
 
             /* Display Log Message */
