@@ -33,7 +33,6 @@
 #define MSGQ_MEMORY_ERROR       (-4)
 #define MSGQ_UNDERFLOW          (-5)
 #define MSGQ_INVALID_HANDLE     ((msgq_t)NULL)
-#define MSGQ_MAX_NAME_CHARS     64
 #define MSGQ_DEPTH_INFINITY     0
 #define MSGQ_SIZE_INFINITY      0
 #define MSGQ_STORE_STR          "bplibq"
@@ -69,28 +68,26 @@ typedef struct queue_def_t {
     queue_node_t*           front;  /* oldest node removed (read pointer) */
     queue_node_t*           rear;   /* newest node added (write pointer) */
     unsigned int            depth;  /* maximum length of linked list */
-    unsigned int            len;    /* current length of linked list */
-    unsigned int            max_data_size;
+    unsigned int            len;    /* current length of linked list (lazy deallocation means this includes non-active items) */
+    unsigned int            max_data_size; /* largest item that can be queued */
 } queue_t;
 
 /* message_queue_t */
 typedef struct {
-    char                    name[MSGQ_MAX_NAME_CHARS];
-    queue_t                 queue;
-    int                     ready;
-    int                     state;
+    queue_t                 queue;  /* linked list */
+    int                     ready;  /* handle for mutex/conditional */
+    int                     state;  /* state of queue */
+    int                     count;  /* number of items in queue */
 } message_queue_t;
 
 /* message queue handle */
-typedef void* msgq_t;
+typedef message_queue_t* msgq_t;
 
 /******************************************************************************
  * FILE DATA
  ******************************************************************************/
 
 static msgq_t msgq_stores[MSGQ_MAX_STORES];
-static int msgq_counts[MSGQ_MAX_STORES];
-static unsigned long store_id;
 
 /******************************************************************************
  * LOCAL QUEUE FUNCTIONS
@@ -222,22 +219,16 @@ BP_LOCAL_SCOPE void* dequeue(queue_t* q, int* size)
  *           is allowed to infinitely grow until all the memory in the
  *           system is consumed.
  *----------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE msgq_t msgq_create(const char* name, int depth, int data_size)
+BP_LOCAL_SCOPE msgq_t msgq_create(int depth, int data_size)
 {
     message_queue_t* msgQ;
     int ready_lock;
-
-    /* Check Parameters */
-    if(name == NULL)
-    {
-        return MSGQ_INVALID_HANDLE;
-    }
 
     /* Create Lock */
     ready_lock = bplib_os_createlock();
     if(ready_lock == -1)
     {
-        printf("ERROR(%d): Unable to create ready sem: %s\n", ready_lock, name);
+        printf("ERROR(%d): Unable to create ready sem\n", ready_lock);
         return MSGQ_INVALID_HANDLE;
     }
 
@@ -245,13 +236,12 @@ BP_LOCAL_SCOPE msgq_t msgq_create(const char* name, int depth, int data_size)
     msgQ = (message_queue_t*)bplib_os_calloc(sizeof(message_queue_t));
     if(msgQ == NULL)
     {
-        printf("ERROR, Unable to allocate message queue: %s\n", name);
+        printf("ERROR, Unable to allocate message queue\n");
         return MSGQ_INVALID_HANDLE;
     }
 
     /* Initialize MSG Q */
     msgQ->state = MSGQ_OKAY;
-    strncpy(msgQ->name, name, MSGQ_MAX_NAME_CHARS);
     msgQ->queue.front         = NULL;
     msgQ->queue.rear          = NULL;
     msgQ->queue.depth         = depth;
@@ -368,8 +358,6 @@ BP_LOCAL_SCOPE int msgq_receive(msgq_t queue_handle, void** data, int* size, int
 void bplib_store_ram_init (void)
 {
     memset(msgq_stores, 0, sizeof(msgq_stores));
-    memset(msgq_counts, 0, sizeof(msgq_counts));
-    store_id = 0;
 }
 
 /*----------------------------------------------------------------------------
@@ -385,21 +373,16 @@ int bplib_store_ram_create (int type, bp_ipn_t node, bp_ipn_t service, bool reco
 
     int slot, i;
 
-    /* Build Queue Name */
-    char qname[MSGQ_STORE_STR_SIZE];
-    bplib_os_format(qname, MSGQ_STORE_STR_SIZE, "%s%ld", MSGQ_STORE_STR, store_id++);
-
     /* Look for Empty Slots */
     slot = BP_INVALID_HANDLE;
     for(i = 0; i < MSGQ_MAX_STORES; i++)
     {
         if(msgq_stores[i] == MSGQ_INVALID_HANDLE)
         {
-            msgq_t msgq = msgq_create(qname, MSGQ_MAX_DEPTH, MSGQ_MAX_SIZE);
+            msgq_t msgq = msgq_create(MSGQ_MAX_DEPTH, MSGQ_MAX_SIZE);
             if(msgq != MSGQ_INVALID_HANDLE)
             {
                 msgq_stores[i] = msgq;
-                msgq_counts[i] = 0;
                 slot = i;
             }
             break;
@@ -420,7 +403,6 @@ int bplib_store_ram_destroy (int handle)
 
     msgq_delete(msgq_stores[handle]);
     msgq_stores[handle] = MSGQ_INVALID_HANDLE;
-    msgq_counts[handle] = 0;
 
     return BP_SUCCESS;
 }
@@ -455,7 +437,7 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
     status = msgq_post(msgq_stores[handle], object, object_size);
     if(status == MSGQ_OKAY)
     {
-        msgq_counts[handle]++;
+        msgq_stores[handle]->count++;
         return BP_SUCCESS;
     }
     else if(status == MSGQ_FULL)
@@ -542,7 +524,7 @@ int bplib_store_ram_relinquish (int handle, bp_sid_t sid)
 
     bp_object_t* object = (void*)sid;
     bplib_os_free(object);
-    msgq_counts[handle]--;
+    msgq_stores[handle]->count--;
 
     return BP_SUCCESS;
 }
@@ -555,5 +537,5 @@ int bplib_store_ram_getcount (int handle)
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
 
-    return msgq_counts[handle];
+    return msgq_stores[handle]->count;
 }

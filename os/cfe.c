@@ -103,8 +103,10 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     if((flag_log_enable & event) == event)
     {
         char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
+        char log_message[BP_MAX_LOG_ENTRY_SIZE];
         va_list args;
         int vlen, msglen;
+        char* pathptr;
 
         /* Build Formatted String */
         va_start(args, fmt);
@@ -116,11 +118,27 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
         if(msglen > 0)
         {
             formatted_string[msglen] = '\0';
-            CFE_EVS_SendEvent(BP_BPLIB_INFO_EID, CFE_EVS_INFORMATION, "[%08X] %s", event, formatted_string);
+
+            /* Chop Path in Filename */
+            pathptr = strrchr(file, '/');
+            if(pathptr) pathptr++;
+            else pathptr = (char*)file;
+
+            /* Build Log Message */
+            msglen = snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%s", pathptr, line, formatted_string);
+            
+            /* Provide Truncation Indicator */
+            if(msglen > (BP_MAX_LOG_ENTRY_SIZE - 2))
+            {
+                log_message[BP_MAX_LOG_ENTRY_SIZE - 2] = '#';
+            }
+            
+            /* Issue Log Message */
+            CFE_EVS_SendEvent(BP_BPLIB_INFO_EID, CFE_EVS_INFORMATION, "%s", log_message);
         }
     }
 
-    /* Set EVent Flag and Return */
+    /* Set Event Flag and Return */
     if(event > 0)
     {
         if(flags) *flags |= event;
