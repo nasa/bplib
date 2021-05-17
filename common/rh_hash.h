@@ -29,19 +29,19 @@
  ******************************************************************************/
 
 typedef struct {
-    bp_active_bundle_t  bundle;
-    bp_index_t          next;   // next entry in chain
-    bp_index_t          prev;   // previous entry in chain
-    bp_index_t          after;  // next entry added to hash (time ordered)
-    bp_index_t          before; // previous entry added to hash (time ordered)
+    bp_active_bundle_t  bundle;         /* active bundle stored a this node */
+    bp_index_t          next;           /* next entry in chain */
+    bp_index_t          prev;           /* previous entry in chain */
+    bp_index_t          after;          /* next entry added to hash (time ordered) */
+    bp_index_t          before;         /* previous entry added to hash (time ordered) */
 } rh_hash_node_t;
 
 typedef struct {
-    rh_hash_node_t*     table;
-    bp_index_t          size;
-    bp_index_t          num_entries;
-    bp_index_t          oldest_entry;
-    bp_index_t          newest_entry;
+    rh_hash_node_t*     table;          /* hash table of active bundles */
+    bp_index_t          size;           /* maximum (allocated) size of hash table */
+    bp_index_t          num_entries;    /* number of active bundles in the hash table */
+    bp_index_t          oldest_entry;   /* oldest bundle in the hash table */
+    bp_index_t          newest_entry;   /* most recent bundle to be added to the hash table */
 } rh_hash_t;
 
 /******************************************************************************

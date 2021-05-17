@@ -32,20 +32,28 @@ extern "C" {
  TYPEDEFS
  ******************************************************************************/
 
+/*
+ * Value to use to indicate an invalid flash block and/or page
+ */
 #ifndef BP_FLASH_INVALID_INDEX
 #define BP_FLASH_INVALID_INDEX              UINT16_MAX
 #endif
 
+/*
+ * Type used for holding indices into flash blocks and pages;
+ * for example, uint8_t indicates that only 255 blocks or pages
+ * are accessible.
+ */
 #ifndef BP_FLASH_INDEX_TYPE
 #define BP_FLASH_INDEX_TYPE                 uint16_t
 #endif
 
+/*
+ * The number of flash based storage service control structures to 
+ * statically allocate
+ */
 #ifndef FLASH_MAX_STORES
 #define FLASH_MAX_STORES                    24
-#endif
-
-#ifndef FLASH_MAX_PAGES_PER_BLOCK
-#define FLASH_MAX_PAGES_PER_BLOCK           128
 #endif
 
 /******************************************************************************
@@ -66,25 +74,25 @@ typedef int (*bp_flash_block_is_bad_t)      (bp_flash_index_t block);
 typedef int (*bp_flash_physical_block_t)    (bp_flash_index_t logblk);
 
 typedef struct {
-    bp_flash_index_t            num_blocks;
-    bp_flash_index_t            pages_per_block;
-    int                         page_size; /* bytes */
-    bp_flash_page_read_t        read;
-    bp_flash_page_write_t       write;
-    bp_flash_block_erase_t      erase;
-    bp_flash_block_is_bad_t     isbad;
-    bp_flash_physical_block_t   phyblk;
+    bp_flash_index_t            num_blocks;         /* number of blocks available in flash device */
+    bp_flash_index_t            pages_per_block;    /* number of pages per block available in flash device */
+    int                         page_size;          /* size of page in bytes */
+    bp_flash_page_read_t        read;               /* function pointer to read page */
+    bp_flash_page_write_t       write;              /* function pointer to write page */
+    bp_flash_block_erase_t      erase;              /* function pointer to erase block */
+    bp_flash_block_is_bad_t     isbad;              /* functino pointer to check if block bad */
+    bp_flash_physical_block_t   phyblk;             /* function pointer to convert between logical and physical block addresses */
 } bp_flash_driver_t;
 
 typedef struct {
-    int num_free_blocks;
-    int num_used_blocks;
-    int num_fail_blocks;
-    int error_count;
+    int num_free_blocks;                            /* number of free blocks available to driver to store bundles in */
+    int num_used_blocks;                            /* number of blocks currently used by the driver */
+    int num_fail_blocks;                            /* number of blocks that have been removed from the free list due to errors */
+    int error_count;                                /* number of flash operations that have returned an error */
 } bp_flash_stats_t;
 
 typedef struct {
-    int max_data_size; /* max size of data being cached */
+    int max_data_size;                              /* max size of data stored, must exceed page size */
 } bp_flash_attr_t;
 
 /******************************************************************************

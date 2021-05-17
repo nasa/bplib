@@ -32,23 +32,23 @@
 /* Bundle Primary Block */
 typedef struct {
     /* field data */
-    uint8_t     version;
-    bp_field_t  pcf;
-    bp_field_t  blklen;
-    bp_field_t  dstnode;
-    bp_field_t  dstserv;
-    bp_field_t  srcnode;
-    bp_field_t  srcserv;
-    bp_field_t  rptnode;
-    bp_field_t  rptserv;
-    bp_field_t  cstnode;
-    bp_field_t  cstserv; 
-    bp_field_t  createsec;
-    bp_field_t  createseq;
-    bp_field_t  lifetime;
-    bp_field_t  dictlen;
-    bp_field_t  fragoffset;
-    bp_field_t  paylen;
+    uint8_t     version;        /* bundle protocol version */
+    bp_field_t  pcf;            /* process control flags */
+    bp_field_t  blklen;         /* block length */
+    bp_field_t  dstnode;        /* destination node */
+    bp_field_t  dstserv;        /* destination service */
+    bp_field_t  srcnode;        /* source node */
+    bp_field_t  srcserv;        /* source service */
+    bp_field_t  rptnode;        /* report to node */
+    bp_field_t  rptserv;        /* report to service */
+    bp_field_t  cstnode;        /* custody node */
+    bp_field_t  cstserv;        /* custody service */
+    bp_field_t  createsec;      /* creation timestamp - seconds */
+    bp_field_t  createseq;      /* creation timestamp - sequence number */
+    bp_field_t  lifetime;       /* bundle lifetime (seconds since J2000) */
+    bp_field_t  dictlen;        /* dictionary length in bytes */
+    bp_field_t  fragoffset;     /* payload fragment offset in bytes */
+    bp_field_t  paylen;         /* payload length in bytes */
     /* meta information */
     bool        is_admin_rec;   /* 0: not admin, 1: is admin */
     bool        is_frag;        /* 0: is not a fragment, 1: is a fragment */

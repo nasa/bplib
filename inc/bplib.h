@@ -61,7 +61,7 @@ extern "C" {
 #define BP_FLAG_API_ERROR               0x00080000   /* calling code incorrectly used library */ 
 
 /* Handles */
-#define BP_INVALID_HANDLE               (-1)    /* used for integers (os locks, storage services) */
+#define BP_INVALID_HANDLE               (-1) /* used for integers (os locks, storage services) */
 
 /* Timeouts */
 #define BP_PEND                         (-1)
@@ -154,11 +154,11 @@ typedef bp_val_t bp_ipn_t;
 
 /* Address Routing */
 typedef struct {
-    bp_ipn_t    local_node;
+    bp_ipn_t    local_node;             /* IPN address used for source and custody addresses */
     bp_ipn_t    local_service;
-    bp_ipn_t    destination_node;
+    bp_ipn_t    destination_node;       /* IPN address bundles are sent to */
     bp_ipn_t    destination_service;
-    bp_ipn_t    report_node;
+    bp_ipn_t    report_node;            /* IPN address to send report bundles (currently not used) */
     bp_ipn_t    report_service;
 } bp_route_t;
 

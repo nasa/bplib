@@ -28,12 +28,13 @@
  TYPEDEFS
  ******************************************************************************/
 
+/* Circular Buffer Control Structure */
 typedef struct {
-    bp_active_bundle_t* table;
-    bp_index_t          size;
-    bp_index_t          num_entries;
-    bp_val_t            newest_cid;
-    bp_val_t            oldest_cid;
+    bp_active_bundle_t* table;          /* circular array of active bundkes */
+    bp_index_t          size;           /* maximum (allocated) size of circular array */
+    bp_index_t          num_entries;    /* number of bundles in the circular array */
+    bp_val_t            newest_cid;     /* most recent custody id to be inserted into array */
+    bp_val_t            oldest_cid;     /* oldest custody id still present in the array */
 } cbuf_t;
 
 /******************************************************************************

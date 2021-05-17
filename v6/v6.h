@@ -49,19 +49,19 @@
 #define BP_BIB_INTEGRITY_SIGNATURE      5
 
 /* Bundle Creation Time Handling */
-#define BP_TTL_CREATION_TIME            0   /* time-to-live extension block may be used */
-#define BP_UNKNOWN_CREATION_TIME        1   /* unreliable time source */
-#define BP_BEST_EFFORT_LIFETIME         1576800000; /* 50 years; ground systems using 'int' type for time have maximum of 68 years */
+#define BP_TTL_CREATION_TIME            0           /* time-to-live extension block may be used */
+#define BP_UNKNOWN_CREATION_TIME        1           /* unreliable time source */
+#define BP_BEST_EFFORT_LIFETIME         1576800000  /* 50 years; ground systems using 'int' type for time have maximum of 68 years */
 
 /* Record Type Definitions */    
-#define BP_STAT_REC_TYPE                0x10 /* Status Report */
-#define BP_CS_REC_TYPE                  0x20 /* Custody Signal */
-#define BP_ACS_REC_TYPE                 0x40 /* Aggregate Custody Signal */
+#define BP_STAT_REC_TYPE                0x10        /* Status Report */
+#define BP_CS_REC_TYPE                  0x20        /* Custody Signal */
+#define BP_ACS_REC_TYPE                 0x40        /* Aggregate Custody Signal */
 
 /* Aggregate Custody Signal Definitions */
 #define BP_ACS_REC_TYPE_INDEX           0
 #define BP_ACS_REC_STATUS_INDEX         1
-#define BP_ACS_ACK_MASK                 0x80    /* if set, then custody successfully transfered */
+#define BP_ACS_ACK_MASK                 0x80        /* if set, then custody successfully transfered */
 
 /* Processing Control Flags */
 #define BP_PCF_FRAGMENT_MASK            0x000001    /* bundle is a fragement */

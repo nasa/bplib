@@ -33,9 +33,9 @@ extern "C" {
  ******************************************************************************/
 
 typedef struct {
-    const char* root_path;
-    int         cache_size;
-    bool        flush_on_write;
+    const char* root_path;          /* local directory used to store bundles as files */
+    int         cache_size;         /* number of bundles to store in cache (data_cache_t) */
+    bool        flush_on_write;     /* true: write-through cache */
 } bp_file_attr_t;
 
 typedef struct {
