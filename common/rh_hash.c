@@ -27,8 +27,8 @@
  DEFINES
  ******************************************************************************/
 
-#define NULL_INDEX      BP_MAX_INDEX    /* 0 is a valid index so max_val is used */
-#define HASH_CID(cid)   (cid)           /* identify function for now */
+#define NULL_INDEX          BP_MAX_INDEX        /* 0 is a valid index so max_val is used */
+#define HASH_CID(cid, size) ((cid) % (size))    /* module cid to size of hash */
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -169,7 +169,7 @@ int rh_hash_destroy(rh_hash_t* rh_hash)
  *----------------------------------------------------------------------------*/
 int rh_hash_add(rh_hash_t* rh_hash, bp_active_bundle_t bundle, bool overwrite)
 {
-    bp_index_t curr_index = HASH_CID(bundle.cid) % rh_hash->size;
+    bp_index_t curr_index = HASH_CID(bundle.cid, rh_hash->size);
 
     /* Add Entry to Hash */
     if(rh_hash->table[curr_index].bundle.sid == BP_SID_VACANT)
@@ -284,7 +284,7 @@ int rh_hash_next(rh_hash_t* rh_hash, bp_active_bundle_t* bundle)
  *----------------------------------------------------------------------------*/
 int rh_hash_remove(rh_hash_t* rh_hash, bp_val_t cid, bp_active_bundle_t* bundle)
 {
-    bp_index_t curr_index = HASH_CID(cid) % rh_hash->size;
+    bp_index_t curr_index = HASH_CID(cid, rh_hash->size);
 
     /* Find Node to Remove */
     while(curr_index != NULL_INDEX)
