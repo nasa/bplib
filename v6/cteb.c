@@ -122,7 +122,7 @@ int cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices,
     else
     {
         cteb->bf.width      = 0;
-        cteb->blklen.width  = 0;
+        cteb->blklen.width  = 1; /* reserve one byte (7 bits) to hold length of block */
         cteb->cid.width     = 0;
         cteb->bf.index      = 1;
         cteb->blklen.index  = sdnv_write(buffer, size, cteb->bf, &sdnvflags);
@@ -135,9 +135,18 @@ int cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices,
     if((eid_index + eid_len) > size) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "CTEB block terminated prematurely: %d > %d\n", eid_len + eid_index, size);
     memcpy(&buffer[eid_index], cteb->csteid, eid_len);
 
+    /* Write Block Length */
     bytes_written = eid_index + eid_len;
     cteb->blklen.value = bytes_written - cteb->cid.index;
-    sdnv_write(buffer, size, cteb->blklen, &sdnvflags);
+    if(cteb->blklen.value <= 0x7F)
+    {
+        sdnv_write(buffer, size, cteb->blklen, &sdnvflags);
+    }
+    else
+    {
+        bplog(&sdnvflags, BP_FLAG_SDNV_OVERFLOW, "CTEB block length too large: %d\n", cteb->blklen.value);
+    }
+    
 
     /* Success Oriented Error Checking */
     if(sdnvflags != 0)

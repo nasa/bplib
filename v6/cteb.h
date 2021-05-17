@@ -30,12 +30,12 @@
  ******************************************************************************/
 
 typedef struct {
-    bp_field_t  bf;
-    bp_field_t  blklen;
-    bp_field_t  cid;
-    char        csteid[BP_MAX_EID_STRING];
-    bp_ipn_t    cstnode;
-    bp_ipn_t    cstserv;
+    bp_field_t  bf;                         /* block flags */
+    bp_field_t  blklen;                     /* block length */
+    bp_field_t  cid;                        /* custody ID */
+    char        csteid[BP_MAX_EID_STRING];  /* custody EID: "ipn:{node}.{service}" */
+    bp_ipn_t    cstnode;                    /* custody node */
+    bp_ipn_t    cstserv;                    /* custody service */
 } bp_blk_cteb_t;
 
 /******************************************************************************
