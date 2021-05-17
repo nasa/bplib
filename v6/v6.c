@@ -369,7 +369,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
             pri->createsec.value = BP_UNKNOWN_CREATION_TIME;
 
             /* Lifetime hardcoded in this special case to protect against unintended bundle expiration */
-            lifetime.value = BP_MAX_LIFETIME;
+            lifetime.value = BP_BEST_EFFORT_LIFETIME;
             sdnv_write(data->header, BP_BUNDLE_HDR_BUF_SIZE, lifetime, flags);
         }
         else
