@@ -64,31 +64,61 @@ BP_LOCAL_SCOPE crc_parameters_t crc32_castagnoli = {
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * to_big_endian16 - Converts a uint16_t to big endian representation and writes it to
+ * write_crc16 - Converts a uint16_t to big endian representation and writes it to
  *      buffer.
  *
- * val: The uint16_t to convert to big endian. [INPUT]
+ * crc: The uint16_t crc to convert to big endian. [INPUT]
  * buffer: The buffer to write the converted value to. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static inline void to_big_endian16(uint16_t val, uint8_t* buffer)
+static inline void write_crc16(uint16_t crc, uint8_t* buffer)
 {
-    buffer[0] = (val >> 8) & 0xFF;
-    buffer[1] = (val     ) & 0xFF;
+    buffer[0] = (crc >> 8) & 0xFF;
+    buffer[1] = (crc     ) & 0xFF;
 }
 
 /*--------------------------------------------------------------------------------------
- * to_big_endian32 - Converts a uint16_t to big endian representation and writes it to
+ * write_crc32 - Converts a uint16_t to big endian representation and writes it to
  *      buffer.
  *
- * val: The uint32_t to convert to big endian. [INPUT]
+ * crc: The uint32_t to convert to big endian. [INPUT]
  * buffer: The buffer to write the converted value to. [OUTPUT]
  *-------------------------------------------------------------------------------------*/
-static inline void to_big_endian32(uint32_t val, uint8_t* buffer)
+static inline void write_crc32(uint32_t crc, uint8_t* buffer)
 {
-    buffer[0] = (val >> 24) & 0xFF;
-    buffer[1] = (val >> 16) & 0xFF;
-    buffer[2] = (val >>  8) & 0xFF;
-    buffer[3] = (val      ) & 0xFF;
+    buffer[0] = (crc >> 24) & 0xFF;
+    buffer[1] = (crc >> 16) & 0xFF;
+    buffer[2] = (crc >>  8) & 0xFF;
+    buffer[3] = (crc      ) & 0xFF;
+}
+
+/*--------------------------------------------------------------------------------------
+ * read_crc16 - Reads a big endian representation and converts it to a uint16_t.
+ *
+ * buffer: The buffer to read the converted value from. [INPUT]
+ * return: The uint16_t crc [OUTPUT]
+ *-------------------------------------------------------------------------------------*/
+static inline uint16_t read_crc16(uint8_t* buffer)
+{
+    uint16_t crc = 0;
+    crc |= (((uint16_t) buffer[0]) << 8);
+    crc |= ((uint16_t) buffer[1]);
+    return crc;
+}
+
+/*--------------------------------------------------------------------------------------
+ * read_crc32 - Reads a big endian representation and converts it to a uint32_t.
+ *
+ * buffer: The buffer to read the converted value from. [OUTPUT]
+ * return: The uint16_t crc [OUTPUT]
+ *-------------------------------------------------------------------------------------*/
+static inline uint32_t read_crc32(uint8_t* buffer)
+{
+    uint32_t crc = 0;
+    crc |= ((uint32_t) buffer[0]) << 24;
+    crc |= ((uint32_t) buffer[1]) << 16;
+    crc |= ((uint32_t) buffer[2]) <<  8;
+    crc |= ((uint32_t) buffer[3]);
+    return crc;
 }
 
 /******************************************************************************
@@ -201,10 +231,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
         }
 
-        uint8_t* valptr = buffer + bytes_read;
-        bib->security_result_data.crc16 = 0;
-        bib->security_result_data.crc16 |= (((uint16_t) valptr[0]) << 8);
-        bib->security_result_data.crc16 |= ((uint16_t) valptr[1]);
+        bib->security_result_data.crc16 = read_crc16(buffer + bytes_read);
         bytes_read += 2;
     }
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
@@ -214,12 +241,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
         }
 
-        uint8_t* valptr = buffer + bytes_read;
-        bib->security_result_data.crc32 = 0;
-        bib->security_result_data.crc32 |= ((uint32_t) valptr[0]) << 24;
-        bib->security_result_data.crc32 |= ((uint32_t) valptr[1]) << 16;
-        bib->security_result_data.crc32 |= ((uint32_t) valptr[2]) <<  8;
-        bib->security_result_data.crc32 |= ((uint32_t) valptr[3]);
+        bib->security_result_data.crc32 = read_crc32(buffer + bytes_read);
         bytes_read += 4;
     }
     else
@@ -341,12 +363,12 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     /* Write Integrity Check */
     if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
-        to_big_endian16(bib->security_result_data.crc16, buffer + bytes_written);
+        write_crc16(bib->security_result_data.crc16, buffer + bytes_written);
         bytes_written += 2;
     }
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
-        to_big_endian32(bib->security_result_data.crc32, buffer + bytes_written);
+        write_crc32(bib->security_result_data.crc32, buffer + bytes_written);
         bytes_written += 4;
     }
 
@@ -393,13 +415,17 @@ int bib_update (void* block, int size, void* payload, int payload_size, bp_blk_b
     {
         bib->security_result_data.crc16 = (uint16_t) crc_get((uint8_t*)payload, payload_size, &crc16_x25);
         uint8_t* valptr = buffer + bib->security_result_length.index + bib->security_result_length.width;
-        to_big_endian16(bib->security_result_data.crc16, valptr);
+        write_crc16(bib->security_result_data.crc16, valptr);
     }
     else if(bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
         bib->security_result_data.crc32 = crc_get((uint8_t*)payload, payload_size, &crc32_castagnoli);
         uint8_t* valptr = buffer + bib->security_result_length.index + bib->security_result_length.width;
-        to_big_endian32(bib->security_result_data.crc32, valptr);
+        write_crc32(bib->security_result_data.crc32, valptr);
+    }
+    else
+    {
+        return bplog(flags, BP_FLAG_INVALID_CIPHER_SUITEID, "Invalid BIB cipher suite id: %d\n", bib->cipher_suite_id.value);
     }
 
     /* Return Success */
@@ -438,6 +464,10 @@ int bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* fl
             /* Return Failure */
             return bplog(flags, BP_FLAG_FAILED_INTEGRITY_CHECK, "Failed CASTAGNOLI integrity check, exp=%08Xl, act=%08Xl \n", bib->security_result_data.crc32, crc);
         }
+    }
+    else
+    {
+        return bplog(flags, BP_FLAG_INVALID_CIPHER_SUITEID, "Invalid BIB cipher suite id: %d\n", bib->cipher_suite_id.value);
     }
 
     /* Return Success */
