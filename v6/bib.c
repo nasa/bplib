@@ -139,8 +139,8 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     /* Read Block */
     if(!update_indices)
     {
-        sdnv_read(buffer, size, &bib->block_flags, &sdnvflags);
-        sdnv_read(buffer, size, &bib->block_length, &sdnvflags);
+        sdnv_read(buffer, size, &bib->bf, &sdnvflags);
+        sdnv_read(buffer, size, &bib->blklen, &sdnvflags);
         bytes_read = sdnv_read(buffer, size, &bib->security_target_count, &sdnvflags);
 
         if (bytes_read + 1 > size) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
@@ -157,17 +157,17 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     }
     else
     {
-        bib->block_flags.width = 0;
-        bib->block_length.width = 0;
+        bib->bf.width = 0;
+        bib->blklen.width = 0;
         bib->security_target_count.width = 0;
         bib->cipher_suite_id.width = 0;
         bib->cipher_suite_flags.width = 0;
         bib->compound_length.width = 0;
         bib->security_result_length.width = 0;
 
-        bib->block_flags.index = 1;
-        bib->block_length.index             = sdnv_read(buffer, size, &bib->block_flags,                &sdnvflags);
-        bib->security_target_count.index    = sdnv_read(buffer, size, &bib->block_length,               &sdnvflags);
+        bib->bf.index = 1;
+        bib->blklen.index             = sdnv_read(buffer, size, &bib->bf,                &sdnvflags);
+        bib->security_target_count.index    = sdnv_read(buffer, size, &bib->blklen,               &sdnvflags);
         bytes_read                          = sdnv_read(buffer, size, &bib->security_target_count,      &sdnvflags);
 
         if (bytes_read + 1 > size) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
@@ -286,14 +286,14 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     }
 
     /* Set Block Flags */
-    bib->block_flags.value |= BP_BLK_REPALL_MASK;
+    bib->bf.value |= BP_BLK_REPALL_MASK;
 
     /* Write Block */
     buffer[0] = BP_BIB_BLK_TYPE; /* block type */
     if(!update_indices)
     {
-        sdnv_write(buffer, size, bib->block_flags,              &sdnvflags);
-        sdnv_write(buffer, size, bib->block_length,             &sdnvflags);
+        sdnv_write(buffer, size, bib->bf,              &sdnvflags);
+        sdnv_write(buffer, size, bib->blklen,             &sdnvflags);
         bytes_written = sdnv_write(buffer, size, bib->security_target_count,    &sdnvflags);
 
         if (bytes_written + 1 > size) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Insufficient room for BIB block at: %d\n", bytes_written);
@@ -310,17 +310,17 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     }
     else
     {
-        bib->block_flags.width = 0;
-        bib->block_length.width = 0;
+        bib->bf.width = 0;
+        bib->blklen.width = 0;
         bib->security_target_count.width = 0;
         bib->cipher_suite_id.width = 0;
         bib->cipher_suite_flags.width = 0;
         bib->compound_length.width = 0;
         bib->security_result_length.width = 0;
 
-        bib->block_flags.index = 1;
-        bib->block_length.index             = sdnv_write(buffer, size, bib->block_flags,            &sdnvflags);
-        bib->security_target_count.index    = sdnv_write(buffer, size, bib->block_length,           &sdnvflags);
+        bib->bf.index = 1;
+        bib->blklen.index             = sdnv_write(buffer, size, bib->bf,            &sdnvflags);
+        bib->security_target_count.index    = sdnv_write(buffer, size, bib->blklen,           &sdnvflags);
         bytes_written                       = sdnv_write(buffer, size, bib->security_target_count,  &sdnvflags);
 
         if (bytes_written + 1 > size) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Insufficient room for BIB block at: %d\n", bytes_written);
@@ -351,8 +351,8 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     }
 
     /* Jam Block Length */
-    bib->block_length.value = bytes_written - bib->security_target_count.index;
-    sdnv_write(buffer, size, bib->block_length, &sdnvflags);
+    bib->blklen.value = bytes_written - bib->security_target_count.index;
+    sdnv_write(buffer, size, bib->blklen, &sdnvflags);
 
     /* Success Oriented Error Checking */
     if(sdnvflags != 0)

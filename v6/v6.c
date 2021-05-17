@@ -96,8 +96,8 @@ static const bp_blk_cteb_t bundle_cteb_blk = {
 
 static const bp_blk_bib_t bundle_bib_blk = {
                                 /* Value    Index  Width */
-    .block_flags              = {  0,       1,     1   },
-    .block_length             = {  0,       2,     4   },
+    .bf                       = {  0,       1,     1   },
+    .blklen                   = {  0,       2,     4   },
     .security_target_count    = {  1,       6,     1   },
     .security_target_type     = BP_PAY_BLK_TYPE,
     .cipher_suite_id          = {  0,       8,     1   },

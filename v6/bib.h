@@ -30,8 +30,8 @@
  ******************************************************************************/
 
 typedef struct {
-    bp_field_t  block_flags;
-    bp_field_t  block_length;
+    bp_field_t  bf;                         /* block flags */
+    bp_field_t  blklen;                     /* block length */
     bp_field_t  security_target_count;
     uint8_t     security_target_type;
     bp_field_t  cipher_suite_id;
