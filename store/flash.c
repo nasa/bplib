@@ -698,6 +698,12 @@ int bplib_store_flash_init (bp_flash_driver_t driver, bool sw_edac)
             {
                 reclaimed_blocks++;
             }
+
+            /* Log Status */
+            if(block % 2000 == 0)
+            {
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "Initializing flash... reclaiming block %d of %d\n", block, FLASH_DRIVER.num_blocks);
+            }
         }
 
         /* Zero Out Used Flash Blocks */
