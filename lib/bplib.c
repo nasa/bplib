@@ -113,7 +113,7 @@ static const bp_attr_t default_attributes = {
  ******************************************************************************/
 
 #if BPLIB_GLOBAL_CUSTODY_ID
-int bplib_custody_id_mutex = BP_INVALID_HANDLE;
+int bplib_custody_id_mutex = BP_INVALID_HANDLE;asdfd
 bp_val_t bplib_global_custody_id = 0;
 #endif
 

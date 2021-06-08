@@ -906,12 +906,20 @@ int lbplib_memstat (lua_State* L)
 }
 
 /*----------------------------------------------------------------------------
- * lbplib_shutdown - bplib.shutdown()
+ * lbplib_shutdown - bplib.shutdown(<full>)
  *----------------------------------------------------------------------------*/
 int lbplib_shutdown (lua_State* L)
 {
     (void)L;
 
+    /* Get Parameters */
+    bool full = false;
+    if(lua_isboolean(L, 1))
+    {
+        full = lua_toboolean(L, 1);
+    }
+
+    /* Shutdown Services */
     unsigned int i;
     for(i = 0; i < LBPLIB_NUM_STORES; i++)
     {
@@ -923,7 +931,8 @@ int lbplib_shutdown (lua_State* L)
         }
     }
 
-    bplib_deinit();
+    /* Deinitialize Library (only when full shutdown specified) */
+    if(full) bplib_deinit();
 
     return 0;
 }

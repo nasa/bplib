@@ -75,6 +75,8 @@ On CentOS you may need to create a file with the conf extension in /etc/ld.so.co
 * `sudo echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf`
 * `sudo ldconfig`
 
+**Special Note**:  In order to be compatible with other implementations of the Bundle Protocol, bplib uses a global custody ID by default.  To use bplib with per channel custody IDs that optimize aggregate acknowledgements, define `BPLIB_GLOBAL_CUSTODY_ID` to false when compiling the code (e.g. `make USER_COPT="-DBPLIB_GLOBAL_CUSTODY_ID=false"`).
+
 #### Example Application
 
 For those that learn better through examples, an example application is provided in the `apps` directory.  This example program is not intended to be complete, but provides a quick way to see how to use the library.  After building and installing bplib on your system, you can do a simple test to see if the application will run by doing the following:

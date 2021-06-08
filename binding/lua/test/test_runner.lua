@@ -4,6 +4,8 @@ local rd = runner.rootdir(arg[0])
 
 --runner.set_exit_on_error(true)
 
+start_currmem, start_highmem = bplib.memstat()
+
 -- Run Unit Tests --
 
 runner.script(rd .. "ut_open_close.lua", {"RAM"})
@@ -42,7 +44,7 @@ runner.script(rd .. "ut_unittest.lua")
 -- Check for Memory Leaks --
 
 currmem, highmem = bplib.memstat()
-runner.check(currmem == 0, string.format('Memory leak detected: %d!', currmem))
+runner.check(currmem == start_currmem, string.format('Memory leak detected: %d!', currmem - start_currmem))
 
 -- Report Results --
 

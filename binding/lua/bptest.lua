@@ -180,13 +180,13 @@ Function:   cleanup
  Purpose:   tear down bplib test environment
    Notes:   none
 ]]
-local function cleanup(bplib, store)
+local function cleanup(bplib, store, full)
     if store == "FILE" then
         os.execute("rm -Rf .pfile")
     elseif store == "FLASH" then
         bplib.flashsim("DEINIT")
     end
-    bplib.shutdown();
+    bplib.shutdown(full); 
 end
 
 --[[
