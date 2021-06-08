@@ -1030,16 +1030,20 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
             int bytes_read = v6_receive_acknowledgment(payload.memptr, payload.data.payloadsize, &num_acks, delete_bundle, ch, flags);
             ch->stats.acknowledged_bundles += num_acks;
 
+            /* Signal Active Table */
+            if(num_acks > 0)
+            {
+                bplib_os_signal(ch->active_table_signal);
+            }
+
             /* Set Status */
             if(bytes_read > 0)
             {
-                bplib_os_signal(ch->active_table_signal);
                 status = BP_SUCCESS;
             }
             else
-            {
-                /* Error Code */
-                status = bytes_read;
+            {                
+                status = bytes_read; /* Error Code */
             }
         }
         bplib_os_unlock(ch->active_table_signal);
