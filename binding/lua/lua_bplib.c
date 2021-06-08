@@ -1,3 +1,4 @@
+
 /************************************************************************
  * File: lua_bplib.c
  *
@@ -921,6 +922,8 @@ int lbplib_shutdown (lua_State* L)
             if(service->deinitfunc) service->deinitfunc();
         }
     }
+
+    bplib_deinit();
 
     return 0;
 }

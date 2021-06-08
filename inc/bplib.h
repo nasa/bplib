@@ -243,6 +243,7 @@ typedef struct {
  ******************************************************************************/
 
 int         bplib_init          (void);
+void        bplib_deinit        (void);
 
 bp_desc_t*  bplib_open          (bp_route_t route, bp_store_t store, bp_attr_t attributes);
 void        bplib_close         (bp_desc_t* desc);

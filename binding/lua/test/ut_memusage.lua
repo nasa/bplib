@@ -22,6 +22,9 @@ local timeout = 2
 -----------------------------------------------------------------------
 print(string.format('%s/%s: Test 1 - store bundles and close', store, src))
 
+currmem, highmem = bplib.memstat()
+print(string.format('Before Open:  %8d %8d', currmem, highmem))
+
 -- open channel --
 local sender = bplib.open(src_node, src_serv, dst_node, dst_serv, store)
 currmem, highmem = bplib.memstat()
@@ -37,6 +40,7 @@ print(string.format('After Store: %8d %8d', currmem, highmem))
 
 -- close channel --
 sender:close()
+bplib.shutdown() -- special case, calling here before final memstat check
 currmem, highmem = bplib.memstat()
 print(string.format('After Close: %8d %8d', currmem, highmem))
 

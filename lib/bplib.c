@@ -27,6 +27,14 @@
 #include "rh_hash.h"
 
 /******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+#ifndef BPLIB_GLOBAL_CUSTODY_ID
+#define BPLIB_GLOBAL_CUSTODY_ID true
+#endif
+
+/******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
@@ -99,6 +107,15 @@ static const bp_attr_t default_attributes = {
     .persistent_storage     = BP_DEFAULT_PERSISTENT_STORAGE,
     .storage_service_parm   = BP_DEFAULT_STORAGE_SERVICE_PARM
 };
+
+/******************************************************************************
+ FILE DATA
+ ******************************************************************************/
+
+#if BPLIB_GLOBAL_CUSTODY_ID
+int bplib_custody_id_mutex = BP_INVALID_HANDLE;
+bp_val_t bplib_global_custody_id = 0;
+#endif
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -223,8 +240,29 @@ int bplib_init(void)
     status = v6_initialize();
     if(status != BP_SUCCESS) return status;
 
+    /* (Optional) Global Custody ID */
+    #if BPLIB_GLOBAL_CUSTODY_ID
+    bplib_custody_id_mutex = bplib_os_createlock();
+    bplib_global_custody_id = 0;
+    #endif
+
     /* Return Success */
     return BP_SUCCESS;
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_deinit - deinitializes bp library
+ *-------------------------------------------------------------------------------------*/
+void bplib_deinit(void)
+{
+    /* (Optional) Global Custody ID */
+    #if BPLIB_GLOBAL_CUSTODY_ID
+    if(bplib_custody_id_mutex != BP_INVALID_HANDLE)
+    {
+        bplib_os_destroylock(bplib_custody_id_mutex);
+        bplib_custody_id_mutex = BP_INVALID_HANDLE;
+    }
+    #endif
 }
 
 /*--------------------------------------------------------------------------------------
@@ -909,7 +947,19 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
             bplib_os_lock(ch->active_table_signal);
             {
                 /* Assign New Custody ID */
-                if(newcid) active_bundle.cid = ch->current_active_cid++;
+                if(newcid)
+                {
+                    #if BPLIB_GLOBAL_CUSTODY_ID
+                    bplib_os_lock(bplib_custody_id_mutex);
+                    {
+                        active_bundle.cid = bplib_global_custody_id++;
+                        ch->current_active_cid = bplib_global_custody_id;
+                    }
+                    bplib_os_unlock(bplib_custody_id_mutex);
+                    #else
+                    active_bundle.cid = ch->current_active_cid++;
+                    #endif
+                }
 
                 /* Update Active Table */
                 status = ch->active_table.add(ch->active_table.table, active_bundle, !newcid);
