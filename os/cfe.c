@@ -103,10 +103,8 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     if((flag_log_enable & event) == event)
     {
         char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
-        char log_message[BP_MAX_LOG_ENTRY_SIZE];
         va_list args;
         int vlen, msglen;
-        char* pathptr;
 
         /* Build Formatted String */
         va_start(args, fmt);
@@ -117,6 +115,9 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
         /* Handle Log Message */
         if(msglen > 0)
         {
+            char log_message[BP_MAX_LOG_ENTRY_SIZE];
+            char* pathptr;
+
             formatted_string[msglen] = '\0';
 
             /* Chop Path in Filename */

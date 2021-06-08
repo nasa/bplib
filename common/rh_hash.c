@@ -110,8 +110,6 @@ BP_LOCAL_SCOPE void write_node(rh_hash_t* rh_hash, bp_index_t index, bp_active_b
  *----------------------------------------------------------------------------*/
 int rh_hash_create(rh_hash_t** rh_hash, int size)
 {
-    int i;
-
     /* Check Hash Size */
     if(size < 0 || (unsigned long)size > BP_MAX_INDEX) return BP_ERROR;
 
@@ -120,6 +118,8 @@ int rh_hash_create(rh_hash_t** rh_hash, int size)
 
     if(size > 0)
     {
+        int i;
+        
         /* Allocate Hash Table */
         (*rh_hash)->table = (rh_hash_node_t*)bplib_os_calloc(size * sizeof(rh_hash_node_t));
         if((*rh_hash)->table == NULL) return BP_ERROR;

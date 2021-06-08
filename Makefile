@@ -246,10 +246,11 @@ testcov:
 ##  STATIC ANALYSIS RULES
 
 CHECK_OPT  = --enable=all --inconclusive --error-exitcode=1 -q
-CHECK_OPT += --suppress=unusedFunction --suppress=missingInclude --suppress=objectIndex:common/crc.c
+CHECK_OPT += --suppress=unusedFunction --suppress=missingInclude 
+CHECK_OPT += --suppress=objectIndex:common/crc.c
 CHECK_OPT += --suppress=redundantAssignment:v6/dacs.c
-CHECK_OPT += --suppress=memleak:os/cfe.c:243
-CHECK_OPT += --suppress=memleak:os/posix.c:331
+CHECK_OPT += --suppress=memleak:os/cfe.c
+CHECK_OPT += --suppress=memleak:os/posix.c
 
 check:
 	cppcheck $(ROOT) $(CHECK_OPT) $(INCLUDES) $(APP_DEFS)

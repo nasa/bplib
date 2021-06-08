@@ -514,6 +514,7 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
 BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
 {
     int status;
+    int bytes_left;
 
     /* Get Address from SID */
     bp_flash_addr_t addr = {FLASH_GET_BLOCK((unsigned long)sid), FLASH_GET_PAGE((unsigned long)sid)};
@@ -539,18 +540,12 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
                                                     (unsigned long)flash_object_hdr->object_hdr.sid, (unsigned long)sid);
     }
 
-    /* Setup Loop Parameters */
-    bp_flash_index_t current_block = BP_FLASH_INVALID_INDEX;
-    int bytes_left = flash_object_hdr->object_hdr.size;
-
     /* Delete Each Page of Data */
+    bytes_left = flash_object_hdr->object_hdr.size;
     while(bytes_left > 0)
     {
         /* Set Current Block */
-        if(current_block != addr.block)
-        {
-            current_block = addr.block;
-        }
+        bp_flash_index_t current_block = addr.block;
 
         /* Mark Data on Page as Deleted */
         flash_blocks[current_block].pages_in_use--;

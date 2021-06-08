@@ -741,12 +741,10 @@ static void test_8(void)
 
     int test_cycles = 65536;
     int hash_size = 64;
-    int cid_range = 0xFFFFFFFF;
+    unsigned int cid_range = 0xFFFFFFFF;
 
-    bool found_error = false;
     bp_active_bundle_t bundle = {1, 0, 0};
     bp_val_t* order_of_cids = (bp_val_t*)malloc(hash_size * sizeof(bp_val_t));
-    int num_added = 0;
 
     printf("\n==== Test 8: Stress - In Order ====\n");
 
@@ -756,8 +754,8 @@ static void test_8(void)
     for(j = 0; j < test_cycles; j++)
     {
         /* Reset Test */
-        num_added = 0;
-        found_error = false;
+        int num_added = 0;
+        bool found_error = false;
 
         /* Load Hash */
         for(i = 0; i < hash_size; i++)
@@ -823,12 +821,10 @@ static void test_9(void)
 
     int test_cycles = 65536;
     int hash_size = 64;
-    int cid_range = 0xFFFFFFFF;
+    unsigned int cid_range = 0xFFFFFFFF;
 
-    bool found_error = false;
     bp_active_bundle_t bundle = {1, 0, 0};
     bp_val_t* order_of_cids = (bp_val_t*)malloc(hash_size * sizeof(bp_val_t));
-    int num_added = 0;
 
     printf("\n==== Test 9: Stress - Out of Order ====\n");
 
@@ -838,8 +834,8 @@ static void test_9(void)
     for(j = 0; j < test_cycles; j++)
     {
         /* Reset Test */
-        num_added = 0;
-        found_error = false;
+        int num_added = 0;
+        bool found_error = false;
 
         /* Load Hash */
         for(i = 0; i < hash_size; i++)

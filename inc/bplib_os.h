@@ -79,7 +79,7 @@ typedef BP_INDEX_TYPE bp_index_t;
  ******************************************************************************/
 
 void        bplib_os_init           (void);
-int         bplib_os_log            (const char* file, unsigned int line, uint32_t* flags, uint32_t error, const char* fmt, ...) VARG_CHECK(printf, 5, 6);
+int         bplib_os_log            (const char* file, unsigned int line, uint32_t* flags, uint32_t event, const char* fmt, ...) VARG_CHECK(printf, 5, 6);
 int         bplib_os_systime        (unsigned long* sysnow); /* seconds */
 void        bplib_os_sleep          (int seconds);
 uint32_t    bplib_os_random         (void);
