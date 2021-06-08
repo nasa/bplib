@@ -131,10 +131,16 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
 
     bp_bundle_data_t* data = &bundle->data;
     bp_v6blocks_t* blocks = (bp_v6blocks_t*)bundle->blocks;
+    bp_val_t custody_service = bundle->route.local_service;
 
     /* Initialize Data Storage Memory */
     hdr_index = 0;
     memset(data, 0, sizeof(bp_bundle_data_t));
+
+    /* Handle Global Custody ID */
+    #if BPLIB_GLOBAL_CUSTODY_ID
+    custody_service = 0;
+    #endif
 
     /* Initialize Primary Block */
     if(pri)
@@ -158,7 +164,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         if(bundle->attributes.request_custody)
         {
             blocks->primary_block.cstnode.value = bundle->route.local_node;
-            blocks->primary_block.cstserv.value = bundle->route.local_service;
+            blocks->primary_block.cstserv.value = custody_service;
         }
         else
         {
@@ -193,7 +199,7 @@ int v6_build(bp_bundle_t* bundle, bp_blk_pri_t* pri, uint8_t* hdr_buf, int hdr_l
         /* Initialize Block */
         blocks->custody_block = bundle_cteb_blk;
         blocks->custody_block.cid.value = 0; /* Set Initial Custody ID to Zero */
-        bplib_ipn2eid(blocks->custody_block.csteid, BP_MAX_EID_STRING, bundle->route.local_node, bundle->route.local_service); /* Set Custodian EID */
+        bplib_ipn2eid(blocks->custody_block.csteid, BP_MAX_EID_STRING, bundle->route.local_node, custody_service); /* Set Custodian EID */
 
         /* Populate Data with Block */
         data->cidfield = blocks->custody_block.cid;
@@ -703,17 +709,10 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                     }
                 }
             }
-            #if BPLIB_GLOBAL_CUSTODY_ID
-            else if((pri_blk.is_admin_rec == false) && (bundle->route.local_service != 0) && (pri_blk.dstserv.value != bundle->route.local_service))
-            {
-                return bplog(flags, BP_FLAG_ROUTE_NEEDED, "Wrong channel to process non-administrative bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)bundle->route.local_service);
-            }
-            #else
-            else if((bundle->route.local_service != 0) && (pri_blk.dstserv.value != bundle->route.local_service))
+            else if((pri_blk.dstserv.value != 0) && (pri_blk.dstserv.value != bundle->route.local_service))
             {
                 return bplog(flags, BP_FLAG_ROUTE_NEEDED, "Wrong channel to process bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)bundle->route.local_service);
             }
-            #endif
             else if(pri_blk.is_admin_rec) /* Administrative Record */
             {
                 /* Read Record Information */
