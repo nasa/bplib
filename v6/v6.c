@@ -703,10 +703,17 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
                     }
                 }
             }
+            #if BPLIB_GLOBAL_CUSTODY_ID
+            else if((pri_blk.is_admin_rec == false) && (bundle->route.local_service != 0) && (pri_blk.dstserv.value != bundle->route.local_service))
+            {
+                return bplog(flags, BP_FLAG_ROUTE_NEEDED, "Wrong channel to process non-administrative bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)bundle->route.local_service);
+            }
+            #else
             else if((bundle->route.local_service != 0) && (pri_blk.dstserv.value != bundle->route.local_service))
             {
                 return bplog(flags, BP_FLAG_ROUTE_NEEDED, "Wrong channel to process bundle (%lu, %lu)\n", (unsigned long)pri_blk.dstserv.value, (unsigned long)bundle->route.local_service);
             }
+            #endif
             else if(pri_blk.is_admin_rec) /* Administrative Record */
             {
                 /* Read Record Information */

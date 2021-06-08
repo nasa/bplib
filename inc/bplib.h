@@ -140,6 +140,11 @@ extern "C" {
 #define BP_DEFAULT_PERSISTENT_STORAGE   false
 #define BP_DEFAULT_STORAGE_SERVICE_PARM NULL
 
+/* Global Custody ID (Compile-Time Option) */
+#ifndef BPLIB_GLOBAL_CUSTODY_ID
+#define BPLIB_GLOBAL_CUSTODY_ID         true
+#endif
+
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
