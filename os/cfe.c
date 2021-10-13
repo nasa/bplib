@@ -93,7 +93,7 @@ void bplib_os_init(void)
 /*--------------------------------------------------------------------------------------
  * bplib_os_log -
  *
- * 	Returns - the error code passed in (for convenience)
+ * Returns - the error code passed in (for convenience)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t event, const char* fmt, ...)
 {
@@ -127,13 +127,13 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
 
             /* Build Log Message */
             msglen = snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%s", pathptr, line, formatted_string);
-            
+
             /* Provide Truncation Indicator */
             if(msglen > (BP_MAX_LOG_ENTRY_SIZE - 2))
             {
                 log_message[BP_MAX_LOG_ENTRY_SIZE - 2] = '#';
             }
-            
+
             /* Issue Log Message */
             CFE_EVS_SendEvent(BP_BPLIB_INFO_EID, CFE_EVS_INFORMATION, "%s", log_message);
         }

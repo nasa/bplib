@@ -44,7 +44,7 @@
 #
 
 ##############################################################################
-## DEFINITIONS 
+## DEFINITIONS
 
 # bplib repository root directory
 ROOT	    := .
@@ -246,7 +246,7 @@ testcov:
 ##  STATIC ANALYSIS RULES
 
 CHECK_OPT  = --enable=all --inconclusive --error-exitcode=1 -q
-CHECK_OPT += --suppress=unusedFunction --suppress=missingInclude 
+CHECK_OPT += --suppress=unusedFunction --suppress=missingInclude
 CHECK_OPT += --suppress=objectIndex:common/crc.c
 CHECK_OPT += --suppress=redundantAssignment:v6/dacs.c
 CHECK_OPT += --suppress=memleak:os/cfe.c

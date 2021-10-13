@@ -58,7 +58,7 @@ extern "C" {
 #define BP_FLAG_INVALID_BIB_RESULT_TYPE 0x00010000   /* invalid result type found in BIB */
 #define BP_FLAG_INVALID_BIB_TARGET_TYPE 0x00020000   /* invalid target type found in BIB */
 #define BP_FLAG_FAILED_TO_PARSE         0x00040000   /* unable to parse bundle due to internal inconsistencies in bundle */
-#define BP_FLAG_API_ERROR               0x00080000   /* calling code incorrectly used library */ 
+#define BP_FLAG_API_ERROR               0x00080000   /* calling code incorrectly used library */
 
 /* Handles */
 #define BP_INVALID_HANDLE               (-1) /* used for integers (os locks, storage services) */

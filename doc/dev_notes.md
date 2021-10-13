@@ -1,9 +1,9 @@
 # Developer Notes
 
-[1. Directory Structure](#1-directory-structure)  
-[2. Layered Architecture](#2-layered-architecture)  
-[3. Customization and Extensions](#3-customization-and-extensions)  
-[4. Coding Rules](#4-coding-rules)  
+[1. Directory Structure](#1-directory-structure)
+[2. Layered Architecture](#2-layered-architecture)
+[3. Customization and Extensions](#3-customization-and-extensions)
+[4. Coding Rules](#4-coding-rules)
 
 
 ## 1.0 Directory Structure

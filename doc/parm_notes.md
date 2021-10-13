@@ -1,13 +1,13 @@
 # Parameter Configuration Notes
 
-[1. Bundle Transmission](#1-bundle-transmission)  
-[2. Bundle Acknowledgment](#2-bundle-acknowledgment)  
-[3. Active Bundle Management](#3-active-bundle-management)  
+[1. Bundle Transmission](#1-bundle-transmission)
+[2. Bundle Acknowledgment](#2-bundle-acknowledgment)
+[3. Active Bundle Management](#3-active-bundle-management)
 [4. Example Configuration](#4-example-configuration)
 
 Bplib provides a set of APIs that perform the delay-tolerant networking functions of a single node within a network.  So while bplib does not define the characteristics of the overall network, the configuration of the local node which uses bplib must be consistent with the characteristics of the network as a whole.  For this reason, many configuration options are available in bplib.  Nodes participating in different networks with different performance goals and physical constraints need to be configured differently in order to maximize the efficiency, reliability, and throughput of the overall network.
 
-What follows is a series of explanations surrounding the key configuration parameters provided by bplib.  Each explanation is a discussion of a trade between resources and desired behaviors - these notes will help you to select which behaviors you want for your network given the resource constraints of your local node. 
+What follows is a series of explanations surrounding the key configuration parameters provided by bplib.  Each explanation is a discussion of a trade between resources and desired behaviors - these notes will help you to select which behaviors you want for your network given the resource constraints of your local node.
 
 ## 1. Bundle Transmission
 
@@ -32,9 +32,9 @@ All bundle transmissions begin with a call to the `bplib_load` function which re
 - Timed-out bundles
 - New bundles retrieved from storage
 
->  
-> Possible Issue #1: if the outgoing link rate for bundles is too small and the timeout period too short, the library may do nothing but resend timed-out bundles. 
->  
+>
+> Possible Issue #1: if the outgoing link rate for bundles is too small and the timeout period too short, the library may do nothing but resend timed-out bundles.
+>
 
 ## 2. Bundle Acknowledgment
 
@@ -64,11 +64,11 @@ There are three things that cause a DACS bundle to be sent:
 
 In all cases, the generation of DACS bundles may produce more than one DACS bundle.  The DACS bundle is limited in size by the `max_fills_per_dacs` attribute, so that when the library interrogates the state information for the bundles it has accepted custody of, it may need to generate multiple DACS bundles in order to acknowledge all the bundles.
 
->  
-> Possible Issue #2: If the DACS rate of the receiver is slower than the timeout period of the sender, then bundles will always timeout before they are acknowledged.  If timed-out bundles use the same custody ID (see `CID_REUSE`) then the sending node will be throttled down to the rate of the bundle acknowledgment (i.e. if a link allows 100 bundles per second to be sent, but the receiver is only able to acknowledge 10 bundles per second, then the sender will ultimately only be able to achieve sending 10 bundles per second).  If, on the other hand, timed-out bundles use new custody IDs (see `CID_REUSE`), then the acknowledged bundles will no longer reference valid custody IDs by the time they are received by the sender since the bundles will have already timed-out and been assigned new custody IDs.  The effect of this misconfiguration is that no bundles will ever be acknowledged. 
->  
+>
+> Possible Issue #2: If the DACS rate of the receiver is slower than the timeout period of the sender, then bundles will always timeout before they are acknowledged.  If timed-out bundles use the same custody ID (see `CID_REUSE`) then the sending node will be throttled down to the rate of the bundle acknowledgment (i.e. if a link allows 100 bundles per second to be sent, but the receiver is only able to acknowledge 10 bundles per second, then the sender will ultimately only be able to achieve sending 10 bundles per second).  If, on the other hand, timed-out bundles use new custody IDs (see `CID_REUSE`), then the acknowledged bundles will no longer reference valid custody IDs by the time they are received by the sender since the bundles will have already timed-out and been assigned new custody IDs.  The effect of this misconfiguration is that no bundles will ever be acknowledged.
+>
 > Possible Issue #3: If bundles from multiple senders are received by a single bplib channel, the benefits are aggregating acknowledgments within a single DACS bundle is greatly reduced as everytime there is a transition between receiving bundles from one sender to another the library will generate a new DACS bundle and start over aggregating the acknowledgments.
->  
+>
 
 ## 3. Active Bundle Management
 
@@ -94,12 +94,12 @@ An __active bundle__ is a bundle requesting custody transfer that has been sent 
 The purpose of the active table is two-fold: (1) to determine if a bundle has timed-out and needs to be resent, (2) to translate the custody ID provided in a bundle acknowedgment into the storage ID needed to relinquish its resources in the storage service.
 
 The combined need of determining if a bundle has timed-out and which of the timed-out bundles should be sent first, along with the need to be able to randomly access a bundle given a custody ID, imposes a fundemental trade between CPU usage and RAM usage. In a system that had no constraint on CPU, a simple solution could be that every bundle in the active table is looked at each time the `bplib_load` function is called, and the bundle with the oldest transmission time that has timed-out would be returned.  On the other hand, in a system with no constraint on memory, a more sophisticated solution could be maintaining a perfect hash of bundles using their custody ID, superimposed on top of a linked list of the bundles kept in transmission order.  The implementation in bplib does neither, but instead provides two options via the `retransmit_order` attribute that attempt to balance both CPU and memory usage at the cost of complexity: `BP_RETX_OLDEST_BUNDLE`, and `BP_RETX_SMALLEST_CID`.
- 
+
 __Oldest Bundle__
-- Behavior: 
+- Behavior:
   * When the retransmit order is set to `BP_RETX_OLDEST_BUNDLE` at channel creation, the library allocates a fixed size hash table (set via the `active_table_size` attribute) that also keeps track of the order in which the bundles were sent.
   * When a bundle is loaded, only the bundle with the oldest transmission time is checked for timing-out.
-  * On acknowledgment, the custody ID is hashed and used to directly index the bundle's stored information.  
+  * On acknowledgment, the custody ID is hashed and used to directly index the bundle's stored information.
 - Disadvantages:
   * Linking the bundles in time order, along with managing hash collisions requires more than twice the memory needed to store the essential information listed above.
   * The lookup time of an acknowledged bundle is subject to the number of collisions within the hash for the bundle's custody ID.
@@ -121,31 +121,31 @@ __Smallest Custody ID__
 
 The size of the active table represents the maximum number of bundles that can be pending acknowledgment.  In other words, it is the maximum number of bundles that can be currently enroute.  Therefore, the size of the active table must correspond to the anticipated round-trip time of a bundle on the network between the local sender and the next custody accepting hop.
 
->  
+>
 > Possible Issue #4: Reusing custody IDs when retransmitting the smallest custody ID leaves the system vulnerable to a single bundle stopping the transmission of all bundles.
->  
+>
 > Possible Issue #5: Not reusing custody IDs leaves the system vulnerable to unanticipated mismatches between the DACS rate of the receiver and the timeout of the sender.
->  
+>
 
 ## 4. Example Configuration
 
 What follows is a notional configuration of a bplib channel which serves more to suggest the relationship between the different parameters  than recommending an actual setting.
 
 __Rate Related Parameters__:
- 
-* DACS Rate = Round Trip Time x 1.5  
-* Timeout = DACS Rate x 1.5  
-* Active Table Size = Timeout x Bundle Rate x 1.5  
+
+* DACS Rate = Round Trip Time x 1.5
+* Timeout = DACS Rate x 1.5
+* Active Table Size = Timeout x Bundle Rate x 1.5
 * Max Gaps per DACS = Active Table Size
 
 
 __Volume Related Parameters__:
-  
+
 * Lifetime = Storage Service Partition Size / Bundle Rate / 1.5
-  
+
 
 __Behavior Related Parameters__:
-  
+
 *  CID Reuse = True
 *  Retransmit Order = Oldest Bundle
 

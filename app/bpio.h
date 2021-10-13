@@ -44,9 +44,9 @@
 typedef struct {
     bp_desc_t*  bpc;
     char        data_ip_addr[PARM_STR_SIZE];
-    int         data_port;    
+    int         data_port;
     char        dacs_ip_addr[PARM_STR_SIZE];
-    int         dacs_port;    
+    int         dacs_port;
 } thread_parm_t;
 
 #endif /* __bpio_h__ */

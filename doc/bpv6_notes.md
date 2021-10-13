@@ -1,22 +1,22 @@
 # Bundle Protocol Version 6 Notes
 
-[1. Protocol Compliance and Tailoring](#1-protocol-compliance-and-tailoring)  
-[2. Bundle Formats](#2-bundle-formats)  
+[1. Protocol Compliance and Tailoring](#1-protocol-compliance-and-tailoring)
+[2. Bundle Formats](#2-bundle-formats)
 
 ----------------------------------------------------------------------
 ## 1. Protocol Compliance and Tailoring
 ----------------------------------------------------------------------
 
 #### 1.1 Endpoint IDs
-* Compressed Bundle Header Encoding (CBHE) is used on all generated data bundles.  
-* The only addressing schema supported by the BP library is the "ipn" schema defined in RFC6260.  
-* The format of endpoint IDs as defined by this schema are "ipn:{node}.{service}" where {node} and {service} are unsigned integers encoded as SDNVs in the bundle header block. 
+* Compressed Bundle Header Encoding (CBHE) is used on all generated data bundles.
+* The only addressing schema supported by the BP library is the "ipn" schema defined in RFC6260.
+* The format of endpoint IDs as defined by this schema are "ipn:{node}.{service}" where {node} and {service} are unsigned integers encoded as SDNVs in the bundle header block.
 * Constant static data structures declared in the code set the size of all endpoint IDs. All {node} numbers are 28 bits (which occupies 32 bits of bundle memory encoded as an SDNV), and all {service} numbers are 14 bits (which occupies 16 bits of bundle memory encoded as an SDNV).
 * The convention used by the BP library is that {node} number identifies the endpoint application agent and the {service} number identifies a flow of data that is able to be processed by the application agent.
 * All endpoints are treated as singletons and marked as such in the PCF, even for forwarded bundles.
 
 #### 1.2 Fixed Size SDNVs
-* The BP library uses fixed sized SDNVs for all SDNV fields of generated bundles. 
+* The BP library uses fixed sized SDNVs for all SDNV fields of generated bundles.
 * Bundles that are received by the library can have any size SDNV as long as the encoded value fits within the `unsigned long` integer for the local platform the library is compiled on.
 
 #### 1.3 Creation Time Sequence
@@ -34,19 +34,19 @@
 
 #### 1.6 DTN Aggregate Custody Signaling
 * The BP library only supports custody transfers when DTN Aggregate Custody Signals are used.  Regular RFC5050 custody signals are not supported. A custody signal bundle received by the library is ignored.
-* A data bundle received by the library that is requesting custody transfer without a CTEB is dropped.  
+* A data bundle received by the library that is requesting custody transfer without a CTEB is dropped.
 * ACS acknowledgments are delivered to the “custodian” node and service provided in the bundle.
 * The rate that ACS bundles are sent is controlled via a receiver node configuration setting.  The BP library has a run-time defined maximum number of fills per ACS, and a dynamically configurable setting for the longest time a partially full ACS bundle can remain in memory before it is sent.
 * Only positive acknowledgements are generated (i.e. ACS bundles mark the appropriate fields indicating positive acknowledgment of custody transfer). This means that the lifetime of a bundle and the timeout setting of the sending bundle agent completely define the bundle’s retransmission behavior.
 
 #### 1.7 Bundle Integrity
-* The BP library inserts a BIB in all data bundles it generates and all data bundles it accepts custody of for forwarding.  
+* The BP library inserts a BIB in all data bundles it generates and all data bundles it accepts custody of for forwarding.
 * Bundles received by the library are not required to have BIBs, but if they do, then the bundle is verified against the BIB prior to accepting custody (if requested) and processing the payload (if destined for the local node).
 
 #### 1.8 Timeouts
-* Timeout processing is not fully implemented.  The library keeps track of active bundles (i.e. bundles that have been sent but not acknowledged) in a circular buffer of bundle references that maintain strictly incrementing custody IDs. When the application requests a bundle to be loaded, only the oldest active bundle is checked for a timeout.  
+* Timeout processing is not fully implemented.  The library keeps track of active bundles (i.e. bundles that have been sent but not acknowledged) in a circular buffer of bundle references that maintain strictly incrementing custody IDs. When the application requests a bundle to be loaded, only the oldest active bundle is checked for a timeout.
 * If CID_REUSE is set, then the age of the bundle is measure against the first time it was sent; otherwise if CID_REUSE is not set, then the age of the bundle is measure against the most recent time it was sent.
-* If the circular buffer wraps and the oldest active bundle has not timed out, then onboard transmission of bundles stop until the oldest bundle times out. 
+* If the circular buffer wraps and the oldest active bundle has not timed out, then onboard transmission of bundles stop until the oldest bundle times out.
 
 #### 1.9 Class of Service
 * The class of service of generated data bundles and received bundles is set to normal and otherwise completely ignored.
@@ -57,7 +57,7 @@
 * Bundle integrity via the BIB is always applied to each fragment.  If the library generates fragmented bundles, it will put a BIB in each fragment.  If a bundle with a BIB is received that is to be forwarded, and needs to be fragmented, then the BIB is checked upon receipt, and then that original BIB is dropped.  The outgoing fragmented bundles will all have their own BIB generated by the library.  This applies even when the BIB block flags indicate that the block is to be kept.
 
 #### 1.11 Routing
-* If a BP library channel receives bundles to be forwarded then the pre-build bundle headers are marked as dirty and rebuilt when the local node generates bundles of its own to be sent.  The result is a temporary loss of performance. 
+* If a BP library channel receives bundles to be forwarded then the pre-build bundle headers are marked as dirty and rebuilt when the local node generates bundles of its own to be sent.  The result is a temporary loss of performance.
 * When a call to the BP library returns a bundle, it will set a flag if the bundle needs to be routed to a different destination than the channel’s default destination.
 * When routing bundles, the BP library will associate any bundle with a destination {node} that matches its local {node} number as being destined for itself and will then require that the {service} number matches the channel's {service} number that it is being processed on.  Any bundle with a {node} that is different than its local {node} number is treated as a bundle that needs to be routed.
 * A service number of 0 is considered a global service and is allowed to be passed to any channel associated with the node.
@@ -76,28 +76,28 @@
 ## 2. Bundle Formats
 ----------------------------------------------------------------------
 
-#### 2.1 Data Bundle 
+#### 2.1 Data Bundle
 ```
  -------------------------------------------------
                     Data Bundle
  -------------------------------------------------
- |-----------------------------------------------|    
+ |-----------------------------------------------|
  |                                               |
  |              Primary Bundle Block             |
  |                                               |
- |-----------------------------------------------|    
+ |-----------------------------------------------|
  |                                               |
  |        Custody Transfer Extension Block       |
  |                                               |
- |-----------------------------------------------|    
+ |-----------------------------------------------|
  |                                               |
  |             Bundle Integrity Block            |
  |                                               |
- |-----------------------------------------------|    
- |                                               | 
+ |-----------------------------------------------|
+ |                                               |
  |              Bundle Payload Block             |
  |                                               |
- |-----------------------------------------------| 
+ |-----------------------------------------------|
 ```
 
 #### 2.2 DTN Aggregate Custody Signal (DACS)
@@ -105,7 +105,7 @@
  -------------------------------------------------
              Aggregate Custody Signal
  -------------------------------------------------
- |-----------------------------------------------|    
+ |-----------------------------------------------|
  |                                               |
  |              Primary Bundle Block             |
  |                                               |
@@ -113,7 +113,7 @@
  |                                               |
  |             Bundle Integrity Block            |
  |                                               |
- |-----------------------------------------------|   
+ |-----------------------------------------------|
  |                                               |
  |              Bundle Payload Block             |
  |    (ACS as administrative record in payload)  |
@@ -129,23 +129,23 @@
  |    MSB    |           |           |    LSB    |
  | (8 bits)  | (8 bits)  | (8 bits)  | (8 bits)  |
  |-----------|-----------|-----------|-----------| 0
- |  Version  |     Processing Control Flags      | 
+ |  Version  |     Processing Control Flags      |
  |-----------|-----------------------------------| 4
- |  Blk Len  |         Destination Node ...       
+ |  Blk Len  |         Destination Node ...
  |-----------|-----------------------|-----------| 8
-      ...    |  Destination Service  |    ...     
+      ...    |  Destination Service  |    ...
  |-----------|-----------------------|-----------| 12
-          ... Source Node            |   Source     
+          ... Source Node            |   Source
  |-----------|-----------------------|-----------| 16
-    Service  |         Report To Node ...         
+    Service  |         Report To Node ...
  |-----------|-----------------------|-----------| 20
-      ...    |   Report To Service   |    ...     
+      ...    |   Report To Service   |    ...
  |-----------|-----------------------|-----------| 24
-          ... Custody Node           |  Custody     
+          ... Custody Node           |  Custody
  |-----------|-----------------------|-----------| 28
-    Service  |    Creation Timestamp Seconds             
+    Service  |    Creation Timestamp Seconds
  |-----------|-----------------------|-----------| 32
-     ...                             | Timestamp   
+     ...                             | Timestamp
  |-----------|-----------------------|-----------| 36
    Sequence  |       Lifetime ...
  |-----------|-----------------------|-----------| 40
@@ -153,7 +153,7 @@
  |-----------------------------------|-----------| 44
  |                Fragment Offset                |
  |-----------------------------------------------| 48
- |                Payload Length                 |  
+ |                Payload Length                 |
  |-----------------------------------------------| 52
 ```
 
@@ -193,8 +193,8 @@
  |-----------|-----------|-----------------------|
  .           .           .                       .
  |-----------|-----------|-----------------------| 0 --> Bundle Integrity Block
- |    0xD    | Blk Flags |     Block Length ...      
- |-----------|-----------|-----------|-----------| 4 
+ |    0xD    | Blk Flags |     Block Length ...
+ |-----------|-----------|-----------|-----------| 4
     ...                  |    STC    |    SBT    |
  |-----------|-----------|-----------|-----------| 8
  |    CSI    |    CSF    |     CL    |    SRT    |
@@ -225,16 +225,16 @@
  |-----------|-----------|-----------------------|
  .           .           .                       .
  |-----------|-----------|-----------------------| 0 --> Payload BLock
- |    0x1    | Blk Flags |     Block Length ...    
+ |    0x1    | Blk Flags |     Block Length ...
  |-----------|-----------|-----------|-----------| 4 --> Aggregate Custody Signal
-            ...          |    0x40   |  Status   | 
+            ...          |    0x40   |  Status   |
  |-----------|-----------|-----------|-----------| 8
  |                First Custody ID               |
  |-----------------------|-----------------------| Variable
  |  Number Valid CIDs    |  Number Skipped CIDs  |
- |-----------------------|-----------------------| 
+ |-----------------------|-----------------------|
  |  Number VAlid CIDs    |  Number Skipped CIDs  |
- |-----------------------|-----------------------| 
+ |-----------------------|-----------------------|
  .                       .                       .
  |-----------------------|-----------------------|
  |  Number Valid CIDs    |  Number Skipped CIDs  |

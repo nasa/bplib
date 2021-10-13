@@ -119,7 +119,7 @@ int rh_hash_create(rh_hash_t** rh_hash, int size)
     if(size > 0)
     {
         int i;
-        
+
         /* Allocate Hash Table */
         (*rh_hash)->table = (rh_hash_node_t*)bplib_os_calloc(size * sizeof(rh_hash_node_t));
         if((*rh_hash)->table == NULL) return BP_ERROR;

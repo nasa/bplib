@@ -175,7 +175,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
 
         if (bytes_read + 1 > size) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
         bib->security_target_type = buffer[bytes_read];
-        
+
         sdnv_read(buffer, size, &bib->cipher_suite_id, &sdnvflags);
         sdnv_read(buffer, size, &bib->cipher_suite_flags, &sdnvflags);
         bytes_read = sdnv_read(buffer, size, &bib->compound_length, &sdnvflags);
@@ -236,7 +236,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     }
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
-        if ((bib->security_result_length.value != 4) || (bytes_read + 4 > size)) 
+        if ((bib->security_result_length.value != 4) || (bytes_read + 4 > size))
         {
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
         }
@@ -253,7 +253,7 @@ int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uin
     if(sdnvflags != 0)
     {
         *flags |= sdnvflags;
-        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of BIB (%08X)\n", sdnvflags); 
+        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of BIB (%08X)\n", sdnvflags);
     }
     else
     {
@@ -300,7 +300,7 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
         bib->compound_length.value = 6;
-        bib->security_result_length.value = 4;        
+        bib->security_result_length.value = 4;
     }
     else
     {
@@ -320,7 +320,7 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
 
         if (bytes_written + 1 > size) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Insufficient room for BIB block at: %d\n", bytes_written);
         buffer[bytes_written] = bib->security_target_type;
-        
+
         sdnv_write(buffer, size, bib->cipher_suite_id,          &sdnvflags);
         sdnv_write(buffer, size, bib->cipher_suite_flags,       &sdnvflags);
         bytes_written = sdnv_write(buffer, size, bib->compound_length, &sdnvflags);
