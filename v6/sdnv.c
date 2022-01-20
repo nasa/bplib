@@ -43,7 +43,7 @@
  *  flags - pointer to variable that will hold the flags set as result of read [output]
  *  returns - next index (number of bytes read + starting index)
  *-------------------------------------------------------------------------------------*/
-int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint32_t* flags)
+int sdnv_read(const uint8_t* block, int size, bp_field_t* sdnv, uint32_t* flags)
 {
     assert(block);
     assert(sdnv);

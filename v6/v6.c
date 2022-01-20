@@ -331,7 +331,7 @@ int v6_populate_bundle(bp_bundle_t* bundle, uint32_t* flags)
 /*--------------------------------------------------------------------------------------
  * v6_send_bundle -
  *-------------------------------------------------------------------------------------*/
-int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_func_t create, void* parm, int timeout, uint32_t* flags)
+int v6_send_bundle(bp_bundle_t* bundle, const uint8_t* buffer, int size, bp_create_func_t create, void* parm, int timeout, uint32_t* flags)
 {
     int                     payload_offset  = 0;
     bp_bundle_data_t*       data            = &bundle->data;
@@ -464,7 +464,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
 /*--------------------------------------------------------------------------------------
  * v6_receive_bundle -
  *-------------------------------------------------------------------------------------*/
-int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload_t* payload, uint32_t* flags)
+int v6_receive_bundle(bp_bundle_t* bundle, const uint8_t* buffer, int size, bp_payload_t* payload, uint32_t* flags)
 {
     int                 status = BP_SUCCESS;
 
@@ -621,7 +621,15 @@ int v6_receive_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload
             {
                 /* Mark As Forwarded without Processed */
                 blk_flags.value |= BP_BLK_FORWARDNOPROC_MASK;
-                sdnv_write(&buffer[start_index], size - start_index, blk_flags, flags);
+
+                /*
+                 * NOTE: This is updating the block flags inside of the buffer which is supposed to be "const"
+                 * Somewhat ironic that BP flags need to be changed to indicate that nothing was done.
+                 *
+                 * This is certainly not ideal, but this is the way it has worked up to this point.
+                 * This should be addressed in the BPv7 implementation.
+                 */
+                sdnv_write((uint8_t*)buffer + start_index, size - start_index, blk_flags, flags);
             }
         }
         else /* payload block */
@@ -783,7 +791,7 @@ int v6_populate_acknowledgment(uint8_t* rec, int size, int max_fills, rb_tree_t*
 /*--------------------------------------------------------------------------------------
  * v6_receive_acknowledgment -
  *-------------------------------------------------------------------------------------*/
-int v6_receive_acknowledgment(uint8_t* rec, int size, int* num_acks, bp_delete_func_t remove, void* parm, uint32_t* flags)
+int v6_receive_acknowledgment(const uint8_t* rec, int size, int* num_acks, bp_delete_func_t remove, void* parm, uint32_t* flags)
 {
     return dacs_read(rec, size, num_acks, remove, parm, flags);
 }
@@ -810,7 +818,7 @@ int v6_is_expired(bp_bundle_t* bundle, unsigned long sysnow, unsigned long exprt
 /*--------------------------------------------------------------------------------------
  * v6_routeinfo -
  *-------------------------------------------------------------------------------------*/
-int v6_routeinfo(void* bundle, int size, bp_route_t* route)
+int v6_routeinfo(const void* bundle, int size, bp_route_t* route)
 {
     bp_blk_pri_t pri_blk;
     uint32_t* flags = 0;
@@ -840,7 +848,7 @@ int v6_routeinfo(void* bundle, int size, bp_route_t* route)
 /*--------------------------------------------------------------------------------------
  * v6_display -
  *-------------------------------------------------------------------------------------*/
-int v6_display(void* bundle, int size, uint32_t* flags)
+int v6_display(const void* bundle, int size, uint32_t* flags)
 {
     uint8_t*        buffer = (uint8_t*)bundle;
     int             index = 0;

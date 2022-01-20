@@ -413,7 +413,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
 /*--------------------------------------------------------------------------------------
  * flash_object_write -
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* data1, int data1_size, uint8_t* data2, int data2_size)
+BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, const uint8_t* data1, int data1_size, const uint8_t* data2, int data2_size)
 {
     int status = BP_SUCCESS;
 
@@ -1057,7 +1057,7 @@ int bplib_store_flash_destroy (int handle)
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_enqueue -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_enqueue (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout)
+int bplib_store_flash_enqueue (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout)
 {
     (void)timeout;
 

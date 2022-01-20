@@ -410,8 +410,8 @@ int bplib_store_ram_destroy (int handle)
 /*----------------------------------------------------------------------------
  * bplib_store_ram_enqueue -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
-                             void* data2, int data2_size, int timeout)
+int bplib_store_ram_enqueue(int handle, const void* data1, size_t data1_size,
+                             const void* data2, size_t data2_size, int timeout)
 {
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
@@ -419,8 +419,8 @@ int bplib_store_ram_enqueue(int handle, void* data1, int data1_size,
     assert((data1_size + data2_size) > 0);
 
     int status;
-    int data_size = data1_size + data2_size;
-    int object_size = sizeof(bp_object_hdr_t) + data_size;
+    size_t data_size = data1_size + data2_size;
+    size_t object_size = sizeof(bp_object_hdr_t) + data_size;
     bp_object_t* object = (bp_object_t*)bplib_os_calloc(object_size);
 
     /* Check memory allocation */

@@ -86,13 +86,13 @@ int v6_initialize               (void);
 int v6_create                   (bp_bundle_t* bundle, bp_route_t route, bp_attr_t attributes);
 int v6_destroy                  (bp_bundle_t* bundle);
 int v6_populate_bundle          (bp_bundle_t* bundle, uint32_t* flags);
-int v6_send_bundle              (bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_func_t create, void* parm, int timeout, uint32_t* flags);
-int v6_receive_bundle           (bp_bundle_t* bundle, uint8_t* buffer, int size, bp_payload_t* payload, uint32_t* flags);
+int v6_send_bundle              (bp_bundle_t* bundle, const uint8_t* buffer, int size, bp_create_func_t create, void* parm, int timeout, uint32_t* flags);
+int v6_receive_bundle           (bp_bundle_t* bundle, const uint8_t* buffer, int size, bp_payload_t* payload, uint32_t* flags);
 int v6_update_bundle            (bp_bundle_data_t* data, bp_val_t cid, uint32_t* flags);
 int v6_populate_acknowledgment  (uint8_t* rec, int size, int max_fills, rb_tree_t* tree, uint32_t* flags);
-int v6_receive_acknowledgment   (uint8_t* rec, int size, int* num_acks, bp_delete_func_t remove, void* parm, uint32_t* flags);
+int v6_receive_acknowledgment   (const uint8_t* rec, int size, int* num_acks, bp_delete_func_t remove, void* parm, uint32_t* flags);
 int v6_is_expired               (bp_bundle_t* bundle, unsigned long sysnow, unsigned long exprtime, bool unrelt);
-int v6_routeinfo                (void* bundle, int size, bp_route_t* route);
-int v6_display                  (void* bundle, int size, uint32_t* flags);
+int v6_routeinfo                (const void* bundle, int size, bp_route_t* route);
+int v6_display                  (const void* bundle, int size, uint32_t* flags);
 
 #endif  /* _v6_h_ */

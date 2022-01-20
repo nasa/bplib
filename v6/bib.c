@@ -154,7 +154,7 @@ int bib_init (void)
  *
  *  Returns:    Number of bytes read
  *-------------------------------------------------------------------------------------*/
-int bib_read (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uint32_t* flags)
+int bib_read (const void* block, int size, bp_blk_bib_t* bib, bool update_indices, uint32_t* flags)
 {
     uint8_t* buffer = (uint8_t*)block;
     int bytes_read = 0;
@@ -399,7 +399,7 @@ int bib_write (void* block, int size, bp_blk_bib_t* bib, bool update_indices, ui
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int bib_update (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* flags)
+int bib_update (void* block, int size, const void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* flags)
 {
     assert(bib);
     assert(payload);
@@ -441,7 +441,7 @@ int bib_update (void* block, int size, void* payload, int payload_size, bp_blk_b
  *
  *  Returns:    success or error code
  *-------------------------------------------------------------------------------------*/
-int bib_verify (void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* flags)
+int bib_verify (const void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* flags)
 {
     assert(payload);
     assert(bib);

@@ -98,7 +98,7 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
 /*--------------------------------------------------------------------------------------
  * dacs_read -
  *-------------------------------------------------------------------------------------*/
-int dacs_read(uint8_t* rec, int rec_size, int* num_acks, bp_delete_func_t ack, void* ack_parm, uint32_t* flags)
+int dacs_read(const uint8_t* rec, int rec_size, int* num_acks, bp_delete_func_t ack, void* ack_parm, uint32_t* flags)
 {
     bp_val_t i;
     bp_field_t cid = { 0, 2, 0 };

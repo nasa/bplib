@@ -116,7 +116,7 @@ bp_val_t bplib_global_custody_id = 0;
 /*--------------------------------------------------------------------------------------
  * create_bundle
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int create_bundle(void* parm, bool is_record, uint8_t* payload, int size, int timeout)
+BP_LOCAL_SCOPE int create_bundle(void* parm, bool is_record, const uint8_t* payload, int size, int timeout)
 {
     bp_channel_t*       ch      = (bp_channel_t*)parm;
     bp_bundle_data_t*   data    = NULL;
@@ -699,7 +699,7 @@ int bplib_latchstats(bp_desc_t* desc, bp_stats_t* stats)
 /*--------------------------------------------------------------------------------------
  * bplib_store -
  *-------------------------------------------------------------------------------------*/
-int bplib_store(bp_desc_t* desc, void* payload, int size, int timeout, uint32_t* flags)
+int bplib_store(bp_desc_t* desc, const void* payload, size_t size, int timeout, uint32_t* flags)
 {
     int status = BP_SUCCESS;
 
@@ -731,7 +731,7 @@ int bplib_store(bp_desc_t* desc, void* payload, int size, int timeout, uint32_t*
 /*--------------------------------------------------------------------------------------
  * bplib_load -
  *-------------------------------------------------------------------------------------*/
-int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t* flags)
+int bplib_load(bp_desc_t* desc, void** bundle, size_t* size, int timeout, uint32_t* flags)
 {
     bp_active_bundle_t active_bundle = { BP_SID_VACANT, 0, 0 };
     int status = BP_SUCCESS; /* success or error code */
@@ -997,7 +997,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
 /*--------------------------------------------------------------------------------------
  * bplib_process -
  *-------------------------------------------------------------------------------------*/
-int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t* flags)
+int bplib_process(bp_desc_t* desc, const void* bundle, size_t size, int timeout, uint32_t* flags)
 {
     int status;
 
@@ -1168,7 +1168,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
  *
  *  Returns success if payload copied, or error code (zero, negative)
  *-------------------------------------------------------------------------------------*/
-int bplib_accept(bp_desc_t* desc, void** payload, int* size, int timeout, uint32_t* flags)
+int bplib_accept(bp_desc_t* desc, void** payload, size_t* size, int timeout, uint32_t* flags)
 {
     int status = BP_SUCCESS;
     bp_object_t* object = NULL;
@@ -1234,7 +1234,7 @@ int bplib_accept(bp_desc_t* desc, void** payload, int* size, int timeout, uint32
 /*--------------------------------------------------------------------------------------
  * bplib_ackbundle -
  *-------------------------------------------------------------------------------------*/
-int bplib_ackbundle(bp_desc_t* desc, void* bundle)
+int bplib_ackbundle(bp_desc_t* desc, const void* bundle)
 {
     int status = BP_SUCCESS;
 
@@ -1245,8 +1245,8 @@ int bplib_ackbundle(bp_desc_t* desc, void* bundle)
 
     /* Determine Storage Object Pointer */
     bp_channel_t* ch = (bp_channel_t*)desc->channel;
-    bp_bundle_data_t* data = (bp_bundle_data_t*)((uint8_t*)bundle - offsetof(bp_bundle_data_t, header));
-    bp_object_t* object = (bp_object_t*)((uint8_t*)data - sizeof(bp_object_hdr_t));
+    const bp_bundle_data_t* data = (const bp_bundle_data_t*)((const uint8_t*)bundle - offsetof(bp_bundle_data_t, header));
+    const bp_object_t* object = (const bp_object_t*)((const uint8_t*)data - sizeof(bp_object_hdr_t));
 
     /* Release Memory */
     ch->store.release(object->header.handle, object->header.sid);
@@ -1261,7 +1261,7 @@ int bplib_ackbundle(bp_desc_t* desc, void* bundle)
 /*--------------------------------------------------------------------------------------
  * bplib_ackpayload -
  *-------------------------------------------------------------------------------------*/
-int bplib_ackpayload(bp_desc_t* desc, void* payload)
+int bplib_ackpayload(bp_desc_t* desc, const void* payload)
 {
     int status = BP_SUCCESS;
 
@@ -1272,8 +1272,8 @@ int bplib_ackpayload(bp_desc_t* desc, void* payload)
 
     /* Determine Storage Object Pointer */
     bp_channel_t* ch = (bp_channel_t*)desc->channel;
-    bp_payload_data_t* data = (bp_payload_data_t*)((uint8_t*)payload - sizeof(bp_payload_data_t));
-    bp_object_t* object = (bp_object_t*)((uint8_t*)data - sizeof(bp_object_hdr_t));
+    const bp_payload_data_t* data = (const bp_payload_data_t*)((const uint8_t*)payload - sizeof(bp_payload_data_t));
+    const bp_object_t* object = (const bp_object_t*)((const uint8_t*)data - sizeof(bp_object_hdr_t));
 
     /* Release Memory */
     ch->store.release(object->header.handle, object->header.sid);
@@ -1294,7 +1294,7 @@ int bplib_ackpayload(bp_desc_t* desc, void* payload)
  *  destination_service -   as read from bundle [OUTPUT]
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_routeinfo(void* bundle, int size, bp_route_t* route)
+int bplib_routeinfo(const void* bundle, size_t size, bp_route_t* route)
 {
     return v6_routeinfo(bundle, size, route);
 }
@@ -1307,7 +1307,7 @@ int bplib_routeinfo(void* bundle, int size, bp_route_t* route)
  *  flags -                 processing flags [OUTPUT]
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_display(void* bundle, int size, uint32_t* flags)
+int bplib_display(const void* bundle, size_t size, uint32_t* flags)
 {
     return v6_display(bundle, size, flags);
 }
@@ -1321,7 +1321,7 @@ int bplib_display(void* bundle, int size, uint32_t* flags)
  *  service -               service number as read from eid [OUTPUT]
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
+int bplib_eid2ipn(const char* eid, size_t len, bp_ipn_t* node, bp_ipn_t* service)
 {
     char eidtmp[BP_MAX_EID_STRING];
     int tmplen;
@@ -1402,7 +1402,7 @@ int bplib_eid2ipn(const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service)
  *  service -               service number to be written into eid [INPUT]
  *  Returns:                BP_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int bplib_ipn2eid(char* eid, int len, bp_ipn_t node, bp_ipn_t service)
+int bplib_ipn2eid(char* eid, size_t len, bp_ipn_t node, bp_ipn_t service)
 {
     /* Sanity Check EID Buffer Pointer */
     if(eid == NULL)

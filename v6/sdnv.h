@@ -29,7 +29,7 @@
  PROTOTYPES
  ******************************************************************************/
 
-int     sdnv_read   (uint8_t* block, int size, bp_field_t* sdnv, uint32_t* flags);
+int     sdnv_read   (const uint8_t* block, int size, bp_field_t* sdnv, uint32_t* flags);
 int     sdnv_write  (uint8_t* block, int size, bp_field_t sdnv, uint32_t* flags);
 void    sdnv_mask   (bp_field_t* sdnv);
 

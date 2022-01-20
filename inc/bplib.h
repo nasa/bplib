@@ -173,7 +173,7 @@ typedef unsigned long bp_sid_t;
 /* Storage Object Header */
 typedef struct {
     int         handle;
-    int         size;
+    size_t      size;
     bp_sid_t    sid;
 } bp_object_hdr_t;
 
@@ -187,7 +187,7 @@ typedef struct {
 typedef struct {
     int (*create)       (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
     int (*destroy)      (int handle);
-    int (*enqueue)      (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
+    int (*enqueue)      (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
     int (*dequeue)      (int handle, bp_object_t** object, int timeout);
     int (*retrieve)     (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
     int (*release)      (int handle, bp_sid_t sid);
@@ -257,18 +257,18 @@ int         bplib_flush         (bp_desc_t* desc);
 int         bplib_config        (bp_desc_t* desc, int mode, int opt, int* val);
 int         bplib_latchstats    (bp_desc_t* desc, bp_stats_t* stats);
 
-int         bplib_store         (bp_desc_t* desc, void* payload, int size, int timeout, uint32_t* flags);
-int         bplib_load          (bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t* flags);
-int         bplib_process       (bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t* flags);
-int         bplib_accept        (bp_desc_t* desc, void** payload, int* size, int timeout, uint32_t* flags);
+int         bplib_store         (bp_desc_t* desc, const void* payload, size_t size, int timeout, uint32_t* flags);
+int         bplib_load          (bp_desc_t* desc, void** bundle, size_t* size, int timeout, uint32_t* flags);
+int         bplib_process       (bp_desc_t* desc, const void* bundle, size_t size, int timeout, uint32_t* flags);
+int         bplib_accept        (bp_desc_t* desc, void** payload, size_t* size, int timeout, uint32_t* flags);
 
-int         bplib_ackbundle     (bp_desc_t* desc, void* bundle);
-int         bplib_ackpayload    (bp_desc_t* desc, void* payload);
+int         bplib_ackbundle     (bp_desc_t* desc, const void* bundle);
+int         bplib_ackpayload    (bp_desc_t* desc, const void* payload);
 
-int         bplib_routeinfo     (void* bundle, int size, bp_route_t* route);
-int         bplib_display       (void* bundle, int size, uint32_t* flags);
-int         bplib_eid2ipn       (const char* eid, int len, bp_ipn_t* node, bp_ipn_t* service);
-int         bplib_ipn2eid       (char* eid, int len, bp_ipn_t node, bp_ipn_t service);
+int         bplib_routeinfo     (const void* bundle, size_t size, bp_route_t* route);
+int         bplib_display       (const void* bundle, size_t size, uint32_t* flags);
+int         bplib_eid2ipn       (const char* eid, size_t len, bp_ipn_t* node, bp_ipn_t* service);
+int         bplib_ipn2eid       (char* eid, size_t len, bp_ipn_t node, bp_ipn_t service);
 int         bplib_attrinit      (bp_attr_t* attributes);
 
 #ifdef __cplusplus

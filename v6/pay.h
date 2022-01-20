@@ -32,7 +32,7 @@
 typedef struct {
     bp_field_t  bf;             /* block flags */
     bp_field_t  blklen;         /* block length */
-    uint8_t*    payptr;         /* pointer to payload */
+    const uint8_t* payptr;         /* pointer to payload */
     int         paysize;        /* size in bytes of payload */
 } bp_blk_pay_t;
 
@@ -40,7 +40,7 @@ typedef struct {
  PROTOTYPES
  ******************************************************************************/
 
-int pay_read      (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint32_t* flags);
+int pay_read      (const void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint32_t* flags);
 int pay_write     (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint32_t* flags);
 
 #endif  /* _pay_h_ */
