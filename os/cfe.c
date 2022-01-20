@@ -31,8 +31,6 @@
 #include <string.h>
 
 #include "cfe.h"
-#include "cfe_time_utils.h"
-#include "bp_cfg.h"
 #include "bplib.h"
 
 /******************************************************************************
@@ -135,7 +133,7 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
             }
 
             /* Issue Log Message */
-            CFE_EVS_SendEvent(BP_BPLIB_INFO_EID, CFE_EVS_INFORMATION, "%s", log_message);
+            CFE_EVS_SendEvent(BP_BPLIB_INFO_EID, CFE_EVS_EventType_INFORMATION, "%s", log_message);
         }
     }
 
@@ -184,7 +182,7 @@ void bplib_os_sleep(int seconds)
  *-------------------------------------------------------------------------------------*/
 uint32_t bplib_os_random(void)
 {
-    CFE_TIME_SysTime_t sys_time = CFE_TIME_LatchClock();
+    CFE_TIME_SysTime_t sys_time = CFE_TIME_GetMET();
     unsigned long seed = sys_time.Seconds + sys_time.Subseconds;
     return (uint32_t)BP_RAND_HASH(seed);
 }
