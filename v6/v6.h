@@ -61,7 +61,7 @@
 /* Aggregate Custody Signal Definitions */
 #define BP_ACS_REC_TYPE_INDEX           0
 #define BP_ACS_REC_STATUS_INDEX         1
-#define BP_ACS_ACK_MASK                 0x80        /* if set, then custody successfully transfered */
+#define BP_ACS_ACK_MASK                 0x80        /* if set, then custody successfully transferred */
 
 /* Processing Control Flags */
 #define BP_PCF_FRAGMENT_MASK            0x000001    /* bundle is a fragement */

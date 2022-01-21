@@ -191,7 +191,7 @@ This function returns a channel handle that is used for all future operations on
 
 * __request_custody__: Bundle generation parameter - if set then the bundle request custody transfer and includes a CTEB extension block.
 
-* __admin_record__: Bundle generation parameter - if set then the bundle is set as an adminstrative record.  The library handles this setting automatically for Aggregate Custody Signals that it generates; but if the user wants to create their own adminstrative record, then this attribute provides that option.
+* __admin_record__: Bundle generation parameter - if set then the bundle is set as an administrative record.  The library handles this setting automatically for Aggregate Custody Signals that it generates; but if the user wants to create their own administrative record, then this attribute provides that option.
 
 * __integrity_check__: Bundle generation parameter - if set then the bundle includes a BIB extension block.
 
@@ -526,7 +526,7 @@ Initialize an attribute structure with the library default values.  This is usef
 | BP_FLAG_ACTIVE_TABLE_WRAP      | 0x00000800 | The active table wrapped; see BP_OPT_WRAP_RESPONSE |
 | BP_FLAG_DUPLICATES             | 0x00001000 | The custody ID was already acknowledged |
 | BP_FLAG_CUSTODY_FULL           | 0x00002000 | An aggregate custody signal was generated due the number of custody ID gaps exceeded the maximum allowed |
-| BP_FLAG_UNKNOWNREC             | 0x00004000 | A bundle contained unknown adminstrative record |
+| BP_FLAG_UNKNOWNREC             | 0x00004000 | A bundle contained unknown administrative record |
 | BP_FLAG_INVALID_CIPHER_SUITEID | 0x00008000 | An invalid cipher suite ID was found in a BIB |
 | BP_FLAG_INVALID_BIB_RESULT_TYPE| 0x00010000 | An invalid result type was found in a BIB |
 | BP_FLAG_INVALID_BIB_TARGET_TYPE| 0x00020000 | An invalid target type was found in a BIB |

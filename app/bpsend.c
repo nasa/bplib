@@ -303,8 +303,8 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\n                                                                                             ");
     fprintf(stderr, "\n         ipn:BP_SEND_NODE.BP_SEND_SERVICE                                                    ");
     fprintf(stderr, "\n                                                                                             ");
-    fprintf(stderr, "\n   where BP_SEND_NODE, and BP_SEND_SERVICE are sytem environment variables                   ");
-    fprintf(stderr, "\n   optionally overriden by the --node and --service parameters.                              ");
+    fprintf(stderr, "\n   where BP_SEND_NODE, and BP_SEND_SERVICE are system environment variables                   ");
+    fprintf(stderr, "\n   optionally overridden by the --node and --service parameters.                              ");
     fprintf(stderr, "\n                                                                                             ");
     fprintf(stderr, "\n   A connection is made to the ip address and port number provided on the                    ");
     fprintf(stderr, "\n   command line, and anything read from stdin is bundled and sent to the                     ");
