@@ -57,7 +57,7 @@ void    bplib_store_file_init          (bp_file_driver_t* driver);
 /* Service API */
 int     bplib_store_file_create        (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
 int     bplib_store_file_destroy       (int handle);
-int     bplib_store_file_enqueue       (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
+int     bplib_store_file_enqueue       (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
 int     bplib_store_file_dequeue       (int handle, bp_object_t** object, int timeout);
 int     bplib_store_file_retrieve      (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
 int     bplib_store_file_release       (int handle, bp_sid_t sid);

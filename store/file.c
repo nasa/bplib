@@ -334,7 +334,7 @@ int bplib_store_file_destroy (int handle)
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_enqueue -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_enqueue (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout)
+int bplib_store_file_enqueue (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout)
 {
     (void)timeout;
 

@@ -38,7 +38,7 @@
  *
  *  Returns:    Next index
  *-------------------------------------------------------------------------------------*/
-int pay_read (void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint32_t* flags)
+int pay_read (const void* block, int size, bp_blk_pay_t* pay, bool update_indices, uint32_t* flags)
 {
     uint8_t* buffer = (uint8_t*)block;
     int bytes_read = 0;

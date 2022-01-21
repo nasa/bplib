@@ -43,7 +43,7 @@
  ******************************************************************************/
 
 /* Call-Backs */
-typedef int (*bp_create_func_t) (void* parm, bool is_record, uint8_t* payload, int size, int timeout);
+typedef int (*bp_create_func_t) (void* parm, bool is_record, const uint8_t* payload, int size, int timeout);
 typedef int (*bp_delete_func_t) (void* parm, bp_val_t cid, uint32_t* flags);
 
 /* Bundle Field (fixed size) */
@@ -73,7 +73,7 @@ typedef struct {
     bp_ipn_t            node;           /* custody node of payload */
     bp_ipn_t            service;        /* custody service of payload */
     bp_payload_data_t   data;           /* serialized and stored payload data */
-    uint8_t*            memptr;         /* pointer to payload */
+    const uint8_t*      memptr;         /* pointer to payload */
 } bp_payload_t;
 
 /* Bundle Data */

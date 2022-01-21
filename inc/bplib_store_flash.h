@@ -109,7 +109,7 @@ void    bplib_store_flash_stats                 (bp_flash_stats_t* stats, bool l
 /* Service API */
 int     bplib_store_flash_create                (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
 int     bplib_store_flash_destroy               (int handle);
-int     bplib_store_flash_enqueue               (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout);
+int     bplib_store_flash_enqueue               (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
 int     bplib_store_flash_dequeue               (int handle, bp_object_t** object, int timeout);
 int     bplib_store_flash_retrieve              (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
 int     bplib_store_flash_release               (int handle, bp_sid_t sid);

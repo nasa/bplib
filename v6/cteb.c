@@ -38,7 +38,7 @@
  *
  *  Returns:    Next index
  *-------------------------------------------------------------------------------------*/
-int cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint32_t* flags)
+int cteb_read (const void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint32_t* flags)
 {
     uint8_t* buffer = (uint8_t*)block;
     int bytes_read = 0;

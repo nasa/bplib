@@ -38,7 +38,7 @@
  *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
-int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint32_t* flags)
+int pri_read (const void* block, int size, bp_blk_pri_t* pri, bool update_indices, uint32_t* flags)
 {
     uint8_t* blkbuf = (uint8_t*)block;
     int bytes_read = 0;

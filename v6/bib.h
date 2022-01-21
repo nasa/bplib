@@ -54,9 +54,9 @@ typedef struct {
  ******************************************************************************/
 
 int     bib_init      (void);
-int     bib_read      (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uint32_t* flags);
+int     bib_read      (const void* block, int size, bp_blk_bib_t* bib, bool update_indices, uint32_t* flags);
 int     bib_write     (void* block, int size, bp_blk_bib_t* bib, bool update_indices, uint32_t* flags);
-int     bib_update    (void* block, int size, void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* flags);
-int     bib_verify    (void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* flags);
+int     bib_update    (void* block, int size, const void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* flags);
+int     bib_verify    (const void* payload, int payload_size, bp_blk_bib_t* bib, uint32_t* flags);
 
 #endif  /* _bib_h_ */
