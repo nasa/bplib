@@ -1,13 +1,13 @@
 /************************************************************************
  * File: rb_tree.h
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -39,9 +39,9 @@ typedef struct rb_range {
 typedef struct rb_node {
     rb_range_t  range;              /* The range of cids represented by the node. */
     bool        color;              /* The color of the node where RED (True) and BLACK (False).  */
-    bool        traversal_state;    /* Tracks when a node is visited in a tree traversal. */    
+    bool        traversal_state;    /* Tracks when a node is visited in a tree traversal. */
     /* The respective ancestors of the current node within the red black tree.
-     * Child nodes that are null are assumed to be black in color.  The root node 
+     * Child nodes that are null are assumed to be black in color.  The root node
      * of the red black tree has a null parent. */
     struct rb_node* left;
     struct rb_node* right;
@@ -56,21 +56,21 @@ typedef struct rb_tree {
     rb_node_t*  free_node_head; /* The memory location of the first unallocated rb_node. */
     rb_node_t*  free_node_tail; /* The memory location of the last unallocated rb_node. */
     rb_node_t*  iterator;       /* The current node when using iterator functions */
-    /* The starting memory address of the allocated memory for rb_nodes. 
+    /* The starting memory address of the allocated memory for rb_nodes.
      * This value is tracked so that the nodes can be deallocated in a single call to free. */
-    rb_node_t*  node_block; 
+    rb_node_t*  node_block;
 } rb_tree_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-/* Red Black Tree API 
+/* Red Black Tree API
  *
  * NOTE: The rb_tree_t is limited by its maximum size data type, in this case a bp_val_t.
  *       Since ranges are being stored no range will ever exceed BP_MAX_ENCODED_VALUE nor will the tree be able
  *       to allocate more than BP_MAX_ENCODED_VALUE nodes even if the memory is available.
- * 
+ *
  */
 
 int     rb_tree_create      (bp_val_t max_size, rb_tree_t* tree);   /* Creates am empty rb_tree. */

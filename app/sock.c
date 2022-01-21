@@ -97,7 +97,7 @@ static int sockkeepalive(int socket_fd, int idle, int cnt, int intvl)
         display_error("Failed to set TCP_KEEPINTVL option on socket, %s\n", strerror(errno));
         return SOCK_INVALID;
     }
-    
+
     return 0;
 }
 
@@ -115,7 +115,7 @@ static int sockreuse(int socket_fd)
         display_error("Failed to set SO_REUSEADDR option on socket, %s\n", strerror(errno));
         return SOCK_INVALID;
     }
-    
+
     return 0;
 }
 
@@ -150,30 +150,30 @@ int sockcreate(int type, const char* ip_addr, int port, int is_server, int* bloc
     char                portstr[SOCK_PORT_STR_LEN];
     char                host[SOCK_HOST_STR_LEN];
     char                serv[SOCK_SERV_STR_LEN];
-    
+
     /* Check Address */
     if(!ip_addr) ip_addr = "0.0.0.0"; // wildcard
-    
+
     /* Initialize Port */
     snprintf(portstr, SOCK_PORT_STR_LEN, "%d", port);
-    
+
     /* Get Destination Host */
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET;    /* IPv4 */
     hints.ai_socktype = type;
     status = getaddrinfo(ip_addr, portstr, &hints, &result);
-    if(status != 0) 
+    if(status != 0)
     {
         display_error("Failed to get address info for %s:%d, %s\n", ip_addr, port, gai_strerror(status));
         return SOCK_INVALID;
     }
 
     /* Try each address until we successfully connect. */
-    for(rp = result; rp != NULL; rp = rp->ai_next) 
+    for(rp = result; rp != NULL; rp = rp->ai_next)
     {
         /* Get address information */
         status = getnameinfo(rp->ai_addr,rp->ai_addrlen, host, SOCK_HOST_STR_LEN, serv, SOCK_SERV_STR_LEN, NI_NUMERICHOST | NI_NUMERICSERV);
-        
+
         /* Create socket */
         sock = socket(rp->ai_family, rp->ai_socktype, 0);
         if(sock < 0)
@@ -208,13 +208,13 @@ int sockcreate(int type, const char* ip_addr, int port, int is_server, int* bloc
             do {
                 /* Connect Socket */
                 status = connect(sock, rp->ai_addr, rp->ai_addrlen);
-                if(status < 0) 
+                if(status < 0)
                 {
                     display_error("Failed to connect socket to %s:%s... %s\n", host, serv, strerror(errno));
                     sleep(1);
                 }
             } while(status < 0 && block && *block);
-            
+
             /* Check Connection */
             if(status < 0)  close(sock);
             else            break;
@@ -247,7 +247,7 @@ int sockcreate(int type, const char* ip_addr, int port, int is_server, int* bloc
     }
 
     /* Return Client TcpSocket */
-    return sock;    
+    return sock;
 }
 
 /*----------------------------------------------------------------------------*
@@ -258,7 +258,7 @@ int sockstream(const char* ip_addr, int port, int is_server, int* block)
     /* Create initial socket */
     int sock = sockcreate(SOCK_STREAM, ip_addr, port, is_server, block);
     if(sock == SOCK_INVALID) return SOCK_INVALID;
-    
+
     if(!is_server) // client
     {
         return sock;
@@ -382,7 +382,7 @@ int socksend(int fd, const void* buf, int size, int timeout)
         if(c == 0)
         {
             c = SOCK_INVALID;
-        }        
+        }
         else if(c < 0)
         {
             display_error("Failed (%d) to send data to ready socket [%0X]: %s\n", c, revents, strerror(errno));

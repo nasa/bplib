@@ -1,13 +1,13 @@
 /************************************************************************
  * File: pri.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -43,7 +43,7 @@ int pri_read (void* block, int size, bp_blk_pri_t* pri, bool update_indices, uin
     uint8_t* blkbuf = (uint8_t*)block;
     int bytes_read = 0;
     uint32_t sdnvflags = 0;
- 
+
     /* Check Size */
     if(size < 1) return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of primary block: %d\n", size);
 

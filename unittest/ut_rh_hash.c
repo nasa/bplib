@@ -776,12 +776,12 @@ static void test_8(void)
             {
                 found_error = true;
             }
-            
+
             if(!ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to get same CID %d\n", cid))
             {
                 found_error = true;
             }
-            
+
             if(!ut_assert(rh_hash_remove(rh_hash, cid, &bundle) == BP_SUCCESS && bundle.cid == cid, "Failed to remove CID %d\n", cid))
             {
                 found_error = true;
@@ -863,19 +863,19 @@ static void test_9(void)
             {
                 found_error = true;
             }
-            
+
             if(!ut_assert(rh_hash_next  (rh_hash, &bundle) == BP_SUCCESS && bundle.cid == next_cid, "Failed to get same CID %d\n", next_cid))
             {
                 found_error = true;
             }
-            
+
             /* Find Random CID to Remove */
             int remove_index = bplib_os_random() % num_added;
             bp_val_t cid = order_of_cids[remove_index];
             while(cid == BP_MAX_ENCODED_VALUE)
             {
                 remove_index = (remove_index + 1) % num_added;
-                cid = order_of_cids[remove_index];    
+                cid = order_of_cids[remove_index];
             }
 
             /* Remove CID */

@@ -1,13 +1,13 @@
 /************************************************************************
  * File: sdnv.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -69,10 +69,10 @@ int sdnv_read(uint8_t* block, int size, bp_field_t* sdnv, uint32_t* flags)
              *  the encoded value could not be stored in a bp_val_t */
             bplog(flags, BP_FLAG_SDNV_OVERFLOW, "Encoded value was too large to fit into local variable\n");
         }
-        
+
         /* OR in next byte */
         sdnv->value |= (block[i] & 0x7F);
-        
+
         /* Check for end of SDNV */
         if((block[i] & 0x80) == 0x00)
         {
@@ -123,7 +123,7 @@ int sdnv_write(uint8_t* block, int size, bp_field_t sdnv, uint32_t* flags)
         /* Set Fixed Width */
         fixedwidth = sdnv.width;
     }
-    
+
     /* Check for Truncation */
     if(fixedwidth > (size - (int)sdnv.index))
     {

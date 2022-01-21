@@ -1,13 +1,13 @@
 /************************************************************************
  * File: v6.h
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -53,7 +53,7 @@
 #define BP_UNKNOWN_CREATION_TIME        1           /* unreliable time source */
 #define BP_BEST_EFFORT_LIFETIME         1576800000  /* 50 years; ground systems using 'int' type for time have maximum of 68 years */
 
-/* Record Type Definitions */    
+/* Record Type Definitions */
 #define BP_STAT_REC_TYPE                0x10        /* Status Report */
 #define BP_CS_REC_TYPE                  0x20        /* Custody Signal */
 #define BP_ACS_REC_TYPE                 0x40        /* Aggregate Custody Signal */

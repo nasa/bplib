@@ -1,13 +1,13 @@
 /************************************************************************
  * File: bplib_store_ram.h
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -20,7 +20,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 /******************************************************************************
  INCLUDES
@@ -47,6 +47,6 @@ int     bplib_store_ram_getcount       (int handle);
 
 #ifdef __cplusplus
 } // extern "C"
-#endif 
+#endif
 
 #endif /* _bplib_store_ram_h_ */

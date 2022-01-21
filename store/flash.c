@@ -101,7 +101,7 @@ static uint8_t*                 flash_page_buffer = NULL;               /* memor
 /******************************************************************************
  LOCAL FUNCTIONS - UTILITY
  ******************************************************************************/
- 
+
 /*--------------------------------------------------------------------------------------
  * type2str -
  *-------------------------------------------------------------------------------------*/
@@ -173,16 +173,16 @@ BP_LOCAL_SCOPE int flash_page_read (bp_flash_addr_t addr, uint8_t* data, int siz
              * a separate buffer just to read the beginning of the object.  It is the only
              * time in the code when this is done, and it is hardcoded to only read one page
              * and have the offset into the flash_page_buffer be zero.
-             * 
+             *
              * When this occurs, we not only don't need to copy the contents out of the flash_page_buffer
              * since the "data" pointer already points to it, but on many architectures, calling
              * memcpy with overlapping address ranges causes an exception.
-             * 
+             *
              * Note that there is no case in the code where the data buffer is pointing to a location
-             * in memory that overlaps with the flash_page_buffer; so the check for equivalence is 
+             * in memory that overlaps with the flash_page_buffer; so the check for equivalence is
              * sufficient.
-             */ 
-            if(data != flash_page_buffer) 
+             */
+            if(data != flash_page_buffer)
             {
                 memcpy(data, flash_page_buffer, size);
             }
@@ -269,7 +269,7 @@ BP_LOCAL_SCOPE int flash_free_allocate (bp_flash_index_t* block)
             /* Failed to Erase - Add to Failed Block List */
             flash_error_count++;
             flash_block_list_add(&flash_fail_blocks, block_out);
-            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to erase block %d when allocating it... adding as failed block\n", 
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to erase block %d when allocating it... adding as failed block\n",
                                                 FLASH_DRIVER.phyblk(block_out));
         }
 
@@ -302,7 +302,7 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
     /* Check for Valid Address */
     if(addr->block >= FLASH_DRIVER.num_blocks || addr->page >= FLASH_DRIVER.pages_per_block)
     {
-        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to write function: %d.%d\n", 
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to write function: %d.%d\n",
                                                     FLASH_DRIVER.phyblk(addr->block), addr->page);
     }
 
@@ -313,13 +313,13 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
         int bytes_to_copy = bytes_left < FLASH_PAGE_DATA_SIZE ? bytes_left : FLASH_PAGE_DATA_SIZE;
         int flash_status = flash_page_write(*addr, &data[data_index], bytes_to_copy);
 
-        /* Check if Write Failed 
+        /* Check if Write Failed
          *  don't set return status of function to failure
          *  but instead count and log the error and keep going */
         if(flash_status != BP_SUCCESS)
         {
             flash_error_count++;
-            bplog(NULL, BP_FLAG_STORE_FAILURE, "Error encountered writing data to flash address: %d.%d\n", 
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "Error encountered writing data to flash address: %d.%d\n",
                                                 FLASH_DRIVER.phyblk(addr->block), addr->page);
         }
 
@@ -341,7 +341,7 @@ BP_LOCAL_SCOPE int flash_data_write (bp_flash_addr_t* addr, uint8_t* data, int s
             }
             else
             {
-                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to retrieve next free block in middle of flash write at block: %ld\n", 
+                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to retrieve next free block in middle of flash write at block: %ld\n",
                                                             FLASH_DRIVER.phyblk(addr->block));
             }
         }
@@ -361,7 +361,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
     /* Check for Valid Address */
     if(addr->block >= FLASH_DRIVER.num_blocks || addr->page >= FLASH_DRIVER.pages_per_block)
     {
-        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to read function: %d.%d\n", 
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to read function: %d.%d\n",
                                                     FLASH_DRIVER.phyblk(addr->block), addr->page);
     }
 
@@ -378,7 +378,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
         if(flash_status != BP_SUCCESS)
         {
             flash_error_count++;
-            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read data from flash address: %d.%d\n", 
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to read data from flash address: %d.%d\n",
                                                 FLASH_DRIVER.phyblk(addr->block), addr->page);
         }
 
@@ -393,7 +393,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
             bp_flash_index_t next_read_block = flash_blocks[addr->block].next_block;
             if(next_read_block == BP_FLASH_INVALID_INDEX)
             {
-                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to retrieve next block in middle of flash read at block: %ld\n", 
+                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to retrieve next block in middle of flash read at block: %ld\n",
                                                             FLASH_DRIVER.phyblk(addr->block));
             }
 
@@ -445,8 +445,8 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, uint8_t* d
     }
     else
     {
-        status = bplog(NULL, BP_FLAG_STORE_FAILURE, "Insufficient room in flash storage, max: %llu, available: %llu, needed: %llu\n", 
-                                                    (long long unsigned)fs->attributes.max_data_size, (long long unsigned)bytes_available, 
+        status = bplog(NULL, BP_FLAG_STORE_FAILURE, "Insufficient room in flash storage, max: %llu, available: %llu, needed: %llu\n",
+                                                    (long long unsigned)fs->attributes.max_data_size, (long long unsigned)bytes_available,
                                                     (long long unsigned)bytes_needed);
     }
 
@@ -520,7 +520,7 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
     bp_flash_addr_t addr = {FLASH_GET_BLOCK((unsigned long)sid), FLASH_GET_PAGE((unsigned long)sid)};
     if(addr.block >= FLASH_DRIVER.num_blocks || addr.page >= FLASH_DRIVER.pages_per_block)
     {
-        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to delete function: %d.%d\n", 
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Invalid address provided to delete function: %d.%d\n",
                                                     FLASH_DRIVER.phyblk(addr.block), addr.page);
     }
 
@@ -531,12 +531,12 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
     status = flash_data_read(&hdr_addr, (uint8_t*)flash_object_hdr, sizeof(flash_object_hdr_t));
     if(status != BP_SUCCESS)
     {
-        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Unable to read object header at %d.%d in delete function\n", 
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Unable to read object header at %d.%d in delete function\n",
                                                     FLASH_DRIVER.phyblk(addr.block), addr.page);
     }
     else if(flash_object_hdr->object_hdr.sid != sid)
     {
-        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Attempting to delete object with invalid SID: %lu != %lu\n", 
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Attempting to delete object with invalid SID: %lu != %lu\n",
                                                     (unsigned long)flash_object_hdr->object_hdr.sid, (unsigned long)sid);
     }
 
@@ -561,7 +561,7 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
             bp_flash_index_t next_delete_block = flash_blocks[addr.block].next_block;
             if((next_delete_block == BP_FLASH_INVALID_INDEX) && (bytes_left > 0))
             {
-                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to retrieve next block in middle of flash delete at block: %d\n", 
+                return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to retrieve next block in middle of flash delete at block: %d\n",
                                                             FLASH_DRIVER.phyblk(addr.block));
             }
 
@@ -583,7 +583,7 @@ BP_LOCAL_SCOPE int flash_object_delete (flash_store_t* fs, bp_sid_t sid)
                 status = flash_free_reclaim(fs->active_block);
                 if(status != BP_SUCCESS)
                 {
-                    bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to reclaim block %d as a free block\n", 
+                    bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to reclaim block %d as a free block\n",
                                                         status, FLASH_DRIVER.phyblk(fs->active_block));
                 }
 
@@ -708,7 +708,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, bool sw_edac)
     /* Check for Success */
     if(reclaimed_blocks > 0)
     {
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Flash storage service reclaimed %d blocks, starting at block %d\n", 
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Flash storage service reclaimed %d blocks, starting at block %d\n",
                                         reclaimed_blocks, FLASH_DRIVER.phyblk(start_block % driver.num_blocks));
     }
     else
@@ -771,9 +771,9 @@ void bplib_store_flash_reclaim_used_blocks (bp_ipn_t node, bp_ipn_t service)
 
     for(s = 0; s < FLASH_MAX_STORES; s++)
     {
-        if( (flash_stores[s].in_use == false) && 
-            (flash_stores[s].preserve == true) && 
-            (flash_stores[s].node == node) && 
+        if( (flash_stores[s].in_use == false) &&
+            (flash_stores[s].preserve == true) &&
+            (flash_stores[s].node == node) &&
             (flash_stores[s].service == service) )
         {
             flash_stores[s].in_use = true;
@@ -867,29 +867,29 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
     bp_flash_attr_t* attr = (bp_flash_attr_t*)parm;
     bool in_error = false;
     int handle = BP_INVALID_HANDLE;
-    int s;    
+    int s;
 
     if(recover)
     {
         /* Search for Existing Store */
         for(s = 0; s < FLASH_MAX_STORES; s++)
         {
-            if( (flash_stores[s].preserve == true) && 
+            if( (flash_stores[s].preserve == true) &&
                 (flash_stores[s].type == type) &&
-                (flash_stores[s].node == node) && 
+                (flash_stores[s].node == node) &&
                 (flash_stores[s].service == service) )
             {
                 if(!flash_stores[s].in_use)
                 {
                     /* Recover Bundles */
-                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Recovered %d %s from ipn:%d.%d in flash store\n", 
+                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Recovered %d %s from ipn:%d.%d in flash store\n",
                                                     flash_stores[s].object_count, type2str(type), node, service);
                     handle = s;
                 }
                 else
                 {
                     /* Node.Service Already In Use */
-                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Store of %s for ipn:%d.%d already in use!\n", 
+                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "Store of %s for ipn:%d.%d already in use!\n",
                                                     type2str(type), node, service);
                     in_error = true;
                 }
@@ -989,15 +989,15 @@ int bplib_store_flash_destroy (int handle)
     assert(flash_stores[handle].in_use);
 
     /* If Preserving:
-     *  Reset Active Block to Read Address - this will cause any bundles that are 
-     *  active to be lost.  Since this store doesn't keep track of individual free pages, 
-     *  there is no way to reset the active address to the exact page (the active address 
-     *  only keeps track of the block for this reason). 
-     * 
+     *  Reset Active Block to Read Address - this will cause any bundles that are
+     *  active to be lost.  Since this store doesn't keep track of individual free pages,
+     *  there is no way to reset the active address to the exact page (the active address
+     *  only keeps track of the block for this reason).
+     *
      * If Not Preserving:
      *  Reclaim all blocks from the active block all the way to the end.  This drains all
      *  the blocks associated with this store from flash. */
-    while( (flash_stores[handle].active_block != BP_FLASH_INVALID_INDEX) && 
+    while( (flash_stores[handle].active_block != BP_FLASH_INVALID_INDEX) &&
            ( (!flash_stores[handle].preserve) ||
              (flash_stores[handle].active_block != flash_stores[handle].read_addr.block) ) )
     {
@@ -1008,7 +1008,7 @@ int bplib_store_flash_destroy (int handle)
         int status = flash_free_reclaim(flash_stores[handle].active_block);
         if(status != BP_SUCCESS)
         {
-            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to reclaim block %d as a free block\n", 
+            bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to reclaim block %d as a free block\n",
                                                 status, FLASH_DRIVER.phyblk(flash_stores[handle].active_block));
         }
 
@@ -1034,15 +1034,15 @@ int bplib_store_flash_destroy (int handle)
     /* Generate Status Message */
     if(!flash_stores[handle].preserve)
     {
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Deleting %d unpreserved %s from ipn:%d.%d in flash store\n", 
-                                        flash_stores[handle].object_count, type2str(flash_stores[handle].type), 
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Deleting %d unpreserved %s from ipn:%d.%d in flash store\n",
+                                        flash_stores[handle].object_count, type2str(flash_stores[handle].type),
                                         flash_stores[handle].node, flash_stores[handle].service);
     }
     else
     {
         int active_bundles = flash_stores[handle].object_count - flash_stores[handle].inactive_count;
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Deleting %d abandoned %s from ipn:%d.%d in flash store\n", 
-                                        active_bundles, type2str(flash_stores[handle].type), 
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Deleting %d abandoned %s from ipn:%d.%d in flash store\n",
+                                        active_bundles, type2str(flash_stores[handle].type),
                                         flash_stores[handle].node, flash_stores[handle].service);
     }
 
@@ -1184,7 +1184,7 @@ int bplib_store_flash_release (int handle, bp_sid_t sid)
     flash_object_hdr_t* flash_object_hdr = (flash_object_hdr_t*)fs->read_stage;
     if(flash_object_hdr->object_hdr.sid != sid)
     {
-        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Object being released does not have correct SID, requested: %lu, actual: %lu\n", 
+        return bplog(NULL, BP_FLAG_STORE_FAILURE, "Object being released does not have correct SID, requested: %lu, actual: %lu\n",
                                                     (unsigned long)sid, (unsigned long)flash_object_hdr->object_hdr.sid);
     }
     else

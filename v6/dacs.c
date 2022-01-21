@@ -1,13 +1,13 @@
 /************************************************************************
  * File: dacs.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -35,11 +35,11 @@
  *  rec - buffer containing the ACS record [OUTPUT]
  *  size - size of buffer [INPUT]
  *  max_fills_per_dacs - the maximum number of allowable fills for each dacs
- *  tree - a rb_tree ptr containing the cid ranges for the bundle. The tree nodes will 
+ *  tree - a rb_tree ptr containing the cid ranges for the bundle. The tree nodes will
  *      be deleted as they are written to the dacs. [OUTPUT]
  *  iter - a ptr to a ptr the next rb_node in the tree to extract the fill information
  *      and then delete. [OUTPUT]
- * 
+ *
  *  Returns:    Number of bytes processed of bundle
  *-------------------------------------------------------------------------------------*/
 int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, uint32_t* flags)
@@ -47,7 +47,7 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
     bp_field_t cid = { 0, 2, 0 };
     bp_field_t fill = { 0, 0, 0 };
     uint32_t sdnvflags = 0;
- 
+
     /* Write Record Information */
     rec[BP_ACS_REC_TYPE_INDEX] = BP_ACS_REC_TYPE; /* record type */
     rec[BP_ACS_REC_STATUS_INDEX] = BP_ACS_ACK_MASK;
@@ -64,14 +64,14 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
     cid.value = range.value;
     fill.index = sdnv_write(rec, size, cid, &sdnvflags);
     fill.value = range.offset + 1;
-    fill.index = sdnv_write(rec, size, fill, &sdnvflags);    
+    fill.index = sdnv_write(rec, size, fill, &sdnvflags);
     count_fills += 2;
 
     /* Traverse tree in order and write out fills to dacs. */
     while (count_fills < max_fills_per_dacs && !rb_tree_is_empty(tree))
     {
         prev_range = range;
-        rb_tree_get_next(tree, &range, true, false);        
+        rb_tree_get_next(tree, &range, true, false);
 
         /* Write range of missing cid.
            Calculate the missing values between the current and previous node. */
@@ -80,16 +80,16 @@ int dacs_write(uint8_t* rec, int size, int max_fills_per_dacs, rb_tree_t* tree, 
 
         /* Write range of received cids. */
         fill.value = range.offset + 1;
-        fill.index = sdnv_write(rec, size, fill, &sdnvflags);    
-        count_fills += 2;        
+        fill.index = sdnv_write(rec, size, fill, &sdnvflags);
+        count_fills += 2;
     }
 
     /* Success Oriented Error Checking */
-    if(sdnvflags != 0)    
+    if(sdnvflags != 0)
     {
         *flags |= sdnvflags;
-        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of DACS (%08X)\n", sdnvflags); 
-    } 
+        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of DACS (%08X)\n", sdnvflags);
+    }
 
     /* Return Block Size */
     return fill.index;

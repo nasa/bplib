@@ -1,13 +1,13 @@
 /************************************************************************
  * File: cteb.c
  *
- *  Copyright 2019 United States Government as represented by the 
- *  Administrator of the National Aeronautics and Space Administration. 
- *  All Other Rights Reserved.  
+ *  Copyright 2019 United States Government as represented by the
+ *  Administrator of the National Aeronautics and Space Administration.
+ *  All Other Rights Reserved.
  *
  *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be 
- *  used, distributed and modified only pursuant to the terms of that 
+ *  This software is governed by the NASA Open Source Agreement and may be
+ *  used, distributed and modified only pursuant to the terms of that
  *  agreement.
  *
  * Maintainer(s):
@@ -81,7 +81,7 @@ int cteb_read (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, 
     if(sdnvflags != 0)
     {
         *flags |= sdnvflags;
-        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of CTEB (%08X)\n", sdnvflags); 
+        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of CTEB (%08X)\n", sdnvflags);
     }
     else
     {
@@ -146,13 +146,13 @@ int cteb_write (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices,
     {
         bplog(&sdnvflags, BP_FLAG_SDNV_OVERFLOW, "CTEB block length too large: %d\n", cteb->blklen.value);
     }
-    
+
 
     /* Success Oriented Error Checking */
     if(sdnvflags != 0)
     {
         *flags |= sdnvflags;
-        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of CTEB (%08X)\n", sdnvflags); 
+        return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Flags raised during processing of CTEB (%08X)\n", sdnvflags);
     }
     else
     {

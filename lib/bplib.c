@@ -844,7 +844,7 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                 }
                 else
                 {
-                    /* Clear Entry in Active Table and Storage 
+                    /* Clear Entry in Active Table and Storage
                      *  - when the retrieval of the bundle failed above OR
                      *  - when the retrieved bundle has expired */
                     ch->active_table.remove(ch->active_table.table, active_bundle.cid, NULL);
@@ -868,12 +868,12 @@ int bplib_load(bp_desc_t* desc, void** bundle, int* size, int timeout, uint32_t*
                     status = bplib_os_waiton(ch->active_table_signal, timeout);
                     if(status == BP_SUCCESS)
                     {
-                        /* Recheck Table Availability 
-                            * The conditional active_table_signal can notify that the table has space but
-                            * another thread could claim the space before this current context is able to proceed;
-                            * therefore the check for room in the table must be remade. Furthermore, the check
-                            * is only made once as we don't want to stay trapped inside this function; as such
-                            * any failed check is overwritten to be a TIMEOUT. */
+                        /* Recheck Table Availability
+                         * The conditional active_table_signal can notify that the table has space but
+                         * another thread could claim the space before this current context is able to proceed;
+                         * therefore the check for room in the table must be remade. Furthermore, the check
+                         * is only made once as we don't want to stay trapped inside this function; as such
+                         * any failed check is overwritten to be a TIMEOUT. */
                         status = ch->active_table.available(ch->active_table.table, ch->current_active_cid);
                         if(status != BP_SUCCESS) status = BP_TIMEOUT;
                     }
@@ -1042,7 +1042,7 @@ int bplib_process(bp_desc_t* desc, void* bundle, int size, int timeout, uint32_t
                 status = BP_SUCCESS;
             }
             else
-            {                
+            {
                 status = bytes_read; /* Error Code */
             }
         }

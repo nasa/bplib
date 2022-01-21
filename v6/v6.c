@@ -383,7 +383,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
             /* Creation time set to current system time */
             pri->createsec.value = sysnow;
         }
-        
+
         /* Set Creation Time and Sequence */
         sdnv_write(data->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createsec, flags);
         sdnv_write(data->header, BP_BUNDLE_HDR_BUF_SIZE, pri->createseq, flags);
@@ -399,7 +399,7 @@ int v6_send_bundle(bp_bundle_t* bundle, uint8_t* buffer, int size, bp_create_fun
         data->exprtime = BP_UNKNOWN_CREATION_TIME;
     }
     else
-    {    
+    {
         data->exprtime = pri->createsec.value + lifetime.value;
         if(data->exprtime < pri->createsec.value)
         {

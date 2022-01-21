@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 /*
- * The number of flash based storage service control structures to 
+ * The number of flash based storage service control structures to
  * statically allocate
  */
 #ifndef FLASH_MAX_STORES
