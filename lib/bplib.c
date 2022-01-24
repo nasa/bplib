@@ -20,6 +20,7 @@
  ******************************************************************************/
 
 #include "bplib.h"
+#include "bplib_os.h"
 #include "v6.h"
 #include "rb_tree.h"
 #include "bundle_types.h"
@@ -59,18 +60,18 @@ typedef struct {
     bp_stats_t              stats;
     /* Data Bundles */
     bp_bundle_t             bundle;
-    int                     bundle_handle;
-    int                     payload_handle;
+    bp_handle_t             bundle_handle;
+    bp_handle_t             payload_handle;
     bp_val_t                current_active_cid;
-    int                     active_table_signal;
+    bp_handle_t             active_table_signal;
     bp_active_table_t       active_table;
     /* DTN Aggregate Custody Signals */
     bp_bundle_t             dacs;
-    int                     dacs_handle;
+    bp_handle_t             dacs_handle;
     uint8_t*                dacs_buffer;
     int                     dacs_size;
     bp_val_t                dacs_last_sent;
-    int                     custody_tree_lock;
+    bp_handle_t             custody_tree_lock;
     rb_tree_t               custody_tree;
 } bp_channel_t;
 
@@ -105,7 +106,7 @@ static const bp_attr_t default_attributes = {
  ******************************************************************************/
 
 #if BPLIB_GLOBAL_CUSTODY_ID
-int bplib_custody_id_mutex = BP_INVALID_HANDLE;
+bp_handle_t bplib_custody_id_mutex = {0};
 bp_val_t bplib_global_custody_id = 0;
 #endif
 
@@ -120,7 +121,7 @@ BP_LOCAL_SCOPE int create_bundle(void* parm, bool is_record, const uint8_t* payl
 {
     bp_channel_t*       ch      = (bp_channel_t*)parm;
     bp_bundle_data_t*   data    = NULL;
-    int                 handle  = BP_INVALID_HANDLE;
+    bp_handle_t         handle  = BP_INVALID_HANDLE;
 
     /* Set Type of Bundle */
     if(is_record)
@@ -249,7 +250,7 @@ void bplib_deinit(void)
 {
     /* (Optional) Global Custody ID */
     #if BPLIB_GLOBAL_CUSTODY_ID
-    if(bplib_custody_id_mutex != BP_INVALID_HANDLE)
+    if(bp_handle_is_valid(bplib_custody_id_mutex))
     {
         bplib_os_destroylock(bplib_custody_id_mutex);
         bplib_custody_id_mutex = BP_INVALID_HANDLE;
@@ -322,7 +323,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Initialize Bundle Store */
     ch->bundle_handle = ch->store.create(BP_STORE_DATA_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
-    if(ch->bundle_handle == BP_INVALID_HANDLE)
+    if(!bp_handle_is_valid(ch->bundle_handle))
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to create storage handle for bundles\n");
         bplib_close(desc);
@@ -331,7 +332,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Initialize Payload Store */
     ch->payload_handle = ch->store.create(BP_STORE_PAYLOAD_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
-    if(ch->payload_handle == BP_INVALID_HANDLE)
+    if(!bp_handle_is_valid(ch->payload_handle))
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to create storage handle for payloads\n");
         bplib_close(desc);
@@ -340,7 +341,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Initialize DACS Store */
     ch->dacs_handle = ch->store.create(BP_STORE_DACS_TYPE, route.local_node, route.local_service, attributes.persistent_storage, attributes.storage_service_parm);
-    if(ch->dacs_handle == BP_INVALID_HANDLE)
+    if(!bp_handle_is_valid(ch->dacs_handle))
     {
         bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to create storage handle for dacs\n");
         bplib_close(desc);
@@ -377,7 +378,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Create DACS Lock */
     ch->custody_tree_lock = bplib_os_createlock();
-    if(ch->custody_tree_lock == BP_INVALID_HANDLE)
+    if(!bp_handle_is_valid(ch->custody_tree_lock))
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to create a lock for dacs processing\n");
         bplib_close(desc);
@@ -408,7 +409,7 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Initialize Active Table Signal */
     ch->active_table_signal = bplib_os_createlock();
-    if(ch->active_table_signal == BP_INVALID_HANDLE)
+    if(!bp_handle_is_valid(ch->active_table_signal))
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to create custody_tree_lock for active table\n");
         bplib_close(desc);
@@ -471,28 +472,28 @@ void bplib_close(bp_desc_t* desc)
     bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Un-initialize Bundle Store */
-    if(ch->bundle_handle != BP_INVALID_HANDLE)
+    if(bp_handle_is_valid(ch->bundle_handle))
     {
         ch->store.destroy(ch->bundle_handle);
         ch->bundle_handle = BP_INVALID_HANDLE;
     }
 
     /* Un-initialize Payload Store */
-    if(ch->payload_handle != BP_INVALID_HANDLE)
+    if(bp_handle_is_valid(ch->payload_handle))
     {
         ch->store.destroy(ch->payload_handle);
         ch->payload_handle = BP_INVALID_HANDLE;
     }
 
     /* Un-initialize Record Store */
-    if(ch->dacs_handle != BP_INVALID_HANDLE)
+    if(bp_handle_is_valid(ch->dacs_handle))
     {
         ch->store.destroy(ch->dacs_handle);
         ch->dacs_handle = BP_INVALID_HANDLE;
     }
 
     /* Destroy Custody Tree Lock */
-    if(ch->custody_tree_lock != BP_INVALID_HANDLE)
+    if(bp_handle_is_valid(ch->custody_tree_lock))
     {
         bplib_os_destroylock(ch->custody_tree_lock);
         ch->custody_tree_lock = BP_INVALID_HANDLE;
@@ -513,7 +514,7 @@ void bplib_close(bp_desc_t* desc)
     v6_destroy(&ch->dacs);
 
     /* Un-initialize Active Table */
-    if(ch->active_table_signal != BP_INVALID_HANDLE) bplib_os_destroylock(ch->active_table_signal);
+    if(bp_handle_is_valid(ch->active_table_signal)) bplib_os_destroylock(ch->active_table_signal);
     if(ch->active_table.destroy) ch->active_table.destroy(ch->active_table.table);
 
     /* Free Channel */
@@ -534,7 +535,7 @@ int bplib_flush(bp_desc_t* desc)
     bp_channel_t* ch = (bp_channel_t*)desc->channel;
 
     /* Flush Data Bundles */
-    int handle = ch->bundle_handle;
+    bp_handle_t handle = ch->bundle_handle;
 
     /* Lock Active Table */
     bplib_os_lock(ch->active_table_signal);

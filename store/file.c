@@ -68,7 +68,7 @@ typedef struct {
 
 typedef struct {
     bool            in_use;
-    int             lock;
+    bp_handle_t             lock;
     uint64_t        service_id;
     char*           file_root;
     int             data_count;
@@ -152,12 +152,10 @@ BP_LOCAL_SCOPE int delete_dat_file (int service_id, char* file_root, uint32_t fi
 
     if(status < 0)
     {
-        return bplog(NULL, BP_FLAG_STORE_FAILURE, "failed to remove %s data file: %s\n", filename, strerror(errno));
+        status = bplog(NULL, BP_FLAG_STORE_FAILURE, "failed to remove %s data file: %s\n", filename, strerror(errno));
     }
-    else
-    {
-        return status;
-    }
+
+    return status;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -223,7 +221,7 @@ void bplib_store_file_init (bp_file_driver_t* driver)
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_create -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
+bp_handle_t bplib_store_file_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
 {
     (void)type;
     (void)node;
@@ -231,12 +229,15 @@ int bplib_store_file_create (int type, bp_ipn_t node, bp_ipn_t service, bool rec
     (void)recover;
 
     bp_file_attr_t* attr = (bp_file_attr_t*)parm;
+    bp_handle_t pending_h;
 
     int s;
     for(s = 0; s < FILE_MAX_STORES; s++)
     {
         if(file_stores[s].in_use == false)
         {
+            pending_h = bp_handle_from_serial(s, BPLIB_HANDLE_FILE_STORE_BASE);
+
             /* Clear File Store (pointers set to NULL) */
             memset(&file_stores[s], 0, sizeof(file_stores[s]));
             file_stores[s].write_fd = NULL;
@@ -257,10 +258,10 @@ int bplib_store_file_create (int type, bp_ipn_t node, bp_ipn_t service, bool rec
 
             /* Setup and Check Lock */
             file_stores[s].lock = bplib_os_createlock();
-            if(file_stores[s].lock < 0)
+            if(!bp_handle_is_valid(file_stores[s].lock))
             {
                 bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed (%d) to create FSS lock\n", file_stores[s].lock);
-                bplib_store_file_destroy(s);
+                bplib_store_file_destroy(pending_h);
                 break;
             }
 
@@ -281,7 +282,7 @@ int bplib_store_file_create (int type, bp_ipn_t node, bp_ipn_t service, bool rec
             if(file_stores[s].file_root == NULL)
             {
                 bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to set FSS root path\n");
-                bplib_store_file_destroy(s);
+                bplib_store_file_destroy(pending_h);
                 break;
             }
 
@@ -299,12 +300,12 @@ int bplib_store_file_create (int type, bp_ipn_t node, bp_ipn_t service, bool rec
             if(file_stores[s].data_cache == NULL)
             {
                 bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to allocate FSS data cache\n");
-                bplib_store_file_destroy(s);
+                bplib_store_file_destroy(pending_h);
                 break;
             }
 
             /* Return Handle */
-            return s;
+            return pending_h;
         }
     }
 
@@ -314,8 +315,10 @@ int bplib_store_file_create (int type, bp_ipn_t node, bp_ipn_t service, bool rec
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_destroy -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_destroy (int handle)
+int bplib_store_file_destroy (bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FILE_STORE_BASE);
+
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
@@ -323,7 +326,7 @@ int bplib_store_file_destroy (int handle)
     if(file_stores[handle].read_fd != NULL)             file_driver.close(file_stores[handle].read_fd);
     if(file_stores[handle].retrieve_fd != NULL)         file_driver.close(file_stores[handle].retrieve_fd);
     if(file_stores[handle].file_root != NULL)           bplib_os_free(file_stores[handle].file_root);
-    if(file_stores[handle].lock != BP_INVALID_HANDLE)   bplib_os_destroylock(file_stores[handle].lock);
+    if(bp_handle_is_valid(file_stores[handle].lock))    bplib_os_destroylock(file_stores[handle].lock);
     if(file_stores[handle].data_cache != NULL)          bplib_os_free(file_stores[handle].data_cache);
 
     file_stores[handle].in_use = false;
@@ -334,8 +337,9 @@ int bplib_store_file_destroy (int handle)
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_enqueue -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_enqueue (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout)
+int bplib_store_file_enqueue (bp_handle_t h, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FILE_STORE_BASE);
     (void)timeout;
 
     assert(handle >= 0 && handle < FILE_MAX_STORES);
@@ -386,7 +390,7 @@ int bplib_store_file_enqueue (int handle, const void* data1, size_t data1_size, 
 
     /* Create Object */
     bp_object_hdr_t object_header = {
-        .handle = handle,
+        .handle = h,
         .sid = BP_SID_VACANT,
         .size = data_size
     };
@@ -453,8 +457,10 @@ int bplib_store_file_enqueue (int handle, const void* data1, size_t data1_size, 
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_dequeue -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
+int bplib_store_file_dequeue (bp_handle_t h, bp_object_t** object, int timeout)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FILE_STORE_BASE);
+
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
     assert(object);
@@ -632,8 +638,10 @@ int bplib_store_file_dequeue (int handle, bp_object_t** object, int timeout)
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_retrieve -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, int timeout)
+int bplib_store_file_retrieve (bp_handle_t h, bp_sid_t sid, bp_object_t** object, int timeout)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FILE_STORE_BASE);
+
     (void)timeout;
 
     assert(handle >= 0 && handle < FILE_MAX_STORES);
@@ -811,8 +819,10 @@ int bplib_store_file_retrieve (int handle, bp_sid_t sid, bp_object_t** object, i
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_release -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_release (int handle, bp_sid_t sid)
+int bplib_store_file_release (bp_handle_t h, bp_sid_t sid)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FILE_STORE_BASE);
+
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
@@ -846,8 +856,10 @@ int bplib_store_file_release (int handle, bp_sid_t sid)
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_relinquish -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_relinquish (int handle, bp_sid_t sid)
+int bplib_store_file_relinquish (bp_handle_t h, bp_sid_t sid)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FILE_STORE_BASE);
+
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
@@ -969,12 +981,14 @@ int bplib_store_file_relinquish (int handle, bp_sid_t sid)
 /*--------------------------------------------------------------------------------------
  * bplib_store_file_getcount -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_file_getcount (int handle)
+int bplib_store_file_getcount (bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FILE_STORE_BASE);
+
     assert(handle >= 0 && handle < FILE_MAX_STORES);
     assert(file_stores[handle].in_use);
 
-    file_store_t* fs = (file_store_t*)&file_stores[handle];
+    file_store_t* fs = &file_stores[handle];
 
     return fs->data_count;
 }

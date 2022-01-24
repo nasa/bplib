@@ -19,7 +19,11 @@
  INCLUDES
  ******************************************************************************/
 
+#include <string.h>
+#include <assert.h>
+
 #include "bplib.h"
+#include "bplib_os.h"
 #include "bplib_store_flash.h"
 #include "lrc.h"
 
@@ -92,7 +96,7 @@ static flash_store_t            flash_stores[FLASH_MAX_STORES];         /* avail
 static flash_block_list_t       flash_free_blocks;                      /* linked list of flash blocks available for use */
 static flash_block_list_t       flash_fail_blocks;                      /* linked list of flash blocks that have failed during runtime use */
 
-static int                      flash_device_lock = BP_INVALID_HANDLE;  /* mutex for accessing flash control structures */
+static bp_handle_t              flash_device_lock = {0};  /* mutex for accessing flash control structures */
 static flash_block_control_t*   flash_blocks = NULL;                    /* memory array of per block meta data, one per flash block */
 static int                      flash_error_count = 0;                  /* total number of flash errors encountered across all storage services */
 static int                      flash_used_block_count = 0;             /* total number of flash blocks currently in use by all storage services */
@@ -413,7 +417,7 @@ BP_LOCAL_SCOPE int flash_data_read (bp_flash_addr_t* addr, uint8_t* data, int si
 /*--------------------------------------------------------------------------------------
  * flash_object_write -
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, const uint8_t* data1, int data1_size, const uint8_t* data2, int data2_size)
+BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, bp_handle_t h, const uint8_t* data1, int data1_size, const uint8_t* data2, int data2_size)
 {
     int status = BP_SUCCESS;
 
@@ -429,7 +433,7 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, const uint
             .synchi = FLASH_OBJECT_SYNC_HI,
             .synclo = FLASH_OBJECT_SYNC_LO,
             .object_hdr = {
-                .handle = handle,
+                .handle = h,
                 .size = data1_size + data2_size,
                 .sid = (bp_sid_t)sid
             }
@@ -457,7 +461,7 @@ BP_LOCAL_SCOPE int flash_object_write (flash_store_t* fs, int handle, const uint
 /*--------------------------------------------------------------------------------------
  * flash_object_read -
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_addr_t* addr, bp_object_t** object)
+BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, bp_handle_t h, bp_flash_addr_t* addr, bp_object_t** object)
 {
     int status;
 
@@ -471,7 +475,7 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
         if(status == BP_SUCCESS)
         {
             if( (flash_object_hdr->object_hdr.size <= fs->attributes.max_data_size) &&
-                (flash_object_hdr->object_hdr.handle == handle) &&
+                bp_handle_equal(flash_object_hdr->object_hdr.handle, h) &&
                 (flash_object_hdr->synchi == FLASH_OBJECT_SYNC_HI) &&
                 (flash_object_hdr->synclo == FLASH_OBJECT_SYNC_LO) )
             {
@@ -486,7 +490,7 @@ BP_LOCAL_SCOPE int flash_object_read (flash_store_t* fs, int handle, bp_flash_ad
             {
                 status = bplog(NULL, BP_FLAG_STORE_FAILURE, "Object read from flash fails validation, size (%d, %d), handle (%d, %d), sync (%08Xl%08Xl, %018Xl%08Xl)\n",
                                                             flash_object_hdr->object_hdr.size, fs->attributes.max_data_size,
-                                                            flash_object_hdr->object_hdr.handle, handle,
+                                                            flash_object_hdr->object_hdr.handle, bp_handle_printable(h),
                                                             flash_object_hdr->synchi, flash_object_hdr->synclo, FLASH_OBJECT_SYNC_HI, FLASH_OBJECT_SYNC_LO);
             }
         }
@@ -649,7 +653,7 @@ int bplib_store_flash_init (bp_flash_driver_t driver, bool sw_edac)
     {
         /* Initialize Flash Device Lock */
         flash_device_lock = bplib_os_createlock();
-        if(flash_device_lock == BP_INVALID_HANDLE)
+        if(!bp_handle_is_valid(flash_device_lock))
         {
             bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed (%d) to create flash device lock\n", flash_device_lock);
             break; /* Skip rest of initialization */
@@ -734,11 +738,11 @@ void bplib_store_flash_uninit (void)
         {
             flash_stores[s].in_use = true;
             flash_stores[s].preserve = false;
-            bplib_store_flash_destroy(s);
+            bplib_store_flash_destroy(bp_handle_from_serial(s, BPLIB_HANDLE_FLASH_STORE_BASE));
         }
     }
 
-    if(flash_device_lock != BP_INVALID_HANDLE)
+    if(bp_handle_is_valid(flash_device_lock))
     {
         bplib_os_destroylock(flash_device_lock);
         flash_device_lock = BP_INVALID_HANDLE;
@@ -778,7 +782,7 @@ void bplib_store_flash_reclaim_used_blocks (bp_ipn_t node, bp_ipn_t service)
         {
             flash_stores[s].in_use = true;
             flash_stores[s].preserve = false;
-            bplib_store_flash_destroy(s);
+            bplib_store_flash_destroy(bp_handle_from_serial(s, BPLIB_HANDLE_FLASH_STORE_BASE));
         }
     }
 }
@@ -862,11 +866,11 @@ void bplib_store_flash_stats (bp_flash_stats_t* stats, bool log_stats, bool rese
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_create -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
+bp_handle_t bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
 {
     bp_flash_attr_t* attr = (bp_flash_attr_t*)parm;
     bool in_error = false;
-    int handle = BP_INVALID_HANDLE;
+    bp_handle_t handle = BP_INVALID_HANDLE;
     int s;
 
     if(recover)
@@ -884,7 +888,7 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
                     /* Recover Bundles */
                     bplog(NULL, BP_FLAG_DIAGNOSTIC, "Recovered %d %s from ipn:%d.%d in flash store\n",
                                                     flash_stores[s].object_count, type2str(type), node, service);
-                    handle = s;
+                    handle = bp_handle_from_serial(s, BPLIB_HANDLE_FLASH_STORE_BASE);
                 }
                 else
                 {
@@ -899,7 +903,7 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
         }
     }
 
-    if( (handle == BP_INVALID_HANDLE) && (in_error == false) )
+    if( (!bp_handle_is_valid(handle)) && (in_error == false) )
     {
         for(s = 0; s < FLASH_MAX_STORES; s++)
         {
@@ -948,14 +952,14 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
                 flash_stores[s].inactive_count = 0;
 
                 /* Update Store Index and Break Out of Loop */
-                handle = s;
+                handle = bp_handle_from_serial(s, BPLIB_HANDLE_FLASH_STORE_BASE);
                 break;
             }
         }
     }
 
     /* Allocate Stage */
-    if(handle != BP_INVALID_HANDLE)
+    if(bp_handle_is_valid(handle))
     {
         flash_stores[s].stage_locked = false;
         flash_stores[s].write_stage = (uint8_t*)bplib_os_calloc(flash_stores[s].attributes.max_data_size);
@@ -971,10 +975,11 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
     }
 
     /* Set Store Properties */
-    if(handle != BP_INVALID_HANDLE)
+    if(bp_handle_is_valid(handle))
     {
-        flash_stores[handle].in_use = true;
-        flash_stores[handle].preserve = recover;
+        s = bp_handle_to_serial(handle, BPLIB_HANDLE_FLASH_STORE_BASE);
+        flash_stores[s].in_use = true;
+        flash_stores[s].preserve = recover;
     }
 
     return handle;
@@ -983,8 +988,10 @@ int bplib_store_flash_create (int type, bp_ipn_t node, bp_ipn_t service, bool re
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_destroy -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_destroy (int handle)
+int bplib_store_flash_destroy (bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FLASH_STORE_BASE);
+
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
     assert(flash_stores[handle].in_use);
 
@@ -1057,8 +1064,10 @@ int bplib_store_flash_destroy (int handle)
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_enqueue -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_enqueue (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout)
+int bplib_store_flash_enqueue (bp_handle_t h, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FLASH_STORE_BASE);
+
     (void)timeout;
 
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
@@ -1094,7 +1103,7 @@ int bplib_store_flash_enqueue (int handle, const void* data1, size_t data1_size,
             }
 
             /* Write Object into Flash */
-            status = flash_object_write(fs, handle, data1, data1_size, data2, data2_size);
+            status = flash_object_write(fs, h, data1, data1_size, data2, data2_size);
             if(status == BP_SUCCESS)
             {
                 fs->object_count++;
@@ -1111,8 +1120,10 @@ int bplib_store_flash_enqueue (int handle, const void* data1, size_t data1_size,
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_dequeue -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_dequeue (int handle, bp_object_t** object, int timeout)
+int bplib_store_flash_dequeue (bp_handle_t h, bp_object_t** object, int timeout)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FLASH_STORE_BASE);
+
     (void)timeout;
 
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
@@ -1127,7 +1138,7 @@ int bplib_store_flash_dequeue (int handle, bp_object_t** object, int timeout)
         /* Check if Data Objects Available */
         if((fs->read_addr.block != fs->write_addr.block) || (fs->read_addr.page != fs->write_addr.page))
         {
-            status = flash_object_read(fs, handle, &fs->read_addr, object);
+            status = flash_object_read(fs, h, &fs->read_addr, object);
             if(status == BP_SUCCESS)
             {
                 fs->inactive_count--;
@@ -1148,8 +1159,10 @@ int bplib_store_flash_dequeue (int handle, bp_object_t** object, int timeout)
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_retrieve -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_retrieve (int handle, bp_sid_t sid, bp_object_t** object, int timeout)
+int bplib_store_flash_retrieve (bp_handle_t h, bp_sid_t sid, bp_object_t** object, int timeout)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FLASH_STORE_BASE);
+
     (void)timeout;
 
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
@@ -1162,7 +1175,7 @@ int bplib_store_flash_retrieve (int handle, bp_sid_t sid, bp_object_t** object, 
     bplib_os_lock(flash_device_lock);
     {
         bp_flash_addr_t page_addr = {FLASH_GET_BLOCK((unsigned long)sid), FLASH_GET_PAGE((unsigned long)sid)};
-        status = flash_object_read(fs, handle, &page_addr, object);
+        status = flash_object_read(fs, h, &page_addr, object);
     }
     bplib_os_unlock(flash_device_lock);
 
@@ -1173,8 +1186,10 @@ int bplib_store_flash_retrieve (int handle, bp_sid_t sid, bp_object_t** object, 
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_release -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_release (int handle, bp_sid_t sid)
+int bplib_store_flash_release (bp_handle_t h, bp_sid_t sid)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FLASH_STORE_BASE);
+
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
     assert(flash_stores[handle].in_use);
 
@@ -1204,8 +1219,10 @@ int bplib_store_flash_release (int handle, bp_sid_t sid)
  *  because a block should only be deleted after it is dequeued and therefore no longer apart
  *  of the queue of blocks in storage
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_relinquish (int handle, bp_sid_t sid)
+int bplib_store_flash_relinquish (bp_handle_t h, bp_sid_t sid)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FLASH_STORE_BASE);
+
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
     assert(flash_stores[handle].in_use);
 
@@ -1230,8 +1247,10 @@ int bplib_store_flash_relinquish (int handle, bp_sid_t sid)
 /*--------------------------------------------------------------------------------------
  * bplib_store_flash_getcount -
  *-------------------------------------------------------------------------------------*/
-int bplib_store_flash_getcount (int handle)
+int bplib_store_flash_getcount (bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_FLASH_STORE_BASE);
+
     assert(handle >= 0 && handle < FLASH_MAX_STORES);
     assert(flash_stores[handle].in_use);
 

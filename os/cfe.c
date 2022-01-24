@@ -29,9 +29,11 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 
 #include "cfe.h"
 #include "bplib.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  DEFINES
@@ -190,49 +192,49 @@ uint32_t bplib_os_random(void)
 /*--------------------------------------------------------------------------------------
  * bplib_os_createlock -
  *-------------------------------------------------------------------------------------*/
-int bplib_os_createlock(void)
+bp_handle_t bplib_os_createlock(void)
 {
-    return BP_SUCCESS;
+    return bp_handle_from_serial(1, BPLIB_HANDLE_OS_BASE);
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_destroylock -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_destroylock(int handle)
+void bplib_os_destroylock(bp_handle_t h)
 {
-    (void)handle;
+    (void)h;
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_lock -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_lock(int handle)
+void bplib_os_lock(bp_handle_t h)
 {
-    (void)handle;
+    (void)h;
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_unlock -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_unlock(int handle)
+void bplib_os_unlock(bp_handle_t h)
 {
-    (void)handle;
+    (void)h;
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_signal -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_signal(int handle)
+void bplib_os_signal(bp_handle_t h)
 {
-    (void)handle;
+    (void)h;
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_waiton -
  *-------------------------------------------------------------------------------------*/
-int bplib_os_waiton(int handle, int timeout_ms)
+int bplib_os_waiton(bp_handle_t h, int timeout_ms)
 {
-    (void)handle;
+    (void)h;
     (void)timeout_ms;
     return BP_TIMEOUT;
 }

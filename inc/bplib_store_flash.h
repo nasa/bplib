@@ -107,14 +107,14 @@ void    bplib_store_flash_restore_failed_blocks (void);
 void    bplib_store_flash_stats                 (bp_flash_stats_t* stats, bool log_stats, bool reset_stats);
 
 /* Service API */
-int     bplib_store_flash_create                (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
-int     bplib_store_flash_destroy               (int handle);
-int     bplib_store_flash_enqueue               (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
-int     bplib_store_flash_dequeue               (int handle, bp_object_t** object, int timeout);
-int     bplib_store_flash_retrieve              (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
-int     bplib_store_flash_release               (int handle, bp_sid_t sid);
-int     bplib_store_flash_relinquish            (int handle, bp_sid_t sid);
-int     bplib_store_flash_getcount              (int handle);
+bp_handle_t     bplib_store_flash_create                (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
+int     bplib_store_flash_destroy               (bp_handle_t h);
+int     bplib_store_flash_enqueue               (bp_handle_t h, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
+int     bplib_store_flash_dequeue               (bp_handle_t h, bp_object_t** object, int timeout);
+int     bplib_store_flash_retrieve              (bp_handle_t h, bp_sid_t sid, bp_object_t** object, int timeout);
+int     bplib_store_flash_release               (bp_handle_t h, bp_sid_t sid);
+int     bplib_store_flash_relinquish            (bp_handle_t h, bp_sid_t sid);
+int     bplib_store_flash_getcount              (bp_handle_t h);
 
 #ifdef __cplusplus
 } // extern "C"

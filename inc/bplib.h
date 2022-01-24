@@ -26,7 +26,7 @@ extern "C" {
  INCLUDES
  ******************************************************************************/
 
-#include "bplib_os.h"
+#include "bplib_api_types.h"
 
 /******************************************************************************
  DEFINES
@@ -59,9 +59,6 @@ extern "C" {
 #define BP_FLAG_INVALID_BIB_TARGET_TYPE 0x00020000   /* invalid target type found in BIB */
 #define BP_FLAG_FAILED_TO_PARSE         0x00040000   /* unable to parse bundle due to internal inconsistencies in bundle */
 #define BP_FLAG_API_ERROR               0x00080000   /* calling code incorrectly used library */
-
-/* Handles */
-#define BP_INVALID_HANDLE               (-1) /* used for integers (os locks, storage services) */
 
 /* Timeouts */
 #define BP_PEND                         (-1)
@@ -149,14 +146,6 @@ extern "C" {
  TYPEDEFS
  ******************************************************************************/
 
-/* Channel Descriptor */
-typedef struct {
-    void* channel;
-} bp_desc_t;
-
-/* IPN Schema Endpoint ID Integer Definition */
-typedef bp_val_t bp_ipn_t;
-
 /* Address Routing */
 typedef struct {
     bp_ipn_t    local_node;             /* IPN address used for source and custody addresses */
@@ -167,12 +156,9 @@ typedef struct {
     bp_ipn_t    report_service;
 } bp_route_t;
 
-/* Storage ID */
-typedef unsigned long bp_sid_t;
-
 /* Storage Object Header */
 typedef struct {
-    int         handle;
+    bp_handle_t handle;
     size_t      size;
     bp_sid_t    sid;
 } bp_object_hdr_t;
@@ -185,14 +171,15 @@ typedef struct {
 
 /* Storage Service */
 typedef struct {
-    int (*create)       (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
-    int (*destroy)      (int handle);
-    int (*enqueue)      (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
-    int (*dequeue)      (int handle, bp_object_t** object, int timeout);
-    int (*retrieve)     (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
-    int (*release)      (int handle, bp_sid_t sid);
-    int (*relinquish)   (int handle, bp_sid_t sid);
-    int (*getcount)     (int handle);
+    bp_handle_t (*create) (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
+
+    int (*destroy)      (bp_handle_t h);
+    int (*enqueue)      (bp_handle_t h, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
+    int (*dequeue)      (bp_handle_t h, bp_object_t** object, int timeout);
+    int (*retrieve)     (bp_handle_t h, bp_sid_t sid, bp_object_t** object, int timeout);
+    int (*release)      (bp_handle_t h, bp_sid_t sid);
+    int (*relinquish)   (bp_handle_t h, bp_sid_t sid);
+    int (*getcount)     (bp_handle_t h);
 } bp_store_t;
 
 /* Channel Attributes */

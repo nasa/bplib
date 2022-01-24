@@ -561,7 +561,7 @@ Creates a storage service.
 ----------------------------------------------------------------------
 ##### Destroy Storage Service
 
-`int destroy (int handle)`
+`int destroy (bp_handle_t h)`
 
 Destroys a storage service.  This does not mean that the data stored in the service is freed - that is service specific.
 
@@ -572,7 +572,7 @@ Destroys a storage service.  This does not mean that the data stored in the serv
 ----------------------------------------------------------------------
 ##### Enqueue Storage Service
 
-`int enqueue (int handle, void* data1, int data1_size, void* data2, int data2_size, int timeout)`
+`int enqueue (bp_handle_t h, void* data1, int data1_size, void* data2, int data2_size, int timeout)`
 
 Stores the pointed to data into the storage service.
 
@@ -593,7 +593,7 @@ Stores the pointed to data into the storage service.
 ----------------------------------------------------------------------
 ##### Dequeue Storage Service
 
-`int dequeue (int handle, void** data, int* size, bp_sid_t* sid, int timeout)`
+`int dequeue (bp_handle_t h, void** data, int* size, bp_sid_t* sid, int timeout)`
 
 Retrieves the oldest data block stored in the storage service that has not yet been dequeued, and returns a _Storage ID_ that can be used to retrieve the data block in the future.
 
@@ -612,7 +612,7 @@ Retrieves the oldest data block stored in the storage service that has not yet b
 ----------------------------------------------------------------------
 ##### Retrieve Storage Service
 
-`int retrieve (int handle, void** data, int* size, bp_sid_t sid, int timeout)`
+`int retrieve (bp_handle_t h, void** data, int* size, bp_sid_t sid, int timeout)`
 
 Retrieves the data block stored in the storage service identified by the _Storage ID_ sid parameter.
 
@@ -631,7 +631,7 @@ Retrieves the data block stored in the storage service identified by the _Storag
 ----------------------------------------------------------------------
 ##### Release Storage Service
 
-`int release (int handle, bp_sid_t sid)`
+`int release (bp_handle_t h, bp_sid_t sid)`
 
 Releases any in-memory resources associated with the dequeueing or retrieval of a bundle.
 
@@ -644,7 +644,7 @@ Releases any in-memory resources associated with the dequeueing or retrieval of 
 ----------------------------------------------------------------------
 ##### Relinquish Storage Service
 
-`int relinquish (int handle, bp_sid_t sid)`
+`int relinquish (bp_handle_t h, bp_sid_t sid)`
 
 Deletes the stored data block identified by the _Storage ID_ sid parameter.
 
@@ -657,7 +657,7 @@ Deletes the stored data block identified by the _Storage ID_ sid parameter.
 ----------------------------------------------------------------------
 ##### Get Count Storage Service
 
-`int getcount (int handle)`
+`int getcount (bp_handle_t h)`
 
 Returns the number of data blocks currently stored in the storage service.
 
@@ -671,5 +671,3 @@ The storage service call-backs must have the following characteristics:
 * `create` and `destroy` do not need to be thread safe against each other or any other function call - the application is responsible for calling them when it can complete atomically with respect to any other storage service call
 * The memory returned by the dequeue and retrieve function is valid until the release function call.  Every dequeue and retrieve issued by the library will be followed by a release.
 * The _Storage ID (SID)_ returned by the storage service cannot be zero since that is marked as a _VACANT_ SID
-
-

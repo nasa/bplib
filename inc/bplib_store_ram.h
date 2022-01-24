@@ -36,14 +36,15 @@ extern "C" {
 void    bplib_store_ram_init           (void);
 
 /* Service API */
-int     bplib_store_ram_create         (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
-int     bplib_store_ram_destroy        (int handle);
-int     bplib_store_ram_enqueue        (int handle, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
-int     bplib_store_ram_dequeue        (int handle, bp_object_t** object, int timeout);
-int     bplib_store_ram_retrieve       (int handle, bp_sid_t sid, bp_object_t** object, int timeout);
-int     bplib_store_ram_release        (int handle, bp_sid_t sid);
-int     bplib_store_ram_relinquish     (int handle, bp_sid_t sid);
-int     bplib_store_ram_getcount       (int handle);
+bp_handle_t     bplib_store_ram_create         (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
+
+int     bplib_store_ram_destroy        (bp_handle_t h);
+int     bplib_store_ram_enqueue        (bp_handle_t h, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
+int     bplib_store_ram_dequeue        (bp_handle_t h, bp_object_t** object, int timeout);
+int     bplib_store_ram_retrieve       (bp_handle_t h, bp_sid_t sid, bp_object_t** object, int timeout);
+int     bplib_store_ram_release        (bp_handle_t h, bp_sid_t sid);
+int     bplib_store_ram_relinquish     (bp_handle_t h, bp_sid_t sid);
+int     bplib_store_ram_getcount       (bp_handle_t h);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -19,6 +19,12 @@
  INCLUDES
  ******************************************************************************/
 
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+
+#include "bplib.h"
+#include "bplib_os.h"
 #include "bplib_store_flash.h"
 #include "bplib_flash_sim.h"
 
