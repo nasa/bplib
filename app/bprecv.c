@@ -27,9 +27,10 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
 
-#include "bp/bplib.h"
-#include "bp/bplib_store_ram.h"
+#include "bplib.h"
+#include "bplib_store_ram.h"
 
 #include "sock.h"
 #include "bpio.h"
@@ -158,7 +159,7 @@ static void* writer_thread (void* parm)
     while(app_running)
     {
         char* payload = NULL;
-        int payload_size = 0;
+        size_t payload_size = 0;
         uint32_t flags = 0;
 
         /* Accept Payload */
@@ -199,7 +200,7 @@ static void* custody_thread (void* parm)
     while(app_running && sock != SOCK_INVALID)
     {
         uint8_t* dacs = NULL;
-        int dacs_size = 0;
+        size_t dacs_size = 0;
         uint32_t flags = 0;
 
         /* Load Bundle */
