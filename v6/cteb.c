@@ -51,7 +51,9 @@ int cteb_read(const void *block, int size, bp_blk_cteb_t *cteb, bool update_indi
 
     /* Check Size */
     if (size < 1)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size for the CTEB block: %d\n", size);
+    }
 
     /* Read Custody Information */
     if (!update_indices)
@@ -74,11 +76,15 @@ int cteb_read(const void *block, int size, bp_blk_cteb_t *cteb, bool update_indi
     eid_index = sdnv_read(buffer, size, &cteb->cid, &sdnvflags);
     eid_len   = cteb->blklen.value - (eid_index - cteb->cid.index);
     if (eid_len + eid_index > size)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "CTEB block terminated prematurely: %d > %d\n",
                      eid_len + eid_index, size);
+    }
     eid_status = bplib_eid2ipn((char *)&buffer[eid_index], eid_len, &cteb->cstnode, &cteb->cstserv);
     if (eid_status != BP_SUCCESS)
+    {
         return eid_status;
+    }
 
     /* Set Bytes Read */
     bytes_read = eid_index + eid_len;
@@ -115,7 +121,9 @@ int cteb_write(void *block, int size, bp_blk_cteb_t *cteb, bool update_indices, 
 
     /* Check Size */
     if (size < 1)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Insufficient room for the CTEB block: %d\n", size);
+    }
 
     /* Set Block Flags */
     cteb->bf.value |= BP_BLK_REPALL_MASK;
@@ -140,8 +148,10 @@ int cteb_write(void *block, int size, bp_blk_cteb_t *cteb, bool update_indices, 
 
     eid_len = bplib_os_strnlen(cteb->csteid, BP_MAX_EID_STRING);
     if ((eid_index + eid_len) > size)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "CTEB block terminated prematurely: %d > %d\n",
                      eid_len + eid_index, size);
+    }
     memcpy(&buffer[eid_index], cteb->csteid, eid_len);
 
     /* Write Block Length */

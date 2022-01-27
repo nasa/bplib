@@ -35,7 +35,9 @@ int cbuf_create(cbuf_t **cbuf, int size)
 {
     /* Check Buffer Size */
     if (size < 0 || (unsigned long)size > BP_MAX_INDEX)
+    {
         return BP_ERROR;
+    }
 
     if (size > 0)
     {

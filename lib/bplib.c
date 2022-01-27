@@ -244,7 +244,9 @@ int bplib_init(void)
     /* Initialize v6 Module */
     status = v6_initialize();
     if (status != BP_SUCCESS)
+    {
         return status;
+    }
 
 /* (Optional) Global Custody ID */
 #if BPLIB_GLOBAL_CUSTODY_ID
@@ -480,7 +482,9 @@ void bplib_close(bp_desc_t *desc)
 {
     /* Check Parameters */
     if (desc == NULL)
+    {
         return;
+    }
 
     /* Get Channel */
     bp_channel_t *ch = &desc->channel;
@@ -529,9 +533,13 @@ void bplib_close(bp_desc_t *desc)
 
     /* Un-initialize Active Table */
     if (bp_handle_is_valid(ch->active_table_signal))
+    {
         bplib_os_destroylock(ch->active_table_signal);
+    }
     if (ch->active_table.destroy)
+    {
         ch->active_table.destroy(ch->active_table.table);
+    }
 
     /* Free Channel */
     bplib_os_free(desc);
@@ -544,7 +552,9 @@ int bplib_flush(bp_desc_t *desc)
 {
     /* Check Parameters */
     if (desc == NULL)
+    {
         return BP_ERROR;
+    }
 
     /* Get Channel */
     bp_channel_t *ch = &desc->channel;
@@ -577,9 +587,13 @@ int bplib_config(bp_desc_t *desc, int mode, int opt, int *val)
 {
     /* Check Parameters */
     if (desc == NULL)
+    {
         return BP_ERROR;
+    }
     else if (val == NULL)
+    {
         return BP_ERROR;
+    }
 
     /* Get Channel */
     bp_channel_t *ch = &desc->channel;
@@ -593,115 +607,181 @@ int bplib_config(bp_desc_t *desc, int mode, int opt, int *val)
         case BP_OPT_LIFETIME:
         {
             if (setopt)
+            {
                 ch->bundle.attributes.lifetime = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.lifetime;
+            }
             break;
         }
         case BP_OPT_REQUEST_CUSTODY:
         {
             if (setopt && *val != true && *val != false)
+            {
                 return BP_ERROR;
+            }
             if (setopt)
+            {
                 ch->bundle.attributes.request_custody = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.request_custody;
+            }
             break;
         }
         case BP_OPT_ADMIN_RECORD:
         {
             if (setopt && *val != true && *val != false)
+            {
                 return BP_ERROR;
+            }
             if (setopt)
+            {
                 ch->bundle.attributes.admin_record = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.admin_record;
+            }
             break;
         }
         case BP_OPT_INTEGRITY_CHECK:
         {
             if (setopt && *val != true && *val != false)
+            {
                 return BP_ERROR;
+            }
             if (setopt)
+            {
                 ch->bundle.attributes.integrity_check = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.integrity_check;
+            }
             break;
         }
         case BP_OPT_ALLOW_FRAGMENTATION:
         {
             if (setopt && *val != true && *val != false)
+            {
                 return BP_ERROR;
+            }
             if (setopt)
+            {
                 ch->bundle.attributes.allow_fragmentation = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.allow_fragmentation;
+            }
             break;
         }
         case BP_OPT_IGNORE_EXPIRATION:
         {
             if (setopt && *val != true && *val != false)
+            {
                 return BP_ERROR;
+            }
             if (setopt)
+            {
                 ch->bundle.attributes.ignore_expiration = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.ignore_expiration;
+            }
             break;
         }
         case BP_OPT_CID_REUSE:
         {
             if (setopt && *val != true && *val != false)
+            {
                 return BP_ERROR;
+            }
             if (setopt)
+            {
                 ch->bundle.attributes.cid_reuse = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.cid_reuse;
+            }
             break;
         }
         case BP_OPT_CIPHER_SUITE:
         {
             if (setopt)
+            {
                 ch->bundle.attributes.cipher_suite = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.cipher_suite;
+            }
             break;
         }
         case BP_OPT_CLASS_OF_SERVICE:
         {
             if (setopt)
+            {
                 ch->bundle.attributes.class_of_service = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.class_of_service;
+            }
             break;
         }
         case BP_OPT_TIMEOUT:
         {
             if (setopt && *val < 0)
+            {
                 return BP_ERROR;
+            }
             if (setopt && *val > 0 && ch->bundle.attributes.active_table_size == 0)
+            {
                 return BP_ERROR;
+            }
             if (setopt)
+            {
                 ch->bundle.attributes.timeout = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.timeout;
+            }
             break;
         }
         case BP_OPT_MAX_LENGTH:
         {
             if (setopt && *val < 0)
+            {
                 return BP_ERROR;
+            }
             if (setopt)
+            {
                 ch->bundle.attributes.max_length = *val;
+            }
             else
+            {
                 *val = ch->bundle.attributes.max_length;
+            }
             break;
         }
         case BP_OPT_DACS_RATE:
         {
             if (setopt)
+            {
                 ch->dacs.attributes.dacs_rate = *val;
+            }
             else
+            {
                 *val = ch->dacs.attributes.dacs_rate;
+            }
             break;
         }
         default:
@@ -713,7 +793,9 @@ int bplib_config(bp_desc_t *desc, int mode, int opt, int *val)
 
     /* Re-initialize Bundles */
     if (setopt)
+    {
         ch->bundle.prebuilt = false;
+    }
 
     /* Return Status */
     return BP_SUCCESS;
@@ -726,9 +808,13 @@ int bplib_latchstats(bp_desc_t *desc, bp_stats_t *stats)
 {
     /* Check Parameters */
     if (desc == NULL)
+    {
         return BP_ERROR;
+    }
     else if (stats == NULL)
+    {
         return BP_ERROR;
+    }
 
     /* Get Channel */
     bp_channel_t *ch = &desc->channel;
@@ -757,11 +843,17 @@ int bplib_store(bp_desc_t *desc, const void *payload, size_t size, int timeout, 
 
     /* Check Parameters */
     if (desc == NULL)
+    {
         return BP_ERROR;
+    }
     else if (payload == NULL)
+    {
         return BP_ERROR;
+    }
     else if (flags == NULL)
+    {
         return BP_ERROR;
+    }
 
     /* Get Channel */
     bp_channel_t *ch = &desc->channel;
@@ -792,11 +884,17 @@ int bplib_load(bp_desc_t *desc, void **bundle, size_t *size, int timeout, uint32
 
     /* Check Parameters */
     if (desc == NULL)
+    {
         return BP_ERROR;
+    }
     else if (bundle == NULL)
+    {
         return BP_ERROR;
+    }
     else if (flags == NULL)
+    {
         return BP_ERROR;
+    }
 
     /* Get Channel */
     bp_channel_t *ch = &desc->channel;
@@ -932,7 +1030,9 @@ int bplib_load(bp_desc_t *desc, void **bundle, size_t *size, int timeout, uint32
                          * any failed check is overwritten to be a TIMEOUT. */
                         status = ch->active_table.available(ch->active_table.table, ch->current_active_cid);
                         if (status != BP_SUCCESS)
+                        {
                             status = BP_TIMEOUT;
+                        }
                     }
                 }
 
@@ -1063,11 +1163,17 @@ int bplib_process(bp_desc_t *desc, const void *bundle, size_t size, int timeout,
 
     /* Check Parameters */
     if (desc == NULL)
+    {
         return BP_ERROR;
+    }
     else if (bundle == NULL)
+    {
         return BP_ERROR;
+    }
     else if (flags == NULL)
+    {
         return BP_ERROR;
+    }
 
     /* Get Channel */
     bp_channel_t *ch = &desc->channel;
@@ -1241,11 +1347,17 @@ int bplib_accept(bp_desc_t *desc, void **payload, size_t *size, int timeout, uin
 
     /* Check Parameters */
     if (desc == NULL)
+    {
         return BP_ERROR;
+    }
     else if (payload == NULL)
+    {
         return BP_ERROR;
+    }
     else if (flags == NULL)
+    {
         return BP_ERROR;
+    }
 
     /* Get Channel */
     bp_channel_t *ch = &desc->channel;
@@ -1280,11 +1392,15 @@ int bplib_accept(bp_desc_t *desc, void **payload, size_t *size, int timeout, uin
                 /* Return Payload to Application */
                 *payload = (void *)((uint8_t *)data + sizeof(bp_payload_data_t));
                 if (size)
+                {
                     *size = data->payloadsize;
+                }
 
                 /* Check for Application Acknowledgement Request */
                 if (data->ackapp)
+                {
                     status = BP_PENDING_APPLICATION;
+                }
 
                 /* Count as Delivered */
                 ch->stats.delivered_payloads++;
@@ -1310,9 +1426,13 @@ int bplib_ackbundle(bp_desc_t *desc, const void *bundle)
 
     /* Check Parameters */
     if (desc == NULL)
+    {
         return BP_ERROR;
+    }
     else if (bundle == NULL)
+    {
         return BP_ERROR;
+    }
 
     /* Determine Storage Object Pointer */
     bp_channel_t           *ch = &desc->channel;
@@ -1340,9 +1460,13 @@ int bplib_ackpayload(bp_desc_t *desc, const void *payload)
 
     /* Check Parameters */
     if (desc == NULL)
+    {
         return BP_ERROR;
+    }
     else if (payload == NULL)
+    {
         return BP_ERROR;
+    }
 
     /* Determine Storage Object Pointer */
     bp_channel_t            *ch     = &desc->channel;

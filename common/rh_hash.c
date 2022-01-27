@@ -119,7 +119,9 @@ int rh_hash_create(rh_hash_t **rh_hash, int size)
 {
     /* Check Hash Size */
     if (size < 0 || (unsigned long)size > BP_MAX_INDEX)
+    {
         return BP_ERROR;
+    }
 
     /* Allocate Hash Structure */
     *rh_hash = (rh_hash_t *)bplib_os_calloc(sizeof(rh_hash_t));
@@ -131,7 +133,9 @@ int rh_hash_create(rh_hash_t **rh_hash, int size)
         /* Allocate Hash Table */
         (*rh_hash)->table = (rh_hash_node_t *)bplib_os_calloc(size * sizeof(rh_hash_node_t));
         if ((*rh_hash)->table == NULL)
+        {
             return BP_ERROR;
+        }
 
         /* Initialize Hash Table to Empty */
         for (i = 0; i < size; i++)
@@ -167,7 +171,9 @@ int rh_hash_destroy(rh_hash_t *rh_hash)
     if (rh_hash)
     {
         if (rh_hash->table)
+        {
             bplib_os_free(rh_hash->table);
+        }
         bplib_os_free(rh_hash);
     }
 
@@ -240,17 +246,25 @@ int rh_hash_add(rh_hash_t *rh_hash, bp_active_bundle_t bundle, bool overwrite)
             bp_index_t next_index = rh_hash->table[curr_index].next;
             bp_index_t prev_index = rh_hash->table[curr_index].prev;
             if (next_index != NULL_INDEX)
+            {
                 rh_hash->table[next_index].prev = open_index;
+            }
             if (prev_index != NULL_INDEX)
+            {
                 rh_hash->table[prev_index].next = open_index;
+            }
 
             /* Update Time Order (Move) */
             bp_index_t after_index  = rh_hash->table[curr_index].after;
             bp_index_t before_index = rh_hash->table[curr_index].before;
             if (after_index != NULL_INDEX)
+            {
                 rh_hash->table[after_index].before = open_index;
+            }
             if (before_index != NULL_INDEX)
+            {
                 rh_hash->table[before_index].after = open_index;
+            }
 
             /* Update Oldest Entry */
             if (rh_hash->oldest_entry == curr_index)
@@ -286,7 +300,9 @@ int rh_hash_next(rh_hash_t *rh_hash, bp_active_bundle_t *bundle)
     if (rh_hash->oldest_entry != NULL_INDEX)
     {
         if (bundle)
+        {
             *bundle = rh_hash->table[rh_hash->oldest_entry].bundle;
+        }
         return BP_SUCCESS;
     }
 
@@ -325,21 +341,31 @@ int rh_hash_remove(rh_hash_t *rh_hash, bp_val_t cid, bp_active_bundle_t *bundle)
 
     /* Return Bundle */
     if (bundle)
+    {
         *bundle = rh_hash->table[curr_index].bundle;
+    }
 
     /* Update Time Order (Bridge) */
     bp_index_t after_index  = rh_hash->table[curr_index].after;
     bp_index_t before_index = rh_hash->table[curr_index].before;
     if (after_index != NULL_INDEX)
+    {
         rh_hash->table[after_index].before = before_index;
+    }
     if (before_index != NULL_INDEX)
+    {
         rh_hash->table[before_index].after = after_index;
+    }
 
     /* Update Newest and Oldest Entry */
     if (curr_index == rh_hash->newest_entry)
+    {
         rh_hash->newest_entry = before_index;
+    }
     if (curr_index == rh_hash->oldest_entry)
+    {
         rh_hash->oldest_entry = after_index;
+    }
 
     /* Remove End of Chain */
     bp_index_t end_index  = curr_index;
@@ -362,15 +388,23 @@ int rh_hash_remove(rh_hash_t *rh_hash, bp_val_t cid, bp_active_bundle_t *bundle)
         after_index  = rh_hash->table[end_index].after;
         before_index = rh_hash->table[end_index].before;
         if (after_index != NULL_INDEX)
+        {
             rh_hash->table[after_index].before = curr_index;
+        }
         if (before_index != NULL_INDEX)
+        {
             rh_hash->table[before_index].after = curr_index;
+        }
 
         /* Update Newest and Oldest Entry */
         if (end_index == rh_hash->newest_entry)
+        {
             rh_hash->newest_entry = curr_index;
+        }
         if (end_index == rh_hash->oldest_entry)
+        {
             rh_hash->oldest_entry = curr_index;
+        }
     }
 
     /* Remove End of Chain */
@@ -379,7 +413,9 @@ int rh_hash_remove(rh_hash_t *rh_hash, bp_val_t cid, bp_active_bundle_t *bundle)
     /* Update Hash Order */
     bp_index_t prev_index = rh_hash->table[end_index].prev;
     if (prev_index != NULL_INDEX)
+    {
         rh_hash->table[prev_index].next = NULL_INDEX;
+    }
 
     /* Update Statistics */
     rh_hash->num_entries--;

@@ -166,7 +166,11 @@ int dacs_read(const uint8_t *rec, int rec_size, int *num_acks, bp_delete_func_t 
 
     /* Return Bytes Read or Error Code */
     if (ret_status == BP_SUCCESS)
+    {
         return fill.index;
+    }
     else
+    {
         return ret_status;
+    }
 }

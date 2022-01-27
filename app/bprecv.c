@@ -65,7 +65,9 @@ static void app_quick_exit(int parm)
 {
     (void)parm;
     if (app_immediate_abort)
+    {
         exit(0);
+    }
     printf("\n...Shutting down!\n");
     app_running         = false;
     app_immediate_abort = true; // multiple control-c will exit immediately

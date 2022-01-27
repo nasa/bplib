@@ -308,9 +308,13 @@ int bplib_os_waiton(bp_handle_t h, int timeout_ms)
         /* Block Forever until Success */
         status = pthread_cond_wait(&locks[handle]->cond, &locks[handle]->mutex);
         if (status != 0)
+        {
             status = BP_ERROR;
+        }
         else
+        {
             status = BP_SUCCESS;
+        }
     }
     else if (timeout_ms > 0)
     {
@@ -328,9 +332,13 @@ int bplib_os_waiton(bp_handle_t h, int timeout_ms)
         /* Block on Timed Wait and Update Timeout */
         status = pthread_cond_timedwait(&locks[handle]->cond, &locks[handle]->mutex, &ts);
         if (status == ETIMEDOUT)
+        {
             status = BP_TIMEOUT;
+        }
         else
+        {
             status = BP_SUCCESS;
+        }
     }
     else /* timeout_ms = 0 */
     {

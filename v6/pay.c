@@ -48,7 +48,9 @@ int pay_read(const void *block, int size, bp_blk_pay_t *pay, bool update_indices
 
     /* Check Size */
     if (size < 1)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of payload block: %d\n", size);
+    }
 
     /* Read Block Information */
     if (!update_indices)
@@ -99,7 +101,9 @@ int pay_write(void *block, int size, bp_blk_pay_t *pay, bool update_indices, uin
 
     /* Check Size */
     if (size < 1)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of payload block: %d\n", size);
+    }
 
     /* Set Block Flags */
     pay->bf.value = 0;
@@ -108,7 +112,9 @@ int pay_write(void *block, int size, bp_blk_pay_t *pay, bool update_indices, uin
 
     /* Set Block Length */
     if (pay->payptr)
+    {
         pay->blklen.value = pay->paysize;
+    }
 
     /* Write Block */
     buffer[0] = BP_PAY_BLK_TYPE;

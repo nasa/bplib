@@ -56,9 +56,13 @@ int sdnv_read(const uint8_t *block, int size, bp_field_t *sdnv, uint32_t *flags)
     /* Initialize Values */
     sdnv->value = 0;
     if (sdnv->width <= 0)
+    {
         width = size;
+    }
     else
+    {
         width = sdnv->width;
+    }
 
     /* Read SDNV */
     for (i = sdnv->index; (i < (sdnv->index + width)) && (i < size); i++)
@@ -141,9 +145,13 @@ int sdnv_write(uint8_t *block, int size, bp_field_t sdnv, uint32_t *flags)
     for (i = endindex; i >= (int)sdnv.index; i--)
     {
         if (i == endindex)
+        {
             block[i] = sdnv.value & 0x7F;
+        }
         else
+        {
             block[i] = sdnv.value | 0x80;
+        }
         sdnv.value >>= 7;
     }
 

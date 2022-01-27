@@ -152,7 +152,9 @@ BP_LOCAL_SCOPE int enqueue(queue_t *q, void *data, int size)
     /* create temp node */
     queue_node_t *temp = (queue_node_t *)bplib_os_calloc((int)sizeof(queue_node_t));
     if (!temp)
+    {
         return MSGQ_MEMORY_ERROR;
+    }
 
     /* construct node to be added */
     temp->data = data;
@@ -188,7 +190,9 @@ BP_LOCAL_SCOPE void *dequeue(queue_t *q, int *size)
         /* extract */
         data = q->front->data;
         if (size)
+        {
             *size = q->front->size;
+        }
 
         /* remove */
         queue_node_t *tmp = q->front;
@@ -207,7 +211,9 @@ BP_LOCAL_SCOPE void *dequeue(queue_t *q, int *size)
     else
     {
         if (size)
+        {
             *size = 0;
+        }
         data = NULL;
     }
 
@@ -287,7 +293,9 @@ BP_LOCAL_SCOPE int msgq_post(msgq_t queue_handle, void *data, int size)
 
     message_queue_t *msgQ = (message_queue_t *)queue_handle;
     if (msgQ == NULL)
+    {
         return MSGQ_ERROR;
+    }
 
     /* Post Data */
     bplib_os_lock(msgQ->ready);
@@ -317,7 +325,9 @@ BP_LOCAL_SCOPE int msgq_receive(msgq_t queue_handle, void **data, int *size, int
 {
     message_queue_t *msgQ = (message_queue_t *)queue_handle;
     if (msgQ == NULL)
+    {
         return MSGQ_ERROR;
+    }
 
     int recv_state = MSGQ_OKAY;
 
@@ -331,17 +341,20 @@ BP_LOCAL_SCOPE int msgq_receive(msgq_t queue_handle, void **data, int *size, int
                 bplib_os_waiton(msgQ->ready, BP_PEND);
             }
         }
-        else if (block == BP_CHECK)
-        {}
-        else /* Timed Wait */
+        else if (block != BP_CHECK)
         {
+            /* Timed Wait */
             if (isempty(&msgQ->queue))
             {
                 int wait_status = bplib_os_waiton(msgQ->ready, block);
                 if (wait_status == BP_TIMEOUT)
+                {
                     recv_state = MSGQ_TIMEOUT;
+                }
                 else if (wait_status == BP_ERROR)
+                {
                     recv_state = MSGQ_ERROR;
+                }
             }
         }
 
@@ -351,7 +364,9 @@ BP_LOCAL_SCOPE int msgq_receive(msgq_t queue_handle, void **data, int *size, int
         {
             *data = dequeue(&msgQ->queue, size);
             if (*data == NULL)
+            {
                 recv_state = MSGQ_UNDERFLOW;
+            }
         }
     }
     bplib_os_unlock(msgQ->ready);
@@ -442,7 +457,9 @@ int bplib_store_ram_enqueue(bp_handle_t h, const void *data1, size_t data1_size,
 
     /* Check memory allocation */
     if (!object)
+    {
         return BP_ERROR;
+    }
 
     /* Populate Object */
     object->header.handle = h;

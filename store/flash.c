@@ -117,11 +117,17 @@ BP_LOCAL_SCOPE const char *type2str(int type)
 {
     const char *type_str = "objects";
     if (type == BP_STORE_DATA_TYPE)
+    {
         type_str = "bundle(s)";
+    }
     else if (type == BP_STORE_PAYLOAD_TYPE)
+    {
         type_str = "payload(s)";
+    }
     else if (type == BP_STORE_DACS_TYPE)
+    {
         type_str = "dacs(s)";
+    }
     return type_str;
 }
 
@@ -452,9 +458,13 @@ BP_LOCAL_SCOPE int flash_object_write(flash_store_t *fs, bp_handle_t h, const ui
         /* Copy into Write Stage */
         memcpy(&fs->write_stage[0], &flash_object_hdr, sizeof(flash_object_hdr_t));
         if (data1)
+        {
             memcpy(&fs->write_stage[sizeof(flash_object_hdr_t)], data1, data1_size);
+        }
         if (data2)
+        {
             memcpy(&fs->write_stage[sizeof(flash_object_hdr_t) + data1_size], data2, data2_size);
+        }
 
         /* Write Data into Flash */
         status = flash_data_write(&fs->write_addr, fs->write_stage, bytes_needed);

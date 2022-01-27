@@ -269,7 +269,9 @@ bp_handle_t bplib_store_file_create(int type, bp_ipn_t node, bp_ipn_t service, b
             /* Setup Root Path */
             const char *root_path = FILE_DEFAULT_ROOT;
             if (attr && attr->root_path)
+            {
                 root_path = attr->root_path;
+            }
             int root_path_len = bplib_os_strnlen(root_path, FILE_MAX_FILENAME) + 1;
             if (root_path_len <= FILE_MAX_FILENAME)
             {
@@ -291,15 +293,21 @@ bp_handle_t bplib_store_file_create(int type, bp_ipn_t node, bp_ipn_t service, b
             /* Setup Data Cache */
             int cache_size = FILE_DEFAULT_CACHE_SIZE;
             if (attr && attr->cache_size)
+            {
                 cache_size = attr->cache_size;
+            }
             file_stores[s].cache_size = cache_size;
             file_stores[s].data_cache = (data_cache_t *)bplib_os_calloc(cache_size * sizeof(data_cache_t));
 
             /* Set Flush Attribute */
             if (attr)
+            {
                 file_stores[s].flush_on_write = attr->flush_on_write;
+            }
             else
+            {
                 file_stores[s].flush_on_write = FILE_FLUSH_DEFAULT;
+            }
 
             /* Check Data Cache Setup */
             if (file_stores[s].data_cache == NULL)
@@ -328,17 +336,29 @@ int bplib_store_file_destroy(bp_handle_t h)
     assert(file_stores[handle].in_use);
 
     if (file_stores[handle].write_fd != NULL)
+    {
         file_driver.close(file_stores[handle].write_fd);
+    }
     if (file_stores[handle].read_fd != NULL)
+    {
         file_driver.close(file_stores[handle].read_fd);
+    }
     if (file_stores[handle].retrieve_fd != NULL)
+    {
         file_driver.close(file_stores[handle].retrieve_fd);
+    }
     if (file_stores[handle].file_root != NULL)
+    {
         bplib_os_free(file_stores[handle].file_root);
+    }
     if (bp_handle_is_valid(file_stores[handle].lock))
+    {
         bplib_os_destroylock(file_stores[handle].lock);
+    }
     if (file_stores[handle].data_cache != NULL)
+    {
         bplib_os_free(file_stores[handle].data_cache);
+    }
 
     file_stores[handle].in_use = false;
 
@@ -375,8 +395,9 @@ int bplib_store_file_enqueue(bp_handle_t h, const void *data1, size_t data1_size
         /* Open Write File */
         fs->write_fd = open_dat_file(fs->service_id, fs->file_root, file_id, false);
         if (fs->write_fd == NULL)
+        {
             return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed to enqueue data\n");
-        ;
+        }
 
         /* Seek to Current Position */
         if (fs->write_error)
@@ -384,8 +405,10 @@ int bplib_store_file_enqueue(bp_handle_t h, const void *data1, size_t data1_size
             /* Start at Beginning of File */
             int seek_status = file_driver.seek(fs->write_fd, 0, SEEK_SET);
             if (seek_status < 0)
+            {
                 return bplog(NULL, BP_FLAG_STORE_FAILURE,
                              "Failed (%d) to set write position after error to start of file\n", seek_status);
+            }
 
             /* Read/Seek Through File */
             unsigned long pos;
@@ -396,15 +419,19 @@ int bplib_store_file_enqueue(bp_handle_t h, const void *data1, size_t data1_size
                 /* Read Current Data Size */
                 unsigned long bytes_read = file_driver.read(&current_size, 1, sizeof(current_size), fs->write_fd);
                 if (bytes_read != sizeof(current_size))
+                {
                     return bplog(NULL, BP_FLAG_STORE_FAILURE,
                                  "Failed to read data size for write after error (%d != %d)\n", bytes_read,
                                  sizeof(current_size));
+                }
 
                 /* Seek to End of Current Data */
                 seek_status = file_driver.seek(fs->write_fd, current_size, SEEK_CUR);
                 if (seek_status < 0)
+                {
                     return bplog(NULL, BP_FLAG_STORE_FAILURE, "Failed (%d) to jump over data for write after error\n",
                                  seek_status);
+                }
             }
         }
     }

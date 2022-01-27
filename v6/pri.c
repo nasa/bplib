@@ -48,7 +48,9 @@ int pri_read(const void *block, int size, bp_blk_pri_t *pri, bool update_indices
 
     /* Check Size */
     if (size < 1)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of primary block: %d\n", size);
+    }
 
     /* Read Block */
     pri->version = blkbuf[0];
@@ -131,33 +133,53 @@ int pri_read(const void *block, int size, bp_blk_pri_t *pri, bool update_indices
 
     /* Set Administrative Record Status */
     if (pri->pcf.value & BP_PCF_ADMIN_MASK)
+    {
         pri->is_admin_rec = true;
+    }
     else
+    {
         pri->is_admin_rec = false;
+    }
 
     /* Set Allow Fragmentation */
     if (pri->pcf.value & BP_PCF_NOFRAG_MASK)
+    {
         pri->allow_frag = false;
+    }
     else
+    {
         pri->allow_frag = true;
+    }
 
     /* Set Is Fragment */
     if (pri->pcf.value & BP_PCF_FRAGMENT_MASK)
+    {
         pri->is_frag = true;
+    }
     else
+    {
         pri->is_frag = false;
+    }
 
     /* Set Custody Request */
     if (pri->pcf.value & BP_PCF_CSTRQST_MASK)
+    {
         pri->cst_rqst = true;
+    }
     else
+    {
         pri->cst_rqst = false;
+    }
 
     /* Set Acknowledgement from Application Request */
     if (pri->pcf.value & BP_PCF_ACKRQST_MASK)
+    {
         pri->ack_app = true;
+    }
     else
+    {
         pri->ack_app = false;
+    }
 
     /* Set Class of Service */
     pri->cos = (pri->pcf.value & BP_PCF_COS_MASK) >> BP_PCF_COS_SHIFT;
@@ -197,20 +219,32 @@ int pri_write(void *block, int size, bp_blk_pri_t *pri, bool update_indices, uin
 
     /* Check Size */
     if (size < 1)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of primary block: %d\n", size);
+    }
 
     /* Set Process Control Flags */
     pri->pcf.value = BP_PCF_SINGLETON_MASK;
     if (pri->is_admin_rec == true)
+    {
         pri->pcf.value |= BP_PCF_ADMIN_MASK;
+    }
     if (pri->is_frag == true)
+    {
         pri->pcf.value |= BP_PCF_FRAGMENT_MASK;
+    }
     if (pri->allow_frag == false)
+    {
         pri->pcf.value |= BP_PCF_NOFRAG_MASK;
+    }
     if (pri->cst_rqst == true)
+    {
         pri->pcf.value |= BP_PCF_CSTRQST_MASK;
+    }
     if (pri->ack_app == true)
+    {
         pri->pcf.value |= BP_PCF_ACKRQST_MASK;
+    }
 
     /* Set Class of Service */
     pri->pcf.value |= (pri->cos << BP_PCF_COS_SHIFT) & BP_PCF_COS_MASK;

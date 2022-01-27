@@ -151,11 +151,15 @@ int bib_read(const void *block, int size, bp_blk_bib_t *bib, bool update_indices
 
     /* Check Size */
     if (size < 1)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid size of BIB block: %d\n", size);
+    }
 
     /* Check Block Type */
     if (buffer[0] != BP_BIB_BLK_TYPE)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Invalid BIB block type: %d\n", buffer[0]);
+    }
 
     /* Read Block */
     if (!update_indices)
@@ -165,7 +169,9 @@ int bib_read(const void *block, int size, bp_blk_bib_t *bib, bool update_indices
         bytes_read = sdnv_read(buffer, size, &bib->security_target_count, &sdnvflags);
 
         if (bytes_read + 1 > size)
+        {
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
+        }
         bib->security_target_type = buffer[bytes_read];
 
         sdnv_read(buffer, size, &bib->cipher_suite_id, &sdnvflags);
@@ -173,7 +179,9 @@ int bib_read(const void *block, int size, bp_blk_bib_t *bib, bool update_indices
         bytes_read = sdnv_read(buffer, size, &bib->compound_length, &sdnvflags);
 
         if (bytes_read + 1 > size)
+        {
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
+        }
         bib->security_result_type = buffer[bytes_read];
 
         bytes_read = sdnv_read(buffer, size, &bib->security_result_length, &sdnvflags);
@@ -194,7 +202,9 @@ int bib_read(const void *block, int size, bp_blk_bib_t *bib, bool update_indices
         bytes_read                       = sdnv_read(buffer, size, &bib->security_target_count, &sdnvflags);
 
         if (bytes_read + 1 > size)
+        {
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
+        }
         bib->security_target_type  = buffer[bytes_read];
         bib->cipher_suite_id.index = bytes_read + 1;
 
@@ -203,7 +213,9 @@ int bib_read(const void *block, int size, bp_blk_bib_t *bib, bool update_indices
         bytes_read                    = sdnv_read(buffer, size, &bib->compound_length, &sdnvflags);
 
         if (bytes_read + 1 > size)
+        {
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "BIB block terminated prematurely: %d\n", bytes_read);
+        }
         bib->security_result_type         = buffer[bytes_read];
         bib->security_result_length.index = bytes_read + 1;
 
@@ -320,7 +332,9 @@ int bib_write(void *block, int size, bp_blk_bib_t *bib, bool update_indices, uin
         bytes_written = sdnv_write(buffer, size, bib->security_target_count, &sdnvflags);
 
         if (bytes_written + 1 > size)
+        {
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Insufficient room for BIB block at: %d\n", bytes_written);
+        }
         buffer[bytes_written] = bib->security_target_type;
 
         sdnv_write(buffer, size, bib->cipher_suite_id, &sdnvflags);
@@ -328,7 +342,9 @@ int bib_write(void *block, int size, bp_blk_bib_t *bib, bool update_indices, uin
         bytes_written = sdnv_write(buffer, size, bib->compound_length, &sdnvflags);
 
         if (bytes_written + 1 > size)
+        {
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Insufficient room for BIB block at: %d\n", bytes_written);
+        }
         buffer[bytes_written] = bib->security_result_type;
 
         bytes_written = sdnv_write(buffer, size, bib->security_result_length, &sdnvflags);
@@ -349,7 +365,9 @@ int bib_write(void *block, int size, bp_blk_bib_t *bib, bool update_indices, uin
         bytes_written                    = sdnv_write(buffer, size, bib->security_target_count, &sdnvflags);
 
         if (bytes_written + 1 > size)
+        {
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Insufficient room for BIB block at: %d\n", bytes_written);
+        }
         buffer[bytes_written]      = bib->security_target_type;
         bib->cipher_suite_id.index = bytes_written + 1;
 
@@ -358,7 +376,9 @@ int bib_write(void *block, int size, bp_blk_bib_t *bib, bool update_indices, uin
         bytes_written                 = sdnv_write(buffer, size, bib->compound_length, &sdnvflags);
 
         if (bytes_written + 1 > size)
+        {
             return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Insufficient room for BIB block at: %d\n", bytes_written);
+        }
         buffer[bytes_written]             = bib->security_result_type;
         bib->security_result_length.index = bytes_written + 1;
 
@@ -415,8 +435,10 @@ int bib_update(void *block, int size, const void *payload, int payload_size, bp_
     int room_needed =
         bib->security_result_length.index + bib->security_result_length.width + bib->security_result_length.value;
     if (size < room_needed)
+    {
         return bplog(flags, BP_FLAG_FAILED_TO_PARSE, "Insufficient room to update BIB block: %d < %d\n", size,
                      room_needed);
+    }
 
     /* Calculate and Write Fragment Payload CRC */
     if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25)

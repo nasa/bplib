@@ -533,7 +533,6 @@ BP_LOCAL_SCOPE void replace_node(rb_node_t *node, rb_node_t *child)
  *--------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE void delete_rebalance(rb_tree_t *tree, rb_node_t *node)
 {
-
     /* DELETE_CASE_1 - If node is ever set to root rebalancing for deletion is complete. */
     while (!is_root(node))
     {
@@ -1260,57 +1259,51 @@ int rb_tree_delete(bp_val_t value, rb_tree_t *tree)
 
     rb_node_t *node   = rb_tree_binary_search(tree, value);
     int        status = BP_SUCCESS;
+
     if (node == NULL)
     {
         /* No node containing value was found. */
         status = BP_ERROR;
     }
+    else if (node->range.offset == 0)
+    {
+        /* Node contains a single value so it can be deleted. */
+        delete_rb_node(tree, node);
+    }
+    else if (value == node->range.value)
+    {
+        /* Value is at the start of nodes range so we can redefine the range. */
+        node->range.value += 1;
+        node->range.offset -= 1;
+    }
+    else if (value == node->range.value + node->range.offset)
+    {
+        /* Value at the end of the nodes range so it can be redefined. */
+        node->range.offset -= 1;
+    }
     else
     {
-        if (node->range.offset == 0)
+        /* Value is somewhere within the range of the current node and so that
+            node must be split. */
+        rb_node_t *upper_node = NULL;
+        status                = try_binary_insert_or_merge(value + 1, tree, &upper_node);
+        if (status == BP_SUCCESS)
         {
-            /* Node contains a single value so it can be deleted. */
-            delete_rb_node(tree, node);
-        }
-        else
-        {
-            /* Node contains a range and so it must be split. */
-            if (value == node->range.value)
-            {
-                /* Value is at the start of nodes range so we can redefine the range. */
-                node->range.value += 1;
-                node->range.offset -= 1;
-            }
-            else if (value == node->range.value + node->range.offset)
-            {
-                /* Value at the end of the nodes range so it can be redefined. */
-                node->range.offset -= 1;
-            }
-            else
-            {
-                /* Value is somewhere within the range of the current node and so that
-                   node must be split. */
-                rb_node_t *upper_node = NULL;
-                status                = try_binary_insert_or_merge(value + 1, tree, &upper_node);
-                if (status == BP_SUCCESS)
-                {
-                    /* The checks above that determine that the value is not at the
-                       beginning or end of the range necessitates that adding one to
-                       the value will make it so that the try_binary_insert_or_merge
-                       function is inserting a non-consecutive value.  This forces
-                       upper_node to be populated on success. */
-                    assert(upper_node != NULL);
+            /* The checks above that determine that the value is not at the
+                beginning or end of the range necessitates that adding one to
+                the value will make it so that the try_binary_insert_or_merge
+                function is inserting a non-consecutive value.  This forces
+                upper_node to be populated on success. */
+            assert(upper_node != NULL);
 
-                    /* Memory was successfully allocated to the new node. */
-                    upper_node->range.offset = node->range.value + node->range.offset - upper_node->range.value;
-                    node->range.offset       = value - node->range.value - 1;
-                }
-
-                /* Failure in inserting the new upper range node into the tree. In theory
-                   this should only ever be caused by a lack of memory in the tree. */
-                assert(status == BP_SUCCESS || status == BP_FULL);
-            }
+            /* Memory was successfully allocated to the new node. */
+            upper_node->range.offset = node->range.value + node->range.offset - upper_node->range.value;
+            node->range.offset       = value - node->range.value - 1;
         }
+
+        /* Failure in inserting the new upper range node into the tree. In theory
+            this should only ever be caused by a lack of memory in the tree. */
+        assert(status == BP_SUCCESS || status == BP_FULL);
     }
 
     return status;

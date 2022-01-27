@@ -68,7 +68,9 @@ static void app_quick_exit(int parm)
 {
     (void)parm;
     if (app_immediate_abort)
+    {
         exit(0);
+    }
     printf("\n...Shutting down! (press Enter to exit)\n");
     app_running         = false;
     app_immediate_abort = true; // multiple control-c will exit immediately
@@ -152,7 +154,7 @@ static void *writer_thread(void *parm)
 
     /* Make Socket Connection */
     int sock = sockdatagram(info->data_ip_addr, info->data_port, false, NULL);
-    ;
+
     if (sock == SOCK_INVALID)
     {
         fprintf(stderr, "Connection unavailable... exiting writer thread\n");

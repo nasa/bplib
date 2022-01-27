@@ -125,7 +125,6 @@ static int sockreuse(int socket_fd)
  *----------------------------------------------------------------------------*/
 static int socknonblock(int socket_fd)
 {
-
     int flags = fcntl(socket_fd, F_GETFL, 0);
     if (flags < 0 || fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK) < 0)
     {
@@ -154,7 +153,9 @@ int sockcreate(int type, const char *ip_addr, int port, int is_server, int *bloc
 
     /* Check Address */
     if (!ip_addr)
+    {
         ip_addr = "0.0.0.0"; // wildcard
+    }
 
     /* Initialize Port */
     snprintf(portstr, SOCK_PORT_STR_LEN, "%d", port);
@@ -266,7 +267,9 @@ int sockstream(const char *ip_addr, int port, int is_server, int *block)
     /* Create initial socket */
     int sock = sockcreate(SOCK_STREAM, ip_addr, port, is_server, block);
     if (sock == SOCK_INVALID)
+    {
         return SOCK_INVALID;
+    }
 
     if (!is_server) // client
     {
@@ -379,14 +382,20 @@ int socksend(int fd, const void *buf, int size, int timeout)
 
     /* Poll */
     do
+    {
         activity = poll(polllist, 1, timeout);
+    }
     while (activity == -1 && (errno == EINTR || errno == EAGAIN));
 
     /* Set Activity */
     if (activity > 0)
+    {
         revents = polllist[0].revents;
+    }
     else
+    {
         revents = 0;
+    }
 
     /* Perform Send */
     if (revents & POLLHUP)
@@ -427,7 +436,9 @@ int sockrecv(int fd, void *buf, int size, int timeout)
 
     int activity = 1;
     do
+    {
         activity = poll(polllist, 1, timeout);
+    }
     while (activity == -1 && (errno == EINTR || errno == EAGAIN));
 
     revents = polllist[0].revents;

@@ -78,7 +78,9 @@ int bplib_flash_sim_initialize(void)
             (flash_driver_block_t *)malloc(FLASH_SIM_NUM_BLOCKS * sizeof(flash_driver_block_t));
 
         if (flash_driver_device.blocks == NULL)
+        {
             return BP_ERROR;
+        }
 
         int b;
         for (b = 0; b < FLASH_SIM_NUM_BLOCKS; b++)
@@ -86,18 +88,24 @@ int bplib_flash_sim_initialize(void)
             flash_driver_device.blocks[b].pages =
                 (flash_driver_page_t *)malloc(FLASH_SIM_PAGES_PER_BLOCK * sizeof(flash_driver_page_t));
             if (flash_driver_device.blocks[b].pages == NULL)
+            {
                 return BP_ERROR;
+            }
 
             int p;
             for (p = 0; p < FLASH_SIM_PAGES_PER_BLOCK; p++)
             {
                 flash_driver_device.blocks[b].pages[p].data = (uint8_t *)malloc(FLASH_SIM_PAGE_SIZE);
                 if (flash_driver_device.blocks[b].pages[p].data == NULL)
+                {
                     return BP_ERROR;
+                }
 
                 flash_driver_device.blocks[b].pages[p].spare = (uint8_t *)malloc(FLASH_SIM_SPARE_SIZE);
                 if (flash_driver_device.blocks[b].pages[p].spare == NULL)
+                {
                     return BP_ERROR;
+                }
                 flash_driver_device.blocks[b].pages[0].spare[0] = 0xFF; /* initialize to good block */
             }
         }

@@ -116,9 +116,13 @@ int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t 
             /* Chop Path in Filename */
             pathptr = strrchr(file, '/');
             if (pathptr)
+            {
                 pathptr++;
+            }
             else
+            {
                 pathptr = (char *)file;
+            }
 
             /* Build Log Message */
             msglen = snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%s", pathptr, line, formatted_string);
@@ -138,7 +142,9 @@ int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t 
     if (event > 0)
     {
         if (flags)
+        {
             *flags |= event;
+        }
         return BP_ERROR;
     }
     else
