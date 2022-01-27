@@ -75,6 +75,16 @@ typedef struct {
     rb_tree_t               custody_tree;
 } bp_channel_t;
 
+/*
+ * Define the external wrapper type (bp_desc).
+ * This is an abstract structure externally, so the contents
+ * are hidden from external entities.
+ */
+struct bp_desc
+{
+    bp_channel_t channel;
+};
+
 /******************************************************************************
  CONSTANT DATA
  ******************************************************************************/
@@ -298,18 +308,13 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 
     /* Allocate Channel */
     bp_desc_t* desc = (bp_desc_t*)bplib_os_calloc(sizeof(bp_desc_t));
-    bp_channel_t* ch = (bp_channel_t*)bplib_os_calloc(sizeof(bp_channel_t));
-    if(desc == NULL || ch == NULL)
+    if(desc == NULL)
     {
-        if(desc) bplib_os_free(desc);
-        if(ch) bplib_os_free(ch);
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Cannot open channel: not enough memory\n");
         return NULL;
     }
-    else
-    {
-        desc->channel = ch;
-    }
+
+    bp_channel_t* ch = &desc->channel;
 
     /* Clear Channel Memory and Initialize to Defaults */
     ch->custody_tree_lock   = BP_INVALID_HANDLE;
@@ -466,10 +471,10 @@ bp_desc_t* bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes)
 void bplib_close(bp_desc_t* desc)
 {
     /* Check Parameters */
-    if(desc == NULL || desc->channel == NULL) return;
+    if(desc == NULL) return;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
 
     /* Un-initialize Bundle Store */
     if(bp_handle_is_valid(ch->bundle_handle))
@@ -518,7 +523,6 @@ void bplib_close(bp_desc_t* desc)
     if(ch->active_table.destroy) ch->active_table.destroy(ch->active_table.table);
 
     /* Free Channel */
-    bplib_os_free(ch);
     bplib_os_free(desc);
 }
 
@@ -529,10 +533,9 @@ int bplib_flush(bp_desc_t* desc)
 {
     /* Check Parameters */
     if(desc == NULL)                return BP_ERROR;
-    else if(desc->channel == NULL)  return BP_ERROR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
 
     /* Flush Data Bundles */
     bp_handle_t handle = ch->bundle_handle;
@@ -562,11 +565,10 @@ int bplib_config(bp_desc_t* desc, int mode, int opt, int* val)
 {
     /* Check Parameters */
     if(desc == NULL)                return BP_ERROR;
-    else if(desc->channel == NULL)  return BP_ERROR;
     else if(val == NULL)            return BP_ERROR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
 
     /* Set Mode */
     bool setopt = mode == BP_OPT_MODE_WRITE ? true : false;
@@ -676,11 +678,10 @@ int bplib_latchstats(bp_desc_t* desc, bp_stats_t* stats)
 {
      /* Check Parameters */
     if(desc == NULL)                return BP_ERROR;
-    else if(desc->channel == NULL)  return BP_ERROR;
     else if(stats == NULL)          return BP_ERROR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
 
     /* Update Store Counts */
     ch->stats.stored_bundles = ch->store.getcount(ch->bundle_handle);
@@ -706,12 +707,11 @@ int bplib_store(bp_desc_t* desc, const void* payload, size_t size, int timeout, 
 
      /* Check Parameters */
     if(desc == NULL)                return BP_ERROR;
-    else if(desc->channel == NULL)  return BP_ERROR;
     else if(payload == NULL)        return BP_ERROR;
     else if(flags == NULL)          return BP_ERROR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
 
     /* Check if Re-initialization Needed */
     if(ch->bundle.prebuilt == false)
@@ -739,12 +739,11 @@ int bplib_load(bp_desc_t* desc, void** bundle, size_t* size, int timeout, uint32
 
     /* Check Parameters */
     if(desc == NULL)                return BP_ERROR;
-    else if(desc->channel == NULL)  return BP_ERROR;
     else if(bundle == NULL)         return BP_ERROR;
     else if(flags == NULL)          return BP_ERROR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
 
     /* Setup State */
     unsigned long   sysnow  = 0;                /* current system time used for timeouts (seconds) */
@@ -1004,12 +1003,11 @@ int bplib_process(bp_desc_t* desc, const void* bundle, size_t size, int timeout,
 
     /* Check Parameters */
     if(desc == NULL)                return BP_ERROR;
-    else if(desc->channel == NULL)  return BP_ERROR;
     else if(bundle == NULL)         return BP_ERROR;
     else if(flags == NULL)          return BP_ERROR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
 
     /* Receive Bundle */
     bp_payload_t payload;
@@ -1176,12 +1174,11 @@ int bplib_accept(bp_desc_t* desc, void** payload, size_t* size, int timeout, uin
 
     /* Check Parameters */
     if(desc == NULL)                return BP_ERROR;
-    else if(desc->channel == NULL)  return BP_ERROR;
     else if(payload == NULL)        return BP_ERROR;
     else if(flags == NULL)          return BP_ERROR;
 
     /* Get Channel */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
 
     while(object == NULL && status == BP_SUCCESS)
     {
@@ -1241,11 +1238,10 @@ int bplib_ackbundle(bp_desc_t* desc, const void* bundle)
 
     /* Check Parameters */
     if(desc == NULL)                return BP_ERROR;
-    else if(desc->channel == NULL)  return BP_ERROR;
     else if(bundle == NULL)         return BP_ERROR;
 
     /* Determine Storage Object Pointer */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
     const bp_bundle_data_t* data = (const bp_bundle_data_t*)((const uint8_t*)bundle - offsetof(bp_bundle_data_t, header));
     const bp_object_t* object = (const bp_object_t*)((const uint8_t*)data - sizeof(bp_object_hdr_t));
 
@@ -1268,11 +1264,10 @@ int bplib_ackpayload(bp_desc_t* desc, const void* payload)
 
     /* Check Parameters */
     if(desc == NULL)                return BP_ERROR;
-    else if(desc->channel == NULL)  return BP_ERROR;
     else if(payload == NULL)        return BP_ERROR;
 
     /* Determine Storage Object Pointer */
-    bp_channel_t* ch = (bp_channel_t*)desc->channel;
+    bp_channel_t* ch = &desc->channel;
     const bp_payload_data_t* data = (const bp_payload_data_t*)((const uint8_t*)payload - sizeof(bp_payload_data_t));
     const bp_object_t* object = (const bp_object_t*)((const uint8_t*)data - sizeof(bp_object_hdr_t));
 
