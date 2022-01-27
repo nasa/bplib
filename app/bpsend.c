@@ -27,9 +27,10 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
 
-#include "bp/bplib.h"
-#include "bp/bplib_store_ram.h"
+#include "bplib.h"
+#include "bplib_store_ram.h"
 
 #include "sock.h"
 #include "bpio.h"
@@ -161,7 +162,7 @@ static void* writer_thread (void* parm)
     while(app_running && sock != SOCK_INVALID)
     {
         uint8_t* bundle = NULL;
-        int bundle_size = 0;
+        size_t bundle_size = 0;
         uint32_t flags = 0;
 
         /* Load Bundle */
