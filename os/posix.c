@@ -35,15 +35,16 @@
  DEFINES
  ******************************************************************************/
 
-#define UNIX_SECS_AT_2000       946684800
-#define BP_MAX_LOG_ENTRY_SIZE   256
-#define BP_MAX_LOCKS            128
+#define UNIX_SECS_AT_2000     946684800
+#define BP_MAX_LOG_ENTRY_SIZE 256
+#define BP_MAX_LOCKS          128
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
-typedef struct {
+typedef struct
+{
     pthread_cond_t  cond;
     pthread_mutex_t mutex;
 } bplib_os_lock_t;
@@ -52,23 +53,18 @@ typedef struct {
  FILE DATA
  ******************************************************************************/
 
-static bplib_os_lock_t*     locks[BP_MAX_LOCKS] = {0};
-static pthread_mutex_t      lock_of_locks;
+static bplib_os_lock_t *locks[BP_MAX_LOCKS] = {0};
+static pthread_mutex_t  lock_of_locks;
 
-static struct timespec      prevnow;
+static struct timespec prevnow;
 
-static size_t               current_memory_allocated = 0;
-static size_t               highest_memory_allocated = 0;
+static size_t current_memory_allocated = 0;
+static size_t highest_memory_allocated = 0;
 
-static uint32_t             flag_log_enable = BP_FLAG_NONCOMPLIANT |
-                                              BP_FLAG_DROPPED |
-                                              BP_FLAG_BUNDLE_TOO_LARGE |
-                                              BP_FLAG_UNKNOWNREC |
-                                              BP_FLAG_INVALID_CIPHER_SUITEID |
-                                              BP_FLAG_INVALID_BIB_RESULT_TYPE |
-                                              BP_FLAG_INVALID_BIB_TARGET_TYPE |
-                                              BP_FLAG_FAILED_TO_PARSE |
-                                              BP_FLAG_API_ERROR;
+static uint32_t flag_log_enable = BP_FLAG_NONCOMPLIANT | BP_FLAG_DROPPED | BP_FLAG_BUNDLE_TOO_LARGE |
+                                  BP_FLAG_UNKNOWNREC | BP_FLAG_INVALID_CIPHER_SUITEID |
+                                  BP_FLAG_INVALID_BIB_RESULT_TYPE | BP_FLAG_INVALID_BIB_TARGET_TYPE |
+                                  BP_FLAG_FAILED_TO_PARSE | BP_FLAG_API_ERROR;
 
 /******************************************************************************
  EXPORTED UTILITY FUNCTIONS
@@ -106,37 +102,40 @@ void bplib_os_init()
  *
  * Returns - the error code passed in (for convenience)
  *-------------------------------------------------------------------------------------*/
-int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t event, const char* fmt, ...)
+int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...)
 {
-    if((flag_log_enable & event) == event)
+    if ((flag_log_enable & event) == event)
     {
-        char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
+        char    formatted_string[BP_MAX_LOG_ENTRY_SIZE];
         va_list args;
-        int vlen, msglen;
+        int     vlen, msglen;
 
         /* Build Formatted String */
         va_start(args, fmt);
-        vlen = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
+        vlen   = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
         msglen = vlen < BP_MAX_LOG_ENTRY_SIZE - 1 ? vlen : BP_MAX_LOG_ENTRY_SIZE - 1;
         va_end(args);
 
         /* Log Message */
-        if(msglen > 0)
+        if (msglen > 0)
         {
-            char log_message[BP_MAX_LOG_ENTRY_SIZE];
-            char* pathptr;
+            char  log_message[BP_MAX_LOG_ENTRY_SIZE];
+            char *pathptr;
 
             formatted_string[msglen] = '\0';
 
             /* Chop Path in Filename */
             pathptr = strrchr(file, '/');
-            if(pathptr) pathptr++;
-            else pathptr = (char*)file;
+            if (pathptr)
+                pathptr++;
+            else
+                pathptr = (char *)file;
 
             /* Create Log Message */
-            if(event != BP_FLAG_DIAGNOSTIC)
+            if (event != BP_FLAG_DIAGNOSTIC)
             {
-                msglen = snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%08X:%s", pathptr, line, event, formatted_string);
+                msglen = snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%08X:%s", pathptr, line, event,
+                                  formatted_string);
             }
             else
             {
@@ -144,7 +143,7 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
             }
 
             /* Provide Truncation Indicator */
-            if(msglen > (BP_MAX_LOG_ENTRY_SIZE - 2))
+            if (msglen > (BP_MAX_LOG_ENTRY_SIZE - 2))
             {
                 log_message[BP_MAX_LOG_ENTRY_SIZE - 2] = '#';
             }
@@ -155,9 +154,10 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     }
 
     /* Set Event Flag and Return */
-    if(event > 0)
+    if (event > 0)
     {
-        if(flags) *flags |= event;
+        if (flags)
+            *flags |= event;
         return BP_ERROR;
     }
     else
@@ -169,23 +169,24 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
 /*--------------------------------------------------------------------------------------
  * bplib_os_systime - returns seconds
  *-------------------------------------------------------------------------------------*/
-int bplib_os_systime(unsigned long* sysnow)
+int bplib_os_systime(unsigned long *sysnow)
 {
     int status = BP_SUCCESS;
 
     /* Get System Time */
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    unsigned long elapsed_secs = now.tv_sec - UNIX_SECS_AT_2000;
+    unsigned long elapsed_secs  = now.tv_sec - UNIX_SECS_AT_2000;
     unsigned long previous_secs = prevnow.tv_sec - UNIX_SECS_AT_2000;
-    prevnow = now;
+    prevnow                     = now;
 
     /* Return Time */
-    if(sysnow) *sysnow = elapsed_secs;
+    if (sysnow)
+        *sysnow = elapsed_secs;
 
     /* Check Reliability */
-    if( (now.tv_sec < UNIX_SECS_AT_2000) || /* time nonsensical */
-        (previous_secs > elapsed_secs) )    /* time going backwards */
+    if ((now.tv_sec < UNIX_SECS_AT_2000) || /* time nonsensical */
+        (previous_secs > elapsed_secs))     /* time going backwards */
     {
         status = BP_ERROR;
     }
@@ -220,12 +221,12 @@ bp_handle_t bplib_os_createlock(void)
     pthread_mutex_lock(&lock_of_locks);
     {
         int i;
-        for(i = 0; i < BP_MAX_LOCKS; i++)
+        for (i = 0; i < BP_MAX_LOCKS; i++)
         {
-            if(locks[i] == NULL)
+            if (locks[i] == NULL)
             {
-                locks[i] = (bplib_os_lock_t*)bplib_os_calloc(sizeof(bplib_os_lock_t));
-                if(locks[i])
+                locks[i] = (bplib_os_lock_t *)bplib_os_calloc(sizeof(bplib_os_lock_t));
+                if (locks[i])
                 {
                     pthread_mutexattr_t attr;
                     pthread_mutexattr_init(&attr);
@@ -252,7 +253,7 @@ void bplib_os_destroylock(bp_handle_t h)
 
     pthread_mutex_lock(&lock_of_locks);
     {
-        if(locks[handle])
+        if (locks[handle])
         {
             pthread_mutex_destroy(&locks[handle]->mutex);
             pthread_cond_destroy(&locks[handle]->cond);
@@ -302,21 +303,23 @@ int bplib_os_waiton(bp_handle_t h, int timeout_ms)
     int status;
 
     /* Perform Wait */
-    if(timeout_ms == -1)
+    if (timeout_ms == -1)
     {
         /* Block Forever until Success */
         status = pthread_cond_wait(&locks[handle]->cond, &locks[handle]->mutex);
-        if(status != 0) status = BP_ERROR;
-        else            status = BP_SUCCESS;
+        if (status != 0)
+            status = BP_ERROR;
+        else
+            status = BP_SUCCESS;
     }
-    else if(timeout_ms > 0)
+    else if (timeout_ms > 0)
     {
         /* Build Time Structure */
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_sec  += (time_t) (timeout_ms / 1000);
-        ts.tv_nsec +=  (timeout_ms % 1000) * 1000000L;
-        if(ts.tv_nsec  >= 1000000000L)
+        ts.tv_sec += (time_t)(timeout_ms / 1000);
+        ts.tv_nsec += (timeout_ms % 1000) * 1000000L;
+        if (ts.tv_nsec >= 1000000000L)
         {
             ts.tv_nsec -= 1000000000L;
             ts.tv_sec++;
@@ -324,8 +327,10 @@ int bplib_os_waiton(bp_handle_t h, int timeout_ms)
 
         /* Block on Timed Wait and Update Timeout */
         status = pthread_cond_timedwait(&locks[handle]->cond, &locks[handle]->mutex, &ts);
-        if(status == ETIMEDOUT) status = BP_TIMEOUT;
-        else                    status = BP_SUCCESS;
+        if (status == ETIMEDOUT)
+            status = BP_TIMEOUT;
+        else
+            status = BP_SUCCESS;
     }
     else /* timeout_ms = 0 */
     {
@@ -341,10 +346,10 @@ int bplib_os_waiton(bp_handle_t h, int timeout_ms)
 /*--------------------------------------------------------------------------------------
  * bplib_os_format -
  *-------------------------------------------------------------------------------------*/
-int bplib_os_format(char* dst, size_t len, const char* fmt, ...)
+int bplib_os_format(char *dst, size_t len, const char *fmt, ...)
 {
     va_list args;
-    int vlen;
+    int     vlen;
 
     /* Build Formatted String */
     va_start(args, fmt);
@@ -358,12 +363,12 @@ int bplib_os_format(char* dst, size_t len, const char* fmt, ...)
 /*--------------------------------------------------------------------------------------
  * bplib_os_strnlen -
  *-------------------------------------------------------------------------------------*/
-int bplib_os_strnlen(const char* str, int maxlen)
+int bplib_os_strnlen(const char *str, int maxlen)
 {
     int len;
-    for(len = 0; len < maxlen; len++)
+    for (len = 0; len < maxlen; len++)
     {
-        if(str[len] == '\0')
+        if (str[len] == '\0')
         {
             return len;
         }
@@ -374,20 +379,20 @@ int bplib_os_strnlen(const char* str, int maxlen)
 /*----------------------------------------------------------------------------
  * bplib_os_calloc
  *----------------------------------------------------------------------------*/
-void* bplib_os_calloc(size_t size)
+void *bplib_os_calloc(size_t size)
 {
     /* Allocate Memory Block */
-    size_t block_size = size + sizeof(size_t);
-    uint8_t* mem_ptr = (uint8_t*)calloc(block_size, 1);
-    if(mem_ptr)
+    size_t   block_size = size + sizeof(size_t);
+    uint8_t *mem_ptr    = (uint8_t *)calloc(block_size, 1);
+    if (mem_ptr)
     {
         /* Prepend Amount */
-        size_t* size_ptr = (size_t*)mem_ptr;
-        *size_ptr = block_size;
+        size_t *size_ptr = (size_t *)mem_ptr;
+        *size_ptr        = block_size;
 
         /* Update Statistics */
         current_memory_allocated += block_size;
-        if(current_memory_allocated > highest_memory_allocated)
+        if (current_memory_allocated > highest_memory_allocated)
         {
             highest_memory_allocated = current_memory_allocated;
         }
@@ -404,15 +409,15 @@ void* bplib_os_calloc(size_t size)
 /*----------------------------------------------------------------------------
  * bplib_os_free
  *----------------------------------------------------------------------------*/
-void bplib_os_free(void* ptr)
+void bplib_os_free(void *ptr)
 {
-    if(ptr)
+    if (ptr)
     {
-        uint8_t* mem_ptr = (uint8_t*)ptr;
+        uint8_t *mem_ptr = (uint8_t *)ptr;
 
         /* Read Amount */
-        size_t* size_ptr = (size_t*)((uint8_t*)mem_ptr - sizeof(size_t));
-        size_t block_size = *size_ptr;
+        size_t *size_ptr   = (size_t *)((uint8_t *)mem_ptr - sizeof(size_t));
+        size_t  block_size = *size_ptr;
 
         /* Update Statistics */
         current_memory_allocated -= block_size;

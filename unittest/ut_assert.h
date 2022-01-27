@@ -29,15 +29,15 @@
  DEFINES
  ******************************************************************************/
 
-#define ut_assert(e,...)    _ut_assert(e,__FILE__,__LINE__,__VA_ARGS__)
-#define ut_check(e)         _ut_assert(e,__FILE__,__LINE__,"Failure")
+#define ut_assert(e, ...) _ut_assert(e, __FILE__, __LINE__, __VA_ARGS__)
+#define ut_check(e)       _ut_assert(e, __FILE__, __LINE__, "Failure")
 
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-void    ut_reset        (void);
-bool    _ut_assert      (bool e, const char* file, int line, const char* fmt, ...);
-int     ut_failures     (void);
+void ut_reset(void);
+bool _ut_assert(bool e, const char *file, int line, const char *fmt, ...);
+int  ut_failures(void);
 
 #endif /* _ut_assert_h_ */

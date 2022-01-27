@@ -28,25 +28,26 @@
  * Defines
  *************************************************************************/
 
-#define PARM_STR_SIZE       64
-#define DFLT_SRC_NODE       4
-#define DFLT_SRC_SERV       1
-#define DFLT_DATA_IP_ADDR   "127.0.0.1"
-#define DFLT_DATA_PORT      34500
-#define DFLT_DACS_IP_ADDR   "127.0.0.1"
-#define DFLT_DACS_PORT      34501
-#define BPLIB_TIMEOUT       1000
+#define PARM_STR_SIZE     64
+#define DFLT_SRC_NODE     4
+#define DFLT_SRC_SERV     1
+#define DFLT_DATA_IP_ADDR "127.0.0.1"
+#define DFLT_DATA_PORT    34500
+#define DFLT_DACS_IP_ADDR "127.0.0.1"
+#define DFLT_DACS_PORT    34501
+#define BPLIB_TIMEOUT     1000
 
 /*************************************************************************
  * Typedefs
  *************************************************************************/
 
-typedef struct {
-    bp_desc_t*  bpc;
-    char        data_ip_addr[PARM_STR_SIZE];
-    int         data_port;
-    char        dacs_ip_addr[PARM_STR_SIZE];
-    int         dacs_port;
+typedef struct
+{
+    bp_desc_t *bpc;
+    char       data_ip_addr[PARM_STR_SIZE];
+    int        data_port;
+    char       dacs_ip_addr[PARM_STR_SIZE];
+    int        dacs_port;
 } thread_parm_t;
 
 #endif /* __bpio_h__ */

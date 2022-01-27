@@ -58,14 +58,15 @@ typedef struct crc32_parameters
 /* Standard parameters for calculating a CRC. */
 typedef struct crc_parameters
 {
-    const char* name;           /* Name of the CRC. */
-    int length;                 /* The number of bits in the CRC. */
-    bool should_reflect_input;  /* Whether to reflect the bits of the input bytes. */
-    bool should_reflect_output; /* Whether to reflect the bits of the output crc. */
+    const char *name;                  /* Name of the CRC. */
+    int         length;                /* The number of bits in the CRC. */
+    bool        should_reflect_input;  /* Whether to reflect the bits of the input bytes. */
+    bool        should_reflect_output; /* Whether to reflect the bits of the output crc. */
     /* Parameters specific to crc implementations of various lengths. The field that is populated
        within this union should directly coincide with the length member.
        Ex: If length == 16 crc16 should be popualted in this union below. */
-    union {
+    union
+    {
         crc16_parameters_t crc16;
         crc32_parameters_t crc32;
     } n_bit_params;
@@ -75,7 +76,7 @@ typedef struct crc_parameters
  PROTOTYPES
  ******************************************************************************/
 
-int         crc_init    (crc_parameters_t* params);
-uint32_t    crc_get     (const uint8_t* data, const uint32_t length, const crc_parameters_t* params);
+int      crc_init(crc_parameters_t *params);
+uint32_t crc_get(const uint8_t *data, const uint32_t length, const crc_parameters_t *params);
 
 #endif /* _crc_h_ */

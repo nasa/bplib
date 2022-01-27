@@ -22,20 +22,20 @@
  * Defines
  ******************************************************************************/
 
-#define SOCK_PEND           (-1)
-#define SOCK_CHECK          0
-#define SOCK_TIMEOUT        1000 // milliseconds
-#define SOCK_INVALID        (-1)
+#define SOCK_PEND    (-1)
+#define SOCK_CHECK   0
+#define SOCK_TIMEOUT 1000 // milliseconds
+#define SOCK_INVALID (-1)
 
 /******************************************************************************
  * Exported Functions
  ******************************************************************************/
 
-int     sockcreate      (int type, const char* ip_addr, int port, int is_server, int* block);
-int     sockstream      (const char* ip_addr, int port, int is_server, int* block);
-int     sockdatagram    (const char* ip_addr, int port, int is_server, int* block);
-int     socksend        (int fd, const void* buf, int size, int timeout);
-int     sockrecv        (int fd, void* buf, int size, int timeout);
-void    sockclose       (int fd);
+int  sockcreate(int type, const char *ip_addr, int port, int is_server, int *block);
+int  sockstream(const char *ip_addr, int port, int is_server, int *block);
+int  sockdatagram(const char *ip_addr, int port, int is_server, int *block);
+int  socksend(int fd, const void *buf, int size, int timeout);
+int  sockrecv(int fd, void *buf, int size, int timeout);
+void sockclose(int fd);
 
 #endif /* _bpsock_ */
