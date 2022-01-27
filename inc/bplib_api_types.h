@@ -56,11 +56,12 @@ typedef struct bp_handle
 /* Handles */
 #define BP_INVALID_HANDLE               (const bp_handle_t){0} /* used for integers (os locks, storage services) */
 
+/**
+ * @brief Abstract definition of bp_desc for external use
+ */
+struct bp_desc;
 
-typedef struct bp_desc
-{
-    void *channel;
-} bp_desc_t;
+typedef struct bp_desc bp_desc_t;
 
 /* IPN Schema Endpoint ID Integer Definition */
 typedef bp_val_t bp_ipn_t;
