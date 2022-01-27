@@ -19,7 +19,11 @@
  * INCLUDES
  ******************************************************************************/
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "bplib.h"
+#include "bplib_os.h"
 #include "bplib_store_ram.h"
 
 /******************************************************************************
@@ -75,7 +79,7 @@ typedef struct queue_def_t {
 /* message_queue_t */
 typedef struct {
     queue_t                 queue;  /* linked list */
-    int                     ready;  /* handle for mutex/conditional */
+    bp_handle_t                     ready;  /* handle for mutex/conditional */
     int                     state;  /* state of queue */
     int                     count;  /* number of items in queue */
 } message_queue_t;
@@ -222,13 +226,13 @@ BP_LOCAL_SCOPE void* dequeue(queue_t* q, int* size)
 BP_LOCAL_SCOPE msgq_t msgq_create(int depth, int data_size)
 {
     message_queue_t* msgQ;
-    int ready_lock;
+    bp_handle_t ready_lock;
 
     /* Create Lock */
     ready_lock = bplib_os_createlock();
-    if(ready_lock == -1)
+    if(!bp_handle_is_valid(ready_lock))
     {
-        printf("ERROR(%d): Unable to create ready sem\n", ready_lock);
+        printf("ERROR(%d): Unable to create ready sem\n", bp_handle_printable(ready_lock));
         return MSGQ_INVALID_HANDLE;
     }
 
@@ -363,7 +367,7 @@ void bplib_store_ram_init (void)
 /*----------------------------------------------------------------------------
  * bplib_store_ram_create -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
+bp_handle_t bplib_store_ram_create (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm)
 {
     (void)type;
     (void)node;
@@ -371,7 +375,8 @@ int bplib_store_ram_create (int type, bp_ipn_t node, bp_ipn_t service, bool reco
     (void)recover;
     (void)parm;
 
-    int slot, i;
+    bp_handle_t slot;
+    int i;
 
     /* Look for Empty Slots */
     slot = BP_INVALID_HANDLE;
@@ -383,7 +388,7 @@ int bplib_store_ram_create (int type, bp_ipn_t node, bp_ipn_t service, bool reco
             if(msgq != MSGQ_INVALID_HANDLE)
             {
                 msgq_stores[i] = msgq;
-                slot = i;
+                slot = bp_handle_from_serial(i, BPLIB_HANDLE_RAM_STORE_BASE);
             }
             break;
         }
@@ -396,8 +401,10 @@ int bplib_store_ram_create (int type, bp_ipn_t node, bp_ipn_t service, bool reco
 /*----------------------------------------------------------------------------
  * bplib_store_ram_destroy -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_destroy (int handle)
+int bplib_store_ram_destroy (bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_RAM_STORE_BASE);
+
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle] != MSGQ_INVALID_HANDLE);
 
@@ -410,9 +417,11 @@ int bplib_store_ram_destroy (int handle)
 /*----------------------------------------------------------------------------
  * bplib_store_ram_enqueue -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_enqueue(int handle, const void* data1, size_t data1_size,
+int bplib_store_ram_enqueue(bp_handle_t h, const void* data1, size_t data1_size,
                              const void* data2, size_t data2_size, int timeout)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_RAM_STORE_BASE);
+
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
     assert((data1_size >= 0) && (data2_size >= 0));
@@ -427,7 +436,7 @@ int bplib_store_ram_enqueue(int handle, const void* data1, size_t data1_size,
     if(!object) return BP_ERROR;
 
     /* Populate Object */
-    object->header.handle = handle;
+    object->header.handle = h;
     object->header.sid = BP_SID_VACANT;
     object->header.size = data_size;
     memcpy(object->data, data1, data1_size);
@@ -456,8 +465,9 @@ int bplib_store_ram_enqueue(int handle, const void* data1, size_t data1_size,
 /*----------------------------------------------------------------------------
  * bplib_store_ram_dequeue -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_dequeue(int handle, bp_object_t** object, int timeout)
+int bplib_store_ram_dequeue(bp_handle_t h, bp_object_t** object, int timeout)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_RAM_STORE_BASE);
     int size;
 
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
@@ -486,9 +496,11 @@ int bplib_store_ram_dequeue(int handle, bp_object_t** object, int timeout)
 /*----------------------------------------------------------------------------
  * bplib_store_ram_retrieve -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_retrieve(int handle, bp_sid_t sid,
+int bplib_store_ram_retrieve(bp_handle_t h, bp_sid_t sid,
                              bp_object_t** object, int timeout)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_RAM_STORE_BASE);
+
     (void)handle;
     (void)timeout;
 
@@ -504,9 +516,9 @@ int bplib_store_ram_retrieve(int handle, bp_sid_t sid,
 /*----------------------------------------------------------------------------
  * bplib_store_ram_release -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_release (int handle, bp_sid_t sid)
+int bplib_store_ram_release (bp_handle_t h, bp_sid_t sid)
 {
-    (void)handle;
+    (void)h;
     (void)sid;
 
     return BP_SUCCESS;
@@ -515,9 +527,9 @@ int bplib_store_ram_release (int handle, bp_sid_t sid)
 /*----------------------------------------------------------------------------
  * bplib_store_ram_relinquish -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_relinquish (int handle, bp_sid_t sid)
+int bplib_store_ram_relinquish (bp_handle_t h, bp_sid_t sid)
 {
-    (void)handle;
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_RAM_STORE_BASE);
 
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
@@ -532,8 +544,10 @@ int bplib_store_ram_relinquish (int handle, bp_sid_t sid)
 /*----------------------------------------------------------------------------
  * bplib_store_ram_getcount -
  *----------------------------------------------------------------------------*/
-int bplib_store_ram_getcount (int handle)
+int bplib_store_ram_getcount (bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_RAM_STORE_BASE);
+
     assert(handle >= 0 && handle < MSGQ_MAX_STORES);
     assert(msgq_stores[handle]);
 

@@ -19,7 +19,10 @@
  INCLUDES
  ******************************************************************************/
 
+#include <string.h>
+
 #include "bplib.h"
+#include "bplib_os.h"
 #include "v6.h"
 #include "pri.h"
 #include "bib.h"

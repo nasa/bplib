@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "bplib.h"
+#include "bplib_os.h"
 
 /******************************************************************************
  DEFINES
@@ -212,9 +213,9 @@ uint32_t bplib_os_random(void)
 /*--------------------------------------------------------------------------------------
  * bplib_os_createlock -
  *-------------------------------------------------------------------------------------*/
-int bplib_os_createlock(void)
+bp_handle_t bplib_os_createlock(void)
 {
-    int handle = BP_INVALID_HANDLE;
+    bp_handle_t handle = BP_INVALID_HANDLE;
 
     pthread_mutex_lock(&lock_of_locks);
     {
@@ -231,7 +232,7 @@ int bplib_os_createlock(void)
                     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
                     pthread_mutex_init(&locks[i]->mutex, &attr);
                     pthread_cond_init(&locks[i]->cond, NULL);
-                    handle = i;
+                    handle = bp_handle_from_serial(i, BPLIB_HANDLE_OS_BASE);
                     break;
                 }
             }
@@ -245,8 +246,10 @@ int bplib_os_createlock(void)
 /*--------------------------------------------------------------------------------------
  * bplib_os_destroylock -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_destroylock(int handle)
+void bplib_os_destroylock(bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE);
+
     pthread_mutex_lock(&lock_of_locks);
     {
         if(locks[handle])
@@ -263,32 +266,39 @@ void bplib_os_destroylock(int handle)
 /*--------------------------------------------------------------------------------------
  * bplib_os_lock -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_lock(int handle)
+void bplib_os_lock(bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE);
+
     pthread_mutex_lock(&locks[handle]->mutex);
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_unlock -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_unlock(int handle)
+void bplib_os_unlock(bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE);
+
     pthread_mutex_unlock(&locks[handle]->mutex);
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_signal -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_signal(int handle)
+void bplib_os_signal(bp_handle_t h)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE);
+
     pthread_cond_signal(&locks[handle]->cond);
 }
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_waiton -
  *-------------------------------------------------------------------------------------*/
-int bplib_os_waiton(int handle, int timeout_ms)
+int bplib_os_waiton(bp_handle_t h, int timeout_ms)
 {
+    int handle = bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE);
     int status;
 
     /* Perform Wait */
