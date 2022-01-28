@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-#define BP_GET_MAXVAL(t)        (UINT64_C(0xFFFFFFFFFFFFFFFF) >> (64 - (sizeof(t) * 8)))
+#define BP_GET_MAXVAL(t) (UINT64_C(0xFFFFFFFFFFFFFFFF) >> (64 - (sizeof(t) * 8)))
 
 /* this isn't a type, but is required for all the API definitions, so it fits here */
 #ifndef BP_LOCAL_SCOPE
@@ -38,8 +38,7 @@ extern "C" {
 #define BP_INDEX_TYPE uint16_t
 #endif
 
-
-typedef BP_VAL_TYPE bp_val_t;
+typedef BP_VAL_TYPE   bp_val_t;
 typedef BP_INDEX_TYPE bp_index_t;
 
 /* Encoded Value (bounds size of bundle field values) */
@@ -54,7 +53,11 @@ typedef struct bp_handle
 } bp_handle_t;
 
 /* Handles */
-#define BP_INVALID_HANDLE               (const bp_handle_t){0} /* used for integers (os locks, storage services) */
+#define BP_INVALID_HANDLE \
+    (const bp_handle_t)   \
+    {                     \
+        0                 \
+    } /* used for integers (os locks, storage services) */
 
 /**
  * @brief Abstract definition of bp_desc for external use
@@ -144,17 +147,32 @@ static inline int bp_handle_to_serial(bp_handle_t h, bp_handle_t base)
  */
 static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
 {
-    return (bp_handle_t){ .hdl = (uint32_t)hv + base.hdl };
+    return (bp_handle_t) {.hdl = (uint32_t)hv + base.hdl};
 }
 
-
-#define BPLIB_HANDLE_RAM_STORE_BASE   (bp_handle_t){ 0x1000000 }
-#define BPLIB_HANDLE_FLASH_STORE_BASE (bp_handle_t){ 0x2000000 }
-#define BPLIB_HANDLE_FILE_STORE_BASE  (bp_handle_t){ 0x3000000 }
-#define BPLIB_HANDLE_OS_BASE          (bp_handle_t){ 0x4000000 }
+#define BPLIB_HANDLE_RAM_STORE_BASE \
+    (bp_handle_t)                   \
+    {                               \
+        0x1000000                   \
+    }
+#define BPLIB_HANDLE_FLASH_STORE_BASE \
+    (bp_handle_t)                     \
+    {                                 \
+        0x2000000                     \
+    }
+#define BPLIB_HANDLE_FILE_STORE_BASE \
+    (bp_handle_t)                    \
+    {                                \
+        0x3000000                    \
+    }
+#define BPLIB_HANDLE_OS_BASE \
+    (bp_handle_t)            \
+    {                        \
+        0x4000000            \
+    }
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif  /* _bplib_h_ */
+#endif /* _bplib_h_ */

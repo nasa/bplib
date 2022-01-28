@@ -28,7 +28,7 @@
  DEFINES
  ******************************************************************************/
 
-#define UT_MAX_ASSERT   128
+#define UT_MAX_ASSERT 128
 
 /******************************************************************************
  LOCAL DATA
@@ -51,32 +51,36 @@ void ut_reset(void)
 /*--------------------------------------------------------------------------------------
  * _ut_assert - called through ut_assert macro
  *--------------------------------------------------------------------------------------*/
-bool _ut_assert(bool e, const char* file, int line, const char* fmt, ...)
+bool _ut_assert(bool e, const char *file, int line, const char *fmt, ...)
 {
-    if(!e)
+    if (!e)
     {
-        char formatted_string[UT_MAX_ASSERT];
-        char log_message[UT_MAX_ASSERT];
+        char    formatted_string[UT_MAX_ASSERT];
+        char    log_message[UT_MAX_ASSERT];
         va_list args;
-        int vlen, msglen;
-        char* pathptr;
+        int     vlen, msglen;
+        char   *pathptr;
 
         /* Build Formatted String */
         va_start(args, fmt);
-        vlen = vsnprintf(formatted_string, UT_MAX_ASSERT - 1, fmt, args);
+        vlen   = vsnprintf(formatted_string, UT_MAX_ASSERT - 1, fmt, args);
         msglen = vlen < UT_MAX_ASSERT - 1 ? vlen : UT_MAX_ASSERT - 1;
         va_end(args);
-        if (msglen < 0) formatted_string[0] = '\0';
-        else            formatted_string[msglen] = '\0';
+        if (msglen < 0)
+            formatted_string[0] = '\0';
+        else
+            formatted_string[msglen] = '\0';
 
         /* Chop Path in Filename */
         pathptr = strrchr(file, '/');
-        if(pathptr) pathptr++;
-        else pathptr = (char*)file;
+        if (pathptr)
+            pathptr++;
+        else
+            pathptr = (char *)file;
 
         /* Create Log Message */
         msglen = snprintf(log_message, UT_MAX_ASSERT, "Failure @ %s:%d:%s", pathptr, line, formatted_string);
-        if(msglen > (UT_MAX_ASSERT - 1))
+        if (msglen > (UT_MAX_ASSERT - 1))
         {
             log_message[UT_MAX_ASSERT - 1] = '#';
         }
@@ -94,7 +98,7 @@ bool _ut_assert(bool e, const char* file, int line, const char* fmt, ...)
 /*--------------------------------------------------------------------------------------
  * ut_failures -
  *--------------------------------------------------------------------------------------*/
-int ut_failures (void)
+int ut_failures(void)
 {
     return _ut_failures;
 }

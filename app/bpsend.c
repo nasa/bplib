@@ -40,11 +40,10 @@
  *************************************************************************/
 
 static bool app_immediate_abort = false;
-static bool app_signal_abort = false;
-static bool app_running = true;
+static bool app_signal_abort    = false;
+static bool app_running         = true;
 
-static bp_store_t storage_service =
-{
+static bp_store_t storage_service = {
     .create     = bplib_store_ram_create,
     .destroy    = bplib_store_ram_destroy,
     .enqueue    = bplib_store_ram_enqueue,
@@ -68,22 +67,25 @@ static int acks = 0;
 static void app_quick_exit(int parm)
 {
     (void)parm;
-    if(app_immediate_abort) exit(0);
+    if (app_immediate_abort)
+    {
+        exit(0);
+    }
     printf("\n...Shutting down! (press Enter to exit)\n");
-    app_running = false;
+    app_running         = false;
     app_immediate_abort = true; // multiple control-c will exit immediately
 }
 
 /*
  * signal_thread - Manages all the SIGINT and SIGTERM signals
  */
-static void* signal_thread (void* parm)
+static void *signal_thread(void *parm)
 {
-    sigset_t* signal_set = (sigset_t*)parm;
+    sigset_t *signal_set = (sigset_t *)parm;
 
-    while(true)
+    while (true)
     {
-        int sig = 0;
+        int sig    = 0;
         int status = sigwait(signal_set, &sig);
         if (status != 0)
         {
@@ -91,7 +93,7 @@ static void* signal_thread (void* parm)
             signal(SIGINT, app_quick_exit);
             break;
         }
-        else if(app_signal_abort)
+        else if (app_signal_abort)
         {
             break; // exit thread for clean up
         }
@@ -107,24 +109,24 @@ static void* signal_thread (void* parm)
 /*
  * reader_thread - Reads data from stdin and stores as bundles
  */
-static void* reader_thread (void* parm)
+static void *reader_thread(void *parm)
 {
-    #define LINE_STR_SIZE 1024
+#define LINE_STR_SIZE 1024
     static char line_buffer[LINE_STR_SIZE];
 
-    thread_parm_t* info = (thread_parm_t*)parm;
+    thread_parm_t *info = (thread_parm_t *)parm;
 
     /* Reader Loop */
-    while(app_running)
+    while (app_running)
     {
         fprintf(stderr, "(%d/%d) $ ", acks, msgs);
-        char* payload = fgets(line_buffer, LINE_STR_SIZE, stdin);
-        if(payload)
+        char *payload = fgets(line_buffer, LINE_STR_SIZE, stdin);
+        if (payload)
         {
             uint32_t flags;
-            int payload_len = strnlen(line_buffer, LINE_STR_SIZE);
-            int lib_status = bplib_store(info->bpc, payload, payload_len, BP_CHECK, &flags);
-            if(lib_status == BP_SUCCESS)
+            int      payload_len = strnlen(line_buffer, LINE_STR_SIZE);
+            int      lib_status  = bplib_store(info->bpc, payload, payload_len, BP_CHECK, &flags);
+            if (lib_status == BP_SUCCESS)
             {
                 msgs++;
             }
@@ -146,32 +148,33 @@ static void* reader_thread (void* parm)
 /*
  * writer_thread - Loads bundles from storage and writes them to socket
  */
-static void* writer_thread (void* parm)
+static void *writer_thread(void *parm)
 {
-    thread_parm_t* info = (thread_parm_t*)parm;
+    thread_parm_t *info = (thread_parm_t *)parm;
 
     /* Make Socket Connection */
-    int sock = sockdatagram(info->data_ip_addr, info->data_port, false, NULL);;
-    if(sock == SOCK_INVALID)
+    int sock = sockdatagram(info->data_ip_addr, info->data_port, false, NULL);
+
+    if (sock == SOCK_INVALID)
     {
         fprintf(stderr, "Connection unavailable... exiting writer thread\n");
         return NULL;
     }
 
     /* Write Loop */
-    while(app_running && sock != SOCK_INVALID)
+    while (app_running && sock != SOCK_INVALID)
     {
-        uint8_t* bundle = NULL;
-        size_t bundle_size = 0;
-        uint32_t flags = 0;
+        uint8_t *bundle      = NULL;
+        size_t   bundle_size = 0;
+        uint32_t flags       = 0;
 
         /* Load Bundle */
-        int lib_status = bplib_load(info->bpc, (void**)&bundle, &bundle_size, BPLIB_TIMEOUT, &flags);
-        if(lib_status == BP_SUCCESS)
+        int lib_status = bplib_load(info->bpc, (void **)&bundle, &bundle_size, BPLIB_TIMEOUT, &flags);
+        if (lib_status == BP_SUCCESS)
         {
             /* Send Bundle */
             int bytes_sent = socksend(sock, bundle, bundle_size, SOCK_TIMEOUT);
-            if(bytes_sent != bundle_size)
+            if (bytes_sent != bundle_size)
             {
                 fprintf(stderr, "Failed (%d) to send bundle over socket: %s\n", bytes_sent, strerror(errno));
             }
@@ -179,14 +182,14 @@ static void* writer_thread (void* parm)
             /* Acknowledge bundle */
             bplib_ackbundle(info->bpc, bundle);
         }
-        else if(lib_status != BP_TIMEOUT)
+        else if (lib_status != BP_TIMEOUT)
         {
             fprintf(stderr, "Failed (%d) to load bundle [%08X]\n", lib_status, flags);
         }
     }
 
     /* Close Socket Connection */
-    if(sock != SOCK_INVALID)
+    if (sock != SOCK_INVALID)
     {
         sockclose(sock);
     }
@@ -197,31 +200,31 @@ static void* writer_thread (void* parm)
 /*
  * custody_thread - Receive and process custody acknowledgements
  */
-static void* custody_thread (void* parm)
+static void *custody_thread(void *parm)
 {
     static uint8_t dacs[BP_DEFAULT_MAX_LENGTH];
 
-    thread_parm_t* info = (thread_parm_t*)parm;
+    thread_parm_t *info = (thread_parm_t *)parm;
 
     /* Make Socke Connection */
     int sock = sockdatagram(info->dacs_ip_addr, info->dacs_port, true, NULL);
-    if(sock == SOCK_INVALID)
+    if (sock == SOCK_INVALID)
     {
         fprintf(stderr, "Connection unavailable... exiting custody thread\n");
         return NULL;
     }
 
     /* Write Loop */
-    while(app_running && sock != SOCK_INVALID)
+    while (app_running && sock != SOCK_INVALID)
     {
         uint32_t flags = 0;
 
         /* Read Socket */
         int bytes_recv = sockrecv(sock, dacs, BP_DEFAULT_MAX_LENGTH, SOCK_TIMEOUT);
-        if(bytes_recv > 0)
+        if (bytes_recv > 0)
         {
             int lib_status = bplib_process(info->bpc, dacs, bytes_recv, BP_CHECK, &flags);
-            if(lib_status == BP_SUCCESS)
+            if (lib_status == BP_SUCCESS)
             {
                 bp_stats_t stats;
                 bplib_latchstats(info->bpc, &stats);
@@ -232,14 +235,14 @@ static void* custody_thread (void* parm)
                 fprintf(stderr, "Failed (%d) to process dacs [%08X]\n", lib_status, flags);
             }
         }
-        else if(bytes_recv != 0)
+        else if (bytes_recv != 0)
         {
             fprintf(stderr, "Failed (%d) to receive dacs over socket: %s\n", bytes_recv, strerror(errno));
         }
     }
 
     /* Close Socket Connection */
-    if(sock != SOCK_INVALID)
+    if (sock != SOCK_INVALID)
     {
         sockclose(sock);
     }
@@ -255,18 +258,16 @@ int main(int argc, char *argv[])
     int src_node = DFLT_SRC_NODE, src_serv = DFLT_SRC_SERV;
     int dst_node = 0, dst_serv = 0;
 
-    int timeout = BP_DEFAULT_TIMEOUT;
+    int timeout  = BP_DEFAULT_TIMEOUT;
     int lifetime = BP_DEFAULT_LIFETIME;
 
-    thread_parm_t info = {
-        .bpc            = NULL,
-        .data_ip_addr   = DFLT_DATA_IP_ADDR,
-        .data_port      = DFLT_DATA_PORT,
-        .dacs_ip_addr   = DFLT_DACS_IP_ADDR,
-        .dacs_port      = DFLT_DACS_PORT
-    };
+    thread_parm_t info = {.bpc          = NULL,
+                          .data_ip_addr = DFLT_DATA_IP_ADDR,
+                          .data_port    = DFLT_DATA_PORT,
+                          .dacs_ip_addr = DFLT_DACS_IP_ADDR,
+                          .dacs_port    = DFLT_DACS_PORT};
 
-    int i;
+    int  i;
     char parm[PARM_STR_SIZE];
 
     /* Block SIGINT and SIGTERM for all future threads created */
@@ -277,18 +278,20 @@ int main(int argc, char *argv[])
     pthread_sigmask(SIG_BLOCK, &signal_set, NULL);
 
     /* Create dedicated signal thread to handle SIGINT and SIGTERM */
-    pthread_t signal_pid;
+    pthread_t      signal_pid;
     pthread_attr_t signal_pthread_attr;
     pthread_attr_init(&signal_pthread_attr);
     pthread_attr_setdetachstate(&signal_pthread_attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(&signal_pid, &signal_pthread_attr, &signal_thread, (void *) &signal_set);
+    pthread_create(&signal_pid, &signal_pthread_attr, &signal_thread, (void *)&signal_set);
 
     /* Initialize from Environment */
-    char* sys_src_node_str = getenv("BP_SEND_NODE");
-    if(sys_src_node_str) src_node = (int)strtol(sys_src_node_str, NULL, 0);
+    char *sys_src_node_str = getenv("BP_SEND_NODE");
+    if (sys_src_node_str)
+        src_node = (int)strtol(sys_src_node_str, NULL, 0);
 
-    char* sys_src_serv_str = getenv("BP_SEND_SERVICE");
-    if(sys_src_serv_str) src_serv = (int)strtol(sys_src_serv_str, NULL, 0);
+    char *sys_src_serv_str = getenv("BP_SEND_SERVICE");
+    if (sys_src_serv_str)
+        src_serv = (int)strtol(sys_src_serv_str, NULL, 0);
 
     /* Display Welcome Banner */
     fprintf(stderr, "\n*********************************************************************************************");
@@ -319,48 +322,48 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\n\n");
 
     /* Process Command Line */
-    for(i = 1; i < argc; i++)
+    for (i = 1; i < argc; i++)
     {
         snprintf(parm, PARM_STR_SIZE, "%s", argv[i]);
 
-        if(strcmp(argv[i],"--node") == 0)
+        if (strcmp(argv[i], "--node") == 0)
         {
             src_node = (int)strtol(argv[++i], NULL, 0);
         }
-        else if(strcmp(argv[i],"--service") == 0)
+        else if (strcmp(argv[i], "--service") == 0)
         {
             src_serv = (int)strtol(argv[++i], NULL, 0);
         }
-        else if(strstr(argv[i], "ipn") != NULL)
+        else if (strstr(argv[i], "ipn") != NULL)
         {
-            char* serv_str = strrchr(parm, '.');
-            *serv_str = '\0';
+            char *serv_str = strrchr(parm, '.');
+            *serv_str      = '\0';
             serv_str++;
             dst_serv = (int)strtol(serv_str, NULL, 0);
 
-            char* node_str = strrchr(parm, ':');
+            char *node_str = strrchr(parm, ':');
             node_str++;
             dst_node = (int)strtol(node_str, NULL, 0);
         }
-        else if(strstr(argv[i], "data") != NULL)
+        else if (strstr(argv[i], "data") != NULL)
         {
-            char* port_str = strrchr(parm, ':');
-            *port_str = '\0';
+            char *port_str = strrchr(parm, ':');
+            *port_str      = '\0';
             port_str++;
             info.data_port = (int)strtol(port_str, NULL, 0);
 
-            char* ip_str = strrchr(parm, '/');
+            char *ip_str = strrchr(parm, '/');
             ip_str++;
             snprintf(info.data_ip_addr, PARM_STR_SIZE, "%s", ip_str);
         }
-        else if(strstr(argv[i], "dacs") != NULL)
+        else if (strstr(argv[i], "dacs") != NULL)
         {
-            char* port_str = strrchr(parm, ':');
-            *port_str = '\0';
+            char *port_str = strrchr(parm, ':');
+            *port_str      = '\0';
             port_str++;
             info.dacs_port = (int)strtol(port_str, NULL, 0);
 
-            char* ip_str = strrchr(parm, '/');
+            char *ip_str = strrchr(parm, '/');
             ip_str++;
             snprintf(info.dacs_ip_addr, PARM_STR_SIZE, "%s", ip_str);
         }
@@ -371,23 +374,24 @@ int main(int argc, char *argv[])
     }
 
     /* Echo Command Line Options */
-    fprintf(stderr, "Creating BP agent at ipn:%d.%d and sending bundles to ipn:%d.%d over udp://%s:%d\n", src_node, src_serv, dst_node, dst_serv, info.data_ip_addr, info.data_port);
+    fprintf(stderr, "Creating BP agent at ipn:%d.%d and sending bundles to ipn:%d.%d over udp://%s:%d\n", src_node,
+            src_serv, dst_node, dst_serv, info.data_ip_addr, info.data_port);
 
     /* Initialize bplib */
     bplib_init();
     bplib_store_ram_init();
 
     /* Create bplib Channel */
-    bp_route_t route = { src_node, src_serv, dst_node, dst_serv, 0, 0 };
+    bp_route_t route = {src_node, src_serv, dst_node, dst_serv, 0, 0};
 
     bp_attr_t attributes;
     bplib_attrinit(&attributes);
-    attributes.lifetime = lifetime;
-    attributes.timeout = timeout;
+    attributes.lifetime  = lifetime;
+    attributes.timeout   = timeout;
     attributes.cid_reuse = true;
 
     info.bpc = bplib_open(route, storage_service, attributes);
-    if(info.bpc == NULL)
+    if (info.bpc == NULL)
     {
         fprintf(stderr, "Failed to create bplib channel... exiting\n");
         return -1;
@@ -406,20 +410,20 @@ int main(int argc, char *argv[])
     pthread_create(&custody_pid, NULL, &custody_thread, &info);
 
     /* Idle Loop */
-    while(app_running)
+    while (app_running)
     {
         sleep(1);
     }
 
     /* Join Threads */
     int read_rc = pthread_join(read_pid, NULL);
-    if(read_rc != 0)
+    if (read_rc != 0)
     {
         fprintf(stderr, "Failed (%d) to join reader thread: %s\n", read_rc, strerror(read_rc));
     }
 
     int write_rc = pthread_join(write_pid, NULL);
-    if(write_rc != 0)
+    if (write_rc != 0)
     {
         fprintf(stderr, "Failed (%d) to join writer thread: %s\n", write_rc, strerror(write_rc));
     }

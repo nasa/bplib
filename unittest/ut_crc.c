@@ -43,10 +43,10 @@ extern crc_parameters_t crc32_castagnoli;
  * size: The number of bytes allocated to the provided ptr. [INPUT]
  * num_spaces: Number of spaces to print before the bits. [INPUT]
  *-------------------------------------------------------------------------------------*/
-static void print_binary(const void* ptr, const size_t size, const int num_spaces)
+static void print_binary(const void *ptr, const size_t size, const int num_spaces)
 {
-    unsigned char * number_ptr = (unsigned char *) ptr;
-    int i, current_byte;
+    unsigned char *number_ptr = (unsigned char *)ptr;
+    int            i, current_byte;
 
     /* Print spaces to help align the bits. */
     for (i = 0; i < num_spaces; i++)
@@ -69,12 +69,12 @@ static void print_binary(const void* ptr, const size_t size, const int num_space
  *
  * params: A ptr to a crc params to print its xor table. [INPUT]
  *-------------------------------------------------------------------------------------*/
-static void print_xor_table(const crc_parameters_t* params)
+static void print_xor_table(const crc_parameters_t *params)
 {
     int index, i, j;
     if (params->length == 16)
     {
-        const uint16_t* table = params->n_bit_params.crc16.xor_table;
+        const uint16_t *table = params->n_bit_params.crc16.xor_table;
         for (i = 0; i < 16; i++)
         {
             for (j = 0; j < 16; j++)
@@ -87,7 +87,7 @@ static void print_xor_table(const crc_parameters_t* params)
     }
     else if (params->length == 32)
     {
-        const uint32_t* table = params->n_bit_params.crc32.xor_table;
+        const uint32_t *table = params->n_bit_params.crc32.xor_table;
         for (i = 0; i < 16; i++)
         {
             for (j = 0; j < 16; j++)
@@ -109,7 +109,7 @@ static void print_xor_table(const crc_parameters_t* params)
  *
  * returns: True or false indicating whether or not the crc matched its check value.
  *-------------------------------------------------------------------------------------*/
-static bool validate_crc_parameters(const crc_parameters_t* params)
+static bool validate_crc_parameters(const crc_parameters_t *params)
 {
     uint8_t check_message[9] = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39};
     printf("Input Message:\n");
@@ -117,7 +117,7 @@ static bool validate_crc_parameters(const crc_parameters_t* params)
     if (params->length == 16)
     {
         uint16_t check_value = params->n_bit_params.crc16.check_value;
-        uint16_t crc = (uint16_t)crc_get(check_message, 9, params);
+        uint16_t crc         = (uint16_t)crc_get(check_message, 9, params);
         printf("Check Value [%04X]: ", check_value);
         print_binary(&check_value, 2, 0);
         printf("CRC Output [%04X]: ", crc);
@@ -127,7 +127,7 @@ static bool validate_crc_parameters(const crc_parameters_t* params)
     else if (params->length == 32)
     {
         uint32_t check_value = params->n_bit_params.crc32.check_value;
-        uint32_t crc = (uint32_t)crc_get(check_message, 9, params);
+        uint32_t crc         = (uint32_t)crc_get(check_message, 9, params);
         printf("Check Value [%08X]: ", check_value);
         print_binary(&check_value, 4, 0);
         printf("CRC Output [%08X]: ", crc);
@@ -141,7 +141,7 @@ static bool validate_crc_parameters(const crc_parameters_t* params)
 /*--------------------------------------------------------------------------------------
  * test_crc16_vectors - generates the CRC for testing
  *-------------------------------------------------------------------------------------*/
-static uint16_t test_crc16_vectors(crc_parameters_t* params, const uint8_t* vector, const int size)
+static uint16_t test_crc16_vectors(crc_parameters_t *params, const uint8_t *vector, const int size)
 {
     crc_init(params);
     return (uint16_t)crc_get(vector, size, params);
@@ -156,7 +156,7 @@ static uint16_t test_crc16_vectors(crc_parameters_t* params, const uint8_t* vect
  *
  * params: A ptr crc_parameters_t for initing the XOR table and testing the check value. [INPUT]
  *--------------------------------------------------------------------------------------*/
-static void test_crc(crc_parameters_t* params)
+static void test_crc(crc_parameters_t *params)
 {
     printf("Testing CRC %s\n", params->name);
     crc_init(params);
@@ -168,7 +168,7 @@ static void test_crc(crc_parameters_t* params)
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int ut_crc (void)
+int ut_crc(void)
 {
     ut_reset();
 
@@ -179,20 +179,20 @@ int ut_crc (void)
     test_crc(&crc32_castagnoli);
 
     /* Test 3 */
-    uint8_t v3[] = {0x7, 0x46, 0x57, 0x37, 0x43, 0x25, 0xf7, 0x47, 0x26, 0x16, 0x36, 0x50};
-    uint16_t v3_crc = 0x0A58;
+    uint8_t  v3[]        = {0x7, 0x46, 0x57, 0x37, 0x43, 0x25, 0xf7, 0x47, 0x26, 0x16, 0x36, 0x50};
+    uint16_t v3_crc      = 0x0A58;
     uint16_t v3_crc_calc = test_crc16_vectors(&crc16_x25, v3, sizeof(v3));
     ut_assert(v3_crc_calc == v3_crc, "Failed to caluclate correct CRC16 for V3, %04X != %04X\n", v3_crc_calc, v3_crc);
 
     /* Test 4 */
-    uint8_t v4[] = {0x07, 0x46, 0x57, 0x37, 0x45, 0xf7, 0x47, 0x26, 0x16, 0x36, 0x53, 0x60};
-    uint16_t v4_crc = 0xD9A2;
+    uint8_t  v4[]        = {0x07, 0x46, 0x57, 0x37, 0x45, 0xf7, 0x47, 0x26, 0x16, 0x36, 0x53, 0x60};
+    uint16_t v4_crc      = 0xD9A2;
     uint16_t v4_crc_calc = test_crc16_vectors(&crc16_x25, v4, sizeof(v4));
     ut_assert(v4_crc_calc == v4_crc, "Failed to caluclate correct CRC16 for V4, %04X != %04X\n", v4_crc_calc, v4_crc);
 
     /* Test 5 */
-    uint8_t v5[] = {0x74, 0x65, 0x73, 0x74, 0x5f, 0x74, 0x72, 0x61, 0x63, 0x65, 0x37};
-    uint16_t v5_crc = 0x441A;
+    uint8_t  v5[]        = {0x74, 0x65, 0x73, 0x74, 0x5f, 0x74, 0x72, 0x61, 0x63, 0x65, 0x37};
+    uint16_t v5_crc      = 0x441A;
     uint16_t v5_crc_calc = test_crc16_vectors(&crc16_x25, v5, sizeof(v5));
     ut_assert(v5_crc_calc == v5_crc, "Failed to caluclate correct CRC16 for V5, %04X != %04X\n", v5_crc_calc, v5_crc);
 

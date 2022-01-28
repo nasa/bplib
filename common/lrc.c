@@ -30,15 +30,15 @@
  DEFINES
  ******************************************************************************/
 
-#define LRC_BLOCK_SIZE                7
-#define LRC_CODE_BYTES_PER_BLOCK      2
+#define LRC_BLOCK_SIZE           7
+#define LRC_CODE_BYTES_PER_BLOCK 2
 
 /******************************************************************************
  LOCAL FILE DATA
  ******************************************************************************/
 
-static uint8_t* LRC_XOR_TABLE = NULL;
-static int8_t*  LRC_RCI_TABLE = NULL;   /* row-column-index */
+static uint8_t *LRC_XOR_TABLE = NULL;
+static int8_t  *LRC_RCI_TABLE = NULL; /* row-column-index */
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -66,17 +66,17 @@ static int8_t*  LRC_RCI_TABLE = NULL;   /* row-column-index */
  *   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0
  *  }
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE void build_xor_table(uint8_t* table)
+BP_LOCAL_SCOPE void build_xor_table(uint8_t *table)
 {
     int i, k;
 
-    for(i = 0; i < 256; i++)
+    for (i = 0; i < 256; i++)
     {
         int bit_count = 0;
 
-        for(k = 0; k < 8; k++)
+        for (k = 0; k < 8; k++)
         {
-            if((1 << k) & i)
+            if ((1 << k) & i)
             {
                 bit_count++;
             }
@@ -111,18 +111,18 @@ BP_LOCAL_SCOPE void build_xor_table(uint8_t* table)
  *   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1  // 0xF0 - 0xFF
  *  }
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE void build_rci_table(int8_t* table)
+BP_LOCAL_SCOPE void build_rci_table(int8_t *table)
 {
     int i, k;
 
-    for(i = 0; i < 256; i++)
+    for (i = 0; i < 256; i++)
     {
         table[i] = BP_ECC_NO_ERRORS;
-        for(k = 0; k < 8; k++)
+        for (k = 0; k < 8; k++)
         {
-            if((1 << k) & i)
+            if ((1 << k) & i)
             {
-                if(table[i] == BP_ECC_NO_ERRORS)
+                if (table[i] == BP_ECC_NO_ERRORS)
                 {
                     table[i] = k + 1;
                 }
@@ -138,14 +138,14 @@ BP_LOCAL_SCOPE void build_rci_table(int8_t* table)
 /*--------------------------------------------------------------------------------------
  * lrc_block_encode -
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE void lrc_block_encode(uint8_t* src_block, uint8_t* src_code, int bytes_to_ecc, uint8_t* dst_code)
+BP_LOCAL_SCOPE void lrc_block_encode(uint8_t *src_block, uint8_t *src_code, int bytes_to_ecc, uint8_t *dst_code)
 {
-    int index = 0;
+    int     index   = 0;
     uint8_t ecc_col = 0;
     uint8_t ecc_row = 0;
 
     /* Loop Through All Bytes in Block */
-    while(index < bytes_to_ecc)
+    while (index < bytes_to_ecc)
     {
         /* Encode Current ECC Block */
         ecc_col ^= src_block[index]; /* column */
@@ -156,7 +156,7 @@ BP_LOCAL_SCOPE void lrc_block_encode(uint8_t* src_block, uint8_t* src_code, int 
     }
 
     /* Encode Row Parity */
-    if(src_code)
+    if (src_code)
     {
         ecc_row |= LRC_XOR_TABLE[src_code[0]] << index;
     }
@@ -173,25 +173,25 @@ BP_LOCAL_SCOPE void lrc_block_encode(uint8_t* src_block, uint8_t* src_code, int 
 /*--------------------------------------------------------------------------------------
  * lrc_block_decode -
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int lrc_block_decode(uint8_t* src_block, uint8_t* src_code, uint8_t* calc_code)
+BP_LOCAL_SCOPE int lrc_block_decode(uint8_t *src_block, uint8_t *src_code, uint8_t *calc_code)
 {
-    uint8_t src_col = src_code[0];
-    uint8_t src_row = src_code[1];
+    uint8_t src_col  = src_code[0];
+    uint8_t src_row  = src_code[1];
     uint8_t calc_col = calc_code[0];
     uint8_t calc_row = calc_code[1];
 
     /* Check ECC */
-    if(calc_col != src_col || calc_row != src_row)
+    if (calc_col != src_col || calc_row != src_row)
     {
         uint8_t delta_col = calc_col ^ src_col;
         uint8_t delta_row = calc_row ^ src_row;
 
         /* Find Row & Column Error */
         int column = LRC_RCI_TABLE[delta_col];
-        int row = LRC_RCI_TABLE[delta_row];
+        int row    = LRC_RCI_TABLE[delta_row];
 
         /* Attempt to Correct Error */
-        if(column > 0 && row > 0)
+        if (column > 0 && row > 0)
         {
             /* correct bit at row:column */
             src_block[row - 1] ^= (1 << (column - 1));
@@ -200,7 +200,7 @@ BP_LOCAL_SCOPE int lrc_block_decode(uint8_t* src_block, uint8_t* src_code, uint8
         /* this only checks for errors in the row ecc byte since the column ecc byte
             is parity checked; there is no case where a column has a single bit error,
             and it doesn't show up in the row ecc */
-        else if((column == BP_ECC_NO_ERRORS) && (row > 0))
+        else if ((column == BP_ECC_NO_ERRORS) && (row > 0))
         {
             /* do nothing - error in row ECC byte */
             return BP_ECC_COR_ERRORS;
@@ -224,12 +224,12 @@ BP_LOCAL_SCOPE int lrc_block_decode(uint8_t* src_block, uint8_t* src_code, uint8
  *
  *  returns number of bytes available for data
  *-------------------------------------------------------------------------------------*/
-int lrc_init (int frame_size)
+int lrc_init(int frame_size)
 {
     /* Allocate ECC Tables and Buffers */
-    LRC_XOR_TABLE = (uint8_t*)bplib_os_calloc(256);
-    LRC_RCI_TABLE = (int8_t*)bplib_os_calloc(256);
-    if(!LRC_XOR_TABLE || !LRC_RCI_TABLE)
+    LRC_XOR_TABLE = (uint8_t *)bplib_os_calloc(256);
+    LRC_RCI_TABLE = (int8_t *)bplib_os_calloc(256);
+    if (!LRC_XOR_TABLE || !LRC_RCI_TABLE)
     {
         lrc_uninit();
         return frame_size; /* on error, all bytes available for data, since ecc failed to initialize */
@@ -246,15 +246,15 @@ int lrc_init (int frame_size)
 /*--------------------------------------------------------------------------------------
  * lrc_uninit -
  *-------------------------------------------------------------------------------------*/
-void lrc_uninit (void)
+void lrc_uninit(void)
 {
-    if(LRC_XOR_TABLE)
+    if (LRC_XOR_TABLE)
     {
         bplib_os_free(LRC_XOR_TABLE);
         LRC_XOR_TABLE = NULL;
     }
 
-    if(LRC_RCI_TABLE)
+    if (LRC_RCI_TABLE)
     {
         bplib_os_free(LRC_RCI_TABLE);
         LRC_RCI_TABLE = NULL;
@@ -264,16 +264,16 @@ void lrc_uninit (void)
 /*--------------------------------------------------------------------------------------
  * lrc_encode -
  *-------------------------------------------------------------------------------------*/
-void lrc_encode(uint8_t* frame_buffer, int data_size)
+void lrc_encode(uint8_t *frame_buffer, int data_size)
 {
     int data_index = 0;
-    int ecc_index = data_size;
+    int ecc_index  = data_size;
 
     /* Loop Through All Data in Page */
-    while(data_index < data_size)
+    while (data_index < data_size)
     {
         /* Encode ECC for Block */
-        int bytes_left = data_size - data_index;
+        int bytes_left   = data_size - data_index;
         int bytes_to_ecc = bytes_left < LRC_BLOCK_SIZE ? bytes_left : LRC_BLOCK_SIZE;
         lrc_block_encode(&frame_buffer[data_index], NULL, bytes_to_ecc, &frame_buffer[ecc_index]);
 
@@ -286,30 +286,30 @@ void lrc_encode(uint8_t* frame_buffer, int data_size)
 /*--------------------------------------------------------------------------------------
  * lrc_decode -
  *-------------------------------------------------------------------------------------*/
-int lrc_decode(uint8_t* frame_buffer, int data_size)
+int lrc_decode(uint8_t *frame_buffer, int data_size)
 {
     int ret_status = BP_ECC_NO_ERRORS;
 
-    int data_index = 0;
-    int ecc_index = data_size;
+    int     data_index = 0;
+    int     ecc_index  = data_size;
     uint8_t ecc_code[LRC_CODE_BYTES_PER_BLOCK];
 
     /* Loop Through All Data in Page */
-    while(data_index < data_size)
+    while (data_index < data_size)
     {
         /* Generate ECC for Block */
-        int bytes_left = data_size - data_index;
+        int bytes_left   = data_size - data_index;
         int bytes_to_ecc = bytes_left < LRC_BLOCK_SIZE ? bytes_left : LRC_BLOCK_SIZE;
         lrc_block_encode(&frame_buffer[data_index], &frame_buffer[ecc_index], bytes_to_ecc, ecc_code);
 
         /* Check (and correct) ECC for Block */
         int status = lrc_block_decode(&frame_buffer[data_index], &frame_buffer[ecc_index], ecc_code);
-        if(status == BP_ECC_UNCOR_ERRORS)
+        if (status == BP_ECC_UNCOR_ERRORS)
         {
             ret_status = status;
             break;
         }
-        else if(status == BP_ECC_COR_ERRORS)
+        else if (status == BP_ECC_COR_ERRORS)
         {
             ret_status = status;
         }

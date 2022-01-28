@@ -29,20 +29,21 @@
  TYPEDEFS
  ******************************************************************************/
 
-typedef struct {
-    bp_field_t  bf;                         /* block flags */
-    bp_field_t  blklen;                     /* block length */
-    bp_field_t  cid;                        /* custody ID */
-    char        csteid[BP_MAX_EID_STRING];  /* custody EID: "ipn:{node}.{service}" */
-    bp_ipn_t    cstnode;                    /* custody node */
-    bp_ipn_t    cstserv;                    /* custody service */
+typedef struct
+{
+    bp_field_t bf;                        /* block flags */
+    bp_field_t blklen;                    /* block length */
+    bp_field_t cid;                       /* custody ID */
+    char       csteid[BP_MAX_EID_STRING]; /* custody EID: "ipn:{node}.{service}" */
+    bp_ipn_t   cstnode;                   /* custody node */
+    bp_ipn_t   cstserv;                   /* custody service */
 } bp_blk_cteb_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int cteb_read     (const void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint32_t* flags);
-int cteb_write    (void* block, int size, bp_blk_cteb_t* cteb, bool update_indices, uint32_t* flags);
+int cteb_read(const void *block, int size, bp_blk_cteb_t *cteb, bool update_indices, uint32_t *flags);
+int cteb_write(void *block, int size, bp_blk_cteb_t *cteb, bool update_indices, uint32_t *flags);
 
-#endif  /* _cteb_h_ */
+#endif /* _cteb_h_ */

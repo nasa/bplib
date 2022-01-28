@@ -27,6 +27,6 @@
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int luaopen_bplib (lua_State* L);
+int luaopen_bplib(lua_State *L);
 
 #endif /* _lua_bplib_h_ */

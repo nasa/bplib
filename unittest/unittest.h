@@ -21,9 +21,9 @@
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int bplib_unittest_crc      (void);
-int bplib_unittest_rb_tree  (void);
-int bplib_unittest_rh_hash  (void);
-int bplib_unittest_flash    (void);
+int bplib_unittest_crc(void);
+int bplib_unittest_rb_tree(void);
+int bplib_unittest_rh_hash(void);
+int bplib_unittest_flash(void);
 
 #endif /* _unittest_h_ */

@@ -33,19 +33,21 @@ extern "C" {
  TYPEDEFS
  ******************************************************************************/
 
-typedef struct {
-    const char* root_path;          /* local directory used to store bundles as files */
-    int         cache_size;         /* number of bundles to store in cache (data_cache_t) */
-    bool        flush_on_write;     /* true: write-through cache */
+typedef struct
+{
+    const char *root_path;      /* local directory used to store bundles as files */
+    int         cache_size;     /* number of bundles to store in cache (data_cache_t) */
+    bool        flush_on_write; /* true: write-through cache */
 } bp_file_attr_t;
 
-typedef struct {
-    FILE*   (*open)     (const char* filename, const char* modes);
-    int     (*close)    (FILE* stream);
-    size_t  (*read)     (void* dst, size_t size, size_t n, FILE* stream);
-    size_t  (*write)    (const void* src, size_t size, size_t n, FILE* stream);
-    int     (*seek)     (FILE* stream, long int offset, int whence);
-    int     (*flush)    (FILE* stream);
+typedef struct
+{
+    FILE *(*open)(const char *filename, const char *modes);
+    int (*close)(FILE *stream);
+    size_t (*read)(void *dst, size_t size, size_t n, FILE *stream);
+    size_t (*write)(const void *src, size_t size, size_t n, FILE *stream);
+    int (*seek)(FILE *stream, long int offset, int whence);
+    int (*flush)(FILE *stream);
 } bp_file_driver_t;
 
 /******************************************************************************
@@ -53,17 +55,18 @@ typedef struct {
  ******************************************************************************/
 
 /* Application API */
-void    bplib_store_file_init          (bp_file_driver_t* driver);
+void bplib_store_file_init(bp_file_driver_t *driver);
 
 /* Service API */
-bp_handle_t     bplib_store_file_create        (int type, bp_ipn_t node, bp_ipn_t service, bool recover, void* parm);
-int     bplib_store_file_destroy       (bp_handle_t h);
-int     bplib_store_file_enqueue       (bp_handle_t h, const void* data1, size_t data1_size, const void* data2, size_t data2_size, int timeout);
-int     bplib_store_file_dequeue       (bp_handle_t h, bp_object_t** object, int timeout);
-int     bplib_store_file_retrieve      (bp_handle_t h, bp_sid_t sid, bp_object_t** object, int timeout);
-int     bplib_store_file_release       (bp_handle_t h, bp_sid_t sid);
-int     bplib_store_file_relinquish    (bp_handle_t h, bp_sid_t sid);
-int     bplib_store_file_getcount      (bp_handle_t h);
+bp_handle_t bplib_store_file_create(int type, bp_ipn_t node, bp_ipn_t service, bool recover, void *parm);
+int         bplib_store_file_destroy(bp_handle_t h);
+int bplib_store_file_enqueue(bp_handle_t h, const void *data1, size_t data1_size, const void *data2, size_t data2_size,
+                             int timeout);
+int bplib_store_file_dequeue(bp_handle_t h, bp_object_t **object, int timeout);
+int bplib_store_file_retrieve(bp_handle_t h, bp_sid_t sid, bp_object_t **object, int timeout);
+int bplib_store_file_release(bp_handle_t h, bp_sid_t sid);
+int bplib_store_file_relinquish(bp_handle_t h, bp_sid_t sid);
+int bplib_store_file_getcount(bp_handle_t h);
 
 #ifdef __cplusplus
 } // extern "C"

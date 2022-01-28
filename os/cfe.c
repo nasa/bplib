@@ -39,33 +39,28 @@
  DEFINES
  ******************************************************************************/
 
-#define BP_MAX_LOG_ENTRY_SIZE       256
-#define BP_RAND_HASH(seed)          ((seed)*2654435761UL) /* knuth multiplier */
+#define BP_MAX_LOG_ENTRY_SIZE 256
+#define BP_RAND_HASH(seed)    ((seed)*2654435761UL) /* knuth multiplier */
 
 #ifndef BP_CFE_SECS_AT_2000
-#define BP_CFE_SECS_AT_2000         1325376023 /* TAI */
+#define BP_CFE_SECS_AT_2000 1325376023 /* TAI */
 #endif
 
 #ifndef BP_BPLIB_INFO_EID
-#define BP_BPLIB_INFO_EID           0xFF
+#define BP_BPLIB_INFO_EID 0xFF
 #endif
 
 /******************************************************************************
  FILE DATA
  ******************************************************************************/
 
-static size_t   current_memory_allocated = 0;
-static size_t   highest_memory_allocated = 0;
+static size_t current_memory_allocated = 0;
+static size_t highest_memory_allocated = 0;
 
-static uint32_t flag_log_enable = BP_FLAG_NONCOMPLIANT |
-                                  BP_FLAG_DROPPED |
-                                  BP_FLAG_BUNDLE_TOO_LARGE |
-                                  BP_FLAG_UNKNOWNREC |
-                                  BP_FLAG_INVALID_CIPHER_SUITEID |
-                                  BP_FLAG_INVALID_BIB_RESULT_TYPE |
-                                  BP_FLAG_INVALID_BIB_TARGET_TYPE |
-                                  BP_FLAG_FAILED_TO_PARSE |
-                                  BP_FLAG_API_ERROR;
+static uint32_t flag_log_enable = BP_FLAG_NONCOMPLIANT | BP_FLAG_DROPPED | BP_FLAG_BUNDLE_TOO_LARGE |
+                                  BP_FLAG_UNKNOWNREC | BP_FLAG_INVALID_CIPHER_SUITEID |
+                                  BP_FLAG_INVALID_BIB_RESULT_TYPE | BP_FLAG_INVALID_BIB_TARGET_TYPE |
+                                  BP_FLAG_FAILED_TO_PARSE | BP_FLAG_API_ERROR;
 
 /******************************************************************************
  EXPORTED UTILITY FUNCTIONS
@@ -86,50 +81,54 @@ void bplib_os_enable_log_flags(uint32_t enable_mask)
 /*--------------------------------------------------------------------------------------
  * bplib_os_init -
  *-------------------------------------------------------------------------------------*/
-void bplib_os_init(void)
-{
-}
+void bplib_os_init(void) {}
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_log -
  *
  * Returns - the error code passed in (for convenience)
  *-------------------------------------------------------------------------------------*/
-int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t event, const char* fmt, ...)
+int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...)
 {
     (void)file;
     (void)line;
 
-    if((flag_log_enable & event) == event)
+    if ((flag_log_enable & event) == event)
     {
-        char formatted_string[BP_MAX_LOG_ENTRY_SIZE];
+        char    formatted_string[BP_MAX_LOG_ENTRY_SIZE];
         va_list args;
-        int vlen, msglen;
+        int     vlen, msglen;
 
         /* Build Formatted String */
         va_start(args, fmt);
-        vlen = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
+        vlen   = vsnprintf(formatted_string, BP_MAX_LOG_ENTRY_SIZE - 1, fmt, args);
         msglen = vlen < BP_MAX_LOG_ENTRY_SIZE - 1 ? vlen : BP_MAX_LOG_ENTRY_SIZE - 1;
         va_end(args);
 
         /* Handle Log Message */
-        if(msglen > 0)
+        if (msglen > 0)
         {
-            char log_message[BP_MAX_LOG_ENTRY_SIZE];
-            char* pathptr;
+            char  log_message[BP_MAX_LOG_ENTRY_SIZE];
+            char *pathptr;
 
             formatted_string[msglen] = '\0';
 
             /* Chop Path in Filename */
             pathptr = strrchr(file, '/');
-            if(pathptr) pathptr++;
-            else pathptr = (char*)file;
+            if (pathptr)
+            {
+                pathptr++;
+            }
+            else
+            {
+                pathptr = (char *)file;
+            }
 
             /* Build Log Message */
             msglen = snprintf(log_message, BP_MAX_LOG_ENTRY_SIZE, "%s:%u:%s", pathptr, line, formatted_string);
 
             /* Provide Truncation Indicator */
-            if(msglen > (BP_MAX_LOG_ENTRY_SIZE - 2))
+            if (msglen > (BP_MAX_LOG_ENTRY_SIZE - 2))
             {
                 log_message[BP_MAX_LOG_ENTRY_SIZE - 2] = '#';
             }
@@ -140,9 +139,12 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
     }
 
     /* Set Event Flag and Return */
-    if(event > 0)
+    if (event > 0)
     {
-        if(flags) *flags |= event;
+        if (flags)
+        {
+            *flags |= event;
+        }
         return BP_ERROR;
     }
     else
@@ -154,12 +156,12 @@ int bplib_os_log(const char* file, unsigned int line, uint32_t* flags, uint32_t 
 /*--------------------------------------------------------------------------------------
  * bplib_os_systime - returns seconds
  *-------------------------------------------------------------------------------------*/
-int bplib_os_systime(unsigned long* sysnow)
+int bplib_os_systime(unsigned long *sysnow)
 {
     assert(sysnow);
 
     CFE_TIME_SysTime_t sys_time = CFE_TIME_GetTime();
-    if(sys_time.Seconds < BP_CFE_SECS_AT_2000)
+    if (sys_time.Seconds < BP_CFE_SECS_AT_2000)
     {
         *sysnow = sys_time.Seconds;
         return BP_ERROR;
@@ -185,7 +187,7 @@ void bplib_os_sleep(int seconds)
 uint32_t bplib_os_random(void)
 {
     CFE_TIME_SysTime_t sys_time = CFE_TIME_GetMET();
-    unsigned long seed = sys_time.Seconds + sys_time.Subseconds;
+    unsigned long      seed     = sys_time.Seconds + sys_time.Subseconds;
     return (uint32_t)BP_RAND_HASH(seed);
 }
 
@@ -242,10 +244,10 @@ int bplib_os_waiton(bp_handle_t h, int timeout_ms)
 /*--------------------------------------------------------------------------------------
  * bplib_os_format -
  *-------------------------------------------------------------------------------------*/
-int bplib_os_format(char* dst, size_t len, const char* fmt, ...)
+int bplib_os_format(char *dst, size_t len, const char *fmt, ...)
 {
     va_list args;
-    int vlen;
+    int     vlen;
 
     /* Build Formatted String */
     va_start(args, fmt);
@@ -259,12 +261,12 @@ int bplib_os_format(char* dst, size_t len, const char* fmt, ...)
 /*--------------------------------------------------------------------------------------
  * bplib_os_strnlen -
  *-------------------------------------------------------------------------------------*/
-int bplib_os_strnlen(const char* str, int maxlen)
+int bplib_os_strnlen(const char *str, int maxlen)
 {
     int len;
-    for(len = 0; len < maxlen; len++)
+    for (len = 0; len < maxlen; len++)
     {
-        if(str[len] == '\0')
+        if (str[len] == '\0')
         {
             return len;
         }
@@ -275,20 +277,20 @@ int bplib_os_strnlen(const char* str, int maxlen)
 /*----------------------------------------------------------------------------
  * bplib_os_calloc
  *----------------------------------------------------------------------------*/
-void* bplib_os_calloc(size_t size)
+void *bplib_os_calloc(size_t size)
 {
     /* Allocate Memory Block */
-    size_t block_size = size + sizeof(size_t);
-    uint8_t* mem_ptr = (uint8_t*)calloc(block_size, 1);
-    if(mem_ptr)
+    size_t   block_size = size + sizeof(size_t);
+    uint8_t *mem_ptr    = (uint8_t *)calloc(block_size, 1);
+    if (mem_ptr)
     {
         /* Prepend Amount */
-        size_t* size_ptr = (size_t*)mem_ptr;
-        *size_ptr = block_size;
+        size_t *size_ptr = (size_t *)mem_ptr;
+        *size_ptr        = block_size;
 
         /* Update Statistics */
         current_memory_allocated += block_size;
-        if(current_memory_allocated > highest_memory_allocated)
+        if (current_memory_allocated > highest_memory_allocated)
         {
             highest_memory_allocated = current_memory_allocated;
         }
@@ -305,15 +307,15 @@ void* bplib_os_calloc(size_t size)
 /*----------------------------------------------------------------------------
  * bplib_os_free
  *----------------------------------------------------------------------------*/
-void bplib_os_free(void* ptr)
+void bplib_os_free(void *ptr)
 {
-    if(ptr)
+    if (ptr)
     {
-        uint8_t* mem_ptr = (uint8_t*)ptr;
+        uint8_t *mem_ptr = (uint8_t *)ptr;
 
         /* Read Amount */
-        size_t* size_ptr = (size_t*)((uint8_t*)mem_ptr - sizeof(size_t));
-        size_t block_size = *size_ptr;
+        size_t *size_ptr   = (size_t *)((uint8_t *)mem_ptr - sizeof(size_t));
+        size_t  block_size = *size_ptr;
 
         /* Update Statistics */
         current_memory_allocated -= block_size;

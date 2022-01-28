@@ -49,7 +49,7 @@
  ******************************************************************************/
 
 /* Macros */
-#define bplog(flags,evt,...)    bplib_os_log(__FILE__,__LINE__,flags,evt,__VA_ARGS__)
+#define bplog(flags, evt, ...) bplib_os_log(__FILE__, __LINE__, flags, evt, __VA_ARGS__)
 
 /******************************************************************************
  TYPEDEFS
@@ -59,22 +59,23 @@
  PROTOTYPES
  ******************************************************************************/
 
-void        bplib_os_init           (void);
-int         bplib_os_log            (const char* file, unsigned int line, uint32_t* flags, uint32_t event, const char* fmt, ...) VARG_CHECK(printf, 5, 6);
-int         bplib_os_systime        (unsigned long* sysnow); /* seconds */
-void        bplib_os_sleep          (int seconds);
-uint32_t    bplib_os_random         (void);
-bp_handle_t bplib_os_createlock     (void);
-void        bplib_os_destroylock    (bp_handle_t h);
-void        bplib_os_lock           (bp_handle_t h);
-void        bplib_os_unlock         (bp_handle_t h);
-void        bplib_os_signal         (bp_handle_t h);
-int         bplib_os_waiton         (bp_handle_t h, int timeout_ms);
-int         bplib_os_format         (char* dst, size_t len, const char* fmt, ...) VARG_CHECK(printf, 3, 4);
-int         bplib_os_strnlen        (const char* str, int maxlen);
-void*       bplib_os_calloc         (size_t size);
-void        bplib_os_free           (void* ptr);
-size_t      bplib_os_memused        (void);
-size_t      bplib_os_memhigh        (void);
+void bplib_os_init(void);
+int  bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...)
+    VARG_CHECK(printf, 5, 6);
+int         bplib_os_systime(unsigned long *sysnow); /* seconds */
+void        bplib_os_sleep(int seconds);
+uint32_t    bplib_os_random(void);
+bp_handle_t bplib_os_createlock(void);
+void        bplib_os_destroylock(bp_handle_t h);
+void        bplib_os_lock(bp_handle_t h);
+void        bplib_os_unlock(bp_handle_t h);
+void        bplib_os_signal(bp_handle_t h);
+int         bplib_os_waiton(bp_handle_t h, int timeout_ms);
+int         bplib_os_format(char *dst, size_t len, const char *fmt, ...) VARG_CHECK(printf, 3, 4);
+int         bplib_os_strnlen(const char *str, int maxlen);
+void       *bplib_os_calloc(size_t size);
+void        bplib_os_free(void *ptr);
+size_t      bplib_os_memused(void);
+size_t      bplib_os_memhigh(void);
 
 #endif /* _bplib_os_h_ */
