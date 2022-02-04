@@ -28,9 +28,6 @@
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-extern crc_parameters_t crc16_x25;
-extern crc_parameters_t crc32_castagnoli;
-
 /******************************************************************************
  HELPER FUNCTIONS
  ******************************************************************************/
@@ -69,7 +66,7 @@ static void print_binary(const void *ptr, const size_t size, const int num_space
  *
  * params: A ptr to a crc params to print its xor table. [INPUT]
  *-------------------------------------------------------------------------------------*/
-static void print_xor_table(const crc_parameters_t *params)
+static void print_xor_table(bplib_crc_parameters_t *params)
 {
     int index, i, j;
     if (params->length == 16)
@@ -101,15 +98,15 @@ static void print_xor_table(const crc_parameters_t *params)
 }
 
 /*--------------------------------------------------------------------------------------
- * validate_crc_parameters_t - Validates that a crc_parameters properly computes its check
+ * validate_crc_parameters_t - Validates that a bplib_crc_parameters properly computes its check
  *      value when passed 123456789.
  *
- * params: A ptr to a crc_parameters struct defining how to calculate the crc and check it
+ * params: A ptr to a bplib_crc_parameters struct defining how to calculate the crc and check it
  *      value. [INPUT]
  *
  * returns: True or false indicating whether or not the crc matched its check value.
  *-------------------------------------------------------------------------------------*/
-static bool validate_crc_parameters(const crc_parameters_t *params)
+static bool validate_crc_parameters(bplib_crc_parameters_t *params)
 {
     uint8_t check_message[9] = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39};
     printf("Input Message:\n");
@@ -117,7 +114,7 @@ static bool validate_crc_parameters(const crc_parameters_t *params)
     if (params->length == 16)
     {
         uint16_t check_value = params->n_bit_params.crc16.check_value;
-        uint16_t crc         = (uint16_t)crc_get(check_message, 9, params);
+        uint16_t crc         = (uint16_t)bplib_crc_get(check_message, 9, params);
         printf("Check Value [%04X]: ", check_value);
         print_binary(&check_value, 2, 0);
         printf("CRC Output [%04X]: ", crc);
@@ -127,7 +124,7 @@ static bool validate_crc_parameters(const crc_parameters_t *params)
     else if (params->length == 32)
     {
         uint32_t check_value = params->n_bit_params.crc32.check_value;
-        uint32_t crc         = (uint32_t)crc_get(check_message, 9, params);
+        uint32_t crc         = (uint32_t)bplib_crc_get(check_message, 9, params);
         printf("Check Value [%08X]: ", check_value);
         print_binary(&check_value, 4, 0);
         printf("CRC Output [%08X]: ", crc);
@@ -141,10 +138,10 @@ static bool validate_crc_parameters(const crc_parameters_t *params)
 /*--------------------------------------------------------------------------------------
  * test_crc16_vectors - generates the CRC for testing
  *-------------------------------------------------------------------------------------*/
-static uint16_t test_crc16_vectors(crc_parameters_t *params, const uint8_t *vector, const int size)
+static uint16_t test_crc16_vectors(bplib_crc_parameters_t *params, const uint8_t *vector, const int size)
 {
     crc_init(params);
-    return (uint16_t)crc_get(vector, size, params);
+    return (uint16_t)bplib_crc_get(vector, size, params);
 }
 
 /******************************************************************************
@@ -154,9 +151,9 @@ static uint16_t test_crc16_vectors(crc_parameters_t *params, const uint8_t *vect
 /*--------------------------------------------------------------------------------------
  * test_crc - Populates a crc table and validates the check value for the crc.
  *
- * params: A ptr crc_parameters_t for initing the XOR table and testing the check value. [INPUT]
+ * params: A ptr bplib_crc_parameters_t for initing the XOR table and testing the check value. [INPUT]
  *--------------------------------------------------------------------------------------*/
-static void test_crc(crc_parameters_t *params)
+static void test_crc(bplib_crc_parameters_t *params)
 {
     printf("Testing CRC %s\n", params->name);
     crc_init(params);
@@ -173,10 +170,10 @@ int ut_crc(void)
     ut_reset();
 
     /* Test 1 */
-    test_crc(&crc16_x25);
+    test_crc(&BPLIB_CRC16_X25);
 
     /* Test 2 */
-    test_crc(&crc32_castagnoli);
+    test_crc(&BPLIB_CRC32_CASTAGNOLI);
 
     /* Test 3 */
     uint8_t  v3[]        = {0x7, 0x46, 0x57, 0x37, 0x43, 0x25, 0xf7, 0x47, 0x26, 0x16, 0x36, 0x50};

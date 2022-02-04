@@ -29,54 +29,40 @@
  DEFINES
  ******************************************************************************/
 
-#define BYTE_COMBOS 256 /* Number of different possible bytes. */
-
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
-/* Parameters specific to calculating 16 bit crc parameters. */
-typedef struct crc16_parameters
-{
-    uint16_t generator_polynomial;   /* The generator polynomial used to compute the CRC. */
-    uint16_t initial_value;          /* The value used to initialize a CRC. */
-    uint16_t final_xor;              /* The final value to xor with the crc before returning. */
-    uint16_t check_value;            /* The crc resulting from the input string "123456789". */
-    uint16_t xor_table[BYTE_COMBOS]; /* A ptr to a table with the precomputed XOR values. */
-} crc16_parameters_t;
-
-/* Parameters specific to calculating 32 bit crcs. */
-typedef struct crc32_parameters
-{
-    uint32_t generator_polynomial;   /* The generator polynomial used to compute the CRC. */
-    uint32_t initial_value;          /* The value used to initialize a CRC. */
-    uint32_t final_xor;              /* The final value to xor with the crc before returning. */
-    uint32_t check_value;            /* The crc resulting from the input string "123456789". */
-    uint32_t xor_table[BYTE_COMBOS]; /* A ptr to a table with the precomputed XOR values. */
-} crc32_parameters_t;
+/*
+ * To keep the interface consistent the digest functions do I/O as 32 bit values.
+ * For CRC algorithms of lesser width, the value is right-justified (LSB/LSW)
+ */
+typedef uint32_t bp_crcval_t;
 
 /* Standard parameters for calculating a CRC. */
-typedef struct crc_parameters
-{
-    const char *name;                  /* Name of the CRC. */
-    int         length;                /* The number of bits in the CRC. */
-    bool        should_reflect_input;  /* Whether to reflect the bits of the input bytes. */
-    bool        should_reflect_output; /* Whether to reflect the bits of the output crc. */
-    /* Parameters specific to crc implementations of various lengths. The field that is populated
-       within this union should directly coincide with the length member.
-       Ex: If length == 16 crc16 should be popualted in this union below. */
-    union
-    {
-        crc16_parameters_t crc16;
-        crc32_parameters_t crc32;
-    } n_bit_params;
-} crc_parameters_t;
+struct bplib_crc_parameters;
+typedef const struct bplib_crc_parameters bplib_crc_parameters_t;
+
+/*
+ * CRC algorithms that are implemented in BPLIB
+ * These definitions are always fixed/const
+ */
+extern bplib_crc_parameters_t BPLIB_CRC_NONE;
+extern bplib_crc_parameters_t BPLIB_CRC16_X25;
+extern bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-int      crc_init(crc_parameters_t *params);
-uint32_t crc_get(const uint8_t *data, const uint32_t length, const crc_parameters_t *params);
+void    bplib_crc_init(void);
+
+const char *bplib_crc_get_name(bplib_crc_parameters_t *params);
+uint8_t     bplib_crc_get_width(bplib_crc_parameters_t *params);
+bp_crcval_t bplib_crc_initial_value(bplib_crc_parameters_t *params);
+bp_crcval_t bplib_crc_update(bplib_crc_parameters_t *params, bp_crcval_t crc, const void *data, size_t size);
+bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc);
+
+bp_crcval_t bplib_crc_get(const uint8_t *data, const uint32_t length, bplib_crc_parameters_t *params);
 
 #endif /* _crc_h_ */
