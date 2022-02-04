@@ -26,6 +26,7 @@
 #include "bundle_types.h"
 #include "cbuf.h"
 #include "rh_hash.h"
+#include "crc.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -240,6 +241,9 @@ int bplib_init(void)
 
     /* Initialize OS Interface */
     bplib_os_init();
+
+    /* Initialize CRC algorithms */
+    bplib_crc_init();
 
     /* Initialize v6 Module */
     status = v6_initialize();

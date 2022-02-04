@@ -27,27 +27,6 @@
 #include "v6.h"
 #include "bib.h"
 
-/******************************************************************************
- CRC DEFINITIONS
- ******************************************************************************/
-
-BP_LOCAL_SCOPE crc_parameters_t crc16_x25 = {.name                  = "CRC-16 X25",
-                                             .length                = 16,
-                                             .should_reflect_input  = true,
-                                             .should_reflect_output = true,
-                                             .n_bit_params          = {.crc16 = {.generator_polynomial = 0x1021,
-                                                                                 .initial_value        = 0xFFFF,
-                                                                                 .final_xor            = 0xFFFF,
-                                                                                 .check_value          = 0x906E}}};
-
-BP_LOCAL_SCOPE crc_parameters_t crc32_castagnoli = {.name                  = "CRC-32 Castagnoli",
-                                                    .length                = 32,
-                                                    .should_reflect_input  = true,
-                                                    .should_reflect_output = true,
-                                                    .n_bit_params = {.crc32 = {.generator_polynomial = 0x1EDC6F41,
-                                                                               .initial_value        = 0xFFFFFFFF,
-                                                                               .final_xor            = 0xFFFFFFFF,
-                                                                               .check_value          = 0xE3069283}}};
 
 /******************************************************************************
  STATIC FUNCTIONS
@@ -120,17 +99,7 @@ static inline uint32_t read_crc32(uint8_t *buffer)
  *-------------------------------------------------------------------------------------*/
 int bib_init(void)
 {
-    int crc16_status = crc_init(&crc16_x25);
-    int crc32_status = crc_init(&crc32_castagnoli);
-
-    if (crc16_status == BP_SUCCESS && crc32_status == BP_SUCCESS)
-    {
-        return BP_SUCCESS;
-    }
-    else
-    {
-        return BP_ERROR;
-    }
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -443,13 +412,13 @@ int bib_update(void *block, int size, const void *payload, int payload_size, bp_
     /* Calculate and Write Fragment Payload CRC */
     if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
-        bib->security_result_data.crc16 = (uint16_t)crc_get((uint8_t *)payload, payload_size, &crc16_x25);
+        bib->security_result_data.crc16 = (uint16_t)bplib_crc_get((uint8_t *)payload, payload_size, &BPLIB_CRC16_X25);
         uint8_t *valptr = buffer + bib->security_result_length.index + bib->security_result_length.width;
         write_crc16(bib->security_result_data.crc16, valptr);
     }
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
-        bib->security_result_data.crc32 = crc_get((uint8_t *)payload, payload_size, &crc32_castagnoli);
+        bib->security_result_data.crc32 = bplib_crc_get((uint8_t *)payload, payload_size, &BPLIB_CRC32_CASTAGNOLI);
         uint8_t *valptr = buffer + bib->security_result_length.index + bib->security_result_length.width;
         write_crc32(bib->security_result_data.crc32, valptr);
     }
@@ -480,7 +449,7 @@ int bib_verify(const void *payload, int payload_size, bp_blk_bib_t *bib, uint32_
     /* Calculate and Verify Payload CRC */
     if (bib->cipher_suite_id.value == BP_BIB_CRC16_X25)
     {
-        uint16_t crc = (uint16_t)crc_get((uint8_t *)payload, payload_size, &crc16_x25);
+        uint16_t crc = (uint16_t)bplib_crc_get((uint8_t *)payload, payload_size, &BPLIB_CRC16_X25);
         if (bib->security_result_data.crc16 != crc)
         {
             /* Return Failure */
@@ -490,7 +459,7 @@ int bib_verify(const void *payload, int payload_size, bp_blk_bib_t *bib, uint32_
     }
     else if (bib->cipher_suite_id.value == BP_BIB_CRC32_CASTAGNOLI)
     {
-        uint32_t crc = crc_get((uint8_t *)payload, payload_size, &crc32_castagnoli);
+        uint32_t crc = bplib_crc_get((uint8_t *)payload, payload_size, &BPLIB_CRC32_CASTAGNOLI);
         if (bib->security_result_data.crc32 != crc)
         {
             /* Return Failure */
