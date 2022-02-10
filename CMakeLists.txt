@@ -12,6 +12,7 @@ project(BPLIB C)
 
 option(BPLIB_INCLUDE_STORAGE "Whether or not to build the basic/example storage services as part of BPLib" ON)
 option(BPLIB_INCLUDE_BPV6 "Whether or not to the BPv6 protocol implementation as part of BPLib" ON)
+option(BPLIB_INCLUDE_BPV7 "Whether or not to the BPv7 protocol implementation as part of BPLib (EXPERIMENTAL)" OFF)
 option(BPLIB_INCLUDE_POSIX "Whether or not to the POSIX operating system abstraction as part of BPLib (standalone builds only)" ON)
 option(BPLIB_BUILD_TEST_TOOLS "Whether or not to build the test programs as part of BPLib (standalone builds only)" ON)
 
@@ -34,6 +35,7 @@ set(BPLIB_SRC
 
 # no extra link libraries at first
 set(BPLIB_LINK_LIBRARIES)
+set(BPLIB_PRIVATE_INCLUDE_DIRS common lib)
 
 # Add source units that comprise the protocol implementation
 # This is dependent on build configuration
@@ -49,6 +51,18 @@ if (BPLIB_INCLUDE_BPV6)
     v6/dacs.c
     v6/sdnv.c
   )
+  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS v6)
+
+endif()
+
+if (BPLIB_INCLUDE_BPV7)
+
+  # v7 implementation parts
+  list(APPEND BPLIB_SRC
+    v7/v7_mpool.c
+    v7/v7_codec.c
+  )
+  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS v7)
 
 endif()
 
@@ -65,6 +79,7 @@ if (BPLIB_INCLUDE_STORAGE)
     store/flash_sim.c
 
   )
+  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS store)
 
 endif()
 
@@ -98,6 +113,20 @@ else()
 
   # If using GNU GCC, then also enable full warning reporting
   target_compile_options(bplib PRIVATE $<$<C_COMPILER_ID:GNU>:-Wall -Werror -pedantic>)
+
+  if (BPLIB_INCLUDE_BPV7)
+
+    # Use pkg-config to locate tinycbor dependency (required only for v7)
+    find_package(PkgConfig)
+    pkg_search_module(TINYCBOR tinycbor)
+    message(STATUS "Found tinycbor version ${TINYCBOR_VERSION}")
+
+    list(APPEND BPLIB_LINK_LIBRARIES ${TINYCBOR_LIBRARIES})
+    list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS ${TINYCBOR_INCLUDE_DIRS})
+
+  endif()
+
+
 
   # link with the requisite dependencies (this is mainly for POSIX, if using that adapter)
   target_link_libraries(bplib ${BPLIB_LINK_LIBRARIES})
@@ -141,7 +170,7 @@ else()
 endif()
 
 # Internal/private header files exist within the implementation directories
-target_include_directories(bplib PRIVATE lib store common v6)
+target_include_directories(bplib PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
 
 # The API to this library (which may be invoked/referenced from other apps)
 # is stored in fsw/public_inc.  Using "target_include_directories" is the
