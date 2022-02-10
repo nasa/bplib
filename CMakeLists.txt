@@ -60,6 +60,7 @@ if (BPLIB_INCLUDE_BPV7)
   # v7 implementation parts
   list(APPEND BPLIB_SRC
     v7/v7_mpool.c
+    v7/v7_codec.c
   )
   list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS v7)
 
@@ -112,6 +113,20 @@ else()
 
   # If using GNU GCC, then also enable full warning reporting
   target_compile_options(bplib PRIVATE $<$<C_COMPILER_ID:GNU>:-Wall -Werror -pedantic>)
+
+  if (BPLIB_INCLUDE_BPV7)
+
+    # Use pkg-config to locate tinycbor dependency (required only for v7)
+    find_package(PkgConfig)
+    pkg_search_module(TINYCBOR tinycbor)
+    message(STATUS "Found tinycbor version ${TINYCBOR_VERSION}")
+
+    list(APPEND BPLIB_LINK_LIBRARIES ${TINYCBOR_LIBRARIES})
+    list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS ${TINYCBOR_INCLUDE_DIRS})
+
+  endif()
+
+
 
   # link with the requisite dependencies (this is mainly for POSIX, if using that adapter)
   target_link_libraries(bplib ${BPLIB_LINK_LIBRARIES})
