@@ -1,22 +1,25 @@
-/************************************************************************
- * File: pri.h
+/*
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
  *
- *  Copyright 2019 United States Government as represented by the
- *  Administrator of the National Aeronautics and Space Administration.
- *  All Other Rights Reserved.
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be
- *  used, distributed and modified only pursuant to the terms of that
- *  agreement.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Maintainer(s):
- *  Joe-Paul Swinski, Code 582 NASA GSFC
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *************************************************************************/
+ */
 
-#ifndef _pri_h_
-#define _pri_h_
+#ifndef PRI_H
+#define PRI_H
 
 /******************************************************************************
  INCLUDES
@@ -66,4 +69,4 @@ typedef struct
 int pri_read(const void *block, int size, bp_blk_pri_t *pri, bool update_indices, uint32_t *flags);
 int pri_write(void *block, int size, bp_blk_pri_t *pri, bool update_indices, uint32_t *flags);
 
-#endif /* _pri_h_ */
+#endif /* PRI_H */

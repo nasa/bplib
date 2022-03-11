@@ -1,20 +1,22 @@
-/************************************************************************
- * File: crc.c
+/*
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
  *
- *  Copyright 2019 United States Government as represented by the
- *  Administrator of the National Aeronautics and Space Administration.
- *  All Other Rights Reserved.
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be
- *  used, distributed and modified only pursuant to the terms of that
- *  agreement.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Maintainer(s):
- *  Alexander Meade, Code 582 NASA GSFC
- *  Joe-Paul Swinski, Code 582 NASA GSFC
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *************************************************************************/
+ */
 
 /******************************************************************************
  INCLUDES
@@ -117,7 +119,7 @@ bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI = {
  ******************************************************************************/
 
 static uint16_t bplib_crc_generic16_impl(const uint8_t *input_table, const uint16_t *xor_table, uint16_t crc,
-                                            const uint8_t *ptr, size_t size)
+                                         const uint8_t *ptr, size_t size)
 {
     while (size > 0)
     {
@@ -130,7 +132,7 @@ static uint16_t bplib_crc_generic16_impl(const uint8_t *input_table, const uint1
 }
 
 static uint32_t bplib_crc_generic32_impl(const uint8_t *input_table, const uint32_t *xor_table, uint32_t crc,
-                                            const uint8_t *ptr, size_t size)
+                                         const uint8_t *ptr, size_t size)
 {
     while (size > 0)
     {
@@ -159,7 +161,7 @@ bp_crcval_t bplib_crc_digest_CRC32_CASTAGNOLI(bp_crcval_t crc, const void *ptr, 
 
 bp_crcval_t bplib_precompute_crc_byte(uint8_t width, uint8_t byte, bp_crcval_t polynomial)
 {
-    uint8_t mask;
+    uint8_t     mask;
     bp_crcval_t next_bit;
     bp_crcval_t crcval;
 
@@ -198,8 +200,8 @@ uint8_t bplib_precompute_reflection(uint8_t byte)
     uint8_t input;
     uint8_t result;
 
-    mask = 0xFF;
-    input = byte;
+    mask   = 0xFF;
+    input  = byte;
     result = 0;
     while (mask != 0)
     {
@@ -227,7 +229,7 @@ uint8_t bplib_precompute_reflection(uint8_t byte)
  *-------------------------------------------------------------------------------------*/
 void bplib_crc_init(void)
 {
-    uint8_t  byte;
+    uint8_t byte;
 
     byte = 0;
     do
@@ -253,7 +255,7 @@ const char *bplib_crc_get_name(bplib_crc_parameters_t *params)
     return params->name;
 }
 
-uint8_t     bplib_crc_get_width(bplib_crc_parameters_t *params)
+uint8_t bplib_crc_get_width(bplib_crc_parameters_t *params)
 {
     return params->length;
 }
@@ -278,7 +280,7 @@ bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc)
         crc_final = 0;
 
         /* Reflect 8 bits at a time while possible */
-        i  = params->length;
+        i = params->length;
         while (i >= 8)
         {
             crc_final <<= 8;
@@ -304,7 +306,7 @@ bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc)
     crc_final ^= params->final_xor;
 
     /* Return the CRC but mask out the significant bits */
-    if(params->length < 32)
+    if (params->length < 32)
     {
         crc_final &= ((bp_crcval_t)1 << params->length) - 1;
     }
