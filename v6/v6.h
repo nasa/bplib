@@ -1,22 +1,25 @@
-/************************************************************************
- * File: v6.h
+/*
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
  *
- *  Copyright 2019 United States Government as represented by the
- *  Administrator of the National Aeronautics and Space Administration.
- *  All Other Rights Reserved.
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  This software was created at NASA's Goddard Space Flight Center.
- *  This software is governed by the NASA Open Source Agreement and may be
- *  used, distributed and modified only pursuant to the terms of that
- *  agreement.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Maintainer(s):
- *  Joe-Paul Swinski, Code 582 NASA GSFC
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *************************************************************************/
+ */
 
-#ifndef _v6_h_
-#define _v6_h_
+#ifndef V6_H
+#define V6_H
 
 /******************************************************************************
  INCLUDES
@@ -98,4 +101,4 @@ int v6_is_expired(bp_bundle_t *bundle, unsigned long sysnow, unsigned long exprt
 int v6_routeinfo(const void *bundle, int size, bp_route_t *route);
 int v6_display(const void *bundle, int size, uint32_t *flags);
 
-#endif /* _v6_h_ */
+#endif /* V6_H */
