@@ -167,12 +167,12 @@ static void *writer_thread(void *parm)
     /* Write Loop */
     while (app_running && sock != SOCK_INVALID)
     {
-        uint8_t *bundle      = NULL;
+        const void *bundle   = NULL;
         size_t   bundle_size = 0;
         uint32_t flags       = 0;
 
         /* Load Bundle */
-        int lib_status = bplib_load(info->bpc, (void **)&bundle, &bundle_size, BPLIB_TIMEOUT, &flags);
+        int lib_status = bplib_load(info->bpc, &bundle, &bundle_size, BPLIB_TIMEOUT, &flags);
         if (lib_status == BP_SUCCESS)
         {
             /* Send Bundle */

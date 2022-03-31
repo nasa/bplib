@@ -18,47 +18,27 @@
  *
  */
 
-#ifndef CRC_H
-#define CRC_H
+
+#ifndef v7_cache_h
+#define v7_cache_h
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
 #include "bplib.h"
-
-/******************************************************************************
- DEFINES
- ******************************************************************************/
+#include "bplib_os.h"
 
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
 
-/* Standard parameters for calculating a CRC. */
-struct bplib_crc_parameters;
-typedef const struct bplib_crc_parameters bplib_crc_parameters_t;
-
-/*
- * CRC algorithms that are implemented in BPLIB
- * These definitions are always fixed/const
- */
-extern bplib_crc_parameters_t BPLIB_CRC_NONE;
-extern bplib_crc_parameters_t BPLIB_CRC16_X25;
-extern bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI;
-
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-void bplib_crc_init(void);
+/* Service API */
+int bplib_store_cache_attach(bplib_routetbl_t *tbl, bp_handle_t intf_id);
+void bplib_store_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id);
 
-const char *bplib_crc_get_name(bplib_crc_parameters_t *params);
-uint8_t     bplib_crc_get_width(bplib_crc_parameters_t *params);
-bp_crcval_t bplib_crc_initial_value(bplib_crc_parameters_t *params);
-bp_crcval_t bplib_crc_update(bplib_crc_parameters_t *params, bp_crcval_t crc, const void *data, size_t size);
-bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc);
-
-bp_crcval_t bplib_crc_get(const uint8_t *data, const uint32_t length, bplib_crc_parameters_t *params);
-
-#endif /* CRC_H */
+#endif /* v7_cache_h */

@@ -86,30 +86,6 @@ typedef struct bp_creation_timestamp
     bp_sequencenumber_t sequence_num;
 } bp_creation_timestamp_t;
 
-/**
- * @brief Label definitions associated with CCSDS_BP_CRCType_Enum_t
- */
-typedef enum bp_crctype
-{
-
-    /**
-     * @brief No CRC is present.
-     */
-    bp_crctype_none = 0,
-
-    /**
-     * @brief A standard X-25 CRC-16 is present.
-     */
-    bp_crctype_CRC16 = 1,
-
-    /**
-     * @brief A CRC-32 (Castagnoli) is present.
-     */
-    bp_crctype_CRC32C = 2
-} bp_crctype_t;
-
-typedef bp_crcval_t bp_crcval_t;
-
 typedef struct bp_bundle_processing_control_flags
 {
 
@@ -204,7 +180,7 @@ typedef struct bp_primary_block
     bp_bundle_processing_control_flags_t controlFlags;
     bp_crctype_t                         crctype; /* always present, indicates which CRC field is valid */
     bp_endpointid_buffer_t               destinationEID;
-    bp_endpointid_buffer_t               sourceID;
+    bp_endpointid_buffer_t               sourceEID;
     bp_endpointid_buffer_t               reportEID;
     bp_creation_timestamp_t              creationTimeStamp;
     bp_lifetime_t                        lifetime;

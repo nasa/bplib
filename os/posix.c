@@ -69,6 +69,16 @@ static uint32_t flag_log_enable = BP_FLAG_NONCOMPLIANT | BP_FLAG_DROPPED | BP_FL
                                   BP_FLAG_INVALID_BIB_RESULT_TYPE | BP_FLAG_INVALID_BIB_TARGET_TYPE |
                                   BP_FLAG_FAILED_TO_PARSE | BP_FLAG_API_ERROR;
 
+static inline uint64_t bplib_timespec_to_u64(const struct timespec *ts)
+{
+    uint64_t result;
+
+    /* Convert to milliseconds */
+    result = (uint64_t)ts->tv_sec * 1000;
+    result += (ts->tv_nsec / 1000000);
+
+    return result;
+}
 /******************************************************************************
  EXPORTED UTILITY FUNCTIONS
  ******************************************************************************/
@@ -167,6 +177,49 @@ int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t 
     {
         return BP_SUCCESS;
     }
+}
+
+/*--------------------------------------------------------------------------------------
+ * bplib_os_get_dtntime_ms - returns milliseconds since DTN epoch
+ * this should be compatible with the BPv7 time definition
+ *-------------------------------------------------------------------------------------*/
+uint64_t    bplib_os_get_dtntime_ms(void)
+{
+    struct timespec now;
+
+    /*
+     * This needs to map to the DTN epoch of 2000-01-01 00:00:00 UTC, so it needs to use
+     * REALTIME here.  For now this ignores the leap second problem (spec section 4.2.6
+     * only says "DTN time is not affected by leap seconds" but not exactly what is
+     * meant by that).  There are two ways to ignore leap seconds - just count
+     * real seconds that have elapsed and make no corrections at all for leaps (which
+     * is what TAI does), or to pretend there are always exactly 86400 seconds in a "day"
+     * and ignore the fact that leap seconds break this assumption (which is what POSIX
+     * does).
+     *
+     * The result is that in 2022 there will be a 5 second difference in the result, depending
+     * on which method of ignoring the leap second problem is chosen.  This will use the
+     * POSIX method because that's what the system clock gives us.
+     */
+
+    /*
+     * Get System Time.
+     * Worth also noting here that CLOCK_REALTIME is a settable/modifiable
+     * clock in POSIX systems, which means there is no guarantee that this is
+     * monotonically increasing - it may jump/step, and may go backwards.
+     * There may be a justification for using CLOCK_MONOTONIC for timeout
+     * counters or other items that are always based on relative time.
+     */
+    if (clock_gettime(CLOCK_REALTIME, &now) < 0 || now.tv_sec < UNIX_SECS_AT_2000)
+    {
+        return 0; /* This is BP-speak for unknown time */
+    }
+
+    /* Convert to DTN epoch */
+    now.tv_sec -= UNIX_SECS_AT_2000;
+
+    /* Convert to milliseconds */
+    return bplib_timespec_to_u64(&now);
 }
 
 /*--------------------------------------------------------------------------------------

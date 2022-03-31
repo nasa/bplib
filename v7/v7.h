@@ -18,47 +18,28 @@
  *
  */
 
-#ifndef CRC_H
-#define CRC_H
+
+#ifndef v7_h
+#define v7_h
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
+#include "bundle_types.h"
+#include "rb_tree.h"
+#include "v7_types.h"
 
 /******************************************************************************
  DEFINES
  ******************************************************************************/
 
 /******************************************************************************
- TYPEDEFS
+ EXPORTED FUNCTIONS
  ******************************************************************************/
 
-/* Standard parameters for calculating a CRC. */
-struct bplib_crc_parameters;
-typedef const struct bplib_crc_parameters bplib_crc_parameters_t;
+bp_dtntime_t v7_get_current_time(void);
+void v7_set_eid(bp_endpointid_buffer_t *eid, const bp_ipn_addr_t *bp_addr);
+void v7_get_eid(bp_ipn_addr_t *bp_addr, const bp_endpointid_buffer_t *eid);
 
-/*
- * CRC algorithms that are implemented in BPLIB
- * These definitions are always fixed/const
- */
-extern bplib_crc_parameters_t BPLIB_CRC_NONE;
-extern bplib_crc_parameters_t BPLIB_CRC16_X25;
-extern bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI;
-
-/******************************************************************************
- PROTOTYPES
- ******************************************************************************/
-
-void bplib_crc_init(void);
-
-const char *bplib_crc_get_name(bplib_crc_parameters_t *params);
-uint8_t     bplib_crc_get_width(bplib_crc_parameters_t *params);
-bp_crcval_t bplib_crc_initial_value(bplib_crc_parameters_t *params);
-bp_crcval_t bplib_crc_update(bplib_crc_parameters_t *params, bp_crcval_t crc, const void *data, size_t size);
-bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc);
-
-bp_crcval_t bplib_crc_get(const uint8_t *data, const uint32_t length, bplib_crc_parameters_t *params);
-
-#endif /* CRC_H */
+#endif /* v7_h */

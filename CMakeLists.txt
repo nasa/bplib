@@ -35,7 +35,10 @@ set(BPLIB_SRC
 
 # no extra link libraries at first
 set(BPLIB_LINK_LIBRARIES)
-set(BPLIB_PRIVATE_INCLUDE_DIRS common lib)
+set(BPLIB_PRIVATE_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/common
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib
+)
 
 # Add source units that comprise the protocol implementation
 # This is dependent on build configuration
@@ -51,18 +54,34 @@ if (BPLIB_INCLUDE_BPV6)
     v6/dacs.c
     v6/sdnv.c
   )
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS v6)
+  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/v6
+  )
 
 endif()
 
 if (BPLIB_INCLUDE_BPV7)
 
+  list(REMOVE_ITEM BPLIB_SRC
+    lib/bplib.c
+    common/rb_tree.c
+    common/rh_hash.c
+  )
+
   # v7 implementation parts
   list(APPEND BPLIB_SRC
-    v7/v7_mpool.c
+    lib/v7_bplib.c
+    store/v7_cache.c
+    common/v7_rbtree.c
+    common/v7_mpool.c
+    common/v7_mpstream.c
     v7/v7_codec.c
+    v7/v7.c
+    lib/v7_routing.c
   )
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS v7)
+  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/v7
+  )
 
 endif()
 
@@ -79,7 +98,9 @@ if (BPLIB_INCLUDE_STORAGE)
     store/flash_sim.c
 
   )
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS store)
+  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/store
+  )
 
 endif()
 
@@ -93,6 +114,11 @@ if (IS_CFS_ARCH_BUILD)
   add_cfe_app(bplib ${BPLIB_SRC} os/cfe.c)
 
 else()
+
+  # Use pkg-config to locate tinycbor dependency (for now)
+  find_package(PkgConfig)
+  pkg_search_module(TINYCBOR tinycbor)
+  message(STATUS "Found tinycbor version ${TINYCBOR_VERSION}")
 
   # Building as a standalone library
   # This by will usually require a POSIX OS layer
@@ -123,13 +149,14 @@ else()
 
     list(APPEND BPLIB_LINK_LIBRARIES ${TINYCBOR_LIBRARIES})
     list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS ${TINYCBOR_INCLUDE_DIRS})
+    target_compile_definitions(bplib PRIVATE BPLIB_INCLUDE_BPV7)
 
   endif()
 
 
 
   # link with the requisite dependencies (this is mainly for POSIX, if using that adapter)
-  target_link_libraries(bplib ${BPLIB_LINK_LIBRARIES})
+  target_link_libraries(bplib ${TINYCBOR_LIBRARIES} ${BPLIB_LINK_LIBRARIES})
 
   # Install and also export this library, so it can be found via
   # "find_package()" from some other CMake build
