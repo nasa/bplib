@@ -35,11 +35,6 @@ extern "C" {
  DEFINES
  ******************************************************************************/
 
-/* Return Codes */
-#define BP_SUCCESS 0
-#define BP_ERROR   (-1)
-#define BP_TIMEOUT (-2)
-
 /* Event Flags */
 #define BP_FLAG_DIAGNOSTIC              0x00000000
 #define BP_FLAG_NONCOMPLIANT            0x00000001 /* valid bundle but agent not able to comply with standard */
@@ -62,6 +57,8 @@ extern "C" {
 #define BP_FLAG_INVALID_BIB_TARGET_TYPE 0x00020000 /* invalid target type found in BIB */
 #define BP_FLAG_FAILED_TO_PARSE         0x00040000 /* unable to parse bundle due to internal inconsistencies in bundle */
 #define BP_FLAG_API_ERROR               0x00080000 /* calling code incorrectly used library */
+#define BP_FLAG_OUT_OF_MEMORY           0x00100000 /* memory pool exhausted */
+#define BP_FLAG_UNIMPLEMENTED           0x80000000 /* request requires a feature not implemented in BPLib */
 
 /* Timeouts */
 #define BP_PEND  (-1)
@@ -247,6 +244,11 @@ typedef struct
 int  bplib_init(void);
 void bplib_deinit(void);
 
+/*
+ * These calls were from the previous version of BPLib, and are not all implemented
+ * yet.  See replacements below
+ */
+
 bp_desc_t *bplib_open(bp_route_t route, bp_store_t store, bp_attr_t attributes);
 void       bplib_close(bp_desc_t *desc);
 
@@ -255,9 +257,9 @@ int bplib_config(bp_desc_t *desc, int mode, int opt, int *val);
 int bplib_latchstats(bp_desc_t *desc, bp_stats_t *stats);
 
 int bplib_store(bp_desc_t *desc, const void *payload, size_t size, int timeout, uint32_t *flags);
-int bplib_load(bp_desc_t *desc, void **bundle, size_t *size, int timeout, uint32_t *flags);
+int bplib_load(bp_desc_t *desc, const void **bundle, size_t *size, int timeout, uint32_t *flags);
 int bplib_process(bp_desc_t *desc, const void *bundle, size_t size, int timeout, uint32_t *flags);
-int bplib_accept(bp_desc_t *desc, void **payload, size_t *size, int timeout, uint32_t *flags);
+int bplib_accept(bp_desc_t *desc, const void **payload, size_t *size, int timeout, uint32_t *flags);
 
 int bplib_ackbundle(bp_desc_t *desc, const void *bundle);
 int bplib_ackpayload(bp_desc_t *desc, const void *payload);
@@ -267,6 +269,182 @@ int bplib_display(const void *bundle, size_t size, uint32_t *flags);
 int bplib_eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn_t *service);
 int bplib_ipn2eid(char *eid, size_t len, bp_ipn_t node, bp_ipn_t service);
 int bplib_attrinit(bp_attr_t *attributes);
+
+
+/* The following calls are specific to the new (BPv7) implementation */
+
+/**
+ * @brief Creates/opens a socket-like entity for application data
+ *
+ * The returned object can then be further configured.  This allows
+ * for exchanging payload data units.
+ *
+ * @param rtbl Routing table instance
+ * @return Pointer to socket-like object
+ */
+bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl);
+
+/**
+ * @brief Closes/Deletes the socket-like entity for application data
+ *
+ * The socket object is unconfigured, and may no longer be used for
+ * passing payload data unuts
+ *
+ * @param desc Socket-like object
+ */
+
+void       bplib_close_socket(bp_socket_t *desc);
+
+/**
+ * @brief Logically binds the socket-like entity to a local IPN node number and service
+ *
+ * This specifies which local node and service the socket should be bound to,
+ * and this in turn sets the "source" EID in the bundles that get generated
+ * from this interface.
+ *
+ * @param desc Socket-like object
+ * @param source_ipn Local IPN address to bind to
+ * @retval BP_SUCCESS if successful
+ */
+int bplib_bind_socket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn);
+
+/**
+ * @brief Logically connects the socket-like entity to a remote IPN node number and service
+ *
+ * This specifies which destination node and service that the socket should send to,
+ * and this in turn sets the "desination" EID in the bundles that get generated
+ * from this interface.
+ *
+ * @param desc Socket-like object
+ * @param destination_ipn Remote IPN address to connect to
+ * @retval BP_SUCCESS if successful
+ */
+int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn);
+
+/**
+ * @brief Creates a RAM storage (cache) logical entity
+ *
+ * The RAM storage accepts any bundles routed to it, and will keep them in cache.
+ * Bundles can then be (re-)transmitted from the cache based on the retransmit
+ * interval, or may expire from here if the lifetime runs out before a
+ * successful transfer.
+ *
+ * Bundles stored using this entity will get a "previous node" extension
+ * block reflecting this IPN address (ipn_addr) when the bundle is passed on.
+ *
+ * @note This creates a separate storage entity from the data interfaces and as
+ * such has a separate IPN node number.  This configuration is appropriate for
+ * relay nodes, but an entity like this can also be created in endpoint nodes
+ * as well for testing and debug purposes.
+ *
+ * @param rtbl Routing table instance
+ * @param ipn_addr IPN address of this entity
+ * @return bp_handle_t value referring to this entity
+ */
+bp_handle_t bplib_create_ram_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *ipn_addr);
+
+/**
+ * @brief Creates a CLA (bundle data unit) logical entity
+ *
+ * A CLA interface allows the host application to pass full bundles into and out of the
+ * system.  This differs from an application data entity, in that the data units here
+ * are full bundles, as opposed to payloads.
+ *
+ * This entity does not have a separate IPN address/node number.
+ *
+ * @param rtbl Routing table instance
+ * @return bp_handle_t value referring to this entity
+ */
+bp_handle_t bplib_create_cla_intf(bplib_routetbl_t *rtbl);
+
+/**
+ * @brief Creates a basic data-passing logical entity
+ *
+ * This entity acts as the base interface for routing of local data.  It should
+ * be configured with the local IPN node number, and all bundles with the destination
+ * endpoint node number matching this value will be routed to this entity.  Application
+ * data sockets can then be created over this base interface for individual data services.
+ *
+ * @param rtbl Routing table instance
+ * @param node_num IPN node number value
+ * @return bp_handle_t value referring to this entity
+ */
+bp_handle_t bplib_create_node_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_num);
+
+/* App I/O (payload data units) */
+
+/**
+ * @brief Send a single application PDU/datagram over the socket-like interface
+ *
+ * Sends a single datagram via the data socket.  The data will be bundled and
+ * routed through the system accordingly.
+ *
+ * @note the socket-like object must be bound and connected before this API
+ * can be used.
+ *
+ * @param desc Socket-like object from bplib_create_socket()
+ * @param payload Pointer to buffer containing application PDU/datagram
+ * @param size Size of application PDU/datagram
+ * @param timeout Timeout (not yet implemented)
+ * @param flags Not used (carryover)
+ * @retval BP_SUCCESS if successful
+ */
+int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout, uint32_t *flags);
+
+/**
+ * @brief Receive a single application PDU/datagram over the socket-like interface
+ *
+ * Receives a single datagram via the data socket.
+ * Initially, as an input, the caller should set "size" to the maximum size of the buffer.
+ * As an output, this function will set the "size" to the actual size of the PDU.
+ *
+ * @note the socket-like object must be bound and connected before this API
+ * can be used.
+ *
+ * @param desc Socket-like object from bplib_create_socket()
+ * @param payload Pointer to buffer to store application PDU/datagram
+ * @param[inout] size Size of buffer on input, size of actual PDU/datagram on output
+ * @param timeout Timeout (not yet implemented)
+ * @param flags Not used (carryover)
+ * @retval BP_SUCCESS if successful
+ */
+int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint32_t *flags);
+
+/* CLA I/O (bundle data units) */
+
+/**
+ * @brief Receive complete bundle from a remote system
+ *
+ * This implements the "ingress" side of the CLA API.  Complete RFC 9171-compliant, CBOR-encoded bundles
+ * are passed in, which will be parsed by BPLib to identify the internal fields.  The bundle will then
+ * be forwarded internally through the routing table to either its destination (if local) or via a relay
+ * storage (if configured) or to another CLA.
+ *
+ * @param rtbl Routing table instance
+ * @param intf_id bp_handle_t value from bplib_create_cla_intf()
+ * @param bundle Pointer to bundle buffer
+ * @param size Size of encoded bundle
+ * @param timeout Timeout (not yet implemented)
+ * @retval BP_SUCCESS if successful
+ */
+int bplib_cla_ingress(const bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, int timeout);
+
+/**
+ * @brief Send complete bundle to remote system
+ *
+ * Retrieve the next complete RFC 9171-compliant, CBOR-encoded bundle from the local system, which was routed to the
+ * specified CLA interface.  This data may then be forwarded to the CLA implementation for actual transmission to
+ * a remote node.
+ *
+ * @param rtbl Routing table instance
+ * @param intf_id bp_handle_t value from bplib_create_cla_intf()
+ * @param bundle Pointer to bundle buffer
+ * @param[inout] size Size of buffer on input, size of actual bundle on output
+ * @param timeout Timeout (not yet implemented)
+ * @retval BP_SUCCESS if successful
+ */
+int bplib_cla_egress(const bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, int timeout);
+
 
 #ifdef __cplusplus
 } // extern "C"

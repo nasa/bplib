@@ -18,14 +18,21 @@
  *
  */
 
-#ifndef CRC_H
-#define CRC_H
-
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
+#include <string.h>
+
+#include <time.h>
+
 #include "bplib.h"
+#include "bplib_os.h"
+#include "crc.h"
+#include "v7.h"
+#include "v7_types.h"
+#include "v7_codec.h"
+#include "v7_mpool.h"
 
 /******************************************************************************
  DEFINES
@@ -35,30 +42,39 @@
  TYPEDEFS
  ******************************************************************************/
 
-/* Standard parameters for calculating a CRC. */
-struct bplib_crc_parameters;
-typedef const struct bplib_crc_parameters bplib_crc_parameters_t;
-
-/*
- * CRC algorithms that are implemented in BPLIB
- * These definitions are always fixed/const
- */
-extern bplib_crc_parameters_t BPLIB_CRC_NONE;
-extern bplib_crc_parameters_t BPLIB_CRC16_X25;
-extern bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI;
+typedef struct bp_blocks
+{
+    bplib_mpool_block_t pblk;
+} bp_v7block_t;
 
 /******************************************************************************
- PROTOTYPES
+ FUNCTIONS
  ******************************************************************************/
 
-void bplib_crc_init(void);
+void v7_init_ipn_eid(bp_endpointid_buffer_t *eid, bp_ipn_t node, bp_ipn_t service)
+{
+    eid->scheme                 = bp_endpointid_scheme_ipn;
+    eid->ssp.ipn.node_number    = node;
+    eid->ssp.ipn.service_number = service;
+}
 
-const char *bplib_crc_get_name(bplib_crc_parameters_t *params);
-uint8_t     bplib_crc_get_width(bplib_crc_parameters_t *params);
-bp_crcval_t bplib_crc_initial_value(bplib_crc_parameters_t *params);
-bp_crcval_t bplib_crc_update(bplib_crc_parameters_t *params, bp_crcval_t crc, const void *data, size_t size);
-bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc);
+void v7_set_eid(bp_endpointid_buffer_t *eid, const bp_ipn_addr_t *bp_addr)
+{
+    eid->scheme                 = bp_endpointid_scheme_ipn;
+    eid->ssp.ipn.node_number    = bp_addr->node_number;
+    eid->ssp.ipn.service_number = bp_addr->service_number;
+}
 
-bp_crcval_t bplib_crc_get(const uint8_t *data, const uint32_t length, bplib_crc_parameters_t *params);
+void v7_get_eid(bp_ipn_addr_t *bp_addr, const bp_endpointid_buffer_t *eid)
+{
+    if (eid->scheme == bp_endpointid_scheme_ipn)
+    {
+        bp_addr->node_number = eid->ssp.ipn.node_number;
+        bp_addr->service_number = eid->ssp.ipn.service_number;
+    }
+}
 
-#endif /* CRC_H */
+bp_dtntime_t v7_get_current_time(void)
+{
+    return bplib_os_get_dtntime_ms();
+}

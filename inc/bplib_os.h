@@ -66,6 +66,7 @@ void bplib_os_init(void);
 int  bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...)
     VARG_CHECK(printf, 5, 6);
 int         bplib_os_systime(unsigned long *sysnow); /* seconds */
+uint64_t    bplib_os_get_dtntime_ms(void); /* get the OS time compatible with the "dtn time" definition (ms resolution + dtn epoch) */
 void        bplib_os_sleep(int seconds);
 uint32_t    bplib_os_random(void);
 bp_handle_t bplib_os_createlock(void);

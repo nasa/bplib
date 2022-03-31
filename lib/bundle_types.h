@@ -33,7 +33,6 @@
 
 #define BP_BUNDLE_HDR_BUF_SIZE 128
 
-#define BP_DUPLICATE              (-100)
 #define BP_FULL                   (-101)
 #define BP_PENDING_ACKNOWLEDGMENT (-102)
 #define BP_PENDING_FORWARD        (-103)

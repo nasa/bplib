@@ -163,16 +163,16 @@ static void *writer_thread(void *parm)
     /* Reader Loop */
     while (app_running)
     {
-        char    *payload      = NULL;
+        const void *payload      = NULL;
         size_t   payload_size = 0;
         uint32_t flags        = 0;
 
         /* Accept Payload */
-        int lib_status = bplib_accept(info->bpc, (void **)&payload, &payload_size, BPLIB_TIMEOUT, &flags);
+        int lib_status = bplib_accept(info->bpc, &payload, &payload_size, BPLIB_TIMEOUT, &flags);
         if (lib_status == BP_SUCCESS)
         {
             /* Write Line */
-            fprintf(stdout, "%s", payload);
+            fprintf(stdout, "%s", (const char *)payload);
 
             /* Acknowledge PAyload */
             bplib_ackpayload(info->bpc, payload);
@@ -205,12 +205,12 @@ static void *custody_thread(void *parm)
     /* Write Loop */
     while (app_running && sock != SOCK_INVALID)
     {
-        uint8_t *dacs      = NULL;
+        const void *dacs      = NULL;
         size_t   dacs_size = 0;
         uint32_t flags     = 0;
 
         /* Load Bundle */
-        int lib_status = bplib_load(info->bpc, (void **)&dacs, &dacs_size, BPLIB_TIMEOUT, &flags);
+        int lib_status = bplib_load(info->bpc, &dacs, &dacs_size, BPLIB_TIMEOUT, &flags);
         if (lib_status == BP_SUCCESS)
         {
             /* Send Bundle */
