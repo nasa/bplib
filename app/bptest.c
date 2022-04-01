@@ -369,7 +369,7 @@ int bplib2_bundle_test(void)
         return lib_status;
     }
 
-    //bplib_route_do_maintenance(s2_rtbl);
+    bplib_route_do_maintenance(s2_rtbl);
 
     recv_sz = sizeof(recv_payload);
     lib_status = bplib_recv(desc, recv_payload, &recv_sz, BP_CHECK, &flags);
@@ -382,7 +382,7 @@ int bplib2_bundle_test(void)
 
     bplib_close_socket(desc);
 
-    //bplib_route_do_maintenance(s2_rtbl);
+    bplib_route_do_maintenance(s2_rtbl);
 
     printf("Received payload:\n");
     display(stdout, (const uint8_t *)recv_payload, 0, recv_sz);
