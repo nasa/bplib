@@ -78,6 +78,8 @@ if (BPLIB_INCLUDE_BPV7)
     v7/v7_codec.c
     v7/v7.c
     lib/v7_routing.c
+    lib/v7_cla_api.c
+    lib/v7_dataservice_api.c
   )
   list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/v7

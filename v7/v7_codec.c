@@ -49,8 +49,8 @@ typedef struct v7_bitmap_table
 
 typedef struct v7_encode_state
 {
-    bool           error;
-    CborEncoder   *cbor;
+    bool                 error;
+    CborEncoder         *cbor;
     bplib_mpool_stream_t mps;
 
 } v7_encode_state_t;
@@ -154,8 +154,10 @@ static void v7_encode_bp_endpointid_buffer(v7_encode_state_t *enc, const bp_endp
 static void v7_decode_bp_endpointid_buffer(v7_decode_state_t *dec, bp_endpointid_buffer_t *v);
 static void v7_encode_bp_primary_block(v7_encode_state_t *enc, const bp_primary_block_t *v);
 static void v7_decode_bp_primary_block(v7_decode_state_t *dec, bp_primary_block_t *v);
-static void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canonical_bundle_block_t *v, const v7_canonical_block_info_t *info);
-static void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v, v7_canonical_block_info_t *info);
+static void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canonical_bundle_block_t *v,
+                                                const v7_canonical_block_info_t *info);
+static void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v,
+                                                v7_canonical_block_info_t *info);
 static void v7_encode_bp_previous_node_block(v7_encode_state_t *enc, const bp_previous_node_block_t *v);
 static void v7_decode_bp_previous_node_block(v7_decode_state_t *dec, bp_previous_node_block_t *v);
 static void v7_encode_bp_bundle_age_block(v7_encode_state_t *enc, const bp_bundle_age_block_t *v);
@@ -164,9 +166,10 @@ static void v7_encode_bp_hop_count_block(v7_encode_state_t *enc, const bp_hop_co
 static void v7_decode_bp_hop_count_block(v7_decode_state_t *dec, bp_hop_count_block_t *v);
 
 static void v7_decode_bp_canonical_block_buffer(v7_decode_state_t *dec, bp_canonical_block_buffer_t *v,
-                                         size_t *content_encoded_offset, size_t *content_length);
+                                                size_t *content_encoded_offset, size_t *content_length);
 static void v7_encode_bp_canonical_block_buffer(v7_encode_state_t *enc, const bp_canonical_block_buffer_t *v,
-                                         const void *content_ptr, size_t content_length, size_t *content_encoded_offset);
+                                                const void *content_ptr, size_t content_length,
+                                                size_t *content_encoded_offset);
 
 /*
  * Decoding helper to save and validate/verify a complete block after decode.
@@ -849,7 +852,8 @@ void v7_decode_bp_hop_count_block(v7_decode_state_t *dec, bp_hop_count_block_t *
     v7_decode_bp_integer(dec, &v->hopCount);
 }
 
-void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canonical_bundle_block_t *v, const v7_canonical_block_info_t *info)
+void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canonical_bundle_block_t *v,
+                                         const v7_canonical_block_info_t *info)
 {
     size_t content_offset_cbor_end;
 
@@ -884,7 +888,8 @@ void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canoni
     *info->content_offset_out = content_offset_cbor_end - info->content_size;
 }
 
-void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v, v7_canonical_block_info_t *info)
+void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v,
+                                         v7_canonical_block_info_t *info)
 {
     const uint8_t *cbor_content_start_ptr;
     size_t         cbor_content_length;
@@ -947,8 +952,8 @@ void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bu
 
                 /* Export the position of the now-located content information */
                 *info->content_offset_out = cbor_content_start_ptr - dec->base;
-                info->content_vptr    = cbor_content_start_ptr;
-                info->content_size    = cbor_content_length;
+                info->content_vptr        = cbor_content_start_ptr;
+                info->content_size        = cbor_content_length;
             }
             else
             {
@@ -984,10 +989,10 @@ void v7_encode_bp_canonical_block_buffer(v7_encode_state_t *enc, const bp_canoni
         ++info.num_fields; /* one more for CRC */
     }
 
-    info.encode_block = &v->canonical_block;
+    info.encode_block       = &v->canonical_block;
     info.content_offset_out = content_encoded_offset;
-    info.content_vptr  = content_ptr;
-    info.content_size = content_length;
+    info.content_vptr       = content_ptr;
+    info.content_size       = content_length;
 
     v7_encode_container(enc, info.num_fields, v7_encode_bp_canonical_block_buffer_impl, &info);
 }
@@ -1005,7 +1010,7 @@ void v7_decode_bp_canonical_block_buffer(v7_decode_state_t *dec, bp_canonical_bl
 
     memset(&info, 0, sizeof(info));
 
-    info.decode_block = &v->canonical_block;
+    info.decode_block       = &v->canonical_block;
     info.content_offset_out = content_encoded_offset;
 
     v7_decode_container(dec, CborIndefiniteLength, v7_decode_bp_canonical_block_buffer_impl, &info);
@@ -1024,15 +1029,15 @@ static CborError v7_encoder_write(void *arg, const void *ptr, size_t sz, CborEnc
     return CborNoError;
 }
 
-size_t v7_save_and_verify_block(bplib_mpool_t *pool, bplib_mpool_block_t *head, const uint8_t *block_base, size_t block_size,
-                                bp_crctype_t crc_type, bp_crcval_t crc_check)
+size_t v7_save_and_verify_block(bplib_mpool_t *pool, bplib_mpool_block_t *head, const uint8_t *block_base,
+                                size_t block_size, bp_crctype_t crc_type, bp_crcval_t crc_check)
 {
     static const uint8_t    ZERO_BYTES[4] = {0};
     size_t                  data_len;
     size_t                  crc_len;
     bplib_crc_parameters_t *crc_params;
     bp_crcval_t             crc_val;
-    bplib_mpool_stream_t          mps;
+    bplib_mpool_stream_t    mps;
     size_t                  result;
 
     result = 0;
@@ -1097,9 +1102,9 @@ int v7_block_decode_pri(bplib_mpool_t *pool, bplib_mpool_primary_block_t *cpb, c
 
     if (!v7_state.error)
     {
-        block_size = cbor_value_get_next_byte(&origin) - v7_state.base;
+        block_size                   = cbor_value_get_next_byte(&origin) - v7_state.base;
         cpb->block_encode_size_cache = v7_save_and_verify_block(pool, bplib_mpool_get_pri_block_encoded_chunks(cpb),
-                            v7_state.base, block_size, pri->crctype, pri->crcval);
+                                                                v7_state.base, block_size, pri->crctype, pri->crcval);
 
         if (cpb->block_encode_size_cache != block_size)
         {
@@ -1115,7 +1120,8 @@ int v7_block_decode_pri(bplib_mpool_t *pool, bplib_mpool_primary_block_t *cpb, c
     return 0;
 }
 
-int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t *ccb, const void *data_ptr, size_t data_size)
+int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t *ccb, const void *data_ptr,
+                              size_t data_size)
 {
     v7_decode_state_t            v7_state;
     CborValue                    origin;
@@ -1125,9 +1131,9 @@ int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t
     size_t                       content_offset;
     size_t                       content_size;
 
-    block_size = 0;
+    block_size     = 0;
     content_offset = 0;
-    content_size = 0;
+    content_size   = 0;
 
     /* If there is any existing encoded data, return it to the pool */
     bplib_mpool_canonical_drop_encode_data(pool, ccb);
@@ -1153,8 +1159,9 @@ int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t
         block_size = cbor_value_get_next_byte(&origin) - v7_state.base;
 
         /* Copy it to the pool buffers, and check the CRC in the process */
-        ccb->block_encode_size_cache = v7_save_and_verify_block(pool, bplib_mpool_get_canonical_block_encoded_chunks(ccb),
-                v7_state.base, block_size, logical->canonical_block.crctype, logical->canonical_block.crcval);
+        ccb->block_encode_size_cache =
+            v7_save_and_verify_block(pool, bplib_mpool_get_canonical_block_encoded_chunks(ccb), v7_state.base,
+                                     block_size, logical->canonical_block.crctype, logical->canonical_block.crcval);
 
         if (ccb->block_encode_size_cache != block_size)
         {
@@ -1169,8 +1176,8 @@ int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t
     if (!v7_state.error)
     {
         /*
-            * Second stage decode - for recognized non-payload extension blocks
-            */
+         * Second stage decode - for recognized non-payload extension blocks
+         */
         if (cbor_parser_init(v7_state.base + content_offset, content_size, 0, &parser, &origin) != CborNoError)
         {
             v7_state.error = true;
@@ -1257,7 +1264,7 @@ int v7_block_encode_pay(bplib_mpool_t *pool, bplib_mpool_canonical_block_t *ccb,
     v7_encode_state_t                  v7_state;
     CborEncoder                        origin;
     const bp_canonical_block_buffer_t *pay;
-    size_t data_encoded_offset;
+    size_t                             data_encoded_offset;
 
     /* If there is any existing encoded data, return it to the pool */
     bplib_mpool_canonical_drop_encode_data(pool, ccb);
@@ -1350,11 +1357,13 @@ int v7_block_encode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t
             /*
              * Do second-stage encode - take the scratch buffer and use it as the content of the extension block
              */
-            bplib_mpool_start_stream_init(&v7_state.mps, pool, bplib_mpool_stream_dir_write, logical->canonical_block.crctype);
+            bplib_mpool_start_stream_init(&v7_state.mps, pool, bplib_mpool_stream_dir_write,
+                                          logical->canonical_block.crctype);
             cbor_encoder_init_writer(&origin, v7_encoder_write, &v7_state);
             v7_state.cbor = &origin;
 
-            v7_encode_bp_canonical_block_buffer(&v7_state, logical, scratch_area, scratch_size, &content_encoded_offset);
+            v7_encode_bp_canonical_block_buffer(&v7_state, logical, scratch_area, scratch_size,
+                                                &content_encoded_offset);
 
             if (!v7_state.error)
             {
@@ -1376,21 +1385,19 @@ int v7_block_encode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t
 
 size_t v7_sum_preencoded_size(bplib_mpool_block_t *list)
 {
-    bplib_mpool_block_t        *blk;
-    bplib_mpool_generic_data_t *ceb;
-    size_t                      size_sum;
+    bplib_mpool_block_t *blk;
+    size_t               size_sum;
 
     size_sum = 0;
     blk      = list;
     while (true)
     {
         blk = bplib_mpool_get_next_block(blk);
-        ceb = bplib_mpool_cast_cbor_data(blk);
-        if (ceb == NULL)
+        if (bplib_mpool_is_list_head(blk))
         {
             break;
         }
-        size_sum += ceb->data_length;
+        size_sum += bplib_mpool_get_user_content_size(blk);
     }
 
     return size_sum;
@@ -1400,20 +1407,20 @@ size_t v7_compute_full_bundle_size(bplib_mpool_t *pool, bplib_mpool_primary_bloc
 {
     bplib_mpool_block_t           *blk;
     bplib_mpool_canonical_block_t *ccb;
-    int  last_encode;
-    size_t sum_result;
+    int                            last_encode;
+    size_t                         sum_result;
 
     if (cpb->bundle_encode_size_cache == 0)
     {
         /*
-        * For any block which is not already encoded, this needs to encode it now.
-        * For most blocks all the information is in the logical data, so it is possible
-        * to do this on the fly.
-        *
-        * However the payload block MUST be pre-encoded because the information is
-        * not available in the logical data.  The payload content only exists in encoded
-        * form.
-        */
+         * For any block which is not already encoded, this needs to encode it now.
+         * For most blocks all the information is in the logical data, so it is possible
+         * to do this on the fly.
+         *
+         * However the payload block MUST be pre-encoded because the information is
+         * not available in the logical data.  The payload content only exists in encoded
+         * form.
+         */
         if (cpb->block_encode_size_cache == 0)
         {
             last_encode = v7_block_encode_pri(pool, cpb);
@@ -1423,8 +1430,8 @@ size_t v7_compute_full_bundle_size(bplib_mpool_t *pool, bplib_mpool_primary_bloc
             last_encode = 0;
         }
         sum_result = cpb->block_encode_size_cache;
-        blk = bplib_mpool_get_canonical_block_list(cpb);
-        while(last_encode == 0)
+        blk        = bplib_mpool_get_canonical_block_list(cpb);
+        while (last_encode == 0)
         {
             blk = bplib_mpool_get_next_block(blk);
             ccb = bplib_mpool_cast_canonical(blk);
@@ -1455,10 +1462,10 @@ size_t v7_compute_full_bundle_size(bplib_mpool_t *pool, bplib_mpool_primary_bloc
 
 size_t v7_copy_full_bundle_out(bplib_mpool_primary_block_t *cpb, void *buffer, size_t buf_sz)
 {
-    size_t remain_sz;
-    size_t chunk_sz;
-    uint8_t *out_p;
-    bplib_mpool_block_t *cblk;
+    size_t                         remain_sz;
+    size_t                         chunk_sz;
+    uint8_t                       *out_p;
+    bplib_mpool_block_t           *cblk;
     bplib_mpool_canonical_block_t *ccb;
 
     /*
@@ -1470,7 +1477,7 @@ size_t v7_copy_full_bundle_out(bplib_mpool_primary_block_t *cpb, void *buffer, s
         return 0;
     }
 
-    out_p = buffer;
+    out_p  = buffer;
     *out_p = 0x9F; /* Start CBOR indefinite-length array */
     ++out_p;
 
@@ -1488,7 +1495,8 @@ size_t v7_copy_full_bundle_out(bplib_mpool_primary_block_t *cpb, void *buffer, s
         {
             break;
         }
-        chunk_sz = bplib_mpool_copy_block_chain(bplib_mpool_get_canonical_block_encoded_chunks(ccb), out_p, remain_sz, 0, -1);
+        chunk_sz =
+            bplib_mpool_copy_block_chain(bplib_mpool_get_canonical_block_encoded_chunks(ccb), out_p, remain_sz, 0, -1);
         out_p += chunk_sz;
         remain_sz -= chunk_sz;
     }
@@ -1502,15 +1510,14 @@ size_t v7_copy_full_bundle_out(bplib_mpool_primary_block_t *cpb, void *buffer, s
 
 size_t v7_copy_full_bundle_in(bplib_mpool_t *pool, bplib_mpool_block_t **pblk_out, const void *buffer, size_t buf_sz)
 {
-    size_t remain_sz;
-    size_t chunk_sz;
+    size_t         remain_sz;
+    size_t         chunk_sz;
     const uint8_t *in_p;
 
     bplib_mpool_block_t           *pblk;
     bplib_mpool_block_t           *cblk;
     bplib_mpool_primary_block_t   *cpb;
     bplib_mpool_canonical_block_t *ccb;
-
 
     /*
      * two bytes is just the overhead added by this routine.  It is definitely not enough
@@ -1521,7 +1528,7 @@ size_t v7_copy_full_bundle_in(bplib_mpool_t *pool, bplib_mpool_block_t **pblk_ou
         return 0;
     }
 
-    in_p  = buffer;
+    in_p = buffer;
     if (*in_p != 0x9F) /* CBOR indefinite-length array */
     {
         /* not well formed BP */
@@ -1530,8 +1537,8 @@ size_t v7_copy_full_bundle_in(bplib_mpool_t *pool, bplib_mpool_block_t **pblk_ou
 
     ++in_p;
     remain_sz = buf_sz - 2;
-    cpb = NULL;
-    pblk = NULL;
+    cpb       = NULL;
+    pblk      = NULL;
 
     /*
      * From this point forward, any allocated blocks will need to
@@ -1615,7 +1622,7 @@ size_t v7_copy_full_bundle_in(bplib_mpool_t *pool, bplib_mpool_block_t **pblk_ou
     }
 
     ++in_p;
-    *pblk_out = pblk;
+    *pblk_out                     = pblk;
     cpb->bundle_encode_size_cache = (in_p - (uint8_t *)buffer);
 
     return cpb->bundle_encode_size_cache;

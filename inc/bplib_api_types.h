@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 /* Return Codes */
-#define BP_SUCCESS 0
+#define BP_SUCCESS   0
 #define BP_ERROR     (-1)
 #define BP_TIMEOUT   (-2)
 #define BP_DUPLICATE (-3)
@@ -77,8 +77,8 @@ typedef struct bp_handle
  */
 struct bp_desc;
 
-typedef struct bp_desc bp_desc_t;
-typedef struct bp_socket bp_socket_t;
+typedef struct bp_desc           bp_desc_t;
+typedef struct bp_socket         bp_socket_t;
 typedef struct bplib_mpool_block bplib_mpool_block_t;
 typedef struct mpool             bplib_mpool_t;
 
@@ -107,14 +107,11 @@ typedef enum bp_crctype
 
 } bp_crctype_t;
 
-
 /*
  * To keep the interface consistent the digest functions do I/O as 32 bit values.
  * For CRC algorithms of lesser width, the value is right-justified (LSB/LSW)
  */
 typedef uint32_t bp_crcval_t;
-
-
 
 /* IPN Schema Endpoint ID Integer Definition */
 typedef bp_val_t bp_ipn_t;
@@ -131,19 +128,21 @@ typedef unsigned long bp_sid_t;
 
 typedef struct bplib_stats
 {
-    uintmax_t dataunit_count;
-    uintmax_t byte_count;
+    uint32_t push_count;
+    uint32_t pull_count;
     uint32_t error_count;
     uint32_t drop_count;
 } bplib_q_stats_t;
 
 typedef enum
 {
-    bplib_policy_delivery_none,             /**< best effort handling only, bundle may be forward directly to CLA, no need to store */
-    bplib_policy_delivery_local_ack,        /**< use local storage of bundle, locally acknowledge but no node-to-node custody transfer */
-    bplib_policy_delivery_custody_tracking  /**< enable full custody transfer signals and acknowledgement (not yet implemented) */
+    bplib_policy_delivery_none, /**< best effort handling only, bundle may be forward directly to CLA, no need to store
+                                 */
+    bplib_policy_delivery_local_ack, /**< use local storage of bundle, locally acknowledge but no node-to-node custody
+                                        transfer */
+    bplib_policy_delivery_custody_tracking /**< enable full custody transfer signals and acknowledgement (not yet
+                                              implemented) */
 } bplib_policy_delivery_t;
-
 
 typedef struct bplib_connection
 {
@@ -163,15 +162,8 @@ typedef struct bplib_connection
 
 } bplib_connection_t;
 
-/* JPHFIX: should this be merged with bp_store_t? */
-typedef int (*bplib_ingress_dataunit_func_t)(bplib_mpool_block_t *flow_block, const void *content, size_t size, uint32_t timeout);
-typedef int (*bplib_egress_dataunit_func_t)(bplib_mpool_block_t *flow_block, void *content, size_t *size, uint32_t timeout);
-typedef int (*bplib_action_func_t)(bplib_mpool_block_t *cb, void *arg);
-
 typedef struct bplib_routetbl bplib_routetbl_t;
 typedef struct bplib_storage  bplib_storage_t;
-
-
 
 /**
  * Checks for validity of given handle
@@ -275,9 +267,9 @@ static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
     }
 
 #define BPLIB_HANDLE_INTF_BASE \
-    (bp_handle_t)            \
-    {                        \
-        0x5000000            \
+    (bp_handle_t)              \
+    {                          \
+        0x5000000              \
     }
 
 #ifdef __cplusplus

@@ -270,7 +270,6 @@ int bplib_eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn_t *service
 int bplib_ipn2eid(char *eid, size_t len, bp_ipn_t node, bp_ipn_t service);
 int bplib_attrinit(bp_attr_t *attributes);
 
-
 /* The following calls are specific to the new (BPv7) implementation */
 
 /**
@@ -293,7 +292,7 @@ bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl);
  * @param desc Socket-like object
  */
 
-void       bplib_close_socket(bp_socket_t *desc);
+void bplib_close_socket(bp_socket_t *desc);
 
 /**
  * @brief Logically binds the socket-like entity to a local IPN node number and service
@@ -427,7 +426,7 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint
  * @param timeout Timeout (not yet implemented)
  * @retval BP_SUCCESS if successful
  */
-int bplib_cla_ingress(const bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, int timeout);
+int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, int timeout);
 
 /**
  * @brief Send complete bundle to remote system
@@ -443,8 +442,7 @@ int bplib_cla_ingress(const bplib_routetbl_t *rtbl, bp_handle_t intf_id, const v
  * @param timeout Timeout (not yet implemented)
  * @retval BP_SUCCESS if successful
  */
-int bplib_cla_egress(const bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, int timeout);
-
+int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, int timeout);
 
 #ifdef __cplusplus
 } // extern "C"
