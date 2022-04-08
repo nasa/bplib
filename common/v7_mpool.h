@@ -34,47 +34,45 @@
  * as well as encoded blobs, get stored in the same size record.  These are then chained
  * together to hold larger items.
  */
-#define BP_MPOOL_MAX_ENCODED_CHUNK_SIZE 256
+#define BP_MPOOL_MAX_ENCODED_CHUNK_SIZE 320
 
 /*
- * The 3 basic types of blocks which are cacheable in the mpool
+ * The basic types of blocks which are cacheable in the mpool
  */
-typedef struct bplib_mpool_primary_block       bplib_mpool_primary_block_t;
-typedef struct bplib_mpool_canonical_block     bplib_mpool_canonical_block_t;
-typedef struct bplib_mpool_generic_data        bplib_mpool_generic_data_t;
-typedef struct bplib_mpool_baseintf            bplib_mpool_baseintf_t;
-typedef struct bplib_mpool_dataservice         bplib_mpool_dataservice_t;
-typedef struct bplib_mpool_refptr              bplib_mpool_refptr_t;
+typedef struct bplib_mpool_primary_block   bplib_mpool_primary_block_t;
+typedef struct bplib_mpool_canonical_block bplib_mpool_canonical_block_t;
+typedef struct bplib_mpool_refptr          bplib_mpool_refptr_t;
 
-typedef struct bplib_mpool_subq                bplib_mpool_subq_t;
-typedef struct bplib_mpool_flow                bplib_mpool_flow_t;
+typedef struct bplib_mpool_subq bplib_mpool_subq_t;
+typedef struct bplib_mpool_flow bplib_mpool_flow_t;
 
 typedef enum bplib_mpool_blocktype
 {
-    bplib_mpool_blocktype_undefined,
-    bplib_mpool_blocktype_head,
-    bplib_mpool_blocktype_cbor_data,
-    bplib_mpool_blocktype_service_specific_data,
-    bplib_mpool_blocktype_primary,
-    bplib_mpool_blocktype_canonical,
-    bplib_mpool_blocktype_baseintf,
-    bplib_mpool_blocktype_dataservice,
-    bplib_mpool_blocktype_flow_active_link,
+    bplib_mpool_blocktype_undefined = 0,
+    bplib_mpool_blocktype_head      = 1,
+    bplib_mpool_blocktype_ref       = 2,
 
     /*
-     * The ref block types are all identical, they are just assigned different
-     * types to get a hint as to what is being referred to (TBD if this is
-     * useful or a nuisance).
+     * Note, the enum value here does matter -- these block types
+     * are all refcount-capable, and thus are grouped together so this
+     * can be implemented as a range check.  Do not change the
+     * order of enum values without also updating the checks.
      */
-    bplib_mpool_blocktype_primary_ref,
-    bplib_mpool_blocktype_canonical_ref,
+    bplib_mpool_blocktype_cbor_data      = 3,
+    bplib_mpool_blocktype_service_object = 4,
+    bplib_mpool_blocktype_primary        = 5,
+    bplib_mpool_blocktype_canonical      = 6,
+    bplib_mpool_blocktype_flow           = 7,
+
+    bplib_mpool_blocktype_max = 8, /* placeholder for the max "regular" block type */
 
     /*
-     * An opaque block type that this code should not attempt to interpret at all
+     * A secondary link is one that is not at the beginning of the structure.
+     * The offset from the beginning of the block is added to this value, so
+     * that the original block type can be easily obtained.
      */
-    bplib_mpool_blocktype_secondary_link,
+    bplib_mpool_blocktype_secondary_link_base = 1000
 
-    bplib_mpool_blocktype_max /* end marker, keep last */
 } bplib_mpool_blocktype_t;
 
 struct bplib_mpool_block
@@ -84,85 +82,67 @@ struct bplib_mpool_block
     struct bplib_mpool_block *prev;
 };
 
+/*
+ * Enumeration that defines the various possible routing table events.  This enum
+ * must always appear first in the structure that is the argument to the event handler,
+ * and indicates the actual event that has occurred
+ */
+typedef enum
+{
+    bplib_mpool_eventid_undefined,
+    bplib_mpool_eventid_recycle,
+    bplib_mpool_eventid_max
+
+} bplib_mpool_eventid_t;
+
+typedef void (*bplib_mpool_event_func_t)(bplib_mpool_eventid_t, bplib_mpool_block_t *);
 typedef void (*bplib_mpool_callback_func_t)(void *, bplib_mpool_block_t *);
 
 typedef struct bplib_mpool_delivery_data
 {
-    bplib_policy_delivery_t  delivery_policy;
-    bp_handle_t      ingress_intf_id;
-    bp_handle_t      egress_intf_id;
-    bp_handle_t      storage_intf_id;
-    bp_sid_t         committed_storage_id;
-    uint64_t         local_retx_interval;
-    bp_dtntime_t     ingress_time;
-    bp_dtntime_t     egress_time;
+    bplib_policy_delivery_t delivery_policy;
+    bp_handle_t             ingress_intf_id;
+    bp_handle_t             egress_intf_id;
+    bp_handle_t             storage_intf_id;
+    bp_sid_t                committed_storage_id;
+    uint64_t                local_retx_interval;
+    bp_dtntime_t            ingress_time;
+    bp_dtntime_t            egress_time;
 } bplib_mpool_delivery_data_t;
 
 struct bplib_mpool_primary_block
 {
-    bplib_mpool_block_t cblock_list;
-    bplib_mpool_block_t chunk_list;
-    size_t              block_encode_size_cache;
-    size_t              bundle_encode_size_cache;
-    bp_primary_block_t  pri_logical_data;
+    bplib_mpool_block_t         cblock_list;
+    bplib_mpool_block_t         chunk_list;
+    size_t                      block_encode_size_cache;
+    size_t                      bundle_encode_size_cache;
+    bp_primary_block_t          pri_logical_data;
     bplib_mpool_delivery_data_t delivery_data;
 };
 
 struct bplib_mpool_canonical_block
 {
-    bplib_mpool_block_t         chunk_list;
+    bplib_mpool_block_t          chunk_list;
     bplib_mpool_primary_block_t *bundle_ref;
-    size_t                      block_encode_size_cache;
-    size_t                      encoded_content_offset;
-    size_t                      encoded_content_length;
-    bp_canonical_block_buffer_t canonical_logical_data;
-};
-
-/*
- * This union is just to make sure that the "content_start" field
- * in a generic data block is suitably aligned to hold any data type, mainly
- * the max-sized integers, max-sized floating point values, or a pointer.
- */
-typedef union bplib_mpool_aligned_data
-{
-    uint8_t first_octet;
-    uintmax_t align_int;
-    void *align_ptr;
-    long double align_float;
-} bplib_mpool_aligned_data_t;
-
-struct bplib_mpool_generic_data
-{
-    uint32_t data_length;           /* actual length of content */
-    uint32_t magic_number;          /* a "signature" (sanity check) value for identifying the data */
-    bplib_mpool_aligned_data_t data_start;  /* variably sized, not using C99 flexible array member due to restrictions it causes */
+    size_t                       block_encode_size_cache;
+    size_t                       encoded_content_offset;
+    size_t                       encoded_content_length;
+    bp_canonical_block_buffer_t  canonical_logical_data;
 };
 
 struct bplib_mpool_subq
 {
     bplib_mpool_block_t block_list;
     bplib_q_stats_t     stats;
+    size_t              current_depth_limit;
 };
 
 struct bplib_mpool_flow
 {
-    bplib_mpool_subq_t input;
-    bplib_mpool_subq_t output;
-    bplib_routetbl_t *parent_rtbl;
-    bp_handle_t parent_intf_id;
-    bp_handle_t self_intf_id;
-};
-
-struct bplib_mpool_dataservice
-{
-    bplib_connection_t params;
-};
-
-struct bplib_mpool_baseintf
-{
-    bplib_mpool_block_t subflow_list;
-    bplib_mpool_block_t *service_specific_block;
-    bp_ipn_t node_num;
+    bp_handle_t           external_id;
+    bplib_mpool_subq_t    input;
+    bplib_mpool_subq_t    output;
+    bplib_mpool_refptr_t *parent;
 };
 
 /**
@@ -240,8 +220,8 @@ static inline bplib_mpool_block_t *bplib_mpool_get_canonical_block_encoded_chunk
  * @param offset
  * @param length
  */
-static inline void bplib_mpool_set_canonical_block_encoded_content_detail(bplib_mpool_canonical_block_t *ccb, size_t offset,
-                                                                    size_t length)
+static inline void bplib_mpool_set_canonical_block_encoded_content_detail(bplib_mpool_canonical_block_t *ccb,
+                                                                          size_t offset, size_t length)
 {
     ccb->encoded_content_offset = offset;
     ccb->encoded_content_length = length;
@@ -316,6 +296,20 @@ static inline bool bplib_mpool_is_link_unattached(const bplib_mpool_block_t *lis
 }
 
 /**
+ * @brief Checks if this block is the head of a list
+ *
+ * This is both a start condition and an end condition when iterating a list
+ *
+ * @param list
+ * @return true If the block is a head node
+ * @return false If the block is not a head node
+ */
+static inline bool bplib_mpool_is_list_head(const bplib_mpool_block_t *list)
+{
+    return (list->type == bplib_mpool_blocktype_head);
+}
+
+/**
  * @brief Checks if this block is an empty list
  *
  * @param list
@@ -324,7 +318,7 @@ static inline bool bplib_mpool_is_link_unattached(const bplib_mpool_block_t *lis
  */
 static inline bool bplib_mpool_is_empty_list_head(const bplib_mpool_block_t *list)
 {
-    return (list->type == bplib_mpool_blocktype_head && bplib_mpool_is_link_unattached(list));
+    return (bplib_mpool_is_list_head(list) && bplib_mpool_is_link_unattached(list));
 }
 
 /**
@@ -336,31 +330,7 @@ static inline bool bplib_mpool_is_empty_list_head(const bplib_mpool_block_t *lis
  */
 static inline bool bplib_mpool_is_generic_data_block(const bplib_mpool_block_t *cb)
 {
-    return (cb->type == bplib_mpool_blocktype_cbor_data || cb->type == bplib_mpool_blocktype_service_specific_data);
-}
-
-/**
- * @brief Checks if the block represents a primary bundle block
- *
- * @param cb
- * @return true
- * @return false
- */
-static inline bool bplib_mpool_is_pri_block(const bplib_mpool_block_t *cb)
-{
-    return (cb->type == bplib_mpool_blocktype_primary || cb->type == bplib_mpool_blocktype_primary_ref);
-}
-
-/**
- * @brief Checks if the block represents a canonical bundle block
- *
- * @param cb
- * @return true
- * @return false
- */
-static inline bool bplib_mpool_is_canonical_block(const bplib_mpool_block_t *cb)
-{
-    return (cb->type == bplib_mpool_blocktype_canonical || cb->type == bplib_mpool_blocktype_canonical_ref);
+    return (cb->type == bplib_mpool_blocktype_cbor_data || cb->type == bplib_mpool_blocktype_service_object);
 }
 
 /**
@@ -372,25 +342,15 @@ static inline bool bplib_mpool_is_canonical_block(const bplib_mpool_block_t *cb)
  */
 static inline bool bplib_mpool_is_indirect_block(const bplib_mpool_block_t *cb)
 {
-    return (cb->type == bplib_mpool_blocktype_primary_ref || cb->type == bplib_mpool_blocktype_canonical_ref);
-}
-
-/**
- * @brief Checks if the block represents a data flow
- *
- * @param cb
- * @return true
- * @return false
- */
-static inline bool bplib_mpool_is_flow_block(const bplib_mpool_block_t *cb)
-{
-    return (cb->type == bplib_mpool_blocktype_baseintf || cb->type == bplib_mpool_blocktype_dataservice || cb->type == bplib_mpool_blocktype_flow_active_link);
+    return (cb->type == bplib_mpool_blocktype_ref);
 }
 
 /**
  * @brief Checks if the block is any valid content type
  *
- * This is any block type other than a list head or free block
+ * This indicates blocks that have actual content
+ * This is any block type other than a list head or free block, reference, or
+ * secondary index.
  *
  * @param cb
  * @return true
@@ -398,50 +358,40 @@ static inline bool bplib_mpool_is_flow_block(const bplib_mpool_block_t *cb)
  */
 static inline bool bplib_mpool_is_any_content_node(const bplib_mpool_block_t *cb)
 {
-    return (cb->type > bplib_mpool_blocktype_head);
+    return (cb->type > bplib_mpool_blocktype_ref && cb->type < bplib_mpool_blocktype_max);
 }
 
 /**
- * @brief Gets the user pointer associated with a generic data block
+ * @brief Initialize a secondary link for block indexing purposes
  *
- * For a CBOR block this is the CBOR data buffer.  For a user data block, this
- * points to the user object.
+ * A secondary link may be required for cases where there needs to be more than one way of
+ * indexing data blocks, for example in a case where blocks may need to be located by
+ * DTN time or node number.
  *
- * @param ceb
- * @return void*
+ * The secondary index may be passed in place of the primary index to any "cast" function,
+ * and it will automatically be converted back to a pointer to the same block.
+ *
+ * @param base_block
+ * @param secondary_link
  */
-static inline void *bplib_mpool_get_generic_data_ptr(bplib_mpool_generic_data_t *ceb)
-{
-    return &ceb->data_start;
-}
+void bplib_mpool_init_secondary_link(bplib_mpool_block_t *base_block, bplib_mpool_block_t *secondary_link);
 
 /**
- * @brief Gets the size of the buffer associated with a generic data block
+ * @brief Go to the real block pointer, depending on what type of link this is
  *
- * For a CBOR block this is the length of the CBOR data within this block.  For a user
- * data block, this refers to the size of the actual user object stored here.
+ * If the block points to a secondary link structure, convert it back to the
+ * primary link structure.
  *
- * @param ceb
- * @return size_t
+ * If the block is a reference, then dereference it to get to the real block.
+ *
+ * If the block already refers to a primary link it is passed through.
+ *
+ * In all cases, a pointer to the original base block is returned.
+ *
+ * @param cb
+ * @return bplib_mpool_block_t*
  */
-static inline size_t bplib_mpool_get_generic_data_size(const bplib_mpool_generic_data_t *ceb)
-{
-    return ceb->data_length;
-}
-
-/**
- * @brief Sets the size of the buffer associated with a generic data block
- *
- * For a CBOR block this is the length of the CBOR data within this block.  For a user
- * data block, this refers to the size of the actual user object stored here.
- *
- * @param ceb
- * @param length
- */
-static inline void bplib_mpool_set_generic_data_size(bplib_mpool_generic_data_t *ceb, size_t length)
-{
-    ceb->data_length = length;
-}
+bplib_mpool_block_t *bplib_mpool_obtain_base_block(bplib_mpool_block_t *cb);
 
 /**
  * @brief Gets the capacity (maximum size) of the generic data block
@@ -457,12 +407,22 @@ size_t bplib_mpool_get_generic_data_capacity(const bplib_mpool_block_t *cb);
 /* basic list ops */
 
 /**
- * @brief Resets the link pointers, creating a singleton node of the given type
+ * @brief Sets the node to be an empty list head node
+ *
+ * Initialize a new list head object.
+ *
+ * Any existing content will be discarded, so this should typically only
+ * be used on new blocks (such as a temporary list created on the stack)
+ * where it is guaranteed to NOT have any valid content, and the object
+ * is in an unknown/undefined state.
+ *
+ * To clear a list that has already been initialized once, use
+ * bplib_mpool_recycle_all_blocks_in_list()
  *
  * @param link
  * @param type
  */
-void bplib_mpool_link_reset(bplib_mpool_block_t *link, bplib_mpool_blocktype_t type);
+void bplib_mpool_init_list_head(bplib_mpool_block_t *head);
 
 /**
  * @brief Inserts a node after the given position or list head
@@ -517,7 +477,7 @@ void bplib_mpool_merge_listx(bplib_mpool_block_t *dest, bplib_mpool_block_t *src
  * @param cb
  * @return bplib_mpool_primary_block_t*
  */
-bplib_mpool_primary_block_t   *bplib_mpool_cast_primary(bplib_mpool_block_t *cb);
+bplib_mpool_primary_block_t *bplib_mpool_cast_primary(bplib_mpool_block_t *cb);
 
 /**
  * @brief Cast a block to a canonical type
@@ -538,7 +498,7 @@ bplib_mpool_canonical_block_t *bplib_mpool_cast_canonical(bplib_mpool_block_t *c
  * @param cb
  * @return bplib_mpool_generic_data_t*
  */
-bplib_mpool_generic_data_t    *bplib_mpool_cast_cbor_data(bplib_mpool_block_t *cb);
+void *bplib_mpool_cast_cbor_data(bplib_mpool_block_t *cb);
 
 /**
  * @brief Cast a block to generic user data type
@@ -550,10 +510,15 @@ bplib_mpool_generic_data_t    *bplib_mpool_cast_cbor_data(bplib_mpool_block_t *c
  * @param required_magic
  * @return bplib_mpool_generic_data_t*
  */
-bplib_mpool_generic_data_t    *bplib_mpool_cast_generic_data(bplib_mpool_block_t *cb, uint32_t required_magic);
-bplib_mpool_baseintf_t        *bplib_mpool_cast_baseintf(bplib_mpool_block_t *cb);
-bplib_mpool_dataservice_t     *bplib_mpool_cast_dataservice(bplib_mpool_block_t *cb);
-bplib_mpool_flow_t            *bplib_mpool_cast_flow(bplib_mpool_block_t *cb);
+void *bplib_mpool_cast_generic_data(bplib_mpool_block_t *cb, uint32_t required_magic);
+
+/**
+ * @brief Cast a block to a flow type
+ *
+ * @param cb
+ * @return bplib_mpool_flow_t*
+ */
+bplib_mpool_flow_t *bplib_mpool_cast_flow(bplib_mpool_block_t *cb);
 
 /**
  * @brief Convert a user data pointer back to the parent block pointer
@@ -565,10 +530,20 @@ bplib_mpool_flow_t            *bplib_mpool_cast_flow(bplib_mpool_block_t *cb);
  * @param required_magic
  * @return bplib_mpool_block_t*
  */
-bplib_mpool_block_t    *bplib_mpool_get_generic_block_from_pointer(void *ptr, uint32_t required_magic);
+bplib_mpool_block_t *bplib_mpool_get_generic_block_from_pointer(void *ptr, uint32_t required_magic);
 
-bplib_rbt_link_t   *bplib_mpool_cast_ref_to_rbt(bplib_mpool_block_t *rblk);
-bplib_mpool_block_t      *bplib_mpool_cast_rbt_to_block(bplib_rbt_link_t *rbtlink);
+void bplib_mpool_set_cbor_content_size(bplib_mpool_block_t *cb, size_t user_content_size);
+
+/**
+ * @brief Gets the size of the user buffer associated with a data block
+ *
+ * For a CBOR block this is the length of the CBOR data within this block.  For a user
+ * data block, this refers to the size of the actual user object stored here.
+ *
+ * @param ceb
+ * @return size_t
+ */
+size_t bplib_mpool_get_user_content_size(const bplib_mpool_block_t *ceb);
 
 /**
  * @brief Reads the reference count of the object
@@ -584,7 +559,7 @@ bplib_mpool_block_t      *bplib_mpool_cast_rbt_to_block(bplib_rbt_link_t *rbtlin
  * @param cb
  * @return size_t
  */
-size_t bplib_mpool_get_read_refcount(bplib_mpool_block_t *cb);
+size_t bplib_mpool_get_read_refcount(const bplib_mpool_block_t *cb);
 
 /**
  * @brief Allocate a new primary block
@@ -601,6 +576,8 @@ bplib_mpool_block_t *bplib_mpool_alloc_primary_block(bplib_mpool_t *pool);
  * @return bplib_mpool_block_t*
  */
 bplib_mpool_block_t *bplib_mpool_alloc_canonical_block(bplib_mpool_t *pool);
+
+bplib_mpool_block_t *bplib_mpool_alloc_flow(bplib_mpool_t *pool, uint32_t magic_number, size_t req_capacity);
 
 /**
  * @brief Allocate a new CBOR data block
@@ -624,47 +601,12 @@ bplib_mpool_block_t *bplib_mpool_alloc_cbor_data_block(bplib_mpool_t *pool);
 bplib_mpool_block_t *bplib_mpool_alloc_generic_block(bplib_mpool_t *pool, uint32_t magic_number, size_t req_capacity);
 
 /**
- * @brief Allocate a new block of the specified type
- *
- * @param pool
- * @param blocktype
- * @return bplib_mpool_block_t*
- */
-bplib_mpool_block_t *bplib_mpool_alloc_block(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype);
-
-/**
  * @brief Append CBOR data to the given list
  *
  * @param head
  * @param blk
  */
 void bplib_mpool_append_cbor_block(bplib_mpool_block_t *head, bplib_mpool_block_t *blk);
-
-/**
- * @brief Append a bundle to the given queue (flow)
- *
- * @param subq
- * @param cpb
- */
-void bplib_mpool_append_subq_bundle(bplib_mpool_subq_t *subq, bplib_mpool_block_t *cpb);
-
-/**
- * @brief Get the next bundle from the given queue (flow)
- *
- * @param subq
- * @return bplib_mpool_block_t*
- */
-bplib_mpool_block_t *bplib_mpool_shift_subq_bundle(bplib_mpool_subq_t *subq);
-
-/**
- * @brief Mark a given flow as active
- *
- * This marks it so it will be processed during the next call to forward data
- *
- * @param pool
- * @param flow
- */
-void bplib_mpool_mark_flow_active(bplib_mpool_t *pool, bplib_mpool_flow_t *flow);
 
 /**
  * @brief Append a canonical block to the bundle
@@ -691,14 +633,6 @@ void bplib_mpool_recycle_block(bplib_mpool_t *pool, bplib_mpool_block_t *blk);
 void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_block_t *list);
 
 /**
- * @brief Append a sub-flow (data service) to the base interface block
- *
- * @param ci
- * @param fblk
- */
-void bplib_mpool_store_flow(bplib_mpool_baseintf_t *ci, bplib_mpool_block_t *fblk);
-
-/**
  * @brief Process every item in the list in sequential order
  *
  * The callback function will be invoked for every item in the list, except for the head node.
@@ -713,7 +647,8 @@ void bplib_mpool_store_flow(bplib_mpool_baseintf_t *ci, bplib_mpool_block_t *fbl
  * @param callback_arg
  * @return int Number of items that were in the list
  */
-int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remove, bplib_mpool_callback_func_t callback_fn, void *callback_arg);
+int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remove,
+                                     bplib_mpool_callback_func_t callback_fn, void *callback_arg);
 
 /**
  * @brief Process (forward) all active flows in the system
@@ -724,6 +659,32 @@ int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remo
  * @return int
  */
 int bplib_mpool_process_all_flows(bplib_mpool_t *pool, bplib_mpool_callback_func_t callback_fn, void *callback_arg);
+
+/**
+ * @brief Append a bundle to the given queue (flow)
+ *
+ * @param subq
+ * @param cpb
+ */
+void bplib_mpool_append_subq_bundle(bplib_mpool_subq_t *subq, bplib_mpool_block_t *cpb);
+
+/**
+ * @brief Mark a given flow as active
+ *
+ * This marks it so it will be processed during the next call to forward data
+ *
+ * @param pool
+ * @param flow
+ */
+void bplib_mpool_mark_flow_active(bplib_mpool_t *pool, bplib_mpool_flow_t *flow);
+
+/**
+ * @brief Get the next bundle from the given queue (flow)
+ *
+ * @param subq
+ * @return bplib_mpool_block_t*
+ */
+bplib_mpool_block_t *bplib_mpool_shift_subq_bundle(bplib_mpool_subq_t *subq);
 
 /**
  * @brief Drop all encode data (CBOR) from a primary block
@@ -755,20 +716,32 @@ void bplib_mpool_canonical_drop_encode_data(bplib_mpool_t *pool, bplib_mpool_can
  * not consume any pool memory directly itself.  It will prevent the target
  * object from being garbage collected.
  *
- * This reference must be explicitly tracked and released by the user when
+ * References must be explicitly tracked and released by the user when
  * no longer needed, using bplib_mpool_release_light_reference()
+ *
+ * References may also be duplicated via bplib_mpool_duplicate_light_reference()
+ *
+ * After this call, the passed in blk becomes managed by the pool.
+ *
+ * @note If this function returns non-NULL, the calling application should no longer directly
+ * use the blk pointer that was passed in.  It should only use the reference pointers.
  *
  * @param pool
  * @param blk
  * @return bplib_mpool_refptr_t*
  */
-bplib_mpool_refptr_t *bplib_mpool_create_light_reference(bplib_mpool_t *pool, bplib_mpool_block_t *blk);
+bplib_mpool_refptr_t *bplib_mpool_make_dynamic_object(bplib_mpool_t *pool, bplib_mpool_block_t *blk);
+
+bplib_mpool_refptr_t *bplib_mpool_duplicate_light_reference(bplib_mpool_refptr_t *refptr);
 
 /**
  * @brief Release a lightweight reference
  *
- * This must be invoked once a reference that was previously created by bplib_mpool_create_light_reference()
- * is no longer needed by the software application.
+ * This must be invoked once a reference that was previously created by bplib_mpool_make_dynamic_object()
+ * or bplib_mpool_duplicate_light_reference() is no longer needed by the software application.
+ *
+ * This decrements the reference count, and if the reference count reaches 0, it also recycles the
+ * original object.
  *
  * @param pool
  * @param refptr
@@ -785,13 +758,19 @@ void bplib_mpool_release_light_reference(bplib_mpool_t *pool, bplib_mpool_refptr
  * will be automatically  released when the block is recycled via bplib_mpool_recycle_block()
  * or bplib_mpool_recycle_all_blocks_in_list()
  *
+ * @note This increments the refcount, so the calling application should call
+ * bplib_mpool_release_light_reference() on the original ref if it does not keep it.
+ *
  * @param pool
  * @param blk
  * @param notify_on_discard
  * @param notify_arg
  * @return bplib_mpool_block_t*
  */
-bplib_mpool_block_t *bplib_mpool_create_block_reference(bplib_mpool_t *pool, bplib_mpool_block_t *blk, bplib_action_func_t notify_on_discard, void *notify_arg);
+bplib_mpool_block_t *bplib_mpool_make_block_ref(bplib_mpool_t *pool, bplib_mpool_refptr_t *refptr,
+                                                bplib_mpool_callback_func_t notify_on_discard, void *notify_arg);
+
+bplib_mpool_refptr_t *bplib_mpool_duplicate_block_reference(bplib_mpool_block_t *rblk);
 
 /**
  * @brief Copy an entire chain of encoded blocks to a target buffer
@@ -804,7 +783,7 @@ bplib_mpool_block_t *bplib_mpool_create_block_reference(bplib_mpool_t *pool, bpl
  * @return size_t
  */
 size_t bplib_mpool_copy_block_chain(bplib_mpool_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
-                              size_t max_count);
+                                    size_t max_count);
 
 /**
  * @brief Run basic maintenance on the memory pool
@@ -824,7 +803,6 @@ void bplib_mpool_maintain(bplib_mpool_t *pool);
  * @return bplib_mpool_t*
  */
 bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size);
-
 
 /* DEBUG/TEST verification routines */
 

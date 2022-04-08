@@ -18,7 +18,6 @@
  *
  */
 
-
 /*************************************************************************
  * Includes
  *************************************************************************/
@@ -44,8 +43,8 @@
 #include "v7_cache.h"
 #include "crc.h"
 
-bplib_routetbl_t* s1_rtbl;
-bplib_routetbl_t* s2_rtbl;
+bplib_routetbl_t *s1_rtbl;
+bplib_routetbl_t *s2_rtbl;
 
 bp_handle_t s1_intf_store;
 bp_handle_t s1_intf_id1;
@@ -101,76 +100,75 @@ void display(void *output, const uint8_t *DataPtr, size_t DisplayOffset, size_t 
 
 int crc_test(bplib_crc_parameters_t *params)
 {
-    const char input1[] = "123456789";
+    const char  input1[] = "123456789";
     bp_crcval_t test;
 
     test = bplib_crc_initial_value(params);
-    test = bplib_crc_update(params, test, input1, sizeof(input1)-1);
-    printf("CRC Test: %s => %0*x\n", bplib_crc_get_name(params), bplib_crc_get_width(params) / 4, (unsigned int)bplib_crc_finalize(params, test));
+    test = bplib_crc_update(params, test, input1, sizeof(input1) - 1);
+    printf("CRC Test: %s => %0*x\n", bplib_crc_get_name(params), bplib_crc_get_width(params) / 4,
+           (unsigned int)bplib_crc_finalize(params, test));
 
     return 0;
 }
 
 int bplib_route_test(void)
 {
-    bplib_routetbl_t* rtbl;
-    bp_ipn_addr_t storage_addr;
+    bplib_routetbl_t *rtbl;
+    bp_ipn_addr_t     storage_addr;
 
     /* Test route table with 1MB of cache */
     rtbl = bplib_route_alloc_table(10, 10, 1 << 20);
     if (rtbl == NULL)
     {
-        fprintf(stderr, "%s(): bplib_route_alloc_table failed", __func__);
-    }
-
-    storage_addr = (bp_ipn_addr_t) { 3, 1 };
-
-    s1_intf_store = bplib_create_ram_storage(rtbl, &storage_addr);
-    if (!bp_handle_is_valid(s1_intf_store))
-    {
-        fprintf(stderr, "%s(): bplib_create_ram_storage failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_alloc_table failed\n", __func__);
     }
 
     s1_intf_id1 = bplib_create_node_intf(rtbl, 101);
     if (!bp_handle_is_valid(s1_intf_id1))
     {
-        fprintf(stderr, "%s(): bplib_create_node_intf 1 failed", __func__);
+        fprintf(stderr, "%s(): bplib_create_node_intf 1 failed\n", __func__);
     }
     s1_intf_id2 = bplib_create_node_intf(rtbl, 102);
     if (!bp_handle_is_valid(s1_intf_id2))
     {
-        fprintf(stderr, "%s(): bplib_create_node_intf 2 failed", __func__);
+        fprintf(stderr, "%s(): bplib_create_node_intf 2 failed\n", __func__);
+    }
+
+    storage_addr = (bp_ipn_addr_t) {101, 10};
+
+    s1_intf_store = bplib_create_ram_storage(rtbl, &storage_addr);
+    if (!bp_handle_is_valid(s1_intf_store))
+    {
+        fprintf(stderr, "%s(): bplib_create_ram_storage failed\n", __func__);
     }
 
     s1_intf_cla = bplib_create_cla_intf(rtbl);
     if (!bp_handle_is_valid(s1_intf_cla))
     {
-        fprintf(stderr, "%s(): bplib_create_cla_intf 2 failed", __func__);
+        fprintf(stderr, "%s(): bplib_create_cla_intf 2 failed\n", __func__);
     }
 
     if (bplib_route_add(rtbl, 0, 0, s1_intf_store) < 0)
     {
-        fprintf(stderr, "%s(): bplib_route_add storage failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_add storage failed\n", __func__);
     }
     if (bplib_route_add(rtbl, 201, ~(bp_ipn_t)0, s1_intf_cla) < 0)
     {
-        fprintf(stderr, "%s(): bplib_route_add cla failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_add cla failed\n", __func__);
     }
 
-    if (bplib_route_intf_set_flags(rtbl, s1_intf_id1, BPLIB_INTF_STATE_ADMIN_UP|BPLIB_INTF_STATE_OPER_UP) < 0)
+    if (bplib_route_intf_set_flags(rtbl, s1_intf_id1, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP) < 0)
     {
-        fprintf(stderr, "%s(): bplib_route_intf_set_flags data1 failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_intf_set_flags data1 failed\n", __func__);
     }
-    if (bplib_route_intf_set_flags(rtbl, s1_intf_store, BPLIB_INTF_STATE_ADMIN_UP|BPLIB_INTF_STATE_OPER_UP) < 0)
+    if (bplib_route_intf_set_flags(rtbl, s1_intf_store, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP) < 0)
     {
-        fprintf(stderr, "%s(): bplib_route_intf_set_flags storage failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_intf_set_flags storage failed\n", __func__);
     }
-
-    if (bplib_route_intf_set_flags(rtbl, s1_intf_cla, BPLIB_INTF_STATE_ADMIN_UP) < 0)
+    if (bplib_route_intf_set_flags(rtbl, s1_intf_cla, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP) < 0)
     {
-        fprintf(stderr, "%s(): bplib_route_intf_set_flags cla failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_intf_set_flags cla failed\n", __func__);
     }
-
 
     s1_rtbl = rtbl;
 
@@ -178,50 +176,50 @@ int bplib_route_test(void)
     rtbl = bplib_route_alloc_table(10, 10, 1 << 20);
     if (rtbl == NULL)
     {
-        fprintf(stderr, "%s(): bplib_route_alloc_table failed", __func__);
-    }
-
-    storage_addr = (bp_ipn_addr_t) { 4, 1 };
-
-    s2_intf_store = bplib_create_ram_storage(rtbl, &storage_addr);
-    if (!bp_handle_is_valid(s2_intf_store))
-    {
-        fprintf(stderr, "%s(): bplib_create_ram_storage failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_alloc_table failed\n", __func__);
     }
 
     s2_intf_id1 = bplib_create_node_intf(rtbl, 201);
     if (!bp_handle_is_valid(s2_intf_id1))
     {
-        fprintf(stderr, "%s(): bplib_create_node_intf 1 failed", __func__);
+        fprintf(stderr, "%s(): bplib_create_node_intf 1 failed\n", __func__);
     }
     s2_intf_id2 = bplib_create_node_intf(rtbl, 202);
     if (!bp_handle_is_valid(s2_intf_id2))
     {
-        fprintf(stderr, "%s(): bplib_create_node_intf 2 failed", __func__);
+        fprintf(stderr, "%s(): bplib_create_node_intf 2 failed\n", __func__);
+    }
+
+    storage_addr = (bp_ipn_addr_t) {201, 10};
+
+    s2_intf_store = bplib_create_ram_storage(rtbl, &storage_addr);
+    if (!bp_handle_is_valid(s2_intf_store))
+    {
+        fprintf(stderr, "%s(): bplib_create_ram_storage failed\n", __func__);
     }
 
     s2_intf_cla = bplib_create_cla_intf(rtbl);
     if (!bp_handle_is_valid(s2_intf_cla))
     {
-        fprintf(stderr, "%s(): bplib_create_cla_intf 2 failed", __func__);
+        fprintf(stderr, "%s(): bplib_create_cla_intf 2 failed\n", __func__);
     }
 
     if (bplib_route_add(rtbl, 0, 0, s2_intf_store) < 0)
     {
-        fprintf(stderr, "%s(): bplib_route_add storage failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_add storage failed\n", __func__);
     }
     if (bplib_route_add(rtbl, 101, ~(bp_ipn_t)0, s2_intf_cla) < 0)
     {
-        fprintf(stderr, "%s(): bplib_route_add cla failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_add cla failed\n", __func__);
     }
 
-    if (bplib_route_intf_set_flags(rtbl, s2_intf_id1, BPLIB_INTF_STATE_ADMIN_UP|BPLIB_INTF_STATE_OPER_UP) < 0)
+    if (bplib_route_intf_set_flags(rtbl, s2_intf_id1, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP) < 0)
     {
-        fprintf(stderr, "%s(): bplib_route_intf_set_flags id1 failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_intf_set_flags id1 failed\n", __func__);
     }
-    if (bplib_route_intf_set_flags(rtbl, s2_intf_cla, BPLIB_INTF_STATE_ADMIN_UP|BPLIB_INTF_STATE_OPER_UP) < 0)
+    if (bplib_route_intf_set_flags(rtbl, s2_intf_cla, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP) < 0)
     {
-        fprintf(stderr, "%s(): bplib_route_intf_set_flags cla failed", __func__);
+        fprintf(stderr, "%s(): bplib_route_intf_set_flags cla failed\n", __func__);
     }
 
     s2_rtbl = rtbl;
@@ -232,12 +230,12 @@ int bplib_route_test(void)
 int bplib2_bundle_test(void)
 {
     bp_socket_t *desc;
-    char my_payload[] = "The Answer to the Ultimate Question of Life, The Universe, and Everything is 42";
-    char recv_payload[1 + sizeof(my_payload)];
-    int lib_status;
-    uint32_t flags;
-    size_t bundle_sz;
-    size_t recv_sz;
+    char         my_payload[] = "The Answer to the Ultimate Question of Life, The Universe, and Everything is 42";
+    char         recv_payload[1 + sizeof(my_payload)];
+    int          lib_status;
+    uint32_t     flags;
+    size_t       bundle_sz;
+    size_t       recv_sz;
 
     bp_ipn_addr_t source_ipn1;
     bp_ipn_addr_t dest_ipn1;
@@ -249,7 +247,7 @@ int bplib2_bundle_test(void)
         return -1;
     }
 
-    source_ipn1 = (bp_ipn_addr_t){ 101, 1 };
+    source_ipn1 = (bp_ipn_addr_t) {101, 1};
     if (bplib_bind_socket(desc, &source_ipn1) < 0)
     {
         fprintf(stderr, "Failed bplib_bind_socket()... exiting\n");
@@ -257,7 +255,7 @@ int bplib2_bundle_test(void)
         return -1;
     }
 
-    dest_ipn1 = (bp_ipn_addr_t){ 201, 1 };
+    dest_ipn1 = (bp_ipn_addr_t) {201, 1};
     if (bplib_connect_socket(desc, &dest_ipn1) < 0)
     {
         fprintf(stderr, "Failed bplib_bind_socket()... exiting\n");
@@ -268,7 +266,7 @@ int bplib2_bundle_test(void)
     printf("Storing payload:\n");
     display(stdout, (const uint8_t *)my_payload, 0, sizeof(my_payload));
 
-    flags = 0;
+    flags      = 0;
     lib_status = bplib_send(desc, my_payload, sizeof(my_payload), BP_CHECK, &flags);
     if (lib_status != 0)
     {
@@ -289,7 +287,7 @@ int bplib2_bundle_test(void)
 
     bplib_route_do_maintenance(s1_rtbl);
 
-    bundle_sz = sizeof(bundle_buffer);
+    bundle_sz  = sizeof(bundle_buffer);
     lib_status = bplib_cla_egress(s1_rtbl, s1_intf_cla, bundle_buffer, &bundle_sz, BP_CHECK);
     if (lib_status != 0)
     {
@@ -304,7 +302,7 @@ int bplib2_bundle_test(void)
     display(stdout, bundle_buffer, 0, bundle_sz);
 
     int fd;
-    fd = open("test.cbor", O_WRONLY|O_CREAT|O_TRUNC, 0644);
+    fd = open("test.cbor", O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd < 0)
     {
         perror("open()");
@@ -337,7 +335,6 @@ int bplib2_bundle_test(void)
     /* this does a sanity check on the pool and displays various block allocation stats */
     bplib_mpool_debug_scan(bplib_route_get_mpool(s1_rtbl));
 
-
     desc = bplib_create_socket(s2_rtbl);
     if (desc == NULL)
     {
@@ -345,7 +342,7 @@ int bplib2_bundle_test(void)
         return -1;
     }
 
-    source_ipn1 = (bp_ipn_addr_t){ 201, 1 };
+    source_ipn1 = (bp_ipn_addr_t) {201, 1};
     if (bplib_bind_socket(desc, &source_ipn1) < 0)
     {
         fprintf(stderr, "Failed bplib_bind_socket()... exiting\n");
@@ -353,7 +350,7 @@ int bplib2_bundle_test(void)
         return -1;
     }
 
-    dest_ipn1 = (bp_ipn_addr_t){ 101, 1 };
+    dest_ipn1 = (bp_ipn_addr_t) {101, 1};
     if (bplib_connect_socket(desc, &dest_ipn1) < 0)
     {
         fprintf(stderr, "Failed bplib_bind_socket()... exiting\n");
@@ -371,7 +368,7 @@ int bplib2_bundle_test(void)
 
     bplib_route_do_maintenance(s2_rtbl);
 
-    recv_sz = sizeof(recv_payload);
+    recv_sz    = sizeof(recv_payload);
     lib_status = bplib_recv(desc, recv_payload, &recv_sz, BP_CHECK, &flags);
     if (lib_status != 0)
     {
@@ -414,10 +411,10 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    //bplib_crc_init();
-//
-    //crc_test(&BPLIB_CRC16_X25);
-    //crc_test(&BPLIB_CRC32_CASTAGNOLI);
+    // bplib_crc_init();
+    //
+    // crc_test(&BPLIB_CRC16_X25);
+    // crc_test(&BPLIB_CRC32_CASTAGNOLI);
 
     if (bplib_route_test() != 0)
     {

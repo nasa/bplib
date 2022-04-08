@@ -18,28 +18,27 @@
  *
  */
 
-#ifndef v7_cache_h
-#define v7_cache_h
+#ifndef BPLIB_DATASERVICE_H
+#define BPLIB_DATASERVICE_H
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
-#include "bplib_os.h"
+#include "bplib_api_types.h"
+#include "v7_mpool.h"
 
-/******************************************************************************
- TYPEDEFS
- ******************************************************************************/
+typedef enum
+{
+    bplib_dataservice_type_undefined,
+    bplib_dataservice_type_application,
+    bplib_dataservice_type_storage,
+    bplib_dataservice_type_max
+} bplib_dataservice_type_t;
 
-/******************************************************************************
- PROTOTYPES
- ******************************************************************************/
+bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_number);
+bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn, bplib_dataservice_type_t type,
+                                     bplib_mpool_refptr_t *blkref);
+bplib_mpool_refptr_t *bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn);
 
-/* Service API */
-bp_handle_t bplib_store_cache_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
-int         bplib_store_cache_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
-
-void bplib_store_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id);
-
-#endif /* v7_cache_h */
+#endif /* BPLIB_DATASERVICE_H */
