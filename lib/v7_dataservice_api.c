@@ -26,8 +26,12 @@
 #include "bplib_os.h"
 #include "v7.h"
 #include "v7_mpool.h"
+#include "v7_mpool_bblocks.h"
+#include "v7_mpool_flows.h"
+#include "v7_mpool_ref.h"
 #include "v7_codec.h"
 #include "v7_cache.h"
+#include "v7_rbtree.h"
 #include "bplib_routing.h"
 #include "bplib_dataservice.h"
 
@@ -41,9 +45,9 @@
 
 typedef struct bplib_route_serviceintf_info
 {
-    bp_ipn_t              node_number;
-    bplib_rbt_root_t      service_index;
-    bplib_mpool_refptr_t *storage_service;
+    bp_ipn_t          node_number;
+    bplib_rbt_root_t  service_index;
+    bplib_mpool_ref_t storage_service;
 
 } bplib_route_serviceintf_info_t;
 
@@ -51,9 +55,9 @@ typedef struct bplib_service_endpt bplib_service_endpt_t;
 
 struct bplib_service_endpt
 {
-    bplib_rbt_link_t      rbt_link; /* for storage in RB tree, must be first */
-    bplib_mpool_block_t  *self_ptr;
-    bplib_mpool_refptr_t *subflow_ref;
+    bplib_rbt_link_t     rbt_link; /* for storage in RB tree, must be first */
+    bplib_mpool_block_t *self_ptr;
+    bplib_mpool_ref_t    subflow_ref;
 };
 
 typedef struct bplib_socket_info bplib_socket_info_t;
@@ -71,19 +75,18 @@ struct bplib_socket_info
  LOCAL FUNCTIONS
  ******************************************************************************/
 
-bplib_mpool_refptr_t *bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, const void *content,
-                                                          size_t size)
+bplib_mpool_ref_t bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, const void *content, size_t size)
 {
-    bplib_mpool_t        *pool;
-    bplib_mpool_refptr_t *refptr;
+    bplib_mpool_t    *pool;
+    bplib_mpool_ref_t refptr;
 
     bplib_mpool_block_t *pblk;
     bplib_mpool_block_t *cblk;
 
-    bplib_mpool_primary_block_t   *pri_block;
-    bp_primary_block_t            *pri;
-    bplib_mpool_canonical_block_t *ccb_pay;
-    bp_canonical_block_buffer_t   *pay;
+    bplib_mpool_bblock_primary_t   *pri_block;
+    bp_primary_block_t             *pri;
+    bplib_mpool_bblock_canonical_t *ccb_pay;
+    bp_canonical_block_buffer_t    *pay;
 
     /* Allocate Blocks */
     pool   = bplib_route_get_mpool(sock_inf->parent_rtbl);
@@ -93,15 +96,15 @@ bplib_mpool_refptr_t *bplib_serviceflow_bundleize_payload(bplib_socket_info_t *s
 
     do
     {
-        pblk      = bplib_mpool_alloc_primary_block(pool);
-        pri_block = bplib_mpool_cast_primary(pblk);
+        pblk      = bplib_mpool_bblock_primary_alloc(pool);
+        pri_block = bplib_mpool_bblock_primary_cast(pblk);
         if (pri_block == NULL)
         {
             bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to allocate primary block\n");
             break;
         }
 
-        pri = bplib_mpool_get_pri_block_logical(pri_block);
+        pri = bplib_mpool_bblock_primary_get_logical(pri_block);
 
         /* Initialize Primary Block */
         pri->version = 7;
@@ -129,15 +132,15 @@ bplib_mpool_refptr_t *bplib_serviceflow_bundleize_payload(bplib_socket_info_t *s
         }
 
         /* Update Payload Block */
-        cblk    = bplib_mpool_alloc_canonical_block(pool);
-        ccb_pay = bplib_mpool_cast_canonical(cblk);
+        cblk    = bplib_mpool_bblock_canonical_alloc(pool);
+        ccb_pay = bplib_mpool_bblock_canonical_cast(cblk);
         if (ccb_pay == NULL)
         {
             bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to allocate payload block\n");
             break;
         }
 
-        pay = bplib_mpool_get_canonical_block_logical(ccb_pay);
+        pay = bplib_mpool_bblock_canonical_get_logical(ccb_pay);
 
         pay->canonical_block.blockNum  = 1;
         pay->canonical_block.blockType = bp_blocktype_payloadBlock;
@@ -150,11 +153,11 @@ bplib_mpool_refptr_t *bplib_serviceflow_bundleize_payload(bplib_socket_info_t *s
             break;
         }
 
-        bplib_mpool_store_canonical_block(pri_block, cblk);
+        bplib_mpool_bblock_primary_append(pri_block, cblk);
         cblk = NULL; /* do not need now that it is stored */
 
         /* Final step is to convert to a dynamically-managed ref for returning to caller */
-        refptr = bplib_mpool_make_dynamic_object(pool, pblk);
+        refptr = bplib_mpool_ref_create(pool, pblk);
         if (refptr == NULL)
         {
             /* not expected... */
@@ -180,25 +183,25 @@ bplib_mpool_refptr_t *bplib_serviceflow_bundleize_payload(bplib_socket_info_t *s
     return refptr;
 }
 
-int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpool_refptr_t *refptr, void *content,
+int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpool_ref_t refptr, void *content,
                                           size_t *size)
 {
     bplib_mpool_t *pool;
 
-    bplib_mpool_primary_block_t   *pri;
-    bplib_mpool_canonical_block_t *ccb_pay;
-    bplib_mpool_block_t           *cblk;
-    size_t                         content_size;
-    size_t                         content_offset;
-    size_t                         temp_size;
-    int                            status;
+    bplib_mpool_bblock_primary_t   *pri;
+    bplib_mpool_bblock_canonical_t *ccb_pay;
+    bplib_mpool_block_t            *cblk;
+    size_t                          content_size;
+    size_t                          content_offset;
+    size_t                          temp_size;
+    int                             status;
 
     status = BP_ERROR;
     pool   = bplib_route_get_mpool(sock_inf->parent_rtbl);
 
     do
     {
-        pri = bplib_mpool_cast_primary(bplib_mpool_get_reference_target(refptr));
+        pri = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(refptr));
         if (pri == NULL)
         {
             /* not a pri block, cannot be unbundled */
@@ -207,23 +210,23 @@ int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_m
         }
 
         /* find the payload */
-        cblk = bplib_mpool_get_canonical_block_list(pri);
+        cblk = bplib_mpool_bblock_primary_get_canonical_list(pri);
 
         content_size   = 0;
         content_offset = 0;
         while (true)
         {
             cblk    = bplib_mpool_get_next_block(cblk);
-            ccb_pay = bplib_mpool_cast_canonical(cblk);
+            ccb_pay = bplib_mpool_bblock_canonical_cast(cblk);
             if (ccb_pay == NULL)
             {
                 break;
             }
-            if (bplib_mpool_get_canonical_block_logical(ccb_pay)->canonical_block.blockType ==
+            if (bplib_mpool_bblock_canonical_get_logical(ccb_pay)->canonical_block.blockType ==
                 bp_blocktype_payloadBlock)
             {
-                content_size   = bplib_mpool_get_canonical_block_encoded_content_length(ccb_pay);
-                content_offset = bplib_mpool_get_canonical_block_encoded_content_offset(ccb_pay);
+                content_size   = bplib_mpool_bblock_canonical_get_content_length(ccb_pay);
+                content_offset = bplib_mpool_bblock_canonical_get_content_offset(ccb_pay);
                 break;
             }
         }
@@ -240,8 +243,8 @@ int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_m
             break;
         }
 
-        temp_size = bplib_mpool_copy_block_chain(bplib_mpool_get_canonical_block_encoded_chunks(ccb_pay), content,
-                                                 *size, content_offset, content_size);
+        temp_size = bplib_mpool_bblock_cbor_export(bplib_mpool_bblock_canonical_get_encoded_chunks(ccb_pay), content,
+                                                   *size, content_offset, content_size);
 
         /* This should always match, some sort of bug if it does not */
         if (temp_size != content_size)
@@ -257,7 +260,7 @@ int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_m
     while (false);
 
     /* Always - The reference can be discarded (caller should have duped it) */
-    bplib_mpool_release_light_reference(pool, refptr);
+    bplib_mpool_ref_release(pool, refptr);
 
     return status;
 }
@@ -265,19 +268,19 @@ int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_m
 int bplib_serviceflow_forward_ingress(bplib_routetbl_t *tbl, bplib_mpool_block_t *intf_block, void *forward_arg)
 {
     bplib_route_serviceintf_info_t *base_intf;
-    bplib_mpool_primary_block_t    *pri_block;
+    bplib_mpool_bblock_primary_t   *pri_block;
     bplib_mpool_block_t            *qblk;
     bplib_mpool_flow_t             *curr_flow;
     bplib_mpool_flow_t             *storage_flow;
     int                             forward_count;
 
-    base_intf = bplib_mpool_cast_generic_data(intf_block, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    base_intf = bplib_mpool_generic_data_cast(intf_block, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         return bplog(NULL, BP_FLAG_DIAGNOSTIC, "intf_block invalid\n");
     }
 
-    curr_flow = bplib_mpool_cast_flow(intf_block);
+    curr_flow = bplib_mpool_flow_cast(intf_block);
     if (curr_flow == NULL)
     {
         return -1;
@@ -286,7 +289,7 @@ int bplib_serviceflow_forward_ingress(bplib_routetbl_t *tbl, bplib_mpool_block_t
     forward_count = 0;
     while (true)
     {
-        qblk = bplib_mpool_shift_subq_bundle(&curr_flow->input);
+        qblk = bplib_mpool_subq_pull_single(&curr_flow->ingress);
         if (qblk == NULL)
         {
             /* no more bundles */
@@ -302,15 +305,15 @@ int bplib_serviceflow_forward_ingress(bplib_routetbl_t *tbl, bplib_mpool_block_t
          * this function will also put it there. Otherwise, route it normally.
          * If this dataservice is storage-capable, and the bundle has NOT gone
          * to the storage service yet, send it there now */
-        pri_block = bplib_mpool_cast_primary(qblk);
+        pri_block = bplib_mpool_bblock_primary_cast(qblk);
         if (pri_block != NULL && base_intf->storage_service != NULL &&
             !bp_handle_is_valid(pri_block->delivery_data.storage_intf_id))
         {
-            storage_flow = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(base_intf->storage_service));
-            if (storage_flow != NULL)
+            storage_flow = bplib_mpool_flow_cast(bplib_mpool_dereference(base_intf->storage_service));
+            if (storage_flow != NULL && bplib_mpool_subq_may_push(&storage_flow->egress))
             {
-                bplib_mpool_append_subq_bundle(&storage_flow->output, qblk);
-                bplib_mpool_mark_flow_active(bplib_route_get_mpool(tbl), storage_flow);
+                bplib_mpool_subq_push_single(&storage_flow->egress, qblk);
+                bplib_mpool_flow_mark_active(bplib_route_get_mpool(tbl), base_intf->storage_service);
                 qblk = NULL;
             }
         }
@@ -336,21 +339,21 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
     bplib_rbt_link_t               *tgt_subintf;
     bplib_mpool_flow_t             *curr_flow;
     bplib_mpool_flow_t             *next_flow;
-    bplib_mpool_refptr_t           *next_flow_ref;
+    bplib_mpool_ref_t               next_flow_ref;
     bplib_mpool_block_t            *pblk;
     bplib_mpool_t                  *pool;
-    bplib_mpool_primary_block_t    *pri_block;
+    bplib_mpool_bblock_primary_t   *pri_block;
     bp_ipn_addr_t                   bundle_src;
     bp_ipn_addr_t                   bundle_dest;
     int                             forward_count;
 
-    base_intf = bplib_mpool_cast_generic_data(intf_block, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    base_intf = bplib_mpool_generic_data_cast(intf_block, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         return bplog(NULL, BP_FLAG_DIAGNOSTIC, "intf_block invalid\n");
     }
 
-    curr_flow = bplib_mpool_cast_flow(intf_block);
+    curr_flow = bplib_mpool_flow_cast(intf_block);
     if (curr_flow == NULL)
     {
         return -1;
@@ -360,7 +363,7 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
     forward_count = 0;
     while (true)
     {
-        pblk = bplib_mpool_shift_subq_bundle(&curr_flow->output);
+        pblk = bplib_mpool_subq_pull_single(&curr_flow->egress);
         if (pblk == NULL)
         {
             /* no bundles available to recv */
@@ -370,7 +373,7 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
         ++forward_count;
 
         next_flow_ref = NULL;
-        pri_block     = bplib_mpool_cast_primary(pblk);
+        pri_block     = bplib_mpool_bblock_primary_cast(pblk);
         if (pri_block != NULL)
         {
             /* Egress bundles also need to be checked if they need to go to storage */
@@ -382,8 +385,8 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
 
             if (next_flow_ref == NULL)
             {
-                v7_get_eid(&bundle_src, &bplib_mpool_get_pri_block_logical(pri_block)->sourceEID);
-                v7_get_eid(&bundle_dest, &bplib_mpool_get_pri_block_logical(pri_block)->destinationEID);
+                v7_get_eid(&bundle_src, &bplib_mpool_bblock_primary_get_logical(pri_block)->sourceEID);
+                v7_get_eid(&bundle_dest, &bplib_mpool_bblock_primary_get_logical(pri_block)->destinationEID);
 
                 /* Find a dataservice that matches this src/dest combo */
                 tgt_subintf = bplib_rbt_search(bundle_dest.service_number, &base_intf->service_index);
@@ -397,12 +400,12 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
 
             if (next_flow_ref != NULL)
             {
-                next_flow = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(next_flow_ref));
-                if (next_flow != NULL)
+                next_flow = bplib_mpool_flow_cast(bplib_mpool_dereference(next_flow_ref));
+                if (next_flow != NULL && bplib_mpool_subq_may_push(&next_flow->egress))
                 {
                     /* this delivers to output queue (same direction) as normal */
-                    bplib_mpool_append_subq_bundle(&next_flow->output, pblk);
-                    bplib_mpool_mark_flow_active(pool, next_flow);
+                    bplib_mpool_subq_push_single(&next_flow->egress, pblk);
+                    bplib_mpool_flow_mark_active(pool, next_flow_ref);
                     pblk = NULL;
                 }
             }
@@ -411,7 +414,6 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
         if (pblk != NULL)
         {
             /* undeliverable bundle */
-            ++curr_flow->output.stats.drop_count;
             bplib_mpool_recycle_block(pool, pblk);
         }
     }
@@ -426,25 +428,25 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
  * @param fblk
  */
 int bplib_serviceflow_add_to_base(bplib_mpool_t *pool, bplib_mpool_block_t *base_intf_blk, bp_val_t svc_num,
-                                  bplib_dataservice_type_t type, bplib_mpool_refptr_t *endpoint_intf_ref)
+                                  bplib_dataservice_type_t type, bplib_mpool_ref_t endpoint_intf_ref)
 {
     bplib_route_serviceintf_info_t *base_intf;
     bplib_service_endpt_t          *endpoint_intf;
     int                             status;
 
-    base_intf = bplib_mpool_cast_generic_data(base_intf_blk, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    base_intf = bplib_mpool_generic_data_cast(base_intf_blk, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
     if (base_intf != NULL)
     {
         bplib_mpool_block_t *temp_block;
-        temp_block = bplib_mpool_alloc_generic_block(pool, BPLIB_ROUTING_SIGNATURE_SERVICE_ENDPOINT,
-                                                     sizeof(bplib_service_endpt_t));
+        temp_block = bplib_mpool_generic_data_alloc(pool, BPLIB_ROUTING_SIGNATURE_SERVICE_ENDPOINT,
+                                                    sizeof(bplib_service_endpt_t));
         if (temp_block == NULL)
         {
             bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): out of memory when binding socket\n", __func__);
             return BP_ERROR;
         }
 
-        endpoint_intf           = bplib_mpool_cast_generic_data(temp_block, BPLIB_ROUTING_SIGNATURE_SERVICE_ENDPOINT);
+        endpoint_intf           = bplib_mpool_generic_data_cast(temp_block, BPLIB_ROUTING_SIGNATURE_SERVICE_ENDPOINT);
         endpoint_intf->self_ptr = temp_block;
 
         /* This can fail in the event the service number is duplicated */
@@ -452,14 +454,14 @@ int bplib_serviceflow_add_to_base(bplib_mpool_t *pool, bplib_mpool_block_t *base
         if (status == BP_SUCCESS)
         {
             /* success */
-            endpoint_intf->subflow_ref = bplib_mpool_duplicate_light_reference(endpoint_intf_ref);
+            endpoint_intf->subflow_ref = bplib_mpool_ref_duplicate(endpoint_intf_ref);
             if (type == bplib_dataservice_type_storage)
             {
                 if (base_intf->storage_service != NULL)
                 {
-                    bplib_mpool_release_light_reference(pool, base_intf->storage_service);
+                    bplib_mpool_ref_release(pool, base_intf->storage_service);
                 }
-                base_intf->storage_service = bplib_mpool_duplicate_light_reference(endpoint_intf_ref);
+                base_intf->storage_service = bplib_mpool_ref_duplicate(endpoint_intf_ref);
             }
         }
         else
@@ -481,17 +483,17 @@ int bplib_serviceflow_add_to_base(bplib_mpool_t *pool, bplib_mpool_block_t *base
  * @param svc_intf
  * @param fblk
  */
-bplib_mpool_refptr_t *bplib_serviceflow_remove_from_base(bplib_mpool_t *pool, bplib_mpool_block_t *base_intf_blk,
-                                                         bp_val_t svc_num)
+bplib_mpool_ref_t bplib_serviceflow_remove_from_base(bplib_mpool_t *pool, bplib_mpool_block_t *base_intf_blk,
+                                                     bp_val_t svc_num)
 {
     bplib_route_serviceintf_info_t *base_intf;
     bplib_rbt_link_t               *rbt_link;
     bplib_service_endpt_t          *endpoint_intf;
-    bplib_mpool_refptr_t           *endpoint_intf_ref;
+    bplib_mpool_ref_t               endpoint_intf_ref;
     int                             status;
 
     endpoint_intf_ref = NULL;
-    base_intf         = bplib_mpool_cast_generic_data(base_intf_blk, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    base_intf         = bplib_mpool_generic_data_cast(base_intf_blk, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
     if (base_intf != NULL)
     {
         /* This can fail in the event the service number is duplicated */
@@ -503,7 +505,7 @@ bplib_mpool_refptr_t *bplib_serviceflow_remove_from_base(bplib_mpool_t *pool, bp
 
             if (endpoint_intf_ref == base_intf->storage_service)
             {
-                bplib_mpool_release_light_reference(pool, base_intf->storage_service);
+                bplib_mpool_ref_release(pool, base_intf->storage_service);
                 base_intf->storage_service = NULL;
             }
 
@@ -518,10 +520,55 @@ bplib_mpool_refptr_t *bplib_serviceflow_remove_from_base(bplib_mpool_t *pool, bp
     return endpoint_intf_ref;
 }
 
+int bplib_dataservice_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *intf_block, void *event_arg)
+{
+    bplib_generic_event_t *event;
+    bplib_mpool_flow_t    *flow;
+    bplib_mpool_t         *pool;
+
+    event = event_arg;
+
+    /* only care about state change events for now */
+    if (event->event_type != bplib_event_type_interface_up && event->event_type != bplib_event_type_interface_down)
+    {
+        return BP_SUCCESS;
+    }
+
+    /* only care about state change events for the local i/f */
+    flow = bplib_mpool_flow_cast(intf_block);
+    if (flow == NULL || !bp_handle_equal(event->intf_state.intf_id, flow->external_id))
+    {
+        return BP_SUCCESS;
+    }
+
+    if (event->event_type == bplib_event_type_interface_up)
+    {
+        /* Allows bundles to be pushed to flow queues */
+        flow->ingress.current_depth_limit = BP_MPOOL_MAX_SUBQ_DEPTH;
+        flow->egress.current_depth_limit  = BP_MPOOL_MAX_SUBQ_DEPTH;
+    }
+    else if (event->event_type == bplib_event_type_interface_down)
+    {
+        pool = bplib_route_get_mpool(rtbl);
+
+        /* prevents any additional entries in flow queues */
+        flow->ingress.current_depth_limit = 0;
+        flow->egress.current_depth_limit  = 0;
+
+        /* drop anything already in the egress queue.  Note that
+         * ingress is usually empty, as bundles really should not wait there,
+         * so that probably has no effect. */
+        bplib_mpool_subq_drop_all(pool, &flow->ingress);
+        bplib_mpool_subq_drop_all(pool, &flow->egress);
+    }
+
+    return BP_SUCCESS;
+}
+
 bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_number)
 {
     bplib_mpool_block_t            *sblk;
-    bplib_mpool_refptr_t           *blkref;
+    bplib_mpool_ref_t               blkref;
     bplib_route_serviceintf_info_t *base_intf;
     bp_handle_t                     self_intf_id;
     bplib_mpool_t                  *pool;
@@ -529,15 +576,15 @@ bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t nod
     pool = bplib_route_get_mpool(rtbl);
 
     /* Allocate Blocks */
-    sblk = bplib_mpool_alloc_flow(pool, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE, sizeof(bplib_service_endpt_t));
+    sblk = bplib_mpool_flow_alloc(pool, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE, sizeof(bplib_service_endpt_t));
     if (sblk == NULL)
     {
         bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to allocate intf block\n");
         return BP_INVALID_HANDLE;
     }
 
-    base_intf = bplib_mpool_cast_generic_data(sblk, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
-    blkref    = bplib_mpool_make_dynamic_object(pool, sblk);
+    base_intf = bplib_mpool_generic_data_cast(sblk, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    blkref    = bplib_mpool_ref_create(pool, sblk);
     if (blkref == NULL || base_intf == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to convert sblk to ref\n");
@@ -553,11 +600,12 @@ bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t nod
     {
         bplib_route_register_forward_ingress_handler(rtbl, self_intf_id, bplib_serviceflow_forward_ingress, NULL);
         bplib_route_register_forward_egress_handler(rtbl, self_intf_id, bplib_serviceflow_forward_egress, NULL);
+        bplib_route_register_event_handler(rtbl, self_intf_id, bplib_dataservice_event_impl);
     }
 
     if (blkref != NULL)
     {
-        bplib_mpool_release_light_reference(pool, blkref);
+        bplib_mpool_ref_release(pool, blkref);
     }
     else if (sblk != NULL)
     {
@@ -568,17 +616,17 @@ bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t nod
 }
 
 bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn, bplib_dataservice_type_t type,
-                                     bplib_mpool_refptr_t *blkref)
+                                     bplib_mpool_ref_t blkref)
 {
-    bp_handle_t           self_intf_id;
-    bp_handle_t           parent_intf_id;
-    bplib_mpool_refptr_t *parent_block_ref;
-    bplib_mpool_flow_t   *flow;
-    bplib_mpool_t        *pool;
-    int                   status;
+    bp_handle_t         self_intf_id;
+    bp_handle_t         parent_intf_id;
+    bplib_mpool_ref_t   parent_block_ref;
+    bplib_mpool_flow_t *flow;
+    bplib_mpool_t      *pool;
+    int                 status;
 
     pool = bplib_route_get_mpool(tbl);
-    flow = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(blkref));
+    flow = bplib_mpool_flow_cast(bplib_mpool_dereference(blkref));
     if (flow == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -602,8 +650,8 @@ bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t 
         return BP_INVALID_HANDLE;
     }
 
-    status = bplib_serviceflow_add_to_base(pool, bplib_mpool_get_reference_target(parent_block_ref),
-                                           ipn->service_number, type, blkref);
+    status = bplib_serviceflow_add_to_base(pool, bplib_mpool_dereference(parent_block_ref), ipn->service_number, type,
+                                           blkref);
     if (status != BP_SUCCESS)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): cannot add service %lu to node %lu - duplicate?\n", __func__,
@@ -614,8 +662,7 @@ bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t 
         self_intf_id = bplib_route_register_generic_intf(tbl, parent_intf_id, blkref);
         if (!bp_handle_is_valid(self_intf_id))
         {
-            bplib_serviceflow_remove_from_base(pool, bplib_mpool_get_reference_target(parent_block_ref),
-                                               ipn->service_number);
+            bplib_serviceflow_remove_from_base(pool, bplib_mpool_dereference(parent_block_ref), ipn->service_number);
             bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): could not register service %lu\n", __func__,
                   (unsigned long)ipn->node_number);
         }
@@ -631,13 +678,13 @@ bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t 
     return self_intf_id;
 }
 
-bplib_mpool_refptr_t *bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn)
+bplib_mpool_ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn)
 {
-    bp_handle_t           parent_intf_id;
-    bplib_mpool_refptr_t *parent_block_ref;
-    bplib_mpool_refptr_t *refptr;
-    bplib_mpool_flow_t   *flow;
-    bplib_mpool_t        *pool;
+    bp_handle_t         parent_intf_id;
+    bplib_mpool_ref_t   parent_block_ref;
+    bplib_mpool_ref_t   refptr;
+    bplib_mpool_flow_t *flow;
+    bplib_mpool_t      *pool;
 
     /* Find the intf ID, even if it is not currently enabled */
     pool             = bplib_route_get_mpool(tbl);
@@ -650,14 +697,13 @@ bplib_mpool_refptr_t *bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_i
         return NULL;
     }
 
-    refptr = bplib_serviceflow_remove_from_base(pool, bplib_mpool_get_reference_target(parent_block_ref),
-                                                ipn->service_number);
+    refptr = bplib_serviceflow_remove_from_base(pool, bplib_mpool_dereference(parent_block_ref), ipn->service_number);
 
     if (refptr != NULL)
     {
         /* also delete its registered intf id (so this mirrors bplib_dataservice_attach) */
         /* this should always work, no recourse if it doesn't */
-        flow = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(refptr));
+        flow = bplib_mpool_flow_cast(bplib_mpool_dereference(refptr));
         if (flow != NULL)
         {
             bplib_route_del_intf(tbl, flow->external_id);
@@ -675,18 +721,18 @@ bplib_mpool_refptr_t *bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_i
 
 bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl)
 {
-    bplib_mpool_t        *pool;
-    bplib_mpool_block_t  *sblk;
-    bplib_socket_info_t  *sock;
-    bplib_mpool_refptr_t *sock_ref;
+    bplib_mpool_t       *pool;
+    bplib_mpool_block_t *sblk;
+    bplib_socket_info_t *sock;
+    bplib_mpool_ref_t    sock_ref;
 
     pool = bplib_route_get_mpool(rtbl);
 
     /* Allocate Flow */
-    sblk = bplib_mpool_alloc_flow(pool, BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET, sizeof(bplib_socket_info_t));
+    sblk = bplib_mpool_flow_alloc(pool, BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET, sizeof(bplib_socket_info_t));
     if (sblk != NULL)
     {
-        sock = bplib_mpool_cast_generic_data(sblk, BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+        sock = bplib_mpool_generic_data_cast(sblk, BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
         assert(sock != NULL);
 
         sock->parent_rtbl = rtbl;
@@ -697,7 +743,7 @@ bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl)
         sock->params.local_retx_interval   = 2000;
         sock->params.lifetime              = 500000;
 
-        sock_ref = bplib_mpool_make_dynamic_object(pool, sblk);
+        sock_ref = bplib_mpool_ref_create(pool, sblk);
     }
     else
     {
@@ -710,13 +756,12 @@ bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl)
 
 int bplib_bind_socket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
 {
-    bplib_socket_info_t  *sock;
-    bplib_mpool_refptr_t *sock_ref;
+    bplib_socket_info_t *sock;
+    bplib_mpool_ref_t    sock_ref;
 
-    sock_ref = (bplib_mpool_refptr_t *)desc;
+    sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_cast_generic_data(bplib_mpool_get_reference_target(sock_ref),
-                                         BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -745,6 +790,7 @@ int bplib_bind_socket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
     /* There should be no possibility of these registrations failing, as the intf was just created */
     bplib_route_register_forward_ingress_handler(sock->parent_rtbl, sock->socket_intf_id, bplib_route_ingress_to_parent,
                                                  NULL);
+    bplib_route_register_event_handler(sock->parent_rtbl, sock->socket_intf_id, bplib_dataservice_event_impl);
 
     sock->params.local_ipn  = *source_ipn;
     sock->params.report_ipn = *source_ipn;
@@ -754,13 +800,12 @@ int bplib_bind_socket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
 
 int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn)
 {
-    bplib_socket_info_t  *sock;
-    bplib_mpool_refptr_t *sock_ref;
+    bplib_socket_info_t *sock;
+    bplib_mpool_ref_t    sock_ref;
 
-    sock_ref = (bplib_mpool_refptr_t *)desc;
+    sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_cast_generic_data(bplib_mpool_get_reference_target(sock_ref),
-                                         BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -788,22 +833,22 @@ int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn
 
     sock->params.remote_ipn = *destination_ipn;
 
-    bplib_route_intf_set_flags(sock->parent_rtbl, sock->socket_intf_id, BPLIB_INTF_STATE_ADMIN_UP);
+    bplib_route_intf_set_flags(sock->parent_rtbl, sock->socket_intf_id,
+                               BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP);
 
     return 0;
 }
 
 void bplib_close_socket(bp_socket_t *desc)
 {
-    bplib_mpool_t        *pool;
-    bplib_socket_info_t  *sock;
-    bplib_mpool_refptr_t *sock_ref;
-    bplib_mpool_refptr_t *detached_ref;
+    bplib_mpool_t       *pool;
+    bplib_socket_info_t *sock;
+    bplib_mpool_ref_t    sock_ref;
+    bplib_mpool_ref_t    detached_ref;
 
-    sock_ref = (bplib_mpool_refptr_t *)desc;
+    sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_cast_generic_data(bplib_mpool_get_reference_target(sock_ref),
-                                         BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -816,7 +861,7 @@ void bplib_close_socket(bp_socket_t *desc)
         detached_ref = bplib_dataservice_detach(sock->parent_rtbl, &sock->params.local_ipn);
         if (detached_ref != NULL)
         {
-            bplib_mpool_release_light_reference(pool, detached_ref);
+            bplib_mpool_ref_release(pool, detached_ref);
             detached_ref = NULL;
         }
 
@@ -825,24 +870,23 @@ void bplib_close_socket(bp_socket_t *desc)
 
     /* recycle the original */
     sock->parent_rtbl = NULL;
-    bplib_mpool_release_light_reference(pool, sock_ref);
+    bplib_mpool_ref_release(pool, sock_ref);
 }
 
 int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout, uint32_t *flags)
 {
-    int                          status;
-    bplib_mpool_block_t         *rblk;
-    bplib_mpool_flow_t          *flow;
-    bplib_mpool_refptr_t        *refptr;
-    bplib_mpool_primary_block_t *pri_block;
-    bplib_mpool_refptr_t        *sock_ref;
-    bplib_socket_info_t         *sock;
-    bplib_mpool_t               *pool;
+    int                           status;
+    bplib_mpool_block_t          *rblk;
+    bplib_mpool_flow_t           *flow;
+    bplib_mpool_ref_t             refptr;
+    bplib_mpool_bblock_primary_t *pri_block;
+    bplib_mpool_ref_t             sock_ref;
+    bplib_socket_info_t          *sock;
+    bplib_mpool_t                *pool;
 
-    sock_ref = (bplib_mpool_refptr_t *)desc;
+    sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_cast_generic_data(bplib_mpool_get_reference_target(sock_ref),
-                                         BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -850,11 +894,17 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
     }
 
     pool = bplib_route_get_mpool(sock->parent_rtbl);
-    flow = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(sock_ref));
+    flow = bplib_mpool_flow_cast(bplib_mpool_dereference(sock_ref));
     if (flow == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad flow ref - is socket connected?\n", __func__);
         return BP_ERROR;
+    }
+
+    if (!bplib_mpool_subq_may_push(&flow->ingress))
+    {
+        /* JPHFIX: This is where a timeout would come into play */
+        return BP_TIMEOUT;
     }
 
     refptr = bplib_serviceflow_bundleize_payload(sock, payload, size);
@@ -864,18 +914,18 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
         return BP_ERROR;
     }
 
-    rblk = bplib_mpool_make_block_ref(pool, refptr, NULL, NULL);
+    rblk = bplib_mpool_ref_make_block(pool, refptr, 0, NULL, NULL);
     if (rblk != NULL)
     {
-        pri_block = bplib_mpool_cast_primary(rblk);
+        pri_block = bplib_mpool_bblock_primary_cast(rblk);
         if (pri_block != NULL)
         {
             pri_block->delivery_data.ingress_intf_id = flow->external_id;
             pri_block->delivery_data.ingress_time    = bplib_os_get_dtntime_ms();
         }
 
-        bplib_mpool_append_subq_bundle(&flow->input, rblk);
-        bplib_mpool_mark_flow_active(pool, flow);
+        bplib_mpool_subq_push_single(&flow->ingress, rblk);
+        bplib_mpool_flow_mark_active(pool, sock_ref);
 
         sock->ingress_byte_count += size;
         status = BP_SUCCESS;
@@ -883,7 +933,6 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
     else
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): failed to create block ref, out of memory?\n", __func__);
-        ++flow->input.stats.error_count;
         status = BP_ERROR;
     }
 
@@ -892,39 +941,38 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
      * reached a storage (for custody-tracked) or made it to the next hop CLA (for best-effort svc level)
      */
 
-    bplib_mpool_release_light_reference(pool, refptr);
+    bplib_mpool_ref_release(pool, refptr);
 
     return status;
 }
 
 int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint32_t *flags)
 {
-    int                          status;
-    bplib_socket_info_t         *sock;
-    bplib_mpool_primary_block_t *pri_block;
-    bplib_mpool_block_t         *pblk;
-    bplib_mpool_refptr_t        *refptr;
-    bplib_mpool_refptr_t        *sock_ref;
-    bplib_mpool_flow_t          *flow;
+    int                           status;
+    bplib_socket_info_t          *sock;
+    bplib_mpool_bblock_primary_t *pri_block;
+    bplib_mpool_block_t          *pblk;
+    bplib_mpool_ref_t             refptr;
+    bplib_mpool_ref_t             sock_ref;
+    bplib_mpool_flow_t           *flow;
 
-    sock_ref = (bplib_mpool_refptr_t *)desc;
+    sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_cast_generic_data(bplib_mpool_get_reference_target(sock_ref),
-                                         BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
         return BP_ERROR;
     }
 
-    flow = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(sock_ref));
+    flow = bplib_mpool_flow_cast(bplib_mpool_dereference(sock_ref));
     if (flow == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad flow_ref\n", __func__);
         return BP_ERROR;
     }
 
-    if (bplib_mpool_is_link_unattached(&flow->output.block_list))
+    if (!bplib_mpool_subq_may_pull(&flow->egress))
     {
         /*
          * JPHFIX - to implement a timeout, this should wait/confirm here that the output queue
@@ -933,8 +981,8 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint
         return BP_TIMEOUT;
     }
 
-    pblk   = bplib_mpool_get_next_block(&flow->output.block_list);
-    refptr = bplib_mpool_duplicate_block_reference(pblk);
+    pblk   = bplib_mpool_subq_pull_single(&flow->egress);
+    refptr = bplib_mpool_ref_from_block(pblk);
 
     if (refptr != NULL)
     {
@@ -951,7 +999,7 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint
     /* this should always be the case */
     if (pblk != NULL)
     {
-        pri_block = bplib_mpool_cast_primary(pblk);
+        pri_block = bplib_mpool_bblock_primary_cast(pblk);
         if (status == BP_SUCCESS && pri_block != NULL)
         {
             pri_block->delivery_data.egress_intf_id = flow->external_id;
@@ -964,10 +1012,6 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint
     if (status == BP_SUCCESS)
     {
         sock->egress_byte_count += *size;
-    }
-    else
-    {
-        ++flow->output.stats.error_count;
     }
 
     return status;

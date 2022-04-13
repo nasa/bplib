@@ -130,8 +130,6 @@ typedef struct bplib_stats
 {
     uint32_t push_count;
     uint32_t pull_count;
-    uint32_t error_count;
-    uint32_t drop_count;
 } bplib_q_stats_t;
 
 typedef enum

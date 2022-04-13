@@ -24,6 +24,7 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
+#include "crc.h"
 #include "v7.h"
 #include "v7_mpool.h"
 #include "v7_codec.h"

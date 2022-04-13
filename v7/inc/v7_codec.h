@@ -34,8 +34,8 @@
  * can be assumed canonical.  Payload of the bundle will be recorded as an offset and size into that block, there
  * is no separate output.
  */
-int v7_block_decode_pri(bplib_mpool_t *pool, bplib_mpool_primary_block_t *cpb, const void *data_ptr, size_t data_size);
-int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t *ccb, const void *data_ptr,
+int v7_block_decode_pri(bplib_mpool_t *pool, bplib_mpool_bblock_primary_t *cpb, const void *data_ptr, size_t data_size);
+int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_t *ccb, const void *data_ptr,
                               size_t data_size);
 
 /*
@@ -45,12 +45,13 @@ int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t
  * One possible option would be to pass in NULL/0 for the block types that do not have separate data, to keep the APIs
  * more consistent.
  */
-int v7_block_encode_pri(bplib_mpool_t *pool, bplib_mpool_primary_block_t *cpb);
-int v7_block_encode_pay(bplib_mpool_t *pool, bplib_mpool_canonical_block_t *ccb, const void *data_ptr, size_t data_size);
-int v7_block_encode_canonical(bplib_mpool_t *pool, bplib_mpool_canonical_block_t *ccb);
+int v7_block_encode_pri(bplib_mpool_t *pool, bplib_mpool_bblock_primary_t *cpb);
+int v7_block_encode_pay(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_t *ccb, const void *data_ptr,
+                        size_t data_size);
+int v7_block_encode_canonical(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_t *ccb);
 
-size_t v7_compute_full_bundle_size(bplib_mpool_t *pool, bplib_mpool_primary_block_t *cpb);
-size_t v7_copy_full_bundle_out(bplib_mpool_primary_block_t *cpb, void *buffer, size_t buf_sz);
+size_t v7_compute_full_bundle_size(bplib_mpool_t *pool, bplib_mpool_bblock_primary_t *cpb);
+size_t v7_copy_full_bundle_out(bplib_mpool_bblock_primary_t *cpb, void *buffer, size_t buf_sz);
 size_t v7_copy_full_bundle_in(bplib_mpool_t *pool, bplib_mpool_block_t **pblk_out, const void *buffer, size_t buf_sz);
 
 #endif /* V7_CODEC_H */

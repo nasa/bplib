@@ -37,11 +37,12 @@
 #include "bplib.h"
 #include "bplib_store_ram.h"
 #include "bplib_routing.h"
+#include "crc.h"
 
 #include "v7_codec.h"
 #include "v7_mpool.h"
 #include "v7_cache.h"
-#include "crc.h"
+#include "v7_types.h"
 
 bplib_routetbl_t *s1_rtbl;
 bplib_routetbl_t *s2_rtbl;
@@ -216,6 +217,10 @@ int bplib_route_test(void)
     if (bplib_route_intf_set_flags(rtbl, s2_intf_id1, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP) < 0)
     {
         fprintf(stderr, "%s(): bplib_route_intf_set_flags id1 failed\n", __func__);
+    }
+    if (bplib_route_intf_set_flags(rtbl, s2_intf_store, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP) < 0)
+    {
+        fprintf(stderr, "%s(): bplib_route_intf_set_flags storage failed\n", __func__);
     }
     if (bplib_route_intf_set_flags(rtbl, s2_intf_cla, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP) < 0)
     {

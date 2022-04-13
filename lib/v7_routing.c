@@ -26,6 +26,9 @@
 #include "bplib_os.h"
 #include "bplib_routing.h"
 #include "v7_mpool.h"
+#include "v7_mpool_bblocks.h"
+#include "v7_mpool_flows.h"
+#include "v7_mpool_ref.h"
 #include "v7.h"
 
 #define BPLIB_ROUTING_SIGNATURE_BASE_INTF 0xe1ce32cf
@@ -43,7 +46,7 @@ typedef struct bplib_intf
 {
     bp_handle_t               handle;
     uint32_t                  state_flags;
-    bplib_mpool_refptr_t     *blk_refptr;
+    bplib_mpool_ref_t         blk_refptr;
     bplib_route_action_func_t ingress_forwarder;
     bplib_route_action_func_t egress_forwarder;
     bplib_route_action_func_t event_handler;
@@ -89,102 +92,65 @@ static inline bool bplib_route_intf_match(const bplib_intf_t *ifp, bp_handle_t i
     return (ifp != NULL && bp_handle_equal(ifp->handle, intf_id));
 }
 
-// bplib_mpool_dataservice_t     *bplib_mpool_cast_dataservice(bplib_mpool_block_t *cb);
-
-void bplib_mpool_append_subq_bundle(bplib_mpool_subq_t *subq, bplib_mpool_block_t *cpb)
-{
-    /* checks that it is some form of primary bundle */
-    assert(bplib_mpool_cast_primary(cpb) != NULL);
-    bplib_mpool_insert_before(&subq->block_list, cpb);
-    ++subq->stats.push_count;
-}
-
-bplib_mpool_block_t *bplib_mpool_shift_subq_bundle(bplib_mpool_subq_t *subq)
-{
-    bplib_mpool_block_t *node = subq->block_list.next;
-
-    /* if the head is reached here, then the list is empty */
-    if (bplib_mpool_is_list_head(node))
-    {
-        return NULL;
-    }
-
-    bplib_mpool_extract_node(node);
-    ++subq->stats.pull_count;
-
-    return node;
-}
-
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
 int bplib_route_ingress_to_parent(bplib_routetbl_t *tbl, bplib_mpool_block_t *flow_block, void *ingress_arg)
 {
-    bplib_mpool_block_t *qblk;
-    bplib_mpool_flow_t  *curr_flow;
-    bplib_mpool_flow_t  *next_flow;
-    int                  forward_count;
+    bplib_mpool_flow_t *curr_flow;
+    bplib_mpool_flow_t *next_flow;
+    uint32_t            queue_depth;
 
     /* This implements a simple ingress for sub-interfaces (of any kind) where the ingress
      * of the sub-interface nodes is simply funneled into the parent */
-    curr_flow = bplib_mpool_cast_flow(flow_block);
+    curr_flow = bplib_mpool_flow_cast(flow_block);
     if (curr_flow == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to cast flow block\n");
         return -1;
     }
 
-    next_flow = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(curr_flow->parent));
+    next_flow = bplib_mpool_flow_cast(bplib_mpool_dereference(curr_flow->parent));
     if (next_flow == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to cast flow parent block\n");
         return -1;
     }
 
-    /*
-     * JPHFIX: This does not need to loop here, because it does not actually need
-     * to look into each bundle at all.  It can just move the entire queue as a group.
-     *  (needs an API that allows that to occur)
-     * The only concern is that moving as a group may affect stats keeping
-     */
-    forward_count = 0;
-    while (true)
+    if (bplib_mpool_subq_may_push(&next_flow->ingress))
     {
-        qblk = bplib_mpool_shift_subq_bundle(&curr_flow->input);
-        if (qblk == NULL)
-        {
-            /* no more bundles */
-            break;
-        }
-
-        ++forward_count;
-
-        bplib_mpool_append_subq_bundle(&next_flow->input, qblk);
+        /*
+         * Entire contents moved as a batch.  NOTE- this may actually overfill the destination queue,
+         * because bplib_mpool_subq_may_push() returns true if one entry can be added, but
+         * this may add more than one.  Currently this shouldn't be a big problem, at least not
+         * big enough to warrant moving the entries one-by-one.
+         */
+        queue_depth = bplib_mpool_subq_move_all(&next_flow->ingress, &curr_flow->ingress);
+        bplib_mpool_flow_mark_active(tbl->pool, curr_flow->parent);
+    }
+    else
+    {
+        queue_depth = 0;
     }
 
-    if (forward_count > 0)
-    {
-        bplib_mpool_mark_flow_active(tbl->pool, next_flow);
-    }
-
-    return forward_count;
+    return queue_depth;
 }
 
 void bplib_route_ingress_route_single_bundle(bplib_routetbl_t *tbl, bplib_mpool_block_t *pblk)
 {
-    bplib_mpool_primary_block_t *pri_block;
-    bp_primary_block_t          *pri;
-    bp_ipn_addr_t                dest_addr;
-    bp_handle_t                  next_hop;
-    uint32_t                     req_flags;
-    uint32_t                     flag_mask;
+    bplib_mpool_bblock_primary_t *pri_block;
+    bp_primary_block_t           *pri;
+    bp_ipn_addr_t                 dest_addr;
+    bp_handle_t                   next_hop;
+    uint32_t                      req_flags;
+    uint32_t                      flag_mask;
 
     /* is this routable right now? */
-    pri_block = bplib_mpool_cast_primary(pblk);
+    pri_block = bplib_mpool_bblock_primary_cast(pblk);
     if (pri_block != NULL)
     {
-        pri = bplib_mpool_get_pri_block_logical(pri_block);
+        pri = bplib_mpool_bblock_primary_get_logical(pri_block);
 
         v7_get_eid(&dest_addr, &pri->destinationEID);
 
@@ -229,7 +195,7 @@ int bplib_route_ingress_baseintf_forwarder(bplib_routetbl_t *tbl, bplib_mpool_bl
     bplib_mpool_flow_t  *flow;
     int                  forward_count;
 
-    flow = bplib_mpool_cast_flow(flow_block);
+    flow = bplib_mpool_flow_cast(flow_block);
     if (flow == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to cast flow block\n");
@@ -239,7 +205,7 @@ int bplib_route_ingress_baseintf_forwarder(bplib_routetbl_t *tbl, bplib_mpool_bl
     forward_count = 0;
     while (true)
     {
-        qblk = bplib_mpool_shift_subq_bundle(&flow->input);
+        qblk = bplib_mpool_subq_pull_single(&flow->ingress);
         if (qblk == NULL)
         {
             /* no more bundles */
@@ -311,7 +277,6 @@ bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, uint32_t max_intf
     bplib_mpool_offset = complete_size;
     complete_size += cache_mem_size;
 
-    align         = BP_MPOOL_MAX_ENCODED_CHUNK_SIZE - 1;
     complete_size = (complete_size + align) & ~align;
 
     tbl_ptr = (bplib_routetbl_t *)bplib_os_calloc(complete_size);
@@ -340,7 +305,7 @@ bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, uint32_t max_intf
 }
 
 bp_handle_t bplib_route_register_generic_intf(bplib_routetbl_t *tbl, bp_handle_t parent_intf_id,
-                                              bplib_mpool_refptr_t *blkref)
+                                              bplib_mpool_ref_t blkref)
 {
     uint32_t            count;
     uint32_t            next_intf_serial;
@@ -351,7 +316,7 @@ bp_handle_t bplib_route_register_generic_intf(bplib_routetbl_t *tbl, bp_handle_t
     bp_handle_t         result;
 
     result = BP_INVALID_HANDLE;
-    flow   = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(blkref));
+    flow   = bplib_mpool_flow_cast(bplib_mpool_dereference(blkref));
     if (flow == NULL)
     {
         bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to cast flow block\n");
@@ -398,14 +363,14 @@ bp_handle_t bplib_route_register_generic_intf(bplib_routetbl_t *tbl, bp_handle_t
         {
             tbl->last_intf_serial = next_intf_serial;
 
-            ifp->blk_refptr = bplib_mpool_duplicate_light_reference(blkref);
+            ifp->blk_refptr = bplib_mpool_ref_duplicate(blkref);
             result          = bp_handle_from_serial(next_intf_serial, BPLIB_HANDLE_INTF_BASE);
             ifp->handle     = result;
 
             flow->external_id = result;
             if (parent_ifp != NULL)
             {
-                flow->parent = bplib_mpool_duplicate_light_reference(parent_ifp->blk_refptr);
+                flow->parent = bplib_mpool_ref_duplicate(parent_ifp->blk_refptr);
             }
             else
             {
@@ -478,7 +443,7 @@ int bplib_route_register_event_handler(bplib_routetbl_t *tbl, bp_handle_t intf_i
     return bplib_route_register_handler_impl(tbl, intf_id, offsetof(bplib_intf_t, event_handler), event, 0, NULL);
 }
 
-bplib_mpool_refptr_t *bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, bp_handle_t intf_id)
+bplib_mpool_ref_t bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 {
     bplib_intf_t *ifp;
 
@@ -489,12 +454,12 @@ bplib_mpool_refptr_t *bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, b
         return NULL;
     }
 
-    return bplib_mpool_duplicate_light_reference(ifp->blk_refptr);
+    return bplib_mpool_ref_duplicate(ifp->blk_refptr);
 }
 
-void bplib_route_release_intf_controlblock(bplib_routetbl_t *tbl, bplib_mpool_refptr_t *refptr)
+void bplib_route_release_intf_controlblock(bplib_routetbl_t *tbl, bplib_mpool_ref_t refptr)
 {
-    bplib_mpool_release_light_reference(tbl->pool, refptr);
+    bplib_mpool_ref_release(tbl->pool, refptr);
 }
 
 int bplib_route_del_intf(bplib_routetbl_t *tbl, bp_handle_t intf_id)
@@ -529,7 +494,7 @@ int bplib_route_del_intf(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 
     if (ifp->blk_refptr)
     {
-        bplib_mpool_release_light_reference(tbl->pool, ifp->blk_refptr);
+        bplib_mpool_ref_release(tbl->pool, ifp->blk_refptr);
     }
 
     /* just wipe it */
@@ -587,11 +552,11 @@ int bplib_route_push_ingress_bundle(const bplib_routetbl_t *tbl, bp_handle_t int
     ifp    = bplip_route_lookup_intf_const(tbl, intf_id);
     if (bplib_route_intf_match(ifp, intf_id))
     {
-        flow = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(ifp->blk_refptr));
-        if (flow != NULL)
+        flow = bplib_mpool_flow_cast(bplib_mpool_dereference(ifp->blk_refptr));
+        if (flow != NULL && bplib_mpool_subq_may_push(&flow->ingress))
         {
-            bplib_mpool_append_subq_bundle(&flow->input, cb);
-            bplib_mpool_mark_flow_active(tbl->pool, flow);
+            bplib_mpool_subq_push_single(&flow->ingress, cb);
+            bplib_mpool_flow_mark_active(tbl->pool, ifp->blk_refptr);
             status = 0;
         }
     }
@@ -609,11 +574,11 @@ int bplib_route_push_egress_bundle(const bplib_routetbl_t *tbl, bp_handle_t intf
     ifp    = bplip_route_lookup_intf_const(tbl, intf_id);
     if (bplib_route_intf_match(ifp, intf_id))
     {
-        flow = bplib_mpool_cast_flow(bplib_mpool_get_reference_target(ifp->blk_refptr));
-        if (flow != NULL)
+        flow = bplib_mpool_flow_cast(bplib_mpool_dereference(ifp->blk_refptr));
+        if (flow != NULL && bplib_mpool_subq_may_push(&flow->egress))
         {
-            bplib_mpool_append_subq_bundle(&flow->output, cb);
-            bplib_mpool_mark_flow_active(tbl->pool, flow);
+            bplib_mpool_subq_push_single(&flow->egress, cb);
+            bplib_mpool_flow_mark_active(tbl->pool, ifp->blk_refptr);
             status = 0;
         }
     }
@@ -739,7 +704,7 @@ void bplib_route_handle_intf_statechange_event(bplib_routetbl_t *tbl, bp_handle_
         other_ifp = &tbl->intf_tbl[ipos];
         if (bp_handle_is_valid(other_ifp->handle) && other_ifp->event_handler != NULL)
         {
-            other_ifp->event_handler(tbl, bplib_mpool_get_reference_target(other_ifp->blk_refptr), &event);
+            other_ifp->event_handler(tbl, bplib_mpool_dereference(other_ifp->blk_refptr), &event);
         }
     }
 
@@ -766,7 +731,7 @@ void bplib_route_handle_intf_statechange_event(bplib_routetbl_t *tbl, bp_handle_
                 other_ifp = &tbl->intf_tbl[ipos];
                 if (bp_handle_is_valid(other_ifp->handle) && other_ifp->event_handler != NULL)
                 {
-                    other_ifp->event_handler(tbl, bplib_mpool_get_reference_target(other_ifp->blk_refptr), &event);
+                    other_ifp->event_handler(tbl, bplib_mpool_dereference(other_ifp->blk_refptr), &event);
                 }
             }
         }
@@ -829,7 +794,7 @@ void bplib_route_forward_intf(void *arg, bplib_mpool_block_t *flow_block)
 
     tbl = arg;
 
-    flow = bplib_mpool_cast_flow(flow_block);
+    flow = bplib_mpool_flow_cast(flow_block);
     if (flow == NULL)
     {
         return;
@@ -842,13 +807,13 @@ void bplib_route_forward_intf(void *arg, bplib_mpool_block_t *flow_block)
     }
 
     /* forward all egress */
-    if (ifp->egress_forwarder != NULL && bplib_mpool_is_link_attached(&flow->output.block_list))
+    if (ifp->egress_forwarder != NULL && bplib_mpool_subq_may_pull(&flow->egress))
     {
         ifp->egress_forwarder(tbl, flow_block, ifp->egress_arg);
     }
 
     /* forward all ingress */
-    if (ifp->ingress_forwarder != NULL && bplib_mpool_is_link_attached(&flow->input.block_list))
+    if (ifp->ingress_forwarder != NULL && bplib_mpool_subq_may_pull(&flow->ingress))
     {
         ifp->ingress_forwarder(tbl, flow_block, ifp->ingress_arg);
     }
@@ -868,15 +833,15 @@ void bplib_route_do_maintenance(bplib_routetbl_t *tbl)
         if (bp_handle_is_valid(ifp->handle) && ifp->event_handler != NULL)
         {
             /* poll intf  */
-            ifp->event_handler(tbl, bplib_mpool_get_reference_target(ifp->blk_refptr), &poll_event);
+            ifp->event_handler(tbl, bplib_mpool_dereference(ifp->blk_refptr), &poll_event);
         }
     }
 
     /* now forward any bundles between interfaces, based on active flows */
     while (true)
     {
-        /* keep calling bplib_mpool_process_all_flows() until it returns 0 meaning no work was done */
-        if (bplib_mpool_process_all_flows(tbl->pool, bplib_route_forward_intf, tbl) <= 0)
+        /* keep calling bplib_mpool_flow_process_active() until it returns 0 meaning no work was done */
+        if (bplib_mpool_flow_process_active(tbl->pool, bplib_route_forward_intf, tbl) <= 0)
         {
             break;
         }
