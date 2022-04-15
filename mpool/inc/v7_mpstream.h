@@ -28,7 +28,6 @@
 #include "v7_mpool.h"
 #include "crc.h"
 
-
 typedef enum bplib_mpool_stream_dir
 {
     bplib_mpool_stream_dir_undefined,
@@ -38,18 +37,19 @@ typedef enum bplib_mpool_stream_dir
 
 typedef struct bplib_mpool_stream
 {
-    bplib_mpool_stream_dir_t      dir;
-    bplib_mpool_t                *pool;
-    bplib_mpool_block_t    *last_eblk;
-    bplib_mpool_block_t     head;
-    size_t                  curr_pos;
-    size_t                  curr_limit;
-    size_t                  stream_position;
-    bplib_crc_parameters_t *crc_params;
-    bp_crcval_t             crcval;
+    bplib_mpool_stream_dir_t dir;
+    bplib_mpool_t           *pool;
+    bplib_mpool_block_t     *last_eblk;
+    bplib_mpool_block_t      head;
+    size_t                   curr_pos;
+    size_t                   curr_limit;
+    size_t                   stream_position;
+    bplib_crc_parameters_t  *crc_params;
+    bp_crcval_t              crcval;
 } bplib_mpool_stream_t;
 
-void   bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *pool, bplib_mpool_stream_dir_t dir, bp_crctype_t crctype);
+void   bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *pool, bplib_mpool_stream_dir_t dir,
+                                     bp_crctype_t crctype);
 size_t bplib_mpool_stream_write(bplib_mpool_stream_t *mps, const void *data, size_t size);
 size_t bplib_mpool_stream_read(bplib_mpool_stream_t *mps, void *data, size_t size);
 size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t position);

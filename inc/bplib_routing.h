@@ -92,15 +92,15 @@ bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, uint32_t max_intf
 bplib_mpool_t    *bplib_route_get_mpool(const bplib_routetbl_t *tbl);
 
 bp_handle_t bplib_route_register_generic_intf(bplib_routetbl_t *tbl, bp_handle_t parent_intf_id,
-                                              bplib_mpool_refptr_t *blkref);
+                                              bplib_mpool_ref_t blkref);
 
 void bplib_route_ingress_route_single_bundle(bplib_routetbl_t *tbl, bplib_mpool_block_t *pblk);
 int  bplib_route_ingress_baseintf_forwarder(bplib_routetbl_t *tbl, bplib_mpool_block_t *flow_block, void *forward_arg);
 int  bplib_route_ingress_to_parent(bplib_routetbl_t *tbl, bplib_mpool_block_t *flow_block, void *ingress_arg);
 
-bp_handle_t           bplib_route_bind_sub_intf(bplib_mpool_block_t *flow_block, bp_handle_t parent_intf_id);
-bplib_mpool_refptr_t *bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, bp_handle_t intf_id);
-void                  bplib_route_release_intf_controlblock(bplib_routetbl_t *tbl, bplib_mpool_refptr_t *refptr);
+bp_handle_t       bplib_route_bind_sub_intf(bplib_mpool_block_t *flow_block, bp_handle_t parent_intf_id);
+bplib_mpool_ref_t bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, bp_handle_t intf_id);
+void              bplib_route_release_intf_controlblock(bplib_routetbl_t *tbl, bplib_mpool_ref_t refptr);
 
 int bplib_route_register_forward_ingress_handler(bplib_routetbl_t *tbl, bp_handle_t intf_id,
                                                  bplib_route_action_func_t ingress, void *ingress_arg);
@@ -124,8 +124,5 @@ int bplib_route_push_egress_bundle(const bplib_routetbl_t *tbl, bp_handle_t intf
 int bplib_route_forward_baseintf_bundle(bplib_mpool_block_t *flow_block, void *forward_arg);
 
 void bplib_route_do_maintenance(bplib_routetbl_t *tbl);
-
-// bplib_mpool_baseintf_t        *bplib_mpool_cast_baseintf(bplib_mpool_block_t *cb);
-// bplib_mpool_flow_t            *bplib_mpool_cast_flow(bplib_mpool_block_t *cb);
 
 #endif

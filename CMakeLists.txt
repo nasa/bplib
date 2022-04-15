@@ -18,6 +18,14 @@ option(BPLIB_BUILD_TEST_TOOLS "Whether or not to build the test programs as part
 
 set(BPLIB_VERSION_STRING "3.0.99") # development
 
+set(BPLIB_COMMON_COMPILE_OPTIONS)
+
+# If using a GNU-style compiler then enable full warnings here.
+# May want to add equivalent for other compiler flavors too
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic)
+endif()
+
 # source units that comprise the basic fundamentals of BPLib
 # These units should always be built regardless of configuration
 set(BPLIB_SRC
@@ -62,6 +70,9 @@ endif()
 
 if (BPLIB_INCLUDE_BPV7)
 
+  add_subdirectory(mpool)
+  add_subdirectory(v7)
+
   list(REMOVE_ITEM BPLIB_SRC
     lib/bplib.c
     common/rb_tree.c
@@ -73,16 +84,17 @@ if (BPLIB_INCLUDE_BPV7)
     lib/v7_bplib.c
     store/v7_cache.c
     common/v7_rbtree.c
-    common/v7_mpool.c
-    common/v7_mpstream.c
-    v7/v7_codec.c
-    v7/v7.c
     lib/v7_routing.c
     lib/v7_cla_api.c
     lib/v7_dataservice_api.c
+
+    $<TARGET_OBJECTS:bplib_v7>
+    $<TARGET_OBJECTS:bplib_mpool>
   )
+
   list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/v7
+    $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
   )
 
 endif()
@@ -117,11 +129,6 @@ if (IS_CFS_ARCH_BUILD)
 
 else()
 
-  # Use pkg-config to locate tinycbor dependency (for now)
-  find_package(PkgConfig)
-  pkg_search_module(TINYCBOR tinycbor)
-  message(STATUS "Found tinycbor version ${TINYCBOR_VERSION}")
-
   # Building as a standalone library
   # This by will usually require a POSIX OS layer
   if (BPLIB_INCLUDE_POSIX)
@@ -140,17 +147,10 @@ else()
   target_compile_features(bplib PRIVATE c_std_99)
 
   # If using GNU GCC, then also enable full warning reporting
-  target_compile_options(bplib PRIVATE $<$<C_COMPILER_ID:GNU>:-Wall -Werror -pedantic>)
+  target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
   if (BPLIB_INCLUDE_BPV7)
 
-    # Use pkg-config to locate tinycbor dependency (required only for v7)
-    find_package(PkgConfig)
-    pkg_search_module(TINYCBOR tinycbor)
-    message(STATUS "Found tinycbor version ${TINYCBOR_VERSION}")
-
-    list(APPEND BPLIB_LINK_LIBRARIES ${TINYCBOR_LIBRARIES})
-    list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS ${TINYCBOR_INCLUDE_DIRS})
     target_compile_definitions(bplib PRIVATE BPLIB_INCLUDE_BPV7)
 
   endif()

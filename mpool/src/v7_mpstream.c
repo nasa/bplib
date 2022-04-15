@@ -29,6 +29,7 @@
 #include "bplib_os.h"
 #include "v7_types.h"
 #include "v7_mpstream.h"
+#include "v7_mpool_bblocks.h"
 
 void bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *pool, bplib_mpool_stream_dir_t dir,
                                    bp_crctype_t crctype)
@@ -77,13 +78,13 @@ size_t bplib_mpool_stream_write(bplib_mpool_stream_t *mps, const void *data, siz
         /* If no block is ready, get one now */
         if (mps->curr_pos >= mps->curr_limit)
         {
-            next_block = bplib_mpool_alloc_cbor_data_block(mps->pool);
+            next_block = bplib_mpool_bblock_cbor_alloc(mps->pool);
             if (next_block == NULL)
             {
                 break;
             }
 
-            bplib_mpool_append_cbor_block(&mps->head, next_block);
+            bplib_mpool_bblock_cbor_append(&mps->head, next_block);
 
             mps->last_eblk  = next_block;
             mps->curr_pos   = 0;
@@ -96,13 +97,13 @@ size_t bplib_mpool_stream_write(bplib_mpool_stream_t *mps, const void *data, siz
             chunk_sz = remain_sz;
         }
 
-        out_p = bplib_mpool_cast_cbor_data(mps->last_eblk);
+        out_p = bplib_mpool_bblock_cbor_cast(mps->last_eblk);
         out_p += mps->curr_pos;
         memcpy(out_p, chunk_p, chunk_sz);
         mps->crcval = bplib_crc_update(mps->crc_params, mps->crcval, out_p, chunk_sz);
 
         mps->curr_pos += chunk_sz;
-        bplib_mpool_set_cbor_content_size(mps->last_eblk, mps->curr_pos);
+        bplib_mpool_bblock_cbor_set_size(mps->last_eblk, mps->curr_pos);
         mps->stream_position += chunk_sz;
         remain_sz -= chunk_sz;
         chunk_p += chunk_sz;
@@ -137,14 +138,14 @@ size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t target_position
             }
             else if (mps->dir == bplib_mpool_stream_dir_write)
             {
-                next_block = bplib_mpool_alloc_cbor_data_block(mps->pool);
+                next_block = bplib_mpool_bblock_cbor_alloc(mps->pool);
             }
             else
             {
                 next_block = NULL;
             }
 
-            curr_p = bplib_mpool_cast_cbor_data(next_block);
+            curr_p = bplib_mpool_bblock_cbor_cast(next_block);
             if (curr_p == NULL)
             {
                 break;
@@ -155,7 +156,7 @@ size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t target_position
 
             if (mps->dir == bplib_mpool_stream_dir_write)
             {
-                bplib_mpool_append_cbor_block(&mps->head, next_block);
+                bplib_mpool_bblock_cbor_append(&mps->head, next_block);
                 mps->curr_limit = bplib_mpool_get_generic_data_capacity(next_block);
             }
             else
@@ -165,7 +166,7 @@ size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t target_position
         }
         else
         {
-            curr_p = bplib_mpool_cast_cbor_data(mps->last_eblk);
+            curr_p = bplib_mpool_bblock_cbor_cast(mps->last_eblk);
         }
 
         block_avail = mps->curr_limit - mps->curr_pos;
@@ -181,7 +182,7 @@ size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t target_position
         if (mps->dir == bplib_mpool_stream_dir_write)
         {
             memset(curr_p + mps->curr_pos, 0, chunk_sz);
-            bplib_mpool_set_cbor_content_size(mps->last_eblk, mps->curr_pos + chunk_sz);
+            bplib_mpool_bblock_cbor_set_size(mps->last_eblk, mps->curr_pos + chunk_sz);
         }
 
         mps->crcval = bplib_crc_update(mps->crc_params, mps->crcval, curr_p + mps->curr_pos, chunk_sz);
@@ -252,7 +253,7 @@ size_t bplib_mpool_stream_read(bplib_mpool_stream_t *mps, void *data, size_t siz
         if (mps->curr_pos >= mps->curr_limit)
         {
             next_block = bplib_mpool_get_next_block(mps->last_eblk);
-            in_p       = bplib_mpool_cast_cbor_data(next_block);
+            in_p       = bplib_mpool_bblock_cbor_cast(next_block);
             if (in_p == NULL)
             {
                 /* end of stream */
@@ -265,7 +266,7 @@ size_t bplib_mpool_stream_read(bplib_mpool_stream_t *mps, void *data, size_t siz
         }
         else
         {
-            in_p = bplib_mpool_cast_cbor_data(mps->last_eblk);
+            in_p = bplib_mpool_bblock_cbor_cast(mps->last_eblk);
         }
 
         chunk_sz = mps->curr_limit - mps->curr_pos;
@@ -289,7 +290,7 @@ size_t bplib_mpool_stream_read(bplib_mpool_stream_t *mps, void *data, size_t siz
 
 void bplib_mpool_stream_attach(bplib_mpool_stream_t *mps, bplib_mpool_block_t *head)
 {
-    bplib_mpool_merge_listx(head, &mps->head);
+    bplib_mpool_merge_list(head, &mps->head);
     bplib_mpool_extract_node(&mps->head);
 
     mps->last_eblk       = &mps->head;
