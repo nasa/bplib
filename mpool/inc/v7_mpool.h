@@ -54,13 +54,14 @@ typedef enum bplib_mpool_blocktype
      * can be implemented as a range check.  Do not change the
      * order of enum values without also updating the checks.
      */
-    bplib_mpool_blocktype_generic   = 2,
-    bplib_mpool_blocktype_cbor_data = 3,
-    bplib_mpool_blocktype_primary   = 4,
-    bplib_mpool_blocktype_canonical = 5,
-    bplib_mpool_blocktype_flow      = 6,
-    bplib_mpool_blocktype_ref       = 7,
-    bplib_mpool_blocktype_max       = 8, /* placeholder for the max "regular" block type */
+    bplib_mpool_blocktype_api       = 2,
+    bplib_mpool_blocktype_generic   = 3,
+    bplib_mpool_blocktype_cbor_data = 4,
+    bplib_mpool_blocktype_primary   = 5,
+    bplib_mpool_blocktype_canonical = 6,
+    bplib_mpool_blocktype_flow      = 7,
+    bplib_mpool_blocktype_ref       = 8,
+    bplib_mpool_blocktype_max       = 9, /* placeholder for the max "regular" block type */
 
     /*
      * A secondary link is one that is not at the beginning of the structure.
@@ -99,6 +100,19 @@ typedef enum
  * information.
  */
 typedef void (*bplib_mpool_callback_func_t)(void *, bplib_mpool_block_t *);
+
+/**
+ * @brief Blocktype API
+ *
+ * Specifies functions for module-specific block operations,
+ * including construction and destruction
+ */
+typedef struct bplib_mpool_blocktype_api
+{
+    bplib_mpool_callback_func_t construct; /**< Initialize a newly-created block */
+    bplib_mpool_callback_func_t destruct;  /**< De-initialize a recycled block */
+
+} bplib_mpool_blocktype_api_t;
 
 /**
  * @brief Gets the next block in a list of blocks
@@ -366,10 +380,10 @@ size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb);
  *
  * @param pool
  * @param magic_number
- * @param req_capacity
+ * @param init_arg Opaque pointer passed to initializer (may be NULL)
  * @return bplib_mpool_block_t*
  */
-bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_t magic_number, size_t req_capacity);
+bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg);
 
 /**
  * @brief Recycle a single block which is no longer needed
@@ -414,6 +428,29 @@ int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remo
  * @param pool
  */
 void bplib_mpool_maintain(bplib_mpool_t *pool);
+
+/**
+ * @brief Registers a given block type signature
+ *
+ * The api contains a constructor and destructor function, which will be invoked on newly allocated
+ * and recycled blocks, respectively.  This should be invoked during startup/initialization for all
+ * the services types being used.
+ *
+ * @note At the current time there is no defined method to unregister a block type, as types of services
+ * in use are not expected to change dynamically at runtime.  It is also somewhat difficult to ensure that
+ * there are no instances of the block type in existence in the pool.  If reconfiguration is required, the
+ * entire pool should be reinitialized.
+ *
+ * @param pool
+ * @param magic_number 32-bit Block identifier/signature
+ * @param api Structure containing op callbacks
+ * @param user_content_size Maximum size of user content associated with blocktype
+ * @returns status code
+ * @retval BP_SUCCESS if registration successful
+ * @retval BP_DUPLICATE if the block type is already registered.
+ */
+int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, const bplib_mpool_blocktype_api_t *api,
+                                   size_t user_content_size);
 
 /**
  * @brief Creates a memory pool object using a preallocated memory block

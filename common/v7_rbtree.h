@@ -40,19 +40,18 @@
  */
 typedef struct bplib_rbt_link
 {
-    bp_val_t key_value_and_color;
+    bp_val_t               key_value_and_color;
     struct bplib_rbt_link *left;
     struct bplib_rbt_link *right;
     struct bplib_rbt_link *parent;
 } bplib_rbt_link_t;
-
 
 /**
  * @brief Basic R-B tree parent structure
  */
 typedef struct bplib_rbt_root
 {
-    int                     black_height; /* debug facility */
+    int               black_height; /* debug facility */
     bplib_rbt_link_t *root;         /* The current root of the tree. This may change as rebalance occurs. */
 } bplib_rbt_root_t;
 
@@ -66,6 +65,17 @@ typedef struct bplib_rbt_iter
  ******************************************************************************/
 
 /* Red Black Tree API */
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Initializes a newly allocated tree root object
+ *
+ * The tree will be empty after this call.  This must only be invoked
+ * on new root objects, or else memory may be leaked.
+ *
+ * @param tree The tree object to initialize
+ */
+void bplib_rbt_init_root(bplib_rbt_root_t *tree);
 
 /*--------------------------------------------------------------------------------------*/
 /**

@@ -34,9 +34,11 @@
 #include "v7_types.h"
 #include "v7_mpool_internal.h"
 
-#define MPOOL_CACHE_PRIMARY_BLOCK_SIGNATURE   0x9bd24f2c
-#define MPOOL_CACHE_CANONICAL_BLOCK_SIGNATURE 0xd4802976
-#define MPOOL_CACHE_CBOR_DATA_SIGNATURE       0x6b243e33
+/* TBD: These are all base types so they do not really need to have a unique sig */
+/* Using 0 allows the default API to be used (no-op on create/delete). */
+#define MPOOL_CACHE_PRIMARY_BLOCK_SIGNATURE   0 /*0x9bd24f2c*/
+#define MPOOL_CACHE_CANONICAL_BLOCK_SIGNATURE 0 /*0xd4802976*/
+#define MPOOL_CACHE_CBOR_DATA_SIGNATURE       0 /*0x6b243e33*/
 
 /*----------------------------------------------------------------
  *
@@ -109,12 +111,6 @@ void bplib_mpool_bblock_primary_init(bplib_mpool_bblock_primary_t *pblk)
 {
     bplib_mpool_init_list_head(&pblk->cblock_list);
     bplib_mpool_init_list_head(&pblk->chunk_list);
-
-    /* wipe the logical content to be sure no stale data exists */
-    memset(&pblk->delivery_data, 0, sizeof(pblk->delivery_data));
-    memset(&pblk->pri_logical_data, 0, sizeof(pblk->pri_logical_data));
-    pblk->bundle_encode_size_cache = 0;
-    pblk->block_encode_size_cache  = 0;
 }
 
 /*----------------------------------------------------------------
@@ -125,11 +121,6 @@ void bplib_mpool_bblock_primary_init(bplib_mpool_bblock_primary_t *pblk)
 void bplib_mpool_bblock_canonical_init(bplib_mpool_bblock_canonical_t *cblk)
 {
     bplib_mpool_init_list_head(&cblk->chunk_list);
-
-    /* wipe the logical content to be sure no stale data exists */
-    memset(&cblk->canonical_logical_data, 0, sizeof(cblk->canonical_logical_data));
-    bplib_mpool_bblock_canonical_set_content_position(cblk, 0, 0);
-    cblk->block_encode_size_cache = 0;
 }
 
 /*----------------------------------------------------------------
@@ -139,7 +130,8 @@ void bplib_mpool_bblock_canonical_init(bplib_mpool_bblock_canonical_t *cblk)
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool)
 {
-    return bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary, MPOOL_CACHE_PRIMARY_BLOCK_SIGNATURE);
+    return (bplib_mpool_block_t *)bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary,
+                                                                   MPOOL_CACHE_PRIMARY_BLOCK_SIGNATURE, NULL);
 }
 
 /*----------------------------------------------------------------
@@ -149,8 +141,8 @@ bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool)
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool)
 {
-    return bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical,
-                                            MPOOL_CACHE_CANONICAL_BLOCK_SIGNATURE);
+    return (bplib_mpool_block_t *)bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical,
+                                                                   MPOOL_CACHE_CANONICAL_BLOCK_SIGNATURE, NULL);
 }
 
 /*----------------------------------------------------------------
@@ -160,7 +152,8 @@ bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool)
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool)
 {
-    return bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_cbor_data, MPOOL_CACHE_CBOR_DATA_SIGNATURE);
+    return (bplib_mpool_block_t *)bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_cbor_data,
+                                                                   MPOOL_CACHE_CBOR_DATA_SIGNATURE, NULL);
 }
 
 /*----------------------------------------------------------------

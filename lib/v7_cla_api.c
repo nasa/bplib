@@ -33,7 +33,8 @@
 #include "v7_cache.h"
 #include "bplib_routing.h"
 
-#define BPLIB_ROUTING_SIGNATURE_CLA_BASE 0x7b643c85
+#define BPLIB_BLOCKTYPE_CLA_INTF          0x7b643c85
+#define BPLIB_BLOCKTYPE_CLA_INGRESS_BLOCK 0x9580be4a
 
 typedef struct bplib_cla_stats
 {
@@ -135,7 +136,7 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
          */
         if (pri_block != NULL && imported_sz == size)
         {
-            rblk = bplib_mpool_ref_make_block(pool, refptr, 0, NULL, NULL);
+            rblk = bplib_mpool_ref_make_block(pool, refptr, BPLIB_BLOCKTYPE_CLA_INGRESS_BLOCK, NULL);
         }
         else
         {
@@ -245,6 +246,12 @@ int bplib_generic_bundle_egress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref,
     return status;
 }
 
+void bplib_cla_init(bplib_mpool_t *pool)
+{
+    bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_CLA_INTF, NULL, sizeof(bplib_cla_stats_t));
+    bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_CLA_INGRESS_BLOCK, NULL, 0);
+}
+
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -258,8 +265,11 @@ bp_handle_t bplib_create_cla_intf(bplib_routetbl_t *rtbl)
 
     pool = bplib_route_get_mpool(rtbl);
 
+    /* register CLA API module */
+    bplib_cla_init(pool);
+
     /* Allocate Blocks */
-    sblk = bplib_mpool_flow_alloc(pool, BPLIB_ROUTING_SIGNATURE_CLA_BASE, sizeof(bplib_cla_stats_t));
+    sblk = bplib_mpool_flow_alloc(pool, BPLIB_BLOCKTYPE_CLA_INTF, NULL);
     if (sblk == NULL)
     {
         bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to allocate intf block\n");
@@ -308,7 +318,7 @@ int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, 
         return BP_ERROR;
     }
 
-    stats = bplib_mpool_generic_data_cast(bplib_mpool_dereference(flow_ref), BPLIB_ROUTING_SIGNATURE_CLA_BASE);
+    stats = bplib_mpool_generic_data_cast(bplib_mpool_dereference(flow_ref), BPLIB_BLOCKTYPE_CLA_INTF);
     if (stats == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Intf ID is not a CLA\n");
@@ -341,7 +351,7 @@ int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *b
         return BP_ERROR;
     }
 
-    stats = bplib_mpool_generic_data_cast(bplib_mpool_dereference(flow_ref), BPLIB_ROUTING_SIGNATURE_CLA_BASE);
+    stats = bplib_mpool_generic_data_cast(bplib_mpool_dereference(flow_ref), BPLIB_BLOCKTYPE_CLA_INTF);
     if (stats == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Intf ID is not a CLA\n");

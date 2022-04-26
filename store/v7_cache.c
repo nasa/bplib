@@ -48,6 +48,7 @@
 #define BPLIB_STORE_SIGNATURE_STATE 0x683359a7
 #define BPLIB_STORE_SIGNATURE_ENTRY 0xf223fff9
 #define BPLIB_STORE_SIGNATURE_QUEUE 0x30241224
+#define BPLIB_STORE_SIGNATURE_BLOCK 0x77e96b11
 
 #define BP_BUNDLE_FLAG_WITHIN_LIFETIME  0x01
 #define BP_BUNDLE_FLAG_AWAITING_CUSTODY 0x02
@@ -116,35 +117,14 @@ typedef struct bplib_store_cache_queue
 
 typedef struct bplib_store_cache_entry
 {
-    uint32_t            flags;
-    bplib_mpool_ref_t   refptr;
-    uint64_t            expire_time;
-    uint64_t            retx_time;
-    bplib_mpool_block_t time_link;
-    bplib_mpool_block_t destination_link;
+    bplib_store_cache_state_t *parent_state;
+    uint32_t                   flags;
+    bplib_mpool_ref_t          refptr;
+    uint64_t                   expire_time;
+    uint64_t                   retx_time;
+    bplib_mpool_block_t        time_link;
+    bplib_mpool_block_t        destination_link;
 } bplib_store_cache_entry_t;
-
-typedef enum
-{
-    bplib_store_cache_construct_state_init,
-    bplib_store_cache_construct_state_alloc,
-    bplib_store_cache_construct_state_setup_cb,
-    bplib_store_cache_construct_state_attach,
-    bplib_store_cache_construct_state_register_egress,
-    bplib_store_cache_construct_state_register_ingress,
-    bplib_store_cache_construct_state_register_event,
-    bplib_store_cache_construct_state_done
-} bplib_store_cache_construct_state_t;
-
-typedef struct bplib_store_cache_construct_transaction
-{
-    bplib_store_cache_construct_state_t construct_state;
-    const bp_ipn_addr_t                *service_addr;
-    bplib_routetbl_t                   *rtbl;
-    bp_handle_t                         storage_intf_id;
-    bplib_mpool_ref_t                   storage_block_ref;
-    bplib_store_cache_state_t          *state_ptr;
-} bplib_store_cache_construct_transaction_t;
 
 /* Allows reconsitition of the entry struct from an RBT link pointer */
 static inline bplib_store_cache_queue_t *bplib_store_cache_queue_from_rbt_link(const bplib_rbt_link_t *link)
@@ -176,11 +156,8 @@ static bplib_store_cache_state_t *bplib_store_cache_get_state(bplib_mpool_block_
 void bplib_store_cache_handle_ref_recycle(void *arg, bplib_mpool_block_t *rblk)
 {
     bplib_mpool_block_t          *sblk;
-    bplib_store_cache_state_t    *state;
     bplib_mpool_bblock_primary_t *pri_block;
     bplib_store_cache_entry_t    *store_entry;
-
-    state = arg;
 
     pri_block = bplib_mpool_bblock_primary_cast(rblk);
     if (pri_block != NULL)
@@ -201,14 +178,14 @@ void bplib_store_cache_handle_ref_recycle(void *arg, bplib_mpool_block_t *rblk)
                     store_entry->flags &= ~BP_BUNDLE_FLAG_AWAITING_CUSTODY;
                 }
             }
-        }
 
-        /*
-         * always put back into pending_list, this will re-evalute its current
-         * state and reclassify it as appropriate
-         */
-        bplib_mpool_extract_node(sblk);
-        bplib_mpool_insert_before(&state->pending_list, sblk);
+            /*
+             * always put back into pending_list, this will re-evalute its current
+             * state and reclassify it as appropriate
+             */
+            bplib_mpool_extract_node(sblk);
+            bplib_mpool_insert_before(&store_entry->parent_state->pending_list, sblk);
+        }
     }
 }
 
@@ -237,6 +214,18 @@ void bplib_store_cache_remove_from_subindex(bplib_mpool_t *pool, bplib_rbt_root_
     }
 }
 
+void bplib_store_cache_construct_queue(void *arg, bplib_mpool_block_t *tblk)
+{
+    bplib_store_cache_queue_t *store_queue;
+
+    store_queue = bplib_mpool_generic_data_cast(tblk, BPLIB_STORE_SIGNATURE_QUEUE);
+    if (store_queue != NULL)
+    {
+        bplib_mpool_init_list_head(&store_queue->bundle_list);
+        store_queue->self = tblk;
+    }
+}
+
 void bplib_store_cache_add_to_subindex(bplib_mpool_t *pool, bplib_rbt_root_t *index_root,
                                        bplib_mpool_block_t *index_link, bp_val_t index_val)
 {
@@ -253,15 +242,12 @@ void bplib_store_cache_add_to_subindex(bplib_mpool_t *pool, bplib_rbt_root_t *in
     else
     {
         /* first occurrance of this particular index, need to create a subq block */
-        tblk = bplib_mpool_generic_data_alloc(pool, BPLIB_STORE_SIGNATURE_QUEUE, sizeof(bplib_store_cache_queue_t));
+        tblk        = bplib_mpool_generic_data_alloc(pool, BPLIB_STORE_SIGNATURE_QUEUE, NULL);
         store_queue = bplib_mpool_generic_data_cast(tblk, BPLIB_STORE_SIGNATURE_QUEUE);
         if (store_queue != NULL)
         {
-            bplib_mpool_init_list_head(&store_queue->bundle_list);
-
             /* This should always work, because it was already known _not_ to be a duplicate */
             bplib_rbt_insert_value(index_val, index_root, &store_queue->rbt_link);
-            store_queue->self = tblk;
         }
         else
         {
@@ -294,8 +280,7 @@ void bplib_store_cache_do_transmit(bplib_store_cache_state_t *state, bplib_store
     if (bplib_mpool_subq_may_push(&state->self_flow->ingress))
     {
         /* In the unlikely event that this fails, the refcount will remain 1, so it will be found again next poll */
-        rblk = bplib_mpool_ref_make_block(state->parent_pool, store_entry->refptr, 0,
-                                          bplib_store_cache_handle_ref_recycle, state);
+        rblk = bplib_mpool_ref_make_block(state->parent_pool, store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCK, NULL);
         if (rblk != NULL)
         {
             /* put it into the queue for transmit (does not fail at this point) */
@@ -328,10 +313,39 @@ void bplib_store_cache_do_transmit(bplib_store_cache_state_t *state, bplib_store
      */
     action_time = (action_time + 999) / 1000;
 
-    /* If this was in the time index, the old entry needs to be removed first, then it needs to be added in the new spot
+    /*
+     * If this was in the time index, the old entry needs to be removed first,
+     * then it needs to be added in the new spot
      */
     bplib_store_cache_remove_from_subindex(state->parent_pool, &state->time_index, &store_entry->time_link);
     bplib_store_cache_add_to_subindex(state->parent_pool, &state->time_index, &store_entry->time_link, action_time);
+}
+
+void bplib_store_cache_construct_entry(void *arg, bplib_mpool_block_t *sblk)
+{
+    bplib_store_cache_entry_t *store_entry;
+
+    store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    if (store_entry != NULL)
+    {
+        store_entry->parent_state = arg;
+        bplib_mpool_init_secondary_link(sblk, &store_entry->time_link);
+        bplib_mpool_init_secondary_link(sblk, &store_entry->destination_link);
+    }
+}
+
+void bplib_store_cache_destruct_entry(void *arg, bplib_mpool_block_t *sblk)
+{
+    bplib_store_cache_entry_t *store_entry;
+
+    store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    if (store_entry != NULL)
+    {
+        /* these are both secondary links, so just need to make sure they are not linked into a list,
+         * but they will be independently recycled */
+        bplib_mpool_extract_node(&store_entry->time_link);
+        bplib_mpool_extract_node(&store_entry->destination_link);
+    }
 }
 
 int bplib_store_cache_egress_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *intf_block, void *egress_arg)
@@ -371,8 +385,7 @@ int bplib_store_cache_egress_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *i
         ++forward_count;
 
         /* Create the storage-specific data block for keeping local refs  */
-        sblk = bplib_mpool_generic_data_alloc(state->parent_pool, BPLIB_STORE_SIGNATURE_ENTRY,
-                                              sizeof(bplib_store_cache_entry_t));
+        sblk = bplib_mpool_generic_data_alloc(state->parent_pool, BPLIB_STORE_SIGNATURE_ENTRY, state);
         if (sblk != NULL)
         {
             /* These 2 are dynamic casts, could return NULL, but should not unless there are bugs */
@@ -386,9 +399,6 @@ int bplib_store_cache_egress_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *i
 
                 /* this keeps a copy of the ref here, after qblk is recycled */
                 store_entry->refptr = bplib_mpool_ref_from_block(qblk);
-
-                bplib_mpool_init_secondary_link(sblk, &store_entry->time_link);
-                bplib_mpool_init_secondary_link(sblk, &store_entry->destination_link);
 
                 v7_get_eid(&dest_addr, &pri->destinationEID);
                 bplib_store_cache_add_to_subindex(state->parent_pool, &state->dest_eid_index,
@@ -449,12 +459,12 @@ void bplib_store_cache_cleanup_bundle(void *arg, bplib_mpool_block_t *sblk)
     bplib_store_cache_state_t *state;
     bplib_store_cache_entry_t *store_entry;
 
-    state = arg;
-
     /* This cast should always work, unless there is a bug */
     store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
     if (store_entry != NULL)
     {
+        state = store_entry->parent_state;
+
         /* ensure this has been removed from the various indices */
         bplib_store_cache_remove_from_subindex(state->parent_pool, &state->time_index, &store_entry->time_link);
         bplib_store_cache_remove_from_subindex(state->parent_pool, &state->dest_eid_index,
@@ -475,12 +485,12 @@ void bplib_store_cache_handle_bundle_pending_action(void *arg, bplib_mpool_block
     bplib_store_cache_entry_t    *store_entry;
     uint64_t                      now_time;
 
-    state = arg;
-
     /* This cast should always work, unless there is a bug */
     store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
     if (store_entry != NULL)
     {
+        state = store_entry->parent_state;
+
         pblk      = bplib_mpool_dereference(store_entry->refptr);
         pri_block = bplib_mpool_bblock_primary_cast(pblk);
         now_time  = bplib_os_get_dtntime_ms();
@@ -663,230 +673,184 @@ int bplib_store_cache_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *in
     return 0;
 }
 
-void bplib_store_cache_do_construct(bplib_store_cache_construct_transaction_t *xactn)
+void bplib_store_cache_construct_state(void *arg, bplib_mpool_block_t *sblk)
 {
-    bplib_mpool_t *pool;
-    int            status;
+    bplib_store_cache_state_t *state;
+    bplib_mpool_t             *pool;
 
-    pool   = bplib_route_get_mpool(xactn->rtbl);
-    status = 0;
-
-    while (xactn->construct_state < bplib_store_cache_construct_state_done)
+    pool  = arg;
+    state = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_STATE);
+    if (state != NULL)
     {
-        switch (xactn->construct_state)
-        {
-            case bplib_store_cache_construct_state_alloc:
-            {
-                bplib_mpool_block_t *temp_block;
+        state->parent_pool = pool;
+        state->self_flow   = bplib_mpool_flow_cast(sblk);
 
-                temp_block =
-                    bplib_mpool_flow_alloc(pool, BPLIB_STORE_SIGNATURE_STATE, sizeof(bplib_store_cache_state_t));
-                if (temp_block != NULL)
-                {
-                    /* this cast should always work, but nothing needs to be "undone" either way, so it can be tacked on
-                     * here */
-                    xactn->state_ptr         = bplib_mpool_generic_data_cast(temp_block, BPLIB_STORE_SIGNATURE_STATE);
-                    xactn->storage_block_ref = bplib_mpool_ref_create(pool, temp_block);
-                }
+        bplib_mpool_init_list_head(&state->pending_list);
+        bplib_mpool_init_list_head(&state->expired_list);
+        bplib_mpool_init_list_head(&state->idle_list);
 
-                if (xactn->state_ptr == NULL || xactn->storage_block_ref == NULL)
-                {
-                    bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "%s(): Insufficient memory to create file storage\n", __func__);
-                    status = -1;
-                }
-                break;
-            }
-            case bplib_store_cache_construct_state_setup_cb:
-            {
-                xactn->state_ptr->parent_pool   = pool;
-                xactn->state_ptr->self_fblk_ref = bplib_mpool_ref_duplicate(xactn->storage_block_ref);
-                xactn->state_ptr->self_flow = bplib_mpool_flow_cast(bplib_mpool_dereference(xactn->storage_block_ref));
-
-                bplib_mpool_init_list_head(&xactn->state_ptr->pending_list);
-                bplib_mpool_init_list_head(&xactn->state_ptr->expired_list);
-                bplib_mpool_init_list_head(&xactn->state_ptr->idle_list);
-                break;
-            }
-            case bplib_store_cache_construct_state_attach:
-            {
-                xactn->storage_intf_id = bplib_dataservice_attach(
-                    xactn->rtbl, xactn->service_addr, bplib_dataservice_type_storage, xactn->storage_block_ref);
-                if (!bp_handle_is_valid(xactn->storage_intf_id))
-                {
-                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): cannot attach - service addr invalid?\n", __func__);
-                    status = -1;
-                }
-                break;
-            }
-            case bplib_store_cache_construct_state_register_egress:
-            {
-                status = bplib_route_register_forward_egress_handler(xactn->rtbl, xactn->storage_intf_id,
-                                                                     bplib_store_cache_egress_impl, NULL);
-                break;
-            }
-            case bplib_store_cache_construct_state_register_ingress:
-            {
-                status = bplib_route_register_forward_ingress_handler(xactn->rtbl, xactn->storage_intf_id,
-                                                                      bplib_route_ingress_to_parent, NULL);
-                break;
-            }
-            case bplib_store_cache_construct_state_register_event:
-            {
-                status = bplib_route_register_event_handler(xactn->rtbl, xactn->storage_intf_id,
-                                                            bplib_store_cache_event_impl);
-                break;
-            }
-            default:
-                /* no-op, placeholder */
-                break;
-        }
-
-        if (status < 0)
-        {
-            /* something went wrong */
-            break;
-        }
-
-        ++xactn->construct_state;
+        bplib_rbt_init_root(&state->dest_eid_index);
+        bplib_rbt_init_root(&state->time_index);
     }
 }
 
-void bplib_store_cache_do_destruct(bplib_store_cache_construct_transaction_t *xactn)
+void bplib_store_cache_destruct_state(void *arg, bplib_mpool_block_t *sblk)
 {
-    bplib_mpool_t *pool;
-    int            status;
+    bplib_store_cache_state_t *state;
+    bplib_rbt_iter_t           it;
+    bplib_store_cache_queue_t *store_queue;
+    int                        status;
 
-    pool = bplib_route_get_mpool(xactn->rtbl);
-
-    while (xactn->construct_state > bplib_store_cache_construct_state_init)
+    state = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_STATE);
+    if (state != NULL)
     {
-        --xactn->construct_state;
-        switch (xactn->construct_state)
+
+        /* make sure all lists and indices are empty, blocks will be leaked if not */
+        /* first tackle the time index */
+        status = bplib_rbt_iter_goto_min(0, &state->time_index, &it);
+        while (status == BP_SUCCESS)
         {
-            case bplib_store_cache_construct_state_alloc:
-            {
-                if (xactn->storage_block_ref)
-                {
-                    bplib_mpool_ref_release(pool, xactn->storage_block_ref);
-                    xactn->storage_block_ref = NULL;
-                }
-                xactn->state_ptr = NULL;
-                break;
-            }
-            case bplib_store_cache_construct_state_setup_cb:
-            {
-                bplib_rbt_iter_t           it;
-                bplib_store_cache_queue_t *store_queue;
+            store_queue = bplib_store_cache_queue_from_rbt_link(it.position);
+            status      = bplib_rbt_iter_next(&it);
 
-                xactn->state_ptr->parent_pool = NULL;
+            /* move the entire set of nodes on this tree entry to the pending_list */
+            bplib_mpool_foreach_item_in_list(&store_queue->bundle_list, true, bplib_store_cache_bundle_make_pending,
+                                             state);
 
-                /* make sure all lists and indices are empty, blocks will be leaked if not */
-                /* first tackle the time index */
-                status = bplib_rbt_iter_goto_min(0, &xactn->state_ptr->time_index, &it);
-                while (status == BP_SUCCESS)
-                {
-                    store_queue = bplib_store_cache_queue_from_rbt_link(it.position);
-                    status      = bplib_rbt_iter_next(&it);
-
-                    /* move the entire set of nodes on this tree entry to the pending_list */
-                    bplib_mpool_foreach_item_in_list(&store_queue->bundle_list, true,
-                                                     bplib_store_cache_bundle_make_pending, xactn->state_ptr);
-
-                    /* done with this entry in the time index (will be re-added when pending_list is processed) */
-                    bplib_rbt_extract_node(&xactn->state_ptr->time_index, &store_queue->rbt_link);
-                    bplib_mpool_recycle_block(pool, store_queue->self);
-                }
-                /* first tackle the destination EID index */
-                status = bplib_rbt_iter_goto_min(0, &xactn->state_ptr->dest_eid_index, &it);
-                while (status == BP_SUCCESS)
-                {
-                    store_queue = bplib_store_cache_queue_from_rbt_link(it.position);
-                    status      = bplib_rbt_iter_next(&it);
-
-                    /* move the entire set of nodes on this tree entry to the pending_list */
-                    bplib_mpool_foreach_item_in_list(&store_queue->bundle_list, true,
-                                                     bplib_store_cache_bundle_make_pending, xactn->state_ptr);
-
-                    /* done with this entry in the time index (will be re-added when pending_list is processed) */
-                    bplib_rbt_extract_node(&xactn->state_ptr->dest_eid_index, &store_queue->rbt_link);
-                    bplib_mpool_recycle_block(pool, store_queue->self);
-                }
-                /* iterator status should not stop remainder of desconstruction */
-                status = BP_SUCCESS;
-                bplib_mpool_recycle_all_blocks_in_list(pool, &xactn->state_ptr->idle_list);
-                bplib_mpool_recycle_all_blocks_in_list(pool, &xactn->state_ptr->pending_list);
-                bplib_mpool_recycle_all_blocks_in_list(pool, &xactn->state_ptr->expired_list);
-                break;
-            }
-            case bplib_store_cache_construct_state_attach:
-            {
-                xactn->storage_block_ref = bplib_dataservice_detach(xactn->rtbl, xactn->service_addr);
-                if (xactn->storage_block_ref != NULL)
-                {
-                    xactn->state_ptr = bplib_mpool_generic_data_cast(bplib_mpool_dereference(xactn->storage_block_ref),
-                                                                     BPLIB_STORE_SIGNATURE_STATE);
-                }
-
-                if (xactn->state_ptr == NULL)
-                {
-                    bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): cannot detach - service addr invalid?\n", __func__);
-                    status = BP_ERROR;
-                }
-                break;
-            }
-            default:
-                /* no-op, placeholder */
-                break;
+            /* done with this entry in the time index (will be re-added when pending_list is processed) */
+            bplib_rbt_extract_node(&state->time_index, &store_queue->rbt_link);
+            bplib_mpool_recycle_block(state->parent_pool, store_queue->self);
         }
 
-        if (status < 0)
+        /* first tackle the destination EID index */
+        status = bplib_rbt_iter_goto_min(0, &state->dest_eid_index, &it);
+        while (status == BP_SUCCESS)
         {
-            break;
+            store_queue = bplib_store_cache_queue_from_rbt_link(it.position);
+            status      = bplib_rbt_iter_next(&it);
+
+            /* move the entire set of nodes on this tree entry to the pending_list */
+            bplib_mpool_foreach_item_in_list(&store_queue->bundle_list, true, bplib_store_cache_bundle_make_pending,
+                                             state);
+
+            /* done with this entry in the time index (will be re-added when pending_list is processed) */
+            bplib_rbt_extract_node(&state->dest_eid_index, &store_queue->rbt_link);
+            bplib_mpool_recycle_block(state->parent_pool, store_queue->self);
         }
+
+        bplib_mpool_recycle_all_blocks_in_list(state->parent_pool, &state->idle_list);
+        bplib_mpool_recycle_all_blocks_in_list(state->parent_pool, &state->pending_list);
+        bplib_mpool_recycle_all_blocks_in_list(state->parent_pool, &state->expired_list);
+
+        state->parent_pool = NULL;
     }
+}
+
+void bplib_store_cache_init(bplib_mpool_t *pool)
+{
+    const bplib_mpool_blocktype_api_t state_api = (bplib_mpool_blocktype_api_t) {
+        .construct = bplib_store_cache_construct_state,
+        .destruct  = bplib_store_cache_destruct_state,
+    };
+
+    const bplib_mpool_blocktype_api_t entry_api = (bplib_mpool_blocktype_api_t) {
+        .construct = bplib_store_cache_construct_entry,
+        .destruct  = bplib_store_cache_destruct_entry,
+    };
+
+    const bplib_mpool_blocktype_api_t queue_api = (bplib_mpool_blocktype_api_t) {
+        .construct = bplib_store_cache_construct_queue,
+        .destruct  = NULL,
+    };
+
+    const bplib_mpool_blocktype_api_t blockref_api = (bplib_mpool_blocktype_api_t) {
+        .construct = NULL,
+        .destruct  = bplib_store_cache_handle_ref_recycle,
+    };
+
+    bplib_mpool_register_blocktype(pool, BPLIB_STORE_SIGNATURE_STATE, &state_api, sizeof(bplib_store_cache_state_t));
+    bplib_mpool_register_blocktype(pool, BPLIB_STORE_SIGNATURE_ENTRY, &entry_api, sizeof(bplib_store_cache_entry_t));
+    bplib_mpool_register_blocktype(pool, BPLIB_STORE_SIGNATURE_QUEUE, &queue_api, sizeof(bplib_store_cache_queue_t));
+    bplib_mpool_register_blocktype(pool, BPLIB_STORE_SIGNATURE_BLOCK, &blockref_api, 0);
 }
 
 bp_handle_t bplib_store_cache_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr)
 {
-    bplib_store_cache_construct_transaction_t xactn;
+    bplib_store_cache_state_t *state;
+    bplib_mpool_block_t       *sblk;
+    bplib_mpool_t             *pool;
+    bplib_mpool_ref_t          flow_block_ref;
+    bp_handle_t                storage_intf_id;
 
-    memset(&xactn, 0, sizeof(xactn));
+    pool = bplib_route_get_mpool(tbl);
 
-    xactn.rtbl         = tbl;
-    xactn.service_addr = service_addr;
-    bplib_store_cache_do_construct(&xactn);
+    /* register Mem Cache storage module */
+    bplib_store_cache_init(pool);
 
-    /* if it didn't work completely, undo what was done */
-    if (xactn.construct_state < bplib_store_cache_construct_state_done)
+    sblk = bplib_mpool_flow_alloc(pool, BPLIB_STORE_SIGNATURE_STATE, pool);
+    if (sblk == NULL)
     {
-        bplib_store_cache_do_destruct(&xactn);
+        bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "%s(): Insufficient memory to create file storage\n", __func__);
+        return BP_INVALID_HANDLE;
     }
 
-    return xactn.storage_intf_id;
+    /* this must always work, it was just created above */
+    flow_block_ref = bplib_mpool_ref_create(pool, sblk);
+    state          = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_STATE);
+
+    storage_intf_id = bplib_dataservice_attach(tbl, service_addr, bplib_dataservice_type_storage, flow_block_ref);
+    if (!bp_handle_is_valid(storage_intf_id))
+    {
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): cannot attach - service addr invalid?\n", __func__);
+        bplib_mpool_ref_release(pool, flow_block_ref);
+    }
+    else
+    {
+        /* there should be no reason for any of these reg calls to fail */
+        bplib_route_register_forward_egress_handler(tbl, storage_intf_id, bplib_store_cache_egress_impl, NULL);
+        bplib_route_register_forward_ingress_handler(tbl, storage_intf_id, bplib_route_ingress_to_parent, NULL);
+        bplib_route_register_event_handler(tbl, storage_intf_id, bplib_store_cache_event_impl);
+
+        /* This will keep the ref to itself inside of the state struct, this
+         * creates a circular reference and prevents the refcount from ever becoming 0
+         */
+        state->self_fblk_ref = flow_block_ref;
+    }
+
+    return storage_intf_id;
 }
 
 int bplib_store_cache_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr)
 {
-    bplib_store_cache_construct_transaction_t xactn;
-    int                                       status;
+    bplib_store_cache_state_t *state;
+    bplib_mpool_ref_t          flow_block_ref;
+    int                        status;
+    bplib_mpool_t             *pool;
 
-    memset(&xactn, 0, sizeof(xactn));
-
-    xactn.rtbl            = tbl;
-    xactn.service_addr    = service_addr;
-    xactn.construct_state = bplib_store_cache_construct_state_done;
-
-    if (xactn.state_ptr != NULL)
+    pool           = bplib_route_get_mpool(tbl);
+    flow_block_ref = bplib_dataservice_detach(tbl, service_addr);
+    if (flow_block_ref != NULL)
     {
-        bplib_store_cache_do_destruct(&xactn);
+        state = bplib_mpool_generic_data_cast(bplib_mpool_dereference(flow_block_ref), BPLIB_STORE_SIGNATURE_STATE);
+    }
+    else
+    {
+        state = NULL;
     }
 
-    if (xactn.construct_state > bplib_store_cache_construct_state_init)
+    if (state == NULL)
     {
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): cannot detach - service addr invalid?\n", __func__);
         status = BP_ERROR;
     }
     else
     {
+        /* Break the internal circular reference first, this will permit the refcount to become 0 */
+        bplib_mpool_ref_release(pool, state->self_fblk_ref);
+        state->self_fblk_ref = NULL;
+
+        /* Release the local ref - this should cause the refcount to become 0 */
+        bplib_mpool_ref_release(pool, flow_block_ref);
         status = BP_SUCCESS;
     }
 
