@@ -227,16 +227,15 @@ size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_generic_data_cast
+ * Function: bplib_mpool_get_user_data_offset_by_blocktype
  *
  *-----------------------------------------------------------------*/
-void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_magic)
+size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt)
 {
-    bplib_mpool_block_content_t *block;
-    size_t                       data_offset;
-    static const size_t          USER_DATA_START_OFFSET[bplib_mpool_blocktype_max] = {
-        [bplib_mpool_blocktype_undefined] = (size_t)-1,
-        [bplib_mpool_blocktype_head]      = (size_t)-1,
+    static const size_t USER_DATA_START_OFFSET[bplib_mpool_blocktype_max] = {
+        [bplib_mpool_blocktype_undefined] = SIZE_MAX,
+        [bplib_mpool_blocktype_head]      = SIZE_MAX,
+        [bplib_mpool_blocktype_api]       = MPOOL_GET_BUFFER_USER_START_OFFSET(api),
         [bplib_mpool_blocktype_generic]   = MPOOL_GET_BUFFER_USER_START_OFFSET(generic_data),
         [bplib_mpool_blocktype_cbor_data] = MPOOL_GET_BUFFER_USER_START_OFFSET(generic_data),
         [bplib_mpool_blocktype_primary]   = MPOOL_GET_BUFFER_USER_START_OFFSET(primary),
@@ -244,11 +243,28 @@ void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_m
         [bplib_mpool_blocktype_flow]      = MPOOL_GET_BUFFER_USER_START_OFFSET(flow),
         [bplib_mpool_blocktype_ref]       = MPOOL_GET_BUFFER_USER_START_OFFSET(ref)};
 
-    block = bplib_mpool_get_block_content(cb);
-    if (block != NULL && block->header.base_link.type < bplib_mpool_blocktype_max &&
-        block->header.content_type_signature == required_magic)
+    if (bt >= bplib_mpool_blocktype_max)
     {
-        data_offset = USER_DATA_START_OFFSET[block->header.base_link.type];
+        return SIZE_MAX;
+    }
+
+    return USER_DATA_START_OFFSET[bt];
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_generic_data_cast
+ *
+ *-----------------------------------------------------------------*/
+void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_magic)
+{
+    bplib_mpool_block_content_t *block;
+    size_t                       data_offset;
+
+    block = bplib_mpool_get_block_content(cb);
+    if (block != NULL && block->header.content_type_signature == required_magic)
+    {
+        data_offset = bplib_mpool_get_user_data_offset_by_blocktype(block->header.base_link.type);
         if (data_offset < sizeof(bplib_mpool_block_buffer_t))
         {
             return &block->u.content_bytes[data_offset];
@@ -274,15 +290,17 @@ void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_
  * Function: bplib_mpool_alloc_block_internal
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
-                                                      uint32_t content_type_signature)
+bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
+                                                              uint32_t content_type_signature, void *init_arg)
 {
     bplib_mpool_block_t         *node;
     bplib_mpool_block_content_t *block;
+    bplib_mpool_api_content_t   *api_block;
+    size_t                       data_offset;
 
     /* Only real blocks are allocated here - not secondary links nor head nodes,
      * as those are embedded within the blocks themselves. */
-    if (blocktype < bplib_mpool_blocktype_generic || blocktype >= bplib_mpool_blocktype_max)
+    if (blocktype < bplib_mpool_blocktype_api || blocktype >= bplib_mpool_blocktype_max)
     {
         return NULL;
     }
@@ -302,6 +320,23 @@ bplib_mpool_block_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib
         return NULL;
     }
 
+    /* figure out how to initialize this block by looking up the content type */
+    api_block = (bplib_mpool_api_content_t *)bplib_rbt_search(content_type_signature, &pool->xblocktype_registry);
+    if (api_block == NULL)
+    {
+        /* no constructor, cannot create the block! */
+        return NULL;
+    }
+
+    /* sanity check that the user content will fit in the block */
+    data_offset = bplib_mpool_get_user_data_offset_by_blocktype(blocktype);
+    if (data_offset > sizeof(bplib_mpool_block_buffer_t) ||
+        (data_offset + api_block->user_content_size) > sizeof(bplib_mpool_block_buffer_t))
+    {
+        /* User content will not fit in the block - cannot create an instance of this type combo */
+        return NULL;
+    }
+
     /* All nodes in the free list should have a linktype of undefined.
      * If not, then this means the list is empty */
     node = pool->free_blocks.next;
@@ -315,19 +350,16 @@ bplib_mpool_block_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib
     ++pool->alloc_count;
     block = (bplib_mpool_block_content_t *)node;
 
-    bplib_mpool_init_base_object(&block->header, 0, content_type_signature);
+    /*
+     * zero fill the content part first, this ensures that this is always done,
+     * and avoids the need for the module to supply a dedicated constructor just to zero it
+     */
+    memset(&block->u, 0, data_offset + api_block->user_content_size);
+
+    bplib_mpool_init_base_object(&block->header, api_block->user_content_size, content_type_signature);
 
     switch (blocktype)
     {
-        case bplib_mpool_blocktype_generic:
-            /*
-             * for service specific data, wipe the whole buffer part of the block.
-             * this should not happen that frequently - only when services are added/removed -
-             * and as such the value of ensuring initial state is predictable is greater
-             * than the performance cost of (possibly) initializing more than what is necessary
-             */
-            memset(&block->u, 0, sizeof(block->u));
-            break;
         case bplib_mpool_blocktype_primary:
             bplib_mpool_bblock_primary_init(&block->u.primary.pblock);
             break;
@@ -338,11 +370,6 @@ bplib_mpool_block_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib
             bplib_mpool_init_secondary_link(node, &block->u.flow.processable_link);
             bplib_mpool_flow_init(&block->u.flow.fblock);
             break;
-        case bplib_mpool_blocktype_ref:
-            /* this doesn't have a dedicated init, just zero out the content part */
-            memset(&block->u.ref, 0, sizeof(block->u.ref));
-            break;
-
         default:
             /* nothing more for this node type (this catches cbor_data)  */
             break;
@@ -350,7 +377,13 @@ bplib_mpool_block_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib
 
     node->type = blocktype;
 
-    return node;
+    /* If the module did supply a constructor, invoke it now */
+    if (api_block->api.construct != NULL)
+    {
+        api_block->api.construct(init_arg, node);
+    }
+
+    return block;
 }
 
 /*----------------------------------------------------------------
@@ -358,29 +391,10 @@ bplib_mpool_block_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib
  * Function: bplib_mpool_generic_data_alloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_t magic_number, size_t req_capacity)
+bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
 {
-    bplib_mpool_block_t         *blk;
-    bplib_mpool_block_content_t *cgd;
-    static const size_t          GENERIC_AVAIL_CAPACITY = MPOOL_GET_BLOCK_USER_CAPACITY(flow);
-
-    /* for now all blocks are fixed size, so if it doesn't fit, it's broken */
-    if (req_capacity > GENERIC_AVAIL_CAPACITY)
-    {
-        assert(0);
-        return NULL;
-    }
-
-    blk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, magic_number);
-    if (blk)
-    {
-        /* need to set the internal fields to track */
-        cgd = (bplib_mpool_block_content_t *)blk;
-
-        cgd->header.user_content_length = req_capacity;
-    }
-
-    return blk;
+    return (bplib_mpool_block_t *)bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, magic_number,
+                                                                   init_arg);
 }
 
 /*----------------------------------------------------------------
@@ -448,6 +462,51 @@ int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remo
 
 /*----------------------------------------------------------------
  *
+ * Function: bplib_mpool_register_blocktype
+ *
+ *-----------------------------------------------------------------*/
+int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, const bplib_mpool_blocktype_api_t *api,
+                                   size_t user_content_size)
+{
+    bplib_mpool_block_content_t *ablk;
+    bplib_mpool_api_content_t   *api_block;
+    int                          status;
+
+    /* before doing anything, check if this is a duplicate.  If so, ignore it.
+     * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
+    if (bplib_rbt_search(magic_number, &pool->xblocktype_registry) != NULL)
+    {
+        return BP_DUPLICATE;
+    }
+
+    ablk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_api, 0, NULL);
+    if (ablk == NULL)
+    {
+        return BP_ERROR;
+    }
+
+    api_block = &ablk->u.api;
+
+    if (api != NULL)
+    {
+        api_block->api = *api;
+    }
+    api_block->user_content_size = user_content_size;
+
+    status = bplib_rbt_insert_value(magic_number, &pool->xblocktype_registry, &api_block->rbt_link);
+
+    /* due to the pre-check above this should always have been successful, but just in case, return the block if error
+     */
+    if (status != BP_SUCCESS)
+    {
+        bplib_mpool_recycle_block(pool, &ablk->header.base_link);
+    }
+
+    return status;
+}
+
+/*----------------------------------------------------------------
+ *
  * Function: bplib_mpool_maintain
  *
  *-----------------------------------------------------------------*/
@@ -455,6 +514,7 @@ void bplib_mpool_maintain(bplib_mpool_t *pool)
 {
     bplib_mpool_block_t          pending_recycle;
     bplib_mpool_block_t         *rblk;
+    bplib_mpool_api_content_t   *api_block;
     bplib_mpool_block_content_t *content;
     size_t                       recycled_count;
 
@@ -482,6 +542,17 @@ void bplib_mpool_maintain(bplib_mpool_t *pool)
             content = (bplib_mpool_block_content_t *)rblk;
             assert(content->header.refcount == 0);
 
+            /* figure out how to de-initialize the user content by looking up the content type */
+            api_block = (bplib_mpool_api_content_t *)bplib_rbt_search(content->header.content_type_signature,
+                                                                      &pool->xblocktype_registry);
+            if (api_block != NULL && api_block->api.destruct != NULL)
+            {
+                /* note that, like in C++, one cannot pass an arg to the destructor here.  It
+                 * uses the same API/function pointer type, the arg will always be NULL. */
+                api_block->api.destruct(NULL, rblk);
+            }
+
+            /* now de-initialize the base content */
             switch (rblk->type)
             {
                 case bplib_mpool_blocktype_canonical:
@@ -503,10 +574,6 @@ void bplib_mpool_maintain(bplib_mpool_t *pool)
                 }
                 case bplib_mpool_blocktype_ref:
                 {
-                    if (content->u.ref.notify_on_discard != NULL)
-                    {
-                        content->u.ref.notify_on_discard(rblk, content->u.ref.notify_arg);
-                    }
                     bplib_mpool_ref_release(pool, content->u.ref.pref_target);
                     content->u.ref.pref_target = NULL; /* this ref is going away */
                     break;
@@ -520,6 +587,7 @@ void bplib_mpool_maintain(bplib_mpool_t *pool)
             printf("DEBUG: %s() recycled block type %d\n", __func__, rblk->type);
 
             /* always return _this_ node to the free pile */
+            bplib_mpool_init_base_object(&content->header, 0, 0);
             rblk->type = bplib_mpool_blocktype_undefined;
             ++recycled_count;
         }
@@ -657,8 +725,13 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
     bplib_mpool_init_list_head(&pool->ref_managed_blocks);
     bplib_mpool_init_list_head(&pool->recycle_blocks);
     bplib_mpool_init_list_head(&pool->active_flow_list);
+    bplib_rbt_init_root(&pool->xblocktype_registry);
     pchunk = &pool->first_buffer;
     remain = pool_size - offsetof(bplib_mpool_t, first_buffer);
+
+    /* register the first API type, which is 0.
+     * Notably this prevents other modules from actually registering something at 0. */
+    bplib_rbt_insert_value(0, &pool->xblocktype_registry, &pool->blocktype_basic.rbt_link);
 
     while (remain >= sizeof(bplib_mpool_block_content_t))
     {

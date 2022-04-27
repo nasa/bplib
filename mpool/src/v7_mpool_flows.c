@@ -40,10 +40,7 @@
  *-----------------------------------------------------------------*/
 void bplib_mpool_subq_init(bplib_mpool_subq_t *qblk)
 {
-    /* clear the basic block, which zeros all stats */
-    memset(qblk, 0, sizeof(*qblk));
-
-    /* now init the link structs */
+    /* init the link structs */
     bplib_mpool_init_list_head(&qblk->block_listx);
 }
 
@@ -173,16 +170,10 @@ void bplib_mpool_flow_init(bplib_mpool_flow_t *fblk)
  * Function: bplib_mpool_flow_alloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_number, size_t req_capacity)
+bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
 {
-    static const size_t FLOW_AVAIL_CAPACITY = MPOOL_GET_BLOCK_USER_CAPACITY(flow);
-    if (req_capacity > FLOW_AVAIL_CAPACITY)
-    {
-        assert(0);
-        return NULL;
-    }
-
-    return bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_flow, magic_number);
+    return (bplib_mpool_block_t *)bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_flow, magic_number,
+                                                                   init_arg);
 }
 
 /*----------------------------------------------------------------

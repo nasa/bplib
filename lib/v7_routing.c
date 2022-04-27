@@ -31,8 +31,6 @@
 #include "v7_mpool_ref.h"
 #include "v7.h"
 
-#define BPLIB_ROUTING_SIGNATURE_BASE_INTF 0xe1ce32cf
-
 #define BPLIB_INTF_AVAILABLE_FLAGS (BPLIB_INTF_STATE_OPER_UP | BPLIB_INTF_STATE_ADMIN_UP)
 
 typedef struct bplib_routeentry

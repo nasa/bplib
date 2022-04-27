@@ -93,11 +93,10 @@ void bplib_mpool_ref_release(bplib_mpool_t *pool, bplib_mpool_ref_t refptr);
  *
  * @param pool
  * @param blk
- * @param notify_on_discard
- * @param notify_arg
+ * @param init_arg Opaque pointer to pass to initializer (may be NULL)
  * @return bplib_mpool_block_t*
  */
 bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_t *pool, bplib_mpool_ref_t refptr, uint32_t magic_number,
-                                                bplib_mpool_callback_func_t notify_on_discard, void *notify_arg);
+                                                void *init_arg);
 
 #endif /* V7_MPOOL_REF_H */

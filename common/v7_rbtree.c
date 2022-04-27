@@ -282,8 +282,7 @@ BP_LOCAL_SCOPE void remove_from_parent(bplib_rbt_root_t *tree, bplib_rbt_link_t 
  * @param parent Pointer to the current parent which should become child
  * @param child  Pointer to the current child which should become parent
  */
-BP_LOCAL_SCOPE void swap_parent_and_child(bplib_rbt_root_t *tree, bplib_rbt_link_t *parent,
-                                          bplib_rbt_link_t *child)
+BP_LOCAL_SCOPE void swap_parent_and_child(bplib_rbt_root_t *tree, bplib_rbt_link_t *parent, bplib_rbt_link_t *child)
 {
     bplib_rbt_link_t **grandparent_ref;
     bplib_rbt_link_t  *saved_left;
@@ -422,9 +421,9 @@ BP_LOCAL_SCOPE int do_insert_as_leaf(bplib_rbt_root_t *tree, bplib_rbt_link_t *n
     bplib_rbt_link_t  *curr_ptr;
     bplib_rbt_link_t **ref_ptr;
     bplib_rbt_link_t  *parent_ptr;
-    bp_val_t                 curr_key_value;
-    bp_val_t                 insert_key_value;
-    int                      status;
+    bp_val_t           curr_key_value;
+    bp_val_t           insert_key_value;
+    int                status;
 
     status           = BP_ERROR;
     parent_ptr       = NULL;
@@ -481,8 +480,8 @@ BP_LOCAL_SCOPE void do_insert_rebalance(bplib_rbt_root_t *tree, bplib_rbt_link_t
     bplib_rbt_link_t *parent;
     bplib_rbt_link_t *uncle;
     bplib_rbt_link_t *node;
-    bool                    node_is_left_side;
-    bool                    parent_is_left_side;
+    bool              node_is_left_side;
+    bool              parent_is_left_side;
     enum
     {
         insert_case_undefined,        /**< invalid/undefined/unknown tree state */
@@ -797,7 +796,7 @@ BP_LOCAL_SCOPE void do_delete_rebalance(bplib_rbt_root_t *tree, bplib_rbt_link_t
     bplib_rbt_link_t *distant_nephew;
     bplib_rbt_link_t *parent;
     bplib_rbt_link_t *node;
-    bool                    node_is_left_side;
+    bool              node_is_left_side;
     enum
     {
         delete_case_undefined,        /**< invalid/undefined/unknown tree state */
@@ -1025,6 +1024,11 @@ BP_LOCAL_SCOPE void do_delete_rebalance(bplib_rbt_root_t *tree, bplib_rbt_link_t
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
+void bplib_rbt_init_root(bplib_rbt_root_t *tree)
+{
+    memset(tree, 0, sizeof(*tree));
+}
+
 /*--------------------------------------------------------------------------------------
  * rb_tree_binary_search - Searches a rb_tree for a node containing a given value.
  *
@@ -1036,7 +1040,7 @@ BP_LOCAL_SCOPE void do_delete_rebalance(bplib_rbt_root_t *tree, bplib_rbt_link_t
 bplib_rbt_link_t *bplib_rbt_search(bp_val_t search_key_value, const bplib_rbt_root_t *tree)
 {
     bplib_rbt_link_t *curr_ptr;
-    bp_val_t                curr_key_value;
+    bp_val_t          curr_key_value;
 
     curr_ptr = tree->root;
     while (curr_ptr != NULL)
@@ -1140,7 +1144,7 @@ int bplib_rbt_extract_node(bplib_rbt_root_t *tree, bplib_rbt_link_t *removed_nod
  *--------------------------------------------------------------------------------------*/
 int bplib_rbt_extract_value(bp_val_t value, bplib_rbt_root_t *tree, bplib_rbt_link_t **link_block)
 {
-    int                     status;
+    int               status;
     bplib_rbt_link_t *node;
 
     /* First do a normal search to find the node containing the value */
@@ -1174,7 +1178,7 @@ bool bplib_rbt_node_is_red(const bplib_rbt_link_t *node)
 int bplib_rbt_iter_next(bplib_rbt_iter_t *iter)
 {
     const bplib_rbt_link_t *next_pos;
-    bp_val_t                      last_val;
+    bp_val_t                last_val;
 
     next_pos = iter->position;
     if (next_pos != NULL)
@@ -1222,7 +1226,7 @@ int bplib_rbt_iter_next(bplib_rbt_iter_t *iter)
 int bplib_rbt_iter_prev(bplib_rbt_iter_t *iter)
 {
     const bplib_rbt_link_t *prev_pos;
-    bp_val_t                      last_val;
+    bp_val_t                last_val;
 
     prev_pos = iter->position;
     if (prev_pos != NULL)
@@ -1271,7 +1275,7 @@ const bplib_rbt_link_t *bplib_rbt_iter_find_closest(bp_val_t target_value, const
 {
     const bplib_rbt_link_t *prev_pos;
     const bplib_rbt_link_t *curr_pos;
-    bp_val_t                      curr_val;
+    bp_val_t                curr_val;
 
     prev_pos = NULL;
     curr_val = 0;

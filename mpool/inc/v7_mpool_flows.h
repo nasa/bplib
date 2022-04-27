@@ -61,7 +61,15 @@ struct bplib_mpool_flow
  */
 bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb);
 
-bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_number, size_t req_capacity);
+/**
+ * @brief Allocate a flow block
+ *
+ * @param pool
+ * @param magic_number
+ * @param init_arg Opaque pointer passed to initializer (may be NULL)
+ * @return bplib_mpool_block_t*
+ */
+bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg);
 
 /**
  * @brief Append a single bundle to the given queue (flow)

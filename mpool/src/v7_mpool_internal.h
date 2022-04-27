@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "bplib_api_types.h"
+#include "v7_rbtree.h"
 #include "v7_mpool.h"
 #include "v7_mpool_bblocks.h"
 #include "v7_mpool_flows.h"
@@ -57,6 +58,14 @@ typedef union bplib_mpool_aligned_data
     long double align_float;
 } bplib_mpool_aligned_data_t;
 
+typedef struct bplib_mpool_api_content
+{
+    bplib_rbt_link_t            rbt_link;
+    bplib_mpool_blocktype_api_t api;
+    size_t                      user_content_size;
+    bplib_mpool_aligned_data_t  user_data_start;
+} bplib_mpool_api_content_t;
+
 typedef struct bplib_mpool_generic_data_content
 {
     bplib_mpool_aligned_data_t user_data_start;
@@ -83,15 +92,14 @@ typedef struct bplib_mpool_flow_content
 
 typedef struct bplib_mpool_block_ref_content
 {
-    bplib_mpool_ref_t           pref_target;
-    bplib_mpool_callback_func_t notify_on_discard;
-    void                       *notify_arg;
-    bplib_mpool_aligned_data_t  user_data_start;
+    bplib_mpool_ref_t          pref_target;
+    bplib_mpool_aligned_data_t user_data_start;
 } bplib_mpool_block_ref_content_t;
 
 typedef union bplib_mpool_block_buffer
 {
     bplib_mpool_generic_data_content_t     generic_data;
+    bplib_mpool_api_content_t              api;
     bplib_mpool_bblock_primary_content_t   primary;
     bplib_mpool_bblock_canonical_content_t canonical;
     bplib_mpool_flow_content_t             flow;
@@ -116,6 +124,9 @@ struct mpool
     uint32_t alloc_count;
     uint32_t recycled_count;
 
+    bplib_mpool_api_content_t blocktype_basic;
+    bplib_rbt_root_t          xblocktype_registry;
+
     bplib_mpool_block_t free_blocks;
     bplib_mpool_block_t ref_managed_blocks;
     bplib_mpool_block_t recycle_blocks;
@@ -134,7 +145,7 @@ void bplib_mpool_subq_init(bplib_mpool_subq_t *qblk);
 void bplib_mpool_flow_init(bplib_mpool_flow_t *fblk);
 
 bplib_mpool_block_content_t *bplib_mpool_get_block_content(bplib_mpool_block_t *cb);
-bplib_mpool_block_t         *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
-                                                              uint32_t content_type_signature);
+bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
+                                                              uint32_t content_type_signature, void *init_arg);
 
 #endif /* V7_MPOOL_INTERNAL_H */

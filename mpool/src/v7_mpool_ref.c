@@ -90,24 +90,19 @@ bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_t *pool, bplib_mpool_block_
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_t *pool, bplib_mpool_ref_t refptr, uint32_t magic_number,
-                                                bplib_mpool_callback_func_t notify_on_discard, void *notify_arg)
+                                                void *init_arg)
 {
-    bplib_mpool_block_content_t *content;
-    bplib_mpool_block_t         *rblk;
+    bplib_mpool_block_content_t *rblk;
 
-    rblk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_ref, magic_number);
+    rblk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_ref, magic_number, init_arg);
     if (rblk == NULL)
     {
         return NULL;
     }
 
-    content = (bplib_mpool_block_content_t *)rblk;
+    rblk->u.ref.pref_target = bplib_mpool_ref_duplicate(refptr);
 
-    content->u.ref.pref_target       = bplib_mpool_ref_duplicate(refptr);
-    content->u.ref.notify_on_discard = notify_on_discard;
-    content->u.ref.notify_arg        = notify_arg;
-
-    return rblk;
+    return (bplib_mpool_block_t *)rblk;
 }
 
 /*----------------------------------------------------------------

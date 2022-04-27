@@ -39,9 +39,10 @@
  TYPEDEFS
  ******************************************************************************/
 
-#define BPLIB_ROUTING_SIGNATURE_SERVICE_BASE     0x6fd3b69d
-#define BPLIB_ROUTING_SIGNATURE_SERVICE_ENDPOINT 0x770c4839
-#define BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET   0xc21bb332
+#define BPLIB_BLOCKTYPE_SERVICE_BASE     0x6fd3b69d
+#define BPLIB_BLOCKTYPE_SERVICE_ENDPOINT 0x770c4839
+#define BPLIB_BLOCKTYPE_SERVICE_SOCKET   0xc21bb332
+#define BPLIB_BLOCKTYPE_SERVICE_BLOCK    0xbd35ac62
 
 typedef struct bplib_route_serviceintf_info
 {
@@ -274,7 +275,7 @@ int bplib_serviceflow_forward_ingress(bplib_routetbl_t *tbl, bplib_mpool_block_t
     bplib_mpool_flow_t             *storage_flow;
     int                             forward_count;
 
-    base_intf = bplib_mpool_generic_data_cast(intf_block, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    base_intf = bplib_mpool_generic_data_cast(intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         return bplog(NULL, BP_FLAG_DIAGNOSTIC, "intf_block invalid\n");
@@ -347,7 +348,7 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
     bp_ipn_addr_t                   bundle_dest;
     int                             forward_count;
 
-    base_intf = bplib_mpool_generic_data_cast(intf_block, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    base_intf = bplib_mpool_generic_data_cast(intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         return bplog(NULL, BP_FLAG_DIAGNOSTIC, "intf_block invalid\n");
@@ -434,19 +435,18 @@ int bplib_serviceflow_add_to_base(bplib_mpool_t *pool, bplib_mpool_block_t *base
     bplib_service_endpt_t          *endpoint_intf;
     int                             status;
 
-    base_intf = bplib_mpool_generic_data_cast(base_intf_blk, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    base_intf = bplib_mpool_generic_data_cast(base_intf_blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf != NULL)
     {
         bplib_mpool_block_t *temp_block;
-        temp_block = bplib_mpool_generic_data_alloc(pool, BPLIB_ROUTING_SIGNATURE_SERVICE_ENDPOINT,
-                                                    sizeof(bplib_service_endpt_t));
+        temp_block = bplib_mpool_generic_data_alloc(pool, BPLIB_BLOCKTYPE_SERVICE_ENDPOINT, NULL);
         if (temp_block == NULL)
         {
             bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): out of memory when binding socket\n", __func__);
             return BP_ERROR;
         }
 
-        endpoint_intf           = bplib_mpool_generic_data_cast(temp_block, BPLIB_ROUTING_SIGNATURE_SERVICE_ENDPOINT);
+        endpoint_intf           = bplib_mpool_generic_data_cast(temp_block, BPLIB_BLOCKTYPE_SERVICE_ENDPOINT);
         endpoint_intf->self_ptr = temp_block;
 
         /* This can fail in the event the service number is duplicated */
@@ -493,7 +493,7 @@ bplib_mpool_ref_t bplib_serviceflow_remove_from_base(bplib_mpool_t *pool, bplib_
     int                             status;
 
     endpoint_intf_ref = NULL;
-    base_intf         = bplib_mpool_generic_data_cast(base_intf_blk, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    base_intf         = bplib_mpool_generic_data_cast(base_intf_blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf != NULL)
     {
         /* This can fail in the event the service number is duplicated */
@@ -565,6 +565,43 @@ int bplib_dataservice_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *in
     return BP_SUCCESS;
 }
 
+void bplib_dataservice_base_construct(void *arg, bplib_mpool_block_t *blk)
+{
+    bplib_route_serviceintf_info_t *base_intf;
+
+    base_intf = bplib_mpool_generic_data_cast(blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
+    if (base_intf != NULL)
+    {
+        bplib_rbt_init_root(&base_intf->service_index);
+    }
+}
+
+void bplib_dataservice_block_recycle(void *arg, bplib_mpool_block_t *rblk)
+{
+    /* this should check if the block made it to storage or not, and if the calling
+     * task in bplib_send() is blocked waiting for the block to be sent, this should
+     * release that task. In is a no-op for now until timeouts are implemented. */
+}
+
+void bplib_dataservice_init(bplib_mpool_t *pool)
+{
+    const bplib_mpool_blocktype_api_t svc_base_api = (bplib_mpool_blocktype_api_t) {
+        .construct = bplib_dataservice_base_construct,
+        .destruct  = NULL,
+    };
+
+    const bplib_mpool_blocktype_api_t svc_block_api = (bplib_mpool_blocktype_api_t) {
+        .construct = NULL,
+        .destruct  = bplib_dataservice_block_recycle,
+    };
+
+    bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_SERVICE_BASE, &svc_base_api,
+                                   sizeof(bplib_route_serviceintf_info_t));
+    bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_SERVICE_ENDPOINT, NULL, sizeof(bplib_service_endpt_t));
+    bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_SERVICE_SOCKET, NULL, sizeof(bplib_socket_info_t));
+    bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_SERVICE_BLOCK, &svc_block_api, 0);
+}
+
 bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_number)
 {
     bplib_mpool_block_t            *sblk;
@@ -575,15 +612,18 @@ bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t nod
 
     pool = bplib_route_get_mpool(rtbl);
 
+    /* register Dataservice API module */
+    bplib_dataservice_init(pool);
+
     /* Allocate Blocks */
-    sblk = bplib_mpool_flow_alloc(pool, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE, sizeof(bplib_service_endpt_t));
+    sblk = bplib_mpool_flow_alloc(pool, BPLIB_BLOCKTYPE_SERVICE_BASE, NULL);
     if (sblk == NULL)
     {
         bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to allocate intf block\n");
         return BP_INVALID_HANDLE;
     }
 
-    base_intf = bplib_mpool_generic_data_cast(sblk, BPLIB_ROUTING_SIGNATURE_SERVICE_BASE);
+    base_intf = bplib_mpool_generic_data_cast(sblk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     blkref    = bplib_mpool_ref_create(pool, sblk);
     if (blkref == NULL || base_intf == NULL)
     {
@@ -729,10 +769,10 @@ bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl)
     pool = bplib_route_get_mpool(rtbl);
 
     /* Allocate Flow */
-    sblk = bplib_mpool_flow_alloc(pool, BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET, sizeof(bplib_socket_info_t));
+    sblk = bplib_mpool_flow_alloc(pool, BPLIB_BLOCKTYPE_SERVICE_SOCKET, NULL);
     if (sblk != NULL)
     {
-        sock = bplib_mpool_generic_data_cast(sblk, BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+        sock = bplib_mpool_generic_data_cast(sblk, BPLIB_BLOCKTYPE_SERVICE_SOCKET);
         assert(sock != NULL);
 
         sock->parent_rtbl = rtbl;
@@ -761,7 +801,7 @@ int bplib_bind_socket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
 
     sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -805,7 +845,7 @@ int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn
 
     sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -848,7 +888,7 @@ void bplib_close_socket(bp_socket_t *desc)
 
     sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -886,7 +926,7 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
 
     sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -914,7 +954,7 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
         return BP_ERROR;
     }
 
-    rblk = bplib_mpool_ref_make_block(pool, refptr, 0, NULL, NULL);
+    rblk = bplib_mpool_ref_make_block(pool, refptr, BPLIB_BLOCKTYPE_SERVICE_BLOCK, NULL);
     if (rblk != NULL)
     {
         pri_block = bplib_mpool_bblock_primary_cast(rblk);
@@ -958,7 +998,7 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint
 
     sock_ref = (bplib_mpool_ref_t)desc;
 
-    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_ROUTING_SIGNATURE_SERVICE_SOCKET);
+    sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
