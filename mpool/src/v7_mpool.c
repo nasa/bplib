@@ -422,6 +422,76 @@ void bplib_mpool_recycle_block(bplib_mpool_t *pool, bplib_mpool_block_t *blk)
 
 /*----------------------------------------------------------------
  *
+ * Function: bplib_mpool_list_iter_goto_first
+ *
+ *-----------------------------------------------------------------*/
+int bplib_mpool_list_iter_goto_first(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
+{
+    if (!bplib_mpool_is_list_head(list))
+    {
+        return BP_ERROR;
+    }
+
+    iter->pending_entry = list->next;
+
+    return bplib_mpool_list_iter_forward(iter);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_list_iter_goto_last
+ *
+ *-----------------------------------------------------------------*/
+int bplib_mpool_list_iter_goto_last(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
+{
+    if (!bplib_mpool_is_list_head(list))
+    {
+        return BP_ERROR;
+    }
+
+    iter->pending_entry = list->prev;
+
+    return bplib_mpool_list_iter_reverse(iter);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_list_iter_forward
+ *
+ *-----------------------------------------------------------------*/
+int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter)
+{
+    if (bplib_mpool_is_list_head(iter->pending_entry))
+    {
+        iter->position = NULL;
+        return BP_ERROR;
+    }
+
+    iter->position      = iter->pending_entry;
+    iter->pending_entry = iter->position->next;
+    return BP_SUCCESS;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_list_iter_reverse
+ *
+ *-----------------------------------------------------------------*/
+int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter)
+{
+    if (bplib_mpool_is_list_head(iter->pending_entry))
+    {
+        iter->position = NULL;
+        return BP_ERROR;
+    }
+
+    iter->position      = iter->pending_entry;
+    iter->pending_entry = iter->position->prev;
+    return BP_SUCCESS;
+}
+
+/*----------------------------------------------------------------
+ *
  * Function: bplib_mpool_foreach_item_in_list
  *
  *-----------------------------------------------------------------*/

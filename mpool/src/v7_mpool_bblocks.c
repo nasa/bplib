@@ -281,6 +281,7 @@ size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, 
 void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_mpool_block_t *blk)
 {
     bplib_mpool_bblock_canonical_t *ccb;
+    bp_blocktype_t                  block_type;
 
     /* this should only be invoked w/canonical blocks.  Anything else is a bug. */
     ccb = bplib_mpool_bblock_canonical_cast(blk);
@@ -294,8 +295,10 @@ void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_
      *
      * For now, if the block being inserted is payload, put it last, otherwise put it first.
      */
+    block_type = bplib_mpool_bblock_canonical_get_logical(ccb)->canonical_block.blockType;
 
-    if (bplib_mpool_bblock_canonical_get_logical(ccb)->canonical_block.blockType == bp_blocktype_payloadBlock)
+    if (block_type == bp_blocktype_payloadBlock ||
+        (block_type >= bp_blocktype_SPECIAL_PAYLOADS_START && block_type < bp_blocktype_SPECIAL_PAYLOADS_MAX))
     {
         /* this puts it last */
         bplib_mpool_insert_before(&cpb->cblock_list, blk);
@@ -309,4 +312,34 @@ void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_
     /* this changes the size of the fully-encoded bundle, but don't recalculate now */
     cpb->bundle_encode_size_cache = 0;
     ccb->bundle_ref               = cpb;
+}
+
+bplib_mpool_block_t *bplib_mpool_bblock_primary_locate_canonical(bplib_mpool_bblock_primary_t *cpb,
+                                                                 bp_blocktype_t                block_type)
+{
+    bplib_mpool_block_t            *cblk;
+    bplib_mpool_bblock_canonical_t *ccb;
+
+    cblk = bplib_mpool_bblock_primary_get_canonical_list(cpb);
+    while (true)
+    {
+        /* note this searches in reverse order, anticipating this will often be searching for payload,
+         * which is supposed to be the last block in the bundle.  If the block is there it will be found
+         * regardless of the search order, but this speeds up the more frequent case */
+        cblk = bplib_mpool_get_prev_block(cblk);
+        if (bplib_mpool_is_list_head(cblk))
+        {
+            /* end of list, not found */
+            cblk = NULL;
+            break;
+        }
+        ccb = bplib_mpool_bblock_canonical_cast(cblk);
+        if (ccb != NULL && ccb->canonical_logical_data.canonical_block.blockType == block_type)
+        {
+            /* found it */
+            break;
+        }
+    }
+
+    return cblk;
 }

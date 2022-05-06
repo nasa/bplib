@@ -79,6 +79,17 @@ void bplib_rbt_init_root(bplib_rbt_root_t *tree);
 
 /*--------------------------------------------------------------------------------------*/
 /**
+ * @brief Checks if the given node is a member of the tree
+ *
+ * @param[in] tree   The tree to check
+ * @param[in] node   The node to check
+ * @return true if the node is currently a member of the specified tree
+ * @return false if the node is not currently a member of the specified tree
+ */
+bool bplib_rbt_is_member(const bplib_rbt_root_t *tree, const bplib_rbt_link_t *node);
+
+/*--------------------------------------------------------------------------------------*/
+/**
  * @brief Searches the Red-Black tree for a node matching a given value
  *
  * The tree is searched for a matching value, and if found, the pointer to that node

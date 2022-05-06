@@ -211,26 +211,17 @@ int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_m
         }
 
         /* find the payload */
-        cblk = bplib_mpool_bblock_primary_get_canonical_list(pri);
-
-        content_size   = 0;
-        content_offset = 0;
-        while (true)
+        cblk    = bplib_mpool_bblock_primary_locate_canonical(pri, bp_blocktype_payloadBlock);
+        ccb_pay = bplib_mpool_bblock_canonical_cast(cblk);
+        if (ccb_pay == NULL)
         {
-            cblk    = bplib_mpool_get_next_block(cblk);
-            ccb_pay = bplib_mpool_bblock_canonical_cast(cblk);
-            if (ccb_pay == NULL)
-            {
-                break;
-            }
-            if (bplib_mpool_bblock_canonical_get_logical(ccb_pay)->canonical_block.blockType ==
-                bp_blocktype_payloadBlock)
-            {
-                content_size   = bplib_mpool_bblock_canonical_get_content_length(ccb_pay);
-                content_offset = bplib_mpool_bblock_canonical_get_content_offset(ccb_pay);
-                break;
-            }
+            /* no payload, cannot be unbundled */
+            bplog(NULL, BP_FLAG_INCOMPLETE, "%s(): No payload\n", __func__);
+            break;
         }
+
+        content_size   = bplib_mpool_bblock_canonical_get_content_length(ccb_pay);
+        content_offset = bplib_mpool_bblock_canonical_get_content_offset(ccb_pay);
 
         /*
          * In theory size could be zero (although not clear if that is a violation of BPv7)
@@ -779,7 +770,7 @@ bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl)
 
         /* following parameters are just hardcoded for now, need an API to set these items */
         sock->params.crctype               = bp_crctype_CRC16;
-        sock->params.local_delivery_policy = bplib_policy_delivery_local_ack;
+        sock->params.local_delivery_policy = bplib_policy_delivery_custody_tracking;
         sock->params.local_retx_interval   = 2000;
         sock->params.lifetime              = 500000;
 

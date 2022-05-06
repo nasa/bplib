@@ -373,6 +373,10 @@ int bplib2_bundle_test(void)
 
     bplib_route_do_maintenance(s2_rtbl);
 
+    /* This extra sleep is merely to let the pending DACS signal reach its transmit time */
+    sleep(2);
+    bplib_route_do_maintenance(s2_rtbl);
+
     recv_sz    = sizeof(recv_payload);
     lib_status = bplib_recv(desc, recv_payload, &recv_sz, BP_CHECK, &flags);
     if (lib_status != 0)
@@ -400,6 +404,45 @@ int bplib2_bundle_test(void)
         fprintf(stderr, "Failed with different data\n");
         return lib_status;
     }
+
+    bundle_sz  = sizeof(bundle_buffer);
+    lib_status = bplib_cla_egress(s2_rtbl, s2_intf_cla, bundle_buffer, &bundle_sz, BP_CHECK);
+    if (lib_status != 0)
+    {
+        fprintf(stderr, "Failed bplib_cla_egress()... exiting\n");
+        return lib_status;
+    }
+
+    printf("ACK Bundle content:\n");
+    display(stdout, bundle_buffer, 0, bundle_sz);
+
+    fd = open("ack.cbor", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd < 0)
+    {
+        perror("open()");
+        return -1;
+    }
+
+    if (write(fd, bundle_buffer, bundle_sz) != bundle_sz)
+    {
+        perror("write");
+    }
+    close(fd);
+
+    bplib_route_do_maintenance(s2_rtbl);
+
+    lib_status = bplib_cla_ingress(s1_rtbl, s1_intf_cla, bundle_buffer, bundle_sz, BP_CHECK);
+    if (lib_status != 0)
+    {
+        fprintf(stderr, "Failed bplib_cla_ingress()... exiting\n");
+        return lib_status;
+    }
+
+    /* this should identify the ingress bundle above as a custody ACK for the original */
+    bplib_route_do_maintenance(s1_rtbl);
+
+    /* this should discard the original and recycle more blocks  */
+    bplib_route_do_maintenance(s1_rtbl);
 
     return 0;
 }
