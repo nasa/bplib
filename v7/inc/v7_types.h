@@ -27,6 +27,8 @@
 
 #include "bplib_api_types.h"
 
+#define BP_DACS_MAX_SEQ_PER_PAYLOAD 16
+
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
@@ -52,8 +54,35 @@ typedef enum bp_blocktype
     bp_blocktype_metadataExtensionBlock      = 8,
     bp_blocktype_extensionSecurityBlock      = 9,
     bp_blocktype_hopCount                    = 10,
-    bp_blocktype_MAX                         = 11
+    bp_blocktype_custodyTrackingBlock        = 11,
+    bp_blocktype_MAX_NORMAL                  = 12,
+
+    /*
+     * These are internal block types - they are encoded into the bundle as type 1 (payload)
+     * because of the constraint in RFC9171 that says all bundles must have one and only one
+     * payload block, but in reality there are different flavors of payload blocks depending
+     * on what type of bundle it is.
+     *
+     * Therefore, the logical data for these canonical blocks will have the real type, which
+     * is deduced from the other bundle block contents, but CBOR-encoded content will have a
+     * value of 1.
+     */
+    bp_blocktype_SPECIAL_PAYLOADS_START    = 100,
+    bp_blocktype_adminRecordPayloadBlock   = bp_blocktype_SPECIAL_PAYLOADS_START,
+    bp_blocktype_ciphertextPayloadBlock    = 101,
+    bp_blocktype_custodyAcceptPayloadBlock = 102,
+    bp_blocktype_SPECIAL_PAYLOADS_MAX
 } bp_blocktype_t;
+
+typedef enum bp_adminrectype
+{
+    bp_adminrectype_undefined              = 0,
+    bp_adminrectype_statusReport           = 1,
+    bp_adminrectype_custodyAcknowledgement = 4,
+
+    bp_adminrectype_MAX = 5
+
+} bp_adminrectype_t;
 
 typedef bp_integer_t bp_dtntime_t;
 typedef bp_integer_t bp_sequencenumber_t;
@@ -216,11 +245,26 @@ typedef struct bp_hop_count_block
     bp_integer_t hopCount;
 } bp_hop_count_block_t;
 
+typedef struct bp_custody_tracking_block
+{
+    bp_endpointid_buffer_t current_custodian;
+} bp_custody_tracking_block_t;
+
+/* This reflects the payload block (1) of a bundle containing a custody block w/bp_custody_op_accept */
+typedef struct bp_custody_accept_payload_block
+{
+    bp_endpointid_buffer_t flow_source_eid;
+    bp_integer_t           num_entries;
+    bp_integer_t           sequence_nums[BP_DACS_MAX_SEQ_PER_PAYLOAD];
+} bp_custody_accept_payload_block_t;
+
 typedef union bp_canonical_block_data
 {
-    bp_previous_node_block_t previous_node_block;
-    bp_bundle_age_block_t    age_block;
-    bp_hop_count_block_t     hop_count_block;
+    bp_previous_node_block_t          previous_node_block;
+    bp_bundle_age_block_t             age_block;
+    bp_hop_count_block_t              hop_count_block;
+    bp_custody_tracking_block_t       custody_tracking_block;
+    bp_custody_accept_payload_block_t custody_accept_payload_block;
 } bp_canonical_block_data_t;
 
 typedef struct bp_canonical_block_buffer

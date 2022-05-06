@@ -43,6 +43,20 @@ typedef struct
 
 } v7_canonical_block_info_t;
 
+typedef struct
+{
+    bp_adminrectype_t                encode_rectype;
+    const bp_canonical_block_data_t *payload_data;
+
+} v7_admin_rec_payload_encode_info_t;
+
+typedef struct
+{
+    bp_adminrectype_t          decode_rectype;
+    bp_canonical_block_data_t *payload_data;
+
+} v7_admin_rec_payload_decode_info_t;
+
 typedef struct v7_bitmap_table
 {
     size_t       offset;
@@ -166,6 +180,12 @@ static void v7_encode_bp_bundle_age_block(v7_encode_state_t *enc, const bp_bundl
 static void v7_decode_bp_bundle_age_block(v7_decode_state_t *dec, bp_bundle_age_block_t *v);
 static void v7_encode_bp_hop_count_block(v7_encode_state_t *enc, const bp_hop_count_block_t *v);
 static void v7_decode_bp_hop_count_block(v7_decode_state_t *dec, bp_hop_count_block_t *v);
+
+static void v7_encode_bp_custody_tracking_block(v7_encode_state_t *enc, const bp_custody_tracking_block_t *v);
+static void v7_decode_bp_custody_tracking_block(v7_decode_state_t *dec, bp_custody_tracking_block_t *v);
+
+static void v7_encode_bp_custody_acceptance_block(v7_encode_state_t *enc, const bp_custody_accept_payload_block_t *v);
+static void v7_decode_bp_custody_acceptance_block(v7_decode_state_t *dec, bp_custody_accept_payload_block_t *v);
 
 static void v7_decode_bp_canonical_block_buffer(v7_decode_state_t *dec, bp_canonical_block_buffer_t *v,
                                                 size_t *content_encoded_offset, size_t *content_length);
@@ -842,24 +862,209 @@ void v7_decode_bp_bundle_age_block(v7_decode_state_t *dec, bp_bundle_age_block_t
     v7_decode_bp_dtntime(dec, &v->age);
 }
 
-void v7_encode_bp_hop_count_block(v7_encode_state_t *enc, const bp_hop_count_block_t *v)
+static void v7_encode_bp_hop_count_block_impl(v7_encode_state_t *enc, const void *arg)
 {
+    const bp_hop_count_block_t *v = arg;
+
     v7_encode_bp_integer(enc, &v->hopLimit);
     v7_encode_bp_integer(enc, &v->hopCount);
 }
 
-void v7_decode_bp_hop_count_block(v7_decode_state_t *dec, bp_hop_count_block_t *v)
+void v7_encode_bp_hop_count_block(v7_encode_state_t *enc, const bp_hop_count_block_t *v)
 {
+    v7_encode_container(enc, 2, v7_encode_bp_hop_count_block_impl, v);
+}
+
+static void v7_decode_bp_hop_count_block_impl(v7_decode_state_t *dec, void *arg)
+{
+    bp_hop_count_block_t *v = arg;
+
     v7_decode_bp_integer(dec, &v->hopLimit);
     v7_decode_bp_integer(dec, &v->hopCount);
+}
+
+void v7_decode_bp_hop_count_block(v7_decode_state_t *dec, bp_hop_count_block_t *v)
+{
+    v7_decode_container(dec, 2, v7_decode_bp_hop_count_block_impl, v);
+}
+
+void v7_encode_bp_custody_tracking_block(v7_encode_state_t *enc, const bp_custody_tracking_block_t *v)
+{
+    v7_encode_bp_endpointid_buffer(enc, &v->current_custodian);
+}
+
+void v7_decode_bp_custody_tracking_block(v7_decode_state_t *dec, bp_custody_tracking_block_t *v)
+{
+    v7_decode_bp_endpointid_buffer(dec, &v->current_custodian);
+}
+
+static void v7_encode_bp_custody_acceptance_seqlist_impl(v7_encode_state_t *enc, const void *arg)
+{
+    const bp_custody_accept_payload_block_t *v = arg;
+    bp_integer_t                             n;
+
+    for (n = 0; n < v->num_entries && !enc->error; ++n)
+    {
+        v7_encode_bp_integer(enc, &v->sequence_nums[n]);
+    }
+}
+
+static void v7_encode_bp_custody_acceptance_block_impl(v7_encode_state_t *enc, const void *arg)
+{
+    const bp_custody_accept_payload_block_t *v = arg;
+
+    v7_encode_bp_endpointid_buffer(enc, &v->flow_source_eid);
+    v7_encode_container(enc, v->num_entries, v7_encode_bp_custody_acceptance_seqlist_impl, v);
+}
+
+void v7_encode_bp_custody_acceptance_block(v7_encode_state_t *enc, const bp_custody_accept_payload_block_t *v)
+{
+    v7_encode_container(enc, 2, v7_encode_bp_custody_acceptance_block_impl, v);
+}
+
+static void v7_decode_bp_custody_acceptance_seqlist_impl(v7_decode_state_t *dec, void *arg)
+{
+    bp_custody_accept_payload_block_t *v = arg;
+
+    while (!cbor_value_at_end(dec->cbor) && v->num_entries < BP_DACS_MAX_SEQ_PER_PAYLOAD)
+    {
+        v7_decode_bp_integer(dec, &v->sequence_nums[v->num_entries]);
+        if (dec->error)
+        {
+            break;
+        }
+
+        ++v->num_entries;
+    }
+}
+
+static void v7_decode_bp_custody_acceptance_block_impl(v7_decode_state_t *dec, void *arg)
+{
+    bp_custody_accept_payload_block_t *v = arg;
+
+    v7_decode_bp_endpointid_buffer(dec, &v->flow_source_eid);
+    v7_decode_container(dec, CborIndefiniteLength, v7_decode_bp_custody_acceptance_seqlist_impl, v);
+}
+
+void v7_decode_bp_custody_acceptance_block(v7_decode_state_t *dec, bp_custody_accept_payload_block_t *v)
+{
+    v7_decode_container(dec, 2, v7_decode_bp_custody_acceptance_block_impl, v);
+}
+
+static void v7_encode_bp_adminrec_payload_impl(v7_encode_state_t *enc, const void *arg)
+{
+    const v7_admin_rec_payload_encode_info_t *admin_rec_payload;
+
+    admin_rec_payload = arg;
+    v7_encode_small_int(enc, admin_rec_payload->encode_rectype);
+
+    if (!enc->error)
+    {
+        switch (admin_rec_payload->encode_rectype)
+        {
+            case bp_adminrectype_custodyAcknowledgement:
+                v7_encode_bp_custody_acceptance_block(enc,
+                                                      &admin_rec_payload->payload_data->custody_accept_payload_block);
+                break;
+            default:
+                /* missing implementation */
+                enc->error = true;
+                break;
+        }
+    }
+}
+
+static void v7_decode_bp_adminrec_payload_impl(v7_decode_state_t *dec, void *arg)
+{
+    v7_admin_rec_payload_decode_info_t *admin_rec_payload;
+
+    admin_rec_payload                 = arg;
+    admin_rec_payload->decode_rectype = v7_decode_small_int(dec);
+
+    if (!dec->error)
+    {
+        switch (admin_rec_payload->decode_rectype)
+        {
+            case bp_adminrectype_custodyAcknowledgement:
+                v7_decode_bp_custody_acceptance_block(dec,
+                                                      &admin_rec_payload->payload_data->custody_accept_payload_block);
+                break;
+            default:
+                /* missing implementation */
+                dec->error = true;
+                break;
+        }
+    }
+}
+
+void v7_encode_bp_admin_record_payload(v7_encode_state_t *enc, const bp_canonical_block_buffer_t *v)
+{
+    v7_admin_rec_payload_encode_info_t admin_rec_payload;
+
+    memset(&admin_rec_payload, 0, sizeof(admin_rec_payload));
+
+    admin_rec_payload.payload_data = &v->data;
+
+    switch (v->canonical_block.blockType)
+    {
+        case bp_blocktype_custodyAcceptPayloadBlock:
+            admin_rec_payload.encode_rectype = bp_adminrectype_custodyAcknowledgement;
+            break;
+        default:
+            /* missing implementation */
+            enc->error = true;
+            break;
+    }
+
+    v7_encode_container(enc, 2, v7_encode_bp_adminrec_payload_impl, &admin_rec_payload);
+}
+
+void v7_decode_bp_admin_record_payload(v7_decode_state_t *dec, bp_canonical_block_buffer_t *v)
+{
+    v7_admin_rec_payload_decode_info_t admin_rec_payload;
+
+    memset(&admin_rec_payload, 0, sizeof(admin_rec_payload));
+
+    admin_rec_payload.payload_data = &v->data;
+
+    v7_decode_container(dec, 2, v7_decode_bp_adminrec_payload_impl, &admin_rec_payload);
+
+    /* if decode was successful, update blockType to the real/more specific block type */
+    if (!dec->error)
+    {
+        switch (admin_rec_payload.decode_rectype)
+        {
+            case bp_adminrectype_custodyAcknowledgement:
+                v->canonical_block.blockType = bp_blocktype_custodyAcceptPayloadBlock;
+                break;
+            default:
+                /* missing implementation */
+                dec->error = true;
+                break;
+        }
+    }
 }
 
 void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canonical_bundle_block_t *v,
                                          const v7_canonical_block_info_t *info)
 {
-    size_t content_offset_cbor_end;
+    size_t         content_offset_cbor_end;
+    bp_blocktype_t encode_blocktype;
 
-    v7_encode_bp_blocktype(enc, &v->blockType);
+    /*
+     * multiple different block types may get labeled as the "payload block"
+     * because RFC9171 insists that something must be labeled as such.
+     */
+    encode_blocktype = v->blockType;
+    if (encode_blocktype >= bp_blocktype_SPECIAL_PAYLOADS_START && encode_blocktype < bp_blocktype_SPECIAL_PAYLOADS_MAX)
+    {
+        /* This special block is fulfilling the RFC9171 "payload block" requirement -
+         * there must be an extension block elsewhere in the bundle that helps the
+         * decoder on the other side figure out what it really is */
+        encode_blocktype = bp_blocktype_payloadBlock;
+    }
+
+    v7_encode_bp_blocktype(enc, &encode_blocktype);
     v7_encode_bp_blocknum(enc, &v->blockNum);
     v7_encode_bp_block_processing_flags(enc, &v->processingControlFlags);
     v7_encode_bp_crctype(enc, &v->crctype);
@@ -1124,7 +1329,7 @@ int v7_block_decode_pri(bplib_mpool_t *pool, bplib_mpool_bblock_primary_t *cpb, 
 }
 
 int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_t *ccb, const void *data_ptr,
-                              size_t data_size)
+                              size_t data_size, bp_blocktype_t payload_block_hint)
 {
     v7_decode_state_t            v7_state;
     CborValue                    origin;
@@ -1190,6 +1395,18 @@ int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_
             v7_state.base += content_offset;
             v7_state.cbor = &origin;
 
+            /*
+             * multiple different block types may get labeled as the "payload block"
+             * because RFC9171 insists that something must be labeled as such.
+             * the purpose of the "payload_block_hint" is to identify how the payload
+             * should really be interpreted based on other blocks/fields in the bundle
+             */
+            if (payload_block_hint != bp_blocktype_undefined &&
+                logical->canonical_block.blockType == bp_blocktype_payloadBlock)
+            {
+                logical->canonical_block.blockType = payload_block_hint;
+            }
+
             switch (logical->canonical_block.blockType)
             {
                 case bp_blocktype_payloadBlock:
@@ -1214,6 +1431,13 @@ int v7_block_decode_canonical(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_
                     break;
                 case bp_blocktype_hopCount:
                     v7_decode_bp_hop_count_block(&v7_state, &logical->data.hop_count_block);
+                    break;
+                case bp_blocktype_custodyTrackingBlock:
+                    v7_decode_bp_custody_tracking_block(&v7_state, &logical->data.custody_tracking_block);
+                    break;
+                case bp_blocktype_adminRecordPayloadBlock:
+                case bp_blocktype_custodyAcceptPayloadBlock:
+                    v7_decode_bp_admin_record_payload(&v7_state, logical);
                     break;
                 default:
                     /* do nothing */
@@ -1302,7 +1526,7 @@ int v7_block_encode_canonical(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_
     v7_encode_state_t                  v7_state;
     CborEncoder                        origin;
     const bp_canonical_block_buffer_t *logical;
-    uint8_t                            scratch_area[128];
+    uint8_t                            scratch_area[256];
     size_t                             scratch_size;
     size_t                             content_encoded_offset;
 
@@ -1347,6 +1571,13 @@ int v7_block_encode_canonical(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_
             break;
         case bp_blocktype_hopCount:
             v7_encode_bp_hop_count_block(&v7_state, &logical->data.hop_count_block);
+            break;
+        case bp_blocktype_custodyTrackingBlock:
+            v7_encode_bp_custody_tracking_block(&v7_state, &logical->data.custody_tracking_block);
+            break;
+        case bp_blocktype_adminRecordPayloadBlock:
+        case bp_blocktype_custodyAcceptPayloadBlock:
+            v7_encode_bp_admin_record_payload(&v7_state, logical);
             break;
         default:
             /* do nothing */
@@ -1518,6 +1749,7 @@ size_t v7_copy_full_bundle_in(bplib_mpool_t *pool, bplib_mpool_block_t **pblk_ou
     size_t         remain_sz;
     size_t         chunk_sz;
     const uint8_t *in_p;
+    bp_blocktype_t payload_block_hint;
 
     bplib_mpool_block_t            *pblk;
     bplib_mpool_block_t            *cblk;
@@ -1544,6 +1776,17 @@ size_t v7_copy_full_bundle_in(bplib_mpool_t *pool, bplib_mpool_block_t **pblk_ou
     remain_sz = buf_sz - 2;
     cpb       = NULL;
     pblk      = NULL;
+
+    /*
+     * This is to "undo" / invert of the encoding side logic where
+     * fixed-content/known blocks need to be labeled as the generic "payload"
+     * block in order to satisfy RFC9171 requirement that all bundles must
+     * have a block that is of type 1 (payload).
+     *
+     * In this case, the presence of certain extension blocks will indicate
+     * how the payload block should really be interpreted.
+     */
+    payload_block_hint = bp_blocktype_undefined;
 
     /*
      * From this point forward, any allocated blocks will need to
@@ -1573,6 +1816,12 @@ size_t v7_copy_full_bundle_in(bplib_mpool_t *pool, bplib_mpool_block_t **pblk_ou
             }
 
             chunk_sz = cpb->block_encode_size_cache;
+
+            /* if the block is an admin record, this determines how to interpret the payload */
+            if (cpb->pri_logical_data.controlFlags.isAdminRecord)
+            {
+                payload_block_hint = bp_blocktype_adminRecordPayloadBlock;
+            }
         }
         else
         {
@@ -1591,13 +1840,41 @@ size_t v7_copy_full_bundle_in(bplib_mpool_t *pool, bplib_mpool_block_t **pblk_ou
             bplib_mpool_bblock_primary_append(cpb, cblk);
 
             /* Decode Canonical/Payload Block */
-            if (v7_block_decode_canonical(pool, ccb, in_p, remain_sz) < 0)
+            if (v7_block_decode_canonical(pool, ccb, in_p, remain_sz, payload_block_hint) < 0)
             {
                 /* fail to decode */
                 break;
             }
 
             chunk_sz = ccb->block_encode_size_cache;
+
+            /* check for certain special/known extension blocks that indicate how to interpret
+             * the payload.  The presence (or not) of these blocks changes gives a hint as
+             * to what the payload should be.  Since the payload block is last by definition,
+             * the identifying extension block should always be found first.
+             *
+             * The challenge comes if more than one of these blocks exists in the same bundle,
+             * it gets fuzzy how this should work.
+             */
+            switch (ccb->canonical_logical_data.canonical_block.blockType)
+            {
+                case bp_blocktype_payloadConfidentialityBlock:
+                    /* bpsec not implemented yet, but this is the idea */
+                    if (payload_block_hint == bp_blocktype_undefined)
+                    {
+                        payload_block_hint = bp_blocktype_ciphertextPayloadBlock;
+                    }
+                    break;
+
+                case bp_blocktype_custodyTrackingBlock:
+                    /* if this block is present it requests full custody tracking */
+                    cpb->delivery_data.delivery_policy = bplib_policy_delivery_custody_tracking;
+                    break;
+
+                default:
+                    /* nothing to do */
+                    break;
+            }
         }
 
         in_p += chunk_sz;

@@ -30,12 +30,14 @@ typedef struct bplib_mpool_bblock_tracking
 {
     bplib_policy_delivery_t delivery_policy;
     bp_handle_t             ingress_intf_id;
+    uint64_t                ingress_time;
     bp_handle_t             egress_intf_id;
+    uint64_t                egress_time;
     bp_handle_t             storage_intf_id;
     bp_sid_t                committed_storage_id;
-    uint64_t                local_retx_interval;
-    bp_dtntime_t            ingress_time;
-    bp_dtntime_t            egress_time;
+
+    /* JPHFIX: this is here for now, but really it belongs on the egress CLA intf based on its RTT */
+    uint64_t local_retx_interval;
 } bplib_mpool_bblock_tracking_t;
 
 struct bplib_mpool_bblock_primary
@@ -224,6 +226,15 @@ void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block
  * @param ccb
  */
 void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_mpool_block_t *ccb);
+
+/**
+ * @brief Find a canonical block within the bundle
+ *
+ * @param cpb
+ * @param ccb
+ */
+bplib_mpool_block_t *bplib_mpool_bblock_primary_locate_canonical(bplib_mpool_bblock_primary_t *cpb,
+                                                                 bp_blocktype_t                block_type);
 
 /**
  * @brief Drop all encode data (CBOR) from a primary block

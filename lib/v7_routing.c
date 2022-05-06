@@ -822,6 +822,7 @@ void bplib_route_do_maintenance(bplib_routetbl_t *tbl)
     uint32_t              pos;
     bplib_intf_t         *ifp;
     bplib_generic_event_t poll_event;
+    int                   count;
 
     /* poll each interface, may move items to other queues based on time */
     poll_event.event_type = bplib_event_type_poll_interval;
@@ -836,14 +837,12 @@ void bplib_route_do_maintenance(bplib_routetbl_t *tbl)
     }
 
     /* now forward any bundles between interfaces, based on active flows */
-    while (true)
+    do
     {
         /* keep calling bplib_mpool_flow_process_active() until it returns 0 meaning no work was done */
-        if (bplib_mpool_flow_process_active(tbl->pool, bplib_route_forward_intf, tbl) <= 0)
-        {
-            break;
-        }
+        count = bplib_mpool_flow_process_active(tbl->pool, bplib_route_forward_intf, tbl);
     }
+    while (count > 0);
 
     /* now complete the recycle process for any blocks released by above */
     bplib_mpool_maintain(tbl->pool);

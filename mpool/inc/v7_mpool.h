@@ -107,6 +107,18 @@ typedef void (*bplib_mpool_callback_func_t)(void *, bplib_mpool_block_t *);
  * Specifies functions for module-specific block operations,
  * including construction and destruction
  */
+typedef struct bplib_mpool_list_iter
+{
+    bplib_mpool_block_t *position;
+    bplib_mpool_block_t *pending_entry;
+} bplib_mpool_list_iter_t;
+
+/**
+ * @brief Blocktype API
+ *
+ * Specifies functions for module-specific block operations,
+ * including construction and destruction
+ */
 typedef struct bplib_mpool_blocktype_api
 {
     bplib_mpool_callback_func_t construct; /**< Initialize a newly-created block */
@@ -225,6 +237,52 @@ static inline bool bplib_mpool_is_any_content_node(const bplib_mpool_block_t *cb
 {
     return (cb->type >= bplib_mpool_blocktype_generic && cb->type < bplib_mpool_blocktype_max);
 }
+
+/* basic list iterators (forward or reverse) */
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Position an iterator at the first value in the list
+ *
+ * @param iter          The iterator object to position
+ * @returns integer status code
+ * @retval BP_SUCCESS if iterator is valid
+ */
+int bplib_mpool_list_iter_goto_first(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter);
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Position an iterator at the last value in the list
+ *
+ * @param iter          The iterator object to position
+ * @returns integer status code
+ * @retval BP_SUCCESS if iterator is valid
+ */
+int bplib_mpool_list_iter_goto_last(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter);
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Move an iterator forward by one step in the tree
+ *
+ * Sets the iterator to the immediate successor of the current node.
+ * This allows the caller to perform a ascending-order tree traversal.
+ *
+ * @param iter          The iterator object to move
+ * @retval BP_SUCCESS if iterator is valid
+ */
+int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter);
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Move an iterator backward by one step in the tree
+ *
+ * Sets the iterator to the immediate predecessor of the current node.
+ * This allows the caller to perform a descending-order tree traversal.
+ *
+ * @param iter          The iterator object to move
+ * @retval BP_SUCCESS if iterator is valid
+ */
+int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter);
 
 /**
  * @brief Initialize a secondary link for block indexing purposes

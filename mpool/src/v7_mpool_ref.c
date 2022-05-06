@@ -133,13 +133,16 @@ void bplib_mpool_ref_release(bplib_mpool_t *pool, bplib_mpool_ref_t refptr)
 {
     bplib_mpool_block_header_t *block_hdr;
 
-    block_hdr = &refptr->header;
-    if (block_hdr->refcount > 0)
+    if (refptr != NULL)
     {
-        --block_hdr->refcount;
-    }
-    if (block_hdr->refcount == 0)
-    {
-        bplib_mpool_recycle_block(pool, &block_hdr->base_link);
+        block_hdr = &refptr->header;
+        if (block_hdr->refcount > 0)
+        {
+            --block_hdr->refcount;
+        }
+        if (block_hdr->refcount == 0)
+        {
+            bplib_mpool_recycle_block(pool, &block_hdr->base_link);
+        }
     }
 }

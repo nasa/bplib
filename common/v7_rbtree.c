@@ -1030,6 +1030,29 @@ void bplib_rbt_init_root(bplib_rbt_root_t *tree)
 }
 
 /*--------------------------------------------------------------------------------------
+ * bplib_rbt_is_member - Checks if the given node is a member of the tree
+ *
+ * tree: A ptr to a bplib_rbt_root_t
+ * node: Memory block to test
+ * returns: true if the node is a member of the tree, false otherwise
+ *--------------------------------------------------------------------------------------*/
+bool bplib_rbt_is_member(const bplib_rbt_root_t *tree, const bplib_rbt_link_t *node)
+{
+    const bplib_rbt_link_t *root_node;
+
+    /* follow parent links until arrival at the tree root.  If a member
+     * of the tree, this should arrive at the same root node as pointed to
+     * in the "tree" structure */
+    root_node = node;
+    while (root_node->parent != NULL)
+    {
+        root_node = root_node->parent;
+    }
+
+    return (root_node == tree->root);
+}
+
+/*--------------------------------------------------------------------------------------
  * rb_tree_binary_search - Searches a rb_tree for a node containing a given value.
  *
  * tree: A ptr to a bplib_rbt_root_t to search. [INPUT]
