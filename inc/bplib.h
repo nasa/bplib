@@ -64,6 +64,8 @@ extern "C" {
 #define BP_PEND  (-1)
 #define BP_CHECK 0
 
+#define BP_DTNTIME_INFINITE UINT64_MAX
+
 /* Endpoint IDs */
 #define BP_MAX_EID_STRING 128
 #define BP_IPN_NULL       0
@@ -384,11 +386,10 @@ bp_handle_t bplib_create_node_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_num);
  * @param desc Socket-like object from bplib_create_socket()
  * @param payload Pointer to buffer containing application PDU/datagram
  * @param size Size of application PDU/datagram
- * @param timeout Timeout (not yet implemented)
- * @param flags Not used (carryover)
+ * @param timeout Timeout
  * @retval BP_SUCCESS if successful
  */
-int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout, uint32_t *flags);
+int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t timeout);
 
 /**
  * @brief Receive a single application PDU/datagram over the socket-like interface
@@ -403,11 +404,10 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
  * @param desc Socket-like object from bplib_create_socket()
  * @param payload Pointer to buffer to store application PDU/datagram
  * @param[inout] size Size of buffer on input, size of actual PDU/datagram on output
- * @param timeout Timeout (not yet implemented)
- * @param flags Not used (carryover)
+ * @param timeout Timeout
  * @retval BP_SUCCESS if successful
  */
-int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint32_t *flags);
+int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, uint32_t timeout);
 
 /* CLA I/O (bundle data units) */
 
@@ -423,10 +423,10 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint
  * @param intf_id bp_handle_t value from bplib_create_cla_intf()
  * @param bundle Pointer to bundle buffer
  * @param size Size of encoded bundle
- * @param timeout Timeout (not yet implemented)
+ * @param timeout Timeout
  * @retval BP_SUCCESS if successful
  */
-int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, int timeout);
+int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, uint32_t timeout);
 
 /**
  * @brief Send complete bundle to remote system
@@ -439,10 +439,10 @@ int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *b
  * @param intf_id bp_handle_t value from bplib_create_cla_intf()
  * @param bundle Pointer to bundle buffer
  * @param[inout] size Size of buffer on input, size of actual bundle on output
- * @param timeout Timeout (not yet implemented)
+ * @param timeout Timeout
  * @retval BP_SUCCESS if successful
  */
-int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, int timeout);
+int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, uint32_t timeout);
 
 #ifdef __cplusplus
 } // extern "C"

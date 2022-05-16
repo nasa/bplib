@@ -38,12 +38,17 @@
  *-----------------------------------------------------------------*/
 bplib_mpool_ref_t bplib_mpool_ref_duplicate(bplib_mpool_ref_t refptr)
 {
+    bplib_mpool_lock_t *lock;
+
     /*
      * If the refcount is 0, that means this is still a regular (non-refcounted) object,
      * or it should have been garbage-collected already, so something is broken.
      */
+
+    lock = bplib_mpool_lock_resource(refptr);
     assert(refptr->header.refcount > 0);
     ++refptr->header.refcount;
+    bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_ref_t)refptr;
 }
@@ -56,6 +61,8 @@ bplib_mpool_ref_t bplib_mpool_ref_duplicate(bplib_mpool_ref_t refptr)
 bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_t *pool, bplib_mpool_block_t *blk)
 {
     bplib_mpool_block_content_t *content;
+    bplib_mpool_lock_t          *lock;
+    bool                         is_first_ref;
 
     /*
      * This drills down to the actual base object (the "root" so to speak), so that the
@@ -69,18 +76,24 @@ bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_t *pool, bplib_mpool_block_
         return NULL;
     }
 
+    lock         = bplib_mpool_lock_resource(content);
+    is_first_ref = (content->header.refcount == 0);
+    ++content->header.refcount;
+    bplib_mpool_lock_release(lock);
+
     /*
      * If the refcount is 0, that means this is still a regular (non-refcounted) object.
      * If nonzero then it is already a recounted object
      */
-    if (content->header.refcount == 0)
+    if (is_first_ref)
     {
         /* The original object goes into the active list in the pool, and becomes "owned"
          * by the pool after this.  It should no longer be directly used by the caller. */
-        bplib_mpool_insert_before(&pool->ref_managed_blocks, blk);
+        lock = bplib_mpool_lock_resource(pool);
+        bplib_mpool_insert_before(&pool->managed_block_list, blk);
+        bplib_mpool_lock_release(lock);
     }
 
-    ++content->header.refcount;
     return content;
 }
 
@@ -93,8 +106,12 @@ bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_t *pool, bplib_mpool
                                                 void *init_arg)
 {
     bplib_mpool_block_content_t *rblk;
+    bplib_mpool_lock_t          *lock;
 
+    lock = bplib_mpool_lock_resource(pool);
     rblk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_ref, magic_number, init_arg);
+    bplib_mpool_lock_release(lock);
+
     if (rblk == NULL)
     {
         return NULL;
@@ -132,15 +149,26 @@ bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk)
 void bplib_mpool_ref_release(bplib_mpool_t *pool, bplib_mpool_ref_t refptr)
 {
     bplib_mpool_block_header_t *block_hdr;
+    bplib_mpool_lock_t         *lock;
+    bool                        needs_recycle;
 
     if (refptr != NULL)
     {
         block_hdr = &refptr->header;
+
+        /*
+         * Refcount decrement must be done under lock, but it can be
+         * a fine-grained lock.
+         */
+        lock = bplib_mpool_lock_resource(refptr);
         if (block_hdr->refcount > 0)
         {
             --block_hdr->refcount;
         }
-        if (block_hdr->refcount == 0)
+        needs_recycle = (block_hdr->refcount == 0);
+        bplib_mpool_lock_release(lock);
+
+        if (needs_recycle)
         {
             bplib_mpool_recycle_block(pool, &block_hdr->base_link);
         }

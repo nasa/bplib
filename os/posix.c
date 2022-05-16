@@ -183,7 +183,7 @@ int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t 
  * bplib_os_get_dtntime_ms - returns milliseconds since DTN epoch
  * this should be compatible with the BPv7 time definition
  *-------------------------------------------------------------------------------------*/
-uint64_t    bplib_os_get_dtntime_ms(void)
+uint64_t bplib_os_get_dtntime_ms(void)
 {
     struct timespec now;
 
@@ -340,6 +340,21 @@ void bplib_os_unlock(bp_handle_t h)
     pthread_mutex_unlock(&locks[handle]->mutex);
 }
 
+void bplib_os_broadcast_signal_and_unlock(bp_handle_t h)
+{
+    bplib_os_lock_t *lock = locks[bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE)];
+
+    pthread_cond_broadcast(&lock->cond);
+    pthread_mutex_unlock(&lock->mutex);
+}
+
+void bplib_os_broadcast_signal(bp_handle_t h)
+{
+    bplib_os_lock_t *lock = locks[bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE)];
+
+    pthread_cond_broadcast(&lock->cond);
+}
+
 /*--------------------------------------------------------------------------------------
  * bplib_os_signal -
  *-------------------------------------------------------------------------------------*/
@@ -405,6 +420,45 @@ int bplib_os_waiton(bp_handle_t h, int timeout_ms)
 
     /* Return Status */
     return status;
+}
+
+int bplib_os_wait_until_ms(bp_handle_t h, uint64_t abs_dtntime_ms)
+{
+    bplib_os_lock_t *lock = locks[bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE)];
+    struct timespec  until_time;
+    int              status;
+
+    if (abs_dtntime_ms == BP_DTNTIME_INFINITE)
+    {
+        /* Block Forever until Success */
+        status = pthread_cond_wait(&lock->cond, &lock->mutex);
+    }
+    else
+    {
+        until_time.tv_sec  = (abs_dtntime_ms / 1000);
+        until_time.tv_nsec = (abs_dtntime_ms % 1000) * 1000000;
+
+        /* change the epoch from DTN (2000) to UNIX (1970) */
+        until_time.tv_sec += UNIX_SECS_AT_2000;
+
+        /* Block on Timed Wait and Update Timeout */
+        status = pthread_cond_timedwait(&lock->cond, &lock->mutex, &until_time);
+    }
+
+    /* check for timeout error explicitly and translate to BP_TIMEOUT */
+    if (status == ETIMEDOUT)
+    {
+        return BP_TIMEOUT;
+    }
+
+    /* other unexpected/unhandled errors become BP_ERROR */
+    if (status != 0)
+    {
+        return BP_ERROR;
+    }
+
+    /* status of 0 indicates success */
+    return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------

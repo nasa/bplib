@@ -61,6 +61,9 @@ uint8_t bundle_buffer[512];
 
 bp_primary_block_t priblk;
 
+pthread_t mgt_task_1;
+pthread_t mgt_task_2;
+
 void display(void *output, const uint8_t *DataPtr, size_t DisplayOffset, size_t Count)
 {
     uint16_t i;
@@ -108,6 +111,40 @@ int crc_test(bplib_crc_parameters_t *params)
     test = bplib_crc_update(params, test, input1, sizeof(input1) - 1);
     printf("CRC Test: %s => %0*x\n", bplib_crc_get_name(params), bplib_crc_get_width(params) / 4,
            (unsigned int)bplib_crc_finalize(params, test));
+
+    return 0;
+}
+
+void *bplib_mgt_entry_point(void *arg)
+{
+    bplib_routetbl_t *rtbl;
+
+    rtbl = arg;
+
+    while (true)
+    {
+        bplib_route_maintenance_request_wait(rtbl);
+
+        // printf("@%lu: Maintenance running...\n", (unsigned long)bplib_os_get_dtntime_ms());
+
+        /* do maintenance regardless of what the "request" returned, as that
+         * currently only reflects actual requests, not time-based poll actions */
+        bplib_route_periodic_maintenance(rtbl);
+    }
+}
+
+int bplib_start_mgt_task(void)
+{
+    if (pthread_create(&mgt_task_1, NULL, bplib_mgt_entry_point, s1_rtbl) < 0)
+    {
+        perror("pthread_create 1");
+        return -1;
+    }
+    if (pthread_create(&mgt_task_2, NULL, bplib_mgt_entry_point, s2_rtbl) < 0)
+    {
+        perror("pthread_create 2");
+        return -1;
+    }
 
     return 0;
 }
@@ -238,7 +275,6 @@ int bplib2_bundle_test(void)
     char         my_payload[] = "The Answer to the Ultimate Question of Life, The Universe, and Everything is 42";
     char         recv_payload[1 + sizeof(my_payload)];
     int          lib_status;
-    uint32_t     flags;
     size_t       bundle_sz;
     size_t       recv_sz;
 
@@ -268,21 +304,16 @@ int bplib2_bundle_test(void)
         return -1;
     }
 
-    printf("Storing payload:\n");
+    printf("@%lu: Storing payload:\n", (unsigned long)bplib_os_get_dtntime_ms());
     display(stdout, (const uint8_t *)my_payload, 0, sizeof(my_payload));
 
-    flags      = 0;
-    lib_status = bplib_send(desc, my_payload, sizeof(my_payload), BP_CHECK, &flags);
+    lib_status = bplib_send(desc, my_payload, sizeof(my_payload), BP_CHECK);
     if (lib_status != 0)
     {
-        fprintf(stderr, "Failed bplib_send()... exiting\n");
+        fprintf(stderr, "Failed bplib_send() code=%d... exiting\n", lib_status);
         bplib_close_socket(desc);
         return lib_status;
     }
-
-    /* At this point, the bundle should go to storage, but no CLA is up, so it will
-     * get blocked at that point and will stay in the storage */
-    bplib_route_do_maintenance(s1_rtbl);
 
     /* Setting the CLA "up" should cause the previously-blocked bundle to unblock */
     if (bplib_route_intf_set_flags(s1_rtbl, s1_intf_cla, BPLIB_INTF_STATE_OPER_UP) < 0)
@@ -290,20 +321,24 @@ int bplib2_bundle_test(void)
         fprintf(stderr, "%s(): bplib_route_intf_set_flags cla failed", __func__);
     }
 
-    bplib_route_do_maintenance(s1_rtbl);
+    /* wait for any pending data flows to complete */
+    bplib_route_maintenance_complete_wait(s1_rtbl);
 
     bundle_sz  = sizeof(bundle_buffer);
     lib_status = bplib_cla_egress(s1_rtbl, s1_intf_cla, bundle_buffer, &bundle_sz, BP_CHECK);
     if (lib_status != 0)
     {
-        fprintf(stderr, "Failed bplib_cla_egress()... exiting\n");
+        fprintf(stderr, "Failed bplib_cla_egress() code=%d... exiting\n", lib_status);
         bplib_close_socket(desc);
         return lib_status;
     }
 
     bplib_close_socket(desc);
 
-    printf("Bundle content:\n");
+    /* wait for any pending data flows to complete */
+    bplib_route_maintenance_complete_wait(s1_rtbl);
+
+    printf("@%lu: Bundle content:\n", (unsigned long)bplib_os_get_dtntime_ms());
     display(stdout, bundle_buffer, 0, bundle_sz);
 
     int fd;
@@ -326,15 +361,13 @@ int bplib2_bundle_test(void)
      * it back on the pending list for re-evaluating (but note this happens _after_ the
      * pending list was already processed earlier in the maintenance cycle).
      */
-    bplib_route_do_maintenance(s1_rtbl);
-    bplib_store_cache_debug_scan(s1_rtbl, s1_intf_store);
 
     /*
      * The second maintenance cycle will now identify the bundle as no longer necessary,
      * in the storage intf, and it will recycle those buffers as well, which causes its
      * refcount to become 0, and the entire bundle is dropped.
      */
-    bplib_route_do_maintenance(s1_rtbl);
+
     bplib_store_cache_debug_scan(s1_rtbl, s1_intf_store);
 
     /* this does a sanity check on the pool and displays various block allocation stats */
@@ -366,31 +399,29 @@ int bplib2_bundle_test(void)
     lib_status = bplib_cla_ingress(s2_rtbl, s2_intf_cla, bundle_buffer, bundle_sz, BP_CHECK);
     if (lib_status != 0)
     {
-        fprintf(stderr, "Failed bplib_cla_ingress()... exiting\n");
+        fprintf(stderr, "Failed bplib_cla_ingress() code=%d... exiting\n", lib_status);
         bplib_close_socket(desc);
         return lib_status;
     }
 
-    bplib_route_do_maintenance(s2_rtbl);
-
-    /* This extra sleep is merely to let the pending DACS signal reach its transmit time */
-    sleep(2);
-    bplib_route_do_maintenance(s2_rtbl);
+    /* wait for any pending data flows to complete */
+    bplib_route_maintenance_complete_wait(s2_rtbl);
 
     recv_sz    = sizeof(recv_payload);
-    lib_status = bplib_recv(desc, recv_payload, &recv_sz, BP_CHECK, &flags);
+    lib_status = bplib_recv(desc, recv_payload, &recv_sz, BP_CHECK);
     if (lib_status != 0)
     {
-        fprintf(stderr, "Failed bplib_recv()... exiting\n");
+        fprintf(stderr, "Failed bplib_recv() code=%d... exiting\n", lib_status);
         bplib_close_socket(desc);
         return lib_status;
     }
 
     bplib_close_socket(desc);
 
-    bplib_route_do_maintenance(s2_rtbl);
+    /* wait for any pending data flows to complete */
+    bplib_route_maintenance_complete_wait(s2_rtbl);
 
-    printf("Received payload:\n");
+    printf("@%lu: Received payload:\n", (unsigned long)bplib_os_get_dtntime_ms());
     display(stdout, (const uint8_t *)recv_payload, 0, recv_sz);
 
     if (recv_sz != sizeof(my_payload))
@@ -405,15 +436,21 @@ int bplib2_bundle_test(void)
         return lib_status;
     }
 
+    /* now wait for the DACS signal, which comes out after a delay */
+    printf("@%lu: waiting for ACK Bundle...\n", (unsigned long)bplib_os_get_dtntime_ms());
+
     bundle_sz  = sizeof(bundle_buffer);
-    lib_status = bplib_cla_egress(s2_rtbl, s2_intf_cla, bundle_buffer, &bundle_sz, BP_CHECK);
+    lib_status = bplib_cla_egress(s2_rtbl, s2_intf_cla, bundle_buffer, &bundle_sz, 5000);
     if (lib_status != 0)
     {
-        fprintf(stderr, "Failed bplib_cla_egress()... exiting\n");
+        fprintf(stderr, "Failed bplib_cla_egress() for DACS  code=%d... exiting\n", lib_status);
         return lib_status;
     }
 
-    printf("ACK Bundle content:\n");
+    /* wait for any pending data flows to complete */
+    bplib_route_maintenance_complete_wait(s2_rtbl);
+
+    printf("@%lu: ACK Bundle content:\n", (unsigned long)bplib_os_get_dtntime_ms());
     display(stdout, bundle_buffer, 0, bundle_sz);
 
     fd = open("ack.cbor", O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -429,20 +466,20 @@ int bplib2_bundle_test(void)
     }
     close(fd);
 
-    bplib_route_do_maintenance(s2_rtbl);
+    printf("@%lu: sending ACK to originator...\n", (unsigned long)bplib_os_get_dtntime_ms());
 
     lib_status = bplib_cla_ingress(s1_rtbl, s1_intf_cla, bundle_buffer, bundle_sz, BP_CHECK);
     if (lib_status != 0)
     {
-        fprintf(stderr, "Failed bplib_cla_ingress()... exiting\n");
+        fprintf(stderr, "Failed bplib_cla_ingress() code=%d... exiting\n", lib_status);
         return lib_status;
     }
 
-    /* this should identify the ingress bundle above as a custody ACK for the original */
-    bplib_route_do_maintenance(s1_rtbl);
+    bplib_route_maintenance_complete_wait(s1_rtbl);
 
-    /* this should discard the original and recycle more blocks  */
-    bplib_route_do_maintenance(s1_rtbl);
+    /* let some additional maintenance cycles run */
+    printf("@%lu: shutting down...\n", (unsigned long)bplib_os_get_dtntime_ms());
+    sleep(2);
 
     return 0;
 }
@@ -465,6 +502,11 @@ int main(int argc, char *argv[])
     // crc_test(&BPLIB_CRC32_CASTAGNOLI);
 
     if (bplib_route_test() != 0)
+    {
+        return EXIT_FAILURE;
+    }
+
+    if (bplib_start_mgt_task() != 0)
     {
         return EXIT_FAILURE;
     }

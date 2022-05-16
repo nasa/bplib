@@ -56,17 +56,28 @@
 
 /* the set of flags for which retention is required - all are typically set for valid entries
  * if any of these becomes UN-set, retention of the entry is NOT required */
-#define BPLIB_STORE_FLAGS_RETENTION_REQUIRED (BPLIB_STORE_FLAG_WITHIN_LIFETIME | BPLIB_STORE_FLAG_AWAITING_CUSTODY)
-
+#define BPLIB_STORE_FLAGS_RETENTION_REQUIRED  (BPLIB_STORE_FLAG_WITHIN_LIFETIME | BPLIB_STORE_FLAG_AWAITING_CUSTODY)
 #define BPLIB_STORE_FLAGS_TRANSMIT_WAIT_STATE (BPLIB_STORE_FLAG_LOCALLY_QUEUED | BPLIB_STORE_FLAG_AWAITING_TRANSMIT)
 
 #define BP_CACHE_DACS_LIFETIME  86400000 /* 24 hrs */
-#define BP_CACHE_DACS_OPEN_TIME 1024
+#define BP_CACHE_DACS_OPEN_TIME 2500
 
 #define BP_CACHE_IDLE_RETRY_TIME 3600000
 #define BP_CACHE_FAST_RETRY_TIME 2000
 
-#define BP_CACHE_TIME_INFINITE UINT64_MAX
+/*
+ * The size of the time "buckets" stored in the time index
+ *
+ * as every entry in the time index tree may consume an extra block (required for duplicate handling),
+ * this will batch together a group of times.  There shouldn't be a real need for millisecond-
+ * level precision here, and this should hopefully reduce the block usage by consolidating
+ * all entries that are within a range of times.
+ *
+ * This should be a bitwise mask of the seconds to be grouped
+ */
+#define BP_CACHE_TIME_BUCKET_SIZE 0x3FF
+
+#define BP_CACHE_TIME_INFINITE BP_DTNTIME_INFINITE
 
 typedef struct bplib_store_cache_state
 {
@@ -434,6 +445,7 @@ bplib_store_cache_entry_t *bplib_store_cache_open_dacs(bplib_store_cache_state_t
          * bundle (the actual DACS bundle itself doesn't even exist yet). */
         store_entry->expire_time   = store_entry->last_eval_time + BP_CACHE_DACS_LIFETIME;
         store_entry->transmit_time = store_entry->last_eval_time + BP_CACHE_DACS_OPEN_TIME;
+        store_entry->flags         = BPLIB_STORE_FLAG_WITHIN_LIFETIME | BPLIB_STORE_FLAG_AWAITING_TRANSMIT;
 
         /* need to fill out the delivery_data so this will look like a regular bundle when sent */
         pri_block->delivery_data.delivery_policy      = bplib_policy_delivery_local_ack;
@@ -492,41 +504,6 @@ void bplib_store_cache_append_dacs(bplib_store_cache_state_t *state, bplib_store
     }
 }
 
-void bplib_store_cache_send_bundle(bplib_store_cache_state_t *state, bplib_store_cache_entry_t *store_entry)
-{
-    bplib_mpool_block_t          *rblk;
-    bplib_mpool_block_t          *eblk;
-    bplib_mpool_bblock_primary_t *pri_block;
-
-    rblk = NULL;
-    eblk = bplib_mpool_dereference(store_entry->refptr);
-
-    /* Check if the dest queue has any space, this is a factor in next action time */
-    if (bplib_mpool_subq_may_push(&state->self_flow->ingress))
-    {
-        pri_block = bplib_mpool_bblock_primary_cast(eblk);
-        if (pri_block != NULL)
-        {
-            /* Set egress intf to invalid - which can be used as a marker for items which are
-             * blocked from egress (it will be set valid again when it actually goes out, so if
-             * it stays invalid, that means there is no egress intf available) */
-            pri_block->delivery_data.egress_intf_id = BP_INVALID_HANDLE;
-        }
-
-        /* In the unlikely event that this fails, the refcount will remain 1, so it will be found again next poll */
-        rblk = bplib_mpool_ref_make_block(state->parent_pool, store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF,
-                                          store_entry);
-    }
-
-    if (rblk != NULL)
-    {
-        /* put it into the queue for transmit (does not fail at this point) */
-        bplib_mpool_subq_push_single(&state->self_flow->ingress, rblk);
-        bplib_mpool_flow_mark_active(state->parent_pool, state->self_fblk_ref);
-        store_entry->flags |= BPLIB_STORE_FLAG_AWAITING_TRANSMIT;
-    }
-}
-
 bplib_mpool_block_t *bplib_store_cache_evaluate_bundle_status(bplib_store_cache_state_t *state,
                                                               bplib_store_cache_entry_t *store_entry)
 {
@@ -551,12 +528,8 @@ bplib_mpool_block_t *bplib_store_cache_evaluate_bundle_status(bplib_store_cache_
             pri_block->delivery_data.egress_intf_id = BP_INVALID_HANDLE;
             pri_block->delivery_data.egress_time    = 0;
 
-            /* Check if the dest queue has any space, before creating the wrapper block */
-            if (bplib_mpool_subq_may_push(&state->self_flow->ingress))
-            {
-                rblk = bplib_mpool_ref_make_block(state->parent_pool, store_entry->refptr,
-                                                  BPLIB_STORE_SIGNATURE_BLOCKREF, store_entry);
-            }
+            rblk = bplib_mpool_ref_make_block(state->parent_pool, store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF,
+                                              store_entry);
         }
         else if ((store_entry->flags & BPLIB_STORE_FLAG_LOCALLY_QUEUED) == 0 &&
                  bp_handle_is_valid(pri_block->delivery_data.egress_intf_id))
@@ -604,11 +577,8 @@ bplib_mpool_block_t *bplib_store_cache_evaluate_pending_dacs_status(bplib_store_
         bplib_store_cache_remove_from_subindex(state->parent_pool, &state->hash_index, &store_entry->hash_link);
 
         /* Check if the dest queue has any space, before creating the wrapper block */
-        if (bplib_mpool_subq_may_push(&state->self_flow->ingress))
-        {
-            rblk = bplib_mpool_ref_make_block(state->parent_pool, store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF,
-                                              store_entry);
-        }
+        rblk = bplib_mpool_ref_make_block(state->parent_pool, store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF,
+                                          store_entry);
     }
 
     return rblk;
@@ -642,15 +612,9 @@ void bplib_store_cache_schedule_next_visit(bplib_store_cache_state_t *state, bpl
     }
 
     /*
-     * since every entry in the tree may consume an extra block (required for duplicate handling),
-     * try to batch together a group of times.  There shouldn't be a real need for millisecond-
-     * level precision here, and this should hopefully reduce the block usage by consolidating
-     * all entries that are on the same second.
-     *
-     * This groups together batches of 1024 ms because it can be done as a simple binary operation,
-     * as opposed to batching by 1000 ms.
+     * determine the batch/bucket that this should go into
      */
-    ref_time = (ref_time + 0x3FF) & ~((uint64_t)0x3FF);
+    ref_time |= BP_CACHE_TIME_BUCKET_SIZE;
 
     if (ref_time != store_entry->next_eval_time)
     {
@@ -737,16 +701,21 @@ void bplib_store_cache_evaluate_pending_entry(bplib_mpool_block_t *sblk)
 
             if (rblk != NULL)
             {
-                /* put it into the queue for transmit (does not fail at this point) */
-                bplib_mpool_subq_push_single(&state->self_flow->ingress, rblk);
-                bplib_mpool_flow_mark_active(state->parent_pool, state->self_fblk_ref);
+                if (bplib_mpool_subq_depthlimit_try_push(state->parent_pool, state->self_fblk_ref,
+                                                         &state->self_flow->ingress, rblk, 0))
+                {
+                    /*
+                     * set both flags to indicate this is now in transit ...
+                     *  - item is locally queued
+                     *  - item should not be sent again until retransmit time
+                     */
+                    store_entry->flags |= BPLIB_STORE_FLAGS_TRANSMIT_WAIT_STATE;
+                }
+                else
+                {
+                    bplib_mpool_recycle_block(state->parent_pool, rblk);
+                }
 
-                /*
-                 * set both flags to indicate this is now in transit ...
-                 *  - item is locally queued
-                 *  - item should not be sent again until retransmit time
-                 */
-                store_entry->flags |= BPLIB_STORE_FLAGS_TRANSMIT_WAIT_STATE;
                 rblk = NULL;
             }
 
@@ -1071,11 +1040,12 @@ void bplib_store_cache_destruct_entry(void *arg, bplib_mpool_block_t *sblk)
     }
 }
 
-int bplib_store_cache_egress_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *intf_block, void *egress_arg)
+int bplib_store_cache_egress_impl(bplib_routetbl_t *rtbl, bplib_mpool_ref_t intf_ref, void *egress_arg)
 {
     bplib_mpool_flow_t           *flow;
     bplib_mpool_block_t          *qblk;
     bplib_mpool_block_t          *sblk;
+    bplib_mpool_block_t          *intf_block;
     bplib_store_cache_state_t    *state;
     bplib_mpool_bblock_primary_t *pri_block;
     bplib_store_cache_entry_t    *store_entry;
@@ -1083,7 +1053,8 @@ int bplib_store_cache_egress_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *i
     bp_ipn_addr_t                 dest_addr;
     int                           forward_count;
 
-    state = bplib_store_cache_get_state(intf_block);
+    intf_block = bplib_mpool_dereference(intf_ref);
+    state      = bplib_store_cache_get_state(intf_block);
     if (state == NULL)
     {
         return -1;
@@ -1098,7 +1069,7 @@ int bplib_store_cache_egress_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *i
     forward_count = 0;
     while (true)
     {
-        qblk = bplib_mpool_subq_pull_single(&flow->egress);
+        qblk = bplib_mpool_subq_depthlimit_try_pull(state->parent_pool, state->self_fblk_ref, &flow->egress, 0);
         if (qblk == NULL)
         {
             /* no more bundles */
@@ -1316,13 +1287,13 @@ int bplib_store_cache_do_intf_statechange(bplib_store_cache_state_t *state, bool
     return BP_SUCCESS;
 }
 
-int bplib_store_cache_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *intf_block, void *event_arg)
+int bplib_store_cache_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_ref_t intf_ref, void *event_arg)
 {
     bplib_store_cache_state_t *state;
     bplib_generic_event_t     *event;
 
     event = event_arg;
-    state = bplib_store_cache_get_state(intf_block);
+    state = bplib_store_cache_get_state(bplib_mpool_dereference(intf_ref));
     if (state == NULL)
     {
         return -1;
@@ -1589,9 +1560,9 @@ void bplib_store_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 
     printf("DEBUG: %s() intf_id=%d\n", __func__, bp_handle_printable(intf_id));
 
-    bplib_mpool_debug_print_queue_stats(&state->pending_list, "pending_list");
-    bplib_mpool_debug_print_queue_stats(&state->expired_list, "expired_list");
-    bplib_mpool_debug_print_queue_stats(&state->idle_list, "idle_list");
+    bplib_mpool_debug_print_list_stats(&state->pending_list, "pending_list");
+    bplib_mpool_debug_print_list_stats(&state->expired_list, "expired_list");
+    bplib_mpool_debug_print_list_stats(&state->idle_list, "idle_list");
 
     bplib_route_release_intf_controlblock(tbl, intf_block_ref);
 }

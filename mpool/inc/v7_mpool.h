@@ -31,8 +31,8 @@
 typedef struct bplib_mpool_bblock_primary   bplib_mpool_bblock_primary_t;
 typedef struct bplib_mpool_bblock_canonical bplib_mpool_bblock_canonical_t;
 
-typedef struct bplib_mpool_subq bplib_mpool_subq_t;
-typedef struct bplib_mpool_flow bplib_mpool_flow_t;
+typedef struct bplib_mpool_subq_base bplib_mpool_subq_base_t;
+typedef struct bplib_mpool_flow      bplib_mpool_flow_t;
 
 /**
  * @brief A reference to another mpool block
@@ -522,6 +522,6 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size);
 /* DEBUG/TEST verification routines */
 
 void bplib_mpool_debug_scan(bplib_mpool_t *pool);
-void bplib_mpool_debug_print_queue_stats(bplib_mpool_block_t *list, const char *label);
+void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *label);
 
 #endif /* V7_MPOOL_H */

@@ -50,7 +50,7 @@ typedef struct bplib_cla_stats
 /******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/
-int bplib_cla_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *intf_block, void *event_arg)
+int bplib_cla_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_ref_t intf_ref, void *event_arg)
 {
     bplib_generic_event_t *event;
     bplib_mpool_flow_t    *flow;
@@ -65,7 +65,7 @@ int bplib_cla_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *intf_block
     }
 
     /* only care about state change events for the local i/f */
-    flow = bplib_mpool_flow_cast(intf_block);
+    flow = bplib_mpool_flow_cast(bplib_mpool_dereference(intf_ref));
     if (flow == NULL || !bp_handle_equal(event->intf_state.intf_id, flow->external_id))
     {
         return BP_SUCCESS;
@@ -81,22 +81,18 @@ int bplib_cla_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *intf_block
     {
         pool = bplib_route_get_mpool(rtbl);
 
-        /* prevents any additional entries in flow queues */
-        flow->ingress.current_depth_limit = 0;
-        flow->egress.current_depth_limit  = 0;
-
         /* drop anything already in the egress queue.  Note that
          * ingress is usually empty, as bundles really should not wait there,
          * so that probably has no effect. */
-        bplib_mpool_subq_drop_all(pool, &flow->ingress);
-        bplib_mpool_subq_drop_all(pool, &flow->egress);
+        bplib_mpool_subq_depthlimit_disable(pool, &flow->ingress);
+        bplib_mpool_subq_depthlimit_disable(pool, &flow->egress);
     }
 
     return BP_SUCCESS;
 }
 
 int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref, const void *content, size_t size,
-                                 uint32_t timeout)
+                                 uint64_t time_limit)
 {
     bplib_mpool_flow_t           *flow;
     bplib_mpool_block_t          *pblk;
@@ -111,10 +107,6 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
     if (flow == NULL)
     {
         status = bplog(NULL, BP_FLAG_DIAGNOSTIC, "intf_block invalid\n");
-    }
-    else if (!bplib_mpool_subq_may_push(&flow->ingress))
-    {
-        status = bplog(NULL, BP_FLAG_DIAGNOSTIC, "ingress queue full\n");
     }
     else
     {
@@ -148,10 +140,15 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
             pri_block->delivery_data.ingress_intf_id = flow->external_id;
             pri_block->delivery_data.ingress_time    = bplib_os_get_dtntime_ms();
 
-            bplib_mpool_subq_push_single(&flow->ingress, rblk);
-            bplib_mpool_flow_mark_active(pool, flow_ref);
-
-            status = BP_SUCCESS;
+            if (bplib_mpool_subq_depthlimit_try_push(pool, flow_ref, &flow->ingress, rblk, time_limit))
+            {
+                status = BP_SUCCESS;
+            }
+            else
+            {
+                bplib_mpool_recycle_block(pool, rblk);
+                status = BP_TIMEOUT;
+            }
         }
         else
         {
@@ -182,7 +179,7 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
 }
 
 int bplib_generic_bundle_egress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref, void *content, size_t *size,
-                                uint32_t timeout)
+                                uint64_t time_limit)
 {
     bplib_mpool_flow_t           *flow;
     bplib_mpool_bblock_primary_t *cpb;
@@ -200,7 +197,7 @@ int bplib_generic_bundle_egress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref,
     {
         /* this removes it from the list */
         /* NOTE: after this point a valid bundle has to be put somewhere (either onto another queue or recycled) */
-        pblk = bplib_mpool_subq_pull_single(&flow->egress);
+        pblk = bplib_mpool_subq_depthlimit_try_pull(pool, flow_ref, &flow->egress, time_limit);
         cpb  = bplib_mpool_bblock_primary_cast(pblk);
         if (cpb == NULL)
         {
@@ -305,11 +302,27 @@ bp_handle_t bplib_create_cla_intf(bplib_routetbl_t *rtbl)
     return self_intf_id;
 }
 
-int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, int timeout)
+int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, uint32_t timeout)
 {
     bplib_mpool_ref_t  flow_ref;
     int                status;
     bplib_cla_stats_t *stats;
+    uint64_t           egress_time_limit;
+
+    /* preemptively trigger the maintenance task to run */
+    /* this may help in the event that the queue is currently empty but
+     * there is data somewhere else in the pool that is headed here (assuming
+     * timeout is nonzero). */
+    bplib_route_set_maintenance_request(rtbl);
+
+    if (timeout == 0)
+    {
+        egress_time_limit = 0;
+    }
+    else
+    {
+        egress_time_limit = bplib_os_get_dtntime_ms() + timeout;
+    }
 
     flow_ref = bplib_route_get_intf_controlblock(rtbl, intf_id);
     if (flow_ref == NULL)
@@ -326,7 +339,7 @@ int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, 
     }
     else
     {
-        status = bplib_generic_bundle_egress(bplib_route_get_mpool(rtbl), flow_ref, bundle, size, timeout);
+        status = bplib_generic_bundle_egress(bplib_route_get_mpool(rtbl), flow_ref, bundle, size, egress_time_limit);
         if (status == BP_SUCCESS)
         {
             stats->egress_byte_count += *size;
@@ -338,11 +351,12 @@ int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, 
     return status;
 }
 
-int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, int timeout)
+int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, uint32_t timeout)
 {
     bplib_mpool_ref_t  flow_ref;
     int                status;
     bplib_cla_stats_t *stats;
+    uint64_t           ingress_time_limit;
 
     flow_ref = bplib_route_get_intf_controlblock(rtbl, intf_id);
     if (flow_ref == NULL)
@@ -359,7 +373,16 @@ int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *b
     }
     else
     {
-        status = bplib_generic_bundle_ingress(bplib_route_get_mpool(rtbl), flow_ref, bundle, size, timeout);
+        if (timeout == 0)
+        {
+            ingress_time_limit = 0;
+        }
+        else
+        {
+            ingress_time_limit = bplib_os_get_dtntime_ms() + timeout;
+        }
+
+        status = bplib_generic_bundle_ingress(bplib_route_get_mpool(rtbl), flow_ref, bundle, size, ingress_time_limit);
 
         if (status == BP_SUCCESS)
         {
@@ -368,6 +391,9 @@ int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *b
     }
 
     bplib_route_release_intf_controlblock(rtbl, flow_ref);
+
+    /* trigger the maintenance task to run */
+    bplib_route_set_maintenance_request(rtbl);
 
     return status;
 }

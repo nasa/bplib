@@ -257,16 +257,18 @@ int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_m
     return status;
 }
 
-int bplib_serviceflow_forward_ingress(bplib_routetbl_t *tbl, bplib_mpool_block_t *intf_block, void *forward_arg)
+int bplib_serviceflow_forward_ingress(bplib_routetbl_t *tbl, bplib_mpool_ref_t intf_ref, void *forward_arg)
 {
     bplib_route_serviceintf_info_t *base_intf;
     bplib_mpool_bblock_primary_t   *pri_block;
     bplib_mpool_block_t            *qblk;
+    bplib_mpool_block_t            *intf_block;
     bplib_mpool_flow_t             *curr_flow;
     bplib_mpool_flow_t             *storage_flow;
     int                             forward_count;
 
-    base_intf = bplib_mpool_generic_data_cast(intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
+    intf_block = bplib_mpool_dereference(intf_ref);
+    base_intf  = bplib_mpool_generic_data_cast(intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         return bplog(NULL, BP_FLAG_DIAGNOSTIC, "intf_block invalid\n");
@@ -281,7 +283,7 @@ int bplib_serviceflow_forward_ingress(bplib_routetbl_t *tbl, bplib_mpool_block_t
     forward_count = 0;
     while (true)
     {
-        qblk = bplib_mpool_subq_pull_single(&curr_flow->ingress);
+        qblk = bplib_mpool_subq_depthlimit_try_pull(bplib_route_get_mpool(tbl), intf_ref, &curr_flow->ingress, 0);
         if (qblk == NULL)
         {
             /* no more bundles */
@@ -302,10 +304,10 @@ int bplib_serviceflow_forward_ingress(bplib_routetbl_t *tbl, bplib_mpool_block_t
             !bp_handle_is_valid(pri_block->delivery_data.storage_intf_id))
         {
             storage_flow = bplib_mpool_flow_cast(bplib_mpool_dereference(base_intf->storage_service));
-            if (storage_flow != NULL && bplib_mpool_subq_may_push(&storage_flow->egress))
+            if (storage_flow != NULL &&
+                bplib_mpool_subq_depthlimit_try_push(bplib_route_get_mpool(tbl), base_intf->storage_service,
+                                                     &storage_flow->egress, qblk, 0))
             {
-                bplib_mpool_subq_push_single(&storage_flow->egress, qblk);
-                bplib_mpool_flow_mark_active(bplib_route_get_mpool(tbl), base_intf->storage_service);
                 qblk = NULL;
             }
         }
@@ -325,7 +327,7 @@ int bplib_serviceflow_forward_ingress(bplib_routetbl_t *tbl, bplib_mpool_block_t
     return forward_count;
 }
 
-int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t *intf_block, void *egress_arg)
+int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_ref_t intf_ref, void *egress_arg)
 {
     bplib_route_serviceintf_info_t *base_intf;
     bplib_rbt_link_t               *tgt_subintf;
@@ -333,13 +335,15 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
     bplib_mpool_flow_t             *next_flow;
     bplib_mpool_ref_t               next_flow_ref;
     bplib_mpool_block_t            *pblk;
+    bplib_mpool_block_t            *intf_block;
     bplib_mpool_t                  *pool;
     bplib_mpool_bblock_primary_t   *pri_block;
     bp_ipn_addr_t                   bundle_src;
     bp_ipn_addr_t                   bundle_dest;
     int                             forward_count;
 
-    base_intf = bplib_mpool_generic_data_cast(intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
+    intf_block = bplib_mpool_dereference(intf_ref);
+    base_intf  = bplib_mpool_generic_data_cast(intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         return bplog(NULL, BP_FLAG_DIAGNOSTIC, "intf_block invalid\n");
@@ -355,7 +359,7 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
     forward_count = 0;
     while (true)
     {
-        pblk = bplib_mpool_subq_pull_single(&curr_flow->egress);
+        pblk = bplib_mpool_subq_depthlimit_try_pull(pool, intf_ref, &curr_flow->egress, 0);
         if (pblk == NULL)
         {
             /* no bundles available to recv */
@@ -393,11 +397,9 @@ int bplib_serviceflow_forward_egress(bplib_routetbl_t *tbl, bplib_mpool_block_t 
             if (next_flow_ref != NULL)
             {
                 next_flow = bplib_mpool_flow_cast(bplib_mpool_dereference(next_flow_ref));
-                if (next_flow != NULL && bplib_mpool_subq_may_push(&next_flow->egress))
+                if (next_flow != NULL &&
+                    bplib_mpool_subq_depthlimit_try_push(pool, next_flow_ref, &next_flow->egress, pblk, 0))
                 {
-                    /* this delivers to output queue (same direction) as normal */
-                    bplib_mpool_subq_push_single(&next_flow->egress, pblk);
-                    bplib_mpool_flow_mark_active(pool, next_flow_ref);
                     pblk = NULL;
                 }
             }
@@ -511,7 +513,7 @@ bplib_mpool_ref_t bplib_serviceflow_remove_from_base(bplib_mpool_t *pool, bplib_
     return endpoint_intf_ref;
 }
 
-int bplib_dataservice_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *intf_block, void *event_arg)
+int bplib_dataservice_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_ref_t intf_ref, void *event_arg)
 {
     bplib_generic_event_t *event;
     bplib_mpool_flow_t    *flow;
@@ -526,7 +528,7 @@ int bplib_dataservice_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *in
     }
 
     /* only care about state change events for the local i/f */
-    flow = bplib_mpool_flow_cast(intf_block);
+    flow = bplib_mpool_flow_cast(bplib_mpool_dereference(intf_ref));
     if (flow == NULL || !bp_handle_equal(event->intf_state.intf_id, flow->external_id))
     {
         return BP_SUCCESS;
@@ -542,15 +544,11 @@ int bplib_dataservice_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_block_t *in
     {
         pool = bplib_route_get_mpool(rtbl);
 
-        /* prevents any additional entries in flow queues */
-        flow->ingress.current_depth_limit = 0;
-        flow->egress.current_depth_limit  = 0;
-
         /* drop anything already in the egress queue.  Note that
          * ingress is usually empty, as bundles really should not wait there,
          * so that probably has no effect. */
-        bplib_mpool_subq_drop_all(pool, &flow->ingress);
-        bplib_mpool_subq_drop_all(pool, &flow->egress);
+        bplib_mpool_subq_depthlimit_disable(pool, &flow->ingress);
+        bplib_mpool_subq_depthlimit_disable(pool, &flow->egress);
     }
 
     return BP_SUCCESS;
@@ -904,7 +902,7 @@ void bplib_close_socket(bp_socket_t *desc)
     bplib_mpool_ref_release(pool, sock_ref);
 }
 
-int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout, uint32_t *flags)
+int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t timeout)
 {
     int                           status;
     bplib_mpool_block_t          *rblk;
@@ -914,8 +912,10 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
     bplib_mpool_ref_t             sock_ref;
     bplib_socket_info_t          *sock;
     bplib_mpool_t                *pool;
+    uint64_t                      ingress_time;
 
-    sock_ref = (bplib_mpool_ref_t)desc;
+    sock_ref     = (bplib_mpool_ref_t)desc;
+    ingress_time = bplib_os_get_dtntime_ms();
 
     sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
@@ -932,12 +932,6 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
         return BP_ERROR;
     }
 
-    if (!bplib_mpool_subq_may_push(&flow->ingress))
-    {
-        /* JPHFIX: This is where a timeout would come into play */
-        return BP_TIMEOUT;
-    }
-
     refptr = bplib_serviceflow_bundleize_payload(sock, payload, size);
     if (refptr == NULL)
     {
@@ -952,14 +946,18 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
         if (pri_block != NULL)
         {
             pri_block->delivery_data.ingress_intf_id = flow->external_id;
-            pri_block->delivery_data.ingress_time    = bplib_os_get_dtntime_ms();
+            pri_block->delivery_data.ingress_time    = ingress_time;
         }
 
-        bplib_mpool_subq_push_single(&flow->ingress, rblk);
-        bplib_mpool_flow_mark_active(pool, sock_ref);
-
-        sock->ingress_byte_count += size;
-        status = BP_SUCCESS;
+        if (bplib_mpool_subq_depthlimit_try_push(pool, sock_ref, &flow->ingress, rblk, ingress_time + timeout))
+        {
+            sock->ingress_byte_count += size;
+            status = BP_SUCCESS;
+        }
+        else
+        {
+            status = BP_TIMEOUT;
+        }
     }
     else
     {
@@ -974,10 +972,12 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, int timeout,
 
     bplib_mpool_ref_release(pool, refptr);
 
+    bplib_route_set_maintenance_request(sock->parent_rtbl);
+
     return status;
 }
 
-int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint32_t *flags)
+int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, uint32_t timeout)
 {
     int                           status;
     bplib_socket_info_t          *sock;
@@ -986,6 +986,7 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint
     bplib_mpool_ref_t             refptr;
     bplib_mpool_ref_t             sock_ref;
     bplib_mpool_flow_t           *flow;
+    uint64_t                      egress_time_limit;
 
     sock_ref = (bplib_mpool_ref_t)desc;
 
@@ -1003,46 +1004,58 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, int timeout, uint
         return BP_ERROR;
     }
 
-    if (!bplib_mpool_subq_may_pull(&flow->egress))
-    {
-        /*
-         * JPHFIX - to implement a timeout, this should wait/confirm here that the output queue
-         * is not empty.  For now just return timeout.
-         */
-        return BP_TIMEOUT;
-    }
+    /* preemptively trigger the maintenance task to run */
+    /* this may help in the event that the queue is currently empty but
+     * there is data somewhere else in the pool that is headed here (assuming
+     * timeout is nonzero). */
+    bplib_route_set_maintenance_request(sock->parent_rtbl);
 
-    pblk   = bplib_mpool_subq_pull_single(&flow->egress);
-    refptr = bplib_mpool_ref_from_block(pblk);
-
-    if (refptr != NULL)
+    if (timeout == 0)
     {
-        /* note, the unbundleize always consumes the refptr */
-        status = bplib_serviceflow_unbundleize_payload(sock, refptr, payload, size);
+        egress_time_limit = 0;
     }
     else
     {
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): unable to create ref from pblk\n", __func__);
-        status = BP_ERROR;
+        egress_time_limit = bplib_os_get_dtntime_ms() + timeout;
     }
 
-    /* if a block was pulled from the queue, that needs to be recycled */
-    /* this should always be the case */
-    if (pblk != NULL)
+    pblk = bplib_mpool_subq_depthlimit_try_pull(bplib_route_get_mpool(sock->parent_rtbl), sock_ref, &flow->egress,
+                                                egress_time_limit);
+
+    if (pblk == NULL)
     {
-        pri_block = bplib_mpool_bblock_primary_cast(pblk);
-        if (status == BP_SUCCESS && pri_block != NULL)
+        status = BP_TIMEOUT;
+    }
+    else
+    {
+        refptr = bplib_mpool_ref_from_block(pblk);
+
+        if (refptr != NULL)
         {
-            pri_block->delivery_data.egress_intf_id = flow->external_id;
-            pri_block->delivery_data.egress_time    = bplib_os_get_dtntime_ms();
+            /* note, the unbundleize always consumes the refptr */
+            status = bplib_serviceflow_unbundleize_payload(sock, refptr, payload, size);
+        }
+        else
+        {
+            bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): unable to create ref from pblk\n", __func__);
+            status = BP_ERROR;
+        }
+
+        /* if a block was pulled from the queue, that needs to be recycled */
+        /* this should always be the case */
+        if (status == BP_SUCCESS)
+        {
+            sock->egress_byte_count += *size;
+
+            pri_block = bplib_mpool_bblock_primary_cast(pblk);
+            if (pri_block != NULL)
+            {
+                pri_block->delivery_data.egress_intf_id = flow->external_id;
+                pri_block->delivery_data.egress_time    = bplib_os_get_dtntime_ms();
+            }
         }
 
         bplib_mpool_recycle_block(bplib_route_get_mpool(sock->parent_rtbl), pblk);
-    }
-
-    if (status == BP_SUCCESS)
-    {
-        sock->egress_byte_count += *size;
     }
 
     return status;
