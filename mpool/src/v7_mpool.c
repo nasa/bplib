@@ -30,6 +30,15 @@
 #include "v7_types.h"
 #include "v7_mpool_internal.h"
 
+/**
+ * @brief Maxmimum number of blocks to be collected in a single maintenace cycle
+ */
+#define BPLIB_MPOOL_MAINTENCE_COLLECT_LIMIT 20
+
+#define BPLIB_MPOOL_NUM_LOCKS 1 /* for now */
+
+bplib_mpool_lock_t BPLIB_MPOOL_LOCK_SET[BPLIB_MPOOL_NUM_LOCKS];
+
 /*----------------------------------------------------------------
  *
  * Function: bplib_mpool_link_reset
@@ -40,6 +49,67 @@ static inline void bplib_mpool_link_reset(bplib_mpool_block_t *link, bplib_mpool
     link->type = type;
     link->next = link;
     link->prev = link;
+}
+
+void bplib_mpool_lock_init(void)
+{
+    uint32_t            i;
+    bplib_mpool_lock_t *lock;
+
+    /* note - this relies on the BSS section being properly zero'ed out at start */
+    for (i = 0; i < BPLIB_MPOOL_NUM_LOCKS; ++i)
+    {
+        lock = &BPLIB_MPOOL_LOCK_SET[i];
+        if (!bp_handle_is_valid(lock->lock_id))
+        {
+            lock->lock_id = bplib_os_createlock();
+        }
+    }
+}
+
+bplib_mpool_lock_t *bplib_mpool_lock_prepare(void *resource_addr)
+{
+    /*
+     * for now, this always uses the same lock (coarse-grained locking) but in the future
+     * it might become a striped or finer-grained bucketed lock for more concurrency
+     */
+    return &BPLIB_MPOOL_LOCK_SET[0];
+}
+
+bplib_mpool_lock_t *bplib_mpool_lock_resource(void *resource_addr)
+{
+    bplib_mpool_lock_t *selected_lock;
+
+    /*
+     * for now, this always uses the same lock (coarse-grained locking) but in the future
+     * it might become a striped or finer-grained bucketed lock for more concurrency
+     */
+    selected_lock = bplib_mpool_lock_prepare(resource_addr);
+    bplib_mpool_lock_acquire(selected_lock);
+
+    return selected_lock;
+}
+
+bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime)
+{
+    bool within_timeout;
+    int  status;
+
+    within_timeout = (until_dtntime > bplib_os_get_dtntime_ms());
+    if (within_timeout)
+    {
+        status = bplib_os_wait_until_ms(lock->lock_id, until_dtntime);
+        if (status == BP_TIMEOUT)
+        {
+            /* if timeout was returned, then assume that enough time has elapsed
+             * such that the current time is beyond until_dtntime now.  note that
+             * the caller should still check for whatever condition was being waited
+             * on. */
+            within_timeout = false;
+        }
+    }
+
+    return within_timeout;
 }
 
 /*----------------------------------------------------------------
@@ -289,6 +359,7 @@ void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_
  *
  * Function: bplib_mpool_alloc_block_internal
  *
+ * NOTE: this must be invoked with the lock already held
  *-----------------------------------------------------------------*/
 bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
                                                               uint32_t content_type_signature, void *init_arg)
@@ -297,6 +368,7 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     bplib_mpool_block_content_t *block;
     bplib_mpool_api_content_t   *api_block;
     size_t                       data_offset;
+    uint32_t                     alloc_threshold;
 
     /* Only real blocks are allocated here - not secondary links nor head nodes,
      * as those are embedded within the blocks themselves. */
@@ -314,14 +386,34 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
      *
      * This soft limit only applies for actual bundle blocks, not for refs.
      */
-    if ((pool->alloc_count - pool->recycled_count) > pool->alloc_threshold &&
-        (blocktype == bplib_mpool_blocktype_primary || blocktype == bplib_mpool_blocktype_canonical))
+    switch (blocktype)
     {
+        case bplib_mpool_blocktype_primary:
+        case bplib_mpool_blocktype_canonical:
+            /* bundle blocks have the lowest threshold for new allocation */
+            alloc_threshold = pool->bblock_alloc_threshold;
+            break;
+
+        case bplib_mpool_blocktype_ref:
+            /* ref blocks have highest priority as they are often a conduit for freeing other blocks */
+            alloc_threshold = 0;
+            break;
+
+        default:
+            /* all other internal block types use a high threshold but still shouldn't be allowed to consume all memory
+             */
+            alloc_threshold = pool->internal_alloc_threshold;
+            break;
+    }
+
+    if (bplib_mpool_subq_get_depth(&pool->free_blocks) <= alloc_threshold)
+    {
+        /* no free blocks available for the requested type */
         return NULL;
     }
 
     /* figure out how to initialize this block by looking up the content type */
-    api_block = (bplib_mpool_api_content_t *)bplib_rbt_search(content_type_signature, &pool->xblocktype_registry);
+    api_block = (bplib_mpool_api_content_t *)bplib_rbt_search(content_type_signature, &pool->blocktype_registry);
     if (api_block == NULL)
     {
         /* no constructor, cannot create the block! */
@@ -337,17 +429,14 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
         return NULL;
     }
 
-    /* All nodes in the free list should have a linktype of undefined.
-     * If not, then this means the list is empty */
-    node = pool->free_blocks.next;
-    if (node->type != bplib_mpool_blocktype_undefined)
+    /* get a block */
+    node = bplib_mpool_subq_pull_single(&pool->free_blocks);
+    if (node == NULL)
     {
+        /* this should never happen, because depth was already checked */
         return NULL;
     }
 
-    /* extract the node from the free list, and reconfigure it as the requested block type */
-    bplib_mpool_extract_node(node);
-    ++pool->alloc_count;
     block = (bplib_mpool_block_content_t *)node;
 
     /*
@@ -393,8 +482,25 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
 {
-    return (bplib_mpool_block_t *)bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, magic_number,
-                                                                   init_arg);
+    bplib_mpool_block_content_t *result;
+    bplib_mpool_lock_t          *lock;
+
+    lock   = bplib_mpool_lock_resource(pool);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, magic_number, init_arg);
+    bplib_mpool_lock_release(lock);
+
+    return (bplib_mpool_block_t *)result;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_recycle_block_internal
+ *
+ *-----------------------------------------------------------------*/
+void bplib_mpool_recycle_block_internal(bplib_mpool_t *pool, bplib_mpool_block_t *blk)
+{
+    bplib_mpool_extract_node(blk);
+    bplib_mpool_subq_push_single(&pool->recycle_blocks, blk);
 }
 
 /*----------------------------------------------------------------
@@ -404,9 +510,12 @@ bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_
  *-----------------------------------------------------------------*/
 void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_block_t *list)
 {
+    bplib_mpool_lock_t *lock;
+
     assert(list->type == bplib_mpool_blocktype_head);
-    bplib_mpool_merge_list(&pool->recycle_blocks, list);
-    bplib_mpool_extract_node(list);
+    lock = bplib_mpool_lock_resource(pool);
+    bplib_mpool_subq_merge_list(&pool->recycle_blocks, list);
+    bplib_mpool_lock_release(lock);
 }
 
 /*----------------------------------------------------------------
@@ -416,8 +525,11 @@ void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_blo
  *-----------------------------------------------------------------*/
 void bplib_mpool_recycle_block(bplib_mpool_t *pool, bplib_mpool_block_t *blk)
 {
-    bplib_mpool_extract_node(blk);
-    bplib_mpool_insert_before(&pool->recycle_blocks, blk);
+    bplib_mpool_lock_t *lock;
+
+    lock = bplib_mpool_lock_resource(pool);
+    bplib_mpool_recycle_block_internal(pool, blk);
+    bplib_mpool_lock_release(lock);
 }
 
 /*----------------------------------------------------------------
@@ -532,11 +644,11 @@ int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remo
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_register_blocktype
+ * Function: bplib_mpool_register_blocktype_internal
  *
  *-----------------------------------------------------------------*/
-int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, const bplib_mpool_blocktype_api_t *api,
-                                   size_t user_content_size)
+int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_number,
+                                            const bplib_mpool_blocktype_api_t *api, size_t user_content_size)
 {
     bplib_mpool_block_content_t *ablk;
     bplib_mpool_api_content_t   *api_block;
@@ -544,7 +656,7 @@ int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, c
 
     /* before doing anything, check if this is a duplicate.  If so, ignore it.
      * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
-    if (bplib_rbt_search(magic_number, &pool->xblocktype_registry) != NULL)
+    if (bplib_rbt_search(magic_number, &pool->blocktype_registry) != NULL)
     {
         return BP_DUPLICATE;
     }
@@ -563,16 +675,145 @@ int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, c
     }
     api_block->user_content_size = user_content_size;
 
-    status = bplib_rbt_insert_value(magic_number, &pool->xblocktype_registry, &api_block->rbt_link);
+    status = bplib_rbt_insert_value(magic_number, &pool->blocktype_registry, &api_block->rbt_link);
 
     /* due to the pre-check above this should always have been successful, but just in case, return the block if error
      */
     if (status != BP_SUCCESS)
     {
-        bplib_mpool_recycle_block(pool, &ablk->header.base_link);
+        bplib_mpool_recycle_block_internal(pool, &ablk->header.base_link);
     }
 
     return status;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_register_blocktype
+ *
+ *-----------------------------------------------------------------*/
+int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, const bplib_mpool_blocktype_api_t *api,
+                                   size_t user_content_size)
+{
+    bplib_mpool_lock_t *lock;
+    int                 result;
+
+    lock   = bplib_mpool_lock_resource(pool);
+    result = bplib_mpool_register_blocktype_internal(pool, magic_number, api, user_content_size);
+    bplib_mpool_lock_release(lock);
+    return result;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_collect_blocks
+ *
+ *-----------------------------------------------------------------*/
+uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
+{
+    bplib_mpool_block_t         *rblk;
+    bplib_mpool_api_content_t   *api_block;
+    bplib_mpool_block_content_t *content;
+    bplib_mpool_callback_func_t  destruct;
+    uint32_t                     count;
+    bplib_mpool_lock_t          *lock;
+
+    count = 0;
+    lock  = bplib_mpool_lock_resource(pool);
+    while (count < limit)
+    {
+        rblk = bplib_mpool_subq_pull_single(&pool->recycle_blocks);
+        if (rblk == NULL)
+        {
+            break;
+        }
+
+        /* recycled blocks must all be "real" blocks (not secondary refs or head nodes, etc) and
+         * have refcount of 0, or else bad things might happen */
+        assert(bplib_mpool_is_any_content_node(rblk));
+        content = (bplib_mpool_block_content_t *)rblk;
+        assert(content->header.refcount == 0);
+
+        /* figure out how to de-initialize the user content by looking up the content type */
+        api_block = (bplib_mpool_api_content_t *)bplib_rbt_search(content->header.content_type_signature,
+                                                                  &pool->blocktype_registry);
+
+        if (api_block != NULL)
+        {
+            destruct = api_block->api.destruct;
+        }
+        else
+        {
+            destruct = NULL;
+        }
+
+        /* pool should be UN-locked when invoking destructor */
+        bplib_mpool_lock_release(lock);
+
+        /* note that, like in C++, one cannot pass an arg to the destructor here.  It
+         * uses the same API/function pointer type, the arg will always be NULL. */
+        if (destruct != NULL)
+        {
+            destruct(NULL, rblk);
+        }
+
+        /* now de-initialize the base content */
+        switch (rblk->type)
+        {
+            case bplib_mpool_blocktype_canonical:
+            {
+                bplib_mpool_lock_acquire(lock);
+                bplib_mpool_subq_merge_list(&pool->recycle_blocks, &content->u.canonical.cblock.chunk_list);
+                bplib_mpool_lock_release(lock);
+                break;
+            }
+            case bplib_mpool_blocktype_primary:
+            {
+                bplib_mpool_lock_acquire(lock);
+                bplib_mpool_subq_merge_list(&pool->recycle_blocks, &content->u.primary.pblock.cblock_list);
+                bplib_mpool_subq_merge_list(&pool->recycle_blocks, &content->u.primary.pblock.chunk_list);
+                bplib_mpool_lock_release(lock);
+                break;
+            }
+            case bplib_mpool_blocktype_flow:
+            {
+                bplib_mpool_lock_acquire(lock);
+                bplib_mpool_subq_move_all(&pool->recycle_blocks, &content->u.flow.fblock.ingress.base_subq);
+                bplib_mpool_subq_move_all(&pool->recycle_blocks, &content->u.flow.fblock.egress.base_subq);
+                bplib_mpool_lock_release(lock);
+                break;
+            }
+            case bplib_mpool_blocktype_ref:
+            {
+                bplib_mpool_ref_release(pool, content->u.ref.pref_target);
+                content->u.ref.pref_target = NULL; /* this ref is going away */
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+
+        // printf("DEBUG: %s() recycled block type %d\n", __func__, rblk->type);
+        ++count;
+
+        /* always return _this_ node to the free pile */
+        rblk->type = bplib_mpool_blocktype_undefined;
+        bplib_mpool_init_base_object(&content->header, 0, 0);
+
+        bplib_mpool_lock_acquire(lock);
+        bplib_mpool_subq_push_single(&pool->free_blocks, rblk);
+    }
+
+    bplib_mpool_lock_release(lock);
+
+    if (count != 0)
+    {
+        printf("DEBUG: %s() recycled %lu blocks\n", __func__, (unsigned long)count);
+    }
+
+    return count;
 }
 
 /*----------------------------------------------------------------
@@ -582,104 +823,21 @@ int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, c
  *-----------------------------------------------------------------*/
 void bplib_mpool_maintain(bplib_mpool_t *pool)
 {
-    bplib_mpool_block_t          pending_recycle;
-    bplib_mpool_block_t         *rblk;
-    bplib_mpool_api_content_t   *api_block;
-    bplib_mpool_block_content_t *content;
-    size_t                       recycled_count;
-
-    recycled_count = 0;
-    bplib_mpool_init_list_head(&pending_recycle);
-
-    while (!bplib_mpool_is_empty_list_head(&pool->recycle_blocks))
+    /* the check for non-empty list can be done unlocked, as it
+     * involves counter values which should be testable in an atomic fashion.
+     * note this isn't final - Subq will be re-checked after locking, if this is true */
+    if (bplib_mpool_subq_get_depth(&pool->recycle_blocks) != 0)
     {
-        rblk = &pending_recycle;
-
-        bplib_mpool_merge_list(rblk, &pool->recycle_blocks);
-        bplib_mpool_extract_node(&pool->recycle_blocks);
-
-        while (true)
-        {
-            rblk = bplib_mpool_get_next_block(rblk);
-            if (rblk == &pending_recycle)
-            {
-                break;
-            }
-
-            /* recycled blocks must all be "real" blocks (not secondary refs or head nodes, etc) and
-             * have refcount of 0, or else bad things might happen */
-            assert(bplib_mpool_is_any_content_node(rblk));
-            content = (bplib_mpool_block_content_t *)rblk;
-            assert(content->header.refcount == 0);
-
-            /* figure out how to de-initialize the user content by looking up the content type */
-            api_block = (bplib_mpool_api_content_t *)bplib_rbt_search(content->header.content_type_signature,
-                                                                      &pool->xblocktype_registry);
-            if (api_block != NULL && api_block->api.destruct != NULL)
-            {
-                /* note that, like in C++, one cannot pass an arg to the destructor here.  It
-                 * uses the same API/function pointer type, the arg will always be NULL. */
-                api_block->api.destruct(NULL, rblk);
-            }
-
-            /* now de-initialize the base content */
-            switch (rblk->type)
-            {
-                case bplib_mpool_blocktype_canonical:
-                {
-                    bplib_mpool_recycle_all_blocks_in_list(pool, &content->u.canonical.cblock.chunk_list);
-                    break;
-                }
-                case bplib_mpool_blocktype_primary:
-                {
-                    bplib_mpool_recycle_all_blocks_in_list(pool, &content->u.primary.pblock.cblock_list);
-                    bplib_mpool_recycle_all_blocks_in_list(pool, &content->u.primary.pblock.chunk_list);
-                    break;
-                }
-                case bplib_mpool_blocktype_flow:
-                {
-                    bplib_mpool_recycle_all_blocks_in_list(pool, &content->u.flow.fblock.ingress.block_listx);
-                    bplib_mpool_recycle_all_blocks_in_list(pool, &content->u.flow.fblock.egress.block_listx);
-                    break;
-                }
-                case bplib_mpool_blocktype_ref:
-                {
-                    bplib_mpool_ref_release(pool, content->u.ref.pref_target);
-                    content->u.ref.pref_target = NULL; /* this ref is going away */
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-            }
-
-            printf("DEBUG: %s() recycled block type %d\n", __func__, rblk->type);
-
-            /* always return _this_ node to the free pile */
-            bplib_mpool_init_base_object(&content->header, 0, 0);
-            rblk->type = bplib_mpool_blocktype_undefined;
-            ++recycled_count;
-        }
-
-        bplib_mpool_merge_list(&pool->free_blocks, rblk);
-        bplib_mpool_extract_node(rblk);
+        bplib_mpool_collect_blocks(pool, BPLIB_MPOOL_MAINTENCE_COLLECT_LIMIT);
     }
-
-    if (recycled_count != 0)
-    {
-        printf("DEBUG: %s() recycled %lu blocks\n", __func__, (unsigned long)recycled_count);
-    }
-
-    pool->recycled_count += recycled_count;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_debug_print_queue_stats
+ * Function: bplib_mpool_debug_print_list_stats
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_debug_print_queue_stats(bplib_mpool_block_t *list, const char *label)
+void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *label)
 {
     bplib_mpool_block_t         *blk;
     bplib_mpool_block_content_t *content;
@@ -731,14 +889,15 @@ void bplib_mpool_debug_scan(bplib_mpool_t *pool)
     uint32_t                     count_by_type[bplib_mpool_blocktype_max];
     uint32_t                     count_invalid;
 
-    printf("DEBUG: %s(): total blocks=%u, buffer_size=%zu, alloced=%u, recycled=%u, inuse=%u\n", __func__,
-           (unsigned int)pool->num_bufs_total, pool->buffer_size, (unsigned int)pool->alloc_count,
-           (unsigned int)pool->recycled_count, (unsigned int)(pool->alloc_count - pool->recycled_count));
+    printf("DEBUG: %s(): total blocks=%u, buffer_size=%zu, free=%u, recycled=%u\n", __func__,
+           (unsigned int)pool->num_bufs_total, pool->buffer_size,
+           (unsigned int)bplib_mpool_subq_get_depth(&pool->free_blocks),
+           (unsigned int)bplib_mpool_subq_get_depth(&pool->recycle_blocks));
 
-    bplib_mpool_debug_print_queue_stats(&pool->free_blocks, "free_blocks");
-    bplib_mpool_debug_print_queue_stats(&pool->ref_managed_blocks, "ref_managed_blocks");
-    bplib_mpool_debug_print_queue_stats(&pool->recycle_blocks, "recycle_blocks");
-    bplib_mpool_debug_print_queue_stats(&pool->active_flow_list, "active_flow_list");
+    bplib_mpool_debug_print_list_stats(&pool->free_blocks.block_list, "free_blocks");
+    bplib_mpool_debug_print_list_stats(&pool->recycle_blocks.block_list, "recycle_blocks");
+    bplib_mpool_debug_print_list_stats(&pool->active_list, "active_list");
+    bplib_mpool_debug_print_list_stats(&pool->managed_block_list, "managed_blocks");
 
     memset(count_by_type, 0, sizeof(count_by_type));
     count_invalid = 0;
@@ -782,6 +941,10 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
         return NULL;
     }
 
+    /* initialize the lock table - OK to call this multiple times,
+     * subsequent calls shouldn't do anything */
+    bplib_mpool_lock_init();
+
     /* wiping the entire memory might be overkill, but it is only done once
      * at start up, and this may also help verify that the memory "works" */
     memset(pool_mem, 0, pool_size);
@@ -791,34 +954,37 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
     /* the block lists are circular, as this reduces
      * complexity of operations (never a null pointer) */
     pool->buffer_size = sizeof(bplib_mpool_block_content_t);
-    bplib_mpool_init_list_head(&pool->free_blocks);
-    bplib_mpool_init_list_head(&pool->ref_managed_blocks);
-    bplib_mpool_init_list_head(&pool->recycle_blocks);
-    bplib_mpool_init_list_head(&pool->active_flow_list);
-    bplib_rbt_init_root(&pool->xblocktype_registry);
+    bplib_mpool_subq_init(&pool->free_blocks);
+    bplib_mpool_subq_init(&pool->recycle_blocks);
+    bplib_mpool_init_list_head(&pool->active_list);
+    bplib_mpool_init_list_head(&pool->managed_block_list);
+    bplib_rbt_init_root(&pool->blocktype_registry);
     pchunk = &pool->first_buffer;
     remain = pool_size - offsetof(bplib_mpool_t, first_buffer);
 
     /* register the first API type, which is 0.
      * Notably this prevents other modules from actually registering something at 0. */
-    bplib_rbt_insert_value(0, &pool->xblocktype_registry, &pool->blocktype_basic.rbt_link);
+    bplib_rbt_insert_value(0, &pool->blocktype_registry, &pool->blocktype_basic.rbt_link);
 
     while (remain >= sizeof(bplib_mpool_block_content_t))
     {
-        bplib_mpool_insert_before(&pool->free_blocks, &pchunk->header.base_link);
+        bplib_mpool_subq_push_single(&pool->free_blocks, &pchunk->header.base_link);
         remain -= sizeof(bplib_mpool_block_content_t);
         ++pchunk;
         ++pool->num_bufs_total;
     }
 
     /*
-     * Set the alloc threshold at 70% of the total (just a guess)
+     * Set the bundle alloc threshold at 30% remaining (just a guess)
+     * Set the internal alloc threshold at 10% remaining
      * The intent is to NOT allow the entire pool to be used by bundles,
      * there must be some buffer room for refs which transport the bundles.
      */
-    pool->alloc_threshold = (pool->num_bufs_total * 7) / 10;
-    printf("%s(): created pool of size %zu, with %u chunks, threshold = %u\n", __func__, pool_size,
-           (unsigned int)pool->num_bufs_total, (unsigned int)pool->alloc_threshold);
+    pool->bblock_alloc_threshold   = (pool->num_bufs_total * 30) / 100;
+    pool->internal_alloc_threshold = (pool->num_bufs_total * 10) / 100;
+    printf("%s(): created pool of size %zu, with %u chunks, bblock threshold = %u, internal threshold = %u\n", __func__,
+           pool_size, (unsigned int)pool->num_bufs_total, (unsigned int)pool->bblock_alloc_threshold,
+           (unsigned int)pool->internal_alloc_threshold);
 
     return pool;
 }

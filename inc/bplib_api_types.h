@@ -126,12 +126,6 @@ typedef struct bp_ipn_addr
 /* Storage ID */
 typedef unsigned long bp_sid_t;
 
-typedef struct bplib_stats
-{
-    uint32_t push_count;
-    uint32_t pull_count;
-} bplib_q_stats_t;
-
 typedef enum
 {
     bplib_policy_delivery_none, /**< best effort handling only, bundle may be forward directly to CLA, no need to store

@@ -78,7 +78,7 @@ typedef union bplib_generic_event
     bplib_route_state_event_t route_state;
 } bplib_generic_event_t;
 
-typedef int (*bplib_route_action_func_t)(bplib_routetbl_t *tbl, bplib_mpool_block_t *cb, void *arg);
+typedef int (*bplib_route_action_func_t)(bplib_routetbl_t *tbl, bplib_mpool_ref_t ref, void *arg);
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -95,8 +95,8 @@ bp_handle_t bplib_route_register_generic_intf(bplib_routetbl_t *tbl, bp_handle_t
                                               bplib_mpool_ref_t blkref);
 
 void bplib_route_ingress_route_single_bundle(bplib_routetbl_t *tbl, bplib_mpool_block_t *pblk);
-int  bplib_route_ingress_baseintf_forwarder(bplib_routetbl_t *tbl, bplib_mpool_block_t *flow_block, void *forward_arg);
-int  bplib_route_ingress_to_parent(bplib_routetbl_t *tbl, bplib_mpool_block_t *flow_block, void *ingress_arg);
+int  bplib_route_ingress_baseintf_forwarder(bplib_routetbl_t *tbl, bplib_mpool_ref_t flow_ref, void *forward_arg);
+int  bplib_route_ingress_to_parent(bplib_routetbl_t *tbl, bplib_mpool_ref_t flow_ref, void *ingress_arg);
 
 bp_handle_t       bplib_route_bind_sub_intf(bplib_mpool_block_t *flow_block, bp_handle_t parent_intf_id);
 bplib_mpool_ref_t bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, bp_handle_t intf_id);
@@ -123,6 +123,11 @@ int bplib_route_push_egress_bundle(const bplib_routetbl_t *tbl, bp_handle_t intf
 
 int bplib_route_forward_baseintf_bundle(bplib_mpool_block_t *flow_block, void *forward_arg);
 
-void bplib_route_do_maintenance(bplib_routetbl_t *tbl);
+void bplib_route_set_maintenance_request(bplib_routetbl_t *tbl);
+void bplib_route_maintenance_request_wait(bplib_routetbl_t *tbl);
+void bplib_route_maintenance_complete_wait(bplib_routetbl_t *tbl);
+
+void bplib_route_process_active_flows(bplib_routetbl_t *tbl);
+void bplib_route_periodic_maintenance(bplib_routetbl_t *tbl);
 
 #endif

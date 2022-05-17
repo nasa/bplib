@@ -130,8 +130,15 @@ void bplib_mpool_bblock_canonical_init(bplib_mpool_bblock_canonical_t *cblk)
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool)
 {
-    return (bplib_mpool_block_t *)bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary,
-                                                                   MPOOL_CACHE_PRIMARY_BLOCK_SIGNATURE, NULL);
+    bplib_mpool_block_content_t *result;
+    bplib_mpool_lock_t          *lock;
+
+    lock   = bplib_mpool_lock_resource(pool);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary, MPOOL_CACHE_PRIMARY_BLOCK_SIGNATURE,
+                                              NULL);
+    bplib_mpool_lock_release(lock);
+
+    return (bplib_mpool_block_t *)result;
 }
 
 /*----------------------------------------------------------------
@@ -141,8 +148,15 @@ bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool)
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool)
 {
-    return (bplib_mpool_block_t *)bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical,
-                                                                   MPOOL_CACHE_CANONICAL_BLOCK_SIGNATURE, NULL);
+    bplib_mpool_block_content_t *result;
+    bplib_mpool_lock_t          *lock;
+
+    lock   = bplib_mpool_lock_resource(pool);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical,
+                                              MPOOL_CACHE_CANONICAL_BLOCK_SIGNATURE, NULL);
+    bplib_mpool_lock_release(lock);
+
+    return (bplib_mpool_block_t *)result;
 }
 
 /*----------------------------------------------------------------
@@ -152,8 +166,15 @@ bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool)
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool)
 {
-    return (bplib_mpool_block_t *)bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_cbor_data,
-                                                                   MPOOL_CACHE_CBOR_DATA_SIGNATURE, NULL);
+    bplib_mpool_block_content_t *result;
+    bplib_mpool_lock_t          *lock;
+
+    lock = bplib_mpool_lock_resource(pool);
+    result =
+        bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_cbor_data, MPOOL_CACHE_CBOR_DATA_SIGNATURE, NULL);
+    bplib_mpool_lock_release(lock);
+
+    return (bplib_mpool_block_t *)result;
 }
 
 /*----------------------------------------------------------------
