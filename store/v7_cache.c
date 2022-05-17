@@ -95,12 +95,6 @@ typedef struct bplib_store_cache_state
     bplib_mpool_block_t pending_list;
 
     /*
-     * expired_list holds bundle refs that have reached expiration time and
-     * may be recycled, pending its removal from the other secondary indices.
-     */
-    bplib_mpool_block_t expired_list;
-
-    /*
      * idle_list holds the items which do not fit into the other two lists.
      * They are not currently actionable, and placed here for holding.
      *
@@ -183,6 +177,15 @@ typedef struct bplib_store_cache_blockref
     bplib_mpool_block_t *storage_entry_block;
 } bplib_store_cache_blockref_t;
 
+typedef struct bplib_store_cache_custodian_info
+{
+    const bp_endpointid_buffer_t *flow_source_eid;
+    bp_val_t                      eid_hash;
+    bp_sequencenumber_t           sequence_num;
+    bp_endpointid_buffer_t       *custodian_eid;
+    bplib_store_cache_entry_t    *store_entry;
+} bplib_store_cache_custodian_info_t;
+
 /* Allows reconsitition of the queue struct from an RBT link pointer */
 static inline bplib_store_cache_queue_t *bplib_store_cache_queue_from_rbt_link(const bplib_rbt_link_t *link)
 {
@@ -228,22 +231,26 @@ void bplib_store_cache_entry_make_pending(bplib_mpool_block_t *qblk, uint32_t se
     }
 }
 
-void bplib_store_cache_handle_ref_recycle(void *arg, bplib_mpool_block_t *rblk)
+int bplib_store_cache_handle_ref_recycle(void *arg, bplib_mpool_block_t *rblk)
 {
     bplib_store_cache_blockref_t *block_ref;
 
     block_ref = bplib_mpool_generic_data_cast(rblk, BPLIB_STORE_SIGNATURE_BLOCKREF);
-    if (block_ref != NULL)
+    if (block_ref == NULL)
     {
-        assert(block_ref->storage_entry_block != NULL);
-
-        /*
-         * always put back into pending_list, this will re-evalute its current
-         * state and reclassify it as appropriate.  This also clears the BPLIB_STORE_FLAG_LOCALLY_QUEUED
-         * flag.
-         */
-        bplib_store_cache_entry_make_pending(block_ref->storage_entry_block, 0, BPLIB_STORE_FLAG_LOCALLY_QUEUED);
+        return BP_ERROR;
     }
+
+    assert(block_ref->storage_entry_block != NULL);
+
+    /*
+     * always put back into pending_list, this will re-evalute its current
+     * state and reclassify it as appropriate.  This also clears the BPLIB_STORE_FLAG_LOCALLY_QUEUED
+     * flag.
+     */
+    bplib_store_cache_entry_make_pending(block_ref->storage_entry_block, 0, BPLIB_STORE_FLAG_LOCALLY_QUEUED);
+
+    return BP_SUCCESS;
 }
 
 void bplib_store_cache_remove_from_subindex(bplib_mpool_t *pool, bplib_rbt_root_t *index_root,
@@ -271,16 +278,20 @@ void bplib_store_cache_remove_from_subindex(bplib_mpool_t *pool, bplib_rbt_root_
     }
 }
 
-void bplib_store_cache_construct_queue(void *arg, bplib_mpool_block_t *tblk)
+int bplib_store_cache_construct_queue(void *arg, bplib_mpool_block_t *tblk)
 {
     bplib_store_cache_queue_t *store_queue;
 
     store_queue = bplib_mpool_generic_data_cast(tblk, BPLIB_STORE_SIGNATURE_QUEUE);
-    if (store_queue != NULL)
+    if (store_queue == NULL)
     {
-        bplib_mpool_init_list_head(&store_queue->bundle_list);
-        store_queue->self = tblk;
+        return BP_ERROR;
     }
+
+    bplib_mpool_init_list_head(&store_queue->bundle_list);
+    store_queue->self = tblk;
+
+    return BP_SUCCESS;
 }
 
 void bplib_store_cache_add_to_subindex(bplib_mpool_t *pool, bplib_rbt_root_t *index_root,
@@ -319,18 +330,19 @@ void bplib_store_cache_add_to_subindex(bplib_mpool_t *pool, bplib_rbt_root_t *in
     }
 }
 
-bp_val_t bplib_store_cache_compute_custody_hash(bp_val_t salt, const bp_endpointid_buffer_t *flow_source_eid,
-                                                const bp_endpointid_buffer_t *custodian_eid)
+void bplib_store_cache_compute_custody_hash(bp_val_t salt, bplib_store_cache_custodian_info_t *custody_info)
 {
     bp_crcval_t                   hash;
     bplib_crc_parameters_t *const EID_HASH_ALGORITHM = &BPLIB_CRC32_CASTAGNOLI;
 
     /* use a CRC as a hash function */
     hash = bplib_crc_initial_value(EID_HASH_ALGORITHM) ^ (bp_crcval_t)salt;
-    hash = bplib_crc_update(EID_HASH_ALGORITHM, hash, flow_source_eid, sizeof(*flow_source_eid));
-    hash = bplib_crc_update(EID_HASH_ALGORITHM, hash, custodian_eid, sizeof(*custodian_eid));
+    hash = bplib_crc_update(EID_HASH_ALGORITHM, hash, custody_info->flow_source_eid,
+                            sizeof(*custody_info->flow_source_eid));
+    hash =
+        bplib_crc_update(EID_HASH_ALGORITHM, hash, custody_info->custodian_eid, sizeof(*custody_info->custodian_eid));
 
-    return (bp_val_t)bplib_crc_finalize(EID_HASH_ALGORITHM, hash);
+    custody_info->eid_hash = (bp_val_t)bplib_crc_finalize(EID_HASH_ALGORITHM, hash);
 }
 
 bplib_mpool_ref_t bplib_store_cache_create_dacs_bundle(bplib_store_cache_state_t          *state,
@@ -419,9 +431,7 @@ bplib_mpool_ref_t bplib_store_cache_create_dacs_bundle(bplib_store_cache_state_t
     return bplib_mpool_ref_create(state->parent_pool, pblk);
 }
 
-bplib_store_cache_entry_t *bplib_store_cache_open_dacs(bplib_store_cache_state_t *state, bp_val_t eid_hash,
-                                                       const bp_endpointid_buffer_t *prev_custodian,
-                                                       const bp_endpointid_buffer_t *flow_source_eid)
+void bplib_store_cache_open_dacs(bplib_store_cache_state_t *state, bplib_store_cache_custodian_info_t *custody_info)
 {
     bplib_mpool_block_t              *sblk;
     bplib_store_cache_entry_t        *store_entry;
@@ -445,7 +455,6 @@ bplib_store_cache_entry_t *bplib_store_cache_open_dacs(bplib_store_cache_state_t
          * bundle (the actual DACS bundle itself doesn't even exist yet). */
         store_entry->expire_time   = store_entry->last_eval_time + BP_CACHE_DACS_LIFETIME;
         store_entry->transmit_time = store_entry->last_eval_time + BP_CACHE_DACS_OPEN_TIME;
-        store_entry->flags         = BPLIB_STORE_FLAG_WITHIN_LIFETIME | BPLIB_STORE_FLAG_AWAITING_TRANSMIT;
 
         /* need to fill out the delivery_data so this will look like a regular bundle when sent */
         pri_block->delivery_data.delivery_policy      = bplib_policy_delivery_local_ack;
@@ -456,8 +465,8 @@ bplib_store_cache_entry_t *bplib_store_cache_open_dacs(bplib_store_cache_state_t
         pri_block->delivery_data.committed_storage_id = (bp_sid_t)sblk;
 
         /* the ack will be sent to the previous custodian of record */
-        pri_block->pri_logical_data.destinationEID = *prev_custodian;
-        ack_content->flow_source_eid               = *flow_source_eid;
+        pri_block->pri_logical_data.destinationEID = *custody_info->custodian_eid;
+        ack_content->flow_source_eid               = *custody_info->flow_source_eid;
 
         /* set convenience pointers in the dacs_pending extension data - this is mainly
          * so these don't need to be re-found when they are needed again later */
@@ -465,8 +474,12 @@ bplib_store_cache_entry_t *bplib_store_cache_open_dacs(bplib_store_cache_state_t
         dacs_pending->prev_custodian_ref = &pri_block->pri_logical_data.destinationEID;
         dacs_pending->payload_ref        = ack_content;
 
-        bplib_store_cache_add_to_subindex(state->parent_pool, &state->hash_index, &store_entry->hash_link, eid_hash);
-        bplib_store_cache_entry_make_pending(sblk, BPLIB_STORE_FLAGS_RETENTION_REQUIRED, 0);
+        bplib_store_cache_add_to_subindex(state->parent_pool, &state->hash_index, &store_entry->hash_link,
+                                          custody_info->eid_hash);
+        bplib_store_cache_entry_make_pending(
+            sblk, BPLIB_STORE_FLAGS_RETENTION_REQUIRED | BPLIB_STORE_FLAG_AWAITING_TRANSMIT, 0);
+
+        custody_info->store_entry = store_entry;
     }
     else
     {
@@ -480,32 +493,40 @@ bplib_store_cache_entry_t *bplib_store_cache_open_dacs(bplib_store_cache_state_t
     }
 
     bplib_mpool_ref_release(state->parent_pool, pending_bundle);
-
-    return store_entry;
 }
 
-void bplib_store_cache_append_dacs(bplib_store_cache_state_t *state, bplib_store_cache_entry_t *dacs_pending,
-                                   bp_integer_t sequence)
+void bplib_store_cache_dacs_finalize(bplib_store_cache_state_t *state, bplib_store_cache_entry_t *store_entry)
+{
+    /* after this point, the entry becomes a normal bundle, it is removed from EID hash
+     * so future appends are also prevented */
+    store_entry->entry_type = bplib_store_cache_entry_type_normal_bundle;
+    bplib_store_cache_remove_from_subindex(state->parent_pool, &state->hash_index, &store_entry->hash_link);
+}
+
+void bplib_store_cache_append_dacs(bplib_store_cache_state_t *state, bplib_store_cache_custodian_info_t *custody_info)
 {
     bp_custody_accept_payload_block_t *payload;
 
-    payload = dacs_pending->data.dacs.payload_ref;
-    if (payload->num_entries < BP_DACS_MAX_SEQ_PER_PAYLOAD)
+    if (custody_info->store_entry != NULL)
     {
-        payload->sequence_nums[payload->num_entries] = sequence;
-        ++payload->num_entries;
-    }
+        payload = custody_info->store_entry->data.dacs.payload_ref;
+        if (payload->num_entries < BP_DACS_MAX_SEQ_PER_PAYLOAD)
+        {
+            payload->sequence_nums[payload->num_entries] = custody_info->sequence_num;
+            ++payload->num_entries;
+        }
 
-    /* if DACS bundle is full now, mark it as "done" */
-    if (payload->num_entries == BP_DACS_MAX_SEQ_PER_PAYLOAD)
-    {
-        bplib_store_cache_entry_make_pending(bplib_mpool_obtain_base_block(&dacs_pending->hash_link), 0,
-                                             BPLIB_STORE_FLAG_AWAITING_TRANSMIT);
+        /* if DACS bundle is full now, mark it as "done" */
+        if (payload->num_entries == BP_DACS_MAX_SEQ_PER_PAYLOAD)
+        {
+            bplib_store_cache_dacs_finalize(state, custody_info->store_entry);
+            bplib_store_cache_entry_make_pending(&custody_info->store_entry->hash_link, 0,
+                                                 BPLIB_STORE_FLAG_AWAITING_TRANSMIT);
+        }
     }
 }
 
-bplib_mpool_block_t *bplib_store_cache_evaluate_bundle_status(bplib_store_cache_state_t *state,
-                                                              bplib_store_cache_entry_t *store_entry)
+void bplib_store_cache_evaluate_bundle_status(bplib_store_cache_state_t *state, bplib_store_cache_entry_t *store_entry)
 {
     bplib_mpool_block_t          *rblk;
     bplib_mpool_block_t          *eblk;
@@ -548,40 +569,36 @@ bplib_mpool_block_t *bplib_store_cache_evaluate_bundle_status(bplib_store_cache_
         }
     }
 
-    return rblk;
+    if (rblk != NULL)
+    {
+        if (bplib_mpool_subq_depthlimit_try_push(state->parent_pool, state->self_fblk_ref, &state->self_flow->ingress,
+                                                 rblk, 0))
+        {
+            /*
+             * set both flags to indicate this is now in transit ...
+             *  - item is locally queued
+             *  - item should not be sent again until retransmit time
+             */
+            store_entry->flags |= BPLIB_STORE_FLAGS_TRANSMIT_WAIT_STATE;
+        }
+        else
+        {
+            bplib_mpool_recycle_block(state->parent_pool, rblk);
+        }
+
+        rblk = NULL;
+    }
 }
 
-bplib_mpool_block_t *bplib_store_cache_evaluate_pending_dacs_status(bplib_store_cache_state_t *state,
-                                                                    bplib_store_cache_entry_t *store_entry)
+void bplib_store_cache_evaluate_pending_dacs_status(bplib_store_cache_state_t *state,
+                                                    bplib_store_cache_entry_t *store_entry)
 {
-    bplib_mpool_block_t          *rblk;
-    bplib_mpool_block_t          *eblk;
-    bplib_mpool_bblock_primary_t *pri_block;
-
-    rblk      = NULL;
-    eblk      = bplib_mpool_dereference(store_entry->refptr);
-    pri_block = bplib_mpool_bblock_primary_cast(eblk);
-
-    /* check if bundle is due for [re]transmit */
-    if (pri_block != NULL && (store_entry->flags & BPLIB_STORE_FLAGS_TRANSMIT_WAIT_STATE) == 0)
+    /* check if dacs is due for transmit */
+    if ((store_entry->flags & BPLIB_STORE_FLAGS_TRANSMIT_WAIT_STATE) == 0)
     {
-        /* Set egress intf to invalid - which can be used as a marker for items which are
-         * blocked from egress (it will be set valid again when it actually goes out, so if
-         * it stays invalid, that means there is no egress intf available) */
-        pri_block->delivery_data.egress_intf_id = BP_INVALID_HANDLE;
-        pri_block->delivery_data.egress_time    = 0;
-
-        /* after this point, the entry becomes a normal bundle, it is removed from EID hash
-         * so future appends are also prevented */
-        store_entry->entry_type = bplib_store_cache_entry_type_normal_bundle;
-        bplib_store_cache_remove_from_subindex(state->parent_pool, &state->hash_index, &store_entry->hash_link);
-
-        /* Check if the dest queue has any space, before creating the wrapper block */
-        rblk = bplib_mpool_ref_make_block(state->parent_pool, store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF,
-                                          store_entry);
+        bplib_store_cache_dacs_finalize(state, store_entry);
+        bplib_store_cache_evaluate_bundle_status(state, store_entry);
     }
-
-    return rblk;
 }
 
 void bplib_store_cache_schedule_next_visit(bplib_store_cache_state_t *state, bplib_store_cache_entry_t *store_entry)
@@ -634,9 +651,7 @@ void bplib_store_cache_evaluate_pending_entry(bplib_mpool_block_t *sblk)
     bplib_store_cache_entry_t *store_entry;
     uint64_t                   now_time;
     bool                       retention_required;
-    bplib_mpool_block_t       *rblk;
 
-    rblk = NULL;
     /* This cast should always work, unless there is a bug */
     store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
     if (store_entry != NULL)
@@ -689,34 +704,14 @@ void bplib_store_cache_evaluate_pending_entry(bplib_mpool_block_t *sblk)
             switch (store_entry->entry_type)
             {
                 case bplib_store_cache_entry_type_normal_bundle:
-                    rblk = bplib_store_cache_evaluate_bundle_status(state, store_entry);
+                    bplib_store_cache_evaluate_bundle_status(state, store_entry);
                     break;
                 case bplib_store_cache_entry_type_pending_dacs:
-                    rblk = bplib_store_cache_evaluate_pending_dacs_status(state, store_entry);
+                    bplib_store_cache_evaluate_pending_dacs_status(state, store_entry);
                     break;
                 default:
                     /* nothing to do for this entry type */
                     break;
-            }
-
-            if (rblk != NULL)
-            {
-                if (bplib_mpool_subq_depthlimit_try_push(state->parent_pool, state->self_fblk_ref,
-                                                         &state->self_flow->ingress, rblk, 0))
-                {
-                    /*
-                     * set both flags to indicate this is now in transit ...
-                     *  - item is locally queued
-                     *  - item should not be sent again until retransmit time
-                     */
-                    store_entry->flags |= BPLIB_STORE_FLAGS_TRANSMIT_WAIT_STATE;
-                }
-                else
-                {
-                    bplib_mpool_recycle_block(state->parent_pool, rblk);
-                }
-
-                rblk = NULL;
             }
 
             /* re-evaluate after the above call */
@@ -741,13 +736,14 @@ void bplib_store_cache_evaluate_pending_entry(bplib_mpool_block_t *sblk)
         else
         {
             /* note - all entries in expired list will be removed from time_index and destination_index */
-            bplib_mpool_insert_before(&state->expired_list, sblk);
+            bplib_mpool_recycle_block(state->parent_pool, sblk);
         }
     }
 }
 
-bplib_mpool_block_t *bplib_store_cache_insert_custody_tracking_block(bplib_store_cache_state_t    *state,
-                                                                     bplib_mpool_bblock_primary_t *pri_block)
+void bplib_store_cache_insert_custody_tracking_block(bplib_store_cache_state_t          *state,
+                                                     bplib_mpool_bblock_primary_t       *pri_block,
+                                                     bplib_store_cache_custodian_info_t *custody_info)
 {
     bplib_mpool_block_t            *cblk;
     bplib_mpool_bblock_canonical_t *custody_block;
@@ -763,25 +759,57 @@ bplib_mpool_block_t *bplib_store_cache_insert_custody_tracking_block(bplib_store
             custody_block->canonical_logical_data.canonical_block.blockType = bp_blocktype_custodyTrackingBlock;
             custody_block->canonical_logical_data.canonical_block.blockNum  = bp_blocktype_custodyTrackingBlock;
             custody_block->canonical_logical_data.canonical_block.crctype   = pri_block->pri_logical_data.crctype;
+
+            custody_info->custodian_eid =
+                &custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian;
         }
     }
-
-    return cblk;
 }
 
-bplib_store_cache_entry_t *bplib_store_cache_find_pending_dacs(bplib_store_cache_state_t *state, bp_val_t eid_hash,
-                                                               const bp_endpointid_buffer_t *prev_custodian,
-                                                               const bp_endpointid_buffer_t *flow_source_eid)
+int bplib_store_cache_find_dacs_match(void *arg, bplib_mpool_block_t *lblk)
 {
-    bplib_rbt_link_t                 *custody_rbt_link;
-    bplib_store_cache_dacs_pending_t *dacs_pending;
-    bplib_store_cache_queue_t        *store_queue;
-    bplib_store_cache_entry_t        *store_entry;
-    bplib_mpool_list_iter_t           iter;
-    int                               status;
+    bplib_store_cache_entry_t          *store_entry;
+    bplib_store_cache_dacs_pending_t   *dacs_pending;
+    bplib_store_cache_custodian_info_t *custody_info;
+    int                                 result;
 
-    store_entry      = NULL;
-    custody_rbt_link = bplib_rbt_search(eid_hash, &state->hash_index);
+    custody_info = arg;
+
+    /* possible match, but need to verify */
+    store_entry = bplib_mpool_generic_data_cast(lblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    if (store_entry != NULL && store_entry->entry_type == bplib_store_cache_entry_type_pending_dacs)
+    {
+        dacs_pending = &store_entry->data.dacs;
+
+        result = memcmp(dacs_pending->prev_custodian_ref, custody_info->custodian_eid, sizeof(bp_endpointid_buffer_t));
+
+        if (result == 0)
+        {
+            result = memcmp(&dacs_pending->payload_ref->flow_source_eid, custody_info->flow_source_eid,
+                            sizeof(bp_endpointid_buffer_t));
+        }
+
+        if (result == 0)
+        {
+            custody_info->store_entry = store_entry;
+        }
+    }
+    else
+    {
+        result = -1;
+    }
+
+    return result;
+}
+
+bool bplib_store_cache_find_pending_dacs(bplib_store_cache_state_t          *state,
+                                         bplib_store_cache_custodian_info_t *custody_info)
+{
+    bplib_rbt_link_t          *custody_rbt_link;
+    bplib_store_cache_queue_t *store_queue;
+    bplib_mpool_block_t       *sblk;
+
+    custody_rbt_link = bplib_rbt_search(custody_info->eid_hash, &state->hash_index);
     if (custody_rbt_link != NULL)
     {
         store_queue = bplib_store_cache_queue_from_rbt_link(custody_rbt_link);
@@ -792,142 +820,134 @@ bplib_store_cache_entry_t *bplib_store_cache_find_pending_dacs(bplib_store_cache
          * the lists, if they ever become more than one entry, stay short enough
          * such that sequential search is not a burden.
          */
-        status = bplib_mpool_list_iter_goto_first(&store_queue->bundle_list, &iter);
-        while (true)
-        {
-            if (status != BP_SUCCESS)
-            {
-                /* no match found */
-                store_entry = NULL;
-                break;
-            }
-
-            /* possible match, but need to verify */
-            store_entry = bplib_mpool_generic_data_cast(iter.position, BPLIB_STORE_SIGNATURE_ENTRY);
-            if (store_entry != NULL && store_entry->entry_type == bplib_store_cache_entry_type_pending_dacs)
-            {
-                dacs_pending = &store_entry->data.dacs;
-
-                if (memcmp(dacs_pending->prev_custodian_ref, prev_custodian, sizeof(bp_endpointid_buffer_t)) == 0 &&
-                    memcmp(&dacs_pending->payload_ref->flow_source_eid, flow_source_eid,
-                           sizeof(bp_endpointid_buffer_t)) == 0)
-                {
-                    break;
-                }
-            }
-
-            status = bplib_mpool_list_iter_forward(&iter);
-        }
+        sblk = bplib_mpool_search_list(&store_queue->bundle_list, bplib_store_cache_find_dacs_match, custody_info);
+    }
+    else
+    {
+        sblk = NULL;
     }
 
-    return store_entry;
+    return (sblk != NULL);
 }
 
-void bplib_store_cache_ack_custody_tracking_block(bplib_store_cache_state_t    *state,
-                                                  bplib_mpool_bblock_primary_t *pri_block, bplib_mpool_block_t *cblk)
+void bplib_store_cache_get_custodian_info(bplib_store_cache_custodian_info_t *custody_info,
+                                          bplib_mpool_bblock_primary_t       *pri_block)
 {
     bplib_mpool_bblock_canonical_t *custody_block;
-    bp_custody_tracking_block_t    *custody_content;
-    bplib_store_cache_entry_t      *store_entry;
-    bp_val_t                        eid_hash;
+    bplib_mpool_block_t            *cblk;
 
-    custody_block = bplib_mpool_bblock_canonical_cast(cblk);
-    if (custody_block != NULL)
+    memset(custody_info, 0, sizeof(*custody_info));
+
+    custody_info->flow_source_eid = &pri_block->pri_logical_data.sourceEID;
+    custody_info->sequence_num    = pri_block->pri_logical_data.creationTimeStamp.sequence_num;
+
+    cblk = bplib_mpool_bblock_primary_locate_canonical(pri_block, bp_blocktype_custodyTrackingBlock);
+    if (cblk != NULL)
     {
-        /* need to generate a DACS back to the previous custodian indicated in the custody block */
-        custody_content = &custody_block->canonical_logical_data.data.custody_tracking_block;
-
-        if (custody_content != NULL)
+        custody_block = bplib_mpool_bblock_canonical_cast(cblk);
+        if (custody_block != NULL)
         {
-            eid_hash = bplib_store_cache_compute_custody_hash(BPLIB_STORE_HASH_SALT_DACS,
-                                                              &pri_block->pri_logical_data.sourceEID,
-                                                              &custody_content->current_custodian);
-
-            store_entry = bplib_store_cache_find_pending_dacs(state, eid_hash, &custody_content->current_custodian,
-                                                              &pri_block->pri_logical_data.sourceEID);
-            if (store_entry == NULL)
-            {
-                /* open DACS bundle did not exist - make an empty one now */
-                store_entry = bplib_store_cache_open_dacs(state, eid_hash, &custody_content->current_custodian,
-                                                          &pri_block->pri_logical_data.sourceEID);
-            }
-
-            if (store_entry != NULL)
-            {
-                bplib_store_cache_append_dacs(state, store_entry,
-                                              pri_block->pri_logical_data.creationTimeStamp.sequence_num);
-            }
+            /* need to generate a DACS back to the previous custodian indicated in the custody block */
+            custody_info->custodian_eid =
+                &custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian;
         }
     }
 }
 
-void bplib_store_cache_update_custody_tracking_block(bplib_store_cache_state_t    *state,
-                                                     bplib_store_cache_entry_t    *store_entry,
-                                                     bplib_mpool_bblock_primary_t *pri_block, bplib_mpool_block_t *cblk)
+void bplib_store_cache_ack_custody_tracking_block(bplib_store_cache_state_t          *state,
+                                                  bplib_store_cache_custodian_info_t *custody_info)
 {
-    bplib_mpool_bblock_canonical_t *custody_block;
-    bp_custody_tracking_block_t    *custody_content;
-    bp_val_t                        eid_hash;
+    bplib_store_cache_compute_custody_hash(BPLIB_STORE_HASH_SALT_DACS, custody_info);
 
-    custody_block = bplib_mpool_bblock_canonical_cast(cblk);
-    if (custody_block != NULL)
+    if (!bplib_store_cache_find_pending_dacs(state, custody_info))
     {
-        custody_content = &custody_block->canonical_logical_data.data.custody_tracking_block;
-        v7_set_eid(&custody_content->current_custodian, &state->self_addr);
-
-        /* when the custody ACK for this block comes in, this block needs to be found again,
-         * so make an entry in the hash index for it */
-        eid_hash = bplib_store_cache_compute_custody_hash(
-            BPLIB_STORE_HASH_SALT_BUNDLE ^ pri_block->pri_logical_data.creationTimeStamp.sequence_num,
-            &pri_block->pri_logical_data.sourceEID, &custody_content->current_custodian);
-
-        bplib_store_cache_add_to_subindex(state->parent_pool, &state->hash_index, &store_entry->hash_link, eid_hash);
+        /* open DACS bundle did not exist - make an empty one now */
+        bplib_store_cache_open_dacs(state, custody_info);
     }
+
+    bplib_store_cache_append_dacs(state, custody_info);
+}
+
+void bplib_store_cache_update_custody_tracking_block(bplib_store_cache_state_t          *state,
+                                                     bplib_store_cache_entry_t          *bundle_store_entry,
+                                                     bplib_store_cache_custodian_info_t *custody_info)
+{
+    if (custody_info->custodian_eid != NULL)
+    {
+        v7_set_eid(custody_info->custodian_eid, &state->self_addr);
+    }
+
+    /* when the custody ACK for this block comes in, this block needs to be found again,
+     * so make an entry in the hash index for it */
+    bplib_store_cache_compute_custody_hash(BPLIB_STORE_HASH_SALT_BUNDLE ^ custody_info->sequence_num, custody_info);
+    bplib_store_cache_add_to_subindex(state->parent_pool, &state->hash_index, &bundle_store_entry->hash_link,
+                                      custody_info->eid_hash);
 }
 
 void bplib_store_cache_do_custody_tracking(bplib_store_cache_state_t *state, bplib_store_cache_entry_t *store_entry,
                                            bplib_mpool_bblock_primary_t *pri_block)
 {
-    bplib_mpool_block_t *cblk;
+    bplib_store_cache_custodian_info_t custody_info;
 
-    cblk = bplib_mpool_bblock_primary_locate_canonical(pri_block, bp_blocktype_custodyTrackingBlock);
-    if (cblk != NULL)
+    bplib_store_cache_get_custodian_info(&custody_info, pri_block);
+    if (custody_info.custodian_eid)
     {
         /* Acknowledge the block in the bundle */
-        bplib_store_cache_ack_custody_tracking_block(state, pri_block, cblk);
+        bplib_store_cache_ack_custody_tracking_block(state, &custody_info);
     }
     else
     {
         /* There is no previous custodian, but the custody block needs to be added (because this
          * function is only invoked where full custody tracking is enabled).  This is the case when
          * this storage entity is the first custodian on locally generated  */
-        cblk = bplib_store_cache_insert_custody_tracking_block(state, pri_block);
+        bplib_store_cache_insert_custody_tracking_block(state, pri_block, &custody_info);
     }
 
-    if (cblk != NULL)
-    {
-        /* update the custody block to reflect the new custodian (this service) -
-         * whenever the bundle is finally forwarded, this tells the recipient to notify us */
-        bplib_store_cache_update_custody_tracking_block(state, store_entry, pri_block, cblk);
-    }
+    /* update the custody block to reflect the new custodian (this service) -
+     * whenever the bundle is finally forwarded, this tells the recipient to notify us */
+    bplib_store_cache_update_custody_tracking_block(state, store_entry, &custody_info);
 }
 
-void bplib_store_cache_do_ack_bundle(bplib_store_cache_state_t *state, const bp_endpointid_buffer_t *prev_custodian,
-                                     const bp_endpointid_buffer_t *flow_source_eid, bp_integer_t sequence_num)
+int bplib_store_cache_find_bundle_match(void *arg, bplib_mpool_block_t *lblk)
 {
-    bplib_rbt_link_t             *custody_rbt_link;
-    bplib_store_cache_queue_t    *store_queue;
-    bplib_store_cache_entry_t    *store_entry;
-    bplib_mpool_bblock_primary_t *pri_block;
-    bplib_mpool_list_iter_t       iter;
-    int                           status;
-    bp_val_t                      eid_hash;
+    bplib_store_cache_entry_t          *store_entry;
+    bplib_mpool_bblock_primary_t       *pri_block;
+    bplib_store_cache_custodian_info_t *custody_info;
+    int                                 result;
 
-    eid_hash = bplib_store_cache_compute_custody_hash(BPLIB_STORE_HASH_SALT_BUNDLE ^ sequence_num, flow_source_eid,
-                                                      prev_custodian);
+    /* possible match, but need to verify */
+    custody_info = arg;
+    result       = -1;
 
-    store_entry      = NULL;
-    custody_rbt_link = bplib_rbt_search(eid_hash, &state->hash_index);
+    store_entry = bplib_mpool_generic_data_cast(lblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    if (store_entry != NULL && store_entry->entry_type == bplib_store_cache_entry_type_normal_bundle)
+    {
+        pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
+
+        if (pri_block != NULL &&
+            pri_block->pri_logical_data.creationTimeStamp.sequence_num == custody_info->sequence_num)
+        {
+            result = memcmp(&pri_block->pri_logical_data.sourceEID, custody_info->flow_source_eid,
+                            sizeof(bp_endpointid_buffer_t));
+        }
+    }
+
+    if (result == 0)
+    {
+        custody_info->store_entry = store_entry;
+    }
+
+    return result;
+}
+
+void bplib_store_cache_do_ack_bundle(bplib_store_cache_state_t *state, bplib_store_cache_custodian_info_t *custody_info)
+{
+    bplib_rbt_link_t          *custody_rbt_link;
+    bplib_store_cache_queue_t *store_queue;
+
+    bplib_store_cache_compute_custody_hash(BPLIB_STORE_HASH_SALT_BUNDLE ^ custody_info->sequence_num, custody_info);
+
+    custody_rbt_link = bplib_rbt_search(custody_info->eid_hash, &state->hash_index);
     if (custody_rbt_link != NULL)
     {
         store_queue = bplib_store_cache_queue_from_rbt_link(custody_rbt_link);
@@ -938,49 +958,33 @@ void bplib_store_cache_do_ack_bundle(bplib_store_cache_state_t *state, const bp_
          * the lists, if they ever become more than one entry, stay short enough
          * such that sequential search is not a burden.
          */
-        status = bplib_mpool_list_iter_goto_first(&store_queue->bundle_list, &iter);
-        while (true)
+        if (bplib_mpool_search_list(&store_queue->bundle_list, bplib_store_cache_find_bundle_match, custody_info))
         {
-            if (status != BP_SUCCESS)
-            {
-                /* no match found */
-                store_entry = NULL;
-                break;
-            }
+            /* found it ! */
+            printf("%s(): Got custody ACK for seq %lu\n", __func__, (unsigned long)custody_info->sequence_num);
 
-            /* possible match, but need to verify */
-            store_entry = bplib_mpool_generic_data_cast(iter.position, BPLIB_STORE_SIGNATURE_ENTRY);
-            if (store_entry != NULL && store_entry->entry_type == bplib_store_cache_entry_type_normal_bundle)
-            {
-                pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
-
-                if (pri_block != NULL && pri_block->pri_logical_data.creationTimeStamp.sequence_num == sequence_num &&
-                    memcmp(&pri_block->pri_logical_data.sourceEID, flow_source_eid, sizeof(bp_endpointid_buffer_t)) ==
-                        0)
-                {
-                    /* found it ! */
-                    printf("%s(): Got custody ACK for seq %lu\n", __func__, (unsigned long)sequence_num);
-
-                    /* can clear the flag that says it needed another custodian, and reevaluate */
-                    bplib_store_cache_entry_make_pending(&store_entry->hash_link, 0, BPLIB_STORE_FLAG_AWAITING_CUSTODY);
-                    break;
-                }
-            }
-
-            status = bplib_mpool_list_iter_forward(&iter);
+            /* can clear the flag that says it needed another custodian, and reevaluate */
+            bplib_store_cache_entry_make_pending(&custody_info->store_entry->hash_link, 0,
+                                                 BPLIB_STORE_FLAG_AWAITING_CUSTODY);
         }
     }
 }
 
-void bplib_store_cache_process_dacs(bplib_store_cache_state_t *state, const bplib_mpool_bblock_primary_t *pri_block,
+void bplib_store_cache_process_dacs(bplib_store_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
                                     const bp_custody_accept_payload_block_t *ack_payload)
 {
-    bp_integer_t i;
+    bp_integer_t                       i;
+    bplib_store_cache_custodian_info_t custody_info;
+
+    memset(&custody_info, 0, sizeof(custody_info));
+
+    custody_info.custodian_eid   = &pri_block->pri_logical_data.destinationEID;
+    custody_info.flow_source_eid = &ack_payload->flow_source_eid;
 
     for (i = 0; i < ack_payload->num_entries; ++i)
     {
-        bplib_store_cache_do_ack_bundle(state, &pri_block->pri_logical_data.destinationEID,
-                                        &ack_payload->flow_source_eid, ack_payload->sequence_nums[i]);
+        custody_info.sequence_num = ack_payload->sequence_nums[i];
+        bplib_store_cache_do_ack_bundle(state, &custody_info);
     }
 }
 
@@ -1007,37 +1011,48 @@ bool bplib_store_cache_check_dacs(bplib_store_cache_state_t *state, bplib_mpool_
     return (c_block != NULL);
 }
 
-void bplib_store_cache_construct_entry(void *arg, bplib_mpool_block_t *sblk)
+int bplib_store_cache_construct_entry(void *arg, bplib_mpool_block_t *sblk)
 {
     bplib_store_cache_entry_t *store_entry;
 
     store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
-    if (store_entry != NULL)
+    if (store_entry == NULL)
     {
-        store_entry->parent_state   = arg;
-        store_entry->last_eval_time = bplib_os_get_dtntime_ms();
-        bplib_mpool_init_secondary_link(sblk, &store_entry->hash_link);
-        bplib_mpool_init_secondary_link(sblk, &store_entry->time_link);
-        bplib_mpool_init_secondary_link(sblk, &store_entry->destination_link);
+        return BP_ERROR;
     }
+
+    store_entry->parent_state   = arg;
+    store_entry->last_eval_time = bplib_os_get_dtntime_ms();
+    bplib_mpool_init_secondary_link(sblk, &store_entry->hash_link);
+    bplib_mpool_init_secondary_link(sblk, &store_entry->time_link);
+    bplib_mpool_init_secondary_link(sblk, &store_entry->destination_link);
+
+    return BP_SUCCESS;
 }
 
-void bplib_store_cache_destruct_entry(void *arg, bplib_mpool_block_t *sblk)
+int bplib_store_cache_destruct_entry(void *arg, bplib_mpool_block_t *sblk)
 {
     bplib_store_cache_entry_t *store_entry;
     bplib_store_cache_state_t *state;
 
     store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
-    if (store_entry != NULL)
+    if (store_entry == NULL)
     {
-        state = store_entry->parent_state;
-
-        /* need to make sure this is removed from all index trees */
-        bplib_store_cache_remove_from_subindex(state->parent_pool, &state->hash_index, &store_entry->hash_link);
-        bplib_store_cache_remove_from_subindex(state->parent_pool, &state->time_index, &store_entry->time_link);
-        bplib_store_cache_remove_from_subindex(state->parent_pool, &state->dest_eid_index,
-                                               &store_entry->destination_link);
+        return BP_ERROR;
     }
+
+    state = store_entry->parent_state;
+
+    /* need to make sure this is removed from all index trees */
+    bplib_store_cache_remove_from_subindex(state->parent_pool, &state->hash_index, &store_entry->hash_link);
+    bplib_store_cache_remove_from_subindex(state->parent_pool, &state->time_index, &store_entry->time_link);
+    bplib_store_cache_remove_from_subindex(state->parent_pool, &state->dest_eid_index, &store_entry->destination_link);
+
+    /* release the refptr */
+    bplib_mpool_ref_release(state->parent_pool, store_entry->refptr);
+    store_entry->refptr = NULL;
+
+    return BP_SUCCESS;
 }
 
 int bplib_store_cache_egress_impl(bplib_routetbl_t *rtbl, bplib_mpool_ref_t intf_ref, void *egress_arg)
@@ -1165,72 +1180,50 @@ int bplib_store_cache_egress_impl(bplib_routetbl_t *rtbl, bplib_mpool_ref_t intf
     return forward_count;
 }
 
-void bplib_store_cache_cleanup_exipred_entry(void *arg, bplib_mpool_block_t *sblk)
-{
-    bplib_store_cache_state_t *state;
-    bplib_store_cache_entry_t *store_entry;
-
-    /* This cast should always work, unless there is a bug */
-    store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
-    if (store_entry != NULL)
-    {
-        state = store_entry->parent_state;
-
-        /* ensure this has been removed from the various indices */
-        bplib_store_cache_remove_from_subindex(state->parent_pool, &state->hash_index, &store_entry->hash_link);
-        bplib_store_cache_remove_from_subindex(state->parent_pool, &state->time_index, &store_entry->time_link);
-        bplib_store_cache_remove_from_subindex(state->parent_pool, &state->dest_eid_index,
-                                               &store_entry->destination_link);
-
-        /* release the refptr */
-        bplib_mpool_ref_release(state->parent_pool, store_entry->refptr);
-        store_entry->refptr = NULL;
-    }
-}
-
-void bplib_store_cache_handle_bundle_pending_list_entry(void *arg, bplib_mpool_block_t *sblk)
-{
-    /* this is a wrapper to make it compatible with bplib_mpool_foreach_item_in_list() */
-    bplib_store_cache_evaluate_pending_entry(sblk);
-}
-
 void bplib_store_cache_flush_pending(bplib_store_cache_state_t *state)
 {
+    bplib_mpool_list_iter_t list_it;
+    int                     status;
+
     /* Attempt to re-route all bundles in the pending list */
     /* In some cases the bundle can get re-added to the pending list, so this is done in a loop */
-    do
+    status = bplib_mpool_list_iter_goto_first(&state->pending_list, &list_it);
+    while (status == BP_SUCCESS && bplib_mpool_subq_depthlimit_may_push(&state->self_flow->ingress))
     {
-        bplib_mpool_foreach_item_in_list(&state->pending_list, true, bplib_store_cache_handle_bundle_pending_list_entry,
-                                         state);
-        bplib_mpool_foreach_item_in_list(&state->expired_list, false, bplib_store_cache_cleanup_exipred_entry, state);
-        bplib_mpool_recycle_all_blocks_in_list(state->parent_pool, &state->expired_list);
+        /* removal of an iterator node is allowed */
+        bplib_mpool_extract_node(list_it.position);
+        bplib_store_cache_evaluate_pending_entry(list_it.position);
+        status = bplib_mpool_list_iter_forward(&list_it);
     }
-    while (!bplib_mpool_is_empty_list_head(&state->pending_list));
-}
-
-void bplib_store_cache_entry_make_pending_wrapper(void *arg, bplib_mpool_block_t *qblk)
-{
-    bplib_store_cache_entry_make_pending(qblk, 0, 0);
 }
 
 int bplib_store_cache_do_poll(bplib_store_cache_state_t *state)
 {
-    bplib_rbt_iter_t           it;
+    bplib_rbt_iter_t           rbt_it;
+    bplib_mpool_list_iter_t    list_it;
     bplib_store_cache_queue_t *store_queue;
-    int                        iter_status;
+    int                        rbt_status;
+    int                        list_status;
 
-    iter_status = bplib_rbt_iter_goto_max(bplib_os_get_dtntime_ms(), &state->time_index, &it);
-    while (iter_status == BP_SUCCESS)
+    rbt_status = bplib_rbt_iter_goto_max(bplib_os_get_dtntime_ms(), &state->time_index, &rbt_it);
+    while (rbt_status == BP_SUCCESS)
     {
-        store_queue = bplib_store_cache_queue_from_rbt_link(it.position);
+        store_queue = bplib_store_cache_queue_from_rbt_link(rbt_it.position);
 
         /* preemptively move the iterator - the current entry will be removed,
          * and if that was done first, it would invalidate the iterator */
-        iter_status = bplib_rbt_iter_prev(&it);
+        rbt_status = bplib_rbt_iter_prev(&rbt_it);
 
         /* move the entire set of nodes on this tree entry to the pending_list */
-        bplib_mpool_foreach_item_in_list(&store_queue->bundle_list, true, bplib_store_cache_entry_make_pending_wrapper,
-                                         state);
+        /* remove everything from the time index because its time has passed and will be rescheduled */
+        list_status = bplib_mpool_list_iter_goto_first(&store_queue->bundle_list, &list_it);
+        while (list_status == BP_SUCCESS)
+        {
+            /* removal of an iterator node is allowed */
+            bplib_mpool_extract_node(list_it.position);
+            bplib_store_cache_entry_make_pending(list_it.position, 0, 0);
+            list_status = bplib_mpool_list_iter_forward(&list_it);
+        }
 
         /* done with this entry in the time index (will be re-added when pending_list is processed) */
         bplib_rbt_extract_node(&state->time_index, &store_queue->rbt_link);
@@ -1243,30 +1236,34 @@ int bplib_store_cache_do_poll(bplib_store_cache_state_t *state)
 
 int bplib_store_cache_do_route_up(bplib_store_cache_state_t *state, bp_ipn_t dest, bp_ipn_t mask)
 {
-    bplib_rbt_iter_t           it;
+    bplib_rbt_iter_t           rbt_it;
+    bplib_mpool_list_iter_t    list_it;
     bplib_store_cache_queue_t *store_queue;
     bp_ipn_t                   curr_ipn;
-    int                        iter_status;
+    int                        rbt_status;
+    int                        list_status;
 
-    iter_status = bplib_rbt_iter_goto_min(dest, &state->dest_eid_index, &it);
-    while (iter_status == BP_SUCCESS)
+    rbt_status = bplib_rbt_iter_goto_min(dest, &state->dest_eid_index, &rbt_it);
+    while (rbt_status == BP_SUCCESS)
     {
-        curr_ipn = bplib_rbt_get_key_value(it.position);
+        curr_ipn = bplib_rbt_get_key_value(rbt_it.position);
         if ((curr_ipn & mask) != dest)
         {
             /* no longer a route match, all done */
             break;
         }
 
-        store_queue = bplib_store_cache_queue_from_rbt_link(it.position);
+        rbt_status  = bplib_rbt_iter_next(&rbt_it);
+        store_queue = bplib_store_cache_queue_from_rbt_link(rbt_it.position);
 
-        /* move the entire set of nodes on this tree entry to the pending_list */
-        bplib_mpool_foreach_item_in_list(&store_queue->bundle_list, false, bplib_store_cache_entry_make_pending_wrapper,
-                                         state);
-
-        /* preemptively move the iterator - the current entry will be removed,
-         * and if that was done first, it would invalidate the iterator */
-        iter_status = bplib_rbt_iter_next(&it);
+        /* put everything on the bundle list here onto the pending_list, but
+         * do not remove from the bundle list at this time */
+        list_status = bplib_mpool_list_iter_goto_first(&store_queue->bundle_list, &list_it);
+        while (list_status == BP_SUCCESS)
+        {
+            bplib_store_cache_entry_make_pending(list_it.position, 0, 0);
+            list_status = bplib_mpool_list_iter_forward(&list_it);
+        }
     }
 
     return BP_SUCCESS;
@@ -1317,113 +1314,78 @@ int bplib_store_cache_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_ref_t intf_
     /* any sort of action may have put bundles in the pending queue, so flush it now */
     bplib_store_cache_flush_pending(state);
 
-    return 0;
+    return BP_SUCCESS;
 }
 
-void bplib_store_cache_construct_state(void *arg, bplib_mpool_block_t *sblk)
+int bplib_store_cache_construct_state(void *arg, bplib_mpool_block_t *sblk)
 {
     bplib_store_cache_state_t *state;
     bplib_mpool_t             *pool;
 
     pool  = arg;
     state = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_STATE);
-    if (state != NULL)
+    if (state == NULL)
     {
-        state->parent_pool = pool;
-        state->self_flow   = bplib_mpool_flow_cast(sblk);
-
-        bplib_mpool_init_list_head(&state->pending_list);
-        bplib_mpool_init_list_head(&state->expired_list);
-        bplib_mpool_init_list_head(&state->idle_list);
-
-        bplib_rbt_init_root(&state->hash_index);
-        bplib_rbt_init_root(&state->dest_eid_index);
-        bplib_rbt_init_root(&state->time_index);
+        return BP_ERROR;
     }
+
+    state->parent_pool = pool;
+    state->self_flow   = bplib_mpool_flow_cast(sblk);
+
+    bplib_mpool_init_list_head(&state->pending_list);
+    bplib_mpool_init_list_head(&state->idle_list);
+
+    bplib_rbt_init_root(&state->hash_index);
+    bplib_rbt_init_root(&state->dest_eid_index);
+    bplib_rbt_init_root(&state->time_index);
+
+    return BP_SUCCESS;
 }
 
-void bplib_store_cache_destruct_state(void *arg, bplib_mpool_block_t *sblk)
+int bplib_store_cache_destruct_state(void *arg, bplib_mpool_block_t *sblk)
 {
     bplib_store_cache_state_t *state;
-    bplib_rbt_iter_t           it;
-    bplib_store_cache_queue_t *store_queue;
-    int                        status;
 
     state = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_STATE);
-    if (state != NULL)
+    if (state == NULL)
     {
-        /* make sure all lists and indices are empty, blocks will be leaked if not */
-        /* first tackle the time index */
-        status = bplib_rbt_iter_goto_min(0, &state->time_index, &it);
-        while (status == BP_SUCCESS)
-        {
-            store_queue = bplib_store_cache_queue_from_rbt_link(it.position);
-            status      = bplib_rbt_iter_next(&it);
-
-            /* move the entire set of nodes on this tree entry to the pending_list */
-            bplib_mpool_foreach_item_in_list(&store_queue->bundle_list, true,
-                                             bplib_store_cache_entry_make_pending_wrapper, state);
-
-            /* done with this entry in the time index */
-            bplib_rbt_extract_node(&state->time_index, &store_queue->rbt_link);
-            bplib_mpool_recycle_block(state->parent_pool, store_queue->self);
-        }
-
-        /* next tackle the destination EID index */
-        status = bplib_rbt_iter_goto_min(0, &state->dest_eid_index, &it);
-        while (status == BP_SUCCESS)
-        {
-            store_queue = bplib_store_cache_queue_from_rbt_link(it.position);
-            status      = bplib_rbt_iter_next(&it);
-
-            /* move the entire set of nodes on this tree entry to the pending_list */
-            bplib_mpool_foreach_item_in_list(&store_queue->bundle_list, true,
-                                             bplib_store_cache_entry_make_pending_wrapper, state);
-
-            /* done with this entry in the EID index */
-            bplib_rbt_extract_node(&state->dest_eid_index, &store_queue->rbt_link);
-            bplib_mpool_recycle_block(state->parent_pool, store_queue->self);
-        }
-
-        status = bplib_rbt_iter_goto_min(0, &state->hash_index, &it);
-        while (status == BP_SUCCESS)
-        {
-            store_queue = bplib_store_cache_queue_from_rbt_link(it.position);
-            status      = bplib_rbt_iter_next(&it);
-
-            /* move the entire set of nodes on this tree entry to the pending_list */
-            bplib_mpool_foreach_item_in_list(&store_queue->bundle_list, true,
-                                             bplib_store_cache_entry_make_pending_wrapper, state);
-
-            /* done with this entry in the time index */
-            bplib_rbt_extract_node(&state->hash_index, &store_queue->rbt_link);
-            bplib_mpool_recycle_block(state->parent_pool, store_queue->self);
-        }
-
-        bplib_mpool_recycle_all_blocks_in_list(state->parent_pool, &state->idle_list);
-        bplib_mpool_recycle_all_blocks_in_list(state->parent_pool, &state->pending_list);
-        bplib_mpool_recycle_all_blocks_in_list(state->parent_pool, &state->expired_list);
-
-        state->parent_pool = NULL;
+        return BP_ERROR;
     }
+
+    /* At this point, all the sub-indices and lists should be empty.  The application
+     * should have made this so before attempting to delete the intf.
+     * If not so, they cannot be cleaned up now, because the state object is no longer valid,
+     * the desctructors for these objects will not work correctly */
+    assert(bplib_rbt_is_empty(&state->time_index));
+    assert(bplib_rbt_is_empty(&state->dest_eid_index));
+    assert(bplib_rbt_is_empty(&state->hash_index));
+    assert(bplib_mpool_is_link_unattached(&state->idle_list));
+    assert(bplib_mpool_is_link_unattached(&state->pending_list));
+
+    state->parent_pool = NULL;
+
+    return BP_SUCCESS;
 }
 
-void bplib_store_cache_construct_blockref(void *arg, bplib_mpool_block_t *sblk)
+int bplib_store_cache_construct_blockref(void *arg, bplib_mpool_block_t *sblk)
 {
     bplib_store_cache_blockref_t *blockref;
     bplib_store_cache_entry_t    *store_entry;
 
     store_entry = arg;
     blockref    = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_BLOCKREF);
-    if (blockref != NULL)
+    if (blockref == NULL)
     {
-        /*
-         * note, this needs a ref back to the block itself, not the store_entry object.
-         * but because this has two secondary links in it (time/dest index) either of
-         * these can be used to reconstitute the original block pointer.
-         */
-        blockref->storage_entry_block = bplib_mpool_obtain_base_block(&store_entry->time_link);
+        return BP_ERROR;
     }
+
+    /*
+     * note, this needs a ref back to the block itself, not the store_entry object.
+     * but because this has two secondary links in it (time/dest index) either of
+     * these can be used to reconstitute the original block pointer.
+     */
+    blockref->storage_entry_block = bplib_mpool_obtain_base_block(&store_entry->time_link);
+    return BP_SUCCESS;
 }
 
 void bplib_store_cache_init(bplib_mpool_t *pool)
@@ -1561,7 +1523,6 @@ void bplib_store_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id)
     printf("DEBUG: %s() intf_id=%d\n", __func__, bp_handle_printable(intf_id));
 
     bplib_mpool_debug_print_list_stats(&state->pending_list, "pending_list");
-    bplib_mpool_debug_print_list_stats(&state->expired_list, "expired_list");
     bplib_mpool_debug_print_list_stats(&state->idle_list, "idle_list");
 
     bplib_route_release_intf_controlblock(tbl, intf_block_ref);

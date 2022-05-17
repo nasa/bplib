@@ -211,6 +211,9 @@ void bplib_mpool_init_secondary_link(bplib_mpool_block_t *base_block, bplib_mpoo
  *-----------------------------------------------------------------*/
 void bplib_mpool_insert_after(bplib_mpool_block_t *list, bplib_mpool_block_t *node)
 {
+    /* node being inserted should always be a singleton */
+    assert(bplib_mpool_is_link_unattached(node));
+
     node->next       = list->next;
     node->prev       = list;
     list->next       = node;
@@ -224,6 +227,9 @@ void bplib_mpool_insert_after(bplib_mpool_block_t *list, bplib_mpool_block_t *no
  *-----------------------------------------------------------------*/
 void bplib_mpool_insert_before(bplib_mpool_block_t *list, bplib_mpool_block_t *node)
 {
+    /* node being inserted should always be a singleton */
+    assert(bplib_mpool_is_link_unattached(node));
+
     node->prev       = list->prev;
     node->next       = list;
     list->prev       = node;
@@ -469,7 +475,12 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     /* If the module did supply a constructor, invoke it now */
     if (api_block->api.construct != NULL)
     {
-        api_block->api.construct(init_arg, node);
+        /* A constructor really should never fail nominally, if it does there is probably a bug */
+        if (api_block->api.construct(init_arg, node) != BP_SUCCESS)
+        {
+            bplog(NULL, BP_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
+                  (unsigned long)content_type_signature);
+        }
     }
 
     return block;
@@ -640,6 +651,31 @@ int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remo
     }
 
     return count;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_search_list
+ *
+ *-----------------------------------------------------------------*/
+bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bplib_mpool_callback_func_t match_fn,
+                                             void *match_arg)
+{
+    int                     status;
+    bplib_mpool_list_iter_t iter;
+
+    status = bplib_mpool_list_iter_goto_first(list, &iter);
+    while (status == BP_SUCCESS)
+    {
+        if (match_fn(match_arg, iter.position) == 0)
+        {
+            break;
+        }
+        status = bplib_mpool_list_iter_forward(&iter);
+    }
+
+    /* the iterator sets position to NULL if end of list was reached */
+    return iter.position;
 }
 
 /*----------------------------------------------------------------
@@ -968,6 +1004,7 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
 
     while (remain >= sizeof(bplib_mpool_block_content_t))
     {
+        bplib_mpool_link_reset(&pchunk->header.base_link, bplib_mpool_blocktype_undefined);
         bplib_mpool_subq_push_single(&pool->free_blocks, &pchunk->header.base_link);
         remain -= sizeof(bplib_mpool_block_content_t);
         ++pchunk;

@@ -146,6 +146,27 @@ static inline bool bplib_mpool_subq_depthlimit_may_pull(const bplib_mpool_subq_d
 }
 
 /**
+ * @brief Check if given subq is less than half full
+ *
+ * The check is for the "half full" point at which the application should generally stop
+ * adding new entries to the queue, and shift focus toward draining the queue.  At the
+ * half-full point there is still room in the queue so bplib_mpool_subq_depthlimit_try_push()
+ * may still succeed even if this test returns false.
+ *
+ * @note This check is lockless, therefore the state of the subq may change at any time
+ * if other threads/tasks are pushing from the same subq.  Therefore even if this function
+ * returns true, it does not guarantee that a subsequent call to
+ * bplib_mpool_subq_depthlimit_try_push() will succeed.
+ *
+ * @param subq
+ * @retval true if subq is less than half full.
+ */
+static inline bool bplib_mpool_subq_depthlimit_may_push(const bplib_mpool_subq_depthlimit_t *subq)
+{
+    return (bplib_mpool_subq_get_depth(&subq->base_subq) < (subq->current_depth_limit / 2));
+}
+
+/**
  * @brief Mark a given flow as active
  *
  * This marks it so it will be processed during the next call to forward data

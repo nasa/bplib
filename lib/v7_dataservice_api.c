@@ -554,22 +554,26 @@ int bplib_dataservice_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_ref_t intf_
     return BP_SUCCESS;
 }
 
-void bplib_dataservice_base_construct(void *arg, bplib_mpool_block_t *blk)
+int bplib_dataservice_base_construct(void *arg, bplib_mpool_block_t *blk)
 {
     bplib_route_serviceintf_info_t *base_intf;
 
     base_intf = bplib_mpool_generic_data_cast(blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
-    if (base_intf != NULL)
+    if (base_intf == NULL)
     {
-        bplib_rbt_init_root(&base_intf->service_index);
+        return BP_ERROR;
     }
+
+    bplib_rbt_init_root(&base_intf->service_index);
+    return BP_SUCCESS;
 }
 
-void bplib_dataservice_block_recycle(void *arg, bplib_mpool_block_t *rblk)
+int bplib_dataservice_block_recycle(void *arg, bplib_mpool_block_t *rblk)
 {
     /* this should check if the block made it to storage or not, and if the calling
      * task in bplib_send() is blocked waiting for the block to be sent, this should
      * release that task. In is a no-op for now until timeouts are implemented. */
+    return BP_SUCCESS;
 }
 
 void bplib_dataservice_init(bplib_mpool_t *pool)
