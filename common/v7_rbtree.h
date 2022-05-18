@@ -79,6 +79,16 @@ void bplib_rbt_init_root(bplib_rbt_root_t *tree);
 
 /*--------------------------------------------------------------------------------------*/
 /**
+ * @brief Checks if the given tree has any nodes
+ *
+ * @param[in] tree   The tree to check
+ * @return true if the tree is currently empty
+ * @return false if the tree is not currently empty
+ */
+bool bplib_rbt_is_empty(const bplib_rbt_root_t *tree);
+
+/*--------------------------------------------------------------------------------------*/
+/**
  * @brief Checks if the given node is a member of the tree
  *
  * @param[in] tree   The tree to check

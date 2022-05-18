@@ -440,7 +440,7 @@ int bplib2_bundle_test(void)
     printf("@%lu: waiting for ACK Bundle...\n", (unsigned long)bplib_os_get_dtntime_ms());
 
     bundle_sz  = sizeof(bundle_buffer);
-    lib_status = bplib_cla_egress(s2_rtbl, s2_intf_cla, bundle_buffer, &bundle_sz, 5000);
+    lib_status = bplib_cla_egress(s2_rtbl, s2_intf_cla, bundle_buffer, &bundle_sz, 5000000);
     if (lib_status != 0)
     {
         fprintf(stderr, "Failed bplib_cla_egress() for DACS  code=%d... exiting\n", lib_status);

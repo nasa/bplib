@@ -1030,6 +1030,17 @@ void bplib_rbt_init_root(bplib_rbt_root_t *tree)
 }
 
 /*--------------------------------------------------------------------------------------
+ * bplib_rbt_is_empty - Checks if the given tree is empty
+ *
+ * tree: A ptr to a bplib_rbt_root_t
+ * returns: true if the tree is empty
+ *--------------------------------------------------------------------------------------*/
+bool bplib_rbt_is_empty(const bplib_rbt_root_t *tree)
+{
+    return (tree->root == NULL);
+}
+
+/*--------------------------------------------------------------------------------------
  * bplib_rbt_is_member - Checks if the given node is a member of the tree
  *
  * tree: A ptr to a bplib_rbt_root_t

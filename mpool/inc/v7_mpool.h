@@ -98,8 +98,11 @@ typedef enum
  * This is a generic API for a function to handle various events/conditions
  * that occur at the block level.  The generic argument supplies the context
  * information.
+ *
+ * The return value depends on the context and may or may not be used, it
+ * should should return 0 unless otherwise specified.
  */
-typedef void (*bplib_mpool_callback_func_t)(void *, bplib_mpool_block_t *);
+typedef int (*bplib_mpool_callback_func_t)(void *, bplib_mpool_block_t *);
 
 /**
  * @brief Blocktype API
@@ -476,6 +479,21 @@ void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_blo
  */
 int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remove,
                                      bplib_mpool_callback_func_t callback_fn, void *callback_arg);
+
+/**
+ * @brief Search a list in sequential order
+ *
+ * The match function will be invoked for every entry in the list, and the supplied argument
+ * will be passed to it. If the function returns 0, then the search stops and the node is returned.
+ *
+ * @param list The list to search
+ * @param match_fn A function that should return 0 if a match is found, nonzero otherwise
+ * @param match_arg An opaque argument passed to the match_fn, typically the match reference object
+ * @return bplib_mpool_block_t* The matching list entry
+ * @retval NULL if no match was found
+ */
+bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bplib_mpool_callback_func_t match_fn,
+                                             void *match_arg);
 
 /**
  * @brief Run basic maintenance on the memory pool
