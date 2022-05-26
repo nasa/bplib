@@ -79,16 +79,13 @@ static inline void swap_colors(bplib_rbt_link_t *node1, bplib_rbt_link_t *node2)
 }
 
 /*--------------------------------------------------------------------------------------
- * initialize_node - initially configure the node with the given value
+ * initialize_node_value - initially configure the node with the given value
  *
- * All pointers will be set NULL, and its color will be set to RED (default for all new nodes)
+ * Color will be set to RED (default for all new nodes)
  *-------------------------------------------------------------------------------------*/
-static inline void initialize_node(bplib_rbt_link_t *node, bp_val_t value)
+static inline void initialize_node_value(bplib_rbt_link_t *node, bp_val_t value)
 {
     node->key_value_and_color = V7_RBT_RED_FLAG | (value << 1);
-    node->parent              = NULL;
-    node->left                = NULL;
-    node->right               = NULL;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -219,6 +216,22 @@ static inline void connect_right_child_maybe_null(bplib_rbt_link_t *p, bplib_rbt
     {
         c->parent = p;
     }
+}
+
+/*--------------------------------------------------------------------------------------
+ * node_is_attached - Checks if the given node is attached in a tree
+ *
+ * NOTE - this is not quite sufficient of a check, as a tree with a single node
+ * will also have NULL pointers.  As a minimum one should also check if the node is
+ * the root of the tree in addition to this test.
+ *
+ * node: Memory block to test
+ * returns: true if the node is attached to a tree, false otherwise
+ *--------------------------------------------------------------------------------------*/
+static inline bool node_is_attached(const bplib_rbt_link_t *node)
+{
+    /* if any pointer is set, this is in a tree */
+    return (node->parent != NULL || node->left != NULL || node->right != NULL);
 }
 
 /**
@@ -1030,24 +1043,24 @@ void bplib_rbt_init_root(bplib_rbt_root_t *tree)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rbt_is_empty - Checks if the given tree is empty
+ * bplib_rbt_tree_is_empty - Checks if the given tree is empty
  *
  * tree: A ptr to a bplib_rbt_root_t
  * returns: true if the tree is empty
  *--------------------------------------------------------------------------------------*/
-bool bplib_rbt_is_empty(const bplib_rbt_root_t *tree)
+bool bplib_rbt_tree_is_empty(const bplib_rbt_root_t *tree)
 {
     return (tree->root == NULL);
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rbt_is_member - Checks if the given node is a member of the tree
+ * bplib_rbt_node_is_member - Checks if the given node is a member of the tree
  *
  * tree: A ptr to a bplib_rbt_root_t
  * node: Memory block to test
  * returns: true if the node is a member of the tree, false otherwise
  *--------------------------------------------------------------------------------------*/
-bool bplib_rbt_is_member(const bplib_rbt_root_t *tree, const bplib_rbt_link_t *node)
+bool bplib_rbt_node_is_member(const bplib_rbt_root_t *tree, const bplib_rbt_link_t *node)
 {
     const bplib_rbt_link_t *root_node;
 
@@ -1111,6 +1124,11 @@ int bplib_rbt_insert_value(bp_val_t insert_key_value, bplib_rbt_root_t *tree, bp
 {
     int status;
 
+    if (tree->root == link_block || node_is_attached(link_block))
+    {
+        return BP_ERROR;
+    }
+
     /*
      * The new node will always be connected as a leaf, so assume its child
      * pointers are both NULL.
@@ -1119,7 +1137,7 @@ int bplib_rbt_insert_value(bp_val_t insert_key_value, bplib_rbt_root_t *tree, bp
      * condition for insert because it does not affect the count of black nodes
      * from the root to the leaf.
      */
-    initialize_node(link_block, insert_key_value);
+    initialize_node_value(link_block, insert_key_value);
 
     status = do_insert_as_leaf(tree, link_block);
     if (status == BP_SUCCESS)
@@ -1135,11 +1153,16 @@ int bplib_rbt_insert_value(bp_val_t insert_key_value, bplib_rbt_root_t *tree, bp
  * bplib_rbt_extract_node - Removes a single node from the red black tree and rebalances it accordingly.
  *
  * tree: A ptr to a bplib_rbt_root_t to delete value from. [OUTPUT]
- * removed_node: Memory block that previously stored the value
+ * link_block: Memory block that previously stored the value
  * returns: Status code indicating the result of the deletion.
  *--------------------------------------------------------------------------------------*/
-int bplib_rbt_extract_node(bplib_rbt_root_t *tree, bplib_rbt_link_t *removed_node)
+int bplib_rbt_extract_node(bplib_rbt_root_t *tree, bplib_rbt_link_t *link_block)
 {
+    if (tree->root != link_block && !node_is_attached(link_block))
+    {
+        return BP_ERROR;
+    }
+
     /*
      * start by forcing this node into a leaf position.
      * This is achieved by swapping node positions with other
@@ -1153,17 +1176,17 @@ int bplib_rbt_extract_node(bplib_rbt_root_t *tree, bplib_rbt_link_t *removed_nod
      * tree, but the misplaced node will be the one being deleted,
      * so once that is finally done, it will be OK again.
      */
-    do_delete_make_leaf(tree, removed_node);
+    do_delete_make_leaf(tree, link_block);
 
     /*
      * Rebalance the tree anticipating the removal of the subject leaf
      */
-    do_delete_rebalance(tree, removed_node);
+    do_delete_rebalance(tree, link_block);
 
     /*
      * Do the actual disconnect
      */
-    remove_from_parent(tree, removed_node);
+    remove_from_parent(tree, link_block);
 
     return BP_SUCCESS;
 }

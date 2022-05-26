@@ -24,6 +24,12 @@
 #include <string.h>
 
 #include "v7_mpool.h"
+#include "v7_mpool_job.h"
+
+#define BPLIB_MPOOL_FLOW_FLAGS_ADMIN_UP 0x01
+#define BPLIB_MPOOL_FLOW_FLAGS_OPER_UP  0x02
+#define BPLIB_MPOOL_FLOW_FLAGS_STORAGE  0x04
+#define BPLIB_MPOOL_FLOW_FLAGS_POLL     0x10
 
 /**
  * @brief Upper limit to how deep a single queue may ever be
@@ -37,6 +43,40 @@
  * to track queue depth (which are currently 32 bit values).
  */
 #define BP_MPOOL_MAX_SUBQ_DEPTH 0x10000000
+
+/*
+ * Enumeration that defines the various possible routing table events.  This enum
+ * must always appear first in the structure that is the argument to the event handler,
+ * and indicates the actual event that has occurred
+ */
+typedef enum
+{
+    bplib_mpool_flow_event_undefined,
+    bplib_mpool_flow_event_poll,
+    bplib_mpool_flow_event_up,
+    bplib_mpool_flow_event_down,
+    bplib_mpool_flow_event_max
+
+} bplib_mpool_flow_event_t;
+
+typedef struct bplib_route_state_event
+{
+    bplib_mpool_flow_event_t event_type; /* must be first */
+    bp_ipn_t                 dest;
+    bp_ipn_t                 mask;
+} bplib_route_state_event_t;
+
+typedef struct bplib_mpool_flow_statechange_event
+{
+    bplib_mpool_flow_event_t event_type; /* must be first */
+    bp_handle_t              intf_id;
+} bplib_mpool_flow_statechange_event_t;
+
+typedef union bplib_mpool_flow_generic_event
+{
+    bplib_mpool_flow_event_t             event_type;
+    bplib_mpool_flow_statechange_event_t intf_state;
+} bplib_mpool_flow_generic_event_t;
 
 struct bplib_mpool_subq_base
 {
@@ -52,19 +92,23 @@ struct bplib_mpool_subq_base
     volatile unsigned int pull_count;
 };
 
-typedef struct bplib_mpool_subq_depthlimit
+typedef struct bplib_mpool_subq_workitem
 {
+    bplib_mpool_job_t       job_header;
     bplib_mpool_subq_base_t base_subq;
     unsigned int            current_depth_limit;
-} bplib_mpool_subq_depthlimit_t;
+} bplib_mpool_subq_workitem_t;
 
 struct bplib_mpool_flow
 {
-    bp_handle_t       external_id;
-    bplib_mpool_ref_t parent;
+    uint32_t pending_state_flags;
+    uint32_t current_state_flags;
 
-    bplib_mpool_subq_depthlimit_t ingress;
-    bplib_mpool_subq_depthlimit_t egress;
+    bplib_mpool_job_statechange_t statechange_job;
+    bplib_mpool_ref_t             parent;
+
+    bplib_mpool_subq_workitem_t ingress;
+    bplib_mpool_subq_workitem_t egress;
 };
 
 /**
@@ -95,18 +139,16 @@ bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_
  * @param subq
  * @return uint32_t
  */
-uint32_t bplib_mpool_subq_depthlimit_disable(bplib_mpool_t *pool, bplib_mpool_subq_depthlimit_t *subq);
+uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq);
+void     bplib_mpool_flow_enable(bplib_mpool_subq_workitem_t *subq, uint32_t depth_limit);
 
-bool     bplib_mpool_subq_depthlimit_try_push(bplib_mpool_t *pool, bplib_mpool_ref_t flow_dst_ref,
-                                              bplib_mpool_subq_depthlimit_t *subq_dst, bplib_mpool_block_t *qblk,
-                                              uint64_t abs_timeout);
-uint32_t bplib_mpool_subq_depthlimit_try_move_all(bplib_mpool_t *pool, bplib_mpool_ref_t flow_dst_ref,
-                                                  bplib_mpool_subq_depthlimit_t *subq_dst,
-                                                  bplib_mpool_subq_depthlimit_t *subq_src, uint64_t abs_timeout);
+bool bplib_mpool_flow_try_push(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_block_t *qblk, uint64_t abs_timeout);
+uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_subq_workitem_t *subq_src,
+                                       uint64_t abs_timeout);
 
-bplib_mpool_block_t *bplib_mpool_subq_depthlimit_try_pull(bplib_mpool_t *pool, bplib_mpool_ref_t flow_src_ref,
-                                                          bplib_mpool_subq_depthlimit_t *subq_src,
-                                                          uint64_t                       abs_timeout);
+bplib_mpool_block_t *bplib_mpool_flow_try_pull(bplib_mpool_subq_workitem_t *subq_src, uint64_t abs_timeout);
+
+bool bplib_mpool_flow_modify_flags(bplib_mpool_block_t *cb, uint32_t set_bits, uint32_t clear_bits);
 
 /**
  * @brief Get the current depth of a given subq
@@ -135,12 +177,12 @@ static inline uint32_t bplib_mpool_subq_get_depth(const bplib_mpool_subq_base_t 
  * @note This check is lockless, therefore the state of the subq may change at any time
  * if other threads/tasks are pulling from the same subq.  Therefore even if this function
  * returns true, it does not guarantee that a subsequent call to
- * bplib_mpool_subq_depthlimit_try_pull() will return a valid block.
+ * bplib_mpool_subq_workitem_try_pull() will return a valid block.
  *
  * @param subq
  * @retval true if subq has at least one entry
  */
-static inline bool bplib_mpool_subq_depthlimit_may_pull(const bplib_mpool_subq_depthlimit_t *subq)
+static inline bool bplib_mpool_subq_workitem_may_pull(const bplib_mpool_subq_workitem_t *subq)
 {
     return (bplib_mpool_subq_get_depth(&subq->base_subq) != 0);
 }
@@ -150,46 +192,25 @@ static inline bool bplib_mpool_subq_depthlimit_may_pull(const bplib_mpool_subq_d
  *
  * The check is for the "half full" point at which the application should generally stop
  * adding new entries to the queue, and shift focus toward draining the queue.  At the
- * half-full point there is still room in the queue so bplib_mpool_subq_depthlimit_try_push()
+ * half-full point there is still room in the queue so bplib_mpool_subq_workitem_try_push()
  * may still succeed even if this test returns false.
  *
  * @note This check is lockless, therefore the state of the subq may change at any time
  * if other threads/tasks are pushing from the same subq.  Therefore even if this function
  * returns true, it does not guarantee that a subsequent call to
- * bplib_mpool_subq_depthlimit_try_push() will succeed.
+ * bplib_mpool_subq_workitem_try_push() will succeed.
  *
  * @param subq
  * @retval true if subq is less than half full.
  */
-static inline bool bplib_mpool_subq_depthlimit_may_push(const bplib_mpool_subq_depthlimit_t *subq)
+static inline bool bplib_mpool_subq_workitem_may_push(const bplib_mpool_subq_workitem_t *subq)
 {
     return (bplib_mpool_subq_get_depth(&subq->base_subq) < (subq->current_depth_limit / 2));
 }
 
-/**
- * @brief Mark a given flow as active
- *
- * This marks it so it will be processed during the next call to forward data
- *
- * @note This is handled automatically by functions which append to a flow subq, such
- * as bplib_mpool_subq_depthlimit_try_push() and bplib_mpool_subq_depthlimit_try_move_all().
- * Applictions only need to explicitly call this API to mark it as active if there is
- * some other factor that requires it to be processed again.
- *
- * @param pool
- * @param flow_ref
- */
-void bplib_mpool_flow_mark_active(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref);
-
-/**
- * @brief Get the next active flow in the pool
- *
- * The given callback function will be invoked for all flows which are
- * currently marked as active
- *
- * @param pool
- * @return bplib_mpool_ref_t
- */
-bplib_mpool_ref_t bplib_mpool_flow_get_next_active(bplib_mpool_t *pool);
+static inline bool bplib_mpool_flow_is_up(const bplib_mpool_flow_t *flow)
+{
+    return (~flow->current_state_flags & (BPLIB_MPOOL_FLOW_FLAGS_ADMIN_UP | BPLIB_MPOOL_FLOW_FLAGS_OPER_UP)) == 0;
+}
 
 #endif /* V7_MPOOL_FLOWS_H */

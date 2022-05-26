@@ -245,7 +245,7 @@ bplib_mpool_block_t *bplib_mpool_bblock_primary_locate_canonical(bplib_mpool_bbl
  * @param pool
  * @param cpb
  */
-void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_t *pool, bplib_mpool_bblock_primary_t *cpb);
+void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb);
 
 /**
  * @brief Drop all encode data (CBOR) from a canonical block
@@ -256,7 +256,7 @@ void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_t *pool, bplib_mpool_bbl
  * @param pool
  * @param ccb
  */
-void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_t *ccb);
+void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *ccb);
 
 /**
  * @brief Copy an entire chain of encoded blocks to a target buffer

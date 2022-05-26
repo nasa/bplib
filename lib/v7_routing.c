@@ -48,65 +48,54 @@ typedef struct bplib_routeentry
     bp_handle_t intf_id;
 } bplib_routeentry_t;
 
-typedef struct bplib_intf
-{
-    bp_handle_t               handle;
-    uint32_t                  state_flags;
-    bplib_mpool_ref_t         blk_refptr;
-    bplib_route_action_func_t ingress_forwarder;
-    bplib_route_action_func_t egress_forwarder;
-    bplib_route_action_func_t event_handler;
-    void                     *egress_arg;
-    void                     *ingress_arg;
-} bplib_intf_t;
-
 struct bplib_routetbl
 {
     uint32_t            max_routes;
-    uint32_t            max_intfs;
     uint32_t            registered_routes;
-    uint32_t            last_intf_serial;
     bp_handle_t         activity_lock;
     volatile bool       maint_request_flag;
     volatile bool       maint_active_flag;
+    uint8_t             poll_count;
+    uint64_t            last_intf_poll;
     uintmax_t           routing_success_count;
     uintmax_t           routing_error_count;
-    uint64_t            last_intf_poll;
     bplib_mpool_t      *pool;
+    bplib_mpool_block_t flow_list;
     bplib_routeentry_t *route_tbl;
-    bplib_intf_t       *intf_tbl;
 };
 
-static inline bplib_intf_t *bplip_route_lookup_intf(bplib_routetbl_t *tbl, bp_handle_t intf_id)
+bplib_mpool_ref_t bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 {
-    uint32_t serial = bp_handle_to_serial(intf_id, BPLIB_HANDLE_INTF_BASE);
-    if (serial > BPLIB_HANDLE_MAX_SERIAL)
-    {
-        return NULL;
-    }
-    return &tbl->intf_tbl[serial % tbl->max_intfs];
+    bplib_mpool_block_t *blk;
+
+    blk = bplib_mpool_block_from_external_id(tbl->pool, intf_id);
+    return bplib_mpool_ref_create(blk);
 }
 
-static inline const bplib_intf_t *bplip_route_lookup_intf_const(const bplib_routetbl_t *tbl, bp_handle_t intf_id)
+void bplib_route_release_intf_controlblock(bplib_routetbl_t *tbl, bplib_mpool_ref_t refptr)
 {
-    uint32_t serial = bp_handle_to_serial(intf_id, BPLIB_HANDLE_INTF_BASE);
-    if (serial > BPLIB_HANDLE_MAX_SERIAL)
-    {
-        return NULL;
-    }
-    return &tbl->intf_tbl[serial % tbl->max_intfs];
+    bplib_mpool_ref_release(refptr);
 }
 
-static inline bool bplib_route_intf_match(const bplib_intf_t *ifp, bp_handle_t intf_id)
+bplib_mpool_flow_t *bplip_route_lookup_intf(const bplib_routetbl_t *tbl, bp_handle_t intf_id)
 {
-    return (ifp != NULL && bp_handle_equal(ifp->handle, intf_id));
+    bplib_mpool_block_t *blk;
+
+    blk = bplib_mpool_block_from_external_id(tbl->pool, intf_id);
+    return bplib_mpool_flow_cast(blk);
+}
+
+static inline const bplib_mpool_flow_t *bplip_route_lookup_intf_const(const bplib_routetbl_t *tbl, bp_handle_t intf_id)
+{
+    /* note that bplip_route_lookup_intf does not modify its argument itself */
+    return bplip_route_lookup_intf(tbl, intf_id);
 }
 
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int bplib_route_ingress_to_parent(bplib_routetbl_t *tbl, bplib_mpool_ref_t flow_ref, void *ingress_arg)
+int bplib_route_ingress_to_parent(void *arg, bplib_mpool_block_t *subq_src)
 {
     bplib_mpool_flow_t *curr_flow;
     bplib_mpool_flow_t *next_flow;
@@ -114,7 +103,8 @@ int bplib_route_ingress_to_parent(bplib_routetbl_t *tbl, bplib_mpool_ref_t flow_
 
     /* This implements a simple ingress for sub-interfaces (of any kind) where the ingress
      * of the sub-interface nodes is simply funneled into the parent */
-    curr_flow = bplib_mpool_flow_cast(bplib_mpool_dereference(flow_ref));
+
+    curr_flow = bplib_mpool_flow_cast(bplib_mpool_get_block_from_link(subq_src));
     if (curr_flow == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to cast flow block\n");
@@ -129,8 +119,7 @@ int bplib_route_ingress_to_parent(bplib_routetbl_t *tbl, bplib_mpool_ref_t flow_
     }
 
     /* Entire contents moved as a batch. */
-    queue_depth = bplib_mpool_subq_depthlimit_try_move_all(tbl->pool, curr_flow->parent, &next_flow->ingress,
-                                                           &curr_flow->ingress, 0);
+    queue_depth = bplib_mpool_flow_try_move_all(&next_flow->ingress, &curr_flow->ingress, 0);
 
     return queue_depth;
 }
@@ -182,18 +171,18 @@ void bplib_route_ingress_route_single_bundle(bplib_routetbl_t *tbl, bplib_mpool_
     if (pblk != NULL)
     {
         /* this should never happen, must discard the block because there is nowhere to put it */
-        bplib_mpool_recycle_block(tbl->pool, pblk);
+        bplib_mpool_recycle_block(pblk);
         ++tbl->routing_error_count;
     }
 }
 
-int bplib_route_ingress_baseintf_forwarder(bplib_routetbl_t *tbl, bplib_mpool_ref_t flow_ref, void *forward_arg)
+int bplib_route_ingress_baseintf_forwarder(void *arg, bplib_mpool_block_t *subq_src)
 {
     bplib_mpool_block_t *qblk;
     bplib_mpool_flow_t  *flow;
     int                  forward_count;
 
-    flow = bplib_mpool_flow_cast(bplib_mpool_dereference(flow_ref));
+    flow = bplib_mpool_flow_cast(bplib_mpool_get_block_from_link(subq_src));
     if (flow == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to cast flow block\n");
@@ -203,7 +192,7 @@ int bplib_route_ingress_baseintf_forwarder(bplib_routetbl_t *tbl, bplib_mpool_re
     forward_count = 0;
     while (true)
     {
-        qblk = bplib_mpool_subq_depthlimit_try_pull(bplib_route_get_mpool(tbl), flow_ref, &flow->ingress, 0);
+        qblk = bplib_mpool_flow_try_pull(&flow->ingress, 0);
         if (qblk == NULL)
         {
             /* no more bundles */
@@ -219,7 +208,7 @@ int bplib_route_ingress_baseintf_forwarder(bplib_routetbl_t *tbl, bplib_mpool_re
          * This call always puts the block somewhere -
          * if its unroutable, the block will be put into the recycle bin.
          */
-        bplib_route_ingress_route_single_bundle(tbl, qblk);
+        bplib_route_ingress_route_single_bundle(arg, qblk);
     }
 
     /* This should return 0 if it did no work and no errors.
@@ -232,12 +221,11 @@ bplib_mpool_t *bplib_route_get_mpool(const bplib_routetbl_t *tbl)
     return tbl->pool;
 }
 
-bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, uint32_t max_intfs, size_t cache_mem_size)
+bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, size_t cache_mem_size)
 {
     size_t            complete_size;
     size_t            align;
     size_t            route_offset;
-    size_t            intf_offset;
     size_t            bplib_mpool_offset;
     uint8_t          *mem_ptr;
     bplib_routetbl_t *tbl_ptr;
@@ -246,13 +234,8 @@ bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, uint32_t max_intf
         uint8_t            byte;
         bplib_routeentry_t route_tbl_offset;
     };
-    struct intf_align
-    {
-        uint8_t      byte;
-        bplib_intf_t intf_tbl_offset;
-    };
 
-    if (max_routes == 0 || max_intfs == 0)
+    if (max_routes == 0)
     {
         return NULL;
     }
@@ -263,11 +246,6 @@ bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, uint32_t max_intf
     complete_size = (complete_size + align) & ~align;
     route_offset  = complete_size;
     complete_size += sizeof(bplib_routeentry_t) * max_routes;
-
-    align         = offsetof(struct intf_align, intf_tbl_offset) - 1;
-    complete_size = (complete_size + align) & ~align;
-    intf_offset   = complete_size;
-    complete_size += sizeof(bplib_intf_t) * max_intfs;
 
     align = sizeof(void *) - 1;
     align |= sizeof(uintmax_t) - 1;
@@ -294,91 +272,51 @@ bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, uint32_t max_intf
     {
         tbl_ptr->activity_lock  = bplib_os_createlock();
         tbl_ptr->last_intf_poll = bplib_os_get_dtntime_ms();
+        bplib_mpool_init_list_head(NULL, &tbl_ptr->flow_list);
 
         tbl_ptr->max_routes = max_routes;
-        tbl_ptr->max_intfs  = max_intfs;
         tbl_ptr->route_tbl  = (void *)(mem_ptr + route_offset);
-        tbl_ptr->intf_tbl   = (void *)(mem_ptr + intf_offset);
-        --tbl_ptr->last_intf_serial;
     }
 
     return tbl_ptr;
 }
 
 bp_handle_t bplib_route_register_generic_intf(bplib_routetbl_t *tbl, bp_handle_t parent_intf_id,
-                                              bplib_mpool_ref_t blkref)
+                                              bplib_mpool_block_t *flow_block)
 {
-    uint32_t            count;
-    uint32_t            next_intf_serial;
-    uint32_t            max_serial;
     bplib_mpool_flow_t *flow;
-    bplib_intf_t       *parent_ifp;
-    bplib_intf_t       *ifp;
+    bplib_mpool_ref_t   fref;
     bp_handle_t         result;
 
     result = BP_INVALID_HANDLE;
-    flow   = bplib_mpool_flow_cast(bplib_mpool_dereference(blkref));
+    flow   = bplib_mpool_flow_cast(flow_block);
     if (flow == NULL)
     {
         bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to cast flow block\n");
         return result;
     }
 
-    if (!bp_handle_is_valid(parent_intf_id))
+    fref = bplib_route_get_intf_controlblock(tbl, parent_intf_id);
+
+    if (fref == NULL && bp_handle_is_valid(parent_intf_id))
     {
-        /* this will be registered as a base intf */
-        parent_ifp = NULL;
+        /* this is an error */
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Parent intf not valid\n");
     }
     else
     {
-        parent_ifp = bplip_route_lookup_intf(tbl, parent_intf_id);
-        if (!bplib_route_intf_match(parent_ifp, parent_intf_id))
+        flow->parent = fref;
+        result       = bplib_mpool_get_external_id(flow_block);
+
+        /* keep track of all flows here in the flow_list - this counts as a ref so it
+         * will not be auto-collected as long as its here in this list.  The ref is
+         * intentionally _not_ released here, see bplib_route_del_intf */
+        fref = bplib_mpool_ref_create(flow_block);
+        if (fref != NULL)
         {
-            /* this is an error */
-            bplog(NULL, BP_FLAG_DIAGNOSTIC, "Parent intf not valid\n");
-            return result;
-        }
-    }
-
-    next_intf_serial = tbl->last_intf_serial;
-    max_serial       = 0xFFFFFF / tbl->max_intfs;
-    max_serial *= tbl->max_intfs;
-    count = tbl->max_intfs;
-    ifp   = NULL;
-    while (true)
-    {
-        if (count == 0)
-        {
-            ifp = NULL;
-            break;
-        }
-        ++next_intf_serial;
-        if (next_intf_serial >= max_serial)
-        {
-            next_intf_serial = 0;
-        }
-        --count;
-
-        ifp = &tbl->intf_tbl[next_intf_serial % tbl->max_intfs];
-        if (!bp_handle_is_valid(ifp->handle))
-        {
-            tbl->last_intf_serial = next_intf_serial;
-
-            ifp->blk_refptr = bplib_mpool_ref_duplicate(blkref);
-            result          = bp_handle_from_serial(next_intf_serial, BPLIB_HANDLE_INTF_BASE);
-            ifp->handle     = result;
-
-            flow->external_id = result;
-            if (parent_ifp != NULL)
-            {
-                flow->parent = bplib_mpool_ref_duplicate(parent_ifp->blk_refptr);
-            }
-            else
-            {
-                flow->parent = NULL;
-            }
-
-            break;
+            bplib_os_lock(tbl->activity_lock);
+            bplib_mpool_insert_before(&tbl->flow_list, flow_block);
+            bplib_os_unlock(tbl->activity_lock);
         }
     }
 
@@ -386,117 +324,130 @@ bp_handle_t bplib_route_register_generic_intf(bplib_routetbl_t *tbl, bp_handle_t
 }
 
 int bplib_route_register_handler_impl(bplib_routetbl_t *tbl, bp_handle_t intf_id, size_t func_position,
-                                      bplib_route_action_func_t new_func, size_t arg_position, void *arg)
+                                      bplib_mpool_callback_func_t new_func)
 {
-    bplib_intf_t              *ifp;
-    bplib_route_action_func_t *func_ptr;
-    void                     **arg_ptr;
+    bplib_mpool_flow_t          *ifp;
+    uint8_t                     *base_ptr;
+    bplib_mpool_subq_workitem_t *subq;
 
     ifp = bplip_route_lookup_intf(tbl, intf_id);
-    if (!bplib_route_intf_match(ifp, intf_id))
+    if (ifp == NULL)
     {
         /* Not a valid handle */
         return -1;
     }
 
-    func_ptr = (bplib_route_action_func_t *)((uint8_t *)ifp + func_position);
+    base_ptr = (uint8_t *)ifp;
+    if (base_ptr == NULL)
+    {
+        return -1;
+    }
 
-    if (*func_ptr == new_func)
+    subq = (bplib_mpool_subq_workitem_t *)(base_ptr + func_position);
+
+    if (subq->job_header.handler == new_func)
     {
         /* already registered */
         return 0;
     }
 
     /* One or the other must be NULL or else this is an invalid registration */
-    if (*func_ptr != NULL && new_func != NULL)
+    if (subq->job_header.handler != NULL && new_func != NULL)
     {
         return -1;
     }
 
     /* OK, now set it to the new value */
-    *func_ptr = new_func;
-
-    if (arg_position != 0)
-    {
-        arg_ptr  = (void **)((uint8_t *)ifp + arg_position);
-        *arg_ptr = arg;
-    }
-
+    subq->job_header.handler = new_func;
     return 0;
 }
 
 int bplib_route_register_forward_ingress_handler(bplib_routetbl_t *tbl, bp_handle_t intf_id,
-                                                 bplib_route_action_func_t ingress, void *ingress_arg)
+                                                 bplib_mpool_callback_func_t ingress)
 {
-    return bplib_route_register_handler_impl(tbl, intf_id, offsetof(bplib_intf_t, ingress_forwarder), ingress,
-                                             offsetof(bplib_intf_t, ingress_arg), ingress_arg);
+    return bplib_route_register_handler_impl(tbl, intf_id, offsetof(bplib_mpool_flow_t, ingress), ingress);
 }
 
 int bplib_route_register_forward_egress_handler(bplib_routetbl_t *tbl, bp_handle_t intf_id,
-                                                bplib_route_action_func_t egress, void *egress_arg)
+                                                bplib_mpool_callback_func_t egress)
 {
-    return bplib_route_register_handler_impl(tbl, intf_id, offsetof(bplib_intf_t, egress_forwarder), egress,
-                                             offsetof(bplib_intf_t, egress_arg), egress_arg);
+    return bplib_route_register_handler_impl(tbl, intf_id, offsetof(bplib_mpool_flow_t, egress), egress);
 }
 
-int bplib_route_register_event_handler(bplib_routetbl_t *tbl, bp_handle_t intf_id, bplib_route_action_func_t event)
+int bplib_route_register_event_handler(bplib_routetbl_t *tbl, bp_handle_t intf_id, bplib_mpool_callback_func_t event)
 {
-    return bplib_route_register_handler_impl(tbl, intf_id, offsetof(bplib_intf_t, event_handler), event, 0, NULL);
-}
-
-bplib_mpool_ref_t bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, bp_handle_t intf_id)
-{
-    bplib_intf_t *ifp;
+    bplib_mpool_flow_t *ifp;
 
     ifp = bplip_route_lookup_intf(tbl, intf_id);
-    if (!bplib_route_intf_match(ifp, intf_id))
+    if (ifp == NULL)
     {
         /* Not a valid handle */
-        return NULL;
+        return -1;
     }
 
-    return bplib_mpool_ref_duplicate(ifp->blk_refptr);
-}
+    if (ifp->statechange_job.event_handler == event)
+    {
+        /* already registered */
+        return 0;
+    }
 
-void bplib_route_release_intf_controlblock(bplib_routetbl_t *tbl, bplib_mpool_ref_t refptr)
-{
-    bplib_mpool_ref_release(tbl->pool, refptr);
+    /* One or the other must be NULL or else this is an invalid registration */
+    if (ifp->statechange_job.event_handler != NULL && event != NULL)
+    {
+        return -1;
+    }
+
+    /* OK, now set it to the new value */
+    ifp->statechange_job.event_handler = event;
+    return 0;
 }
 
 int bplib_route_del_intf(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 {
     uint32_t            pos;
     bplib_routeentry_t *rp;
-    bplib_intf_t       *ifp;
+    bplib_mpool_ref_t   ref;
+    bplib_mpool_flow_t *ifp;
 
-    ifp = bplip_route_lookup_intf(tbl, intf_id);
-    if (!bplib_route_intf_match(ifp, intf_id))
+    ref = bplib_route_get_intf_controlblock(tbl, intf_id);
+    if (ref == NULL)
     {
         /* Not a valid handle */
         return -1;
     }
 
-    /* before it can be deleted, should ensure it is not referenced */
-    for (pos = 0; pos < tbl->registered_routes; ++pos)
+    ifp = bplib_mpool_flow_cast(bplib_mpool_dereference(ref));
+    if (ifp != NULL)
     {
-        rp = &tbl->route_tbl[pos];
-        if (bp_handle_equal(rp->intf_id, intf_id))
+        /* before it can be deleted, should ensure it is not referenced */
+        for (pos = 0; pos < tbl->registered_routes; ++pos)
         {
-            --tbl->registered_routes;
-
-            /* close the gap, if this left one */
-            if (pos < tbl->registered_routes)
+            rp = &tbl->route_tbl[pos];
+            if (bp_handle_equal(rp->intf_id, intf_id))
             {
-                memmove(&rp[0], &rp[1], sizeof(*rp) * (tbl->registered_routes - pos));
+                --tbl->registered_routes;
+
+                /* close the gap, if this left one */
+                if (pos < tbl->registered_routes)
+                {
+                    memmove(&rp[0], &rp[1], sizeof(*rp) * (tbl->registered_routes - pos));
+                }
+                break;
             }
-            break;
         }
     }
 
-    if (ifp->blk_refptr)
+    /* remove the flow from the flow_list.  This releases the reference
+     * that was created during bplib_route_register_generic_intf()  */
+    bplib_os_lock(tbl->activity_lock);
+    if (bplib_mpool_is_link_attached(bplib_mpool_dereference(ref)))
     {
-        bplib_mpool_ref_release(tbl->pool, ifp->blk_refptr);
+        bplib_mpool_extract_node(bplib_mpool_dereference(ref));
     }
+    bplib_os_unlock(tbl->activity_lock);
+
+    /* release the local ref, this should make the refcount 0 again */
+    bplib_mpool_ref_release(ref);
 
     /* just wipe it */
     memset(ifp, 0, sizeof(*ifp));
@@ -506,11 +457,11 @@ int bplib_route_del_intf(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 bp_handle_t bplib_route_get_next_intf_with_flags(const bplib_routetbl_t *tbl, bp_ipn_t dest, uint32_t req_flags,
                                                  uint32_t flag_mask)
 {
-    uint32_t            pos;
-    bplib_routeentry_t *rp;
-    bp_handle_t         intf;
-    const bplib_intf_t *ifp;
-    uint32_t            intf_flags;
+    uint32_t                  pos;
+    bplib_routeentry_t       *rp;
+    bp_handle_t               intf;
+    const bplib_mpool_flow_t *ifp;
+    uint32_t                  intf_flags;
 
     intf = BP_INVALID_HANDLE;
     for (pos = 0; pos < tbl->registered_routes; ++pos)
@@ -522,9 +473,9 @@ bp_handle_t bplib_route_get_next_intf_with_flags(const bplib_routetbl_t *tbl, bp
             if (flag_mask != 0)
             {
                 ifp = bplip_route_lookup_intf_const(tbl, rp->intf_id);
-                if (bplib_route_intf_match(ifp, rp->intf_id))
+                if (ifp != NULL)
                 {
-                    intf_flags = ifp->state_flags;
+                    intf_flags = ifp->current_state_flags;
                 }
             }
             if ((intf_flags & flag_mask) == req_flags)
@@ -545,19 +496,14 @@ bp_handle_t bplib_route_get_next_avail_intf(const bplib_routetbl_t *tbl, bp_ipn_
 
 int bplib_route_push_ingress_bundle(const bplib_routetbl_t *tbl, bp_handle_t intf_id, bplib_mpool_block_t *cb)
 {
-    const bplib_intf_t *ifp;
     bplib_mpool_flow_t *flow;
     int                 status;
 
     status = -1;
-    ifp    = bplip_route_lookup_intf_const(tbl, intf_id);
-    if (bplib_route_intf_match(ifp, intf_id))
+    flow   = bplip_route_lookup_intf(tbl, intf_id);
+    if (flow != NULL && bplib_mpool_flow_try_push(&flow->ingress, cb, 0))
     {
-        flow = bplib_mpool_flow_cast(bplib_mpool_dereference(ifp->blk_refptr));
-        if (flow != NULL && bplib_mpool_subq_depthlimit_try_push(tbl->pool, ifp->blk_refptr, &flow->ingress, cb, 0))
-        {
-            status = 0;
-        }
+        status = 0;
     }
 
     return status;
@@ -565,19 +511,14 @@ int bplib_route_push_ingress_bundle(const bplib_routetbl_t *tbl, bp_handle_t int
 
 int bplib_route_push_egress_bundle(const bplib_routetbl_t *tbl, bp_handle_t intf_id, bplib_mpool_block_t *cb)
 {
-    const bplib_intf_t *ifp;
     bplib_mpool_flow_t *flow;
     int                 status;
 
     status = -1;
-    ifp    = bplip_route_lookup_intf_const(tbl, intf_id);
-    if (bplib_route_intf_match(ifp, intf_id))
+    flow   = bplip_route_lookup_intf(tbl, intf_id);
+    if (flow != NULL && bplib_mpool_flow_try_push(&flow->egress, cb, 0))
     {
-        flow = bplib_mpool_flow_cast(bplib_mpool_dereference(ifp->blk_refptr));
-        if (flow != NULL && bplib_mpool_subq_depthlimit_try_push(tbl->pool, ifp->blk_refptr, &flow->egress, cb, 0))
-        {
-            status = 0;
-        }
+        status = 0;
     }
 
     return status;
@@ -677,194 +618,85 @@ int bplib_route_del(bplib_routetbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_hand
     return 0;
 }
 
-void bplib_route_handle_intf_statechange_event(bplib_routetbl_t *tbl, bp_handle_t intf_id, bool is_up)
-{
-    bplib_generic_event_t event;
-    bplib_routeentry_t   *rp;
-    bplib_intf_t         *other_ifp;
-    uint32_t              rpos;
-    uint32_t              ipos;
-
-    if (is_up)
-    {
-        event.intf_state.event_type = bplib_event_type_interface_up;
-    }
-    else
-    {
-        event.intf_state.event_type = bplib_event_type_interface_down;
-    }
-    event.intf_state.intf_id = intf_id;
-
-    /* foreach intf - find intfs that are changing availablity state */
-    for (ipos = 0; ipos < tbl->max_intfs; ++ipos)
-    {
-        other_ifp = &tbl->intf_tbl[ipos];
-        if (bp_handle_is_valid(other_ifp->handle) && other_ifp->event_handler != NULL)
-        {
-            other_ifp->event_handler(tbl, other_ifp->blk_refptr, &event);
-        }
-    }
-
-    if (is_up)
-    {
-        event.route_state.event_type = bplib_event_type_route_up;
-    }
-    else
-    {
-        event.route_state.event_type = bplib_event_type_route_down;
-    }
-
-    /* foreach route - find routes that are changing usability state */
-    for (rpos = 0; rpos < tbl->registered_routes; ++rpos)
-    {
-        rp = &tbl->route_tbl[rpos];
-        if (bp_handle_equal(rp->intf_id, intf_id))
-        {
-            event.route_state.dest = rp->dest;
-            event.route_state.mask = rp->mask;
-
-            for (ipos = 0; ipos < tbl->max_intfs; ++ipos)
-            {
-                other_ifp = &tbl->intf_tbl[ipos];
-                if (bp_handle_is_valid(other_ifp->handle) && other_ifp->event_handler != NULL)
-                {
-                    other_ifp->event_handler(tbl, other_ifp->blk_refptr, &event);
-                }
-            }
-        }
-    }
-}
-
 int bplib_route_intf_set_flags(bplib_routetbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
 {
-    bplib_intf_t *ifp;
-    uint32_t      was_avail_flags;
+    bplib_mpool_ref_t flow_ref;
 
-    ifp = bplip_route_lookup_intf(tbl, intf_id);
-    if (!bplib_route_intf_match(ifp, intf_id))
+    flow_ref = bplib_route_get_intf_controlblock(tbl, intf_id);
+    if (flow_ref != NULL)
     {
-        return -1;
+        if (bplib_mpool_flow_modify_flags(bplib_mpool_dereference(flow_ref), flags, 0))
+        {
+            bplib_route_set_maintenance_request(tbl);
+        }
     }
-
-    was_avail_flags = ~ifp->state_flags & BPLIB_INTF_AVAILABLE_FLAGS;
-    ifp->state_flags |= flags;
-
-    /* detect transition from down (unavailable) -> up (available) */
-    /* storage service(s) need to be informed of this change */
-    if (was_avail_flags != 0 && (~ifp->state_flags & BPLIB_INTF_AVAILABLE_FLAGS) == 0)
-    {
-        bplib_route_handle_intf_statechange_event(tbl, intf_id, true);
-        bplib_route_set_maintenance_request(tbl);
-    }
+    bplib_route_release_intf_controlblock(tbl, flow_ref);
 
     return 0;
 }
 
 int bplib_route_intf_unset_flags(bplib_routetbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
 {
-    bplib_intf_t *ifp;
-    uint32_t      was_avail_flags;
+    bplib_mpool_ref_t flow_ref;
 
-    ifp = bplip_route_lookup_intf(tbl, intf_id);
-    if (!bplib_route_intf_match(ifp, intf_id))
+    flow_ref = bplib_route_get_intf_controlblock(tbl, intf_id);
+    if (flow_ref != NULL)
     {
-        return -1;
+        if (bplib_mpool_flow_modify_flags(bplib_mpool_dereference(flow_ref), 0, flags))
+        {
+            bplib_route_set_maintenance_request(tbl);
+        }
     }
-
-    was_avail_flags = ~ifp->state_flags & BPLIB_INTF_AVAILABLE_FLAGS;
-    ifp->state_flags &= ~flags;
-
-    /* detect transition from up (available) -> down (unavailable) */
-    /* storage service(s) need to be informed of this change */
-    if (was_avail_flags == 0 && (~ifp->state_flags & BPLIB_INTF_AVAILABLE_FLAGS) != 0)
-    {
-        bplib_route_handle_intf_statechange_event(tbl, intf_id, false);
-        bplib_route_set_maintenance_request(tbl);
-    }
+    bplib_route_release_intf_controlblock(tbl, flow_ref);
 
     return 0;
 }
 
-void bplib_route_forward_intf(bplib_routetbl_t *tbl, bplib_mpool_ref_t flow_ref)
-{
-    bplib_intf_t        *ifp;
-    bplib_mpool_flow_t  *flow;
-    bplib_mpool_block_t *flow_block;
-    bool                 reschedule_required;
-
-    flow_block = bplib_mpool_dereference(flow_ref);
-    flow       = bplib_mpool_flow_cast(flow_block);
-    if (flow == NULL)
-    {
-        return;
-    }
-
-    ifp = bplip_route_lookup_intf(tbl, flow->external_id);
-    if (!bplib_route_intf_match(ifp, flow->external_id))
-    {
-        return;
-    }
-
-    /* forward all egress */
-    reschedule_required = false;
-    if (ifp->egress_forwarder != NULL && bplib_mpool_subq_depthlimit_may_pull(&flow->egress))
-    {
-        ifp->egress_forwarder(tbl, flow_ref, ifp->egress_arg);
-        if (bplib_mpool_subq_depthlimit_may_pull(&flow->egress))
-        {
-            reschedule_required = true;
-        }
-    }
-
-    /* forward all ingress */
-    if (ifp->ingress_forwarder != NULL && bplib_mpool_subq_depthlimit_may_pull(&flow->ingress))
-    {
-        ifp->ingress_forwarder(tbl, flow_ref, ifp->ingress_arg);
-        if (bplib_mpool_subq_depthlimit_may_pull(&flow->ingress))
-        {
-            reschedule_required = true;
-        }
-    }
-
-    /* if either is still not empty, reschedule this flow */
-    if (reschedule_required)
-    {
-        bplib_mpool_flow_mark_active(tbl->pool, flow_ref);
-    }
-}
-
 void bplib_route_do_timed_poll(bplib_routetbl_t *tbl)
 {
-    uint64_t              elapsed_time;
-    bplib_intf_t         *ifp;
-    bplib_generic_event_t poll_event;
-    uint32_t              pos;
+    uint64_t                current_time;
+    uint64_t                poll_time;
+    uint32_t                set_flags;
+    uint32_t                clear_flags;
+    bool                    poll_cycle;
+    bplib_mpool_list_iter_t iter;
+    int                     status;
 
-    elapsed_time = bplib_os_get_dtntime_ms();
+    current_time = bplib_os_get_dtntime_ms();
+    set_flags    = 0;
+    clear_flags  = 0;
 
     /* because the time is a 64-bit value and may not be atomic, it should
      * be sampled and updated inside of a lock section to ensure the value
      * is consistent */
     bplib_os_lock(tbl->activity_lock);
-
-    elapsed_time -= tbl->last_intf_poll;
-
-    if (elapsed_time >= BPLIB_INTF_MIN_POLL_INTERVAL)
+    poll_time = tbl->last_intf_poll + BPLIB_INTF_MIN_POLL_INTERVAL;
+    if (current_time >= poll_time)
     {
-        tbl->last_intf_poll += elapsed_time;
+        tbl->last_intf_poll = poll_time;
+        ++tbl->poll_count;
+        poll_cycle = (tbl->poll_count & 1);
 
-        /* poll each interface, may move items to other queues based on time */
-        poll_event.event_type = bplib_event_type_poll_interval;
-        for (pos = 0; pos < tbl->max_intfs; ++pos)
+        if (poll_cycle)
         {
-            ifp = &tbl->intf_tbl[pos];
-            if (bp_handle_is_valid(ifp->handle) && ifp->event_handler != NULL)
-            {
-                /* poll intf  */
-                bplib_os_unlock(tbl->activity_lock);
-                ifp->event_handler(tbl, ifp->blk_refptr, &poll_event);
-                bplib_os_lock(tbl->activity_lock);
-            }
+            set_flags = BPLIB_MPOOL_FLOW_FLAGS_POLL;
+        }
+        else
+        {
+            clear_flags = BPLIB_MPOOL_FLOW_FLAGS_POLL;
+        }
+
+        status = bplib_mpool_list_iter_goto_first(&tbl->flow_list, &iter);
+        while (status == BP_SUCCESS)
+        {
+            /* NOTE: this will end up taking the pool lock as well, when it schedules the
+             * state change for processing.  This means this task will have two locks at
+             * once (the tbl activity lock and the pool resource lock).  As long as the locks
+             * are always taken in that order (and not the other way around) this should be OK
+             * for now, but it needs to be ensured that locks are never taken in the opposite
+             * order. */
+            bplib_mpool_flow_modify_flags(iter.position, set_flags, clear_flags);
+            status = bplib_mpool_list_iter_forward(&iter);
         }
     }
     bplib_os_unlock(tbl->activity_lock);
@@ -912,24 +744,7 @@ void bplib_route_maintenance_complete_wait(bplib_routetbl_t *tbl)
 
 void bplib_route_process_active_flows(bplib_routetbl_t *tbl)
 {
-    bplib_mpool_ref_t flow_ref;
-
-    /* forward any bundles between interfaces, based on active flow list */
-    while (true)
-    {
-        flow_ref = bplib_mpool_flow_get_next_active(tbl->pool);
-        if (flow_ref == NULL)
-        {
-            break;
-        }
-
-        /* note it may not be necessary to call this _every_ cycle, this could be
-         * deferred to a lower priority task if necessary, but this will be sure to get it done */
-        bplib_mpool_maintain(tbl->pool);
-
-        bplib_route_forward_intf(tbl, flow_ref);
-        bplib_mpool_ref_release(tbl->pool, flow_ref);
-    }
+    bplib_mpool_job_run_all(tbl->pool, tbl);
 }
 
 void bplib_route_periodic_maintenance(bplib_routetbl_t *tbl)

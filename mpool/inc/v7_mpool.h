@@ -46,7 +46,6 @@ typedef struct bplib_mpool_block_content *bplib_mpool_ref_t;
 typedef enum bplib_mpool_blocktype
 {
     bplib_mpool_blocktype_undefined = 0,
-    bplib_mpool_blocktype_head      = 1,
 
     /*
      * Note, the enum value here does matter -- these block types
@@ -54,27 +53,38 @@ typedef enum bplib_mpool_blocktype
      * can be implemented as a range check.  Do not change the
      * order of enum values without also updating the checks.
      */
-    bplib_mpool_blocktype_api       = 2,
-    bplib_mpool_blocktype_generic   = 3,
-    bplib_mpool_blocktype_cbor_data = 4,
-    bplib_mpool_blocktype_primary   = 5,
-    bplib_mpool_blocktype_canonical = 6,
-    bplib_mpool_blocktype_flow      = 7,
-    bplib_mpool_blocktype_ref       = 8,
-    bplib_mpool_blocktype_max       = 9, /* placeholder for the max "regular" block type */
+    bplib_mpool_blocktype_api       = 1,
+    bplib_mpool_blocktype_generic   = 2,
+    bplib_mpool_blocktype_primary   = 4,
+    bplib_mpool_blocktype_canonical = 5,
+    bplib_mpool_blocktype_flow      = 6,
+    bplib_mpool_blocktype_ref       = 7,
+    bplib_mpool_blocktype_max       = 8, /* placeholder for the max "regular" block type */
 
     /*
-     * A secondary link is one that is not at the beginning of the structure.
-     * The offset from the beginning of the block is added to this value, so
-     * that the original block type can be easily obtained.
+     * All of these block types are _not_ at the beginning of the structure,
+     * these are members within the structures.  Their position within the parent
+     * is indicated in the parent_offset field so the parent block pointer can be
+     * reconstituted from one of these secondary indices.
      */
-    bplib_mpool_blocktype_secondary_link_base = 1000
+
+    bplib_mpool_blocktype_secondary_generic = 100,
+    bplib_mpool_blocktype_list_head         = 101,
+    bplib_mpool_blocktype_job               = 102, /* a job or pending work item to do */
+    bplib_mpool_blocktype_secondary_max     = 103,
+
+    /* The administrative block will be marked with 0xFF, this still permits the
+     * type to be stored as a uint8_t if needed to save bits */
+    bplib_mpool_blocktype_admin = 255
 
 } bplib_mpool_blocktype_t;
 
 struct bplib_mpool_block
 {
+    /* note that if it becomes necessary to recover bits here,
+     * both the type and offset could be reduced in size */
     bplib_mpool_blocktype_t   type;
+    uint32_t                  parent_offset;
     struct bplib_mpool_block *next;
     struct bplib_mpool_block *prev;
 };
@@ -186,7 +196,7 @@ static inline bool bplib_mpool_is_link_unattached(const bplib_mpool_block_t *lis
  */
 static inline bool bplib_mpool_is_list_head(const bplib_mpool_block_t *list)
 {
-    return (list->type == bplib_mpool_blocktype_head);
+    return (list->type == bplib_mpool_blocktype_list_head);
 }
 
 /**
@@ -194,11 +204,23 @@ static inline bool bplib_mpool_is_list_head(const bplib_mpool_block_t *list)
  *
  * @param list
  * @return true If the list is empty
- * @return false If the list is not empty, nor not a list head node
+ * @return false If the list is not empty, or not a list head node
  */
 static inline bool bplib_mpool_is_empty_list_head(const bplib_mpool_block_t *list)
 {
     return (bplib_mpool_is_list_head(list) && bplib_mpool_is_link_unattached(list));
+}
+
+/**
+ * @brief Checks if this block is a non-empty list
+ *
+ * @param list
+ * @return true If the list is not empty
+ * @return false If the list is empty, or not a list head node
+ */
+static inline bool bplib_mpool_is_nonempty_list_head(const bplib_mpool_block_t *list)
+{
+    return (bplib_mpool_is_list_head(list) && bplib_mpool_is_link_attached(list));
 }
 
 /**
@@ -210,7 +232,7 @@ static inline bool bplib_mpool_is_empty_list_head(const bplib_mpool_block_t *lis
  */
 static inline bool bplib_mpool_is_generic_data_block(const bplib_mpool_block_t *cb)
 {
-    return (cb->type == bplib_mpool_blocktype_cbor_data || cb->type == bplib_mpool_blocktype_generic);
+    return (cb->type == bplib_mpool_blocktype_generic);
 }
 
 /**
@@ -240,6 +262,27 @@ static inline bool bplib_mpool_is_any_content_node(const bplib_mpool_block_t *cb
 {
     return (cb->type >= bplib_mpool_blocktype_generic && cb->type < bplib_mpool_blocktype_max);
 }
+
+/**
+ * @brief Checks if the block is any secondary index type
+ *
+ * These blocks are members of a larger block
+ *
+ * @param cb
+ * @return true
+ * @return false
+ */
+static inline bool bplib_mpool_is_secondary_index_node(const bplib_mpool_block_t *cb)
+{
+    return (cb->type >= bplib_mpool_blocktype_secondary_generic && cb->type <= bplib_mpool_blocktype_secondary_max);
+}
+
+static inline bp_handle_t bplib_mpool_get_external_id(const bplib_mpool_block_t *cb)
+{
+    return bp_handle_from_serial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
+}
+
+bplib_mpool_block_t *bplib_mpool_block_from_external_id(bplib_mpool_t *pool, bp_handle_t handle);
 
 /* basic list iterators (forward or reverse) */
 
@@ -300,24 +343,25 @@ int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter);
  * @param base_block
  * @param secondary_link
  */
-void bplib_mpool_init_secondary_link(bplib_mpool_block_t *base_block, bplib_mpool_block_t *secondary_link);
+void bplib_mpool_init_secondary_link(bplib_mpool_block_t *base_block, bplib_mpool_block_t *secondary_link,
+                                     bplib_mpool_blocktype_t block_type);
 
 /**
- * @brief Go to the real block pointer, depending on what type of link this is
+ * @brief Obtain the pointer to the parent/containing block from a link
  *
  * If the block points to a secondary link structure, convert it back to the
- * primary link structure.
+ * parent block structure.
  *
- * If the block is a reference, then dereference it to get to the real block.
+ * If the passed in pointer already directly refers to a memory block then
+ * that pointer is passed through.
  *
- * If the block already refers to a primary link it is passed through.
+ * In all cases, a pointer to the actual content block is returned.
  *
- * In all cases, a pointer to the original base block is returned.
- *
- * @param cb
- * @return bplib_mpool_block_t*
+ * @param[in] lblk link structure, such as from a list traversal.  May be a secondary link.
+ * @return bplib_mpool_block_t* pointer to container block
+ * @retval NULL if the lblk pointer is not convertible to a content block
  */
-bplib_mpool_block_t *bplib_mpool_obtain_base_block(bplib_mpool_block_t *cb);
+bplib_mpool_block_t *bplib_mpool_get_block_from_link(bplib_mpool_block_t *lblk);
 
 /**
  * @brief Gets the capacity (maximum size) of the generic data block
@@ -345,10 +389,10 @@ size_t bplib_mpool_get_generic_data_capacity(const bplib_mpool_block_t *cb);
  * To clear a list that has already been initialized once, use
  * bplib_mpool_recycle_all_blocks_in_list()
  *
- * @param link
- * @param type
+ * @param base_block The parent/container of the list
+ * @param list_head  The list to initialize
  */
-void bplib_mpool_init_list_head(bplib_mpool_block_t *head);
+void bplib_mpool_init_list_head(bplib_mpool_block_t *base_block, bplib_mpool_block_t *list_head);
 
 /**
  * @brief Inserts a node after the given position or list head
@@ -393,6 +437,14 @@ void bplib_mpool_extract_node(bplib_mpool_block_t *node);
  * @param src
  */
 void bplib_mpool_merge_list(bplib_mpool_block_t *dest, bplib_mpool_block_t *src);
+
+/**
+ * @brief Finds the parent mpool container from any link pointer that was obtained from the pool
+ *
+ * @param cb
+ * @return bplib_mpool_t*
+ */
+bplib_mpool_t *bplib_mpool_get_parent_pool_from_link(bplib_mpool_block_t *cb);
 
 /**
  * @brief Cast a block to generic user data type
@@ -449,16 +501,26 @@ bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_
 /**
  * @brief Recycle a single block which is no longer needed
  *
- * @param pool
+ * The block will be returned to the pool it originated from.
+ *
  * @param blk
  */
-void bplib_mpool_recycle_block(bplib_mpool_t *pool, bplib_mpool_block_t *blk);
+void bplib_mpool_recycle_block(bplib_mpool_block_t *blk);
 
 /**
  * @brief Recycle an entire list of blocks which are no longer needed
  *
- * @param pool
- * @param list
+ * The blocks will be returned to the pool.  All blocks in the list must have
+ * been allocated from the same pool.
+ *
+ * The pool pointer may also be passed as NULL if the list object is known to be a
+ * member of a block that was also allocted from the pool.  In this case, the pool will
+ * be inferred from the list pointer.  However, if the list is a temporary object
+ * and not connected to the originating pool, then the actual pool pointer must be
+ * passed in.
+ *
+ * @param pool Originating pool, or NULL to infer/determine from list
+ * @param list List of objects to recycle
  */
 void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_block_t *list);
 

@@ -38,18 +38,80 @@
  * Function: bplib_mpool_subq_init
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_subq_init(bplib_mpool_subq_base_t *qblk)
+void bplib_mpool_subq_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_base_t *qblk)
 {
     /* init the link structs */
-    bplib_mpool_init_list_head(&qblk->block_list);
+    bplib_mpool_init_list_head(base_block, &qblk->block_list);
     qblk->pull_count = 0;
     qblk->push_count = 0;
 }
 
-void bplib_mpool_subq_depthlimit_init(bplib_mpool_subq_depthlimit_t *qblk)
+void bplib_mpool_subq_workitem_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_workitem_t *wblk)
 {
-    bplib_mpool_subq_init(&qblk->base_subq);
-    qblk->current_depth_limit = 0;
+    bplib_mpool_job_init(base_block, &wblk->job_header);
+    bplib_mpool_subq_init(base_block, &wblk->base_subq);
+    wblk->current_depth_limit = 0;
+}
+
+static int bplib_mpool_flow_event_handler(void *arg, bplib_mpool_block_t *jblk)
+{
+    bplib_mpool_block_t             *fblk;
+    bplib_mpool_flow_t              *flow;
+    uint32_t                         changed_flags;
+    bplib_mpool_flow_generic_event_t event;
+    bool                             was_running;
+    bool                             is_running;
+
+    fblk = bplib_mpool_get_block_from_link(jblk);
+    flow = bplib_mpool_flow_cast(fblk);
+    if (flow == NULL)
+    {
+        return -1;
+    }
+
+    was_running   = bplib_mpool_flow_is_up(flow);
+    changed_flags = flow->pending_state_flags ^ flow->current_state_flags;
+    flow->current_state_flags ^= changed_flags;
+    is_running = bplib_mpool_flow_is_up(flow);
+
+    /* detect changes from up->down or vice versa */
+    /* this is the combination of several flags, so its not simply checking changed_flags */
+    if (was_running != is_running)
+    {
+        if (is_running)
+        {
+            event.intf_state.event_type = bplib_mpool_flow_event_up;
+        }
+        else
+        {
+            event.intf_state.event_type = bplib_mpool_flow_event_down;
+        }
+
+        event.intf_state.intf_id = bplib_mpool_get_external_id(fblk);
+        flow->statechange_job.event_handler(&event, fblk);
+    }
+
+    if (changed_flags & BPLIB_MPOOL_FLOW_FLAGS_POLL)
+    {
+        event.event_type = bplib_mpool_flow_event_poll;
+        flow->statechange_job.event_handler(&event, fblk);
+    }
+
+    return 0;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_flow_init
+ *
+ *-----------------------------------------------------------------*/
+void bplib_mpool_flow_init(bplib_mpool_block_t *base_block, bplib_mpool_flow_t *fblk)
+{
+    /* now init the link structs */
+    bplib_mpool_job_init(base_block, &fblk->statechange_job.base_job);
+    fblk->statechange_job.base_job.handler = bplib_mpool_flow_event_handler;
+    bplib_mpool_subq_workitem_init(base_block, &fblk->ingress);
+    bplib_mpool_subq_workitem_init(base_block, &fblk->egress);
 }
 
 /*----------------------------------------------------------------
@@ -174,7 +236,7 @@ bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb)
 {
     bplib_mpool_block_content_t *content;
 
-    content = (bplib_mpool_block_content_t *)bplib_mpool_obtain_base_block(cb);
+    content = bplib_mpool_block_dereference_content(cb);
     if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_flow)
     {
         return &content->u.flow.fblock;
@@ -185,37 +247,13 @@ bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_mark_active
- *
- *-----------------------------------------------------------------*/
-void bplib_mpool_flow_mark_active(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref)
-{
-    bplib_mpool_block_content_t *content;
-    bplib_mpool_lock_t          *lock;
-
-    content = (bplib_mpool_block_content_t *)bplib_mpool_obtain_base_block(bplib_mpool_dereference(flow_ref));
-    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_flow)
-    {
-        lock = bplib_mpool_lock_resource(pool);
-
-        /* puts this note at the back of the list, but first remove it if it was already on the list */
-        /* this permits it to be marked as active multiple times, it will still only be in the list once */
-        bplib_mpool_extract_node(&content->u.flow.processable_link);
-        bplib_mpool_insert_before(&pool->active_list, &content->u.flow.processable_link);
-
-        bplib_mpool_lock_broadcast_release(lock);
-    }
-}
-
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_subq_depthlimit_wait_for_space
+ * Function: bplib_mpool_subq_workitem_wait_for_space
  *
  * Internal function, lock must be held when invoked
  *
  *-----------------------------------------------------------------*/
-bool bplib_mpool_subq_depthlimit_wait_for_space(bplib_mpool_lock_t *lock, bplib_mpool_subq_depthlimit_t *subq,
-                                                uint32_t quantity, uint64_t abs_timeout)
+bool bplib_mpool_subq_workitem_wait_for_space(bplib_mpool_lock_t *lock, bplib_mpool_subq_workitem_t *subq,
+                                              uint32_t quantity, uint64_t abs_timeout)
 {
     uint32_t next_depth;
     bool     within_timeout;
@@ -235,13 +273,13 @@ bool bplib_mpool_subq_depthlimit_wait_for_space(bplib_mpool_lock_t *lock, bplib_
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_depthlimit_wait_for_space
+ * Function: bplib_mpool_subq_workitem_wait_for_fill
  *
  * Internal function, lock must be held when invoked
  *
  *-----------------------------------------------------------------*/
-bool bplib_mpool_subq_depthlimit_wait_for_fill(bplib_mpool_lock_t *lock, bplib_mpool_subq_depthlimit_t *subq,
-                                               uint32_t quantity, uint64_t abs_timeout)
+bool bplib_mpool_subq_workitem_wait_for_fill(bplib_mpool_lock_t *lock, bplib_mpool_subq_workitem_t *subq,
+                                             uint32_t quantity, uint64_t abs_timeout)
 {
     uint32_t curr_depth;
     bool     within_timeout;
@@ -259,138 +297,131 @@ bool bplib_mpool_subq_depthlimit_wait_for_fill(bplib_mpool_lock_t *lock, bplib_m
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_depthlimit_try_push
+ * Function: bplib_mpool_flow_try_push
  *
  *-----------------------------------------------------------------*/
-bool bplib_mpool_subq_depthlimit_try_push(bplib_mpool_t *pool, bplib_mpool_ref_t flow_dst_ref,
-                                          bplib_mpool_subq_depthlimit_t *subq_dst, bplib_mpool_block_t *qblk,
-                                          uint64_t abs_timeout)
+bool bplib_mpool_flow_try_push(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_block_t *qblk, uint64_t abs_timeout)
 {
-    bplib_mpool_block_content_t *content;
-    bplib_mpool_lock_t          *lock;
-    bool                         got_space;
+    bplib_mpool_lock_t                *lock;
+    bool                               got_space;
+    bplib_mpool_block_admin_content_t *admin;
+    bplib_mpool_t                     *pool;
 
-    got_space = false;
-    content   = (bplib_mpool_block_content_t *)bplib_mpool_obtain_base_block(bplib_mpool_dereference(flow_dst_ref));
-    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_flow)
+    pool  = bplib_mpool_get_parent_pool_from_link(&subq_dst->job_header.link);
+    admin = bplib_mpool_get_admin(pool);
+    lock  = bplib_mpool_lock_resource(pool);
+
+    got_space = bplib_mpool_subq_workitem_wait_for_space(lock, subq_dst, 1, abs_timeout);
+    if (got_space)
     {
-        lock = bplib_mpool_lock_resource(pool);
+        /* this does not fail, but must be done under lock to keep things consistent */
+        bplib_mpool_subq_push_single(&subq_dst->base_subq, qblk);
 
-        got_space = bplib_mpool_subq_depthlimit_wait_for_space(lock, subq_dst, 1, abs_timeout);
-        if (got_space)
-        {
-            /* this does not fail, but must be done under lock to keep things consistent */
-            bplib_mpool_subq_push_single(&subq_dst->base_subq, qblk);
+        /* mark the flow as "active" - done directly here while the lock is still held */
+        bplib_mpool_job_mark_active_internal(&admin->active_list, &subq_dst->job_header);
 
-            /* mark the flow as "active" - done directly here while the lock is still held */
-            bplib_mpool_extract_node(&content->u.flow.processable_link);
-            bplib_mpool_insert_before(&pool->active_list, &content->u.flow.processable_link);
-        }
-
-        /* this uses broadcast in case any threads were waiting on a non-empty queue */
-        bplib_mpool_lock_broadcast_release(lock);
+        /* in case any threads were waiting on a non-empty queue */
+        bplib_mpool_lock_broadcast_signal(lock);
     }
+
+    bplib_mpool_lock_release(lock);
 
     return got_space;
 }
 
-bplib_mpool_block_t *bplib_mpool_subq_depthlimit_try_pull(bplib_mpool_t *pool, bplib_mpool_ref_t flow_src_ref,
-                                                          bplib_mpool_subq_depthlimit_t *subq_src, uint64_t abs_timeout)
+bplib_mpool_block_t *bplib_mpool_flow_try_pull(bplib_mpool_subq_workitem_t *subq_src, uint64_t abs_timeout)
 {
-    bplib_mpool_block_content_t *content;
-    bplib_mpool_lock_t          *lock;
-    bplib_mpool_block_t         *qblk;
-    bool                         got_space;
+    bplib_mpool_lock_t  *lock;
+    bplib_mpool_block_t *qblk;
+    bool                 got_space;
+    bplib_mpool_t       *pool;
 
-    got_space = false;
-    qblk      = NULL;
-    content   = (bplib_mpool_block_content_t *)bplib_mpool_obtain_base_block(bplib_mpool_dereference(flow_src_ref));
-    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_flow)
+    qblk = NULL;
+    pool = bplib_mpool_get_parent_pool_from_link(&subq_src->job_header.link);
+    lock = bplib_mpool_lock_resource(pool);
+
+    got_space = bplib_mpool_subq_workitem_wait_for_fill(lock, subq_src, 1, abs_timeout);
+    if (got_space)
     {
-        lock = bplib_mpool_lock_resource(pool);
+        qblk = bplib_mpool_subq_pull_single(&subq_src->base_subq);
 
-        got_space = bplib_mpool_subq_depthlimit_wait_for_fill(lock, subq_src, 1, abs_timeout);
-        if (got_space)
-        {
-            qblk = bplib_mpool_subq_pull_single(&subq_src->base_subq);
-        }
-
-        /* this uses broadcast in case any threads were waiting on a non-full queue */
-        bplib_mpool_lock_broadcast_release(lock);
+        /* in case any threads were waiting on a non-full queue */
+        bplib_mpool_lock_broadcast_signal(lock);
     }
+
+    bplib_mpool_lock_release(lock);
 
     return qblk;
 }
 
-uint32_t bplib_mpool_subq_depthlimit_try_move_all(bplib_mpool_t *pool, bplib_mpool_ref_t flow_dst_ref,
-                                                  bplib_mpool_subq_depthlimit_t *subq_dst,
-                                                  bplib_mpool_subq_depthlimit_t *subq_src, uint64_t abs_timeout)
+uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_subq_workitem_t *subq_src,
+                                       uint64_t abs_timeout)
 {
-    bplib_mpool_block_content_t *content;
-    bplib_mpool_lock_t          *lock;
-    uint32_t                     prev_quantity;
-    uint32_t                     quantity;
-    bool                         got_space;
+    bplib_mpool_lock_t                *lock;
+    uint32_t                           prev_quantity;
+    uint32_t                           quantity;
+    bool                               got_space;
+    bplib_mpool_block_admin_content_t *admin;
+    bplib_mpool_t                     *pool;
 
     got_space = false;
-    content   = (bplib_mpool_block_content_t *)bplib_mpool_obtain_base_block(bplib_mpool_dereference(flow_dst_ref));
-    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_flow)
+    pool      = bplib_mpool_get_parent_pool_from_link(&subq_dst->job_header.link);
+    admin     = bplib_mpool_get_admin(pool);
+    lock      = bplib_mpool_lock_resource(pool);
+
+    /* note, there is a possibility that while waiting, another task puts more entries
+     * into the source queue.  This loop will catch that and wait again.  However it
+     * will not catch the case of another thread taking out of the source queue, as
+     * it will still wait for the original amount. */
+    quantity = bplib_mpool_subq_get_depth(&subq_src->base_subq);
+    do
     {
-        lock = bplib_mpool_lock_resource(pool);
+        prev_quantity = quantity;
+        got_space     = bplib_mpool_subq_workitem_wait_for_space(lock, subq_dst, quantity, abs_timeout);
+        quantity      = bplib_mpool_subq_get_depth(&subq_src->base_subq);
+    }
+    while (got_space && quantity > prev_quantity);
 
-        /* note, there is a possibility that while waiting, another task puts more entries
-         * into the source queue.  This loop will catch that and wait again.  However it
-         * will not catch the case of another thread taking out of the source queue, as
-         * it will still wait for the original amount. */
-        quantity = bplib_mpool_subq_get_depth(&subq_src->base_subq);
-        do
-        {
-            prev_quantity = quantity;
-            got_space     = bplib_mpool_subq_depthlimit_wait_for_space(lock, subq_dst, quantity, abs_timeout);
-            quantity      = bplib_mpool_subq_get_depth(&subq_src->base_subq);
-        }
-        while (got_space && quantity > prev_quantity);
+    if (got_space)
+    {
+        /* this does not fail, but must be done under lock to keep things consistent */
+        quantity = bplib_mpool_subq_move_all(&subq_dst->base_subq, &subq_src->base_subq);
 
-        if (got_space)
-        {
-            /* this does not fail, but must be done under lock to keep things consistent */
-            quantity = bplib_mpool_subq_move_all(&subq_dst->base_subq, &subq_src->base_subq);
+        /* mark the flow as "active" - done directly here while the lock is still held */
+        bplib_mpool_job_mark_active_internal(&admin->active_list, &subq_dst->job_header);
 
-            /* mark the flow as "active" - done directly here while the lock is still held */
-            bplib_mpool_extract_node(&content->u.flow.processable_link);
-            bplib_mpool_insert_before(&pool->active_list, &content->u.flow.processable_link);
-        }
-        else
-        {
-            quantity = 0;
-        }
-
-        /* this uses broadcast in case any threads were waiting on a non-full/empty queue */
-        bplib_mpool_lock_broadcast_release(lock);
+        /* in case any threads were waiting on a non-empty queue */
+        bplib_mpool_lock_broadcast_signal(lock);
     }
     else
     {
         quantity = 0;
     }
 
+    bplib_mpool_lock_release(lock);
+
     return quantity;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_depthlimit_disable
+ * Function: bplib_mpool_flow_disable
  *
  *-----------------------------------------------------------------*/
-uint32_t bplib_mpool_subq_depthlimit_disable(bplib_mpool_t *pool, bplib_mpool_subq_depthlimit_t *subq)
+uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq)
 {
+    bplib_mpool_t      *pool;
     bplib_mpool_lock_t *lock;
     uint32_t            quantity_dropped;
 
+    pool = bplib_mpool_get_parent_pool_from_link(&subq->job_header.link);
     lock = bplib_mpool_lock_resource(pool);
 
     /* prevents any additional entries in flow queues */
     subq->current_depth_limit = 0;
     quantity_dropped          = bplib_mpool_subq_drop_all(pool, &subq->base_subq);
+
+    bplib_mpool_job_cancel_internal(&subq->job_header);
 
     bplib_mpool_lock_release(lock);
 
@@ -399,14 +430,21 @@ uint32_t bplib_mpool_subq_depthlimit_disable(bplib_mpool_t *pool, bplib_mpool_su
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_init
+ * Function: bplib_mpool_flow_enable
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_flow_init(bplib_mpool_flow_t *fblk)
+void bplib_mpool_flow_enable(bplib_mpool_subq_workitem_t *subq, uint32_t depth_limit)
 {
-    /* now init the link structs */
-    bplib_mpool_subq_depthlimit_init(&fblk->ingress);
-    bplib_mpool_subq_depthlimit_init(&fblk->egress);
+    bplib_mpool_t      *pool;
+    bplib_mpool_lock_t *lock;
+
+    pool = bplib_mpool_get_parent_pool_from_link(&subq->job_header.link);
+    lock = bplib_mpool_lock_resource(pool);
+
+    /* prevents any additional entries in flow queues */
+    subq->current_depth_limit = depth_limit;
+
+    bplib_mpool_lock_release(lock);
 }
 
 /*----------------------------------------------------------------
@@ -428,34 +466,41 @@ bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_get_next_active
+ * Function: bplib_mpool_flow_modify_flags
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_ref_t bplib_mpool_flow_get_next_active(bplib_mpool_t *pool)
+bool bplib_mpool_flow_modify_flags(bplib_mpool_block_t *cb, uint32_t set_bits, uint32_t clear_bits)
 {
-    bplib_mpool_lock_t  *lock;
-    bplib_mpool_block_t *fblk;
+    bplib_mpool_lock_t                *lock;
+    bplib_mpool_t                     *pool;
+    bplib_mpool_block_admin_content_t *admin;
+    bplib_mpool_flow_t                *flow;
+    uint32_t                           next_flags;
+    bool                               flags_changed;
 
-    lock = bplib_mpool_lock_resource(pool);
-
-    /* if the head is reached here, then the list is empty */
-    fblk = bplib_mpool_get_next_block(&pool->active_list);
-    if (bplib_mpool_is_list_head(fblk))
+    pool  = bplib_mpool_get_parent_pool_from_link(cb);
+    admin = bplib_mpool_get_admin(pool);
+    lock  = bplib_mpool_lock_resource(pool);
+    flow  = bplib_mpool_flow_cast(cb);
+    if (flow != NULL)
     {
-        fblk = NULL;
+        next_flags = flow->pending_state_flags;
+        next_flags |= set_bits;
+        next_flags &= ~clear_bits;
+        flags_changed = (flow->pending_state_flags != next_flags);
+
+        if (flags_changed)
+        {
+            flow->pending_state_flags = next_flags;
+            bplib_mpool_job_mark_active_internal(&admin->active_list, &flow->statechange_job.base_job);
+            bplib_mpool_lock_broadcast_signal(lock);
+        }
     }
     else
     {
-        bplib_mpool_extract_node(fblk);
+        flags_changed = false;
     }
-
     bplib_mpool_lock_release(lock);
 
-    if (fblk == NULL)
-    {
-        return NULL;
-    }
-
-    fblk = bplib_mpool_obtain_base_block(fblk);
-    return bplib_mpool_ref_duplicate((bplib_mpool_ref_t)fblk);
+    return flags_changed;
 }

@@ -155,7 +155,7 @@ int bplib_route_test(void)
     bp_ipn_addr_t     storage_addr;
 
     /* Test route table with 1MB of cache */
-    rtbl = bplib_route_alloc_table(10, 10, 1 << 20);
+    rtbl = bplib_route_alloc_table(10, 1 << 20);
     if (rtbl == NULL)
     {
         fprintf(stderr, "%s(): bplib_route_alloc_table failed\n", __func__);
@@ -211,7 +211,7 @@ int bplib_route_test(void)
     s1_rtbl = rtbl;
 
     /* Test route table with 1MB of cache */
-    rtbl = bplib_route_alloc_table(10, 10, 1 << 20);
+    rtbl = bplib_route_alloc_table(10, 1 << 20);
     if (rtbl == NULL)
     {
         fprintf(stderr, "%s(): bplib_route_alloc_table failed\n", __func__);
@@ -303,6 +303,9 @@ int bplib2_bundle_test(void)
         bplib_close_socket(desc);
         return -1;
     }
+
+    /* wait for any pending data flows to complete */
+    bplib_route_maintenance_complete_wait(s1_rtbl);
 
     printf("@%lu: Storing payload:\n", (unsigned long)bplib_os_get_dtntime_ms());
     display(stdout, (const uint8_t *)my_payload, 0, sizeof(my_payload));

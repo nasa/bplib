@@ -36,7 +36,7 @@ void bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *poo
 {
     memset(mps, 0, sizeof(*mps));
 
-    bplib_mpool_init_list_head(&mps->head);
+    bplib_mpool_init_list_head(NULL, &mps->head);
 
     mps->dir       = dir;
     mps->pool      = pool;
@@ -207,7 +207,7 @@ size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t target_position
 
             if (mps->dir == bplib_mpool_stream_dir_write)
             {
-                bplib_mpool_recycle_block(mps->pool, mps->last_eblk);
+                bplib_mpool_recycle_block(mps->last_eblk);
                 mps->curr_limit = bplib_mpool_get_generic_data_capacity(next_block);
                 mps->curr_pos   = bplib_mpool_get_generic_data_capacity(next_block);
             }

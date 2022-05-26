@@ -80,7 +80,7 @@ struct bp_desc;
 typedef struct bp_desc           bp_desc_t;
 typedef struct bp_socket         bp_socket_t;
 typedef struct bplib_mpool_block bplib_mpool_block_t;
-typedef struct mpool             bplib_mpool_t;
+typedef struct bplib_mpool       bplib_mpool_t;
 
 /**
  * @brief Type of block CRC calculated by bplib
@@ -262,6 +262,12 @@ static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
     (bp_handle_t)              \
     {                          \
         0x5000000              \
+    }
+
+#define BPLIB_HANDLE_MPOOL_BASE \
+    (bp_handle_t)               \
+    {                           \
+        0x6000000               \
     }
 
 #ifdef __cplusplus
