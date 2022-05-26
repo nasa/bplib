@@ -33,7 +33,9 @@
 /*
  * Minimum size of a generic data block
  */
-#define BP_MPOOL_MIN_USER_BLOCK_SIZE 320
+#define BP_MPOOL_MIN_USER_BLOCK_SIZE 352
+
+#define MPOOL_CACHE_CBOR_DATA_SIGNATURE 0x6b243e33
 
 typedef struct bplib_mpool_lock
 {
@@ -90,7 +92,6 @@ typedef struct bplib_mpool_bblock_canonical_content
 
 typedef struct bplib_mpool_flow_content
 {
-    bplib_mpool_block_t        processable_link;
     bplib_mpool_flow_t         fblock;
     bplib_mpool_aligned_data_t user_data_start;
 } bplib_mpool_flow_content_t;
@@ -101,6 +102,28 @@ typedef struct bplib_mpool_block_ref_content
     bplib_mpool_aligned_data_t user_data_start;
 } bplib_mpool_block_ref_content_t;
 
+typedef struct bplib_mpool_block_admin_content
+{
+    size_t   buffer_size;
+    uint32_t num_bufs_total;
+    uint32_t bblock_alloc_threshold;   /**< threshold at which new bundles will no longer be allocatable */
+    uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
+
+    bplib_rbt_root_t          blocktype_registry; /**< registry of block signature values */
+    bplib_mpool_api_content_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
+    bplib_mpool_api_content_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
+
+    bplib_mpool_subq_base_t free_blocks;    /**< blocks which are available for use */
+    bplib_mpool_subq_base_t recycle_blocks; /**< blocks which can be garbage-collected */
+
+    /* note that the active_list and managed_block_list are not FIFO in nature, as blocks
+     * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
+     * is not used for these, because the push_count and pull_count would not remain accurate. */
+
+    bplib_mpool_block_t active_list; /**< a list of flows/queues that need processing */
+
+} bplib_mpool_block_admin_content_t;
+
 typedef union bplib_mpool_block_buffer
 {
     bplib_mpool_generic_data_content_t     generic_data;
@@ -109,6 +132,7 @@ typedef union bplib_mpool_block_buffer
     bplib_mpool_bblock_canonical_content_t canonical;
     bplib_mpool_flow_content_t             flow;
     bplib_mpool_block_ref_content_t        ref;
+    bplib_mpool_block_admin_content_t      admin;
 
     /* guarantees a minimum size of the generic data blocks, also determines the amount
      * of extra space available for user objects in other types of blocks. */
@@ -121,32 +145,29 @@ typedef struct bplib_mpool_block_content
     bplib_mpool_block_buffer_t u;
 } bplib_mpool_block_content_t;
 
-struct mpool
+struct bplib_mpool
 {
-    size_t   buffer_size;
-    uint32_t num_bufs_total;
-    uint32_t bblock_alloc_threshold;   /**< threshold at which new bundles will no longer be allocatable */
-    uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
-
-    bplib_rbt_root_t          blocktype_registry; /**< registry of block signature values */
-    bplib_mpool_api_content_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
-
-    bplib_mpool_subq_base_t free_blocks;    /**< blocks which are available for use */
-    bplib_mpool_subq_base_t recycle_blocks; /**< blocks which can be garbage-collected */
-
-    /* note that the active_list and managed_block_list are not FIFO in nature, as blocks
-     * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
-     * is not used for these, because the push_count and pull_count would not remain accurate. */
-
-    bplib_mpool_block_t active_list;        /**< a list of flows/queues that need processing */
-    bplib_mpool_block_t managed_block_list; /**< a list of blocks that are refcount-managed */
-
-    bplib_mpool_block_content_t first_buffer; /**< Start of first real block (see num_bufs_total) */
+    bplib_mpool_block_content_t admin_block; /**< Start of first real block (see num_bufs_total) */
 };
 
 #define MPOOL_GET_BUFFER_USER_START_OFFSET(m) (offsetof(bplib_mpool_block_buffer_t, m.user_data_start))
 
 #define MPOOL_GET_BLOCK_USER_CAPACITY(m) (sizeof(bplib_mpool_block_buffer_t) - MPOOL_GET_BUFFER_USER_START_OFFSET(m))
+
+/**
+ * @brief Gets the administrative block for the given pool
+ *
+ * This is always the first block in the pool.
+ *
+ * @param pool
+ * @return bplib_mpool_block_admin_content_t*
+ */
+static inline bplib_mpool_block_admin_content_t *bplib_mpool_get_admin(bplib_mpool_t *pool)
+{
+    /* this just confirms that the passed-in pointer looks OK */
+    assert(pool->admin_block.header.base_link.type == bplib_mpool_blocktype_admin);
+    return &pool->admin_block.u.admin;
+}
 
 /**
  * @brief Acquires a given lock
@@ -178,18 +199,18 @@ static inline void bplib_mpool_lock_release(bplib_mpool_lock_t *lock)
 }
 
 /**
- * @brief Release a given lock and indicate state change
+ * @brief Indicate state change of the resource held by the lock
  *
- * Unlocks the given resource, and also signals to other threads that state has changed
+ * Signals to other threads that state of the resource has changed
  *
- * Other threads waiting on the same lock are unblocked and will all re-check the condition
+ * Other threads waiting on the same lock are unblocked and should all re-check the condition
  * they are waiting on.
  *
  * @param lock
  */
-static inline void bplib_mpool_lock_broadcast_release(bplib_mpool_lock_t *lock)
+static inline void bplib_mpool_lock_broadcast_signal(bplib_mpool_lock_t *lock)
 {
-    bplib_os_broadcast_signal_and_unlock(lock->lock_id);
+    bplib_os_broadcast_signal(lock->lock_id);
 }
 
 /**
@@ -232,10 +253,10 @@ bplib_mpool_lock_t *bplib_mpool_lock_resource(void *resource_addr);
  */
 bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime);
 
-void bplib_mpool_bblock_primary_init(bplib_mpool_bblock_primary_t *pblk);
-void bplib_mpool_bblock_canonical_init(bplib_mpool_bblock_canonical_t *cblk);
-void bplib_mpool_subq_init(bplib_mpool_subq_base_t *qblk);
-void bplib_mpool_flow_init(bplib_mpool_flow_t *fblk);
+void bplib_mpool_bblock_primary_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_primary_t *pblk);
+void bplib_mpool_bblock_canonical_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_canonical_t *cblk);
+void bplib_mpool_subq_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_base_t *qblk);
+void bplib_mpool_flow_init(bplib_mpool_block_t *base_block, bplib_mpool_flow_t *fblk);
 
 /**
  * @brief Append a single bundle to the given queue (flow)
@@ -311,7 +332,16 @@ uint32_t bplib_mpool_subq_move_all(bplib_mpool_subq_base_t *subq_dst, bplib_mpoo
  */
 uint32_t bplib_mpool_subq_drop_all(bplib_mpool_t *pool, bplib_mpool_subq_base_t *subq);
 
-bplib_mpool_block_content_t *bplib_mpool_get_block_content(bplib_mpool_block_t *cb);
+void bplib_mpool_job_cancel_internal(bplib_mpool_job_t *job);
+void bplib_mpool_job_mark_active_internal(bplib_mpool_block_t *active_list, bplib_mpool_job_t *job);
+
+/* gets to the underlying block content (which may be a ref block) */
+bplib_mpool_block_content_t       *bplib_mpool_get_block_content(bplib_mpool_block_t *cb);
+const bplib_mpool_block_content_t *bplib_mpool_get_block_content_const(const bplib_mpool_block_t *cb);
+
+/* similar to bplib_mpool_get_block_content() but also dereferences any ref blocks */
+bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_block_t *cb);
+
 bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
                                                               uint32_t content_type_signature, void *init_arg);
 

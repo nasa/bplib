@@ -50,49 +50,45 @@ typedef struct bplib_cla_stats
 /******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/
-int bplib_cla_event_impl(bplib_routetbl_t *rtbl, bplib_mpool_ref_t intf_ref, void *event_arg)
+int bplib_cla_event_impl(void *arg, bplib_mpool_block_t *intf_block)
 {
-    bplib_generic_event_t *event;
-    bplib_mpool_flow_t    *flow;
-    bplib_mpool_t         *pool;
+    bplib_mpool_flow_generic_event_t *event;
+    bplib_mpool_flow_t               *flow;
 
-    event = event_arg;
+    event = arg;
 
     /* only care about state change events for now */
-    if (event->event_type != bplib_event_type_interface_up && event->event_type != bplib_event_type_interface_down)
+    if (event->event_type != bplib_mpool_flow_event_up && event->event_type != bplib_mpool_flow_event_down)
     {
         return BP_SUCCESS;
     }
 
     /* only care about state change events for the local i/f */
-    flow = bplib_mpool_flow_cast(bplib_mpool_dereference(intf_ref));
-    if (flow == NULL || !bp_handle_equal(event->intf_state.intf_id, flow->external_id))
+    flow = bplib_mpool_flow_cast(intf_block);
+    if (flow == NULL || !bp_handle_equal(event->intf_state.intf_id, bplib_mpool_get_external_id(intf_block)))
     {
         return BP_SUCCESS;
     }
 
-    if (event->event_type == bplib_event_type_interface_up)
+    if (event->event_type == bplib_mpool_flow_event_up)
     {
         /* Allows bundles to be pushed to flow queues */
-        flow->ingress.current_depth_limit = BP_MPOOL_MAX_SUBQ_DEPTH;
-        flow->egress.current_depth_limit  = BP_MPOOL_MAX_SUBQ_DEPTH;
+        bplib_mpool_flow_enable(&flow->ingress, BP_MPOOL_MAX_SUBQ_DEPTH);
+        bplib_mpool_flow_enable(&flow->egress, BP_MPOOL_MAX_SUBQ_DEPTH);
     }
-    else if (event->event_type == bplib_event_type_interface_down)
+    else if (event->event_type == bplib_mpool_flow_event_down)
     {
-        pool = bplib_route_get_mpool(rtbl);
-
         /* drop anything already in the egress queue.  Note that
          * ingress is usually empty, as bundles really should not wait there,
          * so that probably has no effect. */
-        bplib_mpool_subq_depthlimit_disable(pool, &flow->ingress);
-        bplib_mpool_subq_depthlimit_disable(pool, &flow->egress);
+        bplib_mpool_flow_disable(&flow->ingress);
+        bplib_mpool_flow_disable(&flow->egress);
     }
 
     return BP_SUCCESS;
 }
 
-int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref, const void *content, size_t size,
-                                 uint64_t time_limit)
+int bplib_generic_bundle_ingress(bplib_mpool_ref_t flow_ref, const void *content, size_t size, uint64_t time_limit)
 {
     bplib_mpool_flow_t           *flow;
     bplib_mpool_block_t          *pblk;
@@ -110,10 +106,19 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
     }
     else
     {
-        imported_sz = v7_copy_full_bundle_in(pool, &pblk, content, size);
+        pblk =
+            bplib_mpool_bblock_primary_alloc(bplib_mpool_get_parent_pool_from_link(bplib_mpool_dereference(flow_ref)));
+        if (pblk != NULL)
+        {
+            imported_sz = v7_copy_full_bundle_in(bplib_mpool_bblock_primary_cast(pblk), content, size);
+        }
+        else
+        {
+            imported_sz = 0;
+        }
 
         /* convert the bundle to a dynamically-managed ref */
-        refptr = bplib_mpool_ref_create(pool, pblk);
+        refptr = bplib_mpool_ref_create(pblk);
         if (refptr != NULL)
         {
             /* after conversion, should not use the original */
@@ -128,7 +133,7 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
          */
         if (pri_block != NULL && imported_sz == size)
         {
-            rblk = bplib_mpool_ref_make_block(pool, refptr, BPLIB_BLOCKTYPE_CLA_INGRESS_BLOCK, NULL);
+            rblk = bplib_mpool_ref_make_block(refptr, BPLIB_BLOCKTYPE_CLA_INGRESS_BLOCK, NULL);
         }
         else
         {
@@ -137,16 +142,16 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
 
         if (rblk != NULL)
         {
-            pri_block->delivery_data.ingress_intf_id = flow->external_id;
+            pri_block->delivery_data.ingress_intf_id = bplib_mpool_get_external_id(bplib_mpool_dereference(flow_ref));
             pri_block->delivery_data.ingress_time    = bplib_os_get_dtntime_ms();
 
-            if (bplib_mpool_subq_depthlimit_try_push(pool, flow_ref, &flow->ingress, rblk, time_limit))
+            if (bplib_mpool_flow_try_push(&flow->ingress, rblk, time_limit))
             {
                 status = BP_SUCCESS;
             }
             else
             {
-                bplib_mpool_recycle_block(pool, rblk);
+                bplib_mpool_recycle_block(rblk);
                 status = BP_TIMEOUT;
             }
         }
@@ -162,7 +167,7 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
              * and the bundle itself continues on its way.  If something failed, the refcount will become zero,
              * and the bundle memory gets freed.
              */
-            bplib_mpool_ref_release(pool, refptr);
+            bplib_mpool_ref_release(refptr);
             refptr = NULL;
         }
 
@@ -170,7 +175,7 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
         {
             /* This really shouldn't happen... it means the pblk was allocated but wasn't convertible to a ref.
              * something broke, but recycle it anyway */
-            bplib_mpool_recycle_block(pool, pblk);
+            bplib_mpool_recycle_block(pblk);
             pblk = NULL;
         }
     }
@@ -178,8 +183,7 @@ int bplib_generic_bundle_ingress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref
     return status;
 }
 
-int bplib_generic_bundle_egress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref, void *content, size_t *size,
-                                uint64_t time_limit)
+int bplib_generic_bundle_egress(bplib_mpool_ref_t flow_ref, void *content, size_t *size, uint64_t time_limit)
 {
     bplib_mpool_flow_t           *flow;
     bplib_mpool_bblock_primary_t *cpb;
@@ -197,7 +201,7 @@ int bplib_generic_bundle_egress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref,
     {
         /* this removes it from the list */
         /* NOTE: after this point a valid bundle has to be put somewhere (either onto another queue or recycled) */
-        pblk = bplib_mpool_subq_depthlimit_try_pull(pool, flow_ref, &flow->egress, time_limit);
+        pblk = bplib_mpool_flow_try_pull(&flow->egress, time_limit);
         cpb  = bplib_mpool_bblock_primary_cast(pblk);
         if (cpb == NULL)
         {
@@ -206,7 +210,7 @@ int bplib_generic_bundle_egress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref,
         }
         else
         {
-            export_sz = v7_compute_full_bundle_size(pool, cpb);
+            export_sz = v7_compute_full_bundle_size(cpb);
 
             if (export_sz > *size)
             {
@@ -226,7 +230,7 @@ int bplib_generic_bundle_egress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref,
                 else
                 {
                     /* indicate that this has been sent out the intf */
-                    cpb->delivery_data.egress_intf_id = flow->external_id;
+                    cpb->delivery_data.egress_intf_id = bplib_mpool_get_external_id(bplib_mpool_dereference(flow_ref));
                     cpb->delivery_data.egress_time    = bplib_os_get_dtntime_ms();
 
                     status = BP_SUCCESS;
@@ -236,7 +240,7 @@ int bplib_generic_bundle_egress(bplib_mpool_t *pool, bplib_mpool_ref_t flow_ref,
 
         if (pblk != NULL)
         {
-            bplib_mpool_recycle_block(pool, pblk);
+            bplib_mpool_recycle_block(pblk);
         }
     }
 
@@ -256,7 +260,6 @@ void bplib_cla_init(bplib_mpool_t *pool)
 bp_handle_t bplib_create_cla_intf(bplib_routetbl_t *rtbl)
 {
     bplib_mpool_block_t *sblk;
-    bplib_mpool_ref_t    blkref;
     bp_handle_t          self_intf_id;
     bplib_mpool_t       *pool;
 
@@ -273,30 +276,15 @@ bp_handle_t bplib_create_cla_intf(bplib_routetbl_t *rtbl)
         return BP_INVALID_HANDLE;
     }
 
-    blkref = bplib_mpool_ref_create(pool, sblk);
-    if (blkref == NULL)
-    {
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to convert sblk to ref\n");
-        self_intf_id = BP_INVALID_HANDLE;
-    }
-    else
-    {
-        self_intf_id = bplib_route_register_generic_intf(rtbl, BP_INVALID_HANDLE, blkref);
-    }
-
+    self_intf_id = bplib_route_register_generic_intf(rtbl, BP_INVALID_HANDLE, sblk);
     if (bp_handle_is_valid(self_intf_id))
     {
-        bplib_route_register_forward_ingress_handler(rtbl, self_intf_id, bplib_route_ingress_baseintf_forwarder, NULL);
+        bplib_route_register_forward_ingress_handler(rtbl, self_intf_id, bplib_route_ingress_baseintf_forwarder);
         bplib_route_register_event_handler(rtbl, self_intf_id, bplib_cla_event_impl);
-    }
-
-    if (blkref != NULL)
-    {
-        bplib_mpool_ref_release(pool, blkref);
     }
     else if (sblk != NULL)
     {
-        bplib_mpool_recycle_block(pool, sblk);
+        bplib_mpool_recycle_block(sblk);
     }
 
     return self_intf_id;
@@ -339,7 +327,7 @@ int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, 
     }
     else
     {
-        status = bplib_generic_bundle_egress(bplib_route_get_mpool(rtbl), flow_ref, bundle, size, egress_time_limit);
+        status = bplib_generic_bundle_egress(flow_ref, bundle, size, egress_time_limit);
         if (status == BP_SUCCESS)
         {
             stats->egress_byte_count += *size;
@@ -382,7 +370,7 @@ int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *b
             ingress_time_limit = bplib_os_get_dtntime_ms() + timeout;
         }
 
-        status = bplib_generic_bundle_ingress(bplib_route_get_mpool(rtbl), flow_ref, bundle, size, ingress_time_limit);
+        status = bplib_generic_bundle_ingress(flow_ref, bundle, size, ingress_time_limit);
 
         if (status == BP_SUCCESS)
         {

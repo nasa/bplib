@@ -34,12 +34,6 @@
 #include "v7_types.h"
 #include "v7_mpool_internal.h"
 
-/* TBD: These are all base types so they do not really need to have a unique sig */
-/* Using 0 allows the default API to be used (no-op on create/delete). */
-#define MPOOL_CACHE_PRIMARY_BLOCK_SIGNATURE   0 /*0x9bd24f2c*/
-#define MPOOL_CACHE_CANONICAL_BLOCK_SIGNATURE 0 /*0xd4802976*/
-#define MPOOL_CACHE_CBOR_DATA_SIGNATURE       0 /*0x6b243e33*/
-
 /*----------------------------------------------------------------
  *
  * Function: bplib_mpool_bblock_primary_cast
@@ -49,7 +43,7 @@ bplib_mpool_bblock_primary_t *bplib_mpool_bblock_primary_cast(bplib_mpool_block_
 {
     bplib_mpool_block_content_t *content;
 
-    content = (bplib_mpool_block_content_t *)bplib_mpool_obtain_base_block(cb);
+    content = bplib_mpool_block_dereference_content(cb);
     if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_primary)
     {
         return &content->u.primary.pblock;
@@ -66,7 +60,7 @@ bplib_mpool_bblock_canonical_t *bplib_mpool_bblock_canonical_cast(bplib_mpool_bl
 {
     bplib_mpool_block_content_t *content;
 
-    content = (bplib_mpool_block_content_t *)bplib_mpool_obtain_base_block(cb);
+    content = bplib_mpool_block_dereference_content(cb);
     if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_canonical)
     {
         return &content->u.canonical.cblock;
@@ -94,8 +88,8 @@ void bplib_mpool_bblock_cbor_set_size(bplib_mpool_block_t *cb, size_t user_conte
 {
     bplib_mpool_block_content_t *content;
 
-    content = (bplib_mpool_block_content_t *)bplib_mpool_obtain_base_block(cb);
-    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_cbor_data &&
+    content = bplib_mpool_block_dereference_content(cb);
+    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_generic &&
         content->header.content_type_signature == MPOOL_CACHE_CBOR_DATA_SIGNATURE)
     {
         content->header.user_content_length = user_content_size;
@@ -107,10 +101,10 @@ void bplib_mpool_bblock_cbor_set_size(bplib_mpool_block_t *cb, size_t user_conte
  * Function: bplib_mpool_bblock_primary_init
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_primary_init(bplib_mpool_bblock_primary_t *pblk)
+void bplib_mpool_bblock_primary_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_primary_t *pblk)
 {
-    bplib_mpool_init_list_head(&pblk->cblock_list);
-    bplib_mpool_init_list_head(&pblk->chunk_list);
+    bplib_mpool_init_list_head(base_block, &pblk->cblock_list);
+    bplib_mpool_init_list_head(base_block, &pblk->chunk_list);
 }
 
 /*----------------------------------------------------------------
@@ -118,9 +112,9 @@ void bplib_mpool_bblock_primary_init(bplib_mpool_bblock_primary_t *pblk)
  * Function: bplib_mpool_bblock_canonical_init
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_canonical_init(bplib_mpool_bblock_canonical_t *cblk)
+void bplib_mpool_bblock_canonical_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_canonical_t *cblk)
 {
-    bplib_mpool_init_list_head(&cblk->chunk_list);
+    bplib_mpool_init_list_head(base_block, &cblk->chunk_list);
 }
 
 /*----------------------------------------------------------------
@@ -134,8 +128,7 @@ bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool)
     bplib_mpool_lock_t          *lock;
 
     lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary, MPOOL_CACHE_PRIMARY_BLOCK_SIGNATURE,
-                                              NULL);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary, 0, NULL);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
@@ -152,8 +145,7 @@ bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool)
     bplib_mpool_lock_t          *lock;
 
     lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical,
-                                              MPOOL_CACHE_CANONICAL_BLOCK_SIGNATURE, NULL);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical, 0, NULL);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
@@ -171,7 +163,7 @@ bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool)
 
     lock = bplib_mpool_lock_resource(pool);
     result =
-        bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_cbor_data, MPOOL_CACHE_CBOR_DATA_SIGNATURE, NULL);
+        bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, MPOOL_CACHE_CBOR_DATA_SIGNATURE, NULL);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
@@ -184,7 +176,8 @@ bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool)
  *-----------------------------------------------------------------*/
 void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block_t *blk)
 {
-    assert(blk->type == bplib_mpool_blocktype_cbor_data);
+    /* this just confirms it actually is a CBOR data block */
+    assert(bplib_mpool_bblock_cbor_cast(blk) != NULL);
     bplib_mpool_insert_before(head, blk);
 }
 
@@ -193,15 +186,15 @@ void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block
  * Function: bplib_mpool_bblock_primary_drop_encode
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_t *pool, bplib_mpool_bblock_primary_t *cpb)
+void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb)
 {
     bplib_mpool_block_t *elist;
 
     /* If there is any existing encoded data, return it to the pool */
     elist = bplib_mpool_bblock_primary_get_encoded_chunks(cpb);
-    if (!bplib_mpool_is_empty_list_head(elist))
+    if (bplib_mpool_is_nonempty_list_head(elist))
     {
-        bplib_mpool_recycle_all_blocks_in_list(pool, elist);
+        bplib_mpool_recycle_all_blocks_in_list(NULL, elist);
     }
     cpb->block_encode_size_cache  = 0;
     cpb->bundle_encode_size_cache = 0;
@@ -212,15 +205,15 @@ void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_t *pool, bplib_mpool_bbl
  * Function: bplib_mpool_bblock_canonical_drop_encode
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_t *pool, bplib_mpool_bblock_canonical_t *ccb)
+void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *ccb)
 {
     bplib_mpool_block_t *elist;
 
     /* If there is any existing encoded data, return it to the pool */
     elist = bplib_mpool_bblock_canonical_get_encoded_chunks(ccb);
-    if (!bplib_mpool_is_empty_list_head(elist))
+    if (bplib_mpool_is_nonempty_list_head(elist))
     {
-        bplib_mpool_recycle_all_blocks_in_list(pool, elist);
+        bplib_mpool_recycle_all_blocks_in_list(NULL, elist);
     }
     ccb->block_encode_size_cache = 0;
 

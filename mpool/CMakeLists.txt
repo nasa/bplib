@@ -10,6 +10,7 @@
 add_library(bplib_mpool OBJECT
     src/v7_mpool.c
     src/v7_mpool_ref.c
+    src/v7_mpool_job.c
     src/v7_mpool_bblocks.c
     src/v7_mpool_flows.c
     src/v7_mpstream.c

@@ -59,7 +59,7 @@ static inline bplib_mpool_block_t *bplib_mpool_dereference(bplib_mpool_ref_t ref
  * @param blk
  * @return bplib_mpool_ref_t*
  */
-bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_t *pool, bplib_mpool_block_t *blk);
+bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_block_t *blk);
 
 bplib_mpool_ref_t bplib_mpool_ref_duplicate(bplib_mpool_ref_t refptr);
 bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk);
@@ -76,7 +76,7 @@ bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk);
  * @param pool
  * @param refptr
  */
-void bplib_mpool_ref_release(bplib_mpool_t *pool, bplib_mpool_ref_t refptr);
+void bplib_mpool_ref_release(bplib_mpool_ref_t refptr);
 
 /**
  * @brief Creates a separate block reference to the data block
@@ -96,7 +96,6 @@ void bplib_mpool_ref_release(bplib_mpool_t *pool, bplib_mpool_ref_t refptr);
  * @param init_arg Opaque pointer to pass to initializer (may be NULL)
  * @return bplib_mpool_block_t*
  */
-bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_t *pool, bplib_mpool_ref_t refptr, uint32_t magic_number,
-                                                void *init_arg);
+bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32_t magic_number, void *init_arg);
 
 #endif /* V7_MPOOL_REF_H */
