@@ -982,11 +982,6 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
 
     bplib_mpool_lock_release(lock);
 
-    if (count != 0)
-    {
-        printf("DEBUG: %s() recycled %lu blocks\n", __func__, (unsigned long)count);
-    }
-
     return count;
 }
 

@@ -202,44 +202,50 @@ int bplib_generic_bundle_egress(bplib_mpool_ref_t flow_ref, void *content, size_
         /* this removes it from the list */
         /* NOTE: after this point a valid bundle has to be put somewhere (either onto another queue or recycled) */
         pblk = bplib_mpool_flow_try_pull(&flow->egress, time_limit);
-        cpb  = bplib_mpool_bblock_primary_cast(pblk);
-        if (cpb == NULL)
+        if (pblk == NULL)
         {
             /* queue is empty */
-            status = -1;
+            status = BP_TIMEOUT;
         }
         else
         {
-            export_sz = v7_compute_full_bundle_size(cpb);
-
-            if (export_sz > *size)
+            cpb = bplib_mpool_bblock_primary_cast(pblk);
+            if (cpb == NULL)
             {
-                /* buffer too small */
-                status = -1;
+                /* entry wasn't a bundle? */
+                status = BP_ERROR;
             }
             else
             {
+                export_sz = v7_compute_full_bundle_size(cpb);
 
-                *size = v7_copy_full_bundle_out(cpb, content, *size);
-
-                if (export_sz != *size)
+                if (export_sz > *size)
                 {
-                    /* something went wrong during copy */
-                    status = -1;
+                    /* buffer too small */
+                    status = BP_ERROR;
                 }
                 else
                 {
-                    /* indicate that this has been sent out the intf */
-                    cpb->delivery_data.egress_intf_id = bplib_mpool_get_external_id(bplib_mpool_dereference(flow_ref));
-                    cpb->delivery_data.egress_time    = bplib_os_get_dtntime_ms();
 
-                    status = BP_SUCCESS;
+                    *size = v7_copy_full_bundle_out(cpb, content, *size);
+
+                    if (export_sz != *size)
+                    {
+                        /* something went wrong during copy */
+                        status = BP_ERROR;
+                    }
+                    else
+                    {
+                        /* indicate that this has been sent out the intf */
+                        cpb->delivery_data.egress_intf_id =
+                            bplib_mpool_get_external_id(bplib_mpool_dereference(flow_ref));
+                        cpb->delivery_data.egress_time = bplib_os_get_dtntime_ms();
+
+                        status = BP_SUCCESS;
+                    }
                 }
             }
-        }
 
-        if (pblk != NULL)
-        {
             bplib_mpool_recycle_block(pblk);
         }
     }

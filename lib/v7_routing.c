@@ -147,16 +147,12 @@ void bplib_route_ingress_route_single_bundle(bplib_routetbl_t *tbl, bplib_mpool_
         req_flags = BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP;
         flag_mask = req_flags;
 
-        if (bp_handle_is_valid(pri_block->delivery_data.storage_intf_id))
-        {
-            /* the bundle is already stored, so next hop should not be another storage */
-            flag_mask |= BPLIB_INTF_STATE_STORAGE;
-        }
-        else if (pri_block->delivery_data.delivery_policy != bplib_policy_delivery_none)
+        if (!bp_handle_is_valid(pri_block->delivery_data.storage_intf_id) &&
+            pri_block->delivery_data.delivery_policy != bplib_policy_delivery_none)
         {
             /* not yet stored and needs to be, so next hop must be a storage */
-            flag_mask |= BPLIB_INTF_STATE_STORAGE;
-            req_flags |= BPLIB_INTF_STATE_STORAGE;
+            flag_mask |= BPLIB_MPOOL_FLOW_FLAGS_STORAGE;
+            req_flags |= BPLIB_MPOOL_FLOW_FLAGS_STORAGE;
         }
         next_hop = bplib_route_get_next_intf_with_flags(tbl, dest_addr.node_number, req_flags, flag_mask);
         if (bp_handle_is_valid(next_hop) && bplib_route_push_egress_bundle(tbl, next_hop, pblk) == 0)
