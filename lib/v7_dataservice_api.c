@@ -65,11 +65,12 @@ typedef struct bplib_socket_info bplib_socket_info_t;
 
 struct bplib_socket_info
 {
-    bplib_routetbl_t  *parent_rtbl;
-    bp_handle_t        socket_intf_id;
-    bplib_connection_t params;
-    uintmax_t          ingress_byte_count;
-    uintmax_t          egress_byte_count;
+    bplib_routetbl_t   *parent_rtbl;
+    bp_handle_t         socket_intf_id;
+    bplib_connection_t  params;
+    uintmax_t           ingress_byte_count;
+    uintmax_t           egress_byte_count;
+    bp_sequencenumber_t last_bundle_seq;
 };
 
 /******************************************************************************
@@ -114,8 +115,10 @@ bplib_mpool_ref_t bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_
         v7_set_eid(&pri->sourceEID, &sock_inf->params.local_ipn);
         v7_set_eid(&pri->reportEID, &sock_inf->params.report_ipn);
 
-        pri->creationTimeStamp.sequence_num = 1;
-        pri->creationTimeStamp.time         = v7_get_current_time();
+        pri->creationTimeStamp.sequence_num = sock_inf->last_bundle_seq;
+        ++sock_inf->last_bundle_seq;
+
+        pri->creationTimeStamp.time = v7_get_current_time();
 
         pri->lifetime                     = sock_inf->params.lifetime;
         pri->controlFlags.isAdminRecord   = sock_inf->params.is_admin_service;
@@ -675,7 +678,7 @@ bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t 
         else if (type == bplib_dataservice_type_storage)
         {
             /* success; mark this as a storage-capable intf */
-            bplib_route_intf_set_flags(tbl, self_intf_id, BPLIB_INTF_STATE_STORAGE);
+            bplib_route_intf_set_flags(tbl, parent_intf_id, BPLIB_MPOOL_FLOW_FLAGS_STORAGE);
         }
     }
 
@@ -744,8 +747,8 @@ bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl)
         /* following parameters are just hardcoded for now, need an API to set these items */
         sock->params.crctype               = bp_crctype_CRC16;
         sock->params.local_delivery_policy = bplib_policy_delivery_custody_tracking;
-        sock->params.local_retx_interval   = 2000;
-        sock->params.lifetime              = 500000;
+        sock->params.local_retx_interval   = 30000;
+        sock->params.lifetime              = 3600000;
 
         sock_ref = bplib_mpool_ref_create(sblk);
     }

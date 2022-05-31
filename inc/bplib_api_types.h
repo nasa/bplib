@@ -77,10 +77,32 @@ typedef struct bp_handle
  */
 struct bp_desc;
 
-typedef struct bp_desc           bp_desc_t;
-typedef struct bp_socket         bp_socket_t;
+typedef struct bp_desc   bp_desc_t;
+typedef struct bp_socket bp_socket_t;
+
 typedef struct bplib_mpool_block bplib_mpool_block_t;
 typedef struct bplib_mpool       bplib_mpool_t;
+
+/**
+ * @brief A reference to another mpool block
+ *
+ * @note At this scope the definition of this pointer is abstract.  Application
+ * code should use bplib_mpool_dereference() to obtain the pointer to the block
+ * that this refers to.
+ */
+typedef struct bplib_mpool_block_content *bplib_mpool_ref_t;
+
+/**
+ * @brief Callback frunction for various mpool block actions
+ *
+ * This is a generic API for a function to handle various events/conditions
+ * that occur at the block level.  The generic argument supplies the context
+ * information.
+ *
+ * The return value depends on the context and may or may not be used, it
+ * should should return 0 unless otherwise specified.
+ */
+typedef int (*bplib_mpool_callback_func_t)(void *, bplib_mpool_block_t *);
 
 /**
  * @brief Type of block CRC calculated by bplib

@@ -27,12 +27,10 @@
 
 #include <stdint.h>
 #include "bplib_api_types.h"
-#include "v7_mpool.h"
-#include "v7_mpool_flows.h"
 
-#define BPLIB_INTF_STATE_ADMIN_UP BPLIB_MPOOL_FLOW_FLAGS_ADMIN_UP
-#define BPLIB_INTF_STATE_OPER_UP  BPLIB_MPOOL_FLOW_FLAGS_OPER_UP
-#define BPLIB_INTF_STATE_STORAGE  BPLIB_MPOOL_FLOW_FLAGS_STORAGE
+/* JPHFIX: These are duplicate of the flow flags, should be consolidated */
+#define BPLIB_INTF_STATE_ADMIN_UP 0x01
+#define BPLIB_INTF_STATE_OPER_UP  0x02
 
 /******************************************************************************
  TYPEDEFS

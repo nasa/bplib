@@ -60,10 +60,10 @@
 #define BPLIB_STORE_FLAGS_TRANSMIT_WAIT_STATE (BPLIB_STORE_FLAG_LOCALLY_QUEUED | BPLIB_STORE_FLAG_AWAITING_TRANSMIT)
 
 #define BP_CACHE_DACS_LIFETIME  86400000 /* 24 hrs */
-#define BP_CACHE_DACS_OPEN_TIME 2500
+#define BP_CACHE_DACS_OPEN_TIME 10000
 
 #define BP_CACHE_IDLE_RETRY_TIME 3600000
-#define BP_CACHE_FAST_RETRY_TIME 2000
+#define BP_CACHE_FAST_RETRY_TIME 3000
 
 /*
  * The size of the time "buckets" stored in the time index
@@ -176,9 +176,11 @@ typedef struct bplib_store_cache_blockref
 typedef struct bplib_store_cache_custodian_info
 {
     const bp_endpointid_buffer_t *flow_source_eid;
+    bplib_mpool_block_t          *cblk;
     bp_val_t                      eid_hash;
     bp_sequencenumber_t           sequence_num;
     bp_endpointid_buffer_t       *custodian_eid;
+    bp_ipn_t                      final_dest_node;
     bplib_store_cache_entry_t    *store_entry;
 } bplib_store_cache_custodian_info_t;
 
@@ -787,15 +789,14 @@ void bplib_store_cache_insert_custody_tracking_block(bplib_store_cache_state_t  
                                                      bplib_mpool_bblock_primary_t       *pri_block,
                                                      bplib_store_cache_custodian_info_t *custody_info)
 {
-    bplib_mpool_block_t            *cblk;
     bplib_mpool_bblock_canonical_t *custody_block;
 
-    cblk = bplib_mpool_bblock_canonical_alloc(bplib_store_cache_parent_pool(state));
-    if (cblk != NULL)
+    custody_info->cblk = bplib_mpool_bblock_canonical_alloc(bplib_store_cache_parent_pool(state));
+    if (custody_info->cblk != NULL)
     {
-        bplib_mpool_bblock_primary_append(pri_block, cblk);
+        bplib_mpool_bblock_primary_append(pri_block, custody_info->cblk);
 
-        custody_block = bplib_mpool_bblock_canonical_cast(cblk);
+        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->cblk);
         if (custody_block != NULL)
         {
             custody_block->canonical_logical_data.canonical_block.blockType = bp_blocktype_custodyTrackingBlock;
@@ -876,17 +877,20 @@ void bplib_store_cache_get_custodian_info(bplib_store_cache_custodian_info_t *cu
                                           bplib_mpool_bblock_primary_t       *pri_block)
 {
     bplib_mpool_bblock_canonical_t *custody_block;
-    bplib_mpool_block_t            *cblk;
+    bp_ipn_addr_t                   final_dest_addr;
 
     memset(custody_info, 0, sizeof(*custody_info));
 
     custody_info->flow_source_eid = &pri_block->pri_logical_data.sourceEID;
     custody_info->sequence_num    = pri_block->pri_logical_data.creationTimeStamp.sequence_num;
 
-    cblk = bplib_mpool_bblock_primary_locate_canonical(pri_block, bp_blocktype_custodyTrackingBlock);
-    if (cblk != NULL)
+    v7_get_eid(&final_dest_addr, &pri_block->pri_logical_data.destinationEID);
+    custody_info->final_dest_node = final_dest_addr.node_number;
+
+    custody_info->cblk = bplib_mpool_bblock_primary_locate_canonical(pri_block, bp_blocktype_custodyTrackingBlock);
+    if (custody_info->cblk != NULL)
     {
-        custody_block = bplib_mpool_bblock_canonical_cast(cblk);
+        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->cblk);
         if (custody_block != NULL)
         {
             /* need to generate a DACS back to the previous custodian indicated in the custody block */
@@ -914,10 +918,7 @@ void bplib_store_cache_update_custody_tracking_block(bplib_store_cache_state_t  
                                                      bplib_store_cache_entry_t          *bundle_store_entry,
                                                      bplib_store_cache_custodian_info_t *custody_info)
 {
-    if (custody_info->custodian_eid != NULL)
-    {
-        v7_set_eid(custody_info->custodian_eid, &state->self_addr);
-    }
+    v7_set_eid(custody_info->custodian_eid, &state->self_addr);
 
     /* when the custody ACK for this block comes in, this block needs to be found again,
      * so make an entry in the hash index for it */
@@ -929,24 +930,42 @@ void bplib_store_cache_do_custody_tracking(bplib_store_cache_state_t *state, bpl
                                            bplib_mpool_bblock_primary_t *pri_block)
 {
     bplib_store_cache_custodian_info_t custody_info;
+    bool                               is_local;
 
     bplib_store_cache_get_custodian_info(&custody_info, pri_block);
+
+    /* check if this is the last stop on the custody train */
+    is_local = (custody_info.final_dest_node == state->self_addr.node_number);
+
     if (custody_info.custodian_eid)
     {
         /* Acknowledge the block in the bundle */
         bplib_store_cache_ack_custody_tracking_block(state, &custody_info);
+
+        if (is_local)
+        {
+            bplib_mpool_recycle_block(custody_info.cblk);
+            custody_info.cblk          = NULL;
+            custody_info.custodian_eid = NULL;
+
+            /* this only needs acceptance by the local delivery agent, do not expect an ack bundle */
+            pri_block->delivery_data.delivery_policy = bplib_policy_delivery_local_ack;
+        }
     }
-    else
+    else if (!is_local)
     {
         /* There is no previous custodian, but the custody block needs to be added (because this
          * function is only invoked where full custody tracking is enabled).  This is the case when
-         * this storage entity is the first custodian on locally generated  */
+         * this storage entity is the first custodian on locally generated bundles */
         bplib_store_cache_insert_custody_tracking_block(state, pri_block, &custody_info);
     }
 
-    /* update the custody block to reflect the new custodian (this service) -
-     * whenever the bundle is finally forwarded, this tells the recipient to notify us */
-    bplib_store_cache_update_custody_tracking_block(state, store_entry, &custody_info);
+    if (custody_info.custodian_eid)
+    {
+        /* update the custody block to reflect the new custodian (this service) -
+         * whenever the bundle is finally forwarded, this tells the recipient to notify us */
+        bplib_store_cache_update_custody_tracking_block(state, store_entry, &custody_info);
+    }
 }
 
 int bplib_store_cache_find_bundle_match(void *arg, bplib_mpool_block_t *lblk)

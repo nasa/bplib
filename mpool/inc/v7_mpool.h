@@ -34,15 +34,6 @@ typedef struct bplib_mpool_bblock_canonical bplib_mpool_bblock_canonical_t;
 typedef struct bplib_mpool_subq_base bplib_mpool_subq_base_t;
 typedef struct bplib_mpool_flow      bplib_mpool_flow_t;
 
-/**
- * @brief A reference to another mpool block
- *
- * @note At this scope the definition of this pointer is abstract.  Application
- * code should use bplib_mpool_dereference() to obtain the pointer to the block
- * that this refers to.
- */
-typedef struct bplib_mpool_block_content *bplib_mpool_ref_t;
-
 typedef enum bplib_mpool_blocktype
 {
     bplib_mpool_blocktype_undefined = 0,
@@ -101,18 +92,6 @@ typedef enum
     bplib_mpool_eventid_max
 
 } bplib_mpool_eventid_t;
-
-/**
- * @brief Callback frunction for various mpool block actions
- *
- * This is a generic API for a function to handle various events/conditions
- * that occur at the block level.  The generic argument supplies the context
- * information.
- *
- * The return value depends on the context and may or may not be used, it
- * should should return 0 unless otherwise specified.
- */
-typedef int (*bplib_mpool_callback_func_t)(void *, bplib_mpool_block_t *);
 
 /**
  * @brief Blocktype API
