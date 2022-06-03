@@ -37,9 +37,9 @@
  ******************************************************************************/
 
 /* Service API */
-bp_handle_t bplib_store_cache_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
-int         bplib_store_cache_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
+bp_handle_t bplib_cache_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
+int         bplib_cache_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
 
-void bplib_store_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id);
+void bplib_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id);
 
 #endif /* v7_cache_h */
