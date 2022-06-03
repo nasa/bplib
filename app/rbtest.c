@@ -31,8 +31,8 @@
 
 typedef struct rbtest_node
 {
-    bplib_rbt_link_t link;
-    struct rbtest_node    *next_seq;
+    bplib_rbt_link_t    link;
+    struct rbtest_node *next_seq;
 } rbtest_node_t;
 
 bplib_rbt_root_t rbtree;
@@ -121,8 +121,8 @@ void bplib_rbt_debug_print(bplib_rbt_root_t *tree)
 
 void basic_test(void)
 {
-    int                     i;
-    int                     status;
+    int               i;
+    int               status;
     bplib_rbt_link_t *node_ptr;
 
     /* Case 1, insert a value and then remove it */
@@ -236,13 +236,13 @@ void basic_test(void)
 
 void iterator_test(void)
 {
-    int                     i;
-    int                     count;
-    int                     status;
-    bp_val_t                curr_val;
-    bp_val_t                last_val;
+    int               i;
+    int               count;
+    int               status;
+    bp_val_t          curr_val;
+    bp_val_t          last_val;
     bplib_rbt_link_t *node_ptr;
-    bplib_rbt_iter_t       it;
+    bplib_rbt_iter_t  it;
 
     /* goal is to exercise the iterator APIs */
     /* Start by adding a bunch of nodes to a tree */
@@ -362,16 +362,16 @@ void iterator_test(void)
 
 void fuzz_stress_test(void)
 {
-    int                     fd;
-    int                     status;
-    uint32_t                total_duplicates;
-    uint32_t                total_inserts;
-    uint32_t                total_extracts;
-    uint16_t                value;
-    uint8_t                 operation;
-    uint8_t                 threshold;
-    bool                    is_add;
-    rbtest_node_t          *node_ptr;
+    int               fd;
+    int               status;
+    uint32_t          total_duplicates;
+    uint32_t          total_inserts;
+    uint32_t          total_extracts;
+    uint16_t          value;
+    uint8_t           operation;
+    uint8_t           threshold;
+    bool              is_add;
+    rbtest_node_t    *node_ptr;
     bplib_rbt_link_t *removed_link_ptr;
 
     /*

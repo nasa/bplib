@@ -91,7 +91,7 @@ bp_handle_t bplib_create_ram_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t
 {
     bp_handle_t intf_id;
 
-    intf_id = bplib_store_cache_attach(rtbl, storage_addr);
+    intf_id = bplib_cache_attach(rtbl, storage_addr);
 
     return intf_id;
 }

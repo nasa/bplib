@@ -41,4 +41,9 @@ bp_dtntime_t v7_get_current_time(void);
 void         v7_set_eid(bp_endpointid_buffer_t *eid, const bp_ipn_addr_t *bp_addr);
 void         v7_get_eid(bp_ipn_addr_t *bp_addr, const bp_endpointid_buffer_t *eid);
 
+/* A generic strcmp-like call to compare an IPN address to a BP endpoint ID value */
+int v7_compare_ipn2eid(const bp_ipn_addr_t *ipn, const bp_endpointid_buffer_t *eid);
+/* A generic strcmp-like call to compare two IPN addresses */
+int v7_compare_ipn2ipn(const bp_ipn_addr_t *ipn1, const bp_ipn_addr_t *ipn2);
+
 #endif /* v7_h */

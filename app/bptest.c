@@ -371,7 +371,7 @@ int bplib2_bundle_test(void)
      * refcount to become 0, and the entire bundle is dropped.
      */
 
-    bplib_store_cache_debug_scan(s1_rtbl, s1_intf_store);
+    bplib_cache_debug_scan(s1_rtbl, s1_intf_store);
 
     /* this does a sanity check on the pool and displays various block allocation stats */
     bplib_mpool_debug_scan(bplib_route_get_mpool(s1_rtbl));

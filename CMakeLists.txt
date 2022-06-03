@@ -71,6 +71,7 @@ endif()
 if (BPLIB_INCLUDE_BPV7)
 
   add_subdirectory(mpool)
+  add_subdirectory(cache)
   add_subdirectory(v7)
 
   list(REMOVE_ITEM BPLIB_SRC
@@ -82,12 +83,12 @@ if (BPLIB_INCLUDE_BPV7)
   # v7 implementation parts
   list(APPEND BPLIB_SRC
     lib/v7_bplib.c
-    store/v7_cache.c
     common/v7_rbtree.c
     lib/v7_routing.c
     lib/v7_cla_api.c
     lib/v7_dataservice_api.c
 
+    $<TARGET_OBJECTS:bplib_cache>
     $<TARGET_OBJECTS:bplib_v7>
     $<TARGET_OBJECTS:bplib_mpool>
   )
@@ -95,6 +96,7 @@ if (BPLIB_INCLUDE_BPV7)
   list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
     $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_cache,INTERFACE_INCLUDE_DIRECTORIES>
   )
 
 endif()
