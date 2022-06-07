@@ -381,7 +381,7 @@ int bplib_serviceflow_forward_egress(void *arg, bplib_mpool_block_t *subq_src)
                 v7_get_eid(&bundle_dest, &bplib_mpool_bblock_primary_get_logical(pri_block)->destinationEID);
 
                 /* Find a dataservice that matches this src/dest combo */
-                tgt_subintf = bplib_rbt_search(bundle_dest.service_number, &base_intf->service_index);
+                tgt_subintf = bplib_rbt_search_unique(bundle_dest.service_number, &base_intf->service_index);
                 if (tgt_subintf != NULL)
                 {
                     /* borrows the ref */
@@ -439,7 +439,7 @@ int bplib_serviceflow_add_to_base(bplib_mpool_block_t *base_intf_blk, bp_val_t s
         endpoint_intf->self_ptr = temp_block;
 
         /* This can fail in the event the service number is duplicated */
-        status = bplib_rbt_insert_value(svc_num, &base_intf->service_index, &endpoint_intf->rbt_link);
+        status = bplib_rbt_insert_value_unique(svc_num, &base_intf->service_index, &endpoint_intf->rbt_link);
         if (status == BP_SUCCESS)
         {
             /* success */
@@ -485,7 +485,15 @@ bplib_mpool_ref_t bplib_serviceflow_remove_from_base(bplib_mpool_block_t *base_i
     if (base_intf != NULL)
     {
         /* This can fail in the event the service number is duplicated */
-        status = bplib_rbt_extract_value(svc_num, &base_intf->service_index, &rbt_link);
+        rbt_link = bplib_rbt_search_unique(svc_num, &base_intf->service_index);
+        if (rbt_link == NULL)
+        {
+            status = BP_ERROR;
+        }
+        else
+        {
+            status = bplib_rbt_extract_node(&base_intf->service_index, rbt_link);
+        }
         if (status == BP_SUCCESS)
         {
             endpoint_intf     = (bplib_service_endpt_t *)rbt_link; /* because its the first item */

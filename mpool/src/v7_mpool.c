@@ -453,6 +453,33 @@ void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_m
 
 /*----------------------------------------------------------------
  *
+ * Function: bplib_mpool_generic_data_uncast
+ *
+ *-----------------------------------------------------------------*/
+bplib_mpool_block_t *bplib_mpool_generic_data_uncast(void *blk, bplib_mpool_blocktype_t parent_bt,
+                                                     uint32_t required_magic)
+{
+    bplib_mpool_block_content_t *block;
+    size_t                       data_offset;
+
+    data_offset = bplib_mpool_get_user_data_offset_by_blocktype(parent_bt);
+    if (data_offset > sizeof(bplib_mpool_block_buffer_t))
+    {
+        return NULL;
+    }
+
+    data_offset += offsetof(bplib_mpool_block_content_t, u);
+    block = (bplib_mpool_block_content_t *)((uint8_t *)blk - data_offset);
+    if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
+    {
+        return NULL;
+    }
+
+    return &block->header.base_link;
+}
+
+/*----------------------------------------------------------------
+ *
  * Function: bplib_mpool_init_base_object
  *
  *-----------------------------------------------------------------*/
@@ -525,7 +552,8 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     }
 
     /* figure out how to initialize this block by looking up the content type */
-    api_block = (bplib_mpool_api_content_t *)bplib_rbt_search(content_type_signature, &admin->blocktype_registry);
+    api_block =
+        (bplib_mpool_api_content_t *)bplib_rbt_search_unique(content_type_signature, &admin->blocktype_registry);
     if (api_block == NULL)
     {
         /* no constructor, cannot create the block! */
@@ -827,7 +855,7 @@ int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_
 
     /* before doing anything, check if this is a duplicate.  If so, ignore it.
      * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
-    if (bplib_rbt_search(magic_number, &admin->blocktype_registry) != NULL)
+    if (bplib_rbt_search_unique(magic_number, &admin->blocktype_registry) != NULL)
     {
         return BP_DUPLICATE;
     }
@@ -846,7 +874,7 @@ int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_
     }
     api_block->user_content_size = user_content_size;
 
-    status = bplib_rbt_insert_value(magic_number, &admin->blocktype_registry, &api_block->rbt_link);
+    status = bplib_rbt_insert_value_unique(magic_number, &admin->blocktype_registry, &api_block->rbt_link);
 
     /* due to the pre-check above this should always have been successful, but just in case, return the block if error
      */
@@ -909,8 +937,8 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
         assert(content->header.refcount == 0);
 
         /* figure out how to de-initialize the user content by looking up the content type */
-        api_block = (bplib_mpool_api_content_t *)bplib_rbt_search(content->header.content_type_signature,
-                                                                  &admin->blocktype_registry);
+        api_block = (bplib_mpool_api_content_t *)bplib_rbt_search_unique(content->header.content_type_signature,
+                                                                         &admin->blocktype_registry);
 
         if (api_block != NULL)
         {
@@ -1146,9 +1174,9 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
 
     /* register the first API type, which is 0.
      * Notably this prevents other modules from actually registering something at 0. */
-    bplib_rbt_insert_value(0, &admin->blocktype_registry, &admin->blocktype_basic.rbt_link);
-    bplib_rbt_insert_value(MPOOL_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
-                           &admin->blocktype_cbor.rbt_link);
+    bplib_rbt_insert_value_unique(0, &admin->blocktype_registry, &admin->blocktype_basic.rbt_link);
+    bplib_rbt_insert_value_unique(MPOOL_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
+                                  &admin->blocktype_cbor.rbt_link);
 
     while (remain >= sizeof(bplib_mpool_block_content_t))
     {

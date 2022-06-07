@@ -32,6 +32,7 @@
 typedef struct rbtest_node
 {
     bplib_rbt_link_t    link;
+    int                 internal_value;
     struct rbtest_node *next_seq;
 } rbtest_node_t;
 
@@ -56,10 +57,11 @@ void rbtree_assert_impl(const char *text, bool condition)
 /* Confirm the subtree confirms to the R-B tree constriants */
 int bplib_rbt_check_subtree(int node_print_depth, bplib_rbt_link_t *node)
 {
-    char my_color;
-    int  my_black_height;
-    int  left_black_height;
-    int  right_black_height;
+    char           my_color;
+    int            my_black_height;
+    int            left_black_height;
+    int            right_black_height;
+    rbtest_node_t *rbtn_ptr;
 
     left_black_height  = 0;
     right_black_height = 0;
@@ -84,14 +86,16 @@ int bplib_rbt_check_subtree(int node_print_depth, bplib_rbt_link_t *node)
         {
             ++node_print_depth;
         }
-        left_black_height = bplib_rbt_check_subtree(node_print_depth, node->left);
-        my_black_height += left_black_height;
+        right_black_height = bplib_rbt_check_subtree(node_print_depth, node->right);
+        my_black_height += right_black_height;
         if (node_print_depth > 0)
         {
-            printf("%*s%-4lu(%c/%d)\n", (node_print_depth - 1) * 3, "", bplib_rbt_get_key_value(node), my_color,
-                   my_black_height);
+            rbtn_ptr = (rbtest_node_t *)node;
+            printf("%*s%-4lu[%-4d](%c/%d)\n", (node_print_depth - 1) * 3, "", bplib_rbt_get_key_value(node),
+                   rbtn_ptr->internal_value, my_color, my_black_height);
         }
-        right_black_height = bplib_rbt_check_subtree(node_print_depth, node->right);
+
+        left_black_height = bplib_rbt_check_subtree(node_print_depth, node->left);
 
         /* Confirm the other constraint of an R-B tree, which is that the left side
          * and right side should have an equal black height. */
@@ -110,6 +114,7 @@ void bplib_rbt_debug_print(bplib_rbt_root_t *tree)
 {
     int black_height;
 
+    printf("\nTree content:\n");
     black_height = bplib_rbt_check_subtree(1, tree->root);
 
     /* Check that the calculated/verified black height matches the expected */
@@ -119,37 +124,37 @@ void bplib_rbt_debug_print(bplib_rbt_root_t *tree)
     rbtree_assert(black_height == (1 + tree->black_height));
 }
 
-void basic_test(void)
+void basic_test_unique(void)
 {
     int               i;
     int               status;
     bplib_rbt_link_t *node_ptr;
 
     /* Case 1, insert a value and then remove it */
-    status = bplib_rbt_insert_value(100, &rbtree, &node_array[0].link);
+    status = bplib_rbt_insert_value_unique(100, &rbtree, &node_array[0].link);
     rbtree_assert(status == BP_SUCCESS);
     bplib_rbt_debug_print(&rbtree);
 
-    status = bplib_rbt_insert_value(100, &rbtree, &node_array[0].link);
+    status = bplib_rbt_insert_value_unique(100, &rbtree, &node_array[1].link);
     rbtree_assert(status == BP_DUPLICATE);
 
-    status = bplib_rbt_extract_value(99, &rbtree, &node_ptr);
-    rbtree_assert(status != BP_SUCCESS);
+    node_ptr = bplib_rbt_search_unique(99, &rbtree);
     rbtree_assert(node_ptr == NULL);
 
-    status = bplib_rbt_extract_value(100, &rbtree, &node_ptr);
-    rbtree_assert(status == BP_SUCCESS);
+    node_ptr = bplib_rbt_search_unique(100, &rbtree);
     rbtree_assert(node_ptr == &node_array[0].link);
 
-    status = bplib_rbt_extract_value(100, &rbtree, &node_ptr);
-    rbtree_assert(status != BP_SUCCESS);
+    status = bplib_rbt_extract_node(&rbtree, node_ptr);
+    rbtree_assert(status == BP_SUCCESS);
+
+    node_ptr = bplib_rbt_search_unique(100, &rbtree);
     rbtree_assert(node_ptr == NULL);
 
     /* add some nodes in incrementing order, this should utimately fill up to a tree depth of 3 */
     /* all these nodes (beyond the 1st) are resolved via the "right side outer grandchild" rebalance case */
     for (i = 0; i < 14; i += 2)
     {
-        status = bplib_rbt_insert_value(100 * i, &rbtree, &node_array[i].link);
+        status = bplib_rbt_insert_value_unique(100 * i, &rbtree, &node_array[i].link);
         rbtree_assert(status == BP_SUCCESS);
 
         printf("\n\nTree after insert %d\n", i);
@@ -159,7 +164,7 @@ void basic_test(void)
     /* add more nodes in decrementing order */
     for (i = 28; i >= 14; i -= 2)
     {
-        status = bplib_rbt_insert_value(100 * i, &rbtree, &node_array[i].link);
+        status = bplib_rbt_insert_value_unique(100 * i, &rbtree, &node_array[i].link);
         rbtree_assert(status == BP_SUCCESS);
     }
 
@@ -169,7 +174,7 @@ void basic_test(void)
     /* fill in the gaps.  This should exercise more of the rebalance cases. */
     for (i = 1; i < 28; i += 2)
     {
-        status = bplib_rbt_insert_value(100 * i, &rbtree, &node_array[i].link);
+        status = bplib_rbt_insert_value_unique(100 * i, &rbtree, &node_array[i].link);
         rbtree_assert(status == BP_SUCCESS);
     }
 
@@ -177,61 +182,204 @@ void basic_test(void)
     bplib_rbt_debug_print(&rbtree);
 
     /* do some removals */
-    status = bplib_rbt_extract_value(0, &rbtree, &node_ptr);
-    rbtree_assert(status == BP_SUCCESS);
+    node_ptr = bplib_rbt_search_unique(0, &rbtree);
     rbtree_assert(node_ptr == &node_array[0].link);
+
+    status = bplib_rbt_extract_node(&rbtree, node_ptr);
+    rbtree_assert(status == BP_SUCCESS);
 
     printf("\n\nTree after remove 0\n");
     bplib_rbt_debug_print(&rbtree);
 
     /* 1200 is likely the root node */
-    status = bplib_rbt_extract_value(1200, &rbtree, &node_ptr);
-    rbtree_assert(status == BP_SUCCESS);
+    node_ptr = bplib_rbt_search_unique(1200, &rbtree);
     rbtree_assert(node_ptr == &node_array[12].link);
+
+    status = bplib_rbt_extract_node(&rbtree, node_ptr);
+    rbtree_assert(status == BP_SUCCESS);
 
     printf("\n\nTree after remove 12\n");
     bplib_rbt_debug_print(&rbtree);
 
     /* 500 is a red leaf node (easy) */
-    status = bplib_rbt_extract_value(500, &rbtree, &node_ptr);
-    rbtree_assert(status == BP_SUCCESS);
+    node_ptr = bplib_rbt_search_unique(500, &rbtree);
     rbtree_assert(node_ptr == &node_array[5].link);
+
+    status = bplib_rbt_extract_node(&rbtree, node_ptr);
+    rbtree_assert(status == BP_SUCCESS);
 
     printf("\n\nTree after remove 5\n");
     bplib_rbt_debug_print(&rbtree);
 
     /* 400 is a black node but swapped into red leaf position */
-    status = bplib_rbt_extract_value(400, &rbtree, &node_ptr);
-    rbtree_assert(status == BP_SUCCESS);
+    node_ptr = bplib_rbt_search_unique(400, &rbtree);
     rbtree_assert(node_ptr == &node_array[4].link);
+
+    status = bplib_rbt_extract_node(&rbtree, node_ptr);
+    rbtree_assert(status == BP_SUCCESS);
 
     printf("\n\nTree after remove 4\n");
     bplib_rbt_debug_print(&rbtree);
 
     /* 300 should be more complex now */
-    status = bplib_rbt_extract_value(300, &rbtree, &node_ptr);
-    rbtree_assert(status == BP_SUCCESS);
+    node_ptr = bplib_rbt_search_unique(300, &rbtree);
     rbtree_assert(node_ptr == &node_array[3].link);
+
+    status = bplib_rbt_extract_node(&rbtree, node_ptr);
+    rbtree_assert(status == BP_SUCCESS);
 
     printf("\n\nTree after remove 3\n");
     bplib_rbt_debug_print(&rbtree);
 
     for (i = 0; i <= 28; ++i)
     {
-        status = bplib_rbt_extract_value(100 * i, &rbtree, &node_ptr);
+        node_ptr = bplib_rbt_search_unique(100 * i, &rbtree);
         if (i != 0 && !(i >= 3 && i <= 5) && i != 12 && i != 5)
         {
-            rbtree_assert(status == BP_SUCCESS);
             rbtree_assert(node_ptr == &node_array[i].link);
+
+            status = bplib_rbt_extract_node(&rbtree, node_ptr);
+            rbtree_assert(status == BP_SUCCESS);
 
             printf("\n\nTree after remove %d\n", i);
             bplib_rbt_debug_print(&rbtree);
         }
         else
         {
-            rbtree_assert(status == BP_ERROR);
+            rbtree_assert(node_ptr == NULL);
         }
     }
+}
+
+int rbtest_comparator(const bplib_rbt_link_t *link, void *arg)
+{
+    rbtest_node_t *node;
+    int            ref_val;
+
+    node    = (rbtest_node_t *)link;
+    ref_val = *((int *)arg);
+
+    return (ref_val - node->internal_value);
+}
+
+void basic_test_nonunique(void)
+{
+    // int               i;
+    bplib_rbt_iter_t  it;
+    bp_val_t          curr_val;
+    bp_val_t          last_val;
+    rbtest_node_t    *rbtn_ptr;
+    int               status;
+    int               count;
+    bplib_rbt_link_t *node_ptr;
+    int               ref_val;
+
+    /* Case 1, insert a value and then remove it */
+    ref_val = 0;
+    status  = bplib_rbt_insert_value_generic(100, &rbtree, &node_array[0].link, rbtest_comparator, &ref_val);
+    rbtree_assert(status == BP_SUCCESS);
+    bplib_rbt_debug_print(&rbtree);
+
+    ref_val = 0;
+    status  = bplib_rbt_insert_value_generic(100, &rbtree, &node_array[1].link, rbtest_comparator, &ref_val);
+    rbtree_assert(status == BP_DUPLICATE);
+
+    ref_val = 1;
+    status  = bplib_rbt_insert_value_generic(100, &rbtree, &node_array[1].link, rbtest_comparator, &ref_val);
+    rbtree_assert(status == BP_SUCCESS);
+
+    ref_val  = 1;
+    node_ptr = bplib_rbt_search_generic(99, &rbtree, rbtest_comparator, &ref_val);
+    rbtree_assert(node_ptr == NULL);
+
+    ref_val  = 0;
+    node_ptr = bplib_rbt_search_generic(100, &rbtree, rbtest_comparator, &ref_val);
+    rbtree_assert(node_ptr == &node_array[0].link);
+
+    status = bplib_rbt_extract_node(&rbtree, node_ptr);
+    rbtree_assert(status == BP_SUCCESS);
+
+    ref_val  = 0;
+    node_ptr = bplib_rbt_search_generic(100, &rbtree, rbtest_comparator, &ref_val);
+    rbtree_assert(node_ptr == NULL);
+
+    ref_val  = 1;
+    node_ptr = bplib_rbt_search_generic(100, &rbtree, rbtest_comparator, &ref_val);
+    rbtree_assert(node_ptr == &node_array[1].link);
+
+    status = bplib_rbt_extract_node(&rbtree, node_ptr);
+    rbtree_assert(status == BP_SUCCESS);
+
+    /* part 2, create a case where the tree has duplicate keys but they are not next to each other */
+
+    status = bplib_rbt_insert_value_unique(150, &rbtree, &node_array[150].link);
+    rbtree_assert(status == BP_SUCCESS);
+    status = bplib_rbt_insert_value_unique(160, &rbtree, &node_array[160].link);
+    rbtree_assert(status == BP_SUCCESS);
+    status = bplib_rbt_insert_value_unique(170, &rbtree, &node_array[170].link);
+    rbtree_assert(status == BP_SUCCESS);
+    status = bplib_rbt_insert_value_unique(180, &rbtree, &node_array[180].link);
+    rbtree_assert(status == BP_SUCCESS);
+
+    bplib_rbt_debug_print(&rbtree);
+
+    ref_val = 165;
+    status  = bplib_rbt_insert_value_generic(160, &rbtree, &node_array[165].link, rbtest_comparator, &ref_val);
+    rbtree_assert(status == BP_SUCCESS);
+    bplib_rbt_debug_print(&rbtree);
+
+    ref_val = 155;
+    status  = bplib_rbt_insert_value_generic(160, &rbtree, &node_array[155].link, rbtest_comparator, &ref_val);
+    rbtree_assert(status == BP_SUCCESS);
+    bplib_rbt_debug_print(&rbtree);
+
+    /* iterate only items with key 160 */
+    last_val = 160;
+    count    = 0;
+    status   = bplib_rbt_iter_goto_min(last_val, &rbtree, &it);
+    while (status == BP_SUCCESS)
+    {
+        curr_val = bplib_rbt_get_key_value(it.position);
+        if (curr_val != last_val)
+        {
+            break;
+        }
+        rbtn_ptr = (rbtest_node_t *)it.position;
+        printf("iter node: %lu (%d)\n", curr_val, rbtn_ptr->internal_value);
+        status = bplib_rbt_iter_next(&it);
+        ++count;
+    }
+
+    rbtree_assert(count == 3);
+
+    /* iterate all items except 180 in descending order */
+    last_val = 175;
+    count    = 0;
+    status   = bplib_rbt_iter_goto_max(last_val, &rbtree, &it);
+    while (status == BP_SUCCESS)
+    {
+        curr_val = bplib_rbt_get_key_value(it.position);
+        rbtn_ptr = (rbtest_node_t *)it.position;
+        printf("iter node: %lu (%d)\n", curr_val, rbtn_ptr->internal_value);
+        rbtree_assert(curr_val <= last_val);
+        status = bplib_rbt_iter_prev(&it);
+        ++count;
+    }
+
+    rbtree_assert(count == 5);
+
+    status = bplib_rbt_extract_node(&rbtree, &node_array[150].link);
+    rbtree_assert(status == BP_SUCCESS);
+    status = bplib_rbt_extract_node(&rbtree, &node_array[155].link);
+    rbtree_assert(status == BP_SUCCESS);
+    status = bplib_rbt_extract_node(&rbtree, &node_array[160].link);
+    rbtree_assert(status == BP_SUCCESS);
+    status = bplib_rbt_extract_node(&rbtree, &node_array[165].link);
+    rbtree_assert(status == BP_SUCCESS);
+    status = bplib_rbt_extract_node(&rbtree, &node_array[170].link);
+    rbtree_assert(status == BP_SUCCESS);
+    status = bplib_rbt_extract_node(&rbtree, &node_array[180].link);
+    rbtree_assert(status == BP_SUCCESS);
 }
 
 void iterator_test(void)
@@ -248,7 +396,7 @@ void iterator_test(void)
     /* Start by adding a bunch of nodes to a tree */
     for (i = 10; i < 90; i += 2)
     {
-        status = bplib_rbt_insert_value(i, &rbtree, &node_array[i].link);
+        status = bplib_rbt_insert_value_unique(i, &rbtree, &node_array[i].link);
         rbtree_assert(status == BP_SUCCESS);
     }
 
@@ -350,7 +498,10 @@ void iterator_test(void)
 
     for (i = 10; i < 90; i += 2)
     {
-        status = bplib_rbt_extract_value(i, &rbtree, &node_ptr);
+        node_ptr = bplib_rbt_search_unique(i, &rbtree);
+        rbtree_assert(node_ptr != NULL);
+
+        status = bplib_rbt_extract_node(&rbtree, node_ptr);
         rbtree_assert(status == BP_SUCCESS);
     }
 
@@ -360,7 +511,7 @@ void iterator_test(void)
     rbtree_assert(status != BP_SUCCESS);
 }
 
-void fuzz_stress_test(void)
+void fuzz_stress_test(bool unique_only)
 {
     int               fd;
     int               status;
@@ -457,7 +608,16 @@ void fuzz_stress_test(void)
                 tail_free = NULL;
             }
 
-            status = bplib_rbt_insert_value(value, &rbtree, &node_ptr->link);
+            if (unique_only)
+            {
+                status = bplib_rbt_insert_value_unique(value, &rbtree, &node_ptr->link);
+            }
+            else
+            {
+                status = bplib_rbt_insert_value_generic(value, &rbtree, &node_ptr->link, rbtest_comparator,
+                                                        &node_ptr->internal_value);
+            }
+
             if (status == BP_SUCCESS)
             {
                 ++total_inserts;
@@ -477,6 +637,7 @@ void fuzz_stress_test(void)
             else
             {
                 /* some of the random numbers will be duplicate, this is expected */
+                rbtree_assert(unique_only);
                 rbtree_assert(status == BP_DUPLICATE);
                 ++total_duplicates;
 
@@ -506,10 +667,21 @@ void fuzz_stress_test(void)
             }
 
             /* this should always succeed, as the list only contains values that were added */
-            value  = bplib_rbt_get_key_value(&node_ptr->link);
-            status = bplib_rbt_extract_value(value, &rbtree, &removed_link_ptr);
-            rbtree_assert(status == BP_SUCCESS);
+            value = bplib_rbt_get_key_value(&node_ptr->link);
+            if (unique_only)
+            {
+                removed_link_ptr = bplib_rbt_search_unique(value, &rbtree);
+            }
+            else
+            {
+                removed_link_ptr =
+                    bplib_rbt_search_generic(value, &rbtree, rbtest_comparator, &node_ptr->internal_value);
+            }
+
             rbtree_assert(removed_link_ptr == &node_ptr->link);
+
+            status = bplib_rbt_extract_node(&rbtree, removed_link_ptr);
+            rbtree_assert(status == BP_SUCCESS);
 
             /* append back to "free" list */
             if (tail_free)
@@ -558,10 +730,13 @@ void prepare_test(void)
         abort();
     }
 
+    memset(node_array, 0, sizeof(*node_array) * TEST_SIZE);
+
     node_array[0].next_seq = NULL;
     for (i = 1; i < TEST_SIZE; ++i)
     {
-        node_array[i].next_seq = &node_array[i - 1];
+        node_array[i].internal_value = i;
+        node_array[i].next_seq       = &node_array[i - 1];
     }
 
     tail_free = &node_array[0];
@@ -576,9 +751,11 @@ void prepare_test(void)
 int main(int argc, char *argv[])
 {
     prepare_test();
-    basic_test();
+    basic_test_unique();
+    basic_test_nonunique();
     iterator_test();
-    fuzz_stress_test();
+    fuzz_stress_test(true);
+    fuzz_stress_test(false);
 
     return EXIT_SUCCESS;
 }

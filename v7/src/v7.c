@@ -79,30 +79,17 @@ void v7_get_eid(bp_ipn_addr_t *bp_addr, const bp_endpointid_buffer_t *eid)
     }
 }
 
-static inline int v7_compare_ipn_number(bp_ipn_t n1, bp_ipn_t n2)
-{
-    if (n1 == n2)
-    {
-        return 0;
-    }
-    if (n1 > n2)
-    {
-        return 1;
-    }
-    return -1;
-}
-
 int v7_compare_ipn2eid(const bp_ipn_addr_t *ipn, const bp_endpointid_buffer_t *eid)
 {
     int result;
 
-    result = v7_compare_ipn_number(eid->scheme, bp_endpointid_scheme_ipn);
+    result = v7_compare_numeric(eid->scheme, bp_endpointid_scheme_ipn);
     if (result == 0)
     {
-        result = v7_compare_ipn_number(ipn->node_number, eid->ssp.ipn.node_number);
+        result = v7_compare_numeric(ipn->node_number, eid->ssp.ipn.node_number);
         if (result == 0)
         {
-            result = v7_compare_ipn_number(ipn->service_number, eid->ssp.ipn.service_number);
+            result = v7_compare_numeric(ipn->service_number, eid->ssp.ipn.service_number);
         }
     }
 
@@ -113,10 +100,10 @@ int v7_compare_ipn2ipn(const bp_ipn_addr_t *ipn1, const bp_ipn_addr_t *ipn2)
 {
     int result;
 
-    result = v7_compare_ipn_number(ipn1->node_number, ipn2->node_number);
+    result = v7_compare_numeric(ipn1->node_number, ipn2->node_number);
     if (result == 0)
     {
-        result = v7_compare_ipn_number(ipn1->service_number, ipn2->service_number);
+        result = v7_compare_numeric(ipn1->service_number, ipn2->service_number);
     }
 
     return result;

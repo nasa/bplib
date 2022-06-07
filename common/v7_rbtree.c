@@ -269,24 +269,6 @@ BP_LOCAL_SCOPE bplib_rbt_link_t **find_parent_ref(bplib_rbt_root_t *tree, bplib_
 }
 
 /**
- * @brief Removes/disconnects this node from its parent
- *
- * The node is removed from its parent.  This may change the logical root of the
- * tree, because if the node being removed was the root, the tree becomes empty.
- *
- * @param tree  Tree from which node is being removed
- * @param node  Node to be removed
- */
-BP_LOCAL_SCOPE void remove_from_parent(bplib_rbt_root_t *tree, bplib_rbt_link_t *node)
-{
-    bplib_rbt_link_t **ref;
-
-    ref          = find_parent_ref(tree, node);
-    node->parent = NULL;
-    *ref         = NULL;
-}
-
-/**
  * @brief Swap two nodes that are known to have a parent/child relationship
  *
  * This may change the root location of the tree, if the parent is the current root
@@ -416,6 +398,30 @@ BP_LOCAL_SCOPE void swap_node_position(bplib_rbt_root_t *tree, bplib_rbt_link_t 
 }
 
 /*--------------------------------------------------------------------------------------
+ * bplib_rbt_search - Searches a rb_tree for a node containing a given value.
+ *
+ * tree: A ptr to a bplib_rbt_root_t to search. [INPUT]
+ * value: The value to search for within the bplib_rbt_root_t. [INPUT]
+ * returns: A ptr to a bplib_rbt_link_t to populate with the identified node. This is set to NULL
+ *      if no node is found.
+ *--------------------------------------------------------------------------------------*/
+static inline int bplib_rbt_compare_key(bp_val_t key1, bp_val_t key2)
+{
+    if (key1 == key2)
+    {
+        return 0;
+    }
+    else if (key1 > key2)
+    {
+        return 1;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+/*--------------------------------------------------------------------------------------
  * do_insert_as_leaf - Does a trivial insert of a new node into the rb tree.
  *
  * This traverses the tree to find the correct insertion point, which will always arrive at
@@ -429,14 +435,15 @@ BP_LOCAL_SCOPE void swap_node_position(bplib_rbt_root_t *tree, bplib_rbt_link_t 
  * new_node: Pointer to the new node link structure
  * returns: A rb_tree status indicating the result of the insertion attempt (BP_DUPLICATE or BP_SUCCESS)
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int do_insert_as_leaf(bplib_rbt_root_t *tree, bplib_rbt_link_t *new_node)
+BP_LOCAL_SCOPE int do_insert_as_leaf(bplib_rbt_root_t *tree, bplib_rbt_link_t *new_node,
+                                     bplib_rbt_compare_func_t compare_func, void *compare_arg)
 {
     bplib_rbt_link_t  *curr_ptr;
     bplib_rbt_link_t **ref_ptr;
     bplib_rbt_link_t  *parent_ptr;
-    bp_val_t           curr_key_value;
     bp_val_t           insert_key_value;
     int                status;
+    int                compare_result;
 
     status           = BP_ERROR;
     parent_ptr       = NULL;
@@ -453,16 +460,22 @@ BP_LOCAL_SCOPE int do_insert_as_leaf(bplib_rbt_root_t *tree, bplib_rbt_link_t *n
             status           = BP_SUCCESS;
             break;
         }
-        curr_key_value = get_key_value(curr_ptr);
-        if (curr_key_value == insert_key_value)
+
+        compare_result = bplib_rbt_compare_key(insert_key_value, get_key_value(curr_ptr));
+        if (compare_result == 0 && compare_func != NULL)
         {
-            /* duplicate keys are not allowed here */
+            compare_result = compare_func(curr_ptr, compare_arg);
+        }
+
+        if (compare_result == 0)
+        {
+            /* duplicate entries are not allowed */
             status = BP_DUPLICATE;
             break;
         }
 
         parent_ptr = curr_ptr;
-        if (insert_key_value > curr_key_value)
+        if (compare_result > 0)
         {
             ref_ptr = &curr_ptr->right;
         }
@@ -1077,29 +1090,35 @@ bool bplib_rbt_node_is_member(const bplib_rbt_root_t *tree, const bplib_rbt_link
 }
 
 /*--------------------------------------------------------------------------------------
- * rb_tree_binary_search - Searches a rb_tree for a node containing a given value.
+ * bplib_rbt_search - Searches a rb_tree for a node containing a given value.
  *
  * tree: A ptr to a bplib_rbt_root_t to search. [INPUT]
  * value: The value to search for within the bplib_rbt_root_t. [INPUT]
  * returns: A ptr to a bplib_rbt_link_t to populate with the identified node. This is set to NULL
  *      if no node is found.
  *--------------------------------------------------------------------------------------*/
-bplib_rbt_link_t *bplib_rbt_search(bp_val_t search_key_value, const bplib_rbt_root_t *tree)
+bplib_rbt_link_t *bplib_rbt_search_generic(bp_val_t search_key_value, const bplib_rbt_root_t *tree,
+                                           bplib_rbt_compare_func_t compare_func, void *compare_arg)
 {
     bplib_rbt_link_t *curr_ptr;
-    bp_val_t          curr_key_value;
+    int               compare_result;
 
     curr_ptr = tree->root;
     while (curr_ptr != NULL)
     {
-        curr_key_value = get_key_value(curr_ptr);
-        if (curr_key_value == search_key_value)
+        compare_result = bplib_rbt_compare_key(search_key_value, get_key_value(curr_ptr));
+        if (compare_result == 0 && compare_func != NULL)
         {
-            /* found a match */
+            compare_result = compare_func(curr_ptr, compare_arg);
+        }
+
+        if (compare_result == 0)
+        {
+            /* found a key match */
             break;
         }
 
-        if (search_key_value > curr_key_value)
+        if (compare_result > 0)
         {
             curr_ptr = curr_ptr->right;
         }
@@ -1120,7 +1139,8 @@ bplib_rbt_link_t *bplib_rbt_search(bp_val_t search_key_value, const bplib_rbt_ro
  * new_node: Memory block for storage of the new value [INPUT]
  * returns: Status code indicating the result of the insertion.
  *--------------------------------------------------------------------------------------*/
-int bplib_rbt_insert_value(bp_val_t insert_key_value, bplib_rbt_root_t *tree, bplib_rbt_link_t *link_block)
+int bplib_rbt_insert_value_generic(bp_val_t insert_key_value, bplib_rbt_root_t *tree, bplib_rbt_link_t *link_block,
+                                   bplib_rbt_compare_func_t compare_func, void *compare_arg)
 {
     int status;
 
@@ -1139,11 +1159,17 @@ int bplib_rbt_insert_value(bp_val_t insert_key_value, bplib_rbt_root_t *tree, bp
      */
     initialize_node_value(link_block, insert_key_value);
 
-    status = do_insert_as_leaf(tree, link_block);
+    status = do_insert_as_leaf(tree, link_block, compare_func, compare_arg);
     if (status == BP_SUCCESS)
     {
         /* Correct any violations within the red black tree due to the insertion. */
         do_insert_rebalance(tree, link_block);
+    }
+    else
+    {
+        /* some use cases use a zero key to mean that it is not in a tree, so be sure to
+         * clear the link if not successfully inserted so it does not have a value. */
+        memset(link_block, 0, sizeof(*link_block));
     }
 
     return status;
@@ -1186,47 +1212,29 @@ int bplib_rbt_extract_node(bplib_rbt_root_t *tree, bplib_rbt_link_t *link_block)
     /*
      * Do the actual disconnect
      */
-    remove_from_parent(tree, link_block);
+    *(find_parent_ref(tree, link_block)) = NULL;
+
+    /* reset this entire link block - this also clears the node value and resets it to 0 */
+    memset(link_block, 0, sizeof(*link_block));
 
     return BP_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_rbt_extract_value - Deletes a key value into the red black tree and rebalances it accordingly.
+ * bplib_rbt_get_key_value
  *
- * value - The value to delete from the bplib_rbt_root_t. [INPUT]
- * tree: A ptr to a bplib_rbt_root_t to delete value from. [OUTPUT]
- * link_block: Memory block that previously stored the value [OUTPUT]
- * returns: Status code indicating the result of the deletion.
+ * returns: Value of the given node
  *--------------------------------------------------------------------------------------*/
-int bplib_rbt_extract_value(bp_val_t value, bplib_rbt_root_t *tree, bplib_rbt_link_t **link_block)
-{
-    int               status;
-    bplib_rbt_link_t *node;
-
-    /* First do a normal search to find the node containing the value */
-    node = bplib_rbt_search(value, tree);
-    if (node == NULL)
-    {
-        /* value is not present in the tree */
-        status      = BP_ERROR;
-        *link_block = NULL;
-    }
-    else
-    {
-        /* matching key is located, now remove it */
-        status      = bplib_rbt_extract_node(tree, node);
-        *link_block = node;
-    }
-
-    return status;
-}
-
 bp_val_t bplib_rbt_get_key_value(const bplib_rbt_link_t *node)
 {
     return get_key_value(node);
 }
 
+/*--------------------------------------------------------------------------------------
+ * bplib_rbt_node_is_red (externally exposed for debug/testing purposes)
+ *
+ * returns: True if the given node is red, false if black
+ *--------------------------------------------------------------------------------------*/
 bool bplib_rbt_node_is_red(const bplib_rbt_link_t *node)
 {
     return is_red(node);
@@ -1235,7 +1243,6 @@ bool bplib_rbt_node_is_red(const bplib_rbt_link_t *node)
 int bplib_rbt_iter_next(bplib_rbt_iter_t *iter)
 {
     const bplib_rbt_link_t *next_pos;
-    bp_val_t                last_val;
 
     next_pos = iter->position;
     if (next_pos != NULL)
@@ -1251,26 +1258,23 @@ int bplib_rbt_iter_next(bplib_rbt_iter_t *iter)
         }
         else
         {
-            /* Ascend to the parent, until arriving at an unvisited node */
-            last_val = get_key_value(next_pos);
-            while (next_pos != NULL)
+            while (true)
             {
-                if (get_key_value(next_pos) > last_val)
+                /* Ascend to the parent, until arriving at an unvisited node */
+                next_pos = next_pos->parent;
+
+                /* if returning from the left-side child, visit this node now.
+                 * otherwise, this is returning from the right side child, so keep going up. */
+                if (next_pos == NULL || next_pos->left == iter->position)
                 {
-                    /*
-                     * This node value is greater than the previous,
-                     * so it must be the first visit (i.e. returning
-                     * from left-side subtree)
-                     */
                     break;
                 }
-                next_pos = next_pos->parent;
+                iter->position = next_pos;
             }
         }
-
-        iter->position = next_pos;
     }
 
+    iter->position = next_pos;
     if (next_pos == NULL)
     {
         /* reached end of tree */
@@ -1283,7 +1287,6 @@ int bplib_rbt_iter_next(bplib_rbt_iter_t *iter)
 int bplib_rbt_iter_prev(bplib_rbt_iter_t *iter)
 {
     const bplib_rbt_link_t *prev_pos;
-    bp_val_t                last_val;
 
     prev_pos = iter->position;
     if (prev_pos != NULL)
@@ -1299,26 +1302,23 @@ int bplib_rbt_iter_prev(bplib_rbt_iter_t *iter)
         }
         else
         {
-            /* Ascend to the parent, until arriving at an unvisited node */
-            last_val = get_key_value(prev_pos);
-            while (prev_pos != NULL)
+            while (true)
             {
-                if (get_key_value(prev_pos) < last_val)
+                /* Ascend to the parent, until arriving at an unvisited node */
+                prev_pos = prev_pos->parent;
+
+                /* if returning from the right-side child, visit this node now.
+                 * otherwise, this is returning from the left side child, so keep going up. */
+                if (prev_pos == NULL || prev_pos->right == iter->position)
                 {
-                    /*
-                     * This node value is less than the previous,
-                     * so it must be the first visit (i.e. returning
-                     * from right-side subtree)
-                     */
                     break;
                 }
-                prev_pos = prev_pos->parent;
+                iter->position = prev_pos;
             }
         }
-
-        iter->position = prev_pos;
     }
 
+    iter->position = prev_pos;
     if (prev_pos == NULL)
     {
         /* reached end of tree */
@@ -1328,7 +1328,7 @@ int bplib_rbt_iter_prev(bplib_rbt_iter_t *iter)
     return BP_SUCCESS;
 }
 
-const bplib_rbt_link_t *bplib_rbt_iter_find_closest(bp_val_t target_value, const bplib_rbt_root_t *tree)
+const bplib_rbt_link_t *bplib_rbt_iter_find_closest(bp_val_t target_value, const bplib_rbt_link_t *start_pos)
 {
     const bplib_rbt_link_t *prev_pos;
     const bplib_rbt_link_t *curr_pos;
@@ -1336,7 +1336,7 @@ const bplib_rbt_link_t *bplib_rbt_iter_find_closest(bp_val_t target_value, const
 
     prev_pos = NULL;
     curr_val = 0;
-    curr_pos = tree->root;
+    curr_pos = start_pos;
     while (true)
     {
         if (curr_pos == NULL)
@@ -1372,7 +1372,7 @@ int bplib_rbt_iter_goto_min(bp_val_t minimum_value, const bplib_rbt_root_t *tree
     bp_val_t curr_val;
     int      status;
 
-    iter->position = bplib_rbt_iter_find_closest(minimum_value, tree);
+    iter->position = bplib_rbt_iter_find_closest(minimum_value, tree->root);
     if (iter->position == NULL)
     {
         /* the tree is empty */
@@ -1380,6 +1380,11 @@ int bplib_rbt_iter_goto_min(bp_val_t minimum_value, const bplib_rbt_root_t *tree
     }
     else
     {
+        while (iter->position->left != NULL)
+        {
+            iter->position = bplib_rbt_iter_find_closest(minimum_value, iter->position->left);
+        }
+
         curr_val = get_key_value(iter->position);
         if (curr_val >= minimum_value)
         {
@@ -1400,7 +1405,7 @@ int bplib_rbt_iter_goto_max(bp_val_t maximum_value, const bplib_rbt_root_t *tree
     bp_val_t curr_val;
     int      status;
 
-    iter->position = bplib_rbt_iter_find_closest(maximum_value, tree);
+    iter->position = bplib_rbt_iter_find_closest(maximum_value, tree->root);
     if (iter->position == NULL)
     {
         /* the tree is empty */
@@ -1408,6 +1413,11 @@ int bplib_rbt_iter_goto_max(bp_val_t maximum_value, const bplib_rbt_root_t *tree
     }
     else
     {
+        while (iter->position->right != NULL)
+        {
+            iter->position = bplib_rbt_iter_find_closest(maximum_value, iter->position->right);
+        }
+
         curr_val = get_key_value(iter->position);
         if (curr_val <= maximum_value)
         {
