@@ -41,7 +41,6 @@
  */
 #define BPLIB_STORE_SIGNATURE_STATE    0x683359a7
 #define BPLIB_STORE_SIGNATURE_ENTRY    0xf223fff9
-#define BPLIB_STORE_SIGNATURE_QUEUE    0x30241224
 #define BPLIB_STORE_SIGNATURE_BLOCKREF 0x77e96b11
 
 #define BPLIB_STORE_FLAG_ACTIVITY         0x01
@@ -59,18 +58,6 @@
 #define BP_CACHE_FAST_RETRY_TIME 3000     /* 3 sec */
 #define BP_CACHE_IDLE_RETRY_TIME 3600000  /* 1 hour */
 #define BP_CACHE_AGE_OUT_TIME    60000    /* 1 minute */
-
-/*
- * The size of the time "buckets" stored in the time index
- *
- * as every entry in the time index tree may consume an extra block (required for duplicate handling),
- * this will batch together a group of times.  There shouldn't be a real need for millisecond-
- * level precision here, and this should hopefully reduce the block usage by consolidating
- * all entries that are within a range of times.
- *
- * This is a number of LSBs of the seconds to be grouped
- */
-#define BP_CACHE_TIME_BUCKET_SHIFT 10 /* approx 1 second */
 
 #define BP_CACHE_TIME_INFINITE BP_DTNTIME_INFINITE
 
@@ -98,37 +85,14 @@ typedef struct bplib_cache_state
      */
     bplib_mpool_block_t idle_list;
 
-    bplib_rbt_root_t hash_index;
-    bplib_rbt_root_t dest_eid_index;
-    bplib_rbt_root_t time_index;
+    bplib_rbt_root_t bundle_index;
+    bplib_rbt_root_t dacs_index;
+    bplib_rbt_root_t dest_eid_jphfix_index;
+    bplib_rbt_root_t time_jphfix_index;
 
     uint32_t generated_dacs_seq;
 
 } bplib_cache_state_t;
-
-/*
- * There are generally two ways for a bundle to be pulled from storage:
- * 1. The outgoing CLA comes up, and the bundle is to be sent through it
- *     -> this is based on destination EID, and matching routes in the route tbl.
- *        it is triggered based on a state change event from a CLA interface
- * 2. The bundle has been sitting for some amount of time
- *     -> this is triggered based on a periodic polling/maintenance call
- *        may be based on the expiration time or retransmit time
- *
- * Both of these tasks need reasonably efficient lookups - cannot be sequential
- * searches through a list.  A dedicated index is created for each, using the
- * R-B tree facility.
- *
- * Note that the R-B tree mechanism does not allow for duplicate entries, but
- * there absolutely can be multiple entries in this use-case, so we need to
- * use an intermediate queue here.
- */
-typedef struct bplib_cache_queue
-{
-    bplib_rbt_link_t    rbt_link;    /* must be first */
-    bplib_mpool_block_t bundle_list; /* jphfix - subq? */
-
-} bplib_cache_queue_t;
 
 typedef enum bplib_cache_entry_state
 {
@@ -158,21 +122,21 @@ typedef struct bplib_cache_entry
     bplib_cache_entry_state_t state;
     uint32_t                  flags;
     bplib_mpool_ref_t         refptr;
-    uint64_t                  action_time;    /**< DTN time when entity is due to have some action (e.g. transmit) */
-    uint64_t                  next_eval_time; /* jphfix - this should be removed */
-    bplib_mpool_block_t       hash_link;
-    bplib_mpool_block_t       time_link;
-    bplib_mpool_block_t       destination_link;
+    uint64_t                  action_time; /**< DTN time when entity is due to have some action (e.g. transmit) */
+    bplib_rbt_link_t          hash_rbt_link;
+    bplib_rbt_link_t          time_rbt_link;
+    bplib_rbt_link_t          dest_eid_rbt_link;
     bplib_cache_entry_data_t  data;
 } bplib_cache_entry_t;
 
 typedef struct bplib_cache_blockref
 {
-    bplib_mpool_block_t *storage_entry_block;
+    bplib_cache_entry_t *storage_entry;
 } bplib_cache_blockref_t;
 
 typedef struct bplib_cache_custodian_info
 {
+    bool                 match_dacs;
     bp_ipn_addr_t        flow_id;
     bp_ipn_addr_t        custodian_id;
     bplib_mpool_block_t *cblk;
@@ -189,18 +153,6 @@ static inline bplib_mpool_block_t *bplib_cache_state_self_block(bplib_cache_stat
     return bplib_mpool_get_block_from_link(&state->pending_list);
 }
 
-static inline bplib_mpool_block_t *bplib_cache_entry_self_block(bplib_cache_entry_t *entry)
-{
-    /* any of the sub-lists can be used here, they should all trace back to the same parent */
-    return bplib_mpool_get_block_from_link(&entry->hash_link);
-}
-
-static inline bplib_mpool_block_t *bplib_cache_queue_self_block(bplib_cache_queue_t *queue)
-{
-    /* any of the sub-lists can be used here, they should all trace back to the same parent */
-    return bplib_mpool_get_block_from_link(&queue->bundle_list);
-}
-
 /* Allows reconstitution of the parent pool from a cache state pointer */
 static inline bplib_mpool_t *bplib_cache_parent_pool(bplib_cache_state_t *state)
 {
@@ -214,16 +166,11 @@ static inline bplib_mpool_flow_t *bplib_cache_get_flow(bplib_cache_state_t *stat
 }
 
 /* Allows reconstitution of the queue struct from an RBT link pointer */
-static inline bplib_cache_queue_t *bplib_cache_queue_from_rbt_link(const bplib_rbt_link_t *link)
+#define bplib_cache_entry_from_link(ptr, member) \
+    bplib_cache_entry_get_container(ptr, offsetof(bplib_cache_entry_t, member))
+static inline bplib_cache_entry_t *bplib_cache_entry_get_container(const bplib_rbt_link_t *link, size_t offset)
 {
-    /* this relies on "rbt_link" being the first entry in the struct */
-    return (bplib_cache_queue_t *)((void *)link);
-}
-
-/* Allows reconstitution of the queue struct from a bundle_list pointer */
-static inline bplib_cache_queue_t *bplib_cache_queue_from_bundle_list(bplib_mpool_block_t *list)
-{
-    return bplib_mpool_generic_data_cast(bplib_mpool_get_block_from_link(list), BPLIB_STORE_SIGNATURE_QUEUE);
+    return (bplib_cache_entry_t *)((uint8_t *)link - offset);
 }
 
 void bplib_cache_custody_finalize_dacs(bplib_cache_state_t *state, bplib_cache_entry_t *store_entry);
@@ -232,9 +179,8 @@ bool bplib_cache_custody_check_dacs(bplib_cache_state_t *state, bplib_mpool_bloc
 
 void bplib_cache_fsm_execute(bplib_mpool_block_t *sblk);
 
-void bplib_cache_remove_from_subindex(bplib_rbt_root_t *index_root, bplib_mpool_block_t *index_link);
-void bplib_cache_add_to_subindex(bplib_rbt_root_t *index_root, bplib_mpool_block_t *index_link, bp_val_t index_val);
+int bplib_cache_entry_tree_insert_unsorted(const bplib_rbt_link_t *node, void *arg);
 
-void bplib_cache_entry_make_pending(bplib_mpool_block_t *qblk, uint32_t set_flags, uint32_t clear_flags);
+void bplib_cache_entry_make_pending(bplib_cache_entry_t *store_entry, uint32_t set_flags, uint32_t clear_flags);
 
 #endif /* V7_CACHE_INTERNAL_H */

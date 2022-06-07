@@ -46,7 +46,7 @@ void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, bplib
     }
 }
 
-int bplib_cache_custody_find_dacs_match(void *arg, bplib_mpool_block_t *lblk)
+int bplib_cache_custody_find_dacs_match(const bplib_rbt_link_t *node, void *arg)
 {
     bplib_cache_entry_t          *store_entry;
     bplib_cache_dacs_pending_t   *dacs_pending;
@@ -55,28 +55,21 @@ int bplib_cache_custody_find_dacs_match(void *arg, bplib_mpool_block_t *lblk)
 
     custody_info = arg;
 
-    /* possible match, but need to verify */
-    store_entry = bplib_mpool_generic_data_cast(lblk, BPLIB_STORE_SIGNATURE_ENTRY);
-    if (store_entry != NULL && store_entry->state == bplib_cache_entry_state_generate_dacs)
-    {
-        dacs_pending = &store_entry->data.dacs;
+    store_entry = bplib_cache_entry_from_link(node, hash_rbt_link);
 
-        /* confirm match of custodian ID */
-        result = v7_compare_ipn2ipn(&dacs_pending->prev_custodian_id, &custody_info->custodian_id);
-        if (result == 0)
-        {
-            /* confirm match of the flow ID */
-            result = v7_compare_ipn2eid(&custody_info->flow_id, &dacs_pending->payload_ref->flow_source_eid);
-            if (result == 0)
-            {
-                /* its a complete match */
-                custody_info->store_entry = store_entry;
-            }
-        }
-    }
-    else
+    /* everything in here should be a DACS, assert on it for now */
+    assert(store_entry->state == bplib_cache_entry_state_generate_dacs);
+
+    /* possible match, but need to verify */
+    /* matching for DACS entries is based on prev custodian ID and */
+    dacs_pending = &store_entry->data.dacs;
+
+    /* confirm match of custodian ID */
+    result = v7_compare_ipn2ipn(&dacs_pending->prev_custodian_id, &custody_info->custodian_id);
+    if (result == 0)
     {
-        result = -1;
+        /* confirm match of the flow ID */
+        result = v7_compare_ipn2eid(&custody_info->flow_id, &dacs_pending->payload_ref->flow_source_eid);
     }
 
     return result;
@@ -84,10 +77,8 @@ int bplib_cache_custody_find_dacs_match(void *arg, bplib_mpool_block_t *lblk)
 
 bool bplib_cache_custody_find_pending_dacs(bplib_cache_state_t *state, bplib_cache_custodian_info_t *dacs_info)
 {
-    bplib_rbt_link_t    *custody_rbt_link;
-    bplib_cache_queue_t *store_queue;
-    bplib_mpool_block_t *sblk;
-    bp_crcval_t          hash;
+    bplib_rbt_link_t *custody_rbt_link;
+    bp_crcval_t       hash;
 
     /* use a CRC as a hash function */
     /* when searching for DACS this includes flow and custodian but NOT sequence number (which has multiple values) */
@@ -99,25 +90,15 @@ bool bplib_cache_custody_find_pending_dacs(bplib_cache_state_t *state, bplib_cac
                             sizeof(BPLIB_CACHE_CUSTODY_HASH_SALT_DACS));
     dacs_info->eid_hash = bplib_crc_finalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
 
-    custody_rbt_link = bplib_rbt_search(dacs_info->eid_hash, &state->hash_index);
+    custody_rbt_link = bplib_rbt_search_generic(dacs_info->eid_hash, &state->dacs_index,
+                                                bplib_cache_custody_find_dacs_match, dacs_info);
     if (custody_rbt_link != NULL)
     {
-        store_queue = bplib_cache_queue_from_rbt_link(custody_rbt_link);
-
-        /*
-         * to handle possible hash collision/overlap, there is a list at this entry,
-         * which needs to be searched.  Collisions should be unlikely enough that
-         * the lists, if they ever become more than one entry, stay short enough
-         * such that sequential search is not a burden.
-         */
-        sblk = bplib_mpool_search_list(&store_queue->bundle_list, bplib_cache_custody_find_dacs_match, dacs_info);
-    }
-    else
-    {
-        sblk = NULL;
+        /* its a complete match */
+        dacs_info->store_entry = bplib_cache_entry_from_link(custody_rbt_link, hash_rbt_link);
     }
 
-    return (sblk != NULL);
+    return (custody_rbt_link != NULL);
 }
 
 void bplib_cache_custody_init_info_from_pblock(bplib_cache_custodian_info_t *custody_info,
@@ -277,9 +258,11 @@ void bplib_cache_custody_open_dacs(bplib_cache_state_t *state, bplib_cache_custo
         dacs_pending->payload_ref = ack_content;
         v7_get_eid(&dacs_pending->prev_custodian_id, &pri_block->pri_logical_data.destinationEID);
 
-        bplib_cache_add_to_subindex(&state->hash_index, &store_entry->hash_link, custody_info->eid_hash);
+        bplib_rbt_insert_value_generic(custody_info->eid_hash, &state->dacs_index, &store_entry->hash_rbt_link,
+                                       bplib_cache_custody_find_dacs_match, custody_info);
         bplib_cache_entry_make_pending(
-            sblk, BPLIB_STORE_FLAG_ACTIVITY | BPLIB_STORE_FLAG_LOCAL_CUSTODY | BPLIB_STORE_FLAG_ACTION_TIME_WAIT, 0);
+            store_entry, BPLIB_STORE_FLAG_ACTIVITY | BPLIB_STORE_FLAG_LOCAL_CUSTODY | BPLIB_STORE_FLAG_ACTION_TIME_WAIT,
+            0);
 
         custody_info->store_entry = store_entry;
     }
@@ -325,7 +308,7 @@ void bplib_cache_custody_append_dacs(bplib_cache_state_t *state, bplib_cache_cus
         if (payload->num_entries == BP_DACS_MAX_SEQ_PER_PAYLOAD)
         {
             bplib_cache_custody_finalize_dacs(state, custody_info->store_entry);
-            bplib_cache_entry_make_pending(&custody_info->store_entry->hash_link, 0, BPLIB_STORE_FLAG_ACTION_TIME_WAIT);
+            bplib_cache_entry_make_pending(custody_info->store_entry, 0, BPLIB_STORE_FLAG_ACTION_TIME_WAIT);
         }
     }
 }
@@ -405,7 +388,7 @@ void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, bplib_mpool_
     }
 }
 
-int bplib_cache_custody_find_bundle_match(void *arg, bplib_mpool_block_t *lblk)
+int bplib_cache_custody_find_bundle_match(const bplib_rbt_link_t *node, void *arg)
 {
     bplib_cache_entry_t          *store_entry;
     bplib_mpool_bblock_primary_t *pri_block;
@@ -414,28 +397,22 @@ int bplib_cache_custody_find_bundle_match(void *arg, bplib_mpool_block_t *lblk)
 
     /* possible match, but need to verify */
     custody_info = arg;
-    result       = -1;
+    store_entry  = bplib_cache_entry_from_link(node, hash_rbt_link);
 
-    store_entry = bplib_mpool_generic_data_cast(lblk, BPLIB_STORE_SIGNATURE_ENTRY);
-    if (store_entry != NULL)
+    pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
+    if (pri_block == NULL)
     {
-        pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
-
-        if (pri_block != NULL &&
-            pri_block->pri_logical_data.creationTimeStamp.sequence_num == custody_info->sequence_num)
+        /* not expected */
+        result = -1;
+    }
+    else
+    {
+        result =
+            v7_compare_numeric(pri_block->pri_logical_data.creationTimeStamp.sequence_num, custody_info->sequence_num);
+        if (result == 0)
         {
             result = v7_compare_ipn2eid(&custody_info->flow_id, &pri_block->pri_logical_data.sourceEID);
         }
-    }
-
-    if (result == 0)
-    {
-        custody_info->store_entry = store_entry;
-
-        /* set the activity flag which tracks that this entry was used for some purpose.
-         * this is part of the deletion age-out process, and indicates this should _not_
-         * be fully discarded just yet, it still appears to be relevant */
-        store_entry->flags |= BPLIB_STORE_FLAG_ACTIVITY;
     }
 
     return result;
@@ -443,10 +420,8 @@ int bplib_cache_custody_find_bundle_match(void *arg, bplib_mpool_block_t *lblk)
 
 bool bplib_cache_custody_find_existing_bundle(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info)
 {
-    bplib_rbt_link_t    *custody_rbt_link;
-    bplib_cache_queue_t *store_queue;
-    bplib_mpool_block_t *sblk;
-    bp_crcval_t          hash;
+    bplib_rbt_link_t *custody_rbt_link;
+    bp_crcval_t       hash;
 
     /* use a CRC as a hash function */
     /* when searching for bundles this includes flow and sequence number but NOT custodian (which would always be us) */
@@ -459,25 +434,19 @@ bool bplib_cache_custody_find_existing_bundle(bplib_cache_state_t *state, bplib_
                             sizeof(BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE));
     custody_info->eid_hash = bplib_crc_finalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
 
-    custody_rbt_link = bplib_rbt_search(custody_info->eid_hash, &state->hash_index);
+    custody_rbt_link = bplib_rbt_search_generic(custody_info->eid_hash, &state->bundle_index,
+                                                bplib_cache_custody_find_bundle_match, custody_info);
     if (custody_rbt_link != NULL)
     {
-        store_queue = bplib_cache_queue_from_rbt_link(custody_rbt_link);
+        custody_info->store_entry = bplib_cache_entry_from_link(custody_rbt_link, hash_rbt_link);
 
-        /*
-         * to handle possible hash collision/overlap, there is a list at this entry,
-         * which needs to be searched.  Collisions should be unlikely enough that
-         * the lists, if they ever become more than one entry, stay short enough
-         * such that sequential search is not a burden.
-         */
-        sblk = bplib_mpool_search_list(&store_queue->bundle_list, bplib_cache_custody_find_bundle_match, custody_info);
-    }
-    else
-    {
-        sblk = NULL;
+        /* set the activity flag which tracks that this entry was used for some purpose.
+         * this is part of the deletion age-out process, and indicates this should _not_
+         * be fully discarded just yet, it still appears to be relevant */
+        custody_info->store_entry->flags |= BPLIB_STORE_FLAG_ACTIVITY;
     }
 
-    return (sblk != NULL);
+    return (custody_rbt_link != NULL);
 }
 
 void bplib_cache_custody_process_remote_dacs_bundle(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
@@ -501,7 +470,7 @@ void bplib_cache_custody_process_remote_dacs_bundle(bplib_cache_state_t *state, 
 
             /* confirmed that another custodian has the bundle -
              * can clear the flag that says we are the active custodian, and reevaluate */
-            bplib_cache_entry_make_pending(&custody_info.store_entry->hash_link, 0, BPLIB_STORE_FLAG_LOCAL_CUSTODY);
+            bplib_cache_entry_make_pending(custody_info.store_entry, 0, BPLIB_STORE_FLAG_LOCAL_CUSTODY);
         }
     }
 }
@@ -510,7 +479,10 @@ void bplib_cache_custody_finalize_dacs(bplib_cache_state_t *state, bplib_cache_e
 {
     /* after this point, the entry becomes a normal bundle, it is removed from EID hash
      * so future appends are also prevented */
-    bplib_cache_remove_from_subindex(&state->hash_index, &store_entry->hash_link);
+    if (bplib_rbt_node_is_member(&state->dacs_index, &store_entry->hash_rbt_link))
+    {
+        bplib_rbt_extract_node(&state->dacs_index, &store_entry->hash_rbt_link);
+    }
 }
 
 bool bplib_cache_custody_check_dacs(bplib_cache_state_t *state, bplib_mpool_block_t *qblk)
@@ -570,17 +542,20 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
     if (custody_info.store_entry != NULL)
     {
         custody_info.store_entry->parent = state;
-        custody_info.store_entry->state  = bplib_cache_entry_state_idle; /* jphfix, check this */
+        custody_info.store_entry->state  = bplib_cache_entry_state_idle;
 
         /* this keeps a copy of the ref here, after qblk is recycled */
         custody_info.store_entry->refptr = bplib_mpool_ref_from_block(qblk);
 
-        bplib_cache_add_to_subindex(&state->dest_eid_index, &custody_info.store_entry->destination_link,
-                                    custody_info.final_dest_node);
+        bplib_rbt_insert_value_generic(custody_info.final_dest_node, &state->dest_eid_jphfix_index,
+                                       &custody_info.store_entry->dest_eid_rbt_link,
+                                       bplib_cache_entry_tree_insert_unsorted, NULL);
 
         /* when the custody ACK for this block comes in, this block needs to be found again,
          * so make an entry in the hash index for it */
-        bplib_cache_add_to_subindex(&state->hash_index, &custody_info.store_entry->hash_link, custody_info.eid_hash);
+        bplib_rbt_insert_value_generic(custody_info.eid_hash, &state->bundle_index,
+                                       &custody_info.store_entry->hash_rbt_link, bplib_cache_custody_find_bundle_match,
+                                       &custody_info);
 
         custody_info.store_entry->flags |= BPLIB_STORE_FLAG_LOCAL_CUSTODY | BPLIB_STORE_FLAG_ACTIVITY;
 

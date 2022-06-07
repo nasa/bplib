@@ -438,6 +438,20 @@ bplib_mpool_t *bplib_mpool_get_parent_pool_from_link(bplib_mpool_block_t *cb);
 void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_magic);
 
 /**
+ * @brief Cast a generic user data segment to its parent block
+ *
+ * This is the inverse of bplib_mpool_generic_data_cast() and allows obtaining the pool
+ * block from a generic data pointer.  The pointer passed in must be from a prior call
+ * to bplib_mpool_generic_data_cast() or else the result is undefined.
+ *
+ * @param blk pointer from previous call to bplib_mpool_generic_data_cast
+ * @param required_magic
+ * @return bplib_mpool_generic_data_t*
+ */
+bplib_mpool_block_t *bplib_mpool_generic_data_uncast(void *blk, bplib_mpool_blocktype_t parent_bt,
+                                                     uint32_t required_magic);
+
+/**
  * @brief Gets the size of the user buffer associated with a data block
  *
  * For a CBOR block this is the length of the CBOR data within this block.  For a user

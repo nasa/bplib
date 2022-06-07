@@ -193,6 +193,7 @@ static void bplib_cache_fsm_state_generate_dacs_exit(bplib_cache_entry_t *store_
 static void bplib_cache_fsm_reschedule(bplib_cache_state_t *state, bplib_cache_entry_t *store_entry)
 {
     uint64_t ref_time;
+    uint64_t prev_key;
 
     ref_time = state->action_time;
 
@@ -217,17 +218,19 @@ static void bplib_cache_fsm_reschedule(bplib_cache_state_t *state, bplib_cache_e
     /*
      * determine the batch/bucket that this should go into
      */
-    ref_time |= (1 << BP_CACHE_TIME_BUCKET_SHIFT) - 1;
-
-    if (ref_time != store_entry->next_eval_time)
+    prev_key = bplib_rbt_get_key_value(&store_entry->time_rbt_link);
+    if (ref_time != prev_key)
     {
         /*
          * If this was in the time index, the old entry needs to be removed first,
          * then it needs to be added in the new spot
          */
-        bplib_cache_remove_from_subindex(&state->time_index, &store_entry->time_link);
-        bplib_cache_add_to_subindex(&state->time_index, &store_entry->time_link, ref_time);
-        store_entry->next_eval_time = ref_time;
+        if (prev_key != 0)
+        {
+            bplib_rbt_extract_node(&state->time_jphfix_index, &store_entry->time_rbt_link);
+        }
+        bplib_rbt_insert_value_generic(ref_time, &state->time_jphfix_index, &store_entry->time_rbt_link,
+                                       bplib_cache_entry_tree_insert_unsorted, NULL);
     }
 }
 

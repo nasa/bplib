@@ -47,6 +47,20 @@ typedef struct bplib_rbt_link
 } bplib_rbt_link_t;
 
 /**
+ * @brief Comparison function for nodes with the same key value
+ *
+ * This RB tree implementation optionally allows for trees with duplicate keys.
+ * If this feature is used, then this function provices a secondary comparison
+ * for nodes which have the same primary key value.
+ *
+ * @retval 0 if node is equal to the reference object
+ * @returns positive integer value if node is logically greater than the reference object
+ * @returns negative integer value if node is logically less than the reference object
+ *
+ */
+typedef int (*bplib_rbt_compare_func_t)(const bplib_rbt_link_t *node, void *arg);
+
+/**
  * @brief Basic R-B tree parent structure
  */
 typedef struct bplib_rbt_root
@@ -105,12 +119,42 @@ bool bplib_rbt_node_is_member(const bplib_rbt_root_t *tree, const bplib_rbt_link
  * The tree is searched for a matching value, and if found, the pointer to that node
  * is returned.
  *
+ * This implementation allows multiple nodes with the same key. In order to search for
+ * a specific node in a tree that has multiple enties with the same key, a compare function
+ * must be provided by the caller.
+ *
+ * If the compare function is NULL, then the first node encountered that has a matching key
+ * will be returned.  If more than one matching key exists, then it is not defined which
+ * node will be returned unless the compare_func is non-NULL.
+ *
+ * @param[in] search_key_value The value to search for
+ * @param[in] tree             The tree to search in
+ * @param[in] compare_func     Comparison function to be called on every node with matching key
+ * @param[in] compare_arg      Opaque argument passed through to comparison function
+ * @return Pointer to the matching node
+ * @retval NULL if no matching node was found
+ */
+bplib_rbt_link_t *bplib_rbt_search_generic(bp_val_t search_key_value, const bplib_rbt_root_t *tree,
+                                           bplib_rbt_compare_func_t compare_func, void *compare_arg);
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Searches the Red-Black tree for a node matching a given value
+ *
+ * The tree is searched for a matching value, and if found, the pointer to that node
+ * is returned.
+ *
+ * This simplified function can be used on trees that have unique keys
+ *
  * @param[in] search_key_value The value to search for
  * @param[in] tree             The tree to search in
  * @return Pointer to the matching node
  * @retval NULL if no matching node was found
  */
-bplib_rbt_link_t *bplib_rbt_search(bp_val_t search_key_value, const bplib_rbt_root_t *tree);
+static inline bplib_rbt_link_t *bplib_rbt_search_unique(bp_val_t search_key_value, const bplib_rbt_root_t *tree)
+{
+    return bplib_rbt_search_generic(search_key_value, tree, NULL, NULL);
+}
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -119,6 +163,44 @@ bplib_rbt_link_t *bplib_rbt_search(bp_val_t search_key_value, const bplib_rbt_ro
  * Sets the new_node to the given value, and inserts it into the tree.  If the insertion caused
  * any unbalance or constraint violation condition, that condition will be corrected before the
  * function returns.
+ *
+ * The "compare_func" is a secondary comparision to handle duplicate keys.  If passed as non-NULL,
+ * then duplicate keys will be allowed, and the comparison function will be used to differentiate
+ * between nodes with the same key value.  If the comparison function is NULL, then duplicate key
+ * values will not be allowed.
+ *
+ * @note This routine both sets the key value and inserts it into the tree, there is _not_
+ * a separate function to set the key.  This is intentional, because the key determines the
+ * correct location in the tree, and must be treated as "const" once it has been set.
+ *
+ * In order to change a key value, the old value should be removed first, and then this
+ * function can be used again to set the new key value.
+ *
+ * @param[in]    insert_key_value Value to insert, which is saved into into the new node
+ * @param[inout] tree             Tree to insert into.  Rebalancing may change the current logical root node of the
+ * tree.
+ * @param[inout] link_block       Memory block to store the value, contents will be overwitten.  Must be allocated by
+ * caller.
+ * @param[in] compare_func     Comparison function to be called on every node with matching key
+ * @param[in] compare_arg      Opaque argument passed through to comparison function
+ * @retval BP_SUCCESS if node was successfully inserted
+ * @retval BP_DUPLICATE if the tree already contained the specified value (duplicates are not allowed)
+ */
+int bplib_rbt_insert_value_generic(bp_val_t insert_key_value, bplib_rbt_root_t *tree, bplib_rbt_link_t *link_block,
+                                   bplib_rbt_compare_func_t compare_func, void *compare_arg);
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Inserts a value into the Red-Black tree and rebalances it accordingly.
+ *
+ * Sets the new_node to the given value, and inserts it into the tree.  If the insertion caused
+ * any unbalance or constraint violation condition, that condition will be corrected before the
+ * function returns.
+ *
+ * The "compare_func" is a secondary comparision to handle duplicate keys.  If passed as non-NULL,
+ * then duplicate keys will be allowed, and the comparison function will be used to differentiate
+ * between nodes with the same key value.  If the comparison function is NULL, then duplicate key
+ * values will not be allowed.
  *
  * @note This routine both sets the key value and inserts it into the tree, there is _not_
  * a separate function to set the key.  This is intentional, because the key determines the
@@ -135,23 +217,11 @@ bplib_rbt_link_t *bplib_rbt_search(bp_val_t search_key_value, const bplib_rbt_ro
  * @retval BP_SUCCESS if node was successfully inserted
  * @retval BP_DUPLICATE if the tree already contained the specified value (duplicates are not allowed)
  */
-int bplib_rbt_insert_value(bp_val_t insert_key_value, bplib_rbt_root_t *tree, bplib_rbt_link_t *link_block);
-
-/*--------------------------------------------------------------------------------------*/
-/**
- * @brief Extracts a single value from the Red-Black tree and rebalances it accordingly.
- *
- * Locates the given value in the tree, and removes that value from the tree.  If the removal causes
- * any unbalance or constraint violation condition, that condition will be corrected before the
- * function returns.
- *
- * @param[in]    extract_key_value Value to extract
- * @param[inout] tree              Tree to extract from.
- * @param[out]   link_block        Memory block formerly used to store the value (may be freed or recycled by caller)
- * @retval BP_SUCCESS if node was successfully extracted
- * @retval BP_ERROR if the tree did not contain the specified value
- */
-int bplib_rbt_extract_value(bp_val_t extract_key_value, bplib_rbt_root_t *tree, bplib_rbt_link_t **link_block);
+static inline int bplib_rbt_insert_value_unique(bp_val_t insert_key_value, bplib_rbt_root_t *tree,
+                                                bplib_rbt_link_t *link_block)
+{
+    return bplib_rbt_insert_value_generic(insert_key_value, tree, link_block, NULL, NULL);
+}
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -163,11 +233,11 @@ int bplib_rbt_extract_value(bp_val_t extract_key_value, bplib_rbt_root_t *tree, 
  * function returns.
  *
  * @param[inout] tree              Tree to extract from.
- * @param[in]    remove_node       Memory block to remove
+ * @param[in]    link_block        Memory block to remove
  * @retval BP_SUCCESS if node was successfully extracted
  * @retval BP_ERROR if the tree did not contain the specified value
  */
-int bplib_rbt_extract_node(bplib_rbt_root_t *tree, bplib_rbt_link_t *removed_node);
+int bplib_rbt_extract_node(bplib_rbt_root_t *tree, bplib_rbt_link_t *link_block);
 
 /*--------------------------------------------------------------------------------------*/
 /**
