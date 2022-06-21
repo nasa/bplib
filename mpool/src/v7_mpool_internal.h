@@ -33,7 +33,7 @@
 /*
  * Minimum size of a generic data block
  */
-#define BP_MPOOL_MIN_USER_BLOCK_SIZE 352
+#define BP_MPOOL_MIN_USER_BLOCK_SIZE 480
 
 #define MPOOL_CACHE_CBOR_DATA_SIGNATURE 0x6b243e33
 

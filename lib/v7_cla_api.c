@@ -142,8 +142,8 @@ int bplib_generic_bundle_ingress(bplib_mpool_ref_t flow_ref, const void *content
 
         if (rblk != NULL)
         {
-            pri_block->delivery_data.ingress_intf_id = bplib_mpool_get_external_id(bplib_mpool_dereference(flow_ref));
-            pri_block->delivery_data.ingress_time    = bplib_os_get_dtntime_ms();
+            pri_block->data.delivery.ingress_intf_id = bplib_mpool_get_external_id(bplib_mpool_dereference(flow_ref));
+            pri_block->data.delivery.ingress_time    = bplib_os_get_dtntime_ms();
 
             if (bplib_mpool_flow_try_push(&flow->ingress, rblk, time_limit))
             {
@@ -237,9 +237,9 @@ int bplib_generic_bundle_egress(bplib_mpool_ref_t flow_ref, void *content, size_
                     else
                     {
                         /* indicate that this has been sent out the intf */
-                        cpb->delivery_data.egress_intf_id =
+                        cpb->data.delivery.egress_intf_id =
                             bplib_mpool_get_external_id(bplib_mpool_dereference(flow_ref));
-                        cpb->delivery_data.egress_time = bplib_os_get_dtntime_ms();
+                        cpb->data.delivery.egress_time = bplib_os_get_dtntime_ms();
 
                         status = BP_SUCCESS;
                     }

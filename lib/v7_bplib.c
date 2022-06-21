@@ -31,6 +31,7 @@
 #include "v7_cache.h"
 #include "bplib_routing.h"
 #include "bplib_dataservice.h"
+#include "bplib_file_offload.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -92,6 +93,30 @@ bp_handle_t bplib_create_ram_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t
     bp_handle_t intf_id;
 
     intf_id = bplib_cache_attach(rtbl, storage_addr);
+
+    return intf_id;
+}
+
+bp_handle_t bplib_create_file_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *storage_addr)
+{
+    bp_handle_t intf_id;
+    bp_handle_t svc_id;
+    char        storage_path[64];
+
+    intf_id = bplib_cache_attach(rtbl, storage_addr);
+    if (bp_handle_is_valid(intf_id))
+    {
+        svc_id = bplib_cache_register_module_service(rtbl, intf_id, BPLIB_FILE_OFFLOAD_API, NULL);
+
+        if (bp_handle_is_valid(svc_id))
+        {
+            snprintf(storage_path, sizeof(storage_path), "./storage/%u.%u", (unsigned int)storage_addr->node_number,
+                     (unsigned int)storage_addr->service_number);
+            bplib_cache_configure(rtbl, intf_id, bplib_cache_confkey_offload_base_dir,
+                                  bplib_cache_module_valtype_string, storage_path);
+            bplib_cache_start(rtbl, intf_id);
+        }
+    }
 
     return intf_id;
 }

@@ -41,7 +41,7 @@ void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, bplib
         {
             custody_block->canonical_logical_data.canonical_block.blockType = bp_blocktype_custodyTrackingBlock;
             custody_block->canonical_logical_data.canonical_block.blockNum  = bp_blocktype_custodyTrackingBlock;
-            custody_block->canonical_logical_data.canonical_block.crctype   = pri_block->pri_logical_data.crctype;
+            custody_block->canonical_logical_data.canonical_block.crctype   = pri_block->data.logical.crctype;
         }
     }
 }
@@ -65,7 +65,7 @@ int bplib_cache_custody_find_dacs_match(const bplib_rbt_link_t *node, void *arg)
     dacs_pending = &store_entry->data.dacs;
 
     /* confirm match of custodian ID */
-    result = v7_compare_ipn2ipn(&dacs_pending->prev_custodian_id, &custody_info->custodian_id);
+    result = v7_compare_ipn2ipn(&custody_info->custodian_id, &dacs_pending->prev_custodian_id);
     if (result == 0)
     {
         /* confirm match of the flow ID */
@@ -109,10 +109,10 @@ void bplib_cache_custody_init_info_from_pblock(bplib_cache_custodian_info_t *cus
 
     memset(custody_info, 0, sizeof(*custody_info));
 
-    v7_get_eid(&custody_info->flow_id, &pri_block->pri_logical_data.sourceEID);
-    custody_info->sequence_num = pri_block->pri_logical_data.creationTimeStamp.sequence_num;
+    v7_get_eid(&custody_info->flow_id, &pri_block->data.logical.sourceEID);
+    custody_info->sequence_num = pri_block->data.logical.creationTimeStamp.sequence_num;
 
-    v7_get_eid(&final_dest_addr, &pri_block->pri_logical_data.destinationEID);
+    v7_get_eid(&final_dest_addr, &pri_block->data.logical.destinationEID);
     custody_info->final_dest_node = final_dest_addr.node_number;
 
     custody_info->cblk = bplib_mpool_bblock_primary_locate_canonical(pri_block, bp_blocktype_custodyTrackingBlock);
@@ -234,29 +234,32 @@ void bplib_cache_custody_open_dacs(bplib_cache_state_t *state, bplib_cache_custo
     {
         /* need to fill out the delivery_data so this will look like a regular bundle when sent */
         self_intf_id                                 = bplib_mpool_get_external_id(bplib_cache_state_self_block(state));
-        pri_block->delivery_data.delivery_policy     = bplib_policy_delivery_local_ack;
-        pri_block->delivery_data.local_retx_interval = BP_CACHE_FAST_RETRY_TIME;
-        pri_block->delivery_data.ingress_intf_id     = self_intf_id;
-        pri_block->delivery_data.ingress_time        = bplib_os_get_dtntime_ms();
-        pri_block->delivery_data.storage_intf_id     = self_intf_id;
-        pri_block->delivery_data.committed_storage_id = (bp_sid_t)sblk;
+        pri_block->data.delivery.delivery_policy     = bplib_policy_delivery_local_ack;
+        pri_block->data.delivery.local_retx_interval = BP_CACHE_FAST_RETRY_TIME;
+        pri_block->data.delivery.ingress_intf_id     = self_intf_id;
+        pri_block->data.delivery.ingress_time        = bplib_os_get_dtntime_ms();
+        pri_block->data.delivery.storage_intf_id     = self_intf_id;
+        pri_block->data.delivery.committed_storage_id = (bp_sid_t)sblk;
 
         store_entry->state = bplib_cache_entry_state_generate_dacs;
 
         /* the "action_time" reflects when this bundle will be finalized and sent, until
          * then it is open for appending with additional sequence numbers. */
-        store_entry->action_time = pri_block->delivery_data.ingress_time + BP_CACHE_DACS_OPEN_TIME;
-        store_entry->refptr      = bplib_mpool_ref_duplicate(pending_bundle);
+        store_entry->action_time   = pri_block->data.delivery.ingress_time + BP_CACHE_DACS_OPEN_TIME;
+        store_entry->expire_time   = pri_block->data.delivery.ingress_time + BP_CACHE_DACS_LIFETIME;
+        store_entry->flow_id_copy  = state->self_addr;
+        store_entry->flow_seq_copy = pri_block->data.logical.creationTimeStamp.sequence_num;
+        store_entry->refptr        = bplib_mpool_ref_duplicate(pending_bundle);
 
         /* the ack will be sent to the previous custodian of record */
-        v7_set_eid(&pri_block->pri_logical_data.destinationEID, &custody_info->custodian_id);
+        v7_set_eid(&pri_block->data.logical.destinationEID, &custody_info->custodian_id);
         v7_set_eid(&ack_content->flow_source_eid, &custody_info->flow_id);
 
         /* set convenience pointers in the dacs_pending extension data - this is mainly
          * so these don't need to be re-found when they are needed again later */
         dacs_pending              = &store_entry->data.dacs;
         dacs_pending->payload_ref = ack_content;
-        v7_get_eid(&dacs_pending->prev_custodian_id, &pri_block->pri_logical_data.destinationEID);
+        v7_get_eid(&dacs_pending->prev_custodian_id, &pri_block->data.logical.destinationEID);
 
         bplib_rbt_insert_value_generic(custody_info->eid_hash, &state->dacs_index, &store_entry->hash_rbt_link,
                                        bplib_cache_custody_find_dacs_match, custody_info);
@@ -369,7 +372,7 @@ void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, bplib_mpool_
         if (is_local)
         {
             /* this only needs acceptance by the local delivery agent, do not expect an ack bundle */
-            pri_block->delivery_data.delivery_policy = bplib_policy_delivery_local_ack;
+            pri_block->data.delivery.delivery_policy = bplib_policy_delivery_local_ack;
         }
     }
     else if (!is_local)
@@ -391,7 +394,6 @@ void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, bplib_mpool_
 int bplib_cache_custody_find_bundle_match(const bplib_rbt_link_t *node, void *arg)
 {
     bplib_cache_entry_t          *store_entry;
-    bplib_mpool_bblock_primary_t *pri_block;
     bplib_cache_custodian_info_t *custody_info;
     int                           result;
 
@@ -399,20 +401,10 @@ int bplib_cache_custody_find_bundle_match(const bplib_rbt_link_t *node, void *ar
     custody_info = arg;
     store_entry  = bplib_cache_entry_from_link(node, hash_rbt_link);
 
-    pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
-    if (pri_block == NULL)
+    result = v7_compare_numeric(custody_info->sequence_num, store_entry->flow_seq_copy);
+    if (result == 0)
     {
-        /* not expected */
-        result = -1;
-    }
-    else
-    {
-        result =
-            v7_compare_numeric(pri_block->pri_logical_data.creationTimeStamp.sequence_num, custody_info->sequence_num);
-        if (result == 0)
-        {
-            result = v7_compare_ipn2eid(&custody_info->flow_id, &pri_block->pri_logical_data.sourceEID);
-        }
+        result = v7_compare_ipn2ipn(&custody_info->flow_id, &store_entry->flow_id_copy);
     }
 
     return result;
@@ -457,7 +449,7 @@ void bplib_cache_custody_process_remote_dacs_bundle(bplib_cache_state_t *state, 
 
     memset(&custody_info, 0, sizeof(custody_info));
 
-    v7_get_eid(&custody_info.custodian_id, &pri_block->pri_logical_data.destinationEID);
+    v7_get_eid(&custody_info.custodian_id, &pri_block->data.logical.destinationEID);
     v7_get_eid(&custody_info.flow_id, &ack_payload->flow_source_eid);
 
     for (i = 0; i < ack_payload->num_entries; ++i)
@@ -492,7 +484,7 @@ bool bplib_cache_custody_check_dacs(bplib_cache_state_t *state, bplib_mpool_bloc
 
     c_block   = NULL;
     pri_block = bplib_mpool_bblock_primary_cast(qblk);
-    if (pri_block != NULL && pri_block->pri_logical_data.controlFlags.isAdminRecord)
+    if (pri_block != NULL && pri_block->data.logical.controlFlags.isAdminRecord)
     {
         /* check if it has a custody_ack payload type */
         c_block = bplib_mpool_bblock_canonical_cast(
@@ -558,17 +550,30 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
                                        &custody_info);
 
         custody_info.store_entry->flags |= BPLIB_STORE_FLAG_LOCAL_CUSTODY | BPLIB_STORE_FLAG_ACTIVITY;
+        custody_info.store_entry->flow_seq_copy = pri_block->data.logical.creationTimeStamp.sequence_num;
+        v7_get_eid(&custody_info.store_entry->flow_id_copy, &pri_block->data.logical.sourceEID);
+        custody_info.store_entry->expire_time =
+            pri_block->data.logical.creationTimeStamp.time + pri_block->data.logical.lifetime;
 
-        pri_block->delivery_data.storage_intf_id = bplib_mpool_get_external_id(bplib_cache_state_self_block(state));
-        pri_block->delivery_data.committed_storage_id = (bp_sid_t)sblk;
+        pri_block->data.delivery.storage_intf_id = bplib_mpool_get_external_id(bplib_cache_state_self_block(state));
+        pri_block->data.delivery.committed_storage_id = (bp_sid_t)sblk;
 
         /* NOTE:
          * This may also be the right place to generate a custody signal, if the bundle
          * has the full custody tracking/transfer service level.
          */
-        if (pri_block->delivery_data.delivery_policy == bplib_policy_delivery_custody_tracking)
+        if (pri_block->data.delivery.delivery_policy == bplib_policy_delivery_custody_tracking)
         {
             bplib_cache_custody_process_bundle(state, pri_block, &custody_info);
+        }
+
+        if (state->offload_api != NULL)
+        {
+            if (state->offload_api->offload(state->offload_blk, &custody_info.store_entry->offload_sid, qblk) ==
+                BP_SUCCESS)
+            {
+                /* TBD */
+            }
         }
 
         /* This puts it into the right spot for future holding */

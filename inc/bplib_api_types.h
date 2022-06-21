@@ -83,6 +83,8 @@ typedef struct bp_socket bp_socket_t;
 typedef struct bplib_mpool_block bplib_mpool_block_t;
 typedef struct bplib_mpool       bplib_mpool_t;
 
+typedef struct bplib_cache_module_api bplib_cache_module_api_t;
+
 /**
  * @brief A reference to another mpool block
  *

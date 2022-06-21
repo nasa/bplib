@@ -125,8 +125,8 @@ bplib_mpool_ref_t bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_
         pri->controlFlags.mustNotFragment = !sock_inf->params.allow_fragmentation;
         pri->crctype                      = sock_inf->params.crctype;
 
-        pri_block->delivery_data.delivery_policy     = sock_inf->params.local_delivery_policy;
-        pri_block->delivery_data.local_retx_interval = sock_inf->params.local_retx_interval;
+        pri_block->data.delivery.delivery_policy     = sock_inf->params.local_delivery_policy;
+        pri_block->data.delivery.local_retx_interval = sock_inf->params.local_retx_interval;
 
         /* Pre-Encode Primary Block */
         if (v7_block_encode_pri(pri_block) < 0)
@@ -301,7 +301,7 @@ int bplib_serviceflow_forward_ingress(void *arg, bplib_mpool_block_t *subq_src)
          * to the storage service yet, send it there now */
         pri_block = bplib_mpool_bblock_primary_cast(qblk);
         if (pri_block != NULL && base_intf->storage_service != NULL &&
-            !bp_handle_is_valid(pri_block->delivery_data.storage_intf_id))
+            !bp_handle_is_valid(pri_block->data.delivery.storage_intf_id))
         {
             storage_flow = bplib_mpool_flow_cast(bplib_mpool_dereference(base_intf->storage_service));
             if (storage_flow != NULL && bplib_mpool_flow_try_push(&storage_flow->egress, qblk, 0))
@@ -369,7 +369,7 @@ int bplib_serviceflow_forward_egress(void *arg, bplib_mpool_block_t *subq_src)
         if (pri_block != NULL)
         {
             /* Egress bundles also need to be checked if they need to go to storage */
-            if (!bp_handle_is_valid(pri_block->delivery_data.storage_intf_id) && base_intf->storage_service != NULL)
+            if (!bp_handle_is_valid(pri_block->data.delivery.storage_intf_id) && base_intf->storage_service != NULL)
             {
                 /* borrows the ref */
                 next_flow_ref = base_intf->storage_service;
@@ -927,8 +927,8 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t tim
         pri_block = bplib_mpool_bblock_primary_cast(rblk);
         if (pri_block != NULL)
         {
-            pri_block->delivery_data.ingress_intf_id = bplib_mpool_get_external_id(bplib_mpool_dereference(sock_ref));
-            pri_block->delivery_data.ingress_time    = ingress_time;
+            pri_block->data.delivery.ingress_intf_id = bplib_mpool_get_external_id(bplib_mpool_dereference(sock_ref));
+            pri_block->data.delivery.ingress_time    = ingress_time;
         }
 
         if (bplib_mpool_flow_try_push(&flow->ingress, rblk, ingress_time + timeout))
@@ -1031,9 +1031,9 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, uint32_t timeout)
             pri_block = bplib_mpool_bblock_primary_cast(pblk);
             if (pri_block != NULL)
             {
-                pri_block->delivery_data.egress_intf_id =
+                pri_block->data.delivery.egress_intf_id =
                     bplib_mpool_get_external_id(bplib_mpool_dereference(sock_ref));
-                pri_block->delivery_data.egress_time = bplib_os_get_dtntime_ms();
+                pri_block->data.delivery.egress_time = bplib_os_get_dtntime_ms();
             }
         }
 

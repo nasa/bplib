@@ -325,7 +325,7 @@ bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc)
  * returns: A crc remainder of the provided data. If a crc length is used that is less
  *      than the returned data type size than expect it to be cast.
  *-------------------------------------------------------------------------------------*/
-bp_crcval_t bplib_crc_get(const uint8_t *data, const uint32_t length, bplib_crc_parameters_t *params)
+bp_crcval_t bplib_crc_get(const void *data, const uint32_t length, bplib_crc_parameters_t *params)
 {
     return bplib_crc_finalize(params, params->digest(params->initial_value, data, length));
 }

@@ -442,10 +442,10 @@ static int setup_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *storage_ad
         return -1;
     }
 
-    intf_id = bplib_create_ram_storage(rtbl, storage_addr);
+    intf_id = bplib_create_file_storage(rtbl, storage_addr);
     if (!bp_handle_is_valid(intf_id))
     {
-        fprintf(stderr, "%s(): bplib_create_ram_storage failed\n", __func__);
+        fprintf(stderr, "%s(): bplib_create_file_storage failed\n", __func__);
         return -1;
     }
     if (bplib_route_intf_set_flags(rtbl, intf_id, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP) < 0)
