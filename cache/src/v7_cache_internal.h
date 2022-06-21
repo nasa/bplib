@@ -47,6 +47,7 @@
 #define BPLIB_STORE_FLAG_LOCAL_CUSTODY    0x02
 #define BPLIB_STORE_FLAG_ACTION_TIME_WAIT 0x04
 #define BPLIB_STORE_FLAG_LOCALLY_QUEUED   0x08
+#define BPLIB_STORE_FLAG_PENDING_FORWARD  0x10
 
 /* the set of flags for which retention is required - all are typically set for valid entries
  * if any of these becomes UN-set, retention of the entry is NOT required */
@@ -90,6 +91,9 @@ typedef struct bplib_cache_state
     bplib_rbt_root_t dest_eid_jphfix_index;
     bplib_rbt_root_t time_jphfix_index;
 
+    const bplib_cache_offload_api_t *offload_api;
+    bplib_mpool_block_t             *offload_blk;
+
     uint32_t generated_dacs_seq;
 
 } bplib_cache_state_t;
@@ -121,8 +125,12 @@ typedef struct bplib_cache_entry
     bplib_cache_state_t      *parent;
     bplib_cache_entry_state_t state;
     uint32_t                  flags;
+    bp_ipn_addr_t             flow_id_copy;
+    bp_sequencenumber_t       flow_seq_copy;
     bplib_mpool_ref_t         refptr;
+    bp_sid_t                  offload_sid;
     uint64_t                  action_time; /**< DTN time when entity is due to have some action (e.g. transmit) */
+    uint64_t                  expire_time; /**< DTN time when entity is due to have some action (e.g. transmit) */
     bplib_rbt_link_t          hash_rbt_link;
     bplib_rbt_link_t          time_rbt_link;
     bplib_rbt_link_t          dest_eid_rbt_link;

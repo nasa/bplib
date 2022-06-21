@@ -23,7 +23,7 @@ set(BPLIB_COMMON_COMPILE_OPTIONS)
 # If using a GNU-style compiler then enable full warnings here.
 # May want to add equivalent for other compiler flavors too
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic)
+   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation)
 endif()
 
 # source units that comprise the basic fundamentals of BPLib
@@ -87,6 +87,7 @@ if (BPLIB_INCLUDE_BPV7)
     lib/v7_routing.c
     lib/v7_cla_api.c
     lib/v7_dataservice_api.c
+    store/file_offload.c
 
     $<TARGET_OBJECTS:bplib_cache>
     $<TARGET_OBJECTS:bplib_v7>

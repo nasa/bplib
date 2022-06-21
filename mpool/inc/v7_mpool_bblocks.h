@@ -40,14 +40,20 @@ typedef struct bplib_mpool_bblock_tracking
     uint64_t local_retx_interval;
 } bplib_mpool_bblock_tracking_t;
 
+typedef struct bplib_mpool_bblock_primary_data
+{
+    bp_primary_block_t            logical;
+    bplib_mpool_bblock_tracking_t delivery;
+} bplib_mpool_bblock_primary_data_t;
+
 struct bplib_mpool_bblock_primary
 {
-    bplib_mpool_block_t           cblock_list;
-    bplib_mpool_block_t           chunk_list;
-    size_t                        block_encode_size_cache;
-    size_t                        bundle_encode_size_cache;
-    bp_primary_block_t            pri_logical_data;
-    bplib_mpool_bblock_tracking_t delivery_data;
+    bplib_mpool_block_t cblock_list;
+    bplib_mpool_block_t chunk_list;
+    size_t              block_encode_size_cache;
+    size_t              bundle_encode_size_cache;
+
+    bplib_mpool_bblock_primary_data_t data;
 };
 
 struct bplib_mpool_bblock_canonical
@@ -68,7 +74,7 @@ struct bplib_mpool_bblock_canonical
  */
 static inline bp_primary_block_t *bplib_mpool_bblock_primary_get_logical(bplib_mpool_bblock_primary_t *cpb)
 {
-    return &cpb->pri_logical_data;
+    return &cpb->data.logical;
 }
 
 /**

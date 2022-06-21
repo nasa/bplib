@@ -1823,7 +1823,7 @@ size_t v7_copy_full_bundle_in(bplib_mpool_bblock_primary_t *cpb, const void *buf
             chunk_sz = cpb->block_encode_size_cache;
 
             /* if the block is an admin record, this determines how to interpret the payload */
-            if (cpb->pri_logical_data.controlFlags.isAdminRecord)
+            if (cpb->data.logical.controlFlags.isAdminRecord)
             {
                 payload_block_hint = bp_blocktype_adminRecordPayloadBlock;
             }
@@ -1873,7 +1873,7 @@ size_t v7_copy_full_bundle_in(bplib_mpool_bblock_primary_t *cpb, const void *buf
 
                 case bp_blocktype_custodyTrackingBlock:
                     /* if this block is present it requests full custody tracking */
-                    cpb->delivery_data.delivery_policy = bplib_policy_delivery_custody_tracking;
+                    cpb->data.delivery.delivery_policy = bplib_policy_delivery_custody_tracking;
                     break;
 
                 default:

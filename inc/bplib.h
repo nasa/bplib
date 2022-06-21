@@ -343,6 +343,7 @@ int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn
  * @return bp_handle_t value referring to this entity
  */
 bp_handle_t bplib_create_ram_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *ipn_addr);
+bp_handle_t bplib_create_file_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *ipn_addr);
 
 /**
  * @brief Creates a CLA (bundle data unit) logical entity

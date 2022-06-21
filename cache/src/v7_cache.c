@@ -476,6 +476,142 @@ int bplib_cache_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr)
     return status;
 }
 
+bp_handle_t bplib_cache_register_module_service(bplib_routetbl_t *tbl, bp_handle_t cache_intf_id,
+                                                const bplib_cache_module_api_t *api, void *init_arg)
+{
+    bplib_cache_state_t *state;
+    bplib_mpool_block_t *cblk;
+    bplib_mpool_block_t *svc;
+    bplib_mpool_ref_t    parent_ref;
+    int                  status;
+    bp_handle_t          handle;
+
+    svc    = NULL;
+    handle = BP_INVALID_HANDLE;
+    cblk   = bplib_mpool_block_from_external_id(bplib_route_get_mpool(tbl), cache_intf_id);
+    state  = bplib_mpool_generic_data_cast(cblk, BPLIB_STORE_SIGNATURE_STATE);
+    if (state != NULL)
+    {
+        parent_ref = bplib_mpool_ref_create(cblk);
+        if (parent_ref != NULL)
+        {
+            svc = api->instantiate(parent_ref, init_arg);
+            bplib_mpool_ref_release(parent_ref);
+        }
+    }
+    else
+    {
+        svc = NULL;
+    }
+
+    if (svc != NULL)
+    {
+        switch (api->module_type)
+        {
+            case bplib_cache_module_type_offload:
+                state->offload_api = (const bplib_cache_offload_api_t *)api;
+                state->offload_blk = svc;
+                status             = BP_SUCCESS;
+                break;
+            default:
+                status = BP_ERROR;
+                break;
+        }
+
+        if (status == BP_SUCCESS)
+        {
+            handle = bplib_mpool_get_external_id(cblk);
+        }
+    }
+
+    return handle;
+}
+
+int bplib_cache_configure(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, bplib_cache_module_valtype_t vt,
+                          const void *val)
+{
+    bplib_mpool_block_t *cblk;
+    bplib_cache_state_t *state;
+    int                  result;
+
+    result = BP_ERROR;
+    cblk   = bplib_mpool_block_from_external_id(bplib_route_get_mpool(tbl), module_intf_id);
+    state  = bplib_mpool_generic_data_cast(cblk, BPLIB_STORE_SIGNATURE_STATE);
+    if (state != NULL)
+    {
+        /* currently the only module is offload, so all keys are passed here */
+        if (state->offload_blk != NULL)
+        {
+            result = state->offload_api->std.configure(state->offload_blk, key, vt, val);
+        }
+    }
+
+    return result;
+}
+int bplib_cache_query(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, bplib_cache_module_valtype_t vt,
+                      const void **val)
+{
+    bplib_mpool_block_t *cblk;
+    bplib_cache_state_t *state;
+    int                  result;
+
+    result = BP_ERROR;
+    cblk   = bplib_mpool_block_from_external_id(bplib_route_get_mpool(tbl), module_intf_id);
+    state  = bplib_mpool_generic_data_cast(cblk, BPLIB_STORE_SIGNATURE_STATE);
+    if (state != NULL)
+    {
+        /* currently the only module is offload, so all keys are passed here */
+        if (state->offload_blk != NULL)
+        {
+            result = state->offload_api->std.query(state->offload_blk, key, vt, val);
+        }
+    }
+
+    return result;
+}
+
+int bplib_cache_start(bplib_routetbl_t *tbl, bp_handle_t module_intf_id)
+{
+    bplib_mpool_block_t *cblk;
+    bplib_cache_state_t *state;
+    int                  result;
+
+    result = BP_ERROR;
+    cblk   = bplib_mpool_block_from_external_id(bplib_route_get_mpool(tbl), module_intf_id);
+    state  = bplib_mpool_generic_data_cast(cblk, BPLIB_STORE_SIGNATURE_STATE);
+    if (state != NULL)
+    {
+        /* currently the only module is offload, so all keys are passed here */
+        if (state->offload_blk != NULL)
+        {
+            result = state->offload_api->std.start(state->offload_blk);
+        }
+    }
+
+    return result;
+}
+
+int bplib_cache_stop(bplib_routetbl_t *tbl, bp_handle_t module_intf_id)
+{
+    bplib_mpool_block_t *cblk;
+    bplib_cache_state_t *state;
+    int                  result;
+
+    result = BP_ERROR;
+    cblk   = bplib_mpool_block_from_external_id(bplib_route_get_mpool(tbl), module_intf_id);
+    state  = bplib_mpool_generic_data_cast(cblk, BPLIB_STORE_SIGNATURE_STATE);
+    if (state != NULL)
+    {
+        /* currently the only module is offload, so all keys are passed here */
+        if (state->offload_blk != NULL)
+        {
+            result = state->offload_api->std.stop(state->offload_blk);
+        }
+    }
+
+    return result;
+}
+
 void bplib_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 {
     bplib_mpool_ref_t    intf_block_ref;

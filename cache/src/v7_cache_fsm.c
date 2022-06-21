@@ -29,12 +29,8 @@ typedef void (*bplib_cache_fsm_state_change_func_t)(bplib_cache_entry_t *);
 
 static bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *store_entry)
 {
-    bplib_mpool_bblock_primary_t *pri_block;
 
-    pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
-
-    if (store_entry->parent->action_time >=
-        (pri_block->pri_logical_data.creationTimeStamp.time + pri_block->pri_logical_data.lifetime))
+    if (store_entry->parent->action_time >= store_entry->expire_time)
     {
         /* bundle has reached the end of its useful life, so it can be discarded */
         return bplib_cache_entry_state_undefined;
@@ -58,20 +54,7 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_ent
     return bplib_cache_entry_state_idle;
 }
 
-static void bplib_cache_fsm_state_idle_enter(bplib_cache_entry_t *store_entry)
-{
-    bplib_mpool_bblock_primary_t *pri_block;
-
-    pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
-
-    if (bp_handle_is_valid(pri_block->delivery_data.egress_intf_id))
-    {
-        /* reschedule the next retransmit time based on the anticipted round-trip time of the egress intf */
-        /* JPHFIX: this is fixed for now, but should be configurable/specific to the egress intf */
-        store_entry->action_time = pri_block->delivery_data.egress_time + pri_block->delivery_data.local_retx_interval;
-        store_entry->flags |= BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
-    }
-}
+static void bplib_cache_fsm_state_idle_enter(bplib_cache_entry_t *store_entry) {}
 
 static bplib_cache_entry_state_t bplib_cache_fsm_state_queue_eval(bplib_cache_entry_t *store_entry)
 {
@@ -86,19 +69,16 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_queue_eval(bplib_cache_en
 
 static void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
 {
-    bplib_mpool_block_t          *rblk;
-    bplib_mpool_bblock_primary_t *pri_block;
-    bplib_mpool_flow_t           *self_flow;
+    bplib_mpool_block_t *rblk;
+    bplib_mpool_block_t *pblk;
+    bplib_mpool_flow_t  *self_flow;
 
-    pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
+    store_entry->flags |= BPLIB_STORE_FLAG_PENDING_FORWARD;
 
-    if (pri_block != NULL)
+    if (store_entry->refptr == NULL && store_entry->offload_sid != 0)
     {
-        /* Set egress intf to invalid - which can be used as a marker for items which are
-         * blocked from egress (it will be set valid again when it actually goes out, so if
-         * it stays invalid, that means there is no egress intf available) */
-        pri_block->delivery_data.egress_intf_id = BP_INVALID_HANDLE;
-        pri_block->delivery_data.egress_time    = 0;
+        store_entry->parent->offload_api->restore(store_entry->parent->offload_blk, store_entry->offload_sid, &pblk);
+        store_entry->refptr = bplib_mpool_ref_create(pblk);
     }
 
     rblk = bplib_mpool_ref_make_block(store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF, store_entry);
@@ -128,11 +108,29 @@ static void bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry)
 
     pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
 
-    if (bp_handle_is_valid(pri_block->delivery_data.egress_intf_id) &&
-        pri_block->delivery_data.delivery_policy != bplib_policy_delivery_custody_tracking)
+    if (bp_handle_is_valid(pri_block->data.delivery.egress_intf_id))
     {
-        /* If not doing full custody tracking, then the egress CLA is considered the implicit custodian */
-        store_entry->flags &= ~BPLIB_STORE_FLAG_LOCAL_CUSTODY;
+        store_entry->flags &= ~BPLIB_STORE_FLAG_PENDING_FORWARD;
+
+        if (pri_block->data.delivery.delivery_policy != bplib_policy_delivery_custody_tracking)
+        {
+            /* If not doing full custody tracking, then the egress CLA is considered the implicit custodian */
+            store_entry->flags &= ~BPLIB_STORE_FLAG_LOCAL_CUSTODY;
+        }
+        else
+        {
+            /* reschedule the next retransmit time based on the anticipted round-trip time of the egress intf */
+            /* JPHFIX: this is fixed for now, but should be configurable/specific to the egress intf */
+            store_entry->action_time =
+                pri_block->data.delivery.egress_time + pri_block->data.delivery.local_retx_interval;
+            store_entry->flags |= BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
+        }
+    }
+
+    if (store_entry->offload_sid != 0)
+    {
+        bplib_mpool_ref_release(store_entry->refptr);
+        store_entry->refptr = NULL;
     }
 }
 
@@ -159,15 +157,15 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_delete_eval(bplib_cache_e
 
 static void bplib_cache_fsm_state_delete_enter(bplib_cache_entry_t *store_entry)
 {
-    bplib_mpool_bblock_primary_t *pri_block;
-
-    /* the bundle will not be forwarded again, so content is no longer useful, but hang onto the metadata for now */
-    /* this recovers the bulk of the memory associated with this bundle */
-    pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
-    if (pri_block != NULL)
+    if (store_entry->refptr != NULL)
     {
-        bplib_mpool_bblock_primary_drop_encode(pri_block);
-        bplib_mpool_recycle_all_blocks_in_list(NULL, &pri_block->cblock_list);
+        bplib_mpool_ref_release(store_entry->refptr);
+        store_entry->refptr = NULL;
+    }
+
+    if (store_entry->offload_sid != 0)
+    {
+        store_entry->parent->offload_api->release(store_entry->parent->offload_blk, store_entry->offload_sid);
     }
 
     store_entry->flags |= BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
@@ -316,17 +314,8 @@ static void bplib_cache_fsm_transition_state(bplib_cache_entry_t *entry, bplib_c
 
 static void bplib_cache_fsm_debug_report_discard(bplib_cache_entry_t *store_entry)
 {
-    bplib_mpool_bblock_primary_t *pri_block;
-
-    /* the bundle will not be forwarded again, so content is no longer useful, but hang onto the metadata for now */
-    /* this recovers the bulk of the memory associated with this bundle */
-    pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
-    assert(pri_block != NULL);
-
-    fprintf(stderr, "discarding bundle ID %lu.%lu @%lu\n",
-            (unsigned long)pri_block->pri_logical_data.sourceEID.ssp.ipn.node_number,
-            (unsigned long)pri_block->pri_logical_data.sourceEID.ssp.ipn.service_number,
-            (unsigned long)pri_block->pri_logical_data.creationTimeStamp.sequence_num);
+    fprintf(stderr, "discarding bundle ID %lu.%lu @%lu\n", (unsigned long)store_entry->flow_id_copy.node_number,
+            (unsigned long)store_entry->flow_id_copy.service_number, (unsigned long)store_entry->flow_seq_copy);
 }
 
 void bplib_cache_fsm_execute(bplib_mpool_block_t *sblk)

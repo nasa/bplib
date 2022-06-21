@@ -1067,7 +1067,7 @@ void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *l
             else if (blk->type == bplib_mpool_blocktype_primary)
             {
                 printf("DEBUG: %s():  -->  primary dest IPN %lu\n", __func__,
-                       (unsigned long)content->u.primary.pblock.pri_logical_data.destinationEID.ssp.ipn.node_number);
+                       (unsigned long)content->u.primary.pblock.data.logical.destinationEID.ssp.ipn.node_number);
             }
         }
 
