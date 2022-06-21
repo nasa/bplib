@@ -106,8 +106,8 @@ int bplib_generic_bundle_ingress(bplib_mpool_ref_t flow_ref, const void *content
     }
     else
     {
-        pblk =
-            bplib_mpool_bblock_primary_alloc(bplib_mpool_get_parent_pool_from_link(bplib_mpool_dereference(flow_ref)));
+        pblk = bplib_mpool_bblock_primary_alloc(
+            bplib_mpool_get_parent_pool_from_link(bplib_mpool_dereference(flow_ref)), 0, NULL);
         if (pblk != NULL)
         {
             imported_sz = v7_copy_full_bundle_in(bplib_mpool_bblock_primary_cast(pblk), content, size);

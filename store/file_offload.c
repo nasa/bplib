@@ -306,7 +306,7 @@ static bplib_mpool_block_t *bplib_file_offload_read_blocks(int fd, bplib_file_of
 
     cblk    = NULL;
     c_block = NULL;
-    pblk    = bplib_mpool_bblock_primary_alloc(pool);
+    pblk    = bplib_mpool_bblock_primary_alloc(pool, 0, NULL);
     if (pblk != NULL)
     {
         pri_block = bplib_mpool_bblock_primary_cast(pblk);
@@ -318,7 +318,7 @@ static bplib_mpool_block_t *bplib_file_offload_read_blocks(int fd, bplib_file_of
             bplib_file_offload_read_block_content(fd, rec, &pri_block->data, sizeof(pri_block->data));
             while (rec->num_blocks > 0)
             {
-                cblk = bplib_mpool_bblock_canonical_alloc(pool);
+                cblk = bplib_mpool_bblock_canonical_alloc(pool, 0, NULL);
                 if (cblk == NULL)
                 {
                     break;

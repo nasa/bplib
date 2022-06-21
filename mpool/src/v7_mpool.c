@@ -216,16 +216,44 @@ bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_b
 
 /*----------------------------------------------------------------
  *
+ * Function: bplib_mpool_get_user_data_offset_by_blocktype
+ *
+ *-----------------------------------------------------------------*/
+size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt)
+{
+    static const size_t USER_DATA_START_OFFSET[bplib_mpool_blocktype_max] = {
+        [bplib_mpool_blocktype_undefined] = SIZE_MAX,
+        [bplib_mpool_blocktype_api]       = MPOOL_GET_BUFFER_USER_START_OFFSET(api),
+        [bplib_mpool_blocktype_generic]   = MPOOL_GET_BUFFER_USER_START_OFFSET(generic_data),
+        [bplib_mpool_blocktype_primary]   = MPOOL_GET_BUFFER_USER_START_OFFSET(primary),
+        [bplib_mpool_blocktype_canonical] = MPOOL_GET_BUFFER_USER_START_OFFSET(canonical),
+        [bplib_mpool_blocktype_flow]      = MPOOL_GET_BUFFER_USER_START_OFFSET(flow),
+        [bplib_mpool_blocktype_ref]       = MPOOL_GET_BUFFER_USER_START_OFFSET(ref)};
+
+    if (bt >= bplib_mpool_blocktype_max)
+    {
+        return SIZE_MAX;
+    }
+
+    return USER_DATA_START_OFFSET[bt];
+}
+
+/*----------------------------------------------------------------
+ *
  * Function: bplib_mpool_get_generic_data_capacity
  *
  *-----------------------------------------------------------------*/
 size_t bplib_mpool_get_generic_data_capacity(const bplib_mpool_block_t *cb)
 {
-    if (!bplib_mpool_is_generic_data_block(cb))
+    size_t data_offset;
+
+    data_offset = bplib_mpool_get_user_data_offset_by_blocktype(cb->type);
+    if (data_offset > sizeof(bplib_mpool_block_buffer_t))
     {
         return 0;
     }
-    return MPOOL_GET_BLOCK_USER_CAPACITY(generic_data);
+
+    return sizeof(bplib_mpool_block_buffer_t) - data_offset;
 }
 
 /*----------------------------------------------------------------
@@ -358,30 +386,6 @@ size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb)
         return block->header.refcount;
     }
     return 0;
-}
-
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_get_user_data_offset_by_blocktype
- *
- *-----------------------------------------------------------------*/
-size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt)
-{
-    static const size_t USER_DATA_START_OFFSET[bplib_mpool_blocktype_max] = {
-        [bplib_mpool_blocktype_undefined] = SIZE_MAX,
-        [bplib_mpool_blocktype_api]       = MPOOL_GET_BUFFER_USER_START_OFFSET(api),
-        [bplib_mpool_blocktype_generic]   = MPOOL_GET_BUFFER_USER_START_OFFSET(generic_data),
-        [bplib_mpool_blocktype_primary]   = MPOOL_GET_BUFFER_USER_START_OFFSET(primary),
-        [bplib_mpool_blocktype_canonical] = MPOOL_GET_BUFFER_USER_START_OFFSET(canonical),
-        [bplib_mpool_blocktype_flow]      = MPOOL_GET_BUFFER_USER_START_OFFSET(flow),
-        [bplib_mpool_blocktype_ref]       = MPOOL_GET_BUFFER_USER_START_OFFSET(ref)};
-
-    if (bt >= bplib_mpool_blocktype_max)
-    {
-        return SIZE_MAX;
-    }
-
-    return USER_DATA_START_OFFSET[bt];
 }
 
 /*----------------------------------------------------------------
