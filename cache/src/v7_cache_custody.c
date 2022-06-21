@@ -31,7 +31,7 @@ void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, bplib
 {
     bplib_mpool_bblock_canonical_t *custody_block;
 
-    custody_info->cblk = bplib_mpool_bblock_canonical_alloc(bplib_cache_parent_pool(state));
+    custody_info->cblk = bplib_mpool_bblock_canonical_alloc(bplib_cache_parent_pool(state), 0, NULL);
     if (custody_info->cblk != NULL)
     {
         bplib_mpool_bblock_primary_append(pri_block, custody_info->cblk);
@@ -151,7 +151,7 @@ bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t           
 
     do
     {
-        pblk      = bplib_mpool_bblock_primary_alloc(ppool);
+        pblk      = bplib_mpool_bblock_primary_alloc(ppool, 0, NULL);
         pri_block = bplib_mpool_bblock_primary_cast(pblk);
         if (pri_block == NULL)
         {
@@ -177,7 +177,7 @@ bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t           
         pri->crctype                      = bp_crctype_CRC16;
 
         /* Add Payload Block */
-        cblk    = bplib_mpool_bblock_canonical_alloc(ppool);
+        cblk    = bplib_mpool_bblock_canonical_alloc(ppool, 0, NULL);
         c_block = bplib_mpool_bblock_canonical_cast(cblk);
         if (c_block == NULL)
         {

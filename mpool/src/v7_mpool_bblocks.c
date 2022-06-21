@@ -122,13 +122,13 @@ void bplib_mpool_bblock_canonical_init(bplib_mpool_block_t *base_block, bplib_mp
  * Function: bplib_mpool_bblock_primary_alloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool)
+bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
 {
     bplib_mpool_block_content_t *result;
     bplib_mpool_lock_t          *lock;
 
     lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary, 0, NULL);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary, magic_number, init_arg);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
@@ -139,13 +139,13 @@ bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool)
  * Function: bplib_mpool_bblock_canonical_alloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool)
+bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
 {
     bplib_mpool_block_content_t *result;
     bplib_mpool_lock_t          *lock;
 
     lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical, 0, NULL);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical, magic_number, init_arg);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;

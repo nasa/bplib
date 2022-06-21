@@ -1833,7 +1833,7 @@ size_t v7_copy_full_bundle_in(bplib_mpool_bblock_primary_t *cpb, const void *buf
             /* Anything beyond first block is always a canonical block */
 
             /* Allocate Blocks */
-            cblk = bplib_mpool_bblock_canonical_alloc(ppool);
+            cblk = bplib_mpool_bblock_canonical_alloc(ppool, 0, NULL);
             ccb  = bplib_mpool_bblock_canonical_cast(cblk);
             if (ccb == NULL)
             {

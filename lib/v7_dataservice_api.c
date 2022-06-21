@@ -98,7 +98,7 @@ bplib_mpool_ref_t bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_
 
     do
     {
-        pblk      = bplib_mpool_bblock_primary_alloc(pool);
+        pblk      = bplib_mpool_bblock_primary_alloc(pool, 0, NULL);
         pri_block = bplib_mpool_bblock_primary_cast(pblk);
         if (pri_block == NULL)
         {
@@ -136,7 +136,7 @@ bplib_mpool_ref_t bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_
         }
 
         /* Update Payload Block */
-        cblk    = bplib_mpool_bblock_canonical_alloc(pool);
+        cblk    = bplib_mpool_bblock_canonical_alloc(pool, 0, NULL);
         ccb_pay = bplib_mpool_bblock_canonical_cast(cblk);
         if (ccb_pay == NULL)
         {
