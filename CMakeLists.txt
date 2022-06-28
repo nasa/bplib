@@ -161,7 +161,7 @@ else()
 
 
   # link with the requisite dependencies (this is mainly for POSIX, if using that adapter)
-  target_link_libraries(bplib ${TINYCBOR_LIBRARIES} ${BPLIB_LINK_LIBRARIES})
+  target_link_libraries(bplib ${TINYCBOR_LDFLAGS} ${BPLIB_LINK_LIBRARIES})
 
   # Install and also export this library, so it can be found via
   # "find_package()" from some other CMake build
