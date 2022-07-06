@@ -31,8 +31,7 @@
 #include "v7_mpstream.h"
 #include "v7_mpool_bblocks.h"
 
-void bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *pool, bplib_mpool_stream_dir_t dir,
-                                   bp_crctype_t crctype)
+void bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *pool, bplib_mpool_stream_dir_t dir)
 {
     memset(mps, 0, sizeof(*mps));
 
@@ -41,21 +40,6 @@ void bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *poo
     mps->dir       = dir;
     mps->pool      = pool;
     mps->last_eblk = &mps->head;
-
-    switch (crctype)
-    {
-        case bp_crctype_CRC16:
-            mps->crc_params = &BPLIB_CRC16_X25;
-            break;
-        case bp_crctype_CRC32C:
-            mps->crc_params = &BPLIB_CRC32_CASTAGNOLI;
-            break;
-        default:
-            mps->crc_params = &BPLIB_CRC_NONE;
-            break;
-    }
-
-    mps->crcval = bplib_crc_initial_value(mps->crc_params);
 }
 
 size_t bplib_mpool_stream_write(bplib_mpool_stream_t *mps, const void *data, size_t size)
@@ -100,7 +84,6 @@ size_t bplib_mpool_stream_write(bplib_mpool_stream_t *mps, const void *data, siz
         out_p = bplib_mpool_bblock_cbor_cast(mps->last_eblk);
         out_p += mps->curr_pos;
         memcpy(out_p, chunk_p, chunk_sz);
-        mps->crcval = bplib_crc_update(mps->crc_params, mps->crcval, out_p, chunk_sz);
 
         mps->curr_pos += chunk_sz;
         bplib_mpool_bblock_cbor_set_size(mps->last_eblk, mps->curr_pos);
@@ -185,7 +168,6 @@ size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t target_position
             bplib_mpool_bblock_cbor_set_size(mps->last_eblk, mps->curr_pos + chunk_sz);
         }
 
-        mps->crcval = bplib_crc_update(mps->crc_params, mps->crcval, curr_p + mps->curr_pos, chunk_sz);
         mps->curr_pos += chunk_sz;
         mps->stream_position += chunk_sz;
     }
@@ -277,7 +259,6 @@ size_t bplib_mpool_stream_read(bplib_mpool_stream_t *mps, void *data, size_t siz
 
         in_p += mps->curr_pos;
         memcpy(chunk_p, in_p, chunk_sz);
-        mps->crcval = bplib_crc_update(mps->crc_params, mps->crcval, in_p, chunk_sz);
 
         mps->curr_pos += chunk_sz;
         mps->stream_position += chunk_sz;
@@ -297,17 +278,6 @@ void bplib_mpool_stream_attach(bplib_mpool_stream_t *mps, bplib_mpool_block_t *h
     mps->curr_limit      = 0;
     mps->curr_pos        = 0;
     mps->stream_position = 0;
-    mps->crcval          = bplib_crc_initial_value(mps->crc_params);
-}
-
-uint8_t bplib_mpool_stream_get_crc_bit_size(const bplib_mpool_stream_t *mps)
-{
-    return bplib_crc_get_width(mps->crc_params);
-}
-
-bp_crcval_t bplib_mpool_stream_get_current_crc(const bplib_mpool_stream_t *mps)
-{
-    return bplib_crc_finalize(mps->crc_params, mps->crcval);
 }
 
 void bplib_mpool_stream_close(bplib_mpool_stream_t *mps)

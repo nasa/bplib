@@ -44,24 +44,13 @@ typedef struct bplib_mpool_stream
     size_t                   curr_pos;
     size_t                   curr_limit;
     size_t                   stream_position;
-    bplib_crc_parameters_t  *crc_params;
-    bp_crcval_t              crcval;
 } bplib_mpool_stream_t;
 
-void   bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *pool, bplib_mpool_stream_dir_t dir,
-                                     bp_crctype_t crctype);
+void   bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *pool, bplib_mpool_stream_dir_t dir);
 size_t bplib_mpool_stream_write(bplib_mpool_stream_t *mps, const void *data, size_t size);
 size_t bplib_mpool_stream_read(bplib_mpool_stream_t *mps, void *data, size_t size);
 size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t position);
 void   bplib_mpool_stream_attach(bplib_mpool_stream_t *mps, bplib_mpool_block_t *head);
-static inline bplib_crc_parameters_t *bplib_mpool_stream_get_crc_params(const bplib_mpool_stream_t *mps)
-{
-    return mps->crc_params;
-}
-static inline bp_crcval_t bplib_mpool_stream_get_intermediate_crc(const bplib_mpool_stream_t *mps)
-{
-    return mps->crcval;
-}
 static inline size_t bplib_mpool_stream_tell(const bplib_mpool_stream_t *mps)
 {
     return mps->stream_position;

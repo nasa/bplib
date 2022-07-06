@@ -39,7 +39,6 @@ typedef struct
     const void                        *content_vptr;
     size_t                            *content_offset_out;
     size_t                             content_size;
-    size_t                             num_fields;
 
 } v7_canonical_block_info_t;
 
@@ -65,9 +64,20 @@ typedef struct v7_bitmap_table
 
 typedef struct v7_encode_state
 {
-    bool                 error;
-    CborEncoder         *cbor;
-    bplib_mpool_stream_t mps;
+    bool error;
+
+    bool                    crc_flag;
+    bp_crcval_t             crc_val;
+    bplib_crc_parameters_t *crc_params;
+
+    CborEncoder *cbor;
+
+    size_t total_bytes_encoded;
+
+    v7_chunk_writer_func_t next_writer;
+    void                  *next_writer_arg;
+
+    // bplib_mpool_stream_t mps;
 
 } v7_encode_state_t;
 
@@ -224,6 +234,104 @@ static size_t v7_save_and_verify_block(bplib_mpool_block_t *head, const uint8_t 
  * -----------------------------------------------------------------------------------
  */
 
+static int v7_encoder_mpstream_write(void *arg, const void *ptr, size_t sz)
+{
+    if (bplib_mpool_stream_write(arg, ptr, sz) < sz)
+    {
+        return BP_ERROR;
+    }
+
+    return BP_SUCCESS;
+}
+
+bplib_crc_parameters_t *v7_encode_get_algorithm(bp_crctype_t crctype)
+{
+    bplib_crc_parameters_t *result;
+
+    switch (crctype)
+    {
+        case bp_crctype_CRC16:
+            result = &BPLIB_CRC16_X25;
+            break;
+        case bp_crctype_CRC32C:
+            result = &BPLIB_CRC32_CASTAGNOLI;
+            break;
+        default:
+            result = &BPLIB_CRC_NONE;
+            break;
+    }
+
+    return result;
+}
+
+static int v7_encoder_write_crc(v7_encode_state_t *enc)
+{
+    uint8_t     crc_data[1 + sizeof(bp_crcval_t)];
+    uint8_t     i;
+    uint8_t     crc_len;
+    bp_crcval_t crc_final;
+    uint8_t    *pb;
+
+    crc_len   = bplib_crc_get_width(enc->crc_params) / 8;
+    crc_final = bplib_crc_finalize(enc->crc_params, enc->crc_val);
+    pb        = &crc_data[crc_len];
+
+    for (i = 0; i < crc_len; ++i)
+    {
+        --pb;
+        *pb = crc_final & 0xFF;
+        crc_final >>= 8;
+    }
+
+    return enc->next_writer(enc->next_writer_arg, crc_data, crc_len);
+}
+
+static CborError v7_encoder_write_wrapper(void *arg, const void *ptr, size_t sz, CborEncoderAppendType at)
+{
+    v7_encode_state_t *enc = arg;
+    int                write_result;
+
+    if (enc->crc_params)
+    {
+        enc->crc_val = bplib_crc_update(enc->crc_params, enc->crc_val, ptr, sz);
+    }
+
+    if (enc->crc_flag && at == CborEncoderAppendStringData)
+    {
+        /* write the actual crc value, instead of writing the passed-in string (which is 0-padded) */
+        enc->crc_flag = false;
+        write_result  = v7_encoder_write_crc(enc);
+    }
+    else
+    {
+        write_result = enc->next_writer(enc->next_writer_arg, ptr, sz);
+    }
+
+    if (write_result != BP_SUCCESS)
+    {
+        return CborErrorIO;
+    }
+
+    enc->total_bytes_encoded += sz;
+
+    return CborNoError;
+}
+
+static void v7_encode_setup(v7_encode_state_t *enc, CborEncoder *top_level_cbor, bp_crctype_t crctype,
+                            v7_chunk_writer_func_t next_writer, void *next_writer_arg)
+{
+    memset(enc, 0, sizeof(*enc));
+
+    cbor_encoder_init_writer(top_level_cbor, v7_encoder_write_wrapper, enc);
+    enc->cbor = top_level_cbor;
+
+    enc->crc_params = v7_encode_get_algorithm(crctype);
+    enc->crc_val    = bplib_crc_initial_value(enc->crc_params);
+
+    enc->next_writer     = next_writer;
+    enc->next_writer_arg = next_writer_arg;
+}
+
 void v7_encode_small_int(v7_encode_state_t *enc, int val)
 {
     if (!enc->error)
@@ -264,13 +372,8 @@ int v7_decode_small_int(v7_decode_state_t *dec)
 
 void v7_encode_crc(v7_encode_state_t *enc)
 {
-    static const uint8_t    CBOR_BYTESTRING = 0x40;
-    bplib_crc_parameters_t *crc_params;
-    size_t                  crc_len;
-    size_t                  i;
-    bp_crcval_t             crc_val;
-    uint8_t                 cbor_temp_encode[1 + sizeof(crc_val)];
-    uint8_t                *pb;
+    size_t               crc_len;
+    static const uint8_t CRC_PAD_BYTES[sizeof(bp_crcval_t)] = {0};
 
     /*
      * NOTE: Unlike other encode functions, this does not accept a value passed in, as the
@@ -293,41 +396,17 @@ void v7_encode_crc(v7_encode_state_t *enc)
      * the CRC accordingly, then actually write the CRC.
      */
 
-    crc_params = bplib_mpool_stream_get_crc_params(&enc->mps);
-    crc_len    = bplib_crc_get_width(crc_params) / 8;
+    crc_len = bplib_crc_get_width(enc->crc_params) / 8;
 
-    if ((1 + crc_len) > sizeof(cbor_temp_encode))
+    if (crc_len > sizeof(CRC_PAD_BYTES))
     {
         enc->error = true;
     }
     else
     {
-        /* Predict what the enclosing CBOR octet will be */
-        cbor_temp_encode[0] = CBOR_BYTESTRING + crc_len;
-        memset(&cbor_temp_encode[1], 0, crc_len);
+        enc->crc_flag = true;
 
-        /* First need to inject zero bytes in place of the CRC */
-        crc_val = bplib_mpool_stream_get_intermediate_crc(&enc->mps);
-        crc_val = bplib_crc_update(crc_params, crc_val, &cbor_temp_encode, 1 + crc_len);
-        crc_val = bplib_crc_finalize(crc_params, crc_val);
-
-        /*
-         * shift out the CRC bytes, from low to high, and fill the buffer
-         * with the real crc value instead of zeros
-         */
-        pb = &cbor_temp_encode[1 + crc_len];
-        for (i = 0; i < crc_len; ++i)
-        {
-            --pb;
-            *pb = crc_val & 0xFF;
-            crc_val >>= 8;
-        }
-
-        /*
-         * Encode only the CRC bytes, NOT the bytestring major type octet,
-         * because TinyCBOR will add that on its own.
-         */
-        if (cbor_encode_byte_string(enc->cbor, pb, crc_len) != CborNoError)
+        if (cbor_encode_byte_string(enc->cbor, CRC_PAD_BYTES, crc_len) != CborNoError)
         {
             enc->error = true;
         }
@@ -794,6 +873,10 @@ void v7_encode_bp_primary_block(v7_encode_state_t *enc, const bp_primary_block_t
         ++num_fields; /* one more for CRC */
     }
 
+    /* reset the CRC algorithm for this block */
+    enc->crc_params = v7_encode_get_algorithm(v->crctype);
+    enc->crc_val    = bplib_crc_initial_value(enc->crc_params);
+
     v7_encode_container(enc, num_fields, v7_encode_bp_primary_block_impl, v);
 }
 
@@ -1077,7 +1160,12 @@ void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canoni
      * string.
      */
     cbor_encode_byte_string(enc->cbor, info->content_vptr, info->content_size);
-    content_offset_cbor_end = bplib_mpool_stream_tell(&enc->mps);
+    content_offset_cbor_end = enc->total_bytes_encoded;
+    if (content_offset_cbor_end < info->content_size)
+    {
+        /* this should never happen */
+        enc->error = true;
+    }
 
     /* Attach the CRC if requested. */
     if (v->crctype != bp_crctype_none)
@@ -1092,7 +1180,10 @@ void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canoni
      * where it ends it is easy to find the beginning of actual data, as the CBOR
      * markup itself is variable size, but the content is a known size here.
      */
-    *info->content_offset_out = content_offset_cbor_end - info->content_size;
+    if (!enc->error && info->content_offset_out != NULL)
+    {
+        *info->content_offset_out = content_offset_cbor_end - info->content_size;
+    }
 }
 
 void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v,
@@ -1186,14 +1277,15 @@ void v7_encode_bp_canonical_block_buffer(v7_encode_state_t *enc, const bp_canoni
                                          const void *content_ptr, size_t content_length, size_t *content_encoded_offset)
 {
     v7_canonical_block_info_t info;
+    size_t                    num_fields;
 
     memset(&info, 0, sizeof(info));
 
     /* this also needs to predict the number of fields */
-    info.num_fields = 5; /* fixed/required fields */
+    num_fields = 5; /* fixed/required fields */
     if (v->canonical_block.crctype != bp_crctype_none)
     {
-        ++info.num_fields; /* one more for CRC */
+        ++num_fields; /* one more for CRC */
     }
 
     info.encode_block       = &v->canonical_block;
@@ -1201,7 +1293,7 @@ void v7_encode_bp_canonical_block_buffer(v7_encode_state_t *enc, const bp_canoni
     info.content_vptr       = content_ptr;
     info.content_size       = content_length;
 
-    v7_encode_container(enc, info.num_fields, v7_encode_bp_canonical_block_buffer_impl, &info);
+    v7_encode_container(enc, num_fields, v7_encode_bp_canonical_block_buffer_impl, &info);
 }
 
 static void v7_decode_bp_canonical_block_buffer_impl(v7_decode_state_t *dec, void *arg)
@@ -1225,22 +1317,10 @@ void v7_decode_bp_canonical_block_buffer(v7_decode_state_t *dec, bp_canonical_bl
     *content_length = info.content_size;
 }
 
-static CborError v7_encoder_write(void *arg, const void *ptr, size_t sz, CborEncoderAppendType at)
-{
-    v7_encode_state_t *v7_state = arg;
-    if (bplib_mpool_stream_write(&v7_state->mps, ptr, sz) < sz)
-    {
-        return CborErrorOutOfMemory;
-    }
-
-    return CborNoError;
-}
-
 size_t v7_save_and_verify_block(bplib_mpool_block_t *head, const uint8_t *block_base, size_t block_size,
                                 bp_crctype_t crc_type, bp_crcval_t crc_check)
 {
     static const uint8_t    ZERO_BYTES[4] = {0};
-    size_t                  data_len;
     size_t                  crc_len;
     bplib_crc_parameters_t *crc_params;
     bp_crcval_t             crc_val;
@@ -1248,31 +1328,26 @@ size_t v7_save_and_verify_block(bplib_mpool_block_t *head, const uint8_t *block_
     size_t                  result;
 
     result = 0;
-    bplib_mpool_start_stream_init(&mps, bplib_mpool_get_parent_pool_from_link(head), bplib_mpool_stream_dir_write,
-                                  crc_type);
-    crc_params = bplib_mpool_stream_get_crc_params(&mps);
+    bplib_mpool_start_stream_init(&mps, bplib_mpool_get_parent_pool_from_link(head), bplib_mpool_stream_dir_write);
+    crc_params = v7_encode_get_algorithm(crc_type);
     crc_len    = bplib_crc_get_width(crc_params) / 8;
+    crc_val    = bplib_crc_initial_value(crc_params);
     if (crc_len < block_size && crc_len <= sizeof(ZERO_BYTES))
     {
-        data_len = block_size - crc_len;
-        /* first copy only the data part */
-        if (bplib_mpool_stream_write(&mps, block_base, data_len) == data_len)
+        /* copy the entire block including original (still unverified) CRC to the buffer */
+        if (bplib_mpool_stream_write(&mps, block_base, block_size) == block_size)
         {
-            /* snapshot the CRC intermediate value now */
-            crc_val = bplib_mpool_stream_get_intermediate_crc(&mps);
+            /* calculate the CRC value locally */
+            crc_val = bplib_crc_update(crc_params, crc_val, block_base, block_size - crc_len);
 
-            /* now copy the original (still unverified) CRC to the buffer */
-            if (bplib_mpool_stream_write(&mps, block_base + data_len, crc_len) == crc_len)
+            /* need to pump in zero bytes for CRC width */
+            crc_val = bplib_crc_update(crc_params, crc_val, ZERO_BYTES, crc_len);
+            crc_val = bplib_crc_finalize(crc_params, crc_val);
+
+            if (crc_val == crc_check)
             {
-                /* now verify the CRC - need to pump in zero bytes for CRC width */
-                crc_val = bplib_crc_update(crc_params, crc_val, ZERO_BYTES, crc_len);
-                crc_val = bplib_crc_finalize(crc_params, crc_val);
-
-                if (crc_val == crc_check)
-                {
-                    result = bplib_mpool_stream_tell(&mps);
-                    bplib_mpool_stream_attach(&mps, head);
-                }
+                result = block_size;
+                bplib_mpool_stream_attach(&mps, head);
             }
         }
     }
@@ -1456,29 +1531,28 @@ int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *d
 int v7_block_encode_pri(bplib_mpool_bblock_primary_t *cpb)
 {
     v7_encode_state_t         v7_state;
-    CborEncoder               origin;
+    bplib_mpool_stream_t      mps;
+    CborEncoder               top_level_enc;
     const bp_primary_block_t *pri;
 
     /* If there is any existing encoded data, return it to the pool */
     bplib_mpool_bblock_primary_drop_encode(cpb);
 
     pri = bplib_mpool_bblock_primary_get_logical(cpb);
-    memset(&v7_state, 0, sizeof(v7_state));
 
-    bplib_mpool_start_stream_init(&v7_state.mps, bplib_mpool_get_parent_pool_from_link(&cpb->chunk_list),
-                                  bplib_mpool_stream_dir_write, pri->crctype);
-    cbor_encoder_init_writer(&origin, v7_encoder_write, &v7_state);
-    v7_state.cbor = &origin;
+    bplib_mpool_start_stream_init(&mps, bplib_mpool_get_parent_pool_from_link(&cpb->chunk_list),
+                                  bplib_mpool_stream_dir_write);
+    v7_encode_setup(&v7_state, &top_level_enc, pri->crctype, v7_encoder_mpstream_write, &mps);
 
     v7_encode_bp_primary_block(&v7_state, pri);
 
     if (!v7_state.error)
     {
-        cpb->block_encode_size_cache = bplib_mpool_stream_tell(&v7_state.mps);
-        bplib_mpool_stream_attach(&v7_state.mps, bplib_mpool_bblock_primary_get_encoded_chunks(cpb));
+        cpb->block_encode_size_cache = bplib_mpool_stream_tell(&mps);
+        bplib_mpool_stream_attach(&mps, bplib_mpool_bblock_primary_get_encoded_chunks(cpb));
     }
 
-    bplib_mpool_stream_close(&v7_state.mps);
+    bplib_mpool_stream_close(&mps);
 
     if (v7_state.error)
     {
@@ -1490,7 +1564,8 @@ int v7_block_encode_pri(bplib_mpool_bblock_primary_t *cpb)
 int v7_block_encode_pay(bplib_mpool_bblock_canonical_t *ccb, const void *data_ptr, size_t data_size)
 {
     v7_encode_state_t                  v7_state;
-    CborEncoder                        origin;
+    bplib_mpool_stream_t               mps;
+    CborEncoder                        top_level_enc;
     const bp_canonical_block_buffer_t *pay;
     size_t                             data_encoded_offset;
     bplib_mpool_t                     *ppool;
@@ -1501,21 +1576,19 @@ int v7_block_encode_pay(bplib_mpool_bblock_canonical_t *ccb, const void *data_pt
     ppool = bplib_mpool_get_parent_pool_from_link(&ccb->chunk_list);
 
     pay = bplib_mpool_bblock_canonical_get_logical(ccb);
-    memset(&v7_state, 0, sizeof(v7_state));
-    bplib_mpool_start_stream_init(&v7_state.mps, ppool, bplib_mpool_stream_dir_write, pay->canonical_block.crctype);
-    cbor_encoder_init_writer(&origin, v7_encoder_write, &v7_state);
-    v7_state.cbor = &origin;
+    bplib_mpool_start_stream_init(&mps, ppool, bplib_mpool_stream_dir_write);
+    v7_encode_setup(&v7_state, &top_level_enc, pay->canonical_block.crctype, v7_encoder_mpstream_write, &mps);
 
     v7_encode_bp_canonical_block_buffer(&v7_state, pay, data_ptr, data_size, &data_encoded_offset);
 
     if (!v7_state.error)
     {
         bplib_mpool_bblock_canonical_set_content_position(ccb, data_encoded_offset, data_size);
-        ccb->block_encode_size_cache = bplib_mpool_stream_tell(&v7_state.mps);
-        bplib_mpool_stream_attach(&v7_state.mps, bplib_mpool_bblock_canonical_get_encoded_chunks(ccb));
+        ccb->block_encode_size_cache = bplib_mpool_stream_tell(&mps);
+        bplib_mpool_stream_attach(&mps, bplib_mpool_bblock_canonical_get_encoded_chunks(ccb));
     }
 
-    bplib_mpool_stream_close(&v7_state.mps);
+    bplib_mpool_stream_close(&mps);
 
     if (v7_state.error)
     {
@@ -1527,7 +1600,8 @@ int v7_block_encode_pay(bplib_mpool_bblock_canonical_t *ccb, const void *data_pt
 int v7_block_encode_canonical(bplib_mpool_bblock_canonical_t *ccb)
 {
     v7_encode_state_t                  v7_state;
-    CborEncoder                        origin;
+    bplib_mpool_stream_t               mps;
+    CborEncoder                        top_level_enc;
     const bp_canonical_block_buffer_t *logical;
     uint8_t                            scratch_area[256];
     size_t                             scratch_size;
@@ -1548,10 +1622,9 @@ int v7_block_encode_canonical(bplib_mpool_bblock_canonical_t *ccb)
     logical = bplib_mpool_bblock_canonical_get_logical(ccb);
 
     memset(&v7_state, 0, sizeof(v7_state));
-    bplib_mpool_start_stream_init(&v7_state.mps, ppool, bplib_mpool_stream_dir_write, logical->canonical_block.crctype);
-    cbor_encoder_init(&origin, scratch_area, sizeof(scratch_area), 0);
+    cbor_encoder_init(&top_level_enc, scratch_area, sizeof(scratch_area), 0);
 
-    v7_state.cbor = &origin;
+    v7_state.cbor = &top_level_enc;
 
     switch (logical->canonical_block.blockType)
     {
@@ -1592,16 +1665,15 @@ int v7_block_encode_canonical(bplib_mpool_bblock_canonical_t *ccb)
 
     if (!v7_state.error)
     {
-        scratch_size = cbor_encoder_get_buffer_size(&origin, scratch_area);
+        scratch_size = cbor_encoder_get_buffer_size(&top_level_enc, scratch_area);
         if (scratch_size > 0)
         {
             /*
              * Do second-stage encode - take the scratch buffer and use it as the content of the extension block
              */
-            bplib_mpool_start_stream_init(&v7_state.mps, ppool, bplib_mpool_stream_dir_write,
-                                          logical->canonical_block.crctype);
-            cbor_encoder_init_writer(&origin, v7_encoder_write, &v7_state);
-            v7_state.cbor = &origin;
+            bplib_mpool_start_stream_init(&mps, ppool, bplib_mpool_stream_dir_write);
+            v7_encode_setup(&v7_state, &top_level_enc, logical->canonical_block.crctype, v7_encoder_mpstream_write,
+                            &mps);
 
             v7_encode_bp_canonical_block_buffer(&v7_state, logical, scratch_area, scratch_size,
                                                 &content_encoded_offset);
@@ -1609,11 +1681,11 @@ int v7_block_encode_canonical(bplib_mpool_bblock_canonical_t *ccb)
             if (!v7_state.error)
             {
                 bplib_mpool_bblock_canonical_set_content_position(ccb, content_encoded_offset, scratch_size);
-                ccb->block_encode_size_cache = bplib_mpool_stream_tell(&v7_state.mps);
-                bplib_mpool_stream_attach(&v7_state.mps, bplib_mpool_bblock_canonical_get_encoded_chunks(ccb));
+                ccb->block_encode_size_cache = bplib_mpool_stream_tell(&mps);
+                bplib_mpool_stream_attach(&mps, bplib_mpool_bblock_canonical_get_encoded_chunks(ccb));
             }
 
-            bplib_mpool_stream_close(&v7_state.mps);
+            bplib_mpool_stream_close(&mps);
         }
     }
 
