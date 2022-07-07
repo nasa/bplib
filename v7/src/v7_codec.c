@@ -76,9 +76,6 @@ typedef struct v7_encode_state
 
     v7_chunk_writer_func_t next_writer;
     void                  *next_writer_arg;
-
-    // bplib_mpool_stream_t mps;
-
 } v7_encode_state_t;
 
 typedef struct v7_decode_state
