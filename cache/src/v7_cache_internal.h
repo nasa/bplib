@@ -147,7 +147,8 @@ typedef struct bplib_cache_custodian_info
     bool                 match_dacs;
     bp_ipn_addr_t        flow_id;
     bp_ipn_addr_t        custodian_id;
-    bplib_mpool_block_t *cblk;
+    bplib_mpool_block_t *this_cblk;
+    bplib_mpool_block_t *prev_cblk;
     bp_val_t             eid_hash;
     bp_sequencenumber_t  sequence_num;
     bp_ipn_t             final_dest_node;
