@@ -61,20 +61,16 @@ typedef enum bp_blocktype
     bp_blocktype_MAX_NORMAL                  = 12,
 
     /*
-     * These are internal block types - they are encoded into the bundle as type 1 (payload)
-     * because of the constraint in RFC9171 that says all bundles must have one and only one
-     * payload block, but in reality there are different flavors of payload blocks depending
-     * on what type of bundle it is.
-     *
-     * Therefore, the logical data for these canonical blocks will have the real type, which
-     * is deduced from the other bundle block contents, but CBOR-encoded content will have a
-     * value of 1.
+     * These are internal block types - they exist only locally in this implementation
+     * and the CBOR/RFC9171-compliant encoding uses a different type (possibly as 1 for
+     * the payload block, or it may not appear in the RFC-compliant bundle at all).
      */
-    bp_blocktype_SPECIAL_PAYLOADS_START    = 100,
-    bp_blocktype_adminRecordPayloadBlock   = bp_blocktype_SPECIAL_PAYLOADS_START,
+    bp_blocktype_SPECIAL_BLOCKS_START      = 100,
+    bp_blocktype_adminRecordPayloadBlock   = bp_blocktype_SPECIAL_BLOCKS_START,
     bp_blocktype_ciphertextPayloadBlock    = 101,
     bp_blocktype_custodyAcceptPayloadBlock = 102,
-    bp_blocktype_SPECIAL_PAYLOADS_MAX
+    bp_blocktype_previousCustodianBlock    = 103,
+    bp_blocktype_SPECIAL_BLOCKS_MAX
 } bp_blocktype_t;
 
 typedef enum bp_adminrectype

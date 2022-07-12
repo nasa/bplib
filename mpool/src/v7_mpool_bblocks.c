@@ -295,7 +295,6 @@ size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, 
 void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_mpool_block_t *blk)
 {
     bplib_mpool_bblock_canonical_t *ccb;
-    bp_blocktype_t                  block_type;
 
     /* this should only be invoked w/canonical blocks.  Anything else is a bug. */
     ccb = bplib_mpool_bblock_canonical_cast(blk);
@@ -307,12 +306,9 @@ void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_
      * but other blocks may appear in any order.  It is not clear if there is any reason
      * to be more specific about block order.
      *
-     * For now, if the block being inserted is payload, put it last, otherwise put it first.
+     * For now, if the block being inserted has block num 1, put it last, otherwise put it first.
      */
-    block_type = bplib_mpool_bblock_canonical_get_logical(ccb)->canonical_block.blockType;
-
-    if (block_type == bp_blocktype_payloadBlock ||
-        (block_type >= bp_blocktype_SPECIAL_PAYLOADS_START && block_type < bp_blocktype_SPECIAL_PAYLOADS_MAX))
+    if (bplib_mpool_bblock_canonical_get_logical(ccb)->canonical_block.blockNum == 1)
     {
         /* this puts it last */
         bplib_mpool_insert_before(&cpb->cblock_list, blk);

@@ -31,12 +31,12 @@ void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, bplib
 {
     bplib_mpool_bblock_canonical_t *custody_block;
 
-    custody_info->cblk = bplib_mpool_bblock_canonical_alloc(bplib_cache_parent_pool(state), 0, NULL);
-    if (custody_info->cblk != NULL)
+    custody_info->this_cblk = bplib_mpool_bblock_canonical_alloc(bplib_cache_parent_pool(state), 0, NULL);
+    if (custody_info->this_cblk != NULL)
     {
-        bplib_mpool_bblock_primary_append(pri_block, custody_info->cblk);
+        bplib_mpool_bblock_primary_append(pri_block, custody_info->this_cblk);
 
-        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->cblk);
+        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->this_cblk);
         if (custody_block != NULL)
         {
             custody_block->canonical_logical_data.canonical_block.blockType = bp_blocktype_custodyTrackingBlock;
@@ -115,15 +115,17 @@ void bplib_cache_custody_init_info_from_pblock(bplib_cache_custodian_info_t *cus
     v7_get_eid(&final_dest_addr, &pri_block->data.logical.destinationEID);
     custody_info->final_dest_node = final_dest_addr.node_number;
 
-    custody_info->cblk = bplib_mpool_bblock_primary_locate_canonical(pri_block, bp_blocktype_custodyTrackingBlock);
-    if (custody_info->cblk != NULL)
+    custody_info->prev_cblk = bplib_mpool_bblock_primary_locate_canonical(pri_block, bp_blocktype_custodyTrackingBlock);
+    if (custody_info->prev_cblk != NULL)
     {
-        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->cblk);
+        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->prev_cblk);
         if (custody_block != NULL)
         {
             /* need to generate a DACS back to the previous custodian indicated in the custody block */
             v7_get_eid(&custody_info->custodian_id,
                        &custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian);
+
+            custody_block->canonical_logical_data.canonical_block.blockType = bp_blocktype_previousCustodianBlock;
         }
     }
 }
@@ -322,32 +324,35 @@ void bplib_cache_custody_ack_tracking_block(bplib_cache_state_t                *
     bplib_cache_custodian_info_t    dacs_info;
     bplib_mpool_bblock_canonical_t *custody_block;
 
-    memset(&dacs_info, 0, sizeof(dacs_info));
-    custody_block = bplib_mpool_bblock_canonical_cast(custody_info->cblk);
-    if (custody_block != NULL)
+    if (custody_info->prev_cblk != NULL)
     {
-        v7_get_eid(&dacs_info.custodian_id,
-                   &custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian);
+        memset(&dacs_info, 0, sizeof(dacs_info));
+        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->prev_cblk);
+        if (custody_block != NULL)
+        {
+            v7_get_eid(&dacs_info.custodian_id,
+                       &custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian);
+        }
+
+        dacs_info.flow_id         = custody_info->flow_id;
+        dacs_info.sequence_num    = custody_info->sequence_num;
+        dacs_info.final_dest_node = custody_info->final_dest_node;
+
+        if (!bplib_cache_custody_find_pending_dacs(state, &dacs_info))
+        {
+            /* open DACS bundle did not exist - make an empty one now */
+            bplib_cache_custody_open_dacs(state, &dacs_info);
+        }
+
+        bplib_cache_custody_append_dacs(state, &dacs_info);
     }
-
-    dacs_info.flow_id         = custody_info->flow_id;
-    dacs_info.sequence_num    = custody_info->sequence_num;
-    dacs_info.final_dest_node = custody_info->final_dest_node;
-
-    if (!bplib_cache_custody_find_pending_dacs(state, &dacs_info))
-    {
-        /* open DACS bundle did not exist - make an empty one now */
-        bplib_cache_custody_open_dacs(state, &dacs_info);
-    }
-
-    bplib_cache_custody_append_dacs(state, &dacs_info);
 }
 
 void bplib_cache_custody_update_tracking_block(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info)
 {
     bplib_mpool_bblock_canonical_t *custody_block;
 
-    custody_block = bplib_mpool_bblock_canonical_cast(custody_info->cblk);
+    custody_block = bplib_mpool_bblock_canonical_cast(custody_info->this_cblk);
     if (custody_block != NULL)
     {
         v7_set_eid(&custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian,
@@ -364,18 +369,12 @@ void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, bplib_mpool_
     /* check if this is the last stop on the custody train */
     is_local = (custody_info->final_dest_node == state->self_addr.node_number);
 
-    if (custody_info->cblk != NULL)
+    if (is_local)
     {
-        /* Acknowledge the block in the bundle */
-        bplib_cache_custody_ack_tracking_block(state, custody_info);
-
-        if (is_local)
-        {
-            /* this only needs acceptance by the local delivery agent, do not expect an ack bundle */
-            pri_block->data.delivery.delivery_policy = bplib_policy_delivery_local_ack;
-        }
+        /* this only needs acceptance by the local delivery agent, do not expect an ack bundle */
+        pri_block->data.delivery.delivery_policy = bplib_policy_delivery_local_ack;
     }
-    else if (!is_local)
+    else
     {
         /* There is no previous custodian, but the custody block needs to be added (because this
          * function is only invoked where full custody tracking is enabled).  This is the case when
@@ -383,7 +382,7 @@ void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, bplib_mpool_
         bplib_cache_custody_insert_tracking_block(state, pri_block, custody_info);
     }
 
-    if (custody_info->cblk != NULL)
+    if (custody_info->this_cblk != NULL)
     {
         /* update the custody block to reflect the new custodian (this service) -
          * whenever the bundle is finally forwarded, this tells the recipient to notify us */
@@ -556,7 +555,6 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
             pri_block->data.logical.creationTimeStamp.time + pri_block->data.logical.lifetime;
 
         pri_block->data.delivery.storage_intf_id = bplib_mpool_get_external_id(bplib_cache_state_self_block(state));
-        pri_block->data.delivery.committed_storage_id = (bp_sid_t)sblk;
 
         /* NOTE:
          * This may also be the right place to generate a custody signal, if the bundle
@@ -567,13 +565,23 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
             bplib_cache_custody_process_bundle(state, pri_block, &custody_info);
         }
 
-        if (state->offload_api != NULL)
+        if (state->offload_api == NULL)
+        {
+            pri_block->data.delivery.committed_storage_id = (bp_sid_t)sblk;
+        }
+        else
         {
             if (state->offload_api->offload(state->offload_blk, &custody_info.store_entry->offload_sid, qblk) ==
                 BP_SUCCESS)
             {
-                /* TBD */
+                pri_block->data.delivery.committed_storage_id = custody_info.store_entry->offload_sid;
             }
+        }
+
+        if (pri_block->data.delivery.committed_storage_id)
+        {
+            /* Acknowledge the block in the bundle */
+            bplib_cache_custody_ack_tracking_block(state, &custody_info);
         }
 
         /* This puts it into the right spot for future holding */

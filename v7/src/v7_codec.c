@@ -1135,51 +1135,60 @@ void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canoni
      * multiple different block types may get labeled as the "payload block"
      * because RFC9171 insists that something must be labeled as such.
      */
-    encode_blocktype = v->blockType;
-    if (encode_blocktype >= bp_blocktype_SPECIAL_PAYLOADS_START && encode_blocktype < bp_blocktype_SPECIAL_PAYLOADS_MAX)
+    switch (v->blockType)
     {
-        /* This special block is fulfilling the RFC9171 "payload block" requirement -
-         * there must be an extension block elsewhere in the bundle that helps the
-         * decoder on the other side figure out what it really is */
-        encode_blocktype = bp_blocktype_payloadBlock;
+        case bp_blocktype_adminRecordPayloadBlock:
+        case bp_blocktype_ciphertextPayloadBlock:
+        case bp_blocktype_custodyAcceptPayloadBlock:
+            /* This special block is fulfilling the RFC9171 "payload block" requirement -
+             * there must be an extension block elsewhere in the bundle that helps the
+             * decoder on the other side figure out what it really is */
+            encode_blocktype = bp_blocktype_payloadBlock;
+            break;
+        default:
+            encode_blocktype = v->blockType;
+            break;
     }
 
-    v7_encode_bp_blocktype(enc, &encode_blocktype);
-    v7_encode_bp_blocknum(enc, &v->blockNum);
-    v7_encode_bp_block_processing_flags(enc, &v->processingControlFlags);
-    v7_encode_bp_crctype(enc, &v->crctype);
-
-    /*
-     * The content is wrapped as a CBOR byte string.
-     * The data may itself be CBOR-encoded (so this may result as CBOR-in-CBOR)
-     *
-     * This encodes the data and snapshots the position of the END of that CBOR byte
-     * string.
-     */
-    cbor_encode_byte_string(enc->cbor, info->content_vptr, info->content_size);
-    content_offset_cbor_end = enc->total_bytes_encoded;
-    if (content_offset_cbor_end < info->content_size)
+    if (encode_blocktype < bp_blocktype_MAX_NORMAL)
     {
-        /* this should never happen */
-        enc->error = true;
-    }
+        v7_encode_bp_blocktype(enc, &encode_blocktype);
+        v7_encode_bp_blocknum(enc, &v->blockNum);
+        v7_encode_bp_block_processing_flags(enc, &v->processingControlFlags);
+        v7_encode_bp_crctype(enc, &v->crctype);
 
-    /* Attach the CRC if requested. */
-    if (v->crctype != bp_crctype_none)
-    {
-        v7_encode_crc(enc);
-    }
+        /*
+         * The content is wrapped as a CBOR byte string.
+         * The data may itself be CBOR-encoded (so this may result as CBOR-in-CBOR)
+         *
+         * This encodes the data and snapshots the position of the END of that CBOR byte
+         * string.
+         */
+        cbor_encode_byte_string(enc->cbor, info->content_vptr, info->content_size);
+        content_offset_cbor_end = enc->total_bytes_encoded;
+        if (content_offset_cbor_end < info->content_size)
+        {
+            /* this should never happen */
+            enc->error = true;
+        }
 
-    /*
-     * Export the location where the encoded data actually appeared in the stream.
-     *
-     * CBOR markup occurs at the beginning of each record, so by knowing
-     * where it ends it is easy to find the beginning of actual data, as the CBOR
-     * markup itself is variable size, but the content is a known size here.
-     */
-    if (!enc->error && info->content_offset_out != NULL)
-    {
-        *info->content_offset_out = content_offset_cbor_end - info->content_size;
+        /* Attach the CRC if requested. */
+        if (v->crctype != bp_crctype_none)
+        {
+            v7_encode_crc(enc);
+        }
+
+        /*
+         * Export the location where the encoded data actually appeared in the stream.
+         *
+         * CBOR markup occurs at the beginning of each record, so by knowing
+         * where it ends it is easy to find the beginning of actual data, as the CBOR
+         * markup itself is variable size, but the content is a known size here.
+         */
+        if (!enc->error && info->content_offset_out != NULL)
+        {
+            *info->content_offset_out = content_offset_cbor_end - info->content_size;
+        }
     }
 }
 
