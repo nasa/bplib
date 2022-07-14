@@ -439,47 +439,6 @@ int bplib2_bundle_test(void)
         return lib_status;
     }
 
-    /* now wait for the DACS signal, which comes out after a delay */
-    printf("@%lu: waiting for ACK Bundle...\n", (unsigned long)bplib_os_get_dtntime_ms());
-
-    bundle_sz  = sizeof(bundle_buffer);
-    lib_status = bplib_cla_egress(s2_rtbl, s2_intf_cla, bundle_buffer, &bundle_sz, 5000000);
-    if (lib_status != 0)
-    {
-        fprintf(stderr, "Failed bplib_cla_egress() for DACS  code=%d... exiting\n", lib_status);
-        return lib_status;
-    }
-
-    /* wait for any pending data flows to complete */
-    bplib_route_maintenance_complete_wait(s2_rtbl);
-
-    printf("@%lu: ACK Bundle content:\n", (unsigned long)bplib_os_get_dtntime_ms());
-    display(stdout, bundle_buffer, 0, bundle_sz);
-
-    fd = open("ack.cbor", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd < 0)
-    {
-        perror("open()");
-        return -1;
-    }
-
-    if (write(fd, bundle_buffer, bundle_sz) != bundle_sz)
-    {
-        perror("write");
-    }
-    close(fd);
-
-    printf("@%lu: sending ACK to originator...\n", (unsigned long)bplib_os_get_dtntime_ms());
-
-    lib_status = bplib_cla_ingress(s1_rtbl, s1_intf_cla, bundle_buffer, bundle_sz, BP_CHECK);
-    if (lib_status != 0)
-    {
-        fprintf(stderr, "Failed bplib_cla_ingress() code=%d... exiting\n", lib_status);
-        return lib_status;
-    }
-
-    bplib_route_maintenance_complete_wait(s1_rtbl);
-
     /* let some additional maintenance cycles run */
     printf("@%lu: shutting down...\n", (unsigned long)bplib_os_get_dtntime_ms());
     sleep(2);
