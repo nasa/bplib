@@ -556,32 +556,40 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
 
         pri_block->data.delivery.storage_intf_id = bplib_mpool_get_external_id(bplib_cache_state_self_block(state));
 
-        /* NOTE:
-         * This may also be the right place to generate a custody signal, if the bundle
-         * has the full custody tracking/transfer service level.
-         */
-        if (pri_block->data.delivery.delivery_policy == bplib_policy_delivery_custody_tracking)
-        {
-            bplib_cache_custody_process_bundle(state, pri_block, &custody_info);
-        }
-
         if (state->offload_api == NULL)
         {
             pri_block->data.delivery.committed_storage_id = (bp_sid_t)sblk;
         }
         else
         {
+            /*
+             * Should not claim custody if not offloaded to persistent storage.
+             * This can still relay the bundle (above) but should not modify custody info.
+             */
+            if (pri_block->data.delivery.delivery_policy == bplib_policy_delivery_custody_tracking)
+            {
+                bplib_cache_custody_process_bundle(state, pri_block, &custody_info);
+            }
+
             if (state->offload_api->offload(state->offload_blk, &custody_info.store_entry->offload_sid, qblk) ==
                 BP_SUCCESS)
             {
                 pri_block->data.delivery.committed_storage_id = custody_info.store_entry->offload_sid;
+
+                /* Acknowledge the block in the bundle */
+                bplib_cache_custody_ack_tracking_block(state, &custody_info);
             }
         }
 
+        /*
+         * the storage ID should only be set if it was successfully stored.  This
+         * also sets the state to "idle" which begins normal FSM processing.  If
+         * not successfully stored, then the state remains as "unknown" (0) and
+         * the FSM will immediately discard the entry.
+         */
         if (pri_block->data.delivery.committed_storage_id)
         {
-            /* Acknowledge the block in the bundle */
-            bplib_cache_custody_ack_tracking_block(state, &custody_info);
+            custody_info.store_entry->state = bplib_cache_entry_state_idle;
         }
 
         /* This puts it into the right spot for future holding */

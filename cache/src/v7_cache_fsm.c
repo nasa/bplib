@@ -232,9 +232,16 @@ static void bplib_cache_fsm_reschedule(bplib_cache_state_t *state, bplib_cache_e
     }
 }
 
+static bplib_cache_entry_state_t bplib_cache_fsm_state_noop_eval(bplib_cache_entry_t *store_entry)
+{
+    /* entries which reach this state will be discarded immediately */
+    return bplib_cache_entry_state_undefined;
+}
+
 static bplib_cache_entry_state_t bplib_cache_fsm_get_next_state(bplib_cache_entry_t *entry)
 {
     static const bplib_cache_fsm_state_eval_func_t STATE_EVAL_TABLE[bplib_cache_entry_state_max] = {
+        [bplib_cache_entry_state_undefined]     = bplib_cache_fsm_state_noop_eval,
         [bplib_cache_entry_state_idle]          = bplib_cache_fsm_state_idle_eval,
         [bplib_cache_entry_state_queue]         = bplib_cache_fsm_state_queue_eval,
         [bplib_cache_entry_state_delete]        = bplib_cache_fsm_state_delete_eval,
@@ -359,6 +366,7 @@ void bplib_cache_fsm_execute(bplib_mpool_block_t *sblk)
             bplib_cache_fsm_transition_state(store_entry, next_state);
         }
 
+        /* entries get set into the "undefined" state once the FSM determines it is no longer useful at all */
         if (next_state == bplib_cache_entry_state_undefined)
         {
             bplib_cache_fsm_debug_report_discard(store_entry);
