@@ -37,6 +37,7 @@ target_compile_options(bptest PRIVATE ${BPAPP_COMPILE_OPTIONS})
 target_compile_options(rbtest PRIVATE ${BPAPP_COMPILE_OPTIONS})
 
 # Low level test apps may include "private" headers, whereas higher level tests should not
+target_include_directories(bpcat PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
 target_include_directories(bptest PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
 target_include_directories(rbtest PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
 

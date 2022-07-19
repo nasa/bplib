@@ -33,6 +33,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <poll.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -43,6 +44,8 @@
 #include "bplib_routing.h"
 #include "bplib_store_ram.h"
 
+#include "v7_rbtree.h"
+
 /* BPCAT_MAX_WAIT_MSEC controls the amount of time waiting for reading/writing to queues/files by
  * the data mover threads.  This is time limited so the "app_running" flag is checked periodically.
  * Normally it should be fairly short so that the program responds to CTRL+C in a fairly timely
@@ -50,8 +53,9 @@
 //#define BPCAT_MAX_WAIT_MSEC         1800000
 #define BPCAT_MAX_WAIT_MSEC 250
 
-#define BPCAT_DATA_MESSAGE_MAX_SIZE 2560
-#define BPCAT_BUNDLE_BUFFER_SIZE    (BPCAT_DATA_MESSAGE_MAX_SIZE + 512)
+#define BPCAT_DATA_MESSAGE_MAX_SIZE 2552
+#define BPCAT_BUNDLE_BUFFER_SIZE    (sizeof(bpcat_msg_content_t) + 512)
+#define BPCAT_RECV_WINDOW_SZ        32
 
 /*************************************************************************
  * File Data
@@ -63,6 +67,21 @@ typedef struct bplib_cla_intf_id
     bp_handle_t       intf_id;
     int               sys_fd;
 } bplib_cla_intf_id_t;
+
+typedef struct bpcat_msg_content
+{
+    uint32_t stream_pos;
+    uint32_t segment_len;
+    uint8_t  content[BPCAT_DATA_MESSAGE_MAX_SIZE];
+} bpcat_msg_content_t;
+
+typedef struct bpcat_msg_recv
+{
+    bplib_rbt_link_t    link;
+    bpcat_msg_content_t msg;
+} bpcat_msg_recv_t;
+
+static bpcat_msg_recv_t recv_window[BPCAT_RECV_WINDOW_SZ];
 
 static volatile sig_atomic_t app_running;
 
@@ -143,18 +162,52 @@ static void parse_address(const char *string_addr, bp_ipn_addr_t *parsed_addr)
             (unsigned long)parsed_addr->service_number);
 }
 
+void redirect_file(int fileno, const char *filename)
+{
+    int flags;
+    int rfd;
+
+    if (fileno == STDIN_FILENO)
+    {
+        /* when redirecting input, do read only */
+        flags = O_RDONLY;
+    }
+    else
+    {
+        /* when redirecting output, do write only */
+        flags = O_WRONLY | O_CREAT | O_TRUNC;
+    }
+
+    rfd = open(filename, flags, 0664);
+    if (rfd < 0)
+    {
+        perror(filename);
+        exit(EXIT_FAILURE);
+    }
+
+    if (dup2(rfd, fileno) < 0)
+    {
+        perror("dup2()");
+        exit(EXIT_FAILURE);
+    }
+
+    close(rfd);
+}
+
 static void parse_options(int argc, char *argv[])
 {
     /*
      * getopts parameter passing options string
      */
-    static const char *opt_string = "l:r:?";
+    static const char *opt_string = "l:r:i:o:?";
 
     /*
      * getopts_long long form argument table
      */
     static const struct option long_opts[] = {{"local-addr", required_argument, NULL, 'l'},
                                               {"remote-addr", required_argument, NULL, 'r'},
+                                              {"input-file", required_argument, NULL, 'i'},
+                                              {"output-file", required_argument, NULL, 'o'},
                                               {"help", no_argument, NULL, '?'},
                                               {NULL, no_argument, NULL, 0}};
 
@@ -195,6 +248,14 @@ static void parse_options(int argc, char *argv[])
             case 'r':
                 strncpy(remote_address_string, optarg, sizeof(remote_address_string) - 1);
                 remote_address_string[sizeof(remote_address_string) - 1] = 0;
+                break;
+
+            case 'i':
+                redirect_file(STDIN_FILENO, optarg);
+                break;
+
+            case 'o':
+                redirect_file(STDOUT_FILENO, optarg);
                 break;
 
             default:
@@ -459,18 +520,22 @@ static int setup_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *storage_ad
 
 static void *app_in_entry(void *arg)
 {
-    bp_socket_t  *desc;
-    uint64_t      send_deadline;
-    uint64_t      current_time;
-    uint64_t      timeout;
-    uint8_t       data_buffer[BPCAT_DATA_MESSAGE_MAX_SIZE];
-    size_t        data_fill_sz;
-    ssize_t       status;
-    struct pollfd pfd;
-    int           app_fd;
+    bp_socket_t        *desc;
+    uint64_t            send_deadline;
+    uint64_t            current_time;
+    uint64_t            timeout;
+    bpcat_msg_content_t msg_buffer;
+    uint32_t            data_fill_sz;
+    uint32_t            stream_pos;
+    ssize_t             status;
+    struct pollfd       pfd;
+    int                 app_fd;
+    bool                got_eof;
 
+    got_eof       = false;
     desc          = arg;
     data_fill_sz  = 0;
+    stream_pos    = 0;
     send_deadline = BP_DTNTIME_INFINITE;
     app_fd        = STDIN_FILENO;
 
@@ -485,7 +550,7 @@ static void *app_in_entry(void *arg)
             current_time = 0;
         }
 
-        if (send_deadline > current_time && data_fill_sz < sizeof(data_buffer))
+        if (send_deadline > current_time && data_fill_sz < sizeof(msg_buffer.content))
         {
             pfd.fd      = app_fd;
             pfd.events  = POLLIN;
@@ -508,25 +573,25 @@ static void *app_in_entry(void *arg)
             }
             if ((pfd.revents & POLLIN) != 0)
             {
-                status = read(app_fd, &data_buffer[data_fill_sz], sizeof(data_buffer) - data_fill_sz);
+                status = read(app_fd, &msg_buffer.content[data_fill_sz], sizeof(msg_buffer.content) - data_fill_sz);
+                fprintf(stderr, "read()... size=%ld\n", (long)status);
                 if (status < 0)
                 {
                     perror("read()");
                     break;
                 }
+
                 if (status == 0)
                 {
                     /* this typically means EOF */
-                    fprintf(stderr, "Got EOF\n");
-                    break;
+                    got_eof       = true;
+                    send_deadline = 0;
                 }
-
-                if (data_fill_sz == 0)
+                else
                 {
+                    data_fill_sz += status;
                     send_deadline = bplib_os_get_dtntime_ms() + 250;
                 }
-
-                data_fill_sz += status;
             }
             else
             {
@@ -534,21 +599,33 @@ static void *app_in_entry(void *arg)
                 status = 0;
             }
         }
-        else
+        else if (data_fill_sz > 0)
         {
-            fprintf(stderr, "Call bplib_send()... size=%zu\n", data_fill_sz);
-            status = bplib_send(desc, data_buffer, data_fill_sz, BPCAT_MAX_WAIT_MSEC);
+            msg_buffer.segment_len = htonl(data_fill_sz);
+            msg_buffer.stream_pos  = htonl(stream_pos);
+            stream_pos += data_fill_sz;
+            fprintf(stderr, "Call bplib_send()... size=%lu\n", (unsigned long)data_fill_sz);
+            status = bplib_send(desc, &msg_buffer, &msg_buffer.content[data_fill_sz] - (uint8_t *)&msg_buffer,
+                                BPCAT_MAX_WAIT_MSEC);
             if (status == BP_SUCCESS)
             {
                 /* reset the buffer */
-                data_fill_sz  = 0;
-                send_deadline = BP_DTNTIME_INFINITE;
+                data_fill_sz = 0;
+                if (!got_eof)
+                {
+                    send_deadline = BP_DTNTIME_INFINITE;
+                }
             }
             else if (status != BP_TIMEOUT)
             {
                 fprintf(stderr, "Failed bplib_send() code=%zd... exiting\n", status);
                 break;
             }
+        }
+        else if (got_eof)
+        {
+            fprintf(stderr, "Terminating app_in thread at EOF...\n");
+            break;
         }
     }
 
@@ -557,23 +634,100 @@ static void *app_in_entry(void *arg)
 
 static void *app_out_entry(void *arg)
 {
-    bp_socket_t *desc;
-    size_t       recv_sz;
-    ssize_t      status;
-    uint8_t      data_buffer[BPCAT_DATA_MESSAGE_MAX_SIZE];
-    size_t       data_fill_sz;
+    bp_socket_t      *desc;
+    size_t            recv_sz;
+    ssize_t           status;
+    bpcat_msg_recv_t *curr_bp_buffer;
+    bpcat_msg_recv_t *curr_app_buffer;
 
-    desc = arg;
+    bp_val_t         curr_stream_pos;
+    bp_val_t         total_message_count;
+    bplib_rbt_root_t free_root;
+    bplib_rbt_root_t recv_root;
+    bplib_rbt_iter_t iter;
+
+    uint32_t segment_remain;
+    uint32_t segment_offset;
+    int32_t  segment_distance;
+
+    desc                = arg;
+    curr_bp_buffer      = NULL;
+    curr_stream_pos     = 0;
+    total_message_count = 0;
+    segment_remain      = 0;
+    segment_offset      = 0;
+
+    bplib_rbt_init_root(&free_root);
+    bplib_rbt_init_root(&recv_root);
+
+    for (total_message_count = 0; total_message_count < BPCAT_RECV_WINDOW_SZ; ++total_message_count)
+    {
+        bplib_rbt_insert_value_unique(total_message_count, &free_root, &recv_window[total_message_count].link);
+    }
 
     while (app_running)
     {
-        if (data_fill_sz == 0)
+        if (curr_app_buffer == NULL)
         {
-            recv_sz = sizeof(data_buffer);
-            status  = bplib_recv(desc, data_buffer, &recv_sz, BPCAT_MAX_WAIT_MSEC);
-            if (status == BP_SUCCESS)
+            if (bplib_rbt_iter_goto_min(0, &recv_root, &iter) == BP_SUCCESS)
             {
-                data_fill_sz = recv_sz;
+                if (bplib_rbt_get_key_value(iter.position) <= curr_stream_pos)
+                {
+                    curr_app_buffer = (bpcat_msg_recv_t *)iter.position;
+
+                    segment_remain  = curr_app_buffer->msg.segment_len;
+                    segment_offset  = 0;
+                    curr_stream_pos = bplib_rbt_get_key_value(iter.position) + curr_app_buffer->msg.segment_len;
+
+                    /* note this must be done last because it clobbers the value */
+                    bplib_rbt_extract_node(&recv_root, &curr_app_buffer->link);
+                }
+            }
+        }
+
+        if (curr_bp_buffer == NULL)
+        {
+            if (bplib_rbt_iter_goto_min(0, &free_root, &iter) == BP_SUCCESS)
+            {
+                curr_bp_buffer = (bpcat_msg_recv_t *)iter.position;
+                bplib_rbt_extract_node(&free_root, &curr_bp_buffer->link);
+            }
+        }
+
+        if (curr_app_buffer != NULL)
+        {
+            fprintf(stderr, "Call system write()... offset=%lu size=%lu\n", (unsigned long)segment_offset,
+                    (unsigned long)segment_remain);
+            status = write(STDOUT_FILENO, &curr_app_buffer->msg.content[segment_offset], segment_remain);
+            if (status < 0)
+            {
+                perror("write()");
+                break;
+            }
+
+            segment_offset += status;
+            segment_remain -= status;
+
+            if (segment_remain == 0)
+            {
+                bplib_rbt_insert_value_unique(total_message_count, &free_root, &curr_app_buffer->link);
+                ++total_message_count;
+                curr_app_buffer = NULL;
+            }
+        }
+        else if (curr_bp_buffer != NULL)
+        {
+            recv_sz = sizeof(bpcat_msg_content_t);
+            status  = bplib_recv(desc, &curr_bp_buffer->msg, &recv_sz, BPCAT_MAX_WAIT_MSEC);
+            if (status == BP_SUCCESS && recv_sz >= offsetof(bpcat_msg_content_t, content))
+            {
+                curr_bp_buffer->msg.stream_pos  = ntohl(curr_bp_buffer->msg.stream_pos);
+                curr_bp_buffer->msg.segment_len = ntohl(curr_bp_buffer->msg.segment_len);
+
+                segment_distance = curr_bp_buffer->msg.stream_pos - ((uint32_t)curr_stream_pos & 0xFFFFFFFF);
+
+                bplib_rbt_insert_value_unique(curr_stream_pos + segment_distance, &recv_root, &curr_bp_buffer->link);
+                curr_bp_buffer = NULL;
             }
             else if (status != BP_TIMEOUT)
             {
@@ -583,16 +737,19 @@ static void *app_out_entry(void *arg)
         }
         else
         {
-            fprintf(stderr, "Call system write()... size=%zu\n", data_fill_sz);
-            status = write(STDOUT_FILENO, data_buffer, data_fill_sz);
-            if (status != data_fill_sz)
+            /* This means the free tree was empty, so theoretically everything must be in the recv tree */
+            if (bplib_rbt_iter_goto_min(0, &recv_root, &iter) == BP_SUCCESS)
             {
-                /* assuming an error, there shouldn't be short writes to stdout normally */
-                perror("write()");
+                fprintf(stderr, "Gap in sequence, skipping offset %lu -> %lu\n", (unsigned long)curr_stream_pos,
+                        (unsigned long)bplib_rbt_get_key_value(iter.position));
+
+                curr_stream_pos = bplib_rbt_get_key_value(iter.position);
+            }
+            else
+            {
+                fprintf(stderr, "free_root and recv_root both empty, bug?... exiting\n");
                 break;
             }
-
-            data_fill_sz = 0;
         }
     }
 
