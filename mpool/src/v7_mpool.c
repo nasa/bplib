@@ -1199,9 +1199,9 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
      */
     admin->bblock_alloc_threshold   = (admin->num_bufs_total * 30) / 100;
     admin->internal_alloc_threshold = (admin->num_bufs_total * 10) / 100;
-    printf("%s(): created pool of size %zu, with %u chunks, bblock threshold = %u, internal threshold = %u\n", __func__,
-           pool_size, (unsigned int)admin->num_bufs_total, (unsigned int)admin->bblock_alloc_threshold,
-           (unsigned int)admin->internal_alloc_threshold);
+    fprintf(stderr, "%s(): created pool of size %zu, with %u chunks, bblock threshold = %u, internal threshold = %u\n",
+            __func__, pool_size, (unsigned int)admin->num_bufs_total, (unsigned int)admin->bblock_alloc_threshold,
+            (unsigned int)admin->internal_alloc_threshold);
 
     return pool;
 }
