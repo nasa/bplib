@@ -42,3 +42,4 @@ target_compile_features(bplib_v7 PRIVATE c_std_99)
 
 # Use the same basic compiler flags as bplib
 target_compile_options(bplib_v7 PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
+set_target_properties(bplib_v7 PROPERTIES ${BPLIB_COMMON_PROPERTIES})

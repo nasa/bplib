@@ -29,3 +29,4 @@ target_include_directories(bplib_cache PUBLIC
 # Use the same basic compiler flags as bplib
 target_compile_features(bplib_cache PRIVATE c_std_99)
 target_compile_options(bplib_cache PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
+set_target_properties(bplib_cache PROPERTIES ${BPLIB_COMMON_PROPERTIES})
