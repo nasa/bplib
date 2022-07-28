@@ -20,87 +20,56 @@ The Bundle Protocol library (bplib) implements a subset of the RFC5050 Bundle Pr
 Bplib assumes the availability of a persistent queued storage system for managing the rate buffering that must occur between data and bundle processing. This storage system is provided at run-time by the application, which can either use its own or can use one of the included storage services. In addition to the storage service, bplib needs an operating system interface provided at compile-time. By default a POSIX compliant operating systems interface is built with the included makefile - see below for further instructions on changing the operating system interface.
 
 ----------------------------------------------------------------------
-## 2. Build with Make
+## 2. Build with CMake
 ----------------------------------------------------------------------
 
 #### Prerequisites
 
-1. To build the static and shared libraries, the only prerequisites are the __make__ build system and a compiler toolchain (by default __gcc__).
+1. The build requires the __cmake__ build system and a compiler toolchain (by default __gcc__).  Additionally, the __pkg-config__ tool is used to manage the flags required for dependencies.  These can typically be installed via the built-in package management system on most Linux distributions.  On Debian/Ubuntu and derivatives:
 
-2. Tailoring the build to provide unique system prerequisites is accomplished by providing a custom configuration makefile.  See `posix.mk` as an example. If your custom file is called `{my_config_makefile}` then the following commands would be used:
-   * `make CONFIG={my_config_makefile}`
-   * `sudo make CONFIG={my_config_makefile} install`
+```sh
+    cd $HOME
+    sudo apt-get install cmake pkg-config build-essential
+```
 
-3. To build the optional Lua extension used for unit testing (and useful for any user implemented Lua applications), then you need to have Lua installed on your system.  Given the various versions and configurations Lua can be found in for different systems, the default behavior of the makefile is to look for Lua 5.3 in `/opt/lua5.3` which assumes you've downloaded and installed Lua yourself.  This can be accomplished via the followings steps:
-   * Download Lua 5.3 from `www.lua.org`
-   * `tar -xvzf lua-5.3.X.tar.gz` where X is whatever the latest stable version of Lau 5.3 is.
-   * `cd lua-5.3.X`
-   * `make MYCFLAGS="-fpic" linux`
-   * `sudo make install INSTALL_TOP=/opt/lua5.3`
-   * `alias bplua="LUA_CPATH=/opt/lua5.3/lib/lua/5.3/?.so LUA_PATH=/opt/lua5.3/lib/lua/5.3/?.lua /opt/lua5.3/bin/lua"`
+2. For BPv7 this uses the TinyCBOR library at https://github.com/intel/tinycbor.  As the packaged version may be outdated, it is recommended to compile this from source.  As of this writing, the library uses a simple Makefile that will install into `/usr/local`.  This installation prefix can be changed by editing the Makefile before building.  Otherwise, to install into the default location, steps are as follows:
 
-4. If you want to use a different Lua installation, you must run the Makefile found in `binding/lua` directly.  From the command line: the `PREFIX` variable can be set to the installed version of Lua you want to use (e.g. __/usr__), and the `LIBDIR` variable can be set to where the bplib.so extension module should be installed (e.g. __/usr/lib64/lua/5.1__).  Managing multiple Lua distributions on a single system can be a little tricky - the biggest problem being that as of 5.3 there is still a global search path for shared objects and Lua files that is independent of the location of the binary Lua interpreter.  To get around this problem you can either set the `package.cpath` and `package.path` variables within your Lua scripts or you can alias the call to start the Lua interpreter with the paths called out in the command (as shown above).
+```sh
+    git clone https://github.com/intel/tinycbor
+    cd tinycbor
+    make
+    sudo make install
+```
+
+Note that "sudo" is only required for installation into a system directory.  If installing into a user-writable home directory, "sudo" is not necessary.
+
+3. Create a subdirectory for building bplib and run CMake to set up the build tree.
+
+```sh
+   cd $HOME
+   mkdir build-bplib
+   cd build-bplib
+   cmake ../bplib
+```
 
 #### Building
 
-To build only the static and shared libraries (which is recommended), use the following commands:
-* `make`
-* `sudo make install`
+Build bplib by running __make__ in the build subdirectory:
 
-To build everything, including the language bindings and example application, go to repository root directory and execute the following commands:
-* `make dev`
-* `sudo make install-dev`
-
-The dev target of the makefile produces the following binaries:
-* `build/libbp.so.<version>` - shared library
-* `build/libbp.a` - static library
-* `bindings/lua/build/bplib.so` - lua extension module
-* `app/build/bpsend` - example application that sends bundles
-* `app/build/bprecv` - example program that receives bundles
-
-And performs the following installations:
-* `/usr/local/lib`: bplib libraries
-* `/usr/local/inc`: bplib includes
-* `/usr/local/lib/lua/5.3`: lua extensions and helper scripts
-* `/opt/bpio/bin`: example application binaries
-
-Additional make commands are as follows:
-* `make clean` will remove all generated files and directories
-* `make testmem` will call valgrind for detecting memory leaks
-* `make testcpu` will call valgrind/callgrind for detecting cpu bottlenecks
-* `make testheap` will call valgrind/massif for detecting sources of memory bloat
-* `make testcov` will generate a line coverage report (if built and run with gcov, which is enabled by default)
-
-On CentOS you may need to create a file with the conf extension in /etc/ld.so.conf.d that contains the line '/usr/local/lib'.
-* `sudo echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf`
-* `sudo ldconfig`
-
-**Special Note**:  In order to be compatible with other implementations of the Bundle Protocol, bplib uses a global custody ID by default.  To use bplib with per channel custody IDs that optimize aggregate acknowledgements, define `BPLIB_GLOBAL_CUSTODY_ID` to false when compiling the code (e.g. `make USER_COPT="-DBPLIB_GLOBAL_CUSTODY_ID=false"`).
+```sh
+   cd $HOME/build-bplib
+   make
+```
 
 #### Example Application
 
-For those that learn better through examples, an example application is provided in the `apps` directory.  This example program is not intended to be complete, but provides a quick way to see how to use the library.  After building and installing bplib on your system, you can do a simple test to see if the application will run by doing the following:
+For those that learn better through examples, an example application is provided in the `apps` directory.  This example program is not intended to be complete, but provides a quick way to see how to use the library.  After building and installing bplib on your system, the `bpcat` program provides a functionality similar to netcat for bplib.
 
-* `cd apps`
-* `make`
-* `./test_run.sh`
-
-This will create two windows, the first executing the **bprecv** program, and the second executing the **bpsend** program.  Any line you type in the **bpsend** window is bundled and sent over UDP to the **bprecv** program.  Custody transfer is employed and the **bpsend** program will keep track of the number of messages it has sent vs. the number of messages that have been acknowledged.
-
-#### Unit Tests
-
-To manually run the unit test suite:
-* `lua5.3 binding/lua/test/test_runner.lua`
-
-To run a specific unit test using one of the test targets provided in the makefile:
-* make test{mem|cpu|heap|cov} testcase=binding/lua/test/ut_{test}.lua
-
-Note that getting the lua extension to compile for your specific linux distribution can be difficult as they often come with different versions and named in different ways.  Please see the prerequisites section above and the makefile in `bindline/lua` for hints to how to get your version of Lua working with this library.
-
-#### Releases
-
-The default `posix.mk` configuration makefile is for development and builds additional C unit tests, code coverage profiling, stack protector, and uses minimum compiler optimizations. When releasing the code, the library should be built with `release.mk` as follows:
-* `make CONFIG=release.mk`
+```sh
+   cd apps
+   mkdir storage
+   ./bpcat
+```
 
 ----------------------------------------------------------------------
 ## 3. Application Design

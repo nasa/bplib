@@ -11,8 +11,8 @@ cmake_minimum_required(VERSION 3.5)
 project(BPLIB C)
 
 option(BPLIB_INCLUDE_STORAGE "Whether or not to build the basic/example storage services as part of BPLib" ON)
-option(BPLIB_INCLUDE_BPV6 "Whether or not to the BPv6 protocol implementation as part of BPLib" ON)
-option(BPLIB_INCLUDE_BPV7 "Whether or not to the BPv7 protocol implementation as part of BPLib (EXPERIMENTAL)" OFF)
+option(BPLIB_INCLUDE_BPV6 "Whether or not to the BPv6 protocol implementation as part of BPLib" OFF)
+option(BPLIB_INCLUDE_BPV7 "Whether or not to the BPv7 protocol implementation as part of BPLib (EXPERIMENTAL)" ON)
 option(BPLIB_INCLUDE_POSIX "Whether or not to the POSIX operating system abstraction as part of BPLib (standalone builds only)" ON)
 option(BPLIB_BUILD_TEST_TOOLS "Whether or not to build the test programs as part of BPLib (standalone builds only)" ON)
 
