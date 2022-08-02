@@ -199,7 +199,7 @@ void bplib_mpool_bblock_cbor_set_size(bplib_mpool_block_t *cb, size_t user_conte
  * @param pool
  * @return bplib_mpool_block_t*
  */
-bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg);
+bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg, uint8_t priority, uint64_t timeout);
 
 /**
  * @brief Allocate a new canonical block

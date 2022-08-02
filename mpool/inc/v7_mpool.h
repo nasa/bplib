@@ -26,6 +26,23 @@
 #include "bplib_api_types.h"
 
 /*
+ * Priority levels for pool buffers -
+ * The intent here is to give some preference to things which may decrease pool
+ * memory usage (such as receipt of a DACS, which might allow dozens of
+ * bundles to be deleted) over things that may increase pool memory usage
+ * (such as an app sending in new data bundles).
+ *
+ * This only comes into play once the pool is mostly used.  As long as memory
+ * use is low, everything gets allocated without issue.  Once memory becomes
+ * constrained, things need to start becoming more choosy as to who gets the buffer.
+ */
+#define BPLIB_MPOOL_ALLOC_PRI_LO  0
+#define BPLIB_MPOOL_ALLOC_PRI_MLO 63
+#define BPLIB_MPOOL_ALLOC_PRI_MED 127
+#define BPLIB_MPOOL_ALLOC_PRI_MHI 191
+#define BPLIB_MPOOL_ALLOC_PRI_HI  255
+
+/*
  * The basic types of blocks which are cacheable in the mpool
  */
 typedef struct bplib_mpool_bblock_primary   bplib_mpool_bblock_primary_t;

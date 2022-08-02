@@ -29,6 +29,7 @@ typedef void (*bplib_cache_fsm_state_change_func_t)(bplib_cache_entry_t *);
 
 static bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *store_entry)
 {
+    bplib_mpool_block_t *pblk;
 
     if (store_entry->parent->action_time >= store_entry->expire_time)
     {
@@ -47,7 +48,16 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_ent
     if ((store_entry->flags & BPLIB_STORE_FLAGS_ACTION_WAIT_STATE) == 0)
     {
         /* bundle is due for [re]transmit */
-        return bplib_cache_entry_state_queue;
+        if (store_entry->refptr == NULL && store_entry->offload_sid != 0)
+        {
+            store_entry->parent->offload_api->restore(store_entry->parent->offload_blk, store_entry->offload_sid, &pblk);
+            store_entry->refptr = bplib_mpool_ref_create(pblk);
+        }
+
+        if (store_entry->refptr != NULL)
+        {
+            return bplib_cache_entry_state_queue;
+        }
     }
 
     /* no change */
@@ -70,16 +80,9 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_queue_eval(bplib_cache_en
 static void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
 {
     bplib_mpool_block_t *rblk;
-    bplib_mpool_block_t *pblk;
     bplib_mpool_flow_t  *self_flow;
 
     store_entry->flags |= BPLIB_STORE_FLAG_PENDING_FORWARD;
-
-    if (store_entry->refptr == NULL && store_entry->offload_sid != 0)
-    {
-        store_entry->parent->offload_api->restore(store_entry->parent->offload_blk, store_entry->offload_sid, &pblk);
-        store_entry->refptr = bplib_mpool_ref_create(pblk);
-    }
 
     rblk = bplib_mpool_ref_make_block(store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF, store_entry);
     if (rblk != NULL)

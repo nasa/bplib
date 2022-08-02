@@ -98,7 +98,7 @@ bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32
     pool = bplib_mpool_get_parent_pool_from_link(&bblk->header.base_link);
 
     lock = bplib_mpool_lock_resource(pool);
-    rblk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_ref, magic_number, init_arg);
+    rblk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_ref, magic_number, init_arg, BPLIB_MPOOL_ALLOC_PRI_MHI);
     bplib_mpool_lock_release(lock);
 
     if (rblk == NULL)

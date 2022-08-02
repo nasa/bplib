@@ -458,7 +458,7 @@ bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_
     bplib_mpool_lock_t          *lock;
 
     lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_flow, magic_number, init_arg);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_flow, magic_number, init_arg, BPLIB_MPOOL_ALLOC_PRI_LO);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
