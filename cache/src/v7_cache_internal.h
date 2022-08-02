@@ -66,6 +66,8 @@ typedef struct bplib_cache_state
 {
     bp_ipn_addr_t self_addr;
 
+    bplib_mpool_job_t       pending_job;
+
     /*
      * pending_list holds bundle refs that are currently actionable in some way,
      * such as one of its timers getting reached, or the state flags changed.

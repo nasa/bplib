@@ -101,6 +101,7 @@ void bplib_mpool_job_mark_active(bplib_mpool_job_t *job)
 
     lock = bplib_mpool_lock_resource(pool);
     bplib_mpool_job_mark_active_internal(&admin->active_list, job);
+    bplib_mpool_lock_broadcast_signal(lock);
     bplib_mpool_lock_release(lock);
 }
 

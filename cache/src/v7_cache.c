@@ -60,6 +60,7 @@ void bplib_cache_entry_make_pending(bplib_cache_entry_t *store_entry, uint32_t s
 
     bplib_mpool_extract_node(sblk);
     bplib_mpool_insert_before(&store_entry->parent->pending_list, sblk);
+    bplib_mpool_job_mark_active(&store_entry->parent->pending_job);
 }
 
 int bplib_cache_egress_impl(void *arg, bplib_mpool_block_t *subq_src)
@@ -234,6 +235,12 @@ int bplib_cache_event_impl(void *event_arg, bplib_mpool_block_t *intf_block)
     return BP_SUCCESS;
 }
 
+int bplib_cache_process_pending(void *arg, bplib_mpool_block_t *job)
+{
+    bplib_cache_flush_pending(bplib_cache_get_state(bplib_mpool_get_block_from_link(job)));
+    return BP_SUCCESS;
+}
+
 int bplib_cache_construct_state(void *arg, bplib_mpool_block_t *sblk)
 {
     bplib_cache_state_t *state;
@@ -243,6 +250,9 @@ int bplib_cache_construct_state(void *arg, bplib_mpool_block_t *sblk)
     {
         return BP_ERROR;
     }
+
+    bplib_mpool_job_init(sblk, &state->pending_job);
+    state->pending_job.handler = bplib_cache_process_pending;
 
     bplib_mpool_init_list_head(sblk, &state->pending_list);
     bplib_mpool_init_list_head(sblk, &state->idle_list);
