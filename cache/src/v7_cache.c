@@ -190,15 +190,20 @@ int bplib_cache_do_intf_statechange(bplib_cache_state_t *state, bool is_up)
     bplib_mpool_flow_t *self_flow;
 
     self_flow = bplib_cache_get_flow(state);
-    if (is_up)
-    {
-        self_flow->ingress.current_depth_limit = BP_MPOOL_MAX_SUBQ_DEPTH;
-        self_flow->egress.current_depth_limit  = BP_MPOOL_MAX_SUBQ_DEPTH;
-    }
-    else
+    if (!is_up)
     {
         self_flow->ingress.current_depth_limit = 0;
         self_flow->egress.current_depth_limit  = 0;
+    }
+    else if ((self_flow->current_state_flags & BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT) != 0)
+    {
+        self_flow->ingress.current_depth_limit = BP_MPOOL_SHORT_SUBQ_DEPTH;
+        self_flow->egress.current_depth_limit  = BP_MPOOL_SHORT_SUBQ_DEPTH;
+    }
+    else
+    {
+        self_flow->ingress.current_depth_limit = BP_MPOOL_MAX_SUBQ_DEPTH;
+        self_flow->egress.current_depth_limit  = BP_MPOOL_MAX_SUBQ_DEPTH;
     }
     return BP_SUCCESS;
 }
