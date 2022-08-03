@@ -35,8 +35,6 @@ target_include_directories(bplib_v7 PUBLIC
      ${CMAKE_CURRENT_SOURCE_DIR}/inc
 )
 
-target_link_libraries(bplib_v7 ${TINYCBOR_LDFLAGS})
-
 # compile this submodule as c99
 target_compile_features(bplib_v7 PRIVATE c_std_99)
 
