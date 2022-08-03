@@ -363,12 +363,15 @@ void bplib_cache_fsm_execute(bplib_mpool_block_t *sblk)
         next_state = bplib_cache_fsm_get_next_state(store_entry);
         if (next_state != store_entry->state)
         {
+            ++state->fsm_state_exit_count[store_entry->state];
             bplib_cache_fsm_transition_state(store_entry, next_state);
+            ++state->fsm_state_enter_count[next_state];
         }
 
         /* entries get set into the "undefined" state once the FSM determines it is no longer useful at all */
         if (next_state == bplib_cache_entry_state_undefined)
         {
+            ++state->discard_count;
             bplib_cache_fsm_debug_report_discard(store_entry);
             bplib_mpool_recycle_block(sblk);
         }
