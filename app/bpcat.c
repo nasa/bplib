@@ -809,6 +809,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    bplib_os_enable_log_flags(0xFFFFFFFF);
+
     /* Process Command Line */
     parse_options(argc, argv);
     parse_address(local_address_string, &local_addr);

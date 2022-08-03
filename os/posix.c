@@ -162,7 +162,7 @@ int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t 
             }
 
             /* Display Log Message */
-            printf("%s", log_message);
+            fputs(log_message, stderr);
         }
     }
 
