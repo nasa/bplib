@@ -539,7 +539,14 @@ int bplib_dataservice_event_impl(void *arg, bplib_mpool_block_t *intf_block)
     if (event->event_type == bplib_mpool_flow_event_up)
     {
         /* Allows bundles to be pushed to flow queues */
-        bplib_mpool_flow_enable(&flow->ingress, BP_MPOOL_MAX_SUBQ_DEPTH);
+        if (flow->current_state_flags & BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT)
+        {
+            bplib_mpool_flow_enable(&flow->ingress, BP_MPOOL_SHORT_SUBQ_DEPTH);
+        }
+        else
+        {
+            bplib_mpool_flow_enable(&flow->ingress, BP_MPOOL_MAX_SUBQ_DEPTH);
+        }
         bplib_mpool_flow_enable(&flow->egress, BP_MPOOL_MAX_SUBQ_DEPTH);
     }
     else if (event->event_type == bplib_mpool_flow_event_down)
@@ -848,7 +855,7 @@ int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn
 
     sock->params.remote_ipn = *destination_ipn;
 
-    bplib_route_intf_set_flags(sock->parent_rtbl, sock->socket_intf_id,
+    bplib_route_intf_set_flags(sock->parent_rtbl, sock->socket_intf_id,  BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT |
                                BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP);
 
     return 0;

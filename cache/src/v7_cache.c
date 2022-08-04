@@ -191,15 +191,20 @@ int bplib_cache_do_intf_statechange(bplib_cache_state_t *state, bool is_up)
     bplib_mpool_flow_t *self_flow;
 
     self_flow = bplib_cache_get_flow(state);
-    if (is_up)
-    {
-        self_flow->ingress.current_depth_limit = BP_MPOOL_MAX_SUBQ_DEPTH;
-        self_flow->egress.current_depth_limit  = BP_MPOOL_MAX_SUBQ_DEPTH;
-    }
-    else
+    if (!is_up)
     {
         self_flow->ingress.current_depth_limit = 0;
         self_flow->egress.current_depth_limit  = 0;
+    }
+    else if ((self_flow->current_state_flags & BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT) != 0)
+    {
+        self_flow->ingress.current_depth_limit = BP_MPOOL_SHORT_SUBQ_DEPTH;
+        self_flow->egress.current_depth_limit  = BP_MPOOL_SHORT_SUBQ_DEPTH;
+    }
+    else
+    {
+        self_flow->ingress.current_depth_limit = BP_MPOOL_MAX_SUBQ_DEPTH;
+        self_flow->egress.current_depth_limit  = BP_MPOOL_MAX_SUBQ_DEPTH;
     }
     return BP_SUCCESS;
 }
@@ -622,6 +627,19 @@ int bplib_cache_stop(bplib_routetbl_t *tbl, bp_handle_t module_intf_id)
     return result;
 }
 
+#define bplib_cache_debug_fsm_state_print(s, n) bplib_cache_debug_fsm_state_print_impl(s, n, "[" #n "]")
+void bplib_cache_debug_fsm_state_print_impl(bplib_cache_state_t *state, bplib_cache_entry_state_t n, const char *fsmname)
+{
+    uint32_t entercount;
+    uint32_t exitcount;
+
+    entercount = state->fsm_state_enter_count[n];
+    exitcount = state->fsm_state_exit_count[n];
+
+    fprintf(stderr, " STATE STATS: %45s enter=%lu exit=%lu current=%lu\n", fsmname,
+        (unsigned long)entercount, (unsigned long)exitcount, (unsigned long)(entercount - exitcount));
+}
+
 void bplib_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 {
     bplib_mpool_ref_t    intf_block_ref;
@@ -641,10 +659,14 @@ void bplib_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id)
         return;
     }
 
-    printf("DEBUG: %s() intf_id=%d\n", __func__, bp_handle_printable(intf_id));
+    fprintf(stderr, "DEBUG: %s() intf_id=%d\n", __func__, bp_handle_printable(intf_id));
 
-    bplib_mpool_debug_print_list_stats(&state->pending_list, "pending_list");
-    bplib_mpool_debug_print_list_stats(&state->idle_list, "idle_list");
+    bplib_cache_debug_fsm_state_print(state, bplib_cache_entry_state_undefined);
+    bplib_cache_debug_fsm_state_print(state, bplib_cache_entry_state_idle);
+    bplib_cache_debug_fsm_state_print(state, bplib_cache_entry_state_queue);
+    bplib_cache_debug_fsm_state_print(state, bplib_cache_entry_state_delete);
+    bplib_cache_debug_fsm_state_print(state, bplib_cache_entry_state_generate_dacs);
+    fprintf(stderr, " DISCARDED BUNDLES: %lu\n\n", (unsigned long)state->discard_count);
 
     bplib_route_release_intf_controlblock(tbl, intf_block_ref);
 }

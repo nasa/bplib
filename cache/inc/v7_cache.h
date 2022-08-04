@@ -53,7 +53,7 @@ typedef enum bplib_cache_confkey
     bplib_cache_confkey_offload_base_dir,
 } bplib_cache_confkey_t;
 
-typedef struct bplib_cache_module_api
+struct bplib_cache_module_api
 {
     bplib_cache_module_type_t module_type;
     bplib_mpool_block_t *(*instantiate)(bplib_mpool_ref_t parent_ref, void *init_arg);
@@ -61,7 +61,7 @@ typedef struct bplib_cache_module_api
     int (*query)(bplib_mpool_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void **val);
     int (*start)(bplib_mpool_block_t *svc);
     int (*stop)(bplib_mpool_block_t *svc);
-} bplib_cache_module_api_t;
+};
 
 typedef struct bplib_cache_offload_api
 {

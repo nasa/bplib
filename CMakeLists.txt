@@ -11,14 +11,21 @@ cmake_minimum_required(VERSION 3.5)
 project(BPLIB C)
 
 option(BPLIB_INCLUDE_STORAGE "Whether or not to build the basic/example storage services as part of BPLib" ON)
-option(BPLIB_INCLUDE_BPV6 "Whether or not to the BPv6 protocol implementation as part of BPLib" ON)
-option(BPLIB_INCLUDE_BPV7 "Whether or not to the BPv7 protocol implementation as part of BPLib (EXPERIMENTAL)" OFF)
+option(BPLIB_INCLUDE_BPV6 "Whether or not to the BPv6 protocol implementation as part of BPLib" OFF)
+option(BPLIB_INCLUDE_BPV7 "Whether or not to the BPv7 protocol implementation as part of BPLib (EXPERIMENTAL)" ON)
 option(BPLIB_INCLUDE_POSIX "Whether or not to the POSIX operating system abstraction as part of BPLib (standalone builds only)" ON)
 option(BPLIB_BUILD_TEST_TOOLS "Whether or not to build the test programs as part of BPLib (standalone builds only)" ON)
 
 set(BPLIB_VERSION_STRING "3.0.99") # development
 
 set(BPLIB_COMMON_COMPILE_OPTIONS)
+set(BPLIB_COMMON_PROPERTIES)
+
+# If doing a CFS build, then build position independent code (-fPIC) for all objects
+if(IS_CFS_ARCH_BUILD OR BUILD_SHARED_LIBS)
+  list(APPEND BPLIB_COMMON_PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+endif()
+
 
 # If using a GNU-style compiler then enable full warnings here.
 # May want to add equivalent for other compiler flavors too
@@ -128,7 +135,10 @@ if (IS_CFS_ARCH_BUILD)
   # Create the app module using the CFE/OSAL adapter layer
   # Note this ignores the setting of BPLIB_INCLUDE_POSIX, as OSAL provides this service
   # The CFE build system determines whether to create a shared or static object inside this routine
-  add_cfe_app(bplib ${BPLIB_SRC} os/cfe.c)
+  # TEMPORARY - for now this will also use POSIX until OSAL has the needed features.
+  add_cfe_app(bplib ${BPLIB_SRC} os/posix.c)
+
+  target_link_libraries(bplib ${TINYCBOR_LDFLAGS})
 
 else()
 

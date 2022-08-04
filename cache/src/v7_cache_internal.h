@@ -62,6 +62,16 @@
 
 #define BP_CACHE_TIME_INFINITE BP_DTNTIME_INFINITE
 
+typedef enum bplib_cache_entry_state
+{
+    bplib_cache_entry_state_undefined,
+    bplib_cache_entry_state_idle,
+    bplib_cache_entry_state_queue,
+    bplib_cache_entry_state_delete,
+    bplib_cache_entry_state_generate_dacs,
+    bplib_cache_entry_state_max
+} bplib_cache_entry_state_t;
+
 typedef struct bplib_cache_state
 {
     bp_ipn_addr_t self_addr;
@@ -98,17 +108,11 @@ typedef struct bplib_cache_state
 
     uint32_t generated_dacs_seq;
 
-} bplib_cache_state_t;
+    uint32_t fsm_state_enter_count[bplib_cache_entry_state_max];
+    uint32_t fsm_state_exit_count[bplib_cache_entry_state_max];
+    uint32_t discard_count;
 
-typedef enum bplib_cache_entry_state
-{
-    bplib_cache_entry_state_undefined,
-    bplib_cache_entry_state_idle,
-    bplib_cache_entry_state_queue,
-    bplib_cache_entry_state_delete,
-    bplib_cache_entry_state_generate_dacs,
-    bplib_cache_entry_state_max
-} bplib_cache_entry_state_t;
+} bplib_cache_state_t;
 
 typedef struct bplib_cache_dacs_pending
 {

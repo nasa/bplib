@@ -63,6 +63,7 @@
  ******************************************************************************/
 
 void bplib_os_init(void);
+void bplib_os_enable_log_flags(uint32_t enable_mask);
 int  bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...)
     VARG_CHECK(printf, 5, 6);
 int      bplib_os_systime(unsigned long *sysnow); /* seconds */

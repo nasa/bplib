@@ -244,6 +244,7 @@ void bplib_cache_custody_open_dacs(bplib_cache_state_t *state, bplib_cache_custo
         pri_block->data.delivery.committed_storage_id = (bp_sid_t)sblk;
 
         store_entry->state = bplib_cache_entry_state_generate_dacs;
+        ++state->fsm_state_enter_count[store_entry->state];
 
         /* the "action_time" reflects when this bundle will be finalized and sent, until
          * then it is open for appending with additional sequence numbers. */
@@ -591,6 +592,8 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
         {
             custody_info.store_entry->state = bplib_cache_entry_state_idle;
         }
+
+        ++state->fsm_state_enter_count[custody_info.store_entry->state];
 
         /* This puts it into the right spot for future holding */
         bplib_cache_fsm_execute(sblk);

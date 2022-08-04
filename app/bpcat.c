@@ -45,6 +45,7 @@
 #include "bplib_store_ram.h"
 
 #include "v7_rbtree.h"
+#include "v7_cache.h"
 
 /* BPCAT_MAX_WAIT_MSEC controls the amount of time waiting for reading/writing to queues/files by
  * the data mover threads.  This is time limited so the "app_running" flag is checked periodically.
@@ -798,6 +799,8 @@ int main(int argc, char *argv[])
     bp_ipn_addr_t     local_addr;
     bp_ipn_addr_t     remote_addr;
     bp_ipn_addr_t     storage_addr;
+    uint64_t          stats_time;
+    uint64_t          curr_time;
 
     app_running = 1;
     signal(SIGINT, app_quick_exit);
@@ -808,6 +811,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Failed bplib_init()... exiting\n");
         return EXIT_FAILURE;
     }
+
+    bplib_os_enable_log_flags(0xFFFFFFFF);
 
     /* Process Command Line */
     parse_options(argc, argv);
@@ -843,6 +848,7 @@ int main(int argc, char *argv[])
     }
 
     /* Run management Loop */
+    stats_time = bplib_os_get_dtntime_ms() + 10000;
     while (app_running)
     {
         bplib_route_maintenance_request_wait(rtbl);
@@ -852,6 +858,13 @@ int main(int argc, char *argv[])
         /* do maintenance regardless of what the "request" returned, as that
          * currently only reflects actual requests, not time-based poll actions */
         bplib_route_periodic_maintenance(rtbl);
+
+        curr_time = bplib_os_get_dtntime_ms();
+        if (curr_time >= stats_time)
+        {
+            bplib_cache_debug_scan(rtbl, storage_intf_id);
+            stats_time += 10000;
+        }
     }
 
     /* Join Threads */
