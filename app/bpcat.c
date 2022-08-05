@@ -95,6 +95,8 @@ pthread_t cla_out_task;
 pthread_t app_out_task;
 pthread_t app_in_task;
 
+bp_handle_t storage_intf_id;
+
 /******************************************************************************
  * Local Functions
  ******************************************************************************/
@@ -515,6 +517,8 @@ static int setup_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *storage_ad
         fprintf(stderr, "%s(): bplib_route_intf_set_flags storage failed\n", __func__);
         return -1;
     }
+
+    storage_intf_id = intf_id;
 
     return 0;
 }
