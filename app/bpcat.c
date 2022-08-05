@@ -90,6 +90,8 @@ static const char ADDRESS_PREFIX[]           = "ipn://";
 static char       local_address_string[128]  = "ipn://100.1";
 static char       remote_address_string[128] = "ipn://101.1";
 
+static long inter_bundle_delay = 20;
+
 pthread_t cla_in_task;
 pthread_t cla_out_task;
 pthread_t app_out_task;
@@ -119,6 +121,9 @@ static void display_banner(const char *prog_name)
     fprintf(stderr, "Usage: %s [options]\n", prog_name);
     fprintf(stderr, "   -l/--local-addr=ipn://<node>.<service> local address to use\n");
     fprintf(stderr, "   -r/--remote-addr=ipn://<node>.<service> remote address to use\n");
+    fprintf(stderr, "   -i/--input-file=<filename> read input from given file instead of stdin\n");
+    fprintf(stderr, "   -o/--output-file=<filename> write output to given file instead of stdout\n");
+    fprintf(stderr, "   -d/--delay=<msec> forced inter bundle send delay (20ms default)\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "   Creates a local BP agent with local IPN address as specified.  All data\n");
     fprintf(stderr, "   received from standard input is forwarded over BP bundles, and all data\n");
@@ -202,7 +207,7 @@ static void parse_options(int argc, char *argv[])
     /*
      * getopts parameter passing options string
      */
-    static const char *opt_string = "l:r:i:o:?";
+    static const char *opt_string = "l:r:i:o:d:?";
 
     /*
      * getopts_long long form argument table
@@ -211,6 +216,7 @@ static void parse_options(int argc, char *argv[])
                                               {"remote-addr", required_argument, NULL, 'r'},
                                               {"input-file", required_argument, NULL, 'i'},
                                               {"output-file", required_argument, NULL, 'o'},
+                                              {"delay", required_argument, NULL, 'd'},
                                               {"help", no_argument, NULL, '?'},
                                               {NULL, no_argument, NULL, 0}};
 
@@ -259,6 +265,14 @@ static void parse_options(int argc, char *argv[])
 
             case 'o':
                 redirect_file(STDOUT_FILENO, optarg);
+                break;
+
+            case 'd':
+                inter_bundle_delay = strtoul(optarg, NULL, 0);
+                if (inter_bundle_delay >= 1000)
+                {
+                    display_banner(argv[0]);
+                }
                 break;
 
             default:
@@ -386,6 +400,7 @@ static void *cla_out_entry(void *arg)
     size_t               cla_bundle_sz;
     ssize_t              status;
     uint8_t              bundle_buffer[BPCAT_BUNDLE_BUFFER_SIZE];
+    struct timespec      tm;
 
     cla          = arg;
     data_fill_sz = 0;
@@ -409,7 +424,7 @@ static void *cla_out_entry(void *arg)
         else
         {
             fprintf(stderr, "Call system send()... size=%zu\n", data_fill_sz);
-            status = send(cla->sys_fd, bundle_buffer, data_fill_sz, MSG_DONTWAIT);
+            status = send(cla->sys_fd, bundle_buffer, data_fill_sz, 0);
             if (status == data_fill_sz)
             {
                 data_fill_sz = 0;
@@ -423,6 +438,10 @@ static void *cla_out_entry(void *arg)
                 fprintf(stderr, "Failed send() errno=%d (%s)\n", errno, strerror(errno));
                 break;
             }
+
+            tm.tv_sec  = 0;
+            tm.tv_nsec = inter_bundle_delay * 1000000;
+            clock_nanosleep(CLOCK_MONOTONIC, 0, &tm, NULL);
         }
     }
 
