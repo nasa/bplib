@@ -54,8 +54,8 @@
 //#define BPCAT_MAX_WAIT_MSEC         1800000
 #define BPCAT_MAX_WAIT_MSEC 250
 
-#define BPCAT_DATA_MESSAGE_MAX_SIZE 2552
-#define BPCAT_BUNDLE_BUFFER_SIZE    (sizeof(bpcat_msg_content_t) + 512)
+#define BPCAT_BUNDLE_BUFFER_SIZE    16384
+#define BPCAT_DATA_MESSAGE_MAX_SIZE (BPCAT_BUNDLE_BUFFER_SIZE - 520)
 #define BPCAT_RECV_WINDOW_SZ        32
 
 /*************************************************************************
