@@ -77,28 +77,20 @@ struct bplib_socket_info
  LOCAL FUNCTIONS
  ******************************************************************************/
 
-bplib_mpool_ref_t bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, const void *content, size_t size)
+int bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpool_block_t *pblk, const void *content, size_t size)
 {
-    bplib_mpool_t    *pool;
-    bplib_mpool_ref_t refptr;
-
-    bplib_mpool_block_t *pblk;
     bplib_mpool_block_t *cblk;
-
     bplib_mpool_bblock_primary_t   *pri_block;
     bp_primary_block_t             *pri;
     bplib_mpool_bblock_canonical_t *ccb_pay;
     bp_canonical_block_buffer_t    *pay;
+    int result;
 
-    /* Allocate Blocks */
-    pool   = bplib_route_get_mpool(sock_inf->parent_rtbl);
     cblk   = NULL;
-    pblk   = NULL;
-    refptr = NULL;
+    result = BP_ERROR;
 
     do
     {
-        pblk      = bplib_mpool_bblock_primary_alloc(pool, 0, NULL);
         pri_block = bplib_mpool_bblock_primary_cast(pblk);
         if (pri_block == NULL)
         {
@@ -136,7 +128,7 @@ bplib_mpool_ref_t bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_
         }
 
         /* Update Payload Block */
-        cblk    = bplib_mpool_bblock_canonical_alloc(pool, 0, NULL);
+        cblk    = bplib_mpool_bblock_canonical_alloc(bplib_route_get_mpool(sock_inf->parent_rtbl), 0, NULL);
         ccb_pay = bplib_mpool_bblock_canonical_cast(cblk);
         if (ccb_pay == NULL)
         {
@@ -159,17 +151,7 @@ bplib_mpool_ref_t bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_
 
         bplib_mpool_bblock_primary_append(pri_block, cblk);
         cblk = NULL; /* do not need now that it is stored */
-
-        /* Final step is to convert to a dynamically-managed ref for returning to caller */
-        refptr = bplib_mpool_ref_create(pblk);
-        if (refptr == NULL)
-        {
-            /* not expected... */
-            bplog(NULL, BP_FLAG_DIAGNOSTIC, "Cannot convert payload to ref\n");
-            break;
-        }
-
-        pblk = NULL; /* do not use original anymore */
+        result = BP_SUCCESS;
     }
     while (false);
 
@@ -179,12 +161,7 @@ bplib_mpool_ref_t bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_
         bplib_mpool_recycle_block(cblk);
     }
 
-    if (pblk != NULL)
-    {
-        bplib_mpool_recycle_block(pblk);
-    }
-
-    return refptr;
+    return result;
 }
 
 int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpool_ref_t refptr, void *content,
@@ -899,13 +876,16 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t tim
     bplib_mpool_block_t          *rblk;
     bplib_mpool_flow_t           *flow;
     bplib_mpool_ref_t             refptr;
+    bplib_mpool_block_t *pblk;
     bplib_mpool_bblock_primary_t *pri_block;
     bplib_mpool_ref_t             sock_ref;
     bplib_socket_info_t          *sock;
     uint64_t                      ingress_time;
+    uint64_t                      ingress_limit;
 
     sock_ref     = (bplib_mpool_ref_t)desc;
     ingress_time = bplib_os_get_dtntime_ms();
+    ingress_limit = ingress_time + timeout;
 
     sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
@@ -921,12 +901,32 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t tim
         return BP_ERROR;
     }
 
-    refptr = bplib_serviceflow_bundleize_payload(sock, payload, size);
-    if (refptr == NULL)
+    /* If no pri block is available, this should block and wait for one (up to ingress_limit) */
+    pblk = bplib_mpool_bblock_primary_alloc(bplib_route_get_mpool(sock->parent_rtbl), 0, NULL, BPLIB_MPOOL_ALLOC_PRI_LO, ingress_limit);
+    if (pblk == NULL)
+    {
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): unable to alloc pri block\n", __func__);
+        return BP_TIMEOUT;
+    }
+
+    status = bplib_serviceflow_bundleize_payload(sock, pblk, payload, size);
+    if (status != BP_SUCCESS)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): cannot bundleize payload, out of memory?\n", __func__);
+        return status;
+    }
+
+    /* convert to a dynamically-managed ref for passing in queues */
+    refptr = bplib_mpool_ref_create(pblk);
+    if (refptr == NULL)
+    {
+        /* not expected... */
+        bplib_mpool_recycle_block(pblk);
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Cannot convert payload to ref\n");
         return BP_ERROR;
     }
+    pblk = NULL;    /* only the ref should be used from here */
+
 
     rblk = bplib_mpool_ref_make_block(refptr, BPLIB_BLOCKTYPE_SERVICE_BLOCK, NULL);
     if (rblk != NULL)
@@ -938,7 +938,7 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t tim
             pri_block->data.delivery.ingress_time    = ingress_time;
         }
 
-        if (bplib_mpool_flow_try_push(&flow->ingress, rblk, ingress_time + timeout))
+        if (bplib_mpool_flow_try_push(&flow->ingress, rblk, ingress_limit))
         {
             sock->ingress_byte_count += size;
             status = BP_SUCCESS;

@@ -1413,6 +1413,7 @@ int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *d
                               bp_blocktype_t payload_block_hint)
 {
     v7_decode_state_t            v7_state;
+    CborError                    tcb_stat;
     CborValue                    origin;
     bp_canonical_block_buffer_t *logical;
     size_t                       block_size;
@@ -1430,7 +1431,8 @@ int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *d
     logical = bplib_mpool_bblock_canonical_get_logical(ccb);
     memset(&v7_state, 0, sizeof(v7_state));
 
-    if (cbor_parser_init(data_ptr, data_size, 0, &parser, &origin) != CborNoError)
+    tcb_stat = cbor_parser_init(data_ptr, data_size, 0, &parser, &origin);
+    if (tcb_stat != CborNoError)
     {
         v7_state.error = true;
     }
@@ -1465,64 +1467,69 @@ int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *d
     if (!v7_state.error)
     {
         /*
-         * Second stage decode - for recognized non-payload extension blocks
+         * multiple different block types may get labeled as the "payload block"
+         * because RFC9171 insists that something must be labeled as such.
+         * the purpose of the "payload_block_hint" is to identify how the payload
+         * should really be interpreted based on other blocks/fields in the bundle
          */
-        if (cbor_parser_init(v7_state.base + content_offset, content_size, 0, &parser, &origin) != CborNoError)
+        if (payload_block_hint != bp_blocktype_undefined &&
+            logical->canonical_block.blockType == bp_blocktype_payloadBlock)
         {
-            v7_state.error = true;
+            logical->canonical_block.blockType = payload_block_hint;
         }
-        else
+
+        /*
+         * Second stage decode - for recognized non-payload extension blocks
+         * This should NOT be done for regular payloadb blocks - which may or
+         * may not be CBOR-encoded - thus undefined to call "cbor_parser_init" on
+         * this block.
+         */
+        if (logical->canonical_block.blockType != bp_blocktype_payloadBlock)
         {
             v7_state.base += content_offset;
-            v7_state.cbor = &origin;
-
-            /*
-             * multiple different block types may get labeled as the "payload block"
-             * because RFC9171 insists that something must be labeled as such.
-             * the purpose of the "payload_block_hint" is to identify how the payload
-             * should really be interpreted based on other blocks/fields in the bundle
-             */
-            if (payload_block_hint != bp_blocktype_undefined &&
-                logical->canonical_block.blockType == bp_blocktype_payloadBlock)
+            tcb_stat = cbor_parser_init(v7_state.base, content_size, 0, &parser, &origin);
+            if (tcb_stat != CborNoError)
             {
-                logical->canonical_block.blockType = payload_block_hint;
+                v7_state.error = true;
             }
-
-            switch (logical->canonical_block.blockType)
+            else
             {
-                case bp_blocktype_payloadBlock:
-                    break;
-                case bp_blocktype_bundleAuthenicationBlock:
-                    break;
-                case bp_blocktype_payloadIntegrityBlock:
-                    break;
-                case bp_blocktype_payloadConfidentialityBlock:
-                    break;
-                case bp_blocktype_previousHopInsertionBlock:
-                    break;
-                case bp_blocktype_previousNode:
-                    v7_decode_bp_previous_node_block(&v7_state, &logical->data.previous_node_block);
-                    break;
-                case bp_blocktype_bundleAge:
-                    v7_decode_bp_bundle_age_block(&v7_state, &logical->data.age_block);
-                    break;
-                case bp_blocktype_metadataExtensionBlock:
-                    break;
-                case bp_blocktype_extensionSecurityBlock:
-                    break;
-                case bp_blocktype_hopCount:
-                    v7_decode_bp_hop_count_block(&v7_state, &logical->data.hop_count_block);
-                    break;
-                case bp_blocktype_custodyTrackingBlock:
-                    v7_decode_bp_custody_tracking_block(&v7_state, &logical->data.custody_tracking_block);
-                    break;
-                case bp_blocktype_adminRecordPayloadBlock:
-                case bp_blocktype_custodyAcceptPayloadBlock:
-                    v7_decode_bp_admin_record_payload(&v7_state, logical);
-                    break;
-                default:
-                    /* do nothing */
-                    break;
+                v7_state.cbor = &origin;
+
+                switch (logical->canonical_block.blockType)
+                {
+                    case bp_blocktype_bundleAuthenicationBlock:
+                        break;
+                    case bp_blocktype_payloadIntegrityBlock:
+                        break;
+                    case bp_blocktype_payloadConfidentialityBlock:
+                        break;
+                    case bp_blocktype_previousHopInsertionBlock:
+                        break;
+                    case bp_blocktype_previousNode:
+                        v7_decode_bp_previous_node_block(&v7_state, &logical->data.previous_node_block);
+                        break;
+                    case bp_blocktype_bundleAge:
+                        v7_decode_bp_bundle_age_block(&v7_state, &logical->data.age_block);
+                        break;
+                    case bp_blocktype_metadataExtensionBlock:
+                        break;
+                    case bp_blocktype_extensionSecurityBlock:
+                        break;
+                    case bp_blocktype_hopCount:
+                        v7_decode_bp_hop_count_block(&v7_state, &logical->data.hop_count_block);
+                        break;
+                    case bp_blocktype_custodyTrackingBlock:
+                        v7_decode_bp_custody_tracking_block(&v7_state, &logical->data.custody_tracking_block);
+                        break;
+                    case bp_blocktype_adminRecordPayloadBlock:
+                    case bp_blocktype_custodyAcceptPayloadBlock:
+                        v7_decode_bp_admin_record_payload(&v7_state, logical);
+                        break;
+                    default:
+                        /* do nothing */
+                        break;
+                }
             }
         }
     }

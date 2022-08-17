@@ -58,7 +58,7 @@
 #define BP_CACHE_DACS_OPEN_TIME  10000    /* 10 sec */
 #define BP_CACHE_FAST_RETRY_TIME 3000     /* 3 sec */
 #define BP_CACHE_IDLE_RETRY_TIME 3600000  /* 1 hour */
-#define BP_CACHE_AGE_OUT_TIME    60000    /* 1 minute */
+#define BP_CACHE_AGE_OUT_TIME    5000     /* 5 seconds */
 
 #define BP_CACHE_TIME_INFINITE BP_DTNTIME_INFINITE
 
@@ -76,7 +76,7 @@ typedef struct bplib_cache_state
 {
     bp_ipn_addr_t self_addr;
 
-    bplib_mpool_job_t       pending_job;
+    bplib_mpool_job_t pending_job;
 
     /*
      * pending_list holds bundle refs that are currently actionable in some way,

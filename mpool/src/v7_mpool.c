@@ -501,7 +501,7 @@ void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_
  * NOTE: this must be invoked with the lock already held
  *-----------------------------------------------------------------*/
 bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
-                                                              uint32_t content_type_signature, void *init_arg)
+                                                              uint32_t content_type_signature, void *init_arg, uint8_t priority)
 {
     bplib_mpool_block_t         *node;
     bplib_mpool_block_content_t *block;
@@ -529,28 +529,11 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
      *
      * This soft limit only applies for actual bundle blocks, not for refs.
      */
-    switch (blocktype)
+    alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
+
+    if (bplib_mpool_subq_get_depth(&admin->free_blocks) <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
-        case bplib_mpool_blocktype_primary:
-        case bplib_mpool_blocktype_canonical:
-            /* bundle blocks have the lowest threshold for new allocation */
-            alloc_threshold = admin->bblock_alloc_threshold;
-            break;
 
-        case bplib_mpool_blocktype_ref:
-            /* ref blocks have highest priority as they are often a conduit for freeing other blocks */
-            alloc_threshold = 0;
-            break;
-
-        default:
-            /* all other internal block types use a high threshold but still shouldn't be allowed to consume all memory
-             */
-            alloc_threshold = admin->internal_alloc_threshold;
-            break;
-    }
-
-    if (bplib_mpool_subq_get_depth(&admin->free_blocks) <= alloc_threshold)
-    {
         /* no free blocks available for the requested type */
         return NULL;
     }
@@ -634,7 +617,7 @@ bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_
     bplib_mpool_lock_t          *lock;
 
     lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, magic_number, init_arg);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, magic_number, init_arg, BPLIB_MPOOL_ALLOC_PRI_MLO);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
@@ -864,7 +847,7 @@ int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_
         return BP_DUPLICATE;
     }
 
-    ablk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_api, 0, NULL);
+    ablk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_api, 0, NULL, BPLIB_MPOOL_ALLOC_PRI_LO);
     if (ablk == NULL)
     {
         return BP_ERROR;

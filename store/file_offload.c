@@ -238,12 +238,44 @@ static int bplib_file_offload_read_block_content(int fd, bplib_file_offload_reco
     return BP_SUCCESS;
 }
 
+static int bplib_file_offload_write_payload(int fd, bplib_file_offload_record_t *rec,
+                                            bplib_mpool_bblock_canonical_t *c_block)
+{
+    bplib_mpool_list_iter_t it;
+    int                     iter_stat;
+    int                     write_status;
+
+    write_status = bplib_file_offload_write_block_content(fd, rec, &c_block->block_encode_size_cache,
+                                                          sizeof(c_block->block_encode_size_cache));
+    if (write_status == BP_SUCCESS)
+    {
+        write_status = bplib_file_offload_write_block_content(fd, rec, &c_block->encoded_content_length,
+                                                              sizeof(c_block->encoded_content_length));
+    }
+    if (write_status == BP_SUCCESS)
+    {
+        write_status = bplib_file_offload_write_block_content(fd, rec, &c_block->encoded_content_offset,
+                                                              sizeof(c_block->encoded_content_offset));
+    }
+
+    iter_stat = bplib_mpool_list_iter_goto_first(&c_block->chunk_list, &it);
+    while (write_status == BP_SUCCESS && iter_stat == BP_SUCCESS)
+    {
+        write_status = bplib_file_offload_write_block_content(fd, rec, bplib_mpool_bblock_cbor_cast(it.position),
+                                                              bplib_mpool_get_user_content_size(it.position));
+        iter_stat    = bplib_mpool_list_iter_forward(&it);
+    }
+
+    return write_status;
+}
+
 static int bplib_file_offload_write_blocks(int fd, bplib_file_offload_record_t *rec, bplib_mpool_block_t *blk)
 {
     bplib_mpool_bblock_primary_t   *pri_block;
     bplib_mpool_bblock_canonical_t *c_block;
     bplib_mpool_list_iter_t         it;
     int                             iter_stat;
+    int                             write_status;
 
     c_block   = NULL;
     pri_block = bplib_mpool_bblock_primary_cast(blk);
@@ -253,45 +285,97 @@ static int bplib_file_offload_write_blocks(int fd, bplib_file_offload_record_t *
     }
 
     ++rec->num_blocks;
-    bplib_file_offload_write_block_content(fd, rec, &pri_block->data, sizeof(pri_block->data));
+    write_status = bplib_file_offload_write_block_content(fd, rec, &pri_block->data, sizeof(pri_block->data));
 
     iter_stat = bplib_mpool_list_iter_goto_first(&pri_block->cblock_list, &it);
-    while (iter_stat == BP_SUCCESS)
+    while (write_status == BP_SUCCESS && iter_stat == BP_SUCCESS)
     {
         c_block   = bplib_mpool_bblock_canonical_cast(it.position);
         iter_stat = bplib_mpool_list_iter_forward(&it);
         if (c_block != NULL)
         {
             ++rec->num_blocks;
-            bplib_file_offload_write_block_content(fd, rec, &c_block->canonical_logical_data.canonical_block,
-                                                   sizeof(c_block->canonical_logical_data.canonical_block));
-            if (c_block->canonical_logical_data.canonical_block.blockType == bp_blocktype_payloadBlock)
+            write_status =
+                bplib_file_offload_write_block_content(fd, rec, &c_block->canonical_logical_data.canonical_block,
+                                                       sizeof(c_block->canonical_logical_data.canonical_block));
+            if (write_status == BP_SUCCESS)
             {
-                bplib_file_offload_write_block_content(fd, rec, &c_block->block_encode_size_cache,
-                                                       sizeof(c_block->block_encode_size_cache));
-                bplib_file_offload_write_block_content(fd, rec, &c_block->encoded_content_length,
-                                                       sizeof(c_block->encoded_content_length));
-                bplib_file_offload_write_block_content(fd, rec, &c_block->encoded_content_offset,
-                                                       sizeof(c_block->encoded_content_offset));
+                if (c_block->canonical_logical_data.canonical_block.blockType == bp_blocktype_payloadBlock)
+                {
+                    write_status = bplib_file_offload_write_payload(fd, rec, c_block);
+                }
+                else
+                {
+                    write_status = bplib_file_offload_write_block_content(
+                        fd, rec, &c_block->canonical_logical_data.data, sizeof(c_block->canonical_logical_data.data));
+                }
+            }
+        }
+    }
+
+    return write_status;
+}
+
+static int bplib_file_offload_read_payload(int fd, bplib_file_offload_record_t *rec, bplib_mpool_t *pool,
+                                           bplib_mpool_bblock_canonical_t *c_block)
+{
+    bplib_mpool_block_t *eblk;
+    size_t               chunk_sz;
+    int                  read_status;
+
+    /* payload block: size and offset info written in native form, followed by encoded CBOR data */
+
+    read_status = bplib_file_offload_read_block_content(fd, rec, &c_block->block_encode_size_cache,
+                                                        sizeof(c_block->block_encode_size_cache));
+    if (read_status == BP_SUCCESS)
+    {
+        read_status = bplib_file_offload_read_block_content(fd, rec, &c_block->encoded_content_length,
+                                                            sizeof(c_block->encoded_content_length));
+    }
+    if (read_status == BP_SUCCESS)
+    {
+        read_status = bplib_file_offload_read_block_content(fd, rec, &c_block->encoded_content_offset,
+                                                            sizeof(c_block->encoded_content_offset));
+    }
+
+    /* The remainder of the chunk is CBOR data */
+    if (read_status == BP_SUCCESS)
+    {
+        while (rec->num_bytes > 0)
+        {
+            eblk = bplib_mpool_bblock_cbor_alloc(pool);
+            if (eblk == NULL)
+            {
+                /* out of memory */
+                read_status = BP_ERROR;
                 break;
             }
-            bplib_file_offload_write_block_content(fd, rec, &c_block->canonical_logical_data.data,
-                                                   sizeof(c_block->canonical_logical_data.data));
+
+            chunk_sz = bplib_mpool_get_generic_data_capacity(eblk);
+            if (chunk_sz > rec->num_bytes)
+            {
+                chunk_sz = rec->num_bytes;
+            }
+
+            read_status = bplib_file_offload_read_block_content(fd, rec, bplib_mpool_bblock_cbor_cast(eblk), chunk_sz);
+            if (read_status != BP_SUCCESS)
+            {
+                break;
+            }
+
+            bplib_mpool_bblock_cbor_set_size(eblk, chunk_sz);
+            bplib_mpool_bblock_cbor_append(&c_block->chunk_list, eblk);
+            eblk = NULL;
         }
     }
 
-    if (c_block != NULL && c_block->canonical_logical_data.canonical_block.blockType == bp_blocktype_payloadBlock)
+    if (eblk != NULL)
     {
-        iter_stat = bplib_mpool_list_iter_goto_first(&c_block->chunk_list, &it);
-        while (iter_stat == BP_SUCCESS)
-        {
-            bplib_file_offload_write_block_content(fd, rec, bplib_mpool_bblock_cbor_cast(it.position),
-                                                   bplib_mpool_get_user_content_size(it.position));
-            iter_stat = bplib_mpool_list_iter_forward(&it);
-        }
+        bplib_mpool_recycle_block(eblk);
     }
 
-    return BP_SUCCESS;
+    /* This should have read the entire remainder, if not then there was a problem */
+    return read_status;
 }
 
 static bplib_mpool_block_t *bplib_file_offload_read_blocks(int fd, bplib_file_offload_record_t *rec,
@@ -299,14 +383,15 @@ static bplib_mpool_block_t *bplib_file_offload_read_blocks(int fd, bplib_file_of
 {
     bplib_mpool_block_t            *pblk;
     bplib_mpool_block_t            *cblk;
-    bplib_mpool_block_t            *eblk;
     bplib_mpool_bblock_primary_t   *pri_block;
     bplib_mpool_bblock_canonical_t *c_block;
-    size_t                          chunk_sz;
+    int                             read_status;
+
+    read_status = BP_SUCCESS;
 
     cblk    = NULL;
     c_block = NULL;
-    pblk    = bplib_mpool_bblock_primary_alloc(pool, 0, NULL);
+    pblk    = bplib_mpool_bblock_primary_alloc(pool, 0, NULL, BPLIB_MPOOL_ALLOC_PRI_MLO, 0);
     if (pblk != NULL)
     {
         pri_block = bplib_mpool_bblock_primary_cast(pblk);
@@ -314,66 +399,62 @@ static bplib_mpool_block_t *bplib_file_offload_read_blocks(int fd, bplib_file_of
 
         if (rec->num_blocks > 0)
         {
-            --rec->num_blocks;
-            bplib_file_offload_read_block_content(fd, rec, &pri_block->data, sizeof(pri_block->data));
-            while (rec->num_blocks > 0)
+            read_status = bplib_file_offload_read_block_content(fd, rec, &pri_block->data, sizeof(pri_block->data));
+            if (read_status == BP_SUCCESS)
             {
-                cblk = bplib_mpool_bblock_canonical_alloc(pool, 0, NULL);
-                if (cblk == NULL)
-                {
-                    break;
-                }
-
-                c_block = bplib_mpool_bblock_canonical_cast(cblk);
-                assert(c_block != NULL);
-
                 --rec->num_blocks;
-                bplib_file_offload_read_block_content(fd, rec, &c_block->canonical_logical_data.canonical_block,
-                                                      sizeof(c_block->canonical_logical_data.canonical_block));
-                if (c_block->canonical_logical_data.canonical_block.blockType == bp_blocktype_payloadBlock)
+                while (rec->num_blocks > 0)
                 {
-                    bplib_file_offload_read_block_content(fd, rec, &c_block->block_encode_size_cache,
-                                                          sizeof(c_block->block_encode_size_cache));
-                    bplib_file_offload_read_block_content(fd, rec, &c_block->encoded_content_length,
-                                                          sizeof(c_block->encoded_content_length));
-                    bplib_file_offload_read_block_content(fd, rec, &c_block->encoded_content_offset,
-                                                          sizeof(c_block->encoded_content_offset));
-                    break;
-                }
-                bplib_file_offload_read_block_content(fd, rec, &c_block->canonical_logical_data.data,
-                                                      sizeof(c_block->canonical_logical_data.data));
+                    cblk = bplib_mpool_bblock_canonical_alloc(pool, 0, NULL);
+                    if (cblk == NULL)
+                    {
+                        read_status = BP_ERROR;
+                        break;
+                    }
 
-                bplib_mpool_bblock_primary_append(pri_block, cblk);
-                cblk    = NULL;
-                c_block = NULL;
-            }
+                    c_block = bplib_mpool_bblock_canonical_cast(cblk);
+                    assert(c_block != NULL);
 
-            if (c_block != NULL &&
-                c_block->canonical_logical_data.canonical_block.blockType == bp_blocktype_payloadBlock)
-            {
-                while (rec->num_bytes > 0)
-                {
-                    eblk = bplib_mpool_bblock_cbor_alloc(pool);
-                    if (eblk == NULL)
+                    --rec->num_blocks;
+                    read_status =
+                        bplib_file_offload_read_block_content(fd, rec, &c_block->canonical_logical_data.canonical_block,
+                                                              sizeof(c_block->canonical_logical_data.canonical_block));
+                    if (read_status == BP_SUCCESS)
+                    {
+                        if (c_block->canonical_logical_data.canonical_block.blockType == bp_blocktype_payloadBlock)
+                        {
+                            /* payload block has multiple parts */
+                            read_status = bplib_file_offload_read_payload(fd, rec, pool, c_block);
+                        }
+                        else
+                        {
+                            /* other extension block, the whole thing is written in native form (known size) */
+                            read_status =
+                                bplib_file_offload_read_block_content(fd, rec, &c_block->canonical_logical_data.data,
+                                                                      sizeof(c_block->canonical_logical_data.data));
+                        }
+                    }
+                    if (read_status != BP_SUCCESS)
                     {
                         break;
                     }
 
-                    chunk_sz = bplib_mpool_get_generic_data_capacity(eblk);
-                    if (chunk_sz > rec->num_bytes)
-                    {
-                        chunk_sz = rec->num_bytes;
-                    }
-
-                    bplib_file_offload_read_block_content(fd, rec, bplib_mpool_bblock_cbor_cast(eblk), chunk_sz);
-                    bplib_mpool_bblock_cbor_set_size(eblk, chunk_sz);
-                    bplib_mpool_bblock_cbor_append(&c_block->chunk_list, eblk);
-                    eblk = NULL;
+                    bplib_mpool_bblock_primary_append(pri_block, cblk);
+                    cblk    = NULL;
+                    c_block = NULL;
                 }
-
-                bplib_mpool_bblock_primary_append(pri_block, cblk);
             }
         }
+    }
+
+    if (cblk != NULL)
+    {
+        bplib_mpool_recycle_block(cblk);
+    }
+
+    if (read_status != BP_SUCCESS && pblk != NULL)
+    {
+        bplib_mpool_recycle_block(pblk);
     }
 
     return pblk;
@@ -409,25 +490,30 @@ static int bplib_file_offload_offload(bplib_mpool_block_t *svc, bp_sid_t *sid, b
         off           = lseek(fd, sizeof(rec), SEEK_SET);
         assert(off == sizeof(rec));
 
-        bplib_file_offload_write_blocks(fd, &rec, pblk);
-        fsync(fd);
+        result = bplib_file_offload_write_blocks(fd, &rec, pblk);
+        if (result == BP_SUCCESS)
+        {
+            fsync(fd);
 
-        lseek(fd, 0, SEEK_SET);
-        rec.crc = bplib_crc_finalize(&BPLIB_CRC32_CASTAGNOLI, rec.crc);
-        write(fd, &rec, sizeof(rec));
+            lseek(fd, 0, SEEK_SET);
+            rec.crc = bplib_crc_finalize(&BPLIB_CRC32_CASTAGNOLI, rec.crc);
+            if (write(fd, &rec, sizeof(rec)) != sizeof(rec))
+            {
+                result = BP_ERROR;
+            }
 
-        close(fd);
-
-        result = BP_SUCCESS;
+            close(fd);
+        }
     }
 
     return result;
 }
 
-static int bplib_file_offload_restore(bplib_mpool_block_t *svc, bp_sid_t sid, bplib_mpool_block_t **pblk)
+static int bplib_file_offload_restore(bplib_mpool_block_t *svc, bp_sid_t sid, bplib_mpool_block_t **pblk_out)
 {
     char                        bundle_file[BPLIB_FILE_PATH_SIZE];
     bplib_file_offload_state_t *state;
+    bplib_mpool_block_t        *pblk;
     bplib_file_offload_record_t rec;
     bp_crcval_t                 crcval;
     bplib_mpool_t              *pool;
@@ -462,12 +548,18 @@ static int bplib_file_offload_restore(bplib_mpool_block_t *svc, bp_sid_t sid, bp
         crcval  = rec.crc;
         rec.crc = bplib_crc_initial_value(&BPLIB_CRC32_CASTAGNOLI);
 
-        *pblk = bplib_file_offload_read_blocks(fd, &rec, pool);
-
-        rec.crc = bplib_crc_finalize(&BPLIB_CRC32_CASTAGNOLI, rec.crc);
-        if (rec.crc != crcval)
+        pblk = bplib_file_offload_read_blocks(fd, &rec, pool);
+        if (pblk != NULL)
         {
-            break;
+            rec.crc = bplib_crc_finalize(&BPLIB_CRC32_CASTAGNOLI, rec.crc);
+            if (rec.crc == crcval)
+            {
+                result = BP_SUCCESS;
+            }
+            else
+            {
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "CRC mismatch during bundle restore\n");
+            }
         }
     }
     while (false);
@@ -476,6 +568,14 @@ static int bplib_file_offload_restore(bplib_mpool_block_t *svc, bp_sid_t sid, bp
     {
         close(fd);
     }
+
+    if (pblk != NULL && result != BP_SUCCESS)
+    {
+        bplib_mpool_recycle_block(pblk);
+        pblk = NULL;
+    }
+
+    *pblk_out = pblk;
 
     return result;
 }

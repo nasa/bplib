@@ -153,7 +153,7 @@ bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t           
 
     do
     {
-        pblk      = bplib_mpool_bblock_primary_alloc(ppool, 0, NULL);
+        pblk      = bplib_mpool_bblock_primary_alloc(ppool, 0, NULL, BPLIB_MPOOL_ALLOC_PRI_MED, 0);
         pri_block = bplib_mpool_bblock_primary_cast(pblk);
         if (pri_block == NULL)
         {
