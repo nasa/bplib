@@ -189,7 +189,7 @@ bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t           
 
         pay = bplib_mpool_bblock_canonical_get_logical(c_block);
 
-        pay->canonical_block.blockNum  = bp_blocktype_custodyAcceptPayloadBlock;
+        pay->canonical_block.blockNum  = bp_blocktype_payloadBlock;
         pay->canonical_block.blockType = bp_blocktype_custodyAcceptPayloadBlock;
         pay->canonical_block.crctype   = bp_crctype_CRC16;
 
