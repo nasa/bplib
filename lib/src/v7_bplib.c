@@ -57,13 +57,6 @@ struct bplib_storage
  LOCAL FUNCTIONS
  ******************************************************************************/
 
-/*--------------------------------------------------------------------------------------
- * create_bundle
- *-------------------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------------------
- * delete_bundle
- *-------------------------------------------------------------------------------------*/
-
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
@@ -263,19 +256,7 @@ int bplib_ipn2eid(char *eid, size_t len, bp_ipn_t node, bp_ipn_t service)
     }
 
     /* Write EID */
-    bplib_os_format(eid, len, "ipn:%lu.%lu", (unsigned long)node, (unsigned long)service);
+    snprintf(eid, len, "ipn:%lu.%lu", (unsigned long)node, (unsigned long)service);
 
-    return BP_SUCCESS;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_attrinit -         initializes a channel attribute struct with default values
- *
- *  attr -                  pointer to attribute structure that needs to be initialized
- *  Returns:                BP_SUCCESS or error code
- *-------------------------------------------------------------------------------------*/
-int bplib_attrinit(bp_attr_t *attributes)
-{
-    memset(attributes, 0, sizeof(*attributes));
     return BP_SUCCESS;
 }

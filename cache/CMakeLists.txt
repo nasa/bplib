@@ -17,10 +17,8 @@ target_include_directories(bplib_cache PRIVATE
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
-
-    # Other parts of bplib common code (until they can become submodules)
-    ${BPLIB_SOURCE_DIR}/common
-    ${BPLIB_SOURCE_DIR}/lib
+    $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_base,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_include_directories(bplib_cache PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc

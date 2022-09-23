@@ -179,7 +179,36 @@ typedef struct bplib_connection
 } bplib_connection_t;
 
 typedef struct bplib_routetbl bplib_routetbl_t;
-typedef struct bplib_storage  bplib_storage_t;
+
+/* Storage service - reserved for future use */
+typedef struct bp_store
+{
+    uint32_t reserved;
+} bp_store_t;
+
+/* Channel Statistics */
+typedef struct
+{
+    /* Errors */
+    uint32_t lost;         /* storage failure (load, process, accept) */
+    uint32_t expired;      /* bundles, dacs, and payloads with expired lifetime (load, process, accept) */
+    uint32_t unrecognized; /* unable to parse input OR bundle type not supported (process) */
+    /* Data Flow */
+    uint32_t transmitted_bundles;   /* bundles sent for first time, does not includes re-sends (load) */
+    uint32_t transmitted_dacs;      /* dacs sent (load) */
+    uint32_t retransmitted_bundles; /* bundles timed-out and resent (load) */
+    uint32_t delivered_payloads;    /* payloads delivered to application (accept) */
+    uint32_t received_bundles;      /* bundles destined for local node (process) */
+    uint32_t forwarded_bundles;     /* bundles received by local node but destined for another node (process) */
+    uint32_t received_dacs;         /* dacs destined for local node (process) */
+    /* Storage */
+    uint32_t stored_bundles;  /* number of data bundles currently in storage */
+    uint32_t stored_payloads; /* number of payloads currently in storage */
+    uint32_t stored_dacs;     /* number of dacs bundles currently in storage */
+    /* Active */
+    uint32_t acknowledged_bundles; /* freed by custody signal - process */
+    uint32_t active_bundles;       /* number of slots in active table in use */
+} bp_stats_t;
 
 /**
  * Checks for validity of given handle
