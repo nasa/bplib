@@ -19,7 +19,8 @@ if (NOT BPLIB_INCLUDE_POSIX)
 endif()
 
 set(BPAPP_COMPILE_FEATURES "c_std_99")
-set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror>")
+#set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror>")
+set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror>;-g")  # generate debug info!  KRS
 set(BPAPP_LINK_LIBRARIES bplib)
 
 add_executable(bpcat bpcat.c)

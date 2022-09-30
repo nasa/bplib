@@ -47,6 +47,9 @@
 #include "v7_rbtree.h"
 #include "v7_cache.h"
 
+#include "../cla/udp/inc/claudp.h"  // KRS
+#include "../cla/bibe/inc/bibe.h"  // KRS
+
 /* BPCAT_MAX_WAIT_MSEC controls the amount of time waiting for reading/writing to queues/files by
  * the data mover threads.  This is time limited so the "app_running" flag is checked periodically.
  * Normally it should be fairly short so that the program responds to CTRL+C in a fairly timely
@@ -84,7 +87,8 @@ typedef struct bpcat_msg_recv
 
 static bpcat_msg_recv_t recv_window[BPCAT_RECV_WINDOW_SZ];
 
-static volatile sig_atomic_t app_running;
+//static volatile sig_atomic_t app_running;
+volatile sig_atomic_t app_running;  // CLA moved out of this file  KRS
 
 static const char ADDRESS_PREFIX[]           = "ipn://";
 static char       local_address_string[128]  = "ipn://100.1";
@@ -291,9 +295,11 @@ static void do_start_thread(const char *name, pthread_t *task, void *(*entry)(vo
         abort();
     }
 
-    fprintf(stderr, "started %s\n", name);
+    fprintf(stderr, "bpcat started %s\n", name);
 }
 
+#if 0
+moved to real cla // KRS
 static void *cla_in_entry(void *arg)
 {
     bplib_cla_intf_id_t *cla;
@@ -426,7 +432,10 @@ static void *cla_out_entry(void *arg)
 
     return NULL;
 }
+#endif
 
+#if 0  // KRS
+functionality moved to real cla
 static int setup_cla(bplib_routetbl_t *rtbl, uint16_t local_port, uint16_t remote_port)
 {
     static bplib_cla_intf_id_t cla_intf_id; /* static because its passed to pthread_create() */
@@ -487,6 +496,7 @@ static int setup_cla(bplib_routetbl_t *rtbl, uint16_t local_port, uint16_t remot
 
     return 0;
 }
+#endif
 
 static int setup_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *storage_addr)
 {
@@ -835,7 +845,16 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    if (setup_cla_bibe(rtbl, 36400 + local_addr.node_number, 36400 + remote_addr.node_number) < 0)  // KRS
+    {
+        fprintf(stderr, "Failed setup_cla_bibe()... exiting\n");
+        return EXIT_FAILURE;
+    }
+
+#if 0  // KRS
     if (setup_cla(rtbl, 36400 + local_addr.node_number, 36400 + remote_addr.node_number) < 0)
+#endif
+    if (setup_cla_udp(rtbl, 36400 + local_addr.node_number, 36400 + remote_addr.node_number) < 0)
     {
         fprintf(stderr, "Failed setup_cla()... exiting\n");
         return EXIT_FAILURE;
@@ -862,7 +881,7 @@ int main(int argc, char *argv[])
         curr_time = bplib_os_get_dtntime_ms();
         if (curr_time >= stats_time)
         {
-            bplib_cache_debug_scan(rtbl, storage_intf_id);
+            //KRS bplib_cache_debug_scan(rtbl, storage_intf_id);
             stats_time += 10000;
         }
     }
@@ -870,8 +889,12 @@ int main(int argc, char *argv[])
     /* Join Threads */
     join_thread(app_in);
     join_thread(app_out);
+#if 0  // KRS
     join_thread(cla_in);
     join_thread(cla_out);
+#endif
+    teardown_cla_udp();
+    teardown_cla_bibe();
 
     return 0;
 }

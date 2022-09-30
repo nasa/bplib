@@ -30,7 +30,8 @@ endif()
 # If using a GNU-style compiler then enable full warnings here.
 # May want to add equivalent for other compiler flavors too
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation)
+   #list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation)
+   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation -g) #KRS
 endif()
 
 # source units that comprise the basic fundamentals of BPLib
@@ -53,6 +54,7 @@ set(BPLIB_LINK_LIBRARIES)
 set(BPLIB_PRIVATE_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR}/lib
+  ${CMAKE_CURRENT_SOURCE_DIR}/../tinycbor-main/inc  #KRS
 )
 
 # Add source units that comprise the protocol implementation
@@ -80,11 +82,13 @@ if (BPLIB_INCLUDE_BPV7)
   add_subdirectory(mpool)
   add_subdirectory(cache)
   add_subdirectory(v7)
+  add_subdirectory(cla/bibe) # KRS
+  add_subdirectory(cla/udp) # KRS
 
   list(REMOVE_ITEM BPLIB_SRC
     lib/bplib.c
-    common/rb_tree.c
-    common/rh_hash.c
+#KRS    common/rb_tree.c
+#KRS    common/rh_hash.c
   )
 
   # v7 implementation parts
@@ -99,6 +103,8 @@ if (BPLIB_INCLUDE_BPV7)
     $<TARGET_OBJECTS:bplib_cache>
     $<TARGET_OBJECTS:bplib_v7>
     $<TARGET_OBJECTS:bplib_mpool>
+    $<TARGET_OBJECTS:bplib_bibe>  # KRS
+    $<TARGET_OBJECTS:bplib_claudp>  # KRS
   )
 
   list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
@@ -139,7 +145,7 @@ if (IS_CFS_ARCH_BUILD)
   add_cfe_app(bplib ${BPLIB_SRC} os/posix.c)
 
   target_link_libraries(bplib ${TINYCBOR_LDFLAGS})
-
+  
 else()
 
   # Building as a standalone library
@@ -147,7 +153,9 @@ else()
   if (BPLIB_INCLUDE_POSIX)
 
     list(APPEND BPLIB_SRC os/posix.c)
-    list(APPEND BPLIB_LINK_LIBRARIES rt pthread)
+    set(TINYCBOR_LDFLAGS -L${CMAKE_CURRENT_SOURCE_DIR}/../tinycbor-main/lib) #KRS
+    #KRS list(APPEND BPLIB_LINK_LIBRARIES rt pthread)
+    list(APPEND BPLIB_LINK_LIBRARIES rt pthread tinycbor) #KRS
 
   endif()
 
