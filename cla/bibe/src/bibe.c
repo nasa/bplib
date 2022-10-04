@@ -1562,7 +1562,7 @@ int bplib_bibe_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle,
 
     bool bibe = true;
 #define CUSTODY_SIGNAL_INTERVAL_MSEC /*5000*/ 0
-    static uint64_t last_time_cs_sent = bplib_os_get_dtntime_ms();
+    static uint64_t last_time_cs_sent = 0;
     uint64_t now = bplib_os_get_dtntime_ms();
     bool make_custody_signal =  now - last_time_cs_sent >= CUSTODY_SIGNAL_INTERVAL_MSEC && !rb_tree_is_empty(&custody_tree);  // KRS for CT
     if (!make_custody_signal)
@@ -1589,7 +1589,7 @@ if (trace) fprintf(stderr, "inner bundle from bplib of size %ld:\n", bundle_buff
 #else
         bpdu_transmission_id = current_active_cid++;
 #endif
-        status = bundle_encode(bundle_buffer, bundle_buffer_sz, bundle, size, local_service, bpdu_transmission_id, bibe
+        status = bundle_encode(bundle_buffer, bundle_buffer_sz, bundle, size, local_service, bpdu_transmission_id, bibe,
                                make_custody_signal ? &custody_tree : NULL);  // enbibe or make custody signal
         if (status == BP_SUCCESS)
         {
