@@ -768,7 +768,6 @@ static void *app_out_entry(void *arg)
     return NULL;
 }
 
-#if 0
 static int setup_connection(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *local_addr, const bp_ipn_addr_t *remote_addr)
 {
     bp_socket_t *desc;
@@ -801,7 +800,6 @@ static int setup_connection(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *local_a
 
     return 0;
 }
-#endif
 
 /******************************************************************************
  * Main
@@ -812,8 +810,8 @@ int main(int argc, char *argv[])
     bp_ipn_addr_t     local_addr;
     bp_ipn_addr_t     remote_addr;
     bp_ipn_addr_t     storage_addr;
-    //uint64_t          stats_time;
-    //uint64_t          curr_time;
+    uint64_t          stats_time;
+    uint64_t          curr_time;
 
     app_running = 1;
     signal(SIGINT, app_quick_exit);
