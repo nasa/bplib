@@ -551,15 +551,19 @@ static void *app_in_entry(void *arg)
     bpcat_msg_content_t msg_buffer;
     uint32_t            data_fill_sz;
     uint32_t            stream_pos;
+    uint32_t            bundle_count;
     ssize_t             status;
     struct pollfd       pfd;
     int                 app_fd;
     bool                got_eof;
+    bool                send_ready;
 
     got_eof       = false;
+    send_ready    = false;
     desc          = arg;
     data_fill_sz  = 0;
     stream_pos    = 0;
+    bundle_count  = 0;
     send_deadline = BP_DTNTIME_INFINITE;
     app_fd        = STDIN_FILENO;
 
@@ -625,16 +629,26 @@ static void *app_in_entry(void *arg)
         }
         else if (data_fill_sz > 0)
         {
-            msg_buffer.segment_len = htonl(data_fill_sz);
-            msg_buffer.stream_pos  = htonl(stream_pos);
-            stream_pos += data_fill_sz;
-            fprintf(stderr, "Call bplib_send()... size=%lu\n", (unsigned long)data_fill_sz);
+            if (!send_ready)
+            {
+                msg_buffer.segment_len = htonl(data_fill_sz);
+                msg_buffer.stream_pos  = htonl(stream_pos);
+                fprintf(stderr, "Ready to send: bundle=%lu, pos=%lu size=%lu\n", (unsigned long)bundle_count,
+                        (unsigned long)stream_pos, (unsigned long)data_fill_sz);
+
+                stream_pos += data_fill_sz;
+                ++bundle_count;
+
+                send_ready = true;
+            }
+
             status = bplib_send(desc, &msg_buffer, &msg_buffer.content[data_fill_sz] - (uint8_t *)&msg_buffer,
                                 BPCAT_MAX_WAIT_MSEC);
             if (status == BP_SUCCESS)
             {
                 /* reset the buffer */
                 data_fill_sz = 0;
+                send_ready   = false;
                 if (!got_eof)
                 {
                     send_deadline = BP_DTNTIME_INFINITE;
@@ -720,8 +734,9 @@ static void *app_out_entry(void *arg)
 
         if (curr_app_buffer != NULL)
         {
-            fprintf(stderr, "Call system write()... offset=%lu size=%lu\n", (unsigned long)segment_offset,
-                    (unsigned long)segment_remain);
+            fprintf(stderr, "Call system write()... msgcount=%lu streampos=%lu segment_offset=%lu segment_remain=%lu\n",
+                    (unsigned long)total_message_count - BPCAT_RECV_WINDOW_SZ, (unsigned long)curr_stream_pos,
+                    (unsigned long)segment_offset, (unsigned long)segment_remain);
             status = write(STDOUT_FILENO, &curr_app_buffer->msg.content[segment_offset], segment_remain);
             if (status < 0)
             {
@@ -749,6 +764,10 @@ static void *app_out_entry(void *arg)
                 curr_bp_buffer->msg.segment_len = ntohl(curr_bp_buffer->msg.segment_len);
 
                 segment_distance = curr_bp_buffer->msg.stream_pos - ((uint32_t)curr_stream_pos & 0xFFFFFFFF);
+
+                fprintf(stderr, "bplib_recv() success: got segment pos=%u len=%u distance=%ld\n",
+                        (unsigned int)curr_bp_buffer->msg.stream_pos, (unsigned int)curr_bp_buffer->msg.segment_len,
+                        (long)segment_distance);
 
                 bplib_rbt_insert_value_unique(curr_stream_pos + segment_distance, &recv_root, &curr_bp_buffer->link);
                 curr_bp_buffer = NULL;
