@@ -92,7 +92,8 @@ volatile sig_atomic_t app_running;  // CLA moved out of this file  KRS
 
 static const char ADDRESS_PREFIX[]           = "ipn://";
 static char       local_address_string[128]  = "ipn://100.1";
-static char       remote_address_string[128] = "ipn://101.1";
+//KRS static char       remote_address_string[128] = "ipn://101.1";
+static char       remote_address_string[128] = "ipn://101.2";
 
 pthread_t cla_in_task;
 pthread_t cla_out_task;
@@ -845,7 +846,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (setup_cla_bibe(rtbl, 36400 + local_addr.node_number, 36400 + remote_addr.node_number) < 0)  // KRS
+    if (setup_cla_bibe(rtbl, local_addr.node_number, 36400 + local_addr.service_number) < 0,
+                       remote_addr.node_number, remote_addr.service_number)  // KRS
     {
         fprintf(stderr, "Failed setup_cla_bibe()... exiting\n");
         return EXIT_FAILURE;
@@ -854,7 +856,7 @@ int main(int argc, char *argv[])
 #if 0  // KRS
     if (setup_cla(rtbl, 36400 + local_addr.node_number, 36400 + remote_addr.node_number) < 0)
 #endif
-    if (setup_cla_udp(rtbl, 36400 + local_addr.node_number, 36400 + remote_addr.node_number) < 0)
+    if (setup_cla_udp(rtbl, 36400 + local_addr.service_number, NULL, 36400 + remote_addr.service_number) < 0)
     {
         fprintf(stderr, "Failed setup_cla()... exiting\n");
         return EXIT_FAILURE;

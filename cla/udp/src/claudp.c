@@ -244,7 +244,7 @@ static void *cla_out_entry(void *arg)
     return NULL;
 }
 
-int setup_cla_udp(bplib_routetbl_t *rtbl, uint16_t local_port, uint16_t remote_port)
+int setup_cla_udp(bplib_routetbl_t *rtbl, uint16_t local_port, char *remote_host, uint16_t remote_port)
 {
     //attributes.lifetime = lifetime;
     //attributes.timeout = timeout;

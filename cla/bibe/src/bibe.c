@@ -109,11 +109,15 @@ typedef struct
 
 static int table_retransmit_order = BP_RETX_OLDEST_BUNDLE;
 static bool cid_reuse = true;  /* 0: new CID when retransmitting, 1: reuse CID when retransmitting */
+static int local_node = 100;
+static int local_service = 1;
+static int remote_node = 101;
+static int remote_service = 2;
 
 static bp_handle_t       active_table_signal = BP_INVALID_HANDLE;
 static bp_active_table_t active_table;
 static unsigned long current_active_cid = 0;
-static int max_gaps_per_dacs = 0;
+static int max_gaps_per_custody_signal = 0;
 
 static rb_tree_t custody_tree;
 static bp_handle_t custody_tree_lock   = BP_INVALID_HANDLE;
@@ -123,6 +127,10 @@ static bp_handle_t bplib_custody_id_mutex  = {0};
 static unsigned int bplib_global_custody_id = 0;
 #endif
 
+
+#define INNER_BUNDLE_SIZE_MAX 65536
+#define OUTER_PAYLOAD_SIZE_MAX (INNER_BUNDLE_SIZE_MAX+100)
+#define CUSTODY_SIGNAL_PAYLOAD_SIZE_MAX (MAX_MAX_GAPS_PER_CUSTODY_SIGNAL * 20 + 100)
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -326,6 +334,14 @@ static int pri_decborize(CborValue *it, int size, bp_blk_pri_t* pri, uint32_t* f
         cbor_value_advance_fixed(&recursed);
     }
 
+#if 1
+    /* CRC on this block if specified  KRS */
+    if (pri->crctype != bp_crctype_none)
+    {
+        cbor_value_advance(recursed);  // skip HARDCODED KRS
+    }
+#endif
+
     if (trace) bplog(NULL, 0, "type %d\n", cbor_value_get_type(&recursed));
     cbor_value_leave_container(it, &recursed);
     if (trace) bplog(NULL, 0, "type %d\n", cbor_value_get_type(&recursed));
@@ -526,9 +542,9 @@ int bib_decborize (CborValue *recursed, int size, bp_blk_bib_t* bib, uint32_t* f
 #endif
 
 
-#if 0
+#if 1
     /* CRC on this block if specified  KRS */
-    //if (bib->crctype != 0)
+    if (bib->crctype != bp_crctype_none)
     {
         cbor_value_advance(recursed);  // skip HARDCODED KRS
     }
@@ -577,101 +593,106 @@ static int pay_decborize (CborValue* recursed, int size, bp_blk_pay_t* pay, uint
     size_t length = 0;
     cbor_value_get_string_length(recursed, &length);
     if (trace) bplog(NULL, 0, "length %d\n", length);
-    uint8_t* payld = (uint8_t*)calloc(length     +2000, 1); ////////    // TODO CHECK CALLOC  ELIMINATE  KRS
+    static uint8_t payld[INNER_BUNDLE_SIZE_MAX];
     cbor_value_copy_byte_string(recursed, payld, &length, NULL);
     cbor_value_advance(recursed);
+    memset((uint_8*)payld+length, 0, sizeof(payld)-length);
     pay->payptr = payld;  // still not decoded though
     pay->paysize = length;  // length of undecoded
 
-    ///if (admin_record)  // KRS
+    // all payloads we we ae supposed to get for parsing are in Administraive Records  KRS
+    
+    // parse the payload of the encapsulating bundle
+    static uint8_t local_buf[OUTER_PAYLOAD_SIZE_MAX];  // MAGIC NUMBER  KRS
+
+    CborParser parser2;
+    CborValue it2, recursed20;
+    uint64_t value;
+    uint32_t flags = 0;
+    //if (trace) dump(buffer, size);
+    cbor_parser_init(payld, length +100, 0, &parser2, &it2);
+    if (dump_enable) fprintf(stderr, "payld:\n");
+    dump(payld, 200, 200, dump_enable);
+if (trace) bplog(NULL, 0, "pay_decborize 100:\n");
+    cbor_value_enter_container(&it2, &recursed20);
+    cbor_value_get_int(&recursed20, &pay->admin_record_type);
+    if (trace) fprintf(stderr, "pay_decborize: pay->admin_record_type == %d\n", pay->admin_record_type);
+    cbor_value_advance(&recursed20);
+
+    // the cbor format of the rest of the admin record is dependent on the admin record type
+    if (pay->admin_record_type == BP_ADMIN_REC_TYPE_BIBE)
     {
-        // parse the payload of the encapsulating bundle
-        //static uint8_t local_buf[8192];  // MAGIC NUMBER  KRS
-        static uint8_t local_buf[8192];  // MAGIC NUMBER  KRS
-
-        CborParser parser2;
-        CborValue it2, recursed20;
-        uint64_t value;
-        uint32_t flags = 0;
-        //if (trace) dump(buffer, size);
-        cbor_parser_init(payld, length +100, 0, &parser2, &it2);
-        if (dump_enable) fprintf(stderr, "payld:\n");
-        dump(payld, 200, 200, dump_enable);
-    if (trace) bplog(NULL, 0, "pay_decborize 100:\n");
-        cbor_value_enter_container(&it2, &recursed20);
-        cbor_value_get_int(&recursed20, &pay->admin_record_type);
-        if (trace) fprintf(stderr, "pay_decborize: pay->admin_record_type == %d\n", pay->admin_record_type);
-        cbor_value_advance(&recursed20);
-
-        // the cbor format of the rest of the admin record is dependent on the admin record type
-        if (pay->admin_record_type == BP_ADMIN_REC_TYPE_BIBE)
-        {
-            CborValue recursed30;
-            cbor_value_enter_container(&recursed20, &recursed30);
-            cbor_value_get_uint64(&recursed30, &pay->bpdu_transmission_id);
-            if (trace) fprintf(stderr, "decoded transmission id %d\n", pay->bpdu_transmission_id);
-            //cbor_value_advance(&recursed30);
-            cbor_value_advance_fixed(&recursed30);
-            cbor_value_get_uint64(&recursed30, &pay->bpdu_retransmission_time);
-            cbor_value_advance_fixed(&recursed30);
-            length = sizeof(local_buf);
-            //CborValue next;
-            //CborError err = cbor_value_copy_byte_string(&recursed30, payld, &length, &next);  // overlapping addresses  KRS
-            CborError err = cbor_value_copy_byte_string(&recursed30, local_buf, &length, NULL);
-            cbor_value_advance(&recursed30);
-            pay->paysize = length;
-            pay->payptr = local_buf;  ////
-            if (trace) fprintf(stderr, "fetched payload of length %d:\n", length);
-            if (trace) dump(pay->payptr, length, 200, dump_enable);
-            cbor_value_leave_container(&recursed20, &recursed30);
-        }
-        else if (pay->admin_record_type == BP_ADMIN_REC_TYPE_CUSTODY_SIGNAL)
-        {
-            CborValue recursed30, recursed40, recursed50;
-            cbor_value_enter_container(&recursed20, &recursed30);
-            cbor_value_get_int(&recursed30, &pay->custody_status);
-            cbor_value_advance_fixed(&recursed30);
-            size_t length = 0;
-            cbor_value_get_array_length(&recursed30, &length);
-            cbor_value_enter_container(&recursed30, &recursed40);
-            if (trace) fprintf(stderr, "pay_decborize: %d ranges\n", length);
-            for (int i=0; i<length; ++i)
-            {
-                cbor_value_enter_container(&recursed40, &recursed50);
-                cbor_value_get_uint64(&recursed50, &pay->first_transmission_id[i]);
-                cbor_value_advance_fixed(&recursed50);
-                cbor_value_get_int(&recursed50, &pay->num_transmission_ids[i]);
-                cbor_value_advance_fixed(&recursed50);
-                cbor_value_leave_container(&recursed40, &recursed50);
-                if (trace) fprintf(stderr, "  pay_decborize: first_transmission id %d  num_transmission_ids %d\n",
-                                   pay->first_transmission_id[i], pay->num_transmission_ids[i]);
-            }
-            for (int i=length; i<1000; ++i)  // MAGIC NUMBER  KRS
-            {
-                pay->first_transmission_id[i] = 0;
-                pay->num_transmission_ids[i] = 0;
-            }
-            cbor_value_leave_container(&recursed30, &recursed40);
-
-            pay->paysize = 0;
-            if (trace) fprintf(stderr, "fetched custody signal payload first_transmission_ids:\n");
-            if (trace) dump((uint8_t*)&pay->first_transmission_id, 100, 100, dump_enable);
-            if (trace) fprintf(stderr, "fetched custody signal payload nums_transmission_ids:\n");
-            if (trace) dump((uint8_t*)&pay->num_transmission_ids, 100, 100, dump_enable);
-
-            cbor_value_leave_container(&recursed20, &recursed30);
-            //if (trace) bplog(NULL, 0, "type210 %02x\n", cbor_value_get_type(&recursed20));
-        }
-        else  // malformed bundle  KRS
-        {
-            if (trace) fprintf(stderr, "MALFORMED BUNDLE admin_record with pay->admin_record_type == %d\n", pay->admin_record_type);
-              // eg, v6-style cust xfer  have to skip out on unknown to allow CRC, below  KRS
-        }
-        cbor_value_leave_container(&it2, &recursed20);
+        CborValue recursed30;
+        cbor_value_enter_container(&recursed20, &recursed30);
+        cbor_value_get_uint64(&recursed30, &pay->bpdu_transmission_id);
+        if (trace) fprintf(stderr, "decoded transmission id %d\n", pay->bpdu_transmission_id);
+        //cbor_value_advance(&recursed30);
+        cbor_value_advance_fixed(&recursed30);
+        cbor_value_get_uint64(&recursed30, &pay->bpdu_retransmission_time);
+        cbor_value_advance_fixed(&recursed30);
+        length = sizeof(local_buf);
+        //CborValue next;
+        //CborError err = cbor_value_copy_byte_string(&recursed30, payld, &length, &next);  // overlapping addresses  KRS
+        CborError err = cbor_value_copy_byte_string(&recursed30, local_buf, &length, NULL);
+        cbor_value_advance(&recursed30);
+        pay->paysize = length;
+        pay->payptr = local_buf;  ////
+        if (trace) fprintf(stderr, "fetched payload of length %d:\n", length);
+        if (trace) dump(pay->payptr, length, 200, dump_enable);
+        cbor_value_leave_container(&recursed20, &recursed30);
     }
+    else if (pay->admin_record_type == BP_ADMIN_REC_TYPE_CUSTODY_SIGNAL)
+    {
+        CborValue recursed30, recursed40, recursed50;
+        cbor_value_enter_container(&recursed20, &recursed30);
+        cbor_value_get_int(&recursed30, &pay->custody_status);
+        cbor_value_advance_fixed(&recursed30);
+        size_t length = 0;
+        cbor_value_get_array_length(&recursed30, &length);
+        cbor_value_enter_container(&recursed30, &recursed40);
+        if (trace) fprintf(stderr, "pay_decborize: %d ranges\n", length);
+        for (int i=0; i<length; ++i)
+        {
+            cbor_value_enter_container(&recursed40, &recursed50);
+            cbor_value_get_uint64(&recursed50, &pay->first_transmission_id[i]);
+            cbor_value_advance_fixed(&recursed50);
+            cbor_value_get_int(&recursed50, &pay->num_transmission_ids[i]);
+            cbor_value_advance_fixed(&recursed50);
+            cbor_value_leave_container(&recursed40, &recursed50);
+            if (trace) fprintf(stderr, "  pay_decborize: first_transmission id %d  num_transmission_ids %d\n",
+                                pay->first_transmission_id[i], pay->num_transmission_ids[i]);
+        }
+        for (int i=length; i<max_gaps_per_custody_signal+1; ++i)
+        {
+            pay->first_transmission_id[i] = 0;
+            pay->num_transmission_ids[i] = 0;
+        }
+        cbor_value_leave_container(&recursed30, &recursed40);
 
-    /* ANY CRC  KRS */
-    // TODO
+        pay->paysize = 0;
+        if (trace) fprintf(stderr, "fetched custody signal payload first_transmission_ids:\n");
+        if (trace) dump((uint8_t*)&pay->first_transmission_id, 100, 100, dump_enable);
+        if (trace) fprintf(stderr, "fetched custody signal payload nums_transmission_ids:\n");
+        if (trace) dump((uint8_t*)&pay->num_transmission_ids, 100, 100, dump_enable);
+
+        cbor_value_leave_container(&recursed20, &recursed30);
+        //if (trace) bplog(NULL, 0, "type210 %02x\n", cbor_value_get_type(&recursed20));
+    }
+    else  // malformed bundle  KRS
+    {
+        if (trace) fprintf(stderr, "MALFORMED BUNDLE admin_record with pay->admin_record_type == %d\n", pay->admin_record_type);
+            // eg, v6-style cust xfer  have to skip out on unknown to allow CRC, below  KRS
+    }
+    cbor_value_leave_container(&it2, &recursed20);
+
+
+#if 1
+    /* CRC on this block if specified  KRS */
+    if (pay->crctype != bp_crctype_none)
+    {
+        cbor_value_advance(&it2);  // skip HARDCODED KRS
+    }
+#endif
 
     //cbor_value_leave_container(buffer, recursed);
 
@@ -713,6 +734,15 @@ static int bundle_decode(const uint8_t *buffer, size_t size, uint8_t** out, size
     if (trace) v7_display_primary_block(&pri);
     if (status != BP_SUCCESS)
         return status;
+
+    if (!pri->is_admin_rec)
+    {
+        static uint8_t bundle[INNER_BUNDLE_SIZE_MAX];
+        memset(bundle, 0, sizeof(bundle));
+        memcpy(bundle, buffer, size);
+        *outsize = size;
+        return BP_SUCCESS;
+    }
 
     // open consecutive canonical blocks
     //if (trace && !brief) bplog(NULL, 0, "open consecutive canonical blocks\n");
@@ -817,10 +847,10 @@ int pri_cborize (CborEncoder* encoder, bp_blk_pri_t* pri)
 
     CborEncoder arrayEncoder;
 
-    bool fragment = false;
-
     int num_items = 8;
-    if (fragment)
+    if (pri->crctype != bp_crctype_none)
+        num_items += 1;
+    if (pri->is_frag)
         num_items += 2;
     cbor_encoder_create_array(encoder, &arrayEncoder, num_items);
 
@@ -882,8 +912,9 @@ int bib_cborize(CborEncoder* encoder, bp_blk_bib_t* bib)
     //uint32_t flags_summary = 0;
     CborEncoder arrayEncoder;
     
-    //int num_items = 6;  // 5 if no CRC
-    int num_items = 5;  // 5 if no CRC
+    int num_items = 5;  // no CRC
+    if (bib->crctype != bp_crctype_none)
+        num_items = 6;
     cbor_encoder_create_array(encoder, &arrayEncoder, num_items);
 
     cbor_encode_uint(&arrayEncoder, BP_BIB_BLK_TYPE);   // block type
@@ -1027,7 +1058,9 @@ static int pay_cborize(CborEncoder* encoder, bp_blk_pay_t* pay, rb_tree_t* custo
 ///if (trace) fprintf(stderr, "pay_cborize: bpdu_retransmission_time %d\n", pay->bpdu_retransmission_time);
     CborEncoder arrayEncoder;
 
-    int num_items = 5;  // 6 if CRC
+    int num_items = 5;  // no CRC
+    if (pay->crctype != bp_crctype_none)
+        num_items = 6;
     cbor_encoder_create_array(encoder, &arrayEncoder, num_items);
 
     cbor_encode_uint(&arrayEncoder, BP_PAY_BLK_TYPE);    // block type
@@ -1045,7 +1078,7 @@ static int pay_cborize(CborEncoder* encoder, bp_blk_pay_t* pay, rb_tree_t* custo
     {
 if (trace) fprintf(stderr, "ENCODE BIBE OUTER PAYLOAD\n");
         CborEncoder encoder2, arrayEncoder2, arrayEncoder3;
-        uint8_t buffer2[65536];  // HARDWIRED KRS
+        uint8_t buffer2[OUTER_PAYLOAD_SIZE_MAX];
         cbor_encoder_init(&encoder2, buffer2, sizeof(buffer2), 0);
         cbor_encoder_create_array(&encoder2, &arrayEncoder2, 2);
         cbor_encode_uint(&arrayEncoder2, BP_ADMIN_REC_TYPE_BIBE);
@@ -1064,7 +1097,7 @@ if (trace) fprintf(stderr, "pay_cborize: size == %d\n", len);
     {
 if (trace) fprintf(stderr, "encode custody signal payload\n");
         CborEncoder encoder2, arrayEncoder2, arrayEncoder3, arrayEncoder4, arrayEncoder5;
-        uint8_t buffer2[65536];  // HARDWIRED KRS
+        uint8_t buffer2[CUSTODY_SIGNAL_PAYLOAD_SIZE_MAX];
         cbor_encoder_init(&encoder2, buffer2, sizeof(buffer2), 0);
         cbor_encoder_create_array(&encoder2, &arrayEncoder2, 2);
         cbor_encode_uint(&arrayEncoder2, BP_ADMIN_REC_TYPE_CUSTODY_SIGNAL);
@@ -1082,7 +1115,7 @@ if (trace) fprintf(stderr, "encoding number of sequential transmission ids into 
         cbor_encoder_close_container(&arrayEncoder3, &arrayEncoder4);
 
         int count = 0;
-        for (int i=0; i<1000; ++i)  // MAGIC NUMBER  KRS
+        for (int i=0; i<max_gaps_per_custody_signal+1; ++i)
             if (pay->first_transmission_id[i] != 0)
                 ++count;
 #if 1  // KRS for CT
@@ -1170,12 +1203,15 @@ if (trace) fprintf(stderr, "ENCODE BAD PAYLOAD, admin rec type %d\n", pay->admin
 }
 
 static int bundle_encode(uint8_t * in, size_t size, uint8_t * buffer, size_t * out_size, 
-                         unsigned long bpdu_transmission_id, rb_tree_t* custody_tree)  // KRS
+                         unsigned long bpdu_transmission_id, bool enbibe, rb_tree_t* custody_tree)  // KRS
 {
-    // at first do nothing
-    //*out_size = size;
-    //memcpy(out, in, *out_size);
-    //return 0;
+    if (!enbibe && !custody_tree)
+    {
+        // do nothing
+        *out_size = size;
+        memcpy(out, in, *out_size);
+        return BP_SUCCESS
+    }
 
     bp_blk_pri_t pri;
     bp_blk_bib_t bib;
@@ -1195,11 +1231,12 @@ static int bundle_encode(uint8_t * in, size_t size, uint8_t * buffer, size_t * o
     pri.crctype = 0;            // none
     pri.createmsec = bplib_os_get_dtntime_ms();
     pri.createseq = 1;
-    pri.dstnode = 101;  // HARDWIRED!
-    pri.dstserv = 1;    // HARDWIRED!
+    pri.lifetime = 3600000;  // MAGIC NUMBER  KRS
+    pri.dstnode = remote_node;
+    pri.dstserv = remote_service;
     pri.is_admin_rec = true;
-    pri.srcnode = 100;  // HARDWIRED!
-    pri.srcserv = 1;    // HARDWIRED!
+    pri.srcnode = local_node;
+    pri.srcserv = local_service;
     pri_cborize(&arrayEncoder, &pri);
     if (trace && !brief) bplog(NULL, 0, "::::primary block encoded\n");
     if (trace && !brief) dump(buffer, 200, 200, dump_enable);
@@ -1240,11 +1277,17 @@ if (trace) fprintf(stderr, "encoded bundle size = %d\n", *out_size);
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int setup_cla_bibe(bplib_routetbl_t *rtbl, uint16_t local_port, uint16_t remote_port)
+int setup_cla_bibe(bplib_routetbl_t *rtbl, int local_nod, uint16_t local_serv, int remote_nod, uint16_t remote_serv)
 {
     cid_reuse = true;
-    max_gaps_per_dacs = 1028;  // MAGIC NUMBER  KRS
+    max_gaps_per_custody_signal = MAX_MAX_GAPS_PER_CUSTODY_SIGNAL;
 
+    local_node = local_nod;
+    local_service = local_serv;
+
+    remote_node = remote_nod;
+    remote_service = remote_serv;
+    
     /* Initialize Active Table Signal */
     active_table_signal = bplib_os_createlock();
     if (!bp_handle_is_valid(active_table_signal))
@@ -1300,7 +1343,7 @@ int setup_cla_bibe(bplib_routetbl_t *rtbl, uint16_t local_port, uint16_t remote_
 #endif
 
     /* Allocate Memory for DACS Tree to Store Bundle IDs */
-    status = rb_tree_create(max_gaps_per_dacs, &custody_tree);
+    status = rb_tree_create(max_gaps_per_custody_signal+1, &custody_tree);
     if (status != BP_SUCCESS)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to allocate memory for DACS tree\n");
@@ -1423,7 +1466,11 @@ if (trace) fprintf(stderr, "bundle that just came in:\n");
     if (status != BP_SUCCESS)
         return status;
 
-    if (pay.admin_record_type == BP_ADMIN_REC_TYPE_CUSTODY_SIGNAL)  // if is custody sig   // KRS for CT
+    if (pay->admin_record_type == 0)
+    {
+        ; // nothing to do
+    }
+    else if (pay.admin_record_type == BP_ADMIN_REC_TYPE_CUSTODY_SIGNAL)  // if is custody sig   // KRS for CT
     {
         // consume and process- remove from active table
         bp_active_bundle_t active_bundle;
@@ -1447,9 +1494,9 @@ if (trace) fprintf(stderr, "bundle that just came in:\n");
 //if (trace) fprintf(stderr, "sid: %u   i: %d cid: %d\n", active_bundle.sid, i, active_bundle.cid);
                         ++num_found;
                         int j=0;
-                        for (; j<1000 && pay.first_transmission_id[j] != active_bundle.cid; ++j)  // MAGIC NUMBER  KRS
+                        for (; j<max_gaps_per_custody_signal+1 && pay.first_transmission_id[j] != active_bundle.cid; ++j)
                             ;
-                        if (j == 1000)  // MAGIC NUMBER  KRS
+                        if (j == max_gaps_per_custody_signal+1)
                             active_table.add(active_table.table, active_bundle, false);  // not one to remove, put it back
                         else
 if (trace) fprintf(stderr, "bundle custody signal received and processed for bundle %d\n", active_bundle.cid);
@@ -1459,7 +1506,7 @@ if (trace) fprintf(stderr, "bundle custody signal received and processed for bun
         }
         bplib_os_unlock(active_table_signal);
     }
-    else  // BIBE
+    else if (pay.admin_record_type == BP_ADMIN_REC_TYPE_BIBE)
     {
 if (trace) fprintf(stderr, "Call system bplib_cla_ingress()... size=%zu\n", data_fill_sz);
         status = bplib_cla_ingress(rtbl, intf_id, bundle_buffer, data_fill_sz, MAX_WAIT_MSEC);
@@ -1483,6 +1530,10 @@ if (trace) fprintf(stderr, "Call system bplib_cla_ingress()... size=%zu\n", data
             }
         }
     }
+    else
+    {
+fprintf(stderr, "Unsupported record type %d; comm error?\n", pay.admin_record_type);
+    }
 
     return status;
 }
@@ -1503,8 +1554,6 @@ if (trace) fprintf(stderr, "Call system bplib_cla_ingress()... size=%zu\n", data
  */
 int bplib_bibe_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, uint32_t timeout)
 {
-#define INNER_BUNDLE_SIZE_MAX 65536
-
     int status = BP_SUCCESS;
 
     static uint8_t bundle_buffer[INNER_BUNDLE_SIZE_MAX];
@@ -1512,7 +1561,11 @@ int bplib_bibe_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle,
 
     bool newcid = !cid_reuse;
 
-    bool make_custody_signal = /* timer expired && */!rb_tree_is_empty(&custody_tree);  // KRS for CT
+    bool bibe = true;
+#define CUSTODY_SIGNAL_INTERVAL_MSEC /*5000*/ 0
+    static uin64_t last_time_cs_sent = bplib_os_get_dtntime_ms();
+    unit64_t now = bplib_os_get_dtntime_ms();
+    bool make_custody_signal =  now - last_time_cs_sent >= CUSTODY_SIGNAL_INTERVAL_MSEC && !rb_tree_is_empty(&custody_tree);  // KRS for CT
     if (!make_custody_signal)
     {
         status = bplib_cla_egress(rtbl, intf_id, bundle_buffer, &bundle_buffer_sz, MAX_WAIT_MSEC);
@@ -1537,7 +1590,7 @@ if (trace) fprintf(stderr, "inner bundle from bplib of size %ld:\n", bundle_buff
 #else
         bpdu_transmission_id = current_active_cid++;
 #endif
-        status = bundle_encode(bundle_buffer, bundle_buffer_sz, bundle, size, bpdu_transmission_id, 
+        status = bundle_encode(bundle_buffer, bundle_buffer_sz, bundle, size, local_port, bpdu_transmission_id, bibe
                                make_custody_signal ? &custody_tree : NULL);  // enbibe or make custody signal
         if (status == BP_SUCCESS)
         {
@@ -1553,11 +1606,14 @@ if (trace) fprintf(stderr, "bundle ready to go:\n");
     if (status == BP_SUCCESS)
     {
         if (make_custody_signal)  // KRS for CT
-            ; // bundle_encode() already removed entries from custody tree
+        {
+            // bundle_encode() already removed entries from custody tree
+         
+            last_time_cs_sent = now;
+        }
         else  // we fetched, enbibed, and sent a data bundle
         {
-            /* Check Custody Transfer */
-            if (1)  // HARDWIRED  KRS
+            if (bpdu_transmission_id != 0)  // custody transfer requested
             {
                 /* Save/Update Storage ID */
                 static bp_sid_t next_sid = 1;
@@ -1574,7 +1630,7 @@ if (trace) fprintf(stderr, "bundle ready to go:\n");
                 bplib_os_lock(active_table_signal);
                 {
                     /* Assign New Custody ID */
-                    if (0)////////KRS newcid)
+                    if (newcid)
                     {
 #if BPLIB_GLOBAL_CUSTODY_ID
                         bplib_os_lock(bplib_custody_id_mutex);

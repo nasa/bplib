@@ -23,7 +23,7 @@
  *
  *************************************************************************/
 
-int setup_cla_bibe(bplib_routetbl_t *rtbl, uint16_t local_port, uint16_t remote_port);
+int setup_cla_bibe(bplib_routetbl_t *rtbl, int local_node, uint16_t local_service);
 int teardown_cla_bibe();
 
 /**

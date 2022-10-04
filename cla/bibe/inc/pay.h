@@ -26,6 +26,8 @@
 //#include "../lib/bundle_types.h"  // KRS
 #include "../../tinycbor-main/src/cbor.h"  // KRS (ION also has a cbor.h)
 
+#define MAX_MAX_GAPS_PER_CUSTODY_SIGNAL 1027
+
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
@@ -41,8 +43,8 @@ typedef struct {
     uint64_t        bpdu_retransmission_time;   // 0 if no CT requested for this admin record  KRS
     
     int custody_status;  // KRS
-    uint64_t first_transmission_id[1000];  // MAGIC NUMBER  KRS
-    int num_transmission_ids[1000];  // MAGIC NUMBER  KRS
+    uint64_t first_transmission_id[MAX_MAX_GAPS_PER_CUSTODY_SIGNAL+1];
+    int num_transmission_ids[MAX_MAX_GAPS_PER_CUSTODY_SIGNAL+1];
 } bp_blk_pay_t;
 
 /******************************************************************************
