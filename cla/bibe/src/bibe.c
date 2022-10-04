@@ -338,7 +338,7 @@ static int pri_decborize(CborValue *it, int size, bp_blk_pri_t* pri, uint32_t* f
     /* CRC on this block if specified  KRS */
     if (pri->crctype != bp_crctype_none)
     {
-        cbor_value_advance(recursed);  // skip HARDCODED KRS
+        cbor_value_advance(&recursed);  // skip HARDCODED KRS
     }
 #endif
 
@@ -596,7 +596,7 @@ static int pay_decborize (CborValue* recursed, int size, bp_blk_pay_t* pay, uint
     static uint8_t payld[INNER_BUNDLE_SIZE_MAX];
     cbor_value_copy_byte_string(recursed, payld, &length, NULL);
     cbor_value_advance(recursed);
-    memset((uint_8*)payld+length, 0, sizeof(payld)-length);
+    memset((uint8_t*)payld+length, 0, sizeof(payld)-length);
     pay->payptr = payld;  // still not decoded though
     pay->paysize = length;  // length of undecoded
 
@@ -608,7 +608,6 @@ static int pay_decborize (CborValue* recursed, int size, bp_blk_pay_t* pay, uint
     CborParser parser2;
     CborValue it2, recursed20;
     uint64_t value;
-    uint32_t flags = 0;
     //if (trace) dump(buffer, size);
     cbor_parser_init(payld, length +100, 0, &parser2, &it2);
     if (dump_enable) fprintf(stderr, "payld:\n");
@@ -735,12 +734,12 @@ static int bundle_decode(const uint8_t *buffer, size_t size, uint8_t** out, size
     if (status != BP_SUCCESS)
         return status;
 
-    if (!pri->is_admin_rec)
+    if (!pri.is_admin_rec)
     {
         static uint8_t bundle[INNER_BUNDLE_SIZE_MAX];
         memset(bundle, 0, sizeof(bundle));
         memcpy(bundle, buffer, size);
-        *outsize = size;
+        *out_size = size;
         return BP_SUCCESS;
     }
 
@@ -893,7 +892,7 @@ int pri_cborize (CborEncoder* encoder, bp_blk_pri_t* pri)
 
     cbor_encode_uint(&arrayEncoder, pri->lifetime);  // Lifetime
 
-    if (fragment) 
+    if (pri->is_frag) 
     {
         cbor_encode_uint(&arrayEncoder, pri->fragoffset);  // fragment offset
         cbor_encode_uint(&arrayEncoder, pri->paylen);  // Total Application Data Unit length
@@ -1202,15 +1201,15 @@ if (trace) fprintf(stderr, "ENCODE BAD PAYLOAD, admin rec type %d\n", pay->admin
     return BP_SUCCESS;
 }
 
-static int bundle_encode(uint8_t * in, size_t size, uint8_t * buffer, size_t * out_size, 
+static int bundle_encode(uint8_t * in, size_t size, uint8_t * buffer, size_t * out_size, int16_t local_service,
                          unsigned long bpdu_transmission_id, bool enbibe, rb_tree_t* custody_tree)  // KRS
 {
     if (!enbibe && !custody_tree)
     {
         // do nothing
         *out_size = size;
-        memcpy(out, in, *out_size);
-        return BP_SUCCESS
+        memcpy(buffer, in, *out_size);
+        return BP_SUCCESS;
     }
 
     bp_blk_pri_t pri;
@@ -1466,7 +1465,7 @@ if (trace) fprintf(stderr, "bundle that just came in:\n");
     if (status != BP_SUCCESS)
         return status;
 
-    if (pay->admin_record_type == 0)
+    if (pay.admin_record_type == 0)
     {
         ; // nothing to do
     }
@@ -1563,8 +1562,8 @@ int bplib_bibe_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle,
 
     bool bibe = true;
 #define CUSTODY_SIGNAL_INTERVAL_MSEC /*5000*/ 0
-    static uin64_t last_time_cs_sent = bplib_os_get_dtntime_ms();
-    unit64_t now = bplib_os_get_dtntime_ms();
+    static uint64_t last_time_cs_sent = bplib_os_get_dtntime_ms();
+    uint64_t now = bplib_os_get_dtntime_ms();
     bool make_custody_signal =  now - last_time_cs_sent >= CUSTODY_SIGNAL_INTERVAL_MSEC && !rb_tree_is_empty(&custody_tree);  // KRS for CT
     if (!make_custody_signal)
     {
@@ -1590,7 +1589,7 @@ if (trace) fprintf(stderr, "inner bundle from bplib of size %ld:\n", bundle_buff
 #else
         bpdu_transmission_id = current_active_cid++;
 #endif
-        status = bundle_encode(bundle_buffer, bundle_buffer_sz, bundle, size, local_port, bpdu_transmission_id, bibe
+        status = bundle_encode(bundle_buffer, bundle_buffer_sz, bundle, size, local_service, bpdu_transmission_id, bibe
                                make_custody_signal ? &custody_tree : NULL);  // enbibe or make custody signal
         if (status == BP_SUCCESS)
         {
