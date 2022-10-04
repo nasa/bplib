@@ -846,7 +846,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (setup_cla_bibe(rtbl, local_addr.node_number, 36400 + local_addr.service_number) < 0,
+    if (setup_cla_bibe(rtbl, local_addr.node_number, 36400 + local_addr.service_number < 0,
                        remote_addr.node_number, remote_addr.service_number)  // KRS
     {
         fprintf(stderr, "Failed setup_cla_bibe()... exiting\n");
