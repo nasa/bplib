@@ -80,8 +80,6 @@ void        bplib_os_broadcast_signal_and_unlock(bp_handle_t h);
 void        bplib_os_signal(bp_handle_t h);
 int         bplib_os_waiton(bp_handle_t h, int timeout_ms);
 int         bplib_os_wait_until_ms(bp_handle_t h, uint64_t abs_dtntime_ms);
-int         bplib_os_format(char *dst, size_t len, const char *fmt, ...) VARG_CHECK(printf, 3, 4);
-int         bplib_os_strnlen(const char *str, int maxlen);
 void       *bplib_os_calloc(size_t size);
 void        bplib_os_free(void *ptr);
 size_t      bplib_os_memused(void);

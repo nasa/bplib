@@ -26,7 +26,6 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
-#include "bundle_types.h"
 #include "v7_rbtree.h"
 
 /******************************************************************************

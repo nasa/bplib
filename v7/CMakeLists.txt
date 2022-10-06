@@ -19,20 +19,21 @@ add_library(bplib_v7 OBJECT
 )
 
 target_include_directories(bplib_v7 PRIVATE
-    $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
-
     # nothing outside of here should directly call TinyCBOR, so this
     # can be considered private to this submodule
     ${TINYCBOR_INCLUDE_DIRS}
-
-    # Other parts of bplib common code (until they can become submodules)
-    ${BPLIB_SOURCE_DIR}/common
-    ${BPLIB_SOURCE_DIR}/lib
+    $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_include_directories(bplib_v7 PUBLIC
-     ${CMAKE_CURRENT_SOURCE_DIR}/inc
+    # Local include files
+    ${CMAKE_CURRENT_SOURCE_DIR}/inc
+
+    # other bplib submodules used by this submodule
+    $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_base,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # compile this submodule as c99

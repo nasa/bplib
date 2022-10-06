@@ -10,11 +10,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(BPLIB C)
 
-option(BPLIB_INCLUDE_STORAGE "Whether or not to build the basic/example storage services as part of BPLib" ON)
-option(BPLIB_INCLUDE_BPV6 "Whether or not to the BPv6 protocol implementation as part of BPLib" OFF)
-option(BPLIB_INCLUDE_BPV7 "Whether or not to the BPv7 protocol implementation as part of BPLib (EXPERIMENTAL)" ON)
 option(BPLIB_INCLUDE_POSIX "Whether or not to the POSIX operating system abstraction as part of BPLib (standalone builds only)" ON)
-option(BPLIB_BUILD_TEST_TOOLS "Whether or not to build the test programs as part of BPLib (standalone builds only)" ON)
 
 set(BPLIB_VERSION_STRING "3.0.99") # development
 
@@ -35,100 +31,33 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
    list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation)
 endif()
 
-# source units that comprise the basic fundamentals of BPLib
-# These units should always be built regardless of configuration
-set(BPLIB_SRC
-
-  # library API
-  lib/bplib.c
-
-  # other common objects
-  common/crc.c
-  common/rb_tree.c
-  common/rh_hash.c
-  common/cbuf.c
-  common/lrc.c
-)
-
 # no extra link libraries at first
 set(BPLIB_LINK_LIBRARIES)
-set(BPLIB_PRIVATE_INCLUDE_DIRS
-  ${CMAKE_CURRENT_SOURCE_DIR}/common
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib
+
+add_subdirectory(common)
+add_subdirectory(lib)
+add_subdirectory(mpool)
+add_subdirectory(cache)
+add_subdirectory(v7)
+
+# v7 implementation parts
+list(APPEND BPLIB_SRC
+  store/file_offload.c
+
+  $<TARGET_OBJECTS:bplib_common>
+  $<TARGET_OBJECTS:bplib_cache>
+  $<TARGET_OBJECTS:bplib_v7>
+  $<TARGET_OBJECTS:bplib_mpool>
+  $<TARGET_OBJECTS:bplib_base>
 )
 
-# Add source units that comprise the protocol implementation
-# This is dependent on build configuration
-if (BPLIB_INCLUDE_BPV6)
-
-  list(APPEND BPLIB_SRC
-    # Include BPv6 implementation parts
-    v6/v6.c
-    v6/bib.c
-    v6/cteb.c
-    v6/pay.c
-    v6/pri.c
-    v6/dacs.c
-    v6/sdnv.c
-  )
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/v6
-  )
-
-endif()
-
-if (BPLIB_INCLUDE_BPV7)
-
-  add_subdirectory(mpool)
-  add_subdirectory(cache)
-  add_subdirectory(v7)
-
-  list(REMOVE_ITEM BPLIB_SRC
-    lib/bplib.c
-    common/rb_tree.c
-    common/rh_hash.c
-  )
-
-  # v7 implementation parts
-  list(APPEND BPLIB_SRC
-    lib/v7_bplib.c
-    common/v7_rbtree.c
-    lib/v7_routing.c
-    lib/v7_cla_api.c
-    lib/v7_dataservice_api.c
-    store/file_offload.c
-
-    $<TARGET_OBJECTS:bplib_cache>
-    $<TARGET_OBJECTS:bplib_v7>
-    $<TARGET_OBJECTS:bplib_mpool>
-  )
-
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
-    $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_cache,INTERFACE_INCLUDE_DIRECTORIES>
-  )
-
-endif()
-
-# examples of storage implementations
-# these are not strictly required to be built with bplib, as an implemenation
-# may register additional or alternate implementations
-if (BPLIB_INCLUDE_STORAGE)
-
-  list(APPEND BPLIB_SRC
-
-    store/file.c
-    store/ram.c
-    store/flash.c
-    store/flash_sim.c
-
-  )
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/store
-  )
-
-endif()
+list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
+  $<TARGET_PROPERTY:bplib_base,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_cache,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
+)
 
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
 # this allows simply dropping this module into a CFS project
@@ -163,14 +92,6 @@ else()
 
   # If using GNU GCC, then also enable full warning reporting
   target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
-
-  if (BPLIB_INCLUDE_BPV7)
-
-    target_compile_definitions(bplib PRIVATE BPLIB_INCLUDE_BPV7)
-
-  endif()
-
-
 
   # link with the requisite dependencies (this is mainly for POSIX, if using that adapter)
   target_link_libraries(bplib ${TINYCBOR_LDFLAGS} ${BPLIB_LINK_LIBRARIES})

@@ -19,9 +19,7 @@ add_library(bplib_mpool OBJECT
 target_include_directories(bplib_mpool PRIVATE
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
-
-    # Other parts of bplib common code (until they can become submodules)
-    ${BPLIB_SOURCE_DIR}/common
+    $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_include_directories(bplib_mpool PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc

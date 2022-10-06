@@ -42,7 +42,6 @@
 #include "bplib.h"
 #include "bplib_os.h"
 #include "bplib_routing.h"
-#include "bplib_store_ram.h"
 
 #include "v7_rbtree.h"
 #include "v7_cache.h"
