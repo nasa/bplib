@@ -80,7 +80,7 @@ int dacs_write(uint8_t *rec, int size, int max_fills_per_dacs, rb_tree_t *tree, 
 
         /* Write range of missing cid.
            Calculate the missing values between the current and previous node. */
-        fill.value = range.value - (prev_range.value + prev_range.offset + 1);
+        fill.value = range.value - (prev_range.value + prev_range.offset);
         fill.index = sdnv_write(rec, size, fill, &sdnvflags);
 
         /* Write range of received cids. */
@@ -105,7 +105,6 @@ int dacs_write(uint8_t *rec, int size, int max_fills_per_dacs, rb_tree_t *tree, 
  *-------------------------------------------------------------------------------------*/
 int dacs_read(const uint8_t *rec, int rec_size, int *num_acks, bp_delete_func_t ack, void *ack_parm, uint32_t *flags)
 {
-    bp_val_t   i;
     bp_field_t cid         = {0, 2, 0};
     bp_field_t fill        = {0, 0, 0};
     int        cidin       = true;
@@ -135,33 +134,40 @@ int dacs_read(const uint8_t *rec, int rec_size, int *num_acks, bp_delete_func_t 
         }
 
         /* Process Custody IDs */
-        if (cidin == true && ack_success)
+        if (cidin == true)
         {
-            /* Free Bundles */
+            bp_val_t i;
+            bp_val_t fill_start = cid.value;
             cidin = false;
+
+            /* Free Bundles */
             for (i = 0; i < fill.value; i++)
             {
-                /* Acknowledge Bundle CID */
-                int status = ack(ack_parm, cid.value + i, flags);
-                if (status == BP_SUCCESS)
-                    ack_count++;
+                /* Calculate CID being Acknowledged */
+                cid.value = fill_start + i;
 
-                /* Set Return Status */
-                if (status != BP_SUCCESS && ret_status != BP_SUCCESS)
+                /* Acknowledge Bundle CID */
+                if (ack_success)
                 {
-                    /* Save Off First Failure */
-                    ret_status = status;
+                    int status = ack(ack_parm, cid.value, flags);
+                    if (status == BP_SUCCESS) ack_count++;
+
+                    /* Set Return Status */
+                    if (status != BP_SUCCESS && ret_status != BP_SUCCESS)
+                    {
+                        /* Save Off First Failure */
+                        ret_status = status;
+                    }
                 }
             }
         }
         else
         {
-            /* Skip Bundles */
             cidin = true;
-        }
 
-        /* Set Next Custody ID */
-        cid.value += fill.value;
+            /* Skip Bundles */
+            cid.value += fill.value;
+        }
     }
 
     /* Set Number of Acknowledgments */
