@@ -1,0 +1,36 @@
+##################################################################
+#
+# Bundle Protocol Library (BPLib) CMake build recipe
+#
+# This is for the "base" submodule
+#
+##################################################################
+
+set(bplib_base_SOURCES
+    src/v7_bplib.c
+    src/v7_cla_api.c
+    src/v7_dataservice_api.c
+    src/v7_routing.c
+)
+
+add_library(bplib_base OBJECT
+    ${bplib_base_SOURCES}
+)
+
+target_include_directories(bplib_base PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/inc
+
+    $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
+)
+
+target_include_directories(bplib_base PRIVATE
+    $<TARGET_PROPERTY:bplib_cache,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
+)
+
+# Use the same basic compiler flags as bplib
+target_compile_features(bplib_base PRIVATE c_std_99)
+target_compile_options(bplib_base PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
+set_target_properties(bplib_base PROPERTIES ${BPLIB_COMMON_PROPERTIES})

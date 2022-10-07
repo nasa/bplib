@@ -10,78 +10,54 @@
 cmake_minimum_required(VERSION 3.5)
 project(BPLIB C)
 
-option(BPLIB_INCLUDE_STORAGE "Whether or not to build the basic/example storage services as part of BPLib" ON)
-option(BPLIB_INCLUDE_BPV6 "Whether or not to the BPv6 protocol implementation as part of BPLib" ON)
-option(BPLIB_INCLUDE_BPV7 "Whether or not to the BPv7 protocol implementation as part of BPLib (EXPERIMENTAL)" OFF)
 option(BPLIB_INCLUDE_POSIX "Whether or not to the POSIX operating system abstraction as part of BPLib (standalone builds only)" ON)
-option(BPLIB_BUILD_TEST_TOOLS "Whether or not to build the test programs as part of BPLib (standalone builds only)" ON)
 
 set(BPLIB_VERSION_STRING "3.0.99") # development
 
-# source units that comprise the basic fundamentals of BPLib
-# These units should always be built regardless of configuration
-set(BPLIB_SRC
+set(BPLIB_COMMON_COMPILE_OPTIONS)
+set(BPLIB_COMMON_PROPERTIES)
 
-  # library API
-  lib/bplib.c
+# If doing a CFS build, then build position independent code (-fPIC) for all objects
+if(IS_CFS_ARCH_BUILD OR BUILD_SHARED_LIBS)
+  list(APPEND BPLIB_COMMON_PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+else()
+  list(APPEND BPLIB_COMMON_PROPERTIES POSITION_INDEPENDENT_CODE FALSE)
+endif()
 
-  # other common objects
-  common/crc.c
-  common/rb_tree.c
-  common/rh_hash.c
-  common/cbuf.c
-  common/lrc.c
-)
+
+# If using a GNU-style compiler then enable full warnings here.
+# May want to add equivalent for other compiler flavors too
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+   list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation)
+endif()
 
 # no extra link libraries at first
 set(BPLIB_LINK_LIBRARIES)
-set(BPLIB_PRIVATE_INCLUDE_DIRS common lib)
 
-# Add source units that comprise the protocol implementation
-# This is dependent on build configuration
-if (BPLIB_INCLUDE_BPV6)
+add_subdirectory(common)
+add_subdirectory(lib)
+add_subdirectory(mpool)
+add_subdirectory(cache)
+add_subdirectory(v7)
 
-  list(APPEND BPLIB_SRC
-    # Include BPv6 implementation parts
-    v6/v6.c
-    v6/bib.c
-    v6/cteb.c
-    v6/pay.c
-    v6/pri.c
-    v6/dacs.c
-    v6/sdnv.c
-  )
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS v6)
+# v7 implementation parts
+list(APPEND BPLIB_SRC
+  store/file_offload.c
 
-endif()
+  $<TARGET_OBJECTS:bplib_common>
+  $<TARGET_OBJECTS:bplib_cache>
+  $<TARGET_OBJECTS:bplib_v7>
+  $<TARGET_OBJECTS:bplib_mpool>
+  $<TARGET_OBJECTS:bplib_base>
+)
 
-if (BPLIB_INCLUDE_BPV7)
-
-  # v7 implementation parts
-  list(APPEND BPLIB_SRC
-    v7/v7_mpool.c
-    v7/v7_codec.c
-  )
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS v7)
-
-endif()
-
-# examples of storage implementations
-# these are not strictly required to be built with bplib, as an implemenation
-# may register additional or alternate implementations
-if (BPLIB_INCLUDE_STORAGE)
-
-  list(APPEND BPLIB_SRC
-
-    store/file.c
-    store/ram.c
-    store/flash.c
-    store/flash_sim.c
-
-  )
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS store)
-
-endif()
+list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
+  $<TARGET_PROPERTY:bplib_base,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_cache,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
+)
 
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
 # this allows simply dropping this module into a CFS project
@@ -90,7 +66,10 @@ if (IS_CFS_ARCH_BUILD)
   # Create the app module using the CFE/OSAL adapter layer
   # Note this ignores the setting of BPLIB_INCLUDE_POSIX, as OSAL provides this service
   # The CFE build system determines whether to create a shared or static object inside this routine
-  add_cfe_app(bplib ${BPLIB_SRC} os/cfe.c)
+  # TEMPORARY - for now this will also use POSIX until OSAL has the needed features.
+  add_cfe_app(bplib ${BPLIB_SRC} os/posix.c)
+
+  target_link_libraries(bplib ${TINYCBOR_LDFLAGS})
 
 else()
 
@@ -112,24 +91,10 @@ else()
   target_compile_features(bplib PRIVATE c_std_99)
 
   # If using GNU GCC, then also enable full warning reporting
-  target_compile_options(bplib PRIVATE $<$<C_COMPILER_ID:GNU>:-Wall -Werror -pedantic>)
-
-  if (BPLIB_INCLUDE_BPV7)
-
-    # Use pkg-config to locate tinycbor dependency (required only for v7)
-    find_package(PkgConfig)
-    pkg_search_module(TINYCBOR tinycbor)
-    message(STATUS "Found tinycbor version ${TINYCBOR_VERSION}")
-
-    list(APPEND BPLIB_LINK_LIBRARIES ${TINYCBOR_LIBRARIES})
-    list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS ${TINYCBOR_INCLUDE_DIRS})
-
-  endif()
-
-
+  target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
   # link with the requisite dependencies (this is mainly for POSIX, if using that adapter)
-  target_link_libraries(bplib ${BPLIB_LINK_LIBRARIES})
+  target_link_libraries(bplib ${TINYCBOR_LDFLAGS} ${BPLIB_LINK_LIBRARIES})
 
   # Install and also export this library, so it can be found via
   # "find_package()" from some other CMake build

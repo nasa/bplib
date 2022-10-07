@@ -63,19 +63,23 @@
  ******************************************************************************/
 
 void bplib_os_init(void);
+void bplib_os_enable_log_flags(uint32_t enable_mask);
 int  bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...)
     VARG_CHECK(printf, 5, 6);
-int         bplib_os_systime(unsigned long *sysnow); /* seconds */
+int      bplib_os_systime(unsigned long *sysnow); /* seconds */
+uint64_t bplib_os_get_dtntime_ms(
+    void); /* get the OS time compatible with the "dtn time" definition (ms resolution + dtn epoch) */
 void        bplib_os_sleep(int seconds);
 uint32_t    bplib_os_random(void);
 bp_handle_t bplib_os_createlock(void);
 void        bplib_os_destroylock(bp_handle_t h);
 void        bplib_os_lock(bp_handle_t h);
 void        bplib_os_unlock(bp_handle_t h);
+void        bplib_os_broadcast_signal(bp_handle_t h);
+void        bplib_os_broadcast_signal_and_unlock(bp_handle_t h);
 void        bplib_os_signal(bp_handle_t h);
 int         bplib_os_waiton(bp_handle_t h, int timeout_ms);
-int         bplib_os_format(char *dst, size_t len, const char *fmt, ...) VARG_CHECK(printf, 3, 4);
-int         bplib_os_strnlen(const char *str, int maxlen);
+int         bplib_os_wait_until_ms(bp_handle_t h, uint64_t abs_dtntime_ms);
 void       *bplib_os_calloc(size_t size);
 void        bplib_os_free(void *ptr);
 size_t      bplib_os_memused(void);
