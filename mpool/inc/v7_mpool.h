@@ -609,6 +609,22 @@ int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, c
  */
 bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size);
 
+/**
+ * @brief Obtain current usage of a memory pool
+ *
+ * @param pool Pool object
+ * @return memory currently in use
+ */
+size_t bplib_mpool_query_mem_current_use(bplib_mpool_t *pool);
+
+/**
+ * @brief Obtain maximum usage of a memory pool
+ *
+ * @param pool Pool object
+ * @return maximum memory used
+ */
+size_t bplib_mpool_query_mem_max_use(bplib_mpool_t *pool);
+
 /* DEBUG/TEST verification routines */
 
 void bplib_mpool_debug_scan(bplib_mpool_t *pool);

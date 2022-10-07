@@ -76,7 +76,6 @@ extern "C" {
 #define BP_COS_EXPEDITED 2
 #define BP_COS_EXTENDED  3
 
-
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
@@ -264,6 +263,37 @@ int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *b
  * @retval BP_SUCCESS if successful
  */
 int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, uint32_t timeout);
+
+/**
+ * @brief Get an operational value
+ *
+ * Reads the current value of a single bplib operational variable.  For interface variables (such as bundle/byte counts)
+ * the intf_id specifies the scope to read.  For global scope variables, the intf_id should be passed as
+ * BP_INVALID_HANDLE.
+ *
+ * @param rtbl Routing table instance
+ * @param intf_id the interface (scope) to read, or BP_INVALID_HANDLE for global scope
+ * @param var_id the specific variable value to read
+ * @param[out] value the value to set
+ *
+ * @retval BP_SUCCESS if successfully read
+ */
+int bplib_query_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_variable_t var_id, bp_sval_t *value);
+
+/**
+ * @brief Set an operational value
+ *
+ * Writes the value of a single bplib operational variable.  For interface variables (such as bundle/byte counts) the
+ * intf_id specifies the scope to write.  For global scope variables, the intf_id should be passed as BP_INVALID_HANDLE.
+ *
+ * @param rtbl Routing table instance
+ * @param intf_id the interface (scope) to write, or BP_INVALID_HANDLE for global scope
+ * @param var_id the specific variable value to write
+ * @param value the value to set
+ *
+ * @retval BP_SUCCESS if successfully written
+ */
+int bplib_config_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_variable_t var_id, bp_sval_t value);
 
 #ifdef __cplusplus
 } // extern "C"

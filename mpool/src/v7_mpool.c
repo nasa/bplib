@@ -501,13 +501,15 @@ void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_
  * NOTE: this must be invoked with the lock already held
  *-----------------------------------------------------------------*/
 bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
-                                                              uint32_t content_type_signature, void *init_arg, uint8_t priority)
+                                                              uint32_t content_type_signature, void *init_arg,
+                                                              uint8_t priority)
 {
     bplib_mpool_block_t         *node;
     bplib_mpool_block_content_t *block;
     bplib_mpool_api_content_t   *api_block;
     size_t                       data_offset;
     uint32_t                     alloc_threshold;
+    uint32_t                     block_count;
 
     bplib_mpool_block_admin_content_t *admin;
 
@@ -531,7 +533,8 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
      */
     alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
 
-    if (bplib_mpool_subq_get_depth(&admin->free_blocks) <= (admin->bblock_alloc_threshold - alloc_threshold))
+    block_count = bplib_mpool_subq_get_depth(&admin->free_blocks);
+    if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
 
         /* no free blocks available for the requested type */
@@ -562,6 +565,18 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     {
         /* this should never happen, because depth was already checked */
         return NULL;
+    }
+
+    /*
+     * Convert from blocks free to blocks used, and update high watermark if necessary.
+     * This is +1 to include the block that was just pulled (that is, a call to
+     * bplib_mpool_subq_get_depth() on the free list now will return 1 fewer than it
+     * did earlier in this function).
+     */
+    block_count = 1 + admin->num_bufs_total - block_count;
+    if (block_count > admin->max_alloc_watermark)
+    {
+        admin->max_alloc_watermark = block_count;
     }
 
     block = (bplib_mpool_block_content_t *)node;
@@ -617,7 +632,8 @@ bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_
     bplib_mpool_lock_t          *lock;
 
     lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, magic_number, init_arg, BPLIB_MPOOL_ALLOC_PRI_MLO);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, magic_number, init_arg,
+                                              BPLIB_MPOOL_ALLOC_PRI_MLO);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
@@ -1014,6 +1030,34 @@ void bplib_mpool_maintain(bplib_mpool_t *pool)
     {
         bplib_mpool_collect_blocks(pool, BPLIB_MPOOL_MAINTENCE_COLLECT_LIMIT);
     }
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_query_mem_current_use
+ *
+ *-----------------------------------------------------------------*/
+size_t bplib_mpool_query_mem_current_use(bplib_mpool_t *pool)
+{
+    bplib_mpool_block_admin_content_t *admin;
+
+    admin = bplib_mpool_get_admin(pool);
+
+    return (bplib_mpool_subq_get_depth(&admin->free_blocks) * (size_t)admin->buffer_size);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_query_mem_max_use
+ *
+ *-----------------------------------------------------------------*/
+size_t bplib_mpool_query_mem_max_use(bplib_mpool_t *pool)
+{
+    bplib_mpool_block_admin_content_t *admin;
+
+    admin = bplib_mpool_get_admin(pool);
+
+    return (admin->max_alloc_watermark * (size_t)admin->buffer_size);
 }
 
 /*----------------------------------------------------------------

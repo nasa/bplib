@@ -67,7 +67,7 @@ if (IS_CFS_ARCH_BUILD)
   # Note this ignores the setting of BPLIB_INCLUDE_POSIX, as OSAL provides this service
   # The CFE build system determines whether to create a shared or static object inside this routine
   # TEMPORARY - for now this will also use POSIX until OSAL has the needed features.
-  add_cfe_app(bplib ${BPLIB_SRC} os/posix.c)
+  add_cfe_app(bplib ${BPLIB_SRC} os/heap.c os/posix.c)
 
   target_link_libraries(bplib ${TINYCBOR_LDFLAGS})
 
@@ -77,7 +77,7 @@ else()
   # This by will usually require a POSIX OS layer
   if (BPLIB_INCLUDE_POSIX)
 
-    list(APPEND BPLIB_SRC os/posix.c)
+    list(APPEND BPLIB_SRC os/heap.c os/posix.c)
     list(APPEND BPLIB_LINK_LIBRARIES rt pthread)
 
   endif()

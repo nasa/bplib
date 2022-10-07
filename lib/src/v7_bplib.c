@@ -260,3 +260,62 @@ int bplib_ipn2eid(char *eid, size_t len, bp_ipn_t node, bp_ipn_t service)
 
     return BP_SUCCESS;
 }
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_query_integer
+ *
+ * Public API function
+ * See description in header for argument/return detail
+ *
+ *-----------------------------------------------------------------*/
+int bplib_query_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_variable_t var_id, bp_sval_t *value)
+{
+    int retval;
+
+    retval = BP_ERROR;
+
+    switch (var_id)
+    {
+        case bplib_variable_mem_current_use:
+            *value = bplib_mpool_query_mem_current_use(bplib_route_get_mpool(rtbl));
+            retval = BP_SUCCESS;
+            break;
+
+        case bplib_variable_mem_high_use:
+            *value = bplib_mpool_query_mem_max_use(bplib_route_get_mpool(rtbl));
+            retval = BP_SUCCESS;
+            break;
+
+        default:
+            /* non-readable variable */
+            *value = 0;
+            break;
+    }
+
+    return retval;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_config_integer
+ *
+ * Public API function
+ * See description in header for argument/return detail
+ *
+ *-----------------------------------------------------------------*/
+int bplib_config_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_variable_t var_id, bp_sval_t value)
+{
+    int retval;
+
+    retval = BP_ERROR;
+
+    switch (var_id)
+    {
+        default:
+            /* non-writable variable */
+            break;
+    }
+
+    return retval;
+}
