@@ -24,6 +24,8 @@
 #include <string.h>
 
 #include "bplib_api_types.h"
+#include "bplib_os.h"
+
 #include "v7_rbtree.h"
 #include "v7_mpool.h"
 #include "v7_mpool_bblocks.h"
@@ -344,6 +346,7 @@ const bplib_mpool_block_content_t *bplib_mpool_get_block_content_const(const bpl
 bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_block_t *cb);
 
 bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
-                                                              uint32_t content_type_signature, void *init_arg, uint8_t priority);
+                                                              uint32_t content_type_signature, void *init_arg,
+                                                              uint8_t priority);
 
 #endif /* V7_MPOOL_INTERNAL_H */
