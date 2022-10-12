@@ -108,6 +108,7 @@ typedef struct bplib_mpool_block_admin_content
     uint32_t num_bufs_total;
     uint32_t bblock_alloc_threshold;   /**< threshold at which new bundles will no longer be allocatable */
     uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
+    uint32_t max_alloc_watermark;
 
     bplib_rbt_root_t          blocktype_registry; /**< registry of block signature values */
     bplib_mpool_api_content_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */

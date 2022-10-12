@@ -43,16 +43,9 @@ extern "C" {
 #define BP_LOCAL_SCOPE static
 #endif
 
-#ifndef BP_VAL_TYPE
-#define BP_VAL_TYPE unsigned long
-#endif
-
-#ifndef BP_INDEX_TYPE
-#define BP_INDEX_TYPE uint16_t
-#endif
-
-typedef BP_VAL_TYPE   bp_val_t;
-typedef BP_INDEX_TYPE bp_index_t;
+typedef uintmax_t bp_val_t;
+typedef intmax_t  bp_sval_t;
+typedef uint16_t  bp_index_t;
 
 /* Encoded Value (bounds size of bundle field values) */
 #define BP_MAX_ENCODED_VALUE BP_GET_MAXVAL(bp_val_t)
@@ -209,6 +202,14 @@ typedef struct
     uint32_t acknowledged_bundles; /* freed by custody signal - process */
     uint32_t active_bundles;       /* number of slots in active table in use */
 } bp_stats_t;
+
+typedef enum
+{
+    bplib_variable_none,            /**< reserved value, keep first */
+    bplib_variable_mem_current_use, /**< replaces bplib_os_memused() for external API use */
+    bplib_variable_mem_high_use,    /**< replaces bplib_os_memhigh() for external API use */
+    bplib_variable_max              /**< reserved value, keep last */
+} bplib_variable_t;
 
 /**
  * Checks for validity of given handle

@@ -61,9 +61,6 @@ static pthread_mutex_t  lock_of_locks;
 
 static struct timespec prevnow;
 
-static size_t current_memory_allocated = 0;
-static size_t highest_memory_allocated = 0;
-
 static uint32_t flag_log_enable = BP_FLAG_NONCOMPLIANT | BP_FLAG_DROPPED | BP_FLAG_BUNDLE_TOO_LARGE |
                                   BP_FLAG_UNKNOWNREC | BP_FLAG_INVALID_CIPHER_SUITEID |
                                   BP_FLAG_INVALID_BIB_RESULT_TYPE | BP_FLAG_INVALID_BIB_TARGET_TYPE |
@@ -492,71 +489,4 @@ int bplib_os_strnlen(const char *str, int maxlen)
         }
     }
     return maxlen;
-}
-
-/*----------------------------------------------------------------------------
- * bplib_os_calloc
- *----------------------------------------------------------------------------*/
-void *bplib_os_calloc(size_t size)
-{
-    /* Allocate Memory Block */
-    size_t   block_size = size + sizeof(size_t);
-    uint8_t *mem_ptr    = (uint8_t *)calloc(block_size, 1);
-    if (mem_ptr)
-    {
-        /* Prepend Amount */
-        size_t *size_ptr = (size_t *)mem_ptr;
-        *size_ptr        = block_size;
-
-        /* Update Statistics */
-        current_memory_allocated += block_size;
-        if (current_memory_allocated > highest_memory_allocated)
-        {
-            highest_memory_allocated = current_memory_allocated;
-        }
-
-        /* Return User Block */
-        return (mem_ptr + sizeof(size_t));
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
-/*----------------------------------------------------------------------------
- * bplib_os_free
- *----------------------------------------------------------------------------*/
-void bplib_os_free(void *ptr)
-{
-    if (ptr)
-    {
-        uint8_t *mem_ptr = (uint8_t *)ptr;
-
-        /* Read Amount */
-        size_t *size_ptr   = (size_t *)((uint8_t *)mem_ptr - sizeof(size_t));
-        size_t  block_size = *size_ptr;
-
-        /* Update Statistics */
-        current_memory_allocated -= block_size;
-
-        /* Free Memory Block */
-        free(mem_ptr - sizeof(size_t));
-    }
-}
-
-/*----------------------------------------------------------------------------
- * bplib_os_memused - how many bytes of memory currently allocated
- *----------------------------------------------------------------------------*/
-size_t bplib_os_memused(void)
-{
-    return current_memory_allocated;
-}
-
-/*----------------------------------------------------------------------------
- * bplib_os_memhigh - the most total bytes in allocation at any given time
- *----------------------------------------------------------------------------*/
-size_t bplib_os_memhigh(void)
-{
-    return highest_memory_allocated;
 }
