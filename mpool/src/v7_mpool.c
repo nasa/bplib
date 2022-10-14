@@ -1000,7 +1000,7 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
             }
         }
 
-        // printf("DEBUG: %s() recycled block type %d\n", __func__, rblk->type);
+        /* printf("DEBUG: %s() recycled block type %d\n", __func__, rblk->type); */
         ++count;
 
         /* always return _this_ node to the free pile */

@@ -44,7 +44,7 @@ extern "C" {
 extern const bplib_cache_module_api_t *BPLIB_FILE_OFFLOAD_API;
 
 #ifdef __cplusplus
-} // extern "C"
+} /* extern "C" */
 #endif
 
 #endif /* BPLIB_FILE_OFFLOAD_H */

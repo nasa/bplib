@@ -322,7 +322,7 @@ static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
     }
 
 #ifdef __cplusplus
-} // extern "C"
+} /* extern "C" */
 #endif
 
 #endif /* BPLIB_API_TYPES_H */
