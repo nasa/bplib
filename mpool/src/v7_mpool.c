@@ -536,7 +536,6 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     block_count = bplib_mpool_subq_get_depth(&admin->free_blocks);
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
-
         /* no free blocks available for the requested type */
         return NULL;
     }

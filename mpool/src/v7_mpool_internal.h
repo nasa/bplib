@@ -51,7 +51,6 @@ typedef struct bplib_mpool_block_header
     uint32_t content_type_signature; /* a "signature" (sanity check) value for identifying the data */
     uint16_t user_content_length;    /* actual length of user content (does not include fixed fields) */
     uint16_t refcount;               /* number of active references to the object */
-
 } bplib_mpool_block_header_t;
 
 /*
@@ -124,7 +123,6 @@ typedef struct bplib_mpool_block_admin_content
      * is not used for these, because the push_count and pull_count would not remain accurate. */
 
     bplib_mpool_block_t active_list; /**< a list of flows/queues that need processing */
-
 } bplib_mpool_block_admin_content_t;
 
 typedef union bplib_mpool_block_buffer

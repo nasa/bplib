@@ -227,7 +227,6 @@ int bplib_generic_bundle_egress(bplib_mpool_ref_t flow_ref, void *content, size_
                 }
                 else
                 {
-
                     *size = v7_copy_full_bundle_out(cpb, content, *size);
 
                     if (export_sz != *size)

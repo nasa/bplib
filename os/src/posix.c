@@ -76,6 +76,7 @@ static inline uint64_t bplib_timespec_to_u64(const struct timespec *ts)
 
     return result;
 }
+
 /******************************************************************************
  EXPORTED UTILITY FUNCTIONS
  ******************************************************************************/

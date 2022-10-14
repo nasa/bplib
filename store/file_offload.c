@@ -52,7 +52,6 @@ typedef struct bplib_file_offload_state
 {
     char     base_dir[BPLIB_FILE_PATH_SIZE];
     bp_sid_t last_sid;
-
 } bplib_file_offload_state_t;
 
 typedef struct bplib_file_offload_record
@@ -117,10 +116,12 @@ int bplib_file_offload_configure(bplib_mpool_block_t *svc, int key, bplib_cache_
 
     return result;
 }
+
 int bplib_file_offload_query(bplib_mpool_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void **val)
 {
     return 0;
 }
+
 int bplib_file_offload_start(bplib_mpool_block_t *svc)
 {
     bplib_file_offload_state_t *state;
@@ -143,6 +144,7 @@ int bplib_file_offload_start(bplib_mpool_block_t *svc)
 
     return result;
 }
+
 int bplib_file_offload_stop(bplib_mpool_block_t *svc)
 {
     return 0;

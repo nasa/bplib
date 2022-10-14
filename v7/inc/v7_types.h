@@ -82,7 +82,6 @@ typedef enum bp_adminrectype
     bp_adminrectype_custodyAcknowledgement = 4,
 
     bp_adminrectype_MAX = 5
-
 } bp_adminrectype_t;
 
 typedef bp_integer_t bp_dtntime_t;
@@ -117,7 +116,6 @@ typedef struct bp_creation_timestamp
 
 typedef struct bp_bundle_processing_control_flags
 {
-
     /**
      * @brief Bundle deletion status reports are requested.
      */
@@ -166,7 +164,6 @@ typedef struct bp_bundle_processing_control_flags
 
 typedef struct bp_block_processing_flags
 {
-
     /**
      * @brief Block must be removed from bundle if it can't be processed.
      */
@@ -186,7 +183,6 @@ typedef struct bp_block_processing_flags
      * @brief Block must be replicated in every fragment.
      */
     bool must_replicate; /* 1   bits/1   bytes */
-
 } bp_block_processing_flags_t;
 
 typedef bp_integer_t bp_lifetime_t;
@@ -216,7 +212,6 @@ typedef struct bp_primary_block
     bp_adu_length_t                      fragmentOffset;
     bp_adu_length_t                      totalADUlength;
     bp_crcval_t                          crcval;
-
 } bp_primary_block_t;
 
 typedef struct bp_canonical_bundle_block
@@ -227,7 +222,6 @@ typedef struct bp_canonical_bundle_block
     bp_block_processing_flags_t processingControlFlags;
 
     bp_crcval_t crcval;
-
 } bp_canonical_bundle_block_t;
 
 typedef struct bp_previous_node_block
