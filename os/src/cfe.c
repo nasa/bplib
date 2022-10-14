@@ -68,8 +68,6 @@ void bplib_os_enable_log_flags(uint32_t enable_mask)
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_log -
- *
  * Returns - the error code passed in (for convenience)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...)

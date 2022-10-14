@@ -31,9 +31,7 @@
 
 #include "v7_mpool_internal.h"
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_ref_duplicate
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_ref_t bplib_mpool_ref_duplicate(bplib_mpool_ref_t refptr)
@@ -53,9 +51,7 @@ bplib_mpool_ref_t bplib_mpool_ref_duplicate(bplib_mpool_ref_t refptr)
     return refptr;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_ref_create
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_block_t *blk)
@@ -82,9 +78,7 @@ bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_block_t *blk)
     return content;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_ref_make_block
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32_t magic_number, void *init_arg)
@@ -112,9 +106,7 @@ bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32
     return (bplib_mpool_block_t *)rblk;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_ref_from_block
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk)
@@ -131,9 +123,7 @@ bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk)
     return bplib_mpool_ref_duplicate(content->u.ref.pref_target);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_ref_release
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_ref_release(bplib_mpool_ref_t refptr)

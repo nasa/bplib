@@ -34,9 +34,7 @@
 #include "v7_types.h"
 #include "v7_mpool_internal.h"
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_primary_cast
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_bblock_primary_t *bplib_mpool_bblock_primary_cast(bplib_mpool_block_t *cb)
@@ -51,9 +49,7 @@ bplib_mpool_bblock_primary_t *bplib_mpool_bblock_primary_cast(bplib_mpool_block_
     return NULL;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_canonical_cast
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_bblock_canonical_t *bplib_mpool_bblock_canonical_cast(bplib_mpool_block_t *cb)
@@ -68,9 +64,7 @@ bplib_mpool_bblock_canonical_t *bplib_mpool_bblock_canonical_cast(bplib_mpool_bl
     return NULL;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_cbor_cast
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void *bplib_mpool_bblock_cbor_cast(bplib_mpool_block_t *cb)
@@ -79,9 +73,7 @@ void *bplib_mpool_bblock_cbor_cast(bplib_mpool_block_t *cb)
     return bplib_mpool_generic_data_cast(cb, MPOOL_CACHE_CBOR_DATA_SIGNATURE);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_cbor_set_size
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_bblock_cbor_set_size(bplib_mpool_block_t *cb, size_t user_content_size)
@@ -96,9 +88,7 @@ void bplib_mpool_bblock_cbor_set_size(bplib_mpool_block_t *cb, size_t user_conte
     }
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_primary_init
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_bblock_primary_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_primary_t *pblk)
@@ -107,9 +97,7 @@ void bplib_mpool_bblock_primary_init(bplib_mpool_block_t *base_block, bplib_mpoo
     bplib_mpool_init_list_head(base_block, &pblk->chunk_list);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_canonical_init
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_bblock_canonical_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_canonical_t *cblk)
@@ -117,9 +105,7 @@ void bplib_mpool_bblock_canonical_init(bplib_mpool_block_t *base_block, bplib_mp
     bplib_mpool_init_list_head(base_block, &cblk->chunk_list);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_primary_alloc
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg,
@@ -147,9 +133,7 @@ bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool, uint3
     return (bplib_mpool_block_t *)result;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_canonical_alloc
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
@@ -165,9 +149,7 @@ bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool, uin
     return (bplib_mpool_block_t *)result;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_cbor_alloc
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool)
@@ -183,9 +165,7 @@ bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool)
     return (bplib_mpool_block_t *)result;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_cbor_append
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block_t *blk)
@@ -195,9 +175,7 @@ void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block
     bplib_mpool_insert_before(head, blk);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_primary_drop_encode
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb)
@@ -214,9 +192,7 @@ void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb)
     cpb->bundle_encode_size_cache = 0;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_canonical_drop_encode
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *ccb)
@@ -238,9 +214,7 @@ void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *cc
     }
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_cbor_export
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
@@ -305,9 +279,7 @@ size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, 
     return max_out_size - remain_sz;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_bblock_primary_append
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_mpool_block_t *blk)
@@ -342,6 +314,9 @@ void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_
     ccb->bundle_ref               = cpb;
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_bblock_primary_locate_canonical(bplib_mpool_bblock_primary_t *cpb,
                                                                  bp_blocktype_t                block_type)
 {

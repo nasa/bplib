@@ -33,9 +33,7 @@
 #include "bplib_os.h"
 #include "v7_mpool_internal.h"
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_job_init
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_job_init(bplib_mpool_block_t *base_block, bplib_mpool_job_t *jblk)
@@ -43,9 +41,7 @@ void bplib_mpool_job_init(bplib_mpool_block_t *base_block, bplib_mpool_job_t *jb
     bplib_mpool_init_secondary_link(base_block, &jblk->link, bplib_mpool_blocktype_job);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_job_cast
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_job_t *bplib_mpool_job_cast(bplib_mpool_block_t *cb)
@@ -58,9 +54,7 @@ bplib_mpool_job_t *bplib_mpool_job_cast(bplib_mpool_block_t *cb)
     return NULL;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_job_cancel_internal
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_job_cancel_internal(bplib_mpool_job_t *job)
@@ -69,9 +63,7 @@ void bplib_mpool_job_cancel_internal(bplib_mpool_job_t *job)
     bplib_mpool_extract_node(&job->link);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_job_mark_active_internal
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_job_mark_active_internal(bplib_mpool_block_t *active_list, bplib_mpool_job_t *job)
@@ -85,9 +77,7 @@ void bplib_mpool_job_mark_active_internal(bplib_mpool_block_t *active_list, bpli
     }
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_job_mark_active
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_job_mark_active(bplib_mpool_job_t *job)
@@ -105,9 +95,7 @@ void bplib_mpool_job_mark_active(bplib_mpool_job_t *job)
     bplib_mpool_lock_release(lock);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_job_get_next_active
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_job_t *bplib_mpool_job_get_next_active(bplib_mpool_t *pool)
@@ -142,6 +130,9 @@ bplib_mpool_job_t *bplib_mpool_job_get_next_active(bplib_mpool_t *pool)
     return job;
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 void bplib_mpool_job_run_all(bplib_mpool_t *pool, void *arg)
 {
     bplib_mpool_job_t *job;

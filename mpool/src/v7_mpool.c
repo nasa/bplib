@@ -39,9 +39,7 @@
 
 bplib_mpool_lock_t BPLIB_MPOOL_LOCK_SET[BPLIB_MPOOL_NUM_LOCKS];
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_link_reset
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 static inline void bplib_mpool_link_reset(bplib_mpool_block_t *link, bplib_mpool_blocktype_t type,
@@ -53,6 +51,9 @@ static inline void bplib_mpool_link_reset(bplib_mpool_block_t *link, bplib_mpool
     link->prev          = link;
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 void bplib_mpool_lock_init(void)
 {
     uint32_t            i;
@@ -69,6 +70,9 @@ void bplib_mpool_lock_init(void)
     }
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 bplib_mpool_lock_t *bplib_mpool_lock_prepare(void *resource_addr)
 {
     /*
@@ -78,6 +82,9 @@ bplib_mpool_lock_t *bplib_mpool_lock_prepare(void *resource_addr)
     return &BPLIB_MPOOL_LOCK_SET[0];
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 bplib_mpool_lock_t *bplib_mpool_lock_resource(void *resource_addr)
 {
     bplib_mpool_lock_t *selected_lock;
@@ -92,6 +99,9 @@ bplib_mpool_lock_t *bplib_mpool_lock_resource(void *resource_addr)
     return selected_lock;
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime)
 {
     bool within_timeout;
@@ -114,6 +124,9 @@ bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime)
     return within_timeout;
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_block_from_external_id(bplib_mpool_t *pool, bp_handle_t handle)
 {
     bplib_mpool_block_admin_content_t *admin;
@@ -135,9 +148,7 @@ bplib_mpool_block_t *bplib_mpool_block_from_external_id(bplib_mpool_t *pool, bp_
     return &blk->header.base_link;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_get_block_from_link
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_get_block_from_link(bplib_mpool_block_t *lblk)
@@ -157,9 +168,7 @@ bplib_mpool_block_t *bplib_mpool_get_block_from_link(bplib_mpool_block_t *lblk)
     return bblk;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_get_block_content
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_content_t *bplib_mpool_get_block_content(bplib_mpool_block_t *cb)
@@ -171,9 +180,7 @@ bplib_mpool_block_content_t *bplib_mpool_get_block_content(bplib_mpool_block_t *
     return NULL;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_get_block_content_const
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 const bplib_mpool_block_content_t *bplib_mpool_get_block_content_const(const bplib_mpool_block_t *cb)
@@ -185,9 +192,7 @@ const bplib_mpool_block_content_t *bplib_mpool_get_block_content_const(const bpl
     return NULL;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_block_dereference_content
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_block_t *cb)
@@ -214,9 +219,7 @@ bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_b
     return NULL;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_get_user_data_offset_by_blocktype
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt)
@@ -238,9 +241,7 @@ size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt)
     return USER_DATA_START_OFFSET[bt];
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_get_generic_data_capacity
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 size_t bplib_mpool_get_generic_data_capacity(const bplib_mpool_block_t *cb)
@@ -256,9 +257,7 @@ size_t bplib_mpool_get_generic_data_capacity(const bplib_mpool_block_t *cb)
     return sizeof(bplib_mpool_block_buffer_t) - data_offset;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_init_secondary_link
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_init_secondary_link(bplib_mpool_block_t *base_block, bplib_mpool_block_t *secondary_link,
@@ -281,9 +280,7 @@ void bplib_mpool_init_secondary_link(bplib_mpool_block_t *base_block, bplib_mpoo
     assert(bplib_mpool_is_secondary_index_node(secondary_link));
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_init_list_head
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_init_list_head(bplib_mpool_block_t *base_block, bplib_mpool_block_t *list_head)
@@ -291,9 +288,7 @@ void bplib_mpool_init_list_head(bplib_mpool_block_t *base_block, bplib_mpool_blo
     bplib_mpool_init_secondary_link(base_block, list_head, bplib_mpool_blocktype_list_head);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_insert_after
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_insert_after(bplib_mpool_block_t *list, bplib_mpool_block_t *node)
@@ -307,9 +302,7 @@ void bplib_mpool_insert_after(bplib_mpool_block_t *list, bplib_mpool_block_t *no
     node->next->prev = node;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_insert_before
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_insert_before(bplib_mpool_block_t *list, bplib_mpool_block_t *node)
@@ -323,9 +316,7 @@ void bplib_mpool_insert_before(bplib_mpool_block_t *list, bplib_mpool_block_t *n
     node->prev->next = node;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_extract_node
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_extract_node(bplib_mpool_block_t *node)
@@ -336,9 +327,7 @@ void bplib_mpool_extract_node(bplib_mpool_block_t *node)
     node->prev       = node;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_merge_list
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_merge_list(bplib_mpool_block_t *dest, bplib_mpool_block_t *src)
@@ -354,9 +343,7 @@ void bplib_mpool_merge_list(bplib_mpool_block_t *dest, bplib_mpool_block_t *src)
     src->prev   = dlast;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_get_user_content_size
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 size_t bplib_mpool_get_user_content_size(const bplib_mpool_block_t *cb)
@@ -371,9 +358,7 @@ size_t bplib_mpool_get_user_content_size(const bplib_mpool_block_t *cb)
     return 0;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_read_refcount
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb)
@@ -388,9 +373,7 @@ size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb)
     return 0;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_get_parent_pool_from_link
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_t *bplib_mpool_get_parent_pool_from_link(bplib_mpool_block_t *cb)
@@ -416,9 +399,7 @@ bplib_mpool_t *bplib_mpool_get_parent_pool_from_link(bplib_mpool_block_t *cb)
     return (bplib_mpool_t *)block;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_generic_data_cast
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_magic)
@@ -455,9 +436,7 @@ void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_m
     return result;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_generic_data_uncast
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_generic_data_uncast(void *blk, bplib_mpool_blocktype_t parent_bt,
@@ -482,9 +461,7 @@ bplib_mpool_block_t *bplib_mpool_generic_data_uncast(void *blk, bplib_mpool_bloc
     return &block->header.base_link;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_init_base_object
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_t user_content_length,
@@ -495,9 +472,6 @@ void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_
 }
 
 /*----------------------------------------------------------------
- *
- * Function: bplib_mpool_alloc_block_internal
- *
  * NOTE: this must be invoked with the lock already held
  *-----------------------------------------------------------------*/
 bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
@@ -619,9 +593,7 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     return block;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_generic_data_alloc
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
@@ -637,9 +609,7 @@ bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_
     return (bplib_mpool_block_t *)result;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_recycle_block_internal
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_recycle_block_internal(bplib_mpool_t *pool, bplib_mpool_block_t *blk)
@@ -652,9 +622,7 @@ void bplib_mpool_recycle_block_internal(bplib_mpool_t *pool, bplib_mpool_block_t
     bplib_mpool_subq_push_single(&admin->recycle_blocks, blk);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_recycle_all_blocks_in_list
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_block_t *list)
@@ -682,9 +650,7 @@ void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_blo
     bplib_mpool_lock_release(lock);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_recycle_block
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_recycle_block(bplib_mpool_block_t *blk)
@@ -702,9 +668,7 @@ void bplib_mpool_recycle_block(bplib_mpool_block_t *blk)
     bplib_mpool_lock_release(lock);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_list_iter_goto_first
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 int bplib_mpool_list_iter_goto_first(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
@@ -719,9 +683,7 @@ int bplib_mpool_list_iter_goto_first(const bplib_mpool_block_t *list, bplib_mpoo
     return bplib_mpool_list_iter_forward(iter);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_list_iter_goto_last
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 int bplib_mpool_list_iter_goto_last(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
@@ -736,9 +698,7 @@ int bplib_mpool_list_iter_goto_last(const bplib_mpool_block_t *list, bplib_mpool
     return bplib_mpool_list_iter_reverse(iter);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_list_iter_forward
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter)
@@ -754,9 +714,7 @@ int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter)
     return BP_SUCCESS;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_list_iter_reverse
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter)
@@ -772,9 +730,7 @@ int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter)
     return BP_SUCCESS;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_foreach_item_in_list
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remove,
@@ -812,9 +768,7 @@ int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remo
     return count;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_search_list
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bplib_mpool_callback_func_t match_fn,
@@ -841,9 +795,7 @@ bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bp
     return iter.position;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_register_blocktype_internal
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_number,
@@ -889,9 +841,7 @@ int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_
     return status;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_register_blocktype
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, const bplib_mpool_blocktype_api_t *api,
@@ -906,9 +856,7 @@ int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, c
     return result;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_collect_blocks
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
@@ -1016,9 +964,7 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
     return count;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_maintain
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_maintain(bplib_mpool_t *pool)
@@ -1032,9 +978,7 @@ void bplib_mpool_maintain(bplib_mpool_t *pool)
     }
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_query_mem_current_use
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 size_t bplib_mpool_query_mem_current_use(bplib_mpool_t *pool)
@@ -1046,9 +990,7 @@ size_t bplib_mpool_query_mem_current_use(bplib_mpool_t *pool)
     return (bplib_mpool_subq_get_depth(&admin->free_blocks) * (size_t)admin->buffer_size);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_query_mem_max_use
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 size_t bplib_mpool_query_mem_max_use(bplib_mpool_t *pool)
@@ -1060,9 +1002,7 @@ size_t bplib_mpool_query_mem_max_use(bplib_mpool_t *pool)
     return (admin->max_alloc_watermark * (size_t)admin->buffer_size);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_debug_print_list_stats
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *label)
@@ -1107,9 +1047,7 @@ void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *l
     printf("DEBUG: %s(): %s depth=%lu\n", __func__, label, (unsigned long)depth);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_debug_scan
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_debug_scan(bplib_mpool_t *pool)
@@ -1160,9 +1098,7 @@ void bplib_mpool_debug_scan(bplib_mpool_t *pool)
     printf("DEBUG: %s(): invalid count=%lu\n", __func__, (unsigned long)count_invalid);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_create
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
