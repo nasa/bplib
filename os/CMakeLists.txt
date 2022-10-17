@@ -34,3 +34,8 @@ target_include_directories(bplib_os PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_base,INTERFACE_INCLUDE_DIRECTORIES>
 )
+
+if(BPLIB_ENABLE_UNIT_TESTS)
+    add_subdirectory(ut-stubs)
+    add_subdirectory(ut-coverage)
+endif(BPLIB_ENABLE_UNIT_TESTS)

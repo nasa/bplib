@@ -29,3 +29,9 @@ target_include_directories(bplib_base PRIVATE
     $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
 )
+
+# Add unit test coverage subdirectory
+if(BPLIB_ENABLE_UNIT_TESTS)
+  add_subdirectory(ut-stubs)
+  add_subdirectory(ut-coverage)
+endif(BPLIB_ENABLE_UNIT_TESTS)

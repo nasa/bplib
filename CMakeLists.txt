@@ -80,6 +80,11 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
    list(APPEND BPLIB_COMMON_COMPILE_OPTIONS -Wall -Werror -pedantic -Wno-format-truncation -Wno-stringop-truncation)
 endif()
 
+# If standalone build and not cross compile, then enable creation of the "make test" target
+if (BPLIB_ENABLE_UNIT_TESTS AND BPLIB_STANDALONE_BUILD_MODE AND NOT CMAKE_CROSSCOMPILING)
+   enable_testing()
+endif()
+
 add_subdirectory(os)
 add_subdirectory(common)
 add_subdirectory(lib)
@@ -201,3 +206,7 @@ target_include_directories(bplib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
   $<INSTALL_INTERFACE:include/bplib>
 )
+
+if (BPLIB_ENABLE_UNIT_TESTS)
+  add_subdirectory(ut-stubs)
+endif (BPLIB_ENABLE_UNIT_TESTS)

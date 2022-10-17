@@ -168,7 +168,6 @@ struct bplib_mpool
 static inline bplib_mpool_block_admin_content_t *bplib_mpool_get_admin(bplib_mpool_t *pool)
 {
     /* this just confirms that the passed-in pointer looks OK */
-    assert(pool->admin_block.header.base_link.type == bplib_mpool_blocktype_admin);
     return &pool->admin_block.u.admin;
 }
 
