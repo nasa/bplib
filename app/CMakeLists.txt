@@ -14,7 +14,7 @@ project(BPLIB_TEST_APP C)
 # Sanity check: BPLib test app assumes a POSIX system
 # and uses pthread calls.  If not POSIX, then this tool
 # will not build.
-if (NOT BPLIB_INCLUDE_POSIX)
+if (NOT BPLIB_OS_LAYER STREQUAL POSIX)
   message(FATAL_ERROR "BPLib Test applications require POSIX")
 endif()
 

@@ -31,14 +31,14 @@ target_include_directories(bplib_v7 PUBLIC
 
     # other bplib submodules used by this submodule
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_os,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_base,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# compile this submodule as c99
-target_compile_features(bplib_v7 PRIVATE c_std_99)
-
-# Use the same basic compiler flags as bplib
-target_compile_options(bplib_v7 PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
-set_target_properties(bplib_v7 PROPERTIES ${BPLIB_COMMON_PROPERTIES})
+# Add unit test coverage subdirectory
+if(BPLIB_ENABLE_UNIT_TESTS)
+  add_subdirectory(ut-stubs)
+  add_subdirectory(ut-coverage)
+endif(BPLIB_ENABLE_UNIT_TESTS)

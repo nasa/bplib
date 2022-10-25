@@ -37,11 +37,6 @@
  ******************************************************************************/
 
 #define BP_MAX_LOG_ENTRY_SIZE 256
-#define BP_RAND_HASH(seed)    ((seed)*2654435761UL) /* knuth multiplier */
-
-#ifndef BP_CFE_SECS_AT_2000
-#define BP_CFE_SECS_AT_2000 1325376023 /* TAI */
-#endif
 
 #ifndef BP_BPLIB_INFO_EID
 #define BP_BPLIB_INFO_EID 0xFF
@@ -71,11 +66,6 @@ void bplib_os_enable_log_flags(uint32_t enable_mask)
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_init -
- *-------------------------------------------------------------------------------------*/
-void bplib_os_init(void) {}
 
 /*--------------------------------------------------------------------------------------
  * bplib_os_log -
@@ -146,125 +136,3 @@ int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t 
         return BP_SUCCESS;
     }
 }
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_systime - returns seconds
- *-------------------------------------------------------------------------------------*/
-int bplib_os_systime(unsigned long *sysnow)
-{
-    assert(sysnow);
-
-    CFE_TIME_SysTime_t sys_time = CFE_TIME_GetTime();
-    if (sys_time.Seconds < BP_CFE_SECS_AT_2000)
-    {
-        *sysnow = sys_time.Seconds;
-        return BP_ERROR;
-    }
-    else
-    {
-        *sysnow = sys_time.Seconds - BP_CFE_SECS_AT_2000;
-        return BP_SUCCESS;
-    }
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_sleep
- *-------------------------------------------------------------------------------------*/
-void bplib_os_sleep(int seconds)
-{
-    OS_TaskDelay(seconds * 1000);
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_random -
- *-------------------------------------------------------------------------------------*/
-uint32_t bplib_os_random(void)
-{
-    CFE_TIME_SysTime_t sys_time = CFE_TIME_GetMET();
-    unsigned long      seed     = sys_time.Seconds + sys_time.Subseconds;
-    return (uint32_t)BP_RAND_HASH(seed);
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_createlock -
- *-------------------------------------------------------------------------------------*/
-bp_handle_t bplib_os_createlock(void)
-{
-    return bp_handle_from_serial(1, BPLIB_HANDLE_OS_BASE);
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_destroylock -
- *-------------------------------------------------------------------------------------*/
-void bplib_os_destroylock(bp_handle_t h)
-{
-    (void)h;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_lock -
- *-------------------------------------------------------------------------------------*/
-void bplib_os_lock(bp_handle_t h)
-{
-    (void)h;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_unlock -
- *-------------------------------------------------------------------------------------*/
-void bplib_os_unlock(bp_handle_t h)
-{
-    (void)h;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_signal -
- *-------------------------------------------------------------------------------------*/
-void bplib_os_signal(bp_handle_t h)
-{
-    (void)h;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_waiton -
- *-------------------------------------------------------------------------------------*/
-int bplib_os_waiton(bp_handle_t h, int timeout_ms)
-{
-    (void)h;
-    (void)timeout_ms;
-    return BP_TIMEOUT;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_format -
- *-------------------------------------------------------------------------------------*/
-int bplib_os_format(char *dst, size_t len, const char *fmt, ...)
-{
-    va_list args;
-    int     vlen;
-
-    /* Build Formatted String */
-    va_start(args, fmt);
-    vlen = vsnprintf(dst, len, fmt, args);
-    va_end(args);
-
-    /* Return Error Code */
-    return vlen;
-}
-
-/*--------------------------------------------------------------------------------------
- * bplib_os_strnlen -
- *-------------------------------------------------------------------------------------*/
-int bplib_os_strnlen(const char *str, int maxlen)
-{
-    int len;
-    for (len = 0; len < maxlen; len++)
-    {
-        if (str[len] == '\0')
-        {
-            return len;
-        }
-    }
-    return maxlen;
-}
-

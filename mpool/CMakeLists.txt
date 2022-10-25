@@ -16,16 +16,15 @@ add_library(bplib_mpool OBJECT
     src/v7_mpstream.c
 )
 
-target_include_directories(bplib_mpool PRIVATE
+target_include_directories(bplib_mpool PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/inc
+
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
 )
-target_include_directories(bplib_mpool PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc
-)
 
-# Use the same basic compiler flags as bplib
-target_compile_features(bplib_mpool PRIVATE c_std_99)
-target_compile_options(bplib_mpool PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
-set_target_properties(bplib_mpool PROPERTIES ${BPLIB_COMMON_PROPERTIES})
+if(BPLIB_ENABLE_UNIT_TESTS)
+  add_subdirectory(ut-stubs)
+  add_subdirectory(ut-coverage)
+endif(BPLIB_ENABLE_UNIT_TESTS)

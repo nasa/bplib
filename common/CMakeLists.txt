@@ -19,16 +19,11 @@ target_include_directories(bplib_common PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
 )
 
-target_include_directories(bplib_common PRIVATE
+target_include_directories(bplib_common PUBLIC
     $<TARGET_PROPERTY:bplib_base,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# Use the same basic compiler flags as bplib
-target_compile_features(bplib_common PRIVATE c_std_99)
-target_compile_options(bplib_common PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
-set_target_properties(bplib_common PROPERTIES ${BPLIB_COMMON_PROPERTIES})
-
-if(ENABLE_UNIT_TESTS)
-  #add_subdirectory(ut-stubs)
-  #add_subdirectory(ut-coverage)
-endif(ENABLE_UNIT_TESTS)
+if(BPLIB_ENABLE_UNIT_TESTS)
+  add_subdirectory(ut-stubs)
+  add_subdirectory(ut-coverage)
+endif(BPLIB_ENABLE_UNIT_TESTS)

@@ -30,7 +30,8 @@ target_include_directories(bplib_base PRIVATE
     $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# Use the same basic compiler flags as bplib
-target_compile_features(bplib_base PRIVATE c_std_99)
-target_compile_options(bplib_base PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
-set_target_properties(bplib_base PROPERTIES ${BPLIB_COMMON_PROPERTIES})
+# Add unit test coverage subdirectory
+if(BPLIB_ENABLE_UNIT_TESTS)
+  add_subdirectory(ut-stubs)
+  add_subdirectory(ut-coverage)
+endif(BPLIB_ENABLE_UNIT_TESTS)
