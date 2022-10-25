@@ -20,7 +20,43 @@
  * Includes
  */
 #include "test_bplib_common.h"
-#include "crc.h"
+#include "crc_private.h"
+
+#define UT_BPLIB_CRC6_POLY 0x3U
+
+static bp_crcval_t UT_bplib_crc_digest_CRC6_ITU(bp_crcval_t crc, const void *ptr, size_t size);
+
+/*
+ * Define a Test CRC with a length that is not a multiple of 8.
+ * In particular this catches the "leftover bits" case of value reflection.
+ *
+ * The polynomial here is from the definition of CRC-6/ITU, which reflects
+ * the bits in the output (this is important).  A "real-world" CRC was chosen
+ * here so the published check value should match and therefore confirm that the
+ * implementation was done currectly.
+ */
+bplib_crc_parameters_t UT_BPLIB_CRC6 = {.name                  = "CRC-6/ITU",
+                                        .length                = 6,
+                                        .should_reflect_output = true,
+                                        .digest                = UT_bplib_crc_digest_CRC6_ITU,
+                                        .initial_value         = 0x0,
+                                        .final_xor             = 0x0};
+
+static uint8_t UT_BPLIB_CRC6_ITU_TABLE[256];
+
+bp_crcval_t UT_bplib_crc_digest_CRC6_ITU(bp_crcval_t crc, const void *ptr, size_t size)
+{
+    const uint8_t *byte = ptr;
+
+    while (size > 0)
+    {
+        crc = UT_BPLIB_CRC6_ITU_TABLE[((crc << 2) ^ BPLIB_CRC_REFLECT_TABLE[*byte]) & 0xFF];
+        ++byte;
+        --size;
+    }
+
+    return crc;
+}
 
 void Test_bplib_crc_get_name(void)
 {
@@ -37,6 +73,9 @@ void Test_bplib_crc_get_name(void)
 
     UtAssert_NOT_NULL(cn = bplib_crc_get_name(&BPLIB_CRC_NONE));
     UtAssert_STRINGBUF_EQ(cn, UTASSERT_STRINGBUF_NULL_TERM, "No CRC", UTASSERT_STRINGBUF_NULL_TERM);
+
+    UtAssert_NOT_NULL(cn = bplib_crc_get_name(&UT_BPLIB_CRC6));
+    UtAssert_STRINGBUF_EQ(cn, UTASSERT_STRINGBUF_NULL_TERM, "CRC-6/ITU", UTASSERT_STRINGBUF_NULL_TERM);
 }
 
 void Test_bplib_crc_get_width(void)
@@ -48,6 +87,8 @@ void Test_bplib_crc_get_width(void)
     UtAssert_UINT32_EQ(bplib_crc_get_width(&BPLIB_CRC32_CASTAGNOLI), 32);
     UtAssert_UINT32_EQ(bplib_crc_get_width(&BPLIB_CRC16_X25), 16);
     UtAssert_UINT32_EQ(bplib_crc_get_width(&BPLIB_CRC_NONE), 0);
+
+    UtAssert_UINT32_EQ(bplib_crc_get_width(&UT_BPLIB_CRC6), 6);
 }
 
 void Test_bplib_crc_initial_value(void)
@@ -59,6 +100,8 @@ void Test_bplib_crc_initial_value(void)
     UtAssert_UINT32_EQ(bplib_crc_initial_value(&BPLIB_CRC32_CASTAGNOLI), 0xffffffff);
     UtAssert_UINT32_EQ(bplib_crc_initial_value(&BPLIB_CRC16_X25), 0xffff);
     UtAssert_UINT32_EQ(bplib_crc_initial_value(&BPLIB_CRC_NONE), 0);
+
+    UtAssert_UINT32_EQ(bplib_crc_initial_value(&UT_BPLIB_CRC6), 0);
 }
 
 void Test_bplib_crc_update(void)
@@ -70,6 +113,8 @@ void Test_bplib_crc_update(void)
     UtAssert_UINT32_EQ(bplib_crc_update(&BPLIB_CRC32_CASTAGNOLI, 0x12345678, "aa", 2), 0x13ef76f0);
     UtAssert_UINT32_EQ(bplib_crc_update(&BPLIB_CRC16_X25, 0x1234, "bb", 2), 0x9cae);
     UtAssert_UINT32_EQ(bplib_crc_update(&BPLIB_CRC_NONE, 0x12345678, "cc", 2), 0x12345678);
+
+    UtAssert_UINT32_EQ(bplib_crc_update(&UT_BPLIB_CRC6, 0x23, "dd", 2), 0x02);
 }
 
 void Test_bplib_crc_finalize(void)
@@ -81,6 +126,8 @@ void Test_bplib_crc_finalize(void)
     UtAssert_UINT32_EQ(bplib_crc_finalize(&BPLIB_CRC32_CASTAGNOLI, 0x12345678), 0xe195d3b7);
     UtAssert_UINT32_EQ(bplib_crc_finalize(&BPLIB_CRC16_X25, 0x1234), 0xd3b7);
     UtAssert_UINT32_EQ(bplib_crc_finalize(&BPLIB_CRC_NONE, 0x12345678), 0);
+
+    UtAssert_UINT32_EQ(bplib_crc_finalize(&UT_BPLIB_CRC6, 0x13), 0x32);
 }
 
 void Test_bplib_crc_get(void)
@@ -98,11 +145,24 @@ void Test_bplib_crc_get(void)
     UtAssert_UINT32_EQ(bplib_crc_get("123456789", 9, &BPLIB_CRC32_CASTAGNOLI), 0xe3069283);
     UtAssert_UINT32_EQ(bplib_crc_get("123456789", 9, &BPLIB_CRC16_X25), 0x906e);
     UtAssert_UINT32_EQ(bplib_crc_get("123456789", 9, &BPLIB_CRC_NONE), 0);
+
+    UtAssert_UINT32_EQ(bplib_crc_get("123456789", 9, &UT_BPLIB_CRC6), 0x06);
 }
 
 void TestBplibCommon_CRC_Setup(void)
 {
     UtAssert_VOIDCALL(bplib_crc_init());
+
+    uint8_t byte;
+
+    /* precompute the table for test CRCs */
+    byte = 0;
+    do
+    {
+        UT_BPLIB_CRC6_ITU_TABLE[byte] = bplib_precompute_crc_byte(6, byte, UT_BPLIB_CRC6_POLY);
+        ++byte;
+    }
+    while (byte != 0);
 }
 
 void TestBplibCommon_CRC_Execute(void)

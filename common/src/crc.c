@@ -23,30 +23,21 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "crc.h"
+#include "crc_private.h"
 
 /******************************************************************************
  FILE DATA
  ******************************************************************************/
 
-#define BPLIB_CRC16_X25_POLY 0x1021U
-#define BPLIB_CRC32_C_POLY   0x1EDC6F41U
-
 /*
  * Various lookup and translation tables for CRC calculation
  * These can be mixed and matched for different algorithms
  */
-static uint8_t BPLIB_CRC_DIRECT_TABLE[256];
-static uint8_t BPLIB_CRC_REFLECT_TABLE[256];
+uint8_t BPLIB_CRC_DIRECT_TABLE[256];
+uint8_t BPLIB_CRC_REFLECT_TABLE[256];
 
 static uint16_t BPLIB_CRC16_X25_TABLE[256];
 static uint32_t BPLIB_CRC32_C_TABLE[256];
-
-/*
- * Definition of generic-ish CRC data digest function.
- * Updates the CRC based on the data in the given buffer.
- */
-typedef bp_crcval_t (*bplib_crc_digest_func_t)(bp_crcval_t crc, const void *data, size_t size);
 
 /*
  * Digest function/wrapper that does nothing
@@ -64,55 +55,31 @@ static bp_crcval_t bplib_crc_digest_CRC16_X25(bp_crcval_t crc, const void *ptr, 
 static bp_crcval_t bplib_crc_digest_CRC32_CASTAGNOLI(bp_crcval_t crc, const void *ptr, size_t size);
 
 /*
- * Actual definition of CRC parameters
- */
-struct bplib_crc_parameters
-{
-    const char *name;                  /* Name of the CRC. */
-    uint8_t     length;                /* The number of bits in the CRC. */
-    bool        should_reflect_output; /* Whether to reflect the bits of the output crc. */
-
-    const uint8_t *input_table; /* A ptr to a table for input translation (reflect or direct) */
-    const void    *xor_table;   /* A ptr to a table with the precomputed XOR values. */
-
-    bplib_crc_digest_func_t digest; /* externally-callable "digest" routine to update CRC with new data */
-
-    bp_crcval_t initial_value; /* The value used to initialize a CRC (normalized). */
-    bp_crcval_t final_xor;     /* The final value to xor with the crc before returning (normalized). */
-};
-
-/*
  * Global definition of "No CRC" algorithm
  * This is a placeholder that can be used when no CRC is desired, it provides a digest
  * function that does nothing.  It will always generate a CRC of "0".
  */
-bplib_crc_parameters_t BPLIB_CRC_NONE = {
-    .name   = "No CRC",
-    .digest = bplib_crc_digest_NOOP
-};
+bplib_crc_parameters_t BPLIB_CRC_NONE = {.name = "No CRC", .digest = bplib_crc_digest_NOOP};
 
 /*
  * Global definition of CRC16 X.25 algorithm
  */
-bplib_crc_parameters_t BPLIB_CRC16_X25 = {
-    .name                  = "CRC-16 X25",
-    .length                = 16,
-    .should_reflect_output = true,
-    .digest                = bplib_crc_digest_CRC16_X25,
-    .initial_value         = 0xFFFF,
-    .final_xor             = 0xFFFF};
+bplib_crc_parameters_t BPLIB_CRC16_X25 = {.name                  = "CRC-16 X25",
+                                          .length                = 16,
+                                          .should_reflect_output = true,
+                                          .digest                = bplib_crc_digest_CRC16_X25,
+                                          .initial_value         = 0xFFFF,
+                                          .final_xor             = 0xFFFF};
 
 /*
  * Global definition of CRC32 Castagnoli algorithm
  */
-bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI = {
-    .name                  = "CRC-32 Castagnoli",
-    .length                = 32,
-    .should_reflect_output = true,
-    .digest                = bplib_crc_digest_CRC32_CASTAGNOLI,
-    .initial_value         = 0xFFFFFFFF,
-    .final_xor             = 0xFFFFFFFF
-};
+bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI = {.name                  = "CRC-32 Castagnoli",
+                                                 .length                = 32,
+                                                 .should_reflect_output = true,
+                                                 .digest                = bplib_crc_digest_CRC32_CASTAGNOLI,
+                                                 .initial_value         = 0xFFFFFFFF,
+                                                 .final_xor             = 0xFFFFFFFF};
 
 /******************************************************************************
  STATIC FUNCTIONS

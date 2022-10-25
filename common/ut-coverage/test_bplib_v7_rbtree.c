@@ -47,6 +47,17 @@ rbtest_node_t *tail_free;
 rbtest_node_t *head_used;
 rbtest_node_t *tail_used;
 
+static int rbtest_comparator(const bplib_rbt_link_t *link, void *arg)
+{
+    rbtest_node_t *node;
+    int            ref_val;
+
+    node    = (rbtest_node_t *)link;
+    ref_val = *((int *)arg);
+
+    return (ref_val - node->internal_value);
+}
+
 void TestBplibCommon_RBT_Setup(void)
 {
     int i;
@@ -108,6 +119,40 @@ void TestBplibCommon_RBT_Basics(void)
     UtAssert_BOOL_FALSE(bplib_rbt_node_is_member(&tree, &node_array[1].link));
 }
 
+/* Display the contents of the RB tree as a series of debug messages */
+static uint32 Test_RBT_DebugDisplaySubtree(uint32 node_print_depth, bplib_rbt_link_t *node)
+{
+    char           my_color;
+    uint32         my_black_height;
+    rbtest_node_t *rbtn_ptr;
+
+    my_black_height = 0;
+
+    if (bplib_rbt_node_is_red(node))
+    {
+        my_color = 'R';
+    }
+    else
+    {
+        ++my_black_height;
+        my_color = 'B';
+    }
+
+    if (node != NULL)
+    {
+        ++node_print_depth;
+        my_black_height += Test_RBT_DebugDisplaySubtree(node_print_depth, node->right);
+
+        rbtn_ptr = (rbtest_node_t *)node;
+        UtDebug("%*s%-4lu[%-3d](%c/%d)\n", (node_print_depth - 1) * 3, "", bplib_rbt_get_key_value(node),
+                rbtn_ptr->internal_value, my_color, my_black_height);
+
+        Test_RBT_DebugDisplaySubtree(node_print_depth, node->left);
+    }
+
+    return my_black_height;
+}
+
 /* Confirm the subtree confirms to the R-B tree constriants */
 static uint32 Test_RBT_CheckSubtree(bplib_rbt_link_t *node)
 {
@@ -151,16 +196,178 @@ static uint32 Test_RBT_CheckSubtree(bplib_rbt_link_t *node)
  */
 static void Test_RBT_CheckTree(bplib_rbt_root_t *tree)
 {
+    /* Display the content of the tree for debug (this will only show if "-d" is set) */
+    Test_RBT_DebugDisplaySubtree(1, tree->root);
+
     /* Check that the calculated/verified black height matches the expected */
     /* note that by definition an empty tree still has a black height of 1, but
      * the "black_height" counter was cleared to 0 via memset().  Therefore
      * the value here will always be one less than the correct value */
+    UtDebug("Start tree validation");
     UtAssert_UINT32_EQ(Test_RBT_CheckSubtree(tree->root), (1 + tree->black_height));
+    UtDebug("End tree validation");
+}
+
+void TestBplibCommon_RBT_LeafNodeInsertDelete(void)
+{
+    /*
+     * Exercise all of the R-B tree rebalancing cases for insert and delete.
+     * All operations in this test sequence are performed on leaf nodes only
+     *
+     * IMPORTANT: DO NOT REORDER THESE TEST CASES OR CHANGE THE VALUES WITHOUT UNDERSTANDING THIS TEST.
+     * The numbers and order of operations here are critical, as they reproduce specific R-B tree
+     * shapes and conditions after each step.
+     */
+
+    /* "parent is black" insert case, as an empty tree */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(16, &rbtree, &node_array[16].link), BP_SUCCESS);
+
+    /* "red parent at root" case */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(24, &rbtree, &node_array[24].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "parent is black" insert case, as a non-empty tree */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(8, &rbtree, &node_array[8].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "red parent and uncle" insert case, with uncle at grandparent->right */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(4, &rbtree, &node_array[4].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "is_outer_grandchild" insert case, with parent_is_left_side == true */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(0, &rbtree, &node_array[0].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "red parent and uncle" insert case, with uncle at grandparent->left */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(12, &rbtree, &node_array[12].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "parent is black" insert case, as a non-empty tree */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(28, &rbtree, &node_array[28].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "is_outer_grandchild" insert case, with parent_is_left_side == false */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(36, &rbtree, &node_array[36].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "red parent and uncle" insert case, with uncle at grandparent->right */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(26, &rbtree, &node_array[26].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "is_inner_grandchild" insert case, with parent_is_left_side == false, node_is_left_side == true */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(25, &rbtree, &node_array[25].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "parent is black" insert case, as a non-empty tree */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(20, &rbtree, &node_array[20].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "is_inner_grandchild" insert case, with parent_is_left_side == true, node_is_left_side == false */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(22, &rbtree, &node_array[22].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* DELETE CASES */
+
+    /* delete red leaf node */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[20].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "black_subject_with_red_sibling" delete case, node_is_left_side == false (turns parent red) */
+    /* Then will invoke a second pass as "black_subject_with_red_parent" (turns parent black) */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[36].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "black_subject_with_red_distant_nephew" delete case, node_is_left_side == true */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[0].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* delete red leaf node (sets up for next case) */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[26].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "black_subject_with_red_close_nephew" delete case, node_is_left_side == false */
+    /* Then will invoke a second pass as "black_subject_with_red_distant_nephew" */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[28].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "black_subject_with_all_black_relatives" delete case, node_is_left_side == false (moves to parent) */
+    /* Then will invoke a second pass at parent as "black_subject_with_red_parent" */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[25].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "black_subject_with_red_parent" delete case, node_is_left_side == true */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[4].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* delete red leaf node (sets up for next case) */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[12].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "black_subject_with_red_close_nephew" delete case, node_is_left_side == true */
+    /* Second pass as "black_subject_with_red_distant_nephew" */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[8].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "black_subject_with_all_black_relatives" delete case, node_is_left_side == true (moves to parent) */
+    /* Then will invoke a second pass at parent as "black_subject_is_root" */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[16].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* delete red leaf node (sets up for next case) */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[24].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* "black_subject_is_root" delete case, (last/only node) */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[22].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+}
+
+void TestBplibCommon_RBT_NonLeafDelete(void)
+{
+    uint32 i;
+
+    /* Exercise case for non-leaf delete cases */
+    /* First build up a tree again -- adding nodes in order like this will yield a tree
+     * where the left half is all black, and the right half has a mixture of red and black */
+    for (i = 0; i < 30; ++i)
+    {
+        UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(i, &rbtree, &node_array[i].link), BP_SUCCESS);
+    }
+    Test_RBT_CheckTree(&rbtree);
+
+    /* delete 28 (black) node, swaps with red leaf at 29 */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[28].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* delete 27 (red) node, swaps with black leaf at 26 */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[27].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* Delete a node that requires a more distant swap (not a child) */
+    /* delete 15 (red) node, swaps with black leaf at 14 */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[15].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* delete 14 (black) node, swaps with 13 but that is not a leaf, so 13 swaps with 12. */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[14].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    /* Now just delete the rest of the nodes */
+    for (i = 0; i < 30; ++i)
+    {
+        if (i != 14 && i != 15 && i != 27 && i != 28)
+        {
+            UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[i].link), BP_SUCCESS);
+        }
+    }
 }
 
 void TestBplibCommon_RBT_Unique(void)
 {
-    int i;
+    int              i;
+    bplib_rbt_root_t alt_root;
+
+    bplib_rbt_init_root(&alt_root);
 
     /* Case 1, insert a value and then remove it */
     UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(100, &rbtree, &node_array[0].link), BP_SUCCESS);
@@ -168,11 +375,56 @@ void TestBplibCommon_RBT_Unique(void)
 
     UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(100, &rbtree, &node_array[1].link), BP_DUPLICATE);
 
+    /* Inserting a second time should be recognized and return an error */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(100, &rbtree, &node_array[0].link), BP_ERROR);
+
     UtAssert_NULL(bplib_rbt_search_unique(99, &rbtree));
     UtAssert_ADDRESS_EQ(bplib_rbt_search_unique(100, &rbtree), &node_array[0].link);
 
     UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[0].link), BP_SUCCESS);
+
+    /* Extracting a second time should be recognized and return an error */
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[0].link), BP_ERROR);
+
     UtAssert_NULL(bplib_rbt_search_unique(100, &rbtree));
+
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(300, &rbtree, &node_array[3].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(200, &rbtree, &node_array[2].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(0, &alt_root, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(100, &alt_root, &node_array[1].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&alt_root);
+
+    /* Attempt to add an already-connected node to a different root - this is not valid */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(200, &alt_root, &node_array[2].link), BP_ERROR);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(300, &alt_root, &node_array[3].link), BP_ERROR);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(0, &rbtree, &node_array[0].link), BP_ERROR);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(100, &rbtree, &node_array[1].link), BP_ERROR);
+
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&alt_root, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&alt_root, &node_array[1].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[2].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[3].link), BP_SUCCESS);
+
+    /* Inserting in this order creates a tree with leaves on the far left/right but not in the middle */
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(200, &rbtree, &node_array[2].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(400, &rbtree, &node_array[4].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(0, &rbtree, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(300, &rbtree, &node_array[3].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(100, &rbtree, &node_array[1].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[2].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+    UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(200, &rbtree, &node_array[2].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[3].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[1].link), BP_SUCCESS);
+    Test_RBT_CheckTree(&rbtree);
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[4].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(bplib_rbt_extract_node(&rbtree, &node_array[2].link), BP_SUCCESS);
 
     /* add some nodes in incrementing order, this should utimately fill up to a tree depth of 3 */
     /* all these nodes (beyond the 1st) are resolved via the "right side outer grandchild" rebalance case */
@@ -245,17 +497,6 @@ void TestBplibCommon_RBT_Unique(void)
     }
 }
 
-static int rbtest_comparator(const bplib_rbt_link_t *link, void *arg)
-{
-    rbtest_node_t *node;
-    int            ref_val;
-
-    node    = (rbtest_node_t *)link;
-    ref_val = *((int *)arg);
-
-    return (ref_val - node->internal_value);
-}
-
 void TestBplibCommon_RBT_NonUnique(void)
 {
     bplib_rbt_iter_t it;
@@ -310,7 +551,7 @@ void TestBplibCommon_RBT_NonUnique(void)
                       BP_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
-    /* iterate only items with key 160 */
+    /* iterate only items with key 160, in forward order */
     ref_val = 160;
     count   = 0;
     UtAssert_INT32_EQ(bplib_rbt_iter_goto_min(ref_val, &rbtree, &it), BP_SUCCESS);
@@ -321,6 +562,21 @@ void TestBplibCommon_RBT_NonUnique(void)
             break;
         }
         status = bplib_rbt_iter_next(&it);
+        ++count;
+    }
+    while (status == BP_SUCCESS);
+
+    /* iterate only items with key 160, in reverse order */
+    ref_val = 160;
+    count   = 0;
+    UtAssert_INT32_EQ(bplib_rbt_iter_goto_max(ref_val, &rbtree, &it), BP_SUCCESS);
+    do
+    {
+        if (bplib_rbt_get_key_value(it.position) != ref_val)
+        {
+            break;
+        }
+        status = bplib_rbt_iter_prev(&it);
         ++count;
     }
     while (status == BP_SUCCESS);
@@ -358,12 +614,19 @@ void TestBplibCommon_RBT_Iterator(void)
     bplib_rbt_link_t *node_ptr;
     bplib_rbt_iter_t  it;
 
+    /* Call with an iterator that has no position */
+    memset(&it, 0, sizeof(it));
+    UtAssert_INT32_EQ(bplib_rbt_iter_next(&it), BP_ERROR);
+    UtAssert_INT32_EQ(bplib_rbt_iter_prev(&it), BP_ERROR);
+
     /* goal is to exercise the iterator APIs */
     /* Start by adding a bunch of nodes to a tree */
     for (i = 10; i < 90; i += 2)
     {
         UtAssert_INT32_EQ(bplib_rbt_insert_value_unique(i, &rbtree, &node_array[i].link), BP_SUCCESS);
     }
+
+    Test_RBT_CheckTree(&rbtree);
 
     /* iterate the entire tree, by supplying 0 as the minimum */
     last_val = 0;

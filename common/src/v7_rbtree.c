@@ -342,60 +342,6 @@ BP_LOCAL_SCOPE void swap_distant_nodes(bplib_rbt_root_t *tree, bplib_rbt_link_t 
     connect_right_child_maybe_null(node2, saved_right);
 }
 
-/*-------------------------------------------------------------------------------------
- * swap_node_position - Swaps the position of node1 and node2
- *
- * node1 will take the position of node2, and node2 will take the position of node1.
- *
- * Note - Swapping will (temporarily) create a condition where the expected key-ordering
- * of the nodes is not correct/consistent.  This operation is expected to be used during
- * delete ops where the node is about to be removed.
- *
- * It would be great if this could just swap the key_value_and_color field, but the problem
- * is that this link is assumed to be a member in a larger struct, and that larger struct
- * is what needs to be deleted/swapped, so that can't be done.  This actually has to change
- * the pointers around to swap the node positions.
- *
- * Example:
- *         10                                        12
- *        /  \                                      /  \
- *       7    14   swap_node_position(10,12) -->   7    14
- *            /                                         /
- *           12                                        10
- *
- *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE void swap_node_position(bplib_rbt_root_t *tree, bplib_rbt_link_t *node1, bplib_rbt_link_t *node2)
-{
-    /*
-     * If one of these nodes is the direct parent/child of the other,
-     * that represents a slightly different case for swapping
-     */
-    if (node2->parent == node1)
-    {
-        /* node1 is the direct parent of node2 */
-        swap_parent_and_child(tree, node1, node2);
-    }
-    else if (node1->parent == node2)
-    {
-        /* node2 is the direct parent of node1 */
-        swap_parent_and_child(tree, node2, node1);
-    }
-    else
-    {
-        /* general swap, this should work for any other nodes that are not parent/child of each other */
-        swap_distant_nodes(tree, node1, node2);
-    }
-
-    /*
-     * The swap performed above will have also swapped colors, because the entire nodes were switched,
-     * and the node color was part of that.
-     *
-     * This additional color swap puts the original colors back into the original locations, meaning
-     * that none of the R-B constraints will have been affected by this swap in the end.
-     */
-    swap_colors(node1, node2);
-}
-
 /*--------------------------------------------------------------------------------------
  * bplib_rbt_search - Searches a rb_tree for a node containing a given value.
  *
@@ -595,129 +541,126 @@ BP_LOCAL_SCOPE void do_insert_rebalance(bplib_rbt_root_t *tree, bplib_rbt_link_t
         }
 
         /* now that we know R-B problem currently exists, do any necessary work to rearrange nodes */
-        switch (rebalance_case)
+        if (rebalance_case == insert_case_subject_with_red_parent_at_root)
         {
-            case insert_case_subject_with_red_parent_at_root:
-                /* this scenario just requires the parent to be painted black, so rules will be satisfied. */
-                set_black(parent);
-                rebalance_case = insert_case_no_action_needed;
-                ++tree->black_height;
-                break;
-            case insert_case_subject_with_red_parent_and_uncle:
-                /* Both parent and uncle should be made black. */
-                set_black(parent);
-                set_black(uncle);
-                set_red(grandparent);
+            /* this scenario just requires the parent to be painted black, so rules will be satisfied. */
+            set_black(parent);
+            rebalance_case = insert_case_no_action_needed;
+            ++tree->black_height;
+        }
+        else if (rebalance_case == insert_case_subject_with_red_parent_and_uncle)
+        {
+            /* Both parent and uncle should be made black. */
+            set_black(parent);
+            set_black(uncle);
+            set_red(grandparent);
 
-                /* Rebalancing continues at the grandparent - because it was made red,
-                 * need to confirm it is not violating the R-R rule.  This repeats the
-                 * entire rebalancing algorithm at the grandparent level.  */
-                node           = grandparent;
-                rebalance_case = insert_case_undefined;
-                break;
-            case insert_case_subject_is_inner_grandchild:
-                if (parent_is_left_side)
-                {
-                    /*
-                     * Node is the "inner" grandchild on left, needs initial left rotation
-                     *
-                     *   Before:     16(Gb)          After:     16(Gb)
-                     *              /      \                    /     \
-                     *            8(Pr)     24(Ub)         12(N'r)    24(Ub)
-                     *          /   \        /  \         /    \      /  \
-                     *        4      12(Nr) x    x      8(P'r)  x    x    x
-                     *       / \    /  \               /   \
-                     *      x   x  x    x             4     x
-                     *                               / \
-                     *                              x   x
-                     *
-                     * This code attaches nodes from the "bottom up" in the above illustration.
-                     */
-                    connect_right_child_maybe_null(parent, node->left);
-                    connect_left_child_nonnull(node, parent);
-                    connect_left_child_nonnull(grandparent, node);
-                }
-                else
-                {
-                    /*
-                     * Node is the "inner" grandchild on right, needs initial right rotation
-                     *
-                     *   Before:     16(Gb)         After:      16(Gb)
-                     *              /     \                    /     \
-                     *            8(Ub)     24(Pr)          8(Ub)      20(N'r)
-                     *                    /    \                     /    \
-                     *                   20(Nr)  28                 18     24(P'r)
-                     *                  /  \    /  \                      /   \
-                     *                 18  22  26  30                   22     28
-                     *                                                        /  \
-                     *                                                       26  30
-                     *
-                     * This code attaches nodes from the "bottom up" in the above illustration.
-                     */
-                    connect_left_child_maybe_null(parent, node->right);
-                    connect_right_child_nonnull(node, parent);
-                    connect_right_child_nonnull(grandparent, node);
-                }
+            /* Rebalancing continues at the grandparent - because it was made red,
+             * need to confirm it is not violating the R-R rule.  This repeats the
+             * entire rebalancing algorithm at the grandparent level.  */
+            node           = grandparent;
+            rebalance_case = insert_case_undefined;
+        }
+        else if (rebalance_case == insert_case_subject_is_inner_grandchild)
+        {
+            if (parent_is_left_side)
+            {
+                /*
+                 * Node is the "inner" grandchild on left, needs initial left rotation
+                 *
+                 *   Before:     16(Gb)          After:     16(Gb)
+                 *              /      \                    /     \
+                 *            8(Pr)     24(Ub)         12(N'r)    24(Ub)
+                 *          /   \        /  \         /    \      /  \
+                 *        4      12(Nr) x    x      8(P'r)  x    x    x
+                 *       / \    /  \               /   \
+                 *      x   x  x    x             4     x
+                 *                               / \
+                 *                              x   x
+                 *
+                 * This code attaches nodes from the "bottom up" in the above illustration.
+                 */
+                connect_right_child_maybe_null(parent, node->left);
+                connect_left_child_nonnull(node, parent);
+                connect_left_child_nonnull(grandparent, node);
+            }
+            else
+            {
+                /*
+                 * Node is the "inner" grandchild on right, needs initial right rotation
+                 *
+                 *   Before:     16(Gb)         After:      16(Gb)
+                 *              /     \                    /     \
+                 *            8(Ub)     24(Pr)          8(Ub)      20(N'r)
+                 *                    /    \                     /    \
+                 *                   20(Nr)  28                 18     24(P'r)
+                 *                  /  \    /  \                      /   \
+                 *                 18  22  26  30                   22     28
+                 *                                                        /  \
+                 *                                                       26  30
+                 *
+                 * This code attaches nodes from the "bottom up" in the above illustration.
+                 */
+                connect_left_child_maybe_null(parent, node->right);
+                connect_right_child_nonnull(node, parent);
+                connect_right_child_nonnull(grandparent, node);
+            }
 
-                /* for both cases, node and parent are now switched, so it has become an outer grandchild */
-                rebalance_case = insert_case_undefined;
-                node           = parent;
-                break;
+            /* for both cases, node and parent are now switched, so it has become an outer grandchild */
+            rebalance_case = insert_case_undefined;
+            node           = parent;
+        }
+        else if (rebalance_case == insert_case_subject_is_outer_grandchild)
+        {
+            /* in both these scenarios, the parent becomes the grandparent, and
+             * links must be adjusted accordingly at that level (unless GP is the root) */
+            *(find_parent_ref(tree, grandparent)) = parent;
+            parent->parent                        = grandparent->parent;
 
-            case insert_case_subject_is_outer_grandchild:
-                /* in both these scenarios, the parent becomes the grandparent, and
-                 * links must be adjusted accordingly at that level (unless GP is the root) */
-                *(find_parent_ref(tree, grandparent)) = parent;
-                parent->parent                        = grandparent->parent;
+            if (parent_is_left_side)
+            {
+                /*
+                 * Node is the "outer" grandchild on left, needs right rotation
+                 *
+                 * Example:
+                 *
+                 *   Before:       16(Gb)            After :       12(P'b)
+                 *               /     \                         /     \
+                 *           12(Pr)     24(Ub)                8(N'r)     16(G'r)
+                 *          /    \                          /    \     /    \
+                 *         8(Nr)  14                       4      10  14     24(U'b)
+                 *       /   \                           /  \
+                 *     4      10                        2    6
+                 *    / \
+                 *   2   6
+                 */
+                connect_left_child_maybe_null(grandparent, parent->right);
+                connect_right_child_nonnull(parent, grandparent);
+            }
+            else
+            {
+                /*
+                 * Node is the "outer" grandchild on right, needs left rotation
+                 *
+                 * Example:
+                 *
+                 *   Before:     16(Gb)           After:            20(P'b)
+                 *             /     \                            /     \
+                 *          8(Ub)      20(Pr)                   16(G'r)   24(N'r)
+                 *                   /    \                    /   \     /   \
+                 *                  18     24(Nr)            8(U'b) 18  22    28
+                 *                        /   \                              /  \
+                 *                      22     28                           26  30
+                 *                            /  \
+                 *                           26  30
+                 */
+                connect_right_child_maybe_null(grandparent, parent->left);
+                connect_left_child_nonnull(parent, grandparent);
+            }
 
-                if (parent_is_left_side)
-                {
-                    /*
-                     * Node is the "outer" grandchild on left, needs right rotation
-                     *
-                     * Example:
-                     *
-                     *   Before:       16(Gb)            After :       12(P'b)
-                     *               /     \                         /     \
-                     *           12(Pr)     24(Ub)                8(N'r)     16(G'r)
-                     *          /    \                          /    \     /    \
-                     *         8(Nr)  14                       4      10  14     24(U'b)
-                     *       /   \                           /  \
-                     *     4      10                        2    6
-                     *    / \
-                     *   2   6
-                     */
-                    connect_left_child_maybe_null(grandparent, parent->right);
-                    connect_right_child_nonnull(parent, grandparent);
-                }
-                else
-                {
-                    /*
-                     * Node is the "outer" grandchild on right, needs left rotation
-                     *
-                     * Example:
-                     *
-                     *   Before:     16(Gb)           After:            20(P'b)
-                     *             /     \                            /     \
-                     *          8(Ub)      20(Pr)                   16(G'r)   24(N'r)
-                     *                   /    \                    /   \     /   \
-                     *                  18     24(Nr)            8(U'b) 18  22    28
-                     *                        /   \                              /  \
-                     *                      22     28                           26  30
-                     *                            /  \
-                     *                           26  30
-                     */
-                    connect_right_child_maybe_null(grandparent, parent->left);
-                    connect_left_child_nonnull(parent, grandparent);
-                }
-
-                /* also in both cases, the parent becomes black, and the grandparent becomes red */
-                swap_colors(parent, grandparent);
-                rebalance_case = insert_case_no_action_needed;
-                break;
-            default:
-                /* take no action if no violation exists, loop should exit after this. */
-                break;
+            /* also in both cases, the parent becomes black, and the grandparent becomes red */
+            swap_colors(parent, grandparent);
+            rebalance_case = insert_case_no_action_needed;
         }
     }
 }
@@ -766,12 +709,13 @@ void do_delete_make_leaf(bplib_rbt_root_t *tree, bplib_rbt_link_t *node)
             /*
              * Find the successor to replace this node
              * Descendant is the local min of the right sub-tree.
+             *
+             * NOTE: In this case the right is the only child, and thus must be red,
+             * and furthermore it must not have any children, as that would violate
+             * constraints.  Therefore a while() loop here is not necessary - the right
+             * child is always a leaf node when left is null.
              */
             target = node->right;
-            while (target->left != NULL)
-            {
-                target = target->left;
-            }
         }
         else
         {
@@ -799,7 +743,30 @@ void do_delete_make_leaf(bplib_rbt_root_t *tree, bplib_rbt_link_t *node)
          * Additionally, that red child node must be a leaf, because if it had any children,
          * they must be black, and that would violate the black depth constraint.
          */
-        swap_node_position(tree, node, target);
+
+        /*
+         * If one of these nodes is the direct parent/child of the other,
+         * that represents a slightly different case for swapping
+         */
+        if (target->parent == node)
+        {
+            /* node1 is the direct parent of node2 */
+            swap_parent_and_child(tree, node, target);
+        }
+        else
+        {
+            /* general swap, this should work for any other nodes that are not parent/child of each other */
+            swap_distant_nodes(tree, node, target);
+        }
+
+        /*
+         * The swap performed above will have also swapped colors, because the entire nodes were switched,
+         * and the node color was part of that.
+         *
+         * This additional color swap puts the original colors back into the original locations, meaning
+         * that none of the R-B constraints will have been affected by this swap in the end.
+         */
+        swap_colors(node, target);
     }
 }
 
@@ -909,138 +876,137 @@ BP_LOCAL_SCOPE void do_delete_rebalance(bplib_rbt_root_t *tree, bplib_rbt_link_t
             }
         }
 
-        switch (rebalance_case)
+        if (rebalance_case == delete_case_black_subject_is_root)
         {
-            case delete_case_black_subject_is_root:
-                /*
-                 * this means we have traversed all the way from a leaf starting point to the
-                 * root, via the "black_leaf_with_all_black_relatives" case.  This means
-                 * the overall black height of the tree has been reduced.
-                 */
-                --tree->black_height;
-                rebalance_case = delete_case_no_action_needed;
-                break;
-            case delete_case_black_subject_with_all_black_relatives:
-                /*
-                 * black height of this subtree has been decreased, so this local subtree is OK,
-                 * but must move up to the parent and repeat the process, to check the other paths
-                 * which are _not_ through this subtree.
-                 */
-                set_red(sibling);
-                node = parent; /* move up one level and repeat */
-                break;
-            case delete_case_black_subject_with_red_sibling:
-            case delete_case_black_subject_with_red_distant_nephew:
-                /* In both of these cases a rotation is performed where sibling becomes parent.
-                 * The only difference is in how the nodes are repainted, and also in the case of
-                 * red sibling, the process needs to repeat because there still may be a violation. */
-                *(find_parent_ref(tree, parent)) = sibling;
-                sibling->parent                  = parent->parent;
+            /*
+             * this means we have traversed all the way from a leaf starting point to the
+             * root, via the "black_leaf_with_all_black_relatives" case.  This means
+             * the overall black height of the tree has been reduced.
+             */
+            --tree->black_height;
+            rebalance_case = delete_case_no_action_needed;
+        }
+        else if (rebalance_case == delete_case_black_subject_with_all_black_relatives)
+        {
+            /*
+             * black height of this subtree has been decreased, so this local subtree is OK,
+             * but must move up to the parent and repeat the process, to check the other paths
+             * which are _not_ through this subtree.
+             */
+            set_red(sibling);
+            node = parent; /* move up one level and repeat */
+        }
+        else if (rebalance_case == delete_case_black_subject_with_red_sibling ||
+                 rebalance_case == delete_case_black_subject_with_red_distant_nephew)
+        {
+            /* In both of these cases a rotation is performed where sibling becomes parent.
+             * The only difference is in how the nodes are repainted, and also in the case of
+             * red sibling, the process needs to repeat because there still may be a violation. */
+            *(find_parent_ref(tree, parent)) = sibling;
+            sibling->parent                  = parent->parent;
 
-                if (node_is_left_side)
-                {
-                    /*
-                     * Node is the left child, needs initial left rotation
-                     *
-                     *   Before:     16(Pb)         After:          24(S'b)
-                     *              /      \                      /        \
-                     *            8(Nb)    24(Sr)             16(P'r)      28(D'b)
-                     *           /  \      /    \             /     \      /    \
-                     *          x    x   20(Cb) 28(Db)     8(N'b) 20(C'b) x      x
-                     *                   /  \   /  \       /  \     /  \
-                     *                  x    x x    x     x    x   x    x
-                     *
-                     * -OR-
-                     *
-                     *   Before:       16(P?)                  After:        24(S'?)
-                     *                /     \                               /     \
-                     *             8(Nb)      24(Sb)                    16(P'b)     28(D'b)
-                     *            /  \       /   \                     /    \       /   \
-                     *           x    x     x    28(Dr)           8(N'b)     x     x     x
-                     *                            /   \           /  \
-                     *                           x     x         x    x
-                     */
-                    connect_right_child_maybe_null(parent, close_nephew);
-                    connect_left_child_nonnull(sibling, parent);
-                }
-                else
-                {
-                    /*
-                     * Node is the right child, needs initial right rotation
-                     *
-                     *   Before:     16(Pb)            After:    8(S'b)
-                     *              /      \                   /      \
-                     *            8(Sr)    24(Nb)            4(D'b)   16(P'r)
-                     *           /  \       /  \             /  \      /    \
-                     *        4(Db) 12(Cb) x    x           x    x  12(C'b) 24(N'b)
-                     *       /  \   /  \                            /  \    /  \
-                     *      x    x x    x                          x    x  x    x
-                     *
-                     * -OR-
-                     *
-                     *    Before:      16(P?)          After:     8(S'?)
-                     *                /     \                    /     \
-                     *            8(Sb)     24(Nb)           4(D'b)      16(P'b)
-                     *           /    \      /  \            /  \       /     \
-                     *         4(Dr)   x    x    x          x    x     x      24(N'b)
-                     *        /   \                                           /  \
-                     *       x     x                                         x    x
-                     */
-                    connect_left_child_maybe_null(parent, close_nephew);
-                    connect_right_child_nonnull(sibling, parent);
-                }
-                swap_colors(parent, sibling);
-                if (rebalance_case == delete_case_black_subject_with_red_distant_nephew)
-                {
-                    set_black(distant_nephew);
-                    rebalance_case = delete_case_no_action_needed; /* once node is removed, this will be OK */
-                }
-                break;
-            case delete_case_black_subject_with_red_parent:
-                set_black(parent);
-                set_red(sibling);
+            if (node_is_left_side)
+            {
+                /*
+                 * Node is the left child, needs initial left rotation
+                 *
+                 *   Before:     16(Pb)         After:          24(S'b)
+                 *              /      \                      /        \
+                 *            8(Nb)    24(Sr)             16(P'r)      28(D'b)
+                 *           /  \      /    \             /     \      /    \
+                 *          x    x   20(Cb) 28(Db)     8(N'b) 20(C'b) x      x
+                 *                   /  \   /  \       /  \     /  \
+                 *                  x    x x    x     x    x   x    x
+                 *
+                 * -OR-
+                 *
+                 *   Before:       16(P?)                  After:        24(S'?)
+                 *                /     \                               /     \
+                 *             8(Nb)      24(Sb)                    16(P'b)     28(D'b)
+                 *            /  \       /   \                     /    \       /   \
+                 *           x    x     x    28(Dr)           8(N'b)     x     x     x
+                 *                            /   \           /  \
+                 *                           x     x         x    x
+                 */
+                connect_right_child_maybe_null(parent, close_nephew);
+                connect_left_child_nonnull(sibling, parent);
+            }
+            else
+            {
+                /*
+                 * Node is the right child, needs initial right rotation
+                 *
+                 *   Before:     16(Pb)            After:    8(S'b)
+                 *              /      \                   /      \
+                 *            8(Sr)    24(Nb)            4(D'b)   16(P'r)
+                 *           /  \       /  \             /  \      /    \
+                 *        4(Db) 12(Cb) x    x           x    x  12(C'b) 24(N'b)
+                 *       /  \   /  \                            /  \    /  \
+                 *      x    x x    x                          x    x  x    x
+                 *
+                 * -OR-
+                 *
+                 *    Before:      16(P?)          After:     8(S'?)
+                 *                /     \                    /     \
+                 *            8(Sb)     24(Nb)           4(D'b)      16(P'b)
+                 *           /    \      /  \            /  \       /     \
+                 *         4(Dr)   x    x    x          x    x     x      24(N'b)
+                 *        /   \                                           /  \
+                 *       x     x                                         x    x
+                 */
+                connect_left_child_maybe_null(parent, close_nephew);
+                connect_right_child_nonnull(sibling, parent);
+            }
+            swap_colors(parent, sibling);
+            if (rebalance_case == delete_case_black_subject_with_red_distant_nephew)
+            {
+                set_black(distant_nephew);
                 rebalance_case = delete_case_no_action_needed; /* once node is removed, this will be OK */
-                break;
-            case delete_case_black_subject_with_red_close_nephew:
-                if (node_is_left_side)
-                {
-                    /*
-                     *   Before:    16(P?)             After:        16(P?)
-                     *             /     \                          /     \
-                     *          8(Nb)      20(Sb)                8(Nb)      18(C'b)
-                     *         /  \       /     \               /  \       /   \
-                     *        x    x   18(Cr)    24(Db)        x    x     x     20(S'r)
-                     *                 /  \      /  \                           /   \
-                     *                x    x    x    x                         x    24(D'b)
-                     *                                                              /  \
-                     *                                                             x    x
-                     */
-                    connect_left_child_maybe_null(sibling, close_nephew->right);
-                    connect_right_child_nonnull(close_nephew, sibling);
-                    connect_right_child_nonnull(parent, close_nephew);
-                }
-                else
-                {
-                    /*
-                     * Before:       16(P?)               After:       16(P?)
-                     *              /     \                           /     \
-                     *           8(Sb)      20(Nb)               12(C'b)     20(Nb)
-                     *         /    \       /   \                /    \      /  \
-                     *     4(Db)    12(Cr) x     x             8(S'r)  x    x    x
-                     *    /  \      /  \                      /   \
-                     *   x    x    x    x                  4(D'b)  x
-                     *                                    /  \
-                     *                                   x    x
-                     */
-                    connect_right_child_maybe_null(sibling, close_nephew->left);
-                    connect_left_child_nonnull(close_nephew, sibling);
-                    connect_left_child_nonnull(parent, close_nephew);
-                }
-                swap_colors(sibling, close_nephew);
-                break;
-            default:
-                /* do nothing */
-                break;
+            }
+        }
+        else if (rebalance_case == delete_case_black_subject_with_red_parent)
+        {
+            set_black(parent);
+            set_red(sibling);
+            rebalance_case = delete_case_no_action_needed; /* once node is removed, this will be OK */
+        }
+        else if (rebalance_case == delete_case_black_subject_with_red_close_nephew)
+        {
+            if (node_is_left_side)
+            {
+                /*
+                 *   Before:    16(P?)             After:        16(P?)
+                 *             /     \                          /     \
+                 *          8(Nb)      20(Sb)                8(Nb)      18(C'b)
+                 *         /  \       /     \               /  \       /   \
+                 *        x    x   18(Cr)    24(Db)        x    x     x     20(S'r)
+                 *                 /  \      /  \                           /   \
+                 *                x    x    x    x                         x    24(D'b)
+                 *                                                              /  \
+                 *                                                             x    x
+                 */
+                connect_left_child_maybe_null(sibling, close_nephew->right);
+                connect_right_child_nonnull(close_nephew, sibling);
+                connect_right_child_nonnull(parent, close_nephew);
+            }
+            else
+            {
+                /*
+                 * Before:       16(P?)               After:       16(P?)
+                 *              /     \                           /     \
+                 *           8(Sb)      20(Nb)               12(C'b)     20(Nb)
+                 *         /    \       /   \                /    \      /  \
+                 *     4(Db)    12(Cr) x     x             8(S'r)  x    x    x
+                 *    /  \      /  \                      /   \
+                 *   x    x    x    x                  4(D'b)  x
+                 *                                    /  \
+                 *                                   x    x
+                 */
+                connect_right_child_maybe_null(sibling, close_nephew->left);
+                connect_left_child_nonnull(close_nephew, sibling);
+                connect_left_child_nonnull(parent, close_nephew);
+            }
+            swap_colors(sibling, close_nephew);
         }
     }
 }
@@ -1239,6 +1205,11 @@ bool bplib_rbt_node_is_red(const bplib_rbt_link_t *node)
     return is_red(node);
 }
 
+/*--------------------------------------------------------------------------------------
+ * bplib_rbt_iter_next
+ *
+ * Move to the next node in an iterator
+ *--------------------------------------------------------------------------------------*/
 int bplib_rbt_iter_next(bplib_rbt_iter_t *iter)
 {
     const bplib_rbt_link_t *next_pos;
@@ -1283,6 +1254,11 @@ int bplib_rbt_iter_next(bplib_rbt_iter_t *iter)
     return BP_SUCCESS;
 }
 
+/*--------------------------------------------------------------------------------------
+ * bplib_rbt_iter_prev
+ *
+ * Move to the previous node in an iterator
+ *--------------------------------------------------------------------------------------*/
 int bplib_rbt_iter_prev(bplib_rbt_iter_t *iter)
 {
     const bplib_rbt_link_t *prev_pos;
@@ -1327,6 +1303,12 @@ int bplib_rbt_iter_prev(bplib_rbt_iter_t *iter)
     return BP_SUCCESS;
 }
 
+/*--------------------------------------------------------------------------------------
+ * bplib_rbt_iter_find_closest
+ *
+ * Find a node that is either exactly matching the target value, or if that does not exist,
+ * returns the nearest leaf node where that value would be attached.
+ *--------------------------------------------------------------------------------------*/
 const bplib_rbt_link_t *bplib_rbt_iter_find_closest(bp_val_t target_value, const bplib_rbt_link_t *start_pos)
 {
     const bplib_rbt_link_t *prev_pos;
@@ -1379,6 +1361,11 @@ int bplib_rbt_iter_goto_min(bp_val_t minimum_value, const bplib_rbt_root_t *tree
     }
     else
     {
+        /*
+         * If duplicates are allowed in this tree, then this may not be the only match.
+         * So if this is not a leaf node then go left and repeat the search until arriving
+         * at a node that has no left child.
+         */
         while (iter->position->left != NULL)
         {
             iter->position = bplib_rbt_iter_find_closest(minimum_value, iter->position->left);
@@ -1412,6 +1399,11 @@ int bplib_rbt_iter_goto_max(bp_val_t maximum_value, const bplib_rbt_root_t *tree
     }
     else
     {
+        /*
+         * If duplicates are allowed in this tree, then this may not be the only match.
+         * So if this is not a leaf node then go right and repeat the search until arriving
+         * at a node that has no right child.
+         */
         while (iter->position->right != NULL)
         {
             iter->position = bplib_rbt_iter_find_closest(maximum_value, iter->position->right);
