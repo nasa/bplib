@@ -36,6 +36,7 @@ add_executable(coverage-bplib_common-testrunner
 )
 
 target_include_directories(coverage-bplib_common-testrunner PRIVATE
+    ../src
     $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
 )
 

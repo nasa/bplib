@@ -24,7 +24,12 @@
 void UtTest_Setup(void)
 {
     UtTest_Add(TestBplibCommon_CRC_Execute, TestBplibCommon_CRC_Setup, NULL, "CRC");
-    UtTest_Add(TestBplibCommon_RBT_Basics, TestBplibCommon_RBT_Setup, NULL, "RB Tree Basic");
+
+    /* The RBT setup is only needed once, and serves for all RBT tests */
+    UtTest_Add(NULL, TestBplibCommon_RBT_Setup, NULL, "RB Tree Setup");
+    UtTest_Add(TestBplibCommon_RBT_Basics, NULL, NULL, "RB Tree Basic");
+    UtTest_Add(TestBplibCommon_RBT_LeafNodeInsertDelete, NULL, NULL, "RB Tree Leaf Node Insert/Delete");
+    UtTest_Add(TestBplibCommon_RBT_NonLeafDelete, NULL, NULL, "RB Tree Non Leaf Delete");
     UtTest_Add(TestBplibCommon_RBT_Unique, NULL, NULL, "RB Tree Unique Indices");
     UtTest_Add(TestBplibCommon_RBT_NonUnique, NULL, NULL, "RB Tree NonUnique Indices");
     UtTest_Add(TestBplibCommon_RBT_Iterator, NULL, NULL, "RB Tree Iterator");

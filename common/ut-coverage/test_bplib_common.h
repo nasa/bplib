@@ -27,6 +27,8 @@ void TestBplibCommon_CRC_Setup(void);
 void TestBplibCommon_CRC_Execute(void);
 
 void TestBplibCommon_RBT_Setup(void);
+void TestBplibCommon_RBT_LeafNodeInsertDelete(void);
+void TestBplibCommon_RBT_NonLeafDelete(void);
 void TestBplibCommon_RBT_Basics(void);
 void TestBplibCommon_RBT_Unique(void);
 void TestBplibCommon_RBT_NonUnique(void);

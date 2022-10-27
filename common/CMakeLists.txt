@@ -26,4 +26,5 @@ target_include_directories(bplib_common PUBLIC
 if(BPLIB_ENABLE_UNIT_TESTS)
   add_subdirectory(ut-stubs)
   add_subdirectory(ut-coverage)
+  add_subdirectory(ut-functional)
 endif(BPLIB_ENABLE_UNIT_TESTS)
