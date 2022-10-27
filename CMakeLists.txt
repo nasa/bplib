@@ -185,13 +185,13 @@ endif()
 get_target_property(IS_PIC bplib POSITION_INDEPENDENT_CODE)
 if (IS_PIC)
   set_target_properties(
-    bplib_base bplib_common bplib_mpool bplib_cache bplib_v7
+    bplib_base bplib_common bplib_mpool bplib_cache bplib_v7 bplib_os
     PROPERTIES POSITION_INDEPENDENT_CODE ${IS_PIC}
   )
 endif()
 
 # Set the standard compile options for all submodules (c99, full warnings)
-foreach(TGT bplib bplib_base bplib_common bplib_mpool bplib_cache bplib_v7)
+foreach(TGT bplib bplib_base bplib_common bplib_mpool bplib_cache bplib_v7 bplib_os)
   target_compile_features(${TGT} PRIVATE c_std_99)
   target_compile_options(${TGT} PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 endforeach()
