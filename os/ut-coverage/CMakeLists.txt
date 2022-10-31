@@ -54,7 +54,7 @@ target_link_libraries(coverage-bplib_os-testrunner PUBLIC
     ut_assert
 )
 
-add_test(coverage-bplib_os_testrunner bplib_os-testrunner)
+add_test(coverage-bplib_os-testrunner coverage-bplib_os-testrunner)
 
 # Install the executables to a staging area for test in cross environments
 if (INSTALL_TARGET_LIST)
