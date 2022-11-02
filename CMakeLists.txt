@@ -44,7 +44,7 @@ endif()
 option(BPLIB_BUILD_TEST_TOOLS "Whether or not to build the test programs as part of BPLib (standalone POSIX builds only)" ${BPLIB_DEFAULT_BUILD_TEST_TOOLS})
 option(BPLIB_INSTALL_LIBRARIES "Whether or not to install the libraries" ${BPLIB_STANDALONE_BUILD_MODE})
 option(BPLIB_USE_EXTERNAL_OSAL "Whether to use an external OSAL package, if OSAL is selected as OS layer" ${BPLIB_STANDALONE_BUILD_MODE})
-option(BPLIB_ENABLE_UNIT_TESTS "Whether to build unit tests (requires NASA OSAL and UT Assert)" ${BPLIB_DEFAULT_BUILD_UNIT_TESTS})
+option(BPLIB_ENABLE_UNIT_TESTS "Whether to build unit tests (requires NASA OSAL and UT Assert)" ${ENABLE_UNIT_TESTS})
 
 set(BPLIB_VERSION_STRING "3.0.99") # development
 
