@@ -45,7 +45,7 @@ static int bplib_file_offload_query(bplib_mpool_block_t *svc, int key, bplib_cac
 static int bplib_file_offload_start(bplib_mpool_block_t *svc);
 static int bplib_file_offload_stop(bplib_mpool_block_t *svc);
 static int bplib_file_offload_offload(bplib_mpool_block_t *svc, bp_sid_t *sid, bplib_mpool_block_t *pblk);
-static int bplib_file_offload_restore(bplib_mpool_block_t *svc, bp_sid_t sid, bplib_mpool_block_t **pblk);
+static int bplib_file_offload_restore(bplib_mpool_block_t *svc, bp_sid_t sid, bplib_mpool_block_t **pblk_out);
 static int bplib_file_offload_release(bplib_mpool_block_t *svc, bp_sid_t sid);
 
 typedef struct bplib_file_offload_state
@@ -188,13 +188,21 @@ static void bplib_file_offload_sid_to_name(bplib_file_offload_state_t *state, ch
         {
             *pd2   = 0;
             result = mkdir(name_buf, 0755);
-            *pd2   = '/';
+            if (result != 0)
+            {
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "mkdir(%s): %s\n", name_buf, strerror(errno));
+            }
+            *pd2 = '/';
         }
         if (pd1 != NULL)
         {
             *pd1   = 0;
             result = mkdir(name_buf, 0755);
-            *pd1   = '/';
+            if (result != 0)
+            {
+                bplog(NULL, BP_FLAG_DIAGNOSTIC, "mkdir(%s): %s\n", name_buf, strerror(errno));
+            }
+            *pd1 = '/';
         }
     }
 }
@@ -322,6 +330,8 @@ static int bplib_file_offload_read_payload(int fd, bplib_file_offload_record_t *
     bplib_mpool_block_t *eblk;
     size_t               chunk_sz;
     int                  read_status;
+
+    eblk = NULL;
 
     /* payload block: size and offset info written in native form, followed by encoded CBOR data */
 
