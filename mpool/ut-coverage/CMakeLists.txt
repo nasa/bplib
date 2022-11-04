@@ -55,7 +55,7 @@ target_link_libraries(coverage-bplib_mpool-testrunner PUBLIC
     ut_assert
 )
 
-add_test(coverage-bplib_mpool_testrunner bplib_mpool-testrunner)
+add_test(coverage-bplib_mpool-testrunner coverage-bplib_mpool-testrunner)
 
 # Install the executables to a staging area for test in cross environments
 if (INSTALL_TARGET_LIST)
