@@ -1,0 +1,155 @@
+name: Build And Run BPLib Functional Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+# Force bash to apply pipefail option so pipeline failures aren't masked
+defaults:
+  run:
+    shell: bash
+
+env:
+  UPSTREAM_OSAL_REPO: nasa/osal
+  UPSTREAM_OSAL_REF: main
+  UPSTREAM_TINYCBOR_REPO: intel/tinycbor
+  UPSTREAM_TINYCBOR_REF: v0.6.0
+
+jobs:
+
+  prepare-dependencies:
+    name: Prepare Dependencies
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Cache BPLib Source
+        uses: actions/cache@v3
+        id: cache-bplib
+        with:
+          path: ${{ github.workspace }}/source
+          key: bplib-source-${{ github.sha }}
+
+      - name: Cache OSAL Dependency
+        uses: actions/cache@v3
+        id: cache-osal
+        with:
+          path: ${{ github.workspace }}/osal-staging
+          key: bplib-dep-${{ env.UPSTREAM_OSAL_REPO }}@${{ env.UPSTREAM_OSAL_REF }}
+
+      - name: Cache TinyCBOR Dependency
+        uses: actions/cache@v3
+        id: cache-tinycbor
+        with:
+          path: ${{ github.workspace }}/tinycbor-staging
+          key: bplib-dep-${{ env.UPSTREAM_TINYCBOR_REPO }}@${{ env.UPSTREAM_TINYCBOR_REF }}
+
+      - name: Checkout BPLib
+        if: steps.cache-bplib.outputs.cache-hit != 'True'
+        uses: actions/checkout@v3
+        with:
+          path: source
+
+      - name: Set up OSAL
+        if: steps.cache-osal.outputs.cache-hit != 'True'
+        uses: ./source/.github/actions/setup-osal
+        with:
+          staging-dir: ${{ github.workspace }}/osal-staging
+          upstream-repo: ${{ env.UPSTREAM_OSAL_REPO }}
+          upstream-ref: ${{ env.UPSTREAM_OSAL_REF }}
+
+      - name: Set up TinyCBOR
+        if: steps.cache-tinycbor.outputs.cache-hit != 'True'
+        uses: ./source/.github/actions/setup-tinycbor
+        with:
+          staging-dir: ${{ github.workspace }}/tinycbor-staging
+          upstream-repo: ${{ env.UPSTREAM_TINYCBOR_REPO }}
+          upstream-ref: ${{ env.UPSTREAM_TINYCBOR_REF }}
+
+  build-and-test:
+    name: Build BPLib and Execute Tests
+    needs: [prepare-dependencies]
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        buildtype: [Debug, Release]
+        os-layer: [OSAL, POSIX]
+
+    env:
+      MATRIX_ID: matrix-${{ matrix.buildtype }}-${{ matrix.os-layer }}
+
+    steps:
+
+      # Note - caches were updated in "prepare-dependencies" job so all three of these should be a hit
+      - name: Retrieve Cached BPLib Source
+        uses: actions/cache@v3
+        id: restore-source
+        with:
+          path: ${{ github.workspace }}/source
+          key: bplib-source-${{ github.sha }}
+
+      - name: Retrieve Cached TinyCBOR Dependency
+        id: restore-tinycbor
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/tinycbor-staging
+          key: bplib-dep-${{ env.UPSTREAM_TINYCBOR_REPO }}@${{ env.UPSTREAM_TINYCBOR_REF }}
+
+      - name: Import TinyCBOR
+        run: sudo cp -rv -t / ${{ github.workspace }}/tinycbor-staging/*
+
+      - name: Retrieve Cached OSAL Dependency
+        if: matrix.os-layer == 'OSAL'
+        id: restore-osal
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/osal-staging
+          key: bplib-dep-${{ env.UPSTREAM_OSAL_REPO }}@${{ env.UPSTREAM_OSAL_REF }}
+
+      - name: Install Coverage Analysis Tools
+        if: env.MATRIX_ID == 'matrix-Debug-OSAL'
+        run: sudo apt-get install -y lcov xsltproc
+
+      - name: Import OSAL
+        if: matrix.os-layer == 'OSAL'
+        run: sudo cp -rv -t / ${{ github.workspace }}/osal-staging/*
+
+      - name: Refresh Dynamic Linker Cache
+        run: sudo ldconfig
+
+      - name: Set up BPLib Build
+        run: cmake
+          -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }}
+          -DBPLIB_OS_LAYER=${{ matrix.os-layer }}
+          -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake
+          -S source -B ${{ env.MATRIX_ID }}
+
+      - name: Build BPLib
+        working-directory: ${{ env.MATRIX_ID }}
+        run: make all
+
+      - name: Check for Tests
+        run: if [ -e '${{ env.MATRIX_ID }}/CTestTestfile.cmake' ]; then echo 'RUN_TESTS=True' >> $GITHUB_ENV; fi
+
+      - name: Run Tests
+        working-directory: ${{ env.MATRIX_ID }}
+        if: env.RUN_TESTS == 'True'
+        run: ctest --output-on-failure > ctest.log
+
+      - name: Check Coverage
+        if: env.MATRIX_ID == 'matrix-Debug-OSAL'
+        uses: ./source/.github/actions/check-coverage
+        with:
+          binary-dir: ${{ env.MATRIX_ID }}
+
+      - name: Assemble Results
+        run: |
+          if [ -s '${{ env.MATRIX_ID }}/ctest.log' ]; then
+            echo '<h2>CTest Execution</h2>' >> $GITHUB_STEP_SUMMARY
+            echo '<pre>' >> $GITHUB_STEP_SUMMARY
+            cat '${{ env.MATRIX_ID }}/ctest.log' >> $GITHUB_STEP_SUMMARY
+            echo '</pre>' >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -s '${{ env.MATRIX_ID }}/lcov-summary.xml' ]; then
+            cat '${{ env.MATRIX_ID }}/lcov-summary.xml' >> $GITHUB_STEP_SUMMARY
+          fi
