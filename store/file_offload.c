@@ -210,6 +210,7 @@ static void bplib_file_offload_sid_to_name(bplib_file_offload_state_t *state, ch
 static int bplib_file_offload_write_block_content(int fd, bplib_file_offload_record_t *rec, const void *ptr, size_t sz)
 {
     ssize_t res;
+    int     status;
 
     if (ptr == NULL)
     {
@@ -218,15 +219,25 @@ static int bplib_file_offload_write_block_content(int fd, bplib_file_offload_rec
 
     rec->num_bytes += sz;
     rec->crc = bplib_crc_update(&BPLIB_CRC32_CASTAGNOLI, rec->crc, ptr, sz);
-    res      = write(fd, ptr, sz);
-    assert(res == sz);
 
-    return BP_SUCCESS;
+    res = write(fd, ptr, sz);
+    if (res == sz)
+    {
+        status = BP_SUCCESS;
+    }
+    else
+    {
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "write(): %s\n", strerror(errno));
+        status = BP_ERROR;
+    }
+
+    return status;
 }
 
 static int bplib_file_offload_read_block_content(int fd, bplib_file_offload_record_t *rec, void *ptr, size_t sz)
 {
     ssize_t res;
+    int     status;
 
     if (ptr == NULL)
     {
@@ -239,11 +250,20 @@ static int bplib_file_offload_read_block_content(int fd, bplib_file_offload_reco
     }
 
     rec->num_bytes -= sz;
-    res = read(fd, ptr, sz);
-    assert(res == sz);
 
-    rec->crc = bplib_crc_update(&BPLIB_CRC32_CASTAGNOLI, rec->crc, ptr, sz);
-    return BP_SUCCESS;
+    res = read(fd, ptr, sz);
+    if (res == sz)
+    {
+        status   = BP_SUCCESS;
+        rec->crc = bplib_crc_update(&BPLIB_CRC32_CASTAGNOLI, rec->crc, ptr, sz);
+    }
+    else
+    {
+        bplog(NULL, BP_FLAG_DIAGNOSTIC, "write(): %s\n", strerror(errno));
+        status = BP_ERROR;
+    }
+
+    return status;
 }
 
 static int bplib_file_offload_write_payload(int fd, bplib_file_offload_record_t *rec,
@@ -497,8 +517,12 @@ static int bplib_file_offload_offload(bplib_mpool_block_t *svc, bp_sid_t *sid, b
         memset(&rec, 0, sizeof(rec));
         rec.check_val = BPLIB_FILE_OFFLOAD_MAGIC;
         rec.crc       = bplib_crc_initial_value(&BPLIB_CRC32_CASTAGNOLI);
-        off           = lseek(fd, sizeof(rec), SEEK_SET);
-        assert(off == sizeof(rec));
+
+        off = lseek(fd, sizeof(rec), SEEK_SET);
+        if (off != sizeof(rec))
+        {
+            bplog(NULL, BP_FLAG_DIAGNOSTIC, "lseek(): %s\n", strerror(errno));
+        }
 
         result = bplib_file_offload_write_blocks(fd, &rec, pblk);
         if (result == BP_SUCCESS)
@@ -511,9 +535,9 @@ static int bplib_file_offload_offload(bplib_mpool_block_t *svc, bp_sid_t *sid, b
             {
                 result = BP_ERROR;
             }
-
-            close(fd);
         }
+
+        close(fd);
     }
 
     return result;
@@ -539,6 +563,7 @@ static int bplib_file_offload_restore(bplib_mpool_block_t *svc, bp_sid_t sid, bp
     pool = bplib_mpool_get_parent_pool_from_link(svc);
 
     result = BP_ERROR;
+    pblk   = NULL;
 
     bplib_file_offload_sid_to_name(state, bundle_file, sizeof(bundle_file), sid, false);
 

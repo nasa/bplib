@@ -108,9 +108,13 @@ bp_handle_t storage_intf_id;
 static void app_quick_exit(int signo)
 {
     static const char message[] = "Caught CTRL+C\n";
+    ssize_t           sz;
 
     signal(signo, SIG_DFL);
-    write(STDERR_FILENO, message, sizeof(message) - 1);
+
+    /* squench warning about unused result - no recourse on failure to write to STDERR */
+    sz = write(STDERR_FILENO, message, sizeof(message) - 1);
+    (void)sz;
     app_running = 0;
 }
 
@@ -689,6 +693,7 @@ static void *app_out_entry(void *arg)
 
     desc                = arg;
     curr_bp_buffer      = NULL;
+    curr_app_buffer     = NULL;
     curr_stream_pos     = 0;
     total_message_count = 0;
     segment_remain      = 0;
