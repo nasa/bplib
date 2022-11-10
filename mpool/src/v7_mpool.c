@@ -825,6 +825,8 @@ bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bp
     int                     status;
     bplib_mpool_list_iter_t iter;
 
+    memset(&iter, 0, sizeof(iter));
+
     status = bplib_mpool_list_iter_goto_first(list, &iter);
     while (status == BP_SUCCESS)
     {
