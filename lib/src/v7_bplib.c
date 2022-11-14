@@ -47,12 +47,6 @@ struct bp_socket
     bplib_mpool_block_t fblk;
 };
 
-struct bplib_storage
-{
-    bp_ipn_addr_t           storage_ipn;
-    const bplib_routetbl_t *parent_tbl;
-};
-
 /******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/
