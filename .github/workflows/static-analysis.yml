@@ -1,0 +1,15 @@
+name: Static Analysis
+
+# Run on pull requests and by dispatch
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  static-analysis:
+    name: Run cppcheck
+    uses: nasa/cFS/.github/workflows/static-analysis.yml@main
+    with:
+      strict-dir-list:
+        -Iinc -Icache/inc -Icommon/inc -Ilib/inc -Impool/inc -Ios/inc -Iv7/inc
+        cache/src common/src lib/src mpool/src os/src v7/src store
