@@ -294,7 +294,7 @@ bp_handle_t bplib_create_cla_intf(bplib_routetbl_t *rtbl)
         bplib_route_register_forward_ingress_handler(rtbl, self_intf_id, bplib_route_ingress_baseintf_forwarder);
         bplib_route_register_event_handler(rtbl, self_intf_id, bplib_cla_event_impl);
     }
-    else if (sblk != NULL)
+    else
     {
         bplib_mpool_recycle_block(sblk);
     }

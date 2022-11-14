@@ -77,14 +77,15 @@ struct bplib_socket_info
  LOCAL FUNCTIONS
  ******************************************************************************/
 
-int bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpool_block_t *pblk, const void *content, size_t size)
+int bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpool_block_t *pblk, const void *content,
+                                        size_t size)
 {
-    bplib_mpool_block_t *cblk;
+    bplib_mpool_block_t            *cblk;
     bplib_mpool_bblock_primary_t   *pri_block;
     bp_primary_block_t             *pri;
     bplib_mpool_bblock_canonical_t *ccb_pay;
     bp_canonical_block_buffer_t    *pay;
-    int result;
+    int                             result;
 
     cblk   = NULL;
     result = BP_ERROR;
@@ -150,7 +151,7 @@ int bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpo
         }
 
         bplib_mpool_bblock_primary_append(pri_block, cblk);
-        cblk = NULL; /* do not need now that it is stored */
+        cblk   = NULL; /* do not need now that it is stored */
         result = BP_SUCCESS;
     }
     while (false);
@@ -485,10 +486,6 @@ bplib_mpool_ref_t bplib_serviceflow_remove_from_base(bplib_mpool_block_t *base_i
             bplib_mpool_recycle_block(endpoint_intf->self_ptr);
         }
     }
-    else
-    {
-        status = BP_ERROR;
-    }
 
     return endpoint_intf_ref;
 }
@@ -617,7 +614,7 @@ bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t nod
         bplib_route_register_forward_egress_handler(rtbl, self_intf_id, bplib_serviceflow_forward_egress);
         bplib_route_register_event_handler(rtbl, self_intf_id, bplib_dataservice_event_impl);
     }
-    else if (sblk != NULL)
+    else
     {
         bplib_mpool_recycle_block(sblk);
     }
@@ -832,8 +829,8 @@ int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn
 
     sock->params.remote_ipn = *destination_ipn;
 
-    bplib_route_intf_set_flags(sock->parent_rtbl, sock->socket_intf_id,  BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT |
-                               BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP);
+    bplib_route_intf_set_flags(sock->parent_rtbl, sock->socket_intf_id,
+                               BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT | BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP);
 
     return 0;
 }
@@ -876,15 +873,15 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t tim
     bplib_mpool_block_t          *rblk;
     bplib_mpool_flow_t           *flow;
     bplib_mpool_ref_t             refptr;
-    bplib_mpool_block_t *pblk;
+    bplib_mpool_block_t          *pblk;
     bplib_mpool_bblock_primary_t *pri_block;
     bplib_mpool_ref_t             sock_ref;
     bplib_socket_info_t          *sock;
     uint64_t                      ingress_time;
     uint64_t                      ingress_limit;
 
-    sock_ref     = (bplib_mpool_ref_t)desc;
-    ingress_time = bplib_os_get_dtntime_ms();
+    sock_ref      = (bplib_mpool_ref_t)desc;
+    ingress_time  = bplib_os_get_dtntime_ms();
     ingress_limit = ingress_time + timeout;
 
     sock = bplib_mpool_generic_data_cast(bplib_mpool_dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
@@ -902,7 +899,8 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t tim
     }
 
     /* If no pri block is available, this should block and wait for one (up to ingress_limit) */
-    pblk = bplib_mpool_bblock_primary_alloc(bplib_route_get_mpool(sock->parent_rtbl), 0, NULL, BPLIB_MPOOL_ALLOC_PRI_LO, ingress_limit);
+    pblk = bplib_mpool_bblock_primary_alloc(bplib_route_get_mpool(sock->parent_rtbl), 0, NULL, BPLIB_MPOOL_ALLOC_PRI_LO,
+                                            ingress_limit);
     if (pblk == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "%s(): unable to alloc pri block\n", __func__);
@@ -925,8 +923,7 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t tim
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Cannot convert payload to ref\n");
         return BP_ERROR;
     }
-    pblk = NULL;    /* only the ref should be used from here */
-
+    pblk = NULL; /* only the ref should be used from here */
 
     rblk = bplib_mpool_ref_make_block(refptr, BPLIB_BLOCKTYPE_SERVICE_BLOCK, NULL);
     if (rblk != NULL)
