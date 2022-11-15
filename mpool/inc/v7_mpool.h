@@ -474,10 +474,10 @@ bplib_mpool_block_t *bplib_mpool_generic_data_uncast(void *blk, bplib_mpool_bloc
  * For a CBOR block this is the length of the CBOR data within this block.  For a user
  * data block, this refers to the size of the actual user object stored here.
  *
- * @param ceb
+ * @param cb pointer to block
  * @return size_t
  */
-size_t bplib_mpool_get_user_content_size(const bplib_mpool_block_t *ceb);
+size_t bplib_mpool_get_user_content_size(const bplib_mpool_block_t *cb);
 
 /**
  * @brief Reads the reference count of the object

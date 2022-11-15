@@ -49,7 +49,7 @@ typedef struct bplib_mpool_stream
 void   bplib_mpool_start_stream_init(bplib_mpool_stream_t *mps, bplib_mpool_t *pool, bplib_mpool_stream_dir_t dir);
 size_t bplib_mpool_stream_write(bplib_mpool_stream_t *mps, const void *data, size_t size);
 size_t bplib_mpool_stream_read(bplib_mpool_stream_t *mps, void *data, size_t size);
-size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t position);
+size_t bplib_mpool_stream_seek(bplib_mpool_stream_t *mps, size_t target_position);
 void   bplib_mpool_stream_attach(bplib_mpool_stream_t *mps, bplib_mpool_block_t *head);
 static inline size_t bplib_mpool_stream_tell(const bplib_mpool_stream_t *mps)
 {
