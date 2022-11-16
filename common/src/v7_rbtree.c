@@ -470,12 +470,10 @@ BP_LOCAL_SCOPE void do_insert_rebalance(bplib_rbt_root_t *tree, bplib_rbt_link_t
 
     } rebalance_case;
 
-    rebalance_case      = insert_case_undefined;
-    node_is_left_side   = false;
-    parent_is_left_side = false;
-    parent              = NULL;
-    grandparent         = NULL;
-    uncle               = NULL;
+    rebalance_case = insert_case_undefined;
+    parent         = NULL;
+    grandparent    = NULL;
+    uncle          = NULL;
 
     /* On entry, the inserted node must always be a leaf node, and is the first rebalance subject */
     /* As the rebalance loop runs, this may change as the tree gets rotated around */
@@ -488,11 +486,14 @@ BP_LOCAL_SCOPE void do_insert_rebalance(bplib_rbt_root_t *tree, bplib_rbt_link_t
         /* At the start of this loop, the reference node (subject) must always be red */
         assert(is_red(node));
 
-        /* If not yet known, determine what node arrangement we have, categorize into one of the rebalance cases above
+        /*
+         * If not yet known, determine what node arrangement we have,
+         * categorize into one of the rebalance cases above.
          */
-        parent      = node->parent;
-        grandparent = NULL;
-        uncle       = NULL;
+        parent_is_left_side = false;
+        parent              = node->parent;
+        grandparent         = NULL;
+        uncle               = NULL;
         if (is_black(parent))
         {
             /* parent is black, this is simple as the addition will not violate any rules */
@@ -1316,7 +1317,6 @@ const bplib_rbt_link_t *bplib_rbt_iter_find_closest(bp_val_t target_value, const
     bp_val_t                curr_val;
 
     prev_pos = NULL;
-    curr_val = 0;
     curr_pos = start_pos;
     while (true)
     {
