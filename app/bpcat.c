@@ -645,7 +645,7 @@ static void *app_in_entry(void *arg)
                 send_ready = true;
             }
 
-            status = bplib_send(desc, &msg_buffer, &msg_buffer.content[data_fill_sz] - (uint8_t *)&msg_buffer,
+            status = bplib_send(desc, &msg_buffer, offsetof(bpcat_msg_content_t, content[data_fill_sz]),
                                 BPCAT_MAX_WAIT_MSEC);
             if (status == BP_SUCCESS)
             {
