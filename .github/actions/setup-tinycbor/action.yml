@@ -1,0 +1,28 @@
+name: Install TinyCBOR
+description: 'Builds and installs Intel TinyCBOR into the workflow filesystem'
+
+inputs:
+  upstream-ref:
+    description: 'Upstream ref to check out'
+    default: v0.6.0
+  upstream-repo:
+    description: 'Upstream repository to use'
+    default: intel/tinycbor
+  staging-dir:
+    description: 'Directory to stage output'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout TinyCBOR
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ inputs.upstream-repo }}
+        ref: ${{ inputs.upstream-ref }}
+        path: tinycbor-source
+
+    - name: Build and Install TinyCBOR
+      working-directory: tinycbor-source
+      shell: bash
+      run: make all && make DESTDIR=${{ inputs.staging-dir }} install
