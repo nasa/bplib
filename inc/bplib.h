@@ -150,7 +150,7 @@ int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn
  * successful transfer.
  *
  * Bundles stored using this entity will get a "previous node" extension
- * block reflecting this IPN address (ipn_addr) when the bundle is passed on.
+ * block reflecting this IPN address (storage_addr) when the bundle is passed on.
  *
  * @note This creates a separate storage entity from the data interfaces and as
  * such has a separate IPN node number.  This configuration is appropriate for
@@ -158,11 +158,11 @@ int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn
  * as well for testing and debug purposes.
  *
  * @param rtbl Routing table instance
- * @param ipn_addr IPN address of this entity
+ * @param storage_addr IPN address of this entity
  * @return bp_handle_t value referring to this entity
  */
-bp_handle_t bplib_create_ram_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *ipn_addr);
-bp_handle_t bplib_create_file_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *ipn_addr);
+bp_handle_t bplib_create_ram_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *storage_addr);
+bp_handle_t bplib_create_file_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *storage_addr);
 
 /**
  * @brief Creates a CLA (bundle data unit) logical entity
