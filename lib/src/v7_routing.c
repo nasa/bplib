@@ -227,6 +227,8 @@ bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, size_t cache_mem_
     bplib_routetbl_t *tbl_ptr;
     struct routeentry_align
     {
+        /* This byte only exists to check the offset of the following member */
+        /* cppcheck-suppress unusedStructMember */
         uint8_t            byte;
         bplib_routeentry_t route_tbl_offset;
     };
@@ -334,10 +336,6 @@ int bplib_route_register_handler_impl(bplib_routetbl_t *tbl, bp_handle_t intf_id
     }
 
     base_ptr = (uint8_t *)ifp;
-    if (base_ptr == NULL)
-    {
-        return -1;
-    }
 
     subq = (bplib_mpool_subq_workitem_t *)(base_ptr + func_position);
 
