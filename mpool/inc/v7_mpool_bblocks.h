@@ -231,7 +231,7 @@ void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block
  * @param cpb
  * @param ccb
  */
-void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_mpool_block_t *ccb);
+void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_mpool_block_t *blk);
 
 /**
  * @brief Find a canonical block within the bundle
