@@ -29,6 +29,8 @@
 #include "bplib_os.h"
 #include "utgenstub.h"
 
+void UT_DefaultHandler_bplib_os_get_dtntime_ms(void *, UT_EntryKey_t, const UT_StubContext_t *);
+
 /*
  * ----------------------------------------------------
  * Generated stub function for bplib_os_broadcast_signal()
@@ -128,7 +130,7 @@ uint64_t bplib_os_get_dtntime_ms(void)
 {
     UT_GenStub_SetupReturnBuffer(bplib_os_get_dtntime_ms, uint64_t);
 
-    UT_GenStub_Execute(bplib_os_get_dtntime_ms, Basic, NULL);
+    UT_GenStub_Execute(bplib_os_get_dtntime_ms, Basic, UT_DefaultHandler_bplib_os_get_dtntime_ms);
 
     return UT_GenStub_GetReturnValue(bplib_os_get_dtntime_ms, uint64_t);
 }

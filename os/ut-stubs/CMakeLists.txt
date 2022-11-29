@@ -7,7 +7,8 @@
 ##################################################################
 
 add_library(bplib_os_stubs STATIC
-    bplib_os_stubs.c
+  bplib_os_handlers.c
+  bplib_os_stubs.c
 )
 
 target_include_directories(bplib_os_stubs PUBLIC
