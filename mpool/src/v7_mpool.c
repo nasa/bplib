@@ -745,7 +745,7 @@ int bplib_mpool_list_iter_goto_last(const bplib_mpool_block_t *list, bplib_mpool
  *-----------------------------------------------------------------*/
 int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter)
 {
-    if (bplib_mpool_is_list_head(iter->pending_entry))
+    if (iter->pending_entry == NULL || bplib_mpool_is_list_head(iter->pending_entry))
     {
         iter->position = NULL;
         return BP_ERROR;
@@ -763,7 +763,7 @@ int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter)
  *-----------------------------------------------------------------*/
 int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter)
 {
-    if (bplib_mpool_is_list_head(iter->pending_entry))
+    if (iter->pending_entry == NULL || bplib_mpool_is_list_head(iter->pending_entry))
     {
         iter->position = NULL;
         return BP_ERROR;
@@ -1136,7 +1136,9 @@ void bplib_mpool_debug_scan(bplib_mpool_t *pool)
     memset(count_by_type, 0, sizeof(count_by_type));
     count_invalid = 0;
     pchunk        = &pool->admin_block;
-    for (i = 0; i < admin->num_bufs_total; ++i)
+
+    /* Note that num_bufs_total does not include the admin block (0) */
+    for (i = 0; i <= admin->num_bufs_total; ++i)
     {
         if (i == 0)
         {

@@ -360,6 +360,18 @@ void bplib_mpool_init_secondary_link(bplib_mpool_block_t *base_block, bplib_mpoo
 bplib_mpool_block_t *bplib_mpool_get_block_from_link(bplib_mpool_block_t *lblk);
 
 /**
+ * @brief Gets the offset of the block user content section
+ *
+ * Some block types have an area that may be used for general purpose data storage.
+ * The size and offset of this area depends on the block type.  This gets the offset
+ * of the start of the area for the given a block type.
+ *
+ * @param bt Block type
+ * @return size_t
+ */
+size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt);
+
+/**
  * @brief Gets the capacity (maximum size) of the generic data block
  *
  * This value is currently fixed at compile time, but the actual object definition
@@ -568,6 +580,18 @@ bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bp
                                              void *match_arg);
 
 /**
+ * @brief Garbage collection routine
+ *
+ * Processes the list of recycled blocks and performing any additional cleanup work
+ *
+ * @param pool The mpool object
+ * @param limit The maximum number of entries to process
+ *
+ * @returns The number of blocks collected
+ */
+uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit);
+
+/**
  * @brief Run basic maintenance on the memory pool
  *
  * Mainly, this performs any garbage-collection tasks on recycled memory blocks, returning the memory
@@ -624,6 +648,13 @@ size_t bplib_mpool_query_mem_current_use(bplib_mpool_t *pool);
  * @return maximum memory used
  */
 size_t bplib_mpool_query_mem_max_use(bplib_mpool_t *pool);
+
+/**
+ * @brief Initializes the global lock table
+ *
+ * Must be called once per process using bplib (not per instance).
+ */
+void bplib_mpool_lock_init(void);
 
 /* DEBUG/TEST verification routines */
 

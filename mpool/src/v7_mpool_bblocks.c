@@ -122,17 +122,19 @@ void bplib_mpool_bblock_canonical_init(bplib_mpool_block_t *base_block, bplib_mp
  * Function: bplib_mpool_bblock_primary_alloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg, uint8_t priority, uint64_t timeout)
+bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg,
+                                                      uint8_t priority, uint64_t timeout)
 {
     bplib_mpool_block_content_t *result;
     bplib_mpool_lock_t          *lock;
-    bool within_timeout;
+    bool                         within_timeout;
 
-    lock   = bplib_mpool_lock_resource(pool);
+    lock           = bplib_mpool_lock_resource(pool);
     within_timeout = true;
     while (true)
     {
-        result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary, magic_number, init_arg, priority);
+        result =
+            bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary, magic_number, init_arg, priority);
         if (result != NULL || !within_timeout)
         {
             break;
@@ -156,7 +158,8 @@ bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool, uin
     bplib_mpool_lock_t          *lock;
 
     lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical, magic_number, init_arg, BPLIB_MPOOL_ALLOC_PRI_MED);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical, magic_number, init_arg,
+                                              BPLIB_MPOOL_ALLOC_PRI_MED);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
@@ -172,9 +175,9 @@ bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool)
     bplib_mpool_block_content_t *result;
     bplib_mpool_lock_t          *lock;
 
-    lock = bplib_mpool_lock_resource(pool);
-    result =
-        bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, MPOOL_CACHE_CBOR_DATA_SIGNATURE, NULL, BPLIB_MPOOL_ALLOC_PRI_MED);
+    lock   = bplib_mpool_lock_resource(pool);
+    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, MPOOL_CACHE_CBOR_DATA_SIGNATURE,
+                                              NULL, BPLIB_MPOOL_ALLOC_PRI_MED);
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
@@ -258,7 +261,11 @@ size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, 
     blk       = list;
     while (data_left > 0)
     {
-        blk     = bplib_mpool_get_next_block(blk);
+        blk = bplib_mpool_get_next_block(blk);
+        if (blk == list)
+        {
+            break;
+        }
         src_ptr = bplib_mpool_bblock_cbor_cast(blk);
         if (src_ptr == NULL)
         {
