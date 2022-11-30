@@ -209,5 +209,10 @@ target_include_directories(bplib PUBLIC
 
 if (BPLIB_ENABLE_UNIT_TESTS)
   add_subdirectory(ut-stubs)
-  add_subdirectory(ut-functional)
+
+  # BPLib Sanity checks are only for standalone builds, sanity checks
+  # for CFE/CFS builds should be part of the BP app, as opposed to BPLib
+  if (NOT IS_CFS_ARCH_BUILD)
+    add_subdirectory(ut-functional)
+  endif (NOT IS_CFS_ARCH_BUILD)
 endif (BPLIB_ENABLE_UNIT_TESTS)
