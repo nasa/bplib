@@ -22,154 +22,125 @@
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
-
 #include "test_bplib_v7.h"
+#include "v7.h"
+#include "bplib_os.h"
+#include "unistd.h"
 
-void TestBplibV7(void)
+static void UT_V7_GetTime_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-#ifdef jphfix
-    /*
-     * Test cases for generic resource ID functions which are
-     * not sufficiently covered by other app/lib tests.
-     */
-    CFE_ResourceId_t Id;
-    CFE_ResourceId_t LastId;
-    int32            status;
-    uint32           RefBase;
-    uint32           Count;
-    uint32           TestBase;
-    uint32           TestSerial;
-    uint32           RefSerial;
-    uint32           TestIndex;
-    uint32           RefIndex;
+    uint64_t    retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
 
-    /* Call CFE_ResourceId_FindNext() using an invalid resource type */
-    UT_SetDefaultReturnValue(UT_KEY(UT_ResourceId_CheckIdSlotUsed), 1);
-    Id = CFE_ResourceId_FindNext(CFE_RESOURCEID_UNDEFINED, 5, UT_ResourceId_CheckIdSlotUsed);
-    UtAssert_True(!CFE_ResourceId_IsDefined(Id), "CFE_ResourceId_FindNext() on undefined resource type");
+void Test_v7_set_eid(void)
+{
+/*
+    Test v7_set_eid() function
+*/
+    bp_endpointid_buffer_t buff;
+    bp_ipn_addr_t bp_addr;
+    bp_addr.node_number = 11;
+    bp_addr.service_number = 12;
+    UtAssert_VOIDCALL(v7_set_eid(&buff, &bp_addr));
+    UtAssert_UINT32_EQ(buff.scheme, bp_endpointid_scheme_ipn);
+    UtAssert_UINT32_EQ(buff.ssp.ipn.node_number, 11);
+    UtAssert_UINT32_EQ(buff.ssp.ipn.service_number, 12);    
+}
 
-    /* Verify that CFE_ResourceId_FindNext() does not repeat until CFE_RESOURCEID_MAX is reached */
-    UT_SetDefaultReturnValue(UT_KEY(UT_ResourceId_CheckIdSlotUsed), 0);
-    RefBase   = CFE_RESOURCEID_MAKE_BASE(UT_RESOURCEID_BASE_OFFSET);
-    LastId    = CFE_ResourceId_FromInteger(RefBase);
-    RefIndex  = 1;
-    RefSerial = 1;
+void Test_v7_get_eid(void)
+{
+/*
+    Test v7_get_eid() function, if case
+*/
+    bp_endpointid_buffer_t buff;
+    buff.scheme                 = bp_endpointid_scheme_ipn;
+    buff.ssp.ipn.node_number    = 11;
+    buff.ssp.ipn.service_number = 12;
+    bp_ipn_addr_t bp_addr;
+    UtAssert_VOIDCALL(v7_get_eid(&bp_addr, &buff)); 
+/*
+    Test v7_get_eid() function, else case
+*/
+    buff.scheme = 0;
+    UtAssert_VOIDCALL(v7_get_eid(&bp_addr, &buff)); 
+    UtAssert_UINT32_EQ(bp_addr.node_number, 0);
+    UtAssert_UINT32_EQ(bp_addr.service_number, 0);
+}
 
-    /*
-     * In this case it is useful/relevant to call CFE_ResourceId_FindNext() thousands
-     * of times, in order to exercise and verify the wrap capability.  That is, when the
-     * serial number reaches CFE_RESOURCEID_MAX, it should wrap back around to the
-     * beginning again.
-     *
-     * Note in this loop only _failures_ are asserted, to de-clutter the log -
-     * otherwise thousands of success cases will be recorded.
-     */
-    Count = CFE_RESOURCEID_MAX - 1;
-    while (Count > 0)
-    {
-        Id = CFE_ResourceId_FindNext(LastId, UT_RESOURCEID_TEST_SLOTS, UT_ResourceId_CheckIdSlotUsed);
-        if (CFE_ResourceId_ToInteger(Id) - CFE_ResourceId_ToInteger(LastId) != 1)
-        {
-            /* Numbers should be incrementing by 1 each time, never decreasing */
-            UtAssert_Failed("ID increment error: got=%lx, previous=%lx", CFE_ResourceId_ToInteger(Id),
-                            CFE_ResourceId_ToInteger(LastId));
-            break;
-        }
+void Test_v7_compare_ipn2eid(void)
+{
+/*
+    Test v7_compare_ipn2eid()
+*/    
+    bp_endpointid_buffer_t buff;
+    buff.scheme                 = bp_endpointid_scheme_ipn;
+    buff.ssp.ipn.node_number    = 11;
+    buff.ssp.ipn.service_number = 12;
+    bp_ipn_addr_t bp_addr;
+    UtAssert_VOIDCALL(v7_get_eid(&bp_addr, &buff)); 
+/*
+    Return 0 case, ipn and eid compared the same
+*/
+    UtAssert_UINT32_EQ(v7_compare_ipn2eid(&bp_addr, &buff), 0);   
+/*
+    Return not equal 0, scheme not the same
+*/
+    buff.scheme = 0;
+    UtAssert_UINT32_NEQ(v7_compare_ipn2eid(&bp_addr, &buff), 0);
+/*
+    Return not equal 0, node_number not the same
+*/
+    buff.scheme                 = bp_endpointid_scheme_ipn;
+    buff.ssp.ipn.node_number    = 1;
+    UtAssert_UINT32_NEQ(v7_compare_ipn2eid(&bp_addr, &buff), 0);
+/*
+    Return not equal 0, service_number not the same
+*/    
+    buff.ssp.ipn.node_number    = 11;
+    buff.ssp.ipn.service_number = 2;
+    UtAssert_UINT32_NEQ(v7_compare_ipn2eid(&bp_addr, &buff), 0);
+}
 
-        TestBase = CFE_ResourceId_GetBase(Id);
-        if (TestBase != RefBase)
-        {
-            UtAssert_Failed("ID base changed: id=%lx, expected=%lx, got=%lx", CFE_ResourceId_ToInteger(Id),
-                            (unsigned long)RefBase, (unsigned long)TestBase);
-        }
-        TestSerial = CFE_ResourceId_GetSerial(Id);
-        if (TestSerial != RefSerial)
-        {
-            UtAssert_Failed("ID serial jump: id=%lx, previous=%lx, got=%lx", CFE_ResourceId_ToInteger(Id),
-                            (unsigned long)RefSerial, (unsigned long)TestSerial);
-        }
+void Test_v7_compare_ipn2ipn(void)
+{
+/*
+    Test v7_compare_ipn2ipn() function
+*/
+    bp_ipn_addr_t bp_addr1;
+    bp_addr1.node_number = 11;
+    bp_addr1.service_number =12;
+    bp_ipn_addr_t bp_addr2;
+    bp_addr2.node_number = 11;
+    bp_addr2.service_number =12;
+/*
+    Test bp_ipn1 and ipn2 are the same case
+*/
+    UtAssert_UINT32_EQ(v7_compare_ipn2ipn(&bp_addr1, &bp_addr2), 0);    
+/*
+    Test node_number not same case
+*/
+    bp_addr1.node_number = 1;
+    UtAssert_UINT32_NEQ(v7_compare_ipn2ipn(&bp_addr1, &bp_addr2), 0);    
+/*
+    Test node_number not same case
+*/
+    bp_addr1.node_number = 11;
+    bp_addr1.service_number =2;
+    UtAssert_UINT32_NEQ(v7_compare_ipn2ipn(&bp_addr1, &bp_addr2), 0);  
+}
 
-        status = CFE_ResourceId_ToIndex(Id, RefBase, UT_RESOURCEID_TEST_SLOTS, &TestIndex);
-        if (status != CFE_SUCCESS)
-        {
-            UtAssert_Failed("CFE_ResourceId_ToIndex() failed: id=%lx, rc=%lx", CFE_ResourceId_ToInteger(Id),
-                            (unsigned long)status);
-        }
-
-        if (TestIndex != RefIndex)
-        {
-            UtAssert_Failed("ID index mismatch: id=%lx, expected=%lu, got=%lu", CFE_ResourceId_ToInteger(Id),
-                            (unsigned long)RefIndex, (unsigned long)TestIndex);
-        }
-
-        LastId = Id;
-        --Count;
-
-        /* Adjust to next index value */
-        ++RefIndex;
-        if (RefIndex >= UT_RESOURCEID_TEST_SLOTS)
-        {
-            RefIndex = 0;
-        }
-        ++RefSerial;
-    }
-
-    UtAssert_True(Count == 0, "CFE_ResourceId_FindNext() allocated all resource ID space");
-
-    /* Now verify that CFE_ResourceId_FindNext() recycles the first item again */
-    Id = CFE_ResourceId_FindNext(LastId, UT_RESOURCEID_TEST_SLOTS, UT_ResourceId_CheckIdSlotUsed);
-    UtAssert_True(CFE_ResourceId_IsDefined(Id), "CFE_ResourceId_FindNext() after wrap");
-    UtAssert_True(CFE_ResourceId_ToInteger(Id) < (RefBase + UT_RESOURCEID_TEST_SLOTS),
-                  "CFE_ResourceId_FindNext() wrap ID");
-
-    /*
-     * Confirm outputs are as expected after wrapping around -
-     * indices should be sequential
-     */
-    UtAssert_UINT32_EQ(CFE_ResourceId_GetBase(Id), RefBase);
-
-    TestSerial = CFE_ResourceId_GetSerial(Id);
-    UtAssert_True(TestSerial < UT_RESOURCEID_TEST_SLOTS, "ID serial after wrap: id=%lx, previous=%lx, got=%lx",
-                  CFE_ResourceId_ToInteger(Id), (unsigned long)RefSerial, (unsigned long)TestSerial);
-
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, RefBase, UT_RESOURCEID_TEST_SLOTS, &TestIndex), CFE_SUCCESS);
-    UtAssert_True(TestIndex == RefIndex, "ID index after wrap: id=%lx, expected=%lu, got=%lu",
-                  CFE_ResourceId_ToInteger(Id), (unsigned long)RefIndex, (unsigned long)TestIndex);
-
-    /*
-     * Now check that CFE_ResourceId_FindNext() adheres to the CheckFunc.
-     * Have it search through 4 entries to find one available on the 5th slot.
-     */
-    UT_SetDefaultReturnValue(UT_KEY(UT_ResourceId_CheckIdSlotUsed), true);
-    UT_SetDeferredRetcode(UT_KEY(UT_ResourceId_CheckIdSlotUsed), 5, false);
-    RefIndex  = (RefIndex + 4) % UT_RESOURCEID_TEST_SLOTS; /* expected */
-    RefSerial = TestSerial + 4;
-
-    Id         = CFE_ResourceId_FindNext(LastId, UT_RESOURCEID_TEST_SLOTS, UT_ResourceId_CheckIdSlotUsed);
-    TestSerial = CFE_ResourceId_GetSerial(Id);
-    UtAssert_True(TestSerial == RefSerial, "ID serial after search: id=%lx, previous=%lx, got=%lx",
-                  CFE_ResourceId_ToInteger(Id), (unsigned long)RefSerial, (unsigned long)TestSerial);
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, RefBase, UT_RESOURCEID_TEST_SLOTS, &TestIndex), CFE_SUCCESS);
-    UtAssert_True(TestIndex == RefIndex, "ID index after search: id=%lx, expected=%lu, got=%lu",
-                  CFE_ResourceId_ToInteger(Id), (unsigned long)RefIndex, (unsigned long)TestIndex);
-
-    /* For valid Id check other invalid inputs */
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, RefBase, 1, NULL), CFE_ES_BAD_ARGUMENT);
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, RefBase, 0, &TestIndex), CFE_ES_ERR_RESOURCEID_NOT_VALID);
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, ~RefBase, 1, &TestIndex), CFE_ES_ERR_RESOURCEID_NOT_VALID);
-
-    /* Validate off-nominal inputs */
-    Id = CFE_ResourceId_FindNext(CFE_RESOURCEID_UNDEFINED, 0, UT_ResourceId_CheckIdSlotUsed);
-    UtAssert_True(CFE_ResourceId_Equal(Id, CFE_RESOURCEID_UNDEFINED), "CFE_ResourceId_FindNext() bad input: id=%lx",
-                  CFE_ResourceId_ToInteger(Id));
-
-    Id = CFE_ResourceId_FindNext(LastId, 0, NULL);
-    UtAssert_True(CFE_ResourceId_Equal(Id, CFE_RESOURCEID_UNDEFINED), "CFE_ResourceId_FindNext() bad input: id=%lx",
-                  CFE_ResourceId_ToInteger(Id));
-#endif
+void Test_v7_get_current_time(void)
+{    
+    UT_SetHandlerFunction(UT_KEY(bplib_os_get_dtntime_ms), UT_V7_GetTime_Handler, NULL);
+    UtAssert_UINT32_EQ(v7_get_current_time(), 0);
 }
 
 void TestBplibV7_Register(void)
 {
-    UtTest_Add(TestBplibV7, NULL, NULL, "V7");
+    UtTest_Add(Test_v7_set_eid, NULL, NULL, "BPLIB v7_set_eid");
+    UtTest_Add(Test_v7_get_eid, NULL, NULL, "BPLIB v7_get_eid");
+    UtTest_Add(Test_v7_compare_ipn2eid, NULL, NULL, "BPLIB v7_compare_ipn2eid");
+    UtTest_Add(Test_v7_compare_ipn2ipn, NULL, NULL, "BPLIB v7_compare_ipn2ipn");
+    UtTest_Add(Test_v7_get_current_time, NULL, NULL, "BPLIB v7_get_current_time");
 }

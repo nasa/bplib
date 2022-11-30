@@ -22,155 +22,176 @@
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
+#include "v7_codec.h"
+#include "v7_mpool_bblocks.h"
+#include "v7_mpool_ref.h"
+#include "v7_types.h"
+#include "crc.h"
+#include <stdlib.h>
 
 #include "test_bplib_v7.h"
 
-void TestBplibV7Codec(void)
+#define BPCAT_BUNDLE_BUFFER_SIZE    16384
+
+
+static void V7Codec_CopyFull_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-#ifdef jphfix
+    uint64_t    retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
 
-    /*
-     * Test cases for generic resource ID functions which are
-     * not sufficiently covered by other app/lib tests.
-     */
-    CFE_ResourceId_t Id;
-    CFE_ResourceId_t LastId;
-    int32            status;
-    uint32           RefBase;
-    uint32           Count;
-    uint32           TestBase;
-    uint32           TestSerial;
-    uint32           RefSerial;
-    uint32           TestIndex;
-    uint32           RefIndex;
+static void V7Codec_CRC_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    uint8_t    retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
 
-    /* Call CFE_ResourceId_FindNext() using an invalid resource type */
-    UT_SetDefaultReturnValue(UT_KEY(UT_ResourceId_CheckIdSlotUsed), 1);
-    Id = CFE_ResourceId_FindNext(CFE_RESOURCEID_UNDEFINED, 5, UT_ResourceId_CheckIdSlotUsed);
-    UtAssert_True(!CFE_ResourceId_IsDefined(Id), "CFE_ResourceId_FindNext() on undefined resource type");
 
-    /* Verify that CFE_ResourceId_FindNext() does not repeat until CFE_RESOURCEID_MAX is reached */
-    UT_SetDefaultReturnValue(UT_KEY(UT_ResourceId_CheckIdSlotUsed), 0);
-    RefBase   = CFE_RESOURCEID_MAKE_BASE(UT_RESOURCEID_BASE_OFFSET);
-    LastId    = CFE_ResourceId_FromInteger(RefBase);
-    RefIndex  = 1;
-    RefSerial = 1;
+void Test_v7_block_decode_pri(void)
+{
+    size_t         remain_sz = 10;
+    bplib_mpool_bblock_primary_t cpb;
+    uint8_t in_p[3][3] = {{1,2,3}, {1,2,3},{1,2,3}};
+    cpb.data.logical.version = 7;
+    cpb.data.logical.crctype = bp_crctype_CRC32C;
+    cpb.data.logical.destinationEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    cpb.data.logical.sourceEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    cpb.data.logical.reportEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    UtAssert_INT32_NEQ(v7_block_decode_pri(&cpb, &in_p, remain_sz), 0);
+}
 
-    /*
-     * In this case it is useful/relevant to call CFE_ResourceId_FindNext() thousands
-     * of times, in order to exercise and verify the wrap capability.  That is, when the
-     * serial number reaches CFE_RESOURCEID_MAX, it should wrap back around to the
-     * beginning again.
-     *
-     * Note in this loop only _failures_ are asserted, to de-clutter the log -
-     * otherwise thousands of success cases will be recorded.
-     */
-    Count = CFE_RESOURCEID_MAX - 1;
-    while (Count > 0)
-    {
-        Id = CFE_ResourceId_FindNext(LastId, UT_RESOURCEID_TEST_SLOTS, UT_ResourceId_CheckIdSlotUsed);
-        if (CFE_ResourceId_ToInteger(Id) - CFE_ResourceId_ToInteger(LastId) != 1)
-        {
-            /* Numbers should be incrementing by 1 each time, never decreasing */
-            UtAssert_Failed("ID increment error: got=%lx, previous=%lx", CFE_ResourceId_ToInteger(Id),
-                            CFE_ResourceId_ToInteger(LastId));
-            break;
-        }
+void Test_v7_block_decode_canonical(void)
+{
+    bplib_mpool_bblock_canonical_t ccb;
+    bp_blocktype_t payload_block_hint = bp_blocktype_payloadBlock;
+    size_t         remain_sz = 10;
+    uint8_t in_p[3][3] = {{1,2,3},{1,2,3},{1,2,3}};
+    remain_sz = sizeof(in_p);
+    UtAssert_INT32_NEQ(v7_block_decode_canonical(&ccb, &in_p, remain_sz, payload_block_hint), 0);    
+}
 
-        TestBase = CFE_ResourceId_GetBase(Id);
-        if (TestBase != RefBase)
-        {
-            UtAssert_Failed("ID base changed: id=%lx, expected=%lx, got=%lx", CFE_ResourceId_ToInteger(Id),
-                            (unsigned long)RefBase, (unsigned long)TestBase);
-        }
-        TestSerial = CFE_ResourceId_GetSerial(Id);
-        if (TestSerial != RefSerial)
-        {
-            UtAssert_Failed("ID serial jump: id=%lx, previous=%lx, got=%lx", CFE_ResourceId_ToInteger(Id),
-                            (unsigned long)RefSerial, (unsigned long)TestSerial);
-        }
+void Test_v7_block_encode_pri(void)
+{
+    bplib_mpool_bblock_primary_t cpb;
+    cpb.data.logical.version = 7;
+    cpb.data.logical.crctype = bp_crctype_CRC16;
+    cpb.data.logical.crcval = 2;
+    UT_SetHandlerFunction(UT_KEY(bplib_mpool_get_parent_pool_from_link), V7Codec_CopyFull_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(bplib_crc_get_width), V7Codec_CRC_Handler, NULL);
+    UtAssert_UINT8_NEQ(v7_block_encode_pri(&cpb), 0);   
+    cpb.data.logical.version = 7;
+    cpb.data.logical.crctype = bp_crctype_CRC32C;
+    cpb.data.logical.crcval = 2;
+    cpb.data.logical.destinationEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    cpb.data.logical.sourceEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    cpb.data.logical.reportEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    UtAssert_UINT8_EQ(v7_block_encode_pri(&cpb), 0);   
+}
 
-        status = CFE_ResourceId_ToIndex(Id, RefBase, UT_RESOURCEID_TEST_SLOTS, &TestIndex);
-        if (status != CFE_SUCCESS)
-        {
-            UtAssert_Failed("CFE_ResourceId_ToIndex() failed: id=%lx, rc=%lx", CFE_ResourceId_ToInteger(Id),
-                            (unsigned long)status);
-        }
+/* int v7_block_encode_pay(bplib_mpool_bblock_canonical_t *ccb, const void *data_ptr, size_t data_size) */
+void Test_v7_block_encode_pay(void)
+{
+    bplib_mpool_bblock_canonical_t ccb;
+    void *data_ptr = calloc(1, 1000);
+    size_t data_size = 1000;
+    UtAssert_INT32_EQ(v7_block_encode_pay(&ccb, data_ptr, data_size), 0);
+    if (data_ptr)
+        free(data_ptr);
+}
 
-        if (TestIndex != RefIndex)
-        {
-            UtAssert_Failed("ID index mismatch: id=%lx, expected=%lu, got=%lu", CFE_ResourceId_ToInteger(Id),
-                            (unsigned long)RefIndex, (unsigned long)TestIndex);
-        }
+void Test_v7_block_encode_canonical(void)
+{
+    bplib_mpool_bblock_canonical_t ccb;
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_payloadBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_bundleAuthenicationBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_payloadIntegrityBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_payloadConfidentialityBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_previousHopInsertionBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_previousNode;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_bundleAge;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_metadataExtensionBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_extensionSecurityBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_hopCount;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_custodyTrackingBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_adminRecordPayloadBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_custodyAcceptPayloadBlock;
+    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+}
 
-        LastId = Id;
-        --Count;
+void Test_v7_compute_full_bundle_size(void)
+{
+    bplib_mpool_bblock_primary_t cpb;
+    UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_canonical_cast), V7Codec_CopyFull_Handler, NULL);
+    UtAssert_INT32_NEQ(v7_compute_full_bundle_size(&cpb), 0);
+    cpb.bundle_encode_size_cache = 0;
+    bplib_mpool_block_t cpb1;
+    cpb.cblock_list.next = &cpb1;
+    UtAssert_INT32_NEQ(v7_compute_full_bundle_size(&cpb), 0);
+    cpb.bundle_encode_size_cache = 0;
+    cpb.block_encode_size_cache = 0;
+    UtAssert_INT32_EQ(v7_compute_full_bundle_size(&cpb), 0);
+}
 
-        /* Adjust to next index value */
-        ++RefIndex;
-        if (RefIndex >= UT_RESOURCEID_TEST_SLOTS)
-        {
-            RefIndex = 0;
-        }
-        ++RefSerial;
-    }
+void Test_v7_copy_full_bundle_out(void)
+{
+    bplib_mpool_bblock_primary_t cpb;
+    cpb.cblock_list.type = bplib_mpool_blocktype_canonical;
+    cpb.chunk_list.type = bplib_mpool_blocktype_canonical;
+    cpb.data.logical.destinationEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    cpb.data.logical.sourceEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    cpb.data.logical.reportEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    bplib_mpool_block_t cpb1;
+    cpb1.type = bplib_mpool_blocktype_flow;
+    cpb.cblock_list.next = &cpb1;
+    uint8_t * buffer[16384];
+    size_t buf_sz = 16384;
+    UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_cbor_export), V7Codec_CopyFull_Handler, NULL);
+    UtAssert_INT32_NEQ(v7_copy_full_bundle_out(&cpb, buffer,  buf_sz), 0); 
+    buf_sz=1;
+    UtAssert_INT32_EQ(v7_copy_full_bundle_out(&cpb, buffer,  buf_sz), 0); 
+}
 
-    UtAssert_True(Count == 0, "CFE_ResourceId_FindNext() allocated all resource ID space");
-
-    /* Now verify that CFE_ResourceId_FindNext() recycles the first item again */
-    Id = CFE_ResourceId_FindNext(LastId, UT_RESOURCEID_TEST_SLOTS, UT_ResourceId_CheckIdSlotUsed);
-    UtAssert_True(CFE_ResourceId_IsDefined(Id), "CFE_ResourceId_FindNext() after wrap");
-    UtAssert_True(CFE_ResourceId_ToInteger(Id) < (RefBase + UT_RESOURCEID_TEST_SLOTS),
-                  "CFE_ResourceId_FindNext() wrap ID");
-
-    /*
-     * Confirm outputs are as expected after wrapping around -
-     * indices should be sequential
-     */
-    UtAssert_UINT32_EQ(CFE_ResourceId_GetBase(Id), RefBase);
-
-    TestSerial = CFE_ResourceId_GetSerial(Id);
-    UtAssert_True(TestSerial < UT_RESOURCEID_TEST_SLOTS, "ID serial after wrap: id=%lx, previous=%lx, got=%lx",
-                  CFE_ResourceId_ToInteger(Id), (unsigned long)RefSerial, (unsigned long)TestSerial);
-
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, RefBase, UT_RESOURCEID_TEST_SLOTS, &TestIndex), CFE_SUCCESS);
-    UtAssert_True(TestIndex == RefIndex, "ID index after wrap: id=%lx, expected=%lu, got=%lu",
-                  CFE_ResourceId_ToInteger(Id), (unsigned long)RefIndex, (unsigned long)TestIndex);
-
-    /*
-     * Now check that CFE_ResourceId_FindNext() adheres to the CheckFunc.
-     * Have it search through 4 entries to find one available on the 5th slot.
-     */
-    UT_SetDefaultReturnValue(UT_KEY(UT_ResourceId_CheckIdSlotUsed), true);
-    UT_SetDeferredRetcode(UT_KEY(UT_ResourceId_CheckIdSlotUsed), 5, false);
-    RefIndex  = (RefIndex + 4) % UT_RESOURCEID_TEST_SLOTS; /* expected */
-    RefSerial = TestSerial + 4;
-
-    Id         = CFE_ResourceId_FindNext(LastId, UT_RESOURCEID_TEST_SLOTS, UT_ResourceId_CheckIdSlotUsed);
-    TestSerial = CFE_ResourceId_GetSerial(Id);
-    UtAssert_True(TestSerial == RefSerial, "ID serial after search: id=%lx, previous=%lx, got=%lx",
-                  CFE_ResourceId_ToInteger(Id), (unsigned long)RefSerial, (unsigned long)TestSerial);
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, RefBase, UT_RESOURCEID_TEST_SLOTS, &TestIndex), CFE_SUCCESS);
-    UtAssert_True(TestIndex == RefIndex, "ID index after search: id=%lx, expected=%lu, got=%lu",
-                  CFE_ResourceId_ToInteger(Id), (unsigned long)RefIndex, (unsigned long)TestIndex);
-
-    /* For valid Id check other invalid inputs */
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, RefBase, 1, NULL), CFE_ES_BAD_ARGUMENT);
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, RefBase, 0, &TestIndex), CFE_ES_ERR_RESOURCEID_NOT_VALID);
-    UtAssert_INT32_EQ(CFE_ResourceId_ToIndex(Id, ~RefBase, 1, &TestIndex), CFE_ES_ERR_RESOURCEID_NOT_VALID);
-
-    /* Validate off-nominal inputs */
-    Id = CFE_ResourceId_FindNext(CFE_RESOURCEID_UNDEFINED, 0, UT_ResourceId_CheckIdSlotUsed);
-    UtAssert_True(CFE_ResourceId_Equal(Id, CFE_RESOURCEID_UNDEFINED), "CFE_ResourceId_FindNext() bad input: id=%lx",
-                  CFE_ResourceId_ToInteger(Id));
-
-    Id = CFE_ResourceId_FindNext(LastId, 0, NULL);
-    UtAssert_True(CFE_ResourceId_Equal(Id, CFE_RESOURCEID_UNDEFINED), "CFE_ResourceId_FindNext() bad input: id=%lx",
-                  CFE_ResourceId_ToInteger(Id));
-#endif
+void Test_v7_copy_full_bundle_in(void)
+{
+    bplib_mpool_ref_t flow_ref;
+    size_t  remain_sz = sizeof(flow_ref);
+    memset(&flow_ref, 0x9F, sizeof(bplib_mpool_ref_t));
+    bplib_mpool_bblock_primary_t pb;
+    pb.cblock_list.parent_offset = 100;
+    pb.chunk_list.parent_offset = 100;
+    pb.data.logical.version = 7;
+    pb.data.logical.crctype = bp_crctype_CRC16;
+    pb.data.logical.destinationEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    pb.data.logical.sourceEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    pb.data.logical.reportEID = (bp_endpointid_buffer_t){.scheme = bp_endpointid_scheme_ipn};
+    UT_SetHandlerFunction(UT_KEY(bplib_mpool_get_parent_pool_from_link), V7Codec_CopyFull_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_canonical_alloc), V7Codec_CopyFull_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_canonical_cast), V7Codec_CopyFull_Handler, NULL);
+    UtAssert_INT32_EQ(v7_copy_full_bundle_in(&pb,&flow_ref, remain_sz), 0);
+    pb.block_encode_size_cache = 0;
+    UtAssert_INT32_EQ(v7_copy_full_bundle_in(&pb,&flow_ref, remain_sz), 0);
 }
 
 void TestBplibV7Codec_Register(void)
 {
-    UtTest_Add(TestBplibV7Codec, NULL, NULL, "V7 Codec");
+    UtTest_Add(Test_v7_block_decode_pri, NULL, NULL, "BPLIB v7 block_decode_pri");
+    UtTest_Add(Test_v7_block_decode_canonical, NULL, NULL, "BPLIB V7 block_decode_canonical");
+    UtTest_Add(Test_v7_block_encode_pri, NULL, NULL, "BPLIB V7 block_encode_pri");
+    UtTest_Add(Test_v7_block_encode_pay, NULL, NULL, "BPLIB V7 block_encode_pay");
+    UtTest_Add(Test_v7_block_encode_canonical, NULL, NULL, "BPLIB v7 block_encode_canonical");
+    UtTest_Add(Test_v7_compute_full_bundle_size, NULL, NULL, "BPLIB V7 compute_full_bundle_size");
+    UtTest_Add(Test_v7_copy_full_bundle_out, NULL, NULL, "BPLIB V7 copy_full_bundle_out");
+    UtTest_Add(Test_v7_copy_full_bundle_in, NULL, NULL, "BPLIB V7 copy_full_bundle_in");
 }
