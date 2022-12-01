@@ -344,6 +344,9 @@ const bplib_mpool_block_content_t *bplib_mpool_get_block_content_const(const bpl
 /* similar to bplib_mpool_get_block_content() but also dereferences any ref blocks */
 bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_block_t *cb);
 
+void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_t user_content_length,
+                                  uint32_t content_type_signature);
+
 bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
                                                               uint32_t content_type_signature, void *init_arg,
                                                               uint8_t priority);
