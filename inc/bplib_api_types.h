@@ -279,7 +279,7 @@ static inline int bp_handle_to_serial(bp_handle_t h, bp_handle_t base)
  *
  * @sa bp_handle_to_serial
  *
- * @param h the handle value
+ * @param hv   the handle value
  * @param base the object base handle (indicates the type/class of handle)
  *
  * @returns handle as a serial number

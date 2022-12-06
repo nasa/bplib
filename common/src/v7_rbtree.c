@@ -317,8 +317,8 @@ BP_LOCAL_SCOPE void swap_parent_and_child(bplib_rbt_root_t *tree, bplib_rbt_link
  * This may change the root location of the tree, if one of the nodes is the current root
  *
  * @param tree   Pointer to the entire tree
- * @param parent Pointer to the current parent which should become child
- * @param child  Pointer to the current child which should become parent
+ * @param node1  Pointer to the current parent which should become child
+ * @param node2  Pointer to the current child which should become parent
  */
 BP_LOCAL_SCOPE void swap_distant_nodes(bplib_rbt_root_t *tree, bplib_rbt_link_t *node1, bplib_rbt_link_t *node2)
 {
