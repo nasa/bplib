@@ -14,7 +14,22 @@ pkg_search_module(TINYCBOR tinycbor REQUIRED)
 message(STATUS "Found tinycbor version ${TINYCBOR_VERSION}")
 
 add_library(bplib_v7 OBJECT
-    src/v7_codec.c
+    src/v7_codec_common.c
+    src/v7_encode_api.c
+    src/v7_decode_api.c
+    src/v7_bp_basetypes.c
+    src/v7_bp_container.c
+    src/v7_bp_bitmap.c
+    src/v7_bp_crc.c
+    src/v7_bp_endpointid.c
+    src/v7_bp_primary_block.c
+    src/v7_bp_admin_record.c
+    src/v7_bp_canonical_block.c
+    src/v7_bp_bundle_age_block.c
+    src/v7_bp_hop_count_block.c
+    src/v7_bp_previous_node_block.c
+    src/v7_custody_tracking_block.c
+    src/v7_custody_acknowledgement_record.c
     src/v7.c
 )
 

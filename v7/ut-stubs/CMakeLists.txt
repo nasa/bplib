@@ -9,6 +9,8 @@
 add_library(bplib_v7_stubs STATIC
     v7_stubs.c
     v7_codec_stubs.c
+    v7_encode_stubs.c
+    v7_decode_stubs.c
 )
 
 target_include_directories(bplib_v7_stubs PUBLIC

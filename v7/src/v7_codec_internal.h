@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef V7_CODEC_H
-#define V7_CODEC_H
+#ifndef V7_CODEC_INTERNAL_H
+#define V7_CODEC_INTERNAL_H
 
 /******************************************************************************
  INCLUDES
@@ -30,9 +30,28 @@
 #include "v7_types.h"
 #include "v7_decode.h"
 #include "v7_encode.h"
+#include "v7_codec.h"
+#include "v7_mpool_bblocks.h"
+#include "v7_mpstream.h"
+#include "crc.h"
 
-size_t v7_compute_full_bundle_size(bplib_mpool_bblock_primary_t *cpb);
-size_t v7_copy_full_bundle_out(bplib_mpool_bblock_primary_t *cpb, void *buffer, size_t buf_sz);
-size_t v7_copy_full_bundle_in(bplib_mpool_bblock_primary_t *cpb, const void *buffer, size_t buf_sz);
+typedef struct
+{
+    const bp_canonical_bundle_block_t *encode_block;
+    bp_canonical_bundle_block_t       *decode_block;
+    const void                        *content_vptr;
+    size_t                            *content_offset_out;
+    size_t                             content_size;
 
-#endif /* V7_CODEC_H */
+} v7_canonical_block_info_t;
+
+typedef struct v7_bitmap_table
+{
+    size_t       offset;
+    bp_integer_t mask;
+} v7_bitmap_table_t;
+
+bplib_crc_parameters_t *v7_codec_get_crc_algorithm(bp_crctype_t crctype);
+size_t                  v7_sum_preencoded_size(bplib_mpool_block_t *list);
+
+#endif /* V7_CODEC_INTERNAL_H */

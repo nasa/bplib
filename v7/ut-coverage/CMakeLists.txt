@@ -9,7 +9,22 @@
 
 add_library(utobj_bplib_v7 OBJECT
     ../src/v7.c
-    ../src/v7_codec.c
+    ../src/v7_codec_common.c
+    ../src/v7_encode_api.c
+    ../src/v7_decode_api.c
+    ../src/v7_bp_basetypes.c
+    ../src/v7_bp_container.c
+    ../src/v7_bp_bitmap.c
+    ../src/v7_bp_crc.c
+    ../src/v7_bp_endpointid.c
+    ../src/v7_bp_primary_block.c
+    ../src/v7_bp_admin_record.c
+    ../src/v7_bp_canonical_block.c
+    ../src/v7_bp_bundle_age_block.c
+    ../src/v7_bp_hop_count_block.c
+    ../src/v7_bp_previous_node_block.c
+    ../src/v7_custody_tracking_block.c
+    ../src/v7_custody_acknowledgement_record.c
 )
 
 target_compile_definitions(utobj_bplib_v7 PRIVATE
@@ -31,7 +46,9 @@ target_include_directories(utobj_bplib_v7 PRIVATE
 add_executable(coverage-bplib_v7-testrunner
     test_bplib_v7_setup.c
     test_bplib_v7.c
-    test_bplib_v7_codec.c
+    test_bplib_v7_codec_common.c
+    test_bplib_v7_encode_api.c
+    test_bplib_v7_decode_api.c
     cbor_stubs.c
     $<TARGET_OBJECTS:utobj_bplib_v7>
 )

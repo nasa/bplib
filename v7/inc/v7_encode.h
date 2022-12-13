@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef V7_CODEC_H
-#define V7_CODEC_H
+#ifndef V7_ENCODE_H
+#define V7_ENCODE_H
 
 /******************************************************************************
  INCLUDES
@@ -28,11 +28,17 @@
 #include "bplib.h"
 #include "v7_mpool.h"
 #include "v7_types.h"
-#include "v7_decode.h"
-#include "v7_encode.h"
 
-size_t v7_compute_full_bundle_size(bplib_mpool_bblock_primary_t *cpb);
-size_t v7_copy_full_bundle_out(bplib_mpool_bblock_primary_t *cpb, void *buffer, size_t buf_sz);
-size_t v7_copy_full_bundle_in(bplib_mpool_bblock_primary_t *cpb, const void *buffer, size_t buf_sz);
+/*
+ * On the encode side of things, the block types are known ahead of time.  Encoding of a payload block is separate
+ * because the data needs to be passed in, but for all other canonical block types all the information should already be
+ * in the logical data - so nothing extra is needed (but this may change as more block types get implemented, too).
+ * One possible option would be to pass in NULL/0 for the block types that do not have separate data, to keep the APIs
+ * more consistent.
+ */
+int v7_block_encode_pri(bplib_mpool_bblock_primary_t *cpb);
+int v7_block_encode_pay(bplib_mpool_bblock_canonical_t *ccb, const void *data_ptr, size_t data_size);
 
-#endif /* V7_CODEC_H */
+int v7_block_encode_canonical(bplib_mpool_bblock_canonical_t *ccb);
+
+#endif /* V7_ENCODE_H */

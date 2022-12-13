@@ -18,21 +18,25 @@
  *
  */
 
-#ifndef V7_CODEC_H
-#define V7_CODEC_H
-
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
-#include "v7_mpool.h"
-#include "v7_types.h"
-#include "v7_decode.h"
-#include "v7_encode.h"
+#include "v7_encode_internal.h"
+#include "v7_decode_internal.h"
 
-size_t v7_compute_full_bundle_size(bplib_mpool_bblock_primary_t *cpb);
-size_t v7_copy_full_bundle_out(bplib_mpool_bblock_primary_t *cpb, void *buffer, size_t buf_sz);
-size_t v7_copy_full_bundle_in(bplib_mpool_bblock_primary_t *cpb, const void *buffer, size_t buf_sz);
+/*
+ * -----------------------------------------------------------------------------------
+ * IMPLEMENTATION
+ * Helpers for encoding/decoding of individual protocol elements
+ * -----------------------------------------------------------------------------------
+ */
+void v7_encode_bp_previous_node_block(v7_encode_state_t *enc, const bp_previous_node_block_t *v)
+{
+    v7_encode_bp_endpointid_buffer(enc, &v->nodeId);
+}
 
-#endif /* V7_CODEC_H */
+void v7_decode_bp_previous_node_block(v7_decode_state_t *dec, bp_previous_node_block_t *v)
+{
+    v7_decode_bp_endpointid_buffer(dec, &v->nodeId);
+}
