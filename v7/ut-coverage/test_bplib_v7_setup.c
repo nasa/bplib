@@ -21,8 +21,16 @@
  */
 #include "test_bplib_v7.h"
 
+void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+}
+
+
 void UtTest_Setup(void)
 {
     TestBplibV7Codec_Register();
     TestBplibV7_Register();
+    TestBplibV7Decode_Register();
+    TestBplibV7Encode_Register();
 }

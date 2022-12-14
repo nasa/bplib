@@ -23,6 +23,10 @@
 #include "utstubs.h"
 #include "uttest.h"
 
+void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+
+void TestBplibV7Decode_Register(void);
+void TestBplibV7Encode_Register(void);
 void TestBplibV7Codec_Register(void);
 void TestBplibV7_Register(void);
 
