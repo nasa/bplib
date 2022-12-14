@@ -134,7 +134,7 @@ jobs:
       - name: Run Tests
         working-directory: ${{ env.MATRIX_ID }}
         if: env.RUN_TESTS == 'True'
-        run: ctest --output-on-failure > ctest.log
+        run: ctest --output-on-failure 2>&1 | tee ctest.log
 
       - name: Check Coverage
         if: env.MATRIX_ID == 'matrix-Debug-OSAL'
