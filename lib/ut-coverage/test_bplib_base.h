@@ -22,7 +22,31 @@
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
+#include "v7_mpool.h"
+#include "v7_types.h"
+#include "v7_rbtree.h"
+#include "v7_mpool_bblocks.h"
+#include "v7.h"
+#include "v7_mpool_ref.h"
+#include "v7_mpool_flows.h"
+#include "v7_cache.h"
+#include "v7_codec.h"
+#include "bplib_dataservice.h"
+#include "bplib_routing.h"
+#include "bplib.h"
+#include "bplib_os.h"
+#include "bplib_api_types.h"
+#include "../src/v7_base_internal.h"
+#include "../src/v7_mpool_internal.h"
 
+void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+void UT_lib_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+void UT_lib_baseintf_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+void UT_lib_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+void UT_lib_sizet_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+void UT_lib_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+void UT_lib_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+void UT_lib_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void TestBplibBase_Register(void);
 void TestBplibBase_ClaApi_Register(void);
 void TestBplibBase_DataServiceApi_Register(void);

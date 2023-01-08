@@ -30,6 +30,7 @@
 #include "v7_mpool_flows.h"
 #include "v7_mpool_ref.h"
 #include "v7.h"
+#include "v7_base_internal.h"
 
 /**
  * @brief Minimum time between interface poll cycles
@@ -40,29 +41,6 @@
 #define BPLIB_INTF_MIN_POLL_INTERVAL 500
 
 #define BPLIB_INTF_AVAILABLE_FLAGS (BPLIB_INTF_STATE_OPER_UP | BPLIB_INTF_STATE_ADMIN_UP)
-
-typedef struct bplib_routeentry
-{
-    bp_ipn_t    dest;
-    bp_ipn_t    mask;
-    bp_handle_t intf_id;
-} bplib_routeentry_t;
-
-struct bplib_routetbl
-{
-    uint32_t            max_routes;
-    uint32_t            registered_routes;
-    bp_handle_t         activity_lock;
-    volatile bool       maint_request_flag;
-    volatile bool       maint_active_flag;
-    uint8_t             poll_count;
-    uint64_t            last_intf_poll;
-    uintmax_t           routing_success_count;
-    uintmax_t           routing_error_count;
-    bplib_mpool_t      *pool;
-    bplib_mpool_block_t flow_list;
-    bplib_routeentry_t *route_tbl;
-};
 
 bplib_mpool_ref_t bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 {

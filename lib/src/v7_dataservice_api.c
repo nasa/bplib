@@ -34,6 +34,7 @@
 #include "v7_rbtree.h"
 #include "bplib_routing.h"
 #include "bplib_dataservice.h"
+#include "v7_base_internal.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -43,35 +44,6 @@
 #define BPLIB_BLOCKTYPE_SERVICE_ENDPOINT 0x770c4839
 #define BPLIB_BLOCKTYPE_SERVICE_SOCKET   0xc21bb332
 #define BPLIB_BLOCKTYPE_SERVICE_BLOCK    0xbd35ac62
-
-typedef struct bplib_route_serviceintf_info
-{
-    bp_ipn_t          node_number;
-    bplib_rbt_root_t  service_index;
-    bplib_mpool_ref_t storage_service;
-
-} bplib_route_serviceintf_info_t;
-
-typedef struct bplib_service_endpt bplib_service_endpt_t;
-
-struct bplib_service_endpt
-{
-    bplib_rbt_link_t     rbt_link; /* for storage in RB tree, must be first */
-    bplib_mpool_block_t *self_ptr;
-    bplib_mpool_ref_t    subflow_ref;
-};
-
-typedef struct bplib_socket_info bplib_socket_info_t;
-
-struct bplib_socket_info
-{
-    bplib_routetbl_t   *parent_rtbl;
-    bp_handle_t         socket_intf_id;
-    bplib_connection_t  params;
-    uintmax_t           ingress_byte_count;
-    uintmax_t           egress_byte_count;
-    bp_sequencenumber_t last_bundle_seq;
-};
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -153,8 +125,7 @@ int bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpo
         bplib_mpool_bblock_primary_append(pri_block, cblk);
         cblk   = NULL; /* do not need now that it is stored */
         result = BP_SUCCESS;
-    }
-    while (false);
+    } while (false);
 
     /* clean up, if anything did not work, recycle the blocks now */
     if (cblk != NULL)
@@ -226,8 +197,7 @@ int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_m
         /* all done */
         *size  = content_size;
         status = BP_SUCCESS;
-    }
-    while (false);
+    } while (false);
 
     /* Always - The reference can be discarded (caller should have duped it) */
     bplib_mpool_ref_release(refptr);
@@ -625,7 +595,7 @@ bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t nod
 bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn, bplib_dataservice_type_t type,
                                      bplib_mpool_ref_t blkref)
 {
-    bp_handle_t         self_intf_id;
+    bp_handle_t         self_intf_id = BP_INVALID_HANDLE;
     bp_handle_t         parent_intf_id;
     bplib_mpool_ref_t   parent_block_ref;
     bplib_mpool_flow_t *flow;
