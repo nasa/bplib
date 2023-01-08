@@ -32,16 +32,10 @@
 #include "v7_codec.h"
 #include "v7_cache.h"
 #include "bplib_routing.h"
+#include "v7_base_internal.h"
 
 #define BPLIB_BLOCKTYPE_CLA_INTF          0x7b643c85
 #define BPLIB_BLOCKTYPE_CLA_INGRESS_BLOCK 0x9580be4a
-
-typedef struct bplib_cla_stats
-{
-    uintmax_t ingress_byte_count;
-    uintmax_t egress_byte_count;
-
-} bplib_cla_stats_t;
 
 /******************************************************************************
  TYPEDEFS
@@ -107,13 +101,14 @@ int bplib_generic_bundle_ingress(bplib_mpool_ref_t flow_ref, const void *content
     else
     {
         /*
-         * Note - it is not yet known whether this might be a regular data bundle or a DACS.  If under memory pressure, then
-         * it is critical to allow DACS in, because that should free more blocks, relieving the pressure.  Therefore,
-         * the block allocation is done with a high-ish priority here, but if it ends up to be a regular bundle and there
-         * isn't a lot of memory available, this might get discarded later.
+         * Note - it is not yet known whether this might be a regular data bundle or a DACS.  If under memory pressure,
+         * then it is critical to allow DACS in, because that should free more blocks, relieving the pressure.
+         * Therefore, the block allocation is done with a high-ish priority here, but if it ends up to be a regular
+         * bundle and there isn't a lot of memory available, this might get discarded later.
          */
-        pblk = bplib_mpool_bblock_primary_alloc(
-            bplib_mpool_get_parent_pool_from_link(bplib_mpool_dereference(flow_ref)), 0, NULL, BPLIB_MPOOL_ALLOC_PRI_MHI, 0);
+        pblk =
+            bplib_mpool_bblock_primary_alloc(bplib_mpool_get_parent_pool_from_link(bplib_mpool_dereference(flow_ref)),
+                                             0, NULL, BPLIB_MPOOL_ALLOC_PRI_MHI, 0);
         if (pblk != NULL)
         {
             imported_sz = v7_copy_full_bundle_in(bplib_mpool_bblock_primary_cast(pblk), content, size);

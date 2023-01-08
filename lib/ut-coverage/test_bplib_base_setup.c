@@ -19,7 +19,87 @@
 /*
  * Includes
  */
+#include "bplib_api_types.h"
 #include "test_bplib_base.h"
+#include "bplib_routing.h"
+#include "bplib.h"
+
+void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    void *retval = NULL;
+    int   count  = UT_GetStubCount(UT_KEY(bplib_mpool_flow_try_pull));
+    if (count > 15)
+    {
+        UT_Stub_SetReturnValue(FuncKey, retval);
+    }
+    else
+    {
+        UT_Stub_SetReturnValue(FuncKey, UserObj);
+    }
+}
+
+void UT_lib_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    void *retval = NULL;
+    int   count  = UT_GetStubCount(UT_KEY(bplib_mpool_flow_try_pull));
+    if (count > 20)
+    {
+        UT_Stub_SetReturnValue(FuncKey, retval);
+    }
+    else
+    {
+        UT_Stub_SetReturnValue(FuncKey, UserObj);
+    }
+}
+
+void UT_lib_baseintf_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    void *retval = NULL;
+    int   count  = UT_GetStubCount(UT_KEY(bplib_mpool_flow_try_pull));
+    if (count > 25)
+    {
+        UT_Stub_SetReturnValue(FuncKey, retval);
+    }
+    else
+    {
+        UT_Stub_SetReturnValue(FuncKey, UserObj);
+    }
+}
+
+void UT_lib_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+}
+
+void UT_lib_sizet_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    size_t retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
+
+void UT_lib_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    int32    StatusCode;
+    uint64_t Result;
+
+    UT_Stub_GetInt32StatusCode(Context, &StatusCode);
+
+    Result = StatusCode;
+
+    UT_Stub_SetReturnValue(FuncKey, Result);
+}
+
+void UT_lib_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    int8 retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
+
+void UT_lib_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    bool retval = true;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
 
 void UtTest_Setup(void)
 {

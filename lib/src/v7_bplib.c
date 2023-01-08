@@ -42,10 +42,6 @@
  * This is an abstract structure externally, so the contents
  * are hidden from external entities.
  */
-struct bp_socket
-{
-    bplib_mpool_block_t fblk;
-};
 
 /******************************************************************************
  LOCAL FUNCTIONS
