@@ -38,6 +38,7 @@ add_executable(coverage-bplib_cache-testrunner
 )
 
 target_include_directories(coverage-bplib_cache-testrunner PRIVATE
+    ../src
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_cache,INTERFACE_INCLUDE_DIRECTORIES>
 )

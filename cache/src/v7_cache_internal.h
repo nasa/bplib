@@ -51,7 +51,6 @@
 
 /* the set of flags for which retention is required - all are typically set for valid entries
  * if any of these becomes UN-set, retention of the entry is NOT required */
-//#define BPLIB_STORE_FLAGS_RETENTION_REQUIRED  (BPLIB_STORE_FLAG_WITHIN_LIFETIME | BPLIB_STORE_FLAG_AWAITING_CUSTODY)
 #define BPLIB_STORE_FLAGS_ACTION_WAIT_STATE (BPLIB_STORE_FLAG_ACTION_TIME_WAIT | BPLIB_STORE_FLAG_LOCALLY_QUEUED)
 
 #define BP_CACHE_DACS_LIFETIME   86400000 /* 24 hrs */
@@ -198,4 +197,49 @@ int bplib_cache_entry_tree_insert_unsorted(const bplib_rbt_link_t *node, void *a
 
 void bplib_cache_entry_make_pending(bplib_cache_entry_t *store_entry, uint32_t set_flags, uint32_t clear_flags);
 
+int  bplib_cache_egress_impl(void *arg, bplib_mpool_block_t *subq_src);
+void bplib_cache_flush_pending(bplib_cache_state_t *state);
+int  bplib_cache_do_poll(bplib_cache_state_t *state);
+int  bplib_cache_do_route_up(bplib_cache_state_t *state, bp_ipn_t dest, bp_ipn_t mask);
+int  bplib_cache_do_intf_statechange(bplib_cache_state_t *state, bool is_up);
+int  bplib_cache_event_impl(void *event_arg, bplib_mpool_block_t *intf_block);
+int  bplib_cache_process_pending(void *arg, bplib_mpool_block_t *job);
+int  bplib_cache_destruct_state(void *arg, bplib_mpool_block_t *sblk);
+int  bplib_cache_construct_entry(void *arg, bplib_mpool_block_t *sblk);
+int  bplib_cache_destruct_entry(void *arg, bplib_mpool_block_t *sblk);
+int  bplib_cache_construct_blockref(void *arg, bplib_mpool_block_t *sblk);
+int  bplib_cache_destruct_blockref(void *arg, bplib_mpool_block_t *rblk);
+int  bplib_cache_construct_state(void *arg, bplib_mpool_block_t *sblk);
+
+void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
+                                               bplib_cache_custodian_info_t *custody_info);
+int  bplib_cache_custody_find_dacs_match(const bplib_rbt_link_t *node, void *arg);
+bool bplib_cache_custody_find_pending_dacs(bplib_cache_state_t *state, bplib_cache_custodian_info_t *dacs_info);
+bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t                *state,
+                                                  bplib_mpool_bblock_primary_t      **pri_block_out,
+                                                  bp_custody_accept_payload_block_t **pay_out);
+void              bplib_cache_custody_open_dacs(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info);
+void bplib_cache_custody_append_dacs(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info);
+void bplib_cache_custody_update_tracking_block(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info);
+int  bplib_cache_custody_find_bundle_match(const bplib_rbt_link_t *node, void *arg);
+void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
+                                        bplib_cache_custodian_info_t *custody_info);
+void bplib_cache_custody_process_remote_dacs_bundle(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
+                                                    const bp_custody_accept_payload_block_t *ack_payload);
+void bplib_cache_custody_init_info_from_pblock(bplib_cache_custodian_info_t *custody_info,
+                                               bplib_mpool_bblock_primary_t *pri_block);
+void bplib_cache_custody_ack_tracking_block(bplib_cache_state_t                *state,
+                                            const bplib_cache_custodian_info_t *custody_info);
+
+bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *store_entry);
+bplib_cache_entry_state_t bplib_cache_fsm_state_queue_eval(bplib_cache_entry_t *store_entry);
+void                      bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry);
+void                      bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry);
+bplib_cache_entry_state_t bplib_cache_fsm_state_delete_eval(bplib_cache_entry_t *store_entry);
+void                      bplib_cache_fsm_state_delete_enter(bplib_cache_entry_t *store_entry);
+void                      bplib_cache_fsm_reschedule(bplib_cache_state_t *state, bplib_cache_entry_t *store_entry);
+bplib_cache_entry_state_t bplib_cache_fsm_state_generate_dacs_eval(bplib_cache_entry_t *store_entry);
+void                      bplib_cache_fsm_state_generate_dacs_exit(bplib_cache_entry_t *store_entry);
+void bplib_cache_fsm_transition_state(bplib_cache_entry_t *entry, bplib_cache_entry_state_t next_state);
+bplib_cache_entry_state_t bplib_cache_fsm_get_next_state(bplib_cache_entry_t *entry);
 #endif /* V7_CACHE_INTERNAL_H */

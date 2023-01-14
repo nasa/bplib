@@ -27,7 +27,7 @@
 typedef bplib_cache_entry_state_t (*bplib_cache_fsm_state_eval_func_t)(bplib_cache_entry_t *);
 typedef void (*bplib_cache_fsm_state_change_func_t)(bplib_cache_entry_t *);
 
-static bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *store_entry)
+bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *store_entry)
 {
     bplib_mpool_block_t *pblk;
 
@@ -50,7 +50,8 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_ent
         /* bundle is due for [re]transmit */
         if (store_entry->refptr == NULL && store_entry->offload_sid != 0)
         {
-            store_entry->parent->offload_api->restore(store_entry->parent->offload_blk, store_entry->offload_sid, &pblk);
+            store_entry->parent->offload_api->restore(store_entry->parent->offload_blk, store_entry->offload_sid,
+                                                      &pblk);
             store_entry->refptr = bplib_mpool_ref_create(pblk);
         }
 
@@ -66,7 +67,7 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_ent
 
 static void bplib_cache_fsm_state_idle_enter(bplib_cache_entry_t *store_entry) {}
 
-static bplib_cache_entry_state_t bplib_cache_fsm_state_queue_eval(bplib_cache_entry_t *store_entry)
+bplib_cache_entry_state_t bplib_cache_fsm_state_queue_eval(bplib_cache_entry_t *store_entry)
 {
     if ((store_entry->flags & BPLIB_STORE_FLAG_LOCALLY_QUEUED) == 0)
     {
@@ -77,7 +78,7 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_queue_eval(bplib_cache_en
     return bplib_cache_entry_state_queue; /* no change */
 }
 
-static void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
+void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
 {
     bplib_mpool_block_t *rblk;
     bplib_mpool_flow_t  *self_flow;
@@ -105,7 +106,7 @@ static void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
     }
 }
 
-static void bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry)
+void bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry)
 {
     bplib_mpool_bblock_primary_t *pri_block;
 
@@ -137,7 +138,7 @@ static void bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry)
     }
 }
 
-static bplib_cache_entry_state_t bplib_cache_fsm_state_delete_eval(bplib_cache_entry_t *store_entry)
+bplib_cache_entry_state_t bplib_cache_fsm_state_delete_eval(bplib_cache_entry_t *store_entry)
 {
     if ((store_entry->flags & BPLIB_STORE_FLAG_ACTION_TIME_WAIT) == 0)
     {
@@ -158,7 +159,7 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_delete_eval(bplib_cache_e
     return bplib_cache_entry_state_delete;
 }
 
-static void bplib_cache_fsm_state_delete_enter(bplib_cache_entry_t *store_entry)
+void bplib_cache_fsm_state_delete_enter(bplib_cache_entry_t *store_entry)
 {
     if (store_entry->refptr != NULL)
     {
@@ -175,7 +176,7 @@ static void bplib_cache_fsm_state_delete_enter(bplib_cache_entry_t *store_entry)
     store_entry->action_time = store_entry->parent->action_time + BP_CACHE_AGE_OUT_TIME;
 }
 
-static bplib_cache_entry_state_t bplib_cache_fsm_state_generate_dacs_eval(bplib_cache_entry_t *store_entry)
+bplib_cache_entry_state_t bplib_cache_fsm_state_generate_dacs_eval(bplib_cache_entry_t *store_entry)
 {
     /* check if dacs is due for transmit */
     if ((store_entry->flags & BPLIB_STORE_FLAG_ACTION_TIME_WAIT) == 0)
@@ -186,12 +187,12 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_generate_dacs_eval(bplib_
     return bplib_cache_entry_state_generate_dacs;
 }
 
-static void bplib_cache_fsm_state_generate_dacs_exit(bplib_cache_entry_t *store_entry)
+void bplib_cache_fsm_state_generate_dacs_exit(bplib_cache_entry_t *store_entry)
 {
     bplib_cache_custody_finalize_dacs(store_entry->parent, store_entry);
 }
 
-static void bplib_cache_fsm_reschedule(bplib_cache_state_t *state, bplib_cache_entry_t *store_entry)
+void bplib_cache_fsm_reschedule(bplib_cache_state_t *state, bplib_cache_entry_t *store_entry)
 {
     uint64_t ref_time;
     uint64_t prev_key;
@@ -241,7 +242,7 @@ static bplib_cache_entry_state_t bplib_cache_fsm_state_noop_eval(bplib_cache_ent
     return bplib_cache_entry_state_undefined;
 }
 
-static bplib_cache_entry_state_t bplib_cache_fsm_get_next_state(bplib_cache_entry_t *entry)
+bplib_cache_entry_state_t bplib_cache_fsm_get_next_state(bplib_cache_entry_t *entry)
 {
     static const bplib_cache_fsm_state_eval_func_t STATE_EVAL_TABLE[bplib_cache_entry_state_max] = {
         [bplib_cache_entry_state_undefined]     = bplib_cache_fsm_state_noop_eval,
@@ -274,7 +275,7 @@ static bplib_cache_entry_state_t bplib_cache_fsm_get_next_state(bplib_cache_entr
     return state;
 }
 
-static void bplib_cache_fsm_transition_state(bplib_cache_entry_t *entry, bplib_cache_entry_state_t next_state)
+void bplib_cache_fsm_transition_state(bplib_cache_entry_t *entry, bplib_cache_entry_state_t next_state)
 {
     static const bplib_cache_fsm_state_change_func_t STATE_ENTER_TABLE[bplib_cache_entry_state_max] = {
         [bplib_cache_entry_state_idle]   = bplib_cache_fsm_state_idle_enter,

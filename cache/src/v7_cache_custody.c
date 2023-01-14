@@ -199,8 +199,7 @@ bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t           
 
         *pri_block_out = pri_block;
         *pay_out       = &pay->data.custody_accept_payload_block;
-    }
-    while (false);
+    } while (false);
 
     /* clean up, if anything did not work, recycle the blocks now */
     if (cblk != NULL)
