@@ -337,7 +337,7 @@ int bplib_route_register_handler_impl(bplib_routetbl_t *tbl, bp_handle_t intf_id
 
     base_ptr = (uint8_t *)ifp;
 
-    subq = (bplib_mpool_subq_workitem_t *)(base_ptr + func_position);
+    subq = (bplib_mpool_subq_workitem_t *)(void *)(base_ptr + func_position);
 
     if (subq->job_header.handler == new_func)
     {

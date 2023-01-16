@@ -98,7 +98,8 @@ bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32
     pool = bplib_mpool_get_parent_pool_from_link(&bblk->header.base_link);
 
     lock = bplib_mpool_lock_resource(pool);
-    rblk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_ref, magic_number, init_arg, BPLIB_MPOOL_ALLOC_PRI_MHI);
+    rblk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_ref, magic_number, init_arg,
+                                            BPLIB_MPOOL_ALLOC_PRI_MHI);
     bplib_mpool_lock_release(lock);
 
     if (rblk == NULL)
@@ -125,7 +126,7 @@ bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk)
         return NULL;
     }
 
-    content = (bplib_mpool_block_content_t *)rblk;
+    content = bplib_mpool_get_block_content(rblk);
 
     return bplib_mpool_ref_duplicate(content->u.ref.pref_target);
 }
