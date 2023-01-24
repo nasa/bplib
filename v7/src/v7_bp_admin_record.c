@@ -25,27 +25,13 @@
 #include "v7_decode_internal.h"
 #include "v7_encode_internal.h"
 
-typedef struct
-{
-    bp_adminrectype_t          decode_rectype;
-    bp_canonical_block_data_t *payload_data;
-
-} v7_admin_rec_payload_decode_info_t;
-
-typedef struct
-{
-    bp_adminrectype_t                encode_rectype;
-    const bp_canonical_block_data_t *payload_data;
-
-} v7_admin_rec_payload_encode_info_t;
-
 /*
  * -----------------------------------------------------------------------------------
  * IMPLEMENTATION
  * Helpers for encoding/decoding of individual protocol elements
  * -----------------------------------------------------------------------------------
  */
-static void v7_encode_bp_adminrec_payload_impl(v7_encode_state_t *enc, const void *arg)
+void v7_encode_bp_adminrec_payload_impl(v7_encode_state_t *enc, const void *arg)
 {
     const v7_admin_rec_payload_encode_info_t *admin_rec_payload;
 
@@ -90,7 +76,7 @@ void v7_encode_bp_admin_record_payload(v7_encode_state_t *enc, const bp_canonica
     v7_encode_container(enc, 2, v7_encode_bp_adminrec_payload_impl, &admin_rec_payload);
 }
 
-static void v7_decode_bp_adminrec_payload_impl(v7_decode_state_t *dec, void *arg)
+void v7_decode_bp_adminrec_payload_impl(v7_decode_state_t *dec, void *arg)
 {
     v7_admin_rec_payload_decode_info_t *admin_rec_payload;
 

@@ -45,8 +45,8 @@
  * Returns the actual size saved to the storage service.  If the CRC fails to validate, this returns 0,
  * and nothing is saved to the storage service.
  */
-static size_t v7_save_and_verify_block(bplib_mpool_block_t *head, const uint8_t *block_base, size_t block_size,
-                                       bp_crctype_t crc_type, bp_crcval_t crc_check);
+size_t v7_save_and_verify_block(bplib_mpool_block_t *head, const uint8_t *block_base, size_t block_size,
+                                bp_crctype_t crc_type, bp_crcval_t crc_check);
 
 /*
  * -----------------------------------------------------------------------------------

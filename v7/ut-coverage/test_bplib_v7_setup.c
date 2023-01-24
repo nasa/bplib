@@ -21,16 +21,79 @@
  */
 #include "test_bplib_v7.h"
 
-void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+void UT_V7_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
+void UT_V7_GetTime_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    uint64_t retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
+
+void UT_V7_sizet_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    size_t retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
+
+void UT_V7_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    int32    StatusCode;
+    uint64_t Result;
+
+    UT_Stub_GetInt32StatusCode(Context, &StatusCode);
+
+    Result = StatusCode;
+
+    UT_Stub_SetReturnValue(FuncKey, Result);
+}
+
+void UT_V7_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    int8 retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
+
+void UT_V7_uint8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    int32   StatusCode;
+    uint8_t Result;
+
+    UT_Stub_GetInt32StatusCode(Context, &StatusCode);
+
+    Result = StatusCode;
+
+    UT_Stub_SetReturnValue(FuncKey, Result);
+}
+
+int test_bplib_v7_writer_func_stub(void *arg, const void *data_ptr, size_t data_len)
+{
+    return UT_DEFAULT_IMPL(test_bplib_v7_writer_func_stub);
+}
+
+void test_bplib_v7_encode_func_stub(v7_encode_state_t *enc, const void *arg) {}
+
+void test_bplib_v7_decode_func_stub(v7_decode_state_t *dec, void *arg) {}
 
 void UtTest_Setup(void)
 {
-    TestBplibV7Codec_Register();
-    TestBplibV7_Register();
-    TestBplibV7Decode_Register();
-    TestBplibV7Encode_Register();
+    TestBpV7_Register();
+    TestBpV7AdminRecord_Register();
+    TestBpV7Basetypes_Register();
+    TestBpV7Bitmap_Register();
+    TestBpV7BundleAgeBlock_Register();
+    TestBpV7CanonicalBlock_Rgister();
+    TestV7BpContainer_Rgister();
+    TestV7BpCrc_Rgister();
+    TestV7BpEndpointid_Rgister();
+    TestV7BpHopCountBlock_Rgister();
+    TestV7BpPreviousNodeBlock_Rgister();
+    TestV7BpPrimaryBlock_Rgister();
+    TestV7CodecCommon_Rgister();
+    TestV7CustodyAcknowledgementRecord_Rgister();
+    TestV7CustodyTrackingRecord_Rgister();
+    TestV7DecodecApi_Rgister();
+    TestV7EncodeApi_Rgister();
 }

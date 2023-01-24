@@ -35,6 +35,13 @@ typedef struct v7_decode_state
     CborValue     *cbor;
 } v7_decode_state_t;
 
+typedef struct
+{
+    bp_adminrectype_t          decode_rectype;
+    bp_canonical_block_data_t *payload_data;
+
+} v7_admin_rec_payload_decode_info_t;
+
 /*
  * Generic encode/decode container (aka CBOR array) helpers.
  * This handles the general process of encoding and decoding a container, specifically:
@@ -69,9 +76,30 @@ void v7_decode_bp_hop_count_block(v7_decode_state_t *dec, bp_hop_count_block_t *
 void v7_decode_bp_custody_tracking_block(v7_decode_state_t *dec, bp_custody_tracking_block_t *v);
 void v7_decode_bp_custody_acknowledement_record(v7_decode_state_t *dec, bp_custody_accept_payload_block_t *v);
 
-void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v,
-                                         v7_canonical_block_info_t *info);
-void v7_decode_bp_canonical_block_buffer(v7_decode_state_t *dec, bp_canonical_block_buffer_t *v,
-                                         size_t *content_encoded_offset, size_t *content_length);
+void   v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v,
+                                           v7_canonical_block_info_t *info);
+void   v7_decode_bp_canonical_block_buffer(v7_decode_state_t *dec, bp_canonical_block_buffer_t *v,
+                                           size_t *content_encoded_offset, size_t *content_length);
+size_t v7_save_and_verify_block(bplib_mpool_block_t *head, const uint8_t *block_base, size_t block_size,
+                                bp_crctype_t crc_type, bp_crcval_t crc_check);
+void   v7_decode_bp_adminrec_payload_impl(v7_decode_state_t *dec, void *arg);
+void   v7_decode_bp_block_processing_flags(v7_decode_state_t *dec, bp_block_processing_flags_t *v);
+void   v7_decode_bp_endpointid_scheme(v7_decode_state_t *dec, bp_endpointid_scheme_t *v);
+void   v7_decode_bp_ipn_nodenumber(v7_decode_state_t *dec, bp_ipn_nodenumber_t *v);
+void   v7_decode_bp_ipn_servicenumber(v7_decode_state_t *dec, bp_ipn_servicenumber_t *v);
+void   v7_decode_bp_ipn_uri_ssp(v7_decode_state_t *dec, bp_ipn_uri_ssp_t *v);
+void   v7_decode_bp_ipn_uri_ssp_impl(v7_decode_state_t *dec, void *arg);
+void   v7_decode_bp_endpointid_buffer_impl(v7_decode_state_t *dec, void *arg);
+void   v7_decode_bp_hop_count_block_impl(v7_decode_state_t *dec, void *arg);
+void   v7_decode_bp_sequencenumber(v7_decode_state_t *dec, bp_sequencenumber_t *v);
+void   v7_decode_bp_creation_timestamp_impl(v7_decode_state_t *dec, void *arg);
+void   v7_decode_bp_creation_timestamp(v7_decode_state_t *dec, bp_creation_timestamp_t *v);
+void   v7_decode_bp_bundle_processing_control_flags(v7_decode_state_t *dec, bp_bundle_processing_control_flags_t *v);
+void   v7_decode_bp_lifetime(v7_decode_state_t *dec, bp_lifetime_t *v);
+void   v7_decode_bp_adu_length(v7_decode_state_t *dec, bp_adu_length_t *v);
+void   v7_decode_bp_primary_block_impl(v7_decode_state_t *dec, void *arg);
+void   v7_decode_bp_custody_acceptance_seqlist_impl(v7_decode_state_t *dec, void *arg);
+void   v7_decode_bp_custody_acknowledement_record_impl(v7_decode_state_t *dec, void *arg);
+void   v7_decode_bp_canonical_block_buffer_impl(v7_decode_state_t *dec, void *arg);
 
 #endif /* V7_DECODE_INTERNAL_H */

@@ -226,7 +226,7 @@ void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bu
     }
 }
 
-static void v7_decode_bp_canonical_block_buffer_impl(v7_decode_state_t *dec, void *arg)
+void v7_decode_bp_canonical_block_buffer_impl(v7_decode_state_t *dec, void *arg)
 {
     v7_canonical_block_info_t *info = arg;
     v7_decode_bp_canonical_bundle_block(dec, info->decode_block, info);

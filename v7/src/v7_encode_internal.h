@@ -44,6 +44,13 @@ typedef struct v7_encode_state
     void                  *next_writer_arg;
 } v7_encode_state_t;
 
+typedef struct
+{
+    bp_adminrectype_t                encode_rectype;
+    const bp_canonical_block_data_t *payload_data;
+
+} v7_admin_rec_payload_encode_info_t;
+
 /*
  * Generic encode/decode container (aka CBOR array) helpers.
  * This handles the general process of encoding and decoding a container, specifically:
@@ -57,7 +64,7 @@ typedef void (*v7_encode_func_t)(v7_encode_state_t *enc, const void *arg);
 
 void v7_encode_container(v7_encode_state_t *enc, size_t entries, v7_encode_func_t func, const void *arg);
 
-/* Component decoders */
+/* Component encoders */
 void v7_encode_small_int(v7_encode_state_t *enc, int val);
 void v7_encode_crc(v7_encode_state_t *enc);
 void v7_encode_bp_integer(v7_encode_state_t *enc, const bp_integer_t *v);
@@ -68,7 +75,7 @@ void v7_encode_bp_dtntime(v7_encode_state_t *enc, const bp_dtntime_t *v);
 void v7_encode_bp_endpointid_buffer(v7_encode_state_t *enc, const bp_endpointid_buffer_t *v);
 void v7_encode_bitmap(v7_encode_state_t *enc, const uint8_t *v, const v7_bitmap_table_t *ptbl);
 
-/* Block decoders */
+/* Block encoders */
 void v7_encode_bp_primary_block(v7_encode_state_t *enc, const bp_primary_block_t *v);
 void v7_encode_bp_admin_record_payload(v7_encode_state_t *enc, const bp_canonical_block_buffer_t *v);
 void v7_encode_bp_previous_node_block(v7_encode_state_t *enc, const bp_previous_node_block_t *v);
@@ -82,5 +89,26 @@ void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canoni
 void v7_encode_bp_canonical_block_buffer(v7_encode_state_t *enc, const bp_canonical_block_buffer_t *v,
                                          const void *content_ptr, size_t content_length,
                                          size_t *content_encoded_offset);
+
+int       v7_encoder_mpstream_write(void *arg, const void *ptr, size_t sz);
+int       v7_encoder_write_crc(v7_encode_state_t *enc);
+CborError v7_encoder_write_wrapper(void *arg, const void *ptr, size_t sz, CborEncoderAppendType at);
+void      v7_encode_bp_adminrec_payload_impl(v7_encode_state_t *enc, const void *arg);
+void      v7_encode_bp_custody_acceptance_seqlist_impl(v7_encode_state_t *enc, const void *arg);
+void      v7_encode_bp_endpointid_scheme(v7_encode_state_t *enc, const bp_endpointid_scheme_t *v);
+void      v7_encode_bp_ipn_nodenumber(v7_encode_state_t *enc, const bp_ipn_nodenumber_t *v);
+void      v7_encode_bp_ipn_servicenumber(v7_encode_state_t *enc, const bp_ipn_servicenumber_t *v);
+void      v7_encode_bp_ipn_uri_ssp(v7_encode_state_t *enc, const bp_ipn_uri_ssp_t *v);
+void      v7_encode_bp_ipn_uri_ssp_impl(v7_encode_state_t *enc, const void *arg);
+void      v7_encode_bp_endpointid_buffer_impl(v7_encode_state_t *enc, const void *arg);
+void      v7_encode_bp_hop_count_block_impl(v7_encode_state_t *enc, const void *arg);
+void      v7_encode_bp_bundle_processing_control_flags(v7_encode_state_t                          *enc,
+                                                       const bp_bundle_processing_control_flags_t *v);
+void      v7_encode_bp_sequencenumber(v7_encode_state_t *enc, const bp_sequencenumber_t *v);
+void      v7_encode_bp_creation_timestamp_impl(v7_encode_state_t *enc, const void *arg);
+void      v7_encode_bp_lifetime(v7_encode_state_t *enc, const bp_lifetime_t *v);
+void      v7_encode_bp_adu_length(v7_encode_state_t *enc, const bp_adu_length_t *v);
+void      v7_encode_bp_primary_block_impl(v7_encode_state_t *enc, const void *arg);
+void      v7_encode_bp_creation_timestamp(v7_encode_state_t *enc, const bp_creation_timestamp_t *v);
 
 #endif /* V7_ENCODE_INTERNAL_H */

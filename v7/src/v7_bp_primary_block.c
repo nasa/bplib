@@ -55,7 +55,7 @@ void v7_encode_bp_sequencenumber(v7_encode_state_t *enc, const bp_sequencenumber
     v7_encode_bp_integer(enc, v);
 }
 
-static void v7_encode_bp_creation_timestamp_impl(v7_encode_state_t *enc, const void *arg)
+void v7_encode_bp_creation_timestamp_impl(v7_encode_state_t *enc, const void *arg)
 {
     const bp_creation_timestamp_t *v = arg;
 
@@ -143,7 +143,7 @@ void v7_decode_bp_sequencenumber(v7_decode_state_t *dec, bp_sequencenumber_t *v)
     v7_decode_bp_integer(dec, v);
 }
 
-static void v7_decode_bp_creation_timestamp_impl(v7_decode_state_t *dec, void *arg)
+void v7_decode_bp_creation_timestamp_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_creation_timestamp_t *v = arg;
 
@@ -171,7 +171,7 @@ void v7_decode_bp_adu_length(v7_decode_state_t *dec, bp_adu_length_t *v)
     v7_decode_bp_integer(dec, v);
 }
 
-static void v7_decode_bp_primary_block_impl(v7_decode_state_t *dec, void *arg)
+void v7_decode_bp_primary_block_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_primary_block_t *v = arg;
 

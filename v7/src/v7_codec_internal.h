@@ -53,5 +53,6 @@ typedef struct v7_bitmap_table
 
 bplib_crc_parameters_t *v7_codec_get_crc_algorithm(bp_crctype_t crctype);
 size_t                  v7_sum_preencoded_size(bplib_mpool_block_t *list);
-
+void                    v7_init_ipn_eid(bp_endpointid_buffer_t *eid, bp_ipn_t node, bp_ipn_t service);
+size_t                  v7_sum_preencoded_size(bplib_mpool_block_t *list);
 #endif /* V7_CODEC_INTERNAL_H */

@@ -31,7 +31,7 @@
  * -----------------------------------------------------------------------------------
  */
 
-static int v7_encoder_mpstream_write(void *arg, const void *ptr, size_t sz)
+int v7_encoder_mpstream_write(void *arg, const void *ptr, size_t sz)
 {
     if (bplib_mpool_stream_write(arg, ptr, sz) < sz)
     {
@@ -41,7 +41,7 @@ static int v7_encoder_mpstream_write(void *arg, const void *ptr, size_t sz)
     return BP_SUCCESS;
 }
 
-static int v7_encoder_write_crc(v7_encode_state_t *enc)
+int v7_encoder_write_crc(v7_encode_state_t *enc)
 {
     uint8_t     crc_data[1 + sizeof(bp_crcval_t)];
     uint8_t     i;
@@ -63,7 +63,7 @@ static int v7_encoder_write_crc(v7_encode_state_t *enc)
     return enc->next_writer(enc->next_writer_arg, crc_data, crc_len);
 }
 
-static CborError v7_encoder_write_wrapper(void *arg, const void *ptr, size_t sz, CborEncoderAppendType at)
+CborError v7_encoder_write_wrapper(void *arg, const void *ptr, size_t sz, CborEncoderAppendType at)
 {
     v7_encode_state_t *enc = arg;
     int                write_result;

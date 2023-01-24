@@ -32,7 +32,7 @@
  * -----------------------------------------------------------------------------------
  */
 
-static void v7_encode_bp_hop_count_block_impl(v7_encode_state_t *enc, const void *arg)
+void v7_encode_bp_hop_count_block_impl(v7_encode_state_t *enc, const void *arg)
 {
     const bp_hop_count_block_t *v = arg;
 
@@ -45,7 +45,7 @@ void v7_encode_bp_hop_count_block(v7_encode_state_t *enc, const bp_hop_count_blo
     v7_encode_container(enc, 2, v7_encode_bp_hop_count_block_impl, v);
 }
 
-static void v7_decode_bp_hop_count_block_impl(v7_decode_state_t *dec, void *arg)
+void v7_decode_bp_hop_count_block_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_hop_count_block_t *v = arg;
 
