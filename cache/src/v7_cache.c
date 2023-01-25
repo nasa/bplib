@@ -628,16 +628,17 @@ int bplib_cache_stop(bplib_routetbl_t *tbl, bp_handle_t module_intf_id)
 }
 
 #define bplib_cache_debug_fsm_state_print(s, n) bplib_cache_debug_fsm_state_print_impl(s, n, "[" #n "]")
-void bplib_cache_debug_fsm_state_print_impl(bplib_cache_state_t *state, bplib_cache_entry_state_t n, const char *fsmname)
+void bplib_cache_debug_fsm_state_print_impl(bplib_cache_state_t *state, bplib_cache_entry_state_t n,
+                                            const char *fsmname)
 {
     uint32_t entercount;
     uint32_t exitcount;
 
     entercount = state->fsm_state_enter_count[n];
-    exitcount = state->fsm_state_exit_count[n];
+    exitcount  = state->fsm_state_exit_count[n];
 
-    fprintf(stderr, " STATE STATS: %45s enter=%lu exit=%lu current=%lu\n", fsmname,
-        (unsigned long)entercount, (unsigned long)exitcount, (unsigned long)(entercount - exitcount));
+    fprintf(stderr, " STATE STATS: %45s enter=%lu exit=%lu current=%lu\n", fsmname, (unsigned long)entercount,
+            (unsigned long)exitcount, (unsigned long)(entercount - exitcount));
 }
 
 void bplib_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id)
