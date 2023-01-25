@@ -32,7 +32,7 @@
  * -----------------------------------------------------------------------------------
  */
 
-static void v7_encode_bp_custody_acceptance_seqlist_impl(v7_encode_state_t *enc, const void *arg)
+void v7_encode_bp_custody_acceptance_seqlist_impl(v7_encode_state_t *enc, const void *arg)
 {
     const bp_custody_accept_payload_block_t *v = arg;
     bp_integer_t                             n;
@@ -56,7 +56,7 @@ void v7_encode_bp_custody_acknowledement_record(v7_encode_state_t *enc, const bp
     v7_encode_container(enc, 2, v7_encode_bp_custody_acknowledement_record_impl, v);
 }
 
-static void v7_decode_bp_custody_acceptance_seqlist_impl(v7_decode_state_t *dec, void *arg)
+void v7_decode_bp_custody_acceptance_seqlist_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_custody_accept_payload_block_t *v = arg;
 
@@ -72,7 +72,7 @@ static void v7_decode_bp_custody_acceptance_seqlist_impl(v7_decode_state_t *dec,
     }
 }
 
-static void v7_decode_bp_custody_acknowledement_record_impl(v7_decode_state_t *dec, void *arg)
+void v7_decode_bp_custody_acknowledement_record_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_custody_accept_payload_block_t *v = arg;
 

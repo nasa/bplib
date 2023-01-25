@@ -45,15 +45,29 @@ target_include_directories(utobj_bplib_v7 PRIVATE
 # Add executable
 add_executable(coverage-bplib_v7-testrunner
     test_bplib_v7_setup.c
-    test_bplib_v7.c
-    test_bplib_v7_codec_common.c
-    test_bplib_v7_encode_api.c
-    test_bplib_v7_decode_api.c
     cbor_stubs.c
+    test_v7.c
+    test_v7_bp_admin_record.c
+    test_v7_bp_basetypes.c
+    test_v7_bp_bitmap.c
+    test_v7_bp_bundle_age_block.c
+    test_v7_bp_canonical_block.c
+    test_v7_bp_container.c
+    test_v7_bp_crc.c
+    test_v7_bp_endpointid.c
+    test_v7_bp_hop_count_block.c
+    test_v7_bp_previous_node_block.c
+    test_v7_bp_primary_block.c
+    test_v7_codec_common.c
+    test_v7_custody_acknowledgement_record.c
+    test_v7_custody_tracking_block.c
+    test_v7_decode_api.c
+    test_v7_encode_api.c
     $<TARGET_OBJECTS:utobj_bplib_v7>
 )
 
 target_include_directories(coverage-bplib_v7-testrunner PRIVATE
+    ../src
     $<TARGET_PROPERTY:bplib_v7,INCLUDE_DIRECTORIES>
 )
 
