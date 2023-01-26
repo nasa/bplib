@@ -184,7 +184,7 @@ static inline bplib_mpool_flow_t *bplib_cache_get_flow(bplib_cache_state_t *stat
     bplib_cache_entry_get_container(ptr, offsetof(bplib_cache_entry_t, member))
 static inline bplib_cache_entry_t *bplib_cache_entry_get_container(const bplib_rbt_link_t *link, size_t offset)
 {
-    return (bplib_cache_entry_t *)((uint8_t *)link - offset);
+    return (bplib_cache_entry_t *)(void *)((uint8_t *)link - offset);
 }
 
 void bplib_cache_custody_finalize_dacs(bplib_cache_state_t *state, bplib_cache_entry_t *store_entry);

@@ -151,7 +151,7 @@ bplib_mpool_block_t *bplib_mpool_get_block_from_link(bplib_mpool_block_t *lblk)
     while (bblk != NULL && bplib_mpool_is_secondary_index_node(bblk) && bblk->parent_offset != 0)
     {
         /* the parent_offset field indicates this block position within the parent */
-        bblk = (bplib_mpool_block_t *)((uint8_t *)bblk - bblk->parent_offset);
+        bblk = (bplib_mpool_block_t *)(void *)((uint8_t *)bblk - bblk->parent_offset);
     }
 
     return bblk;
@@ -166,7 +166,7 @@ bplib_mpool_block_content_t *bplib_mpool_get_block_content(bplib_mpool_block_t *
 {
     if (cb != NULL && bplib_mpool_is_any_content_node(cb))
     {
-        return (bplib_mpool_block_content_t *)cb;
+        return (bplib_mpool_block_content_t *)(void *)cb;
     }
     return NULL;
 }
@@ -180,7 +180,7 @@ const bplib_mpool_block_content_t *bplib_mpool_get_block_content_const(const bpl
 {
     if (cb != NULL && bplib_mpool_is_any_content_node(cb))
     {
-        return (const bplib_mpool_block_content_t *)cb;
+        return (const bplib_mpool_block_content_t *)(const void *)cb;
     }
     return NULL;
 }
@@ -431,7 +431,7 @@ void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_m
      * associated with it, not just a generic_data block.  The difference is that the generic
      * data block _only_ has the generic data, whereas the other block types can have both. */
     result = NULL;
-    block  = (bplib_mpool_block_content_t *)cb;
+    block  = bplib_mpool_get_block_content(cb);
     while (block != NULL && bplib_mpool_is_any_content_node(&block->header.base_link))
     {
         if (block->header.content_type_signature == required_magic)
@@ -473,7 +473,7 @@ bplib_mpool_block_t *bplib_mpool_generic_data_uncast(void *blk, bplib_mpool_bloc
     }
 
     data_offset += offsetof(bplib_mpool_block_content_t, u);
-    block = (bplib_mpool_block_content_t *)((uint8_t *)blk - data_offset);
+    block = (bplib_mpool_block_content_t *)(void *)((uint8_t *)blk - data_offset);
     if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
     {
         return NULL;
@@ -542,8 +542,8 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     }
 
     /* figure out how to initialize this block by looking up the content type */
-    api_block =
-        (bplib_mpool_api_content_t *)bplib_rbt_search_unique(content_type_signature, &admin->blocktype_registry);
+    api_block = (bplib_mpool_api_content_t *)(void *)bplib_rbt_search_unique(content_type_signature,
+                                                                             &admin->blocktype_registry);
     if (api_block == NULL)
     {
         /* no constructor, cannot create the block! */
@@ -579,7 +579,8 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
         admin->max_alloc_watermark = block_count;
     }
 
-    block = (bplib_mpool_block_content_t *)node;
+    node->type = blocktype;
+    block      = bplib_mpool_get_block_content(node);
 
     /*
      * zero fill the content part first, this ensures that this is always done,
@@ -604,8 +605,6 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
             /* nothing more for this node type (this catches cbor_data)  */
             break;
     }
-
-    node->type = blocktype;
 
     /* If the module did supply a constructor, invoke it now */
     if (api_block->api.construct != NULL)
@@ -937,13 +936,13 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
 
         /* recycled blocks must all be "real" blocks (not secondary refs or head nodes, etc) and
          * have refcount of 0, or else bad things might happen */
-        assert(bplib_mpool_is_any_content_node(rblk));
-        content = (bplib_mpool_block_content_t *)rblk;
+        content = bplib_mpool_get_block_content(rblk);
+        assert(content != NULL);
         assert(content->header.refcount == 0);
 
         /* figure out how to de-initialize the user content by looking up the content type */
-        api_block = (bplib_mpool_api_content_t *)bplib_rbt_search_unique(content->header.content_type_signature,
-                                                                         &admin->blocktype_registry);
+        api_block = (bplib_mpool_api_content_t *)(void *)bplib_rbt_search_unique(content->header.content_type_signature,
+                                                                                 &admin->blocktype_registry);
 
         if (api_block != NULL)
         {
@@ -1086,9 +1085,9 @@ void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *l
             break;
         }
 
-        if (bplib_mpool_is_any_content_node(blk))
+        content = bplib_mpool_get_block_content(blk);
+        if (content != NULL)
         {
-            content = (bplib_mpool_block_content_t *)blk;
             printf("DEBUG: %s(): block addr=%lx type=%d refcount=%u\n", __func__, (unsigned long)blk,
                    content->header.base_link.type, content->header.refcount);
 

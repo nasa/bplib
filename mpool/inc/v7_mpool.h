@@ -256,7 +256,7 @@ static inline bool bplib_mpool_is_indirect_block(const bplib_mpool_block_t *cb)
  */
 static inline bool bplib_mpool_is_any_content_node(const bplib_mpool_block_t *cb)
 {
-    return (cb->type >= bplib_mpool_blocktype_generic && cb->type < bplib_mpool_blocktype_max);
+    return (cb->type > bplib_mpool_blocktype_undefined && cb->type < bplib_mpool_blocktype_max);
 }
 
 /**
