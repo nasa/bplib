@@ -27,7 +27,7 @@ void test_v7_encode_bitmap(void)
      * void v7_encode_bitmap(v7_encode_state_t *enc, const uint8_t *v, const v7_bitmap_table_t *ptbl)
      */
     v7_encode_state_t enc;
-    uint8_t           v[5];
+    uint8_t           v[5] = { 1, 0, 1, 0, 1 };
     v7_bitmap_table_t ptbl[2] = {{0}, {0}};
 
     memset(&enc, 0, sizeof(v7_decode_state_t));
