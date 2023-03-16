@@ -27,6 +27,8 @@ void test_setup_cache_state(bplib_mpool_block_t *sblk)
 {
     bplib_mpool_list_iter_t list_it;
     bplib_mpool_block_t     pending_list;
+
+    bplib_mpool_init_list_head(NULL, &pending_list);
     bplib_mpool_list_iter_goto_first(&pending_list, &list_it);
 }
 

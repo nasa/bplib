@@ -160,15 +160,15 @@ void test_bplib_cache_custody_find_dacs_match(void)
     /* Test function for:
      * int bplib_cache_custody_find_dacs_match(const bplib_rbt_link_t *node, void *arg)
      */
-    bplib_rbt_link_t             node;
     bplib_cache_custodian_info_t custody_info;
-    bplib_cache_entry_t         *store_entry = bplib_cache_entry_from_link(&node, hash_rbt_link);
+    bplib_cache_entry_t          store_entry;
 
-    memset(&node, 0, sizeof(bplib_rbt_link_t));
     memset(&custody_info, 0, sizeof(bplib_cache_custodian_info_t));
-    store_entry->state = bplib_cache_entry_state_generate_dacs;
+    memset(&store_entry, 0, sizeof(bplib_cache_entry_t));
 
-    UtAssert_UINT32_EQ(bplib_cache_custody_find_dacs_match(&node, &custody_info), 0);
+    store_entry.state = bplib_cache_entry_state_generate_dacs;
+
+    UtAssert_UINT32_EQ(bplib_cache_custody_find_dacs_match(&store_entry.hash_rbt_link, &custody_info), 0);
 }
 
 void test_bplib_cache_custody_find_pending_dacs(void)
