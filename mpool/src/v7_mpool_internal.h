@@ -223,7 +223,6 @@ static inline void bplib_mpool_lock_broadcast_signal(bplib_mpool_lock_t *lock)
  * @note  it is imperative that all calls use the same referece address (such as the head
  * of the list) when referring to the same resource for locking to work correctly.
  *
- * @param pool
  * @param resource_addr
  * @return bplib_mpool_lock_t*
  */
@@ -237,7 +236,6 @@ bplib_mpool_lock_t *bplib_mpool_lock_prepare(void *resource_addr);
  * @note  it is imperative that all calls use the same referece address (such as the head
  * of the list) when referring to the same resource for locking to work correctly.
  *
- * @param pool
  * @param resource_addr
  * @return bplib_mpool_lock_t*
  */

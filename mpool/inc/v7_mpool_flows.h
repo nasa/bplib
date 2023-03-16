@@ -137,7 +137,6 @@ bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_
  * This purges the contents of a queue, such as when the interface is set to a "down" state,
  * this removes any pending items that were in it.
  *
- * @param pool
  * @param subq
  * @return uint32_t
  */

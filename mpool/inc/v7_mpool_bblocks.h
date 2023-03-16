@@ -229,7 +229,7 @@ void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block
  * @brief Append a canonical block to the bundle
  *
  * @param cpb
- * @param ccb
+ * @param blk
  */
 void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_mpool_block_t *blk);
 
@@ -237,7 +237,7 @@ void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_
  * @brief Find a canonical block within the bundle
  *
  * @param cpb
- * @param ccb
+ * @param block_type
  */
 bplib_mpool_block_t *bplib_mpool_bblock_primary_locate_canonical(bplib_mpool_bblock_primary_t *cpb,
                                                                  bp_blocktype_t                block_type);
@@ -248,7 +248,6 @@ bplib_mpool_block_t *bplib_mpool_bblock_primary_locate_canonical(bplib_mpool_bbl
  * This would be used if the logical data has been changed, necessitating re-encoding of the data.
  * The old data blocks are returned to the pool, and the updated contents can replace it.
  *
- * @param pool
  * @param cpb
  */
 void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb);
@@ -259,7 +258,6 @@ void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb);
  * This would be used if the logical data has been changed, necessitating re-encoding of the data.
  * The old data blocks are returned to the pool, and the updated contents can replace it.
  *
- * @param pool
  * @param ccb
  */
 void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *ccb);

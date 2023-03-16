@@ -59,8 +59,7 @@ void bplib_mpool_job_init(bplib_mpool_block_t *base_block, bplib_mpool_job_t *jb
  * Applictions only need to explicitly call this API to mark it as active if there is
  * some other factor that requires it to be processed again.
  *
- * @param pool
- * @param jblk Job that is ready to run
+ * @param job Job that is ready to run
  */
 void bplib_mpool_job_mark_active(bplib_mpool_job_t *job);
 

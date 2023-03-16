@@ -361,8 +361,10 @@ int bplib_serviceflow_forward_egress(void *arg, bplib_mpool_block_t *subq_src)
 /**
  * @brief Append a sub-flow (data service) to the base interface block
  *
- * @param svc_intf
- * @param fblk
+ * @param base_intf_blk
+ * @param svc_num
+ * @param type
+ * @param endpoint_intf_ref
  */
 int bplib_serviceflow_add_to_base(bplib_mpool_block_t *base_intf_blk, bp_val_t svc_num, bplib_dataservice_type_t type,
                                   bplib_mpool_ref_t endpoint_intf_ref)
@@ -417,8 +419,8 @@ int bplib_serviceflow_add_to_base(bplib_mpool_block_t *base_intf_blk, bp_val_t s
 /**
  * @brief Append a sub-flow (data service) to the base interface block
  *
- * @param svc_intf
- * @param fblk
+ * @param base_intf_blk
+ * @param svc_num
  */
 bplib_mpool_ref_t bplib_serviceflow_remove_from_base(bplib_mpool_block_t *base_intf_blk, bp_val_t svc_num)
 {

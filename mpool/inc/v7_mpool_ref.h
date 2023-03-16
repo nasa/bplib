@@ -55,7 +55,6 @@ static inline bplib_mpool_block_t *bplib_mpool_dereference(bplib_mpool_ref_t ref
  * @note If this function returns non-NULL, the calling application should no longer directly
  * use the blk pointer that was passed in.  It should only use the reference pointers.
  *
- * @param pool
  * @param blk
  * @return bplib_mpool_ref_t*
  */
@@ -73,7 +72,6 @@ bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk);
  * This decrements the reference count, and if the reference count reaches 0, it also recycles the
  * original object.
  *
- * @param pool
  * @param refptr
  */
 void bplib_mpool_ref_release(bplib_mpool_ref_t refptr);
@@ -91,8 +89,8 @@ void bplib_mpool_ref_release(bplib_mpool_ref_t refptr);
  * @note This increments the refcount, so the calling application should call
  * bplib_mpool_ref_release() on the original ref if it does not keep it.
  *
- * @param pool
- * @param blk
+ * @param refptr
+ * @param magic_number
  * @param init_arg Opaque pointer to pass to initializer (may be NULL)
  * @return bplib_mpool_block_t*
  */
