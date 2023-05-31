@@ -332,16 +332,14 @@ void test_bplib_cache_custody_find_bundle_match(void)
     /* Test function for:
      * int bplib_cache_custody_find_bundle_match(const bplib_rbt_link_t *node, void *arg)
      */
-    bplib_rbt_link_t             node;
     bplib_cache_custodian_info_t custody_info;
-    bplib_cache_entry_t         *store_entry;
+    bplib_cache_entry_t          store_entry;
 
-    memset(&node, 0, sizeof(bplib_rbt_link_t));
+    memset(&store_entry, 0, sizeof(store_entry));
     custody_info.sequence_num  = 1;
-    store_entry                = (bplib_cache_entry_t *)bplib_cache_entry_from_link(&node, hash_rbt_link);
-    store_entry->flow_seq_copy = 1;
+    store_entry.flow_seq_copy = 1;
 
-    UtAssert_VOIDCALL(bplib_cache_custody_find_bundle_match(&node, &custody_info));
+    UtAssert_VOIDCALL(bplib_cache_custody_find_bundle_match(&store_entry.hash_rbt_link, &custody_info));
 }
 
 void test_bplib_cache_custody_process_bundle(void)
