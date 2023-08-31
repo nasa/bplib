@@ -34,6 +34,7 @@
 #include <getopt.h>
 #include <poll.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -56,6 +57,11 @@
 #define BPCAT_BUNDLE_BUFFER_SIZE    16384
 #define BPCAT_DATA_MESSAGE_MAX_SIZE (BPCAT_BUNDLE_BUFFER_SIZE - 520)
 #define BPCAT_RECV_WINDOW_SZ        32
+
+#define BPCAT_DEFAULT_LOCAL_NODENUM  100
+#define BPCAT_DEFAULT_REMOTE_NODENUM 101
+#define BPCAT_DEFAULT_SERVICENUM     1
+#define BPCAT_DEFAULT_UDP_PORT_BASE  36400
 
 /*************************************************************************
  * File Data
@@ -85,9 +91,15 @@ static bpcat_msg_recv_t recv_window[BPCAT_RECV_WINDOW_SZ];
 
 static volatile sig_atomic_t app_running;
 
-static const char ADDRESS_PREFIX[]           = "ipn://";
-static char       local_address_string[128]  = "ipn://100.1";
-static char       remote_address_string[128] = "ipn://101.1";
+static const char IPN_ADDRESS_PREFIX[] = "ipn://";
+static const char UDP_ADDRESS_PREFIX[] = "udp://";
+
+#define ADDR_MAX_SIZE 128
+
+static char local_dtnaddr_string[ADDR_MAX_SIZE];
+static char remote_dtnaddr_string[ADDR_MAX_SIZE];
+static char local_ipaddr_string[ADDR_MAX_SIZE];
+static char remote_ipaddr_string[ADDR_MAX_SIZE];
 
 static long inter_bundle_delay = 20;
 
@@ -126,6 +138,8 @@ static void display_banner(const char *prog_name)
     fprintf(stderr, "   -r/--remote-addr=ipn://<node>.<service> remote address to use\n");
     fprintf(stderr, "   -i/--input-file=<filename> read input from given file instead of stdin\n");
     fprintf(stderr, "   -o/--output-file=<filename> write output to given file instead of stdout\n");
+    fprintf(stderr, "      --local-cla-uri=udp://<ip>:<port> Bind local CLA to given IP:port \n");
+    fprintf(stderr, "      --remote-cla-uri=udp://<ip>:<port> Send bundles to remote CLA at given IP:port\n");
     fprintf(stderr, "   -d/--delay=<msec> forced inter bundle send delay (20ms default)\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "   Creates a local BP agent with local IPN address as specified.  All data\n");
@@ -138,39 +152,121 @@ static void display_banner(const char *prog_name)
     exit(-1);
 }
 
-static void parse_address(const char *string_addr, bp_ipn_addr_t *parsed_addr)
+static void parse_ipn_address(char *buffer, size_t buf_size, bp_ipn_addr_t *parsed_addr, uint32_t dfl_nodenum,
+                              uint32_t dfl_svcnum)
 {
-    const char *start;
-    char       *end;
+    char *start;
+    char *end;
 
-    if (strncmp(string_addr, ADDRESS_PREFIX, sizeof(ADDRESS_PREFIX) - 1) != 0)
+    /* Start by setting defaults into the output struct */
+    parsed_addr->node_number    = dfl_nodenum;
+    parsed_addr->service_number = dfl_svcnum;
+
+    /* If the buffer is completely empty, then skip the rest - use all defaults */
+    if (buffer != NULL && *buffer != 0)
     {
-        fprintf(stderr, "IPN address string not well formed, must start with %s\n", ADDRESS_PREFIX);
+        if (strncmp(buffer, IPN_ADDRESS_PREFIX, sizeof(IPN_ADDRESS_PREFIX) - 1) != 0)
+        {
+            fprintf(stderr, "IPN address string not well formed, must start with %s\n", IPN_ADDRESS_PREFIX);
+            abort();
+        }
+
+        /* get node part */
+        start = &buffer[sizeof(IPN_ADDRESS_PREFIX) - 1];
+
+        parsed_addr->node_number = strtoul(start, &end, 0);
+        if (end != NULL && *end == '.')
+        {
+            /* get service part */
+            *end  = 0;
+            start = end + 1;
+
+            parsed_addr->service_number = strtoul(start, &end, 0);
+        }
+        else
+        {
+            parsed_addr->service_number = 0;
+        }
+
+        if (end != NULL && *end != 0)
+        {
+            fprintf(stderr, "IPN address string not well formed, trailing data: %s\n", end);
+            abort();
+        }
+    }
+
+    snprintf(buffer, buf_size, "%s%lu.%lu", IPN_ADDRESS_PREFIX, (unsigned long)parsed_addr->node_number,
+             (unsigned long)parsed_addr->service_number);
+}
+
+static void parse_ip_address(char *buffer, size_t buf_size, struct sockaddr_in *parsed_addr, in_addr_t dfl_host,
+                             in_port_t dfl_port)
+{
+    char *host_start;
+    char *port_start;
+    char *end;
+    long  value;
+
+    /* Start by setting defaults into the output struct */
+    parsed_addr->sin_family      = AF_INET;
+    parsed_addr->sin_port        = htons(dfl_port);
+    parsed_addr->sin_addr.s_addr = htonl(dfl_host);
+
+    /* If the buffer is completely empty, then skip the rest - use all defaults */
+    if (buffer != NULL && *buffer != 0)
+    {
+        /* Otherwise this must be a UDP URI */
+        if (strncmp(buffer, UDP_ADDRESS_PREFIX, sizeof(UDP_ADDRESS_PREFIX) - 1) != 0)
+        {
+            fprintf(stderr, "Error: Only UDP URIs are currently supported - must begin with %s\n", UDP_ADDRESS_PREFIX);
+            abort();
+        }
+
+        /* get node part */
+        host_start = &buffer[sizeof(UDP_ADDRESS_PREFIX) - 1];
+        port_start = strchr(host_start, ':');
+        if (port_start != NULL)
+        {
+            *port_start = 0;
+            ++port_start;
+
+            value = strtol(port_start, &end, 0);
+            if (value > 0 && value < 65536 && *end == 0)
+            {
+                /* overwrite default port with provided value */
+                parsed_addr->sin_port = htons(value);
+            }
+            else
+            {
+                fprintf(stderr, "Error: Invalid UDP port number: %s\n", port_start);
+                abort();
+            }
+        }
+
+        /* For now, only dotted-decimal is accepted.  In the future, this could do a DNS lookup. */
+        if (!isdigit((unsigned char)*host_start))
+        {
+            fprintf(stderr, "Error: IP address must be in dotted-decimal form: %s\n", host_start);
+            abort();
+        }
+
+        /* overwrite default host address with provided value */
+        if (!inet_pton(parsed_addr->sin_family, host_start, &parsed_addr->sin_addr))
+        {
+            fprintf(stderr, "Error: %s: %s\n", strerror(errno), host_start);
+            abort();
+        }
+    }
+
+    strcpy(buffer, UDP_ADDRESS_PREFIX);
+    if (inet_ntop(parsed_addr->sin_family, &parsed_addr->sin_addr, &buffer[sizeof(UDP_ADDRESS_PREFIX) - 1],
+                  buf_size - sizeof(UDP_ADDRESS_PREFIX)) == NULL)
+    {
+        fprintf(stderr, "Error: %s\n", strerror(errno));
         abort();
     }
 
-    /* get node part */
-    start                    = &string_addr[sizeof(ADDRESS_PREFIX) - 1];
-    parsed_addr->node_number = strtoul(start, &end, 0);
-    if (end != NULL && *end == '.')
-    {
-        /* get service part */
-        start                       = end + 1;
-        parsed_addr->service_number = strtoul(start, &end, 0);
-    }
-    else
-    {
-        parsed_addr->service_number = 0;
-    }
-
-    if (end != NULL && *end != 0)
-    {
-        fprintf(stderr, "IPN address string not well formed, trailing data: %s\n", end);
-        abort();
-    }
-
-    fprintf(stderr, "Parsed address: %s%lu.%lu\n", ADDRESS_PREFIX, (unsigned long)parsed_addr->node_number,
-            (unsigned long)parsed_addr->service_number);
+    snprintf(&buffer[strlen(buffer)], buf_size - strlen(buffer), ":%u", (unsigned int)ntohs(parsed_addr->sin_port));
 }
 
 void redirect_file(int fileno, const char *filename)
@@ -210,7 +306,7 @@ static void parse_options(int argc, char *argv[])
     /*
      * getopts parameter passing options string
      */
-    static const char *opt_string = "l:r:i:o:d:?";
+    static const char *opt_string = "l:r:i:o:12d:?";
 
     /*
      * getopts_long long form argument table
@@ -219,6 +315,8 @@ static void parse_options(int argc, char *argv[])
                                               {"remote-addr", required_argument, NULL, 'r'},
                                               {"input-file", required_argument, NULL, 'i'},
                                               {"output-file", required_argument, NULL, 'o'},
+                                              {"local-cla-uri", required_argument, NULL, 1000},
+                                              {"remote-cla-uri", required_argument, NULL, 1001},
                                               {"delay", required_argument, NULL, 'd'},
                                               {"help", no_argument, NULL, '?'},
                                               {NULL, no_argument, NULL, 0}};
@@ -231,15 +329,15 @@ static void parse_options(int argc, char *argv[])
     env_str = getenv("BP_LOCAL_ADDRESS");
     if (env_str != NULL)
     {
-        strncpy(local_address_string, env_str, sizeof(local_address_string) - 1);
-        local_address_string[sizeof(local_address_string) - 1] = 0;
+        strncpy(local_dtnaddr_string, env_str, sizeof(local_dtnaddr_string) - 1);
+        local_dtnaddr_string[sizeof(local_dtnaddr_string) - 1] = 0;
     }
 
     env_str = getenv("BP_REMOTE_ADDRESS");
     if (env_str != NULL)
     {
-        strncpy(remote_address_string, env_str, sizeof(remote_address_string) - 1);
-        remote_address_string[sizeof(remote_address_string) - 1] = 0;
+        strncpy(remote_dtnaddr_string, env_str, sizeof(remote_dtnaddr_string) - 1);
+        remote_dtnaddr_string[sizeof(remote_dtnaddr_string) - 1] = 0;
     }
 
     do
@@ -253,13 +351,13 @@ static void parse_options(int argc, char *argv[])
         switch (opt)
         {
             case 'l':
-                strncpy(local_address_string, optarg, sizeof(local_address_string) - 1);
-                local_address_string[sizeof(local_address_string) - 1] = 0;
+                strncpy(local_dtnaddr_string, optarg, sizeof(local_dtnaddr_string) - 1);
+                local_dtnaddr_string[sizeof(local_dtnaddr_string) - 1] = 0;
                 break;
 
             case 'r':
-                strncpy(remote_address_string, optarg, sizeof(remote_address_string) - 1);
-                remote_address_string[sizeof(remote_address_string) - 1] = 0;
+                strncpy(remote_dtnaddr_string, optarg, sizeof(remote_dtnaddr_string) - 1);
+                remote_dtnaddr_string[sizeof(remote_dtnaddr_string) - 1] = 0;
                 break;
 
             case 'i':
@@ -278,12 +376,21 @@ static void parse_options(int argc, char *argv[])
                 }
                 break;
 
+            case 1000:
+                strncpy(local_ipaddr_string, optarg, sizeof(local_ipaddr_string) - 1);
+                local_ipaddr_string[sizeof(local_ipaddr_string) - 1] = 0;
+                break;
+
+            case 1001:
+                strncpy(remote_ipaddr_string, optarg, sizeof(remote_ipaddr_string) - 1);
+                remote_ipaddr_string[sizeof(remote_ipaddr_string) - 1] = 0;
+                break;
+
             default:
                 display_banner(argv[0]);
                 break;
         }
-    }
-    while (true);
+    } while (true);
 }
 
 #define join_thread(tsk) do_join_thread(#tsk, tsk##_task)
@@ -451,10 +558,10 @@ static void *cla_out_entry(void *arg)
     return NULL;
 }
 
-static int setup_cla(bplib_routetbl_t *rtbl, uint16_t local_port, uint16_t remote_port)
+static int setup_cla(bplib_routetbl_t *rtbl, const struct sockaddr_in *local_cla_addr,
+                     const struct sockaddr_in *remote_cla_addr)
 {
     static bplib_cla_intf_id_t cla_intf_id; /* static because its passed to pthread_create() */
-    struct sockaddr_in         addr;
 
     /* Create bplib CLA and default route */
     cla_intf_id.rtbl    = rtbl;
@@ -485,20 +592,13 @@ static int setup_cla(bplib_routetbl_t *rtbl, uint16_t local_port, uint16_t remot
         return -1;
     }
 
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family      = AF_INET;
-    addr.sin_port        = htons(local_port);
-    addr.sin_addr.s_addr = (in_addr_t)htonl(INADDR_LOOPBACK);
-    if (bind(cla_intf_id.sys_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (bind(cla_intf_id.sys_fd, (const struct sockaddr *)local_cla_addr, sizeof(*local_cla_addr)) < 0)
     {
         perror("bind()");
         return -1;
     }
 
-    addr.sin_family      = AF_INET;
-    addr.sin_port        = htons(remote_port);
-    addr.sin_addr.s_addr = (in_addr_t)htonl(INADDR_LOOPBACK);
-    if (connect(cla_intf_id.sys_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (connect(cla_intf_id.sys_fd, (const struct sockaddr *)remote_cla_addr, sizeof(*remote_cla_addr)) < 0)
     {
         perror("connect()");
         return -1;
@@ -841,12 +941,14 @@ static int setup_connection(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *local_a
  ******************************************************************************/
 int main(int argc, char *argv[])
 {
-    bplib_routetbl_t *rtbl;
-    bp_ipn_addr_t     local_addr;
-    bp_ipn_addr_t     remote_addr;
-    bp_ipn_addr_t     storage_addr;
-    uint64_t          stats_time;
-    uint64_t          curr_time;
+    bplib_routetbl_t  *rtbl;
+    bp_ipn_addr_t      local_ipn_addr;
+    bp_ipn_addr_t      remote_ipn_addr;
+    bp_ipn_addr_t      storage_ipn_addr;
+    struct sockaddr_in local_cla_addr;
+    struct sockaddr_in remote_cla_addr;
+    uint64_t           stats_time;
+    uint64_t           curr_time;
 
     app_running = 1;
     signal(SIGINT, app_quick_exit);
@@ -862,8 +964,18 @@ int main(int argc, char *argv[])
 
     /* Process Command Line */
     parse_options(argc, argv);
-    parse_address(local_address_string, &local_addr);
-    parse_address(remote_address_string, &remote_addr);
+    parse_ipn_address(local_dtnaddr_string, sizeof(local_dtnaddr_string), &local_ipn_addr, BPCAT_DEFAULT_LOCAL_NODENUM,
+                      BPCAT_DEFAULT_SERVICENUM);
+    fprintf(stderr, "Local DTN address: %s\n", local_dtnaddr_string);
+    parse_ipn_address(remote_dtnaddr_string, sizeof(remote_dtnaddr_string), &remote_ipn_addr,
+                      BPCAT_DEFAULT_LOCAL_NODENUM, BPCAT_DEFAULT_SERVICENUM);
+    fprintf(stderr, "Remote DTN address: %s\n", remote_dtnaddr_string);
+    parse_ip_address(local_ipaddr_string, sizeof(local_ipaddr_string), &local_cla_addr, INADDR_ANY,
+                     local_ipn_addr.node_number + BPCAT_DEFAULT_UDP_PORT_BASE);
+    fprintf(stderr, "Local CLA URI: %s\n", local_ipaddr_string);
+    parse_ip_address(remote_ipaddr_string, sizeof(remote_ipaddr_string), &remote_cla_addr, INADDR_LOOPBACK,
+                     remote_ipn_addr.node_number + BPCAT_DEFAULT_UDP_PORT_BASE);
+    fprintf(stderr, "Remote CLA URI: %s\n", remote_ipaddr_string);
 
     /* Test route table with 1MB of cache */
     rtbl = bplib_route_alloc_table(10, 1 << 20);
@@ -874,20 +986,20 @@ int main(int argc, char *argv[])
     }
 
     /* this currently assumes service number 10 for storage, should be configurable */
-    storage_addr = (bp_ipn_addr_t) {local_addr.node_number, 10};
-    if (setup_storage(rtbl, &storage_addr) < 0)
+    storage_ipn_addr = (bp_ipn_addr_t) {local_ipn_addr.node_number, 10};
+    if (setup_storage(rtbl, &storage_ipn_addr) < 0)
     {
         fprintf(stderr, "Failed setup_storage()... exiting\n");
         return EXIT_FAILURE;
     }
 
-    if (setup_cla(rtbl, 36400 + local_addr.node_number, 36400 + remote_addr.node_number) < 0)
+    if (setup_cla(rtbl, &local_cla_addr, &remote_cla_addr) < 0)
     {
         fprintf(stderr, "Failed setup_cla()... exiting\n");
         return EXIT_FAILURE;
     }
 
-    if (setup_connection(rtbl, &local_addr, &remote_addr) < 0)
+    if (setup_connection(rtbl, &local_ipn_addr, &remote_ipn_addr) < 0)
     {
         fprintf(stderr, "Failed setup_connection()... exiting\n");
         return EXIT_FAILURE;
