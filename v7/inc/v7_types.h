@@ -59,8 +59,7 @@ typedef enum bp_blocktype
     bp_blocktype_hopCount                    = 10,
     bp_blocktype_bpsec_bib                   = 11,
     bp_blocktype_bpsec_bcb                   = 12,
-    bp_blocktype_custodyTrackingBlock        = 13,
-    bp_blocktype_MAX_NORMAL                  = 14,
+    bp_blocktype_custodyTrackingBlock        = 73,
 
     /*
      * These are internal block types - they exist only locally in this implementation

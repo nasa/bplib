@@ -69,7 +69,7 @@ void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canoni
             break;
     }
 
-    if (encode_blocktype < bp_blocktype_MAX_NORMAL)
+    if (encode_blocktype < bp_blocktype_SPECIAL_BLOCKS_START)
     {
         v7_encode_bp_blocktype(enc, &encode_blocktype);
         v7_encode_bp_blocknum(enc, &v->blockNum);
