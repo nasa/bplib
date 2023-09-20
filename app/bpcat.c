@@ -53,9 +53,13 @@
 //#define BPCAT_MAX_WAIT_MSEC         1800000
 #define BPCAT_MAX_WAIT_MSEC 250
 
-#define BPCAT_BUNDLE_BUFFER_SIZE    16384
-#define BPCAT_DATA_MESSAGE_MAX_SIZE (BPCAT_BUNDLE_BUFFER_SIZE - 520)
-#define BPCAT_RECV_WINDOW_SZ        32
+#define BPCAT_BUNDLE_BUFFER_SIZE  16384
+#define BPCAT_HEADER_RESERVE_SIZE 520
+#define BPCAT_ADU_MAX_SIZE        (BPCAT_BUNDLE_BUFFER_SIZE - BPCAT_HEADER_RESERVE_SIZE)
+#define BPCAT_RECV_WINDOW_SZ      32
+
+#define BPCAT_DEFAULT_INTER_BUNDLE_DELAY 20
+#define BPCAT_MAX_INTER_BUNDLE_DELAY     1000
 
 /*************************************************************************
  * File Data
@@ -72,7 +76,7 @@ typedef struct bpcat_msg_content
 {
     uint32_t stream_pos;
     uint32_t segment_len;
-    uint8_t  content[BPCAT_DATA_MESSAGE_MAX_SIZE];
+    uint8_t  content[BPCAT_ADU_MAX_SIZE];
 } bpcat_msg_content_t;
 
 typedef struct bpcat_msg_recv
@@ -89,7 +93,8 @@ static const char ADDRESS_PREFIX[]           = "ipn://";
 static char       local_address_string[128]  = "ipn://100.1";
 static char       remote_address_string[128] = "ipn://101.1";
 
-static long inter_bundle_delay = 20;
+static long     inter_bundle_delay = BPCAT_DEFAULT_INTER_BUNDLE_DELAY;
+static uint32_t bundle_adu_size    = BPCAT_ADU_MAX_SIZE;
 
 pthread_t cla_in_task;
 pthread_t cla_out_task;
@@ -127,6 +132,8 @@ static void display_banner(const char *prog_name)
     fprintf(stderr, "   -i/--input-file=<filename> read input from given file instead of stdin\n");
     fprintf(stderr, "   -o/--output-file=<filename> write output to given file instead of stdout\n");
     fprintf(stderr, "   -d/--delay=<msec> forced inter bundle send delay (20ms default)\n");
+    fprintf(stderr, "   -s/--adu-size=stream chunk (ADU) size to pass to bplib (default and max=%u bytes)\n",
+            BPCAT_ADU_MAX_SIZE);
     fprintf(stderr, "\n");
     fprintf(stderr, "   Creates a local BP agent with local IPN address as specified.  All data\n");
     fprintf(stderr, "   received from standard input is forwarded over BP bundles, and all data\n");
@@ -210,7 +217,7 @@ static void parse_options(int argc, char *argv[])
     /*
      * getopts parameter passing options string
      */
-    static const char *opt_string = "l:r:i:o:d:?";
+    static const char *opt_string = "l:r:i:o:d:s:?";
 
     /*
      * getopts_long long form argument table
@@ -220,6 +227,7 @@ static void parse_options(int argc, char *argv[])
                                               {"input-file", required_argument, NULL, 'i'},
                                               {"output-file", required_argument, NULL, 'o'},
                                               {"delay", required_argument, NULL, 'd'},
+                                              {"adu-size", required_argument, NULL, 's'},
                                               {"help", no_argument, NULL, '?'},
                                               {NULL, no_argument, NULL, 0}};
 
@@ -272,7 +280,15 @@ static void parse_options(int argc, char *argv[])
 
             case 'd':
                 inter_bundle_delay = strtoul(optarg, NULL, 0);
-                if (inter_bundle_delay >= 1000)
+                if (inter_bundle_delay >= BPCAT_MAX_INTER_BUNDLE_DELAY)
+                {
+                    display_banner(argv[0]);
+                }
+                break;
+
+            case 's':
+                bundle_adu_size = strtoul(optarg, NULL, 0);
+                if (bundle_adu_size > BPCAT_ADU_MAX_SIZE)
                 {
                     display_banner(argv[0]);
                 }
@@ -581,7 +597,7 @@ static void *app_in_entry(void *arg)
             current_time = 0;
         }
 
-        if (send_deadline > current_time && data_fill_sz < sizeof(msg_buffer.content))
+        if (send_deadline > current_time && data_fill_sz < bundle_adu_size)
         {
             pfd.fd      = app_fd;
             pfd.events  = POLLIN;
@@ -604,7 +620,7 @@ static void *app_in_entry(void *arg)
             }
             if ((pfd.revents & POLLIN) != 0)
             {
-                status = read(app_fd, &msg_buffer.content[data_fill_sz], sizeof(msg_buffer.content) - data_fill_sz);
+                status = read(app_fd, &msg_buffer.content[data_fill_sz], bundle_adu_size - data_fill_sz);
                 fprintf(stderr, "read()... size=%ld\n", (long)status);
                 if (status < 0)
                 {
