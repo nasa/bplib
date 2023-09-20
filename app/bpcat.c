@@ -72,6 +72,9 @@ typedef struct bplib_cla_intf_id
     bplib_routetbl_t *rtbl;
     bp_handle_t       intf_id;
     int               sys_fd;
+
+    const struct sockaddr *remote_addr;
+    socklen_t              remote_addr_len;
 } bplib_cla_intf_id_t;
 
 typedef struct bpcat_msg_content
@@ -534,7 +537,7 @@ static void *cla_out_entry(void *arg)
         else
         {
             fprintf(stderr, "Call system send()... size=%zu\n", data_fill_sz);
-            status = send(cla->sys_fd, bundle_buffer, data_fill_sz, 0);
+            status = sendto(cla->sys_fd, bundle_buffer, data_fill_sz, 0, cla->remote_addr, cla->remote_addr_len);
             if (status == data_fill_sz)
             {
                 data_fill_sz = 0;
@@ -598,11 +601,8 @@ static int setup_cla(bplib_routetbl_t *rtbl, const struct sockaddr_in *local_cla
         return -1;
     }
 
-    if (connect(cla_intf_id.sys_fd, (const struct sockaddr *)remote_cla_addr, sizeof(*remote_cla_addr)) < 0)
-    {
-        perror("connect()");
-        return -1;
-    }
+    cla_intf_id.remote_addr     = (const struct sockaddr *)remote_cla_addr;
+    cla_intf_id.remote_addr_len = sizeof(*remote_cla_addr);
 
     /* Create CLA Threads, one for each direction */
     /* This is currently necessary because they pend on different things */
