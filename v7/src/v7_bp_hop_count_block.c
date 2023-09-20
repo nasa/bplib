@@ -25,6 +25,14 @@
 #include "v7_decode_internal.h"
 #include "v7_encode_internal.h"
 
+typedef enum bp_hop_count_field
+{
+    bp_hop_count_field_undef,
+    bp_hop_count_field_limit,
+    bp_hop_count_field_count,
+    bp_hop_count_field_done
+} bp_hop_count_field_t;
+
 /*
  * -----------------------------------------------------------------------------------
  * IMPLEMENTATION
@@ -34,10 +42,25 @@
 
 void v7_encode_bp_hop_count_block_impl(v7_encode_state_t *enc, const void *arg)
 {
-    const bp_hop_count_block_t *v = arg;
+    const bp_hop_count_block_t *v        = arg;
+    bp_hop_count_field_t        field_id = bp_hop_count_field_undef;
 
-    v7_encode_bp_integer(enc, &v->hopLimit);
-    v7_encode_bp_integer(enc, &v->hopCount);
+    while (field_id < bp_hop_count_field_done && !enc->error)
+    {
+        switch (field_id)
+        {
+            case bp_hop_count_field_limit:
+                v7_encode_bp_integer(enc, &v->hopLimit);
+                break;
+            case bp_hop_count_field_count:
+                v7_encode_bp_integer(enc, &v->hopCount);
+                break;
+            default:
+                break;
+        }
+
+        ++field_id;
+    }
 }
 
 void v7_encode_bp_hop_count_block(v7_encode_state_t *enc, const bp_hop_count_block_t *v)
@@ -47,10 +70,25 @@ void v7_encode_bp_hop_count_block(v7_encode_state_t *enc, const bp_hop_count_blo
 
 void v7_decode_bp_hop_count_block_impl(v7_decode_state_t *dec, void *arg)
 {
-    bp_hop_count_block_t *v = arg;
+    bp_hop_count_block_t *v        = arg;
+    bp_hop_count_field_t  field_id = bp_hop_count_field_undef;
 
-    v7_decode_bp_integer(dec, &v->hopLimit);
-    v7_decode_bp_integer(dec, &v->hopCount);
+    while (field_id < bp_hop_count_field_done && !dec->error && !cbor_value_at_end(dec->cbor))
+    {
+        switch (field_id)
+        {
+            case bp_hop_count_field_limit:
+                v7_decode_bp_integer(dec, &v->hopLimit);
+                break;
+            case bp_hop_count_field_count:
+                v7_decode_bp_integer(dec, &v->hopCount);
+                break;
+            default:
+                break;
+        }
+
+        ++field_id;
+    }
 }
 
 void v7_decode_bp_hop_count_block(v7_decode_state_t *dec, bp_hop_count_block_t *v)

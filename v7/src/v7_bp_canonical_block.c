@@ -25,6 +25,18 @@
 #include "v7_decode_internal.h"
 #include "v7_encode_internal.h"
 
+typedef enum bp_canonical_field
+{
+    bp_canonical_field_undef,
+    bp_canonical_field_blocktype,
+    bp_canonical_field_blocknum,
+    bp_canonical_field_flags,
+    bp_canonical_field_crctype,
+    bp_canonical_field_info_content,
+    bp_canonical_field_crcvalue,
+    bp_canonical_field_done
+} bp_canonical_field_t;
+
 static const v7_bitmap_table_t V7_BLOCK_PROCESSING_FLAGS_BITMAP_TABLE[] = {
     {offsetof(bp_block_processing_flags_t, must_remove), 0x10},
     {offsetof(bp_block_processing_flags_t, must_delete), 0x04},
@@ -44,10 +56,43 @@ void v7_encode_bp_block_processing_flags(v7_encode_state_t *enc, const bp_block_
     v7_encode_bitmap(enc, (const uint8_t *)v, V7_BLOCK_PROCESSING_FLAGS_BITMAP_TABLE);
 }
 
+void v7_encode_bp_canonical_info(v7_encode_state_t *enc, const v7_canonical_block_info_t *info)
+{
+    /*
+     * The content is wrapped as a CBOR byte string.
+     * The data may itself be CBOR-encoded (so this may result as CBOR-in-CBOR)
+     *
+     * This encodes the data and snapshots the position of the END of that CBOR byte
+     * string.
+     */
+    cbor_encode_byte_string(enc->cbor, info->content_vptr, info->content_size);
+
+    if (!enc->error)
+    {
+        if (enc->total_bytes_encoded < info->content_size)
+        {
+            /* this should never happen */
+            enc->error = true;
+        }
+        else if (info->content_offset_out != NULL)
+        {
+            /*
+             * Export the location where the encoded data actually appeared in the stream.
+             *
+             * CBOR markup occurs at the beginning of each record, so by knowing
+             * where it ends it is easy to find the beginning of actual data, as the CBOR
+             * markup itself is variable size, but the content is a known size here.
+             */
+            *info->content_offset_out = enc->total_bytes_encoded - info->content_size;
+        }
+    }
+}
+
 void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canonical_bundle_block_t *v,
                                          const v7_canonical_block_info_t *info)
 {
-    size_t         content_offset_cbor_end;
+    bp_canonical_field_t field_id = bp_canonical_field_undef;
+
     bp_blocktype_t encode_blocktype;
 
     /*
@@ -71,43 +116,43 @@ void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canoni
 
     if (encode_blocktype < bp_blocktype_MAX_NORMAL)
     {
-        v7_encode_bp_blocktype(enc, &encode_blocktype);
-        v7_encode_bp_blocknum(enc, &v->blockNum);
-        v7_encode_bp_block_processing_flags(enc, &v->processingControlFlags);
-        v7_encode_bp_crctype(enc, &v->crctype);
-
-        /*
-         * The content is wrapped as a CBOR byte string.
-         * The data may itself be CBOR-encoded (so this may result as CBOR-in-CBOR)
-         *
-         * This encodes the data and snapshots the position of the END of that CBOR byte
-         * string.
-         */
-        cbor_encode_byte_string(enc->cbor, info->content_vptr, info->content_size);
-        content_offset_cbor_end = enc->total_bytes_encoded;
-        if (content_offset_cbor_end < info->content_size)
+        while (field_id < bp_canonical_field_done && !enc->error)
         {
-            /* this should never happen */
-            enc->error = true;
-        }
+            switch (field_id)
+            {
+                case bp_canonical_field_blocktype:
+                    v7_encode_bp_blocktype(enc, &encode_blocktype);
+                    break;
+                case bp_canonical_field_blocknum:
+                    v7_encode_bp_blocknum(enc, &v->blockNum);
+                    break;
+                case bp_canonical_field_flags:
+                    v7_encode_bp_block_processing_flags(enc, &v->processingControlFlags);
+                    break;
+                case bp_canonical_field_crctype:
+                    v7_encode_bp_crctype(enc, &v->crctype);
+                    break;
+                case bp_canonical_field_info_content:
+                    v7_encode_bp_canonical_info(enc, info);
+                    break;
+                case bp_canonical_field_crcvalue:
+                    /* Attach the CRC if requested. */
+                    if (v->crctype != bp_crctype_none)
+                    {
+                        v7_encode_crc(enc);
+                    }
+                    break;
+                default:
+                    break;
+            }
 
-        /* Attach the CRC if requested. */
-        if (v->crctype != bp_crctype_none)
-        {
-            v7_encode_crc(enc);
+            ++field_id;
         }
-
-        /*
-         * Export the location where the encoded data actually appeared in the stream.
-         *
-         * CBOR markup occurs at the beginning of each record, so by knowing
-         * where it ends it is easy to find the beginning of actual data, as the CBOR
-         * markup itself is variable size, but the content is a known size here.
-         */
-        if (!enc->error && info->content_offset_out != NULL)
-        {
-            *info->content_offset_out = content_offset_cbor_end - info->content_size;
-        }
+    }
+    else
+    {
+        /* could not identify what type of RFC9171 block type to use */
+        enc->error = true;
     }
 }
 
@@ -145,84 +190,111 @@ void v7_decode_bp_block_processing_flags(v7_decode_state_t *dec, bp_block_proces
     v7_decode_bitmap(dec, (uint8_t *)v, V7_BLOCK_PROCESSING_FLAGS_BITMAP_TABLE);
 }
 
-void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v,
-                                         v7_canonical_block_info_t *info)
+void v7_decode_bp_canonical_info(v7_decode_state_t *dec, v7_canonical_block_info_t *info)
 {
     const uint8_t *cbor_content_start_ptr;
     size_t         cbor_content_length;
     size_t         cbor_major_size;
 
-    v7_decode_bp_blocktype(dec, &v->blockType);
-    v7_decode_bp_blocknum(dec, &v->blockNum);
-    v7_decode_bp_block_processing_flags(dec, &v->processingControlFlags);
-    v7_decode_bp_crctype(dec, &v->crctype);
-
-    /* The block content should be encoded as a byte string, which internally may
-     * contain more CBOR encoding, but that will be done as a separate decode.
-     * For now just grab the pointers. */
-    if (!dec->error)
+    /*
+     * The content within this context must be a CBOR byte string.
+     * This byte string, in turn, _might_ have CBOR-encoded data within it,
+     * but it won't be decoded right now, just grab the location and
+     * make sure everything seems legit at the outer layer
+     */
+    if (cbor_value_get_type(dec->cbor) != CborByteStringType)
     {
-        if (cbor_value_at_end(dec->cbor) || cbor_value_get_type(dec->cbor) != CborByteStringType)
-        {
-            dec->error = true;
-        }
-        else
-        {
-            cbor_content_start_ptr = cbor_value_get_next_byte(dec->cbor);
-            if (cbor_value_advance(dec->cbor) != CborNoError)
-            {
-                dec->error = true;
-            }
-
-            /*
-             * This calculated length reflects the start of this CBOR value to the
-             * start of the next CBOR value.  Notably this includes the CBOR overhead/markup
-             * for this value, which will need to be removed.  TinyCBOR will want to
-             * copy the value, so we go around it for this value and decode the major
-             * type locally.
-             */
-            cbor_content_length = cbor_value_get_next_byte(dec->cbor) - cbor_content_start_ptr;
-
-            /* Advance the pointer according to the CBOR length to get to the real data. */
-            cbor_major_size = *cbor_content_start_ptr & 0x1F;
-            if (cbor_major_size < 24)
-            {
-                /* no extra bytes beyond the major type */
-                cbor_major_size = 0;
-            }
-            else if (cbor_major_size < 28)
-            {
-                /* 1, 2, 4, or 8 additional bytes beyond the major type */
-                cbor_major_size = 1 << (cbor_major_size - 24);
-            }
-            else
-            {
-                /* Value not well formed, or indefinite length (not supported here) */
-                cbor_major_size = cbor_content_length;
-            }
-
-            ++cbor_major_size; /* Account for the CBOR major type octet itself (always there) */
-            if (cbor_major_size <= cbor_content_length)
-            {
-                cbor_content_start_ptr += cbor_major_size;
-                cbor_content_length -= cbor_major_size;
-
-                /* Export the position of the now-located content information */
-                *info->content_offset_out = cbor_content_start_ptr - dec->base;
-                info->content_vptr        = cbor_content_start_ptr;
-                info->content_size        = cbor_content_length;
-            }
-            else
-            {
-                /* This should not happen */
-                dec->error = true;
-            }
-        }
+        dec->error = true;
+        return;
     }
 
-    if (v->crctype != bp_crctype_none)
+    cbor_content_start_ptr = cbor_value_get_next_byte(dec->cbor);
+    if (cbor_value_advance(dec->cbor) != CborNoError)
     {
-        v7_decode_crc(dec, &v->crcval);
+        dec->error = true;
+        return;
+    }
+
+    /*
+     * This calculated length reflects the start of this CBOR value to the
+     * start of the next CBOR value.  Notably this includes the CBOR overhead/markup
+     * for this value, which will need to be removed.  TinyCBOR will want to
+     * copy the value, so we go around it for this value and decode the major
+     * type locally.
+     */
+    cbor_content_length = cbor_value_get_next_byte(dec->cbor) - cbor_content_start_ptr;
+
+    /* Advance the pointer according to the CBOR length to get to the real data. */
+    cbor_major_size = *cbor_content_start_ptr & 0x1F;
+    if (cbor_major_size < 24)
+    {
+        /* no extra bytes beyond the major type */
+        cbor_major_size = 0;
+    }
+    else if (cbor_major_size < 28)
+    {
+        /* 1, 2, 4, or 8 additional bytes beyond the major type */
+        cbor_major_size = 1 << (cbor_major_size - 24);
+    }
+    else
+    {
+        /* Value not well formed, or indefinite length (not supported here) */
+        cbor_major_size = cbor_content_length;
+    }
+
+    ++cbor_major_size; /* Account for the CBOR major type octet itself (always there) */
+    if (cbor_major_size <= cbor_content_length)
+    {
+        cbor_content_start_ptr += cbor_major_size;
+        cbor_content_length -= cbor_major_size;
+
+        /* Export the position of the now-located content information */
+        *info->content_offset_out = cbor_content_start_ptr - dec->base;
+        info->content_vptr        = cbor_content_start_ptr;
+        info->content_size        = cbor_content_length;
+    }
+    else
+    {
+        /* This should not happen */
+        dec->error = true;
+    }
+}
+
+void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v,
+                                         v7_canonical_block_info_t *info)
+{
+    bp_canonical_field_t field_id = bp_canonical_field_undef;
+
+    while (field_id < bp_canonical_field_done && !dec->error && !cbor_value_at_end(dec->cbor))
+    {
+        switch (field_id)
+        {
+            case bp_canonical_field_blocktype:
+                v7_decode_bp_blocktype(dec, &v->blockType);
+                break;
+            case bp_canonical_field_blocknum:
+                v7_decode_bp_blocknum(dec, &v->blockNum);
+                break;
+            case bp_canonical_field_flags:
+                v7_decode_bp_block_processing_flags(dec, &v->processingControlFlags);
+                break;
+            case bp_canonical_field_crctype:
+                v7_decode_bp_crctype(dec, &v->crctype);
+                break;
+            case bp_canonical_field_info_content:
+                v7_decode_bp_canonical_info(dec, info);
+                break;
+            case bp_canonical_field_crcvalue:
+                if (v->crctype != bp_crctype_none)
+                {
+                    v7_decode_crc(dec, &v->crcval);
+                }
+                break;
+            default:
+                break;
+        }
+
+        ++field_id;
     }
 }
 

@@ -25,6 +25,23 @@
 #include "v7_decode_internal.h"
 #include "v7_encode_internal.h"
 
+typedef enum bp_pri_field
+{
+    bp_pri_field_undef,
+    bp_pri_field_version,
+    bp_pri_field_flags,
+    bp_pri_field_crctype,
+    bp_pri_field_destid,
+    bp_pri_field_sourceid,
+    bp_pri_field_reportid,
+    bp_pri_field_timestamp,
+    bp_pri_field_lifetime,
+    bp_pri_field_fragmentoffset,
+    bp_pri_field_totallength,
+    bp_pri_field_crcvalue,
+    bp_pri_field_done
+} bp_pri_field_t;
+
 static const v7_bitmap_table_t V7_BUNDLE_CONTROL_FLAGS_BITMAP_TABLE[] = {
     {offsetof(bp_bundle_processing_control_flags_t, deletion_status_req), 0x40000},
     {offsetof(bp_bundle_processing_control_flags_t, delivery_status_req), 0x20000},
@@ -80,36 +97,67 @@ void v7_encode_bp_adu_length(v7_encode_state_t *enc, const bp_adu_length_t *v)
 
 void v7_encode_bp_primary_block_impl(v7_encode_state_t *enc, const void *arg)
 {
-    const bp_primary_block_t *v = arg;
+    const bp_primary_block_t *v        = arg;
+    bp_pri_field_t            field_id = bp_pri_field_undef;
 
-    v7_encode_small_int(enc, v->version);
-    if (v->version != 7)
+    while (field_id < bp_pri_field_done && !enc->error)
     {
-        /* don't know how to encode the rest if not v7 */
-        enc->error = true;
-        return;
-    }
-
-    /* the other 7 fixed fields defined by BPv7 */
-    v7_encode_bp_bundle_processing_control_flags(enc, &v->controlFlags);
-    v7_encode_bp_crctype(enc, &v->crctype);
-    v7_encode_bp_endpointid_buffer(enc, &v->destinationEID);
-    v7_encode_bp_endpointid_buffer(enc, &v->sourceEID);
-    v7_encode_bp_endpointid_buffer(enc, &v->reportEID);
-    v7_encode_bp_creation_timestamp(enc, &v->creationTimeStamp);
-    v7_encode_bp_lifetime(enc, &v->lifetime);
-
-    /* next fields depend on whether the flag is set */
-    if (v->controlFlags.isFragment)
-    {
-        v7_encode_bp_adu_length(enc, &v->fragmentOffset);
-        v7_encode_bp_adu_length(enc, &v->totalADUlength);
-    }
-
-    /* Attach the CRC if requested. */
-    if (v->crctype != bp_crctype_none)
-    {
-        v7_encode_crc(enc);
+        switch (field_id)
+        {
+            case bp_pri_field_version:
+                v7_encode_small_int(enc, v->version);
+                if (v->version != 7)
+                {
+                    /* don't know how to encode the rest if not v7 */
+                    enc->error = true;
+                }
+                break;
+            case bp_pri_field_flags:
+                v7_encode_bp_bundle_processing_control_flags(enc, &v->controlFlags);
+                break;
+            case bp_pri_field_crctype:
+                v7_encode_bp_crctype(enc, &v->crctype);
+                break;
+            case bp_pri_field_destid:
+                v7_encode_bp_endpointid_buffer(enc, &v->destinationEID);
+                break;
+            case bp_pri_field_sourceid:
+                v7_encode_bp_endpointid_buffer(enc, &v->sourceEID);
+                break;
+            case bp_pri_field_reportid:
+                v7_encode_bp_endpointid_buffer(enc, &v->reportEID);
+                break;
+            case bp_pri_field_timestamp:
+                v7_encode_bp_creation_timestamp(enc, &v->creationTimeStamp);
+                break;
+            case bp_pri_field_lifetime:
+                v7_encode_bp_lifetime(enc, &v->lifetime);
+                break;
+            case bp_pri_field_fragmentoffset:
+                /* depends on whether the flag is set */
+                if (v->controlFlags.isFragment)
+                {
+                    v7_encode_bp_adu_length(enc, &v->fragmentOffset);
+                }
+                break;
+            case bp_pri_field_totallength:
+                /* depends on whether the flag is set */
+                if (v->controlFlags.isFragment)
+                {
+                    v7_encode_bp_adu_length(enc, &v->totalADUlength);
+                }
+                break;
+            case bp_pri_field_crcvalue:
+                /* Attach the CRC if requested. */
+                if (v->crctype != bp_crctype_none)
+                {
+                    v7_encode_crc(enc);
+                }
+                break;
+            default:
+                break;
+        }
+        ++field_id;
     }
 }
 
@@ -173,41 +221,75 @@ void v7_decode_bp_adu_length(v7_decode_state_t *dec, bp_adu_length_t *v)
 
 void v7_decode_bp_primary_block_impl(v7_decode_state_t *dec, void *arg)
 {
-    bp_primary_block_t *v = arg;
+    bp_primary_block_t *v        = arg;
+    bp_pri_field_t      field_id = bp_pri_field_undef;
 
-    v->version = (uint8_t)v7_decode_small_int(dec);
-    if (v->version != 7)
+    while (field_id < bp_pri_field_done && !dec->error && !cbor_value_at_end(dec->cbor))
     {
-        /* don't know how to decode the rest if not v7 */
-        dec->error = true;
-        return;
-    }
-
-    /* the other 7 fixed fields defined by BPv7 */
-    v7_decode_bp_bundle_processing_control_flags(dec, &v->controlFlags);
-    v7_decode_bp_crctype(dec, &v->crctype);
-    v7_decode_bp_endpointid_buffer(dec, &v->destinationEID);
-    v7_decode_bp_endpointid_buffer(dec, &v->sourceEID);
-    v7_decode_bp_endpointid_buffer(dec, &v->reportEID);
-    v7_decode_bp_creation_timestamp(dec, &v->creationTimeStamp);
-    v7_decode_bp_lifetime(dec, &v->lifetime);
-
-    /* next fields depend on whether the flag is set */
-    if (v->controlFlags.isFragment)
-    {
-        v7_decode_bp_adu_length(dec, &v->fragmentOffset);
-        v7_decode_bp_adu_length(dec, &v->totalADUlength);
-    }
-    else
-    {
-        v->fragmentOffset = 0;
-        v->totalADUlength = 0;
-    }
-
-    /* Attach the CRC if requested. */
-    if (v->crctype != bp_crctype_none)
-    {
-        v7_decode_crc(dec, &v->crcval);
+        switch (field_id)
+        {
+            case bp_pri_field_version:
+                v->version = (uint8_t)v7_decode_small_int(dec);
+                if (v->version != 7)
+                {
+                    /* don't know how to decode the rest if not v7 */
+                    dec->error = true;
+                }
+                break;
+            case bp_pri_field_flags:
+                v7_decode_bp_bundle_processing_control_flags(dec, &v->controlFlags);
+                break;
+            case bp_pri_field_crctype:
+                v7_decode_bp_crctype(dec, &v->crctype);
+                break;
+            case bp_pri_field_destid:
+                v7_decode_bp_endpointid_buffer(dec, &v->destinationEID);
+                break;
+            case bp_pri_field_sourceid:
+                v7_decode_bp_endpointid_buffer(dec, &v->sourceEID);
+                break;
+            case bp_pri_field_reportid:
+                v7_decode_bp_endpointid_buffer(dec, &v->reportEID);
+                break;
+            case bp_pri_field_timestamp:
+                v7_decode_bp_creation_timestamp(dec, &v->creationTimeStamp);
+                break;
+            case bp_pri_field_lifetime:
+                v7_decode_bp_lifetime(dec, &v->lifetime);
+                break;
+            case bp_pri_field_fragmentoffset:
+                /* depends on whether the flag is set */
+                if (v->controlFlags.isFragment)
+                {
+                    v7_decode_bp_adu_length(dec, &v->fragmentOffset);
+                }
+                else
+                {
+                    v->fragmentOffset = 0;
+                }
+                break;
+            case bp_pri_field_totallength:
+                /* depends on whether the flag is set */
+                if (v->controlFlags.isFragment)
+                {
+                    v7_decode_bp_adu_length(dec, &v->totalADUlength);
+                }
+                else
+                {
+                    v->totalADUlength = 0;
+                }
+                break;
+            case bp_pri_field_crcvalue:
+                /* decode the CRC if it has one. */
+                if (v->crctype != bp_crctype_none)
+                {
+                    v7_decode_crc(dec, &v->crcval);
+                }
+                break;
+            default:
+                break;
+        }
+        ++field_id;
     }
 }
 

@@ -25,6 +25,13 @@
 #include "v7_encode_internal.h"
 #include "v7_decode_internal.h"
 
+typedef enum bp_ipn_ssp_field
+{
+    bp_ipn_ssp_field_undef,
+    bp_ipn_ssp_field_nodenumber,
+    bp_ipn_ssp_field_servicenumber,
+    bp_ipn_ssp_field_done
+} bp_ipn_ssp_field_t;
 /*
  * -----------------------------------------------------------------------------------
  * IMPLEMENTATION
@@ -49,10 +56,25 @@ void v7_encode_bp_ipn_servicenumber(v7_encode_state_t *enc, const bp_ipn_service
 
 void v7_encode_bp_ipn_uri_ssp_impl(v7_encode_state_t *enc, const void *arg)
 {
-    const bp_ipn_uri_ssp_t *v = arg;
+    const bp_ipn_uri_ssp_t *v        = arg;
+    bp_ipn_ssp_field_t      field_id = bp_ipn_ssp_field_undef;
 
-    v7_encode_bp_ipn_nodenumber(enc, &v->node_number);
-    v7_encode_bp_ipn_servicenumber(enc, &v->service_number);
+    while (field_id < bp_ipn_ssp_field_done && !enc->error)
+    {
+        switch (field_id)
+        {
+            case bp_ipn_ssp_field_nodenumber:
+                v7_encode_bp_ipn_nodenumber(enc, &v->node_number);
+                break;
+            case bp_ipn_ssp_field_servicenumber:
+                v7_encode_bp_ipn_servicenumber(enc, &v->service_number);
+                break;
+            default:
+                break;
+        }
+
+        ++field_id;
+    }
 }
 
 void v7_encode_bp_ipn_uri_ssp(v7_encode_state_t *enc, const bp_ipn_uri_ssp_t *v)
@@ -101,10 +123,25 @@ void v7_decode_bp_ipn_servicenumber(v7_decode_state_t *dec, bp_ipn_servicenumber
 
 void v7_decode_bp_ipn_uri_ssp_impl(v7_decode_state_t *dec, void *arg)
 {
-    bp_ipn_uri_ssp_t *v = arg;
+    bp_ipn_uri_ssp_t  *v        = arg;
+    bp_ipn_ssp_field_t field_id = bp_ipn_ssp_field_undef;
 
-    v7_decode_bp_ipn_nodenumber(dec, &v->node_number);
-    v7_decode_bp_ipn_servicenumber(dec, &v->service_number);
+    while (field_id < bp_ipn_ssp_field_done && !dec->error && !cbor_value_at_end(dec->cbor))
+    {
+        switch (field_id)
+        {
+            case bp_ipn_ssp_field_nodenumber:
+                v7_decode_bp_ipn_nodenumber(dec, &v->node_number);
+                break;
+            case bp_ipn_ssp_field_servicenumber:
+                v7_decode_bp_ipn_servicenumber(dec, &v->service_number);
+                break;
+            default:
+                break;
+        }
+
+        ++field_id;
+    }
 }
 
 void v7_decode_bp_ipn_uri_ssp(v7_decode_state_t *dec, bp_ipn_uri_ssp_t *v)
