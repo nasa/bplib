@@ -74,20 +74,20 @@ void test_bplib_cla_ingress(void)
     memset(&flow_ref, 0, sizeof(bplib_mpool_ref_t));
     memset(&stats, 0, sizeof(bplib_cla_stats_t));
 
-    UtAssert_UINT32_NEQ(bplib_cla_ingress(&rtbl, intf_id, bundle, size, timeout), 0);
+    UtAssert_INT32_NEQ(bplib_cla_ingress(&rtbl, intf_id, bundle, size, timeout), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_generic_data_cast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_get_parent_pool_from_link), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_primary_alloc), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_primary_cast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_ref_create), UT_lib_AltHandler_PointerReturn, &flow_ref);
-    UtAssert_UINT32_NEQ(bplib_cla_ingress(&rtbl, intf_id, bundle, size, timeout), 0);
+    UtAssert_INT32_NEQ(bplib_cla_ingress(&rtbl, intf_id, bundle, size, timeout), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_generic_data_cast), UT_lib_AltHandler_PointerReturn, &flow_ref);
-    UtAssert_UINT32_EQ(bplib_cla_ingress(&rtbl, intf_id, bundle, size, timeout), 0);
+    UtAssert_INT32_EQ(bplib_cla_ingress(&rtbl, intf_id, bundle, size, timeout), 0);
 
     timeout = 0;
-    UtAssert_UINT32_EQ(bplib_cla_ingress(&rtbl, intf_id, bundle, size, timeout), 0);
+    UtAssert_INT32_EQ(bplib_cla_ingress(&rtbl, intf_id, bundle, size, timeout), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_ref_create), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_generic_data_cast), UT_lib_AltHandler_PointerReturn, NULL);
@@ -112,14 +112,14 @@ void test_bplib_cla_egress(void)
     memset(&stats, 0, sizeof(bplib_cla_stats_t));
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_try_pull), UT_lib_AltHandler_PointerReturn, NULL);
-    UtAssert_UINT32_NEQ(bplib_cla_egress(&rtbl, intf_id, bundle, &size, timeout), 0);
+    UtAssert_INT32_NEQ(bplib_cla_egress(&rtbl, intf_id, bundle, &size, timeout), 0);
 
     timeout = 3000;
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_ref_create), UT_lib_AltHandler_PointerReturn, &flow_ref);
-    UtAssert_UINT32_NEQ(bplib_cla_egress(&rtbl, intf_id, bundle, &size, timeout), 0);
+    UtAssert_INT32_NEQ(bplib_cla_egress(&rtbl, intf_id, bundle, &size, timeout), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_generic_data_cast), UT_lib_AltHandler_PointerReturn, &stats);
-    UtAssert_UINT32_EQ(bplib_cla_egress(&rtbl, intf_id, bundle, &size, timeout), 0);
+    UtAssert_INT32_EQ(bplib_cla_egress(&rtbl, intf_id, bundle, &size, timeout), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_generic_data_cast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_ref_create), UT_lib_AltHandler_PointerReturn, NULL);
@@ -133,21 +133,22 @@ void test_bplib_cla_event_impl(void)
     bplib_mpool_flow_generic_event_t arg;
     bplib_mpool_block_t              intf_block;
     bplib_mpool_flow_t               flow;
-    UtAssert_UINT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
+
+    UtAssert_INT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
 
     memset(&arg, 0, sizeof(bplib_mpool_flow_generic_event_t));
     memset(&intf_block, 0, sizeof(bplib_mpool_block_t));
     memset(&flow, 0, sizeof(bplib_mpool_flow_t));
 
     arg.event_type = bplib_mpool_flow_event_up;
-    UtAssert_UINT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
+    UtAssert_INT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_cast), UT_lib_AltHandler_PointerReturn, &flow);
     arg.intf_state.intf_id = BPLIB_HANDLE_MPOOL_BASE;
-    UtAssert_UINT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
+    UtAssert_INT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
 
     arg.event_type = bplib_mpool_flow_event_down;
-    UtAssert_UINT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
+    UtAssert_INT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_cast), UT_lib_AltHandler_PointerReturn, NULL);
 }
@@ -173,21 +174,21 @@ void test_bplib_generic_bundle_ingress(void)
     memset(&refptr, 0, sizeof(bplib_mpool_ref_t));
     memset(&pri_block, 0, sizeof(bplib_mpool_bblock_primary_t));
 
-    UtAssert_UINT32_EQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), 0);
+    UtAssert_INT32_EQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_cast), UT_lib_AltHandler_PointerReturn, &flow);
-    UtAssert_UINT32_EQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), 0);
+    UtAssert_INT32_EQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), BP_ERROR);
 
     UT_SetHandlerFunction(UT_KEY(v7_copy_full_bundle_in), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_try_push), UT_lib_int8_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_primary_alloc), UT_lib_AltHandler_PointerReturn, &pblk);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_ref_create), UT_lib_AltHandler_PointerReturn, &refptr);
-    UtAssert_UINT32_EQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), 0);
+    UtAssert_INT32_EQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), BP_ERROR);
 
     size = 0;
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_primary_cast), UT_lib_AltHandler_PointerReturn, &pri_block);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_ref_make_block), UT_lib_AltHandler_PointerReturn, &pblk);
-    UtAssert_UINT32_NEQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), 0);
+    UtAssert_INT32_NEQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_cast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_primary_alloc), UT_lib_AltHandler_PointerReturn, NULL);
@@ -216,20 +217,20 @@ void test_bplib_generic_bundle_egress(void)
     memset(&refptr, 0, sizeof(bplib_mpool_ref_t));
     memset(&pri_block, 0, sizeof(bplib_mpool_bblock_primary_t));
 
-    UtAssert_UINT32_EQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
+    UtAssert_INT32_EQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
 
     UT_SetHandlerFunction(UT_KEY(v7_compute_full_bundle_size), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(v7_copy_full_bundle_out), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_cast), UT_lib_AltHandler_PointerReturn, &flow);
-    UtAssert_UINT32_NEQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
+    UtAssert_INT32_NEQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
 
     UT_SetHandlerFunction(UT_KEY(v7_copy_full_bundle_in), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_try_pull), UT_lib_AltHandler_PointerReturn, &pblk);
-    UtAssert_UINT32_NEQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
+    UtAssert_INT32_NEQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
 
     size = 0;
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_primary_cast), UT_lib_AltHandler_PointerReturn, &pri_block);
-    UtAssert_UINT32_EQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
+    UtAssert_INT32_EQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
 
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_cast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_try_pull), UT_lib_AltHandler_PointerReturn, NULL);

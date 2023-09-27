@@ -158,7 +158,8 @@ int bplib_generic_bundle_ingress(bplib_mpool_ref_t flow_ref, const void *content
         }
         else
         {
-            status = bplog(NULL, BP_FLAG_INCOMPLETE, "Bundle did not decode correctly\n");
+            bplog(NULL, BP_FLAG_INCOMPLETE, "Bundle did not decode correctly\n");
+            status = BP_ERROR;
         }
 
         if (refptr != NULL)
