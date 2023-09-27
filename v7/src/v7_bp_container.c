@@ -101,15 +101,16 @@ void v7_decode_container(v7_decode_state_t *dec, size_t entries, v7_decode_func_
                 func(dec, arg);
 
                 /* This should have consumed every item */
-                if (!cbor_value_at_end(&content))
+                if (!dec->error)
                 {
-                    dec->error = true;
-                }
-
-                /* return to parent scope */
-                if (cbor_value_leave_container(parent, &content) != CborNoError)
-                {
-                    dec->error = true;
+                    if (!cbor_value_at_end(&content))
+                    {
+                        dec->error = true;
+                    }
+                    else if (cbor_value_leave_container(parent, &content) != CborNoError)
+                    {
+                        dec->error = true;
+                    }
                 }
 
                 dec->cbor = parent;
