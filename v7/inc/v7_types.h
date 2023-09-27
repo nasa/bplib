@@ -90,12 +90,14 @@ typedef bp_integer_t bp_sequencenumber_t;
 typedef enum bp_iana_uri_scheme
 {
     bp_iana_uri_scheme_undefined = 0,
+    bp_iana_uri_scheme_dtn       = 1,
     bp_iana_uri_scheme_ipn       = 2
 } bp_iana_uri_scheme_t;
 
 typedef enum bp_endpointid_scheme
 {
     bp_endpointid_scheme_undefined = 0,
+    bp_endpointid_scheme_dtn       = 1,
     bp_endpointid_scheme_ipn       = 2
 } bp_endpointid_scheme_t;
 
@@ -107,6 +109,11 @@ typedef struct bp_ipn_uri_ssp
     bp_ipn_nodenumber_t    node_number;
     bp_ipn_servicenumber_t service_number;
 } bp_ipn_uri_ssp_t;
+
+typedef struct bp_dtn_uri_ssp
+{
+    bool is_none; /**< indicates the special address "dtn:none" per RFC9171 section 4.2.5.1.1 */
+} bp_dtn_uri_ssp_t;
 
 typedef struct bp_creation_timestamp
 {
@@ -193,6 +200,7 @@ typedef bp_integer_t bp_adu_length_t;
 
 typedef union bp_endpointid_ssp
 {
+    bp_dtn_uri_ssp_t dtn; /* present if scheme == bp_endpointid_scheme_dtn */
     bp_ipn_uri_ssp_t ipn; /* present if scheme == bp_endpointid_scheme_ipn */
 } bp_endpointid_ssp_t;
 

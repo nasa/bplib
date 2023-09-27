@@ -41,6 +41,22 @@
 #include "v7_cache.h"
 #include "v7_mpool.h"
 
+/* This is a complete bundle that uses "dtn:none" as the report-to EID */
+const uint8_t DTN_NONE_CBOR_DATA[] =
+"\x9f\x89\x07\x04\x02\x82\x02\x82\x18\x67\x01\x82\x02\x82\x01\x01" \
+"\x82\x01\x00\x82\x1b\x00\x00\x00\xae\x09\xf6\xe9\x32\x00\x1a\x00" \
+"\x0f\x42\x40\x44\x60\x69\x4b\xe7\x86\x06\x04\x10\x02\x45\x82\x02" \
+"\x82\x0a\x00\x44\xed\x36\x9a\xb2\x86\x0a\x02\x10\x02\x44\x82\x18" \
+"\x64\x01\x44\x34\x57\x36\x50\x86\x0d\x03\x10\x02\x41\x02\x44\x89" \
+"\x13\xe1\x6e\x86\x01\x01\x00\x02\x58\x64\x00\x00\x00\x00\x00\x00" \
+"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" \
+"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" \
+"\x00\x00\x00\x00\x00\x00\x00\x00\xf1\x01\x00\x00\x00\x00\x00\x00" \
+"\x30\xe8\x01\x54\xb0\x7f\x00\x00\x80\xd0\x01\x54\xb0\x7f\x00\x00" \
+"\x20\x00\x00\x00\x00\x00\x00\x00\x24\x00\x00\x00\x00\x00\x00\x00" \
+"\x9e\xae\x04\xaf\xb7\x7f\x00\x00\xa0\xfd\x01\x54\xb0\x7f\x44\x67" \
+"\x7e\xcb\x35\xff";
+
 bplib_routetbl_t *s1_rtbl;
 bplib_routetbl_t *s2_rtbl;
 
@@ -318,6 +334,33 @@ void bplib_bundle_test(void)
     OS_TaskDelay(2000);
 }
 
+void bplib_decoder_check(void)
+{
+    bplib_routetbl_t *rtbl;
+    bp_handle_t       cla_intf;
+    bp_handle_t       node_intf;
+
+    UtAssert_NOT_NULL(rtbl = bplib_route_alloc_table(10, 1 << 16));
+
+    node_intf = bplib_create_node_intf(rtbl, 103);
+    UtAssert_BOOL_TRUE(bp_handle_is_valid(node_intf));
+
+    cla_intf = bplib_create_cla_intf(rtbl);
+    UtAssert_BOOL_TRUE(bp_handle_is_valid(cla_intf));
+
+    UtAssert_INT32_EQ(bplib_route_intf_set_flags(rtbl, node_intf, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP),
+                      BP_SUCCESS);
+
+    UtAssert_INT32_EQ(bplib_route_intf_set_flags(rtbl, cla_intf, BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP),
+                      BP_SUCCESS);
+
+    UtAssert_VOIDCALL(bplib_route_periodic_maintenance(rtbl));
+
+    UtAssert_INT32_EQ(bplib_cla_ingress(rtbl, cla_intf, DTN_NONE_CBOR_DATA, sizeof(DTN_NONE_CBOR_DATA) - 1, BP_CHECK), BP_SUCCESS);
+
+    bplib_os_free(rtbl);
+}
+
 void prepare(void)
 {
     osal_id_t fs;
@@ -337,6 +380,7 @@ void UtTest_Setup(void)
     /* call required init functions */
     prepare();
 
+    UtTest_Add(bplib_decoder_check, NULL, NULL, "decoder check");
     UtTest_Add(bplib_route_test, NULL, NULL, "route test");
     UtTest_Add(bplib_bundle_test, bplib_start_mgt_task, bplib_end_mgt_task, "bundle test");
 }
