@@ -58,7 +58,6 @@ typedef enum
     bplib_mpool_flow_event_up,
     bplib_mpool_flow_event_down,
     bplib_mpool_flow_event_max
-
 } bplib_mpool_flow_event_t;
 
 typedef struct bplib_route_state_event

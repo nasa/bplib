@@ -55,6 +55,7 @@ static inline size_t bplib_mpool_stream_tell(const bplib_mpool_stream_t *mps)
 {
     return mps->stream_position;
 }
+
 void bplib_mpool_stream_close(bplib_mpool_stream_t *mps);
 
 #endif /* V7_MPSTREAM_H */

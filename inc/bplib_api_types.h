@@ -106,7 +106,6 @@ typedef int (*bplib_mpool_callback_func_t)(void *, bplib_mpool_block_t *);
  */
 typedef enum bp_crctype
 {
-
     /**
      * @brief No CRC is present.
      */
@@ -121,7 +120,6 @@ typedef enum bp_crctype
      * @brief A CRC-32 (Castagnoli) is present.
      */
     bp_crctype_CRC32C = 2
-
 } bp_crctype_t;
 
 /*
@@ -168,7 +166,6 @@ typedef struct bplib_connection
     bp_crctype_t crctype;
 
     bplib_policy_delivery_t local_delivery_policy;
-
 } bplib_connection_t;
 
 typedef struct bplib_routetbl bplib_routetbl_t;
@@ -325,7 +322,7 @@ static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
     }
 
 #ifdef __cplusplus
-} // extern "C"
+} /* extern "C" */
 #endif
 
 #endif /* BPLIB_API_TYPES_H */

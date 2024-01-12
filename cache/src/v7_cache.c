@@ -563,6 +563,7 @@ int bplib_cache_configure(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int
 
     return result;
 }
+
 int bplib_cache_query(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, bplib_cache_module_valtype_t vt,
                       const void **val)
 {

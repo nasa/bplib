@@ -52,7 +52,7 @@
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_init - initializes bp library
+ * Initializes bp library
  *-------------------------------------------------------------------------------------*/
 int bplib_init(void)
 {
@@ -67,7 +67,7 @@ int bplib_init(void)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_deinit - deinitializes bp library
+ * Deinitializes bp library
  *-------------------------------------------------------------------------------------*/
 void bplib_deinit(void) {}
 
@@ -124,8 +124,6 @@ bp_handle_t bplib_create_node_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_num)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_display -
- *
  *  bundle -                pointer to a bundle (byte array) [INPUT]
  *  size -                  size of bundle being pointed to [INPUT]
  *  flags -                 processing flags [OUTPUT]
@@ -137,8 +135,6 @@ int bplib_display(const void *bundle, size_t size, uint32_t *flags)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_eid2ipn -
- *
  *  eid -                   null-terminated string representation of End Point ID [INPUT]
  *  len -                   size in bytes of above string [INPUT]
  *  node -                  node number as read from eid [OUTPUT]
@@ -218,8 +214,6 @@ int bplib_eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn_t *service
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_ipn2eid -
- *
  *  eid -                   buffer that will hold null-terminated string representation of End Point ID [OUTPUT]
  *  len -                   size in bytes of above buffer [INPUT]
  *  node -                  node number to be written into eid [INPUT]
@@ -253,8 +247,6 @@ int bplib_ipn2eid(char *eid, size_t len, bp_ipn_t node, bp_ipn_t service)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_query_integer
- *
  * Public API function
  * See description in header for argument/return detail
  *
@@ -287,8 +279,6 @@ int bplib_query_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_varia
 }
 
 /*----------------------------------------------------------------
- *
- * Function: bplib_config_integer
  *
  * Public API function
  * See description in header for argument/return detail

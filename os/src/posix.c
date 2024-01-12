@@ -76,12 +76,13 @@ static inline uint64_t bplib_timespec_to_u64(const struct timespec *ts)
 
     return result;
 }
+
 /******************************************************************************
  EXPORTED UTILITY FUNCTIONS
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_enable_log_flags -
+ *
  *-------------------------------------------------------------------------------------*/
 void bplib_os_enable_log_flags(uint32_t enable_mask)
 {
@@ -93,7 +94,7 @@ void bplib_os_enable_log_flags(uint32_t enable_mask)
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_init -
+ *
  *-------------------------------------------------------------------------------------*/
 void bplib_os_init()
 {
@@ -108,8 +109,6 @@ void bplib_os_init()
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_log -
- *
  * Returns - the error code passed in (for convenience)
  *-------------------------------------------------------------------------------------*/
 int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...)
@@ -177,7 +176,7 @@ int bplib_os_log(const char *file, unsigned int line, uint32_t *flags, uint32_t 
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_get_dtntime_ms - returns milliseconds since DTN epoch
+ * Returns milliseconds since DTN epoch
  * this should be compatible with the BPv7 time definition
  *-------------------------------------------------------------------------------------*/
 uint64_t bplib_os_get_dtntime_ms(void)
@@ -220,7 +219,7 @@ uint64_t bplib_os_get_dtntime_ms(void)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_systime - returns seconds
+ * Returns seconds
  *-------------------------------------------------------------------------------------*/
 int bplib_os_systime(unsigned long *sysnow)
 {
@@ -249,7 +248,7 @@ int bplib_os_systime(unsigned long *sysnow)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_sleep
+ *
  *-------------------------------------------------------------------------------------*/
 void bplib_os_sleep(int seconds)
 {
@@ -257,7 +256,7 @@ void bplib_os_sleep(int seconds)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_random -
+ *
  *-------------------------------------------------------------------------------------*/
 uint32_t bplib_os_random(void)
 {
@@ -265,7 +264,7 @@ uint32_t bplib_os_random(void)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_createlock -
+ *
  *-------------------------------------------------------------------------------------*/
 bp_handle_t bplib_os_createlock(void)
 {
@@ -298,7 +297,7 @@ bp_handle_t bplib_os_createlock(void)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_destroylock -
+ *
  *-------------------------------------------------------------------------------------*/
 void bplib_os_destroylock(bp_handle_t h)
 {
@@ -318,7 +317,7 @@ void bplib_os_destroylock(bp_handle_t h)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_lock -
+ *
  *-------------------------------------------------------------------------------------*/
 void bplib_os_lock(bp_handle_t h)
 {
@@ -328,7 +327,7 @@ void bplib_os_lock(bp_handle_t h)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_unlock -
+ *
  *-------------------------------------------------------------------------------------*/
 void bplib_os_unlock(bp_handle_t h)
 {
@@ -337,6 +336,9 @@ void bplib_os_unlock(bp_handle_t h)
     pthread_mutex_unlock(&locks[handle]->mutex);
 }
 
+/*--------------------------------------------------------------------------------------
+ *
+ *-------------------------------------------------------------------------------------*/
 void bplib_os_broadcast_signal_and_unlock(bp_handle_t h)
 {
     bplib_os_lock_t *lock = locks[bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE)];
@@ -345,6 +347,9 @@ void bplib_os_broadcast_signal_and_unlock(bp_handle_t h)
     pthread_mutex_unlock(&lock->mutex);
 }
 
+/*--------------------------------------------------------------------------------------
+ *
+ *-------------------------------------------------------------------------------------*/
 void bplib_os_broadcast_signal(bp_handle_t h)
 {
     bplib_os_lock_t *lock = locks[bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE)];
@@ -353,7 +358,7 @@ void bplib_os_broadcast_signal(bp_handle_t h)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_signal -
+ *
  *-------------------------------------------------------------------------------------*/
 void bplib_os_signal(bp_handle_t h)
 {
@@ -363,7 +368,7 @@ void bplib_os_signal(bp_handle_t h)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_waiton -
+ *
  *-------------------------------------------------------------------------------------*/
 int bplib_os_waiton(bp_handle_t h, int timeout_ms)
 {
@@ -419,6 +424,9 @@ int bplib_os_waiton(bp_handle_t h, int timeout_ms)
     return status;
 }
 
+/*--------------------------------------------------------------------------------------
+ *
+ *-------------------------------------------------------------------------------------*/
 int bplib_os_wait_until_ms(bp_handle_t h, uint64_t abs_dtntime_ms)
 {
     bplib_os_lock_t *lock = locks[bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE)];
@@ -459,7 +467,7 @@ int bplib_os_wait_until_ms(bp_handle_t h, uint64_t abs_dtntime_ms)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_format -
+ *
  *-------------------------------------------------------------------------------------*/
 int bplib_os_format(char *dst, size_t len, const char *fmt, ...)
 {
@@ -476,7 +484,7 @@ int bplib_os_format(char *dst, size_t len, const char *fmt, ...)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_os_strnlen -
+ *
  *-------------------------------------------------------------------------------------*/
 int bplib_os_strnlen(const char *str, int maxlen)
 {

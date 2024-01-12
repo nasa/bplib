@@ -84,7 +84,6 @@ typedef enum bplib_mpool_blocktype
     /* The administrative block will be marked with 0xFF, this still permits the
      * type to be stored as a uint8_t if needed to save bits */
     bplib_mpool_blocktype_admin = 255
-
 } bplib_mpool_blocktype_t;
 
 struct bplib_mpool_block
@@ -107,7 +106,6 @@ typedef enum
     bplib_mpool_eventid_undefined,
     bplib_mpool_eventid_recycle,
     bplib_mpool_eventid_max
-
 } bplib_mpool_eventid_t;
 
 /**
@@ -132,7 +130,6 @@ typedef struct bplib_mpool_blocktype_api
 {
     bplib_mpool_callback_func_t construct; /**< Initialize a newly-created block */
     bplib_mpool_callback_func_t destruct;  /**< De-initialize a recycled block */
-
 } bplib_mpool_blocktype_api_t;
 
 /**

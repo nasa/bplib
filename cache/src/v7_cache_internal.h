@@ -110,14 +110,12 @@ typedef struct bplib_cache_state
     uint32_t fsm_state_enter_count[bplib_cache_entry_state_max];
     uint32_t fsm_state_exit_count[bplib_cache_entry_state_max];
     uint32_t discard_count;
-
 } bplib_cache_state_t;
 
 typedef struct bplib_cache_dacs_pending
 {
     bp_ipn_addr_t                      prev_custodian_id;
     bp_custody_accept_payload_block_t *payload_ref;
-
 } bplib_cache_dacs_pending_t;
 
 typedef union bplib_cache_entry_data

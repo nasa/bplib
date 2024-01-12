@@ -192,7 +192,7 @@ uint8_t bplib_precompute_reflection(uint8_t byte)
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_crc_init - Inits the subsystem by creating the xor table for all defined CRC types
+ * Inits the subsystem by creating the xor table for all defined CRC types
  *-------------------------------------------------------------------------------------*/
 void bplib_crc_init(void)
 {
@@ -281,7 +281,7 @@ bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_crc_get - Calculates the CRC from a byte array using the crc provided as params.
+ * Calculates the CRC from a byte array using the crc provided as params.
  *      crc_init must be called on the provided params before every calling this function.
  *
  * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
