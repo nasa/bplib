@@ -21,6 +21,10 @@
 #ifndef CRC_H
 #define CRC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -60,5 +64,9 @@ bp_crcval_t bplib_crc_update(bplib_crc_parameters_t *params, bp_crcval_t crc, co
 bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc);
 
 bp_crcval_t bplib_crc_get(const void *data, const uint32_t length, bplib_crc_parameters_t *params);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CRC_H */

@@ -21,6 +21,10 @@
 #ifndef v7_cache_h
 #define v7_cache_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -89,5 +93,9 @@ int bplib_cache_start(bplib_routetbl_t *tbl, bp_handle_t module_intf_id);
 int bplib_cache_stop(bplib_routetbl_t *tbl, bp_handle_t module_intf_id);
 
 void bplib_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* v7_cache_h */

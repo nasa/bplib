@@ -23,6 +23,10 @@
 
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "v7_mpool.h"
 
 typedef struct bplib_mpool_job
@@ -75,5 +79,9 @@ void bplib_mpool_job_mark_active(bplib_mpool_job_t *job);
 bplib_mpool_job_t *bplib_mpool_job_get_next_active(bplib_mpool_t *pool);
 
 void bplib_mpool_job_run_all(bplib_mpool_t *pool, void *arg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_MPOOL_JOB_H */

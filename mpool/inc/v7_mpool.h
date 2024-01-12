@@ -21,6 +21,10 @@
 #ifndef V7_MPOOL_H
 #define V7_MPOOL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <string.h>
 
 #include "bplib_api_types.h"
@@ -660,5 +664,9 @@ void bplib_mpool_lock_init(void);
 
 void bplib_mpool_debug_scan(bplib_mpool_t *pool);
 void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *label);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_MPOOL_H */

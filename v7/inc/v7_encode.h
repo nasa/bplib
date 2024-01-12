@@ -21,6 +21,10 @@
 #ifndef V7_ENCODE_H
 #define V7_ENCODE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -40,5 +44,9 @@ int v7_block_encode_pri(bplib_mpool_bblock_primary_t *cpb);
 int v7_block_encode_pay(bplib_mpool_bblock_canonical_t *ccb, const void *data_ptr, size_t data_size);
 
 int v7_block_encode_canonical(bplib_mpool_bblock_canonical_t *ccb);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_ENCODE_H */

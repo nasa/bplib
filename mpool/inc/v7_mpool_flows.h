@@ -21,6 +21,10 @@
 #ifndef V7_MPOOL_FLOWS_H
 #define V7_MPOOL_FLOWS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <string.h>
 
 #include "v7_mpool.h"
@@ -213,5 +217,9 @@ static inline bool bplib_mpool_flow_is_up(const bplib_mpool_flow_t *flow)
 {
     return (~flow->current_state_flags & (BPLIB_MPOOL_FLOW_FLAGS_ADMIN_UP | BPLIB_MPOOL_FLOW_FLAGS_OPER_UP)) == 0;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_MPOOL_FLOWS_H */

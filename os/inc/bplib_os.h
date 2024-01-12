@@ -21,6 +21,10 @@
 #ifndef BPLIB_OS_H
 #define BPLIB_OS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -74,5 +78,9 @@ int         bplib_os_waiton(bp_handle_t h, int timeout_ms);
 int         bplib_os_wait_until_ms(bp_handle_t h, uint64_t abs_dtntime_ms);
 void       *bplib_os_calloc(size_t size);
 void        bplib_os_free(void *ptr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BPLIB_OS_H */

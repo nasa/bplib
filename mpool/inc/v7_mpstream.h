@@ -21,6 +21,10 @@
 #ifndef V7_MPSTREAM_H
 #define V7_MPSTREAM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <string.h>
 
 #include "bplib_api_types.h"
@@ -56,5 +60,9 @@ static inline size_t bplib_mpool_stream_tell(const bplib_mpool_stream_t *mps)
     return mps->stream_position;
 }
 void bplib_mpool_stream_close(bplib_mpool_stream_t *mps);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_MPSTREAM_H */
