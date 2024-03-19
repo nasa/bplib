@@ -105,7 +105,7 @@ BPL_Status_t BPL_EVM_SendEvent(uint16_t EventID, BPL_EVM_EventType_t EventType,
     }
     else
     {
-        ProxyReturnStatus = BPL_EVM_ProxyCallbacks.SendEvent_Impl(EventID);
+        ProxyReturnStatus = BPL_EVM_ProxyCallbacks.SendEvent_Impl(EventID, EventType);
         if (ProxyReturnStatus.ReturnValue != BPL_STATUS_SUCCESS)
         {
             ReturnStatus.ReturnValue = BPL_STATUS_ERROR_GENERAL;
