@@ -17,6 +17,7 @@
 
 typedef enum
 {
+    BPL_EVM_EventType_UNKNOWN = 0,
     BPL_EVM_EventType_DEBUG = 1,
     BPL_EVM_EventType_INFO = 2,
     BPL_EVM_EventType_WARNING = 3,
@@ -39,21 +40,8 @@ typedef struct
  * Exported Functions
  ************************************************/
 
-/* TODO: try this later
-static inline char *BPL_EVM_EventTypeToString(enum BPL_EVM_EventType_t Type)
-{
-    static const char *BPL_EVM_EventTypeStrings[] = {
-        "DEBUG",
-        "INFO",
-        "WARNING",
-        "ERROR",
-        "CRITICAL"
-    };
-    return BPL_EVM_EventTypeStrings[Type];
-}
-*/
-
 BPL_Status_t BPL_EVM_Initialize(void);
+char const * BPL_EVM_EventTypeToString(BPL_EVM_EventType_t Type);
 BPL_Status_t BPL_EVM_SendEvent(BPL_EVM_EventInfo_t const * EventInfo, char const * EventText, ...);
 
 #endif /* BPL_EVM_H */
