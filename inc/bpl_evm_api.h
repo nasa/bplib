@@ -27,12 +27,6 @@ typedef enum
 
 typedef struct
 {
-    BPL_EVM_EventType_t Type;
-    uint16_t ID;
-} BPL_EVM_EventInfo_t;
-
-typedef struct
-{
     uint32_t ReturnValue;
 } BPL_Status_t;
 
@@ -53,6 +47,7 @@ typedef struct
 
 BPL_Status_t BPL_EVM_Initialize(BPL_EVM_ProxyCallbacks_t ProxyCallbacks);
 char const * BPL_EVM_EventTypeToString(BPL_EVM_EventType_t Type);
-BPL_Status_t BPL_EVM_SendEvent(BPL_EVM_EventInfo_t const * EventInfo, char const * EventText, ...);
+BPL_Status_t BPL_EVM_SendEvent(uint16_t EventID, BPL_EVM_EventType_t EventType,
+                                char const * EventText, ...);
 
 #endif /* BPL_EVM_H */
