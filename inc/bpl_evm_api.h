@@ -38,7 +38,7 @@ typedef struct
 typedef struct
 {
     BPL_Status_t (*Initialize_Impl)(void);
-    BPL_Status_t (*SendEvent_Impl)(uint32_t EventID);
+    BPL_Status_t (*SendEvent_Impl)(uint16_t EventID);
 } BPL_EVM_ProxyCallbacks_t;
 
 /************************************************
