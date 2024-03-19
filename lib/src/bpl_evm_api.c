@@ -90,10 +90,33 @@ char const * BPL_EVM_EventTypeToString(BPL_EVM_EventType_t Type)
 
 BPL_Status_t BPL_EVM_SendEvent(BPL_EVM_EventInfo_t const * EventInfo, char const * EventText, ...)
 {
-    BPL_Status_t ReturnStatus = { .ReturnValue = 0 };
+    BPL_Status_t ReturnStatus;
+    BPL_Status_t ProxyReturnStatus;
+
     char const * EventTypeString = BPL_EVM_EventTypeToString(EventInfo->Type);
     OS_printf("BPL_EVM_SendEvent called! Event Info (%s, %u).\n",
         EventTypeString,
         EventInfo->ID);
+
+    if (BPL_EVM_ProxyCallbacks.SendEvent_Impl == NULL)
+    {
+        ReturnStatus.ReturnValue = BPL_STATUS_ERROR_INPUT_INVALID;
+    }
+    else
+    {
+        ProxyReturnStatus = BPL_EVM_ProxyCallbacks.SendEvent_Impl(EventInfo->ID);
+        if (ProxyReturnStatus.ReturnValue != BPL_STATUS_SUCCESS)
+        {
+            ReturnStatus.ReturnValue = BPL_STATUS_ERROR_GENERAL;
+            OS_printf("BPL_EVM_SendEvent hit error (%u) when calling proxy impl!\n",
+                ProxyReturnStatus.ReturnValue);
+        }
+        else
+        {
+            ReturnStatus.ReturnValue = BPL_STATUS_SUCCESS;
+            OS_printf("BPL_EVM_SendEvent executed proxy impl successfully!\n");
+        }
+    }
+
     return ReturnStatus;
 }
