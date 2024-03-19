@@ -49,5 +49,6 @@ BPL_Status_t BPL_EVM_Initialize(BPL_EVM_ProxyCallbacks_t ProxyCallbacks);
 char const * BPL_EVM_EventTypeToString(BPL_EVM_EventType_t Type);
 BPL_Status_t BPL_EVM_SendEvent(uint16_t EventID, BPL_EVM_EventType_t EventType,
                                 char const * EventText, ...);
+void BPL_EVM_Deinitialize(void);
 
 #endif /* BPL_EVM_H */

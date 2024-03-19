@@ -121,3 +121,15 @@ BPL_Status_t BPL_EVM_SendEvent(uint16_t EventID, BPL_EVM_EventType_t EventType,
 
     return ReturnStatus;
 }
+
+void BPL_EVM_Deinitialize(void)
+{
+    /* Clear proxy function pointers */
+    BPL_EVM_ProxyCallbacks.Initialize_Impl = NULL;
+    BPL_EVM_ProxyCallbacks.SendEvent_Impl = NULL;
+
+    /* TODO: remove print? */
+    OS_printf("BPL_EVM_Deinitialize executed successfully!\n");
+
+    return;
+}
