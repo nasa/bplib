@@ -11,6 +11,7 @@ set(bplib_base_SOURCES
     src/v7_cla_api.c
     src/v7_dataservice_api.c
     src/v7_routing.c
+    src/bpl_evm_api.c
 )
 
 add_library(bplib_base OBJECT
