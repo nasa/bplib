@@ -36,11 +36,22 @@ typedef struct
     uint32_t ReturnValue;
 } BPL_Status_t;
 
+#define BPL_STATUS_SUCCESS             (0u)
+#define BPL_STATUS_ERROR_GENERAL       (1u)
+#define BPL_STATUS_ERROR_INPUT_INVALID (2u)
+#define BPL_STATUS_ERROR_PROXY_INIT    (3u)
+
+typedef struct
+{
+    BPL_Status_t (*Initialize_Impl)(void);
+    BPL_Status_t (*SendEvent_Impl)(uint32_t EventID);
+} BPL_EVM_ProxyCallbacks_t;
+
 /************************************************
  * Exported Functions
  ************************************************/
 
-BPL_Status_t BPL_EVM_Initialize(void);
+BPL_Status_t BPL_EVM_Initialize(BPL_EVM_ProxyCallbacks_t ProxyCallbacks);
 char const * BPL_EVM_EventTypeToString(BPL_EVM_EventType_t Type);
 BPL_Status_t BPL_EVM_SendEvent(BPL_EVM_EventInfo_t const * EventInfo, char const * EventText, ...);
 
