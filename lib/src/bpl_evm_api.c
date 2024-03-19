@@ -6,6 +6,7 @@
  INCLUDES
  ******************************************************************************/
 
+#include <stdarg.h>
 #include "cfe.h"
 #include "bpl_evm_api.h"
 
@@ -93,6 +94,7 @@ BPL_Status_t BPL_EVM_SendEvent(uint16_t EventID, BPL_EVM_EventType_t EventType,
 {
     BPL_Status_t ReturnStatus;
     BPL_Status_t ProxyReturnStatus;
+    va_list EventTextArgsPtr;
 
     char const * EventTypeString = BPL_EVM_EventTypeToString(EventType);
     OS_printf("BPL_EVM_SendEvent called! Event Info (%s, %u).\n",
@@ -101,11 +103,18 @@ BPL_Status_t BPL_EVM_SendEvent(uint16_t EventID, BPL_EVM_EventType_t EventType,
 
     if (BPL_EVM_ProxyCallbacks.SendEvent_Impl == NULL)
     {
+        ReturnStatus.ReturnValue = BPL_STATUS_ERROR_PROXY_INIT;
+    }
+    else if (EventText == NULL)
+    {
         ReturnStatus.ReturnValue = BPL_STATUS_ERROR_INPUT_INVALID;
     }
     else
     {
-        ProxyReturnStatus = BPL_EVM_ProxyCallbacks.SendEvent_Impl(EventID, EventType);
+        va_start(EventTextArgsPtr, EventText);
+        ProxyReturnStatus = BPL_EVM_ProxyCallbacks.SendEvent_Impl(EventID, EventType, EventText, EventTextArgsPtr);
+        va_end(EventTextArgsPtr);
+
         if (ProxyReturnStatus.ReturnValue != BPL_STATUS_SUCCESS)
         {
             ReturnStatus.ReturnValue = BPL_STATUS_ERROR_GENERAL;
