@@ -95,11 +95,6 @@ BPL_Status_t BPL_EVM_SendEvent(uint16_t EventID, BPL_EVM_EventType_t EventType,
     BPL_Status_t ProxyReturnStatus;
     va_list EventTextArgsPtr;
 
-    char const * EventTypeString = BPL_EVM_EventTypeToString(EventType);
-    OS_printf("BPL_EVM_SendEvent called! Event Info (%s, %u).\n",
-        EventTypeString,
-        EventID);
-
     if (BPL_EVM_ProxyCallbacks.SendEvent_Impl == NULL)
     {
         ReturnStatus.ReturnValue = BPL_STATUS_ERROR_PROXY_INIT;
