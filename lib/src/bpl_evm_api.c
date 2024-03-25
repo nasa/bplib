@@ -28,31 +28,17 @@ BPL_EVM_ProxyCallbacks_t BPL_EVM_ProxyCallbacks;
 BPL_Status_t BPL_EVM_Initialize(BPL_EVM_ProxyCallbacks_t ProxyCallbacks)
 {
     BPL_Status_t ReturnStatus;
-    BPL_Status_t ProxyInitImplReturnStatus;
 
-    if ((ProxyCallbacks.Initialize_Impl == NULL) || (ProxyCallbacks.SendEvent_Impl == NULL))
+    if (ProxyCallbacks.SendEvent_Impl == NULL)
     {
         ReturnStatus.ReturnValue = BPL_STATUS_ERROR_INPUT_INVALID;
         OS_printf("BPL_EVM_Initialize got an invalid argument!\n");
     }
     else
     {
-        /* impl callbacks determined to be valid */
-        BPL_EVM_ProxyCallbacks.Initialize_Impl = ProxyCallbacks.Initialize_Impl;
+        /* store the function pointer, now that impl callback determined to be valid */
         BPL_EVM_ProxyCallbacks.SendEvent_Impl = ProxyCallbacks.SendEvent_Impl;
-
-        /* TODO: immediately want to call the proxy init, or wait for a directive to do so? */
-        ProxyInitImplReturnStatus = BPL_EVM_ProxyCallbacks.Initialize_Impl();
-        if (ProxyInitImplReturnStatus.ReturnValue != BPL_STATUS_SUCCESS)
-        {
-            ReturnStatus.ReturnValue = BPL_STATUS_ERROR_PROXY_INIT;
-            OS_printf("BPL_EVM_Initialize hit error (%u) when calling proxy init!\n",
-                ProxyInitImplReturnStatus.ReturnValue);
-        }
-        else
-        {
-            ReturnStatus.ReturnValue = BPL_STATUS_SUCCESS;
-        }
+        ReturnStatus.ReturnValue = BPL_STATUS_SUCCESS;
     }
 
     return ReturnStatus;
@@ -127,7 +113,6 @@ BPL_Status_t BPL_EVM_SendEvent(uint16_t EventID, BPL_EVM_EventType_t EventType,
 void BPL_EVM_Deinitialize(void)
 {
     /* Clear proxy function pointers */
-    BPL_EVM_ProxyCallbacks.Initialize_Impl = NULL;
     BPL_EVM_ProxyCallbacks.SendEvent_Impl = NULL;
 
     return;
