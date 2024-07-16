@@ -1,0 +1,18 @@
+#!/bin/bash
+install-toolchain-err() {
+   echo "install-toolchain exited on error."
+   exit 1
+}
+trap install-toolchain-err ERR
+
+   cd $CFS_HOME
+   sudo apt update
+   sudo apt upgrade
+   sudo apt install cmake pkg-config build-essential
+   git clone https://github.com/intel/tinycbor.git tinycbor-source
+   mkdir tinycbor-staging
+   pushd tinycbor-source
+   make all && make DESTDIR=../tinycbor-staging install
+   popd
+   # Install from tinycbor-staging to /usr/local/include, lib, and bin
+   sudo cp -rv -t / tinycbor-staging/*

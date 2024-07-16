@@ -40,14 +40,19 @@ library.
 #### Prerequisites
 
 1. The build requires the __cmake__ build system and a compiler toolchain (by default __gcc__).
+
 Additionally, the __pkg-config__ tool is used to manage the flags required for dependencies.
+
 These can typically be installed via the built-in package management system on most Linux
 distributions.
 
 On Debian/Ubuntu and derivatives:
 
+Note: The scripts on this page are available as example scripts in bplib/docs/example-scripts. The example scripts mimic the BPLib GitHub Actions and Workflows
+
+`install-toolchain` (part 1)
 ```sh
-    sudo apt-get install cmake pkg-config build-essential
+   sudo apt install cmake pkg-config build-essential
 ```
 
 2. For BPv7 this uses the TinyCBOR library at https://github.com/intel/tinycbor.  As any
@@ -56,34 +61,45 @@ As of this writing, the library uses a simple Makefile that will install into `/
 This installation prefix can be changed by editing the Makefile before building.  Otherwise,
 to install into the default location, steps are as follows:
 
+`install-toolchain` (part 2)
 ```sh
-    git clone https://github.com/intel/tinycbor
-    cd tinycbor
-    make
-    sudo make install
+   git clone https://github.com/intel/tinycbor.git tinycbor-source
+   mkdir tinycbor-staging
+   pushd tinycbor-source
+   make all && make DESTDIR=../tinycbor-staging install
+   popd
+   # Install from tinycbor-staging to /usr/local/include, lib, and bin
+   sudo cp -rv -t / tinycbor-staging/*
 ```
 
-Note that "sudo" is only required for installation into a system directory.  If installing into a
-user-writable home directory, "sudo" is not necessary.
 
-3. Create a subdirectory for building bplib and run CMake to set up the build tree.
+3. Create a subdirectory for building bplib. Run CMake to set up the build tree. Build bplib by running __make__ in the build subdirectory:
 
+Excerpted from bplib/doc/example-scripts/bplib-unit-test-functional
 ```sh
-   cd $HOME
-   mkdir build-bplib
-   cd build-bplib
-   cmake ../bplib
+   # Create the build folder based on Debug/Release and OSAL/POSIX
+   # MATRIX_BUILD_TYPE=[Debug|Releas]
+   # MATRIX_OS_LAYER=[OSAL|POSIX]
+   # BPLIB_SOURCE=<path>/cfs/libs/bplib
+   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-<MATRIX_BUILD_TYPE>-<MATRIX_OS_LAYER>
+   #   one of:
+   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-Debug-OSAL
+   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-Debug-POSIX
+   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-Release-OSAL
+   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-Release-POSIX
+   
+   cmake \
+          -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
+          -DBPLIB_OS_LAYER="${MATRIX_OS_LAYER}" \
+          -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake \
+          -S "${BPLIB_SOURCE}" -B "${BPLIB_BUILD}"
+
+   # Build bplib
+   cd "${BPLIB_BUILD}"
+   make all
 ```
 
-#### Building
-
-Build bplib by running __make__ in the build subdirectory:
-
-```sh
-   cd $HOME/build-bplib
-   make
-```
-
+4. Test bplib
 #### Example Application
 
 For those that learn better through examples, an example application is provided in the `apps`
@@ -91,6 +107,7 @@ directory.  This example program is not intended to be complete, but provides a 
 see how to use the library.  After building and installing bplib on your system, the `bpcat`
 program provides a functionality similar to netcat for bplib.
 
+`test-bpcat`
 ```sh
    cd apps
    mkdir storage
