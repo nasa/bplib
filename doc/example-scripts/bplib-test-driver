@@ -4,7 +4,7 @@ build-bplib-err() {
    exit 1
 }
 trap build-bplib-err ERR
-set -o pipefail
+set -eou pipefail
 
 # Log filename with DOY-HHMM
 LOG_FILENAME=bplib-test-driver-$(date +%y%j-%H%M)
