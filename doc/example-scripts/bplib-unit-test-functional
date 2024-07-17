@@ -43,12 +43,16 @@ trap bplib-unit-test-functional-err ERR
 
    # Run tests, if available.
    if [ -e 'CTestTestfile.cmake' ]; then
-      # Tests failing: common and ut_functional.
-      # Commented those out for now.
-      sed -i.bak /common/s/^/#/ CTestTestfile.cmake
-      sed -i.bak /ut-functional/s/^/#/ CTestTestfile.cmake
+      # Tests that require setuid root: common rbtree and ut_functional sanity.
+      RBTREE_RUNNER=common/ut-functional/functional-bplib_rbtree-testrunner
+      sudo chown root $RBTREE_RUNNER
+      sudo chmod u+s $RBTREE_RUNNER
+      SANITY_RUNNER=ut-functional/functional-bplib_sanity-testrunner
+      sudo chown root $SANITY_RUNNER 
+      sudo chmod u+s $SANITY_RUNNER
       ctest --output-on-failure |& tee test.log
-      cp CTestTestfile.cmake.bak CTestTestfile.cmake
+      # Set the owner back to the user so the build tree can be deleted.
+      sudo chown $USER $RBTREE_RUNNER $SANITY_RUNNER
    else
       echo "ctest tests are not available for bplib ${MATRIX_BUILD_TYPE} ${MATRIX_OS_LAYER}"
    fi

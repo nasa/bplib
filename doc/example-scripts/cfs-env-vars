@@ -1,0 +1,4 @@
+export CFS_HOME=~/cfs-home
+export CFS_REPO=~/repos/cfs-bundle
+export BP_SOURCE=$CFS_REPO/apps/bp
+export BPLIB_SOURCE=$CFS_REPO/libs/bplib
