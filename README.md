@@ -1,14 +1,14 @@
 # bplib
 
-[1. Overview](#1-overview)
-[2. Build with CMake](#2-build-with-cmake)
-[3. Application Design](#3-application-design)
-[4. Application Programming Interface](#4-application-programming-interface)
-[5. Storage Service](#5-storage-service)
+[1. Overview](#1-overview)  
+[2. Build with CMake](#2-build-with-cmake)  
+[3. Application Design](#3-application-design)  
+[4. Application Programming Interface](#4-application-programming-interface)  
+[5. Storage Service](#5-storage-service)  
 
-[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)
-[Note #2 - Library Development Guidelines](doc/dev_notes.md)
-[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)
+[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
+[Note #2 - Library Development Guidelines](doc/dev_notes.md)  
+[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)  
 [Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)
 
 ----------------------------------------------------------------------
@@ -48,7 +48,7 @@ distributions.
 
 On Debian/Ubuntu and derivatives:
 
-Note: The scripts on this page are available as example scripts in bplib/docs/example-scripts. The example scripts mimic the BPLib GitHub Actions and Workflows
+Note: The scripts on this page are available as example scripts in bplib/doc/example-scripts. The example scripts mimic the BPLib GitHub Actions and Workflows. The scripts have bash `trap` and `set -o pipefail` statements to help if errors occur. The names of the example scripts are used as labels here. For example `bplib/doc/example-scripts/install-toolchain` contains `install-toolchain` (part 1) and `install-toolchain` (part 2).
 
 `install-toolchain` (part 1)
 ```sh
@@ -81,12 +81,12 @@ Excerpted from bplib/doc/example-scripts/bplib-unit-test-functional
    # MATRIX_BUILD_TYPE=[Debug|Releas]
    # MATRIX_OS_LAYER=[OSAL|POSIX]
    # BPLIB_SOURCE=<path>/cfs/libs/bplib
-   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-<MATRIX_BUILD_TYPE>-<MATRIX_OS_LAYER>
+   # BPLIB_BUILD=$CFS_HOME/bplib-build-matrix-<MATRIX_BUILD_TYPE>-<MATRIX_OS_LAYER>
    #   one of:
-   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-Debug-OSAL
-   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-Debug-POSIX
-   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-Release-OSAL
-   # BPLIB_BUILD=$CFE_HOME/bplib-build-matrix-Release-POSIX
+   # BPLIB_BUILD=$CFS_HOME/bplib-build-matrix-Debug-OSAL
+   # BPLIB_BUILD=$CFS_HOME/bplib-build-matrix-Debug-POSIX
+   # BPLIB_BUILD=$CFS_HOME/bplib-build-matrix-Release-OSAL
+   # BPLIB_BUILD=$CFS_HOME/bplib-build-matrix-Release-POSIX
    
    cmake \
           -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
@@ -102,16 +102,18 @@ Excerpted from bplib/doc/example-scripts/bplib-unit-test-functional
 4. Test bplib
 #### Example Application
 
-For those that learn better through examples, an example application is provided in the `apps`
+For those that learn better through examples, an example application is provided in the  
+`bplib-build-matrix-Debug-POSIX/app`  
 directory.  This example program is not intended to be complete, but provides a quick way to
 see how to use the library.  After building and installing bplib on your system, the `bpcat`
 program provides a functionality similar to netcat for bplib.
 
-`test-bpcat`
+test-bpcat (not in example-scripts)
 ```sh
-   cd apps
+   cd $CFS_HOME/bplib-build-matrix-Debug-POSIX/app # Must be POSIX.
+
    mkdir storage
-   ./bpcat
+   ./bpcat -l ipn://101.1 -r ipn://201.1
 ```
 
 ----------------------------------------------------------------------
