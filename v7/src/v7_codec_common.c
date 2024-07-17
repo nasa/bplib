@@ -23,7 +23,6 @@
  ******************************************************************************/
 
 #include "v7_codec_internal.h"
-#include "cbor.h"
 
 bplib_crc_parameters_t *v7_codec_get_crc_algorithm(bp_crctype_t crctype)
 {
@@ -142,7 +141,7 @@ size_t v7_copy_full_bundle_out(bplib_mpool_bblock_primary_t *cpb, void *buffer, 
     out_p  = buffer;
     *out_p = 0x9F; /* Start CBOR indefinite-length array */
     ++out_p;
-
+    
     remain_sz = buf_sz - 2;
 
     chunk_sz =

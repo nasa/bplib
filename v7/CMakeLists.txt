@@ -13,6 +13,10 @@ find_package(PkgConfig)
 pkg_search_module(TINYCBOR tinycbor REQUIRED)
 message(STATUS "Found tinycbor version ${TINYCBOR_VERSION}")
 
+find_package(PkgConfig)
+pkg_search_module(QCBOR qcbor REQUIRED)
+message(STATUS "Found qcbor version ${QCBOR_VERSION}")
+
 add_library(bplib_v7 OBJECT
     src/v7_codec_common.c
     src/v7_encode_api.c
@@ -37,6 +41,7 @@ target_include_directories(bplib_v7 PRIVATE
     # nothing outside of here should directly call TinyCBOR, so this
     # can be considered private to this submodule
     ${TINYCBOR_INCLUDE_DIRS}
+    ${QCBOR_INCLUDE_DIRS}
     $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
 )
 

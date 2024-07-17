@@ -59,8 +59,8 @@ void v7_encode_bp_custody_acknowledement_record(v7_encode_state_t *enc, const bp
 void v7_decode_bp_custody_acceptance_seqlist_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_custody_accept_payload_block_t *v = arg;
-
-    while (!cbor_value_at_end(dec->cbor) && v->num_entries < BP_DACS_MAX_SEQ_PER_PAYLOAD)
+    
+    while (v->num_entries < BP_DACS_MAX_SEQ_PER_PAYLOAD)
     {
         v7_decode_bp_integer(dec, &v->sequence_nums[v->num_entries]);
         if (dec->error)
@@ -77,7 +77,7 @@ void v7_decode_bp_custody_acknowledement_record_impl(v7_decode_state_t *dec, voi
     bp_custody_accept_payload_block_t *v = arg;
 
     v7_decode_bp_endpointid_buffer(dec, &v->flow_source_eid);
-    v7_decode_container(dec, CborIndefiniteLength, v7_decode_bp_custody_acceptance_seqlist_impl, v);
+    v7_decode_container(dec, QCBOR_MAX_ITEMS_IN_ARRAY, v7_decode_bp_custody_acceptance_seqlist_impl, v);
 }
 
 void v7_decode_bp_custody_acknowledement_record(v7_decode_state_t *dec, bp_custody_accept_payload_block_t *v)

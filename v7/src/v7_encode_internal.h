@@ -26,7 +26,7 @@
  ******************************************************************************/
 
 #include "v7_codec_internal.h"
-#include "cbor.h"
+#include "qcbor.h"
 
 typedef struct v7_encode_state
 {
@@ -36,7 +36,7 @@ typedef struct v7_encode_state
     bp_crcval_t             crc_val;
     bplib_crc_parameters_t *crc_params;
 
-    CborEncoder *cbor;
+    QCBOREncodeContext *cbor;
 
     size_t total_bytes_encoded;
 
@@ -92,7 +92,7 @@ void v7_encode_bp_canonical_block_buffer(v7_encode_state_t *enc, const bp_canoni
 
 int       v7_encoder_mpstream_write(void *arg, const void *ptr, size_t sz);
 int       v7_encoder_write_crc(v7_encode_state_t *enc);
-CborError v7_encoder_write_wrapper(void *arg, const void *ptr, size_t sz, CborEncoderAppendType at);
+int v7_encoder_write_wrapper(void *arg, const void *ptr, size_t sz);
 void      v7_encode_bp_adminrec_payload_impl(v7_encode_state_t *enc, const void *arg);
 void      v7_encode_bp_custody_acceptance_seqlist_impl(v7_encode_state_t *enc, const void *arg);
 void      v7_encode_bp_endpointid_scheme(v7_encode_state_t *enc, const bp_endpointid_scheme_t *v);

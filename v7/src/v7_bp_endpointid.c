@@ -178,8 +178,8 @@ void v7_decode_bp_ipn_uri_ssp_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_ipn_uri_ssp_t  *v        = arg;
     bp_ipn_ssp_field_t field_id = bp_ipn_ssp_field_undef;
-
-    while (field_id < bp_ipn_ssp_field_done && !dec->error && !cbor_value_at_end(dec->cbor))
+    
+    while (field_id < bp_ipn_ssp_field_done && !dec->error)
     {
         switch (field_id)
         {
@@ -241,8 +241,8 @@ void v7_decode_bp_endpointid_buffer_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_endpointid_buffer_t *v        = arg;
     bp_endpointid_field_t   field_id = bp_endpointid_field_undef;
-
-    while (field_id < bp_endpointid_field_done && !dec->error && !cbor_value_at_end(dec->cbor))
+    
+    while (field_id < bp_endpointid_field_done && !dec->error)
     {
         switch (field_id)
         {

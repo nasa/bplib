@@ -42,6 +42,8 @@ void v7_encode_crc(v7_encode_state_t *enc)
 {
     size_t               crc_len;
     static const uint8_t CRC_PAD_BYTES[sizeof(bp_crcval_t)] = {0};
+    UsefulBufC data_buf;
+    QCBORError err;
 
     /*
      * NOTE: Unlike other encode functions, this does not accept a value passed in, as the
@@ -73,8 +75,11 @@ void v7_encode_crc(v7_encode_state_t *enc)
     else
     {
         enc->crc_flag = true;
-
-        if (cbor_encode_byte_string(enc->cbor, CRC_PAD_BYTES, crc_len) != CborNoError)
+        data_buf.ptr = CRC_PAD_BYTES;
+        data_buf.len = crc_len;
+        QCBOREncode_AddBytes(enc->cbor, data_buf);
+        err = QCBOREncode_GetErrorState(enc->cbor);
+        if(err != QCBOR_SUCCESS) 
         {
             enc->error = true;
         }
@@ -84,40 +89,23 @@ void v7_encode_crc(v7_encode_state_t *enc)
 void v7_decode_crc(v7_decode_state_t *dec, bp_crcval_t *v)
 {
     bp_crcval_t crc_val;
-    uint8_t     bytes[1 + sizeof(crc_val)];
-    size_t      len;
+    uint8_t     bytes[1 + sizeof(crc_val)] = {0};
     size_t      i;
+    UsefulBufC  buff;
 
     crc_val = 0;
 
+    
     if (!dec->error)
     {
-        if (cbor_value_at_end(dec->cbor) || cbor_value_get_type(dec->cbor) != CborByteStringType)
+        QCBORDecode_GetByteString(dec->cbor, &buff);
+        memcpy(bytes, buff.ptr, buff.len);
+        /* Interpret the bytestring value as an integer */
+        for (i = 0; i < buff.len; ++i)
         {
-            dec->error = true;
-        }
-        else
-        {
-            len = sizeof(bytes);
-            if (cbor_value_copy_byte_string(dec->cbor, bytes, &len, NULL) != CborNoError)
-            {
-                dec->error = true;
-            }
-            else if (cbor_value_advance(dec->cbor) != CborNoError)
-            {
-                dec->error = true;
-            }
-            else
-            {
-                /* Interpret the bytestring value as an integer */
-                for (i = 0; i < len; ++i)
-                {
-                    crc_val <<= 8;
-                    crc_val |= bytes[i];
-                }
-            }
+            crc_val <<= 8;
+            crc_val |= bytes[i];
         }
     }
-
     *v = crc_val;
 }

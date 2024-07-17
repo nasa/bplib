@@ -41,80 +41,36 @@
 
 void v7_encode_container(v7_encode_state_t *enc, size_t entries, v7_encode_func_t func, const void *arg)
 {
-    CborEncoder  content;
-    CborEncoder *parent;
 
     if (!enc->error)
     {
-        /* Save the parent encode state */
-        parent = enc->cbor;
+        QCBOREncode_OpenArray(enc->cbor);
 
-        if (cbor_encoder_create_array(parent, &content, entries) != CborNoError)
-        {
-            enc->error = true;
-        }
-        else
-        {
-            /* go into container */
-            enc->cbor = &content;
-
-            /* call the handler impl */
-            func(enc, arg);
-
-            /* return to parent */
-            if (cbor_encoder_close_container(parent, &content) != CborNoError)
-            {
-                enc->error = true;
-            }
-
-            enc->cbor = parent;
-        }
+        /* call the handler impl */
+        func(enc, arg);
+        
+        QCBOREncode_CloseArray(enc->cbor);
     }
 }
 
 void v7_decode_container(v7_decode_state_t *dec, size_t entries, v7_decode_func_t func, void *arg)
 {
-    CborValue  content;
-    CborValue *parent;
+    QCBORItem item;
 
     if (!dec->error)
     {
-        /* Save the parent decode state */
-        parent = dec->cbor;
-
-        if (cbor_value_at_end(parent) || cbor_value_get_type(parent) != CborArrayType)
+        
+        QCBORDecode_EnterArray(dec->cbor, &item);
+        if (item.uDataType != QCBOR_TYPE_ARRAY)
         {
             dec->error = true;
         }
         else
         {
-            if (cbor_value_enter_container(parent, &content) != CborNoError)
-            {
-                dec->error = true;
-            }
-            else
-            {
-                /* go into container */
-                dec->cbor = &content;
-
-                /* call the handler impl */
-                func(dec, arg);
-
-                /* This should have consumed every item */
-                if (!dec->error)
-                {
-                    if (!cbor_value_at_end(&content))
-                    {
-                        dec->error = true;
-                    }
-                    else if (cbor_value_leave_container(parent, &content) != CborNoError)
-                    {
-                        dec->error = true;
-                    }
-                }
-
-                dec->cbor = parent;
-            }
+            /* call the handler impl */
+            func(dec, arg);
+                        
+            QCBORDecode_ExitArray(dec->cbor);
         }
     }
 }
