@@ -72,10 +72,54 @@ to install into the default location, steps are as follows:
    sudo cp -rv -t / tinycbor-staging/*
 ```
 
+3. Setup OSAL. See `bplib/doc/example-scripts/setup-osal`.
 
-3. Create a subdirectory for building bplib. Run CMake to set up the build tree. Build bplib by running __make__ in the build subdirectory:
+`setup-osal`
+```sh
+   cd $CFS_HOME/../cfs-bundle/osal
+   # cmake options from .github/actions/setup-osal/action.yml
+   CMAKE_OSAL_DEFS="-DCMAKE_INSTALL_PREFIX=/usr/local -DOSAL_SYSTEM_BSPTYPE=generic-linux "
+   # config-options:
+   CMAKE_OSAL_DEFS+="-DCMAKE_BUILD_TYPE=Release -DOSAL_OMIT_DEPRECATED=TRUE "
+   CMAKE_OSAL_DEFS+="-DENABLE_UNIT_TESTS=TRUE -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON "
+   cmake $CMAKE_OSAL_DEFS -B $CFS_HOME/osal-build
+   cd $CFS_HOME/osal-build
+   make DESTDIR=$CFS_HOME/osal-staging install
+```
 
-Excerpted from bplib/doc/example-scripts/bplib-unit-test-functional
+#### Build bplib
+4. Create a subdirectory for building bplib. Run CMake to set up the build tree. Build bplib by running __make__ in the build subdirectory:
+
+The bplib/doc/example-scripts/cfs-env-vars may be helpful during building.
+
+```sh
+   export CFS_HOME=~/cfs-home
+   export CFS_REPO=~/repos/cfs-bundle
+   export BP_SOURCE=$CFS_REPO/apps/bp
+   export BPLIB_SOURCE=$CFS_REPO/libs/bplib
+```
+
+The cfs-env-vars file is just an example. In practice, if ~/.profile defines CFS_HOME, then `source $CFS_HOME/cfs-env-vars` will always set the environment variables.
+
+CFS_REPO is the folder containing the working copy of the https://github.com/nasa/cFS repository. In this case it was cloned and initialized with:
+
+`initialize-cfs-bundle`
+```sh
+   source "${CFS_HOME}/cfs-env-vars"
+   git clone https://github.com/nasa/cFS "${CFS_REPO}"
+   cd "${CFS_REPO}"
+   git submodule init
+   git submodule update
+   git clone https://github.com/nasa/bp "${BP_SOURCE}"
+   git clone https://github.com/nasa/bpib "${BPLIB_SOURCE}"
+```
+
+Most of the example scripts include `cd $CFS_HOME` because the example scripts should be copied to $CFS_HOME to be run.
+
+`bplib-testdriver` 
+See `bplib/doc/example-scripts/bplib-testdriver`.
+The bplib build/unit test script
+Excerpted from `bplib/doc/example-scripts/bplib-unit-test-functional`
 ```sh
    # Create the build folder based on Debug/Release and OSAL/POSIX
    # MATRIX_BUILD_TYPE=[Debug|Releas]

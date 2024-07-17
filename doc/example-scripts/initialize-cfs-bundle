@@ -1,0 +1,14 @@
+#!/bin/bash
+initialize-cfs-bundle-err() {
+   echo "initialize-cfs-bundle exited on error."
+   exit 1
+}
+trap initialize-cfs-bundle-err ERR
+
+   source "${CFS_HOME}/cfs-env-vars"
+   git clone https://github.com/nasa/cFS "${CFS_REPO}"
+   cd "${CFS_REPO}"
+   git submodule init
+   git submodule update
+   git clone https://github.com/nasa/bp "${BP_SOURCE}"
+   git clone https://github.com/nasa/bplib "${BPLIB_SOURCE}"
