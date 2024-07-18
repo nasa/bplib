@@ -85,32 +85,20 @@ if (BPLIB_ENABLE_UNIT_TESTS AND BPLIB_STANDALONE_BUILD_MODE AND NOT CMAKE_CROSSC
    enable_testing()
 endif()
 
-add_subdirectory(os)
-add_subdirectory(common)
-add_subdirectory(lib)
-add_subdirectory(mpool)
-add_subdirectory(cache)
-add_subdirectory(v7)
+add_subdirectory(cla)
+add_subdirectory(aa/as)
+
 
 # v7 implementation parts
 list(APPEND BPLIB_SRC
-  store/file_offload.c
-
-  $<TARGET_OBJECTS:bplib_os>
-  $<TARGET_OBJECTS:bplib_common>
-  $<TARGET_OBJECTS:bplib_cache>
-  $<TARGET_OBJECTS:bplib_v7>
-  $<TARGET_OBJECTS:bplib_mpool>
-  $<TARGET_OBJECTS:bplib_base>
+  $<TARGET_OBJECTS:bplib_cla>
+  $<TARGET_OBJECTS:bplib_as>
 )
 
 list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
-  $<TARGET_PROPERTY:bplib_os,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_base,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_v7,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_mpool,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_cache,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>
+
 )
 
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
@@ -122,8 +110,6 @@ if (IS_CFS_ARCH_BUILD)
   # The CFE build system determines whether to create a shared or static object inside this routine
   add_cfe_app(bplib ${BPLIB_SRC})
 
-  target_link_libraries(bplib ${TINYCBOR_LDFLAGS})
-
 else()
 
   # Building as a standalone library
@@ -131,9 +117,6 @@ else()
   # The flavor of library (shared/static) being built here depends on the BUILD_SHARED_LIBS option
   # This directory may be built twice, setting this option differently to build both flavors
   add_library(bplib ${BPLIB_SRC})
-
-  # link with the requisite dependencies
-  target_link_libraries(bplib ${TINYCBOR_LDFLAGS})
 
   # Add in the required link libraries based on OS adapter selection
   # this should preferably be in OS subdirectory, but it needs to be done
@@ -185,13 +168,13 @@ endif()
 get_target_property(IS_PIC bplib POSITION_INDEPENDENT_CODE)
 if (IS_PIC)
   set_target_properties(
-    bplib_base bplib_common bplib_mpool bplib_cache bplib_v7 bplib_os
+    bplib_cla bplib_as
     PROPERTIES POSITION_INDEPENDENT_CODE ${IS_PIC}
   )
 endif()
 
 # Set the standard compile options for all submodules (c99, full warnings)
-foreach(TGT bplib bplib_base bplib_common bplib_mpool bplib_cache bplib_v7 bplib_os)
+foreach(TGT bplib bplib_cla bplib_as)
   target_compile_features(${TGT} PRIVATE c_std_99)
   target_compile_options(${TGT} PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 endforeach()
@@ -207,12 +190,8 @@ target_include_directories(bplib PUBLIC
   $<INSTALL_INTERFACE:include/bplib>
 )
 
-if (BPLIB_ENABLE_UNIT_TESTS)
-  add_subdirectory(ut-stubs)
-
-  # BPLib Sanity checks are only for standalone builds, sanity checks
-  # for CFE/CFS builds should be part of the BP app, as opposed to BPLib
-  if (NOT IS_CFS_ARCH_BUILD)
-    add_subdirectory(ut-functional)
-  endif (NOT IS_CFS_ARCH_BUILD)
-endif (BPLIB_ENABLE_UNIT_TESTS)
+# BPLib Sanity checks are only for standalone builds, sanity checks
+# for CFE/CFS builds should be part of the BP app, as opposed to BPLib
+if (BPLIB_ENABLE_UNIT_TESTS AND NOT IS_CFS_ARCH_BUILD)
+  add_subdirectory(ut-functional)
+endif ()

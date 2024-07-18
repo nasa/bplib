@@ -18,35 +18,17 @@
  *
  */
 
-/*************************************************************************
- * Includes
- *************************************************************************/
+/*
+** Includes
+*/
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <getopt.h>
-#include <poll.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+#include "bplib_as.h"
 
-#include "bplib.h"
 
-/******************************************************************************
- * Main
- ******************************************************************************/
-int main(int argc, char *argv[])
-{
-    printf("TODO implement me with v7 code\n");
-    return 0;
+/*
+** Function Definitions
+*/
+
+int BPLib_AS_Init(void) {
+    return BP_SUCCESS;
 }

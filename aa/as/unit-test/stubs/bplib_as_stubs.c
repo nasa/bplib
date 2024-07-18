@@ -18,35 +18,25 @@
  *
  */
 
-/*************************************************************************
- * Includes
- *************************************************************************/
+/**
+ * @file
+ *
+ * Auto-Generated stub implementations for functions defined in bplib_as header
+ */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <getopt.h>
-#include <poll.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+#include "bplib_as.h"
+#include "utgenstub.h"
 
-#include "bplib.h"
-
-/******************************************************************************
- * Main
- ******************************************************************************/
-int main(int argc, char *argv[])
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_Init()
+ * ----------------------------------------------------
+ */
+int BPLib_AS_Init(void)
 {
-    printf("TODO implement me with v7 code\n");
-    return 0;
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_Init, int);
+
+    UT_GenStub_Execute(BPLib_AS_Init, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_AS_Init, int);
 }
