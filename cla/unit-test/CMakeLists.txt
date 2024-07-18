@@ -1,12 +1,24 @@
 ##################################################################
 #
-# coverage test build recipe
+# Coverage test build recipe
 #
 # This CMake file contains the recipe for building the coverage tests.
 # It is invoked from the parent directory when unit tests are enabled.
 #
 ##################################################################
 
+# Create stubs (for external use)
+add_library(bplib_cla_stubs STATIC
+    stubs/bplib_cla_stubs.c
+)
+
+target_include_directories(bplib_cla_stubs PUBLIC
+    $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+)
+
+target_link_libraries(bplib_cla_stubs ut_assert ut_core_api_stubs)
+
+# Create unit test object
 add_library(utobj_bplib_cla OBJECT
     ../src/bplib_cla.c
 )
@@ -26,7 +38,7 @@ target_include_directories(utobj_bplib_cla PRIVATE
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# Add executable
+# Create test runner executable
 add_executable(coverage-bplib_cla-testrunner
     utilities/bplib_cla_test_utils.c
     bplib_cla_test.c

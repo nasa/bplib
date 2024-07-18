@@ -88,18 +88,28 @@ endif()
 add_subdirectory(cla)
 add_subdirectory(aa/as)
 
-
-# v7 implementation parts
-list(APPEND BPLIB_SRC
-  $<TARGET_OBJECTS:bplib_cla>
-  $<TARGET_OBJECTS:bplib_as>
+list(APPEND BPLIB_COMPONENTS
+  bplib_cla
+  bplib_as
 )
 
-list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
-  $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>
+foreach(COMPONENT ${BPLIB_COMPONENTS})
+  list(APPEND BPLIB_SRC 
+    $<TARGET_OBJECTS:${COMPONENT}>
+  )
+  
+  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
+    $<TARGET_PROPERTY:${COMPONENT},INTERFACE_INCLUDE_DIRECTORIES>
+  )
 
-)
+endforeach()
+
+# Link all stubs into single library
+add_library(coverage-bplib-stubs INTERFACE)
+
+foreach(COMPONENT ${BPLIB_COMPONENTS})
+  target_link_libraries(coverage-bplib-stubs INTERFACE ${COMPONENT}_stubs)
+endforeach()
 
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
 # this allows simply dropping this module into a CFS project
@@ -167,16 +177,16 @@ endif()
 
 get_target_property(IS_PIC bplib POSITION_INDEPENDENT_CODE)
 if (IS_PIC)
-  set_target_properties(
-    bplib_cla bplib_as
-    PROPERTIES POSITION_INDEPENDENT_CODE ${IS_PIC}
-  )
+  foreach(COMPONENT ${BPLIB_COMPONENTS})
+    set_target_properties(${COMPONENT} PROPERTIES POSITION_INDEPENDENT_CODE ${IS_PIC})
+  endforeach()
 endif()
 
 # Set the standard compile options for all submodules (c99, full warnings)
-foreach(TGT bplib bplib_cla bplib_as)
-  target_compile_features(${TGT} PRIVATE c_std_99)
-  target_compile_options(${TGT} PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
+list(APPEND ${BPLIB_COMPONENTS} bplib)
+foreach(COMPONENT ${BPLIB_COMPONENTS})
+  target_compile_features(${COMPONENT} PRIVATE c_std_99)
+  target_compile_options(${COMPONENT} PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 endforeach()
 
 # Internal/private header files exist within the implementation directories
