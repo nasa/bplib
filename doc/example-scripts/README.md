@@ -3,9 +3,9 @@
 Define `CFS_HOME` in `.bashrc` with `export CFS_HOME=~/cfs-home`
 `CFS_HOME` can be any folder for which the user has rwx permissions.
 
-Copy the example scripts to $CFS_HOME.
+Copy the example scripts to `$CFS_HOME`.
 
-Verify that environment variables in $CFS_HOME are set to the correct paths.
+Verify that environment variables in `$CFS_HOME/cfs-env-vars` are set to the correct paths.
 
 The default paths are:
 
