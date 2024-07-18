@@ -6,7 +6,7 @@ setup-osal-err() {
 }
 trap setup-osal-err ERR
 
-   cd $CFS_HOME/../cfs-bundle/osal
+   cd $CFS_REPO/osal
    # cmake options from .github/actions/setup-osal/action.yml
    CMAKE_OSAL_DEFS="-DCMAKE_INSTALL_PREFIX=/usr/local -DOSAL_SYSTEM_BSPTYPE=generic-linux "
    # config-options:
