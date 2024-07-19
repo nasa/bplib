@@ -3,9 +3,11 @@
 Define `CFS_HOME` in `.bashrc` with `export CFS_HOME=~/cfs-home`
 `CFS_HOME` can be any folder for which the user has rwx permissions.
 
-Copy the example scripts to `$CFS_HOME`.
+Copy the example scripts in this directory to `$CFS_HOME`.
 
-Verify that environment variables in `$CFS_HOME/cfs-env-vars` are set to the correct paths.
+Verify that the environment variables in `$CFS_HOME/cfs-env-vars` are set to the correct paths.
+
+Note that only the path identified by `$CFS_HOME` has to exist prior to running the scripts. The scripts use the other paths to clone, build, and run bplib with cFS.
 
 The default paths are:
 
