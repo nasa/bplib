@@ -15,3 +15,4 @@ trap setup-osal-err ERR
    cmake $CMAKE_OSAL_DEFS -B $CFS_HOME/osal-build
    cd $CFS_HOME/osal-build
    make DESTDIR=$CFS_HOME/osal-staging install
+   export NasaOsal_DIR=$CFS_HOME/osal-staging/usr/local/lib/cmake
