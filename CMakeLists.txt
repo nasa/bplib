@@ -86,11 +86,13 @@ if (BPLIB_ENABLE_UNIT_TESTS AND BPLIB_STANDALONE_BUILD_MODE AND NOT CMAKE_CROSSC
 endif()
 
 add_subdirectory(cla)
+add_subdirectory(aa/arp)
 add_subdirectory(aa/as)
+add_subdirectory(aa/fwp)
+add_subdirectory(aa/ndc)
 
 list(APPEND BPLIB_COMPONENTS
-  bplib_cla
-  bplib_as
+  bplib_cla bplib_arp bplib_as bplib_fwp bplib_ndc
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENTS})
