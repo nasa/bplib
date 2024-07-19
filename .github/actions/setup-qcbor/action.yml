@@ -1,0 +1,28 @@
+name: Install QCBOR
+description: 'Builds and installs QCBOR into the workflow filesystem'
+
+inputs:
+  upstream-ref:
+    description: 'Upstream ref to check out'
+    default: v1.4.0
+  upstream-repo:
+    description: 'Upstream repository to use'
+    default: laurencelundblade/QCBOR
+  staging-dir:
+    description: 'Directory to stage output'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout QCBOR
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ inputs.upstream-repo }}
+        ref: ${{ inputs.upstream-ref }}
+        path: qcbor-source
+
+    - name: Build and Install QCBOR
+      working-directory: qcbor-source
+      shell: bash
+      run: make all && make DESTDIR=${{ inputs.staging-dir }} install
