@@ -122,7 +122,7 @@ if (IS_CFS_ARCH_BUILD)
   # The CFE build system determines whether to create a shared or static object inside this routine
   add_cfe_app(bplib ${BPLIB_SRC})
 
-  target_link_libraries(bplib ${TINYCBOR_LDFLAGS} ${QCBOR_LDFLAGS})
+  target_link_libraries(bplib ${TINYCBOR_LDFLAGS} ${QCBOR_LDFLAGS} m)
 
 else()
 
@@ -132,8 +132,8 @@ else()
   # This directory may be built twice, setting this option differently to build both flavors
   add_library(bplib ${BPLIB_SRC})
 
-  # link with the requisite dependencies
-  target_link_libraries(bplib ${TINYCBOR_LDFLAGS} ${QCBOR_LDFLAGS})
+  # link with the requisite dependencies, m is c math library
+  target_link_libraries(bplib ${TINYCBOR_LDFLAGS} ${QCBOR_LDFLAGS} m)
 
   # Add in the required link libraries based on OS adapter selection
   # this should preferably be in OS subdirectory, but it needs to be done

@@ -14,6 +14,8 @@ env:
   UPSTREAM_OSAL_REF: main
   UPSTREAM_TINYCBOR_REPO: intel/tinycbor
   UPSTREAM_TINYCBOR_REF: v0.6.0
+  UPSTREAM_QCBOR_REPO: laurencelundblade/QCBOR
+  UPSTREAM_QCBOR_REF: v1.4.0
 
 jobs:
 
@@ -42,6 +44,13 @@ jobs:
           path: ${{ github.workspace }}/tinycbor-staging
           key: bplib-dep-${{ env.UPSTREAM_TINYCBOR_REPO }}@${{ env.UPSTREAM_TINYCBOR_REF }}
 
+      - name: Cache QCBOR Dependency
+        uses: actions/cache@v3
+        id: cache-qcbor
+        with:
+          path: ${{ github.workspace }}/qcbor-staging
+          key: bplib-dep-${{ env.UPSTREAM_QCBOR_REPO }}@${{ env.UPSTREAM_QCBOR_REF }}
+
       - name: Checkout BPLib
         if: steps.cache-bplib.outputs.cache-hit != 'True'
         uses: actions/checkout@v3
@@ -63,6 +72,14 @@ jobs:
           staging-dir: ${{ github.workspace }}/tinycbor-staging
           upstream-repo: ${{ env.UPSTREAM_TINYCBOR_REPO }}
           upstream-ref: ${{ env.UPSTREAM_TINYCBOR_REF }}
+
+      - name: Set up QCBOR
+        if: steps.cache-qcbor.outputs.cache-hit != 'True'
+        uses: ./source/.github/actions/setup-qcbor
+        with:
+          staging-dir: ${{ github.workspace }}/qcbor-staging
+          upstream-repo: ${{ env.UPSTREAM_QCBOR_REPO }}
+          upstream-ref: ${{ env.UPSTREAM_QCBOR_REF }}
 
   build-and-test:
     name: Build BPLib and Execute Tests
@@ -97,6 +114,16 @@ jobs:
 
       - name: Import TinyCBOR
         run: sudo cp -rv -t / ${{ github.workspace }}/tinycbor-staging/*
+
+      - name: Retrieve Cached QCBOR Dependency
+        id: restore-qcbor
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/qcbor-staging
+          key: bplib-dep-${{ env.UPSTREAM_QCBOR_REPO }}@${{ env.UPSTREAM_QCBOR_REF }}
+
+      - name: Import QCBOR
+        run: sudo cp -rv -t / ${{ github.workspace }}/qcbor-staging/*
 
       - name: Retrieve Cached OSAL Dependency
         if: matrix.os-layer == 'OSAL'
