@@ -90,9 +90,16 @@ add_subdirectory(aa/arp)
 add_subdirectory(aa/as)
 add_subdirectory(aa/fwp)
 add_subdirectory(aa/ndc)
+add_subdirectory(bpa/bi)
+add_subdirectory(bpa/ct)
+add_subdirectory(bpa/ebp)
+add_subdirectory(bpa/pdb)
+add_subdirectory(bpa/pi)
+add_subdirectory(bpa/stor)
 
 list(APPEND BPLIB_COMPONENTS
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_ndc
+  bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENTS})
