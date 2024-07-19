@@ -4,7 +4,7 @@ description: 'Builds and installs QCBOR into the workflow filesystem'
 inputs:
   upstream-ref:
     description: 'Upstream ref to check out'
-    default: v1.4.0
+    default: v1.4
   upstream-repo:
     description: 'Upstream repository to use'
     default: laurencelundblade/QCBOR

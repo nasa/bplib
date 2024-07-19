@@ -15,7 +15,7 @@ env:
   UPSTREAM_TINYCBOR_REPO: intel/tinycbor
   UPSTREAM_TINYCBOR_REF: v0.6.0
   UPSTREAM_QCBOR_REPO: laurencelundblade/QCBOR
-  UPSTREAM_QCBOR_REF: v1.4.0
+  UPSTREAM_QCBOR_REF: v1.4
 
 jobs:
 
