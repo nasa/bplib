@@ -60,18 +60,20 @@ See https://github.com/intel/tinycbor.git.
 - tinycbor version 0.6.0
 
 #### Build bplib with cFS
-3. Create a subdirectory for building bplib. Run CMake to set up the build tree. Build bplib by running __make__ in the build subdirectory:
+3. Clone, init, and update cFS and all required submodules. Then clone bp and bplib to the cFS local repository.
 
-```sh
-   git clone https://github.com/nasa/cFS cfs_bundle
-   cd ./cfs_bundle
+```
+   cd <chosen working directory>
+   export CFS_HOME="$(pwd)" # Use CFS_HOME at your discretion
+   git clone https://github.com/nasa/cFS "${CFS_HOME}"/cfs_bundle
+   cd "${CFS_HOME}"/cfs_bundle
    git submodule init
    git submodule update
-   git clone https://github.com/nasa/bp ./apps/bp
-   git clone https://github.com/nasa/bplib ./libs/bplib
+   git clone https://github.com/nasa/bp "${CFS_HOME}"/apps/bp
+   git clone https://github.com/nasa/bplib "${CFS_HOME}"/libs/bplib
 ```
 
-3. Setup OSAL.
+4. Setup OSAL.
 
 Define the OSAL definitions for CMake.
 Run CMake for OSAL.
@@ -89,22 +91,22 @@ Run Make for OSAL with the destination directory `./osal-staging`.
    make DESTDIR=../osal-staging install
 ```
 
-4. Build the test runners
+5. Build bplib and the test runners
 
-Note that the possible build folders are one of <Debug/Release>-<OSAL/POSIX> for the build type and operating system layer respectively.
+Note that the possible build folders are one of <Debug,Release>-<OSAL,POSIX> for the build type and operating system layer respectively.
 
-```sh
-   # Create the build folder based on Debug/Release and OSAL/POSIX
+Setup the required environment variables for CMake, choosing between Debug or Release, and OSAL or POSIX.
+    
+```
    # MATRIX_BUILD_TYPE=[Debug|Release]
    # MATRIX_OS_LAYER=[OSAL|POSIX]
-   # BPLIB_SOURCE=<path-to-cfs>/libs/bplib
+   # BPLIB_SOURCE=$CFS_HOME/cfs_bundle/libs/bplib
    # BPLIB_BUILD=./bplib-build-matrix-<MATRIX_BUILD_TYPE>-<MATRIX_OS_LAYER>
-   #   one of:
-   # BPLIB_BUILD=./bplib-build-matrix-Debug-OSAL
-   # BPLIB_BUILD=./bplib-build-matrix-Debug-POSIX
-   # BPLIB_BUILD=./bplib-build-matrix-Release-OSAL
-   # BPLIB_BUILD=./bplib-build-matrix-Release-POSIX
-   
+```
+
+Run CMake and make all to build bplib and the bplib tests.
+
+```
    cmake \
           -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
           -DBPLIB_OS_LAYER="${MATRIX_OS_LAYER}" \
@@ -116,10 +118,8 @@ Note that the possible build folders are one of <Debug/Release>-<OSAL/POSIX> for
    make all
 ```
 
-5. Test bplib
-
 #### Example Test
-
+6. Test bplib
 
 ```
    export NasaOsal_DIR=osal-staging/usr/local/lib/cmake
@@ -128,31 +128,31 @@ Note that the possible build folders are one of <Debug/Release>-<OSAL/POSIX> for
 ```
 
 #### Build bplib Stand Alone
-6. Create a subdirectory for building bplib.
+1. Clone bplib into a working directory.
 
-```sh
-   git clone https://github.com/nasa/bplib ./bplib
+```
+   cd <chosen working directory>
+   export BPLIB_HOME="$(pwd)" # Use BPLIB_HOME at your discretion
+
+   git clone https://github.com/nasa/bplib "${BPLIB_HOME}"/bplib
 ```
 
-7. Build the test runners
+2. Build bplib and the test runners
 
-Note that the possible build folders are one of <Debug/Release>-<OSAL/POSIX> for the build type and operating system layer respectively.
+Note that the possible build folders are one of <Debug,Release>-POSIX for the build type and operating system layer respectively.
 
-```sh
-   # Create the build folder based on Debug/Release and OSAL/POSIX
+Setup the required environment variables for CMake, choosing between Debug or Release, and POSIX.
+
+```
    # MATRIX_BUILD_TYPE=[Debug|Release]
-   # MATRIX_OS_LAYER=[OSAL|POSIX]
-   # BPLIB_SOURCE=<path-to-cfs>/libs/bplib
-   # BPLIB_BUILD=./bplib-build-matrix-<MATRIX_BUILD_TYPE>-<MATRIX_OS_LAYER>
-   #   one of:
-   # BPLIB_BUILD=./bplib-build-matrix-Debug-OSAL
-   # BPLIB_BUILD=./bplib-build-matrix-Debug-POSIX
-   # BPLIB_BUILD=./bplib-build-matrix-Release-OSAL
-   # BPLIB_BUILD=./bplib-build-matrix-Release-POSIX
-   
-   # Run cmake from the current directory with the CMake folder
-   # indicated by -S "$BPLIB_SOURCE}".
+   # MATRIX_OS_LAYER=POSIX
+   # BPLIB_SOURCE=$CFS_HOME/cfs_bundle/libs/bplib
+   # BPLIB_BUILD=./bplib-build-matrix-<MATRIX_BUILD_TYPE>-POSIX
+```
 
+Run CMake and make all to build bplib and the bplib tests.
+
+```
    cmake \
           -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
           -DBPLIB_OS_LAYER="${MATRIX_OS_LAYER}" \
@@ -164,9 +164,9 @@ Note that the possible build folders are one of <Debug/Release>-<OSAL/POSIX> for
    make all
 ```
 
-8. Test bplib stand alone
+3. Test bplib stand alone
 
-The example program `bpcat` is available in the bplib stand alone build
+The example program `bpcat` referenced below is available in the bplib stand alone build.
 
 ```
 $ ./bplib-build-matrix-Debug-POSIX/app/bpcat --help
