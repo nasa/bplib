@@ -65,12 +65,12 @@ See https://github.com/intel/tinycbor.git.
 ```
    cd <chosen working directory>
    export CFS_HOME="$(pwd)" # Use CFS_HOME at your discretion
-   git clone https://github.com/nasa/cFS "${CFS_HOME}"/cfs_bundle
-   cd "${CFS_HOME}"/cfs_bundle
+   git clone https://github.com/nasa/cFS "${CFS_HOME}"/cfs-bundle
+   cd "${CFS_HOME}"/cfs-bundle
    git submodule init
    git submodule update
-   git clone https://github.com/nasa/bp "${CFS_HOME}"/apps/bp
-   git clone https://github.com/nasa/bplib "${CFS_HOME}"/libs/bplib
+   git clone https://github.com/nasa/bp "${CFS_HOME}"/cfs-bundle/apps/bp
+   git clone https://github.com/nasa/bplib "${CFS_HOME}"/cfs-bundle/libs/bplib
 ```
 
 4. Setup OSAL.
@@ -80,15 +80,15 @@ Run CMake for OSAL.
 Run Make for OSAL with the destination directory `./osal-staging`.
 
 ```
-   cd ./cfs-bundle/osal
-   # cmake options from .github/actions/setup-osal/action.yml
+   cd "${CFS_HOME}"/cfs-bundle/osal
+   # cmake options from .github/actions/setup-osal/action.yml:
    CMAKE_OSAL_DEFS="-DCMAKE_INSTALL_PREFIX=/usr/local -DOSAL_SYSTEM_BSPTYPE=generic-linux "
    # config-options:
    CMAKE_OSAL_DEFS+="-DCMAKE_BUILD_TYPE=Release -DOSAL_OMIT_DEPRECATED=TRUE "
    CMAKE_OSAL_DEFS+="-DENABLE_UNIT_TESTS=TRUE -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON "
-   cmake $CMAKE_OSAL_DEFS -B ../osal-build
-   cd ../osal-build
-   make DESTDIR=../osal-staging install
+   cmake $CMAKE_OSAL_DEFS -B "${CFS_HOME}"/osal-build
+   cd "${CFS_HOME}"/osal-build
+   make DESTDIR="${CFS_HOME}"/osal-staging install
 ```
 
 5. Build bplib and the test runners
@@ -100,13 +100,14 @@ Setup the required environment variables for CMake, choosing between Debug or Re
 ```
    # MATRIX_BUILD_TYPE=[Debug|Release]
    # MATRIX_OS_LAYER=[OSAL|POSIX]
-   # BPLIB_SOURCE=$CFS_HOME/cfs_bundle/libs/bplib
-   # BPLIB_BUILD=./bplib-build-matrix-<MATRIX_BUILD_TYPE>-<MATRIX_OS_LAYER>
+   # BPLIB_SOURCE="${CFS_HOME}"/cfs-bundle/libs/bplib
+   # BPLIB_BUILD="${CFS_HOME}/bplib-build-matrix-${MATRIX_BUILD_TYPE}-${MATRIX_OS_LAYER}"
 ```
 
 Run CMake and make all to build bplib and the bplib tests.
 
 ```
+   export NasaOsal_DIR="${CFS_HOME}/osal-staging/usr/local/lib/cmake"
    cmake \
           -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
           -DBPLIB_OS_LAYER="${MATRIX_OS_LAYER}" \
@@ -122,13 +123,12 @@ Run CMake and make all to build bplib and the bplib tests.
 6. Test bplib
 
 ```
-   export NasaOsal_DIR=osal-staging/usr/local/lib/cmake
-   cd ./bplib-build-matrix-Debug-OSAL
+   cd "${CFS_HOME}"/bplib-build-matrix-Debug-OSAL
    common/ut-coverage/coverage-bplib_common-testrunner
 ```
 
 #### Build bplib Stand Alone
-1. Clone bplib into a working directory.
+1. Clone bplib into a working directory. The build uses BPLIB_HOME rather than CFS_HOME for a stand alone build.
 
 ```
    cd <chosen working directory>
@@ -141,13 +141,13 @@ Run CMake and make all to build bplib and the bplib tests.
 
 Note that the possible build folders are one of <Debug,Release>-POSIX for the build type and operating system layer respectively.
 
-Setup the required environment variables for CMake, choosing between Debug or Release, and POSIX.
+Setup the required environment variables for CMake, choosing between Debug or Release. POSIX is the only operating system layer supported by the stand alone build.
 
 ```
    # MATRIX_BUILD_TYPE=[Debug|Release]
    # MATRIX_OS_LAYER=POSIX
-   # BPLIB_SOURCE=$CFS_HOME/cfs_bundle/libs/bplib
-   # BPLIB_BUILD=./bplib-build-matrix-<MATRIX_BUILD_TYPE>-POSIX
+   # BPLIB_SOURCE="${BPLIB_HOME}"/bplib
+   # BPLIB_BUILD="${BPLIB_HOME}/bplib-build-matrix-${MATRIX_BUILD_TYPE}-POSIX"
 ```
 
 Run CMake and make all to build bplib and the bplib tests.
