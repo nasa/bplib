@@ -7,12 +7,9 @@
 #
 ##################################################################
 
-# The BPv7 codec code currently uses the TinyCBOR external library
-# Use pkg-config to locate tinycbor dependency (for now)
-find_package(PkgConfig)
-pkg_search_module(TINYCBOR tinycbor REQUIRED)
-message(STATUS "Found tinycbor version ${TINYCBOR_VERSION}")
 
+# The BPv7 codec code currently uses the QCBOR external library
+# Use pkg-config to locate qcbor dependency (for now)
 find_package(PkgConfig)
 pkg_search_module(QCBOR qcbor REQUIRED)
 message(STATUS "Found qcbor version ${QCBOR_VERSION}")
@@ -38,9 +35,8 @@ add_library(bplib_v7 OBJECT
 )
 
 target_include_directories(bplib_v7 PRIVATE
-    # nothing outside of here should directly call TinyCBOR, so this
+    # nothing outside of here should directly call QCBOR, so this
     # can be considered private to this submodule
-    ${TINYCBOR_INCLUDE_DIRS}
     ${QCBOR_INCLUDE_DIRS}
     $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
 )

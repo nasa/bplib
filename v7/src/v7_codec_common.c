@@ -92,7 +92,7 @@ size_t v7_compute_full_bundle_size(bplib_mpool_bblock_primary_t *cpb)
         }
         sum_result = cpb->block_encode_size_cache;
         blk        = bplib_mpool_bblock_primary_get_canonical_list(cpb);
-        while (last_encode == 0)
+        while (last_encode == 0 && blk)
         {
             blk = bplib_mpool_get_next_block(blk);
             ccb = bplib_mpool_bblock_canonical_cast(blk);

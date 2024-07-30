@@ -236,11 +236,11 @@ void test_v7_decode_bp_primary_block_impl(void)
 
     v7_decode_state_t  dec;
     bp_primary_block_t arg;
-    CborValue          cval;
+    QCBORDecodeContext cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&arg, 0, sizeof(bp_primary_block_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.error = true;
     UtAssert_VOIDCALL(v7_decode_bp_primary_block_impl(&dec, &arg));
@@ -248,16 +248,10 @@ void test_v7_decode_bp_primary_block_impl(void)
     dec.error      = false;
     arg.version    = 7;
     dec.cbor       = &cval;
-    cval.remaining = 10;
-    cval.extra     = 7;
     UtAssert_VOIDCALL(v7_decode_bp_primary_block_impl(&dec, &arg));
 
     dec.error                   = false;
     arg.controlFlags.isFragment = false;
-    cval.flags                  = 2;
-    cval.extra                  = 0;
-    UT_SetHandlerFunction(UT_KEY(_cbor_value_decode_int64_internal), UT_V7_uint64_Handler, NULL);
-    UT_SetDefaultReturnValue(UT_KEY(_cbor_value_decode_int64_internal), 7);
     UtAssert_VOIDCALL(v7_decode_bp_primary_block_impl(&dec, &arg));
 }
 

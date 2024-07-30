@@ -113,7 +113,7 @@ int v7_block_encode_pri(bplib_mpool_bblock_primary_t *cpb)
     bplib_mpool_stream_t      mps;
     QCBOREncodeContext        top_level_enc;
     const bp_primary_block_t *pri;
-    MakeUsefulBufOnStack(scratch_buf, 256);
+    MakeUsefulBufOnStack(scratch_buf, BPLIB_STANDARD_BUF_LENGTH);
     UsefulBufC                encodedCBOR;
     QCBORError                err;
 
@@ -165,7 +165,7 @@ int v7_block_encode_pay(bplib_mpool_bblock_canonical_t *ccb, const void *data_pt
     const bp_canonical_block_buffer_t *pay;
     size_t                             data_encoded_offset;
     bplib_mpool_t                     *ppool;
-    MakeUsefulBufOnStack(scratch_buf, 256);
+    MakeUsefulBufOnStack(scratch_buf, BPLIB_STANDARD_BUF_LENGTH);
     UsefulBufC encodedCBOR;
     QCBORError err;
 
@@ -216,8 +216,8 @@ int v7_block_encode_canonical(bplib_mpool_bblock_canonical_t *ccb)
     QCBOREncodeContext                 top_level_enc;
     QCBOREncodeContext                 second_level_enc;
     const bp_canonical_block_buffer_t *logical;
-    MakeUsefulBufOnStack(scratch_area, 256);
-    MakeUsefulBufOnStack(scratch_area2, 256);
+    MakeUsefulBufOnStack(scratch_area, BPLIB_STANDARD_BUF_LENGTH);
+    MakeUsefulBufOnStack(scratch_area2, BPLIB_STANDARD_BUF_LENGTH);
     size_t                             scratch_size;
     size_t                             content_encoded_offset;
     bplib_mpool_t                     *ppool;

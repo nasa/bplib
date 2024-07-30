@@ -28,6 +28,8 @@
 #include "v7_codec_internal.h"
 #include "qcbor.h"
 
+#define BPLIB_STANDARD_BUF_LENGTH 256
+
 typedef struct v7_encode_state
 {
     bool error;

@@ -44,6 +44,7 @@ void v7_encode_crc(v7_encode_state_t *enc)
     static const uint8_t CRC_PAD_BYTES[sizeof(bp_crcval_t)] = {0};
     UsefulBufC data_buf;
     QCBORError err;
+    memset(&data_buf, 0, sizeof(UsefulBufC));
 
     /*
      * NOTE: Unlike other encode functions, this does not accept a value passed in, as the
@@ -92,6 +93,7 @@ void v7_decode_crc(v7_decode_state_t *dec, bp_crcval_t *v)
     uint8_t     bytes[1 + sizeof(crc_val)] = {0};
     size_t      i;
     UsefulBufC  buff;
+    memset(&buff, 0, sizeof(UsefulBufC));
 
     crc_val = 0;
 

@@ -28,11 +28,11 @@ void test_v7_decode_bp_custody_tracking_block(void)
      */
     v7_decode_state_t           dec;
     bp_custody_tracking_block_t v;
-    CborValue                   cval;
+    QCBORDecodeContext          cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&v, 0, sizeof(bp_custody_tracking_block_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.cbor = &cval;
     UtAssert_VOIDCALL(v7_decode_bp_custody_tracking_block(&dec, &v));

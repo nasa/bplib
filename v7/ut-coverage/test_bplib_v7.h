@@ -22,7 +22,7 @@
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
-#include "cbor.h"
+#include "qcbor.h"
 #include "v7.h"
 #include "v7_codec.h"
 #include "v7_mpool_bblocks.h"

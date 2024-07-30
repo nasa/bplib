@@ -12,8 +12,6 @@ defaults:
 env:
   UPSTREAM_OSAL_REPO: nasa/osal
   UPSTREAM_OSAL_REF: main
-  UPSTREAM_TINYCBOR_REPO: intel/tinycbor
-  UPSTREAM_TINYCBOR_REF: v0.6.0
   UPSTREAM_QCBOR_REPO: laurencelundblade/QCBOR
   UPSTREAM_QCBOR_REF: v1.4
 
@@ -37,13 +35,6 @@ jobs:
           path: ${{ github.workspace }}/osal-staging
           key: bplib-dep-${{ env.UPSTREAM_OSAL_REPO }}@${{ env.UPSTREAM_OSAL_REF }}
 
-      - name: Cache TinyCBOR Dependency
-        uses: actions/cache@v3
-        id: cache-tinycbor
-        with:
-          path: ${{ github.workspace }}/tinycbor-staging
-          key: bplib-dep-${{ env.UPSTREAM_TINYCBOR_REPO }}@${{ env.UPSTREAM_TINYCBOR_REF }}
-
       - name: Cache QCBOR Dependency
         uses: actions/cache@v3
         id: cache-qcbor
@@ -64,14 +55,6 @@ jobs:
           staging-dir: ${{ github.workspace }}/osal-staging
           upstream-repo: ${{ env.UPSTREAM_OSAL_REPO }}
           upstream-ref: ${{ env.UPSTREAM_OSAL_REF }}
-
-      - name: Set up TinyCBOR
-        if: steps.cache-tinycbor.outputs.cache-hit != 'True'
-        uses: ./source/.github/actions/setup-tinycbor
-        with:
-          staging-dir: ${{ github.workspace }}/tinycbor-staging
-          upstream-repo: ${{ env.UPSTREAM_TINYCBOR_REPO }}
-          upstream-ref: ${{ env.UPSTREAM_TINYCBOR_REF }}
 
       - name: Set up QCBOR
         if: steps.cache-qcbor.outputs.cache-hit != 'True'
@@ -105,18 +88,8 @@ jobs:
           path: ${{ github.workspace }}/source
           key: bplib-source-${{ github.sha }}
 
-      - name: Retrieve Cached TinyCBOR Dependency
-        id: restore-tinycbor
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/tinycbor-staging
-          key: bplib-dep-${{ env.UPSTREAM_TINYCBOR_REPO }}@${{ env.UPSTREAM_TINYCBOR_REF }}
-
-      - name: Import TinyCBOR
-        run: sudo cp -rv -t / ${{ github.workspace }}/tinycbor-staging/*
-
       - name: Retrieve Cached QCBOR Dependency
-        id: restore-qcbor
+        id: restore-qycbor
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/qcbor-staging

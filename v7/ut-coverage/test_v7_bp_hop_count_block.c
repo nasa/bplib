@@ -43,11 +43,11 @@ void test_v7_decode_bp_hop_count_block_impl(void)
      */
     v7_decode_state_t    dec;
     bp_hop_count_block_t arg;
-    CborValue            cval;
+    QCBORDecodeContext   cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&arg, 0, sizeof(bp_hop_count_block_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.error = false;
     dec.cbor  = &cval;

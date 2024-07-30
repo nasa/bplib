@@ -51,18 +51,17 @@ void test_v7_decode_bp_adminrec_payload_impl(void)
      */
     v7_decode_state_t                  dec;
     v7_admin_rec_payload_decode_info_t admin_rec_payload;
-    CborValue                          cval;
+    QCBORDecodeContext                 cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&admin_rec_payload, 0, sizeof(v7_admin_rec_payload_decode_info_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
+    
     admin_rec_payload.decode_rectype = bp_adminrectype_custodyAcknowledgement;
-    cval.remaining                   = 10;
     dec.cbor                         = &cval;
     UtAssert_VOIDCALL(v7_decode_bp_adminrec_payload_impl(&dec, &admin_rec_payload));
 
     dec.error  = false;
-    cval.extra = bp_adminrectype_custodyAcknowledgement;
     UtAssert_VOIDCALL(v7_decode_bp_adminrec_payload_impl(&dec, &admin_rec_payload));
 }
 
@@ -73,17 +72,14 @@ void test_v7_decode_bp_admin_record_payload(void)
      */
     v7_decode_state_t           dec;
     bp_canonical_block_buffer_t v;
-    CborValue                   cval;
+    QCBORDecodeContext          cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&v, 0, sizeof(v7_decode_state_t));
-    memset(&cval, 0, sizeof(CborValue));
-    cval.type                   = CborArrayType;
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
     dec.cbor                    = &cval;
-    dec.cbor->remaining         = 10;
     dec.error                   = false;
-    v.canonical_block.blockType = CborArrayType;
-    cval.extra                  = bp_adminrectype_custodyAcknowledgement;
+    v.canonical_block.blockType = QCBOR_TYPE_ARRAY;
     UtAssert_VOIDCALL(v7_decode_bp_admin_record_payload(&dec, &v));
 }
 
