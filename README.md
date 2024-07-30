@@ -164,6 +164,7 @@ Run CMake and make all to build bplib and the bplib tests.
    make all
 ```
 
+#### Test bplib with bpcat
 3. Test bplib stand alone
 
 The example program `bpcat` referenced below is available in the bplib stand alone build.
@@ -187,6 +188,19 @@ Usage: ./bplib-build-matrix-Debug-POSIX/app/bpcat [options]
 Example:
    ./bplib-build-matrix-Debug-POSIX/app/bpcat -l ipn://101.1 -r ipn://201.1
 ```
+
+To test with bpcat:
+
+1. Open two terminal windows and have them both visible. The test runs `bpcat` as a receiver in one window and a sender in the other.
+2. In both terminals run: `cd "${BPLIB_HOME}/bplib-build-matrix-Debug/POSIX/app"`
+3. The files `bpcat` and `Makefile` should be in the current directory.
+4. In one terminal, create the `storage` folder required for the test.
+ `mkdir storage`
+5. In the same terminal, run the receiver with:
+ `./bpcat -l ipn://101.1 -r ipn://201.1 |& tee recv.log`
+6. In the other terminal, run the sender with: `./bpcat -l ipn://201.1 -r ipn://101.1 -i Makefile |& tee send.log`
+7. For a successful test the contents of the Makefile appear in the receiver terminal.
+8. Terminate `bpcat` in both terminal windows by pressing `CTRL-C` in each window.
 
 ----------------------------------------------------------------------
 ## 3. Application Design
