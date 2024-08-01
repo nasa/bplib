@@ -39,5 +39,5 @@
 
 void UtTest_Setup(void)
 {
-    /* TODO */
+    printf("TODO implement functional tests\n");
 }
