@@ -26,22 +26,20 @@ void test_v7_encode_container(void)
     /* Test function for:
      * void v7_encode_container(v7_encode_state_t *enc, size_t entries, v7_encode_func_t func, const void *arg)
      */
-    v7_encode_state_t enc;
-    size_t            entries = 1;
-    v7_encode_func_t  func    = test_bplib_v7_encode_func_stub;
-    void             *arg     = NULL;
-    CborEncoder       cval;
+    v7_encode_state_t   enc;
+    size_t              entries = 1;
+    v7_encode_func_t    func    = test_bplib_v7_encode_func_stub;
+    void               *arg     = NULL;
+    QCBOREncodeContext  cval;
 
     memset(&enc, 0, sizeof(v7_encode_state_t));
-    memset(&cval, 0, sizeof(CborEncoder));
+    memset(&cval, 0, sizeof(QCBOREncodeContext));
 
     enc.cbor  = &cval;
     enc.error = false;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_encoder_close_container), CborUnknownError);
     UtAssert_VOIDCALL(v7_encode_container(&enc, entries, func, &arg));
 
     enc.error = false;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_encoder_create_array), CborUnknownError);
     UtAssert_VOIDCALL(v7_encode_container(&enc, entries, func, &arg));
 }
 
@@ -50,28 +48,23 @@ void test_v7_decode_container(void)
     /* Test function for:
      * void v7_decode_container(v7_decode_state_t *dec, size_t entries, v7_decode_func_t func, void *arg)
      */
-    v7_decode_state_t dec;
-    size_t            entries = 1;
-    v7_decode_func_t  func    = test_bplib_v7_decode_func_stub;
-    void             *arg     = NULL;
-    CborValue         cval;
+    v7_decode_state_t   dec;
+    size_t              entries = 1;
+    v7_decode_func_t    func    = test_bplib_v7_decode_func_stub;
+    void               *arg     = NULL;
+    QCBORDecodeContext  cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBOREncodeContext));
 
     dec.cbor  = &cval;
     dec.error = false;
     UtAssert_VOIDCALL(v7_decode_container(&dec, entries, func, &arg));
 
     dec.error      = false;
-    cval.remaining = 10;
-    cval.type      = CborArrayType;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_value_enter_container), CborUnknownError);
     UtAssert_VOIDCALL(v7_decode_container(&dec, entries, func, &arg));
 
     dec.error = false;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_value_enter_container), CborNoError);
-    UT_SetDefaultReturnValue(UT_KEY(cbor_value_leave_container), CborUnknownError);
     UtAssert_VOIDCALL(v7_decode_container(&dec, entries, func, &arg));
 }
 

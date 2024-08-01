@@ -98,32 +98,37 @@ size_t v7_save_and_verify_block(bplib_mpool_block_t *head, const uint8_t *block_
 int v7_block_decode_pri(bplib_mpool_bblock_primary_t *cpb, const void *data_ptr, size_t data_size)
 {
     v7_decode_state_t   v7_state;
-    CborValue           origin;
     bp_primary_block_t *pri;
     size_t              block_size;
-    CborParser          parser;
-
+    QCBORDecodeContext  DecodeCtx;
+    QCBORError          err;
+    UsefulBufC          data_buf;
+            
     /* If there is any existing encoded data, return it to the pool */
     bplib_mpool_bblock_primary_drop_encode(cpb);
 
     pri = bplib_mpool_bblock_primary_get_logical(cpb);
     memset(&v7_state, 0, sizeof(v7_state));
 
-    if (cbor_parser_init(data_ptr, data_size, 0, &parser, &origin) != CborNoError)
+    data_buf.ptr = (UsefulBufC *)data_ptr;
+    data_buf.len = data_size;
+    QCBORDecode_Init(&DecodeCtx, data_buf, QCBOR_DECODE_MODE_NORMAL);
+    err = QCBORDecode_GetError(&DecodeCtx);
+    if(err != QCBOR_SUCCESS) 
     {
         v7_state.error = true;
     }
     else
     {
         v7_state.base = data_ptr;
-        v7_state.cbor = &origin;
+        v7_state.cbor = &DecodeCtx;
 
         v7_decode_bp_primary_block(&v7_state, pri);
     }
 
     if (!v7_state.error)
     {
-        block_size                   = cbor_value_get_next_byte(&origin) - v7_state.base;
+        block_size                   = (size_t)v7_state.cbor->InBuf.cursor;
         cpb->block_encode_size_cache = v7_save_and_verify_block(bplib_mpool_bblock_primary_get_encoded_chunks(cpb),
                                                                 v7_state.base, block_size, pri->crctype, pri->crcval);
 
@@ -145,17 +150,21 @@ int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *d
                               bp_blocktype_t payload_block_hint)
 {
     v7_decode_state_t            v7_state;
-    CborError                    tcb_stat;
-    CborValue                    origin;
     bp_canonical_block_buffer_t *logical;
     size_t                       block_size;
-    CborParser                   parser;
     size_t                       content_offset;
     size_t                       content_size;
+    QCBORDecodeContext           DecodeCtx;
+    QCBORError                   err;
+    UsefulBufC                   data_buf;
+    QCBORDecodeContext           DecodeCtx2;
+    UsefulBufC                   data_buf2;
 
     block_size     = 0;
     content_offset = 0;
     content_size   = 0;
+    data_buf.ptr = data_ptr;
+    data_buf.len = data_size;
 
     /* If there is any existing encoded data, return it to the pool */
     bplib_mpool_bblock_canonical_drop_encode(ccb);
@@ -163,15 +172,16 @@ int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *d
     logical = bplib_mpool_bblock_canonical_get_logical(ccb);
     memset(&v7_state, 0, sizeof(v7_state));
 
-    tcb_stat = cbor_parser_init(data_ptr, data_size, 0, &parser, &origin);
-    if (tcb_stat != CborNoError)
+    QCBORDecode_Init(&DecodeCtx, data_buf, QCBOR_DECODE_MODE_NORMAL);
+    err = QCBORDecode_GetError(&DecodeCtx);
+    if(err != QCBOR_SUCCESS) 
     {
         v7_state.error = true;
     }
     else
     {
         v7_state.base = data_ptr;
-        v7_state.cbor = &origin;
+        v7_state.cbor = &DecodeCtx;
 
         v7_decode_bp_canonical_block_buffer(&v7_state, logical, &content_offset, &content_size);
     }
@@ -179,7 +189,7 @@ int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *d
     if (!v7_state.error)
     {
         /* This reflects the size of the entire CBOR blob that the caller passed in */
-        block_size = cbor_value_get_next_byte(&origin) - v7_state.base;
+        block_size = (size_t)v7_state.cbor->InBuf.cursor;
 
         /* Copy it to the pool buffers, and check the CRC in the process */
         ccb->block_encode_size_cache =
@@ -219,14 +229,17 @@ int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *d
         if (logical->canonical_block.blockType != bp_blocktype_payloadBlock)
         {
             v7_state.base += content_offset;
-            tcb_stat = cbor_parser_init(v7_state.base, content_size, 0, &parser, &origin);
-            if (tcb_stat != CborNoError)
+            data_buf2.ptr = v7_state.base;
+            data_buf2.len = content_size;
+            QCBORDecode_Init(&DecodeCtx2, data_buf2, QCBOR_DECODE_MODE_NORMAL);
+            err = QCBORDecode_GetError(&DecodeCtx2);
+            if(err != QCBOR_SUCCESS) 
             {
                 v7_state.error = true;
             }
             else
             {
-                v7_state.cbor = &origin;
+                v7_state.cbor = &DecodeCtx2;
 
                 switch (logical->canonical_block.blockType)
                 {
@@ -263,9 +276,21 @@ int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *d
                         break;
                 }
             }
+            if (QCBORDecode_Finish(&DecodeCtx2) != QCBOR_SUCCESS)
+            {
+                v7_state.error = true;
+            }    
         }
     }
 
+    if (DecodeCtx.InBuf.cursor == DecodeCtx.InBuf.UB.len)
+    {
+        if (QCBORDecode_Finish(&DecodeCtx) != QCBOR_SUCCESS)
+        {
+            v7_state.error = true;
+        }
+    }
+    
     if (v7_state.error)
     {
         return -1;

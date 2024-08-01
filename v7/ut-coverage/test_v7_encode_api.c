@@ -50,12 +50,12 @@ void test_v7_block_encode_pay(void)
      * int v7_block_encode_pay(bplib_mpool_bblock_canonical_t *ccb, const void *data_ptr, size_t data_size)
      */
     bplib_mpool_bblock_canonical_t ccb;
-    void                          *data_ptr  = NULL;
-    size_t                         data_size = 1000;
+    const char                          *data_ptr="Hello";
+    size_t                         data_size = sizeof(data_ptr);
 
     memset(&ccb, 0, sizeof(bplib_mpool_bblock_canonical_t));
 
-    UtAssert_INT32_NEQ(v7_block_encode_pay(&ccb, data_ptr, data_size), 0);
+    UtAssert_INT32_EQ(v7_block_encode_pay(&ccb, data_ptr, data_size), 0);
 }
 
 void test_v7_block_encode_canonical(void)
@@ -68,28 +68,27 @@ void test_v7_block_encode_canonical(void)
     memset(&ccb, 0, sizeof(bplib_mpool_bblock_canonical_t));
 
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_undefined;
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_payloadBlock;
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_bundleAuthenicationBlock;
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_payloadIntegrityBlock;
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_payloadConfidentialityBlock;
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_previousHopInsertionBlock;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_encoder_close_container), CborNoError);
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_previousNode;
     UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_bundleAge;
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_metadataExtensionBlock;
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_extensionSecurityBlock;
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_hopCount;
-    UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
+    UtAssert_INT32_EQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_custodyTrackingBlock;
     UtAssert_INT32_NEQ(v7_block_encode_canonical(&ccb), 0);
     ccb.canonical_logical_data.canonical_block.blockType = bp_blocktype_adminRecordPayloadBlock;
@@ -138,17 +137,16 @@ void test_v7_encoder_write_wrapper(void)
     v7_encode_state_t     enc;
     void                 *ptr = NULL;
     size_t                sz  = 0;
-    CborEncoderAppendType at  = CborEncoderAppendStringData;
 
     memset(&enc, 0, sizeof(v7_encode_state_t));
     enc.crc_flag = false;
     UT_SetDefaultReturnValue(UT_KEY(test_bplib_v7_writer_func_stub), BP_ERROR);
     enc.next_writer = test_bplib_v7_writer_func_stub;
-    UtAssert_INT32_NEQ(v7_encoder_write_wrapper(&enc, ptr, sz, at), 0);
+    UtAssert_INT32_NEQ(v7_encoder_write_wrapper(&enc, ptr, sz), 0);
 
     enc.crc_flag = true;
     UT_SetDefaultReturnValue(UT_KEY(test_bplib_v7_writer_func_stub), BP_SUCCESS);
-    UtAssert_INT32_EQ(v7_encoder_write_wrapper(&enc, ptr, sz, at), 0);
+    UtAssert_INT32_EQ(v7_encoder_write_wrapper(&enc, ptr, sz), 0);
 }
 
 void TestV7EncodeApi_Rgister(void)

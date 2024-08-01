@@ -179,13 +179,13 @@ void test_v7_decode_bp_ipn_uri_ssp_impl(void)
     /* Test function for:
      * void v7_decode_bp_ipn_uri_ssp_impl(v7_decode_state_t *dec, void *arg)
      */
-    v7_decode_state_t dec;
-    bp_ipn_uri_ssp_t  arg;
-    CborValue         cval;
+    v7_decode_state_t   dec;
+    bp_ipn_uri_ssp_t    arg;
+    QCBORDecodeContext  cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&arg, 0, sizeof(bp_ipn_uri_ssp_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.cbor = &cval;
     UtAssert_VOIDCALL(v7_decode_bp_ipn_uri_ssp_impl(&dec, &arg));
@@ -198,20 +198,17 @@ void test_v7_decode_bp_endpointid_buffer_impl(void)
      */
     v7_decode_state_t      dec;
     bp_endpointid_buffer_t arg;
-    CborValue              cval;
+    QCBORDecodeContext     cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&arg, 0, sizeof(bp_endpointid_buffer_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.error = false;
     dec.cbor  = &cval;
     UtAssert_VOIDCALL(v7_decode_bp_endpointid_buffer_impl(&dec, &arg));
 
     dec.error      = false;
-    cval.remaining = 10;
-    cval.flags     = 0;
-    cval.extra     = bp_endpointid_scheme_ipn;
     UtAssert_VOIDCALL(v7_decode_bp_endpointid_buffer_impl(&dec, &arg));
 }
 

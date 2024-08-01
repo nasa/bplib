@@ -65,27 +65,11 @@ void v7_encode_bp_canonical_info(v7_encode_state_t *enc, const v7_canonical_bloc
      * This encodes the data and snapshots the position of the END of that CBOR byte
      * string.
      */
-    cbor_encode_byte_string(enc->cbor, info->content_vptr, info->content_size);
+    UsefulBufC bytes_buf;
+    bytes_buf.ptr = info->content_vptr;
+    bytes_buf.len = info->content_size;
+    QCBOREncode_AddBytes(enc->cbor, bytes_buf);
 
-    if (!enc->error)
-    {
-        if (enc->total_bytes_encoded < info->content_size)
-        {
-            /* this should never happen */
-            enc->error = true;
-        }
-        else if (info->content_offset_out != NULL)
-        {
-            /*
-             * Export the location where the encoded data actually appeared in the stream.
-             *
-             * CBOR markup occurs at the beginning of each record, so by knowing
-             * where it ends it is easy to find the beginning of actual data, as the CBOR
-             * markup itself is variable size, but the content is a known size here.
-             */
-            *info->content_offset_out = enc->total_bytes_encoded - info->content_size;
-        }
-    }
 }
 
 void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canonical_bundle_block_t *v,
@@ -192,72 +176,28 @@ void v7_decode_bp_block_processing_flags(v7_decode_state_t *dec, bp_block_proces
 
 void v7_decode_bp_canonical_info(v7_decode_state_t *dec, v7_canonical_block_info_t *info)
 {
-    const uint8_t *cbor_content_start_ptr;
-    size_t         cbor_content_length;
-    size_t         cbor_major_size;
-
+    
+    QCBORItem item;
+    QCBORError err;
+    UsefulBufC buff;
     /*
      * The content within this context must be a CBOR byte string.
      * This byte string, in turn, _might_ have CBOR-encoded data within it,
      * but it won't be decoded right now, just grab the location and
      * make sure everything seems legit at the outer layer
      */
-    if (cbor_value_get_type(dec->cbor) != CborByteStringType)
+    err = QCBORDecode_PeekNext(dec->cbor, &item);
+    if (err != QCBOR_SUCCESS || item.uDataType != QCBOR_TYPE_BYTE_STRING)
     {
         dec->error = true;
         return;
     }
 
-    cbor_content_start_ptr = cbor_value_get_next_byte(dec->cbor);
-    if (cbor_value_advance(dec->cbor) != CborNoError)
-    {
-        dec->error = true;
-        return;
-    }
-
-    /*
-     * This calculated length reflects the start of this CBOR value to the
-     * start of the next CBOR value.  Notably this includes the CBOR overhead/markup
-     * for this value, which will need to be removed.  TinyCBOR will want to
-     * copy the value, so we go around it for this value and decode the major
-     * type locally.
-     */
-    cbor_content_length = cbor_value_get_next_byte(dec->cbor) - cbor_content_start_ptr;
-
-    /* Advance the pointer according to the CBOR length to get to the real data. */
-    cbor_major_size = *cbor_content_start_ptr & 0x1F;
-    if (cbor_major_size < 24)
-    {
-        /* no extra bytes beyond the major type */
-        cbor_major_size = 0;
-    }
-    else if (cbor_major_size < 28)
-    {
-        /* 1, 2, 4, or 8 additional bytes beyond the major type */
-        cbor_major_size = 1 << (cbor_major_size - 24);
-    }
-    else
-    {
-        /* Value not well formed, or indefinite length (not supported here) */
-        cbor_major_size = cbor_content_length;
-    }
-
-    ++cbor_major_size; /* Account for the CBOR major type octet itself (always there) */
-    if (cbor_major_size <= cbor_content_length)
-    {
-        cbor_content_start_ptr += cbor_major_size;
-        cbor_content_length -= cbor_major_size;
-
-        /* Export the position of the now-located content information */
-        *info->content_offset_out = cbor_content_start_ptr - dec->base;
-        info->content_vptr        = cbor_content_start_ptr;
-        info->content_size        = cbor_content_length;
-    }
-    else
-    {
-        /* This should not happen */
-        dec->error = true;
-    }
+    QCBORDecode_GetByteString(dec->cbor, &buff);
+    /* Export the position of the now-located content information */
+    *info->content_offset_out = (uint8_t*)buff.ptr - dec->base;
+    info->content_vptr        = buff.ptr;
+    info->content_size        = buff.len;   
 }
 
 void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v,
@@ -265,7 +205,8 @@ void v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bu
 {
     bp_canonical_field_t field_id = bp_canonical_field_undef;
 
-    while (field_id < bp_canonical_field_done && !dec->error && !cbor_value_at_end(dec->cbor))
+    
+    while (field_id < bp_canonical_field_done && !dec->error)
     {
         switch (field_id)
         {
@@ -314,7 +255,7 @@ void v7_decode_bp_canonical_block_buffer(v7_decode_state_t *dec, bp_canonical_bl
     info.decode_block       = &v->canonical_block;
     info.content_offset_out = content_encoded_offset;
 
-    v7_decode_container(dec, CborIndefiniteLength, v7_decode_bp_canonical_block_buffer_impl, &info);
+    v7_decode_container(dec, QCBOR_MAX_ITEMS_IN_ARRAY, v7_decode_bp_canonical_block_buffer_impl, &info);
 
     *content_length = info.content_size;
 }

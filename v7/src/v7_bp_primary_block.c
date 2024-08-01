@@ -223,8 +223,7 @@ void v7_decode_bp_primary_block_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_primary_block_t *v        = arg;
     bp_pri_field_t      field_id = bp_pri_field_undef;
-
-    while (field_id < bp_pri_field_done && !dec->error && !cbor_value_at_end(dec->cbor))
+    while (field_id < bp_pri_field_done && !dec->error)
     {
         switch (field_id)
         {
@@ -295,5 +294,5 @@ void v7_decode_bp_primary_block_impl(v7_decode_state_t *dec, void *arg)
 
 void v7_decode_bp_primary_block(v7_decode_state_t *dec, bp_primary_block_t *v)
 {
-    v7_decode_container(dec, CborIndefiniteLength, v7_decode_bp_primary_block_impl, v);
+    v7_decode_container(dec, QCBOR_MAX_ITEMS_IN_ARRAY, v7_decode_bp_primary_block_impl, v);
 }

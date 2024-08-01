@@ -23,7 +23,6 @@
  ******************************************************************************/
 
 #include "v7_codec_internal.h"
-#include "cbor.h"
 
 bplib_crc_parameters_t *v7_codec_get_crc_algorithm(bp_crctype_t crctype)
 {
@@ -93,7 +92,7 @@ size_t v7_compute_full_bundle_size(bplib_mpool_bblock_primary_t *cpb)
         }
         sum_result = cpb->block_encode_size_cache;
         blk        = bplib_mpool_bblock_primary_get_canonical_list(cpb);
-        while (last_encode == 0)
+        while (last_encode == 0 && blk)
         {
             blk = bplib_mpool_get_next_block(blk);
             ccb = bplib_mpool_bblock_canonical_cast(blk);
@@ -142,7 +141,7 @@ size_t v7_copy_full_bundle_out(bplib_mpool_bblock_primary_t *cpb, void *buffer, 
     out_p  = buffer;
     *out_p = 0x9F; /* Start CBOR indefinite-length array */
     ++out_p;
-
+    
     remain_sz = buf_sz - 2;
 
     chunk_sz =

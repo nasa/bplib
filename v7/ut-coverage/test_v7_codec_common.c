@@ -97,7 +97,6 @@ void test_v7_copy_full_bundle_in(void)
     UtAssert_INT32_EQ(v7_copy_full_bundle_in(&pblk, &flow_ref, remain_sz), 0);
 
     memset(&flow_ref, 0x9F, sizeof(bplib_mpool_ref_t));
-    UT_SetDefaultReturnValue(UT_KEY(cbor_parser_init), CborNoError);
     UtAssert_INT32_EQ(v7_copy_full_bundle_in(&pblk, &flow_ref, remain_sz), 0);
 
     pblk.block_encode_size_cache = 1;

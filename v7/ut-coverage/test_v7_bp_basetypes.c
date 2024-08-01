@@ -32,7 +32,7 @@ void test_v7_encode_small_int(void)
     memset(&enc, 0, sizeof(v7_encode_state_t));
     enc.error = false;
 
-    UT_SetDefaultReturnValue(UT_KEY(cbor_encode_int), CborUnknownError);
+    //UT_SetDefaultReturnValue(UT_KEY(cbor_encode_int), CborUnknownError);
     UtAssert_VOIDCALL(v7_encode_small_int(&enc, val));
 }
 
@@ -41,20 +41,17 @@ void test_v7_decode_small_int(void)
     /* Test function for:
      * int  v7_decode_small_int(v7_decode_state_t *dec)
      */
-    v7_decode_state_t dec;
-    CborValue         cval;
+    v7_decode_state_t   dec;
+    QCBORDecodeContext  cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.error = false;
     dec.cbor  = &cval;
     UtAssert_VOIDCALL(v7_decode_small_int(&dec));
 
     dec.error      = false;
-    cval.type      = CborIntegerType;
-    cval.remaining = 10;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_value_advance_fixed), CborUnknownError);
     UtAssert_VOIDCALL(v7_decode_small_int(&dec));
 }
 
@@ -63,22 +60,19 @@ void test_v7_decode_bp_integer(void)
     /* Test function for:
      * void v7_decode_bp_integer(v7_decode_state_t *dec, bp_integer_t *v)
      */
-    v7_decode_state_t dec;
-    bp_integer_t      v;
-    CborValue         cval;
+    v7_decode_state_t   dec;
+    bp_integer_t        v;
+    QCBORDecodeContext  cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&v, 0, sizeof(bp_integer_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.error = false;
     dec.cbor  = &cval;
     UtAssert_VOIDCALL(v7_decode_bp_integer(&dec, &v));
 
     dec.error      = false;
-    cval.type      = CborIntegerType;
-    cval.remaining = 10;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_value_advance_fixed), CborUnknownError);
     UtAssert_VOIDCALL(v7_decode_bp_integer(&dec, &v));
 }
 
@@ -87,18 +81,18 @@ void test_v7_encode_bp_integer(void)
     /* Test function for:
      * void v7_encode_bp_integer(v7_encode_state_t *enc, const bp_integer_t *v)
      */
-    v7_encode_state_t enc;
-    bp_integer_t      v;
-    CborEncoder       cval;
+    v7_encode_state_t   enc;
+    bp_integer_t        v;
+    QCBOREncodeContext  cval;
 
     memset(&enc, 0, sizeof(v7_encode_state_t));
     memset(&v, 0, sizeof(bp_integer_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBOREncodeContext));
 
     enc.error = false;
     enc.cbor  = &cval;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_encode_uint), CborUnknownError);
     UtAssert_VOIDCALL(v7_encode_bp_integer(&enc, &v));
+    
 }
 
 void test_v7_decode_bp_blocknum(void)

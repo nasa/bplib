@@ -36,10 +36,7 @@ void v7_encode_small_int(v7_encode_state_t *enc, int val)
 {
     if (!enc->error)
     {
-        if (cbor_encode_int(enc->cbor, val) != CborNoError)
-        {
-            enc->error = true;
-        }
+        QCBOREncode_AddInt64(enc->cbor, val);
     }
 }
 
@@ -48,22 +45,14 @@ int v7_decode_small_int(v7_decode_state_t *dec)
     int val;
 
     val = 0;
+            
     if (!dec->error)
     {
-        if (cbor_value_at_end(dec->cbor) || cbor_value_get_type(dec->cbor) != CborIntegerType)
+        QCBORDecode_GetInt64(dec->cbor, (int64_t*)&val);
+        QCBORError err = QCBORDecode_GetError(dec->cbor);
+        if(err != QCBOR_SUCCESS)
         {
             dec->error = true;
-        }
-        else
-        {
-            if (cbor_value_get_int(dec->cbor, &val) != CborNoError)
-            {
-                dec->error = true;
-            }
-            else if (cbor_value_advance_fixed(dec->cbor) != CborNoError)
-            {
-                dec->error = true;
-            }
         }
     }
 
@@ -83,20 +72,11 @@ void v7_decode_bp_integer(v7_decode_state_t *dec, bp_integer_t *v)
     val = 0;
     if (!dec->error)
     {
-        if (cbor_value_at_end(dec->cbor) || cbor_value_get_type(dec->cbor) != CborIntegerType)
+        QCBORDecode_GetUInt64(dec->cbor, &val);
+        QCBORError err = QCBORDecode_GetError(dec->cbor);
+        if(err != QCBOR_SUCCESS)
         {
             dec->error = true;
-        }
-        else
-        {
-            if (cbor_value_get_uint64(dec->cbor, &val) != CborNoError)
-            {
-                dec->error = true;
-            }
-            else if (cbor_value_advance_fixed(dec->cbor) != CborNoError)
-            {
-                dec->error = true;
-            }
         }
     }
 
@@ -107,10 +87,7 @@ void v7_encode_bp_integer(v7_encode_state_t *enc, const bp_integer_t *v)
 {
     if (!enc->error)
     {
-        if (cbor_encode_uint(enc->cbor, *v) != CborNoError)
-        {
-            enc->error = true;
-        }
+        QCBOREncode_AddUInt64(enc->cbor, *v);
     }
 }
 

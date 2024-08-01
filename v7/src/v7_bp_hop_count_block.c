@@ -72,8 +72,8 @@ void v7_decode_bp_hop_count_block_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_hop_count_block_t *v        = arg;
     bp_hop_count_field_t  field_id = bp_hop_count_field_undef;
-
-    while (field_id < bp_hop_count_field_done && !dec->error && !cbor_value_at_end(dec->cbor))
+    
+    while (field_id < bp_hop_count_field_done)
     {
         switch (field_id)
         {

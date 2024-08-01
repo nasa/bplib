@@ -26,13 +26,14 @@
  ******************************************************************************/
 
 #include "v7_codec_internal.h"
-#include "cbor.h"
+#include "qcbor.h"
+#include "qcbor_spiffy_decode.h"
 
 typedef struct v7_decode_state
 {
     bool           error;
     const uint8_t *base;
-    CborValue     *cbor;
+    QCBORDecodeContext *cbor;
 } v7_decode_state_t;
 
 typedef struct

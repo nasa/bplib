@@ -31,18 +31,21 @@ void test_v7_encode_bp_canonical_bundle_block(void)
     bp_canonical_bundle_block_t v;
     v7_canonical_block_info_t   info;
     size_t                      offset_out = 10;
+    QCBOREncodeContext          cval;
 
     memset(&enc, 0, sizeof(v7_encode_state_t));
     memset(&v, 0, sizeof(bp_canonical_bundle_block_t));
     memset(&info, 0, sizeof(v7_canonical_block_info_t));
+    memset(&cval, 0, sizeof(QCBOREncodeContext));
 
     v.blockType             = bp_blocktype_adminRecordPayloadBlock;
     v.crctype               = bp_crctype_CRC16;
     enc.error               = false;
+    enc.cbor                = &cval;     
     info.content_offset_out = &offset_out;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_encode_int), CborNoError);
-    UT_SetDefaultReturnValue(UT_KEY(cbor_encode_uint), CborNoError);
+
     UT_SetHandlerFunction(UT_KEY(bplib_crc_get_width), UT_V7_int8_Handler, NULL);
+    UT_SetDefaultReturnValue(UT_KEY(bplib_crc_get_width), 40);
     UtAssert_VOIDCALL(v7_encode_bp_canonical_bundle_block(&enc, &v, &info));
 }
 
@@ -57,9 +60,13 @@ void test_v7_encode_bp_canonical_block_buffer(void)
     void                       *content_ptr            = NULL;
     size_t                      content_length         = 100;
     size_t                      content_encoded_offset = 10;
+    QCBOREncodeContext          cval;
 
     memset(&enc, 0, sizeof(v7_encode_state_t));
     memset(&v, 0, sizeof(bp_canonical_block_buffer_t));
+    memset(&cval, 0, sizeof(QCBOREncodeContext));
+    
+    enc.cbor = &cval;
 
     v.canonical_block.crctype = bp_crctype_CRC16;
     UtAssert_VOIDCALL(
@@ -71,13 +78,13 @@ void test_v7_decode_bp_block_processing_flags(void)
     /* Test function for:
      * void v7_decode_bp_block_processing_flags(v7_decode_state_t *dec, bp_block_processing_flags_t *v)
      */
-    v7_decode_state_t           dec;
-    bp_block_processing_flags_t v;
-    CborValue                   cval;
+    v7_decode_state_t               dec;
+    bp_block_processing_flags_t     v;
+    QCBORDecodeContext              cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&v, 0, sizeof(bp_block_processing_flags_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.cbor = &cval;
     UtAssert_VOIDCALL(v7_decode_bp_block_processing_flags(&dec, &v));
@@ -92,18 +99,18 @@ void test_v7_decode_bp_canonical_bundle_block(void)
     v7_decode_state_t           dec;
     bp_canonical_bundle_block_t v;
     v7_canonical_block_info_t   info;
-    CborValue                   cval;
+    QCBORDecodeContext          cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&v, 0, sizeof(bp_canonical_bundle_block_t));
     memset(&info, 0, sizeof(v7_canonical_block_info_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.error      = false;
     dec.cbor       = &cval;
-    cval.remaining = 10;
-    cval.extra     = bp_crctype_CRC16;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_value_advance_fixed), CborNoError);
+    UtAssert_VOIDCALL(v7_decode_bp_canonical_bundle_block(&dec, &v, &info));
+
+    UT_SetDefaultReturnValue(UT_KEY(QCBORDecode_PeekNext), QCBOR_SUCCESS);
     UtAssert_VOIDCALL(v7_decode_bp_canonical_bundle_block(&dec, &v, &info));
 }
 
@@ -114,12 +121,12 @@ void test_v7_decode_bp_canonical_block_buffer_impl(void)
      */
     v7_decode_state_t           dec;
     v7_canonical_block_info_t   arg;
-    CborValue                   cval;
+    QCBORDecodeContext          cval;
     bp_canonical_bundle_block_t bblk;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&arg, 0, sizeof(v7_canonical_block_info_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
     memset(&bblk, 0, sizeof(bp_canonical_bundle_block_t));
     dec.cbor         = &cval;
     arg.decode_block = &bblk;

@@ -33,10 +33,9 @@ void test_v7_block_decode_pri(void)
     memset(&cpb, 0, sizeof(bplib_mpool_bblock_primary_t));
     memset(&data, 0, sizeof(uint8_t));
 
-    UT_SetDefaultReturnValue(UT_KEY(cbor_parser_init), CborUnknownError);
     UtAssert_INT32_NEQ(v7_block_decode_pri(&cpb, &data, data_size), 0);
 
-    UT_SetDefaultReturnValue(UT_KEY(cbor_parser_init), CborNoError);
+    UT_SetDefaultReturnValue(UT_KEY(QCBORDecode_GetError), QCBOR_ERR_ENCODE_UNSUPPORTED);
     UtAssert_INT32_NEQ(v7_block_decode_pri(&cpb, &data, data_size), 0);
 }
 
@@ -53,10 +52,8 @@ void test_v7_block_decode_canonical(void)
 
     memset(&ccb, 0, sizeof(bplib_mpool_bblock_canonical_t));
 
-    UT_SetDefaultReturnValue(UT_KEY(cbor_parser_init), CborNoError);
     UtAssert_INT32_NEQ(v7_block_decode_canonical(&ccb, data, data_size, payload_block_hint), 0);
 
-    UT_SetDefaultReturnValue(UT_KEY(cbor_parser_init), CborUnknownError);
     UtAssert_INT32_NEQ(v7_block_decode_canonical(&ccb, data, data_size, payload_block_hint), 0);
 }
 

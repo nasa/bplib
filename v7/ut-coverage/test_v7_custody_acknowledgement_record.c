@@ -44,15 +44,14 @@ void test_v7_decode_bp_custody_acceptance_seqlist_impl(void)
      */
     v7_decode_state_t                 dec;
     bp_custody_accept_payload_block_t arg;
-    CborValue                         cval;
+    QCBORDecodeContext                cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&arg, 0, sizeof(bp_custody_accept_payload_block_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     arg.num_entries = 10;
     dec.cbor        = &cval;
-    cval.remaining  = 10;
     dec.error       = true;
     UtAssert_VOIDCALL(v7_decode_bp_custody_acceptance_seqlist_impl(&dec, &arg));
     dec.error = false;
@@ -66,11 +65,11 @@ void test_v7_decode_bp_custody_acknowledement_record_impl(void)
      */
     v7_decode_state_t                 dec;
     bp_custody_accept_payload_block_t arg;
-    CborValue                         cval;
+    QCBORDecodeContext                cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&arg, 0, sizeof(bp_custody_accept_payload_block_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.cbor = &cval;
     UtAssert_VOIDCALL(v7_decode_bp_custody_acknowledement_record_impl(&dec, &arg));
@@ -83,11 +82,11 @@ void test_v7_decode_bp_custody_acknowledement_record(void)
      */
     v7_decode_state_t                 dec;
     bp_custody_accept_payload_block_t arg;
-    CborValue                         cval;
+    QCBORDecodeContext                cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&arg, 0, sizeof(bp_custody_accept_payload_block_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
 
     dec.cbor = &cval;
     UtAssert_VOIDCALL(v7_decode_bp_custody_acknowledement_record(&dec, &arg));

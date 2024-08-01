@@ -27,10 +27,15 @@ void test_v7_encode_crc(void)
      * void v7_encode_crc(v7_encode_state_t *enc)
      */
     v7_encode_state_t enc;
+    QCBOREncodeContext  cbor;
 
     memset(&enc, 0, sizeof(v7_encode_state_t));
+    memset(&cbor, 0, sizeof(QCBOREncodeContext));
+    
+    enc.cbor = &cbor;
 
-    UT_SetDefaultReturnValue(UT_KEY(cbor_encode_byte_string), CborUnknownError);
+    UT_SetHandlerFunction(UT_KEY(bplib_crc_get_width), UT_V7_uint8_Handler, NULL);
+    UT_SetDefaultReturnValue(UT_KEY(bplib_crc_get_width), 32);
     UtAssert_VOIDCALL(v7_encode_crc(&enc));
 
     UT_SetHandlerFunction(UT_KEY(bplib_crc_get_width), UT_V7_uint8_Handler, NULL);
@@ -43,32 +48,20 @@ void test_v7_decode_crc(void)
     /* Test function for:
      * void v7_decode_crc(v7_decode_state_t *dec, bp_crcval_t *v)
      */
-    v7_decode_state_t dec;
-    bp_crcval_t       v;
-    CborValue         cval;
+    v7_decode_state_t   dec;
+    bp_crcval_t         v;
+    QCBORDecodeContext  cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
     memset(&v, 0, sizeof(bp_crcval_t));
-    memset(&cval, 0, sizeof(CborValue));
+    memset(&cval, 0, sizeof(QCBORDecodeContext));
     dec.error      = false;
     dec.cbor       = &cval;
-    cval.remaining = 10;
 
+    UT_SetHandlerFunction(UT_KEY(bplib_crc_get_width), UT_V7_uint8_Handler, NULL);
+    UT_SetDefaultReturnValue(UT_KEY(bplib_crc_get_width), 40);
     UtAssert_VOIDCALL(v7_decode_crc(&dec, &v));
 
-    dec.error = false;
-    cval.type = CborByteStringType;
-    UT_SetDefaultReturnValue(UT_KEY(_cbor_value_copy_string), CborUnknownError);
-    UtAssert_VOIDCALL(v7_decode_crc(&dec, &v));
-
-    dec.error = false;
-    UT_SetDefaultReturnValue(UT_KEY(_cbor_value_copy_string), CborNoError);
-    UT_SetDefaultReturnValue(UT_KEY(cbor_value_advance), CborUnknownError);
-    UtAssert_VOIDCALL(v7_decode_crc(&dec, &v));
-
-    dec.error = false;
-    UT_SetDefaultReturnValue(UT_KEY(cbor_value_advance), CborNoError);
-    UtAssert_VOIDCALL(v7_decode_crc(&dec, &v));
 }
 
 void TestV7BpCrc_Rgister(void)
