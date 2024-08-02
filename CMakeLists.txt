@@ -120,13 +120,6 @@ foreach(COMPONENT ${BPLIB_COMPONENTS})
 
 endforeach()
 
-# Link all stubs into single library
-add_library(coverage-bplib-stubs INTERFACE)
-
-foreach(COMPONENT ${BPLIB_COMPONENTS})
-  target_link_libraries(coverage-bplib-stubs INTERFACE ${COMPONENT}_stubs)
-endforeach()
-
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
 # this allows simply dropping this module into a CFS project
 if (IS_CFS_ARCH_BUILD)
@@ -193,17 +186,17 @@ endif()
 
 get_target_property(IS_PIC bplib POSITION_INDEPENDENT_CODE)
 if (IS_PIC)
-  foreach(COMPONENT ${BPLIB_COMPONENTS})
-    set_target_properties(${COMPONENT} PROPERTIES POSITION_INDEPENDENT_CODE ${IS_PIC})
-  endforeach()
+  set_target_properties(${BPLIB_COMPONENTS} PROPERTIES POSITION_INDEPENDENT_CODE ${IS_PIC})
 endif()
 
 # Set the standard compile options for all submodules (c99, full warnings)
-list(APPEND ${BPLIB_COMPONENTS} bplib)
 foreach(COMPONENT ${BPLIB_COMPONENTS})
   target_compile_features(${COMPONENT} PRIVATE c_std_99)
   target_compile_options(${COMPONENT} PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 endforeach()
+
+target_compile_features(bplib PRIVATE c_std_99)
+target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
 # Internal/private header files exist within the implementation directories
 target_include_directories(bplib PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
@@ -218,6 +211,17 @@ target_include_directories(bplib PUBLIC
 
 # BPLib Sanity checks are only for standalone builds, sanity checks
 # for CFE/CFS builds should be part of the BP app, as opposed to BPLib
-if (BPLIB_ENABLE_UNIT_TESTS AND NOT IS_CFS_ARCH_BUILD)
-  add_subdirectory(ut-functional)
-endif ()
+if (BPLIB_ENABLE_UNIT_TESTS)
+
+  # Link all stubs into single library
+  add_library(coverage-bplib-stubs INTERFACE)
+
+  foreach(COMPONENT ${BPLIB_COMPONENTS})
+    target_link_libraries(coverage-bplib-stubs INTERFACE ${COMPONENT}_stubs)
+  endforeach()
+
+  if (NOT IS_CFS_ARCH_BUILD)
+    add_subdirectory(ut-functional)
+  endif (NOT IS_CFS_ARCH_BUILD)
+  
+endif (BPLIB_ENABLE_UNIT_TESTS)
