@@ -1,14 +1,14 @@
 # bplib
 
-[1. Overview](#1-overview)
-[2. Build with CMake](#2-build-with-cmake)
-[3. Application Design](#3-application-design)
-[4. Application Programming Interface](#4-application-programming-interface)
-[5. Storage Service](#5-storage-service)
+[1. Overview](#1-overview)  
+[2. Build with CMake](#2-build-with-cmake)  
+[3. Application Design](#3-application-design)  
+[4. Application Programming Interface](#4-application-programming-interface)  
+[5. Storage Service](#5-storage-service)  
 
-[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)
-[Note #2 - Library Development Guidelines](doc/dev_notes.md)
-[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)
+[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
+[Note #2 - Library Development Guidelines](doc/dev_notes.md)  
+[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)  
 [Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)
 
 ----------------------------------------------------------------------
@@ -39,63 +39,179 @@ library.
 
 #### Prerequisites
 
-1. The build requires the __cmake__ build system and a compiler toolchain (by default __gcc__).
+1. The build requires Ubuntu 22.04.4 LTS, the __cmake__ build system and a compiler toolchain (by default __gcc__).
+
 Additionally, the __pkg-config__ tool is used to manage the flags required for dependencies.
+
 These can typically be installed via the built-in package management system on most Linux
 distributions.
 
-On Debian/Ubuntu and derivatives:
+The required packages on Ubuntu 22.04 are: cmake, pkg-config, and build-essential.
 
-```sh
-    sudo apt-get install cmake pkg-config build-essential
+The versions used may change. The versions as of the last update of this document are:
+
+- cmake version 3.22.1
+- pkg-config 0.29.1
+- gcc  (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+
+2. Install tinycbor if it is not already installed.  
+See https://github.com/intel/tinycbor.git.
+
+- tinycbor version 0.6.0
+
+3. Install QCBOR 1.4 if it is not already installed.  
+- git clone https://github.com/laurencelundblade/QCBOR.git
+- cd QCBOR
+- cmake -S . -B build-folder
+- cmake --build build-folder
+- sudo make install
+- There is a file "qcbor.pc" in bplib project has to be copied into /usr/local/lib/pkgconfig/ before building bpcat. 
+
+
+#### Build bplib with cFS
+3. Clone, init, and update cFS and all required submodules. Then clone bp and bplib to the cFS local repository.
+
+```
+   cd <chosen working directory>
+   export CFS_HOME="$(pwd)" # Use CFS_HOME at your discretion
+   git clone https://github.com/nasa/cFS "${CFS_HOME}"/cfs-bundle
+   cd "${CFS_HOME}"/cfs-bundle
+   git submodule init
+   git submodule update
+   git clone https://github.com/nasa/bp "${CFS_HOME}"/cfs-bundle/apps/bp
+   git clone https://github.com/nasa/bplib "${CFS_HOME}"/cfs-bundle/libs/bplib
 ```
 
-2. For BPv7 this uses the TinyCBOR library at https://github.com/intel/tinycbor.  As any
-distribution-packaged version may be outdated, it is recommended to compile this from source.
-As of this writing, the library uses a simple Makefile that will install into `/usr/local`.
-This installation prefix can be changed by editing the Makefile before building.  Otherwise,
-to install into the default location, steps are as follows:
+4. Setup OSAL.
 
-```sh
-    git clone https://github.com/intel/tinycbor
-    cd tinycbor
-    make
-    sudo make install
+Define the OSAL definitions for CMake.
+Run CMake for OSAL.
+Run Make for OSAL with the destination directory `./osal-staging`.
+
+```
+   cd "${CFS_HOME}"/cfs-bundle/osal
+   # cmake options from .github/actions/setup-osal/action.yml:
+   CMAKE_OSAL_DEFS="-DCMAKE_INSTALL_PREFIX=/usr/local -DOSAL_SYSTEM_BSPTYPE=generic-linux "
+   # config-options:
+   CMAKE_OSAL_DEFS+="-DCMAKE_BUILD_TYPE=Release -DOSAL_OMIT_DEPRECATED=TRUE "
+   CMAKE_OSAL_DEFS+="-DENABLE_UNIT_TESTS=TRUE -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON "
+   cmake $CMAKE_OSAL_DEFS -B "${CFS_HOME}"/osal-build
+   cd "${CFS_HOME}"/osal-build
+   make DESTDIR="${CFS_HOME}"/osal-staging install
 ```
 
-Note that "sudo" is only required for installation into a system directory.  If installing into a
-user-writable home directory, "sudo" is not necessary.
+5. Build bplib and the test runners
 
-3. Create a subdirectory for building bplib and run CMake to set up the build tree.
+Note that the possible build folders are one of <Debug,Release>-<OSAL,POSIX> for the build type and operating system layer respectively.
 
-```sh
-   cd $HOME
-   mkdir build-bplib
-   cd build-bplib
-   cmake ../bplib
+Setup the required environment variables for CMake, choosing between Debug or Release, and OSAL or POSIX.
+    
+```
+   # MATRIX_BUILD_TYPE=[Debug|Release]
+   # MATRIX_OS_LAYER=[OSAL|POSIX]
+   # BPLIB_SOURCE="${CFS_HOME}"/cfs-bundle/libs/bplib
+   # BPLIB_BUILD="${CFS_HOME}/bplib-build-matrix-${MATRIX_BUILD_TYPE}-${MATRIX_OS_LAYER}"
 ```
 
-#### Building
+Run CMake and make all to build bplib and the bplib tests.
 
-Build bplib by running __make__ in the build subdirectory:
+```
+   export NasaOsal_DIR="${CFS_HOME}/osal-staging/usr/local/lib/cmake"
+   cmake \
+          -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
+          -DBPLIB_OS_LAYER="${MATRIX_OS_LAYER}" \
+          -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake \
+          -S "${BPLIB_SOURCE}" -B "${BPLIB_BUILD}"
 
-```sh
-   cd $HOME/build-bplib
-   make
+   # Build bplib
+   cd "${BPLIB_BUILD}"
+   make all
 ```
 
-#### Example Application
+#### Example Test
+6. Test bplib
 
-For those that learn better through examples, an example application is provided in the `apps`
-directory.  This example program is not intended to be complete, but provides a quick way to
-see how to use the library.  After building and installing bplib on your system, the `bpcat`
-program provides a functionality similar to netcat for bplib.
-
-```sh
-   cd apps
-   mkdir storage
-   ./bpcat
 ```
+   cd "${CFS_HOME}"/bplib-build-matrix-Debug-OSAL
+   common/ut-coverage/coverage-bplib_common-testrunner
+```
+
+#### Build bplib Stand Alone
+1. Clone bplib into a working directory. The build uses BPLIB_HOME rather than CFS_HOME for a stand alone build.
+
+```
+   cd <chosen working directory>
+   export BPLIB_HOME="$(pwd)" # Use BPLIB_HOME at your discretion
+
+   git clone https://github.com/nasa/bplib "${BPLIB_HOME}"/bplib
+```
+
+2. Build bplib and the test runners
+
+Note that the possible build folders are one of <Debug,Release>-POSIX for the build type and operating system layer respectively.
+
+Setup the required environment variables for CMake, choosing between Debug or Release. POSIX is the only operating system layer supported by the stand alone build.
+
+```
+   # MATRIX_BUILD_TYPE=[Debug|Release]
+   # MATRIX_OS_LAYER=POSIX
+   # BPLIB_SOURCE="${BPLIB_HOME}"/bplib
+   # BPLIB_BUILD="${BPLIB_HOME}/bplib-build-matrix-${MATRIX_BUILD_TYPE}-POSIX"
+```
+
+Run CMake and make all to build bplib and the bplib tests.
+
+```
+   cmake \
+          -DCMAKE_BUILD_TYPE="${MATRIX_BUILD_TYPE}" \
+          -DBPLIB_OS_LAYER="${MATRIX_OS_LAYER}" \
+          -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake \
+          -S "${BPLIB_SOURCE}" -B "${BPLIB_BUILD}"
+
+   # Build bplib
+   cd "${BPLIB_BUILD}"
+   make all
+```
+
+#### Test bplib with bpcat
+3. Test bplib stand alone
+
+The example program `bpcat` referenced below is available in the bplib stand alone build.
+
+```
+$ ./bplib-build-matrix-Debug-POSIX/app/bpcat --help
+Usage: ./bplib-build-matrix-Debug-POSIX/app/bpcat [options]
+   -l/--local-addr=ipn://<node>.<service> local address to use
+   -r/--remote-addr=ipn://<node>.<service> remote address to use
+   -i/--input-file=<filename> read input from given file instead of stdin
+   -o/--output-file=<filename> write output to given file instead of stdout
+      --local-cla-uri=udp://<ip>:<port> Bind local CLA to given IP:port 
+      --remote-cla-uri=udp://<ip>:<port> Send bundles to remote CLA at given IP:port
+   -d/--delay=<msec> forced inter bundle send delay (20ms default)
+   -s/--adu-size=stream chunk (ADU) size to pass to bplib (default and max=15864 bytes)
+
+   Creates a local BP agent with local IPN address as specified.  All data
+   received from standard input is forwarded over BP bundles, and all data
+   received from bundles is forwarded to standard output.
+
+Example:
+   ./bplib-build-matrix-Debug-POSIX/app/bpcat -l ipn://101.1 -r ipn://201.1
+```
+
+To test with bpcat:
+
+1. Open two terminal windows and have them both visible. The test runs `bpcat` as a receiver in one window and a sender in the other.
+2. In both terminals run:
+   `cd <same chosen working directory>/bplib-build-matrix-<Debug or Release>-POSIX/app`
+3. The files `bpcat` and `Makefile` should be in the current directory.
+4. In one terminal, create the `storage` folder required for the test.
+ `mkdir storage`
+5. In the same terminal, run the receiver with:
+ `./bpcat -l ipn://101.1 -r ipn://201.1 |& tee recv.log`
+6. In the other terminal, run the sender with:
+ `./bpcat -l ipn://201.1 -r ipn://101.1 -i Makefile |& tee send.log`
+7. For a successful test the contents of the Makefile appear in the receiver terminal.
+8. Terminate `bpcat` in both terminal windows by pressing `CTRL-C` in each window.
 
 ----------------------------------------------------------------------
 ## 3. Application Design
