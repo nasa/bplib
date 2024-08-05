@@ -59,9 +59,16 @@ void v7_encode_bp_custody_acknowledement_record(v7_encode_state_t *enc, const bp
 void v7_decode_bp_custody_acceptance_seqlist_impl(v7_decode_state_t *dec, void *arg)
 {
     bp_custody_accept_payload_block_t *v = arg;
+    QCBORError err;
+    QCBORItem item;
     
     while (v->num_entries < BP_DACS_MAX_SEQ_PER_PAYLOAD)
     {
+        err = QCBORDecode_PeekNext(dec->cbor, &item);
+        if (err == QCBOR_ERR_NO_MORE_ITEMS)
+        {
+            break;
+        }
         v7_decode_bp_integer(dec, &v->sequence_nums[v->num_entries]);
         if (dec->error)
         {

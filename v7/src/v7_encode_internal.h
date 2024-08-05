@@ -28,7 +28,11 @@
 #include "v7_codec_internal.h"
 #include "qcbor.h"
 
-#define BPLIB_STANDARD_BUF_LENGTH 256
+/* 
+ * This is defined in bpcat #define BPCAT_BUNDLE_BUFFER_SIZE  16384
+ * As long the buffer size defined here is NOT smaller than this size, we are OK.
+ */
+#define BPLIB_STANDARD_BUF_LENGTH 16384
 
 typedef struct v7_encode_state
 {
