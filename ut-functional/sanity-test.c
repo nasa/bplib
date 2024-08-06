@@ -37,7 +37,12 @@
 
 #include "bplib.h"
 
+void BPLib_Test(void)
+{
+    
+}
+
 void UtTest_Setup(void)
 {
-    printf("TODO implement functional tests\n");
+    UtTest_Add(BPLib_Test, NULL, NULL, "Test stub");
 }
