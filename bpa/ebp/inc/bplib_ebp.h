@@ -22,16 +22,28 @@
 #define BPLIB_EBP_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Extension Block Processor initialization
+ *
+ *  \par Description
+ *       EBP initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_EBP_Init(void);
 
 #endif /* BPLIB_EBP_H */

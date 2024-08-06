@@ -22,16 +22,28 @@
 #define BPLIB_FWP_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Framework Proxy initialization
+ *
+ *  \par Description
+ *       FWP initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_FWP_Init(void);
 
 #endif /* BPLIB_FWP_H */

@@ -22,16 +22,28 @@
 #define BPLIB_AS_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Admin Statistics initialization
+ *
+ *  \par Description
+ *       AS initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_AS_Init(void);
 
 #endif /* BPLIB_AS_H */

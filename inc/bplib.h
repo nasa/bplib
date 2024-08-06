@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib_api_types.h"

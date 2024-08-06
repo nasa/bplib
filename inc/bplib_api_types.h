@@ -25,6 +25,10 @@
 extern "C" {
 #endif
 
+/*
+** Macros
+*/
+
 /* Return Codes */
 #define BP_SUCCESS   0
 #define BP_ERROR     (-1)

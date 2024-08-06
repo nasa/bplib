@@ -22,16 +22,28 @@
 #define BPLIB_MEM_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Memory Allocator initialization
+ *
+ *  \par Description
+ *       MEM initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_MEM_Init(void);
 
 #endif /* BPLIB_MEM_H */

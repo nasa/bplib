@@ -22,16 +22,28 @@
 #define BPLIB_TIME_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Time Management initialization
+ *
+ *  \par Description
+ *       TIME initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_TIME_Init(void);
 
 #endif /* BPLIB_TIME_H */

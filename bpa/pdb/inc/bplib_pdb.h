@@ -22,16 +22,28 @@
 #define BPLIB_PDB_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Policy Database initialization
+ *
+ *  \par Description
+ *       PDB initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_PDB_Init(void);
 
 #endif /* BPLIB_PDB_H */

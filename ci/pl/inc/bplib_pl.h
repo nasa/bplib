@@ -22,16 +22,28 @@
 #define BPLIB_PL_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Performance Logger initialization
+ *
+ *  \par Description
+ *       PD initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_PL_Init(void);
 
 #endif /* BPLIB_PL_H */

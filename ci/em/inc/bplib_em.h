@@ -22,16 +22,28 @@
 #define BPLIB_EM_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Events Management initialization
+ *
+ *  \par Description
+ *       EM initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_EM_Init(void);
 
 #endif /* BPLIB_EM_H */

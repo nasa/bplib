@@ -22,16 +22,27 @@
 #define BPLIB_CBOR_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
-
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief CBOR initialization
+ *
+ *  \par Description
+ *       CBOR initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_CBOR_Init(void);
 
 #endif /* BPLIB_CBOR_H */

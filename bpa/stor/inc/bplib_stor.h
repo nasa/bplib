@@ -22,16 +22,28 @@
 #define BPLIB_STOR_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Storage initialization
+ *
+ *  \par Description
+ *       STOR initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_STOR_Init(void);
 
 #endif /* BPLIB_STOR_H */

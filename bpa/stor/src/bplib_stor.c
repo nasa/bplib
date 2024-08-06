@@ -19,7 +19,7 @@
  */
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib_stor.h"

@@ -22,16 +22,28 @@
 #define BPLIB_NDC_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Node Configuration initialization
+ *
+ *  \par Description
+ *       NDC initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_NDC_Init(void);
 
 #endif /* BPLIB_NDC_H */

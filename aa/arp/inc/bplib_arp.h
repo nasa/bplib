@@ -29,9 +29,21 @@
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Admin Records Processor initialization
+ *
+ *  \par Description
+ *       ARP initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_ARP_Init(void);
 
 #endif /* BPLIB_ARP_H */

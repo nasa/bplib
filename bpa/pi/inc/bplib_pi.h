@@ -22,16 +22,28 @@
 #define BPLIB_PI_H
 
 /*
-** Includes
+** Include
 */
 
 #include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
+/**
+ * \brief Payload Interface initialization
+ *
+ *  \par Description
+ *       PI initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BP_SUCCESS Initialization was successful
+ */
 int BPLib_PI_Init(void);
 
 #endif /* BPLIB_PI_H */
