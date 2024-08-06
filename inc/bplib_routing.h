@@ -25,6 +25,10 @@
 #ifndef bplib_routing_h
 #define bplib_routing_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include "bplib_api_types.h"
 
@@ -87,5 +91,9 @@ void bplib_route_maintenance_complete_wait(bplib_routetbl_t *tbl);
 
 void bplib_route_process_active_flows(bplib_routetbl_t *tbl);
 void bplib_route_periodic_maintenance(bplib_routetbl_t *tbl);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -21,6 +21,10 @@
 #ifndef BPLIB_DATASERVICE_H
 #define BPLIB_DATASERVICE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -40,5 +44,9 @@ bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t nod
 bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn, bplib_dataservice_type_t type,
                                      bplib_mpool_ref_t blkref);
 bplib_mpool_ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BPLIB_DATASERVICE_H */

@@ -21,6 +21,10 @@
 #ifndef V7_DECODE_H
 #define V7_DECODE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -38,5 +42,9 @@
 int v7_block_decode_pri(bplib_mpool_bblock_primary_t *cpb, const void *data_ptr, size_t data_size);
 int v7_block_decode_canonical(bplib_mpool_bblock_canonical_t *ccb, const void *data_ptr, size_t data_size,
                               bp_blocktype_t payload_block_hint);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_DECODE_H */

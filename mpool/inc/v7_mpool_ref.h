@@ -21,6 +21,10 @@
 #ifndef V7_MPOOL_REF_H
 #define V7_MPOOL_REF_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <string.h>
 
 #include "bplib_api_types.h"
@@ -95,5 +99,9 @@ void bplib_mpool_ref_release(bplib_mpool_ref_t refptr);
  * @return bplib_mpool_block_t*
  */
 bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32_t magic_number, void *init_arg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_MPOOL_REF_H */

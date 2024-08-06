@@ -21,6 +21,10 @@
 #ifndef v7_h
 #define v7_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -56,5 +60,9 @@ static inline int v7_compare_numeric(bp_val_t n1, bp_val_t n2)
 int v7_compare_ipn2eid(const bp_ipn_addr_t *ipn, const bp_endpointid_buffer_t *eid);
 /* A generic strcmp-like call to compare two IPN addresses */
 int v7_compare_ipn2ipn(const bp_ipn_addr_t *ipn1, const bp_ipn_addr_t *ipn2);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* v7_h */
