@@ -1,11 +1,13 @@
 ##################################################################
 #
-# coverage test build recipe
+# Coverage test build recipe
 #
 # This CMake file contains the recipe for building the coverage tests.
 # It is invoked from the parent directory when unit tests are enabled.
 #
 ##################################################################
+
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Add executable
 add_executable(functional-bplib_sanity-testrunner
@@ -15,12 +17,8 @@ add_executable(functional-bplib_sanity-testrunner
 target_compile_features(functional-bplib_sanity-testrunner PUBLIC c_std_99)
 target_compile_options(functional-bplib_sanity-testrunner PUBLIC ${BPLIB_COMMON_COMPILE_OPTIONS})
 
-# Allow backdoor function calls, in some submodules, for now
-# The sanity check is currently calling some submodule functions directly
-# These are public at the submodule scope, but not external to bplib
-target_include_directories(functional-bplib_sanity-testrunner PRIVATE
-    $<TARGET_PROPERTY:bplib_cache,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_os,INTERFACE_INCLUDE_DIRECTORIES>
+target_include_directories(functional-bplib_sanity-testrunner PUBLIC
+    $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(functional-bplib_sanity-testrunner PUBLIC
