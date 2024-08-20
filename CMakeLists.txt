@@ -102,11 +102,18 @@ add_subdirectory(ci/job)
 add_subdirectory(ci/mem)
 add_subdirectory(ci/pl)
 add_subdirectory(ci/time)
+add_subdirectory(os)
+add_subdirectory(libmgr)
+add_subdirectory(ci/mem/common)
+add_subdirectory(ci/mem/cache)
 
+# The order of the components must match the order of
+# the add_subdirectory statements.
 list(APPEND BPLIB_COMPONENTS
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_ndc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
   bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time
+  bplib_os bplib_libmgr bplib_common bplib_cache
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENTS})
@@ -119,6 +126,14 @@ foreach(COMPONENT ${BPLIB_COMPONENTS})
   )
 
 endforeach()
+
+# Debugging CMakeLists.txt
+# Show the BPLIB_PRIVATE_INCLUDE_DIRS
+# Failed
+#get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+#foreach(dir ${dirs})
+#  message(STATUS "dir='${dir}'")
+#endforeach()
 
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
 # this allows simply dropping this module into a CFS project
