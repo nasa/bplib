@@ -284,8 +284,9 @@ The  `mpool` FSW files migrate to `mem` files through renaming according to the 
 | --- | --- | --- |
 mpool baseline:br:<br>├── CMakeLists.txt:br:<br> ├── inc:br:<br> │   ├── v7_mpool.h:br:<br> │   ├── v7_mpool_bblocks.h:br:<br> │   ├── v7_mpool_flows.h:br:<br> │   ├── v7_mpool_job.h:br:<br> │   ├── v7_mpool_ref.h:br:<br> │   └── v7_mpstream.h:br:<br> ├── src:br:<br> │   ├── v7_mpool.c:br:<br> │   ├── v7_mpool_bblocks.c:br:<br> │   ├── v7_mpool_flows.c:br:<br> │   ├── v7_mpool_internal.h:br:<br> │   ├── v7_mpool_job.c:br:<br> │   ├── v7_mpool_ref.c:br:<br> │   └── v7_mpstream.c:br:<br> ├── ut-coverage:br:<br> │   ├── CMakeLists.txt:br:<br> │   ├── test_bplib_mpool.h:br:<br> │   ├── test_bplib_mpool_setup.c:br:<br> │   ├── test_bplib_v7_mpool.c:br:<br> │   ├── test_bplib_v7_mpool_bblocks.c:br:<br> │   ├── test_bplib_v7_mpool_flows.c:br:<br> │   ├── test_bplib_v7_mpool_job.c:br:<br> │   ├── test_bplib_v7_mpool_ref.c:br:<br> │   └── test_bplib_v7_mpstream.c:br:<br> └── ut-stubs:br:<br>     ├── CMakeLists.txt:br:<br>     ├── v7_mpool_bblocks_stubs.c:br:<br>     ├── v7_mpool_flows_stubs.c:br:<br>     ├── v7_mpool_job_stubs.c:br:<br>     ├── v7_mpool_ref_stubs.c:br:<br>     ├── v7_mpool_stubs.c:br:<br>     └── v7_mpstream_stubs.c :br:<br>:br:<br>:br:<br>:br:<br>|  mem baseline:br:<br> ├── CMakeLists.txt:br:<br> ├── inc:br:<br> │   └── bplib_mem.h:br:<br> │:br:<br> │:br:<br> │:br:<br> │:br:<br> │:br:<br> ├── src:br:<br> │   └── bplib_mem.c:br:<br> │:br:<br> │:br:<br> │:br:<br> │:br:<br> │:br:<br> │:br:<br> └── unit-test:br:<br>     ├── CMakeLists.txt:br:<br>    │:br:<br>     │:br:<br>      ├── bplib_mem_test.c:br:<br>     │:br:<br>     │:br:<br>     │:br:<br>     │:br:<br>     │:br:<br>     ├── stubs:br:<br>      │:br:<br>     │:br:<br>     │:br:<br>     │:br:<br>     │:br:<br>       └── bplib_mem_stubs.c:br:<br>  │:br:<br>     └── utilities<br>&nbsp;&nbsp;&nbsp; ├── bplib_mem_test_utils.c<br>&nbsp;&nbsp;&nbsp; └── bplib_mem_test_utils.h |mem final:br:<br> ├── CMakeLists.txt:br:<br> ├── inc:br:<br> │   ├── bplib_mem.h:br:<br> │   ├── bplib_mem_bblocks.h:br:<br> │   ├── bplib_mem_ducts.h:br:<br> │   ├── STOR:br:<br> │   ├── bplib_mem_ref.h:br:<br> │   └── STOR:br:<br> ├── src:br:<br> │   ├── bplib_mem.c:br:<br> │   ├── bplib_mem_bblocks.c:br:<br> │   ├── bplib_mem_ducts.c:br:<br> │   ├── bplib_mem_internal.c:br:<br> │   ├── STOR:br:<br> │   ├── bplib_mem_ref.c:br:<br> │   └── STOR:br:<br> └── unit-test:br:<br>     ├── CMakeLists.txt:br:<br>     ├── bplib_mem_test.h:br:<br>     ├── bplib_mem_test_setup.c:br:<br>     ├── bplib_mem_test.c:br:<br>     ├── bplib_mem_test_bblocks.c:br:<br>     ├── bplib_mem_test_ducts.c:br:<br>     ├── STOR:br:<br>     ├── bplib_mem_ref.c:br:<br>     ├── STOR:br:<br>     ├── stubs:br:<br>     │   └── CMakeLists.txt:br:<br>     ├── bplib_mem_bblocks_stubs.c:br:<br>     ├── bplib_mem_ducts_stubs.c:br:<br>     ├── STOR:br:<br>     ├── bplib_mem_ref_stubs.c:br:<br>     ├── bplib_mem_stubs.c:br:<br>     ├── STOR:br:<br>     └── utilities:br:<br>&nbsp;&nbsp;&nbsp; ├── bplib_mem_test_utils.c:br:<br>&nbsp;&nbsp;&nbsp; └── bplib_mem_test_utils.h:br:<br>
 
-BPLib needs bplib/lib for bplib_init, bplib_deinit, etc.
+BPLib needs bplib/lib for bplib_init, bplib_deinit, etc. It will be named bplib/libmgr
 
+```
 bp-cfs/libs/
 bplib/lib
 ├── CMakeLists.txt
@@ -320,7 +321,7 @@ bplib/libmgr
 │   ├── bplib_cla_api.c
 │   ├── bplib_dataservice_api.c
 │   └── v7_routing.c
-├── unit-test
+└── unit-test
     ├── CMakeLists.txt
     ├── test_bplib_libmgr.h
     ├── test_bplib_libmgr_setup.c
@@ -331,6 +332,7 @@ bplib/libmgr
     └── stubs
         ├── CMakeLists.txt
         └── bplib_dataservice_stubs.c
+```
 
 The bp-cfs CMakeLists.txt file has a mismatch in the naming:
 
