@@ -29,6 +29,39 @@
 
 
 /*
+** Type Definitions
+*/
+
+/**
+**  \brief Epoch structure
+**
+**  \par Description
+**       Structure containing the values that make up an epoch: year, day, hour, minute,
+**       second, and millisecond.
+*/
+typedef struct
+{
+    uint32_t Year;
+    uint32_t Day;
+    uint32_t Hour;
+    uint32_t Minute;
+    uint32_t Second;
+    uint32_t Msec;
+
+} BPA_TIMEP_Epoch_t;
+
+/**
+**  \brief Enumerated types for the possible host clock states
+*/
+typedef enum 
+{
+    BPA_TIMEP_CLOCK_INVALID = 0,
+    BPA_TIMEP_CLOCK_VALID   = 1
+
+} BPA_TIMEP_ClockState_t;
+
+
+/*
 ** Exported Functions
 */
 
