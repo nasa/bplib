@@ -18,8 +18,14 @@
  *
  */
 
-#ifndef BPLIB_FWP_H
-#define BPLIB_FWP_H
+/**
+ * @file
+ *
+ * Private header file for internal Time Management functions
+ */
+
+#ifndef BPLIB_TIME_INTERNAL_H
+#define BPLIB_TIME_INTERNAL_H
 
 /*
 ** Include
@@ -33,42 +39,29 @@
 ** Type Definitions
 */
 
-typedef struct 
-{
-    /* Time Proxy function callbacks */
-    int64_t (*BPA_TIMEP_GetMonotonicTime)(void);
-    void (*BPA_TIMEP_GetHostEpoch)(BPLib_TIME_Epoch_t *Epoch);
-    BPLib_TIME_ClockState_t (*BPA_TIMEP_GetHostClockState)(void);
-    int64_t (*BPA_TIMEP_GetHostTime)(void);
-
-    /* Add other proxies' function callbacks here: TODO */
-
-} BPLib_FWP_ProxyCallbacks_t;
-
-
-/*
-** Global Data
+/**
+**  \brief Time Management Global Data
 */
-
-extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
+typedef struct
+{
+    int64_t  CurrentCorrelationFactor;  /**< \brief Most recent CF */
+    uint32_t CurrentBootEra;            /**< \brief Number of times time has rebooted */
+    int64_t  EpochOffset;               /**< \brief Offset between host and DTN epochs */
+} BPLib_TIME_GlobalData_t;
 
 
 /*
 ** Exported Functions
 */
 
-/**
- * \brief Framework Proxy initialization
- *
- *  \par Description
- *       FWP initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BP_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks);
+int64_t  BPLib_TIME_ReadCfFromBuffer(uint32_t BootEra);
 
-#endif /* BPLIB_FWP_H */
+BPLib_Status_t BPLib_TIME_StoreCfToBuffer(int64_t CorrelationFactor, uint32_t BootEra);
+
+int64_t  BPLib_TIME_ReadDtnTimeFromBuffer(uint32_t BootEra);
+
+BPLib_Status_t BPLib_TIME_StoreDtnTimeToBuffer(int64_t LastValidDtnTime, .uint32_t BootEra);
+
+uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime);
+
+#endif /* BPLIB_TIME_INTERNAL_H */

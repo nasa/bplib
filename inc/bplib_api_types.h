@@ -30,14 +30,25 @@ extern "C" {
 */
 
 #include <stdint.h>
+#include <stddef.h>
+
+/*
+** Type Definitions
+*/
+
+/**
+ * \brief BPLib status type for type safety
+ */
+typedef int32_t BPLib_Status_t;
 
 /*
 ** Macros
 */
 
 /* Return Codes */
-#define BP_SUCCESS   0
-#define BP_ERROR     (-1)
+#define BP_SUCCESS                          ((BPLib_Status_t) 0)
+#define BPLIB_ERROR                         ((BPLib_Status_t) 1)
+#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) 2)
 
 #ifdef __cplusplus
 } // extern "C"

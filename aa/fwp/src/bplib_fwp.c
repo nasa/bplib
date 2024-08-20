@@ -26,9 +26,34 @@
 
 
 /*
+** Global Data
+*/
+
+BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
+
+
+/*
 ** Function Definitions
 */
 
-int BPLib_FWP_Init(void) {
+/* Initialize proxy callbacks */
+BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
+
+    if (Callbacks.BPA_TIMEP_GetHostEpoch == NULL || 
+        Callbacks.BPA_TIMEP_GetHostTime == NULL ||
+        Callbacks.BPA_TIMEP_GetMonotonicTime == NULL)
+    {
+        return BPLIB_FWP_CALLBACK_INIT_ERROR;
+    }
+    else
+    {
+        /* Initialize Time Proxy callbacks */
+        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch = Callbacks.BPA_TIMEP_GetHostEpoch;
+        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = Callbacks.BPA_TIMEP_GetHostTime;
+        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime = Callbacks.BPA_TIMEP_GetMonotonicTime;
+
+        /* Initialize other proxies' callbacks TODO */
+    }
+
     return BP_SUCCESS;
 }

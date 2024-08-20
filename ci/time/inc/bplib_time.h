@@ -18,6 +18,12 @@
  *
  */
 
+/**
+ * @file
+ *
+ * Public header file for the Time Management component
+ */
+
 #ifndef BPLIB_TIME_H
 #define BPLIB_TIME_H
 
@@ -60,6 +66,19 @@ typedef enum
 
 } BPLib_TIME_ClockState_t;
 
+/**
+**  \brief Monotonic time
+**
+**  \par Description
+**       Monotonic time is associated with a time elapsed counter and a boot era where
+**       that counter started from.
+*/
+typedef struct 
+{
+    int64_t  Time;                      /**< \brief Time elapsed counter (in msecs) */
+    uint32_t BootEra;                   /**< \brief Boot era that counter started from */
+} BPLib_TIME_MonotonicTime_t;
+
 
 /*
 ** Exported Functions
@@ -77,6 +96,17 @@ typedef enum
  *  \return Execution status
  *  \retval BP_SUCCESS Initialization was successful
  */
-int BPLib_TIME_Init(void);
+BPLib_Status_t BPLib_TIME_Init(void);
+
+int64_t  BPLib_TIME_CalculateCorrelationFactor(void);
+
+int64_t  BPLib_TIME_GetCorrelationFactor(void);
+
+uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime);
+
+BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
+                                 BPLib_TIME_MonotonicTime_t Time2, uint64_t *Delta);
+
+BPLib_Status_t BPLib_TIME_MaintenanceActivities(void);
 
 #endif /* BPLIB_TIME_H */

@@ -18,6 +18,12 @@
  *
  */
 
+/**
+ * @file
+ *
+ * Main source file for Time Management
+ */
+
 /*
 ** Include
 */
@@ -29,6 +35,7 @@
 ** Function Definitions
 */
 
-int BPLib_TIME_Init(void) {
+/* Time Management initialization */
+BPLib_Status_t BPLib_TIME_Init(void) {
     return BP_SUCCESS;
 }

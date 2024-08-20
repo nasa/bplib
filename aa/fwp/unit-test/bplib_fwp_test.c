@@ -29,7 +29,9 @@
 */
 void Test_BPLib_FWP_Init(void)
 {
-    UtAssert_INT32_EQ(BPLib_FWP_Init(), BP_SUCCESS);
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+    
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BP_SUCCESS);
 }
 
 
