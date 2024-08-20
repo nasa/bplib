@@ -32,11 +32,23 @@
  * Generated stub function for BPLib_TIME_Init()
  * ----------------------------------------------------
  */
-int BPLib_TIME_Init(void)
+BPLib_Status_t BPLib_TIME_Init(void)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_TIME_Init, BPLib_Status_t);
 
     UT_GenStub_Execute(BPLib_TIME_Init, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_TIME_Init, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_GetMonotonicTime()
+ * ----------------------------------------------------
+ */
+void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
+{
+    UT_GenStub_AddParam(BPLib_TIME_GetMonotonicTime, BPLib_TIME_MonotonicTime_t *, MonotonicTime);
+
+    UT_GenStub_Execute(BPLib_TIME_GetMonotonicTime, Basic, NULL);
 }

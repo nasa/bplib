@@ -31,7 +31,7 @@
 ** Include
 */
 
-#include "bplib.h"
+#include "bplib_api_types.h"
 
 
 /*
@@ -97,6 +97,8 @@ typedef struct
  *  \retval BP_SUCCESS Initialization was successful
  */
 BPLib_Status_t BPLib_TIME_Init(void);
+
+void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime);
 
 int64_t  BPLib_TIME_CalculateCorrelationFactor(void);
 

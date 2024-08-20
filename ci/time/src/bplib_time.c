@@ -29,6 +29,15 @@
 */
 
 #include "bplib_time.h"
+#include "bplib_time_internal.h"
+#include "bplib_fwp.h"
+
+/*
+** Global Data
+*/
+
+BPLib_TIME_GlobalData_t BPLib_TIME_GlobalData;
+BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 
 
 /*
@@ -37,5 +46,15 @@
 
 /* Time Management initialization */
 BPLib_Status_t BPLib_TIME_Init(void) {
+    /* TODO read from ring buffer file */
+    BPLib_TIME_GlobalData.CurrentBootEra = 0;
+
     return BP_SUCCESS;
+}
+
+/* Get monotonic time from Time Proxy */
+void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
+{
+    MonotonicTime->BootEra = BPLib_TIME_GlobalData.CurrentBootEra;
+    MonotonicTime->Time = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
 }

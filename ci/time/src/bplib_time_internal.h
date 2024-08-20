@@ -31,7 +31,6 @@
 ** Include
 */
 
-#include "bplib.h"
 #include "bplib_time.h"
 
 
@@ -60,7 +59,7 @@ BPLib_Status_t BPLib_TIME_StoreCfToBuffer(int64_t CorrelationFactor, uint32_t Bo
 
 int64_t  BPLib_TIME_ReadDtnTimeFromBuffer(uint32_t BootEra);
 
-BPLib_Status_t BPLib_TIME_StoreDtnTimeToBuffer(int64_t LastValidDtnTime, .uint32_t BootEra);
+BPLib_Status_t BPLib_TIME_StoreDtnTimeToBuffer(int64_t LastValidDtnTime, uint32_t BootEra);
 
 uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime);
 

@@ -18,24 +18,78 @@
  *
  */
 
-/*
- * Includes
+/**
+ * \file
+ *  Unit tests for bplib_fwp.c
  */
-#include "bplib_fwp_test_utils.h"
 
 /*
-** Test function for
-** int BPLib_FWP_Init()
+** Include Files
 */
-void Test_BPLib_FWP_Init(void)
+
+#include "bplib_fwp_test_utils.h"
+#include "fwp_timep.h"
+
+
+/*
+** Function Definitions
+*/
+
+/* Test nominal FWP initialization */
+void Test_BPLib_FWP_Init_Nominal(void)
 {
     BPLib_FWP_ProxyCallbacks_t Callbacks;
-    
+
+    Callbacks.BPA_TIMEP_GetHostClockState = BPA_TIMEP_GetHostClockState;
+    Callbacks.BPA_TIMEP_GetHostEpoch = BPA_TIMEP_GetHostEpoch;
+    Callbacks.BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime;
+    Callbacks.BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime;
+
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BP_SUCCESS);
+}
+
+/* Test FWP initialization with null function */
+void Test_BPLib_FWP_Init_GetHostClockStateNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    Callbacks.BPA_TIMEP_GetHostClockState = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+/* Test FWP initialization with null function */
+void Test_BPLib_FWP_Init_GetHostEpochNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    Callbacks.BPA_TIMEP_GetHostEpoch = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+/* Test FWP initialization with null function */
+void Test_BPLib_FWP_Init_GetHostTimeNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    Callbacks.BPA_TIMEP_GetHostTime = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+/* Test FWP initialization with null function */
+void Test_BPLib_FWP_Init_GetMonotonicTimeNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    Callbacks.BPA_TIMEP_GetMonotonicTime = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 
 void TestBplibFwp_Register(void)
 {
-    UtTest_Add(Test_BPLib_FWP_Init, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init");
+    UtTest_Add(Test_BPLib_FWP_Init_Nominal, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_Nominal");
+    UtTest_Add(Test_BPLib_FWP_Init_GetHostClockStateNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetHostClockStateNull");
+    UtTest_Add(Test_BPLib_FWP_Init_GetHostEpochNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetHostEpochNull");
+    UtTest_Add(Test_BPLib_FWP_Init_GetHostTimeNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetHostTimeNull");
+    UtTest_Add(Test_BPLib_FWP_Init_GetMonotonicTimeNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetMonotonicTimeNull");
 }
