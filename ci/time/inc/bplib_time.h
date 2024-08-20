@@ -48,17 +48,17 @@ typedef struct
     uint32_t Second;
     uint32_t Msec;
 
-} BPA_TIMEP_Epoch_t;
+} BPLib_TIME_Epoch_t;
 
 /**
 **  \brief Enumerated types for the possible host clock states
 */
 typedef enum 
 {
-    BPA_TIMEP_CLOCK_INVALID = 0,
-    BPA_TIMEP_CLOCK_VALID   = 1
+    BPLIB_TIME_CLOCK_INVALID = 0,
+    BPLIB_TIME_CLOCK_VALID   = 1
 
-} BPA_TIMEP_ClockState_t;
+} BPLib_TIME_ClockState_t;
 
 
 /*
