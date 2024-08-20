@@ -1,0 +1,101 @@
+#!/bin/bash
+if [[ "$1" .eq ""]]; then
+  echo "Usage ${0} <filename>"
+  exit 1
+fi
+
+edit_filename="${1}"
+echo "Processing ${edit_filename}"
+
+exit 0
+
+| bplib_mpool_bblock_canonical_alloc | BPLib_MEM_Bblock_Canonical_Alloc
+| bplib_mpool_bblock_canonical_get_content_length | BPLib_MEM_Bblock_Canonical__Get_Content_Length
+| bplib_mpool_bblock_canonical_get_content_offset | BPLib_MEM_Bblock_Canonical__Get_Content_Offset
+| bplib_mpool_bblock_cbor_alloc | BPLib_MEM_Bblock_CBOR_Alloc
+| bplib_mpool_bblock_primary_alloc  |  BPLib_MEM_Bblock_Primary_Alloc
+| bplib_mpool_bblock_primary_append  |  BPLib_MEM_Bblock_Primary__Append
+| bplib_mpool_bblock_primary_get_canonical_list | BPLib_MEM_Bblock_Primary__Get_Canonical_List
+| bplib_mpool_collect_blocks  | BPLib_MEM__CollectBlocks
+| bplib_mpool_create  |  BPLib_MEM_Create
+| bplib_mpool_debug_print_list_stats | BPLib_MEM_Debug__Print_List_Stats
+| bplib_mpool_debug_scan | BPLib_MEM_Debug__Scan
+| bplib_mpool_dereference  |  BPLib_MEM__Dereference
+| bplib_mpool_extract_node  |  BPLib_MEM__Extract_Node
+| bplib_mpool_flow_alloc  |  BPLib_MEM_Duct_Alloc
+| bplib_mpool_foreach_item_in_list  |  BPLib_MEM__Foreach_Item_In_List
+| bplib_mpool_generic_data_alloc  |  BPLib_MEM_Generic_Data_Alloc
+| bplib_mpool_get_block_from_link  |  BPLib_MEM__Get_Block_From_Link
+| bplib_mpool_get_external_id  |  BPLib_MEM__Get_External_ID
+| bplib_mpool_get_generic_data_capacity  |  BPLib_MEM__Get_Generic_Data_Capacity
+| bplib_mpool_get_next_block  |  BPLib_MEM__Get_Next_Block
+| bplib_mpool_get_parent_pool_from_link  |  BPLib_MEM__Get_Parent_Pool_From_Link
+| bplib_mpool_get_prev_block  |  BPLib_MEM__Get_Prev_Block
+| bplib_mpool_init_list_head  |  BPLib_MEM__Init_List_Head
+| bplib_mpool_init_secondary_link  |  BPLib_MEM__Init_Secondary_Link
+| bplib_mpool_insert_after  |  BPLib_MEM__Insert_After
+| bplib_mpool_insert_before  |  BPLib_MEM__Insert_Before
+| bplib_mpool_is_any_content_node  |  BPLib_MEM__Is_Any_Content_Node
+| bplib_mpool_is_empty_list_head  |  BPLib_MEM__Is_Empty_List_Head
+| bplib_mpool_is_generic_data_block  |  BPLib_MEM__Is_Generic_Data_Block
+| bplib_mpool_is_indirect_block  |  BPLib_MEM__Is_Indirect_Block
+| bplib_mpool_is_link_attached  |  BPLib_MEM__Is_Link_Attached
+| bplib_mpool_is_link_unattached  |  BPLib_MEM__Is_Link_Unattached
+| bplib_mpool_is_list_head  |  BPLib_MEM__Is_List_Head
+| bplib_mpool_is_nonempty_list_head  |  BPLib_MEM__Is_Nonempty_List_Head
+| bplib_mpool_is_secondary_index_node  |  BPLib_MEM__Is_Secondary_Index_Node
+| bplib_mpool_list_iter_forward  |  BPLib_MEM__List_Iter_Forward
+| bplib_mpool_list_iter_goto_first  |  BPLib_MEM__List_Iter_Goto_First
+| bplib_mpool_list_iter_goto_last  |  BPLib_MEM__List_Iter_Goto_Last
+| bplib_mpool_list_iter_reverse  |  BPLib_MEM__List_Iter_Reverse
+| bplib_mpool_lock_init  |  BPLib_MEM__Lock_Init
+| bplib_mpool_maintain  |  BPLib_MEM__Maintain
+| bplib_mpool_merge_list  |  BPLib_MEM__Merge_List
+| bplib_mpool_query_mem_current_use  |  BPLib_MEM__Query_Mem_Current_Use
+| bplib_mpool_query_mem_max_use  |  BPLib_MEM__Query_Mem_Max_Use
+| bplib_mpool_read_refcount  |  BPLib_MEM__Read_Refcount
+| bplib_mpool_recycle_all_blocks_in_list  |  BPLib_MEM_Recycle_All_Blocks_In_List
+| bplib_mpool_recycle_block  |  BPLib_MEM_Recycle_Block
+| bplib_mpool_ref_create  |  BPLib_MEM__Ref_Create
+| bplib_mpool_ref_duplicate  |  BPLib_MEM__Ref_Duplicate
+| bplib_mpool_ref_from_block  |  BPLib_MEM__Ref_From_Block
+| bplib_mpool_ref_make_block  |  BPLib_MEM__Ref_Make_Block
+| bplib_mpool_ref_release  |  BPLib_MEM__Ref_Release
+
+mpool tree
+
+mpool
+├── CMakeLists.txt
+├── inc
+│   ├── v7_mpool.h
+│   ├── v7_mpool_bblocks.h
+│   ├── v7_mpool_flows.h
+│   ├── v7_mpool_job.h
+│   ├── v7_mpool_ref.h
+│   └── v7_mpstream.h
+├── src
+│   ├── v7_mpool.c
+│   ├── v7_mpool_bblocks.c
+│   ├── v7_mpool_flows.c
+│   ├── v7_mpool_internal.h
+│   ├── v7_mpool_job.c
+│   ├── v7_mpool_ref.c
+│   └── v7_mpstream.c
+├── ut-coverage
+│   ├── CMakeLists.txt
+│   ├── test_bplib_mpool.h
+│   ├── test_bplib_mpool_setup.c
+│   ├── test_bplib_v7_mpool.c
+│   ├── test_bplib_v7_mpool_bblocks.c
+│   ├── test_bplib_v7_mpool_flows.c
+│   ├── test_bplib_v7_mpool_job.c
+│   ├── test_bplib_v7_mpool_ref.c
+│   └── test_bplib_v7_mpstream.c
+└── ut-stubs
+    ├── CMakeLists.txt
+    ├── v7_mpool_bblocks_stubs.c
+    ├── v7_mpool_flows_stubs.c
+    ├── v7_mpool_job_stubs.c
+    ├── v7_mpool_ref_stubs.c
+    ├── v7_mpool_stubs.c
+    └── v7_mpstream_stubs.c
