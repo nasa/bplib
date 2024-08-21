@@ -2,7 +2,7 @@
 #
 # Bundle Protocol Library (BPLib) CMake build recipe
 #
-# This is for the CLA module
+# This is for the Version utility
 #
 ##################################################################
 
