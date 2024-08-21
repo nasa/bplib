@@ -94,7 +94,7 @@ typedef struct
  *       None
  *
  *  \return Execution status
- *  \retval BP_SUCCESS Initialization was successful
+ *  \retval BPLIB_SUCCESS Initialization was successful
  */
 BPLib_Status_t BPLib_TIME_Init(void);
 

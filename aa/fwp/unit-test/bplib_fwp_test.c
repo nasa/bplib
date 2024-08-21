@@ -45,7 +45,7 @@ void Test_BPLib_FWP_Init_Nominal(void)
     Callbacks.BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime;
     Callbacks.BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime;
 
-    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_SUCCESS);
 }
 
 /* Test FWP initialization with null function */

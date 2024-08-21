@@ -66,7 +66,7 @@ extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
  *       None
  *
  *  \return Execution status
- *  \retval BP_SUCCESS Initialization was successful
+ *  \retval BPLIB_SUCCESS Initialization was successful
  */
 BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks);
 

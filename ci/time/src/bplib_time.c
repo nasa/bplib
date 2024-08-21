@@ -49,7 +49,7 @@ BPLib_Status_t BPLib_TIME_Init(void) {
     /* TODO read from ring buffer file */
     BPLib_TIME_GlobalData.CurrentBootEra = 0;
 
-    return BP_SUCCESS;
+    return BPLIB_SUCCESS;
 }
 
 /* Get monotonic time from Time Proxy */

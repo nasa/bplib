@@ -55,5 +55,5 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         /* Initialize other proxies' callbacks TODO */
     }
 
-    return BP_SUCCESS;
+    return BPLIB_SUCCESS;
 }
