@@ -29,8 +29,24 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "bplib.h"
+#include "bplib_api_types.h"
 #include "bplib_time.h"
+#include "bplib_time_internal.h"
+
+
+/*
+** Global Data
+*/
+
+BPLib_TIME_GlobalData_t BPLib_TIME_GlobalData;
+
+
+/*
+** Macro Definitions
+*/
+
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_TIME_Test_Setup, BPLib_TIME_Test_Teardown, #test)
 
 
 /*
@@ -41,5 +57,6 @@ void BPLib_TIME_Test_Setup(void);
 void BPLib_TIME_Test_Teardown(void);
 
 void TestBplibTime_Register(void);
+void TestBplibTimeInternal_Register(void);
 
 #endif /* BPLIB_TIME_TEST_UTILS_H */

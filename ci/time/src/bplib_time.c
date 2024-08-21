@@ -21,7 +21,7 @@
 /**
  * @file
  *
- * Main source file for Time Management
+ * Public APIs for Time Management
  */
 
 /*
@@ -32,6 +32,7 @@
 #include "bplib_time_internal.h"
 #include "bplib_fwp.h"
 
+
 /*
 ** Global Data
 */
@@ -41,7 +42,7 @@ BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 
 
 /*
-** Public Function Definitions
+** Function Definitions
 */
 
 /* Time Management initialization */
@@ -55,18 +56,21 @@ BPLib_Status_t BPLib_TIME_Init(void) {
 /* Get monotonic time from Time Proxy */
 void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
 {
-    MonotonicTime->BootEra = BPLib_TIME_GlobalData.CurrentBootEra;
-    MonotonicTime->Time = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
+    if (MonotonicTime != NULL)
+    {
+        MonotonicTime->BootEra = BPLib_TIME_GlobalData.CurrentBootEra;
+        MonotonicTime->Time = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
+    }
 }
 
 /* Calculate current correlation factor */
-int64_t  BPLib_TIME_CalculateCorrelationFactor(void)
+int64_t BPLib_TIME_CalculateCorrelationFactor(void)
 {
     return 0;
 }
 
 /* Get current correlation factor */
-int64_t  BPLib_TIME_GetCorrelationFactor(void)
+int64_t BPLib_TIME_GetCorrelationFactor(void)
 {
     return BPLib_TIME_GlobalData.CurrentCorrelationFactor;
 }
@@ -88,39 +92,4 @@ BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
 BPLib_Status_t BPLib_TIME_MaintenanceActivities(void)
 {
     return BPLIB_UNIMPLEMENTED;
-}
-
-
-/*
-** Internal Function Definitions
-*/
-
-/* Read a CF from the ring buffer file */
-BPLib_Status_t BPLib_TIME_ReadCfFromBuffer(int64_t *CorrelationFactor, uint32_t BootEra)
-{
-    return BPLIB_UNIMPLEMENTED;
-}
-
-/* Write a CF to the ring buffer file */
-BPLib_Status_t BPLib_TIME_WriteCfToBuffer(int64_t CorrelationFactor, uint32_t BootEra)
-{
-    return BPLIB_UNIMPLEMENTED;
-}
-
-/* Read a last valid DTN time from the ring buffer file */
-BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(int64_t *LastValidDtnTime, uint32_t BootEra)
-{
-    return BPLIB_UNIMPLEMENTED;
-}
-
-/* Write a last valid DTN time to the ring buffer file */
-BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(int64_t LastValidDtnTime, uint32_t BootEra)
-{
-    return BPLIB_UNIMPLEMENTED;
-}
-
-/* Get estimated DTN time */
-uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
-{
-    return 0;
 }

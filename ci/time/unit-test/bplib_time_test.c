@@ -18,23 +18,74 @@
  *
  */
 
-/*
- * Include
+/**
+ * \file
+ *  Unit tests for bplib_time.c
  */
+
+/*
+** Include Files
+*/
 
 #include "bplib_time_test_utils.h"
 
+
 /*
-** Test function for
-** int BPLib_TIME_Init()
+** Function Definitions
 */
+
 void Test_BPLib_TIME_Init(void)
 {
-    UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_UNIMPLEMENTED);
 }
 
+void Test_BPLib_TIME_GetMonotonicTime(void)
+{
+    // TODO fully test this with simulated proxy callbacks
+    BPLib_TIME_GetMonotonicTime(NULL);
+
+    // UtAssert_True(MonotonicTime.Time == 0, "Monotonic time is expected value");
+}
+
+void Test_BPLib_TIME_CalculateCorrelationFactor(void)
+{
+    UtAssert_True(BPLib_TIME_CalculateCorrelationFactor() == 0, "CF is expected value");
+}
+
+void Test_BPLib_TIME_GetCorrelationFactor(void)
+{
+    UtAssert_True(BPLib_TIME_GetCorrelationFactor() == 0, "CF is expected value");
+}
+
+void Test_BPLib_TIME_GetDtnTime(void)
+{
+    BPLib_TIME_MonotonicTime_t MonotonicTime;
+
+    UtAssert_True(BPLib_TIME_GetDtnTime(MonotonicTime) == 0, "DTN time is expected value");
+}
+
+void Test_BPLib_TIME_GetTimeDelta(void)
+{
+    BPLib_TIME_MonotonicTime_t Time1;
+    BPLib_TIME_MonotonicTime_t Time2;
+    uint64_t Delta;
+
+    UtAssert_True(BPLib_TIME_GetTimeDelta(Time1, Time2, &Delta) == BPLIB_UNIMPLEMENTED,
+                            "Delta is expected value");
+}
+
+void Test_BPLib_TIME_MaintenanceActivities(void)
+{
+    UtAssert_INT32_EQ(BPLib_TIME_MaintenanceActivities(), BPLIB_UNIMPLEMENTED);
+}
 
 void TestBplibTime_Register(void)
 {
-    UtTest_Add(Test_BPLib_TIME_Init, BPLib_TIME_Test_Setup, BPLib_TIME_Test_Teardown, "Test_BPLib_TIME_Init");
+    ADD_TEST(Test_BPLib_TIME_Init);
+    ADD_TEST(Test_BPLib_TIME_GetMonotonicTime);
+    ADD_TEST(Test_BPLib_TIME_CalculateCorrelationFactor);
+    ADD_TEST(Test_BPLib_TIME_GetCorrelationFactor);
+    ADD_TEST(Test_BPLib_TIME_GetDtnTime);
+    ADD_TEST(Test_BPLib_TIME_GetTimeDelta);
+    ADD_TEST(Test_BPLib_TIME_MaintenanceActivities);
 }
