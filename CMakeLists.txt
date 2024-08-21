@@ -116,7 +116,7 @@ foreach(COMPONENT ${BPLIB_COMPONENTS})
     $<TARGET_OBJECTS:${COMPONENT}>
   )
   
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
+  list(APPEND BPLIB_COMPONENT_INCLUDE_DIRS
     $<TARGET_PROPERTY:${COMPONENT},INTERFACE_INCLUDE_DIRECTORIES>
   )
 
@@ -200,8 +200,8 @@ endforeach()
 target_compile_features(bplib PRIVATE c_std_99)
 target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
-# Internal/private header files exist within the implementation directories
-target_include_directories(bplib PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
+# Internal header files exist within the implementation directories
+target_include_directories(bplib INTERFACE ${BPLIB_COMPONENT_INCLUDE_DIRS})
 
 # The API to this library (which may be invoked/referenced from other apps)
 # is stored in fsw/public_inc.  Using "target_include_directories" is the
