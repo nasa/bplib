@@ -26,10 +26,12 @@
 #include "bplib.h"
 #include "bplib_api_types.h"
 #include "bplib_mem.h"
-#include "bplib_mem.h"
-#include "bplib_mem_bblocks.h"
 #include "bplib_mem_bundle.h"
-#include "v7_mpool.h"
+#include "bplib_mem_bblocks.h"
+#include "bplib_mem_ducts.h"
+#include "bplib_mem_internal.h"
+#include "bplib_mem_rbtree.h"
+#include "bplib_mem_ref.h"
 
 typedef struct bplib_mpool_bblock_tracking
 {

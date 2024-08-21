@@ -22,6 +22,10 @@
  INCLUDES
  ******************************************************************************/
 
+#include "v7_cache_internal.h"
+
+#ifdef STOR  // TODO v7_cache.c is completely ifdef'd out
+
 #include "bplib.h"
 #include "v7_cache_internal.h"
 
@@ -128,6 +132,7 @@ int bplib_cache_egress_impl(void *arg, bplib_mpool_block_t *subq_src)
 
     return forward_count;
 }
+
 
 void bplib_cache_flush_pending(bplib_cache_state_t *state)
 {
@@ -718,4 +723,12 @@ void bplib_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 
     bplib_route_release_intf_controlblock(tbl, intf_block_ref);
     #endif // STOR
+}
+
+#endif // STOR
+
+int v7_cache_placeholder() {
+    int val;
+    val = 1 + 1;
+    return val;
 }

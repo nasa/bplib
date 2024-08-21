@@ -23,15 +23,11 @@
 
 #include <string.h>
 
+#include "bplib.h"
 #include "bplib_api_types.h"
-
 #include "bplib_os.h"
-
-#include "bplib_mem_rbtree.h"
 #include "bplib_mem.h"
-#include "bplib_mem_bblocks.h"
-#include "bplib_mem_ducts.h"
-#include "bplib_mem_ref.h"
+#include "bplib_mem_rbtree.h"
 
 /*
  * Minimum size of a generic data block
@@ -47,7 +43,7 @@ typedef struct bplib_mpool_lock
 
 typedef struct bplib_mpool_block_header
 {
-    bplib_mpool_block_t base_link; /* must be first - this is the pointer used in the application */
+    bplib_mpool_block_t *base_link; /* must be first - this is the pointer used in the application */
 
     uint32_t content_type_signature; /* a "signature" (sanity check) value for identifying the data */
     uint16_t user_content_length;    /* actual length of user content (does not include fixed fields) */
@@ -71,7 +67,7 @@ typedef union bplib_mpool_aligned_data
 typedef struct bplib_mpool_api_content
 {
     bplib_rbt_link_t            rbt_link;
-    bplib_mpool_blocktype_api_t api;
+    bplib_mpool_blocktype_api_t *api;
     size_t                      user_content_size;
     bplib_mpool_aligned_data_t  user_data_start;
 } bplib_mpool_api_content_t;
@@ -83,19 +79,19 @@ typedef struct bplib_mpool_generic_data_content
 
 typedef struct bplib_mpool_bblock_primary_content
 {
-    bplib_mpool_bblock_primary_t pblock;
+    bplib_mpool_bblock_primary_t *pblock;
     bplib_mpool_aligned_data_t   user_data_start;
 } bplib_mpool_bblock_primary_content_t;
 
 typedef struct bplib_mpool_bblock_canonical_content
 {
-    bplib_mpool_bblock_canonical_t cblock;
+    bplib_mpool_bblock_canonical_t *cblock;
     bplib_mpool_aligned_data_t     user_data_start;
 } bplib_mpool_bblock_canonical_content_t;
 
 typedef struct bplib_mpool_flow_content
 {
-    bplib_mpool_flow_t         fblock;
+    bplib_mpool_flow_t         *fblock;
     bplib_mpool_aligned_data_t user_data_start;
 } bplib_mpool_flow_content_t;
 
@@ -117,14 +113,14 @@ typedef struct bplib_mpool_block_admin_content
     bplib_mpool_api_content_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
     bplib_mpool_api_content_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
 
-    bplib_mpool_subq_base_t free_blocks;    /**< blocks which are available for use */
-    bplib_mpool_subq_base_t recycle_blocks; /**< blocks which can be garbage-collected */
+    bplib_mpool_subq_base_t *free_blocks;    /**< blocks which are available for use */
+    bplib_mpool_subq_base_t *recycle_blocks; /**< blocks which can be garbage-collected */
 
     /* note that the active_list and managed_block_list are not FIFO in nature, as blocks
      * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
      * is not used for these, because the push_count and pull_count would not remain accurate. */
 
-    bplib_mpool_block_t active_list; /**< a list of flows/queues that need processing */
+    bplib_mpool_block_t *active_list; /**< a list of flows/queues that need processing */
 
 } bplib_mpool_block_admin_content_t;
 

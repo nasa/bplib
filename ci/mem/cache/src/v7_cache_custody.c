@@ -21,6 +21,8 @@
 #include "v7_cache_internal.h"
 #include "crc.h"
 
+#ifdef STOR // TODO Custody is ifdef'd out
+
 // TODO Why doesn't it get BP_FLAG_DIAGNOSTIC (and others) from bplib.h?
 #define BP_FLAG_DIAGNOSTIC 0
 #define BP_FLAG_OUT_OF_MEMORY           0x00100000
@@ -530,6 +532,8 @@ bool bplib_cache_custody_check_dacs(bplib_cache_state_t *state, bplib_mpool_bloc
 
     return (c_block != NULL);
 }
+
+#endif // STOR
 
 void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_block_t *qblk)
 {

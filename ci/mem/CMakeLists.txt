@@ -10,7 +10,7 @@ add_library(bplib_mem OBJECT
     src/bplib_mem.c
 )
 
-target_include_directories(bplib_mem PRIVATE
+target_include_directories(bplib_mem PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
 
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>

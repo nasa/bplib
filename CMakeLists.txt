@@ -85,6 +85,8 @@ if (BPLIB_ENABLE_UNIT_TESTS AND BPLIB_STANDALONE_BUILD_MODE AND NOT CMAKE_CROSSC
    enable_testing()
 endif()
 
+message("Add subdirectories")
+
 add_subdirectory(cla)
 add_subdirectory(aa/arp)
 add_subdirectory(aa/as)
@@ -116,16 +118,24 @@ list(APPEND BPLIB_COMPONENTS
   bplib_os bplib_libmgr bplib_common bplib_cache
 )
 
+message("BPLIB_COMPONENTS")
+message("${BPLIB_COMPONENTS}")
+
+message("BPLIB_SRC")
 foreach(COMPONENT ${BPLIB_COMPONENTS})
   list(APPEND BPLIB_SRC 
     $<TARGET_OBJECTS:${COMPONENT}>
   )
+  message("$<TARGET_OBJECTS:${COMPONENT}>")
   
   list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
     $<TARGET_PROPERTY:${COMPONENT},INTERFACE_INCLUDE_DIRECTORIES>
   )
 
 endforeach()
+
+message("BPLIB_SRC")
+message("${BPLIB_SRC}")
 
 # Debugging CMakeLists.txt
 # Show the BPLIB_PRIVATE_INCLUDE_DIRS

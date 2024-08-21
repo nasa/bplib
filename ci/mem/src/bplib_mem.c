@@ -132,7 +132,7 @@ bplib_mpool_block_t *bplib_mpool_block_from_external_id(bplib_mpool_t *pool, bp_
         blk = NULL;
     }
 
-    return &blk->header.base_link;
+    return blk->header.base_link; // TODO Is this return value correct?
 }
 
 /*----------------------------------------------------------------
@@ -200,12 +200,12 @@ bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_b
     {
         /* Additionally, if this block is a ref, then also dereference it to get to the real block */
         /* In theory this could be a chain of refs, so this is a while() but in reality it should be just one */
-        while (block_ptr->header.base_link.type == bplib_mpool_blocktype_ref)
+        while (block_ptr->header.base_link->type == bplib_mpool_blocktype_ref)
         {
             assert(block_ptr->u.ref.pref_target != NULL);
             block_ptr = block_ptr->u.ref.pref_target;
             /* this should have always arrived at an actual content block */
-            assert(bplib_mpool_is_any_content_node(&block_ptr->header.base_link));
+            assert(bplib_mpool_is_any_content_node(block_ptr->header.base_link)); // TODO Is base_link correct as pointer?
         }
 
         return block_ptr;
@@ -403,10 +403,10 @@ bplib_mpool_t *bplib_mpool_get_parent_pool_from_link(bplib_mpool_block_t *cb)
         /* the "parent_offset" should provide a map back to the parent pool.
          * in this context the units are blocks, not bytes (this extends the
          * representable range for large pools, and simplifies this arithmetic) */
-        block -= block->header.base_link.parent_offset;
+        block -= block->header.base_link->parent_offset;
 
         /* this should have always arrived at the admin block, which is the first block */
-        assert(block->header.base_link.type == bplib_mpool_blocktype_admin);
+        assert(block->header.base_link->type == bplib_mpool_blocktype_admin);
     }
     else
     {
@@ -432,11 +432,11 @@ void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_m
      * data block _only_ has the generic data, whereas the other block types can have both. */
     result = NULL;
     block  = bplib_mpool_get_block_content(cb);
-    while (block != NULL && bplib_mpool_is_any_content_node(&block->header.base_link))
+    while (block != NULL && bplib_mpool_is_any_content_node(block->header.base_link))
     {
         if (block->header.content_type_signature == required_magic)
         {
-            data_offset = bplib_mpool_get_user_data_offset_by_blocktype(block->header.base_link.type);
+            data_offset = bplib_mpool_get_user_data_offset_by_blocktype(block->header.base_link->type);
             if (data_offset < sizeof(bplib_mpool_block_buffer_t))
             {
                 result = &block->u.content_bytes[data_offset];
@@ -444,7 +444,7 @@ void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_m
             break;
         }
 
-        if (!bplib_mpool_is_indirect_block(&block->header.base_link))
+        if (!bplib_mpool_is_indirect_block(block->header.base_link))
         {
             break;
         }
@@ -474,12 +474,12 @@ bplib_mpool_block_t *bplib_mpool_generic_data_uncast(void *blk, bplib_mpool_bloc
 
     data_offset += offsetof(bplib_mpool_block_content_t, u);
     block = (bplib_mpool_block_content_t *)(void *)((uint8_t *)blk - data_offset);
-    if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
+    if (block->header.base_link->type != parent_bt || block->header.content_type_signature != required_magic)
     {
         return NULL;
     }
 
-    return &block->header.base_link;
+    return block->header.base_link;
 }
 
 /*----------------------------------------------------------------
@@ -532,8 +532,11 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
      * This soft limit only applies for actual bundle blocks, not for refs.
      */
     alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
+    alloc_threshold = 1000; // TODO Reset back to threshold computation.
 
-    block_count = bplib_mpool_subq_get_depth(&admin->free_blocks);
+    #ifdef STOR
+
+    block_count = bplib_mpool_subq_get_depth(admin->free_blocks);
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
 
@@ -541,6 +544,7 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
         return NULL;
     }
 
+    #endif // STOR
     /* figure out how to initialize this block by looking up the content type */
     api_block = (bplib_mpool_api_content_t *)(void *)bplib_rbt_search_unique(content_type_signature,
                                                                              &admin->blocktype_registry);
@@ -560,7 +564,7 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     }
 
     /* get a block */
-    node = bplib_mpool_subq_pull_single(&admin->free_blocks);
+    node = bplib_mpool_subq_pull_single(admin->free_blocks);
     if (node == NULL)
     {
         /* this should never happen, because depth was already checked */

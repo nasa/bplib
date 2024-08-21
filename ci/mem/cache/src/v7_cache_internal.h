@@ -21,6 +21,8 @@
 #ifndef V7_CACHE_INTERNAL_H
 #define V7_CACHE_INTERNAL_H
 
+#ifdef STOR
+
 #include "bplib.h"
 #include "bplib_os.h"
 #ifdef STOR
@@ -77,13 +79,16 @@ typedef enum bplib_cache_entry_state
     bplib_cache_entry_state_max
 } bplib_cache_entry_state_t;
 
+#endif // STOR
+
 typedef struct bplib_cache_state
 {
-    bp_ipn_addr_t self_addr;
+    int placeholder;
 
     #ifdef STOR
+    bp_ipn_addr_t self_addr;
+
     bplib_mpool_job_t pending_job;
-    #endif // STOR
 
     /*
      * pending_list holds bundle refs that are currently actionable in some way,
@@ -118,8 +123,11 @@ typedef struct bplib_cache_state
     uint32_t fsm_state_enter_count[bplib_cache_entry_state_max];
     uint32_t fsm_state_exit_count[bplib_cache_entry_state_max];
     uint32_t discard_count;
-
+    #endif // STOR
+    
 } bplib_cache_state_t;
+
+#ifdef STOR
 
 typedef struct bplib_cache_dacs_pending
 {
@@ -250,5 +258,8 @@ bplib_cache_entry_state_t bplib_cache_fsm_state_generate_dacs_eval(bplib_cache_e
 void                      bplib_cache_fsm_state_generate_dacs_exit(bplib_cache_entry_t *store_entry);
 void bplib_cache_fsm_transition_state(bplib_cache_entry_t *entry, bplib_cache_entry_state_t next_state);
 bplib_cache_entry_state_t bplib_cache_fsm_get_next_state(bplib_cache_entry_t *entry);
+#endif // STOR
+
+int v7_cache_placeholder(void);
 
 #endif /* V7_CACHE_INTERNAL_H */

@@ -23,7 +23,16 @@
 
 #include <string.h>
 
+#include "bplib.h"
+#include "bplib_api_types.h"
 #include "bplib_mem.h"
+#include "bplib_mem_bundle.h"
+#include "bplib_mem_bblocks.h"
+#include "bplib_mem_ducts.h"
+#include "bplib_mem_internal.h"
+#include "bplib_mem_rbtree.h"
+#include "bplib_mem_ref.h"
+
 #ifdef STOR
 #include "v7_mpool_job.h"
 #endif // STOR
