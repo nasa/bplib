@@ -44,12 +44,13 @@ int BPLib_PrintVersion(void)
 {
     char VersionString[BPLIB_CFG_MAX_VERSION_STR_LEN];
 
-    (void) snprintf(VersionString, BPLIB_CFG_MAX_VERSION_STR_LEN, "v%u.%u.%u",
+    (void) snprintf(VersionString, BPLIB_CFG_MAX_VERSION_STR_LEN, "v%u.%u.%u-sprint-%u",
         BPLIB_MAJOR_VERSION,
         BPLIB_MINOR_VERSION,
-        BPLIB_REVISION);
+        BPLIB_REVISION,
+        BPLIB_BUILD_NUMBER);
 
-    OS_printf("BPLib Initialized. %s\n", VersionString);
+    OS_printf("BPLib Version: %s\n", VersionString);
 
     return BP_SUCCESS;
 }
