@@ -53,14 +53,99 @@ typedef struct
 ** Exported Functions
 */
 
-int64_t  BPLib_TIME_ReadCfFromBuffer(uint32_t BootEra);
+/**
+ * \brief Read Correlation Factor (CF) from Ring Buffer
+ *
+ *  \par Description
+ *       Gets the CF for a given boot era from the ring buffer file
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ * 
+ *  \param[in] CorrelationFactor Pointer to return CF in
+ * 
+ *  \param[in] BootEra Entry in ring buffer to read from
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ *  \retval BPLIB_TIME_READ_ERROR Read operation could not be completed
+ */
+BPLib_Status_t BPLib_TIME_ReadCfFromBuffer(int64_t *CorrelationFactor, uint32_t BootEra);
 
-BPLib_Status_t BPLib_TIME_StoreCfToBuffer(int64_t CorrelationFactor, uint32_t BootEra);
+/**
+ * \brief Write Correlation Factor (CF) to Ring Buffer
+ *
+ *  \par Description
+ *       Writes the CF for a given boot era to the ring buffer file
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ * 
+ *  \param[in] CorrelationFactor Value to write to file
+ * 
+ *  \param[in] BootEra Entry in ring buffer to write to
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ *  \retval BPLIB_TIME_WRITE_ERROR Write operation could not be completed
+ */
+BPLib_Status_t BPLib_TIME_WriteCfToBuffer(int64_t CorrelationFactor, uint32_t BootEra);
 
-int64_t  BPLib_TIME_ReadDtnTimeFromBuffer(uint32_t BootEra);
+/**
+ * \brief Read Last Valid DTN Time from Ring Buffer
+ *
+ *  \par Description
+ *       Gets the last valid DTN time for a given boot era from the ring buffer file
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ * 
+ *  \param[in] LastValidDtnTime Pointer to return DTN time in
+ * 
+ *  \param[in] BootEra Entry in ring buffer to read from
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ *  \retval BPLIB_TIME_READ_ERROR Read operation could not be completed
+ */
+BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(int64_t *LastValidDtnTime, uint32_t BootEra);
 
-BPLib_Status_t BPLib_TIME_StoreDtnTimeToBuffer(int64_t LastValidDtnTime, uint32_t BootEra);
+/**
+ * \brief Write Last Valid DTN Time to Ring Buffer
+ *
+ *  \par Description
+ *       Writes the last valid DTN time for a given boot era to the ring buffer file
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ * 
+ *  \param[in] LastValidDtnTime Value to write to file
+ * 
+ *  \param[in] BootEra Entry in ring buffer to write to
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Operation was successful
+ *  \retval BPLIB_TIME_WRITE_ERROR Write operation could not be completed
+ */
+BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(int64_t LastValidDtnTime, uint32_t BootEra);
 
+/**
+ * \brief Get Estimated DTN Time
+ *
+ *  \par Description
+ *       Gets the DTN time from the given monotonic time. If no CF can be found for the
+ *       given boot era, attempt to use a last valid DTN time value to estimate the DTN
+ *       time. If no value exists, return 0.
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ * 
+ *  \param[in] MonotonicTime Monotonic time to convert to DTN time
+ *
+ *  \return DTN time
+ *  \retval Zero A valid DTN time could not be calculated
+ *  \retval Nonzero Estimated DTN time that may be less than the true time but not greater
+ */
 uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime);
 
 #endif /* BPLIB_TIME_INTERNAL_H */

@@ -29,6 +29,81 @@
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_CalculateCorrelationFactor()
+ * ----------------------------------------------------
+ */
+int64_t BPLib_TIME_CalculateCorrelationFactor(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_CalculateCorrelationFactor, int64_t);
+
+    UT_GenStub_Execute(BPLib_TIME_CalculateCorrelationFactor, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_CalculateCorrelationFactor, int64_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_GetCorrelationFactor()
+ * ----------------------------------------------------
+ */
+int64_t BPLib_TIME_GetCorrelationFactor(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_GetCorrelationFactor, int64_t);
+
+    UT_GenStub_Execute(BPLib_TIME_GetCorrelationFactor, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_GetCorrelationFactor, int64_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_GetDtnTime()
+ * ----------------------------------------------------
+ */
+uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_GetDtnTime, uint64_t);
+
+    UT_GenStub_AddParam(BPLib_TIME_GetDtnTime, BPLib_TIME_MonotonicTime_t, MonotonicTime);
+
+    UT_GenStub_Execute(BPLib_TIME_GetDtnTime, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_GetDtnTime, uint64_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_GetMonotonicTime()
+ * ----------------------------------------------------
+ */
+void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
+{
+    UT_GenStub_AddParam(BPLib_TIME_GetMonotonicTime, BPLib_TIME_MonotonicTime_t *, MonotonicTime);
+
+    UT_GenStub_Execute(BPLib_TIME_GetMonotonicTime, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_GetTimeDelta()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1, BPLib_TIME_MonotonicTime_t Time2,
+                                       uint64_t *Delta)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_GetTimeDelta, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_TIME_GetTimeDelta, BPLib_TIME_MonotonicTime_t, Time1);
+    UT_GenStub_AddParam(BPLib_TIME_GetTimeDelta, BPLib_TIME_MonotonicTime_t, Time2);
+    UT_GenStub_AddParam(BPLib_TIME_GetTimeDelta, uint64_t *, Delta);
+
+    UT_GenStub_Execute(BPLib_TIME_GetTimeDelta, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_GetTimeDelta, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_TIME_Init()
  * ----------------------------------------------------
  */
@@ -43,12 +118,14 @@ BPLib_Status_t BPLib_TIME_Init(void)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_TIME_GetMonotonicTime()
+ * Generated stub function for BPLib_TIME_MaintenanceActivities()
  * ----------------------------------------------------
  */
-void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
+BPLib_Status_t BPLib_TIME_MaintenanceActivities(void)
 {
-    UT_GenStub_AddParam(BPLib_TIME_GetMonotonicTime, BPLib_TIME_MonotonicTime_t *, MonotonicTime);
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_MaintenanceActivities, BPLib_Status_t);
 
-    UT_GenStub_Execute(BPLib_TIME_GetMonotonicTime, Basic, NULL);
+    UT_GenStub_Execute(BPLib_TIME_MaintenanceActivities, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_MaintenanceActivities, BPLib_Status_t);
 }
