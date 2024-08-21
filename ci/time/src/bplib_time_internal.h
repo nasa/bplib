@@ -32,7 +32,7 @@
 */
 
 #include "bplib_time.h"
-
+#include "bplib_fwp.h"
 
 /*
 ** Type Definitions
@@ -54,6 +54,7 @@ typedef struct
 */
 
 extern BPLib_TIME_GlobalData_t BPLib_TIME_GlobalData;
+extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 
 
 /*

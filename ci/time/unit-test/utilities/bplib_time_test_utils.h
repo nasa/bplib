@@ -35,13 +35,6 @@
 
 
 /*
-** Global Data
-*/
-
-BPLib_TIME_GlobalData_t BPLib_TIME_GlobalData;
-
-
-/*
 ** Macro Definitions
 */
 
