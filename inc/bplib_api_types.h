@@ -26,6 +26,12 @@ extern "C" {
 #endif
 
 /*
+** Include Files
+*/
+
+#include <stdint.h>
+
+/*
 ** Macros
 */
 
