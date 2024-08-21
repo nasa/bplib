@@ -50,6 +50,13 @@ typedef struct
 
 
 /*
+** Global Data
+*/
+
+extern BPLib_TIME_GlobalData_t BPLib_TIME_GlobalData;
+
+
+/*
 ** Exported Functions
 */
 
