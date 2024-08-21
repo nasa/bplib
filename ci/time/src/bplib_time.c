@@ -38,7 +38,6 @@
 */
 
 BPLib_TIME_GlobalData_t BPLib_TIME_GlobalData;
-BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 
 
 /*
