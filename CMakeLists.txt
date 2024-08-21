@@ -85,6 +85,7 @@ if (BPLIB_ENABLE_UNIT_TESTS AND BPLIB_STANDALONE_BUILD_MODE AND NOT CMAKE_CROSSC
    enable_testing()
 endif()
 
+add_subdirectory(version)
 add_subdirectory(cla)
 add_subdirectory(aa/arp)
 add_subdirectory(aa/as)
@@ -104,6 +105,7 @@ add_subdirectory(ci/pl)
 add_subdirectory(ci/time)
 
 list(APPEND BPLIB_COMPONENTS
+  bplib_version
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_ndc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
   bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time
