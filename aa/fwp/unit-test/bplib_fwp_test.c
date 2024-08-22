@@ -28,12 +28,40 @@
 */
 
 #include "bplib_fwp_test_utils.h"
-#include "fwp_timep.h"
+#include "bplib_time.h"
 
 
 /*
 ** Function Definitions
 */
+
+
+/* 
+** Stub functions for callback testing
+*/
+
+int64_t BPA_TIMEP_GetMonotonicTime(void)
+{
+    return 0;
+}
+
+/* Returns host time epoch */
+void BPA_TIMEP_GetHostEpoch(BPLib_TIME_Epoch_t *Epoch)
+{
+    return;
+}
+
+/* Returns current host clock state */
+BPLib_TIME_ClockState_t BPA_TIMEP_GetHostClockState(void)
+{
+    return BPLIB_TIME_CLOCK_VALID;
+}
+
+/* Returns current host time */
+int64_t BPA_TIMEP_GetHostTime(void)
+{
+    return 0;
+}
 
 /* Test nominal FWP initialization */
 void Test_BPLib_FWP_Init_Nominal(void)
