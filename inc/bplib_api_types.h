@@ -331,6 +331,39 @@ static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
     {                           \
         0x6000000               \
     }
+/*
+** Include Files
+*/
+
+#include <stdint.h>
+#include <stddef.h>
+
+/*
+** Type Definitions
+*/
+
+/**
+ * \brief BPLib status type for type safety
+ */
+typedef int32_t BPLib_Status_t;
+
+
+/*
+** Macros
+*/
+
+/* General Return Codes */
+#define BPLIB_SUCCESS                       ((BPLib_Status_t) 0)
+#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -1)
+#define BPLIB_ERROR                         ((BPLib_Status_t) 1)
+
+/* Framework Proxy Errors */
+#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) 2)
+
+/* Time Management Errors */
+#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) 3)
+#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) 4)
+#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) 5)
 
 #ifdef __cplusplus
 } // extern "C"

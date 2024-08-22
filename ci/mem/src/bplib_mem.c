@@ -777,6 +777,8 @@ int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter)
     iter->position      = iter->pending_entry;
     iter->pending_entry = iter->position->prev;
     return BP_SUCCESS;
+int BPLib_MEM_Init(void) {
+    return BPLIB_SUCCESS;
 }
 
 /*----------------------------------------------------------------

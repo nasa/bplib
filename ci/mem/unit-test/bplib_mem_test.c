@@ -864,6 +864,7 @@ void test_bplib_mpool_query_mem_max_use(void)
     test_setup_mpblock(&pool, &pool.admin_block, bplib_mpool_blocktype_admin, 0);
 
     UtAssert_UINT32_EQ(bplib_mpool_query_mem_max_use(&pool), 0);
+    UtAssert_INT32_EQ(BPLib_MEM_Init(), BPLIB_SUCCESS);
 }
 
 void test_bplib_mpool_create(void)

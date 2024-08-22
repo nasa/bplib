@@ -87,6 +87,7 @@ endif()
 
 message("Add subdirectories")
 
+add_subdirectory(version)
 add_subdirectory(cla)
 add_subdirectory(aa/arp)
 add_subdirectory(aa/as)
@@ -112,6 +113,7 @@ add_subdirectory(libmgr)
 # The order of the components must match the order of
 # the add_subdirectory statements.
 list(APPEND BPLIB_COMPONENTS
+  bplib_version
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_ndc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
   bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time
@@ -130,7 +132,7 @@ foreach(COMPONENT ${BPLIB_COMPONENTS})
   )
   message("$<TARGET_OBJECTS:${COMPONENT}>")
   
-  list(APPEND BPLIB_PRIVATE_INCLUDE_DIRS
+  list(APPEND BPLIB_COMPONENT_INCLUDE_DIRS
     $<TARGET_PROPERTY:${COMPONENT},INTERFACE_INCLUDE_DIRECTORIES>
   )
 
@@ -225,9 +227,8 @@ endforeach()
 target_compile_features(bplib PRIVATE c_std_99)
 target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
-# Internal/private header files exist within the implementation directories
-# target_include_directories(bplib PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
-target_include_directories(bplib PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
+# Internal header files exist within the implementation directories
+target_include_directories(bplib INTERFACE ${BPLIB_COMPONENT_INCLUDE_DIRS})
 
 # The API to this library (which may be invoked/referenced from other apps)
 # is stored in fsw/public_inc.  Using "target_include_directories" is the

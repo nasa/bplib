@@ -24,6 +24,7 @@
 
 #include "bplib_time_test_utils.h"
 
+
 /*
 ** Function Definitions
 */
@@ -32,6 +33,9 @@ void BPLib_TIME_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
+
+    /* Clear global data */
+    memset(&BPLib_TIME_GlobalData, 0, sizeof(BPLib_TIME_GlobalData));
 }
 
 void BPLib_TIME_Test_Teardown(void)
@@ -42,4 +46,5 @@ void BPLib_TIME_Test_Teardown(void)
 void UtTest_Setup(void)
 {
     TestBplibTime_Register();
+    TestBplibTimeInternal_Register();
 }

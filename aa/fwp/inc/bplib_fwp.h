@@ -29,6 +29,30 @@
 
 
 /*
+** Type Definitions
+*/
+
+typedef struct 
+{
+    /* Time Proxy function callbacks */
+    int64_t (*BPA_TIMEP_GetMonotonicTime)(void);
+    void (*BPA_TIMEP_GetHostEpoch)(BPLib_TIME_Epoch_t *Epoch);
+    BPLib_TIME_ClockState_t (*BPA_TIMEP_GetHostClockState)(void);
+    int64_t (*BPA_TIMEP_GetHostTime)(void);
+
+    /* Add other proxies' function callbacks here: TODO */
+
+} BPLib_FWP_ProxyCallbacks_t;
+
+
+/*
+** Global Data
+*/
+
+extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
+
+
+/*
 ** Exported Functions
 */
 
@@ -42,8 +66,8 @@
  *       None
  *
  *  \return Execution status
- *  \retval BP_SUCCESS Initialization was successful
+ *  \retval BPLIB_SUCCESS Initialization was successful
  */
-int BPLib_FWP_Init(void);
+BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks);
 
 #endif /* BPLIB_FWP_H */

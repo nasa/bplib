@@ -10,10 +10,12 @@
 # Create stubs (for external use)
 add_library(bplib_time_stubs STATIC
     stubs/bplib_time_stubs.c
+    stubs/bplib_time_internal_stubs.c
 )
 
 target_include_directories(bplib_time_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_time,INTERFACE_INCLUDE_DIRECTORIES>
+    ../src
 )
 
 target_link_libraries(bplib_time_stubs ut_assert ut_core_api_stubs)
@@ -21,6 +23,7 @@ target_link_libraries(bplib_time_stubs ut_assert ut_core_api_stubs)
 # Create unit test object
 add_library(utobj_bplib_time OBJECT
     ../src/bplib_time.c
+    ../src/bplib_time_internal.c
 )
 
 target_compile_definitions(utobj_bplib_time PRIVATE
@@ -42,6 +45,7 @@ target_include_directories(utobj_bplib_time PRIVATE
 add_executable(coverage-bplib_time-testrunner
     utilities/bplib_time_test_utils.c
     bplib_time_test.c
+    bplib_time_internal_test.c
     $<TARGET_OBJECTS:utobj_bplib_time>
 )
 
@@ -55,6 +59,7 @@ target_include_directories(coverage-bplib_time-testrunner PRIVATE
 target_link_libraries(coverage-bplib_time-testrunner PUBLIC
     ut_coverage_link
     ut_assert
+    bplib_fwp_stubs
 )
 
 add_test(coverage-bplib_time-testrunner coverage-bplib_time-testrunner)

@@ -29,7 +29,7 @@
 */
 void Test_BPLib_CBOR_Init(void)
 {
-    UtAssert_INT32_EQ(BPLib_CBOR_Init(), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_CBOR_Init(), BPLIB_SUCCESS);
 }
 
 

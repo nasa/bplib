@@ -42,7 +42,7 @@
  *       None
  *
  *  \return Execution status
- *  \retval BP_SUCCESS Initialization was successful
+ *  \retval BPLIB_SUCCESS Initialization was successful
  */
 int BPLib_PI_Init(void);
 
