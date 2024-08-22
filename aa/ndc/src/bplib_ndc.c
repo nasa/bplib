@@ -30,5 +30,5 @@
 */
 
 int BPLib_NDC_Init(void) {
-    return BP_SUCCESS;
+    return BPLIB_SUCCESS;
 }

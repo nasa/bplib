@@ -18,38 +18,51 @@
  *
  */
 
-#ifndef BPLIB_TIME_TEST_UTILS_H
-#define BPLIB_TIME_TEST_UTILS_H
+/**
+ * @file
+ *
+ * Internal function definitions for Time Management
+ */
 
 /*
 ** Include
 */
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
-
-#include "bplib_api_types.h"
 #include "bplib_time.h"
 #include "bplib_time_internal.h"
-
-
-/*
-** Macro Definitions
-*/
-
-/* Macro to add test case */
-#define ADD_TEST(test) UtTest_Add(test, BPLib_TIME_Test_Setup, BPLib_TIME_Test_Teardown, #test)
+#include "bplib_fwp.h"
 
 
 /*
 ** Function Definitions
 */
 
-void BPLib_TIME_Test_Setup(void);
-void BPLib_TIME_Test_Teardown(void);
+/* Read a CF from the ring buffer file */
+BPLib_Status_t BPLib_TIME_ReadCfFromBuffer(int64_t *CorrelationFactor, uint32_t BootEra)
+{
+    return BPLIB_UNIMPLEMENTED;
+}
 
-void TestBplibTime_Register(void);
-void TestBplibTimeInternal_Register(void);
+/* Write a CF to the ring buffer file */
+BPLib_Status_t BPLib_TIME_WriteCfToBuffer(int64_t CorrelationFactor, uint32_t BootEra)
+{
+    return BPLIB_UNIMPLEMENTED;
+}
 
-#endif /* BPLIB_TIME_TEST_UTILS_H */
+/* Read a last valid DTN time from the ring buffer file */
+BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(int64_t *LastValidDtnTime, uint32_t BootEra)
+{
+    return BPLIB_UNIMPLEMENTED;
+}
+
+/* Write a last valid DTN time to the ring buffer file */
+BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(int64_t LastValidDtnTime, uint32_t BootEra)
+{
+    return BPLIB_UNIMPLEMENTED;
+}
+
+/* Get estimated DTN time */
+uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
+{
+    return 0;
+}
