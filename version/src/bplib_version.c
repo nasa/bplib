@@ -54,5 +54,5 @@ int BPLib_PrintVersion(void)
 
     OS_printf("BPLib Version: %s\n", VersionString);
 
-    return BP_SUCCESS;
+    return BPLIB_SUCCESS;
 }
