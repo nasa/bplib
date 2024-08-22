@@ -18,20 +18,15 @@
  *
  */
 
-#ifndef V7_MPOOL_FLOWS_H
-#define V7_MPOOL_FLOWS_H
+#ifndef BPLIB_MEM_DUCTS_H
+#define BPLIB_MEM_DUCTS_H
 
 #include <string.h>
 
 #include "bplib.h"
 #include "bplib_api_types.h"
 #include "bplib_mem.h"
-#include "bplib_mem_bundle.h"
 #include "bplib_mem_bblocks.h"
-#include "bplib_mem_ducts.h"
-#include "bplib_mem_internal.h"
-#include "bplib_mem_rbtree.h"
-#include "bplib_mem_ref.h"
 
 #ifdef STOR
 #include "v7_mpool_job.h"
@@ -238,4 +233,4 @@ static inline bool bplib_mpool_flow_is_up(const bplib_mpool_flow_t *flow)
 }
 #endif // STOR
 
-#endif /* V7_MPOOL_FLOWS_H */
+#endif /* BPLIB_MEM_DUCTS_H */

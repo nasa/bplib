@@ -8,16 +8,16 @@
 ##################################################################
 
 add_library(bplib_cache OBJECT
-    src/v7_cache.c
+
     src/v7_cache_custody.c
 )
-# TODO Removed src/v7_cache_fsm.c
+# TODO Removed src/v7_cache_fsm.c and src/v7_cache.c
 
 target_include_directories(bplib_cache PUBLIC
     $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_include_directories(bplib_cache PRIVATE
+target_include_directories(bplib_cache PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/src
         

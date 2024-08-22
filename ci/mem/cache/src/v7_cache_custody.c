@@ -18,12 +18,13 @@
  *
  */
 
+#include "bplib.h"
+#include "bplib_api_types.h"
+#include "bplib_mem.h"
 #include "v7_cache_internal.h"
+#include "bplib_mem_rbtree.h"
 #include "crc.h"
 
-#ifdef STOR // TODO Custody is ifdef'd out
-
-// TODO Why doesn't it get BP_FLAG_DIAGNOSTIC (and others) from bplib.h?
 #define BP_FLAG_DIAGNOSTIC 0
 #define BP_FLAG_OUT_OF_MEMORY           0x00100000
 
@@ -32,6 +33,7 @@ static const bplib_crc_parameters_t *const BPLIB_CACHE_CUSTODY_HASH_ALGORITHM = 
 static const uint32_t BPLIB_CACHE_CUSTODY_HASH_SALT_DACS   = 0x3126c0cf;
 static const uint32_t BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE = 0x7739ae76;
 
+#ifdef STOR
 void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
                                                bplib_cache_custodian_info_t *custody_info)
 {
@@ -51,6 +53,7 @@ void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, bplib
         }
     }
 }
+#endif // STOR
 
 int bplib_cache_custody_find_dacs_match(const bplib_rbt_link_t *node, void *arg)
 {

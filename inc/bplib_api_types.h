@@ -26,6 +26,14 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+/**
+ * Abstract declarations require bplib_mem.h.
+ * For example: "typedef struct bplib_mpool_block bplib_mpool_block_t;""
+ * For internal use, include blib_mem.h befor bplib_api_types.h.
+ * #include "bplib_mem.h"
+ * #include "bplib_api_types.h" 
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

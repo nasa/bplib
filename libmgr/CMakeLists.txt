@@ -22,8 +22,9 @@ target_include_directories(bplib_libmgr PRIVATE
 
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
 )
+
+# TODO Add back     $<TARGET_PROPERTY:bplib_common,INTERFACE_INCLUDE_DIRECTORIES>
 
 # Add unit test coverage subdirectory
 if(BPLIB_ENABLE_UNIT_TESTS)

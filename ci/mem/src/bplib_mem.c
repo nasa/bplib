@@ -29,6 +29,7 @@
 #include "bplib.h"
 #include "bplib_api_types.h"
 #include "bplib_mem_internal.h"
+#include "bplib_mem_bblocks.h"
 
 /**
  * @brief Maxmimum number of blocks to be collected in a single maintenace cycle
@@ -597,13 +598,13 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     switch (blocktype)
     {
         case bplib_mpool_blocktype_primary:
-            bplib_mpool_bblock_primary_init(node, &block->u.primary.pblock);
+            bplib_mpool_bblock_primary_init(node, block->u.primary.pblock);
             break;
         case bplib_mpool_blocktype_canonical:
-            bplib_mpool_bblock_canonical_init(node, &block->u.canonical.cblock);
+            bplib_mpool_bblock_canonical_init(node, block->u.canonical.cblock);
             break;
         case bplib_mpool_blocktype_flow:
-            bplib_mpool_flow_init(node, &block->u.flow.fblock);
+            bplib_mpool_flow_init(node, block->u.flow.fblock);
             break;
         default:
             /* nothing more for this node type (this catches cbor_data)  */
@@ -611,10 +612,10 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     }
 
     /* If the module did supply a constructor, invoke it now */
-    if (api_block->api.construct != NULL)
+    if (api_block->api->construct != NULL)
     {
         /* A constructor really should never fail nominally, if it does there is probably a bug */
-        if (api_block->api.construct(init_arg, node) != BP_SUCCESS)
+        if (api_block->api->construct(init_arg, node) != BP_SUCCESS)
         {
             // TODO why is BP_FLAG_DIAGNOSTIC undefined?
             // bplog(NULL, BP_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
@@ -879,7 +880,7 @@ int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_
 
     if (api != NULL)
     {
-        api_block->api = *api;
+        api_block->api = api;
     }
     api_block->user_content_size = user_content_size;
 
@@ -951,7 +952,7 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
 
         if (api_block != NULL)
         {
-            destruct = api_block->api.destruct;
+            destruct = api_block->api->destruct;
         }
         else
         {
@@ -974,15 +975,15 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
             case bplib_mpool_blocktype_canonical:
             {
                 bplib_mpool_lock_acquire(lock);
-                bplib_mpool_subq_merge_list(&admin->recycle_blocks, &content->u.canonical.cblock.chunk_list);
+                bplib_mpool_subq_merge_list(&admin->recycle_blocks, &content->u.canonical.cblock->chunk_list);
                 bplib_mpool_lock_release(lock);
                 break;
             }
             case bplib_mpool_blocktype_primary:
             {
                 bplib_mpool_lock_acquire(lock);
-                bplib_mpool_subq_merge_list(&admin->recycle_blocks, &content->u.primary.pblock.cblock_list);
-                bplib_mpool_subq_merge_list(&admin->recycle_blocks, &content->u.primary.pblock.chunk_list);
+                bplib_mpool_subq_merge_list(&admin->recycle_blocks, &content->u.primary.pblock->cblock_list);
+                bplib_mpool_subq_merge_list(&admin->recycle_blocks, &content->u.primary.pblock->chunk_list);
                 bplib_mpool_lock_release(lock);
                 break;
             }
@@ -1096,7 +1097,7 @@ void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *l
         if (content != NULL)
         {
             printf("DEBUG: %s(): block addr=%lx type=%d refcount=%u\n", __func__, (unsigned long)blk,
-                   content->header.base_link.type, content->header.refcount);
+                   content->header.base_link->type, content->header.refcount);
 
             if (blk->type == bplib_mpool_blocktype_canonical)
             {
@@ -1135,8 +1136,8 @@ void bplib_mpool_debug_scan(bplib_mpool_t *pool)
            (unsigned int)bplib_mpool_subq_get_depth(&admin->free_blocks),
            (unsigned int)bplib_mpool_subq_get_depth(&admin->recycle_blocks));
 
-    bplib_mpool_debug_print_list_stats(&admin->free_blocks.block_list, "free_blocks");
-    bplib_mpool_debug_print_list_stats(&admin->recycle_blocks.block_list, "recycle_blocks");
+    bplib_mpool_debug_print_list_stats(&admin->free_blocks->block_list, "free_blocks");
+    bplib_mpool_debug_print_list_stats(&admin->recycle_blocks->block_list, "recycle_blocks");
     bplib_mpool_debug_print_list_stats(&admin->active_list, "active_list");
 
     memset(count_by_type, 0, sizeof(count_by_type));

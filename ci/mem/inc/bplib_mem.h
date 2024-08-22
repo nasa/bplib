@@ -18,13 +18,13 @@
  *
  */
 
-#ifndef V7_MPOOL_H
-#define V7_MPOOL_H
+#ifndef BPLIB_MEM_H
+#define BPLIB_MEM_H
 
 #include <string.h>
 
 #include "bplib.h"
-#include "bplib_mem.h"
+#include "bplib_api_types.h"
 
 /*
  * Priority levels for pool buffers -
@@ -265,7 +265,7 @@ static inline bool bplib_mpool_is_any_content_node(const bplib_mpool_block_t *cb
  *
  * These blocks are members of a larger block
  *
- * @param cb
+ * @param cbj
  * @return true
  * @return false
  */
@@ -662,4 +662,4 @@ void bplib_mpool_lock_init(void);
 void bplib_mpool_debug_scan(bplib_mpool_t *pool);
 void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *label);
 
-#endif /* V7_MPOOL_H */
+#endif /* BPLIB_MEM_H */

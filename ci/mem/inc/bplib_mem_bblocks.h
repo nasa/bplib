@@ -18,20 +18,14 @@
  *
  */
 
-#ifndef V7_MPOOL_BUNDLE_BLOCKS_H
-#define V7_MPOOL_BUNDLE_BLOCKS_H
+#ifndef BPLIB_MEM_BBLOCKS_H
+#define BPLIB_MEM_BBLOCKS_H
 
 #include <string.h>
 
-#include "bplib.h"
-#include "bplib_api_types.h"
 #include "bplib_mem.h"
 #include "bplib_mem_bundle.h"
-#include "bplib_mem_bblocks.h"
-#include "bplib_mem_ducts.h"
-#include "bplib_mem_internal.h"
-#include "bplib_mem_rbtree.h"
-#include "bplib_mem_ref.h"
+#include "bplib_api_types.h"
 
 typedef struct bplib_mpool_bblock_tracking
 {
@@ -282,4 +276,4 @@ void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *cc
 size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
                                       size_t max_count);
 
-#endif /* V7_MPOOL_BUNDLE_BLOCKS_H */
+#endif /* BPLIB_MEM_BBLOCKS_H */

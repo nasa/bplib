@@ -18,13 +18,13 @@
  *
  */
 
-#ifndef V7_MPOOL_REF_H
-#define V7_MPOOL_REF_H
+#ifndef BPLIB_MEM_REF_H
+#define BPLIB_MEM_REF_H
 
 #include <string.h>
 
-#include "bplib_api_types.h"
 #include "bplib_mem.h"
+#include "bplib_api_types.h"
 
 /**
  * @brief Gets the actual block from a reference pointer (dereference)
@@ -96,4 +96,4 @@ void bplib_mpool_ref_release(bplib_mpool_ref_t refptr);
  */
 bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32_t magic_number, void *init_arg);
 
-#endif /* V7_MPOOL_REF_H */
+#endif /* BPLIB_MEM_REF_H */

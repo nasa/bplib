@@ -23,8 +23,11 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bplib_os.h"
-#include "crc.h"
+// #include "bplib_os.h" // TODO STOR Add back OS.
+// #include "crc.h"  // TODO STOR Add back CRC.
+
+// TODO STOR - WIP Left off, broken with old headers.
+
 #include "v7.h"
 #include "v7_mpool.h"
 #include "v7_codec.h"
@@ -57,7 +60,7 @@
 int bplib_init(void)
 {
     /* Initialize OS Interface */
-    bplib_os_init();
+    // bplib_os_init(); // TODO Add back OS, especially os_init!
 
     /* Initialize CRC algorithms */
     bplib_crc_init();

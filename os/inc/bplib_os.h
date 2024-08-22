@@ -36,7 +36,8 @@
 #include <limits.h>
 
 #include "bplib_api_types.h"
-#include "bplib.h"
+
+bp_handle_t test_bp_hdl;
 
 /******************************************************************************
  COMPILE TIME CONFIGURATION SETTINGS

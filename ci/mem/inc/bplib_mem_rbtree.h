@@ -18,13 +18,14 @@
  *
  */
 
-#ifndef V7_RBTREE_H
-#define V7_RBTREE_H
+#ifndef BPLIB_MEM_RBTREE_H
+#define BPLIB_MEM_RBTREE_H
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
+#include "bplib_mem.h"
 #include "bplib_api_types.h"
 
 /******************************************************************************
@@ -317,4 +318,4 @@ bp_val_t bplib_rbt_get_key_value(const bplib_rbt_link_t *node);
  */
 bool bplib_rbt_node_is_red(const bplib_rbt_link_t *node);
 
-#endif /* RB_TREE_H */
+#endif /* BPLIB_MEM_RBTREE_H */

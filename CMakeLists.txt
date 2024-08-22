@@ -104,10 +104,10 @@ add_subdirectory(ci/job)
 add_subdirectory(ci/mem)
 add_subdirectory(ci/pl)
 add_subdirectory(ci/time)
-add_subdirectory(os)
 add_subdirectory(libmgr)
-add_subdirectory(ci/mem/common)
-add_subdirectory(ci/mem/cache)
+# add_subdirectory(os)
+# add_subdirectory(ci/mem/common)
+# add_subdirectory(ci/mem/cache) TODO Add back cache
 
 # The order of the components must match the order of
 # the add_subdirectory statements.
@@ -115,8 +115,10 @@ list(APPEND BPLIB_COMPONENTS
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_ndc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
   bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time
-  bplib_os bplib_libmgr bplib_common bplib_cache
+  bplib_libmgr
 )
+
+# TODO Add back bplib_os, bplib_common, and bplib_cache above ^
 
 message("BPLIB_COMPONENTS")
 message("${BPLIB_COMPONENTS}")
@@ -224,6 +226,7 @@ target_compile_features(bplib PRIVATE c_std_99)
 target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
 # Internal/private header files exist within the implementation directories
+# target_include_directories(bplib PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
 target_include_directories(bplib PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS})
 
 # The API to this library (which may be invoked/referenced from other apps)
