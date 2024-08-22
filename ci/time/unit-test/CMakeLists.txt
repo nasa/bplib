@@ -59,6 +59,7 @@ target_include_directories(coverage-bplib_time-testrunner PRIVATE
 target_link_libraries(coverage-bplib_time-testrunner PUBLIC
     ut_coverage_link
     ut_assert
+    bplib_fwp_stubs
 )
 
 add_test(coverage-bplib_time-testrunner coverage-bplib_time-testrunner)
