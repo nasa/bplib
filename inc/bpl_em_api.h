@@ -2,8 +2,8 @@
  * TODO: Fill in file header, if necessary.
  */
 
-#ifndef BPL_EVM_H
-#define BPL_EVM_H
+#ifndef BPL_EM_H
+#define BPL_EM_H
 
 /******************************************************************************
  INCLUDES
@@ -17,13 +17,13 @@
 
 typedef enum
 {
-    BPL_EVM_EventType_UNKNOWN = 0,
-    BPL_EVM_EventType_DEBUG = 1,
-    BPL_EVM_EventType_INFO = 2,
-    BPL_EVM_EventType_WARNING = 3,
-    BPL_EVM_EventType_ERROR = 4,
-    BPL_EVM_EventType_CRITICAL = 5
-} BPL_EVM_EventType_t;
+    BPL_EM_EventType_UNKNOWN = 0,
+    BPL_EM_EventType_DEBUG = 1,
+    BPL_EM_EventType_INFO = 2,
+    BPL_EM_EventType_WARNING = 3,
+    BPL_EM_EventType_ERROR = 4,
+    BPL_EM_EventType_CRITICAL = 5
+} BPL_EM_EventType_t;
 
 typedef struct
 {
@@ -38,18 +38,18 @@ typedef struct
 typedef struct
 {
     BPL_Status_t (*Initialize_Impl)(void);
-    BPL_Status_t (*SendEvent_Impl)(uint16_t EventID, BPL_EVM_EventType_t EventType,
-        char const * EventText, va_list EventTextArgPtr);
-} BPL_EVM_ProxyCallbacks_t;
+    BPL_Status_t (*SendEvent_Impl)(uint16_t EventID, BPL_EM_EventType_t EventType,
+                                   char const * EventText, va_list EventTextArgPtr);
+} BPL_EM_ProxyCallbacks_t;
 
 /************************************************
  * Exported Functions
  ************************************************/
 
-BPL_Status_t BPL_EVM_Initialize(BPL_EVM_ProxyCallbacks_t ProxyCallbacks);
-char const * BPL_EVM_EventTypeToString(BPL_EVM_EventType_t Type);
-BPL_Status_t BPL_EVM_SendEvent(uint16_t EventID, BPL_EVM_EventType_t EventType,
+BPL_Status_t BPL_EM_Initialize(BPL_EM_ProxyCallbacks_t ProxyCallbacks);
+char const * BPL_EM_EventTypeToString(BPL_EM_EventType_t Type);
+BPL_Status_t BPL_EM_SendEvent(uint16_t EventID, BPL_EM_EventType_t EventType,
                                 char const * EventText, ...);
-void BPL_EVM_Deinitialize(void);
+void BPL_EM_Deinitialize(void);
 
-#endif /* BPL_EVM_H */
+#endif /* BPL_EM_H */
