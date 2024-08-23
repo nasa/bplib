@@ -22,19 +22,16 @@
  INCLUDES
  ******************************************************************************/
 
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "asm-generic/errno-base.h"
+
 #include "bplib.h"
 // #include "bplib_os.h" // TODO STOR Add back OS.
 // #include "crc.h"  // TODO STOR Add back CRC.
-
-// TODO STOR - WIP Left off, broken with old headers.
-
-#include "v7.h"
-#include "v7_mpool.h"
-#include "v7_codec.h"
-#include "v7_cache.h"
-#include "bplib_routing.h"
-#include "bplib_dataservice.h"
-#include "bplib_file_offload.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -63,7 +60,7 @@ int bplib_init(void)
     // bplib_os_init(); // TODO Add back OS, especially os_init!
 
     /* Initialize CRC algorithms */
-    bplib_crc_init();
+    // bplib_crc_init(); // TODO Add back crc.
 
     /* Return Success */
     return BP_SUCCESS;
@@ -78,7 +75,8 @@ bp_handle_t bplib_create_ram_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t
 {
     bp_handle_t intf_id;
 
-    intf_id = bplib_cache_attach(rtbl, storage_addr);
+    // intf_id = bplib_cache_attach(rtbl, storage_addr);  TODO STOR Restore cache_attace.
+    intf_id.hdl = 0; // TODO STOR
 
     return intf_id;
 }
@@ -86,6 +84,8 @@ bp_handle_t bplib_create_ram_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t
 bp_handle_t bplib_create_file_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t *storage_addr)
 {
     bp_handle_t intf_id;
+
+    #ifdef STOR
     bp_handle_t svc_id;
     char        storage_path[64];
 
@@ -103,6 +103,9 @@ bp_handle_t bplib_create_file_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_
             bplib_cache_start(rtbl, intf_id);
         }
     }
+    #else // STOR
+    intf_id.hdl = 0;
+    #endif
 
     return intf_id;
 }
@@ -111,6 +114,7 @@ bp_handle_t bplib_create_node_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_num)
 {
     bp_handle_t intf_id;
 
+    #ifdef STOR
     intf_id = bplib_dataservice_add_base_intf(rtbl, node_num);
     if (!bp_handle_is_valid(intf_id))
     {
@@ -122,6 +126,9 @@ bp_handle_t bplib_create_node_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_num)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "bplib_route_add failed\n");
     }
+    #else
+    intf_id.hdl = 0;
+    #endif
 
     return intf_id;
 }
@@ -161,24 +168,23 @@ int bplib_eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn_t *service
     /* Sanity Check EID Pointer */
     if (eid == NULL)
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "EID is null\n");
+        // STOR return bplog(NULL, BP_FLAG_API_ERROR, "EID is null\n");
     }
 
     /* Sanity Check Length of EID */
     if (len < 7)
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "EID must be at least 7 characters, act: %d\n", len);
+        return 0;  // STOR bplog(NULL, BP_FLAG_API_ERROR, "EID must be at least 7 characters, act: %d\n", len);
     }
     else if (len > BP_MAX_EID_STRING)
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "EID cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING,
-                     len);
+        return 0;  // STOR bplog(NULL, BP_FLAG_API_ERROR, "EID cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING, len);
     }
 
     /* Check IPN Scheme */
     if (eid[0] != 'i' || eid[1] != 'p' || eid[2] != 'n' || eid[3] != ':')
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "EID (%s) must start with 'ipn:'\n", eid);
+        return 0; // STOR bplog(NULL, BP_FLAG_API_ERROR, "EID (%s) must start with 'ipn:'\n", eid);
     }
 
     /* Copy EID to Temporary Buffer and Set Pointers */
@@ -194,15 +200,16 @@ int bplib_eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn_t *service
     }
     else
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "Unable to find dotted notation in EID (%s)\n", eid);
+        return 0;  // STOR bplog(NULL, BP_FLAG_API_ERROR, "Unable to find dotted notation in EID (%s)\n", eid);
     }
 
     /* Parse Node Number */
+    int16_t errno;
     errno       = 0;
     node_result = strtoul(node_ptr, &endptr, 10); /* assume IPN node and service numbers always written in base 10 */
     if ((endptr == node_ptr) || ((node_result == ULONG_MAX || node_result == 0) && errno == ERANGE))
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "Unable to parse EID (%s) node number\n", eid);
+        return 0; // STOR bplog(NULL, BP_FLAG_API_ERROR, "Unable to parse EID (%s) node number\n", eid);
     }
 
     /* Parse Service Number */
@@ -211,7 +218,7 @@ int bplib_eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn_t *service
         strtoul(service_ptr, &endptr, 10); /* assume IPN node and service numbers always written in base 10 */
     if ((endptr == service_ptr) || ((service_result == ULONG_MAX || service_result == 0) && errno == ERANGE))
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "Unable to parse EID (%s) service number\n", eid);
+        return 0;  // STOR bplog(NULL, BP_FLAG_API_ERROR, "Unable to parse EID (%s) service number\n", eid);
     }
 
     /* Set Outputs */
@@ -234,18 +241,17 @@ int bplib_ipn2eid(char *eid, size_t len, bp_ipn_t node, bp_ipn_t service)
     /* Sanity Check EID Buffer Pointer */
     if (eid == NULL)
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "EID buffer is null\n");
+        return 0;  // STOR bplog(NULL, BP_FLAG_API_ERROR, "EID buffer is null\n");
     }
 
     /* Sanity Check Length of EID Buffer */
     if (len < 7)
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "EID buffer must be at least 7 characters, act: %d\n", len);
+        return 0;  // STOR bplog(NULL, BP_FLAG_API_ERROR, "EID buffer must be at least 7 characters, act: %d\n", len);
     }
     else if (len > BP_MAX_EID_STRING)
     {
-        return bplog(NULL, BP_FLAG_API_ERROR, "EID buffer cannot exceed %d bytes in length, act: %d\n",
-                     BP_MAX_EID_STRING, len);
+        return 0;  // STOR bplog(NULL, BP_FLAG_API_ERROR, "EID buffer cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING, len);
     }
 
     /* Write EID */
@@ -270,13 +276,13 @@ int bplib_query_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_varia
 
     switch (var_id)
     {
-        case bplib_variable_mem_current_use:
-            *value = bplib_mpool_query_mem_current_use(bplib_route_get_mpool(rtbl));
+        case 0: // STOR bplib_variable_mem_current_use:
+            // STOR *value = bplib_mpool_query_mem_current_use(bplib_route_get_mpool(rtbl));
             retval = BP_SUCCESS;
             break;
 
-        case bplib_variable_mem_high_use:
-            *value = bplib_mpool_query_mem_max_use(bplib_route_get_mpool(rtbl));
+        case 1: // STOR bplib_variable_mem_high_use:
+            // STOR *value = bplib_mpool_query_mem_max_use(bplib_route_get_mpool(rtbl));
             retval = BP_SUCCESS;
             break;
 

@@ -25,6 +25,8 @@
 
 #include "bplib_mem.h"
 #include "bplib_mem_bundle.h"
+
+#include "bplib.h"
 #include "bplib_api_types.h"
 
 typedef struct bplib_mpool_bblock_tracking

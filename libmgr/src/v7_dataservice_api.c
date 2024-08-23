@@ -21,20 +21,14 @@
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
+#include <stdio.h> // STOR - Temporary printf for temporary bplib_os_log
 
 #include "bplib.h"
-#include "bplib_os.h"
-#include "v7.h"
-#include "v7_mpool.h"
-#include "v7_mpool_bblocks.h"
-#include "v7_mpool_flows.h"
-#include "v7_mpool_ref.h"
-#include "v7_codec.h"
-#include "v7_cache.h"
-#include "v7_rbtree.h"
-#include "bplib_routing.h"
 #include "bplib_dataservice.h"
 #include "v7_base_internal.h"
+
+// STOR - From bplib_os.h
+#define bplog(flags, evt, msg_str) printf("bplog - %s:%d flags: %d, %d - %s", __FILE__, __LINE__, flags, evt, msg_str)
 
 /******************************************************************************
  TYPEDEFS
@@ -52,6 +46,7 @@
 int bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpool_block_t *pblk, const void *content,
                                         size_t size)
 {
+    #ifdef STOR
     bplib_mpool_block_t            *cblk;
     bplib_mpool_bblock_primary_t   *pri_block;
     bp_primary_block_t             *pri;
@@ -134,11 +129,16 @@ int bplib_serviceflow_bundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpo
     }
 
     return result;
+    #else // STOR
+    return 0;
+    #endif
 }
 
 int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_mpool_ref_t refptr, void *content,
                                           size_t *size)
 {
+    #ifdef STOR
+
     bplib_mpool_bblock_primary_t   *pri;
     bplib_mpool_bblock_canonical_t *ccb_pay;
     bplib_mpool_block_t            *cblk;
@@ -203,10 +203,14 @@ int bplib_serviceflow_unbundleize_payload(bplib_socket_info_t *sock_inf, bplib_m
     bplib_mpool_ref_release(refptr);
 
     return status;
+    #else // STOR
+    return BP_SUCCESS;
+    #endif // STOR
 }
 
 int bplib_serviceflow_forward_ingress(void *arg, bplib_mpool_block_t *subq_src)
 {
+    #ifdef STOR
     bplib_route_serviceintf_info_t *base_intf;
     bplib_mpool_bblock_primary_t   *pri_block;
     bplib_mpool_block_t            *qblk;
@@ -271,10 +275,15 @@ int bplib_serviceflow_forward_ingress(void *arg, bplib_mpool_block_t *subq_src)
     /* This should return 0 if it did no work and no errors.
      * Should return >0 if some work was done */
     return forward_count;
+    #else // STOR
+    return 0;
+    #endif // STOR
 }
 
 int bplib_serviceflow_forward_egress(void *arg, bplib_mpool_block_t *subq_src)
 {
+    #ifdef STOR
+
     bplib_route_serviceintf_info_t *base_intf;
     bplib_rbt_link_t               *tgt_subintf;
     bplib_mpool_flow_t             *curr_flow;
@@ -356,6 +365,9 @@ int bplib_serviceflow_forward_egress(void *arg, bplib_mpool_block_t *subq_src)
     }
 
     return forward_count;
+    #else // STOR
+    return 0;
+    #endif // STOR
 }
 
 /**
@@ -369,6 +381,7 @@ int bplib_serviceflow_forward_egress(void *arg, bplib_mpool_block_t *subq_src)
 int bplib_serviceflow_add_to_base(bplib_mpool_block_t *base_intf_blk, bp_val_t svc_num, bplib_dataservice_type_t type,
                                   bplib_mpool_ref_t endpoint_intf_ref)
 {
+    #ifdef STOR
     bplib_route_serviceintf_info_t *base_intf;
     bplib_service_endpt_t          *endpoint_intf;
     int                             status;
@@ -414,6 +427,9 @@ int bplib_serviceflow_add_to_base(bplib_mpool_block_t *base_intf_blk, bp_val_t s
     }
 
     return status;
+    #else // STOR
+    return BP_SUCCESS;
+    #endif // STOR
 }
 
 /**
@@ -424,6 +440,8 @@ int bplib_serviceflow_add_to_base(bplib_mpool_block_t *base_intf_blk, bp_val_t s
  */
 bplib_mpool_ref_t bplib_serviceflow_remove_from_base(bplib_mpool_block_t *base_intf_blk, bp_val_t svc_num)
 {
+    #ifdef STOR
+
     bplib_route_serviceintf_info_t *base_intf;
     bplib_rbt_link_t               *rbt_link;
     bplib_service_endpt_t          *endpoint_intf;
@@ -458,12 +476,16 @@ bplib_mpool_ref_t bplib_serviceflow_remove_from_base(bplib_mpool_block_t *base_i
             bplib_mpool_recycle_block(endpoint_intf->self_ptr);
         }
     }
-
     return endpoint_intf_ref;
+    #else // STOR
+    return (bplib_mpool_ref_t)NULL;
+    #endif // STOR
 }
 
 int bplib_dataservice_event_impl(void *arg, bplib_mpool_block_t *intf_block)
 {
+    #ifdef STOR
+
     bplib_mpool_flow_generic_event_t *event;
     bplib_mpool_flow_t               *flow;
 
@@ -503,7 +525,7 @@ int bplib_dataservice_event_impl(void *arg, bplib_mpool_block_t *intf_block)
         bplib_mpool_flow_disable(&flow->ingress);
         bplib_mpool_flow_disable(&flow->egress);
     }
-
+    #endif // STOR
     return BP_SUCCESS;
 }
 
@@ -550,6 +572,7 @@ void bplib_dataservice_init(bplib_mpool_t *pool)
 
 bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_number)
 {
+    #ifdef STOR
     bplib_mpool_block_t            *sblk;
     bplib_route_serviceintf_info_t *base_intf;
     bp_handle_t                     self_intf_id;
@@ -592,11 +615,18 @@ bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t nod
     }
 
     return self_intf_id;
+    #else // STOR
+    bp_handle_t null_hdl;
+    null_hdl.hdl = 0;
+    return null_hdl;
+    #endif // STOR
 }
 
 bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn, bplib_dataservice_type_t type,
                                      bplib_mpool_ref_t blkref)
 {
+    #ifdef STOR
+
     bp_handle_t         self_intf_id = BP_INVALID_HANDLE;
     bp_handle_t         parent_intf_id;
     bplib_mpool_ref_t   parent_block_ref;
@@ -646,10 +676,16 @@ bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t 
     bplib_route_release_intf_controlblock(tbl, parent_block_ref);
 
     return self_intf_id;
+    #else // STOR
+    bp_handle_t null_hdl;
+    null_hdl.hdl = 0;
+    return null_hdl;
+    #endif // STOR
 }
 
 bplib_mpool_ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn)
 {
+    #ifdef STOR
     bp_handle_t         parent_intf_id;
     bplib_mpool_ref_t   parent_block_ref;
     bplib_mpool_ref_t   refptr;
@@ -681,6 +717,9 @@ bplib_mpool_ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_a
     bplib_route_release_intf_controlblock(tbl, parent_block_ref);
 
     return refptr;
+    #else // STOR
+    return (bplib_mpool_ref_t)NULL;
+    #endif // STOR
 }
 
 /******************************************************************************
@@ -689,6 +728,8 @@ bplib_mpool_ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_a
 
 bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl)
 {
+    #ifdef STOR
+
     bplib_mpool_t       *pool;
     bplib_mpool_block_t *sblk;
     bplib_socket_info_t *sock;
@@ -719,11 +760,18 @@ bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl)
         sock_ref = NULL;
     }
 
+    #else // STOR
+    bplib_mpool_ref_t sock_ref = NULL;
+    #endif // STOR
+
     return (bp_socket_t *)sock_ref;
+
 }
 
 int bplib_bind_socket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
 {
+    #ifdef STOR
+
     bplib_socket_info_t *sock;
     bplib_mpool_ref_t    sock_ref;
 
@@ -762,12 +810,15 @@ int bplib_bind_socket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
 
     sock->params.local_ipn  = *source_ipn;
     sock->params.report_ipn = *source_ipn;
+    #endif // STOR
 
     return BP_SUCCESS;
 }
 
 int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn)
 {
+    #ifdef STOR
+
     bplib_socket_info_t *sock;
     bplib_mpool_ref_t    sock_ref;
 
@@ -805,10 +856,16 @@ int bplib_connect_socket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn
                                BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT | BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP);
 
     return 0;
+
+    #else // STOR
+    return -1;
+    #endif // STOR
 }
 
 void bplib_close_socket(bp_socket_t *desc)
 {
+    #ifdef STOR
+
     bplib_socket_info_t *sock;
     bplib_mpool_ref_t    sock_ref;
     bplib_mpool_ref_t    detached_ref;
@@ -837,10 +894,15 @@ void bplib_close_socket(bp_socket_t *desc)
     /* recycle the original */
     sock->parent_rtbl = NULL;
     bplib_mpool_ref_release(sock_ref);
+
+    #endif // STOR
+
 }
 
 int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t timeout)
 {
+    #ifdef STOR
+
     int                           status;
     bplib_mpool_block_t          *rblk;
     bplib_mpool_flow_t           *flow;
@@ -933,10 +995,15 @@ int bplib_send(bp_socket_t *desc, const void *payload, size_t size, uint32_t tim
     bplib_route_set_maintenance_request(sock->parent_rtbl);
 
     return status;
+    #else // STOR
+    return BP_SUCCESS;
+    #endif // STOR
 }
 
 int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, uint32_t timeout)
 {
+    #ifdef STOR
+
     int                           status;
     bplib_socket_info_t          *sock;
     bplib_mpool_bblock_primary_t *pri_block;
@@ -1017,4 +1084,7 @@ int bplib_recv(bp_socket_t *desc, void *payload, size_t *size, uint32_t timeout)
     }
 
     return status;
+    #else // STOR
+    return BP_SUCCESS;
+    #endif // STOR
 }

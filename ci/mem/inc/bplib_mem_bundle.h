@@ -212,22 +212,6 @@ typedef struct bp_endpointid_buffer
     bp_endpointid_ssp_t    ssp;
 } bp_endpointid_buffer_t;
 
-// TODO Copied bp_handle here temporarily due to undefined inexplicably.
-typedef struct bp_handle
-{
-    uint32_t hdl;
-} bp_handle_t;
-
-// TODO Copied bp_crctype here temporarily due to undefined inexplicably.
-typedef enum bp_crctype
-{
-    bp_crctype_none = 0, bp_crctype_CRC16 = 1, bp_crctype_CRC32C = 2
-
-} bp_crctype_t;
-
-// TODO Copied bp_crcval_t here temporarily due to undefined inexplicably.
-typedef uint32_t bp_crcval_t;
-
 typedef struct bp_primary_block
 {
     uint8_t                              version;

@@ -26,10 +26,9 @@
 #include <assert.h>
 
 #include "bplib.h"
-#include "bplib_os.h"
-#include "v7_types.h"
-
-#include "v7_mpool_internal.h"
+#include "bplib_mem.h"
+#include "bplib_mem_internal.h"
+#include "bplib_mem_ref.h"
 
 /*----------------------------------------------------------------
  *

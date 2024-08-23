@@ -9,10 +9,11 @@
 
 add_library(bplib_mem OBJECT
     src/bplib_mem_bblocks.c
-    src/bplib_mem_ducts.c
     src/bplib_mem_ref.c
     src/bplib_mem.c
 )
+
+# STOR Removed src/bplib_mem_ducts.c
 
 target_include_directories(bplib_mem PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc

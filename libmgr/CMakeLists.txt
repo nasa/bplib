@@ -9,15 +9,14 @@
 set(bplib_libmgr_SOURCES
     src/v7_bplib.c
     src/v7_dataservice_api.c
-    src/v7_routing.c
 )
-# Removed src/v7_cla_api.c // TODO STOR
+# Removed src/v7_cla_api.c and src/v7_routing.c  // TODO STOR
 
 add_library(bplib_libmgr OBJECT
     ${bplib_libmgr_SOURCES}
 )
 
-target_include_directories(bplib_libmgr PRIVATE
+target_include_directories(bplib_libmgr PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
 
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>

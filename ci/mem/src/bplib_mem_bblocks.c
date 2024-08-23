@@ -30,9 +30,9 @@
 #include <assert.h>
 
 #include "bplib.h"
-#include "bplib_os.h"
-#include "v7_types.h"
-#include "v7_mpool_internal.h"
+#include "bplib_mem.h"
+#include "bplib_mem_internal.h"
+#include "bplib_mem_ducts.h"
 
 /*----------------------------------------------------------------
  *
@@ -41,6 +41,7 @@
  *-----------------------------------------------------------------*/
 bplib_mpool_bblock_primary_t *bplib_mpool_bblock_primary_cast(bplib_mpool_block_t *cb)
 {
+    #ifdef STOR
     bplib_mpool_block_content_t *content;
 
     content = bplib_mpool_block_dereference_content(cb);
@@ -48,6 +49,7 @@ bplib_mpool_bblock_primary_t *bplib_mpool_bblock_primary_cast(bplib_mpool_block_
     {
         return &content->u.primary.pblock;
     }
+    #endif
     return NULL;
 }
 

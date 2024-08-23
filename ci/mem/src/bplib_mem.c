@@ -65,7 +65,7 @@ void bplib_mpool_lock_init(void)
         lock = &BPLIB_MPOOL_LOCK_SET[i];
         if (!bp_handle_is_valid(lock->lock_id))
         {
-            lock->lock_id = bplib_os_createlock();
+            // STOR lock->lock_id = bplib_os_createlock();
         }
     }
 }
@@ -95,6 +95,7 @@ bplib_mpool_lock_t *bplib_mpool_lock_resource(void *resource_addr)
 
 bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime)
 {
+    #ifdef STOR
     bool within_timeout;
     int  status;
 
@@ -113,6 +114,9 @@ bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime)
     }
 
     return within_timeout;
+    #else // STOR
+    return true;
+    #endif // STOR
 }
 
 bplib_mpool_block_t *bplib_mpool_block_from_external_id(bplib_mpool_t *pool, bp_handle_t handle)
@@ -133,7 +137,7 @@ bplib_mpool_block_t *bplib_mpool_block_from_external_id(bplib_mpool_t *pool, bp_
         blk = NULL;
     }
 
-    return blk->header.base_link; // TODO Is this return value correct?
+    return &blk->header.base_link;
 }
 
 /*----------------------------------------------------------------
@@ -201,12 +205,12 @@ bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_b
     {
         /* Additionally, if this block is a ref, then also dereference it to get to the real block */
         /* In theory this could be a chain of refs, so this is a while() but in reality it should be just one */
-        while (block_ptr->header.base_link->type == bplib_mpool_blocktype_ref)
+        while (block_ptr->header.base_link.type == bplib_mpool_blocktype_ref)
         {
             assert(block_ptr->u.ref.pref_target != NULL);
             block_ptr = block_ptr->u.ref.pref_target;
             /* this should have always arrived at an actual content block */
-            assert(bplib_mpool_is_any_content_node(block_ptr->header.base_link)); // TODO Is base_link correct as pointer?
+            assert(bplib_mpool_is_any_content_node(&block_ptr->header.base_link)); // TODO Is base_link correct as pointer?
         }
 
         return block_ptr;
@@ -228,7 +232,7 @@ size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt)
         [bplib_mpool_blocktype_generic]   = MPOOL_GET_BUFFER_USER_START_OFFSET(generic_data),
         [bplib_mpool_blocktype_primary]   = MPOOL_GET_BUFFER_USER_START_OFFSET(primary),
         [bplib_mpool_blocktype_canonical] = MPOOL_GET_BUFFER_USER_START_OFFSET(canonical),
-        [bplib_mpool_blocktype_flow]      = MPOOL_GET_BUFFER_USER_START_OFFSET(flow),
+        // STOR [bplib_mpool_blocktype_flow]      = MPOOL_GET_BUFFER_USER_START_OFFSET(flow),
         [bplib_mpool_blocktype_ref]       = MPOOL_GET_BUFFER_USER_START_OFFSET(ref)};
 
     if (bt >= bplib_mpool_blocktype_max)
@@ -437,7 +441,7 @@ void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_m
     {
         if (block->header.content_type_signature == required_magic)
         {
-            data_offset = bplib_mpool_get_user_data_offset_by_blocktype(block->header.base_link->type);
+            data_offset = bplib_mpool_get_user_data_offset_by_blocktype(block->header.base_link.type);
             if (data_offset < sizeof(bplib_mpool_block_buffer_t))
             {
                 result = &block->u.content_bytes[data_offset];

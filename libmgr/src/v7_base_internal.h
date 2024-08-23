@@ -22,9 +22,8 @@
 #define V7_BASE_INTERNAL_H
 
 #include "bplib_api_types.h"
-#include "v7_rbtree.h"
-#include "v7_types.h"
-#include "v7_mpool.h"
+#include "bplib_mem_bundle.h"
+#include "bplib_mem_rbtree.h"
 
 struct bp_socket
 {

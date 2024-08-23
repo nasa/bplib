@@ -21,9 +21,11 @@
 #ifndef BPLIB_MEM_H
 #define BPLIB_MEM_H
 
+#include <stdint.h>
 #include <string.h>
 
 #include "bplib.h"
+#include "bplib_mem_internal.h"
 #include "bplib_api_types.h"
 
 /*

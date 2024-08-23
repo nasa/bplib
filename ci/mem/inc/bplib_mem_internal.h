@@ -28,6 +28,7 @@
 #include "bplib_api_types.h"
 // #include "bplib_os.h" // TODO Unstub bplib_os functions.
 #include "bplib_mem_rbtree.h"
+#include "bplib_mem_bblocks.h"
 
 /*
  * Minimum size of a generic data block
@@ -89,11 +90,13 @@ typedef struct bplib_mpool_bblock_canonical_content
     bplib_mpool_aligned_data_t     user_data_start;
 } bplib_mpool_bblock_canonical_content_t;
 
+#ifdef STOR
 typedef struct bplib_mpool_flow_content
 {
     bplib_mpool_flow_t         fblock;
     bplib_mpool_aligned_data_t user_data_start;
 } bplib_mpool_flow_content_t;
+#endif // STOR
 
 typedef struct bplib_mpool_block_ref_content
 {
@@ -130,7 +133,7 @@ typedef union bplib_mpool_block_buffer
     bplib_mpool_api_content_t              api;
     bplib_mpool_bblock_primary_content_t   primary;
     bplib_mpool_bblock_canonical_content_t canonical;
-    bplib_mpool_flow_content_t             flow;
+    // STOR - flow bplib_mpool_flow_content_t             flow;
     bplib_mpool_block_ref_content_t        ref;
     bplib_mpool_block_admin_content_t      admin;
 
