@@ -46,10 +46,39 @@ BPLib_TIME_GlobalData_t BPLib_TIME_GlobalData;
 
 /* Time Management initialization */
 BPLib_Status_t BPLib_TIME_Init(void) {
-    /* TODO read from ring buffer file */
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    BPLib_TIME_Epoch_t HostEpoch;
+    int64_t YearOffset, DayOffset, HourOffset, MinOffset, SecOffset, MsecOffset;
+
+    /* Get epoch offset (Host Epoch - DTN Epoch) */
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch(&HostEpoch);
+
+    YearOffset = HostEpoch.Year - BPLIB_TIME_EPOCH_YEAR;
+    DayOffset = HostEpoch.Day - BPLIB_TIME_EPOCH_DAY;
+    HourOffset = HostEpoch.Hour - BPLIB_TIME_EPOCH_HOUR;
+    MinOffset = HostEpoch.Minute - BPLIB_TIME_EPOCH_MINUTE;
+    SecOffset = HostEpoch.Second - BPLIB_TIME_EPOCH_SECOND;
+    MsecOffset = HostEpoch.Msec - BPLIB_TIME_EPOCH_MSEC;
+
+    BPLib_TIME_GlobalData.EpochOffset  = MsecOffset;
+    BPLib_TIME_GlobalData.EpochOffset += SecOffset  * 1000;
+    BPLib_TIME_GlobalData.EpochOffset += MinOffset  * 1000 * 60;
+    BPLib_TIME_GlobalData.EpochOffset += HourOffset * 1000 * 60 * 60;
+    BPLib_TIME_GlobalData.EpochOffset += DayOffset  * 1000 * 60 * 60 * 24;
+    BPLib_TIME_GlobalData.EpochOffset += YearOffset * 1000 * 60 * 60 * 24 * 365;
+
+    /* TODO add missing leap days........... */
+
+    /* TODO read from ring buffer file and increment current boot era */
     BPLib_TIME_GlobalData.CurrentBootEra = 0;
 
-    return BPLIB_UNIMPLEMENTED;
+    /* Initialize CF to 0  */
+    BPLib_TIME_GlobalData.CurrentCorrelationFactor = 0;
+
+    /* Run time maintenance activities */
+    Status = BPLib_TIME_MaintenanceActivities();
+
+    return Status;
 }
 
 /* Get monotonic time from Time Proxy */
@@ -65,7 +94,16 @@ void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
 /* Calculate current correlation factor */
 int64_t BPLib_TIME_CalculateCorrelationFactor(void)
 {
-    return 0;
+    int64_t CF = 0;
+
+    if (BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState() == BPLIB_TIME_CLOCK_VALID)
+    {
+        CF = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime() - 
+             BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime() +
+             BPLib_TIME_GlobalData.EpochOffset;
+    }
+
+    return CF;
 }
 
 /* Get current correlation factor */
@@ -77,18 +115,101 @@ int64_t BPLib_TIME_GetCorrelationFactor(void)
 /* Convert provided monotonic time to DTN time */
 uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
 {
-    return 0;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    int64_t CF = 0;
+    uint64_t DtnTime;
+
+    /* Use most recently calculated CF if looking for CF in current boot era */
+    if (MonotonicTime.BootEra == BPLib_TIME_GlobalData.CurrentBootEra)
+    {
+        CF = BPLib_TIME_GlobalData.CurrentCorrelationFactor;
+    }
+    /* Read from ring buffer file to get past CFs */
+    else 
+    {
+        Status = BPLib_TIME_ReadCfFromBuffer(&CF, MonotonicTime.BootEra);
+    }
+
+    /* Return 0 if no valid CF can be found */
+    if (Status != BPLIB_SUCCESS || CF == 0)
+    {
+        DtnTime = 0;
+    }
+    /* Else return valid DTN time */
+    else
+    {
+        DtnTime = (uint64_t) (MonotonicTime.Time + CF);
+    }
+
+    return DtnTime;
 }
 
 /* Get delta between two provided monotonic times */
 BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
                                        BPLib_TIME_MonotonicTime_t Time2, uint64_t *Delta)
 {
-    return BPLIB_UNIMPLEMENTED;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    uint64_t EstDtnTime1;
+    uint64_t EstDtnTime2;
+
+    /* Do simple subtraction if both times are in same boot era */
+    if (Time1.BootEra == Time2.BootEra)
+    {
+        *Delta = Time1.Time - Time2.Time;
+    }
+    /* Convert to estimated DTN time if times are in different boot eras */
+    else
+    {
+        EstDtnTime1 = BPLib_TIME_GetEstimatedDtnTime(Time1);
+        EstDtnTime2 = BPLib_TIME_GetEstimatedDtnTime(Time2);
+
+        /* Return error if one or both times cannot be converted */
+        if (EstDtnTime1 == 0 || EstDtnTime2 == 0)
+        {
+            *Delta = 0;
+
+            Status = BPLIB_TIME_UNDEF_DELTA_ERROR;
+        }
+        else
+        {
+            *Delta = EstDtnTime1 - EstDtnTime2;
+        }
+    }
+
+    return Status;
 }                                       
 
 /* Perform time maintenance activities */
 BPLib_Status_t BPLib_TIME_MaintenanceActivities(void)
 {
-    return BPLIB_UNIMPLEMENTED;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    int64_t NewCf;
+    int64_t CurrentMonotonicTime;
+    uint64_t CurrentDtnTime;
+
+    NewCf = BPLib_TIME_CalculateCorrelationFactor();
+
+    /* If a valid CF was calculated */
+    if (NewCf != 0)
+    {
+        /* If CF has changed, update CF in ring buffer file */
+        if (NewCf != BPLib_TIME_GlobalData.CurrentCorrelationFactor)
+        {
+            Status = BPLib_TIME_WriteCfToBuffer(NewCf, BPLib_TIME_GlobalData.CurrentBootEra);
+        }
+
+        /* Save current DTN time to ring buffer to track most recent valid DTN time */
+        if (Status == BPLIB_SUCCESS)
+        {
+            CurrentMonotonicTime = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
+            CurrentDtnTime = (uint64_t) (CurrentMonotonicTime + NewCf);
+
+            Status = BPLib_TIME_WriteDtnTimeToBuffer(CurrentDtnTime, BPLib_TIME_GlobalData.CurrentBootEra);
+        }
+    }
+
+    /* Update CF in global data regardless of if it's valid or not */
+    BPLib_TIME_GlobalData.CurrentCorrelationFactor = NewCf;
+
+    return Status;
 }

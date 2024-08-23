@@ -65,11 +65,11 @@ BPLib_Status_t BPLib_TIME_ReadCfFromBuffer(int64_t *CorrelationFactor, uint32_t 
  * Generated stub function for BPLib_TIME_ReadDtnTimeFromBuffer()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(int64_t *LastValidDtnTime, uint32_t BootEra)
+BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(uint64_t *LastValidDtnTime, uint32_t BootEra)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_TIME_ReadDtnTimeFromBuffer, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_TIME_ReadDtnTimeFromBuffer, int64_t *, LastValidDtnTime);
+    UT_GenStub_AddParam(BPLib_TIME_ReadDtnTimeFromBuffer, uint64_t *, LastValidDtnTime);
     UT_GenStub_AddParam(BPLib_TIME_ReadDtnTimeFromBuffer, uint32_t, BootEra);
 
     UT_GenStub_Execute(BPLib_TIME_ReadDtnTimeFromBuffer, Basic, NULL);
@@ -99,11 +99,11 @@ BPLib_Status_t BPLib_TIME_WriteCfToBuffer(int64_t CorrelationFactor, uint32_t Bo
  * Generated stub function for BPLib_TIME_WriteDtnTimeToBuffer()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(int64_t LastValidDtnTime, uint32_t BootEra)
+BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(uint64_t LastValidDtnTime, uint32_t BootEra)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_TIME_WriteDtnTimeToBuffer, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_TIME_WriteDtnTimeToBuffer, int64_t, LastValidDtnTime);
+    UT_GenStub_AddParam(BPLib_TIME_WriteDtnTimeToBuffer, uint64_t, LastValidDtnTime);
     UT_GenStub_AddParam(BPLib_TIME_WriteDtnTimeToBuffer, uint32_t, BootEra);
 
     UT_GenStub_Execute(BPLib_TIME_WriteDtnTimeToBuffer, Basic, NULL);

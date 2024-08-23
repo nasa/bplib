@@ -52,18 +52,18 @@ void Test_BPLib_TIME_WriteCfToBuffer(void)
 
 void Test_BPLib_TIME_ReadDtnTimeFromBuffer(void)
 {
-    int64_t  CorrelationFactor = 0;
+    uint64_t DtnTime = 0;
     uint32_t BootEra = 0;
 
-    UtAssert_INT32_EQ(BPLib_TIME_ReadDtnTimeFromBuffer(&CorrelationFactor, BootEra), BPLIB_UNIMPLEMENTED);
+    UtAssert_INT32_EQ(BPLib_TIME_ReadDtnTimeFromBuffer(&DtnTime, BootEra), BPLIB_UNIMPLEMENTED);
 }
 
 void Test_BPLib_TIME_WriteDtnTimeToBuffer(void)
 {
-    int64_t  CorrelationFactor = 0;
+    uint64_t DtnTime = 0;
     uint32_t BootEra = 0;
 
-    UtAssert_INT32_EQ(BPLib_TIME_WriteDtnTimeToBuffer(CorrelationFactor, BootEra), BPLIB_UNIMPLEMENTED);
+    UtAssert_INT32_EQ(BPLib_TIME_WriteDtnTimeToBuffer(DtnTime, BootEra), BPLIB_UNIMPLEMENTED);
 }
 
 void Test_BPLib_TIME_GetEstimatedDtnTime(void)

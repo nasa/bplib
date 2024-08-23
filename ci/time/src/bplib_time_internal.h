@@ -34,6 +34,21 @@
 #include "bplib_time.h"
 #include "bplib_fwp.h"
 
+
+/*
+** Macro Definitions
+*/
+
+#define BPLIB_TIME_MAX_BUFFER_LEN (32)
+
+#define BPLIB_TIME_EPOCH_YEAR   (2000)
+#define BPLIB_TIME_EPOCH_DAY    (0)
+#define BPLIB_TIME_EPOCH_HOUR   (0)
+#define BPLIB_TIME_EPOCH_MINUTE (0)
+#define BPLIB_TIME_EPOCH_SECOND (0)
+#define BPLIB_TIME_EPOCH_MSEC   (0)
+
+
 /*
 ** Type Definitions
 */
@@ -43,10 +58,20 @@
 */
 typedef struct
 {
-    int64_t  CurrentCorrelationFactor;  /**< \brief Most recent CF */
-    uint32_t CurrentBootEra;            /**< \brief Number of times time has rebooted */
-    int64_t  EpochOffset;               /**< \brief Offset between host and DTN epochs */
+    int64_t CurrentCorrelationFactor;   /**< \brief Most recent CF */
+    int32_t CurrentBootEra;             /**< \brief Number of times time has rebooted */
+    int64_t EpochOffset;                /**< \brief Offset between host and DTN epochs */
 } BPLib_TIME_GlobalData_t;
+
+/**
+**  \brief Data stored in time ring buffer file
+*/
+typedef struct 
+{
+    int32_t  CurrentBootEra;                                /**< \brief Current boot era */
+    int64_t  CfRingBuffer[BPLIB_TIME_MAX_BUFFER_LEN];       /**< \brief Ring buffer of past CFs */
+    uint64_t DtnTimeRingBuffer[BPLIB_TIME_MAX_BUFFER_LEN];  /**< \brief Ring buffer of past last valid DTN time values */
+} BPLib_TIME_TimeFileData_t;
 
 
 /*
@@ -116,7 +141,7 @@ BPLib_Status_t BPLib_TIME_WriteCfToBuffer(int64_t CorrelationFactor, uint32_t Bo
  *  \retval BPLIB_SUCCESS Operation was successful
  *  \retval BPLIB_TIME_READ_ERROR Read operation could not be completed
  */
-BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(int64_t *LastValidDtnTime, uint32_t BootEra);
+BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(uint64_t *LastValidDtnTime, uint32_t BootEra);
 
 /**
  * \brief Write Last Valid DTN Time to Ring Buffer
@@ -135,7 +160,7 @@ BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(int64_t *LastValidDtnTime, uint3
  *  \retval BPLIB_SUCCESS Operation was successful
  *  \retval BPLIB_TIME_WRITE_ERROR Write operation could not be completed
  */
-BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(int64_t LastValidDtnTime, uint32_t BootEra);
+BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(uint64_t LastValidDtnTime, uint32_t BootEra);
 
 /**
  * \brief Get Estimated DTN Time
