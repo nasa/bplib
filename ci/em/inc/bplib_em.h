@@ -21,17 +21,27 @@
 #ifndef BPLIB_EM_H
 #define BPLIB_EM_H
 
-/*
-** Include
-*/
-
+/* ======== */
+/* Includes */
+/* ======== */
 #include "bplib.h"
 
+/* ======== */
+/* Typedefs */
+/* ======== */
+typedef enum
+{
+    BPL_EM_EventType_UNKNOWN  = 0,
+    BPL_EM_EventType_DEBUG    = 1,
+    BPL_EM_EventType_INFO     = 2,
+    BPL_EM_EventType_WARNING  = 3,
+    BPL_EM_EventType_ERROR    = 4,
+    BPL_EM_EventType_CRITICAL = 5
+} BPLib_EM_EventType_t;
 
-/*
-** Exported Functions
-*/
-
+/* ================== */
+/* Exported Functions */
+/* ================== */
 /**
  * \brief Events Management initialization
  *
@@ -59,6 +69,6 @@ BPLib_Status_t BPLib_EM_Init(void);
  *
  *  \return String representation of give event type
  */
-/* const char* */ void BPL_EM_EventTypeToString(BPL_EM_EventType_t Type);
+char const* BPLib_EM_EventTypeToString(BPLib_EM_EventType_t Type);
 
 #endif /* BPLIB_EM_H */

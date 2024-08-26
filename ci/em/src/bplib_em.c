@@ -35,8 +35,16 @@ BPLib_Status_t BPLib_EM_Init(void)
 }
 
 /* Convert an event type into a string */
-// Returns char const* when implemented
-void BPL_EM_EventTypeToString(BPL_EM_EventType_t Type)
+char const* BPLib_EM_EventTypeToString(BPLib_EM_EventType_t type)
 {
-    return ;
+    static char const* typeString[] = {
+        "UNKNOWN",
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+    };
+
+    return typeString[type];
 }
