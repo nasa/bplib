@@ -42,8 +42,23 @@
  *       None
  *
  *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
+ *  \retval BPLIB_SUCCESS - Initialization was successful
  */
-int BPLib_EM_Init(void);
+BPLib_Status_t BPLib_EM_Init(void);
+
+/**
+ * \brief Convert event indicators from an integer type to a string
+ *
+ *  \par Description
+ *       Take in an integer-type and translate it into a string
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ * 
+ *  \param[in] Type Integer value of an event type
+ *
+ *  \return String representation of give event type
+ */
+/* const char* */ void BPL_EM_EventTypeToString(BPL_EM_EventType_t Type);
 
 #endif /* BPLIB_EM_H */

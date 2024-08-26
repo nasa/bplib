@@ -24,11 +24,19 @@
 
 #include "bplib_em.h"
 
+/* ==================== */
+/* Function definitions */
+/* ==================== */
 
-/*
-** Function Definitions
-*/
+/* Event Management initialization */
+BPLib_Status_t BPLib_EM_Init(void)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+}
 
-int BPLib_EM_Init(void) {
-    return BPLIB_SUCCESS;
+/* Convert an event type into a string */
+// Returns char const* when implemented
+void BPL_EM_EventTypeToString(BPL_EM_EventType_t Type)
+{
+    return ;
 }
