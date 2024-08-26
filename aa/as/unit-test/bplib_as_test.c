@@ -30,7 +30,7 @@
 */
 void Test_BPLib_AS_Init(void)
 {
-    UtAssert_INT32_EQ(BPLib_AS_Init(), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_AS_Init(), BPLIB_SUCCESS);
 }
 
 

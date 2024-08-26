@@ -18,17 +18,77 @@
  *
  */
 
+/**
+ * @file
+ *
+ * Public APIs for Time Management
+ */
+
 /*
 ** Include
 */
 
 #include "bplib_time.h"
+#include "bplib_time_internal.h"
+#include "bplib_fwp.h"
+
+
+/*
+** Global Data
+*/
+
+BPLib_TIME_GlobalData_t BPLib_TIME_GlobalData;
 
 
 /*
 ** Function Definitions
 */
 
-int BPLib_TIME_Init(void) {
-    return BP_SUCCESS;
+/* Time Management initialization */
+BPLib_Status_t BPLib_TIME_Init(void) {
+    /* TODO read from ring buffer file */
+    BPLib_TIME_GlobalData.CurrentBootEra = 0;
+
+    return BPLIB_UNIMPLEMENTED;
+}
+
+/* Get monotonic time from Time Proxy */
+void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
+{
+    if (MonotonicTime != NULL)
+    {
+        MonotonicTime->BootEra = BPLib_TIME_GlobalData.CurrentBootEra;
+        MonotonicTime->Time = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
+    }
+}
+
+/* Calculate current correlation factor */
+int64_t BPLib_TIME_CalculateCorrelationFactor(void)
+{
+    return 0;
+}
+
+/* Get current correlation factor */
+int64_t BPLib_TIME_GetCorrelationFactor(void)
+{
+    return BPLib_TIME_GlobalData.CurrentCorrelationFactor;
+}
+
+/* Convert provided monotonic time to DTN time */
+uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
+{
+    return 0;
+}
+
+/* Get delta between two provided monotonic times */
+BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
+                                       BPLib_TIME_MonotonicTime_t Time2, uint64_t *Delta)
+{
+    return BPLIB_UNIMPLEMENTED;
+}                                       
+
+/* Perform time maintenance activities */
+BPLib_Status_t BPLib_TIME_MaintenanceActivities(void)
+{
+    return BPLIB_UNIMPLEMENTED;
 }

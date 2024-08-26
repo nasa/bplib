@@ -8,6 +8,7 @@
 
 add_library(bplib_time OBJECT
     src/bplib_time.c
+    src/bplib_time_internal.c
 )
 
 target_include_directories(bplib_time PUBLIC
