@@ -32,6 +32,8 @@
 #include "bplib_time_internal.h"
 #include "bplib_fwp.h"
 
+#include "osapi.h"
+#include <string.h>
 
 /*
 ** Global Data
@@ -49,6 +51,9 @@ BPLib_Status_t BPLib_TIME_Init(void) {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_TIME_Epoch_t HostEpoch;
     int64_t YearOffset, DayOffset, HourOffset, MinOffset, SecOffset, MsecOffset;
+
+    /* Clear memory */
+    memset(&BPLib_TIME_GlobalData, 0, sizeof(BPLib_TIME_GlobalData_t));
 
     /* Get epoch offset (Host Epoch - DTN Epoch) */
     BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch(&HostEpoch);
@@ -69,8 +74,31 @@ BPLib_Status_t BPLib_TIME_Init(void) {
 
     /* TODO add missing leap days........... */
 
-    /* TODO read from ring buffer file and increment current boot era */
-    BPLib_TIME_GlobalData.CurrentBootEra = 0;
+    /* Try opening existing file or creating new file */
+    if (OS_OpenCreate(&BPLib_TIME_GlobalData.FileHandle, BPLIB_TIME_FILE_NAME, 
+                                        OS_FILE_FLAG_CREATE, OS_READ_WRITE) == OS_SUCCESS)
+    {
+        /* Try to read file */
+        if (OS_read(BPLib_TIME_GlobalData.FileHandle, (void *) &BPLib_TIME_GlobalData.TimeData, 
+                                            sizeof(BPLib_TIME_FileData_t)) == OS_SUCCESS)
+        {
+            BPLib_TIME_GlobalData.TimeData.CurrentBootEra = 
+                    (BPLib_TIME_GlobalData.TimeData.CurrentBootEra + 1) % BPLIB_TIME_MAX_BUFFER_LEN;
+        }
+
+        /* Overwrite existing file contents with new time data to update boot era */
+        if (OS_write(BPLib_TIME_GlobalData.FileHandle, (void *) &BPLib_TIME_GlobalData.TimeData, 
+                                            sizeof(BPLib_TIME_FileData_t)) != OS_SUCCESS)
+        {
+            return BPLIB_TIME_WRITE_ERROR;
+        }
+    }
+    else 
+    {
+        return BPLIB_TIME_READ_ERROR;
+    }
+
+    (void) OS_close(BPLib_TIME_GlobalData.FileHandle);
 
     /* Initialize CF to 0  */
     BPLib_TIME_GlobalData.CurrentCorrelationFactor = 0;
@@ -86,7 +114,7 @@ void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
 {
     if (MonotonicTime != NULL)
     {
-        MonotonicTime->BootEra = BPLib_TIME_GlobalData.CurrentBootEra;
+        MonotonicTime->BootEra = BPLib_TIME_GlobalData.TimeData.CurrentBootEra;
         MonotonicTime->Time = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
     }
 }
@@ -120,7 +148,7 @@ uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
     uint64_t DtnTime;
 
     /* Use most recently calculated CF if looking for CF in current boot era */
-    if (MonotonicTime.BootEra == BPLib_TIME_GlobalData.CurrentBootEra)
+    if (MonotonicTime.BootEra == BPLib_TIME_GlobalData.TimeData.CurrentBootEra)
     {
         CF = BPLib_TIME_GlobalData.CurrentCorrelationFactor;
     }
@@ -195,7 +223,7 @@ BPLib_Status_t BPLib_TIME_MaintenanceActivities(void)
         /* If CF has changed, update CF in ring buffer file */
         if (NewCf != BPLib_TIME_GlobalData.CurrentCorrelationFactor)
         {
-            Status = BPLib_TIME_WriteCfToBuffer(NewCf, BPLib_TIME_GlobalData.CurrentBootEra);
+            Status = BPLib_TIME_WriteCfToBuffer(NewCf, BPLib_TIME_GlobalData.TimeData.CurrentBootEra);
         }
 
         /* Save current DTN time to ring buffer to track most recent valid DTN time */
@@ -204,7 +232,7 @@ BPLib_Status_t BPLib_TIME_MaintenanceActivities(void)
             CurrentMonotonicTime = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
             CurrentDtnTime = (uint64_t) (CurrentMonotonicTime + NewCf);
 
-            Status = BPLib_TIME_WriteDtnTimeToBuffer(CurrentDtnTime, BPLib_TIME_GlobalData.CurrentBootEra);
+            Status = BPLib_TIME_WriteDtnTimeToBuffer(CurrentDtnTime, BPLib_TIME_GlobalData.TimeData.CurrentBootEra);
         }
     }
 

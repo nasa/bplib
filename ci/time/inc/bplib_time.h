@@ -35,6 +35,15 @@
 
 
 /*
+** Macro Definitions
+*/
+
+/**
+** \brief Time data file name 
+*/
+#define BPLIB_TIME_FILE_NAME "/cf/bplib_time.dat"
+
+/*
 ** Type Definitions
 */
 

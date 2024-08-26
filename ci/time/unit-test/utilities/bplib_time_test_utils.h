@@ -41,10 +41,23 @@
 /* Macro to add test case */
 #define ADD_TEST(test) UtTest_Add(test, BPLib_TIME_Test_Setup, BPLib_TIME_Test_Teardown, #test)
 
+#define BPLIB_TIME_TEST_MONOTONIC_TIME_VALUE    ((uint64_t) 1234)
+#define BPLIB_TIME_TEST_HOST_TIME_VALUE         ((uint64_t) 5678)
+
 
 /*
 ** Function Definitions
 */
+
+/*
+** Stub function definitions for Time Proxy
+*/
+
+int64_t Test_BPA_TIMEP_GetMonotonicTime(void);
+void Test_BPA_TIMEP_GetHostEpoch(BPLib_TIME_Epoch_t *Epoch);
+BPLib_TIME_ClockState_t Test_BPA_TIMEP_GetHostClockState_Valid(void);
+BPLib_TIME_ClockState_t Test_BPA_TIMEP_GetHostClockState_Invalid(void);
+int64_t Test_BPA_TIMEP_GetHostTime(void);
 
 void BPLib_TIME_Test_Setup(void);
 void BPLib_TIME_Test_Teardown(void);

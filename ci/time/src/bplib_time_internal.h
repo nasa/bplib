@@ -33,6 +33,7 @@
 
 #include "bplib_time.h"
 #include "bplib_fwp.h"
+#include "osapi.h"
 
 
 /*
@@ -54,16 +55,6 @@
 */
 
 /**
-**  \brief Time Management Global Data
-*/
-typedef struct
-{
-    int64_t CurrentCorrelationFactor;   /**< \brief Most recent CF */
-    int32_t CurrentBootEra;             /**< \brief Number of times time has rebooted */
-    int64_t EpochOffset;                /**< \brief Offset between host and DTN epochs */
-} BPLib_TIME_GlobalData_t;
-
-/**
 **  \brief Data stored in time ring buffer file
 */
 typedef struct 
@@ -71,7 +62,19 @@ typedef struct
     int32_t  CurrentBootEra;                                /**< \brief Current boot era */
     int64_t  CfRingBuffer[BPLIB_TIME_MAX_BUFFER_LEN];       /**< \brief Ring buffer of past CFs */
     uint64_t DtnTimeRingBuffer[BPLIB_TIME_MAX_BUFFER_LEN];  /**< \brief Ring buffer of past last valid DTN time values */
-} BPLib_TIME_TimeFileData_t;
+} BPLib_TIME_FileData_t;
+
+/**
+**  \brief Time Management Global Data
+*/
+typedef struct
+{
+    int64_t   CurrentCorrelationFactor; /**< \brief Most recent CF */
+    int32_t   CurrentBootEra;           /**< \brief Number of times time has rebooted */
+    int64_t   EpochOffset;              /**< \brief Offset between host and DTN epochs */
+    osal_id_t FileHandle;               /**< \brief OSAL handle for time data file */
+    BPLib_TIME_FileData_t TimeData;     /**< \brief Local copy of time file data */
+} BPLib_TIME_GlobalData_t;
 
 
 /*

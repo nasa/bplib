@@ -39,22 +39,72 @@ void Test_BPLib_TIME_Init(void)
     UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_UNIMPLEMENTED);
 }
 
-void Test_BPLib_TIME_GetMonotonicTime(void)
+void Test_BPLib_TIME_GetMonotonicTime_Nominal(void)
 {
-    // TODO fully test this with simulated proxy callbacks
-    BPLib_TIME_GetMonotonicTime(NULL);
+    BPLib_TIME_MonotonicTime_t MonotonicTime;
+    int32_t ExpBootEra = 1;
 
-    // UtAssert_True(MonotonicTime.Time == 0, "Monotonic time is expected value");
+    BPLib_TIME_GlobalData.TimeData.CurrentBootEra = ExpBootEra;
+
+    BPLib_TIME_GetMonotonicTime(&MonotonicTime);
+
+    UtAssert_True(MonotonicTime.Time == BPLIB_TIME_TEST_MONOTONIC_TIME_VALUE, 
+                    "Monotonic time (%ld) is equal to expected time (%ld)", 
+                    MonotonicTime.Time, BPLIB_TIME_TEST_MONOTONIC_TIME_VALUE);
+    UtAssert_INT32_EQ(MonotonicTime.BootEra, ExpBootEra);
 }
 
-void Test_BPLib_TIME_CalculateCorrelationFactor(void)
+void Test_BPLib_TIME_GetMonotonicTime_Null(void)
 {
-    UtAssert_True(BPLib_TIME_CalculateCorrelationFactor() == 0, "CF is expected value");
+    BPLib_TIME_MonotonicTime_t *MonotonicTime = NULL;
+
+    BPLib_TIME_GetMonotonicTime(MonotonicTime);
+
+    UtAssert_NULL(MonotonicTime);
+}
+
+void Test_BPLib_TIME_CalculateCorrelationFactor_Nominal(void)
+{
+    int64_t ExpCf;
+    int64_t ActualCf;
+
+    // Make sure host clock state returns valid
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = Test_BPA_TIMEP_GetHostClockState_Valid;
+
+    BPLib_TIME_GlobalData.EpochOffset = 5;
+    ExpCf = BPLIB_TIME_TEST_HOST_TIME_VALUE - BPLIB_TIME_TEST_MONOTONIC_TIME_VALUE +
+            BPLib_TIME_GlobalData.EpochOffset;
+
+    ActualCf = BPLib_TIME_CalculateCorrelationFactor();
+
+    UtAssert_True(ActualCf == ExpCf, "CF (%ld) is equal to expected CF (%ld)",
+                    ActualCf, ExpCf);
+}
+
+void Test_BPLib_TIME_CalculateCorrelationFactor_InvalidClock(void)
+{
+    int64_t ExpCf = 0;
+    int64_t ActualCf;
+
+    // Make sure host clock state returns invalid
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = Test_BPA_TIMEP_GetHostClockState_Invalid;
+
+    ActualCf = BPLib_TIME_CalculateCorrelationFactor();
+
+    UtAssert_True(ActualCf == ExpCf, "CF (%ld) is equal to expected CF (%ld)",
+                    ActualCf, ExpCf);
 }
 
 void Test_BPLib_TIME_GetCorrelationFactor(void)
 {
-    UtAssert_True(BPLib_TIME_GetCorrelationFactor() == 0, "CF is expected value");
+    int64_t ExpCf = 1234;
+    int64_t ActualCf;
+
+    BPLib_TIME_GlobalData.CurrentCorrelationFactor = 1234;
+
+    ActualCf = BPLib_TIME_GetCorrelationFactor();
+    UtAssert_True(ActualCf == ExpCf, "CF (%ld) is equal to expected CF (%ld)",
+                    ActualCf, ExpCf);
 }
 
 void Test_BPLib_TIME_GetDtnTime(void)
@@ -82,8 +132,10 @@ void Test_BPLib_TIME_MaintenanceActivities(void)
 void TestBplibTime_Register(void)
 {
     ADD_TEST(Test_BPLib_TIME_Init);
-    ADD_TEST(Test_BPLib_TIME_GetMonotonicTime);
-    ADD_TEST(Test_BPLib_TIME_CalculateCorrelationFactor);
+    ADD_TEST(Test_BPLib_TIME_GetMonotonicTime_Nominal);
+    ADD_TEST(Test_BPLib_TIME_GetMonotonicTime_Null);
+    ADD_TEST(Test_BPLib_TIME_CalculateCorrelationFactor_Nominal);
+    ADD_TEST(Test_BPLib_TIME_CalculateCorrelationFactor_InvalidClock);
     ADD_TEST(Test_BPLib_TIME_GetCorrelationFactor);
     ADD_TEST(Test_BPLib_TIME_GetDtnTime);
     ADD_TEST(Test_BPLib_TIME_GetTimeDelta);

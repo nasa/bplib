@@ -11,6 +11,8 @@ add_library(bplib_time OBJECT
     src/bplib_time_internal.c
 )
 
+target_link_libraries(bplib_time osal)
+
 target_include_directories(bplib_time PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
