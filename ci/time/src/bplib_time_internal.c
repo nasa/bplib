@@ -37,60 +37,114 @@
 ** Function Definitions
 */
 
-/* Read a CF from the ring buffer file */
-BPLib_Status_t BPLib_TIME_ReadCfFromBuffer(int64_t *CorrelationFactor, uint32_t BootEra)
+/* Read a CF from the ring buffer */
+int64_t BPLib_TIME_GetCfFromBuffer(uint32_t BootEra)
 {
-    return BPLIB_UNIMPLEMENTED;
+    return BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
 }
 
-/* Write a CF to the ring buffer file */
-BPLib_Status_t BPLib_TIME_WriteCfToBuffer(int64_t CorrelationFactor, uint32_t BootEra)
+/* Set a CF value in the ring buffer */
+void BPLib_TIME_SetCfInBuffer(int64_t CF, uint32_t BootEra)
 {
-    return BPLIB_UNIMPLEMENTED;
+    BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = CF;
 }
 
 /* Read a last valid DTN time from the ring buffer file */
-BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(uint64_t *LastValidDtnTime, uint32_t BootEra)
+uint64_t BPLib_TIME_GetDtnTimeFromBuffer(uint32_t BootEra)
 {
-    return BPLIB_UNIMPLEMENTED;
+    return BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
 }
 
-/* Write a last valid DTN time to the ring buffer file */
-BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(uint64_t LastValidDtnTime, uint32_t BootEra)
+/* Set a last valid DTN time value in the ring buffer */
+void BPLib_TIME_SetDtnTimeInBuffer(uint64_t DtnTime, uint32_t BootEra)
 {
-    return BPLIB_UNIMPLEMENTED;
+    BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = DtnTime;
+}
+
+/* Read current time data from file */
+BPLib_Status_t BPLib_TIME_ReadTimeDataFromFile(void)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    /* Try opening existing file or creating new file */
+    if (OS_OpenCreate(&BPLib_TIME_GlobalData.FileHandle, BPLIB_TIME_FILE_NAME, 
+                                    OS_FILE_FLAG_CREATE, OS_READ_WRITE) == OS_SUCCESS)
+    {
+        /* Read time data from file */
+        if (OS_read(BPLib_TIME_GlobalData.FileHandle, (void *) &BPLib_TIME_GlobalData.TimeData, 
+                                            sizeof(BPLib_TIME_FileData_t)) != OS_SUCCESS)
+        {
+            Status = BPLIB_TIME_READ_ERROR;
+        }        
+    }
+    else 
+    {
+        Status = BPLIB_TIME_READ_ERROR;
+    }
+
+    (void) OS_close(BPLib_TIME_GlobalData.FileHandle);
+
+    return Status;
+}
+
+/* Write current time data to file */
+BPLib_Status_t BPLib_TIME_WriteTimeDataToFile(void)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    /* Try opening existing file or creating new file */
+    if (OS_OpenCreate(&BPLib_TIME_GlobalData.FileHandle, BPLIB_TIME_FILE_NAME, 
+                                    OS_FILE_FLAG_CREATE, OS_READ_WRITE) == OS_SUCCESS)
+    {
+        /* Dump current time data to file */
+        if (OS_write(BPLib_TIME_GlobalData.FileHandle, (void *) &BPLib_TIME_GlobalData.TimeData, 
+                                            sizeof(BPLib_TIME_FileData_t)) != OS_SUCCESS)
+        {
+            Status = BPLIB_TIME_WRITE_ERROR;
+        }        
+    }
+    else 
+    {
+        Status = BPLIB_TIME_WRITE_ERROR;
+    }
+
+    (void) OS_close(BPLib_TIME_GlobalData.FileHandle);
+
+    return Status;
 }
 
 /* Get estimated DTN time */
 uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
 {
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-    int64_t CF = 0;
+    int64_t  CF = 0;
+    uint64_t EstCf = 0;
+    uint64_t EstDtnTime = (uint64_t) MonotonicTime.Time;
 
     /* A boot era of -1 indicates an absolute DTN time was passed in */
-    if (MonotonicTime.BootEra == -1)
+    if (MonotonicTime.BootEra != -1)
     {
-        return (uint64_t) MonotonicTime.Time;
-    }
-    else 
-    {
-        /* Attempt to read CF from ring buffer file*/
-        Status = BPLib_TIME_ReadCfFromBuffer(&CF, MonotonicTime.BootEra);
+        CF = BPLib_TIME_GetCfFromBuffer(MonotonicTime.BootEra);
 
         /* If no valid CF found, try to get a last valid DTN time to use instead */
-        if (Status != BPLIB_SUCCESS || CF == 0)
+        if (CF == 0 && MonotonicTime.BootEra != 0)
         {
-            Status = BPLib_TIME_ReadDtnTimeFromBuffer((uint64_t *) &CF, 
-                                                        MonotonicTime.BootEra - 1);
+            EstCf = BPLib_TIME_GetDtnTimeFromBuffer(MonotonicTime.BootEra - 1);
 
             /* If no valid value for a CF can be found, return 0 */
-            if (Status != BPLIB_SUCCESS || CF == 0)
+            if (EstCf == 0)
             {
                 return 0;
             }
+            else
+            {
+                EstDtnTime += EstCf;
+            }
         }
-
-        /* Use whatever valid CF was found to calculate estimated DTN time */
-        return (uint64_t) (MonotonicTime.Time + CF);
+        else
+        {
+            EstDtnTime += (uint64_t) CF;
+        }
     }
+
+    return EstDtnTime;
 }

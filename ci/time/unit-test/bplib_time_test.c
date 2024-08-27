@@ -44,7 +44,7 @@ void Test_BPLib_TIME_GetMonotonicTime_Nominal(void)
     BPLib_TIME_MonotonicTime_t MonotonicTime;
     int32_t ExpBootEra = 1;
 
-    BPLib_TIME_GlobalData.TimeData.CurrentBootEra = ExpBootEra;
+    BPLib_TIME_GlobalData.TimeData.CurrBootEra = ExpBootEra;
 
     BPLib_TIME_GetMonotonicTime(&MonotonicTime);
 
@@ -100,7 +100,7 @@ void Test_BPLib_TIME_GetCorrelationFactor(void)
     int64_t ExpCf = 1234;
     int64_t ActualCf;
 
-    BPLib_TIME_GlobalData.CurrentCorrelationFactor = 1234;
+    BPLib_TIME_GlobalData.CurrentCf = 1234;
 
     ActualCf = BPLib_TIME_GetCorrelationFactor();
     UtAssert_True(ActualCf == ExpCf, "CF (%ld) is equal to expected CF (%ld)",

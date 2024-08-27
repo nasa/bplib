@@ -34,36 +34,50 @@
 ** Function Definitions
 */
 
-void Test_BPLib_TIME_ReadCfFromBuffer(void)
+void Test_BPLib_TIME_GetCfFromBuffer(void)
+{
+    uint32_t BootEra = 0;
+
+    UtAssert_True(BPLib_TIME_GetCfFromBuffer(BootEra) == 0, "CF is expected value");
+}
+
+void Test_BPLib_TIME_SetCfInBuffer(void)
 {
     int64_t  CorrelationFactor = 0;
     uint32_t BootEra = 0;
 
-    UtAssert_INT32_EQ(BPLib_TIME_ReadCfFromBuffer(&CorrelationFactor, BootEra), BPLIB_UNIMPLEMENTED);
+    BPLib_TIME_SetCfInBuffer(CorrelationFactor, BootEra);
+
+    UtAssert_True(BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] == CorrelationFactor,
+                        "CF is expected value");
 }
 
-void Test_BPLib_TIME_WriteCfToBuffer(void)
+void Test_BPLib_TIME_GetDtnTimeFromBuffer(void)
 {
-    int64_t  CorrelationFactor = 0;
     uint32_t BootEra = 0;
 
-    UtAssert_INT32_EQ(BPLib_TIME_WriteCfToBuffer(CorrelationFactor, BootEra), BPLIB_UNIMPLEMENTED);
+    UtAssert_True(BPLib_TIME_GetDtnTimeFromBuffer(BootEra) == 0, "DTN time is expected value");
 }
 
-void Test_BPLib_TIME_ReadDtnTimeFromBuffer(void)
+void Test_BPLib_TIME_SetDtnTimeInBuffer(void)
 {
-    uint64_t DtnTime = 0;
+    int64_t  DtnTime = 0;
     uint32_t BootEra = 0;
 
-    UtAssert_INT32_EQ(BPLib_TIME_ReadDtnTimeFromBuffer(&DtnTime, BootEra), BPLIB_UNIMPLEMENTED);
+    BPLib_TIME_SetDtnTimeInBuffer(DtnTime, BootEra);
+
+    UtAssert_True(BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] == DtnTime,
+                        "DTN time is expected value");
 }
 
-void Test_BPLib_TIME_WriteDtnTimeToBuffer(void)
+void Test_BPLib_TIME_ReadTimeDataFromFile(void)
 {
-    uint64_t DtnTime = 0;
-    uint32_t BootEra = 0;
+    UtAssert_INT32_EQ(BPLib_TIME_ReadTimeDataFromFile(), BPLIB_SUCCESS);
+}
 
-    UtAssert_INT32_EQ(BPLib_TIME_WriteDtnTimeToBuffer(DtnTime, BootEra), BPLIB_UNIMPLEMENTED);
+void Test_BPLib_TIME_WriteTimeDataToFile(void)
+{
+    UtAssert_INT32_EQ(BPLib_TIME_WriteTimeDataToFile(), BPLIB_SUCCESS);
 }
 
 void Test_BPLib_TIME_GetEstimatedDtnTime(void)
@@ -77,9 +91,11 @@ void Test_BPLib_TIME_GetEstimatedDtnTime(void)
 
 void TestBplibTimeInternal_Register(void)
 {
-    ADD_TEST(Test_BPLib_TIME_ReadCfFromBuffer);
-    ADD_TEST(Test_BPLib_TIME_WriteCfToBuffer);
-    ADD_TEST(Test_BPLib_TIME_ReadDtnTimeFromBuffer);
-    ADD_TEST(Test_BPLib_TIME_WriteDtnTimeToBuffer);
+    ADD_TEST(Test_BPLib_TIME_GetCfFromBuffer);
+    ADD_TEST(Test_BPLib_TIME_SetCfInBuffer);
+    ADD_TEST(Test_BPLib_TIME_GetDtnTimeFromBuffer);
+    ADD_TEST(Test_BPLib_TIME_SetDtnTimeInBuffer);
+    ADD_TEST(Test_BPLib_TIME_ReadTimeDataFromFile);
+    ADD_TEST(Test_BPLib_TIME_WriteTimeDataToFile);
     ADD_TEST(Test_BPLib_TIME_GetEstimatedDtnTime);
 }
