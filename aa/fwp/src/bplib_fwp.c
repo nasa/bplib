@@ -42,7 +42,9 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
     if (Callbacks.BPA_TIMEP_GetMonotonicTime == NULL ||
         Callbacks.BPA_TIMEP_GetHostEpoch == NULL ||
         Callbacks.BPA_TIMEP_GetHostClockState == NULL ||
-        Callbacks.BPA_TIMEP_GetHostTime == NULL)
+        Callbacks.BPA_TIMEP_GetHostTime == NULL ||
+        Callbacks.BPA_PERFLOGP_Entry == NULL ||
+        Callbacks.BPA_PERFLOGP_Exit == NULL)
     {
         return BPLIB_FWP_CALLBACK_INIT_ERROR;
     }
@@ -53,6 +55,10 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch = Callbacks.BPA_TIMEP_GetHostEpoch;
         BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = Callbacks.BPA_TIMEP_GetHostClockState;
         BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = Callbacks.BPA_TIMEP_GetHostTime;
+        
+        /* Initialize PerfLog Proxy callbacks */
+        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry = Callbacks.BPA_PERFLOGP_Entry;
+        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit = Callbacks.BPA_PERFLOGP_Exit;
 
         /* Initialize other proxies' callbacks TODO */
     }

@@ -39,6 +39,10 @@ typedef struct
     void (*BPA_TIMEP_GetHostEpoch)(BPLib_TIME_Epoch_t *Epoch);
     BPLib_TIME_ClockState_t (*BPA_TIMEP_GetHostClockState)(void);
     int64_t (*BPA_TIMEP_GetHostTime)(void);
+    
+    /* PerfLog Proxy function callbacks */
+    void (*BPA_PERFLOGP_Entry)(uint32_t PerfLogID);
+    void (*BPA_PERFLOGP_Exit)(uint32_t PerfLogID);
 
     /* Add other proxies' function callbacks here: TODO */
 

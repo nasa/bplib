@@ -63,6 +63,16 @@ int64_t BPA_TIMEP_GetHostTime(void)
     return 0;
 }
 
+void BPA_PERFLOGP_Entry(uint32 PerfLogID)
+{
+    return;
+}
+
+void BPA_PERFLOGP_Exit(uint32 PerfLogID)
+{
+    return;
+}
+
 /* Test nominal FWP initialization */
 void Test_BPLib_FWP_Init_Nominal(void)
 {
@@ -72,6 +82,8 @@ void Test_BPLib_FWP_Init_Nominal(void)
     Callbacks.BPA_TIMEP_GetHostEpoch = BPA_TIMEP_GetHostEpoch;
     Callbacks.BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime;
     Callbacks.BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime;
+    Callbacks.BPA_PERFLOGP_Entry = BPA_PERFLOGP_Entry;
+    Callbacks.BPA_PERFLOGP_Exit = BPA_PERFLOGP_Exit;
 
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_SUCCESS);
 
@@ -83,6 +95,10 @@ void Test_BPLib_FWP_Init_Nominal(void)
                     "Same BPA_TIMEP_GetHostTime functions");
     UtAssert_True(Callbacks.BPA_TIMEP_GetMonotonicTime == BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime, 
                     "Same BPA_TIMEP_GetMonotonicTime functions");
+    UtAssert_True(Callbacks.BPA_PERFLOGP_Entry == BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry, 
+                    "Same BPA_PERFLOGP_Entry functions");
+    UtAssert_True(Callbacks.BPA_PERFLOGP_Exit == BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit, 
+                    "Same BPA_PERFLOGP_Exit functions");
 }
 
 /* Test FWP initialization with null function */
@@ -121,6 +137,23 @@ void Test_BPLib_FWP_Init_GetMonotonicTimeNull(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
+/* Test FWP initialization with null function */
+void Test_BPLib_FWP_Init_PERFLOGP_EntryNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    Callbacks.BPA_PERFLOGP_Entry = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+/* Test FWP initialization with null function */
+void Test_BPLib_FWP_Init_PERFLOGP_ExitNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    Callbacks.BPA_PERFLOGP_Exit = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
 
 void TestBplibFwp_Register(void)
 {
@@ -129,4 +162,6 @@ void TestBplibFwp_Register(void)
     UtTest_Add(Test_BPLib_FWP_Init_GetHostEpochNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetHostEpochNull");
     UtTest_Add(Test_BPLib_FWP_Init_GetHostTimeNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetHostTimeNull");
     UtTest_Add(Test_BPLib_FWP_Init_GetMonotonicTimeNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetMonotonicTimeNull");
+    UtTest_Add(Test_BPLib_FWP_Init_PERFLOGP_EntryNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_PERFLOGP_EntryNull");
+    UtTest_Add(Test_BPLib_FWP_Init_PERFLOGP_ExitNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_PERFLOGP_ExitNull");
 }
