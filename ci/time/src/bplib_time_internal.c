@@ -65,14 +65,17 @@ void BPLib_TIME_SetDtnTimeInBuffer(uint64_t DtnTime, uint32_t BootEra)
 BPLib_Status_t BPLib_TIME_ReadTimeDataFromFile(void)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-
+    int32 OsalStatus;
+    
     /* Try opening existing file or creating new file */
-    if (OS_OpenCreate(&BPLib_TIME_GlobalData.FileHandle, BPLIB_TIME_FILE_NAME, 
-                                    OS_FILE_FLAG_CREATE, OS_READ_WRITE) == OS_SUCCESS)
+    OsalStatus = OS_OpenCreate(&BPLib_TIME_GlobalData.FileHandle, BPLIB_TIME_FILE_NAME, 
+                                    OS_FILE_FLAG_CREATE, OS_READ_WRITE);
+    if (OsalStatus == OS_SUCCESS)
     {
         /* Read time data from file */
-        if (OS_read(BPLib_TIME_GlobalData.FileHandle, (void *) &BPLib_TIME_GlobalData.TimeData, 
-                                            sizeof(BPLib_TIME_FileData_t)) != OS_SUCCESS)
+        OsalStatus = OS_read(BPLib_TIME_GlobalData.FileHandle, (void *) &BPLib_TIME_GlobalData.TimeData, 
+                                            sizeof(BPLib_TIME_FileData_t));
+        if (OsalStatus < 0)
         {
             Status = BPLIB_TIME_READ_ERROR;
         }        
@@ -91,14 +94,17 @@ BPLib_Status_t BPLib_TIME_ReadTimeDataFromFile(void)
 BPLib_Status_t BPLib_TIME_WriteTimeDataToFile(void)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
+    int32 OsalStatus;
 
     /* Try opening existing file or creating new file */
-    if (OS_OpenCreate(&BPLib_TIME_GlobalData.FileHandle, BPLIB_TIME_FILE_NAME, 
-                                    OS_FILE_FLAG_CREATE, OS_READ_WRITE) == OS_SUCCESS)
+    OsalStatus = OS_OpenCreate(&BPLib_TIME_GlobalData.FileHandle, BPLIB_TIME_FILE_NAME, 
+                                    OS_FILE_FLAG_CREATE, OS_READ_WRITE);
+    if (OsalStatus == OS_SUCCESS)
     {
         /* Dump current time data to file */
-        if (OS_write(BPLib_TIME_GlobalData.FileHandle, (void *) &BPLib_TIME_GlobalData.TimeData, 
-                                            sizeof(BPLib_TIME_FileData_t)) != OS_SUCCESS)
+        OsalStatus = OS_write(BPLib_TIME_GlobalData.FileHandle, 
+                (void *) &BPLib_TIME_GlobalData.TimeData, sizeof(BPLib_TIME_FileData_t));
+        if (OsalStatus < 0)
         {
             Status = BPLIB_TIME_WRITE_ERROR;
         }        
