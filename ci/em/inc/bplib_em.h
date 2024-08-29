@@ -21,40 +21,48 @@
 #ifndef BPLIB_EM_H
 #define BPLIB_EM_H
 
-/* ======== */
-/* Includes */
-/* ======== */
-#include "bplib.h"
+/* ======= */
+/* Include */
+/* ======= */
+#include "bplib_api_types.h"
 
 /* ======== */
 /* Typedefs */
 /* ======== */
 typedef enum
 {
-    BPL_EM_EventType_UNKNOWN  = 0,
-    BPL_EM_EventType_DEBUG    = 1,
-    BPL_EM_EventType_INFO     = 2,
-    BPL_EM_EventType_WARNING  = 3,
-    BPL_EM_EventType_ERROR    = 4,
-    BPL_EM_EventType_CRITICAL = 5
+    BPLib_EM_EventType_UNKNOWN = 0,
+    BPLib_EM_EventType_DEBUG   = 1,
+    BPLib_EM_EventType_INFO    = 2,
+    BPLib_EM_EventType_WARNING = 3,
+    BPLib_EM_EventType_ERROR   = 4,
+    BPLibEM_EventType_CRITICAL = 5
 } BPLib_EM_EventType_t;
+
+// typedef struct
+// {
+//     uint32_t ReturnValue;
+// } BPL_Status_t;
+
+// #define BPL_STATUS_SUCCESS             (0u)
+// #define BPL_STATUS_ERROR_GENERAL       (1u)
+// #define BPL_STATUS_ERROR_INPUT_INVALID (2u)
+// #define BPL_STATUS_ERROR_PROXY_INIT    (3u)
+
+// typedef struct
+// {
+//     BPL_Status_t (*Initialize_Impl)(void);
+//     BPL_Status_t (*SendEvent_Impl)(uint16_t EventID, BPL_EM_EventType_t EventType,
+//                                    char const * EventText, va_list EventTextArgPtr);
+// } BPL_EM_ProxyCallbacks_t;
 
 /* ================== */
 /* Exported Functions */
 /* ================== */
-/**
- * \brief Events Management initialization
- *
- *  \par Description
- *       EM initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS - Initialization was successful
- */
 BPLib_Status_t BPLib_EM_Init(void);
+
+
+BPLib_Status_t BPLib_EM_Register();
 
 /**
  * \brief Convert event indicators from an integer type to a string
@@ -70,5 +78,8 @@ BPLib_Status_t BPLib_EM_Init(void);
  *  \return String representation of give event type
  */
 char const* BPLib_EM_EventTypeToString(BPLib_EM_EventType_t Type);
+BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType,
+                                char const * EventText, ...);
+void BPLib_EM_Deinitialize(void);
 
 #endif /* BPLIB_EM_H */

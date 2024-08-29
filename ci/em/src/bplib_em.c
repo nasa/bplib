@@ -18,33 +18,66 @@
  *
  */
 
-/*
-** Include
-*/
-
+/* ======== */
+/* Includes */
+/* ======== */
 #include "bplib_em.h"
+#include "bplib_fwp.h"
 
-/* ==================== */
-/* Function definitions */
-/* ==================== */
-
-/* Event Management initialization */
-BPLib_Status_t BPLib_EM_Init(void)
+/* ================== */
+/* Exported functions */
+/* ================== */
+BPL_Status_t BPLib_EM_Init(void)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
+    return Status;
 }
 
-/* Convert an event type into a string */
-char const* BPLib_EM_EventTypeToString(BPLib_EM_EventType_t type)
-{
-    static char const* typeString[] = {
-        "UNKNOWN",
-        "DEBUG",
-        "INFO",
-        "WARNING",
-        "ERROR",
-        "CRITICAL"
-    };
+// char const * BPL_EM_EventTypeToString(BPL_EM_EventType_t Type)
+// {
+//     /* BPL_EM_EventTypeStrings should always match BPL_EM_EventType_t. */
+//     static char const * BPL_EM_EventTypeStrings[] = {
+//         "UNKNOWN",
+//         "DEBUG",
+//         "INFO",
+//         "WARNING",
+//         "ERROR",
+//         "CRITICAL"
+//     };
 
-    return typeString[type];
+//     switch (Type)
+//     {
+//         case BPL_EM_EventType_DEBUG:
+//             return BPL_EM_EventTypeStrings[1];
+//         case BPL_EM_EventType_INFO:
+//             return BPL_EM_EventTypeStrings[2];
+//         case BPL_EM_EventType_WARNING:
+//             return BPL_EM_EventTypeStrings[3];
+//         case BPL_EM_EventType_ERROR:
+//             return BPL_EM_EventTypeStrings[4];
+//         case BPL_EM_EventType_CRITICAL:
+//             return BPL_EM_EventTypeStrings[5];
+//         default:
+//             /* This default case also captures the BPL_EM_EventType_UNKNOWN case. */
+//             return BPL_EM_EventTypeStrings[0];
+//     }
+// }
+
+BPL_Status_t BPA_EVP_SendEvent(uint16_t EventID, BPL_EM_EventType_t EventType,
+    char const * EventText, ...)
+{
+    /* Check arguments */
+
+    BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent(/* insert args */);
+    
+    return ReturnStatus;
+}
+
+void BPL_EM_Deinitialize(void)
+{
+    /* Clear proxy function pointers */
+    BPL_EM_ProxyCallbacks.Initialize_Impl = NULL;
+    BPL_EM_ProxyCallbacks.SendEvent_Impl = NULL;
+
+    return;
 }
