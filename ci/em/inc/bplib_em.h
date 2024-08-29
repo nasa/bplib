@@ -31,21 +31,26 @@
 /* ======== */
 typedef enum
 {
-    BPLib_EM_EventType_UNKNOWN = 0,
-    BPLib_EM_EventType_DEBUG   = 1,
-    BPLib_EM_EventType_INFO    = 2,
-    BPLib_EM_EventType_WARNING = 3,
-    BPLib_EM_EventType_ERROR   = 4,
-    BPLibEM_EventType_CRITICAL = 5
+    BPLib_EM_EventType_UNKNOWN  = 0,
+    BPLib_EM_EventType_DEBUG    = 1,
+    BPLib_EM_EventType_INFO     = 2,
+    BPLib_EM_EventType_WARNING  = 3,
+    BPLib_EM_EventType_ERROR    = 4,
+    BPLib_EM_EventType_CRITICAL = 5
 } BPLib_EM_EventType_t;
+
+#define BPLIB_EM_MSG_TRUNCATED ('$')
+
+// Defines the max length of the expanded event string
+// Limits:
+// - must be greater than or equal to 2
+// - must be less than or equal to host limit (CFE_MISSION_EVS_MAX_MESSAGE_LENGTH)
+#define BPLIB_EM_MAX_MESSAGE_LENGTH (CFE_MISSION_EVS_MAX_MESSAGE_LENGTH)
 
 /* ================== */
 /* Exported Functions */
 /* ================== */
 BPLib_Status_t BPLib_EM_Init(void);
-
-
-BPLib_Status_t BPLib_EM_Register();
 
 /**
  * \brief Convert event indicators from an integer type to a string
@@ -61,8 +66,10 @@ BPLib_Status_t BPLib_EM_Register();
  *  \return String representation of give event type
  */
 char const* BPLib_EM_EventTypeToString(BPLib_EM_EventType_t Type);
-BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType,
-                                char const * EventText, ...);
-void BPLib_EM_Deinitialize(void);
+
+BPLib_Status_t BPLib_EM_Register();
+
+BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPL_EM_EventType_t EventType,
+                                  char const* EventText, va_list EventTextArgPtr);
 
 #endif /* BPLIB_EM_H */
