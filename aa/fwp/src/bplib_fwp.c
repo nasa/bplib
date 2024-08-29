@@ -57,8 +57,8 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = Callbacks.BPA_TIMEP_GetHostTime;
 
         /* Initialize Event Proxy callbacks */
-        BPLib_FWP_ProxyCallbacks.BPA_EVP_Register  = Callbacks.AA_FWP_EVP_Register;
-        BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent = Callbacks.AA_FWP_EVP_SendEvent;
+        BPLib_FWP_ProxyCallbacks.BPA_EVP_Register  = Callbacks.BPA_EVP_Register;
+        BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent = Callbacks.BPA_EVP_SendEvent;
 
         /* Initialize other proxies' callbacks TODO */
     }

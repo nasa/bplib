@@ -41,8 +41,8 @@ typedef struct
     int64_t (*BPA_TIMEP_GetHostTime)(void);
 
     /* Event Proxy function callbacks */
-    int64_t (*BPA_EVP_Register)(const void* Filters, uint16 NumEventFilters, uint16 FilterScheme);
-    int64_t (*BPA_EVP_SendEvent)(uint16_t EventID, BPL_EM_EventType_t EventType, char const* EventText, ...);
+    BPLib_Status_t (*BPA_EVP_Register)(const void* Filters, uint16_t NumEventFilters, uint16_t FilterScheme);
+    BPLib_Status_t (*BPA_EVP_SendEvent)(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText);
 
     /* Add other proxies' function callbacks here: TODO */
 

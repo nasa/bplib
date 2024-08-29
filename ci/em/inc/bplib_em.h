@@ -25,6 +25,8 @@
 /* Include */
 /* ======= */
 #include "bplib_api_types.h"
+#include "cfe.h"
+#include <stdarg.h>
 
 /* ======== */
 /* Typedefs */
@@ -67,9 +69,9 @@ BPLib_Status_t BPLib_EM_Init(void);
  */
 char const* BPLib_EM_EventTypeToString(BPLib_EM_EventType_t Type);
 
-BPLib_Status_t BPLib_EM_Register();
+BPLib_Status_t BPLib_EM_Register(const void* Filters, uint16_t NumEventFilters, uint16_t FilterScheme);
 
-BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPL_EM_EventType_t EventType,
+BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType,
                                   char const* EventText, va_list EventTextArgPtr);
 
 #endif /* BPLIB_EM_H */
