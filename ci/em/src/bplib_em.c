@@ -69,8 +69,6 @@ BPLib_Status_t BPLib_EM_Register(const void* Filters, uint16_t NumEventFilters, 
 
     Status = BPLIB_SUCCESS;
 
-    /* TODO: Check arguments */
-
     BPLib_FWP_ProxyCallbacks.BPA_EVP_Register(const void* Filters, uint16_t NumEventFilters, uint16_t FilterScheme)
 
     return Status;
