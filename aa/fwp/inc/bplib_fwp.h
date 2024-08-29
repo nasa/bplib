@@ -26,8 +26,6 @@
 */
 
 #include "bplib.h"
-#include "cfe_error.h"
-#include "cfe_tbl_api_typedefs.h"
 
 
 /*
@@ -43,7 +41,7 @@ typedef struct
     int64_t (*BPA_TIMEP_GetHostTime)(void);
 
     /* Table Proxy function callbacks */
-    CFE_Status_t (*BPA_TABLEP_SingleTableUpdate)(CFE_TBL_Handle_t TblHandle);
+    int32_t (*BPA_TABLEP_SingleTableUpdate)(int16_t TblHandle);
     
     /* Add other proxies' function callbacks here: TODO */
 
