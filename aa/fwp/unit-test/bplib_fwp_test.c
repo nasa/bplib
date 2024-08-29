@@ -64,9 +64,9 @@ int64_t BPA_TIMEP_GetHostTime(void)
 }
 
 /* Returns current host time */
-CFE_Status_t BPA_TABLEP_SingleTableUpdate(CFE_TBL_Handle_t TblHandle)
+int32_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle)
 {
-    return CFE_SUCCESS;
+    return 0;
 }
 
 /* Test nominal FWP initialization */
