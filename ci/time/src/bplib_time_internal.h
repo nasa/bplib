@@ -43,12 +43,19 @@
 #define BPLIB_TIME_MAX_BUFFER_LEN (32)
 
 #define BPLIB_TIME_EPOCH_YEAR   (2000)
-#define BPLIB_TIME_EPOCH_DAY    (0)
+#define BPLIB_TIME_EPOCH_DAY    (1)
 #define BPLIB_TIME_EPOCH_HOUR   (0)
 #define BPLIB_TIME_EPOCH_MINUTE (0)
 #define BPLIB_TIME_EPOCH_SECOND (0)
 #define BPLIB_TIME_EPOCH_MSEC   (0)
 
+#define BPLIB_TIME_YEAR_IN_MSEC     ((int64_t) 31536000000)
+#define BPLIB_TIME_DAY_IN_MSEC      ((int64_t) 86400000)
+#define BPLIB_TIME_HOUR_IN_MSEC     ((int64_t) 3600000)
+#define BPLIB_TIME_MINUTE_IN_MSEC   ((int64_t) 60000)
+#define BPLIB_TIME_SECOND_IN_MSEC   ((int64_t) 1000)
+
+#define BPLIB_TIME_INVALID_BOOT_ERA (0xffffffff)
 
 /*
 ** Type Definitions
@@ -60,7 +67,7 @@
 typedef enum
 {
     BPLIB_TIME_UNINIT = 0,      /**< \brief Time Management has not initialized */
-    BPLIB_TIME_INIT   = 0       /**< \brief Time Management has initialized */
+    BPLIB_TIME_INIT   = 1       /**< \brief Time Management has initialized */
 } BPLib_TIME_InitState_t;
 
 /**
@@ -79,7 +86,6 @@ typedef struct
 typedef struct
 {
     int64_t   CurrentCf;                /**< \brief Most recent CF */
-    int32_t   CurrentBootEra;           /**< \brief Number of times time has rebooted */
     int64_t   EpochOffset;              /**< \brief Offset between host and DTN epochs */
     osal_id_t FileHandle;               /**< \brief OSAL handle for time data file */
     BPLib_TIME_InitState_t InitState;   /**< \brief Initialization state of TIME */
@@ -224,5 +230,26 @@ BPLib_Status_t BPLib_TIME_WriteTimeDataToFile(void);
  *  \retval Nonzero Estimated DTN time that may be less than the true time but not greater
  */
 uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime);
+
+/**
+ * \brief Get Safe Epoch Offset
+ *
+ *  \par Description
+ *       Gets the offset between the two epoch values and multiplies them to convert to
+ *       milliseconds. The offset is positive if HostEpoch is greater, negative if
+ *       DtnEpoch is greater.
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ * 
+ *  \param[in] HostEpoch A host epoch value
+ * 
+ *  \param[in] DtnEpoch A DTN epoch value
+ * 
+ *  \param[in] Multiplier Value to multiply offset by to convert offset to milliseconds
+ *
+ *  \return Offset in milliseconds
+ */
+int64_t BPLib_TIME_SafeOffset(int64_t HostEpoch, int64_t DtnEpoch, int64_t Multiplier);
 
 #endif /* BPLIB_TIME_INTERNAL_H */

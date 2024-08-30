@@ -188,7 +188,7 @@ uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime);
  *  \retval BPLIB_TIME_UNDEF_DELTA_ERROR Calculation could not be done
  */
 BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
-                                       BPLib_TIME_MonotonicTime_t Time2, uint64_t *Delta);
+                                       BPLib_TIME_MonotonicTime_t Time2, int64_t *Delta);
 
 /**
  * \brief Time Maintenance Activities

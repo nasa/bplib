@@ -35,15 +35,20 @@
 
 
 /*
+** Global Data
+*/
+
+extern uint32_t TestHostEpochYear;
+extern uint32_t TestHostEpochDay;
+extern int64_t  TestMonotonicTime;
+extern int64_t  TestHostTime;
+
+/*
 ** Macro Definitions
 */
 
 /* Macro to add test case */
 #define ADD_TEST(test) UtTest_Add(test, BPLib_TIME_Test_Setup, BPLib_TIME_Test_Teardown, #test)
-
-#define BPLIB_TIME_TEST_MONOTONIC_TIME_VALUE    ((uint64_t) 1234)
-#define BPLIB_TIME_TEST_HOST_TIME_VALUE         ((uint64_t) 5678)
-
 
 /*
 ** Function Definitions

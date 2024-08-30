@@ -59,20 +59,25 @@ BPLib_Status_t BPLib_TIME_Init(void) {
     /* Get epoch offset (Host Epoch - DTN Epoch) */
     BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch(&HostEpoch);
 
-    YearOffset = HostEpoch.Year - BPLIB_TIME_EPOCH_YEAR;
-    DayOffset = HostEpoch.Day - BPLIB_TIME_EPOCH_DAY;
-    HourOffset = HostEpoch.Hour - BPLIB_TIME_EPOCH_HOUR;
-    MinOffset = HostEpoch.Minute - BPLIB_TIME_EPOCH_MINUTE;
-    SecOffset = HostEpoch.Second - BPLIB_TIME_EPOCH_SECOND;
-    MsecOffset = HostEpoch.Msec - BPLIB_TIME_EPOCH_MSEC;
+    /* Get offsets in milliseconds */
+    YearOffset = BPLib_TIME_SafeOffset(HostEpoch.Year, BPLIB_TIME_EPOCH_YEAR, 
+                                                            BPLIB_TIME_YEAR_IN_MSEC);
+    DayOffset = BPLib_TIME_SafeOffset(HostEpoch.Day, BPLIB_TIME_EPOCH_DAY, 
+                                                            BPLIB_TIME_DAY_IN_MSEC);
+    HourOffset = BPLib_TIME_SafeOffset(HostEpoch.Hour, BPLIB_TIME_EPOCH_HOUR, 
+                                                            BPLIB_TIME_HOUR_IN_MSEC);
+    MinOffset = BPLib_TIME_SafeOffset(HostEpoch.Minute, BPLIB_TIME_EPOCH_MINUTE, 
+                                                            BPLIB_TIME_MINUTE_IN_MSEC);
+    SecOffset = BPLib_TIME_SafeOffset(HostEpoch.Second, BPLIB_TIME_EPOCH_SECOND, 
+                                                            BPLIB_TIME_SECOND_IN_MSEC);
+    MsecOffset = BPLib_TIME_SafeOffset(HostEpoch.Msec, BPLIB_TIME_EPOCH_MSEC, 1);
 
-    /* Calculate epoch offset in milliseconds */
-    BPLib_TIME_GlobalData.EpochOffset  = MsecOffset;
-    BPLib_TIME_GlobalData.EpochOffset += SecOffset  * 1000;
-    BPLib_TIME_GlobalData.EpochOffset += MinOffset  * 1000 * 60;
-    BPLib_TIME_GlobalData.EpochOffset += HourOffset * 1000 * 60 * 60;
-    BPLib_TIME_GlobalData.EpochOffset += DayOffset  * 1000 * 60 * 60 * 24;
-    BPLib_TIME_GlobalData.EpochOffset += YearOffset * 1000 * 60 * 60 * 24 * 365;
+    BPLib_TIME_GlobalData.EpochOffset += YearOffset;
+    BPLib_TIME_GlobalData.EpochOffset += DayOffset;
+    BPLib_TIME_GlobalData.EpochOffset += HourOffset;
+    BPLib_TIME_GlobalData.EpochOffset += MinOffset;
+    BPLib_TIME_GlobalData.EpochOffset += SecOffset;
+    BPLib_TIME_GlobalData.EpochOffset += MsecOffset;
 
     /* TODO add missing leap days........... */
 
@@ -96,7 +101,7 @@ BPLib_Status_t BPLib_TIME_Init(void) {
 /* Get monotonic time from Time Proxy */
 void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
 {
-    if (MonotonicTime != NULL)
+    if (BPLib_TIME_GlobalData.InitState == BPLIB_TIME_INIT && MonotonicTime != NULL)
     {
         MonotonicTime->BootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra;
         MonotonicTime->Time = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
@@ -164,7 +169,7 @@ uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
 
 /* Get delta between two provided monotonic times */
 BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
-                                       BPLib_TIME_MonotonicTime_t Time2, uint64_t *Delta)
+                                       BPLib_TIME_MonotonicTime_t Time2, int64_t *Delta)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     uint64_t EstDtnTime1;
@@ -216,16 +221,13 @@ BPLib_Status_t BPLib_TIME_MaintenanceActivities(void)
     /* If a valid CF was calculated */
     if (NewCf != 0)
     {
-        /* If CF has changed, update CF in ring buffer */
-        if (NewCf != BPLib_TIME_GlobalData.CurrentCf)
-        {
-            BPLib_TIME_SetCfInBuffer(NewCf, BootEra);
-        }
-
         CurrMonotonicTime = BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime();
 
+        /* Update CF and Last Valid DTN time in ring buffers */
+        BPLib_TIME_SetCfInBuffer(NewCf, BootEra);
         BPLib_TIME_SetDtnTimeInBuffer((uint64_t) (CurrMonotonicTime + NewCf), BootEra);
 
+        /* Write new ring buffers to time data file */
         Status = BPLib_TIME_WriteTimeDataToFile();
     }
 

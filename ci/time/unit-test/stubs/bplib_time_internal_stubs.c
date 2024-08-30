@@ -61,6 +61,24 @@ uint64_t BPLib_TIME_GetDtnTimeFromBuffer(uint32_t BootEra)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_SafeOffset()
+ * ----------------------------------------------------
+ */
+int64_t BPLib_TIME_SafeOffset(int64_t HostEpoch, int64_t DtnEpoch, int64_t Multiplier)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_SafeOffset, int64_t);
+
+    UT_GenStub_AddParam(BPLib_TIME_SafeOffset, int64_t, HostEpoch);
+    UT_GenStub_AddParam(BPLib_TIME_SafeOffset, int64_t, DtnEpoch);
+    UT_GenStub_AddParam(BPLib_TIME_SafeOffset, int64_t, Multiplier);
+
+    UT_GenStub_Execute(BPLib_TIME_SafeOffset, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_SafeOffset, int64_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_TIME_GetEstimatedDtnTime()
  * ----------------------------------------------------
  */

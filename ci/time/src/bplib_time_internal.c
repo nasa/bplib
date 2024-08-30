@@ -78,14 +78,14 @@ BPLib_Status_t BPLib_TIME_ReadTimeDataFromFile(void)
         if (OsalStatus < 0)
         {
             Status = BPLIB_TIME_READ_ERROR;
-        }        
+        }
+
+        (void) OS_close(BPLib_TIME_GlobalData.FileHandle);
     }
     else 
     {
         Status = BPLIB_TIME_READ_ERROR;
     }
-
-    (void) OS_close(BPLib_TIME_GlobalData.FileHandle);
 
     return Status;
 }
@@ -107,14 +107,14 @@ BPLib_Status_t BPLib_TIME_WriteTimeDataToFile(void)
         if (OsalStatus < 0)
         {
             Status = BPLIB_TIME_WRITE_ERROR;
-        }        
+        }
+
+        (void) OS_close(BPLib_TIME_GlobalData.FileHandle);
     }
     else 
     {
         Status = BPLIB_TIME_WRITE_ERROR;
     }
-
-    (void) OS_close(BPLib_TIME_GlobalData.FileHandle);
 
     return Status;
 }
@@ -126,8 +126,8 @@ uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime
     uint64_t EstCf = 0;
     uint64_t EstDtnTime = (uint64_t) MonotonicTime.Time;
 
-    /* A boot era of -1 indicates an absolute DTN time was passed in */
-    if (MonotonicTime.BootEra != -1)
+    /* An invalid boot era indicates an absolute DTN time was passed in */
+    if (MonotonicTime.BootEra != BPLIB_TIME_INVALID_BOOT_ERA)
     {
         CF = BPLib_TIME_GetCfFromBuffer(MonotonicTime.BootEra);
 
@@ -153,4 +153,27 @@ uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime
     }
 
     return EstDtnTime;
+}
+
+/* Safe conversion of epoch offsets */
+int64_t BPLib_TIME_SafeOffset(int64_t HostEpoch, int64_t DtnEpoch, int64_t Multiplier)
+{
+    int64_t Offset;
+    int8 Sign;
+
+    if (HostEpoch < DtnEpoch)
+    {
+        Sign = -1;
+        Offset = DtnEpoch - HostEpoch;
+    }
+    else 
+    {
+        Sign = 1;
+        Offset = HostEpoch - DtnEpoch;
+    }
+
+    Offset *= Multiplier;
+    Offset *= Sign;
+
+    return Offset;
 }
