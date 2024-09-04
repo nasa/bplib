@@ -54,24 +54,9 @@ typedef enum
 /* ================== */
 BPLib_Status_t BPLib_EM_Init(void);
 
-/**
- * \brief Convert event indicators from an integer type to a string
- *
- *  \par Description
- *       Take in an integer-type and translate it into a string
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- * 
- *  \param[in] Type Integer value of an event type
- *
- *  \return String representation of give event type
- */
-char const* BPLib_EM_EventTypeToString(BPLib_EM_EventType_t Type);
-
 BPLib_Status_t BPLib_EM_Register(const void* Filters, uint16_t NumEventFilters, uint16_t FilterScheme);
 
 BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType,
-                                  char const* EventText, va_list EventTextArgPtr);
+                                    char const* EventText, va_list EventTextArgPtr);
 
 #endif /* BPLIB_EM_H */

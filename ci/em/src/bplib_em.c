@@ -32,37 +32,8 @@
 BPLib_Status_t BPLib_EM_Init(void)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
+
     return Status;
-}
-
-char const* BPLib_EM_EventTypeToString(BPLib_EM_EventType_t Type)
-{
-    // BPLib_EM_EventTypeStrings should always match BPLib_EM_EventType_t.
-    static char const * BPLib_EM_EventTypeStrings[] = {
-        "UNKNOWN",
-        "DEBUG",
-        "INFO",
-        "WARNING",
-        "ERROR",
-        "CRITICAL"
-    };
-
-    switch (Type)
-    {
-        case BPLib_EM_EventType_DEBUG:
-            return BPLib_EM_EventTypeStrings[1];
-        case BPLib_EM_EventType_INFO:
-            return BPLib_EM_EventTypeStrings[2];
-        case BPLib_EM_EventType_WARNING:
-            return BPLib_EM_EventTypeStrings[3];
-        case BPLib_EM_EventType_ERROR:
-            return BPLib_EM_EventTypeStrings[4];
-        case BPLib_EM_EventType_CRITICAL:
-            return BPLib_EM_EventTypeStrings[5];
-        default:
-            /* This default case also captures the BPL_EM_EventType_UNKNOWN case. */
-            return BPLib_EM_EventTypeStrings[0];
-    }
 }
 
 BPLib_Status_t BPLib_EM_Register(const void* Filters, uint16_t NumEventFilters, uint16_t FilterScheme)
@@ -77,18 +48,14 @@ BPLib_Status_t BPLib_EM_Register(const void* Filters, uint16_t NumEventFilters, 
 }
 
 BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType,
-                                  char const* EventText, va_list EventTextArgPtr)
+                                    char const* EventText, va_list EventTextArgPtr)
 {
     BPLib_Status_t Status;
-    // char const* EventTypeString;
     char ExpandedEventText[BPLIB_EM_MAX_MESSAGE_LENGTH];
     int ExpandedLength;
 
     // Initialize Status to BPLIB_SUCCESS
     Status = BPLIB_SUCCESS;
-
-    // Grab the stringified event type
-    // EventTypeString = BPLib_EM_EventTypeToString(EventType);
 
     // Verify that the max message length for EM is more than a truncation character and >= the pre-defined
     // max length of an EVS message according to CFE
@@ -108,7 +75,6 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
             ExpandedEventText[sizeof(ExpandedEventText) - 2u] = BPLIB_EM_MSG_TRUNCATED;
         }
 
-        // BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent(EventID, EventTypeString, ExpandedEventText);
         BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent(EventID, EventType, ExpandedEventText);
     }
 
