@@ -54,8 +54,6 @@ typedef enum
 /* ================== */
 BPLib_Status_t BPLib_EM_Init(void);
 
-BPLib_Status_t BPLib_EM_Register(const void* Filters, uint16_t NumEventFilters, uint16_t FilterScheme);
-
 BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType,
                                     char const* EventText, va_list EventTextArgPtr);
 

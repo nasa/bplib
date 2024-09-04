@@ -31,18 +31,11 @@
 /* ================== */
 BPLib_Status_t BPLib_EM_Init(void)
 {
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-
-    return Status;
-}
-
-BPLib_Status_t BPLib_EM_Register(const void* Filters, uint16_t NumEventFilters, uint16_t FilterScheme)
-{
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    BPLib_FWP_ProxyCallbacks.BPA_EVP_Register(Filters, NumEventFilters, FilterScheme);
+    BPLib_FWP_ProxyCallbacks.BPA_EVP_Init();
 
     return Status;
 }
