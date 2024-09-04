@@ -40,6 +40,9 @@ typedef struct
     BPLib_TIME_ClockState_t (*BPA_TIMEP_GetHostClockState)(void);
     int64_t (*BPA_TIMEP_GetHostTime)(void);
 
+    /* Table Proxy function callbacks */
+    int32_t (*BPA_TABLEP_SingleTableUpdate)(int16_t TblHandle);
+    
     /* Add other proxies' function callbacks here: TODO */
 
 } BPLib_FWP_ProxyCallbacks_t;
