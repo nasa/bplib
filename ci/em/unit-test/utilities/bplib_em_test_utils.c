@@ -18,15 +18,14 @@
  *
  */
 
-/*
-** Include
-*/
-
+/* ======== */
+/* Includes */
+/* ======== */
 #include "bplib_em_test_utils.h"
 
-/*
-** Function Definitions
-*/
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
 
 void BPLib_EM_Test_Setup(void)
 {
