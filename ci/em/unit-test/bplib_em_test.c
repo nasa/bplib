@@ -18,23 +18,48 @@
  *
  */
 
-/*
- * Include
- */
-
+/* ======== */
+/* Includes */
+/* ======== */
 #include "bplib_em_test_utils.h"
 
-/*
-** Test function for
-** int BPLib_EM_Init()
-*/
-void Test_BPLib_EM_Init(void)
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
+
+void Test_BPLib_EM_Init_Nominal(void)
 {
-    UtAssert_INT32_EQ(BPLib_EM_Init(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_Init();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
+void Test_BPA_EM_SendEvent_Nominal(void)
+{
+    /* INFO, ERROR, DEBUG, CRITICAL events, each with a digit, string, then digit AND string for formatted string replacements */
+    // UT_CHECKEVENT_SETUP(&EventTest, 42, "INFO event message test");
+}
+
+void Test_BPA_EM_SendEvent_TruncatedString(void)
+{
+    /* TODO: - Create char array of size BPLIB_EM_MAX_MESSAGE_LENGTH + 5 */
+    /*       - Loop over array assigning each element in array to A (set last character to H) */
+    /*       - Pass character array to BPLib_EM_SendEvent as EventText argument */
+
+    /* Create a string that will be truncated */
+    // char LongString[BPLIB_EM_MAX_MESSAGE_LENGTH + 5];
+}
+
+void Test_BPA_EVP_SendEvent_LenError(void)
+{
+    /* TODO: Test if len < 2 */
+    /* TODO: test if len > mission max len */
+}
 
 void TestBplibEm_Register(void)
 {
-    UtTest_Add(Test_BPLib_EM_Init, BPLib_EM_Test_Setup, BPLib_EM_Test_Teardown, "Test_BPLib_EM_Init");
+    ADD_TEST(Test_BPLib_EM_Init_Nominal);
 }

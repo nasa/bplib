@@ -33,6 +33,8 @@ BPLib_Status_t BPLib_EM_Init(void)
 {
     BPLib_Status_t Status;
 
+    /* Initialize the Status as BPLIB_SUCCESS and
+       leave open to change under future circumstances */
     Status = BPLIB_SUCCESS;
 
     BPLib_FWP_ProxyCallbacks.BPA_EVP_Init();
