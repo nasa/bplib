@@ -21,22 +21,25 @@
 #ifndef BPLIB_EM_TEST_UTILS_H
 #define BPLIB_EM_TEST_UTILS_H
 
-/*
-** Include
-*/
-
+/* ======== */
+/* Includes */
+/* ======== */
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
 
+#include "bplib_api_types.h"
 #include "bplib.h"
 #include "bplib_em.h"
 
+/* ====== */
+/* Macros */
+/* ====== */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_EM_Test_Setup, BPLib_EM_Test_Teardown, #test)
 
-/*
-** Function Definitions
-*/
-
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
 void BPLib_EM_Test_Setup(void);
 void BPLib_EM_Test_Teardown(void);
 
