@@ -47,8 +47,9 @@ typedef int32_t BPLib_Status_t;
 */
 
 /* General Return Codes */
-#define BPLIB_SUCCESS                       ((BPLib_Status_t) 0)
+#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -2)
 #define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -1)
+#define BPLIB_SUCCESS                       ((BPLib_Status_t) 0)
 #define BPLIB_ERROR                         ((BPLib_Status_t) 1)
 
 /* Framework Proxy Errors */
@@ -58,6 +59,14 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) 3)
 #define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) 4)
 #define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) 5)
+
+/* Event Management Errors */
+#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) 06u)
+#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) 07u)
+#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) 08u)
+#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) 09u)
+#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) 10u)
+#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) 11u)
 
 #ifdef __cplusplus
 } // extern "C"
