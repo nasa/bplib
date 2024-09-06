@@ -448,9 +448,13 @@ void TestBplibTimeInternal_Register(void)
     
     ADD_TEST(Test_BPLib_TIME_GetDtnTimeFromBuffer_Nominal);
     ADD_TEST(Test_BPLib_TIME_GetDtnTimeFromBuffer_WrapAround);
-    
+    ADD_TEST(Test_BPLib_TIME_GetDtnTimeFromBuffer_TooBig);
+    ADD_TEST(Test_BPLib_TIME_GetDtnTimeFromBuffer_TooSmall);
+
     ADD_TEST(Test_BPLib_TIME_SetDtnTimeInBuffer_Nominal);
     ADD_TEST(Test_BPLib_TIME_SetDtnTimeInBuffer_WrapAround);
+    ADD_TEST(Test_BPLib_TIME_SetDtnTimeInBuffer_TooBig);
+    ADD_TEST(Test_BPLib_TIME_SetDtnTimeInBuffer_TooSmall);
     
     ADD_TEST(Test_BPLib_TIME_ReadTimeDataFromFile_Nominal);
     ADD_TEST(Test_BPLib_TIME_ReadTimeDataFromFile_FailOpen);

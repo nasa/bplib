@@ -381,6 +381,7 @@ void Test_BPLib_TIME_GetTimeDelta_InvalidDelta1(void)
     BPLib_TIME_GlobalData.TimeData.CfRingBuff[1] = 0;
     BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[1] = 0;
     BPLib_TIME_GlobalData.TimeData.CfRingBuff[2] = 1500;
+    BPLib_TIME_GlobalData.TimeData.CurrBootEra = 3;
     
     /* Set test data */
     Time1.BootEra = 1;
@@ -405,6 +406,7 @@ void Test_BPLib_TIME_GetTimeDelta_InvalidDelta2(void)
     BPLib_TIME_GlobalData.TimeData.CfRingBuff[1] = 20;
     BPLib_TIME_GlobalData.TimeData.CfRingBuff[2] = 0;
     BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[2] = 0;
+    BPLib_TIME_GlobalData.TimeData.CurrBootEra = 3;
     
     /* Set test data */
     Time1.BootEra = 1;
