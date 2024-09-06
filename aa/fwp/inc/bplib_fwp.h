@@ -44,6 +44,9 @@ typedef struct
     void (*BPA_PERFLOGP_Entry)(uint32_t PerfLogID);
     void (*BPA_PERFLOGP_Exit)(uint32_t PerfLogID);
 
+    /* Table Proxy function callbacks */
+    int32_t (*BPA_TABLEP_SingleTableUpdate)(int16_t TblHandle);
+    
     /* Add other proxies' function callbacks here: TODO */
 
 } BPLib_FWP_ProxyCallbacks_t;
