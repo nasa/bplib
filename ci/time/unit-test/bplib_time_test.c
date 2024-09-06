@@ -59,6 +59,43 @@ void Test_BPLib_TIME_Init_Nominal(void)
     UtAssert_STUB_COUNT(OS_read, 1);
 }
 
+/* Test that BPLib_TIME_Init does not initialize if BPA_TIMEP_GetMonotonicTime is null */
+void Test_BPLib_TIME_Init_ProxyNull1(void)
+{
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime = NULL;
+
+    UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_TIME_UNINIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_TIME_GlobalData.InitState, BPLIB_TIME_UNINIT);
+}
+
+
+/* Test that BPLib_TIME_Init does not initialize if BPA_TIMEP_GetHostEpoch is null */
+void Test_BPLib_TIME_Init_ProxyNull2(void)
+{
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch = NULL;
+
+    UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_TIME_UNINIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_TIME_GlobalData.InitState, BPLIB_TIME_UNINIT);
+}
+
+/* Test that BPLib_TIME_Init does not initialize if BPA_TIMEP_GetHostClockState is null */
+void Test_BPLib_TIME_Init_ProxyNull3(void)
+{
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = NULL;
+
+    UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_TIME_UNINIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_TIME_GlobalData.InitState, BPLIB_TIME_UNINIT);
+}
+
+/* Test that BPLib_TIME_Init does not initialize if BPA_TIMEP_GetHostTime is null */
+void Test_BPLib_TIME_Init_ProxyNull4(void)
+{
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = NULL;
+
+    UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_TIME_UNINIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_TIME_GlobalData.InitState, BPLIB_TIME_UNINIT);
+}
+
 /* Test that BPLib_TIME_Init does not initialize if reading the time data fails */
 void Test_BPLib_TIME_Init_FailedRead(void)
 {
@@ -316,6 +353,7 @@ void Test_BPLib_TIME_GetTimeDelta_DiffBootEra(void)
     /* Set global data */
     BPLib_TIME_GlobalData.TimeData.CfRingBuff[1] = 20;
     BPLib_TIME_GlobalData.TimeData.CfRingBuff[2] = 1500;
+    BPLib_TIME_GlobalData.TimeData.CurrBootEra = 3;
     
     /* Set test data */
     Time1.BootEra = 1;
@@ -432,6 +470,10 @@ void Test_BPLib_TIME_MaintenanceActivities_NewCf(void)
 void TestBplibTime_Register(void)
 {
     ADD_TEST(Test_BPLib_TIME_Init_Nominal);
+    ADD_TEST(Test_BPLib_TIME_Init_ProxyNull1);
+    ADD_TEST(Test_BPLib_TIME_Init_ProxyNull2);
+    ADD_TEST(Test_BPLib_TIME_Init_ProxyNull3);
+    ADD_TEST(Test_BPLib_TIME_Init_ProxyNull4);
     ADD_TEST(Test_BPLib_TIME_Init_FailedRead);
 
     ADD_TEST(Test_BPLib_TIME_GetMonotonicTime_Nominal);

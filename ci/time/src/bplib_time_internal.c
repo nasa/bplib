@@ -40,25 +40,49 @@
 /* Read a CF from the ring buffer */
 int64_t BPLib_TIME_GetCfFromBuffer(uint32_t BootEra)
 {
-    return BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
+    if (BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra && 
+        (int32_t) BootEra > (int32_t) (BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN))
+    {
+        return BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
+    }
+
+    return 0;
 }
 
 /* Set a CF value in the ring buffer */
 void BPLib_TIME_SetCfInBuffer(int64_t CF, uint32_t BootEra)
 {
-    BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = CF;
+    if (BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra && 
+        (int32_t) BootEra > (int32_t) (BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN))
+    {
+        BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = CF;
+    }
+
+    return;
 }
 
 /* Read a last valid DTN time from the ring buffer file */
 uint64_t BPLib_TIME_GetDtnTimeFromBuffer(uint32_t BootEra)
 {
-    return BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
+    if (BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra && 
+        (int32_t) BootEra > (int32_t) (BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN))
+    {
+        return BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
+    }
+
+    return 0;
 }
 
 /* Set a last valid DTN time value in the ring buffer */
 void BPLib_TIME_SetDtnTimeInBuffer(uint64_t DtnTime, uint32_t BootEra)
 {
-    BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = DtnTime;
+    if (BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra && 
+        (int32_t) BootEra > (int32_t) (BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN))
+    {
+        BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = DtnTime;
+    }
+
+    return;
 }
 
 /* Read current time data from file */
@@ -124,31 +148,33 @@ uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime
 {
     int64_t  CF = 0;
     uint64_t EstCf = 0;
-    uint64_t EstDtnTime = (uint64_t) MonotonicTime.Time;
+    uint64_t EstDtnTime = 0; /* Return 0 if all following checks fail */
 
-    /* An invalid boot era indicates an absolute DTN time was passed in */
-    if (MonotonicTime.BootEra != BPLIB_TIME_INVALID_BOOT_ERA)
+    /* An invalid boot era indicates an absolute DTN time was passed in, return that */
+    if (MonotonicTime.BootEra == BPLIB_TIME_INVALID_BOOT_ERA)
+    {
+        EstDtnTime = (uint64_t) MonotonicTime.Time;
+    }
+    else
     {
         CF = BPLib_TIME_GetCfFromBuffer(MonotonicTime.BootEra);
 
-        /* If no valid CF found, try to get a last valid DTN time to use instead */
-        if (CF == 0 && MonotonicTime.BootEra != 0)
+        /* If a nonzero CF can be found, return an exact DTN time */
+        if (CF != 0)
+        {
+            EstDtnTime = (uint64_t) (MonotonicTime.Time + CF);
+        }
+        /* If no valid CF found, try the last valid DTN time from previous boot era */
+        else
         {
             EstCf = BPLib_TIME_GetDtnTimeFromBuffer(MonotonicTime.BootEra - 1);
 
-            /* If no valid value for a CF can be found, return 0 */
-            if (EstCf == 0)
+            /* Get an estimated DTN time using a last valid DTN time value */
+            if (EstCf != 0)
             {
-                return 0;
+                EstDtnTime = ((uint64_t) MonotonicTime.Time) + EstCf;
             }
-            else
-            {
-                EstDtnTime += EstCf;
-            }
-        }
-        else
-        {
-            EstDtnTime += (uint64_t) CF;
+            /* Else return 0 */
         }
     }
 

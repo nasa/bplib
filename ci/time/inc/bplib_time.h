@@ -43,6 +43,12 @@
 */
 #define BPLIB_TIME_FILE_NAME "/cf/bplib_time.dat"
 
+/**
+** \brief Length of the time data ring buffers
+*/
+#define BPLIB_TIME_MAX_BUFFER_LEN (32)
+
+
 /*
 ** Type Definitions
 */
@@ -56,12 +62,12 @@
 */
 typedef struct
 {
-    uint32_t Year;
-    uint32_t Day;
-    uint32_t Hour;
-    uint32_t Minute;
-    uint32_t Second;
-    uint32_t Msec;
+    uint16_t Year;
+    uint16_t Day;
+    uint16_t Hour;
+    uint16_t Minute;
+    uint16_t Second;
+    uint16_t Msec;
 
 } BPLib_TIME_Epoch_t;
 
@@ -97,13 +103,17 @@ typedef struct
  * \brief Time Management initialization
  *
  *  \par Description
- *       TIME initialization function
+ *       Initialize Time Management by initializing global memory, calculating the epoch 
+ *       offset, reading in the contents of the time data file, incrementing the boot era,
+ *       and performing the maintenance activities.
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
+ *  \retval BPLIB_TIME_READ_ERROR Error reading in the time data file
+ *  \retval BPLIB_TIME_WRITE_ERROR Error writing to the time data file
  */
 BPLib_Status_t BPLib_TIME_Init(void);
 
@@ -114,7 +124,7 @@ BPLib_Status_t BPLib_TIME_Init(void);
  *       Gets current monotonic time and boot era
  *
  *  \par Assumptions, External Events, and Notes:
- *       None
+ *       - Time Management must already be initialized (see BPLib_TIME_Init)
  * 
  *  \param[in] MonotonicTime Pointer to time struct to populate
  */
@@ -128,7 +138,7 @@ void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime);
  *       CF = (Host_Time - Monotonic_Time) + Epoch_Offset
  *
  *  \par Assumptions, External Events, and Notes:
- *       None
+ *       - Time Management must already be initialized (see BPLib_TIME_Init)
  *
  *  \return Correlation Factor
  */
@@ -141,7 +151,7 @@ int64_t  BPLib_TIME_CalculateCorrelationFactor(void);
  *       Returns current Correlation Factor (CF)
  *
  *  \par Assumptions, External Events, and Notes:
- *       None
+ *       - Time Management must already be initialized (see BPLib_TIME_Init)
  *
  *  \return Correlation Factor
  */
@@ -155,7 +165,7 @@ int64_t  BPLib_TIME_GetCorrelationFactor(void);
  *       DTN_Time = Monotonic_Time + CF
  *
  *  \par Assumptions, External Events, and Notes:
- *       None
+ *       - Time Management must already be initialized (see BPLib_TIME_Init)
  * 
  *  \param[in] MonotonicTime Monotonic time to convert to DTN time
  *
@@ -177,12 +187,14 @@ uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime);
  *       - Else, return an error.
  *
  *  \par Assumptions, External Events, and Notes:
- *       None
+ *       - Time Management must already be initialized (see BPLib_TIME_Init)
  * 
  *  \param[in] Time1 First time value
  * 
  *  \param[in] Time2 Second time value, subtracted from Time1
  *
+ *  \param[in] Delta Pointer to delta value to be set
+ * 
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Calculation was successful
  *  \retval BPLIB_TIME_UNDEF_DELTA_ERROR Calculation could not be done
@@ -202,10 +214,11 @@ BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
  *  \par Assumptions, External Events, and Notes:
  *       - Maintenance activities should be triggered by some external signal 
  *         on a regular basis
+ *       = Time Management must already be initialized (see BPLib_TIME_Init)
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Maintenance activities were successful
- *  \retval BPLIB_TIME_WRITE_ERROR Error writing to the ring buffer file
+ *  \retval BPLIB_TIME_WRITE_ERROR Error writing to the time data file
  */
 BPLib_Status_t BPLib_TIME_MaintenanceActivities(void);
 

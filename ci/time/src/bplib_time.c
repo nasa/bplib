@@ -32,7 +32,6 @@
 #include "bplib_time_internal.h"
 #include "bplib_fwp.h"
 
-#include "osapi.h"
 #include <string.h>
 
 
@@ -55,6 +54,17 @@ BPLib_Status_t BPLib_TIME_Init(void) {
 
     /* Clear memory */
     memset(&BPLib_TIME_GlobalData, 0, sizeof(BPLib_TIME_GlobalData_t));
+
+    /* Verify that all proxy callbacks have been already set */
+    if (BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime == NULL ||
+        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch == NULL ||
+        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState == NULL ||
+        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime == NULL)
+    {
+        BPLib_TIME_GlobalData.InitState = BPLIB_TIME_UNINIT;
+
+        return BPLIB_TIME_UNINIT_ERROR;
+    }
 
     /* Get epoch offset (Host Epoch - DTN Epoch) */
     BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch(&HostEpoch);
@@ -98,7 +108,7 @@ BPLib_Status_t BPLib_TIME_Init(void) {
     return Status;
 }
 
-/* Get monotonic time from Time Proxy */
+/* Get monotonic time */
 void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
 {
     if (BPLib_TIME_GlobalData.InitState == BPLIB_TIME_INIT && MonotonicTime != NULL)
@@ -138,8 +148,8 @@ int64_t BPLib_TIME_GetCorrelationFactor(void)
 /* Convert provided monotonic time to DTN time */
 uint64_t BPLib_TIME_GetDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
 {
-    int64_t  CF      = 0;
     uint64_t DtnTime = 0;
+    int64_t  CF      = 0;
 
     /* Return 0 if time has not been initialized */
     if (BPLib_TIME_GlobalData.InitState != BPLIB_TIME_INIT)
@@ -172,8 +182,7 @@ BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
                                        BPLib_TIME_MonotonicTime_t Time2, int64_t *Delta)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-    uint64_t EstDtnTime1;
-    uint64_t EstDtnTime2;
+    uint64_t EstDtnTime1, EstDtnTime2;
 
     /* Return 0 if time has not been initialized */
     if (BPLib_TIME_GlobalData.InitState != BPLIB_TIME_INIT)
@@ -211,10 +220,10 @@ BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
 /* Perform time maintenance activities */
 BPLib_Status_t BPLib_TIME_MaintenanceActivities(void)
 {
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-    int64_t NewCf;
-    int64_t CurrMonotonicTime;
-    uint32_t BootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra;
+    BPLib_Status_t Status  = BPLIB_SUCCESS;
+    uint32_t       BootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra;
+    int64_t        NewCf;
+    int64_t        CurrMonotonicTime;
 
     NewCf = BPLib_TIME_CalculateCorrelationFactor();
 
