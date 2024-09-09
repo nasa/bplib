@@ -21,6 +21,10 @@
 #ifndef V7_MPOOL_BUNDLE_BLOCKS_H
 #define V7_MPOOL_BUNDLE_BLOCKS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <string.h>
 
 #include "v7_mpool.h"
@@ -274,5 +278,9 @@ void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *cc
  */
 size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
                                       size_t max_count);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_MPOOL_BUNDLE_BLOCKS_H */

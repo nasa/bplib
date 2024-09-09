@@ -21,6 +21,10 @@
 #ifndef V7_TYPES_H
 #define V7_TYPES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -280,5 +284,9 @@ typedef struct bp_canonical_block_buffer
     bp_canonical_bundle_block_t canonical_block; /* always present */
     bp_canonical_block_data_t   data;            /* variable data field, depends on type */
 } bp_canonical_block_buffer_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_TYPES_H */

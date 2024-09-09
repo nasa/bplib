@@ -21,6 +21,11 @@
 #ifndef V7_CODEC_H
 #define V7_CODEC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -34,5 +39,9 @@
 size_t v7_compute_full_bundle_size(bplib_mpool_bblock_primary_t *cpb);
 size_t v7_copy_full_bundle_out(bplib_mpool_bblock_primary_t *cpb, void *buffer, size_t buf_sz);
 size_t v7_copy_full_bundle_in(bplib_mpool_bblock_primary_t *cpb, const void *buffer, size_t buf_sz);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* V7_CODEC_H */

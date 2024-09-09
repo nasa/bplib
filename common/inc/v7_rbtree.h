@@ -21,6 +21,9 @@
 #ifndef V7_RBTREE_H
 #define V7_RBTREE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
@@ -316,5 +319,9 @@ bp_val_t bplib_rbt_get_key_value(const bplib_rbt_link_t *node);
  * @return false If the node is black
  */
 bool bplib_rbt_node_is_red(const bplib_rbt_link_t *node);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RB_TREE_H */
