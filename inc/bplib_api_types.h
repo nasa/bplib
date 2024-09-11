@@ -61,10 +61,10 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) 5)
 
 /* Event Management Errors */
-#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) 06u)
-#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) 07u)
-#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) 08u)
-#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) 09u)
+#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t)  6u)
+#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t)  7u)
+#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t)  8u)
+#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t)  9u)
 #define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) 10u)
 #define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) 11u)
 #define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) 12u) /* Make BPLIB_SUCCESS? */
