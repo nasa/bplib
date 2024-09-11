@@ -46,7 +46,7 @@
 /**
 ** \brief Length of the time data ring buffers
 */
-#define BPLIB_TIME_MAX_BUFFER_LEN (32)
+#define BPLIB_TIME_MAX_BUFFER_LEN   32
 
 
 /*
@@ -214,7 +214,7 @@ BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
  *  \par Assumptions, External Events, and Notes:
  *       - Maintenance activities should be triggered by some external signal 
  *         on a regular basis
- *       = Time Management must already be initialized (see BPLib_TIME_Init)
+ *       - Time Management must already be initialized (see BPLib_TIME_Init)
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Maintenance activities were successful

@@ -369,7 +369,7 @@ void Test_BPLib_TIME_GetTimeDelta_DiffBootEra(void)
     UtAssert_EQ(int64_t, Delta, ExpDelta);
 }
 
-/* Test that the an error is returned when no delta can be calculated for Time1 */
+/* Test that an error is returned when no delta can be calculated for Time1 */
 void Test_BPLib_TIME_GetTimeDelta_InvalidDelta1(void)
 {
     BPLib_TIME_MonotonicTime_t Time1;

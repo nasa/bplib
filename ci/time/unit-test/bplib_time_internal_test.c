@@ -171,11 +171,6 @@ void Test_BPLib_TIME_GetDtnTimeFromBuffer_Nominal(void)
     BootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra - 1;
     BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = ExpDtnTime;
 
-    UtAssert_True(true, "BootEra=%d, CurrBootEra=%d, MinBootEra=%d, Idx=%d\n",
-                BootEra, BPLib_TIME_GlobalData.TimeData.CurrBootEra,
-                BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN,
-                BootEra % BPLIB_TIME_MAX_BUFFER_LEN);
-
     UtAssert_EQ(int64_t, BPLib_TIME_GetDtnTimeFromBuffer(BootEra), ExpDtnTime);
 }
 

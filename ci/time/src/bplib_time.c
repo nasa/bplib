@@ -137,6 +137,7 @@ int64_t BPLib_TIME_CalculateCorrelationFactor(void)
 /* Get current correlation factor */
 int64_t BPLib_TIME_GetCorrelationFactor(void)
 {
+    /* Get the current CF set by the Time maintenance activities */
     if (BPLib_TIME_GlobalData.InitState == BPLIB_TIME_INIT)
     {
         return BPLib_TIME_GlobalData.CurrentCf;
@@ -184,7 +185,7 @@ BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
     BPLib_Status_t Status = BPLIB_SUCCESS;
     uint64_t EstDtnTime1, EstDtnTime2;
 
-    /* Return 0 if time has not been initialized */
+    /* Return error if time has not been initialized */
     if (BPLib_TIME_GlobalData.InitState != BPLIB_TIME_INIT)
     {
         return BPLIB_TIME_UNINIT_ERROR;
@@ -208,6 +209,7 @@ BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1,
 
             Status = BPLIB_TIME_UNDEF_DELTA_ERROR;
         }
+        /* Else return estimated DTN time */
         else
         {
             *Delta = EstDtnTime1 - EstDtnTime2;
