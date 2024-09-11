@@ -42,12 +42,12 @@ BPLib_Status_t BPLib_EM_Init(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType,
-                                    char const* EventText, va_list EventTextArgPtr)
+BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText, ...)
 {
     BPLib_Status_t Status;
     char ExpandedEventText[BPLIB_EM_MAX_MESSAGE_LENGTH];
     int ExpandedLength;
+    va_list EventTextArgPtr;
 
     // Initialize Status to BPLIB_SUCCESS
     Status = BPLIB_SUCCESS;
@@ -60,6 +60,8 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
     }
     else
     {
+        va_start(EventTextArgPtr, EventText);
+
         memset(&ExpandedEventText, 0, sizeof(ExpandedEventText));
         ExpandedLength = vsnprintf((char*)ExpandedEventText, sizeof(ExpandedEventText),
                                    EventText, EventTextArgPtr);
@@ -68,10 +70,11 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
         {
             // Mark character before zero terminator to indicate truncation
             ExpandedEventText[sizeof(ExpandedEventText) - 2u] = BPLIB_EM_MSG_TRUNCATED;
-            Status = BPLIB_EM_STRING_TRUNCATED
+            Status = BPLIB_EM_STRING_TRUNCATED;
         }
 
         BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent(EventID, EventType, ExpandedEventText);
+        va_end(EventTextArgPtr);
     }
 
     return Status;
