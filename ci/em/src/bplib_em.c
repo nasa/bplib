@@ -68,6 +68,7 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
         {
             // Mark character before zero terminator to indicate truncation
             ExpandedEventText[sizeof(ExpandedEventText) - 2u] = BPLIB_EM_MSG_TRUNCATED;
+            Status = BPLIB_EM_STRING_TRUNCATED
         }
 
         BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent(EventID, EventType, ExpandedEventText);

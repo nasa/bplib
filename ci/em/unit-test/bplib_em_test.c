@@ -23,6 +23,9 @@
 /* ======== */
 #include "bplib_em_test_utils.h"
 
+/* Global Variables */
+UT_CheckEvent_t EventTest;
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -39,7 +42,6 @@ void Test_BPLib_EM_Init_Nominal(void)
 
 void Test_BPA_EM_SendEvent_Nominal(void)
 {
-    UT_CheckEvent_t EventTest;
     BPLib_Status_t Status;
 
     /* INFO event with a digit */
@@ -129,12 +131,24 @@ void Test_BPA_EM_SendEvent_Nominal(void)
 
 void Test_BPA_EM_SendEvent_TruncatedString(void)
 {
-    /* TODO: - Create char array of size BPLIB_EM_MAX_MESSAGE_LENGTH + 5 */
-    /*       - Loop over array assigning each element in array to A (set last character to H) */
-    /*       - Pass character array to BPLib_EM_SendEvent as EventText argument */
+    /* TODO: - Pass character array to BPLib_EM_SendEvent as EventText argument */
 
-    /* Create a string that will be truncated */
-    // char LongString[BPLIB_EM_MAX_MESSAGE_LENGTH + 5];
+    char LongString[BPLIB_EM_MAX_MESSAGE_LENGTH + 5];
+    BPLib_Status_t Status;
+    int stringLoopControl;
+
+    for(stringLoopControl = 0; stringLoopControl < BPLIB_EM_MAX_MESSAGE_LENGTH + 4; stringLoopControl++)
+    {
+        LongString[stringLoopControl] = "A";
+    }
+
+    LongString[stringLoopControl] = "H";
+
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(142, BPLib_EM_EventType_INFO, LongString);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_EM_STRING_TRUNCATED);
+    UT_CHECKEVENT_SETUP(&EventTest, 142, LongString);
 }
 
 void Test_BPA_EVP_SendEvent_LenError(void)
