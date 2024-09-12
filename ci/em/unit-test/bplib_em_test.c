@@ -151,13 +151,9 @@ void Test_BPA_EM_SendEvent_TruncatedString(void)
     UT_CHECKEVENT_SETUP(&EventTest, 142, LongString);
 }
 
-void Test_BPA_EVP_SendEvent_LenError(void)
-{
-    /* TODO: Test if len < 2 */
-    /* TODO: test if len > mission max len */
-}
-
 void TestBplibEm_Register(void)
 {
     ADD_TEST(Test_BPLib_EM_Init_Nominal);
+    ADD_TEST(Test_BPA_EM_SendEvent_Nominal);
+    ADD_TEST(Test_BPA_EM_SendEvent_TruncatedString);
 }

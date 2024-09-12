@@ -54,7 +54,7 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
 
     // Verify that the max message length for EM is more than a truncation character and >= the pre-defined
     // max length of an EVS message according to CFE
-    if (BPLIB_EM_MAX_MESSAGE_LENGTH < 2 || BPLIB_EM_MAX_MESSAGE_LENGTH > CFE_MISSION_EVS_MAX_MESSAGE_LENGTH)
+    if ((BPLIB_EM_MAX_MESSAGE_LENGTH < 2) || (BPLIB_EM_MAX_MESSAGE_LENGTH > CFE_MISSION_EVS_MAX_MESSAGE_LENGTH))
     {
         Status = BPLIB_ERROR;
     }
