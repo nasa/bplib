@@ -24,11 +24,13 @@
 #include <string.h>
 
 #include "bplib.h"
-#include "bplib_mem.h"
 #include "bplib_api_types.h"
 // #include "bplib_os.h" // TODO Unstub bplib_os functions.
-#include "bplib_mem_rbtree.h"
+#include "bplib_mem.h"
+#include "v7_rbtree.h"
 #include "bplib_mem_bblocks.h"
+#include "bplib_mem_ducts.h"
+#include "bplib_mem_ref.h"
 
 /*
  * Minimum size of a generic data block

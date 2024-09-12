@@ -2,20 +2,20 @@
 #
 # Bundle Protocol Library (BPLib) CMake build recipe
 #
-# This is for the "common" submodule
+# This is for the "mem common" submodule
 #
 ##################################################################
 
-set(bplib_common_SOURCES
+set(bplib_mem_common_SOURCES
     src/crc.c
     src/v7_rbtree.c
 )
 
-add_library(bplib_common OBJECT
-    ${bplib_common_SOURCES}
+add_library(bplib_mem_common OBJECT
+    ${bplib_mem_common_SOURCES}
 )
 
-target_include_directories(bplib_common PUBLIC
+target_include_directories(bplib_mem_common PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_libmgr,INTERFACE_INCLUDE_DIRECTORIES>

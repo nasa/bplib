@@ -22,10 +22,9 @@
 #include "bplib_api_types.h"
 #include "bplib_mem.h"
 #include "v7_cache_internal.h"
-#include "bplib_mem_rbtree.h"
+#include "v7_rbtree.h"
 #include "crc.h"
 
-#define BP_FLAG_DIAGNOSTIC 0
 #define BP_FLAG_OUT_OF_MEMORY           0x00100000
 
 static const bplib_crc_parameters_t *const BPLIB_CACHE_CUSTODY_HASH_ALGORITHM = &BPLIB_CRC32_CASTAGNOLI;

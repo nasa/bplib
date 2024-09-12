@@ -100,15 +100,15 @@ struct bplib_mpool_subq_base
     volatile unsigned int pull_count;
 };
 
-#ifdef STOR
 typedef struct bplib_mpool_subq_workitem
 {
+    #ifdef STOR
     bplib_mpool_job_t       job_header;
+    #endif // STOR
     bplib_mpool_subq_base_t base_subq;
     unsigned int            current_depth_limit;
 } bplib_mpool_subq_workitem_t;
 
-#endif // STOR
 
 struct bplib_mpool_flow
 {
@@ -121,10 +121,8 @@ struct bplib_mpool_flow
 
     bplib_mpool_ref_t             parent;
 
-#ifdef STOR
     bplib_mpool_subq_workitem_t ingress;
     bplib_mpool_subq_workitem_t egress;
-#endif //
 };
 
 /**
@@ -227,10 +225,14 @@ static inline bool bplib_mpool_subq_workitem_may_push(const bplib_mpool_subq_wor
     return (bplib_mpool_subq_get_depth(&subq->base_subq) < (subq->current_depth_limit / 2));
 }
 
+#endif // STOR
+
 static inline bool bplib_mpool_flow_is_up(const bplib_mpool_flow_t *flow)
 {
+    #ifdef STOR
     return (~flow->current_state_flags & (BPLIB_MPOOL_FLOW_FLAGS_ADMIN_UP | BPLIB_MPOOL_FLOW_FLAGS_OPER_UP)) == 0;
+    #endif // STOR
+    return (true);
 }
-#endif // STOR
 
 #endif /* BPLIB_MEM_DUCTS_H */

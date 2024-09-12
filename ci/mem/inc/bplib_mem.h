@@ -25,8 +25,6 @@
 #include <string.h>
 
 #include "bplib.h"
-#include "bplib_mem_internal.h"
-#include "bplib_api_types.h"
 
 /*
  * Priority levels for pool buffers -

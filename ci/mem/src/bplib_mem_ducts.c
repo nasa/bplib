@@ -30,6 +30,9 @@
 #include <assert.h>
 
 #include "bplib.h"
+#include "bplib_mem.h"
+#include "bplib_mem_internal.h"
+#include "bplib_mem_ducts.h"
 
 /*----------------------------------------------------------------
  *
@@ -46,11 +49,14 @@ void bplib_mpool_subq_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_bas
 
 void bplib_mpool_subq_workitem_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_workitem_t *wblk)
 {
+    #ifdef STOR
     bplib_mpool_job_init(base_block, &wblk->job_header);
+    #endif // STOR
     bplib_mpool_subq_init(base_block, &wblk->base_subq);
     wblk->current_depth_limit = 0;
 }
 
+#ifdef STOR
 static int bplib_mpool_flow_event_handler(void *arg, bplib_mpool_block_t *jblk)
 {
     bplib_mpool_block_t             *fblk;
@@ -86,17 +92,22 @@ static int bplib_mpool_flow_event_handler(void *arg, bplib_mpool_block_t *jblk)
         }
 
         event.intf_state.intf_id = bplib_mpool_get_external_id(fblk);
+        #ifdef STOR
         flow->statechange_job.event_handler(&event, fblk);
+        #endif // STOR
     }
 
     if (changed_flags & BPLIB_MPOOL_FLOW_FLAGS_POLL)
     {
         event.event_type = bplib_mpool_flow_event_poll;
+        #ifdef STOR
         flow->statechange_job.event_handler(&event, fblk);
+        #endif // STOR
     }
 
     return 0;
 }
+#endif // STOR
 
 /*----------------------------------------------------------------
  *
@@ -106,8 +117,11 @@ static int bplib_mpool_flow_event_handler(void *arg, bplib_mpool_block_t *jblk)
 void bplib_mpool_flow_init(bplib_mpool_block_t *base_block, bplib_mpool_flow_t *fblk)
 {
     /* now init the link structs */
+    #ifdef STOR
     bplib_mpool_job_init(base_block, &fblk->statechange_job.base_job);
     fblk->statechange_job.base_job.handler = bplib_mpool_flow_event_handler;
+    #endif //STOR
+
     bplib_mpool_subq_workitem_init(base_block, &fblk->ingress);
     bplib_mpool_subq_workitem_init(base_block, &fblk->egress);
 }
@@ -232,6 +246,8 @@ bplib_mpool_block_t *bplib_mpool_subq_pull_single(bplib_mpool_subq_base_t *subq)
  *-----------------------------------------------------------------*/
 bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb)
 {
+    #ifdef STOR
+
     bplib_mpool_block_content_t *content;
 
     content = bplib_mpool_block_dereference_content(cb);
@@ -239,6 +255,8 @@ bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb)
     {
         return &content->u.flow.fblock;
     }
+
+    #endif // STOR
 
     return NULL;
 }
@@ -300,6 +318,8 @@ bool bplib_mpool_subq_workitem_wait_for_fill(bplib_mpool_lock_t *lock, bplib_mpo
  *-----------------------------------------------------------------*/
 bool bplib_mpool_flow_try_push(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_block_t *qblk, uint64_t abs_timeout)
 {
+    #ifdef STOR
+
     bplib_mpool_lock_t                *lock;
     bool                               got_space;
     bplib_mpool_block_admin_content_t *admin;
@@ -325,10 +345,16 @@ bool bplib_mpool_flow_try_push(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpoo
     bplib_mpool_lock_release(lock);
 
     return got_space;
+
+    #endif // STOR
+
+    return true;
 }
 
 bplib_mpool_block_t *bplib_mpool_flow_try_pull(bplib_mpool_subq_workitem_t *subq_src, uint64_t abs_timeout)
 {
+    #ifdef STOR
+
     bplib_mpool_lock_t  *lock;
     bplib_mpool_block_t *qblk;
     bool                 got_space;
@@ -350,11 +376,17 @@ bplib_mpool_block_t *bplib_mpool_flow_try_pull(bplib_mpool_subq_workitem_t *subq
     bplib_mpool_lock_release(lock);
 
     return qblk;
+
+    #endif // STOR
+
+    return NULL;
 }
 
 uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_subq_workitem_t *subq_src,
                                        uint64_t abs_timeout)
 {
+    #ifdef STOR
+
     bplib_mpool_lock_t                *lock;
     uint32_t                           prev_quantity;
     uint32_t                           quantity;
@@ -399,6 +431,10 @@ uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bp
     bplib_mpool_lock_release(lock);
 
     return quantity;
+
+    #endif // STOR
+
+    return 0;
 }
 
 /*----------------------------------------------------------------
@@ -408,6 +444,8 @@ uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bp
  *-----------------------------------------------------------------*/
 uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq)
 {
+    #ifdef STOR
+
     bplib_mpool_t      *pool;
     bplib_mpool_lock_t *lock;
     uint32_t            quantity_dropped;
@@ -424,6 +462,10 @@ uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq)
     bplib_mpool_lock_release(lock);
 
     return quantity_dropped;
+
+    #endif // STOR
+
+    return 0;
 }
 
 /*----------------------------------------------------------------
@@ -433,6 +475,8 @@ uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq)
  *-----------------------------------------------------------------*/
 void bplib_mpool_flow_enable(bplib_mpool_subq_workitem_t *subq, uint32_t depth_limit)
 {
+    #ifdef STOR
+
     bplib_mpool_t      *pool;
     bplib_mpool_lock_t *lock;
 
@@ -443,6 +487,8 @@ void bplib_mpool_flow_enable(bplib_mpool_subq_workitem_t *subq, uint32_t depth_l
     subq->current_depth_limit = depth_limit;
 
     bplib_mpool_lock_release(lock);
+
+    #endif // STOR
 }
 
 /*----------------------------------------------------------------
@@ -452,6 +498,8 @@ void bplib_mpool_flow_enable(bplib_mpool_subq_workitem_t *subq, uint32_t depth_l
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
 {
+    #ifdef STOR
+
     bplib_mpool_block_content_t *result;
     bplib_mpool_lock_t          *lock;
 
@@ -460,6 +508,10 @@ bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_
     bplib_mpool_lock_release(lock);
 
     return (bplib_mpool_block_t *)result;
+
+    #endif // STOR
+
+    return NULL;
 }
 
 /*----------------------------------------------------------------
@@ -469,6 +521,8 @@ bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_
  *-----------------------------------------------------------------*/
 bool bplib_mpool_flow_modify_flags(bplib_mpool_block_t *cb, uint32_t set_bits, uint32_t clear_bits)
 {
+    #ifdef STOL
+
     bplib_mpool_lock_t                *lock;
     bplib_mpool_t                     *pool;
     bplib_mpool_block_admin_content_t *admin;
@@ -501,4 +555,8 @@ bool bplib_mpool_flow_modify_flags(bplib_mpool_block_t *cb, uint32_t set_bits, u
     bplib_mpool_lock_release(lock);
 
     return flags_changed;
+
+    #endif // STOR
+
+    return true;
 }

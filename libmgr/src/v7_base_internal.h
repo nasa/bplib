@@ -23,7 +23,9 @@
 
 #include "bplib_api_types.h"
 #include "bplib_mem_bundle.h"
-#include "bplib_mem_rbtree.h"
+#ifdef STOR
+#include "v7_rbtree.h"
+#endif // STOR
 
 struct bp_socket
 {
@@ -37,6 +39,7 @@ typedef struct bplib_cla_stats
 
 } bplib_cla_stats_t;
 
+#ifdef STOR
 typedef struct bplib_route_serviceintf_info
 {
     bp_ipn_t          node_number;
@@ -53,6 +56,7 @@ struct bplib_service_endpt
     bplib_mpool_block_t *self_ptr;
     bplib_mpool_ref_t    subflow_ref;
 };
+#endif // STOR
 
 typedef struct bplib_socket_info bplib_socket_info_t;
 struct bplib_socket_info

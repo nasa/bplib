@@ -106,7 +106,7 @@ add_subdirectory(ci/mem)
 add_subdirectory(ci/pl)
 add_subdirectory(ci/time)
 add_subdirectory(libmgr)
-# add_subdirectory(os)
+add_subdirectory(os)
 # add_subdirectory(ci/mem/common)
 # add_subdirectory(ci/mem/cache) TODO Add back cache
 
@@ -117,10 +117,10 @@ list(APPEND BPLIB_COMPONENTS
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_ndc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
   bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time
-  bplib_libmgr
+  bplib_libmgr bplib_os
 )
 
-# TODO Add back bplib_os, bplib_common, and bplib_cache above ^
+# TODO Add back bplib_common, and bplib_cache above ^
 
 message("BPLIB_COMPONENTS")
 message("${BPLIB_COMPONENTS}")

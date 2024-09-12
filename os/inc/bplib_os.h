@@ -37,7 +37,7 @@
 
 #include "bplib_api_types.h"
 
-bp_handle_t test_bp_hdl;
+// TODO Put this back bp_handle_t test_bp_hdl;
 
 /******************************************************************************
  COMPILE TIME CONFIGURATION SETTINGS

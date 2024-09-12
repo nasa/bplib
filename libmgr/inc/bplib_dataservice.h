@@ -25,8 +25,8 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib_api_types.h"
 #include "bplib_mem.h"
+#include "bplib_api_types.h"
 
 typedef enum
 {

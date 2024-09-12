@@ -531,6 +531,7 @@ int bplib_dataservice_event_impl(void *arg, bplib_mpool_block_t *intf_block)
 
 int bplib_dataservice_base_construct(void *arg, bplib_mpool_block_t *blk)
 {
+    #ifdef STOR
     bplib_route_serviceintf_info_t *base_intf;
 
     base_intf = bplib_mpool_generic_data_cast(blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
@@ -540,6 +541,8 @@ int bplib_dataservice_base_construct(void *arg, bplib_mpool_block_t *blk)
     }
 
     bplib_rbt_init_root(&base_intf->service_index);
+    #endif // STOR
+
     return BP_SUCCESS;
 }
 
@@ -564,8 +567,13 @@ void bplib_dataservice_init(bplib_mpool_t *pool)
     };
 
     bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_SERVICE_BASE, &svc_base_api,
+                                 #ifdef STOR
                                    sizeof(bplib_route_serviceintf_info_t));
+                                 #endif // STOR
+                                   128);  // STOR - just a temporary guess.
+    #ifdef STOR
     bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_SERVICE_ENDPOINT, NULL, sizeof(bplib_service_endpt_t));
+    #endif // STOR
     bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_SERVICE_SOCKET, NULL, sizeof(bplib_socket_info_t));
     bplib_mpool_register_blocktype(pool, BPLIB_BLOCKTYPE_SERVICE_BLOCK, &svc_block_api, 0);
 }
