@@ -29,6 +29,7 @@
 
 #include "bplib_fwp_test_utils.h"
 #include "bplib_time.h"
+#include "bplib_em.h"
 
 
 /*
@@ -63,7 +64,7 @@ int64_t BPA_TIMEP_GetHostTime(void)
     return 0;
 }
 
-BPLib_Status_t BPA_EVP_Register(const void* Filters, uint16_t NumEventFilters, uint16_t FilterScheme)
+BPLib_Status_t BPA_EVP_Init(void)
 {
     return 0;
 }
@@ -82,7 +83,7 @@ void Test_BPLib_FWP_Init_Nominal(void)
     Callbacks.BPA_TIMEP_GetHostEpoch = BPA_TIMEP_GetHostEpoch;
     Callbacks.BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime;
     Callbacks.BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime;
-    Callbacks.BPA_EVP_Register  = BPA_EVP_Register;
+    Callbacks.BPA_EVP_Init      = BPA_EVP_Init;
     Callbacks.BPA_EVP_SendEvent = BPA_EVP_SendEvent;
 
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_SUCCESS);
@@ -95,8 +96,8 @@ void Test_BPLib_FWP_Init_Nominal(void)
                     "Same BPA_TIMEP_GetHostTime functions");
     UtAssert_True(Callbacks.BPA_TIMEP_GetMonotonicTime == BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime, 
                     "Same BPA_TIMEP_GetMonotonicTime functions");
-    UtAssert_True(Callbacks.BPA_EVP_Register == BPLib_FWP_ProxyCallbacks.BPA_EVP_Register,
-                    "Same BPA_EVP_Register function");
+    UtAssert_True(Callbacks.BPA_EVP_Init == BPLib_FWP_ProxyCallbacks.BPA_EVP_Init,
+                    "Same BPA_EVP_Init function");
     UtAssert_True(Callbacks.BPA_EVP_SendEvent == BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent,
                     "Same BPA_EVP_SendEvent function");
 }
@@ -137,12 +138,12 @@ void Test_BPLib_FWP_Init_GetMonotonicTimeNull(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
-/* Test FWP initialization with null EVP_Register function */
-void Test_BPLib_FWP_Init_EVP_RegisterNull(void)
+/* Test FWP initialization with null EVP_Init function */
+void Test_BPLib_FWP_Init_EVP_InitNull(void)
 {
     BPLib_FWP_ProxyCallbacks_t Callbacks;
 
-    Callbacks.BPA_EVP_Register = NULL;
+    Callbacks.BPA_EVP_Init = NULL;
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
@@ -162,6 +163,6 @@ void TestBplibFwp_Register(void)
     UtTest_Add(Test_BPLib_FWP_Init_GetHostEpochNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetHostEpochNull");
     UtTest_Add(Test_BPLib_FWP_Init_GetHostTimeNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetHostTimeNull");
     UtTest_Add(Test_BPLib_FWP_Init_GetMonotonicTimeNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_GetMonotonicTimeNull");
-    UtTest_Add(Test_BPLib_FWP_Init_EVP_RegisterNull,  BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_EVP_RegisterNull");
+    UtTest_Add(Test_BPLib_FWP_Init_EVP_InitNull,  BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_EVP_InitNull");
     UtTest_Add(Test_BPLib_FWP_Init_EVP_SendEventNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_EVP_SendEventNull");
 }
