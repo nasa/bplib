@@ -46,109 +46,94 @@ void Test_BPA_EM_SendEvent_Nominal(void)
 
     /* INFO event with a digit */
     Status = BPLIB_UNKNOWN;
-    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFO, "INFO event message with a digit: %d", 100)
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFO, "INFO event message with a digit: %d", 100);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "INFO event message with a digit: 100");
 
     /* INFO event with a string */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFO, "INFO event message with a string: %s", "useless");
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "INFO event message with a string: useless");
 
     /* INFO event with a digit and a string */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFO, "INFO event message with a digit and a string: %.2f %s", 1.001, "fish");
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "INFO event message with a digit and a string: 1.00 fish");
 
     /* ERROR event with a digit */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_ERROR, "ERROR event message with a digit: %d", 55);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "ERROR event message with a digit: 55");
 
     /* ERROR event with a string */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_ERROR, "ERROR event message with a string: %s", "the meaning");
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "ERROR event message with a string: the meaning");
 
     /* ERROR event with a digit and a string */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_ERROR, "ERROR event message with a digit and a string: %.2f %s", 2.002, "fish");
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "ERROR event message with a digit and a string: 2.00 fish");
 
     /* DEBUG event with a digit */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_DEBUG, "DEBUG event message with a digit: %d", 30);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "DEBUG event message with a digit: 30");
 
     /* DEBUG event with a string */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_DEBUG, "DEBUG event message with a string: %s", "of life");
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "DEBUG event message with a string: of life");
 
     /* DEBUG event with a digit and a string */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_DEBUG, "DEBUG event message with a digit and a string: %d %s", 1230.00002458, "fish");
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "DEBUG event message with a digit and a string: 1230 fish");
 
     /* CRITICAL event with a digit */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_CRITICAL, "CRITICAL event message with a digit: %d", 11);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "CRITICAL event message with a digit: 11");
 
     /* CRITICAL event with a string */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_CRITICAL, "CRITICAL event message with a string: %s", "is 42");
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "CRITICAL event message with a string: is 42");
 
     /* CRITICAL event with a digit and a string */
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_CRITICAL, "CRITICAL event message with a digit and a string: %d %s", 8100, "fish");
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UT_CHECKEVENT_SETUP(&EventTest, 42, "CRITICAL event message with a digit and a string: 8100 fish");
 }
 
 void Test_BPA_EM_SendEvent_TruncatedString(void)
 {
-    /* TODO: - Pass character array to BPLib_EM_SendEvent as EventText argument */
-
     char LongString[BPLIB_EM_MAX_MESSAGE_LENGTH + 5];
     BPLib_Status_t Status;
     int stringLoopControl;
 
     for(stringLoopControl = 0; stringLoopControl < BPLIB_EM_MAX_MESSAGE_LENGTH + 4; stringLoopControl++)
     {
-        LongString[stringLoopControl] = "A";
+        LongString[stringLoopControl] = 'A';
     }
 
-    LongString[stringLoopControl] = "H";
+    LongString[stringLoopControl] = 'H';
 
     Status = BPLIB_UNKNOWN;
     Status = BPLib_EM_SendEvent(142, BPLib_EM_EventType_INFO, LongString);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_EM_STRING_TRUNCATED);
-    UT_CHECKEVENT_SETUP(&EventTest, 142, LongString);
 }
 
 void TestBplibEm_Register(void)

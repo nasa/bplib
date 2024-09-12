@@ -42,14 +42,13 @@ BPLib_Status_t BPLib_EM_Init(void)
 }
 
 BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType,
-                                    char const* EventText, va_list EventTextArgPtr);
+                                    char const* EventText, ...)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_EM_SendEvent, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_EM_SendEvent, uint16_t, EventID);
     UT_GenStub_AddParam(BPLib_EM_SendEvent, BPLib_EM_EventType_t, EventType);
     UT_GenStub_AddParam(BPLib_EM_SendEvent, char const*, EventText);
-    UT_GenStub_AddParam(BPLib_EM_SendEvent, va_list, EventTextArgPtr);
 
     UT_GenStub_Execute(BPLib_EM_SendEvent, Basic, NULL);
 
