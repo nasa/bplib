@@ -51,17 +51,11 @@ extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 /* ====== */
 #define ADD_TEST(test) UtTest_Add(test, BPLib_EM_Test_Setup, BPLib_EM_Test_Teardown, #test)
 
-#define UT_CHECKEVENT_SETUP(Evt, ExpectedEvent, ExpectedFormat) \
-    UT_CheckEvent_Setup_Impl(Evt, ExpectedEvent, #ExpectedEvent, ExpectedFormat)
-
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
 void BPLib_EM_Test_Setup(void);
 void BPLib_EM_Test_Teardown(void);
-
-void UT_CheckEvent_Setup_Impl(UT_CheckEvent_t *Evt, uint16 ExpectedEvent, const char *EventName,
-                              const char *ExpectedFormat);
 
 void TestBplibEm_Register(void);
 
