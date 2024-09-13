@@ -89,13 +89,13 @@ void BPLib_TIME_GetMonotonicTime(BPLib_TIME_MonotonicTime_t *MonotonicTime)
  * ----------------------------------------------------
  */
 BPLib_Status_t BPLib_TIME_GetTimeDelta(BPLib_TIME_MonotonicTime_t Time1, BPLib_TIME_MonotonicTime_t Time2,
-                                       uint64_t *Delta)
+                                       int64_t *Delta)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_TIME_GetTimeDelta, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_TIME_GetTimeDelta, BPLib_TIME_MonotonicTime_t, Time1);
     UT_GenStub_AddParam(BPLib_TIME_GetTimeDelta, BPLib_TIME_MonotonicTime_t, Time2);
-    UT_GenStub_AddParam(BPLib_TIME_GetTimeDelta, uint64_t *, Delta);
+    UT_GenStub_AddParam(BPLib_TIME_GetTimeDelta, int64_t *, Delta);
 
     UT_GenStub_Execute(BPLib_TIME_GetTimeDelta, Basic, NULL);
 

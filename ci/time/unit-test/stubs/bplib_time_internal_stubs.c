@@ -29,6 +29,56 @@
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_GetCfFromBuffer()
+ * ----------------------------------------------------
+ */
+int64_t BPLib_TIME_GetCfFromBuffer(uint32_t BootEra)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_GetCfFromBuffer, int64_t);
+
+    UT_GenStub_AddParam(BPLib_TIME_GetCfFromBuffer, uint32_t, BootEra);
+
+    UT_GenStub_Execute(BPLib_TIME_GetCfFromBuffer, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_GetCfFromBuffer, int64_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_GetDtnTimeFromBuffer()
+ * ----------------------------------------------------
+ */
+uint64_t BPLib_TIME_GetDtnTimeFromBuffer(uint32_t BootEra)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_GetDtnTimeFromBuffer, uint64_t);
+
+    UT_GenStub_AddParam(BPLib_TIME_GetDtnTimeFromBuffer, uint32_t, BootEra);
+
+    UT_GenStub_Execute(BPLib_TIME_GetDtnTimeFromBuffer, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_GetDtnTimeFromBuffer, uint64_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_SafeOffset()
+ * ----------------------------------------------------
+ */
+int64_t BPLib_TIME_SafeOffset(int64_t HostEpoch, int64_t DtnEpoch, int64_t Multiplier)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_SafeOffset, int64_t);
+
+    UT_GenStub_AddParam(BPLib_TIME_SafeOffset, int64_t, HostEpoch);
+    UT_GenStub_AddParam(BPLib_TIME_SafeOffset, int64_t, DtnEpoch);
+    UT_GenStub_AddParam(BPLib_TIME_SafeOffset, int64_t, Multiplier);
+
+    UT_GenStub_Execute(BPLib_TIME_SafeOffset, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_SafeOffset, int64_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_TIME_GetEstimatedDtnTime()
  * ----------------------------------------------------
  */
@@ -45,31 +95,14 @@ uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_TIME_ReadCfFromBuffer()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_TIME_ReadCfFromBuffer(int64_t *CorrelationFactor, uint32_t BootEra)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_TIME_ReadCfFromBuffer, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_TIME_ReadCfFromBuffer, int64_t *, CorrelationFactor);
-    UT_GenStub_AddParam(BPLib_TIME_ReadCfFromBuffer, uint32_t, BootEra);
-
-    UT_GenStub_Execute(BPLib_TIME_ReadCfFromBuffer, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_TIME_ReadCfFromBuffer, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_TIME_ReadDtnTimeFromBuffer()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(int64_t *LastValidDtnTime, uint32_t BootEra)
+BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(uint64_t *LastValidDtnTime, uint32_t BootEra)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_TIME_ReadDtnTimeFromBuffer, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_TIME_ReadDtnTimeFromBuffer, int64_t *, LastValidDtnTime);
+    UT_GenStub_AddParam(BPLib_TIME_ReadDtnTimeFromBuffer, uint64_t *, LastValidDtnTime);
     UT_GenStub_AddParam(BPLib_TIME_ReadDtnTimeFromBuffer, uint32_t, BootEra);
 
     UT_GenStub_Execute(BPLib_TIME_ReadDtnTimeFromBuffer, Basic, NULL);
@@ -79,34 +112,54 @@ BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(int64_t *LastValidDtnTime, uint3
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_TIME_WriteCfToBuffer()
+ * Generated stub function for BPLib_TIME_ReadTimeDataFromFile()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_TIME_WriteCfToBuffer(int64_t CorrelationFactor, uint32_t BootEra)
+BPLib_Status_t BPLib_TIME_ReadTimeDataFromFile(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_TIME_WriteCfToBuffer, BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_ReadTimeDataFromFile, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_TIME_WriteCfToBuffer, int64_t, CorrelationFactor);
-    UT_GenStub_AddParam(BPLib_TIME_WriteCfToBuffer, uint32_t, BootEra);
+    UT_GenStub_Execute(BPLib_TIME_ReadTimeDataFromFile, Basic, NULL);
 
-    UT_GenStub_Execute(BPLib_TIME_WriteCfToBuffer, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_TIME_WriteCfToBuffer, BPLib_Status_t);
+    return UT_GenStub_GetReturnValue(BPLib_TIME_ReadTimeDataFromFile, BPLib_Status_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_TIME_WriteDtnTimeToBuffer()
+ * Generated stub function for BPLib_TIME_SetCfinBuffer()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(int64_t LastValidDtnTime, uint32_t BootEra)
+void BPLib_TIME_SetCfinBuffer(int64_t CF, uint32_t BootEra)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_TIME_WriteDtnTimeToBuffer, BPLib_Status_t);
+    UT_GenStub_AddParam(BPLib_TIME_SetCfinBuffer, int64_t, CF);
+    UT_GenStub_AddParam(BPLib_TIME_SetCfinBuffer, uint32_t, BootEra);
 
-    UT_GenStub_AddParam(BPLib_TIME_WriteDtnTimeToBuffer, int64_t, LastValidDtnTime);
-    UT_GenStub_AddParam(BPLib_TIME_WriteDtnTimeToBuffer, uint32_t, BootEra);
+    UT_GenStub_Execute(BPLib_TIME_SetCfinBuffer, Basic, NULL);
+}
 
-    UT_GenStub_Execute(BPLib_TIME_WriteDtnTimeToBuffer, Basic, NULL);
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_SetDtnTimeinBuffer()
+ * ----------------------------------------------------
+ */
+void BPLib_TIME_SetDtnTimeinBuffer(uint64_t DtnTime, uint32_t BootEra)
+{
+    UT_GenStub_AddParam(BPLib_TIME_SetDtnTimeinBuffer, uint64_t, DtnTime);
+    UT_GenStub_AddParam(BPLib_TIME_SetDtnTimeinBuffer, uint32_t, BootEra);
 
-    return UT_GenStub_GetReturnValue(BPLib_TIME_WriteDtnTimeToBuffer, BPLib_Status_t);
+    UT_GenStub_Execute(BPLib_TIME_SetDtnTimeinBuffer, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_TIME_WriteTimeDataToFile()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_TIME_WriteTimeDataToFile(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_TIME_WriteTimeDataToFile, BPLib_Status_t);
+
+    UT_GenStub_Execute(BPLib_TIME_WriteTimeDataToFile, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_TIME_WriteTimeDataToFile, BPLib_Status_t);
 }
