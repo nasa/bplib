@@ -53,12 +53,13 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_ERROR                         ((BPLib_Status_t) 1)
 
 /* Framework Proxy Errors */
-#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) 2)
+#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t)  -3)
 
 /* Time Management Errors */
-#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) 3)
-#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) 4)
-#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) 5)
+#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t)  -4)
+#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t)  -5)
+#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t)  -6)
+#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t)  -7)
 
 /* Event Management Errors */
 #define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t)  6u)
