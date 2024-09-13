@@ -33,8 +33,19 @@ void Test_BPLib_CLA_Init(void)
     UtAssert_INT32_EQ(BPLib_CLA_Init(), BPLIB_SUCCESS);
 }
 
+void Test_BPLib_CLA_Ingress_Nominal(void)
+{
+    
+}
+
+void Test_BPLib_CLA_Egress_Nominal(void)
+{
+    
+}
 
 void TestBplibCla_Register(void)
 {
     UtTest_Add(Test_BPLib_CLA_Init, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Init");
+    UtTest_Add(Test_BPLib_CLA_Ingress_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_Nominal");
+    UtTest_Add(Test_BPLib_CLA_Egress_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_Nominal");
 }

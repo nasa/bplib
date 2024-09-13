@@ -18,24 +18,35 @@
  *
  */
 
-#ifndef BPLIB_H
-#define BPLIB_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+/**
+ * @file
+ *
+ * Internal function definitions for CLA
+ */
 
 /*
 ** Include
 */
 
-#include "bplib_api_types.h"
-#include "bplib_time.h"
-#include "bplib_fwp.h"
 #include "bplib_cla.h"
- 
-#ifdef __cplusplus
-} // extern "C"
-#endif
+#include "bplib_cla_internal.h"
 
-#endif /* BPLIB_H */
+
+bool BPLib_CLA_IsAControlMsg(const void *Bundle)
+{
+    return true;
+}
+
+/* BPLib_CLA_CancelRequest - constructs cancel request message when receiving a contact-stop directive or node shutdown directive*/
+int BPLib_CLA_ConstructCancelRequest(void)
+{
+    
+    return BPLIB_SUCCESS;
+}
+
+/* BPLib_CLA_ProcessControlMessage*/
+int BPLib_CLA_ProcessControlMessage(void)
+{
+    return BPLIB_SUCCESS;
+}
+

@@ -42,6 +42,52 @@ extern "C" {
 typedef int32_t BPLib_Status_t;
 
 
+typedef struct BPLib_Handle
+{
+    uint32_t hdl;
+} BPLib_Handle_t;
+
+/* Handles */
+#define BPLIB_INVALID_HANDLE \
+    (const BPLib_Handle_t)   \
+    {                     \
+        0                 \
+    } /* used for integers (os locks, storage services) */
+
+#define BPLIB_HANDLE_MAX_SERIAL 0xffffff
+
+#define BPLIB_HANDLE_RAM_STORE_BASE \
+    (BPLib_Handle_t)                   \
+    {                               \
+        0x1000000                   \
+    }
+#define BPLIB_HANDLE_FLASH_STORE_BASE \
+    (BPLib_Handle_t)                     \
+    {                                 \
+        0x2000000                     \
+    }
+#define BPLIB_HANDLE_FILE_STORE_BASE \
+    (BPLib_Handle_t)                    \
+    {                                \
+        0x3000000                    \
+    }
+#define BPLIB_HANDLE_OS_BASE \
+    (BPLib_Handle_t)            \
+    {                        \
+        0x4000000            \
+    }
+
+#define BPLIB_HANDLE_INTF_BASE \
+    (BPLib_Handle_t)              \
+    {                          \
+        0x5000000              \
+    }
+
+#define BPLIB_HANDLE_MPOOL_BASE \
+    (BPLib_Handle_t)               \
+    {                           \
+        0x6000000               \
+    }
 /*
 ** Macros
 */
@@ -58,6 +104,10 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) 3)
 #define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) 4)
 #define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) 5)
+
+/* Network Errors*/
+#define BPLIB_TIMEOUT                       ((BPLib_Status_t) 6)
+
 
 #ifdef __cplusplus
 } // extern "C"

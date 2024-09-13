@@ -18,24 +18,37 @@
  *
  */
 
-#ifndef BPLIB_H
-#define BPLIB_H
+/*
+ * Include
+ */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "bplib_cla_test_utils.h"
 
 /*
-** Include
+** Test function for
+** bool BPLib_CLA_IsAControlMsg(const void *Bundle)
 */
+void Test_BPLib_CLA_IsAControlMsg_Nominal(void)
+{
+    UtAssert_INT32_EQ(BPLib_CLA_IsAControlMsg(), BPLIB_SUCCESS);
+}
 
-#include "bplib_api_types.h"
-#include "bplib_time.h"
-#include "bplib_fwp.h"
-#include "bplib_cla.h"
- 
-#ifdef __cplusplus
-} // extern "C"
-#endif
+void Test_BPLib_CLA_ConstructCancelRequest_Nominal(void)
+{
+    
+}
 
-#endif /* BPLIB_H */
+void Test_BPLib_CLA_ProcessControlMessage_Nominal(void)
+{
+    
+}
+
+
+void TestBplibClaInternal_Register(void)
+{
+    ADD_TEST(Test_BPLib_CLA_IsAControlMsg_Nominal);
+    ADD_TEST(Test_BPLib_CLA_ConstructCancelRequest_Nominal);
+    ADD_TEST(Test_BPLib_CLA_ProcessControlMessage_Nominal);
+}
+
+

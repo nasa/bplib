@@ -25,7 +25,50 @@
 ** Include
 */
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 #include "bplib.h"
+
+#define BPLIB_MAX_EID_LENGTH    256
+#define BPLIB_MAX_NUM_CONTACTS  10
+#define BPLIB_CLA_PERF_ID       182
+
+/*
+** Contacts Table
+*/
+typedef enum 
+{
+    UDPType = 0x00000000,
+    TCPType = 0x00000001,
+    EPPType = 0x00000002,
+    LTPType = 0x00000003,
+}CLAType_t;
+
+typedef struct
+{
+    uint32_t    ContactID;
+    char        DestEIDs[BPLIB_MAX_EID_LENGTH];
+    CLAType_t   CLAType;  
+    char        CLAddr[BPLIB_MAX_EID_LENGTH];
+    int32_t     PortNum;
+    uint32_t    DestLTPEngineID;
+    uint32_t    SendBytePerCycle;
+    uint32_t    ReceiveBytePerCycle;
+    uint32_t    RetransmitTimeout;
+    uint32_t    CSTimeTrigger;
+    uint32_t    CSSizeTrigger;
+} BPLib_ContactsSet_t;
+
+struct BPLib_ContactsTable
+{
+    BPLib_ContactsSet_t ContactSet[BPLIB_MAX_NUM_CONTACTS];
+};
+
+/*
+** Table Type def
+*/
+ typedef struct BPLib_ContactsTable BPLib_ContactsTable_t;  
 
 
 /*
@@ -45,5 +88,46 @@
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
 int BPLib_CLA_Init(void);
+
+
+/* CLA I/O (bundle data units) */
+
+/**
+ * \brief CLA Ingress function
+ *
+ *  \par Description
+ *       Receive bundle from CL and pass it Bundle Interface 
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *  \param[in] ContactsTbl - Pointer of the Contact Table
+ *  \param[in] IntfID - Handle
+ *  \param[in] Bundle - Pointer to the received bundle
+ *  \param[in] Size - Size of the received bundle
+ *  \param[in] Timeout - Time for pending on CL
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Initialization was successful
+ */
+int BPLib_CLA_Ingress(BPLib_ContactsTable_t ContactsTbl, BPLib_Handle_t IntfID, const void *Bundle, size_t Size, uint32_t Timeout);
+
+/**
+ * \brief CLA Egress function
+ *
+ *  \par Description
+ *       Receive bundle from Bundle Interface and send it to CL 
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *  \param[in] ContactsTbl - Pointer of the Contact Table
+ *  \param[in] IntfID - Handle
+ *  \param[in] Bundle - Pointer to the received bundle
+ *  \param[in] Size - Size of the received bundle
+ *  \param[in] Timeout - Time for pending on Bundle Queue
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Initialization was successful
+ */
+int BPLib_CLA_Egress(BPLib_ContactsTable_t ContactsTbl, BPLib_Handle_t IntfID, void *Bundle, size_t *Size, uint32_t Timeout);
 
 #endif /* BPLIB_CLA_H */
