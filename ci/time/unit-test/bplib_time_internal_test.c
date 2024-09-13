@@ -286,9 +286,20 @@ void Test_BPLib_TIME_SetDtnTimeInBuffer_TooSmall(void)
                 ExpDtnTime);
 }
 
-/* Test reading time data in nominal case */
-void Test_BPLib_TIME_ReadTimeDataFromFile_Nominal(void)
+/* Test reading time data when a new file has been created */
+void Test_BPLib_TIME_ReadTimeDataFromFile_New(void)
 {
+    UT_SetDefaultReturnValue(UT_KEY(OS_read), 0);
+
+    UtAssert_INT32_EQ(BPLib_TIME_ReadTimeDataFromFile(), BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(OS_read, 1);
+}
+
+/* Test reading time data when the file already exists */
+void Test_BPLib_TIME_ReadTimeDataFromFile_Exists(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(OS_read), sizeof(BPLib_TIME_FileData_t));
+
     UtAssert_INT32_EQ(BPLib_TIME_ReadTimeDataFromFile(), BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(OS_read, 1);
 }
@@ -305,7 +316,7 @@ void Test_BPLib_TIME_ReadTimeDataFromFile_FailOpen(void)
 /* Test reading time data when reading the file fails */
 void Test_BPLib_TIME_ReadTimeDataFromFile_FailRead(void)
 {
-    UT_SetDefaultReturnValue(UT_KEY(OS_read), OS_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(OS_read), sizeof(BPLib_TIME_FileData_t) - 1);
 
     UtAssert_INT32_EQ(BPLib_TIME_ReadTimeDataFromFile(), BPLIB_TIME_READ_ERROR);
     UtAssert_STUB_COUNT(OS_read, 1);
@@ -314,6 +325,8 @@ void Test_BPLib_TIME_ReadTimeDataFromFile_FailRead(void)
 /* Test writing time data in nominal case */
 void Test_BPLib_TIME_WriteTimeDataToFile_Nominal(void)
 {
+    UT_SetDefaultReturnValue(UT_KEY(OS_write), sizeof(BPLib_TIME_FileData_t));
+
     UtAssert_INT32_EQ(BPLib_TIME_WriteTimeDataToFile(), BPLIB_SUCCESS);
     UtAssert_STUB_COUNT(OS_write, 1);
 }
@@ -379,6 +392,7 @@ void Test_BPLib_TIME_GetEstimatedDtnTime_EstTime(void)
 
     /* Set global data */
     BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra - 1] = ExpLastValidTime;
+    BPLib_TIME_GlobalData.TimeData.CurrBootEra = BootEra + 1;
 
     /* Set test data */
     MonotonicTime.Time = 1234;
@@ -451,7 +465,8 @@ void TestBplibTimeInternal_Register(void)
     ADD_TEST(Test_BPLib_TIME_SetDtnTimeInBuffer_TooBig);
     ADD_TEST(Test_BPLib_TIME_SetDtnTimeInBuffer_TooSmall);
     
-    ADD_TEST(Test_BPLib_TIME_ReadTimeDataFromFile_Nominal);
+    ADD_TEST(Test_BPLib_TIME_ReadTimeDataFromFile_New);
+    ADD_TEST(Test_BPLib_TIME_ReadTimeDataFromFile_Exists);
     ADD_TEST(Test_BPLib_TIME_ReadTimeDataFromFile_FailOpen);
     ADD_TEST(Test_BPLib_TIME_ReadTimeDataFromFile_FailRead);
     

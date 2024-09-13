@@ -40,14 +40,24 @@
 /* Read a CF from the ring buffer */
 int64_t BPLib_TIME_GetCfFromBuffer(uint32_t BootEra)
 {
+    uint32_t MinBootEra;
+
     /* 
-    ** Ensure the boot era has a present slot in the ring buffer (must be less than or 
+    ** Ensure the boot era has a present slot in the ring buffer: must be less than or 
     ** equal to the current boot era and greater than the current boot era minus the
-    ** maximum buffer length). Since it is unsigned, it is assumed to always be greater
-    ** than or equal to 0.
+    ** maximum buffer length (or 0). 
     */ 
-    if (BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra && 
-        (int32_t) BootEra > (int32_t) (BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN))
+   
+    if (BPLib_TIME_GlobalData.TimeData.CurrBootEra >= BPLIB_TIME_MAX_BUFFER_LEN)
+    {
+        MinBootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN + 1;
+    }
+    else
+    {
+        MinBootEra = 0;
+    }
+
+    if ((BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra) && (BootEra >= MinBootEra))
     {
         return BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
     }
@@ -58,14 +68,24 @@ int64_t BPLib_TIME_GetCfFromBuffer(uint32_t BootEra)
 /* Set a CF value in the ring buffer */
 void BPLib_TIME_SetCfInBuffer(int64_t CF, uint32_t BootEra)
 {
+    uint32_t MinBootEra;
+
     /* 
-    ** Ensure the boot era has a present slot in the ring buffer (must be less than or 
+    ** Ensure the boot era has a present slot in the ring buffer: must be less than or 
     ** equal to the current boot era and greater than the current boot era minus the
-    ** maximum buffer length). Since it is unsigned, it is assumed to always be greater
-    ** than or equal to 0.
+    ** maximum buffer length (or 0). 
     */ 
-    if (BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra && 
-        (int32_t) BootEra > (int32_t) (BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN))
+   
+    if (BPLib_TIME_GlobalData.TimeData.CurrBootEra >= BPLIB_TIME_MAX_BUFFER_LEN)
+    {
+        MinBootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN + 1;
+    }
+    else
+    {
+        MinBootEra = 0;
+    }
+
+    if ((BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra) && (BootEra >= MinBootEra))
     {
         BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = CF;
     }
@@ -76,14 +96,24 @@ void BPLib_TIME_SetCfInBuffer(int64_t CF, uint32_t BootEra)
 /* Read a last valid DTN time from the ring buffer file */
 uint64_t BPLib_TIME_GetDtnTimeFromBuffer(uint32_t BootEra)
 {
+    uint32_t MinBootEra;
+    
     /* 
-    ** Ensure the boot era has a present slot in the ring buffer (must be less than or 
+    ** Ensure the boot era has a present slot in the ring buffer: must be less than or 
     ** equal to the current boot era and greater than the current boot era minus the
-    ** maximum buffer length). Since it is unsigned, it is assumed to always be greater
-    ** than or equal to 0.
+    ** maximum buffer length (or 0). 
     */ 
-    if (BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra && 
-        (int32_t) BootEra > (int32_t) (BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN))
+   
+    if (BPLib_TIME_GlobalData.TimeData.CurrBootEra >= BPLIB_TIME_MAX_BUFFER_LEN)
+    {
+        MinBootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN + 1;
+    }
+    else
+    {
+        MinBootEra = 0;
+    }
+
+    if ((BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra) && (BootEra >= MinBootEra))
     {
         return BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
     }
@@ -94,14 +124,24 @@ uint64_t BPLib_TIME_GetDtnTimeFromBuffer(uint32_t BootEra)
 /* Set a last valid DTN time value in the ring buffer */
 void BPLib_TIME_SetDtnTimeInBuffer(uint64_t DtnTime, uint32_t BootEra)
 {
+    uint32_t MinBootEra;
+    
     /* 
-    ** Ensure the boot era has a present slot in the ring buffer (must be less than or 
+    ** Ensure the boot era has a present slot in the ring buffer: must be less than or 
     ** equal to the current boot era and greater than the current boot era minus the
-    ** maximum buffer length). Since it is unsigned, it is assumed to always be greater
-    ** than or equal to 0.
+    ** maximum buffer length (or 0). 
     */ 
-    if (BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra && 
-        (int32_t) BootEra > (int32_t) (BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN))
+   
+    if (BPLib_TIME_GlobalData.TimeData.CurrBootEra >= BPLIB_TIME_MAX_BUFFER_LEN)
+    {
+        MinBootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN + 1;
+    }
+    else
+    {
+        MinBootEra = 0;
+    }
+
+    if ((BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra) && (BootEra >= MinBootEra))
     {
         BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = DtnTime;
     }
@@ -123,7 +163,9 @@ BPLib_Status_t BPLib_TIME_ReadTimeDataFromFile(void)
         /* Read time data from file */
         OsalStatus = OS_read(BPLib_TIME_GlobalData.FileHandle, (void *) &BPLib_TIME_GlobalData.TimeData, 
                                             sizeof(BPLib_TIME_FileData_t));
-        if (OsalStatus < 0)
+
+        /* OSAL should return either 0 (file was just created) or the expected file size */
+        if (OsalStatus != 0 && OsalStatus != sizeof(BPLib_TIME_FileData_t))
         {
             Status = BPLIB_TIME_READ_ERROR;
         }
@@ -152,7 +194,7 @@ BPLib_Status_t BPLib_TIME_WriteTimeDataToFile(void)
         /* Dump current time data to file */
         OsalStatus = OS_write(BPLib_TIME_GlobalData.FileHandle, 
                 (void *) &BPLib_TIME_GlobalData.TimeData, sizeof(BPLib_TIME_FileData_t));
-        if (OsalStatus < 0)
+        if (OsalStatus != sizeof(BPLib_TIME_FileData_t))
         {
             Status = BPLIB_TIME_WRITE_ERROR;
         }

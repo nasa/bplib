@@ -51,6 +51,9 @@ void Test_BPLib_TIME_Init_Nominal(void)
     /* Set to uninitialized */
     BPLib_TIME_GlobalData.InitState = BPLIB_TIME_UNINIT;
 
+    /* Ensure write operation succeeds */
+    UT_SetDefaultReturnValue(UT_KEY(OS_write), sizeof(BPLib_TIME_FileData_t));
+
     UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_SUCCESS);
 
     UtAssert_EQ(int64_t, ExpEpochOffset, BPLib_TIME_GlobalData.EpochOffset);

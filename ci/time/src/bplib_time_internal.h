@@ -201,8 +201,14 @@ BPLib_Status_t BPLib_TIME_WriteTimeDataToFile(void);
  *
  *  \par Description
  *       Gets the DTN time from the given monotonic time. If no CF can be found for the
- *       given boot era, attempt to use a last valid DTN time value to estimate the DTN
- *       time. If no value exists, return 0.
+ *       given boot era and there is a valid DTN time for the past boot era, attempt to 
+ *       use a last valid DTN time value for the previous boot era to estimate the DTN 
+ *       time. This functions as a timestamp for the last time the clock was valid before 
+ *       time rebooted and can be used as a pseudo-CF. The pseudo-CF does not account for 
+ *       any time elapsed while the system was down/ the clock was invalid, but as this 
+ *       is intended to only be used by BPLib_TIME_GetTimeDelta, a value smaller than the 
+ *       true value is an accepted error range. If no estimated DTN time can be found,
+ *       the function returns 0.
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
