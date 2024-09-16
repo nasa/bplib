@@ -42,7 +42,7 @@ BPLib_Status_t BPLib_EM_Init(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText, ...)
+BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* Spec, ...)
 {
     BPLib_Status_t Status;
     char ExpandedEventText[BPLIB_EM_MAX_MESSAGE_LENGTH];
@@ -60,11 +60,11 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
     }
     else
     {
-        va_start(EventTextArgPtr, EventText);
+        va_start(EventTextArgPtr, Spec);
 
         memset(&ExpandedEventText, 0, sizeof(ExpandedEventText));
         ExpandedLength = vsnprintf((char*)ExpandedEventText, sizeof(ExpandedEventText),
-                                   EventText, EventTextArgPtr);
+                                   Spec, EventTextArgPtr);
 
         if (ExpandedLength >= (int)sizeof(ExpandedEventText))
         {
