@@ -10,7 +10,6 @@
 # Create stubs (for external use)
 add_library(bplib_em_stubs STATIC
     stubs/bplib_em_stubs.c
-    stubs/bplib_em_hooks.c
 )
 
 target_include_directories(bplib_em_stubs PUBLIC
