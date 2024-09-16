@@ -35,16 +35,34 @@
 
 
 /*
+** Global Data
+*/
+
+extern uint32_t TestHostEpochYear;
+extern uint32_t TestHostEpochDay;
+extern int64_t  TestMonotonicTime;
+extern int64_t  TestHostTime;
+
+/*
 ** Macro Definitions
 */
 
 /* Macro to add test case */
 #define ADD_TEST(test) UtTest_Add(test, BPLib_TIME_Test_Setup, BPLib_TIME_Test_Teardown, #test)
 
-
 /*
 ** Function Definitions
 */
+
+/*
+** Stub function definitions for Time Proxy
+*/
+
+int64_t Test_BPA_TIMEP_GetMonotonicTime(void);
+void Test_BPA_TIMEP_GetHostEpoch(BPLib_TIME_Epoch_t *Epoch);
+BPLib_TIME_ClockState_t Test_BPA_TIMEP_GetHostClockState_Valid(void);
+BPLib_TIME_ClockState_t Test_BPA_TIMEP_GetHostClockState_Invalid(void);
+int64_t Test_BPA_TIMEP_GetHostTime(void);
 
 void BPLib_TIME_Test_Setup(void);
 void BPLib_TIME_Test_Teardown(void);

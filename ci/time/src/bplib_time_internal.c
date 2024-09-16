@@ -37,32 +37,235 @@
 ** Function Definitions
 */
 
-/* Read a CF from the ring buffer file */
-BPLib_Status_t BPLib_TIME_ReadCfFromBuffer(int64_t *CorrelationFactor, uint32_t BootEra)
+/* Read a CF from the ring buffer */
+int64_t BPLib_TIME_GetCfFromBuffer(uint32_t BootEra)
 {
-    return BPLIB_UNIMPLEMENTED;
+    uint32_t MinBootEra;
+
+    /* 
+    ** Ensure the boot era has a present slot in the ring buffer: must be less than or 
+    ** equal to the current boot era and greater than the current boot era minus the
+    ** maximum buffer length (or 0). 
+    */ 
+   
+    if (BPLib_TIME_GlobalData.TimeData.CurrBootEra >= BPLIB_TIME_MAX_BUFFER_LEN)
+    {
+        MinBootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN + 1;
+    }
+    else
+    {
+        MinBootEra = 0;
+    }
+
+    if ((BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra) && (BootEra >= MinBootEra))
+    {
+        return BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
+    }
+
+    return 0;
 }
 
-/* Write a CF to the ring buffer file */
-BPLib_Status_t BPLib_TIME_WriteCfToBuffer(int64_t CorrelationFactor, uint32_t BootEra)
+/* Set a CF value in the ring buffer */
+void BPLib_TIME_SetCfInBuffer(int64_t CF, uint32_t BootEra)
 {
-    return BPLIB_UNIMPLEMENTED;
+    uint32_t MinBootEra;
+
+    /* 
+    ** Ensure the boot era has a present slot in the ring buffer: must be less than or 
+    ** equal to the current boot era and greater than the current boot era minus the
+    ** maximum buffer length (or 0). 
+    */ 
+   
+    if (BPLib_TIME_GlobalData.TimeData.CurrBootEra >= BPLIB_TIME_MAX_BUFFER_LEN)
+    {
+        MinBootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN + 1;
+    }
+    else
+    {
+        MinBootEra = 0;
+    }
+
+    if ((BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra) && (BootEra >= MinBootEra))
+    {
+        BPLib_TIME_GlobalData.TimeData.CfRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = CF;
+    }
+
+    return;
 }
 
 /* Read a last valid DTN time from the ring buffer file */
-BPLib_Status_t BPLib_TIME_ReadDtnTimeFromBuffer(int64_t *LastValidDtnTime, uint32_t BootEra)
+uint64_t BPLib_TIME_GetDtnTimeFromBuffer(uint32_t BootEra)
 {
-    return BPLIB_UNIMPLEMENTED;
+    uint32_t MinBootEra;
+    
+    /* 
+    ** Ensure the boot era has a present slot in the ring buffer: must be less than or 
+    ** equal to the current boot era and greater than the current boot era minus the
+    ** maximum buffer length (or 0). 
+    */ 
+   
+    if (BPLib_TIME_GlobalData.TimeData.CurrBootEra >= BPLIB_TIME_MAX_BUFFER_LEN)
+    {
+        MinBootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN + 1;
+    }
+    else
+    {
+        MinBootEra = 0;
+    }
+
+    if ((BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra) && (BootEra >= MinBootEra))
+    {
+        return BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN];
+    }
+
+    return 0;
 }
 
-/* Write a last valid DTN time to the ring buffer file */
-BPLib_Status_t BPLib_TIME_WriteDtnTimeToBuffer(int64_t LastValidDtnTime, uint32_t BootEra)
+/* Set a last valid DTN time value in the ring buffer */
+void BPLib_TIME_SetDtnTimeInBuffer(uint64_t DtnTime, uint32_t BootEra)
 {
-    return BPLIB_UNIMPLEMENTED;
+    uint32_t MinBootEra;
+    
+    /* 
+    ** Ensure the boot era has a present slot in the ring buffer: must be less than or 
+    ** equal to the current boot era and greater than the current boot era minus the
+    ** maximum buffer length (or 0). 
+    */ 
+   
+    if (BPLib_TIME_GlobalData.TimeData.CurrBootEra >= BPLIB_TIME_MAX_BUFFER_LEN)
+    {
+        MinBootEra = BPLib_TIME_GlobalData.TimeData.CurrBootEra - BPLIB_TIME_MAX_BUFFER_LEN + 1;
+    }
+    else
+    {
+        MinBootEra = 0;
+    }
+
+    if ((BootEra <= BPLib_TIME_GlobalData.TimeData.CurrBootEra) && (BootEra >= MinBootEra))
+    {
+        BPLib_TIME_GlobalData.TimeData.DtnTimeRingBuff[BootEra % BPLIB_TIME_MAX_BUFFER_LEN] = DtnTime;
+    }
+
+    return;
+}
+
+/* Read current time data from file */
+BPLib_Status_t BPLib_TIME_ReadTimeDataFromFile(void)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    int32 OsalStatus;
+    
+    /* Try opening existing file or creating new file */
+    OsalStatus = OS_OpenCreate(&BPLib_TIME_GlobalData.FileHandle, BPLIB_TIME_FILE_NAME, 
+                                    OS_FILE_FLAG_CREATE, OS_READ_WRITE);
+    if (OsalStatus == OS_SUCCESS)
+    {
+        /* Read time data from file */
+        OsalStatus = OS_read(BPLib_TIME_GlobalData.FileHandle, (void *) &BPLib_TIME_GlobalData.TimeData, 
+                                            sizeof(BPLib_TIME_FileData_t));
+
+        /* OSAL should return either 0 (file was just created) or the expected file size */
+        if (OsalStatus != 0 && OsalStatus != sizeof(BPLib_TIME_FileData_t))
+        {
+            Status = BPLIB_TIME_READ_ERROR;
+        }
+
+        (void) OS_close(BPLib_TIME_GlobalData.FileHandle);
+    }
+    else 
+    {
+        Status = BPLIB_TIME_READ_ERROR;
+    }
+
+    return Status;
+}
+
+/* Write current time data to file */
+BPLib_Status_t BPLib_TIME_WriteTimeDataToFile(void)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    int32 OsalStatus;
+
+    /* Try opening existing file or creating new file */
+    OsalStatus = OS_OpenCreate(&BPLib_TIME_GlobalData.FileHandle, BPLIB_TIME_FILE_NAME, 
+                                    OS_FILE_FLAG_CREATE, OS_READ_WRITE);
+    if (OsalStatus == OS_SUCCESS)
+    {
+        /* Dump current time data to file */
+        OsalStatus = OS_write(BPLib_TIME_GlobalData.FileHandle, 
+                (void *) &BPLib_TIME_GlobalData.TimeData, sizeof(BPLib_TIME_FileData_t));
+        if (OsalStatus != sizeof(BPLib_TIME_FileData_t))
+        {
+            Status = BPLIB_TIME_WRITE_ERROR;
+        }
+
+        (void) OS_close(BPLib_TIME_GlobalData.FileHandle);
+    }
+    else 
+    {
+        Status = BPLIB_TIME_WRITE_ERROR;
+    }
+
+    return Status;
 }
 
 /* Get estimated DTN time */
 uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime)
 {
-    return 0;
+    int64_t  CF = 0;
+    uint64_t EstCf = 0;
+    uint64_t EstDtnTime = 0; /* Return 0 if all following checks fail */
+
+    /* An invalid boot era indicates an absolute DTN time was passed in, return that */
+    if (MonotonicTime.BootEra == BPLIB_TIME_INVALID_BOOT_ERA)
+    {
+        EstDtnTime = (uint64_t) MonotonicTime.Time;
+    }
+    else
+    {
+        CF = BPLib_TIME_GetCfFromBuffer(MonotonicTime.BootEra);
+
+        /* If a nonzero CF can be found, return an exact DTN time */
+        if (CF != 0)
+        {
+            EstDtnTime = (uint64_t) (MonotonicTime.Time + CF);
+        }
+        /* If no valid CF found, try the last valid DTN time from previous boot era */
+        else
+        {
+            EstCf = BPLib_TIME_GetDtnTimeFromBuffer(MonotonicTime.BootEra - 1);
+
+            /* Get an estimated DTN time using a last valid DTN time value */
+            if (EstCf != 0)
+            {
+                EstDtnTime = ((uint64_t) MonotonicTime.Time) + EstCf;
+            }
+            /* Else return 0 */
+        }
+    }
+
+    return EstDtnTime;
+}
+
+/* Safe conversion of epoch offsets */
+int64_t BPLib_TIME_SafeOffset(int64_t HostEpoch, int64_t DtnEpoch, int64_t Multiplier)
+{
+    int64_t Offset;
+    int8 Sign;
+
+    if (HostEpoch < DtnEpoch)
+    {
+        Sign = -1;
+        Offset = DtnEpoch - HostEpoch;
+    }
+    else 
+    {
+        Sign = 1;
+        Offset = HostEpoch - DtnEpoch;
+    }
+
+    Offset *= Multiplier;
+    Offset *= Sign;
+
+    return Offset;
 }
