@@ -36,23 +36,12 @@
 /* Type Definitions */
 /* ================ */
 
-/* Unit test check event hook information */
-typedef struct
-{
-    uint16      ExpectedEvent;
-    uint32      MatchCount;
-    const char *ExpectedFormat;
-} UT_CheckEvent_t;
-
 extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 
 /* ====== */
 /* Macros */
 /* ====== */
 #define ADD_TEST(test) UtTest_Add(test, BPLib_EM_Test_Setup, BPLib_EM_Test_Teardown, #test)
-
-#define UT_CHECKEVENT_SETUP(Evt, ExpectedEvent, ExpectedFormat) \
-    UT_CheckEvent_Setup_Impl(Evt, ExpectedEvent, #ExpectedEvent, ExpectedFormat)
 
 /* ==================== */
 /* Function Definitions */
