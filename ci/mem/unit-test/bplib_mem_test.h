@@ -23,8 +23,11 @@
 #include "utstubs.h"
 #include "uttest.h"
 
+#include "bplib_os.h"
+
+#include "bplib_mem.h"
+#include "bplib_mem_internal.h"
 #include "test_bplib_mpool.h"
-#include "v7_mpool.h"
 
 const uint32 UT_TESTBLOCKTYPE_SIG = 0x5f33c01a;
 

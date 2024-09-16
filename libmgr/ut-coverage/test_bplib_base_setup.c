@@ -21,11 +21,12 @@
  */
 #include "bplib_api_types.h"
 #include "test_bplib_base.h"
-#include "bplib_routing.h"
 #include "bplib.h"
 
 void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
+    #ifdef STOR
+
     void *retval = NULL;
     int   count  = UT_GetStubCount(UT_KEY(bplib_mpool_flow_try_pull));
     if (count > 15)
@@ -36,10 +37,18 @@ void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKe
     {
         UT_Stub_SetReturnValue(FuncKey, UserObj);
     }
+
+    #else // STOR
+    void *retval = NULL;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+    #endif // STOR
+
 }
 
 void UT_lib_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
+    #ifdef STOR
+
     void *retval = NULL;
     int   count  = UT_GetStubCount(UT_KEY(bplib_mpool_flow_try_pull));
     if (count > 20)
@@ -50,10 +59,18 @@ void UT_lib_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey
     {
         UT_Stub_SetReturnValue(FuncKey, UserObj);
     }
+
+    #else // STOR
+    void *retval = NULL;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+    #endif // STOR
+
 }
 
 void UT_lib_baseintf_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
+    #ifdef STOR
+
     void *retval = NULL;
     int   count  = UT_GetStubCount(UT_KEY(bplib_mpool_flow_try_pull));
     if (count > 25)
@@ -64,6 +81,12 @@ void UT_lib_baseintf_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncK
     {
         UT_Stub_SetReturnValue(FuncKey, UserObj);
     }
+
+    #else // STOR
+    void *retval = NULL;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+    #endif // STOR
+
 }
 
 void UT_lib_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
@@ -104,7 +127,9 @@ void UT_lib_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCont
 void UtTest_Setup(void)
 {
     TestBplibBase_Register();
+    #ifdef STOR
     TestBplibBase_ClaApi_Register();
     TestBplibBase_DataServiceApi_Register();
     TestBplibBase_Routing_Register();
+    #endif // STOR
 }

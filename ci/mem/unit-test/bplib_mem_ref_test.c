@@ -23,8 +23,7 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "test_bplib_mpool.h"
-#include "v7_mpool_ref.h"
+#include "bplib_mem_internal.h"
 
 void test_bplib_mpool_ref_create(void)
 {

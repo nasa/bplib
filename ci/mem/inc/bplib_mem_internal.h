@@ -27,9 +27,8 @@
 #include "bplib_api_types.h"
 // #include "bplib_os.h" // TODO Unstub bplib_os functions.
 #include "bplib_mem.h"
-#include "v7_rbtree.h"
+#include "bplib_rbtree.h"
 #include "bplib_mem_bblocks.h"
-#include "bplib_mem_ducts.h"
 #include "bplib_mem_ref.h"
 
 /*
@@ -92,7 +91,7 @@ typedef struct bplib_mpool_bblock_canonical_content
     bplib_mpool_aligned_data_t     user_data_start;
 } bplib_mpool_bblock_canonical_content_t;
 
-#ifdef STOR
+#ifdef STOR // duct
 typedef struct bplib_mpool_flow_content
 {
     bplib_mpool_flow_t         fblock;
@@ -135,7 +134,8 @@ typedef union bplib_mpool_block_buffer
     bplib_mpool_api_content_t              api;
     bplib_mpool_bblock_primary_content_t   primary;
     bplib_mpool_bblock_canonical_content_t canonical;
-    // STOR - flow bplib_mpool_flow_content_t             flow;
+    // TODO fix STOR duct
+    // STOR bplib_mpool_flow_content_t             flow;
     bplib_mpool_block_ref_content_t        ref;
     bplib_mpool_block_admin_content_t      admin;
 
@@ -334,7 +334,7 @@ uint32_t bplib_mpool_subq_move_all(bplib_mpool_subq_base_t *subq_dst, bplib_mpoo
  */
 uint32_t bplib_mpool_subq_drop_all(bplib_mpool_t *pool, bplib_mpool_subq_base_t *subq);
 
-#ifdef STOR
+#ifdef STOR // job
 void bplib_mpool_job_cancel_internal(bplib_mpool_job_t *job);
 void bplib_mpool_job_mark_active_internal(bplib_mpool_block_t *active_list, bplib_mpool_job_t *job);
 #endif //STOR

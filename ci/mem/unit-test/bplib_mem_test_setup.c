@@ -19,7 +19,6 @@
 /*
  * Includes
  */
-#include "test_bplib_mpool.h"
 
 void TestBplibMpool_ResetTestEnvironment(void)
 {

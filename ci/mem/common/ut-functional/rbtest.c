@@ -24,7 +24,7 @@
 #include "osapi.h"
 
 #include "bplib_api_types.h"
-#include "v7_rbtree.h"
+#include "bplib_rbtree.h"
 
 #define TEST_SIZE 2150
 

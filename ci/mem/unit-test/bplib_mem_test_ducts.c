@@ -23,9 +23,6 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "test_bplib_mpool.h"
-#include "v7_mpool_flows.h"
-
 void UT_AltHandler_MoveQueue(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     bplib_mpool_flow_t  *flow = UserObj;

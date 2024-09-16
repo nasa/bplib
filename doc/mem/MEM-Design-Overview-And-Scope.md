@@ -2,7 +2,7 @@
 # The document metadata is YAML format recognized by pandoc.
 title: DTN-cFS BPLib MEM Design
 # author: Grafton Kennedy
-date: 2024-08-20
+date: 2024-09-16
 output:
     word_document:
 #        pandoc_args: ["--toc"]
@@ -11,6 +11,24 @@ output:
         path: "MEM-Design-Overview-And-Scope.docx"
 ---
 ## Design Overview and Scope
+
+### Stages of Prototype to MEM Transition
+
+The MEM design relies on reuse of the Prototype MPOOL component. The Prototype MPOOL, CACHE, and STORE components are tightly coupled. (explanation TBD) Decoupling MEM from CACHE and STORE should improve:
+
+  - Flexibility: Components can be modified independently.
+  - Testability: Components can be unit tested independently.
+  - Reusability: Components can be reused for other systems.
+
+The MEM design seeks tight cohesion in the component, which can naturally follow from decoupling. Tight cohesione is worth the effort for the same reasons as decoupling plus it should improve the Understandability of the component. Understandable design and code are the keys for all the other "ilities": Flexibility, Maintainability, Reusability, Testability, and Reliability.
+
+The MEM design calls for the decoupling to be done in stages:
+
+  - In Scope/Out of Scope Allocation of MEM and Storage (S) Elements
+  - Dependencies of MEM components on Prototype Components
+  - Disposition Of Prototype  `bplib mpool` APIs to `dtn-cfs bplib` `mem` and `stor` APIs
+  - Migration of `mpool` FSW Files to `mem` FSW Files
+  - Divvying up of `mem` source and unit test files to `mem` and `stor` (Decoupling)
 
 ### DTN CDR Design Slide Excerpts
 
@@ -93,11 +111,11 @@ The CDR API names will be changed to `dtn-cfs bplib` names as follows:
 End of Jira Initial Comment
 
 ----
-#### Dependencies of `mem` modules on `bp-cfs` Modules
+#### DDependencies of MEM components on Prototype Components
 
-Analysis of the `mem` module content inherited from the `mpool` implementation revealed important dependencies that need to be met and eventually pared-back to the essentials.
+Analysis of the `mem` component content inherited from the `mpool` implementation revealed important dependencies that need to be met and eventually pared-back to the essentials.
 
-|  | `mem` Module | Depends on | Which Migrates to |
+|  | `mem` | Depends on | Which Migrates to |
 |:- |:- |:- |:- |
 | OS | `mem` - Posix/OSAL | bplib/os | bplib/os |
 | bplib_init | `mem` | bplib/lib/src/v7_bplib.c:bplib_init() | bplib/libmgr/bplib_libmgr.c |
@@ -338,3 +356,148 @@ The bp-cfs CMakeLists.txt file has a mismatch in the naming:
 
 `lib` was `bplib_base` in the CMakeLists.txt file.
 `libmgr` will be `blib_libmgr` in CMakeLists.txt.
+
+#### Divvying up of `mem` source and unit test files to `mem` and `stor` (Decoupling)
+
+ - #ifdef-out STOR code in C files
+ - Comment-out STOR definitions in CMakeLists.txt build files
+ - Build and unit-test dtn-cfs successfully
+ - Document files with STOR for decoupling
+ - Decouple STOR-flagged files
+
+ Flagged, built, and unit-tested dtn-cfs successfully.
+
+ ##### `mem` Files flagged for decoupling
+
+ ```
+ ```
+
+ ##### Decoupled `mem` Files
+
+
+
+gskenned@DESKTOP-HGB20G6:~/repos/gsfc-dtn/dtn-cfs/libs
+$ find bplib -name "*.txt" -exec grep -Hlw STOR {} \; -o -name "*.[h.c]" -exec grep -Hlw STOR {} \; | sort
+bplib/bpa/stor/CMakeLists.txt
+bplib/bpa/stor/inc/bplib_stor.h
+bplib/ci/mem/CMakeLists.txt
+bplib/ci/mem/cache/src/v7_cache.c
+bplib/ci/mem/cache/src/v7_cache_custody.c
+bplib/ci/mem/cache/src/v7_cache_fsm.c
+bplib/ci/mem/cache/src/v7_cache_internal.h
+bplib/ci/mem/cache/ut-coverage/CMakeLists.txt
+bplib/ci/mem/common/CMakeLists.txt
+bplib/ci/mem/inc/bplib_mem_ducts.h
+bplib/ci/mem/inc/bplib_mem_internal.h
+bplib/ci/mem/src/bplib_mem.c
+bplib/ci/mem/src/bplib_mem_bblocks.c
+bplib/ci/mem/src/bplib_mem_ducts.c
+bplib/ci/mem/unit-test/CMakeLists.txt
+bplib/ci/mem/unit-test/test_bplib_mpool_setup.c
+bplib/doc/mem/mpool-baseline-tree.txt
+bplib/libmgr/CMakeLists.txt
+bplib/libmgr/src/v7_base_internal.h
+bplib/libmgr/src/v7_bplib.c
+bplib/libmgr/src/v7_cla_api.c
+bplib/libmgr/src/v7_dataservice_api.c
+bplib/libmgr/ut-coverage/CMakeLists.txt
+bplib/libmgr/ut-coverage/test_bplib_base_setup.c
+bplib/libmgr/ut-coverage/test_v7_bplib.c
+
+Plan to create S files
+  - Rename and/or move files to s
+  - Fix all filename changes in source files after each section of source file actions.
+
+Rename bpa/stor/ to bpa/s
+
+```
+mv bpa/stor                                                 bpa/s
+mv bpa/s/inc/bplib_stor.h                                bpa/s/inc/bplib_s.h
+mv bpa/s/src/bplib_stor.c                                bpa/s/src/bplib_s.c
+mv bpa/s/unit-test/stubs/bplib_stor_stubs.c              bpa/s/unit-test/stubs/bplib_s_stubs.c
+mv bpa/s/unit-test/bplib_stor_test.c                     bpa/s/unit-test/bplib_s_test.c
+mv bpa/s/unit-test/utilities/bplib_stor_test_utils.h     bpa/s/unit-test/utilities/bplib_s_test_utils.h
+mv bpa/s/unit-test/utilities/bplib_stor_test_utils.c     bpa/s/unit-test/utilities/bplib_s_test_utils.c
+
+Move ci/mem/cache to bpa/s/cache
+
+```
+mv ci/mem/cache                                             bpa/s/cache
+mv bpa/s/cache/src/v7_cache.c                               bpa/s/cache/src/bplib_cache.c
+mv bpa/s/cache/src/v7_cache_custody.c                       bpa/s/cache/src/bplib_cache_custody.c 
+mv bpa/s/cache/src/v7_cache_fsm.c                           bpa/s/cache/src/bplib_cache_fsm.c
+mv bpa/s/cache/src/v7_cache_internal.h                      bpa/s/cache/src/bplib_cache_internal.h
+
+mv bpa/s/cache/ut-coverage/test_bplib_cache.h              bpa/s/cache/ut-coverage/test_bplib_cache.h
+mv bpa/s/cache/ut-coverage/test_bplib_cache_setup.c        bpa/s/cache/ut-coverage/test_bplib_cache_setup.c
+mv bpa/s/cache/ut-coverage/test_v7_cache.c                 bpa/s/cache/ut-coverage/test_bplib_cache.c
+mv bpa/s/cache/ut-coverage/test_v7_cache_custody.c         bpa/s/cache/ut-coverage/test_bplib_cache_custody.c
+mv bpa/s/cache/ut-coverage/test_v7_cache_fsm.c             bpa/s/cache/ut-coverage/test_bplib_cache_fsm.c
+```
+
+
+Move "duct" and "flow" files to bpa/s/qm
+
+```
+mkdir -p bpa/s/qm/src bpa/s/qm/unit-test bpa/s/qm/inc bpa/s/qm/unit-test/stubs
+mv ci/mem/src/bplib_mem_ducts.c                             bpa/s/qm/src/bplib_mem_ducts.c
+mv ci/mem/unit-test/stubs/bplib_mem_ducts_stubs.c           bpa/s/qm/unit-test/stubs/bplib_mem_ducts_stubs.c
+mv ci/mem/inc/bplib_mem_ducts.h                             bpa/s/qm/inc/bplib_mem_ducts.h
+mv ci/mem/unit-test/test_bplib_v7_mpool_flows.c             bpa/s/qm/unit-test/test_bplib_v7_mpool_ducts.c
+```
+
+Move or rename libmgr files
+
+mkdir -p bpa/s/cache/inc
+mv libmgr/inc/bplib_dataservice.h                           bpa/s/cache/inc/bplib_dataservice.h
+rm -rfi libmgr/inc
+mv libmgr/src/v7_base_internal.h                            bpa/s/cache/src/bplib_s_cache_base_internal.h
+mv libmgr/src/v7_bplib.c                                    libmgr/src/bplib_libmgr.c
+mv libmgr/src/v7_cla_api.c                                  bpa/s/cache/src/bplib_s_cache_cla_api.c
+mv libmgr/src/v7_dataservice_api.c                          bpa/s/cache/src/bplib_s_cache_dataservice_api.c
+mv libmgr/src/v7_routing.c                                  bpa/s/cache/src/bplib_s_cache_enqueueing.c
+mv libmgr/ut-coverage/CMakeLists.txt                        bpa/s/cache/ut-coverage/CMakeLists.txt
+mv libmgr/ut-coverage/test_v7_bplib.c                       libmgr/ut-coverage/test_bplib_libmgr.c
+mkdir -p bpa/s/cache/ut-coverage
+mv libmgr/ut-coverage/test_v7_cla_api.c                     bpa/s/cache/ut-coverage/test_bplib_cla_api.c
+mv libmgr/ut-coverage/test_v7_dataservice_api.c             bpa/s/cache/ut-coverage/test_bplib_dataservice_api.c
+mv libmgr/ut-coverage/test_v7_routing.c                     bpa/s/cache/ut-coverage/test_bplib_enqueueing.c
+mv libmgr/ut-stubs/CMakeLists.txt                           bpa/s/cache/ut-stubs/CMakeLists.txt
+mv libmgr/ut-stubs/bplib_dataservice_stubs.c                bpa/s/cache/ut-stubs/bplib_dataservice_stubs.c
+
+Move mem "cache", block, bundle files to bpa/s/cache
+
+mv ci/mem/inc/bplib_mem_bundle.h                            bpa/s/cache/inc/bplib_cache_bundle.h
+mv ci/mem/inc/bplib_mem_ref.h                               bpa/s/cache/inc/bplib_cache_ref.h
+mv ci/mem/inc/bplib_mem_bblocks.h                           bpa/s/cache/inc/bplib_cache_bblocks.h
+mv ci/mem/src/bplib_mem_ref.c                               bpa/s/cache/src/bplib_cache_ref.c
+cp ci/mem/src/bplib_mem.c                                   bpa/s/cache/src/bplib_cache.c
+mv ci/mem/src/bplib_mem_bblocks.c                           bpa/s/cache/src/bplib_cache_bblocks.c
+mv ci/mem/unit-test/stubs/bplib_mem_bblocks_stubs.c         bpa/s/cache/unit-test/stubs/bplib_cache_bblocks_stubs.c
+mv ci/mem/unit-test/stubs/bplib_mem_ref_stubs.c             bpa/s/cache/unit-test/stubs/bplib_cache_ref_stubs.c
+
+Rename "*v7*" to "*bplib-mem*" or "*bplib-cache*"
+
+mv bpa/s/cache/inc/v7_cache.h                               bpa/s/cache/inc/bplib_cache.h
+mv ci/mem/common/inc/v7_rbtree.h                            ci/mem/common/inc/bplib_rbtree.h
+
+mv bpa/s/cache/ut-stubs/v7_cache_stubs.c                    bpa/s/cache/ut-stubs/bplib_cache_stubs.c
+mv bpa/s/qm/unit-test/test_bplib_mpool_ducts.c              bpa/s/qm/unit-test/test_bplib_qm_ducts.c
+mv ci/mem/common/src/v7_rbtree.c                            ci/mem/common/src/bplib_rbtree.c
+mv ci/mem/common/ut-coverage/test_bplib_v7_rbtree.c         ci/mem/common/ut-coverage/test_bplib_rbtree.c
+mv ci/mem/common/ut-stubs/v7_rbtree_stubs.c                 ci/mem/common/ut-stubs/bplib_rbtree_stubs.c
+mv ci/mem/unit-test/test_bplib_v7_mpool_bblocks.c           bpa/s/cache/unit-test/test_bplib_cache_bblocks.c
+mv ci/mem/unit-test/test_bplib_v7_mpool_job.c               bpa/s/qm/unit-test/test_bplib_qm_job.c
+mv ci/mem/unit-test/test_bplib_v7_mpool_ref.c               bpa/s/cache/unit-test/test_bplib_cache_ref.c
+mv ci/mem/unit-test/test_bplib_v7_mpool.c                   bpa/s/cache/unit-test/test_bplib_cache.c
+mv ci/mem/unit-test/test_bplib_v7_mpstream.c                bpa/s/qm/unit-test/test_bplib_mpstream.c
+
+Prepend bplib_ to crc filenames.
+mv ci/mem/common/inc/crc.h                                  ci/mem/common/inc/bplib_crc.h
+mv ci/mem/common/src/crc.c                                  ci/mem/common/src/bplib_crc.c
+mv ci/mem/common/src/crc_private.h                          ci/mem/common/src/bplib_crc_private.h
+mv ci/mem/common/ut-coverage                                ci/mem/common/unit-test
+mv ci/mem/common/ut_stubs                                   ci/mem/common/unit-test/stubs
+
+
+Update the .h filenames in the .c files.

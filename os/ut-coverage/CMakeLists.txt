@@ -30,11 +30,11 @@ target_compile_options(utobj_bplib_os PRIVATE
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_COMPILE_OPTIONS>
 )
 
-# TODO Put back    $<TARGET_PROPERTY:bplib_os,INTERFACE_INCLUDE_DIRECTORIES> in the list.
 
 target_include_directories(utobj_bplib_os PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_os,INTERFACE_INCLUDE_DIRECTORIES> in the list.
 )
 
 # Add executable

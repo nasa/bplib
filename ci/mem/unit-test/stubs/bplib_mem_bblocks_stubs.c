@@ -24,7 +24,8 @@
  * Auto-Generated stub implementations for functions defined in v7_mpool_bblocks header
  */
 
-#include "v7_mpool_bblocks.h"
+#include "bplib_mem.h"
+#include "bplib_mem_bundle.h"
 #include "utgenstub.h"
 
 /*

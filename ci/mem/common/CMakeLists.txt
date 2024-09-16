@@ -7,8 +7,8 @@
 ##################################################################
 
 set(bplib_mem_common_SOURCES
-    src/crc.c
-    src/v7_rbtree.c
+    src/bplib_crc.c
+    src/bplib_rbtree.c
 )
 
 add_library(bplib_mem_common OBJECT
@@ -23,13 +23,8 @@ target_include_directories(bplib_mem_common PUBLIC
     $<TARGET_PROPERTY:bplib_os,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# TODO Is it correct to group all in one? target_include_directories(bplib_common PUBLIC
-#     $<TARGET_PROPERTY:bplib_libmgr,INTERFACE_INCLUDE_DIRECTORIES>
-#     $<TARGET_PROPERTY:bplib_os,INTERFACE_INCLUDE_DIRECTORIES>
-# )
-
 if(BPLIB_ENABLE_UNIT_TESTS)
   add_subdirectory(ut-stubs)
-  add_subdirectory(ut-coverage)
+  # STOR add_subdirectory(ut-coverage)
   add_subdirectory(ut-functional)
 endif(BPLIB_ENABLE_UNIT_TESTS)

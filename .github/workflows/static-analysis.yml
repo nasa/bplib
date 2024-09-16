@@ -12,8 +12,8 @@ jobs:
     with:
       strict-dir-list:
         -Iaa/arp/inc -Iaa/as/inc -Iaa/fwp/inc -Iaa/ndc/inc -Ibpa/bi/inc -Ibpa/ct/inc 
-        -Ibpa/ebp/inc -Ibpa/pdb/inc -Ibpa/pi/inc -Ibpa/stor/inc -Ici/cbor/inc -Ici/em/inc 
+        -Ibpa/ebp/inc -Ibpa/pdb/inc -Ibpa/pi/inc -Ibpa/s/inc -Ici/cbor/inc -Ici/em/inc 
         -Ici/job/inc -Ici/mem/inc -Ici/pl/inc -Ici/time/inc -Icla/inc -Iinc
         aa/arp/src aa/as/src aa/fwp/src aa/ndc/src bpa/bi/src bpa/ct/src
-        bpa/ebp/src bpa/pdc/src bpa/pi/src bpa/stor/src ci/cbor/src ci/em/src
+        bpa/ebp/src bpa/pdc/src bpa/pi/src bpa/s/src ci/cbor/src ci/em/src
         ci/job/src ci/mem/src ci/pl/src ci/time/src cla/src

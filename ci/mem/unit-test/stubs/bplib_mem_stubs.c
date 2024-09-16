@@ -21,10 +21,10 @@
 /**
  * @file
  *
- * Auto-Generated stub implementations for functions defined in v7_mpool header
+ * Auto-Generated stub implementations for functions defined in bplib_mem header
  */
 
-#include "v7_mpool.h"
+#include "bplib_mem.h"
 #include "utgenstub.h"
 
 /*

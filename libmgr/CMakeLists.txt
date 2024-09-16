@@ -7,8 +7,7 @@
 ##################################################################
 
 set(bplib_libmgr_SOURCES
-    src/v7_bplib.c
-    src/v7_dataservice_api.c
+    src/bplib_libmgr.c
 )
 # Removed src/v7_cla_api.c and src/v7_routing.c  // TODO STOR
 
@@ -27,6 +26,6 @@ target_include_directories(bplib_libmgr PUBLIC
 
 # Add unit test coverage subdirectory
 if(BPLIB_ENABLE_UNIT_TESTS)
-  add_subdirectory(ut-stubs)
-  add_subdirectory(ut-coverage)
+  # STOR add_subdirectory(ut-stubs)
+  # STOR add_subdirectory(ut-coverage)
 endif(BPLIB_ENABLE_UNIT_TESTS)

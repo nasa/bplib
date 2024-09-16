@@ -19,8 +19,8 @@
 /*
  * Includes
  */
-#include "test_bplib_common.h"
-#include "crc_private.h"
+#include "test_bplib_mem_common.h"
+#include "bplib_crc_private.h"
 
 #define UT_BPLIB_CRC6_POLY 0x3U
 
@@ -149,7 +149,7 @@ void Test_bplib_crc_get(void)
     UtAssert_UINT32_EQ(bplib_crc_get("123456789", 9, &UT_BPLIB_CRC6), 0x06);
 }
 
-void TestBplibCommon_CRC_Setup(void)
+void TestBplibMemCommon_CRC_Setup(void)
 {
     UtAssert_VOIDCALL(bplib_crc_init());
 
@@ -165,7 +165,7 @@ void TestBplibCommon_CRC_Setup(void)
     while (byte != 0);
 }
 
-void TestBplibCommon_CRC_Execute(void)
+void TestBplibMemCommon_CRC_Execute(void)
 {
     Test_bplib_crc_get_name();
     Test_bplib_crc_get_width();
