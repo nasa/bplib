@@ -77,4 +77,36 @@ extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
  */
 BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks);
 
+/**
+ * \brief FWP PerfLog Proxy Entry
+ *
+ *  \par Description
+ *       Entry marker for use with Software Performance Tool
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] Perf Log ID
+ * 
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS BPLib_FWP_PL_PerfLog_Entry was successful
+ */
+BPLib_Status_t BPLib_FWP_PL_PerfLog_Entry(uint32_t PerfLogID);
+
+/**
+ * \brief FWP PerfLog Proxy Exit
+ *
+ *  \par Description
+ *       Exit marker for use with Software Performance Tool
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] Perf Log ID
+ * 
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS BPLib_FWP_PL_PerfLog_Exit was successful
+ */
+BPLib_Status_t BPLib_FWP_PL_PerfLog_Exit(uint32_t PerfLogID);
+
 #endif /* BPLIB_FWP_H */

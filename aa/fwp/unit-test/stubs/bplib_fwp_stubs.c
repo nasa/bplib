@@ -44,3 +44,35 @@ int BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks)
 
     return UT_GenStub_GetReturnValue(BPLib_FWP_Init, BPLib_Status_t);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_FWP_PL_PerfLog_Entry()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_FWP_PL_PerfLog_Entry(uint32_t PerfLogID) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_FWP_PL_PerfLog_Entry, BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_FWP_PL_PerfLog_Entry, uint32_t, PerfLogID);
+
+  UT_GenStub_Execute(BPLib_FWP_PL_PerfLog_Entry, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_FWP_PL_PerfLog_Entry, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_FWP_PL_PerfLog_Exit()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_FWP_PL_PerfLog_Exit(uint32_t PerfLogID) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_FWP_PL_PerfLog_Exit, BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_FWP_PL_PerfLog_Exit, uint32_t, PerfLogID);
+
+  UT_GenStub_Execute(BPLib_FWP_PL_PerfLog_Exit, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_FWP_PL_PerfLog_Exit, BPLib_Status_t);
+}
