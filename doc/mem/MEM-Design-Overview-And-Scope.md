@@ -46,24 +46,38 @@ BPA Modules can request blocks of memory to store bundles (and other things).
 
 #### In Scope/Out of Scope Allocation for this issue
 
-**IN** All of the CDR design elements listed above. Also requirement DTN.6.25060 Memory Allocator Telemetry. The content of the telemetry will be determined during implementation.
+**Relevant Requirements (from the DTNN-328 Description)**
 
-**IN** The Memory Allocator accepts the memory pool created by BPNode and uses only that memory pool for its operations.
+|Name|Text|
+|:- |:- |
+|DTN.6.25000|Upon accepting a node-shutdown request from AA Node Configuration, CI Memory Allocator shall release the allocated memory.|
+|DTN.6.25010|Upon request, CI Memory Allocator shall provide memory in fixed size blocks to the requsted module.|
+|DTN.6.25020|If there is no available memory, CI Memory Allocator shall reply with an error indication.|
+|DTN.6.25030|CI Memory allocator shall free memory blocks when requested.|
+|DTN.6.25040|Upon initialization, CI Memory Allocator shall configure the available memory pool size.|
+|DTN.6.25050|CI Memory Allocator shall have predictable execution time for free and allocate operations.|
+|DTN.6.25060|Upon request from AA Node Configuration, CI Memory Allocator shall send telemetry to AA Framework Proxy per the Monitor and Control ICD.|
 
-At least one type of bundle data model will be used to implement and test the Memory Allocator because it will lead to a smoother transition to Jira Issue DTNN-339 Bundle Cache and Bundle Queue.
+**IN** All of the CDR design elements for the requirements listed above. Also requirement DTN.6.25060 Memory Allocator Telemetry. The content of the telemetry will be determined during implementation.
 
-**IN** Bundles in the memory pool consist of:
-**IN** Primary Block
-**IN** List of Canonical Blocks ending with the payload block (CBLOCK_LIST)
-**IN** For primary and canonical blocks, links to other blocks (CHUNK_LIST)
-**IN** Payload Block
+**IN** The Memory Allocator (MEM) accepts the fixed memory allocation created by BPNode and uses only that memory allocation as the memory pool for its operations.
 
-One type of `deserialized_bundle` or `flat_bundle` data structure will be chosen for development and test of the Memory Allocator.
+**IN** MEM manages memory blocks in its memory pool.
+
+**OUT** Storage cache manages memory bundle blocks and other cache-related memory block types.
+
+Note: **OUT** means "Migrated to Storage".
+
+**OUT** Bundles in the Storage cache-related memory block types consist of:
+**OUT** Primary Block
+**OUT** List of Canonical Blocks ending with the payload block (CBLOCK_LIST)
+**OUT** For primary and canonical blocks, links to other blocks (CHUNK_LIST)
+**OUT** Payload Block
+
+**OUT** One type of `deserialized_bundle` or `flat_bundle` data structure will be chosen for development and test of the Memory Allocator.
 The type of internal data representation for a bundle will be selectable at compile-time even though in this implementation there will be only one type.
 
-**IN** One type of internal data model for bundle.
-
-Jira Issue DTNN-339 defines the task to create Bundle Cache and Bundle Queue so those are out of scope for this issue.
+Jira Issue DTNN-339 defines the task to create Bundle Cache and Bundle Queue. They are out of scope for this issue.
 
 **OUT** Blocks of memory pool memory are also used for other purposes such as job queues, references, etc.
 
@@ -111,7 +125,7 @@ The CDR API names will be changed to `dtn-cfs bplib` names as follows:
 End of Jira Initial Comment
 
 ----
-#### DDependencies of MEM components on Prototype Components
+#### Dependencies of MEM components on Prototype Components
 
 Analysis of the `mem` component content inherited from the `mpool` implementation revealed important dependencies that need to be met and eventually pared-back to the essentials.
 
@@ -498,6 +512,174 @@ mv ci/mem/common/src/crc.c                                  ci/mem/common/src/bp
 mv ci/mem/common/src/crc_private.h                          ci/mem/common/src/bplib_crc_private.h
 mv ci/mem/common/ut-coverage                                ci/mem/common/unit-test
 mv ci/mem/common/ut_stubs                                   ci/mem/common/unit-test/stubs
-
+```
 
 Update the .h filenames in the .c files.
+
+**Surgical transplant of cache and queue elements from MEM to S bpa/s/cache and bpa/s/qm**
+
+Metaphorically speaking, the MEM cache and queue elements must be cut and pasted to the proper S components s/cache or s/queue. As the MEM requirements imply, MEM has no knowledge of BP bundles, bundle queues, or persistent storage.
+
+The surgery begins by identifying all of the bundle memory pool-related data types to be transplanted to s/cache.
+
+```
+~/repos/gsfc-dtn/dtn-cfs/libs
+$ find bplib  -name "*.[c|h]" -exec grep -HE "mpool_.*_t;" {} \;
+bplib/ci/mem/unit-test/test_bplib_mpool.h:} UT_bplib_mpool_buf_t;
+bplib/ci/mem/inc/bplib_mem.h:typedef struct bplib_mpool_bblock_primary   bplib_mpool_bblock_primary_t;
+bplib/ci/mem/inc/bplib_mem.h:typedef struct bplib_mpool_bblock_canonical bplib_mpool_bblock_canonical_t;
+bplib/ci/mem/inc/bplib_mem.h:typedef struct bplib_mpool_subq_base bplib_mpool_subq_base_t;
+bplib/ci/mem/inc/bplib_mem.h:typedef struct bplib_mpool_flow      bplib_mpool_flow_t;
+bplib/ci/mem/inc/bplib_mem.h:} bplib_mpool_blocktype_t;
+bplib/ci/mem/inc/bplib_mem.h:} bplib_mpool_eventid_t;
+bplib/ci/mem/inc/bplib_mem.h:} bplib_mpool_list_iter_t;
+bplib/ci/mem/inc/bplib_mem.h:} bplib_mpool_blocktype_api_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_lock_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_header_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_aligned_data_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_api_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_generic_data_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_bblock_primary_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_bblock_canonical_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_flow_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_ref_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_admin_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_buffer_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_content_t;
+bplib/ci/mem/inc/bplib_mem_bblocks.h:} bplib_mpool_bblock_tracking_t;
+bplib/ci/mem/inc/bplib_mem_bblocks.h:} bplib_mpool_bblock_primary_data_t;
+bplib/bpa/s/qm/inc/bplib_qm_ducts.h:} bplib_mpool_flow_event_t;
+bplib/bpa/s/qm/inc/bplib_qm_ducts.h:} bplib_mpool_flow_statechange_event_t;
+bplib/bpa/s/qm/inc/bplib_qm_ducts.h:} bplib_mpool_flow_generic_event_t;
+bplib/bpa/s/qm/inc/bplib_qm_ducts.h:} bplib_mpool_subq_workitem_t;
+bplib/inc/bplib_api_types.h:typedef struct bplib_mpool_block bplib_mpool_block_t;
+bplib/inc/bplib_api_types.h:typedef struct bplib_mpool_block_content *bplib_mpool_ref_t;
+```
+
+All of the declarations found are for cache memory blocks, not MEM.
+
+The tight coupling of MEM with cache is clear from the mpool datatype declarations in bplib_mem.h and bplib_mem_internal.h. Of 50 "_t;" declarations in mem/inc, 22 are cache-related.
+
+Note that mem/inc/bplib_mem_bundle.h is cache-related too.
+
+It's clear now that all mem/inc/*.h files require relocation to s/cache or surgical transplants.
+
+```
+gskenned@ip-10-1-23-64:~/repos/gsfc-dtn/dtn-cfs/libs
+$ find bplib/ci/mem/inc  -name "*.[c|h]" -exec grep -HE "_t;" {} \; | grep -vE "mpool_.*_t"
+bplib/ci/mem/inc/bplib_mem_bundle.h:typedef uint64_t bp_integer_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:typedef uint8_t bp_blocknum_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_blocktype_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_adminrectype_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:typedef bp_integer_t bp_dtntime_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:typedef bp_integer_t bp_sequencenumber_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_iana_uri_scheme_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_endpointid_scheme_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:typedef bp_integer_t bp_ipn_nodenumber_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:typedef bp_integer_t bp_ipn_servicenumber_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_ipn_uri_ssp_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_dtn_uri_ssp_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_creation_timestamp_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_bundle_processing_control_flags_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_block_processing_flags_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:typedef bp_integer_t bp_lifetime_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:typedef bp_integer_t bp_adu_length_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_endpointid_ssp_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_endpointid_buffer_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_primary_block_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_canonical_bundle_block_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_previous_node_block_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_bundle_age_block_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_hop_count_block_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_custody_tracking_block_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_custody_accept_payload_block_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_canonical_block_data_t;
+bplib/ci/mem/inc/bplib_mem_bundle.h:} bp_canonical_block_buffer_t;
+```
+
+What will be left in MEM?
+
+```
+gskenned@ip-10-1-23-64:~/repos/gsfc-dtn/dtn-cfs/libs/bplib/ci
+$ find mem  -name "*.[c|h]" -exec grep -HE "_t;" {} \; | grep -vE "mpool_.*_t" | grep -vE "bp_.*_t"
+mem/common/ut-coverage/test_bplib_rbtree.c:} rbtest_node_t;
+mem/common/inc/bplib_crc.h:typedef const struct bplib_crc_parameters bplib_crc_parameters_t;
+mem/common/inc/bplib_rbtree.h:} bplib_rbt_link_t;
+mem/common/inc/bplib_rbtree.h:} bplib_rbt_root_t;
+mem/common/inc/bplib_rbtree.h:} bplib_rbt_iter_t;
+mem/common/ut-functional/rbtest.c:} rbtest_node_t;
+```
+
+What happened? Where are the fundamental data structures for MEM?
+
+In bplib_mem.h, of course. The coupling in the naming `bplib_mpool_block` and in the `built-in bplib_mpool_blocktype_t type` plus the obscurity of an abstract type definition (explanation TBD) means that loosening the coupling requires surgical removal of the `type` element and a deep understanding of why the `parent_offset` is uin32_t.
+
+
+```
+struct bplib_mpool_block
+{
+    /* note that if it becomes necessary to recover bits here,
+     * both the type and offset could be reduced in size */
+    bplib_mpool_blocktype_t   type;
+    uint32_t                  parent_offset;
+    struct bplib_mpool_block *next;
+    struct bplib_mpool_block *prev;
+};
+```
+
+Searching for `mpool_block` or `mpool_bblock`:
+
+```
+gskenned@ip-10-1-23-64:~/repos/gsfc-dtn/dtn-cfs/libs
+$ find bplib  -name "*.[c|h]" -exec grep -HE "mpool_b?block_.*_t;" {} \;
+bplib/ci/mem/inc/bplib_mem.h:typedef struct bplib_mpool_bblock_primary   bplib_mpool_bblock_primary_t;
+bplib/ci/mem/inc/bplib_mem.h:typedef struct bplib_mpool_bblock_canonical bplib_mpool_bblock_canonical_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_header_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_bblock_primary_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_bblock_canonical_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_ref_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_admin_content_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_buffer_t;
+bplib/ci/mem/inc/bplib_mem_internal.h:} bplib_mpool_block_content_t;
+bplib/ci/mem/inc/bplib_mem_bblocks.h:} bplib_mpool_bblock_tracking_t;
+bplib/ci/mem/inc/bplib_mem_bblocks.h:} bplib_mpool_bblock_primary_data_t;
+bplib/inc/bplib_api_types.h:typedef struct bplib_mpool_block_content *bplib_mpool_ref_t;
+```
+
+cache | bplib_mpool_bblock_primary_t
+cache | bplib_mpool_bblock_canonical_t
+mem   | bplib_mpool_block_header_t
+cache |  bplib_mpool_bblock_primary_content_t
+cache | bplib_mpool_bblock_canonical_content_t
+mem   | bplib_mpool_block_ref_content_t
+mem   | bplib_mpool_block_admin_content_t
+mem   | bplib_mpool_block_buffer_t
+mem   | bplib_mpool_block_content_t
+mem   | bplib_mpool_bblock_tracking_t
+cache | bplib_mpool_bblock_primary_data_t
+mem   | bplib_mpool_ref_t
+
+There is also the concept of a "user block" with content of size BP_MPOOL_MIN_USER_BLOCK_SIZE 480 bytes.
+
+The decoupling strategy is to uniquely name mem versus cache versus qm (and maybe persistent storage)
+
+**Surgery on mem/inc/bplib_mem_internal.h (to begin)**
+
+The naming convention uses the MagicDraw and SDDD naming for the Memory Allocator and Storage modules.  
+However, there are some exceptions.
+
+1.	Sometimes BPL_mpool refers to the MEM memory pool and sometimes the Bundle Cache (BC) memory pool.
+For example, `BPL_mpool_create` creates the MEM memory pool, whereas `BPL_mpool_bblock_primary_alloc` creates a BP Primary Block in BC.
+2.	The BPLib prefix is “bplib” in the heritage code, “BPL” in the SDDD, and often “BPLib” in the new code.
+3.	The module or component short name is lowercase in the heritage code and uppercase in the new code.
+4.	The short name for persistent storage is “PS” in the SDDD. The heritage code uses “file_offload” The CDR slides have “file_offload”
+
+The plan:
+1.	Use BPLib_MEM_, BPLib_BC, BPLib_QM, and BPLib_file_offload for MEM, BC, QM, and Persistent Storage respectively.
+2.	Divvy up the heritage bplib_mpool_* data declarations and functions to BPLib_MEM_* and BPLIB_BC* (mostly)
+For example,
+bplib_mpool_create => BPLib_MEM_create
+bplib_mpool_bblock_primary_alloc => BPLib_BC_bundle_create
+3.	Note that all MEM and S code will use the BPLib prefix.
+4.	The persistent storage short name will be “file_offload”.
+
