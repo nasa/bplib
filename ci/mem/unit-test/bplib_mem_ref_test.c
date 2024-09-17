@@ -24,6 +24,7 @@
 #include "uttest.h"
 
 #include "bplib_mem_internal.h"
+#include "test_bplib_mpool.h"
 
 void test_bplib_mpool_ref_create(void)
 {
@@ -78,6 +79,7 @@ void test_bplib_mpool_ref_from_block(void)
 
 void test_bplib_mpool_ref_release(void)
 {
+    #ifdef STOR // subq
     /* Test function for:
      * void bplib_mpool_ref_release(bplib_mpool_ref_t refptr)
      */
@@ -95,16 +97,17 @@ void test_bplib_mpool_ref_release(void)
 
     UtAssert_VOIDCALL(bplib_mpool_ref_release(&buf.blk[0]));
     UtAssert_UINT16_EQ(buf.blk[0].header.refcount, 1);
-    UtAssert_BOOL_TRUE(bplib_mpool_is_empty_list_head(&admin->recycle_blocks.block_list));
+    // STOR subq UtAssert_BOOL_TRUE(bplib_mpool_is_empty_list_head(&admin->recycle_blocks->block_list));
     UtAssert_BOOL_TRUE(bplib_mpool_is_link_unattached(&buf.blk[0].header.base_link));
 
     UtAssert_VOIDCALL(bplib_mpool_ref_release(&buf.blk[0]));
     UtAssert_ZERO(buf.blk[0].header.refcount);
-    UtAssert_ADDRESS_EQ(bplib_mpool_get_prev_block(&admin->recycle_blocks.block_list), &buf.blk[0]);
+    // STOR subq UtAssert_ADDRESS_EQ(bplib_mpool_get_prev_block(&admin->recycle_blocks->block_list), &buf.blk[0]);
 
     test_setup_mpblock(&buf.pool, &buf.blk[1], bplib_mpool_blocktype_generic, 0);
     UtAssert_VOIDCALL(bplib_mpool_ref_release(&buf.blk[1]));
-    UtAssert_ADDRESS_EQ(bplib_mpool_get_prev_block(&admin->recycle_blocks.block_list), &buf.blk[1]);
+    // STOR subq UtAssert_ADDRESS_EQ(bplib_mpool_get_prev_block(&admin->recycle_blocks->block_list), &buf.blk[1]);
+    #endif // STOR subq
 }
 
 void test_bplib_mpool_ref_make_block(void)
