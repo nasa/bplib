@@ -35,6 +35,13 @@
 /* ================ */
 /* Type Definitions */
 /* ================ */
+/* Unit test check event hook information */
+typedef struct
+{
+    uint16      ExpectedEvent;
+    uint32      MatchCount;
+    const char *ExpectedFormat;
+} UT_CheckEvent_t;
 
 extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 
