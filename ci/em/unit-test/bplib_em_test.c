@@ -21,15 +21,20 @@
 /* ======== */
 /* Includes */
 /* ======== */
+
 #include "bplib_em_test_utils.h"
 
+/* ================ */
 /* Global Variables */
+/* ================ */
+
 UT_CheckEvent_t EventTest;
 
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
 
+// Test that EM initializes nominally
 void Test_BPLib_EM_Init_Nominal(void)
 {
     BPLib_Status_t Status;
@@ -40,6 +45,7 @@ void Test_BPLib_EM_Init_Nominal(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
+// Test that EM generates an event under nominal conditions
 void Test_BPA_EM_SendEvent_Nominal(void)
 {
     BPLib_Status_t Status;
@@ -117,6 +123,8 @@ void Test_BPA_EM_SendEvent_Nominal(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
+/* Test that EM truncates test when it exceeds length
+   restrictions and returns a value indicating as much */
 void Test_BPA_EM_SendEvent_TruncatedString(void)
 {
     char LongString[BPLIB_EM_MAX_MESSAGE_LENGTH + 5];

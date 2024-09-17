@@ -24,6 +24,7 @@
 /* ======== */
 /* Includes */
 /* ======== */
+
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
@@ -35,6 +36,7 @@
 /* ================ */
 /* Type Definitions */
 /* ================ */
+
 /* Unit test check event hook information */
 typedef struct
 {
@@ -48,17 +50,23 @@ extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 /* ====== */
 /* Macros */
 /* ====== */
+
+// Add a test case
 #define ADD_TEST(test) UtTest_Add(test, BPLib_EM_Test_Setup, BPLib_EM_Test_Teardown, #test)
 
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
-void BPLib_EM_Test_Setup(void);
-void BPLib_EM_Test_Teardown(void);
 
 void UT_CheckEvent_Setup_Impl(UT_CheckEvent_t *Evt, uint16 ExpectedEvent, const char *EventName,
                               const char *ExpectedFormat);
 
+/* ========================= */
+/* Stub Function Definitions */
+/* ========================= */
+
+void BPLib_EM_Test_Setup(void);
+void BPLib_EM_Test_Teardown(void);
 void TestBplibEm_Register(void);
 
 #endif /* BPLIB_EM_TEST_UTILS_H */

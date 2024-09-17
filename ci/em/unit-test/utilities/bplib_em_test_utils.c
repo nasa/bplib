@@ -21,11 +21,12 @@
 /* ======== */
 /* Includes */
 /* ======== */
+
 #include "bplib_em_test_utils.h"
 
-/* ==================== */
-/* Function Definitions */
-/* ==================== */
+/* ========================= */
+/* Stub Function Definitions */
+/* ========================= */
 
 BPLib_Status_t Test_BPA_EVP_Init(void)
 {

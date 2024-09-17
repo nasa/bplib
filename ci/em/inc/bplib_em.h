@@ -41,6 +41,10 @@ typedef enum
     BPLib_EM_EventType_CRITICAL = 5
 } BPLib_EM_EventType_t;
 
+// This character is used as an indication
+// that the input string was truncated due
+// to reaching the size limit,
+// BPLIB_EM_MAX_MESSAGE_LENGTH/CFE_MISSION_EVS_MAX_MESSAGE_LENGTH
 #define BPLIB_EM_MSG_TRUNCATED ('$')
 
 // Defines the max length of the expanded event string
@@ -52,8 +56,25 @@ typedef enum
 /* ================== */
 /* Exported Functions */
 /* ================== */
+
+/**
+  * \brief   Events Management initialization
+  * \details Initialize values to perform event management
+  * \note    As of right now, this function always returns BPLIB_SUCCESS
+  * \return  Execution status
+  * \retval  BPLIB_SUCCESS: Initialization was successful
+  */
 BPLib_Status_t BPLib_EM_Init(void);
 
+/**
+  * \brief   Platform-independent software event generation
+  * \details Description
+  *          Platform-independent routine generation of a software event
+  * \return  Execution status
+  * \retval  BPLIB_SUCCESS: Event was successful generated
+  * \retval  BPLIB_ERROR: The max or min length of a message was violated
+  * \retval  BPLIB_EM_STRING_TRUNCATED: The input string was truncated due to size limitations
+  */
 BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText, ...);
 
 #endif /* BPLIB_EM_H */

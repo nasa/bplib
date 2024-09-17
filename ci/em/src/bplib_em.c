@@ -21,14 +21,17 @@
 /* ======== */
 /* Includes */
 /* ======== */
+
 #include "bplib_em.h"
 #include "bplib_fwp.h"
 #include <string.h>
 #include <stdio.h>
 
-/* ================== */
-/* Exported functions */
-/* ================== */
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
+
+// Event management initialization
 BPLib_Status_t BPLib_EM_Init(void)
 {
     BPLib_Status_t Status;
@@ -42,6 +45,7 @@ BPLib_Status_t BPLib_EM_Init(void)
     return Status;
 }
 
+// Event generation
 BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* Spec, ...)
 {
     BPLib_Status_t Status;
@@ -52,8 +56,8 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
     // Initialize Status to BPLIB_SUCCESS
     Status = BPLIB_SUCCESS;
 
-    // Verify that the max message length for EM is more than a truncation character and >= the pre-defined
-    // max length of an EVS message according to CFE
+    /* Verify that the max message length for EM is more than a truncation character and >= the pre-defined
+       max length of an EVS message according to CFE */
     if ((BPLIB_EM_MAX_MESSAGE_LENGTH < 2) || (BPLIB_EM_MAX_MESSAGE_LENGTH > CFE_MISSION_EVS_MAX_MESSAGE_LENGTH))
     {
         Status = BPLIB_ERROR;
@@ -63,6 +67,8 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
         va_start(EventTextArgPtr, Spec);
 
         memset(&ExpandedEventText, 0, sizeof(ExpandedEventText));
+
+        // Format input string based on values provided after Spec
         ExpandedLength = vsnprintf((char*)ExpandedEventText, sizeof(ExpandedEventText),
                                    Spec, EventTextArgPtr);
 

@@ -68,7 +68,7 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t)  9u)
 #define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) 10u)
 #define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) 11u)
-#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) 12u) /* Make BPLIB_SUCCESS? */
+#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) 12u)
 
 #ifdef __cplusplus
 } // extern "C"
