@@ -668,18 +668,19 @@ The decoupling strategy is to uniquely name mem versus cache versus qm (and mayb
 The naming convention uses the MagicDraw and SDDD naming for the Memory Allocator and Storage modules.  
 However, there are some exceptions.
 
-1.	Sometimes BPL_mpool refers to the MEM memory pool and sometimes the Bundle Cache (BC) memory pool.
+1. Sometimes BPL_mpool refers to the MEM memory pool and sometimes the Bundle Cache (BC) memory pool.
 For example, `BPL_mpool_create` creates the MEM memory pool, whereas `BPL_mpool_bblock_primary_alloc` creates a BP Primary Block in BC.
-2.	The BPLib prefix is “bplib” in the heritage code, “BPL” in the SDDD, and often “BPLib” in the new code.
-3.	The module or component short name is lowercase in the heritage code and uppercase in the new code.
-4.	The short name for persistent storage is “PS” in the SDDD. The heritage code uses “file_offload” The CDR slides have “file_offload”
+2. The BPLib prefix is “bplib” in the heritage code, “BPL” in the SDDD, and often “BPLib” in the new code.
+3. The module or component short name is lowercase in the heritage code and uppercase in the new code.
+4. The short name for persistent storage is “PS” in the SDDD. The heritage code uses “file_offload” The CDR slides have “file_offload”
 
 The plan:
-1.	Use BPLib_MEM_, BPLib_BC, BPLib_QM, and BPLib_file_offload for MEM, BC, QM, and Persistent Storage respectively.
-2.	Divvy up the heritage bplib_mpool_* data declarations and functions to BPLib_MEM_* and BPLIB_BC* (mostly)
-For example,
-bplib_mpool_create => BPLib_MEM_create
+1. Use BPLib_MEM_, BPLib_BC, BPLib_QM, and BPLib_file_offload for MEM, BC, QM, and Persistent Storage respectively.
+Divvy up the heritage bplib_mpool_* data declarations and functions to BPLib_MEM_* and BPLIB_BC* (mostly)  
+For example,  
+bplib_mpool_create => BPLib_MEM_create  
 bplib_mpool_bblock_primary_alloc => BPLib_BC_bundle_create
-3.	Note that all MEM and S code will use the BPLib prefix.
-4.	The persistent storage short name will be “file_offload”.
+2. Note that all MEM and S code will use the BPLib prefix.
+3. Use uppercase for the short names except "file_offload".
+4. The persistent storage short name will be “file_offload”.
 
