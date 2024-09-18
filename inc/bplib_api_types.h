@@ -60,6 +60,9 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t)  -6)
 #define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t)  -7)
 
+/* PerfLog Proxy Errors*/
+#define BPLIB_PL_NULL_CALLBACK_ERROR    ((BPLib_Status_t) -8)
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
