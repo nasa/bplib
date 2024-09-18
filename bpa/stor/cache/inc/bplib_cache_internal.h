@@ -25,22 +25,65 @@
 
 #include "bplib.h"
 #include "bplib_os.h"
-#ifdef STOR
 #include "bplib_routing.h"
 #include "bplib_dataservice.h"
-#endif // STOR
 #include "bplib_mem.h"
 #include "bplib_cache.h"
-#ifdef STOR
 #include "v7.h"
-#endif // STOR
 #include "bplib_rbtree.h"
-#ifdef STOR
 #include "v7_codec.h"
 #include "bplib_mem.h"
-#include "bplib_mem_bblocks.h"
+#include "bplib_bc_bundle.h"
 #include "bplib_s_qm_ducts.h"
 #include "bplib_mem_ref.h"
+#endif // STOR
+
+struct bplib_cache
+{
+    bplib_cache_block_content_t admin_block; /**< Start of first real block (see num_bufs_total) */
+};
+
+typedef struct bplib_mpool_bblock_primary_content
+{
+    bplib_mpool_bblock_primary_t pblock;
+    bplib_mpool_aligned_data_t   user_data_start;
+} bplib_mpool_bblock_primary_content_t;
+
+typedef struct bplib_mpool_bblock_canonical_content
+{
+    bplib_mpool_bblock_canonical_t cblock;
+    bplib_mpool_aligned_data_t     user_data_start;
+} bplib_mpool_bblock_canonical_content_t;
+
+struct bplib_cache_subq_base
+{
+    bplib_cache_block_t block_list;
+
+    /* note - "unsigned int" is chosen here as it is likely to be
+     * a single-cycle read in most CPUs.  The range is not as critical
+     * because what matters is the difference between these values.
+     * The "volatile" qualification helps ensure the values are read as they
+     * appear in code and are not rearranged by the compiler, as they could
+     * be changed by other threads.  */
+    volatile unsigned int push_count;
+    volatile unsigned int pull_count;
+};
+
+typedef struct bplib_cache_subq_workitem
+{
+    #ifdef STOR
+    bplib_mpool_job_t       job_header;
+    #endif // STOR
+    bplib_cache_subq_base_t base_subq;
+    unsigned int            current_depth_limit;
+} bplib_cache_subq_workitem_t;
+
+#ifdef STOR // duct
+typedef struct bplib_mpool_flow_content
+{
+    bplib_mpool_flow_t         fblock;
+    bplib_mpool_aligned_data_t user_data_start;
+} bplib_mpool_flow_content_t;
 #endif // STOR
 
 /*

@@ -28,24 +28,24 @@
 
 #include "bplib.h"
 #include "bplib_api_types.h"
-#include "bplib_mem_internal.h"
-#include "bplib_mem_bblocks.h"
+#include "bplib_cache_internal.h"
+#include "bplib_cache_bblocks.h"
 
 /**
  * @brief Maxmimum number of blocks to be collected in a single maintenace cycle
  */
-#define BPLIB_MPOOL_MAINTENCE_COLLECT_LIMIT 20
+#define BPLIB_CACHE_MAINTENCE_COLLECT_LIMIT 20
 
-#define BPLIB_MPOOL_NUM_LOCKS 1 /* for now */
+#define BPLIB_CACHE_NUM_LOCKS 1 /* for now */
 
-bplib_mpool_lock_t BPLIB_MPOOL_LOCK_SET[BPLIB_MPOOL_NUM_LOCKS];
+bplib_cache_lock_t BPLIB_CACHE_LOCK_SET[BPLIB_CACHE_NUM_LOCKS];
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_link_reset
+ * Function: bplib_cache_link_reset
  *
  *-----------------------------------------------------------------*/
-static inline void bplib_mpool_link_reset(bplib_mpool_block_t *link, bplib_mpool_blocktype_t type,
+static inline void bplib_cache_link_reset(bplib_cache_block_t *link, bplib_cache_blocktype_t type,
                                           uint32_t parent_offset)
 {
     link->type          = type;
@@ -54,15 +54,15 @@ static inline void bplib_mpool_link_reset(bplib_mpool_block_t *link, bplib_mpool
     link->prev          = link;
 }
 
-void bplib_mpool_lock_init(void)
+void bplib_cache_lock_init(void)
 {
     uint32_t            i;
-    bplib_mpool_lock_t *lock;
+    bplib_cache_lock_t *lock;
 
     /* note - this relies on the BSS section being properly zero'ed out at start */
-    for (i = 0; i < BPLIB_MPOOL_NUM_LOCKS; ++i)
+    for (i = 0; i < BPLIB_CACHE_NUM_LOCKS; ++i)
     {
-        lock = &BPLIB_MPOOL_LOCK_SET[i];
+        lock = &BPLIB_CACHE_LOCK_SET[i];
         if (!bp_handle_is_valid(lock->lock_id))
         {
             // STOR lock->lock_id = bplib_os_createlock();
@@ -70,30 +70,30 @@ void bplib_mpool_lock_init(void)
     }
 }
 
-bplib_mpool_lock_t *bplib_mpool_lock_prepare(void *resource_addr)
+bplib_cache_lock_t *bplib_cache_lock_prepare(void *resource_addr)
 {
     /*
      * for now, this always uses the same lock (coarse-grained locking) but in the future
      * it might become a striped or finer-grained bucketed lock for more concurrency
      */
-    return &BPLIB_MPOOL_LOCK_SET[0];
+    return &BPLIB_CACHE_LOCK_SET[0];
 }
 
-bplib_mpool_lock_t *bplib_mpool_lock_resource(void *resource_addr)
+bplib_cache_lock_t *bplib_cache_lock_resource(void *resource_addr)
 {
-    bplib_mpool_lock_t *selected_lock;
+    bplib_cache_lock_t *selected_lock;
 
     /*
      * for now, this always uses the same lock (coarse-grained locking) but in the future
      * it might become a striped or finer-grained bucketed lock for more concurrency
      */
-    selected_lock = bplib_mpool_lock_prepare(resource_addr);
-    bplib_mpool_lock_acquire(selected_lock);
+    selected_lock = bplib_cache_lock_prepare(resource_addr);
+    bplib_cache_lock_acquire(selected_lock);
 
     return selected_lock;
 }
 
-bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime)
+bool bplib_cache_lock_wait(bplib_cache_lock_t *lock, uint64_t until_dtntime)
 {
     #ifdef STOR // os lock time
     bool within_timeout;
@@ -119,13 +119,13 @@ bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime)
     #endif // STOR
 }
 
-bplib_mpool_block_t *bplib_mpool_block_from_external_id(bplib_mpool_t *pool, bp_handle_t handle)
+bplib_cache_block_t *bplib_cache_block_from_external_id(bplib_cache_t *pool, bp_handle_t handle)
 {
-    bplib_mpool_block_admin_content_t *admin;
-    bplib_mpool_block_content_t       *blk;
+    bplib_cache_block_admin_content_t *admin;
+    bplib_cache_block_content_t       *blk;
     int                                serial;
 
-    admin  = bplib_mpool_get_admin(pool);
+    admin  = bplib_cache_get_admin(pool);
     serial = bp_handle_to_serial(handle, BPLIB_HANDLE_MPOOL_BASE);
     if (serial < admin->num_bufs_total)
     {
@@ -142,21 +142,21 @@ bplib_mpool_block_t *bplib_mpool_block_from_external_id(bplib_mpool_t *pool, bp_
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_get_block_from_link
+ * Function: bplib_cache_get_block_from_link
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_get_block_from_link(bplib_mpool_block_t *lblk)
+bplib_cache_block_t *bplib_cache_get_block_from_link(bplib_cache_block_t *lblk)
 {
-    bplib_mpool_block_t *bblk;
+    bplib_cache_block_t *bblk;
 
     bblk = lblk;
 
     /* Check if this is a secondary index, and if so, jump to the actual block base */
     /* this check of the type is not strictly needed, as the offset should be set to 0 for main blocks */
-    while (bblk != NULL && bplib_mpool_is_secondary_index_node(bblk) && bblk->parent_offset != 0)
+    while (bblk != NULL && bplib_cache_is_secondary_index_node(bblk) && bblk->parent_offset != 0)
     {
         /* the parent_offset field indicates this block position within the parent */
-        bblk = (bplib_mpool_block_t *)(void *)((uint8_t *)bblk - bblk->parent_offset);
+        bblk = (bplib_cache_block_t *)(void *)((uint8_t *)bblk - bblk->parent_offset);
     }
 
     return bblk;
@@ -164,53 +164,53 @@ bplib_mpool_block_t *bplib_mpool_get_block_from_link(bplib_mpool_block_t *lblk)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_get_block_content
+ * Function: bplib_cache_get_block_content
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_content_t *bplib_mpool_get_block_content(bplib_mpool_block_t *cb)
+bplib_cache_block_content_t *bplib_cache_get_block_content(bplib_cache_block_t *cb)
 {
-    if (cb != NULL && bplib_mpool_is_any_content_node(cb))
+    if (cb != NULL && bplib_cache_is_any_content_node(cb))
     {
-        return (bplib_mpool_block_content_t *)(void *)cb;
+        return (bplib_cache_block_content_t *)(void *)cb;
     }
     return NULL;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_get_block_content_const
+ * Function: bplib_cache_get_block_content_const
  *
  *-----------------------------------------------------------------*/
-const bplib_mpool_block_content_t *bplib_mpool_get_block_content_const(const bplib_mpool_block_t *cb)
+const bplib_cache_block_content_t *bplib_cache_get_block_content_const(const bplib_cache_block_t *cb)
 {
-    if (cb != NULL && bplib_mpool_is_any_content_node(cb))
+    if (cb != NULL && bplib_cache_is_any_content_node(cb))
     {
-        return (const bplib_mpool_block_content_t *)(const void *)cb;
+        return (const bplib_cache_block_content_t *)(const void *)cb;
     }
     return NULL;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_block_dereference_content
+ * Function: bplib_cache_block_dereference_content
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_block_t *cb)
+bplib_cache_block_content_t *bplib_cache_block_dereference_content(bplib_cache_block_t *cb)
 {
-    bplib_mpool_block_content_t *block_ptr;
+    bplib_cache_block_content_t *block_ptr;
 
-    block_ptr = bplib_mpool_get_block_content(cb);
+    block_ptr = bplib_cache_get_block_content(cb);
 
     if (block_ptr != NULL)
     {
         /* Additionally, if this block is a ref, then also dereference it to get to the real block */
         /* In theory this could be a chain of refs, so this is a while() but in reality it should be just one */
-        while (block_ptr->header.base_link.type == bplib_mpool_blocktype_ref)
+        while (block_ptr->header.base_link.type == bplib_cache_blocktype_ref)
         {
             assert(block_ptr->u.ref.pref_target != NULL);
             block_ptr = block_ptr->u.ref.pref_target;
             /* this should have always arrived at an actual content block */
-            assert(bplib_mpool_is_any_content_node(&block_ptr->header.base_link)); // TODO Is base_link correct as pointer?
+            assert(bplib_cache_is_any_content_node(&block_ptr->header.base_link)); // TODO Is base_link correct as pointer?
         }
 
         return block_ptr;
@@ -221,21 +221,21 @@ bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_b
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_get_user_data_offset_by_blocktype
+ * Function: bplib_cache_get_user_data_offset_by_blocktype
  *
  *-----------------------------------------------------------------*/
-size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt)
+size_t bplib_cache_get_user_data_offset_by_blocktype(bplib_cache_blocktype_t bt)
 {
-    static const size_t USER_DATA_START_OFFSET[bplib_mpool_blocktype_max] = {
-        [bplib_mpool_blocktype_undefined] = SIZE_MAX,
-        [bplib_mpool_blocktype_api]       = MPOOL_GET_BUFFER_USER_START_OFFSET(api),
-        [bplib_mpool_blocktype_generic]   = MPOOL_GET_BUFFER_USER_START_OFFSET(generic_data),
-        [bplib_mpool_blocktype_primary]   = MPOOL_GET_BUFFER_USER_START_OFFSET(primary),
-        [bplib_mpool_blocktype_canonical] = MPOOL_GET_BUFFER_USER_START_OFFSET(canonical),
-        // STOR [bplib_mpool_blocktype_flow]      = MPOOL_GET_BUFFER_USER_START_OFFSET(flow),
-        [bplib_mpool_blocktype_ref]       = MPOOL_GET_BUFFER_USER_START_OFFSET(ref)};
+    static const size_t USER_DATA_START_OFFSET[bplib_cache_blocktype_max] = {
+        [bplib_cache_blocktype_undefined] = SIZE_MAX,
+        [bplib_cache_blocktype_api]       = MPOOL_GET_BUFFER_USER_START_OFFSET(api),
+        [bplib_cache_blocktype_generic]   = MPOOL_GET_BUFFER_USER_START_OFFSET(generic_data),
+        [bplib_cache_blocktype_primary]   = MPOOL_GET_BUFFER_USER_START_OFFSET(primary),
+        [bplib_cache_blocktype_canonical] = MPOOL_GET_BUFFER_USER_START_OFFSET(canonical),
+        // STOR [bplib_cache_blocktype_flow]      = MPOOL_GET_BUFFER_USER_START_OFFSET(flow),
+        [bplib_cache_blocktype_ref]       = MPOOL_GET_BUFFER_USER_START_OFFSET(ref)};
 
-    if (bt >= bplib_mpool_blocktype_max)
+    if (bt >= bplib_cache_blocktype_max)
     {
         return SIZE_MAX;
     }
@@ -245,29 +245,29 @@ size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_get_generic_data_capacity
+ * Function: bplib_cache_get_generic_data_capacity
  *
  *-----------------------------------------------------------------*/
-size_t bplib_mpool_get_generic_data_capacity(const bplib_mpool_block_t *cb)
+size_t bplib_cache_get_generic_data_capacity(const bplib_cache_block_t *cb)
 {
     size_t data_offset;
 
-    data_offset = bplib_mpool_get_user_data_offset_by_blocktype(cb->type);
-    if (data_offset > sizeof(bplib_mpool_block_buffer_t))
+    data_offset = bplib_cache_get_user_data_offset_by_blocktype(cb->type);
+    if (data_offset > sizeof(bplib_cache_block_buffer_t))
     {
         return 0;
     }
 
-    return sizeof(bplib_mpool_block_buffer_t) - data_offset;
+    return sizeof(bplib_cache_block_buffer_t) - data_offset;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_init_secondary_link
+ * Function: bplib_cache_init_secondary_link
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_init_secondary_link(bplib_mpool_block_t *base_block, bplib_mpool_block_t *secondary_link,
-                                     bplib_mpool_blocktype_t block_type)
+void bplib_cache_init_secondary_link(bplib_cache_block_t *base_block, bplib_cache_block_t *secondary_link,
+                                     bplib_cache_blocktype_t block_type)
 {
     size_t offset;
 
@@ -278,33 +278,33 @@ void bplib_mpool_init_secondary_link(bplib_mpool_block_t *base_block, bplib_mpoo
     else
     {
         offset = (uint8_t *)secondary_link - (uint8_t *)base_block;
-        assert(offset > 0 && offset < sizeof(bplib_mpool_block_content_t));
+        assert(offset > 0 && offset < sizeof(bplib_cache_block_content_t));
     }
 
-    bplib_mpool_link_reset(secondary_link, block_type, offset);
+    bplib_cache_link_reset(secondary_link, block_type, offset);
 
-    assert(bplib_mpool_is_secondary_index_node(secondary_link));
+    assert(bplib_cache_is_secondary_index_node(secondary_link));
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_init_list_head
+ * Function: bplib_cache_init_list_head
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_init_list_head(bplib_mpool_block_t *base_block, bplib_mpool_block_t *list_head)
+void bplib_cache_init_list_head(bplib_cache_block_t *base_block, bplib_cache_block_t *list_head)
 {
-    bplib_mpool_init_secondary_link(base_block, list_head, bplib_mpool_blocktype_list_head);
+    bplib_cache_init_secondary_link(base_block, list_head, bplib_cache_blocktype_list_head);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_insert_after
+ * Function: bplib_cache_insert_after
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_insert_after(bplib_mpool_block_t *list, bplib_mpool_block_t *node)
+void bplib_cache_insert_after(bplib_cache_block_t *list, bplib_cache_block_t *node)
 {
     /* node being inserted should always be a singleton */
-    assert(bplib_mpool_is_link_unattached(node));
+    assert(bplib_cache_is_link_unattached(node));
 
     node->next       = list->next;
     node->prev       = list;
@@ -314,13 +314,13 @@ void bplib_mpool_insert_after(bplib_mpool_block_t *list, bplib_mpool_block_t *no
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_insert_before
+ * Function: bplib_cache_insert_before
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_insert_before(bplib_mpool_block_t *list, bplib_mpool_block_t *node)
+void bplib_cache_insert_before(bplib_cache_block_t *list, bplib_cache_block_t *node)
 {
     /* node being inserted should always be a singleton */
-    assert(bplib_mpool_is_link_unattached(node));
+    assert(bplib_cache_is_link_unattached(node));
 
     node->prev       = list->prev;
     node->next       = list;
@@ -330,10 +330,10 @@ void bplib_mpool_insert_before(bplib_mpool_block_t *list, bplib_mpool_block_t *n
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_extract_node
+ * Function: bplib_cache_extract_node
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_extract_node(bplib_mpool_block_t *node)
+void bplib_cache_extract_node(bplib_cache_block_t *node)
 {
     node->prev->next = node->next;
     node->next->prev = node->prev;
@@ -343,13 +343,13 @@ void bplib_mpool_extract_node(bplib_mpool_block_t *node)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_merge_list
+ * Function: bplib_cache_merge_list
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_merge_list(bplib_mpool_block_t *dest, bplib_mpool_block_t *src)
+void bplib_cache_merge_list(bplib_cache_block_t *dest, bplib_cache_block_t *src)
 {
-    bplib_mpool_block_t *dlast = dest->prev; /* last node in dest list */
-    bplib_mpool_block_t *slast = src->prev;  /* last node in src list */
+    bplib_cache_block_t *dlast = dest->prev; /* last node in dest list */
+    bplib_cache_block_t *slast = src->prev;  /* last node in src list */
 
     /* nominally combine the two lists.
      * NOTE: This (temporarily) yields a list with two head nodes. */
@@ -361,14 +361,14 @@ void bplib_mpool_merge_list(bplib_mpool_block_t *dest, bplib_mpool_block_t *src)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_get_user_content_size
+ * Function: bplib_cache_get_user_content_size
  *
  *-----------------------------------------------------------------*/
-size_t bplib_mpool_get_user_content_size(const bplib_mpool_block_t *cb)
+size_t bplib_cache_get_user_content_size(const bplib_cache_block_t *cb)
 {
-    const bplib_mpool_block_content_t *block;
+    const bplib_cache_block_content_t *block;
 
-    block = bplib_mpool_get_block_content_const(cb);
+    block = bplib_cache_get_block_content_const(cb);
     if (block != NULL)
     {
         return block->header.user_content_length;
@@ -378,14 +378,14 @@ size_t bplib_mpool_get_user_content_size(const bplib_mpool_block_t *cb)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_read_refcount
+ * Function: bplib_cache_read_refcount
  *
  *-----------------------------------------------------------------*/
-size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb)
+size_t bplib_cache_read_refcount(const bplib_cache_block_t *cb)
 {
-    const bplib_mpool_block_content_t *block;
+    const bplib_cache_block_content_t *block;
 
-    block = bplib_mpool_get_block_content_const(cb);
+    block = bplib_cache_get_block_content_const(cb);
     if (block != NULL)
     {
         return block->header.refcount;
@@ -395,14 +395,14 @@ size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_get_parent_pool_from_link
+ * Function: bplib_cache_get_parent_pool_from_link
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_t *bplib_mpool_get_parent_pool_from_link(bplib_mpool_block_t *cb)
+bplib_cache_t *bplib_cache_get_parent_pool_from_link(bplib_cache_block_t *cb)
 {
-    bplib_mpool_block_content_t *block;
+    bplib_cache_block_content_t *block;
 
-    block = bplib_mpool_get_block_content(bplib_mpool_get_block_from_link(cb));
+    block = bplib_cache_get_block_content(bplib_cache_get_block_from_link(cb));
     if (block != NULL)
     {
         /* the "parent_offset" should provide a map back to the parent pool.
@@ -411,24 +411,24 @@ bplib_mpool_t *bplib_mpool_get_parent_pool_from_link(bplib_mpool_block_t *cb)
         block -= block->header.base_link.parent_offset;
 
         /* this should have always arrived at the admin block, which is the first block */
-        assert(block->header.base_link.type == bplib_mpool_blocktype_admin);
+        assert(block->header.base_link.type == bplib_cache_blocktype_admin);
     }
     else
     {
         block = NULL;
     }
 
-    return (bplib_mpool_t *)block;
+    return (bplib_cache_t *)block;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_generic_data_cast
+ * Function: bplib_cache_generic_data_cast
  *
  *-----------------------------------------------------------------*/
-void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_magic)
+void *bplib_cache_generic_data_cast(bplib_cache_block_t *cb, uint32_t required_magic)
 {
-    bplib_mpool_block_content_t *block;
+    bplib_cache_block_content_t *block;
     size_t                       data_offset;
     void                        *result;
 
@@ -436,20 +436,20 @@ void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_m
      * associated with it, not just a generic_data block.  The difference is that the generic
      * data block _only_ has the generic data, whereas the other block types can have both. */
     result = NULL;
-    block  = bplib_mpool_get_block_content(cb);
-    while (block != NULL && bplib_mpool_is_any_content_node(&block->header.base_link))
+    block  = bplib_cache_get_block_content(cb);
+    while (block != NULL && bplib_cache_is_any_content_node(&block->header.base_link))
     {
         if (block->header.content_type_signature == required_magic)
         {
-            data_offset = bplib_mpool_get_user_data_offset_by_blocktype(block->header.base_link.type);
-            if (data_offset < sizeof(bplib_mpool_block_buffer_t))
+            data_offset = bplib_cache_get_user_data_offset_by_blocktype(block->header.base_link.type);
+            if (data_offset < sizeof(bplib_cache_block_buffer_t))
             {
                 result = &block->u.content_bytes[data_offset];
             }
             break;
         }
 
-        if (!bplib_mpool_is_indirect_block(&block->header.base_link))
+        if (!bplib_cache_is_indirect_block(&block->header.base_link))
         {
             break;
         }
@@ -462,23 +462,23 @@ void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_m
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_generic_data_uncast
+ * Function: bplib_cache_generic_data_uncast
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_generic_data_uncast(void *blk, bplib_mpool_blocktype_t parent_bt,
+bplib_cache_block_t *bplib_cache_generic_data_uncast(void *blk, bplib_cache_blocktype_t parent_bt,
                                                      uint32_t required_magic)
 {
-    bplib_mpool_block_content_t *block;
+    bplib_cache_block_content_t *block;
     size_t                       data_offset;
 
-    data_offset = bplib_mpool_get_user_data_offset_by_blocktype(parent_bt);
-    if (data_offset > sizeof(bplib_mpool_block_buffer_t))
+    data_offset = bplib_cache_get_user_data_offset_by_blocktype(parent_bt);
+    if (data_offset > sizeof(bplib_cache_block_buffer_t))
     {
         return NULL;
     }
 
-    data_offset += offsetof(bplib_mpool_block_content_t, u);
-    block = (bplib_mpool_block_content_t *)(void *)((uint8_t *)blk - data_offset);
+    data_offset += offsetof(bplib_cache_block_content_t, u);
+    block = (bplib_cache_block_content_t *)(void *)((uint8_t *)blk - data_offset);
     if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
     {
         return NULL;
@@ -489,10 +489,10 @@ bplib_mpool_block_t *bplib_mpool_generic_data_uncast(void *blk, bplib_mpool_bloc
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_init_base_object
+ * Function: bplib_cache_init_base_object
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_t user_content_length,
+void bplib_cache_init_base_object(bplib_cache_block_header_t *block_hdr, uint16_t user_content_length,
                                   uint32_t content_type_signature)
 {
     block_hdr->user_content_length    = user_content_length;
@@ -501,28 +501,28 @@ void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_alloc_block_internal
+ * Function: bplib_cache_alloc_block_internal
  *
  * NOTE: this must be invoked with the lock already held
  *-----------------------------------------------------------------*/
-bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
+bplib_cache_block_content_t *bplib_cache_alloc_block_internal(bplib_cache_t *pool, bplib_cache_blocktype_t blocktype,
                                                               uint32_t content_type_signature, void *init_arg,
                                                               uint8_t priority)
 {
-    bplib_mpool_block_t         *node;
-    bplib_mpool_block_content_t *block;
-    bplib_mpool_api_content_t   *api_block;
+    bplib_cache_block_t         *node;
+    bplib_cache_block_content_t *block;
+    bplib_cache_api_content_t   *api_block;
     size_t                       data_offset;
     // STOR uint32_t                     alloc_threshold;
     uint32_t                     block_count;
 
-    bplib_mpool_block_admin_content_t *admin;
+    bplib_cache_block_admin_content_t *admin;
 
-    admin = bplib_mpool_get_admin(pool);
+    admin = bplib_cache_get_admin(pool);
 
     /* Only real blocks are allocated here - not secondary links nor head nodes,
      * as those are embedded within the blocks themselves. */
-    if (blocktype == bplib_mpool_blocktype_undefined || blocktype >= bplib_mpool_blocktype_max)
+    if (blocktype == bplib_cache_blocktype_undefined || blocktype >= bplib_cache_blocktype_max)
     {
         return NULL;
     }
@@ -539,7 +539,7 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     // STOR alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
 
     #ifdef STOR // subq
-    block_count = bplib_mpool_subq_get_depth(admin->free_blocks);
+    block_count = bplib_cache_subq_get_depth(admin->free_blocks);
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
         /* no free blocks available for the requested type */
@@ -550,7 +550,7 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     #endif // STOR
 
     /* figure out how to initialize this block by looking up the content type */
-    api_block = (bplib_mpool_api_content_t *)(void *)bplib_rbt_search_unique(content_type_signature,
+    api_block = (bplib_cache_api_content_t *)(void *)bplib_rbt_search_unique(content_type_signature,
                                                                              &admin->blocktype_registry);
     if (api_block == NULL)
     {
@@ -559,16 +559,16 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     }
 
     /* sanity check that the user content will fit in the block */
-    data_offset = bplib_mpool_get_user_data_offset_by_blocktype(blocktype);
-    if (data_offset > sizeof(bplib_mpool_block_buffer_t) ||
-        (data_offset + api_block->user_content_size) > sizeof(bplib_mpool_block_buffer_t))
+    data_offset = bplib_cache_get_user_data_offset_by_blocktype(blocktype);
+    if (data_offset > sizeof(bplib_cache_block_buffer_t) ||
+        (data_offset + api_block->user_content_size) > sizeof(bplib_cache_block_buffer_t))
     {
         /* User content will not fit in the block - cannot create an instance of this type combo */
         return NULL;
     }
 
     /* get a block */
-    node = bplib_mpool_subq_pull_single(admin->free_blocks);
+    node = bplib_cache_subq_pull_single(admin->free_blocks);
     if (node == NULL)
     {
         /* this should never happen, because depth was already checked */
@@ -578,7 +578,7 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     /*
      * Convert from blocks free to blocks used, and update high watermark if necessary.
      * This is +1 to include the block that was just pulled (that is, a call to
-     * bplib_mpool_subq_get_depth() on the free list now will return 1 fewer than it
+     * bplib_cache_subq_get_depth() on the free list now will return 1 fewer than it
      * did earlier in this function).
      */
     block_count = 1 + admin->num_bufs_total - block_count;
@@ -588,7 +588,7 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
     }
 
     node->type = blocktype;
-    block      = bplib_mpool_get_block_content(node);
+    block      = bplib_cache_get_block_content(node);
 
     /*
      * zero fill the content part first, this ensures that this is always done,
@@ -596,19 +596,19 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
      */
     memset(&block->u, 0, data_offset + api_block->user_content_size);
 
-    bplib_mpool_init_base_object(&block->header, api_block->user_content_size, content_type_signature);
+    bplib_cache_init_base_object(&block->header, api_block->user_content_size, content_type_signature);
 
     switch (blocktype)
     {
-        case bplib_mpool_blocktype_primary:
-            bplib_mpool_bblock_primary_init(node, &block->u.primary.pblock);
+        case bplib_cache_blocktype_primary:
+            bplib_cache_bblock_primary_init(node, &block->u.primary.pblock);
             break;
-        case bplib_mpool_blocktype_canonical:
-            bplib_mpool_bblock_canonical_init(node, &block->u.canonical.cblock);
+        case bplib_cache_blocktype_canonical:
+            bplib_cache_bblock_canonical_init(node, &block->u.canonical.cblock);
             break;
-        case bplib_mpool_blocktype_flow:
+        case bplib_cache_blocktype_flow:
             #ifdef STOR // TODO Change flow to duct
-            bplib_mpool_flow_init(node, block->u.flow.fblock);
+            bplib_cache_flow_init(node, block->u.flow.fblock);
             break;
             #endif // STOR
         default:
@@ -633,46 +633,46 @@ bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *poo
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_generic_data_alloc
+ * Function: bplib_cache_generic_data_alloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
+bplib_cache_block_t *bplib_cache_generic_data_alloc(bplib_cache_t *pool, uint32_t magic_number, void *init_arg)
 {
-    bplib_mpool_block_content_t *result;
-    bplib_mpool_lock_t          *lock;
+    bplib_cache_block_content_t *result;
+    bplib_cache_lock_t          *lock;
 
-    lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, magic_number, init_arg,
-                                              BPLIB_MPOOL_ALLOC_PRI_MLO);
-    bplib_mpool_lock_release(lock);
+    lock   = bplib_cache_lock_resource(pool);
+    result = bplib_cache_alloc_block_internal(pool, bplib_cache_blocktype_generic, magic_number, init_arg,
+                                              BPLIB_CACHE_ALLOC_PRI_MLO);
+    bplib_cache_lock_release(lock);
 
-    return (bplib_mpool_block_t *)result;
+    return (bplib_cache_block_t *)result;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_recycle_block_internal
+ * Function: bplib_cache_recycle_block_internal
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_recycle_block_internal(bplib_mpool_t *pool, bplib_mpool_block_t *blk)
+void bplib_cache_recycle_block_internal(bplib_cache_t *pool, bplib_cache_block_t *blk)
 {
-    bplib_mpool_block_admin_content_t *admin;
+    bplib_cache_block_admin_content_t *admin;
 
-    admin = bplib_mpool_get_admin(pool);
+    admin = bplib_cache_get_admin(pool);
 
-    bplib_mpool_extract_node(blk);
-    bplib_mpool_subq_push_single(admin->recycle_blocks, blk);
+    bplib_cache_extract_node(blk);
+    bplib_cache_subq_push_single(admin->recycle_blocks, blk);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_recycle_all_blocks_in_list
+ * Function: bplib_cache_recycle_all_blocks_in_list
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_block_t *list)
+void bplib_cache_recycle_all_blocks_in_list(bplib_cache_t *pool, bplib_cache_block_t *list)
 {
-    bplib_mpool_lock_t                *lock;
-    bplib_mpool_block_admin_content_t *admin;
+    bplib_cache_lock_t                *lock;
+    bplib_cache_block_admin_content_t *admin;
 
     /*
      * If the pool was not specified, then attempt to deduce from the list pointer.
@@ -683,79 +683,79 @@ void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_blo
      */
     if (pool == NULL)
     {
-        pool = bplib_mpool_get_parent_pool_from_link(list);
+        pool = bplib_cache_get_parent_pool_from_link(list);
     }
 
-    admin = bplib_mpool_get_admin(pool);
+    admin = bplib_cache_get_admin(pool);
 
-    assert(bplib_mpool_is_list_head(list));
-    lock = bplib_mpool_lock_resource(pool);
-    bplib_mpool_subq_merge_list(admin->recycle_blocks, list);
-    bplib_mpool_lock_release(lock);
+    assert(bplib_cache_is_list_head(list));
+    lock = bplib_cache_lock_resource(pool);
+    bplib_cache_subq_merge_list(admin->recycle_blocks, list);
+    bplib_cache_lock_release(lock);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_recycle_block
+ * Function: bplib_cache_recycle_block
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_recycle_block(bplib_mpool_block_t *blk)
+void bplib_cache_recycle_block(bplib_cache_block_t *blk)
 {
-    bplib_mpool_lock_t *lock;
-    bplib_mpool_t      *pool;
+    bplib_cache_lock_t *lock;
+    bplib_cache_t      *pool;
 
     /* only real content blocks should be recycled.  No secondary links or components/members. */
-    assert(bplib_mpool_is_any_content_node(blk));
+    assert(bplib_cache_is_any_content_node(blk));
 
-    pool = bplib_mpool_get_parent_pool_from_link(blk);
+    pool = bplib_cache_get_parent_pool_from_link(blk);
 
-    lock = bplib_mpool_lock_resource(pool);
-    bplib_mpool_recycle_block_internal(pool, blk);
-    bplib_mpool_lock_release(lock);
+    lock = bplib_cache_lock_resource(pool);
+    bplib_cache_recycle_block_internal(pool, blk);
+    bplib_cache_lock_release(lock);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_list_iter_goto_first
+ * Function: bplib_cache_list_iter_goto_first
  *
  *-----------------------------------------------------------------*/
-int bplib_mpool_list_iter_goto_first(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
+int bplib_cache_list_iter_goto_first(const bplib_cache_block_t *list, bplib_cache_list_iter_t *iter)
 {
-    if (!bplib_mpool_is_list_head(list))
+    if (!bplib_cache_is_list_head(list))
     {
         return BP_ERROR;
     }
 
     iter->pending_entry = list->next;
 
-    return bplib_mpool_list_iter_forward(iter);
+    return bplib_cache_list_iter_forward(iter);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_list_iter_goto_last
+ * Function: bplib_cache_list_iter_goto_last
  *
  *-----------------------------------------------------------------*/
-int bplib_mpool_list_iter_goto_last(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
+int bplib_cache_list_iter_goto_last(const bplib_cache_block_t *list, bplib_cache_list_iter_t *iter)
 {
-    if (!bplib_mpool_is_list_head(list))
+    if (!bplib_cache_is_list_head(list))
     {
         return BP_ERROR;
     }
 
     iter->pending_entry = list->prev;
 
-    return bplib_mpool_list_iter_reverse(iter);
+    return bplib_cache_list_iter_reverse(iter);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_list_iter_forward
+ * Function: bplib_cache_list_iter_forward
  *
  *-----------------------------------------------------------------*/
-int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter)
+int bplib_cache_list_iter_forward(bplib_cache_list_iter_t *iter)
 {
-    if (iter->pending_entry == NULL || bplib_mpool_is_list_head(iter->pending_entry))
+    if (iter->pending_entry == NULL || bplib_cache_is_list_head(iter->pending_entry))
     {
         iter->position = NULL;
         return BP_ERROR;
@@ -768,12 +768,12 @@ int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_list_iter_reverse
+ * Function: bplib_cache_list_iter_reverse
  *
  *-----------------------------------------------------------------*/
-int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter)
+int bplib_cache_list_iter_reverse(bplib_cache_list_iter_t *iter)
 {
-    if (iter->pending_entry == NULL || bplib_mpool_is_list_head(iter->pending_entry))
+    if (iter->pending_entry == NULL || bplib_cache_is_list_head(iter->pending_entry))
     {
         iter->position = NULL;
         return BP_ERROR;
@@ -786,14 +786,14 @@ int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_foreach_item_in_list
+ * Function: bplib_cache_foreach_item_in_list
  *
  *-----------------------------------------------------------------*/
-int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remove,
-                                     bplib_mpool_callback_func_t callback_fn, void *callback_arg)
+int bplib_cache_foreach_item_in_list(bplib_cache_block_t *list, bool always_remove,
+                                     bplib_cache_callback_func_t callback_fn, void *callback_arg)
 {
-    bplib_mpool_block_t *curr_node;
-    bplib_mpool_block_t *next_node;
+    bplib_cache_block_t *curr_node;
+    bplib_cache_block_t *next_node;
     int                  count;
 
     /*
@@ -814,7 +814,7 @@ int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remo
          */
         if (always_remove)
         {
-            bplib_mpool_extract_node(curr_node);
+            bplib_cache_extract_node(curr_node);
         }
 
         callback_fn(callback_arg, curr_node);
@@ -826,27 +826,27 @@ int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remo
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_search_list
+ * Function: bplib_cache_search_list
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bplib_mpool_callback_func_t match_fn,
+bplib_cache_block_t *bplib_cache_search_list(const bplib_cache_block_t *list, bplib_cache_callback_func_t match_fn,
                                              void *match_arg)
 {
     int                     status;
-    bplib_mpool_list_iter_t iter;
+    bplib_cache_list_iter_t iter;
 
     memset(&iter, 0, sizeof(iter));
 
-    status = bplib_mpool_list_iter_goto_first(list, &iter);
+    status = bplib_cache_list_iter_goto_first(list, &iter);
     while (status == BP_SUCCESS)
     {
         /* this calls the match function with the actual content block, as that is where
          * the real information lies (this is typically a list full of secondary links) */
-        if (match_fn(match_arg, bplib_mpool_get_block_from_link(iter.position)) == 0)
+        if (match_fn(match_arg, bplib_cache_get_block_from_link(iter.position)) == 0)
         {
             break;
         }
-        status = bplib_mpool_list_iter_forward(&iter);
+        status = bplib_cache_list_iter_forward(&iter);
     }
 
     /* the iterator sets position to NULL if end of list was reached */
@@ -855,18 +855,18 @@ bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bp
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_register_blocktype_internal
+ * Function: bplib_cache_register_blocktype_internal
  *
  *-----------------------------------------------------------------*/
-int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_number,
-                                            const bplib_mpool_blocktype_api_t *api, size_t user_content_size)
+int bplib_cache_register_blocktype_internal(bplib_cache_t *pool, uint32_t magic_number,
+                                            const bplib_cache_blocktype_api_t *api, size_t user_content_size)
 {
-    bplib_mpool_block_content_t       *ablk;
-    bplib_mpool_api_content_t         *api_block;
+    bplib_cache_block_content_t       *ablk;
+    bplib_cache_api_content_t         *api_block;
     int                                status;
-    bplib_mpool_block_admin_content_t *admin;
+    bplib_cache_block_admin_content_t *admin;
 
-    admin = bplib_mpool_get_admin(pool);
+    admin = bplib_cache_get_admin(pool);
 
     /* before doing anything, check if this is a duplicate.  If so, ignore it.
      * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
@@ -875,7 +875,7 @@ int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_
         return BP_DUPLICATE;
     }
 
-    ablk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_api, 0, NULL, BPLIB_MPOOL_ALLOC_PRI_LO);
+    ablk = bplib_cache_alloc_block_internal(pool, bplib_cache_blocktype_api, 0, NULL, BPLIB_CACHE_ALLOC_PRI_LO);
     if (ablk == NULL)
     {
         return BP_ERROR;
@@ -896,7 +896,7 @@ int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_
      */
     if (status != BP_SUCCESS)
     {
-        bplib_mpool_recycle_block_internal(pool, &ablk->header.base_link);
+        bplib_cache_recycle_block_internal(pool, &ablk->header.base_link);
     }
 
     return status;
@@ -904,43 +904,43 @@ int bplib_mpool_register_blocktype_internal(bplib_mpool_t *pool, uint32_t magic_
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_register_blocktype
+ * Function: bplib_cache_register_blocktype
  *
  *-----------------------------------------------------------------*/
-int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, const bplib_mpool_blocktype_api_t *api,
+int bplib_cache_register_blocktype(bplib_cache_t *pool, uint32_t magic_number, const bplib_cache_blocktype_api_t *api,
                                    size_t user_content_size)
 {
-    bplib_mpool_lock_t *lock;
+    bplib_cache_lock_t *lock;
     int                 result;
 
-    lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_register_blocktype_internal(pool, magic_number, api, user_content_size);
-    bplib_mpool_lock_release(lock);
+    lock   = bplib_cache_lock_resource(pool);
+    result = bplib_cache_register_blocktype_internal(pool, magic_number, api, user_content_size);
+    bplib_cache_lock_release(lock);
     return result;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_collect_blocks
+ * Function: bplib_cache_collect_blocks
  *
  *-----------------------------------------------------------------*/
-uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
+uint32_t bplib_cache_collect_blocks(bplib_cache_t *pool, uint32_t limit)
 {
-    bplib_mpool_block_t               *rblk;
-    bplib_mpool_api_content_t         *api_block;
-    bplib_mpool_block_content_t       *content;
-    bplib_mpool_callback_func_t        destruct;
+    bplib_cache_block_t               *rblk;
+    bplib_cache_api_content_t         *api_block;
+    bplib_cache_block_content_t       *content;
+    bplib_cache_callback_func_t        destruct;
     uint32_t                           count;
-    bplib_mpool_lock_t                *lock;
-    bplib_mpool_block_admin_content_t *admin;
+    bplib_cache_lock_t                *lock;
+    bplib_cache_block_admin_content_t *admin;
 
-    admin = bplib_mpool_get_admin(pool);
+    admin = bplib_cache_get_admin(pool);
 
     count = 0;
-    lock  = bplib_mpool_lock_resource(pool);
+    lock  = bplib_cache_lock_resource(pool);
     while (count < limit)
     {
-        rblk = bplib_mpool_subq_pull_single(admin->recycle_blocks);
+        rblk = bplib_cache_subq_pull_single(admin->recycle_blocks);
         if (rblk == NULL)
         {
             break;
@@ -948,12 +948,12 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
 
         /* recycled blocks must all be "real" blocks (not secondary refs or head nodes, etc) and
          * have refcount of 0, or else bad things might happen */
-        content = bplib_mpool_get_block_content(rblk);
+        content = bplib_cache_get_block_content(rblk);
         assert(content != NULL);
         assert(content->header.refcount == 0);
 
         /* figure out how to de-initialize the user content by looking up the content type */
-        api_block = (bplib_mpool_api_content_t *)(void *)bplib_rbt_search_unique(content->header.content_type_signature,
+        api_block = (bplib_cache_api_content_t *)(void *)bplib_rbt_search_unique(content->header.content_type_signature,
                                                                                  &admin->blocktype_registry);
 
         if (api_block != NULL)
@@ -966,7 +966,7 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
         }
 
         /* pool should be UN-locked when invoking destructor */
-        bplib_mpool_lock_release(lock);
+        bplib_cache_lock_release(lock);
 
         /* note that, like in C++, one cannot pass an arg to the destructor here.  It
          * uses the same API/function pointer type, the arg will always be NULL. */
@@ -978,34 +978,34 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
         /* now de-initialize the base content */
         switch (rblk->type)
         {
-            case bplib_mpool_blocktype_canonical:
+            case bplib_cache_blocktype_canonical:
             {
-                bplib_mpool_lock_acquire(lock);
-                bplib_mpool_subq_merge_list(admin->recycle_blocks, &content->u.canonical.cblock.chunk_list);
-                bplib_mpool_lock_release(lock);
+                bplib_cache_lock_acquire(lock);
+                bplib_cache_subq_merge_list(admin->recycle_blocks, &content->u.canonical.cblock.chunk_list);
+                bplib_cache_lock_release(lock);
                 break;
             }
-            case bplib_mpool_blocktype_primary:
+            case bplib_cache_blocktype_primary:
             {
-                bplib_mpool_lock_acquire(lock);
-                bplib_mpool_subq_merge_list(admin->recycle_blocks, &content->u.primary.pblock.cblock_list);
-                bplib_mpool_subq_merge_list(admin->recycle_blocks, &content->u.primary.pblock.chunk_list);
-                bplib_mpool_lock_release(lock);
+                bplib_cache_lock_acquire(lock);
+                bplib_cache_subq_merge_list(admin->recycle_blocks, &content->u.primary.pblock.cblock_list);
+                bplib_cache_subq_merge_list(admin->recycle_blocks, &content->u.primary.pblock.chunk_list);
+                bplib_cache_lock_release(lock);
                 break;
             }
-            case bplib_mpool_blocktype_flow:
+            case bplib_cache_blocktype_flow:
             {
-                bplib_mpool_lock_acquire(lock);
+                bplib_cache_lock_acquire(lock);
                 #ifdef STOR // duct
-                bplib_mpool_subq_move_all(&admin->recycle_blocks, &content->u.flow.fblock.ingress.base_subq);
-                bplib_mpool_subq_move_all(&admin->recycle_blocks, &content->u.flow.fblock.egress.base_subq);
+                bplib_cache_subq_move_all(&admin->recycle_blocks, &content->u.flow.fblock.ingress.base_subq);
+                bplib_cache_subq_move_all(&admin->recycle_blocks, &content->u.flow.fblock.egress.base_subq);
                 #endif // STOR
-                bplib_mpool_lock_release(lock);
+                bplib_cache_lock_release(lock);
                 break;
             }
-            case bplib_mpool_blocktype_ref:
+            case bplib_cache_blocktype_ref:
             {
-                bplib_mpool_ref_release(content->u.ref.pref_target);
+                bplib_cache_ref_release(content->u.ref.pref_target);
                 content->u.ref.pref_target = NULL; /* this ref is going away */
                 break;
             }
@@ -1019,48 +1019,48 @@ uint32_t bplib_mpool_collect_blocks(bplib_mpool_t *pool, uint32_t limit)
         ++count;
 
         /* always return _this_ node to the free pile */
-        rblk->type = bplib_mpool_blocktype_undefined;
-        bplib_mpool_init_base_object(&content->header, 0, 0);
+        rblk->type = bplib_cache_blocktype_undefined;
+        bplib_cache_init_base_object(&content->header, 0, 0);
 
-        bplib_mpool_lock_acquire(lock);
-        bplib_mpool_subq_push_single(admin->free_blocks, rblk);
+        bplib_cache_lock_acquire(lock);
+        bplib_cache_subq_push_single(admin->free_blocks, rblk);
     }
 
-    bplib_mpool_lock_release(lock);
+    bplib_cache_lock_release(lock);
 
     return count;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_maintain
+ * Function: bplib_cache_maintain
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_maintain(bplib_mpool_t *pool)
+void bplib_cache_maintain(bplib_cache_t *pool)
 {
     /* the check for non-empty list can be done unlocked, as it
      * involves counter values which should be testable in an atomic fashion.
      * note this isn't final - Subq will be re-checked after locking, if this is true */
     #ifdef STOR // subq
-    if (bplib_mpool_subq_get_depth(bplib_mpool_get_admin(pool)->recycle_blocks) != 0)
+    if (bplib_cache_subq_get_depth(bplib_cache_get_admin(pool)->recycle_blocks) != 0)
     {
-        bplib_mpool_collect_blocks(pool, BPLIB_MPOOL_MAINTENCE_COLLECT_LIMIT);
+        bplib_cache_collect_blocks(pool, BPLIB_CACHE_MAINTENCE_COLLECT_LIMIT);
     }
     #endif // STOR
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_query_mem_current_use
+ * Function: bplib_cache_query_mem_current_use
  *
  *-----------------------------------------------------------------*/
-size_t bplib_mpool_query_mem_current_use(bplib_mpool_t *pool)
+size_t bplib_cache_query_mem_current_use(bplib_cache_t *pool)
 {
-    #ifdef STOR // subq and should be fixed in MEM.     bplib_mpool_block_admin_content_t *admin;
+    #ifdef STOR // subq and should be fixed in MEM.     bplib_cache_block_admin_content_t *admin;
 
-    admin = bplib_mpool_get_admin(pool);
+    admin = bplib_cache_get_admin(pool);
 
-    return (bplib_mpool_subq_get_depth(admin->free_blocks) * (size_t)admin->buffer_size);
+    return (bplib_cache_subq_get_depth(admin->free_blocks) * (size_t)admin->buffer_size);
     #endif // STOR
 
     return 32767;
@@ -1068,35 +1068,35 @@ size_t bplib_mpool_query_mem_current_use(bplib_mpool_t *pool)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_query_mem_max_use
+ * Function: bplib_cache_query_mem_max_use
  *
  *-----------------------------------------------------------------*/
-size_t bplib_mpool_query_mem_max_use(bplib_mpool_t *pool)
+size_t bplib_cache_query_mem_max_use(bplib_cache_t *pool)
 {
-    bplib_mpool_block_admin_content_t *admin;
+    bplib_cache_block_admin_content_t *admin;
 
-    admin = bplib_mpool_get_admin(pool);
+    admin = bplib_cache_get_admin(pool);
 
     return (admin->max_alloc_watermark * (size_t)admin->buffer_size);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_debug_print_list_stats
+ * Function: bplib_cache_debug_print_list_stats
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *label)
+void bplib_cache_debug_print_list_stats(bplib_cache_block_t *list, const char *label)
 {
-    bplib_mpool_block_t         *blk;
-    bplib_mpool_block_content_t *content;
+    bplib_cache_block_t         *blk;
+    bplib_cache_block_content_t *content;
     size_t                       depth;
 
     blk   = list;
     depth = 0;
     while (true)
     {
-        blk = bplib_mpool_get_next_block(blk);
-        if (bplib_mpool_is_list_head(blk))
+        blk = bplib_cache_get_next_block(blk);
+        if (bplib_cache_is_list_head(blk))
         {
             /* as a sanity check, this should be the same head node as where it started,
              * there should be one (and only one) head node in a list */
@@ -1104,18 +1104,18 @@ void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *l
             break;
         }
 
-        content = bplib_mpool_get_block_content(blk);
+        content = bplib_cache_get_block_content(blk);
         if (content != NULL)
         {
             printf("DEBUG: %s(): block addr=%lx type=%d refcount=%u\n", __func__, (unsigned long)blk,
                    content->header.base_link.type, content->header.refcount);
 
-            if (blk->type == bplib_mpool_blocktype_canonical)
+            if (blk->type == bplib_cache_blocktype_canonical)
             {
                 printf("DEBUG: %s():  --> canonical block type %d\n", __func__,
                        (int)content->u.canonical.cblock.canonical_logical_data.canonical_block.blockType);
             }
-            else if (blk->type == bplib_mpool_blocktype_primary)
+            else if (blk->type == bplib_cache_blocktype_primary)
             {
                 printf("DEBUG: %s():  -->  primary dest IPN %lu\n", __func__,
                        (unsigned long)content->u.primary.pblock.data.logical.destinationEID.ssp.ipn.node_number);
@@ -1129,29 +1129,29 @@ void bplib_mpool_debug_print_list_stats(bplib_mpool_block_t *list, const char *l
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_debug_scan
+ * Function: bplib_cache_debug_scan
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_debug_scan(bplib_mpool_t *pool)
+void bplib_cache_debug_scan(bplib_cache_t *pool)
 {
     #ifdef STOR // mem debug
 
     size_t                             i;
-    bplib_mpool_block_content_t       *pchunk;
-    uint32_t                           count_by_type[bplib_mpool_blocktype_max];
+    bplib_cache_block_content_t       *pchunk;
+    uint32_t                           count_by_type[bplib_cache_blocktype_max];
     uint32_t                           count_invalid;
-    bplib_mpool_block_admin_content_t *admin;
+    bplib_cache_block_admin_content_t *admin;
 
-    admin = bplib_mpool_get_admin(pool);
+    admin = bplib_cache_get_admin(pool);
 
     printf("DEBUG: %s(): total blocks=%u, buffer_size=%zu, free=%u, recycled=%u\n", __func__,
            (unsigned int)admin->num_bufs_total, admin->buffer_size,
-           (unsigned int)bplib_mpool_subq_get_depth(admin->free_blocks),
-           (unsigned int)bplib_mpool_subq_get_depth(admin->recycle_blocks));
+           (unsigned int)bplib_cache_subq_get_depth(admin->free_blocks),
+           (unsigned int)bplib_cache_subq_get_depth(admin->recycle_blocks));
 
-    bplib_mpool_debug_print_list_stats(&admin->free_blocks->block_list, "free_blocks");
-    bplib_mpool_debug_print_list_stats(&admin->recycle_blocks->block_list, "recycle_blocks");
-    bplib_mpool_debug_print_list_stats(admin->active_list, "active_list");
+    bplib_cache_debug_print_list_stats(&admin->free_blocks->block_list, "free_blocks");
+    bplib_cache_debug_print_list_stats(&admin->recycle_blocks->block_list, "recycle_blocks");
+    bplib_cache_debug_print_list_stats(admin->active_list, "active_list");
 
     memset(count_by_type, 0, sizeof(count_by_type));
     count_invalid = 0;
@@ -1162,9 +1162,9 @@ void bplib_mpool_debug_scan(bplib_mpool_t *pool)
     {
         if (i == 0)
         {
-            assert(pchunk->header.base_link.type == bplib_mpool_blocktype_admin);
+            assert(pchunk->header.base_link.type == bplib_cache_blocktype_admin);
         }
-        else if (pchunk->header.base_link.type < bplib_mpool_blocktype_max)
+        else if (pchunk->header.base_link.type < bplib_cache_blocktype_max)
         {
             ++count_by_type[pchunk->header.base_link.type];
         }
@@ -1175,31 +1175,31 @@ void bplib_mpool_debug_scan(bplib_mpool_t *pool)
         ++pchunk;
     }
 
-    for (i = 0; i < bplib_mpool_blocktype_max; ++i)
+    for (i = 0; i < bplib_cache_blocktype_max; ++i)
     {
         printf("DEBUG: %s(): block type=%zu count=%lu\n", __func__, i, (unsigned long)count_by_type[i]);
     }
     printf("DEBUG: %s(): invalid count=%lu\n", __func__, (unsigned long)count_invalid);
     #else // STOR
-    printf("DEBUG: %s(): bplib_mpool_debug_scan not implemented.", __func__);
+    printf("DEBUG: %s(): bplib_cache_debug_scan not implemented.", __func__);
     #endif
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_create
+ * Function: bplib_cache_create
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
+bplib_cache_t *bplib_cache_create(void *pool_mem, size_t pool_size)
 {
-    bplib_mpool_t                     *pool;
+    bplib_cache_t                     *pool;
     size_t                             remain;
-    bplib_mpool_block_content_t       *pchunk;
-    bplib_mpool_block_admin_content_t *admin;
+    bplib_cache_block_content_t       *pchunk;
+    bplib_cache_block_admin_content_t *admin;
 
     /* this is just a sanity check, a pool that has only 1 block will not
      * be useful for anything, but it can at least be created */
-    if (pool_mem == NULL || pool_size < sizeof(bplib_mpool_t))
+    if (pool_mem == NULL || pool_size < sizeof(bplib_cache_t))
     {
         /* pool memory too small */
         return NULL;
@@ -1207,7 +1207,7 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
 
     /* initialize the lock table - OK to call this multiple times,
      * subsequent calls shouldn't do anything */
-    bplib_mpool_lock_init();
+    bplib_cache_lock_init();
 
     /* wiping the entire memory might be overkill, but it is only done once
      * at start up, and this may also help verify that the memory "works" */
@@ -1215,20 +1215,20 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
 
     pool = pool_mem;
 
-    bplib_mpool_link_reset(&pool->admin_block.header.base_link, bplib_mpool_blocktype_admin, 0);
-    admin = bplib_mpool_get_admin(pool);
+    bplib_cache_link_reset(&pool->admin_block.header.base_link, bplib_cache_blocktype_admin, 0);
+    admin = bplib_cache_get_admin(pool);
 
     /* the block lists are circular, as this reduces
      * complexity of operations (never a null pointer) */
-    admin->buffer_size = sizeof(bplib_mpool_block_content_t);
-    bplib_mpool_subq_init(&pool->admin_block.header.base_link, admin->free_blocks);
-    bplib_mpool_subq_init(&pool->admin_block.header.base_link, admin->recycle_blocks);
-    bplib_mpool_init_list_head(&pool->admin_block.header.base_link, admin->active_list);
+    admin->buffer_size = sizeof(bplib_cache_block_content_t);
+    bplib_cache_subq_init(&pool->admin_block.header.base_link, admin->free_blocks);
+    bplib_cache_subq_init(&pool->admin_block.header.base_link, admin->recycle_blocks);
+    bplib_cache_init_list_head(&pool->admin_block.header.base_link, admin->active_list);
     bplib_rbt_init_root(&admin->blocktype_registry);
 
     /* start at the _next_ buffer, which is the first usable buffer (first is the admin block) */
     pchunk = &pool->admin_block + 1;
-    remain = pool_size - sizeof(bplib_mpool_block_content_t);
+    remain = pool_size - sizeof(bplib_cache_block_content_t);
 
     /* register the first API type, which is 0.
      * Notably this prevents other modules from actually registering something at 0. */
@@ -1236,11 +1236,11 @@ bplib_mpool_t *bplib_mpool_create(void *pool_mem, size_t pool_size)
     bplib_rbt_insert_value_unique(MPOOL_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
                                   &admin->blocktype_cbor.rbt_link);
 
-    while (remain >= sizeof(bplib_mpool_block_content_t))
+    while (remain >= sizeof(bplib_cache_block_content_t))
     {
-        bplib_mpool_link_reset(&pchunk->header.base_link, bplib_mpool_blocktype_undefined, pchunk - &pool->admin_block);
-        bplib_mpool_subq_push_single(admin->free_blocks, &pchunk->header.base_link);
-        remain -= sizeof(bplib_mpool_block_content_t);
+        bplib_cache_link_reset(&pchunk->header.base_link, bplib_cache_blocktype_undefined, pchunk - &pool->admin_block);
+        bplib_cache_subq_push_single(admin->free_blocks, &pchunk->header.base_link);
+        remain -= sizeof(bplib_cache_block_content_t);
         ++pchunk;
         ++admin->num_bufs_total;
     }
