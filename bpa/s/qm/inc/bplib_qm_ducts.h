@@ -86,30 +86,6 @@ typedef union bplib_mpool_flow_generic_event
     bplib_mpool_flow_statechange_event_t intf_state;
 } bplib_mpool_flow_generic_event_t;
 
-struct bplib_mpool_subq_base
-{
-    bplib_mpool_block_t block_list;
-
-    /* note - "unsigned int" is chosen here as it is likely to be
-     * a single-cycle read in most CPUs.  The range is not as critical
-     * because what matters is the difference between these values.
-     * The "volatile" qualification helps ensure the values are read as they
-     * appear in code and are not rearranged by the compiler, as they could
-     * be changed by other threads.  */
-    volatile unsigned int push_count;
-    volatile unsigned int pull_count;
-};
-
-typedef struct bplib_mpool_subq_workitem
-{
-    #ifdef STOR
-    bplib_mpool_job_t       job_header;
-    #endif // STOR
-    bplib_mpool_subq_base_t base_subq;
-    unsigned int            current_depth_limit;
-} bplib_mpool_subq_workitem_t;
-
-
 struct bplib_mpool_flow
 {
     uint32_t pending_state_flags;
