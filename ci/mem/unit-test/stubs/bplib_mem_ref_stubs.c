@@ -29,78 +29,78 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_ref_create()
+ * Generated stub function for BPLib_MEM_RefCreate()
  * ----------------------------------------------------
  */
-bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_block_t *blk)
+BPLib_MEM_ref_t BPLib_MEM_RefCreate(BPLib_MEM_block_t *blk)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_ref_create, bplib_mpool_ref_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_RefCreate, BPLib_MEM_ref_t);
 
-    UT_GenStub_AddParam(bplib_mpool_ref_create, bplib_mpool_block_t *, blk);
+    UT_GenStub_AddParam(BPLib_MEM_RefCreate, BPLib_MEM_block_t *, blk);
 
-    UT_GenStub_Execute(bplib_mpool_ref_create, Basic, NULL);
+    UT_GenStub_Execute(BPLib_MEM_RefCreate, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_ref_create, bplib_mpool_ref_t);
+    return UT_GenStub_GetReturnValue(BPLib_MEM_RefCreate, BPLib_MEM_ref_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_ref_duplicate()
+ * Generated stub function for BPLib_MEM_RefDuplicate()
  * ----------------------------------------------------
  */
-bplib_mpool_ref_t bplib_mpool_ref_duplicate(bplib_mpool_ref_t refptr)
+BPLib_MEM_ref_t BPLib_MEM_RefDuplicate(BPLib_MEM_ref_t refptr)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_ref_duplicate, bplib_mpool_ref_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_RefDuplicate, BPLib_MEM_ref_t);
 
-    UT_GenStub_AddParam(bplib_mpool_ref_duplicate, bplib_mpool_ref_t, refptr);
+    UT_GenStub_AddParam(BPLib_MEM_RefDuplicate, BPLib_MEM_ref_t, refptr);
 
-    UT_GenStub_Execute(bplib_mpool_ref_duplicate, Basic, NULL);
+    UT_GenStub_Execute(BPLib_MEM_RefDuplicate, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_ref_duplicate, bplib_mpool_ref_t);
+    return UT_GenStub_GetReturnValue(BPLib_MEM_RefDuplicate, BPLib_MEM_ref_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_ref_from_block()
+ * Generated stub function for BPLib_MEM_RefFromBlock()
  * ----------------------------------------------------
  */
-bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk)
+BPLib_MEM_ref_t BPLib_MEM_RefFromBlock(BPLib_MEM_block_t *rblk)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_ref_from_block, bplib_mpool_ref_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_RefFromBlock, BPLib_MEM_ref_t);
 
-    UT_GenStub_AddParam(bplib_mpool_ref_from_block, bplib_mpool_block_t *, rblk);
+    UT_GenStub_AddParam(BPLib_MEM_RefFromBlock, BPLib_MEM_block_t *, rblk);
 
-    UT_GenStub_Execute(bplib_mpool_ref_from_block, Basic, NULL);
+    UT_GenStub_Execute(BPLib_MEM_RefFromBlock, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_ref_from_block, bplib_mpool_ref_t);
+    return UT_GenStub_GetReturnValue(BPLib_MEM_RefFromBlock, BPLib_MEM_ref_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_ref_make_block()
+ * Generated stub function for BPLib_MEM_RefMakeBlock()
  * ----------------------------------------------------
  */
-bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32_t magic_number, void *init_arg)
+BPLib_MEM_block_t *BPLib_MEM_RefMakeBlock(BPLib_MEM_ref_t refptr, uint32_t magic_number, void *init_arg)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_ref_make_block, bplib_mpool_block_t *);
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_RefMakeBlock, BPLib_MEM_block_t *);
 
-    UT_GenStub_AddParam(bplib_mpool_ref_make_block, bplib_mpool_ref_t, refptr);
-    UT_GenStub_AddParam(bplib_mpool_ref_make_block, uint32_t, magic_number);
-    UT_GenStub_AddParam(bplib_mpool_ref_make_block, void *, init_arg);
+    UT_GenStub_AddParam(BPLib_MEM_RefMakeBlock, BPLib_MEM_ref_t, refptr);
+    UT_GenStub_AddParam(BPLib_MEM_RefMakeBlock, uint32_t, magic_number);
+    UT_GenStub_AddParam(BPLib_MEM_RefMakeBlock, void *, init_arg);
 
-    UT_GenStub_Execute(bplib_mpool_ref_make_block, Basic, NULL);
+    UT_GenStub_Execute(BPLib_MEM_RefMakeBlock, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_ref_make_block, bplib_mpool_block_t *);
+    return UT_GenStub_GetReturnValue(BPLib_MEM_RefMakeBlock, BPLib_MEM_block_t *);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_ref_release()
+ * Generated stub function for BPLib_MEM_RefRelease()
  * ----------------------------------------------------
  */
-void bplib_mpool_ref_release(bplib_mpool_ref_t refptr)
+void BPLib_MEM_RefRelease(BPLib_MEM_ref_t refptr)
 {
-    UT_GenStub_AddParam(bplib_mpool_ref_release, bplib_mpool_ref_t, refptr);
+    UT_GenStub_AddParam(BPLib_MEM_RefRelease, BPLib_MEM_ref_t, refptr);
 
-    UT_GenStub_Execute(bplib_mpool_ref_release, Basic, NULL);
+    UT_GenStub_Execute(BPLib_MEM_RefRelease, Basic, NULL);
 }

@@ -24,120 +24,120 @@
 #include "uttest.h"
 
 #include "bplib_mem_internal.h"
-#include "test_bplib_mpool.h"
+#include "test_BPLib_MEM.h"
 
-void test_bplib_mpool_ref_create(void)
+void test_BPLib_MEM_RefCreate(void)
 {
     /* Test function for:
-     * bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_block_t *blk)
+     * BPLib_MEM_ref_t BPLib_MEM_RefCreate(BPLib_MEM_block_t *blk)
      */
-    bplib_mpool_block_content_t my_block;
+    BPLib_MEM_BlockContent_t my_block;
 
-    UtAssert_NULL(bplib_mpool_ref_create(NULL));
+    UtAssert_NULL(BPLib_MEM_RefCreate(NULL));
 
     memset(&my_block, 0, sizeof(my_block));
-    UtAssert_NULL(bplib_mpool_ref_create(&my_block.header.base_link));
+    UtAssert_NULL(BPLib_MEM_RefCreate(&my_block.header.base_link));
 
-    test_setup_mpblock(NULL, &my_block, bplib_mpool_blocktype_generic, 0);
-    UtAssert_ADDRESS_EQ(bplib_mpool_ref_create(&my_block.header.base_link), &my_block);
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeGeneric, 0);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_RefCreate(&my_block.header.base_link), &my_block);
     UtAssert_UINT16_EQ(my_block.header.refcount, 1);
 }
 
-void test_bplib_mpool_ref_duplicate(void)
+void test_BPLib_MEM_RefDuplicate(void)
 {
     /* Test function for:
-     * bplib_mpool_ref_t bplib_mpool_ref_duplicate(bplib_mpool_ref_t refptr)
+     * BPLib_MEM_ref_t BPLib_MEM_RefDuplicate(BPLib_MEM_ref_t refptr)
      */
-    bplib_mpool_block_content_t my_block;
+    BPLib_MEM_BlockContent_t my_block;
 
     memset(&my_block, 0, sizeof(my_block));
     my_block.header.refcount = 1;
 
-    UtAssert_ADDRESS_EQ(bplib_mpool_ref_duplicate(&my_block), &my_block);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_RefDuplicate(&my_block), &my_block);
     UtAssert_UINT16_EQ(my_block.header.refcount, 2);
 }
 
-void test_bplib_mpool_ref_from_block(void)
+void test_BPLib_MEM_RefFromBlock(void)
 {
     /* Test function for:
-     * bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk)
+     * BPLib_MEM_ref_t BPLib_MEM_RefFromBlock(BPLib_MEM_block_t *rblk)
      */
-    bplib_mpool_block_content_t my_block;
-    bplib_mpool_block_content_t my_ref;
+    BPLib_MEM_BlockContent_t my_block;
+    BPLib_MEM_BlockContent_t my_ref;
 
     memset(&my_block, 0, sizeof(my_block));
     memset(&my_ref, 0, sizeof(my_ref));
 
-    UtAssert_NULL(bplib_mpool_ref_from_block(NULL));
-    UtAssert_NULL(bplib_mpool_ref_from_block(&my_block.header.base_link));
+    UtAssert_NULL(BPLib_MEM_RefFromBlock(NULL));
+    UtAssert_NULL(BPLib_MEM_RefFromBlock(&my_block.header.base_link));
 
-    test_setup_mpblock(NULL, &my_ref, bplib_mpool_blocktype_ref, 0);
+    test_setup_mpblock(NULL, &my_ref, BPLib_MEM_BlocktypeRef, 0);
     my_ref.u.ref.pref_target = &my_block;
     my_block.header.refcount = 1;
-    UtAssert_ADDRESS_EQ(bplib_mpool_ref_from_block(&my_ref.header.base_link), &my_block);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_RefFromBlock(&my_ref.header.base_link), &my_block);
 }
 
-void test_bplib_mpool_ref_release(void)
+void test_BPLib_MEM_RefRelease(void)
 {
     #ifdef STOR // subq
     /* Test function for:
-     * void bplib_mpool_ref_release(bplib_mpool_ref_t refptr)
+     * void BPLib_MEM_RefRelease(BPLib_MEM_ref_t refptr)
      */
-    UT_bplib_mpool_buf_t               buf;
-    bplib_mpool_block_admin_content_t *admin;
+    UT_BPLib_MEM_buf_t               buf;
+    BPLib_MEM_BlockAdminContent_t *admin;
 
-    UtAssert_VOIDCALL(bplib_mpool_ref_release(NULL));
+    UtAssert_VOIDCALL(BPLib_MEM_RefRelease(NULL));
 
     memset(&buf, 0, sizeof(buf));
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, bplib_mpool_blocktype_admin, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[0], bplib_mpool_blocktype_generic, 0);
+    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
+    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
     buf.blk[0].header.refcount = 2;
 
-    admin = bplib_mpool_get_admin(&buf.pool);
+    admin = BPLib_MEM_GetAdmin(&buf.pool);
 
-    UtAssert_VOIDCALL(bplib_mpool_ref_release(&buf.blk[0]));
+    UtAssert_VOIDCALL(BPLib_MEM_RefRelease(&buf.blk[0]));
     UtAssert_UINT16_EQ(buf.blk[0].header.refcount, 1);
-    // STOR subq UtAssert_BOOL_TRUE(bplib_mpool_is_empty_list_head(&admin->recycle_blocks->block_list));
-    UtAssert_BOOL_TRUE(bplib_mpool_is_link_unattached(&buf.blk[0].header.base_link));
+    // STOR subq UtAssert_BOOL_TRUE(BPLib_MEM_IsEmptyListHead(&admin->recycle_blocks->block_list));
+    UtAssert_BOOL_TRUE(BPLib_MEM_IsLinkUnattached(&buf.blk[0].header.base_link));
 
-    UtAssert_VOIDCALL(bplib_mpool_ref_release(&buf.blk[0]));
+    UtAssert_VOIDCALL(BPLib_MEM_RefRelease(&buf.blk[0]));
     UtAssert_ZERO(buf.blk[0].header.refcount);
-    // STOR subq UtAssert_ADDRESS_EQ(bplib_mpool_get_prev_block(&admin->recycle_blocks->block_list), &buf.blk[0]);
+    // STOR subq UtAssert_ADDRESS_EQ(BPLib_MEM_GetPrevBlock(&admin->recycle_blocks->block_list), &buf.blk[0]);
 
-    test_setup_mpblock(&buf.pool, &buf.blk[1], bplib_mpool_blocktype_generic, 0);
-    UtAssert_VOIDCALL(bplib_mpool_ref_release(&buf.blk[1]));
-    // STOR subq UtAssert_ADDRESS_EQ(bplib_mpool_get_prev_block(&admin->recycle_blocks->block_list), &buf.blk[1]);
+    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_MEM_BlocktypeGeneric, 0);
+    UtAssert_VOIDCALL(BPLib_MEM_RefRelease(&buf.blk[1]));
+    // STOR subq UtAssert_ADDRESS_EQ(BPLib_MEM_GetPrevBlock(&admin->recycle_blocks->block_list), &buf.blk[1]);
     #endif // STOR subq
 }
 
-void test_bplib_mpool_ref_make_block(void)
+void test_BPLib_MEM_RefMakeBlock(void)
 {
     /* Test function for:
-     * bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32_t magic_number, void *init_arg)
+     * BPLib_MEM_block_t *BPLib_MEM_RefMakeBlock(BPLib_MEM_ref_t refptr, uint32_t magic_number, void *init_arg)
      */
-    UT_bplib_mpool_buf_t buf;
+    UT_BPLib_MEM_buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
 
     /* Nominal (need to do each blocktype that has a different init) */
     test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
-    test_setup_mpblock(&buf.pool, &buf.blk[2], bplib_mpool_blocktype_generic, 0);
+    test_setup_mpblock(&buf.pool, &buf.blk[2], BPLib_MEM_BlocktypeGeneric, 0);
     buf.blk[2].header.refcount = 1;
 
-    UtAssert_ADDRESS_EQ(bplib_mpool_ref_make_block(&buf.blk[2], 0, NULL), &buf.blk[0]);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_RefMakeBlock(&buf.blk[2], 0, NULL), &buf.blk[0]);
     UtAssert_ADDRESS_EQ(buf.blk[0].u.ref.pref_target, &buf.blk[2]);
 
     /* Trying again should fail because the free list is now empty */
-    UtAssert_NULL(bplib_mpool_ref_make_block(&buf.blk[2], 0, NULL));
+    UtAssert_NULL(BPLib_MEM_RefMakeBlock(&buf.blk[2], 0, NULL));
 }
 
 void TestBplibMpoolRef_Register(void)
 {
-    UtTest_Add(test_bplib_mpool_ref_create, TestBplibMpool_ResetTestEnvironment, NULL, "bplib_mpool_ref_create");
-    UtTest_Add(test_bplib_mpool_ref_duplicate, TestBplibMpool_ResetTestEnvironment, NULL, "bplib_mpool_ref_duplicate");
-    UtTest_Add(test_bplib_mpool_ref_from_block, TestBplibMpool_ResetTestEnvironment, NULL,
-               "bplib_mpool_ref_from_block");
-    UtTest_Add(test_bplib_mpool_ref_release, TestBplibMpool_ResetTestEnvironment, NULL, "bplib_mpool_ref_release");
-    UtTest_Add(test_bplib_mpool_ref_make_block, TestBplibMpool_ResetTestEnvironment, NULL,
-               "bplib_mpool_ref_make_block");
+    UtTest_Add(test_BPLib_MEM_RefCreate, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_MEM_RefCreate");
+    UtTest_Add(test_BPLib_MEM_RefDuplicate, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_MEM_RefDuplicate");
+    UtTest_Add(test_BPLib_MEM_RefFromBlock, TestBplibMpool_ResetTestEnvironment, NULL,
+               "BPLib_MEM_RefFromBlock");
+    UtTest_Add(test_BPLib_MEM_RefRelease, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_MEM_RefRelease");
+    UtTest_Add(test_BPLib_MEM_RefMakeBlock, TestBplibMpool_ResetTestEnvironment, NULL,
+               "BPLib_MEM_RefMakeBlock");
 }
