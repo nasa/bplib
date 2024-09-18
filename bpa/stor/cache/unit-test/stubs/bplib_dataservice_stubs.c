@@ -50,14 +50,14 @@ bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t nod
  * ----------------------------------------------------
  */
 bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn, bplib_dataservice_type_t type,
-                                     bplib_mpool_ref_t blkref)
+                                     BPLib_MEM_ref_t blkref)
 {
     UT_GenStub_SetupReturnBuffer(bplib_dataservice_attach, bp_handle_t);
 
     UT_GenStub_AddParam(bplib_dataservice_attach, bplib_routetbl_t *, tbl);
     UT_GenStub_AddParam(bplib_dataservice_attach, const bp_ipn_addr_t *, ipn);
     UT_GenStub_AddParam(bplib_dataservice_attach, bplib_dataservice_type_t, type);
-    UT_GenStub_AddParam(bplib_dataservice_attach, bplib_mpool_ref_t, blkref);
+    UT_GenStub_AddParam(bplib_dataservice_attach, BPLib_MEM_ref_t, blkref);
 
     UT_GenStub_Execute(bplib_dataservice_attach, Basic, NULL);
 
@@ -69,14 +69,14 @@ bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t 
  * Generated stub function for bplib_dataservice_detach()
  * ----------------------------------------------------
  */
-bplib_mpool_ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn)
+BPLib_MEM_ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_dataservice_detach, bplib_mpool_ref_t);
+    UT_GenStub_SetupReturnBuffer(bplib_dataservice_detach, BPLib_MEM_ref_t);
 
     UT_GenStub_AddParam(bplib_dataservice_detach, bplib_routetbl_t *, tbl);
     UT_GenStub_AddParam(bplib_dataservice_detach, const bp_ipn_addr_t *, ipn);
 
     UT_GenStub_Execute(bplib_dataservice_detach, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_dataservice_detach, bplib_mpool_ref_t);
+    return UT_GenStub_GetReturnValue(bplib_dataservice_detach, BPLib_MEM_ref_t);
 }

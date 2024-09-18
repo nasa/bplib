@@ -23,162 +23,162 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "test_bplib_mpool.h"
+#include "test_BPLib_MEM.h"
 
 struct UT_job_block
 {
-    bplib_mpool_block_header_t blkh;
-    bplib_mpool_job_t          job;
+    BPLib_STOR_CACHE_BlockHeader_t blkh;
+    BPLib_MEM_job_t          job;
 };
 
 union UT_job_block_content
 {
-    bplib_mpool_block_content_t reserved_space;
-    bplib_mpool_block_t         block;
+    BPLib_STOR_CACHE_BlockContent_t reserved_space;
+    BPLib_MEM_block_t         block;
     struct UT_job_block         content;
 };
 
 struct UT_job_poolbuf
 {
-    bplib_mpool_t              pool;
+    BPLib_MEM_t              pool;
     union UT_job_block_content u;
 };
 
-void test_bplib_mpool_job_init(void)
+void test_BPLib_STOR_CACHE_JobInit(void)
 {
     /* Test function for:
-     * void bplib_mpool_job_init(bplib_mpool_block_t *base_block, bplib_mpool_job_t *jblk)
+     * void BPLib_STOR_CACHE_JobInit(BPLib_MEM_block_t *base_block, BPLib_MEM_job_t *jblk)
      */
     struct UT_job_block buf;
 
     memset(&buf, 0, sizeof(buf));
 
-    UtAssert_VOIDCALL(bplib_mpool_job_init(&buf.blkh.base_link, &buf.job));
+    UtAssert_VOIDCALL(BPLib_STOR_CACHE_JobInit(&buf.blkh.base_link, &buf.job));
 }
 
-void test_bplib_mpool_job_cast(void)
+void test_BPLib_STOR_CACHE_JobCast(void)
 {
     /* Test function for:
-     * bplib_mpool_job_t *bplib_mpool_job_cast(bplib_mpool_block_t *cb)
+     * BPLib_MEM_job_t *BPLib_STOR_CACHE_JobCast(BPLib_MEM_block_t *cb)
      */
-    bplib_mpool_block_t blk;
+    BPLib_MEM_block_t blk;
 
-    UtAssert_NULL(bplib_mpool_job_cast(NULL));
+    UtAssert_NULL(BPLib_STOR_CACHE_JobCast(NULL));
 
     memset(&blk, 0, sizeof(blk));
-    UtAssert_NULL(bplib_mpool_job_cast(&blk));
+    UtAssert_NULL(BPLib_STOR_CACHE_JobCast(&blk));
 
-    blk.type = bplib_mpool_blocktype_job;
-    UtAssert_ADDRESS_EQ(bplib_mpool_job_cast(&blk), &blk);
+    blk.type = BPLib_STOR_CACHE_BlocktypeJob;
+    UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_JobCast(&blk), &blk);
 }
 
-void test_bplib_mpool_job_mark_active(void)
+void test_BPLib_STOR_CACHE_JobMarkActive(void)
 {
     /* Test function for:
-     * void bplib_mpool_job_mark_active(bplib_mpool_job_t *job)
+     * void BPLib_STOR_CACHE_JobMarkActive(BPLib_MEM_job_t *job)
      */
     struct UT_job_poolbuf              buf;
-    bplib_mpool_block_admin_content_t *admin;
-    bplib_mpool_job_t                 *job;
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    BPLib_MEM_job_t                 *job;
 
     memset(&buf, 0, sizeof(buf));
 
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, bplib_mpool_blocktype_admin, 0);
-    test_setup_mpblock(&buf.pool, &buf.u.reserved_space, bplib_mpool_blocktype_generic, 0);
+    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
+    test_setup_mpblock(&buf.pool, &buf.u.reserved_space, BPLib_STOR_CACHE_BlocktypeGeneric, 0);
 
     job   = &buf.u.content.job;
-    admin = bplib_mpool_get_admin(&buf.pool);
+    admin = BPLib_STOR_CACHE_GetAdmin(&buf.pool);
 
-    bplib_mpool_job_init(&buf.u.block, job);
+    BPLib_STOR_CACHE_JobInit(&buf.u.block, job);
 
-    job->handler = test_bplib_mpool_callback_stub;
-    UtAssert_VOIDCALL(bplib_mpool_job_mark_active(job));
-    UtAssert_ADDRESS_EQ(bplib_mpool_get_next_block(&admin->active_list), job);
+    job->handler = test_BPLib_STOR_CACHE_CallbackStub;
+    UtAssert_VOIDCALL(BPLib_STOR_CACHE_JobMarkActive(job));
+    UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_GetNextBlock(&admin->active_list), job);
 
     job->handler = NULL;
-    UtAssert_VOIDCALL(bplib_mpool_job_mark_active(job));
-    UtAssert_BOOL_TRUE(bplib_mpool_is_empty_list_head(&admin->active_list));
-    UtAssert_BOOL_TRUE(bplib_mpool_is_link_unattached(&job->link));
+    UtAssert_VOIDCALL(BPLib_STOR_CACHE_JobMarkActive(job));
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->active_list));
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsLinkUnattached(&job->link));
 }
 
-void test_bplib_mpool_job_get_next_active(void)
+void test_BPLib_STOR_CACHE_JobGetNextActive(void)
 {
     /* Test function for:
-     * bplib_mpool_job_t *bplib_mpool_job_get_next_active(bplib_mpool_t *pool)
+     * BPLib_MEM_job_t *BPLib_STOR_CACHE_JobGetNextActive(BPLib_MEM_t *pool)
      */
 
     struct UT_job_poolbuf              buf;
-    bplib_mpool_block_admin_content_t *admin;
-    bplib_mpool_job_t                 *job;
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    BPLib_MEM_job_t                 *job;
 
     memset(&buf, 0, sizeof(buf));
 
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, bplib_mpool_blocktype_admin, 0);
-    test_setup_mpblock(&buf.pool, &buf.u.reserved_space, bplib_mpool_blocktype_generic, 0);
+    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
+    test_setup_mpblock(&buf.pool, &buf.u.reserved_space, BPLib_STOR_CACHE_BlocktypeGeneric, 0);
 
     job   = &buf.u.content.job;
-    admin = bplib_mpool_get_admin(&buf.pool);
+    admin = BPLib_STOR_CACHE_GetAdmin(&buf.pool);
 
-    bplib_mpool_job_init(&buf.u.block, job);
-    job->handler = test_bplib_mpool_callback_stub;
-    bplib_mpool_insert_after(&admin->active_list, &job->link);
+    BPLib_STOR_CACHE_JobInit(&buf.u.block, job);
+    job->handler = test_BPLib_STOR_CACHE_CallbackStub;
+    BPLib_STOR_CACHE_InsertAfter(&admin->active_list, &job->link);
 
-    UtAssert_ADDRESS_EQ(bplib_mpool_job_get_next_active(&buf.pool), job);
-    UtAssert_BOOL_TRUE(bplib_mpool_is_empty_list_head(&admin->active_list));
-    UtAssert_BOOL_TRUE(bplib_mpool_is_link_unattached(&job->link));
+    UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_JobGetNextActive(&buf.pool), job);
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->active_list));
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsLinkUnattached(&job->link));
 
     /* insert something into active_list that is NOT a job */
-    bplib_mpool_insert_after(&admin->active_list, &buf.u.block);
-    UtAssert_NULL(bplib_mpool_job_get_next_active(&buf.pool));
+    BPLib_STOR_CACHE_InsertAfter(&admin->active_list, &buf.u.block);
+    UtAssert_NULL(BPLib_STOR_CACHE_JobGetNextActive(&buf.pool));
 }
 
-void test_bplib_mpool_job_run_all(void)
+void test_BPLib_STOR_CACHE_JobRunAll(void)
 {
     /* Test function for:
-     * void bplib_mpool_job_run_all(bplib_mpool_t *pool, void *arg)
+     * void BPLib_STOR_CACHE_JobRunAll(BPLib_MEM_t *pool, void *arg)
      */
 
     struct UT_job_poolbuf              buf;
-    bplib_mpool_block_admin_content_t *admin;
-    bplib_mpool_job_t                 *job;
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    BPLib_MEM_job_t                 *job;
 
     memset(&buf, 0, sizeof(buf));
 
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, bplib_mpool_blocktype_admin, 0);
-    test_setup_mpblock(&buf.pool, &buf.u.reserved_space, bplib_mpool_blocktype_generic, 0);
+    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
+    test_setup_mpblock(&buf.pool, &buf.u.reserved_space, BPLib_STOR_CACHE_BlocktypeGeneric, 0);
 
     job   = &buf.u.content.job;
-    admin = bplib_mpool_get_admin(&buf.pool);
+    admin = BPLib_STOR_CACHE_GetAdmin(&buf.pool);
 
-    bplib_mpool_job_init(&buf.u.block, job);
-    job->handler = test_bplib_mpool_callback_stub;
-    bplib_mpool_insert_after(&admin->active_list, &job->link);
+    BPLib_STOR_CACHE_JobInit(&buf.u.block, job);
+    job->handler = test_BPLib_STOR_CACHE_CallbackStub;
+    BPLib_STOR_CACHE_InsertAfter(&admin->active_list, &job->link);
 
-    UtAssert_VOIDCALL(bplib_mpool_job_run_all(&buf.pool, NULL));
-    UtAssert_BOOL_TRUE(bplib_mpool_is_empty_list_head(&admin->active_list));
-    UtAssert_BOOL_TRUE(bplib_mpool_is_link_unattached(&job->link));
+    UtAssert_VOIDCALL(BPLib_STOR_CACHE_JobRunAll(&buf.pool, NULL));
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->active_list));
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsLinkUnattached(&job->link));
 
     job->handler = NULL;
-    bplib_mpool_insert_after(&admin->active_list, &job->link);
+    BPLib_STOR_CACHE_InsertAfter(&admin->active_list, &job->link);
 
-    UtAssert_VOIDCALL(bplib_mpool_job_run_all(&buf.pool, NULL));
-    UtAssert_BOOL_TRUE(bplib_mpool_is_empty_list_head(&admin->active_list));
-    UtAssert_BOOL_TRUE(bplib_mpool_is_link_unattached(&job->link));
+    UtAssert_VOIDCALL(BPLib_STOR_CACHE_JobRunAll(&buf.pool, NULL));
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->active_list));
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsLinkUnattached(&job->link));
 }
 
 void TestBplibMpoolJob_Register(void)
 {
-    UtTest_Add(test_bplib_mpool_job_init, TestBplibMpool_ResetTestEnvironment, NULL, "bplib_mpool_job_init");
-    UtTest_Add(test_bplib_mpool_job_cast, TestBplibMpool_ResetTestEnvironment, NULL, "bplib_mpool_job_cast");
+    UtTest_Add(test_BPLib_STOR_CACHE_JobInit, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_JobInit");
+    UtTest_Add(test_BPLib_STOR_CACHE_JobCast, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_JobCast");
 #ifdef jphfix
-    UtTest_Add(test_bplib_mpool_job_cancel_internal, TestBplibMpool_ResetTestEnvironment, NULL,
-               "bplib_mpool_job_cancel_internal");
-    UtTest_Add(test_bplib_mpool_job_mark_active_internal, TestBplibMpool_ResetTestEnvironment, NULL,
-               "bplib_mpool_job_mark_active_internal");
+    UtTest_Add(test_BPLib_STOR_CACHE_JobCancelInternal, TestBplibMpool_ResetTestEnvironment, NULL,
+               "BPLib_STOR_CACHE_JobCancelInternal");
+    UtTest_Add(test_BPLib_STOR_CACHE_JobMarkActiveInternal, TestBplibMpool_ResetTestEnvironment, NULL,
+               "BPLib_STOR_CACHE_JobMarkActiveInternal");
 #endif
-    UtTest_Add(test_bplib_mpool_job_mark_active, TestBplibMpool_ResetTestEnvironment, NULL,
-               "bplib_mpool_job_mark_active");
-    UtTest_Add(test_bplib_mpool_job_get_next_active, TestBplibMpool_ResetTestEnvironment, NULL,
-               "bplib_mpool_job_get_next_active");
-    UtTest_Add(test_bplib_mpool_job_run_all, TestBplibMpool_ResetTestEnvironment, NULL, "bplib_mpool_job_run_all");
+    UtTest_Add(test_BPLib_STOR_CACHE_JobMarkActive, TestBplibMpool_ResetTestEnvironment, NULL,
+               "BPLib_STOR_CACHE_JobMarkActive");
+    UtTest_Add(test_BPLib_STOR_CACHE_JobGetNextActive, TestBplibMpool_ResetTestEnvironment, NULL,
+               "BPLib_STOR_CACHE_JobGetNextActive");
+    UtTest_Add(test_BPLib_STOR_CACHE_JobRunAll, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_JobRunAll");
 }

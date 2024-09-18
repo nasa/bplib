@@ -277,12 +277,12 @@ int bplib_query_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_varia
     switch (var_id)
     {
         case 0: // STOR bplib_variable_mem_current_use:
-            // STOR *value = bplib_mpool_query_mem_current_use(bplib_route_get_mpool(rtbl));
+            // STOR *value = BPLib_MEM_QueryMemCurrentUse(bplib_route_get_mpool(rtbl));
             retval = BP_SUCCESS;
             break;
 
         case 1: // STOR bplib_variable_mem_high_use:
-            // STOR *value = bplib_mpool_query_mem_max_use(bplib_route_get_mpool(rtbl));
+            // STOR *value = BPLib_MEM_QueryMemMaxUse(bplib_route_get_mpool(rtbl));
             retval = BP_SUCCESS;
             break;
 

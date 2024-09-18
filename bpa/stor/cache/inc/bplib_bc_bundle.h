@@ -28,7 +28,7 @@
 #include "bplib_api_types.h"
 #include "bplib_mem_bundle.h"
 
-typedef struct bplib_mpool_bblock_tracking
+typedef struct BPLib_STOR_CACHE_BblockTracking
 {
     bplib_policy_delivery_t delivery_policy;
     bp_handle_t             ingress_intf_id;
@@ -40,28 +40,28 @@ typedef struct bplib_mpool_bblock_tracking
 
     /* JPHFIX: this is here for now, but really it belongs on the egress CLA intf based on its RTT */
     uint64_t local_retx_interval;
-} bplib_mpool_bblock_tracking_t;
+} BPLib_STOR_CACHE_BblockTracking_t;
 
-typedef struct bplib_mpool_bblock_primary_data
+typedef struct BPLib_STOR_CACHE_BblockPrimaryData
 {
     bp_primary_block_t            logical;
-    bplib_mpool_bblock_tracking_t delivery;
-} bplib_mpool_bblock_primary_data_t;
+    BPLib_STOR_CACHE_BblockTracking_t delivery;
+} BPLib_STOR_CACHE_BblockPrimaryData_t;
 
-struct bplib_mpool_bblock_primary
+struct BPLib_STOR_CACHE_BblockPrimary
 {
-    bplib_mpool_block_t cblock_list;
-    bplib_mpool_block_t chunk_list;
+    BPLib_MEM_block_t cblock_list;
+    BPLib_MEM_block_t chunk_list;
     size_t              block_encode_size_cache;
     size_t              bundle_encode_size_cache;
 
-    bplib_mpool_bblock_primary_data_t data;
+    BPLib_STOR_CACHE_BblockPrimaryData_t data;
 };
 
-struct bplib_mpool_bblock_canonical
+struct BPLib_STOR_CACHE_BblockCanonical
 {
-    bplib_mpool_block_t           chunk_list;
-    bplib_mpool_bblock_primary_t *bundle_ref;
+    BPLib_MEM_block_t           chunk_list;
+    BPLib_STOR_CACHE_BblockPrimary_t *bundle_ref;
     size_t                        block_encode_size_cache;
     size_t                        encoded_content_offset;
     size_t                        encoded_content_length;
@@ -74,7 +74,7 @@ struct bplib_mpool_bblock_canonical
  * @param cpb
  * @return bp_primary_block_t*
  */
-static inline bp_primary_block_t *bplib_mpool_bblock_primary_get_logical(bplib_mpool_bblock_primary_t *cpb)
+static inline bp_primary_block_t *BPLib_STOR_CACHE_BblockPrimaryGetLogical(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
     return &cpb->data.logical;
 }
@@ -83,9 +83,9 @@ static inline bp_primary_block_t *bplib_mpool_bblock_primary_get_logical(bplib_m
  * @brief Gets the list of encoded chunks associated with a primary block
  *
  * @param cpb
- * @return bplib_mpool_block_t*
+ * @return BPLib_MEM_block_t*
  */
-static inline bplib_mpool_block_t *bplib_mpool_bblock_primary_get_encoded_chunks(bplib_mpool_bblock_primary_t *cpb)
+static inline BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryGetEncodedChunks(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
     return &cpb->chunk_list;
 }
@@ -94,9 +94,9 @@ static inline bplib_mpool_block_t *bplib_mpool_bblock_primary_get_encoded_chunks
  * @brief Gets the list of canonical blocks associated with a primary block
  *
  * @param cpb
- * @return bplib_mpool_block_t*
+ * @return BPLib_MEM_block_t*
  */
-static inline bplib_mpool_block_t *bplib_mpool_bblock_primary_get_canonical_list(bplib_mpool_bblock_primary_t *cpb)
+static inline BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryGetCanonicalList(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
     return &cpb->cblock_list;
 }
@@ -107,7 +107,7 @@ static inline bplib_mpool_block_t *bplib_mpool_bblock_primary_get_canonical_list
  * @param ccb
  * @return bp_canonical_block_buffer_t*
  */
-static inline bp_canonical_block_buffer_t *bplib_mpool_bblock_canonical_get_logical(bplib_mpool_bblock_canonical_t *ccb)
+static inline bp_canonical_block_buffer_t *BPLib_STOR_CACHE_BblockCanonicalGetLogical(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
 {
     return &ccb->canonical_logical_data;
 }
@@ -116,9 +116,9 @@ static inline bp_canonical_block_buffer_t *bplib_mpool_bblock_canonical_get_logi
  * @brief Gets the list of encoded chunks associated with a canonical block
  *
  * @param ccb
- * @return bplib_mpool_block_t*
+ * @return BPLib_MEM_block_t*
  */
-static inline bplib_mpool_block_t *bplib_mpool_bblock_canonical_get_encoded_chunks(bplib_mpool_bblock_canonical_t *ccb)
+static inline BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCanonicalGetEncodedChunks(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
 {
     return &ccb->chunk_list;
 }
@@ -132,7 +132,7 @@ static inline bplib_mpool_block_t *bplib_mpool_bblock_canonical_get_encoded_chun
  * @param offset
  * @param length
  */
-static inline void bplib_mpool_bblock_canonical_set_content_position(bplib_mpool_bblock_canonical_t *ccb, size_t offset,
+static inline void BPLib_STOR_CACHE_BblockCanonicalSetContentPosition(BPLib_STOR_CACHE_BblockCanonical_t *ccb, size_t offset,
                                                                      size_t length)
 {
     ccb->encoded_content_offset = offset;
@@ -145,7 +145,7 @@ static inline void bplib_mpool_bblock_canonical_set_content_position(bplib_mpool
  * @param ccb
  * @return size_t
  */
-static inline size_t bplib_mpool_bblock_canonical_get_content_length(const bplib_mpool_bblock_canonical_t *ccb)
+static inline size_t BPLib_STOR_CACHE_BblockCanonicalGetContentLength(const BPLib_STOR_CACHE_BblockCanonical_t *ccb)
 {
     return ccb->encoded_content_length;
 }
@@ -156,7 +156,7 @@ static inline size_t bplib_mpool_bblock_canonical_get_content_length(const bplib
  * @param ccb
  * @return size_t
  */
-static inline size_t bplib_mpool_bblock_canonical_get_content_offset(const bplib_mpool_bblock_canonical_t *ccb)
+static inline size_t BPLib_STOR_CACHE_BblockCanonicalGetContentOffset(const BPLib_STOR_CACHE_BblockCanonical_t *ccb)
 {
     return ccb->encoded_content_offset;
 }
@@ -168,9 +168,9 @@ static inline size_t bplib_mpool_bblock_canonical_get_content_offset(const bplib
  * a pointer to that block, or returns NULL if not convertible to a primary block type.
  *
  * @param cb
- * @return bplib_mpool_bblock_primary_t*
+ * @return BPLib_STOR_CACHE_BblockPrimary_t*
  */
-bplib_mpool_bblock_primary_t *bplib_mpool_bblock_primary_cast(bplib_mpool_block_t *cb);
+BPLib_STOR_CACHE_BblockPrimary_t *BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_MEM_block_t *cb);
 
 /**
  * @brief Cast a block to a canonical type
@@ -179,9 +179,9 @@ bplib_mpool_bblock_primary_t *bplib_mpool_bblock_primary_cast(bplib_mpool_block_
  * a pointer to that block, or returns NULL if not convertible to a canonical block type.
  *
  * @param cb
- * @return bplib_mpool_bblock_canonical_t*
+ * @return BPLib_STOR_CACHE_BblockCanonical_t*
  */
-bplib_mpool_bblock_canonical_t *bplib_mpool_bblock_canonical_cast(bplib_mpool_block_t *cb);
+BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_MEM_block_t *cb);
 
 /**
  * @brief Cast a block to a CBOR data type
@@ -189,35 +189,35 @@ bplib_mpool_bblock_canonical_t *bplib_mpool_bblock_canonical_cast(bplib_mpool_bl
  * Confirms that the block is a CBOR data block, and returns a pointer to that block
  *
  * @param cb
- * @return bplib_mpool_generic_data_t*
+ * @return BPLib_STOR_CACHE_GenericData_t*
  */
-void *bplib_mpool_bblock_cbor_cast(bplib_mpool_block_t *cb);
+void *BPLib_STOR_CACHE_BblockCborCast(BPLib_MEM_block_t *cb);
 
-void bplib_mpool_bblock_cbor_set_size(bplib_mpool_block_t *cb, size_t user_content_size);
+void BPLib_STOR_CACHE_BblockCborSetSize(BPLib_MEM_block_t *cb, size_t user_content_size);
 
 /**
  * @brief Allocate a new primary block
  *
  * @param pool
- * @return bplib_mpool_block_t*
+ * @return BPLib_MEM_block_t*
  */
-bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg, uint8_t priority, uint64_t timeout);
+BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg, uint8_t priority, uint64_t timeout);
 
 /**
  * @brief Allocate a new canonical block
  *
  * @param pool
- * @return bplib_mpool_block_t*
+ * @return BPLib_MEM_block_t*
  */
-bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg);
+BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg);
 
 /**
  * @brief Allocate a new CBOR data block
  *
  * @param pool
- * @return bplib_mpool_block_t*
+ * @return BPLib_MEM_block_t*
  */
-bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool);
+BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_MEM_t *pool);
 
 /**
  * @brief Append CBOR data to the given list
@@ -225,7 +225,7 @@ bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool);
  * @param head
  * @param blk
  */
-void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block_t *blk);
+void BPLib_STOR_CACHE_BblockCborAppend(BPLib_MEM_block_t *head, BPLib_MEM_block_t *blk);
 
 /**
  * @brief Append a canonical block to the bundle
@@ -233,7 +233,7 @@ void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block
  * @param cpb
  * @param blk
  */
-void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_mpool_block_t *blk);
+void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb, BPLib_MEM_block_t *blk);
 
 /**
  * @brief Find a canonical block within the bundle
@@ -241,7 +241,7 @@ void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_
  * @param cpb
  * @param block_type
  */
-bplib_mpool_block_t *bplib_mpool_bblock_primary_locate_canonical(bplib_mpool_bblock_primary_t *cpb,
+BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
                                                                  bp_blocktype_t                block_type);
 
 /**
@@ -252,7 +252,7 @@ bplib_mpool_block_t *bplib_mpool_bblock_primary_locate_canonical(bplib_mpool_bbl
  *
  * @param cpb
  */
-void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb);
+void BPLib_STOR_CACHE_BblockPrimaryDropEncode(BPLib_STOR_CACHE_BblockPrimary_t *cpb);
 
 /**
  * @brief Drop all encode data (CBOR) from a canonical block
@@ -262,7 +262,7 @@ void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb);
  *
  * @param ccb
  */
-void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *ccb);
+void BPLib_STOR_CACHE_BblockCanonicalDropEncode(BPLib_STOR_CACHE_BblockCanonical_t *ccb);
 
 /**
  * @brief Copy an entire chain of encoded blocks to a target buffer
@@ -274,7 +274,7 @@ void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *cc
  * @param max_count
  * @return size_t
  */
-size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
+size_t BPLib_STOR_CACHE_BblockCborExport(BPLib_MEM_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
                                       size_t max_count);
 
 #endif /* BPLIB_MEM_BBLOCKS_H */

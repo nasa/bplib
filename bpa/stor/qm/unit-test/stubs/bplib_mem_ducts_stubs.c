@@ -30,135 +30,135 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_flow_alloc()
+ * Generated stub function for BPLib_STOR_CACHE_FlowAlloc()
  * ----------------------------------------------------
  */
-bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
+BPLib_MEM_block_t *BPLib_STOR_CACHE_FlowAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_flow_alloc, bplib_mpool_block_t *);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_FlowAlloc, BPLib_MEM_block_t *);
 
-    UT_GenStub_AddParam(bplib_mpool_flow_alloc, bplib_mpool_t *, pool);
-    UT_GenStub_AddParam(bplib_mpool_flow_alloc, uint32_t, magic_number);
-    UT_GenStub_AddParam(bplib_mpool_flow_alloc, void *, init_arg);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowAlloc, BPLib_MEM_t *, pool);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowAlloc, uint32_t, magic_number);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowAlloc, void *, init_arg);
 
-    UT_GenStub_Execute(bplib_mpool_flow_alloc, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_FlowAlloc, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_flow_alloc, bplib_mpool_block_t *);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_FlowAlloc, BPLib_MEM_block_t *);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_flow_cast()
+ * Generated stub function for BPLib_STOR_CACHE_FlowCast()
  * ----------------------------------------------------
  */
-bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb)
+BPLib_MEM_flow_t *BPLib_STOR_CACHE_FlowCast(BPLib_MEM_block_t *cb)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_flow_cast, bplib_mpool_flow_t *);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_FlowCast, BPLib_MEM_flow_t *);
 
-    UT_GenStub_AddParam(bplib_mpool_flow_cast, bplib_mpool_block_t *, cb);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowCast, BPLib_MEM_block_t *, cb);
 
-    UT_GenStub_Execute(bplib_mpool_flow_cast, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_FlowCast, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_flow_cast, bplib_mpool_flow_t *);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_FlowCast, BPLib_MEM_flow_t *);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_flow_disable()
+ * Generated stub function for BPLib_STOR_CACHE_FlowDisable()
  * ----------------------------------------------------
  */
-uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq)
+uint32_t BPLib_STOR_CACHE_FlowDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_flow_disable, uint32_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_FlowDisable, uint32_t);
 
-    UT_GenStub_AddParam(bplib_mpool_flow_disable, bplib_mpool_subq_workitem_t *, subq);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowDisable, BPLib_STOR_CACHE_SubqWorkitem_t *, subq);
 
-    UT_GenStub_Execute(bplib_mpool_flow_disable, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_FlowDisable, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_flow_disable, uint32_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_FlowDisable, uint32_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_flow_enable()
+ * Generated stub function for BPLib_STOR_CACHE_FlowEnable()
  * ----------------------------------------------------
  */
-void bplib_mpool_flow_enable(bplib_mpool_subq_workitem_t *subq, uint32_t depth_limit)
+void BPLib_STOR_CACHE_FlowEnable(BPLib_STOR_CACHE_SubqWorkitem_t *subq, uint32_t depth_limit)
 {
-    UT_GenStub_AddParam(bplib_mpool_flow_enable, bplib_mpool_subq_workitem_t *, subq);
-    UT_GenStub_AddParam(bplib_mpool_flow_enable, uint32_t, depth_limit);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowEnable, BPLib_STOR_CACHE_SubqWorkitem_t *, subq);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowEnable, uint32_t, depth_limit);
 
-    UT_GenStub_Execute(bplib_mpool_flow_enable, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_FlowEnable, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_flow_modify_flags()
+ * Generated stub function for BPLib_STOR_CACHE_FlowModifyFlags()
  * ----------------------------------------------------
  */
-bool bplib_mpool_flow_modify_flags(bplib_mpool_block_t *cb, uint32_t set_bits, uint32_t clear_bits)
+bool BPLib_STOR_CACHE_FlowModifyFlags(BPLib_MEM_block_t *cb, uint32_t set_bits, uint32_t clear_bits)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_flow_modify_flags, bool);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_FlowModifyFlags, bool);
 
-    UT_GenStub_AddParam(bplib_mpool_flow_modify_flags, bplib_mpool_block_t *, cb);
-    UT_GenStub_AddParam(bplib_mpool_flow_modify_flags, uint32_t, set_bits);
-    UT_GenStub_AddParam(bplib_mpool_flow_modify_flags, uint32_t, clear_bits);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowModifyFlags, BPLib_MEM_block_t *, cb);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowModifyFlags, uint32_t, set_bits);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowModifyFlags, uint32_t, clear_bits);
 
-    UT_GenStub_Execute(bplib_mpool_flow_modify_flags, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_FlowModifyFlags, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_flow_modify_flags, bool);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_FlowModifyFlags, bool);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_flow_try_move_all()
+ * Generated stub function for BPLib_STOR_CACHE_FlowTryMoveAll()
  * ----------------------------------------------------
  */
-uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_subq_workitem_t *subq_src,
+uint32_t BPLib_STOR_CACHE_FlowTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
                                        uint64_t abs_timeout)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_flow_try_move_all, uint32_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_FlowTryMoveAll, uint32_t);
 
-    UT_GenStub_AddParam(bplib_mpool_flow_try_move_all, bplib_mpool_subq_workitem_t *, subq_dst);
-    UT_GenStub_AddParam(bplib_mpool_flow_try_move_all, bplib_mpool_subq_workitem_t *, subq_src);
-    UT_GenStub_AddParam(bplib_mpool_flow_try_move_all, uint64_t, abs_timeout);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowTryMoveAll, BPLib_STOR_CACHE_SubqWorkitem_t *, subq_dst);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowTryMoveAll, BPLib_STOR_CACHE_SubqWorkitem_t *, subq_src);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowTryMoveAll, uint64_t, abs_timeout);
 
-    UT_GenStub_Execute(bplib_mpool_flow_try_move_all, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_FlowTryMoveAll, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_flow_try_move_all, uint32_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_FlowTryMoveAll, uint32_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_flow_try_pull()
+ * Generated stub function for BPLib_STOR_CACHE_FlowTryPull()
  * ----------------------------------------------------
  */
-bplib_mpool_block_t *bplib_mpool_flow_try_pull(bplib_mpool_subq_workitem_t *subq_src, uint64_t abs_timeout)
+BPLib_MEM_block_t *BPLib_STOR_CACHE_FlowTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, uint64_t abs_timeout)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_flow_try_pull, bplib_mpool_block_t *);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_FlowTryPull, BPLib_MEM_block_t *);
 
-    UT_GenStub_AddParam(bplib_mpool_flow_try_pull, bplib_mpool_subq_workitem_t *, subq_src);
-    UT_GenStub_AddParam(bplib_mpool_flow_try_pull, uint64_t, abs_timeout);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowTryPull, BPLib_STOR_CACHE_SubqWorkitem_t *, subq_src);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowTryPull, uint64_t, abs_timeout);
 
-    UT_GenStub_Execute(bplib_mpool_flow_try_pull, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_FlowTryPull, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_flow_try_pull, bplib_mpool_block_t *);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_FlowTryPull, BPLib_MEM_block_t *);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_mpool_flow_try_push()
+ * Generated stub function for BPLib_STOR_CACHE_FlowTryPush()
  * ----------------------------------------------------
  */
-bool bplib_mpool_flow_try_push(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_block_t *qblk, uint64_t abs_timeout)
+bool BPLib_STOR_CACHE_FlowTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_MEM_block_t *qblk, uint64_t abs_timeout)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_mpool_flow_try_push, bool);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_FlowTryPush, bool);
 
-    UT_GenStub_AddParam(bplib_mpool_flow_try_push, bplib_mpool_subq_workitem_t *, subq_dst);
-    UT_GenStub_AddParam(bplib_mpool_flow_try_push, bplib_mpool_block_t *, qblk);
-    UT_GenStub_AddParam(bplib_mpool_flow_try_push, uint64_t, abs_timeout);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowTryPush, BPLib_STOR_CACHE_SubqWorkitem_t *, subq_dst);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowTryPush, BPLib_MEM_block_t *, qblk);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_FlowTryPush, uint64_t, abs_timeout);
 
-    UT_GenStub_Execute(bplib_mpool_flow_try_push, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_FlowTryPush, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_mpool_flow_try_push, bool);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_FlowTryPush, bool);
 }

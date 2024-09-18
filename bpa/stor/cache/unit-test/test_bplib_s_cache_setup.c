@@ -21,15 +21,15 @@
  */
 #include "test_bplib_cache.h"
 
-bplib_mpool_block_t retblk;
+BPLib_MEM_block_t retblk;
 
-void test_setup_cache_state(bplib_mpool_block_t *sblk)
+void test_setup_cache_state(BPLib_MEM_block_t *sblk)
 {
-    bplib_mpool_list_iter_t list_it;
-    bplib_mpool_block_t     pending_list;
+    BPLib_STOR_CACHE_ListIter_t list_it;
+    BPLib_MEM_block_t     pending_list;
 
-    bplib_mpool_init_list_head(NULL, &pending_list);
-    bplib_mpool_list_iter_goto_first(&pending_list, &list_it);
+    BPLib_STOR_CACHE_InitListHead(NULL, &pending_list);
+    BPLib_STOR_CACHE_ListIterGotoFirst(&pending_list, &list_it);
 }
 
 void UT_cache_sizet_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
@@ -64,7 +64,7 @@ void UT_cache_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, con
 void UT_cache_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     void *retval = NULL;
-    int   count  = UT_GetStubCount(UT_KEY(bplib_mpool_flow_try_pull));
+    int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_CACHE_FlowTryPull));
     if (count > 10)
     {
         UT_Stub_SetReturnValue(FuncKey, retval);
@@ -93,38 +93,38 @@ void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCo
     UT_Stub_SetReturnValue(FuncKey, retval);
 }
 
-bplib_mpool_block_t *test_bplib_cache_instantiate_stub(bplib_mpool_ref_t parent_ref, void *init_arg)
+BPLib_MEM_block_t *test_bplib_cache_instantiate_stub(BPLib_MEM_ref_t parent_ref, void *init_arg)
 {
-    memset(&retblk, 0, sizeof(bplib_mpool_block_t));
+    memset(&retblk, 0, sizeof(BPLib_MEM_block_t));
     return &retblk;
 }
 
-int test_bplib_cache_configure_stub(bplib_mpool_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void *val)
+int test_bplib_cache_configure_stub(BPLib_MEM_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void *val)
 {
     return UT_DEFAULT_IMPL(test_bplib_cache_configure_stub);
 }
 
-int test_bplib_cache_query_stub(bplib_mpool_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void **val)
+int test_bplib_cache_query_stub(BPLib_MEM_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void **val)
 {
     return UT_DEFAULT_IMPL(test_bplib_cache_query_stub);
 }
 
-int test_bplib_cache_startstop_stub(bplib_mpool_block_t *svc)
+int test_bplib_cache_startstop_stub(BPLib_MEM_block_t *svc)
 {
     return UT_DEFAULT_IMPL(test_bplib_cache_startstop_stub);
 }
 
-int test_bplib_cache_offload_stub(bplib_mpool_block_t *svc, bp_sid_t *sid, bplib_mpool_block_t *pblk)
+int test_bplib_cache_offload_stub(BPLib_MEM_block_t *svc, bp_sid_t *sid, BPLib_MEM_block_t *pblk)
 {
     return UT_DEFAULT_IMPL(test_bplib_cache_offload_stub);
 }
 
-int test_bplib_cache_restore_stub(bplib_mpool_block_t *svc, bp_sid_t sid, bplib_mpool_block_t **pblk)
+int test_bplib_cache_restore_stub(BPLib_MEM_block_t *svc, bp_sid_t sid, BPLib_MEM_block_t **pblk)
 {
     return UT_DEFAULT_IMPL(test_bplib_cache_restore_stub);
 }
 
-int test_bplib_cache_release_stub(bplib_mpool_block_t *svc, bp_sid_t sid)
+int test_bplib_cache_release_stub(BPLib_MEM_block_t *svc, bp_sid_t sid)
 {
     return UT_DEFAULT_IMPL(test_bplib_cache_release_stub);
 }

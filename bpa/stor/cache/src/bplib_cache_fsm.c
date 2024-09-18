@@ -29,7 +29,7 @@ typedef void (*bplib_cache_fsm_state_change_func_t)(bplib_cache_entry_t *);
 
 bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *store_entry)
 {
-    bplib_mpool_block_t *pblk;
+    BPLib_MEM_block_t *pblk;
 
     if (store_entry->parent->action_time >= store_entry->expire_time)
     {
@@ -52,7 +52,7 @@ bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *s
         {
             store_entry->parent->offload_api->restore(store_entry->parent->offload_blk, store_entry->offload_sid,
                                                       &pblk);
-            store_entry->refptr = bplib_mpool_ref_create(pblk);
+            store_entry->refptr = BPLib_STOR_CACHE_RefCreate(pblk);
         }
 
         if (store_entry->refptr != NULL)
@@ -81,12 +81,12 @@ bplib_cache_entry_state_t bplib_cache_fsm_state_queue_eval(bplib_cache_entry_t *
 void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
 {
     #ifdef STOR
-    bplib_mpool_block_t *rblk;
-    bplib_mpool_flow_t  *self_flow;
+    BPLib_MEM_block_t *rblk;
+    BPLib_MEM_flow_t  *self_flow;
 
     store_entry->flags |= BPLIB_STORE_FLAG_PENDING_FORWARD;
 
-    rblk = bplib_mpool_ref_make_block(store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF, store_entry);
+    rblk = BPLib_STOR_CACHE_RefMakeBlock(store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF, store_entry);
     if (rblk != NULL)
     {
         self_flow = bplib_cache_get_flow(store_entry->parent);
@@ -100,9 +100,9 @@ void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
          * queued.
          */
         store_entry->flags |= BPLIB_STORE_FLAG_LOCALLY_QUEUED;
-        if (!bplib_mpool_flow_try_push(&self_flow->ingress, rblk, 0))
+        if (!BPLib_STOR_CACHE_FlowTryPush(&self_flow->ingress, rblk, 0))
         {
-            bplib_mpool_recycle_block(rblk);
+            BPLib_STOR_CACHE_RecycleBlock(rblk);
         }
     }
 
@@ -111,9 +111,9 @@ void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
 
 void bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry)
 {
-    bplib_mpool_bblock_primary_t *pri_block;
+    BPLib_STOR_CACHE_BblockPrimary_t *pri_block;
 
-    pri_block = bplib_mpool_bblock_primary_cast(bplib_mpool_dereference(store_entry->refptr));
+    pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_MEM_dereference(store_entry->refptr));
 
     if (bp_handle_is_valid(pri_block->data.delivery.egress_intf_id))
     {
@@ -136,7 +136,7 @@ void bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry)
 
     if (store_entry->offload_sid != 0)
     {
-        bplib_mpool_ref_release(store_entry->refptr);
+        BPLib_STOR_CACHE_RefRelease(store_entry->refptr);
         store_entry->refptr = NULL;
     }
 }
@@ -166,7 +166,7 @@ void bplib_cache_fsm_state_delete_enter(bplib_cache_entry_t *store_entry)
 {
     if (store_entry->refptr != NULL)
     {
-        bplib_mpool_ref_release(store_entry->refptr);
+        BPLib_STOR_CACHE_RefRelease(store_entry->refptr);
         store_entry->refptr = NULL;
     }
 
@@ -332,14 +332,14 @@ static void bplib_cache_fsm_debug_report_discard(bplib_cache_entry_t *store_entr
             (unsigned long)store_entry->flow_id_copy.service_number, (unsigned long)store_entry->flow_seq_copy);
 }
 
-void bplib_cache_fsm_execute(bplib_mpool_block_t *sblk)
+void bplib_cache_fsm_execute(BPLib_MEM_block_t *sblk)
 {
     bplib_cache_state_t      *state;
     bplib_cache_entry_t      *store_entry;
     bplib_cache_entry_state_t next_state;
 
     /* This cast should always work, unless there is a bug */
-    store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    store_entry = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
     if (store_entry != NULL)
     {
         state = store_entry->parent;
@@ -380,7 +380,7 @@ void bplib_cache_fsm_execute(bplib_mpool_block_t *sblk)
         {
             ++state->discard_count;
             bplib_cache_fsm_debug_report_discard(store_entry);
-            bplib_mpool_recycle_block(sblk);
+            BPLib_STOR_CACHE_RecycleBlock(sblk);
         }
         else
         {
@@ -390,7 +390,7 @@ void bplib_cache_fsm_execute(bplib_mpool_block_t *sblk)
              * at least looking at them.
              */
             bplib_cache_fsm_reschedule(state, store_entry);
-            bplib_mpool_insert_before(&state->idle_list, sblk);
+            BPLib_STOR_CACHE_InsertBefore(&state->idle_list, sblk);
         }
     }
 }
