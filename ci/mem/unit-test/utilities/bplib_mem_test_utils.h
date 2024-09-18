@@ -37,8 +37,8 @@
 ** Function Definitions
 */
 
-void BPLib_MEM_Test_Setup(void);
-void BPLib_MEM_Test_Teardown(void);
+void BPLib_MEM_TestSetup(void);
+void BPLib_MEM_TestTeardown(void);
 
 void TestBplibMem_Register(void);
 

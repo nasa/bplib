@@ -28,17 +28,17 @@
 
 typedef struct
 {
-    bplib_mpool_t               pool;
-    bplib_mpool_block_content_t blk[3];
-} UT_bplib_mpool_buf_t;
+    BPLib_MEM_t               pool;
+    BPLib_MEM_BlockContent_t blk[3];
+} UT_BPLib_MEM_buf_t;
 
 /* helper functions used in multiple tests */
 void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
-int  test_bplib_mpool_callback_stub(void *arg, bplib_mpool_block_t *blk);
-void test_make_singleton_link(bplib_mpool_t *parent_pool, bplib_mpool_block_t *b);
-void test_setup_mpblock(bplib_mpool_t *pool, bplib_mpool_block_content_t *b, bplib_mpool_blocktype_t blktype,
+int  test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_block_t *blk);
+void test_make_singleton_link(BPLib_MEM_t *parent_pool, BPLib_MEM_block_t *b);
+void test_setup_mpblock(BPLib_MEM_t *pool, BPLib_MEM_BlockContent_t *b, BPLib_MEM_blocktype_t blktype,
                         uint32 sig);
-void test_setup_allocation(bplib_mpool_t *pool, bplib_mpool_block_content_t *db, bplib_mpool_block_content_t *apib);
+void test_setup_allocation(BPLib_MEM_t *pool, BPLib_MEM_BlockContent_t *db, BPLib_MEM_BlockContent_t *apib);
 
 void TestBplibMpool_ResetTestEnvironment(void);
 

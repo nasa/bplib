@@ -30,16 +30,16 @@ void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
-int test_bplib_mpool_callback_stub(void *arg, bplib_mpool_block_t *blk)
+int test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_block_t *blk)
 {
-    return UT_DEFAULT_IMPL(test_bplib_mpool_callback_stub);
+    return UT_DEFAULT_IMPL(test_BPLib_MEM_CallbackStub);
 }
 
-void test_make_singleton_link(bplib_mpool_t *parent_pool, bplib_mpool_block_t *b)
+void test_make_singleton_link(BPLib_MEM_t *parent_pool, BPLib_MEM_block_t *b)
 {
     if (parent_pool != NULL)
     {
-        b->parent_offset = ((uintptr_t)b - (uintptr_t)parent_pool) / sizeof(bplib_mpool_block_content_t);
+        b->parent_offset = ((uintptr_t)b - (uintptr_t)parent_pool) / sizeof(BPLib_MEM_BlockContent_t);
     }
     else
     {
@@ -50,7 +50,7 @@ void test_make_singleton_link(bplib_mpool_t *parent_pool, bplib_mpool_block_t *b
     b->prev = b;
 }
 
-void test_setup_mpblock(bplib_mpool_t *pool, bplib_mpool_block_content_t *b, bplib_mpool_blocktype_t blktype,
+void test_setup_mpblock(BPLib_MEM_t *pool, BPLib_MEM_BlockContent_t *b, BPLib_MEM_blocktype_t blktype,
                         uint32 sig)
 {
     b->header.base_link.type         = blktype;
@@ -65,19 +65,19 @@ void test_setup_mpblock(bplib_mpool_t *pool, bplib_mpool_block_content_t *b, bpl
     memset(&b->u, 0, sizeof(b->u));
     switch (blktype)
     {
-        case bplib_mpool_blocktype_primary:
-            bplib_mpool_bblock_primary_init(&b->header.base_link, &b->u.primary.pblock);
+        case BPLib_MEM_BlocktypePrimary:
+            BPLib_MEM_BblockPrimaryInit(&b->header.base_link, &b->u.primary.pblock);
             break;
-        case bplib_mpool_blocktype_canonical:
-            bplib_mpool_bblock_canonical_init(&b->header.base_link, &b->u.canonical.cblock);
+        case BPLib_MEM_BlocktypeCanonical:
+            BPLib_MEM_BblockCanonicalInit(&b->header.base_link, &b->u.canonical.cblock);
             break;
-        case bplib_mpool_blocktype_admin:
-            bplib_mpool_subq_init(&b->header.base_link, &b->u.admin.free_blocks);
-            bplib_mpool_subq_init(&b->header.base_link, &b->u.admin.recycle_blocks);
-            bplib_mpool_init_list_head(&b->header.base_link, &b->u.admin.active_list);
+        case BPLib_MEM_BlocktypeAdmin:
+            BPLib_MEM_SubqInit(&b->header.base_link, &b->u.admin.free_blocks);
+            BPLib_MEM_SubqInit(&b->header.base_link, &b->u.admin.recycle_blocks);
+            BPLib_MEM_InitListHead(&b->header.base_link, &b->u.admin.active_list);
             break;
-        case bplib_mpool_blocktype_flow:
-            bplib_mpool_flow_init(&b->header.base_link, &b->u.flow.fblock);
+        case BPLib_MEM_BlocktypeFlow:
+            BPLib_MEM_FlowInit(&b->header.base_link, &b->u.flow.fblock);
             break;
 
         default:
@@ -85,16 +85,16 @@ void test_setup_mpblock(bplib_mpool_t *pool, bplib_mpool_block_content_t *b, bpl
     }
 }
 
-void test_setup_allocation(bplib_mpool_t *pool, bplib_mpool_block_content_t *db, bplib_mpool_block_content_t *apib)
+void test_setup_allocation(BPLib_MEM_t *pool, BPLib_MEM_BlockContent_t *db, BPLib_MEM_BlockContent_t *apib)
 {
-    bplib_mpool_block_admin_content_t *admin;
+    BPLib_MEM_BlockAdminContent_t *admin;
     void                              *api_content;
 
-    test_setup_mpblock(pool, &pool->admin_block, bplib_mpool_blocktype_admin, 0);
-    test_setup_mpblock(pool, db, bplib_mpool_blocktype_undefined, 0);
+    test_setup_mpblock(pool, &pool->admin_block, BPLib_MEM_BlocktypeAdmin, 0);
+    test_setup_mpblock(pool, db, BPLib_MEM_BlocktypeUndefined, 0);
     if (apib != NULL)
     {
-        test_setup_mpblock(pool, apib, bplib_mpool_blocktype_api, 0);
+        test_setup_mpblock(pool, apib, BPLib_MEM_BlocktypeApi, 0);
         api_content = &apib->u;
     }
     else
@@ -102,8 +102,8 @@ void test_setup_allocation(bplib_mpool_t *pool, bplib_mpool_block_content_t *db,
         api_content = NULL;
     }
 
-    admin = bplib_mpool_get_admin(pool);
-    bplib_mpool_subq_push_single(&admin->free_blocks, &db->header.base_link);
+    admin = BPLib_MEM_GetAdmin(pool);
+    BPLib_MEM_SubqPushSingle(&admin->free_blocks, &db->header.base_link);
     UT_SetHandlerFunction(UT_KEY(bplib_rbt_search_generic), UT_AltHandler_PointerReturn, api_content);
 }
 
