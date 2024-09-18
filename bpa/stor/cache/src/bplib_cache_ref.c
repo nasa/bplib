@@ -32,35 +32,35 @@
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_ref_duplicate
+ * Function: BPLib_STOR_CACHE_RefDuplicate
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_ref_t bplib_mpool_ref_duplicate(bplib_mpool_ref_t refptr)
+BPLib_MEM_ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_MEM_ref_t refptr)
 {
-    bplib_mpool_lock_t *lock;
+    BPLib_MEM_lock_t *lock;
 
     /*
      * If the refcount is 0, that means this is still a regular (non-refcounted) object,
      * or it should have been garbage-collected already, so something is broken.
      */
 
-    lock = bplib_mpool_lock_resource(&refptr->header.base_link);
+    lock = BPLib_STOR_CACHE_LockResource(&refptr->header.base_link);
     assert(refptr->header.refcount > 0);
     ++refptr->header.refcount;
-    bplib_mpool_lock_release(lock);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
     return refptr;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_ref_create
+ * Function: BPLib_STOR_CACHE_RefCreate
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_block_t *blk)
+BPLib_MEM_ref_t BPLib_STOR_CACHE_RefCreate(BPLib_MEM_block_t *blk)
 {
-    bplib_mpool_block_content_t *content;
-    bplib_mpool_lock_t          *lock;
+    BPLib_STOR_CACHE_BlockContent_t *content;
+    BPLib_MEM_lock_t          *lock;
 
     /*
      * This drills down to the actual base object (the "root" so to speak), so that the
@@ -68,77 +68,77 @@ bplib_mpool_ref_t bplib_mpool_ref_create(bplib_mpool_block_t *blk)
      * allow for a double-ref situation - although the data model does allow for that, this
      * does not create a "ref-to-ref" at the moment.  TBD if that is useful or not...
      */
-    content = bplib_mpool_block_dereference_content(blk);
+    content = BPLib_STOR_CACHE_BlockDereferenceContent(blk);
     if (content == NULL)
     {
         return NULL;
     }
 
-    lock = bplib_mpool_lock_resource(content);
+    lock = BPLib_STOR_CACHE_LockResource(content);
     ++content->header.refcount;
-    bplib_mpool_lock_release(lock);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
     return content;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_ref_make_block
+ * Function: BPLib_STOR_CACHE_RefMakeBlock
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_ref_make_block(bplib_mpool_ref_t refptr, uint32_t magic_number, void *init_arg)
+BPLib_MEM_block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_MEM_ref_t refptr, uint32_t magic_number, void *init_arg)
 {
-    bplib_mpool_block_content_t *rblk;
-    bplib_mpool_block_content_t *bblk;
-    bplib_mpool_lock_t          *lock;
-    bplib_mpool_t               *pool;
+    BPLib_STOR_CACHE_BlockContent_t *rblk;
+    BPLib_STOR_CACHE_BlockContent_t *bblk;
+    BPLib_MEM_lock_t          *lock;
+    BPLib_MEM_t               *pool;
 
-    bblk = bplib_mpool_block_dereference_content(bplib_mpool_dereference(refptr));
-    pool = bplib_mpool_get_parent_pool_from_link(&bblk->header.base_link);
+    bblk = BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_MEM_dereference(refptr));
+    pool = BPLib_STOR_CACHE_GetParentPoolFromLink(&bblk->header.base_link);
 
-    lock = bplib_mpool_lock_resource(pool);
-    rblk = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_ref, magic_number, init_arg,
-                                            BPLIB_MPOOL_ALLOC_PRI_MHI);
-    bplib_mpool_lock_release(lock);
+    lock = BPLib_STOR_CACHE_LockResource(pool);
+    rblk = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypeRef, magic_number, init_arg,
+                                            BPLIB_MEM_ALLOC_PRI_MHI);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
     if (rblk == NULL)
     {
         return NULL;
     }
 
-    rblk->u.ref.pref_target = bplib_mpool_ref_duplicate(bblk);
+    rblk->u.ref.pref_target = BPLib_STOR_CACHE_RefDuplicate(bblk);
 
-    return (bplib_mpool_block_t *)rblk;
+    return (BPLib_MEM_block_t *)rblk;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_ref_from_block
+ * Function: BPLib_STOR_CACHE_RefFromBlock
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_ref_t bplib_mpool_ref_from_block(bplib_mpool_block_t *rblk)
+BPLib_MEM_ref_t BPLib_STOR_CACHE_RefFromBlock(BPLib_MEM_block_t *rblk)
 {
-    bplib_mpool_block_content_t *content;
+    BPLib_STOR_CACHE_BlockContent_t *content;
 
-    if (rblk == NULL || rblk->type != bplib_mpool_blocktype_ref)
+    if (rblk == NULL || rblk->type != BPLib_STOR_CACHE_BlocktypeRef)
     {
         return NULL;
     }
 
-    content = bplib_mpool_get_block_content(rblk);
+    content = BPLib_STOR_CACHE_GetBlockContent(rblk);
 
-    return bplib_mpool_ref_duplicate(content->u.ref.pref_target);
+    return BPLib_STOR_CACHE_RefDuplicate(content->u.ref.pref_target);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_ref_release
+ * Function: BPLib_STOR_CACHE_RefRelease
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_ref_release(bplib_mpool_ref_t refptr)
+void BPLib_STOR_CACHE_RefRelease(BPLib_MEM_ref_t refptr)
 {
-    bplib_mpool_block_header_t *block_hdr;
-    bplib_mpool_lock_t         *lock;
+    BPLib_STOR_CACHE_BlockHeader_t *block_hdr;
+    BPLib_MEM_lock_t         *lock;
     bool                        needs_recycle;
 
     if (refptr != NULL)
@@ -149,19 +149,19 @@ void bplib_mpool_ref_release(bplib_mpool_ref_t refptr)
          * Refcount decrement must be done under lock, but it can be
          * a fine-grained lock.
          */
-        lock = bplib_mpool_lock_resource(refptr);
+        lock = BPLib_STOR_CACHE_LockResource(refptr);
         if (block_hdr->refcount > 0)
         {
             --block_hdr->refcount;
         }
         needs_recycle = (block_hdr->refcount == 0);
-        bplib_mpool_lock_release(lock);
+        BPLib_STOR_CACHE_LockRelease(lock);
 
         if (needs_recycle)
         {
             /* it should not be part of a list at this point */
-            assert(bplib_mpool_is_link_unattached(&block_hdr->base_link));
-            bplib_mpool_recycle_block(&block_hdr->base_link);
+            assert(BPLib_STOR_CACHE_IsLinkUnattached(&block_hdr->base_link));
+            BPLib_STOR_CACHE_RecycleBlock(&block_hdr->base_link);
         }
     }
 }

@@ -43,17 +43,17 @@ struct bplib_cache
     bplib_cache_block_content_t admin_block; /**< Start of first real block (see num_bufs_total) */
 };
 
-typedef struct bplib_mpool_bblock_primary_content
+typedef struct BPLib_STOR_CACHE_BblockPrimaryContent
 {
-    bplib_mpool_bblock_primary_t pblock;
-    bplib_mpool_aligned_data_t   user_data_start;
-} bplib_mpool_bblock_primary_content_t;
+    BPLib_STOR_CACHE_BblockPrimary_t pblock;
+    BPLib_STOR_CACHE_AlignedData_t   user_data_start;
+} BPLib_STOR_CACHE_BblockPrimaryContent_t;
 
-typedef struct bplib_mpool_bblock_canonical_content
+typedef struct BPLib_STOR_CACHE_BblockCanonicalContent
 {
-    bplib_mpool_bblock_canonical_t cblock;
-    bplib_mpool_aligned_data_t     user_data_start;
-} bplib_mpool_bblock_canonical_content_t;
+    BPLib_STOR_CACHE_BblockCanonical_t cblock;
+    BPLib_STOR_CACHE_AlignedData_t     user_data_start;
+} BPLib_STOR_CACHE_BblockCanonicalContent_t;
 
 struct bplib_cache_subq_base
 {
@@ -72,18 +72,18 @@ struct bplib_cache_subq_base
 typedef struct bplib_cache_subq_workitem
 {
     #ifdef STOR
-    bplib_mpool_job_t       job_header;
+    BPLib_MEM_job_t       job_header;
     #endif // STOR
     bplib_cache_subq_base_t base_subq;
     unsigned int            current_depth_limit;
 } bplib_cache_subq_workitem_t;
 
 #ifdef STOR // duct
-typedef struct bplib_mpool_flow_content
+typedef struct BPLib_STOR_CACHE_FlowContent
 {
-    bplib_mpool_flow_t         fblock;
-    bplib_mpool_aligned_data_t user_data_start;
-} bplib_mpool_flow_content_t;
+    BPLib_MEM_flow_t         fblock;
+    BPLib_STOR_CACHE_AlignedData_t user_data_start;
+} BPLib_STOR_CACHE_FlowContent_t;
 #endif // STOR
 
 /*
@@ -131,7 +131,7 @@ typedef struct bplib_cache_state
     #ifdef STOR
     bp_ipn_addr_t self_addr;
 
-    bplib_mpool_job_t pending_job;
+    BPLib_MEM_job_t pending_job;
 
     /*
      * pending_list holds bundle refs that are currently actionable in some way,
@@ -139,7 +139,7 @@ typedef struct bplib_cache_state
      *
      * This may simply be re-classifying it into one of the other lists or indices.
      */
-    bplib_mpool_block_t pending_list;
+    BPLib_MEM_block_t pending_list;
 
     uint64_t action_time; /**< DTN time when the pending_list was last checked */
 
@@ -151,7 +151,7 @@ typedef struct bplib_cache_state
      * iterated, but that does not scale well.  One of the secondary indices
      * may be used for more efficient lookup.
      */
-    bplib_mpool_block_t idle_list;
+    BPLib_MEM_block_t idle_list;
 
     bplib_rbt_root_t bundle_index;
     bplib_rbt_root_t dacs_index;
@@ -159,7 +159,7 @@ typedef struct bplib_cache_state
     bplib_rbt_root_t time_jphfix_index;
 
     const bplib_cache_offload_api_t *offload_api;
-    bplib_mpool_block_t             *offload_blk;
+    BPLib_MEM_block_t             *offload_blk;
 
     uint32_t generated_dacs_seq;
 
@@ -191,7 +191,7 @@ typedef struct bplib_cache_entry
     uint32_t                  flags;
     bp_ipn_addr_t             flow_id_copy;
     bp_sequencenumber_t       flow_seq_copy;
-    bplib_mpool_ref_t         refptr;
+    BPLib_MEM_ref_t         refptr;
     bp_sid_t                  offload_sid;
     uint64_t                  action_time; /**< DTN time when entity is due to have some action (e.g. transmit) */
     uint64_t                  expire_time; /**< DTN time when entity is due to have some action (e.g. transmit) */
@@ -211,8 +211,8 @@ typedef struct bplib_cache_custodian_info
     bool                 match_dacs;
     bp_ipn_addr_t        flow_id;
     bp_ipn_addr_t        custodian_id;
-    bplib_mpool_block_t *this_cblk;
-    bplib_mpool_block_t *prev_cblk;
+    BPLib_MEM_block_t *this_cblk;
+    BPLib_MEM_block_t *prev_cblk;
     bp_val_t             eid_hash;
     bp_sequencenumber_t  sequence_num;
     bp_ipn_t             final_dest_node;
@@ -220,22 +220,22 @@ typedef struct bplib_cache_custodian_info
 } bplib_cache_custodian_info_t;
 
 /* Allows reconstitution of the base block from a cache state pointer */
-static inline bplib_mpool_block_t *bplib_cache_state_self_block(bplib_cache_state_t *state)
+static inline BPLib_MEM_block_t *bplib_cache_state_self_block(bplib_cache_state_t *state)
 {
     /* any of the sub-lists can be used here, they should all trace back to the same parent */
-    return bplib_mpool_get_block_from_link(&state->pending_list);
+    return BPLib_STOR_CACHE_GetBlockFromLink(&state->pending_list);
 }
 
 /* Allows reconstitution of the parent pool from a cache state pointer */
-static inline bplib_mpool_t *bplib_cache_parent_pool(bplib_cache_state_t *state)
+static inline BPLib_MEM_t *bplib_cache_parent_pool(bplib_cache_state_t *state)
 {
-    return bplib_mpool_get_parent_pool_from_link(bplib_cache_state_self_block(state));
+    return BPLib_STOR_CACHE_GetParentPoolFromLink(bplib_cache_state_self_block(state));
 }
 
 /* Allows reconstitution of the flow object from a cache state pointer */
-static inline bplib_mpool_flow_t *bplib_cache_get_flow(bplib_cache_state_t *state)
+static inline BPLib_MEM_flow_t *bplib_cache_get_flow(bplib_cache_state_t *state)
 {
-    return bplib_mpool_flow_cast(bplib_cache_state_self_block(state));
+    return BPLib_STOR_CACHE_FlowCast(bplib_cache_state_self_block(state));
 }
 
 /* Allows reconstitution of the queue struct from an RBT link pointer */
@@ -247,46 +247,46 @@ static inline bplib_cache_entry_t *bplib_cache_entry_get_container(const bplib_r
 }
 
 void bplib_cache_custody_finalize_dacs(bplib_cache_state_t *state, bplib_cache_entry_t *store_entry);
-void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_block_t *qblk);
-bool bplib_cache_custody_check_dacs(bplib_cache_state_t *state, bplib_mpool_block_t *qblk);
+void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, BPLib_MEM_block_t *qblk);
+bool bplib_cache_custody_check_dacs(bplib_cache_state_t *state, BPLib_MEM_block_t *qblk);
 
-void bplib_cache_fsm_execute(bplib_mpool_block_t *sblk);
+void bplib_cache_fsm_execute(BPLib_MEM_block_t *sblk);
 
 int bplib_cache_entry_tree_insert_unsorted(const bplib_rbt_link_t *node, void *arg);
 
 void bplib_cache_entry_make_pending(bplib_cache_entry_t *store_entry, uint32_t set_flags, uint32_t clear_flags);
 
-int  bplib_cache_egress_impl(void *arg, bplib_mpool_block_t *subq_src);
+int  bplib_cache_egress_impl(void *arg, BPLib_MEM_block_t *subq_src);
 void bplib_cache_flush_pending(bplib_cache_state_t *state);
 int  bplib_cache_do_poll(bplib_cache_state_t *state);
 int  bplib_cache_do_route_up(bplib_cache_state_t *state, bp_ipn_t dest, bp_ipn_t mask);
 int  bplib_cache_do_intf_statechange(bplib_cache_state_t *state, bool is_up);
-int  bplib_cache_event_impl(void *event_arg, bplib_mpool_block_t *intf_block);
-int  bplib_cache_process_pending(void *arg, bplib_mpool_block_t *job);
-int  bplib_cache_destruct_state(void *arg, bplib_mpool_block_t *sblk);
-int  bplib_cache_construct_entry(void *arg, bplib_mpool_block_t *sblk);
-int  bplib_cache_destruct_entry(void *arg, bplib_mpool_block_t *sblk);
-int  bplib_cache_construct_blockref(void *arg, bplib_mpool_block_t *sblk);
-int  bplib_cache_destruct_blockref(void *arg, bplib_mpool_block_t *rblk);
-int  bplib_cache_construct_state(void *arg, bplib_mpool_block_t *sblk);
+int  bplib_cache_event_impl(void *event_arg, BPLib_MEM_block_t *intf_block);
+int  bplib_cache_process_pending(void *arg, BPLib_MEM_block_t *job);
+int  bplib_cache_destruct_state(void *arg, BPLib_MEM_block_t *sblk);
+int  bplib_cache_construct_entry(void *arg, BPLib_MEM_block_t *sblk);
+int  bplib_cache_destruct_entry(void *arg, BPLib_MEM_block_t *sblk);
+int  bplib_cache_construct_blockref(void *arg, BPLib_MEM_block_t *sblk);
+int  bplib_cache_destruct_blockref(void *arg, BPLib_MEM_block_t *rblk);
+int  bplib_cache_construct_state(void *arg, BPLib_MEM_block_t *sblk);
 
-void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
+void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
                                                bplib_cache_custodian_info_t *custody_info);
 int  bplib_cache_custody_find_dacs_match(const bplib_rbt_link_t *node, void *arg);
 bool bplib_cache_custody_find_pending_dacs(bplib_cache_state_t *state, bplib_cache_custodian_info_t *dacs_info);
-bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t                *state,
-                                                  bplib_mpool_bblock_primary_t      **pri_block_out,
+BPLib_MEM_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t                *state,
+                                                  BPLib_STOR_CACHE_BblockPrimary_t      **pri_block_out,
                                                   bp_custody_accept_payload_block_t **pay_out);
 void              bplib_cache_custody_open_dacs(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info);
 void bplib_cache_custody_append_dacs(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info);
 void bplib_cache_custody_update_tracking_block(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info);
 int  bplib_cache_custody_find_bundle_match(const bplib_rbt_link_t *node, void *arg);
-void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
+void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
                                         bplib_cache_custodian_info_t *custody_info);
-void bplib_cache_custody_process_remote_dacs_bundle(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
+void bplib_cache_custody_process_remote_dacs_bundle(bplib_cache_state_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
                                                     const bp_custody_accept_payload_block_t *ack_payload);
 void bplib_cache_custody_init_info_from_pblock(bplib_cache_custodian_info_t *custody_info,
-                                               bplib_mpool_bblock_primary_t *pri_block);
+                                               BPLib_STOR_CACHE_BblockPrimary_t *pri_block);
 void bplib_cache_custody_ack_tracking_block(bplib_cache_state_t                *state,
                                             const bplib_cache_custodian_info_t *custody_info);
 

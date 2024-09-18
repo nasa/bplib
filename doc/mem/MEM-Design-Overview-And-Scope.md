@@ -14,7 +14,7 @@ output:
 
 ### Stages of Prototype to MEM Transition
 
-The MEM design relies on reuse of the Prototype MPOOL component. The Prototype MPOOL, CACHE, and STORE components are tightly coupled. (explanation TBD) Decoupling MEM from CACHE and STORE should improve:
+The MEM design relies on reuse of the Prototype BPLIB_MEM component. The Prototype BPLIB_MEM, CACHE, and STORE components are tightly coupled. (explanation TBD) Decoupling MEM from CACHE and STORE should improve:
 
   - Flexibility: Components can be modified independently.
   - Testability: Components can be unit tested independently.
@@ -145,7 +145,7 @@ The prototype  `bplib mpool` APIs include APIs that map to APIs defined for both
 
 The prototype `mpool` APIs and internal functions map to the `dtn-cfs bplib` `mem` and `stor` as follows:
 
-_Table of MPOOL Functions Dispositioned to MEM and STOR_
+_Table of BPLIB_MEM Functions Dispositioned to MEM and STOR_
 
 | mpool to MEM | mpool to STOR | ALL mpool APIs and internal functions
 |:- |:- |:- 
@@ -659,7 +659,7 @@ mem   | bplib_mpool_bblock_tracking_t
 cache | bplib_mpool_bblock_primary_data_t
 mem   | bplib_mpool_ref_t
 
-There is also the concept of a "user block" with content of size BP_MPOOL_MIN_USER_BLOCK_SIZE 480 bytes.
+There is also the concept of a "user block" with content of size BPLIB_MEM_MIN_USER_BLOCK_SIZE 480 bytes.
 
 The decoupling strategy is to uniquely name mem versus cache versus qm (and maybe persistent storage)
 

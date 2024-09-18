@@ -33,7 +33,7 @@ target_include_directories(bplib_libmgr_coverage PRIVATE
 
 # Add executable
 # TODO STOR move to STOR: test_v7_cla_api.c test_v7_dataservice_api.c test_v7_routing.c
-# TODO STOR also libs: bplib_cache_stubs bplib_mpool_stubs bplib_v7_stubs
+# TODO STOR also libs: bplib_cache_stubs BPLib_MEM_stubs bplib_v7_stubs
 
 add_executable(coverage-bplib_libmgr-testrunner
     test_bplib_base_setup.c

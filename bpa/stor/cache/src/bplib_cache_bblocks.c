@@ -35,16 +35,16 @@
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_primary_cast
+ * Function: BPLib_STOR_CACHE_BblockPrimaryCast
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_bblock_primary_t *bplib_mpool_bblock_primary_cast(bplib_mpool_block_t *cb)
+BPLib_STOR_CACHE_BblockPrimary_t *BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_MEM_block_t *cb)
 {
     #ifdef STOR // blocktype
-    bplib_mpool_block_content_t *content;
+    BPLib_STOR_CACHE_BlockContent_t *content;
 
-    content = bplib_mpool_block_dereference_content(cb);
-    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_primary)
+    content = BPLib_STOR_CACHE_BlockDereferenceContent(cb);
+    if (content != NULL && content->header.base_link.type == BPLib_STOR_CACHE_BlocktypePrimary)
     {
         return &content->u.primary.pblock;
     }
@@ -54,15 +54,15 @@ bplib_mpool_bblock_primary_t *bplib_mpool_bblock_primary_cast(bplib_mpool_block_
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_canonical_cast
+ * Function: BPLib_STOR_CACHE_BblockCanonicalCast
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_bblock_canonical_t *bplib_mpool_bblock_canonical_cast(bplib_mpool_block_t *cb)
+BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_MEM_block_t *cb)
 {
-    bplib_mpool_block_content_t *content;
+    BPLib_STOR_CACHE_BlockContent_t *content;
 
-    content = bplib_mpool_block_dereference_content(cb);
-    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_canonical)
+    content = BPLib_STOR_CACHE_BlockDereferenceContent(cb);
+    if (content != NULL && content->header.base_link.type == BPLib_STOR_CACHE_BlocktypeCanonical)
     {
         return &content->u.canonical.cblock;
     }
@@ -71,27 +71,27 @@ bplib_mpool_bblock_canonical_t *bplib_mpool_bblock_canonical_cast(bplib_mpool_bl
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_cbor_cast
+ * Function: BPLib_STOR_CACHE_BblockCborCast
  *
  *-----------------------------------------------------------------*/
-void *bplib_mpool_bblock_cbor_cast(bplib_mpool_block_t *cb)
+void *BPLib_STOR_CACHE_BblockCborCast(BPLib_MEM_block_t *cb)
 {
     /* CBOR data blocks are nothing more than generic blocks with a different sig */
-    return bplib_mpool_generic_data_cast(cb, MPOOL_CACHE_CBOR_DATA_SIGNATURE);
+    return BPLib_STOR_CACHE_GenericDataCast(cb, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_cbor_set_size
+ * Function: BPLib_STOR_CACHE_BblockCborSetSize
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_cbor_set_size(bplib_mpool_block_t *cb, size_t user_content_size)
+void BPLib_STOR_CACHE_BblockCborSetSize(BPLib_MEM_block_t *cb, size_t user_content_size)
 {
-    bplib_mpool_block_content_t *content;
+    BPLib_STOR_CACHE_BlockContent_t *content;
 
-    content = bplib_mpool_block_dereference_content(cb);
-    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_generic &&
-        content->header.content_type_signature == MPOOL_CACHE_CBOR_DATA_SIGNATURE)
+    content = BPLib_STOR_CACHE_BlockDereferenceContent(cb);
+    if (content != NULL && content->header.base_link.type == BPLib_STOR_CACHE_BlocktypeGeneric &&
+        content->header.content_type_signature == BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE)
     {
         content->header.user_content_length = user_content_size;
     }
@@ -99,117 +99,117 @@ void bplib_mpool_bblock_cbor_set_size(bplib_mpool_block_t *cb, size_t user_conte
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_primary_init
+ * Function: BPLib_STOR_CACHE_BblockPrimaryInit
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_primary_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_primary_t *pblk)
+void BPLib_STOR_CACHE_BblockPrimaryInit(BPLib_MEM_block_t *base_block, BPLib_STOR_CACHE_BblockPrimary_t *pblk)
 {
-    bplib_mpool_init_list_head(base_block, &pblk->cblock_list);
-    bplib_mpool_init_list_head(base_block, &pblk->chunk_list);
+    BPLib_STOR_CACHE_InitListHead(base_block, &pblk->cblock_list);
+    BPLib_STOR_CACHE_InitListHead(base_block, &pblk->chunk_list);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_canonical_init
+ * Function: BPLib_STOR_CACHE_BblockCanonicalInit
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_canonical_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_canonical_t *cblk)
+void BPLib_STOR_CACHE_BblockCanonicalInit(BPLib_MEM_block_t *base_block, BPLib_STOR_CACHE_BblockCanonical_t *cblk)
 {
-    bplib_mpool_init_list_head(base_block, &cblk->chunk_list);
+    BPLib_STOR_CACHE_InitListHead(base_block, &cblk->chunk_list);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_primary_alloc
+ * Function: BPLib_STOR_CACHE_BblockPrimaryAlloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_bblock_primary_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg,
+BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg,
                                                       uint8_t priority, uint64_t timeout)
 {
-    bplib_mpool_block_content_t *result;
-    bplib_mpool_lock_t          *lock;
+    BPLib_STOR_CACHE_BlockContent_t *result;
+    BPLib_MEM_lock_t          *lock;
     bool                         within_timeout;
 
-    lock           = bplib_mpool_lock_resource(pool);
+    lock           = BPLib_STOR_CACHE_LockResource(pool);
     within_timeout = true;
     while (true)
     {
         result =
-            bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_primary, magic_number, init_arg, priority);
+            BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypePrimary, magic_number, init_arg, priority);
         if (result != NULL || !within_timeout)
         {
             break;
         }
 
-        within_timeout = bplib_mpool_lock_wait(lock, timeout);
+        within_timeout = BPLib_STOR_CACHE_LockWait(lock, timeout);
     }
-    bplib_mpool_lock_release(lock);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
-    return (bplib_mpool_block_t *)result;
+    return (BPLib_MEM_block_t *)result;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_canonical_alloc
+ * Function: BPLib_STOR_CACHE_BblockCanonicalAlloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_bblock_canonical_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
+BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg)
 {
-    bplib_mpool_block_content_t *result;
-    bplib_mpool_lock_t          *lock;
+    BPLib_STOR_CACHE_BlockContent_t *result;
+    BPLib_MEM_lock_t          *lock;
 
-    lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_canonical, magic_number, init_arg,
-                                              BPLIB_MPOOL_ALLOC_PRI_MED);
-    bplib_mpool_lock_release(lock);
+    lock   = BPLib_STOR_CACHE_LockResource(pool);
+    result = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypeCanonical, magic_number, init_arg,
+                                              BPLIB_MEM_ALLOC_PRI_MED);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
-    return (bplib_mpool_block_t *)result;
+    return (BPLib_MEM_block_t *)result;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_cbor_alloc
+ * Function: BPLib_STOR_CACHE_BblockCborAlloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_bblock_cbor_alloc(bplib_mpool_t *pool)
+BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_MEM_t *pool)
 {
-    bplib_mpool_block_content_t *result;
-    bplib_mpool_lock_t          *lock;
+    BPLib_STOR_CACHE_BlockContent_t *result;
+    BPLib_MEM_lock_t          *lock;
 
-    lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_generic, MPOOL_CACHE_CBOR_DATA_SIGNATURE,
-                                              NULL, BPLIB_MPOOL_ALLOC_PRI_MED);
-    bplib_mpool_lock_release(lock);
+    lock   = BPLib_STOR_CACHE_LockResource(pool);
+    result = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE,
+                                              NULL, BPLIB_MEM_ALLOC_PRI_MED);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
-    return (bplib_mpool_block_t *)result;
+    return (BPLib_MEM_block_t *)result;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_cbor_append
+ * Function: BPLib_STOR_CACHE_BblockCborAppend
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_cbor_append(bplib_mpool_block_t *head, bplib_mpool_block_t *blk)
+void BPLib_STOR_CACHE_BblockCborAppend(BPLib_MEM_block_t *head, BPLib_MEM_block_t *blk)
 {
     /* this just confirms it actually is a CBOR data block */
-    assert(bplib_mpool_bblock_cbor_cast(blk) != NULL);
-    bplib_mpool_insert_before(head, blk);
+    assert(BPLib_STOR_CACHE_BblockCborCast(blk) != NULL);
+    BPLib_STOR_CACHE_InsertBefore(head, blk);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_primary_drop_encode
+ * Function: BPLib_STOR_CACHE_BblockPrimaryDropEncode
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb)
+void BPLib_STOR_CACHE_BblockPrimaryDropEncode(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
-    bplib_mpool_block_t *elist;
+    BPLib_MEM_block_t *elist;
 
     /* If there is any existing encoded data, return it to the pool */
-    elist = bplib_mpool_bblock_primary_get_encoded_chunks(cpb);
-    if (bplib_mpool_is_nonempty_list_head(elist))
+    elist = BPLib_STOR_CACHE_BblockPrimaryGetEncodedChunks(cpb);
+    if (BPLib_STOR_CACHE_IsNonemptyListHead(elist))
     {
-        bplib_mpool_recycle_all_blocks_in_list(NULL, elist);
+        BPLib_STOR_CACHE_RecycleAllBlocksInList(NULL, elist);
     }
     cpb->block_encode_size_cache  = 0;
     cpb->bundle_encode_size_cache = 0;
@@ -217,18 +217,18 @@ void bplib_mpool_bblock_primary_drop_encode(bplib_mpool_bblock_primary_t *cpb)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_canonical_drop_encode
+ * Function: BPLib_STOR_CACHE_BblockCanonicalDropEncode
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *ccb)
+void BPLib_STOR_CACHE_BblockCanonicalDropEncode(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
 {
-    bplib_mpool_block_t *elist;
+    BPLib_MEM_block_t *elist;
 
     /* If there is any existing encoded data, return it to the pool */
-    elist = bplib_mpool_bblock_canonical_get_encoded_chunks(ccb);
-    if (bplib_mpool_is_nonempty_list_head(elist))
+    elist = BPLib_STOR_CACHE_BblockCanonicalGetEncodedChunks(ccb);
+    if (BPLib_STOR_CACHE_IsNonemptyListHead(elist))
     {
-        bplib_mpool_recycle_all_blocks_in_list(NULL, elist);
+        BPLib_STOR_CACHE_RecycleAllBlocksInList(NULL, elist);
     }
     ccb->block_encode_size_cache = 0;
 
@@ -241,13 +241,13 @@ void bplib_mpool_bblock_canonical_drop_encode(bplib_mpool_bblock_canonical_t *cc
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_cbor_export
+ * Function: BPLib_STOR_CACHE_BblockCborExport
  *
  *-----------------------------------------------------------------*/
-size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
+size_t BPLib_STOR_CACHE_BblockCborExport(BPLib_MEM_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
                                       size_t max_count)
 {
-    bplib_mpool_block_t *blk;
+    BPLib_MEM_block_t *blk;
     uint8_t             *curr_ptr;
     const uint8_t       *src_ptr;
     size_t               remain_sz;
@@ -262,17 +262,17 @@ size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, 
     blk       = list;
     while (data_left > 0)
     {
-        blk = bplib_mpool_get_next_block(blk);
+        blk = BPLib_STOR_CACHE_GetNextBlock(blk);
         if (blk == list)
         {
             break;
         }
-        src_ptr = bplib_mpool_bblock_cbor_cast(blk);
+        src_ptr = BPLib_STOR_CACHE_BblockCborCast(blk);
         if (src_ptr == NULL)
         {
             break;
         }
-        chunk_sz = bplib_mpool_get_user_content_size(blk);
+        chunk_sz = BPLib_STOR_CACHE_GetUserContentSize(blk);
         if (seek_left > chunk_sz)
         {
             seek_left -= chunk_sz;
@@ -308,15 +308,15 @@ size_t bplib_mpool_bblock_cbor_export(bplib_mpool_block_t *list, void *out_ptr, 
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_bblock_primary_append
+ * Function: BPLib_STOR_CACHE_BblockPrimaryAppend
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_mpool_block_t *blk)
+void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb, BPLib_MEM_block_t *blk)
 {
-    bplib_mpool_bblock_canonical_t *ccb;
+    BPLib_STOR_CACHE_BblockCanonical_t *ccb;
 
     /* this should only be invoked w/canonical blocks.  Anything else is a bug. */
-    ccb = bplib_mpool_bblock_canonical_cast(blk);
+    ccb = BPLib_STOR_CACHE_BblockCanonicalCast(blk);
     assert(ccb != NULL);
     assert(ccb->bundle_ref == NULL);
 
@@ -327,15 +327,15 @@ void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_
      *
      * For now, if the block being inserted has block num 1, put it last, otherwise put it first.
      */
-    if (bplib_mpool_bblock_canonical_get_logical(ccb)->canonical_block.blockNum == 1)
+    if (BPLib_STOR_CACHE_BblockCanonicalGetLogical(ccb)->canonical_block.blockNum == 1)
     {
         /* this puts it last */
-        bplib_mpool_insert_before(&cpb->cblock_list, blk);
+        BPLib_STOR_CACHE_InsertBefore(&cpb->cblock_list, blk);
     }
     else
     {
         /* this puts it first */
-        bplib_mpool_insert_after(&cpb->cblock_list, blk);
+        BPLib_STOR_CACHE_InsertAfter(&cpb->cblock_list, blk);
     }
 
     /* this changes the size of the fully-encoded bundle, but don't recalculate now */
@@ -343,26 +343,26 @@ void bplib_mpool_bblock_primary_append(bplib_mpool_bblock_primary_t *cpb, bplib_
     ccb->bundle_ref               = cpb;
 }
 
-bplib_mpool_block_t *bplib_mpool_bblock_primary_locate_canonical(bplib_mpool_bblock_primary_t *cpb,
+BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
                                                                  bp_blocktype_t                block_type)
 {
-    bplib_mpool_block_t            *cblk;
-    bplib_mpool_bblock_canonical_t *ccb;
+    BPLib_MEM_block_t            *cblk;
+    BPLib_STOR_CACHE_BblockCanonical_t *ccb;
 
-    cblk = bplib_mpool_bblock_primary_get_canonical_list(cpb);
+    cblk = BPLib_STOR_CACHE_BblockPrimaryGetCanonicalList(cpb);
     while (true)
     {
         /* note this searches in reverse order, anticipating this will often be searching for payload,
          * which is supposed to be the last block in the bundle.  If the block is there it will be found
          * regardless of the search order, but this speeds up the more frequent case */
-        cblk = bplib_mpool_get_prev_block(cblk);
-        if (bplib_mpool_is_list_head(cblk))
+        cblk = BPLib_STOR_CACHE_GetPrevBlock(cblk);
+        if (BPLib_STOR_CACHE_IsListHead(cblk))
         {
             /* end of list, not found */
             cblk = NULL;
             break;
         }
-        ccb = bplib_mpool_bblock_canonical_cast(cblk);
+        ccb = BPLib_STOR_CACHE_BblockCanonicalCast(cblk);
         if (ccb != NULL && ccb->canonical_logical_data.canonical_block.blockType == block_type)
         {
             /* found it */

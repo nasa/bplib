@@ -29,12 +29,12 @@ void test_bplib_cache_fsm_state_idle_eval(void)
     bplib_cache_entry_t       store_entry;
     bplib_cache_state_t       parent;
     bplib_cache_offload_api_t offload_api;
-    bplib_mpool_block_t       refptr;
+    BPLib_MEM_block_t       refptr;
 
     memset(&store_entry, 0, sizeof(bplib_cache_entry_t));
     memset(&parent, 0, sizeof(bplib_cache_state_t));
     memset(&offload_api, 0, sizeof(bplib_cache_offload_api_t));
-    memset(&refptr, 0, sizeof(bplib_mpool_block_t));
+    memset(&refptr, 0, sizeof(BPLib_MEM_block_t));
     store_entry.parent  = &parent;
     offload_api.restore = test_bplib_cache_restore_stub;
     parent.offload_api  = &offload_api;
@@ -47,7 +47,7 @@ void test_bplib_cache_fsm_state_idle_eval(void)
 
     store_entry.flags       = BPLIB_STORE_FLAG_LOCAL_CUSTODY;
     store_entry.offload_sid = 1;
-    UT_SetHandlerFunction(UT_KEY(bplib_mpool_ref_create), UT_cache_AltHandler_PointerReturn, &refptr);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_cache_AltHandler_PointerReturn, &refptr);
     UtAssert_UINT32_GT(bplib_cache_fsm_state_idle_eval(&store_entry), 0);
 }
 
@@ -72,41 +72,41 @@ void test_bplib_cache_fsm_state_queue_enter(void)
      * void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
      */
     bplib_cache_entry_t store_entry;
-    bplib_mpool_block_t blk;
+    BPLib_MEM_block_t blk;
 
     memset(&store_entry, 0, sizeof(bplib_cache_entry_t));
-    memset(&blk, 0, sizeof(bplib_mpool_block_t));
+    memset(&blk, 0, sizeof(BPLib_MEM_block_t));
 
-    UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_cast), UT_cache_sizet_Handler, NULL);
-    UT_SetHandlerFunction(UT_KEY(bplib_mpool_flow_try_push), UT_cache_int8_Handler, NULL);
-    UT_SetHandlerFunction(UT_KEY(bplib_mpool_ref_make_block), UT_cache_AltHandler_PointerReturn, &blk);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowCast), UT_cache_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowTryPush), UT_cache_int8_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefMakeBlock), UT_cache_AltHandler_PointerReturn, &blk);
     UtAssert_VOIDCALL(bplib_cache_fsm_state_queue_enter(&store_entry));
 
-    UT_SetHandlerFunction(UT_KEY(bplib_mpool_ref_make_block), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefMakeBlock), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
 void test_bplib_cache_fsm_execute(void)
 {
     /* Test function for:
-     * void bplib_cache_fsm_execute(bplib_mpool_block_t *sblk)
+     * void bplib_cache_fsm_execute(BPLib_MEM_block_t *sblk)
      */
-    bplib_mpool_block_t sblk;
-    bplib_mpool_block_t sblk1;
+    BPLib_MEM_block_t sblk;
+    BPLib_MEM_block_t sblk1;
     bplib_cache_entry_t store_entry;
     bplib_cache_state_t state;
 
-    memset(&sblk, 0, sizeof(bplib_mpool_block_t));
-    memset(&sblk1, 0, sizeof(bplib_mpool_block_t));
+    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
+    memset(&sblk1, 0, sizeof(BPLib_MEM_block_t));
     memset(&store_entry, 0, sizeof(bplib_cache_entry_t));
     memset(&state, 0, sizeof(bplib_cache_state_t));
-    sblk.type          = bplib_mpool_blocktype_generic;
-    sblk.parent_offset = sizeof(bplib_mpool_block_t);
+    sblk.type          = BPLib_STOR_CACHE_BlocktypeGeneric;
+    sblk.parent_offset = sizeof(BPLib_MEM_block_t);
     sblk.next          = &sblk1;
     store_entry.parent = &state;
     store_entry.flags  = BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
     store_entry.state  = bplib_cache_entry_state_idle;
 
-    UT_SetHandlerFunction(UT_KEY(bplib_mpool_generic_data_cast), UT_cache_AltHandler_PointerReturn, &store_entry);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, &store_entry);
     UtAssert_VOIDCALL(bplib_cache_fsm_execute(&sblk));
 
     store_entry.expire_time = 1;
@@ -116,7 +116,7 @@ void test_bplib_cache_fsm_execute(void)
     store_entry.state = bplib_cache_entry_state_idle;
     UtAssert_VOIDCALL(bplib_cache_fsm_execute(&sblk));
 
-    UT_SetHandlerFunction(UT_KEY(bplib_mpool_generic_data_cast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
 void test_bplib_cache_fsm_state_queue_exit(void)
@@ -125,20 +125,20 @@ void test_bplib_cache_fsm_state_queue_exit(void)
      * void bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry)
      */
     bplib_cache_entry_t          store_entry;
-    bplib_mpool_bblock_primary_t pri_block;
+    BPLib_STOR_CACHE_BblockPrimary_t pri_block;
 
     memset(&store_entry, 0, sizeof(bplib_cache_entry_t));
-    memset(&pri_block, 0, sizeof(bplib_mpool_bblock_primary_t));
+    memset(&pri_block, 0, sizeof(BPLib_STOR_CACHE_BblockPrimary_t));
     pri_block.data.delivery.egress_intf_id = BPLIB_HANDLE_RAM_STORE_BASE;
     store_entry.offload_sid                = 1;
 
-    UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_primary_cast), UT_cache_AltHandler_PointerReturn, &pri_block);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, &pri_block);
     UtAssert_VOIDCALL(bplib_cache_fsm_state_queue_exit(&store_entry));
 
     pri_block.data.delivery.delivery_policy = bplib_policy_delivery_custody_tracking;
     UtAssert_VOIDCALL(bplib_cache_fsm_state_queue_exit(&store_entry));
 
-    UT_SetHandlerFunction(UT_KEY(bplib_mpool_bblock_primary_cast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
 void test_bplib_cache_fsm_state_delete_eval(void)
@@ -166,16 +166,16 @@ void test_bplib_cache_fsm_state_delete_enter(void)
      */
     bplib_cache_entry_t       store_entry;
     bplib_cache_state_t       state;
-    bplib_mpool_block_t       refptr;
+    BPLib_MEM_block_t       refptr;
     bplib_cache_offload_api_t offload_api;
 
     memset(&store_entry, 0, sizeof(bplib_cache_entry_t));
     memset(&state, 0, sizeof(bplib_cache_state_t));
-    memset(&refptr, 0, sizeof(bplib_mpool_block_t));
+    memset(&refptr, 0, sizeof(BPLib_MEM_block_t));
     memset(&offload_api, 0, sizeof(bplib_cache_offload_api_t));
     offload_api.release             = test_bplib_cache_release_stub;
     store_entry.parent              = &state;
-    store_entry.refptr              = (bplib_mpool_ref_t)&refptr;
+    store_entry.refptr              = (BPLib_MEM_ref_t)&refptr;
     store_entry.offload_sid         = 1;
     store_entry.parent->offload_api = &offload_api;
 

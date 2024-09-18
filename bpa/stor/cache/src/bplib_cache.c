@@ -228,12 +228,12 @@ size_t bplib_cache_get_user_data_offset_by_blocktype(bplib_cache_blocktype_t bt)
 {
     static const size_t USER_DATA_START_OFFSET[bplib_cache_blocktype_max] = {
         [bplib_cache_blocktype_undefined] = SIZE_MAX,
-        [bplib_cache_blocktype_api]       = MPOOL_GET_BUFFER_USER_START_OFFSET(api),
-        [bplib_cache_blocktype_generic]   = MPOOL_GET_BUFFER_USER_START_OFFSET(generic_data),
-        [bplib_cache_blocktype_primary]   = MPOOL_GET_BUFFER_USER_START_OFFSET(primary),
-        [bplib_cache_blocktype_canonical] = MPOOL_GET_BUFFER_USER_START_OFFSET(canonical),
-        // STOR [bplib_cache_blocktype_flow]      = MPOOL_GET_BUFFER_USER_START_OFFSET(flow),
-        [bplib_cache_blocktype_ref]       = MPOOL_GET_BUFFER_USER_START_OFFSET(ref)};
+        [bplib_cache_blocktype_api]       = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(api),
+        [bplib_cache_blocktype_generic]   = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(generic_data),
+        [bplib_cache_blocktype_primary]   = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(primary),
+        [bplib_cache_blocktype_canonical] = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(canonical),
+        // STOR [bplib_cache_blocktype_flow]      = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(flow),
+        [bplib_cache_blocktype_ref]       = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(ref)};
 
     if (bt >= bplib_cache_blocktype_max)
     {
@@ -1233,7 +1233,7 @@ bplib_cache_t *bplib_cache_create(void *pool_mem, size_t pool_size)
     /* register the first API type, which is 0.
      * Notably this prevents other modules from actually registering something at 0. */
     bplib_rbt_insert_value_unique(0, &admin->blocktype_registry, &admin->blocktype_basic.rbt_link);
-    bplib_rbt_insert_value_unique(MPOOL_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
+    bplib_rbt_insert_value_unique(BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
                                   &admin->blocktype_cbor.rbt_link);
 
     while (remain >= sizeof(bplib_cache_block_content_t))

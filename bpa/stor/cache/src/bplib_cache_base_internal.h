@@ -29,7 +29,7 @@
 
 struct bp_socket
 {
-    bplib_mpool_block_t fblk;
+    BPLib_MEM_block_t fblk;
 };
 
 typedef struct bplib_cla_stats
@@ -44,7 +44,7 @@ typedef struct bplib_route_serviceintf_info
 {
     bp_ipn_t          node_number;
     bplib_rbt_root_t  service_index;
-    bplib_mpool_ref_t storage_service;
+    BPLib_MEM_ref_t storage_service;
 
 } bplib_route_serviceintf_info_t;
 
@@ -53,8 +53,8 @@ typedef struct bplib_service_endpt bplib_service_endpt_t;
 struct bplib_service_endpt
 {
     bplib_rbt_link_t     rbt_link; /* for storage in RB tree, must be first */
-    bplib_mpool_block_t *self_ptr;
-    bplib_mpool_ref_t    subflow_ref;
+    BPLib_MEM_block_t *self_ptr;
+    BPLib_MEM_ref_t    subflow_ref;
 };
 #endif // STOR
 
@@ -87,17 +87,17 @@ struct bplib_routetbl
     uint64_t            last_intf_poll;
     uintmax_t           routing_success_count;
     uintmax_t           routing_error_count;
-    bplib_mpool_t      *pool;
-    bplib_mpool_block_t flow_list;
+    BPLib_MEM_t      *pool;
+    BPLib_MEM_block_t flow_list;
     bplib_routeentry_t *route_tbl;
 };
 
-int bplib_serviceflow_forward_ingress(void *arg, bplib_mpool_block_t *subq_src);
-int bplib_serviceflow_forward_egress(void *arg, bplib_mpool_block_t *subq_src);
-int bplib_dataservice_event_impl(void *arg, bplib_mpool_block_t *intf_block);
-int bplib_dataservice_base_construct(void *arg, bplib_mpool_block_t *blk);
-int bplib_cla_event_impl(void *arg, bplib_mpool_block_t *intf_block);
-int bplib_generic_bundle_ingress(bplib_mpool_ref_t flow_ref, const void *content, size_t size, uint64_t time_limit);
-int bplib_generic_bundle_egress(bplib_mpool_ref_t flow_ref, void *content, size_t *size, uint64_t time_limit);
+int bplib_serviceflow_forward_ingress(void *arg, BPLib_MEM_block_t *subq_src);
+int bplib_serviceflow_forward_egress(void *arg, BPLib_MEM_block_t *subq_src);
+int bplib_dataservice_event_impl(void *arg, BPLib_MEM_block_t *intf_block);
+int bplib_dataservice_base_construct(void *arg, BPLib_MEM_block_t *blk);
+int bplib_cla_event_impl(void *arg, BPLib_MEM_block_t *intf_block);
+int bplib_generic_bundle_ingress(BPLib_MEM_ref_t flow_ref, const void *content, size_t size, uint64_t time_limit);
+int bplib_generic_bundle_egress(BPLib_MEM_ref_t flow_ref, void *content, size_t *size, uint64_t time_limit);
 
 #endif /* V7_BASE_INTERNAL_H*/

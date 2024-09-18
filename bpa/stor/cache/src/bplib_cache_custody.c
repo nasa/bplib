@@ -33,17 +33,17 @@ static const uint32_t BPLIB_CACHE_CUSTODY_HASH_SALT_DACS   = 0x3126c0cf;
 static const uint32_t BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE = 0x7739ae76;
 
 #ifdef STOR
-void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
+void bplib_cache_custody_insert_tracking_block(bplib_cache_state_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
                                                bplib_cache_custodian_info_t *custody_info)
 {
-    bplib_mpool_bblock_canonical_t *custody_block;
+    BPLib_STOR_CACHE_BblockCanonical_t *custody_block;
 
-    custody_info->this_cblk = bplib_mpool_bblock_canonical_alloc(bplib_cache_parent_pool(state), 0, NULL);
+    custody_info->this_cblk = BPLib_STOR_CACHE_BblockCanonicalAlloc(bplib_cache_parent_pool(state), 0, NULL);
     if (custody_info->this_cblk != NULL)
     {
-        bplib_mpool_bblock_primary_append(pri_block, custody_info->this_cblk);
+        BPLib_STOR_CACHE_BblockPrimaryAppend(pri_block, custody_info->this_cblk);
 
-        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->this_cblk);
+        custody_block = BPLib_STOR_CACHE_BblockCanonicalCast(custody_info->this_cblk);
         if (custody_block != NULL)
         {
             custody_block->canonical_logical_data.canonical_block.blockType = bp_blocktype_custodyTrackingBlock;
@@ -115,10 +115,10 @@ bool bplib_cache_custody_find_pending_dacs(bplib_cache_state_t *state, bplib_cac
 }
 
 void bplib_cache_custody_init_info_from_pblock(bplib_cache_custodian_info_t *custody_info,
-                                               bplib_mpool_bblock_primary_t *pri_block)
+                                               BPLib_STOR_CACHE_BblockPrimary_t *pri_block)
 {
     #ifdef STOR
-    bplib_mpool_bblock_canonical_t *custody_block;
+    BPLib_STOR_CACHE_BblockCanonical_t *custody_block;
     bp_ipn_addr_t                   final_dest_addr;
 
     memset(custody_info, 0, sizeof(*custody_info));
@@ -129,10 +129,10 @@ void bplib_cache_custody_init_info_from_pblock(bplib_cache_custodian_info_t *cus
     v7_get_eid(&final_dest_addr, &pri_block->data.logical.destinationEID);
     custody_info->final_dest_node = final_dest_addr.node_number;
 
-    custody_info->prev_cblk = bplib_mpool_bblock_primary_locate_canonical(pri_block, bp_blocktype_custodyTrackingBlock);
+    custody_info->prev_cblk = BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(pri_block, bp_blocktype_custodyTrackingBlock);
     if (custody_info->prev_cblk != NULL)
     {
-        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->prev_cblk);
+        custody_block = BPLib_STOR_CACHE_BblockCanonicalCast(custody_info->prev_cblk);
         if (custody_block != NULL)
         {
             /* need to generate a DACS back to the previous custodian indicated in the custody block */
@@ -145,19 +145,19 @@ void bplib_cache_custody_init_info_from_pblock(bplib_cache_custodian_info_t *cus
     #endif // STOR
 }
 
-bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t                *state,
-                                                  bplib_mpool_bblock_primary_t      **pri_block_out,
+BPLib_MEM_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t                *state,
+                                                  BPLib_STOR_CACHE_BblockPrimary_t      **pri_block_out,
                                                   bp_custody_accept_payload_block_t **pay_out)
 {
     #ifdef STOR
     int                  status;
-    bplib_mpool_block_t *pblk;
-    bplib_mpool_block_t *cblk;
-    bplib_mpool_t       *ppool;
+    BPLib_MEM_block_t *pblk;
+    BPLib_MEM_block_t *cblk;
+    BPLib_MEM_t       *ppool;
 
-    bplib_mpool_bblock_primary_t   *pri_block;
+    BPLib_STOR_CACHE_BblockPrimary_t   *pri_block;
     bp_primary_block_t             *pri;
-    bplib_mpool_bblock_canonical_t *c_block;
+    BPLib_STOR_CACHE_BblockCanonical_t *c_block;
     bp_canonical_block_buffer_t    *pay;
 
     /* This needs to turn the DACS information in the temporary object into a full bundle */
@@ -169,15 +169,15 @@ bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t           
 
     do
     {
-        pblk      = bplib_mpool_bblock_primary_alloc(ppool, 0, NULL, BPLIB_MPOOL_ALLOC_PRI_MED, 0);
-        pri_block = bplib_mpool_bblock_primary_cast(pblk);
+        pblk      = BPLib_STOR_CACHE_BblockPrimaryAlloc(ppool, 0, NULL, BPLIB_MEM_ALLOC_PRI_MED, 0);
+        pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(pblk);
         if (pri_block == NULL)
         {
             bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to allocate primary block\n");
             break;
         }
 
-        pri = bplib_mpool_bblock_primary_get_logical(pri_block);
+        pri = BPLib_STOR_CACHE_BblockPrimaryGetLogical(pri_block);
 
         /* Initialize Primary Block */
         pri->version = 7;
@@ -195,21 +195,21 @@ bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t           
         pri->crctype                      = bp_crctype_CRC16;
 
         /* Add Payload Block */
-        cblk    = bplib_mpool_bblock_canonical_alloc(ppool, 0, NULL);
-        c_block = bplib_mpool_bblock_canonical_cast(cblk);
+        cblk    = BPLib_STOR_CACHE_BblockCanonicalAlloc(ppool, 0, NULL);
+        c_block = BPLib_STOR_CACHE_BblockCanonicalCast(cblk);
         if (c_block == NULL)
         {
             bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to allocate payload block\n");
             break;
         }
 
-        pay = bplib_mpool_bblock_canonical_get_logical(c_block);
+        pay = BPLib_STOR_CACHE_BblockCanonicalGetLogical(c_block);
 
         pay->canonical_block.blockNum  = bp_blocktype_payloadBlock;
         pay->canonical_block.blockType = bp_blocktype_custodyAcceptPayloadBlock;
         pay->canonical_block.crctype   = bp_crctype_CRC16;
 
-        bplib_mpool_bblock_primary_append(pri_block, cblk);
+        BPLib_STOR_CACHE_BblockPrimaryAppend(pri_block, cblk);
         cblk   = NULL; /* do not need now that it is stored */
         status = BP_SUCCESS;
 
@@ -220,17 +220,17 @@ bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t           
     /* clean up, if anything did not work, recycle the blocks now */
     if (cblk != NULL)
     {
-        bplib_mpool_recycle_block(cblk);
+        BPLib_STOR_CACHE_RecycleBlock(cblk);
         cblk = NULL;
     }
 
     if (pblk != NULL && status != BP_SUCCESS)
     {
-        bplib_mpool_recycle_block(pblk);
+        BPLib_STOR_CACHE_RecycleBlock(pblk);
         pblk = NULL;
     }
 
-    return bplib_mpool_ref_create(pblk);
+    return BPLib_STOR_CACHE_RefCreate(pblk);
 
     #else // STOR
     return NULL;
@@ -240,22 +240,22 @@ bplib_mpool_ref_t bplib_cache_custody_create_dacs(bplib_cache_state_t           
 void bplib_cache_custody_open_dacs(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info)
 {
     #ifdef STOR
-    bplib_mpool_block_t               *sblk;
+    BPLib_MEM_block_t               *sblk;
     bplib_cache_entry_t               *store_entry;
     bplib_cache_dacs_pending_t        *dacs_pending;
-    bplib_mpool_ref_t                  pending_bundle;
-    bplib_mpool_bblock_primary_t      *pri_block;
+    BPLib_MEM_ref_t                  pending_bundle;
+    BPLib_STOR_CACHE_BblockPrimary_t      *pri_block;
     bp_custody_accept_payload_block_t *ack_content;
     bp_handle_t                        self_intf_id;
 
     /* Create the storage-specific data block for keeping local refs  */
-    sblk           = bplib_mpool_generic_data_alloc(bplib_cache_parent_pool(state), BPLIB_STORE_SIGNATURE_ENTRY, state);
+    sblk           = BPLib_STOR_CACHE_GenericDataAlloc(bplib_cache_parent_pool(state), BPLIB_STORE_SIGNATURE_ENTRY, state);
     pending_bundle = bplib_cache_custody_create_dacs(state, &pri_block, &ack_content);
-    store_entry    = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    store_entry    = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
     if (store_entry != NULL && pending_bundle != NULL)
     {
         /* need to fill out the delivery_data so this will look like a regular bundle when sent */
-        self_intf_id                                 = bplib_mpool_get_external_id(bplib_cache_state_self_block(state));
+        self_intf_id                                 = BPLib_STOR_CACHE_GetExternalId(bplib_cache_state_self_block(state));
         pri_block->data.delivery.delivery_policy     = bplib_policy_delivery_local_ack;
         pri_block->data.delivery.local_retx_interval = BP_CACHE_FAST_RETRY_TIME;
         pri_block->data.delivery.ingress_intf_id     = self_intf_id;
@@ -272,7 +272,7 @@ void bplib_cache_custody_open_dacs(bplib_cache_state_t *state, bplib_cache_custo
         store_entry->expire_time   = pri_block->data.delivery.ingress_time + BP_CACHE_DACS_LIFETIME;
         store_entry->flow_id_copy  = state->self_addr;
         store_entry->flow_seq_copy = pri_block->data.logical.creationTimeStamp.sequence_num;
-        store_entry->refptr        = bplib_mpool_ref_duplicate(pending_bundle);
+        store_entry->refptr        = BPLib_STOR_CACHE_RefDuplicate(pending_bundle);
 
         /* the ack will be sent to the previous custodian of record */
         v7_set_eid(&pri_block->data.logical.destinationEID, &custody_info->custodian_id);
@@ -296,14 +296,14 @@ void bplib_cache_custody_open_dacs(bplib_cache_state_t *state, bplib_cache_custo
     {
         if (sblk != NULL)
         {
-            bplib_mpool_recycle_block(sblk);
+            BPLib_STOR_CACHE_RecycleBlock(sblk);
             sblk = NULL;
         }
 
         store_entry = NULL;
     }
 
-    bplib_mpool_ref_release(pending_bundle);
+    BPLib_STOR_CACHE_RefRelease(pending_bundle);
 
     #endif // STOR
 }
@@ -346,12 +346,12 @@ void bplib_cache_custody_ack_tracking_block(bplib_cache_state_t                *
 {
     #ifdef STOR
     bplib_cache_custodian_info_t    dacs_info;
-    bplib_mpool_bblock_canonical_t *custody_block;
+    BPLib_STOR_CACHE_BblockCanonical_t *custody_block;
 
     if (custody_info->prev_cblk != NULL)
     {
         memset(&dacs_info, 0, sizeof(dacs_info));
-        custody_block = bplib_mpool_bblock_canonical_cast(custody_info->prev_cblk);
+        custody_block = BPLib_STOR_CACHE_BblockCanonicalCast(custody_info->prev_cblk);
         if (custody_block != NULL)
         {
             v7_get_eid(&dacs_info.custodian_id,
@@ -376,9 +376,9 @@ void bplib_cache_custody_ack_tracking_block(bplib_cache_state_t                *
 void bplib_cache_custody_update_tracking_block(bplib_cache_state_t *state, bplib_cache_custodian_info_t *custody_info)
 {
     #ifdef STOR
-    bplib_mpool_bblock_canonical_t *custody_block;
+    BPLib_STOR_CACHE_BblockCanonical_t *custody_block;
 
-    custody_block = bplib_mpool_bblock_canonical_cast(custody_info->this_cblk);
+    custody_block = BPLib_STOR_CACHE_BblockCanonicalCast(custody_info->this_cblk);
     if (custody_block != NULL)
     {
         v7_set_eid(&custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian,
@@ -388,7 +388,7 @@ void bplib_cache_custody_update_tracking_block(bplib_cache_state_t *state, bplib
     #endif // STOR
 }
 
-void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
+void bplib_cache_custody_process_bundle(bplib_cache_state_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
                                         bplib_cache_custodian_info_t *custody_info)
 {
     bool is_local;
@@ -474,7 +474,7 @@ bool bplib_cache_custody_find_existing_bundle(bplib_cache_state_t *state, bplib_
     return (custody_rbt_link != NULL);
 }
 
-void bplib_cache_custody_process_remote_dacs_bundle(bplib_cache_state_t *state, bplib_mpool_bblock_primary_t *pri_block,
+void bplib_cache_custody_process_remote_dacs_bundle(bplib_cache_state_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
                                                     const bp_custody_accept_payload_block_t *ack_payload)
 {
     #ifdef STOR
@@ -512,18 +512,18 @@ void bplib_cache_custody_finalize_dacs(bplib_cache_state_t *state, bplib_cache_e
     }
 }
 
-bool bplib_cache_custody_check_dacs(bplib_cache_state_t *state, bplib_mpool_block_t *qblk)
+bool bplib_cache_custody_check_dacs(bplib_cache_state_t *state, BPLib_MEM_block_t *qblk)
 {
-    bplib_mpool_bblock_primary_t   *pri_block;
-    bplib_mpool_bblock_canonical_t *c_block;
+    BPLib_STOR_CACHE_BblockPrimary_t   *pri_block;
+    BPLib_STOR_CACHE_BblockCanonical_t *c_block;
 
     c_block   = NULL;
-    pri_block = bplib_mpool_bblock_primary_cast(qblk);
+    pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(qblk);
     if (pri_block != NULL && pri_block->data.logical.controlFlags.isAdminRecord)
     {
         /* check if it has a custody_ack payload type */
-        c_block = bplib_mpool_bblock_canonical_cast(
-            bplib_mpool_bblock_primary_locate_canonical(pri_block, bp_blocktype_custodyAcceptPayloadBlock));
+        c_block = BPLib_STOR_CACHE_BblockCanonicalCast(
+            BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(pri_block, bp_blocktype_custodyAcceptPayloadBlock));
         if (c_block != NULL)
         {
             /* it is an acceptance block (dacs) */
@@ -537,16 +537,16 @@ bool bplib_cache_custody_check_dacs(bplib_cache_state_t *state, bplib_mpool_bloc
 
 #endif // STOR
 
-void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_block_t *qblk)
+void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, BPLib_MEM_block_t *qblk)
 {
     #ifdef STOR
-    bplib_mpool_block_t          *sblk;
-    bplib_mpool_bblock_primary_t *pri_block;
+    BPLib_MEM_block_t          *sblk;
+    BPLib_STOR_CACHE_BblockPrimary_t *pri_block;
     bplib_cache_custodian_info_t  custody_info;
 
     memset(&custody_info, 0, sizeof(custody_info));
     sblk      = NULL;
-    pri_block = bplib_mpool_bblock_primary_cast(qblk);
+    pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(qblk);
     if (pri_block == NULL)
     {
         /* only pri blocks are storable */
@@ -565,9 +565,9 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
     }
 
     /* Create the storage-specific data block for keeping local refs  */
-    sblk = bplib_mpool_generic_data_alloc(bplib_cache_parent_pool(state), BPLIB_STORE_SIGNATURE_ENTRY, state);
+    sblk = BPLib_STOR_CACHE_GenericDataAlloc(bplib_cache_parent_pool(state), BPLIB_STORE_SIGNATURE_ENTRY, state);
 
-    custody_info.store_entry = bplib_mpool_generic_data_cast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    custody_info.store_entry = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
 
     if (custody_info.store_entry != NULL)
     {
@@ -575,7 +575,7 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
         custody_info.store_entry->state  = bplib_cache_entry_state_idle;
 
         /* this keeps a copy of the ref here, after qblk is recycled */
-        custody_info.store_entry->refptr = bplib_mpool_ref_from_block(qblk);
+        custody_info.store_entry->refptr = BPLib_STOR_CACHE_RefFromBlock(qblk);
 
         bplib_rbt_insert_value_generic(custody_info.final_dest_node, &state->dest_eid_jphfix_index,
                                        &custody_info.store_entry->dest_eid_rbt_link,
@@ -593,7 +593,7 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
         custody_info.store_entry->expire_time =
             pri_block->data.logical.creationTimeStamp.time + pri_block->data.logical.lifetime;
 
-        pri_block->data.delivery.storage_intf_id = bplib_mpool_get_external_id(bplib_cache_state_self_block(state));
+        pri_block->data.delivery.storage_intf_id = BPLib_STOR_CACHE_GetExternalId(bplib_cache_state_self_block(state));
 
         if (state->offload_api == NULL)
         {
@@ -641,7 +641,7 @@ void bplib_cache_custody_store_bundle(bplib_cache_state_t *state, bplib_mpool_bl
         /*
          * This should never happen... but do not leak blocks
          */
-        bplib_mpool_recycle_block(sblk);
+        BPLib_STOR_CACHE_RecycleBlock(sblk);
         sblk = NULL;
     }
 

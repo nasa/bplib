@@ -36,47 +36,47 @@
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_init
+ * Function: BPLib_STOR_CACHE_SubqInit
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_subq_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_base_t *qblk)
+void BPLib_STOR_CACHE_SubqInit(BPLib_MEM_block_t *base_block, BPLib_STOR_CACHE_SubqBase_t *qblk)
 {
     /* init the link structs */
-    bplib_mpool_init_list_head(base_block, &qblk->block_list);
+    BPLib_STOR_CACHE_InitListHead(base_block, &qblk->block_list);
     qblk->pull_count = 0;
     qblk->push_count = 0;
 }
 
-void bplib_mpool_subq_workitem_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_workitem_t *wblk)
+void BPLib_STOR_CACHE_SubqWorkitemInit(BPLib_MEM_block_t *base_block, BPLib_STOR_CACHE_SubqWorkitem_t *wblk)
 {
     #ifdef STOR
-    bplib_mpool_job_init(base_block, &wblk->job_header);
+    BPLib_STOR_CACHE_JobInit(base_block, &wblk->job_header);
     #endif // STOR
-    bplib_mpool_subq_init(base_block, &wblk->base_subq);
+    BPLib_STOR_CACHE_SubqInit(base_block, &wblk->base_subq);
     wblk->current_depth_limit = 0;
 }
 
 #ifdef STOR
-static int bplib_mpool_flow_event_handler(void *arg, bplib_mpool_block_t *jblk)
+static int BPLib_STOR_CACHE_FlowEventHandler(void *arg, BPLib_MEM_block_t *jblk)
 {
-    bplib_mpool_block_t             *fblk;
-    bplib_mpool_flow_t              *flow;
+    BPLib_MEM_block_t             *fblk;
+    BPLib_MEM_flow_t              *flow;
     uint32_t                         changed_flags;
-    bplib_mpool_flow_generic_event_t event;
+    BPLib_STOR_CACHE_FlowGenericEvent_t event;
     bool                             was_running;
     bool                             is_running;
 
-    fblk = bplib_mpool_get_block_from_link(jblk);
-    flow = bplib_mpool_flow_cast(fblk);
+    fblk = BPLib_STOR_CACHE_GetBlockFromLink(jblk);
+    flow = BPLib_STOR_CACHE_FlowCast(fblk);
     if (flow == NULL)
     {
         return -1;
     }
 
-    was_running   = bplib_mpool_flow_is_up(flow);
+    was_running   = BPLib_STOR_CACHE_FlowIsUp(flow);
     changed_flags = flow->pending_state_flags ^ flow->current_state_flags;
     flow->current_state_flags ^= changed_flags;
-    is_running = bplib_mpool_flow_is_up(flow);
+    is_running = BPLib_STOR_CACHE_FlowIsUp(flow);
 
     /* detect changes from up->down or vice versa */
     /* this is the combination of several flags, so its not simply checking changed_flags */
@@ -84,22 +84,22 @@ static int bplib_mpool_flow_event_handler(void *arg, bplib_mpool_block_t *jblk)
     {
         if (is_running)
         {
-            event.intf_state.event_type = bplib_mpool_flow_event_up;
+            event.intf_state.event_type = BPLib_STOR_CACHE_FlowEventUp;
         }
         else
         {
-            event.intf_state.event_type = bplib_mpool_flow_event_down;
+            event.intf_state.event_type = BPLib_STOR_CACHE_FlowEventDown;
         }
 
-        event.intf_state.intf_id = bplib_mpool_get_external_id(fblk);
+        event.intf_state.intf_id = BPLib_STOR_CACHE_GetExternalId(fblk);
         #ifdef STOR
         flow->statechange_job.event_handler(&event, fblk);
         #endif // STOR
     }
 
-    if (changed_flags & BPLIB_MPOOL_FLOW_FLAGS_POLL)
+    if (changed_flags & BPLIB_MEM_FLOW_FLAGS_POLL)
     {
-        event.event_type = bplib_mpool_flow_event_poll;
+        event.event_type = BPLib_STOR_CACHE_FlowEventPoll;
         #ifdef STOR
         flow->statechange_job.event_handler(&event, fblk);
         #endif // STOR
@@ -111,40 +111,40 @@ static int bplib_mpool_flow_event_handler(void *arg, bplib_mpool_block_t *jblk)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_init
+ * Function: BPLib_STOR_CACHE_FlowInit
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_flow_init(bplib_mpool_block_t *base_block, bplib_mpool_flow_t *fblk)
+void BPLib_STOR_CACHE_FlowInit(BPLib_MEM_block_t *base_block, BPLib_MEM_flow_t *fblk)
 {
     /* now init the link structs */
     #ifdef STOR
-    bplib_mpool_job_init(base_block, &fblk->statechange_job.base_job);
-    fblk->statechange_job.base_job.handler = bplib_mpool_flow_event_handler;
+    BPLib_STOR_CACHE_JobInit(base_block, &fblk->statechange_job.base_job);
+    fblk->statechange_job.base_job.handler = BPLib_STOR_CACHE_FlowEventHandler;
     #endif //STOR
 
-    bplib_mpool_subq_workitem_init(base_block, &fblk->ingress);
-    bplib_mpool_subq_workitem_init(base_block, &fblk->egress);
+    BPLib_STOR_CACHE_SubqWorkitemInit(base_block, &fblk->ingress);
+    BPLib_STOR_CACHE_SubqWorkitemInit(base_block, &fblk->egress);
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_push_single
+ * Function: BPLib_STOR_CACHE_SubqPushSingle
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_subq_push_single(bplib_mpool_subq_base_t *subq, bplib_mpool_block_t *cpb)
+void BPLib_STOR_CACHE_SubqPushSingle(BPLib_STOR_CACHE_SubqBase_t *subq, BPLib_MEM_block_t *cpb)
 {
-    bplib_mpool_insert_before(&subq->block_list, cpb);
+    BPLib_STOR_CACHE_InsertBefore(&subq->block_list, cpb);
     ++subq->push_count;
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_list_count_blocks
+ * Function: BPLib_STOR_CACHE_ListCountBlocks
  *
  *-----------------------------------------------------------------*/
-uint32_t bplib_mpool_list_count_blocks(bplib_mpool_block_t *list)
+uint32_t BPLib_STOR_CACHE_ListCountBlocks(BPLib_MEM_block_t *list)
 {
-    bplib_mpool_block_t *node;
+    BPLib_MEM_block_t *node;
     uint32_t             count;
 
     node  = list->next;
@@ -160,18 +160,18 @@ uint32_t bplib_mpool_list_count_blocks(bplib_mpool_block_t *list)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_merge_list
+ * Function: BPLib_STOR_CACHE_SubqMergeList
  *
  *-----------------------------------------------------------------*/
-uint32_t bplib_mpool_subq_merge_list(bplib_mpool_subq_base_t *subq_dst, bplib_mpool_block_t *list)
+uint32_t BPLib_STOR_CACHE_SubqMergeList(BPLib_STOR_CACHE_SubqBase_t *subq_dst, BPLib_MEM_block_t *list)
 {
     uint32_t block_count;
 
     /* for record-keeping, must count the blocks to know how many are being moved here */
-    block_count = bplib_mpool_list_count_blocks(list);
+    block_count = BPLib_STOR_CACHE_ListCountBlocks(list);
 
-    bplib_mpool_merge_list(&subq_dst->block_list, list);
-    bplib_mpool_extract_node(list);
+    BPLib_STOR_CACHE_MergeList(&subq_dst->block_list, list);
+    BPLib_STOR_CACHE_ExtractNode(list);
     subq_dst->push_count += block_count;
 
     return block_count;
@@ -179,19 +179,19 @@ uint32_t bplib_mpool_subq_merge_list(bplib_mpool_subq_base_t *subq_dst, bplib_mp
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_move_all
+ * Function: BPLib_STOR_CACHE_SubqMoveAll
  *
  *-----------------------------------------------------------------*/
-uint32_t bplib_mpool_subq_move_all(bplib_mpool_subq_base_t *subq_dst, bplib_mpool_subq_base_t *subq_src)
+uint32_t BPLib_STOR_CACHE_SubqMoveAll(BPLib_STOR_CACHE_SubqBase_t *subq_dst, BPLib_STOR_CACHE_SubqBase_t *subq_src)
 {
     uint32_t queue_depth;
 
     /* appends the entire subq to the destination */
-    queue_depth = bplib_mpool_subq_get_depth(subq_src);
+    queue_depth = BPLib_STOR_CACHE_SubqGetDepth(subq_src);
     if (queue_depth > 0)
     {
-        bplib_mpool_merge_list(&subq_dst->block_list, &subq_src->block_list);
-        bplib_mpool_extract_node(&subq_src->block_list);
+        BPLib_STOR_CACHE_MergeList(&subq_dst->block_list, &subq_src->block_list);
+        BPLib_STOR_CACHE_ExtractNode(&subq_src->block_list);
         subq_src->pull_count += queue_depth;
         subq_dst->push_count += queue_depth;
     }
@@ -200,18 +200,18 @@ uint32_t bplib_mpool_subq_move_all(bplib_mpool_subq_base_t *subq_dst, bplib_mpoo
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_drop_all
+ * Function: BPLib_STOR_CACHE_SubqDropAll
  *
  *-----------------------------------------------------------------*/
-uint32_t bplib_mpool_subq_drop_all(bplib_mpool_t *pool, bplib_mpool_subq_base_t *subq)
+uint32_t BPLib_STOR_CACHE_SubqDropAll(BPLib_MEM_t *pool, BPLib_STOR_CACHE_SubqBase_t *subq)
 {
     uint32_t queue_depth;
 
     /* appends the entire subq to the destination */
-    queue_depth = bplib_mpool_subq_get_depth(subq);
+    queue_depth = BPLib_STOR_CACHE_SubqGetDepth(subq);
     if (queue_depth > 0)
     {
-        bplib_mpool_recycle_all_blocks_in_list(pool, &subq->block_list);
+        BPLib_STOR_CACHE_RecycleAllBlocksInList(pool, &subq->block_list);
         subq->pull_count += queue_depth;
     }
     return queue_depth;
@@ -219,21 +219,21 @@ uint32_t bplib_mpool_subq_drop_all(bplib_mpool_t *pool, bplib_mpool_subq_base_t 
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_pull_single
+ * Function: BPLib_STOR_CACHE_SubqPullSingle
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_subq_pull_single(bplib_mpool_subq_base_t *subq)
+BPLib_MEM_block_t *BPLib_STOR_CACHE_SubqPullSingle(BPLib_STOR_CACHE_SubqBase_t *subq)
 {
-    bplib_mpool_block_t *node;
+    BPLib_MEM_block_t *node;
 
     /* if the head is reached here, then the list is empty */
     node = subq->block_list.next;
-    if (bplib_mpool_is_list_head(node))
+    if (BPLib_STOR_CACHE_IsListHead(node))
     {
         return NULL;
     }
 
-    bplib_mpool_extract_node(node);
+    BPLib_STOR_CACHE_ExtractNode(node);
     ++subq->pull_count;
 
     return node;
@@ -241,17 +241,17 @@ bplib_mpool_block_t *bplib_mpool_subq_pull_single(bplib_mpool_subq_base_t *subq)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_cast
+ * Function: BPLib_STOR_CACHE_FlowCast
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb)
+BPLib_MEM_flow_t *BPLib_STOR_CACHE_FlowCast(BPLib_MEM_block_t *cb)
 {
     #ifdef STOR
 
-    bplib_mpool_block_content_t *content;
+    BPLib_STOR_CACHE_BlockContent_t *content;
 
-    content = bplib_mpool_block_dereference_content(cb);
-    if (content != NULL && content->header.base_link.type == bplib_mpool_blocktype_flow)
+    content = BPLib_STOR_CACHE_BlockDereferenceContent(cb);
+    if (content != NULL && content->header.base_link.type == BPLib_STOR_CACHE_BlocktypeFlow)
     {
         return &content->u.flow.fblock;
     }
@@ -263,25 +263,25 @@ bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_workitem_wait_for_space
+ * Function: BPLib_STOR_CACHE_SubqWorkitemWaitForSpace
  *
  * Internal function, lock must be held when invoked
  *
  *-----------------------------------------------------------------*/
-bool bplib_mpool_subq_workitem_wait_for_space(bplib_mpool_lock_t *lock, bplib_mpool_subq_workitem_t *subq,
+bool BPLib_STOR_CACHE_SubqWorkitemWaitForSpace(BPLib_MEM_lock_t *lock, BPLib_STOR_CACHE_SubqWorkitem_t *subq,
                                               uint32_t quantity, uint64_t abs_timeout)
 {
     uint32_t next_depth;
     bool     within_timeout;
 
     /* future depth after adding given quantity */
-    next_depth     = bplib_mpool_subq_get_depth(&subq->base_subq) + quantity;
+    next_depth     = BPLib_STOR_CACHE_SubqGetDepth(&subq->base_subq) + quantity;
     within_timeout = (abs_timeout != 0);
     while (next_depth > subq->current_depth_limit && within_timeout)
     {
         /* adding given quantity would overfill, wait for something else to pull */
-        within_timeout = bplib_mpool_lock_wait(lock, abs_timeout);
-        next_depth     = bplib_mpool_subq_get_depth(&subq->base_subq) + quantity;
+        within_timeout = BPLib_STOR_CACHE_LockWait(lock, abs_timeout);
+        next_depth     = BPLib_STOR_CACHE_SubqGetDepth(&subq->base_subq) + quantity;
     }
 
     return (next_depth <= subq->current_depth_limit);
@@ -289,23 +289,23 @@ bool bplib_mpool_subq_workitem_wait_for_space(bplib_mpool_lock_t *lock, bplib_mp
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_workitem_wait_for_fill
+ * Function: BPLib_STOR_CACHE_SubqWorkitemWaitForFill
  *
  * Internal function, lock must be held when invoked
  *
  *-----------------------------------------------------------------*/
-bool bplib_mpool_subq_workitem_wait_for_fill(bplib_mpool_lock_t *lock, bplib_mpool_subq_workitem_t *subq,
+bool BPLib_STOR_CACHE_SubqWorkitemWaitForFill(BPLib_MEM_lock_t *lock, BPLib_STOR_CACHE_SubqWorkitem_t *subq,
                                              uint32_t quantity, uint64_t abs_timeout)
 {
     uint32_t curr_depth;
     bool     within_timeout;
 
-    curr_depth     = bplib_mpool_subq_get_depth(&subq->base_subq);
+    curr_depth     = BPLib_STOR_CACHE_SubqGetDepth(&subq->base_subq);
     within_timeout = (abs_timeout != 0);
     while (curr_depth < quantity && within_timeout)
     {
-        within_timeout = bplib_mpool_lock_wait(lock, abs_timeout);
-        curr_depth     = bplib_mpool_subq_get_depth(&subq->base_subq);
+        within_timeout = BPLib_STOR_CACHE_LockWait(lock, abs_timeout);
+        curr_depth     = BPLib_STOR_CACHE_SubqGetDepth(&subq->base_subq);
     }
 
     return (curr_depth >= quantity);
@@ -313,36 +313,36 @@ bool bplib_mpool_subq_workitem_wait_for_fill(bplib_mpool_lock_t *lock, bplib_mpo
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_try_push
+ * Function: BPLib_STOR_CACHE_FlowTryPush
  *
  *-----------------------------------------------------------------*/
-bool bplib_mpool_flow_try_push(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_block_t *qblk, uint64_t abs_timeout)
+bool BPLib_STOR_CACHE_FlowTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_MEM_block_t *qblk, uint64_t abs_timeout)
 {
     #ifdef STOR
 
-    bplib_mpool_lock_t                *lock;
+    BPLib_MEM_lock_t                *lock;
     bool                               got_space;
-    bplib_mpool_block_admin_content_t *admin;
-    bplib_mpool_t                     *pool;
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    BPLib_MEM_t                     *pool;
 
-    pool  = bplib_mpool_get_parent_pool_from_link(&subq_dst->job_header.link);
-    admin = bplib_mpool_get_admin(pool);
-    lock  = bplib_mpool_lock_resource(pool);
+    pool  = BPLib_STOR_CACHE_GetParentPoolFromLink(&subq_dst->job_header.link);
+    admin = BPLib_STOR_CACHE_GetAdmin(pool);
+    lock  = BPLib_STOR_CACHE_LockResource(pool);
 
-    got_space = bplib_mpool_subq_workitem_wait_for_space(lock, subq_dst, 1, abs_timeout);
+    got_space = BPLib_STOR_CACHE_SubqWorkitemWaitForSpace(lock, subq_dst, 1, abs_timeout);
     if (got_space)
     {
         /* this does not fail, but must be done under lock to keep things consistent */
-        bplib_mpool_subq_push_single(&subq_dst->base_subq, qblk);
+        BPLib_STOR_CACHE_SubqPushSingle(&subq_dst->base_subq, qblk);
 
         /* mark the flow as "active" - done directly here while the lock is still held */
-        bplib_mpool_job_mark_active_internal(&admin->active_list, &subq_dst->job_header);
+        BPLib_STOR_CACHE_JobMarkActiveInternal(&admin->active_list, &subq_dst->job_header);
 
         /* in case any threads were waiting on a non-empty queue */
-        bplib_mpool_lock_broadcast_signal(lock);
+        BPLib_STOR_CACHE_LockBroadcastSignal(lock);
     }
 
-    bplib_mpool_lock_release(lock);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
     return got_space;
 
@@ -351,29 +351,29 @@ bool bplib_mpool_flow_try_push(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpoo
     return true;
 }
 
-bplib_mpool_block_t *bplib_mpool_flow_try_pull(bplib_mpool_subq_workitem_t *subq_src, uint64_t abs_timeout)
+BPLib_MEM_block_t *BPLib_STOR_CACHE_FlowTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, uint64_t abs_timeout)
 {
     #ifdef STOR
 
-    bplib_mpool_lock_t  *lock;
-    bplib_mpool_block_t *qblk;
+    BPLib_MEM_lock_t  *lock;
+    BPLib_MEM_block_t *qblk;
     bool                 got_space;
-    bplib_mpool_t       *pool;
+    BPLib_MEM_t       *pool;
 
     qblk = NULL;
-    pool = bplib_mpool_get_parent_pool_from_link(&subq_src->job_header.link);
-    lock = bplib_mpool_lock_resource(pool);
+    pool = BPLib_STOR_CACHE_GetParentPoolFromLink(&subq_src->job_header.link);
+    lock = BPLib_STOR_CACHE_LockResource(pool);
 
-    got_space = bplib_mpool_subq_workitem_wait_for_fill(lock, subq_src, 1, abs_timeout);
+    got_space = BPLib_STOR_CACHE_SubqWorkitemWaitForFill(lock, subq_src, 1, abs_timeout);
     if (got_space)
     {
-        qblk = bplib_mpool_subq_pull_single(&subq_src->base_subq);
+        qblk = BPLib_STOR_CACHE_SubqPullSingle(&subq_src->base_subq);
 
         /* in case any threads were waiting on a non-full queue */
-        bplib_mpool_lock_broadcast_signal(lock);
+        BPLib_STOR_CACHE_LockBroadcastSignal(lock);
     }
 
-    bplib_mpool_lock_release(lock);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
     return qblk;
 
@@ -382,53 +382,53 @@ bplib_mpool_block_t *bplib_mpool_flow_try_pull(bplib_mpool_subq_workitem_t *subq
     return NULL;
 }
 
-uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_subq_workitem_t *subq_src,
+uint32_t BPLib_STOR_CACHE_FlowTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
                                        uint64_t abs_timeout)
 {
     #ifdef STOR
 
-    bplib_mpool_lock_t                *lock;
+    BPLib_MEM_lock_t                *lock;
     uint32_t                           prev_quantity;
     uint32_t                           quantity;
     bool                               got_space;
-    bplib_mpool_block_admin_content_t *admin;
-    bplib_mpool_t                     *pool;
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    BPLib_MEM_t                     *pool;
 
     got_space = false;
-    pool      = bplib_mpool_get_parent_pool_from_link(&subq_dst->job_header.link);
-    admin     = bplib_mpool_get_admin(pool);
-    lock      = bplib_mpool_lock_resource(pool);
+    pool      = BPLib_STOR_CACHE_GetParentPoolFromLink(&subq_dst->job_header.link);
+    admin     = BPLib_STOR_CACHE_GetAdmin(pool);
+    lock      = BPLib_STOR_CACHE_LockResource(pool);
 
     /* note, there is a possibility that while waiting, another task puts more entries
      * into the source queue.  This loop will catch that and wait again.  However it
      * will not catch the case of another thread taking out of the source queue, as
      * it will still wait for the original amount. */
-    quantity = bplib_mpool_subq_get_depth(&subq_src->base_subq);
+    quantity = BPLib_STOR_CACHE_SubqGetDepth(&subq_src->base_subq);
     do
     {
         prev_quantity = quantity;
-        got_space     = bplib_mpool_subq_workitem_wait_for_space(lock, subq_dst, quantity, abs_timeout);
-        quantity      = bplib_mpool_subq_get_depth(&subq_src->base_subq);
+        got_space     = BPLib_STOR_CACHE_SubqWorkitemWaitForSpace(lock, subq_dst, quantity, abs_timeout);
+        quantity      = BPLib_STOR_CACHE_SubqGetDepth(&subq_src->base_subq);
     }
     while (got_space && quantity > prev_quantity);
 
     if (got_space)
     {
         /* this does not fail, but must be done under lock to keep things consistent */
-        quantity = bplib_mpool_subq_move_all(&subq_dst->base_subq, &subq_src->base_subq);
+        quantity = BPLib_STOR_CACHE_SubqMoveAll(&subq_dst->base_subq, &subq_src->base_subq);
 
         /* mark the flow as "active" - done directly here while the lock is still held */
-        bplib_mpool_job_mark_active_internal(&admin->active_list, &subq_dst->job_header);
+        BPLib_STOR_CACHE_JobMarkActiveInternal(&admin->active_list, &subq_dst->job_header);
 
         /* in case any threads were waiting on a non-empty queue */
-        bplib_mpool_lock_broadcast_signal(lock);
+        BPLib_STOR_CACHE_LockBroadcastSignal(lock);
     }
     else
     {
         quantity = 0;
     }
 
-    bplib_mpool_lock_release(lock);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
     return quantity;
 
@@ -439,27 +439,27 @@ uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bp
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_disable
+ * Function: BPLib_STOR_CACHE_FlowDisable
  *
  *-----------------------------------------------------------------*/
-uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq)
+uint32_t BPLib_STOR_CACHE_FlowDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq)
 {
     #ifdef STOR
 
-    bplib_mpool_t      *pool;
-    bplib_mpool_lock_t *lock;
+    BPLib_MEM_t      *pool;
+    BPLib_MEM_lock_t *lock;
     uint32_t            quantity_dropped;
 
-    pool = bplib_mpool_get_parent_pool_from_link(&subq->job_header.link);
-    lock = bplib_mpool_lock_resource(pool);
+    pool = BPLib_STOR_CACHE_GetParentPoolFromLink(&subq->job_header.link);
+    lock = BPLib_STOR_CACHE_LockResource(pool);
 
     /* prevents any additional entries in flow queues */
     subq->current_depth_limit = 0;
-    quantity_dropped          = bplib_mpool_subq_drop_all(pool, &subq->base_subq);
+    quantity_dropped          = BPLib_STOR_CACHE_SubqDropAll(pool, &subq->base_subq);
 
-    bplib_mpool_job_cancel_internal(&subq->job_header);
+    BPLib_STOR_CACHE_JobCancelInternal(&subq->job_header);
 
-    bplib_mpool_lock_release(lock);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
     return quantity_dropped;
 
@@ -470,44 +470,44 @@ uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq)
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_enable
+ * Function: BPLib_STOR_CACHE_FlowEnable
  *
  *-----------------------------------------------------------------*/
-void bplib_mpool_flow_enable(bplib_mpool_subq_workitem_t *subq, uint32_t depth_limit)
+void BPLib_STOR_CACHE_FlowEnable(BPLib_STOR_CACHE_SubqWorkitem_t *subq, uint32_t depth_limit)
 {
     #ifdef STOR
 
-    bplib_mpool_t      *pool;
-    bplib_mpool_lock_t *lock;
+    BPLib_MEM_t      *pool;
+    BPLib_MEM_lock_t *lock;
 
-    pool = bplib_mpool_get_parent_pool_from_link(&subq->job_header.link);
-    lock = bplib_mpool_lock_resource(pool);
+    pool = BPLib_STOR_CACHE_GetParentPoolFromLink(&subq->job_header.link);
+    lock = BPLib_STOR_CACHE_LockResource(pool);
 
     /* prevents any additional entries in flow queues */
     subq->current_depth_limit = depth_limit;
 
-    bplib_mpool_lock_release(lock);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
     #endif // STOR
 }
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_alloc
+ * Function: BPLib_STOR_CACHE_FlowAlloc
  *
  *-----------------------------------------------------------------*/
-bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
+BPLib_MEM_block_t *BPLib_STOR_CACHE_FlowAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg)
 {
     #ifdef STOR
 
-    bplib_mpool_block_content_t *result;
-    bplib_mpool_lock_t          *lock;
+    BPLib_STOR_CACHE_BlockContent_t *result;
+    BPLib_MEM_lock_t          *lock;
 
-    lock   = bplib_mpool_lock_resource(pool);
-    result = bplib_mpool_alloc_block_internal(pool, bplib_mpool_blocktype_flow, magic_number, init_arg, BPLIB_MPOOL_ALLOC_PRI_LO);
-    bplib_mpool_lock_release(lock);
+    lock   = BPLib_STOR_CACHE_LockResource(pool);
+    result = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypeFlow, magic_number, init_arg, BPLIB_MEM_ALLOC_PRI_LO);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
-    return (bplib_mpool_block_t *)result;
+    return (BPLib_MEM_block_t *)result;
 
     #endif // STOR
 
@@ -516,24 +516,24 @@ bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_flow_modify_flags
+ * Function: BPLib_STOR_CACHE_FlowModifyFlags
  *
  *-----------------------------------------------------------------*/
-bool bplib_mpool_flow_modify_flags(bplib_mpool_block_t *cb, uint32_t set_bits, uint32_t clear_bits)
+bool BPLib_STOR_CACHE_FlowModifyFlags(BPLib_MEM_block_t *cb, uint32_t set_bits, uint32_t clear_bits)
 {
     #ifdef STOL
 
-    bplib_mpool_lock_t                *lock;
-    bplib_mpool_t                     *pool;
-    bplib_mpool_block_admin_content_t *admin;
-    bplib_mpool_flow_t                *flow;
+    BPLib_MEM_lock_t                *lock;
+    BPLib_MEM_t                     *pool;
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    BPLib_MEM_flow_t                *flow;
     uint32_t                           next_flags;
     bool                               flags_changed;
 
-    pool  = bplib_mpool_get_parent_pool_from_link(cb);
-    admin = bplib_mpool_get_admin(pool);
-    lock  = bplib_mpool_lock_resource(pool);
-    flow  = bplib_mpool_flow_cast(cb);
+    pool  = BPLib_STOR_CACHE_GetParentPoolFromLink(cb);
+    admin = BPLib_STOR_CACHE_GetAdmin(pool);
+    lock  = BPLib_STOR_CACHE_LockResource(pool);
+    flow  = BPLib_STOR_CACHE_FlowCast(cb);
     if (flow != NULL)
     {
         next_flags = flow->pending_state_flags;
@@ -544,15 +544,15 @@ bool bplib_mpool_flow_modify_flags(bplib_mpool_block_t *cb, uint32_t set_bits, u
         if (flags_changed)
         {
             flow->pending_state_flags = next_flags;
-            bplib_mpool_job_mark_active_internal(&admin->active_list, &flow->statechange_job.base_job);
-            bplib_mpool_lock_broadcast_signal(lock);
+            BPLib_STOR_CACHE_JobMarkActiveInternal(&admin->active_list, &flow->statechange_job.base_job);
+            BPLib_STOR_CACHE_LockBroadcastSignal(lock);
         }
     }
     else
     {
         flags_changed = false;
     }
-    bplib_mpool_lock_release(lock);
+    BPLib_STOR_CACHE_LockRelease(lock);
 
     return flags_changed;
 

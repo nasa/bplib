@@ -28,7 +28,7 @@
 
 /**
  * Abstract declarations require bplib_mem.h.
- * For example: "typedef struct bplib_mpool_block bplib_mpool_block_t;""
+ * For example: "typedef struct BPLib_MEM_block BPLib_MEM_block_t;""
  * For internal use, include blib_mem.h befor bplib_api_types.h.
  * #include "bplib_mem.h"
  * #include "bplib_api_types.h" 
@@ -81,8 +81,8 @@ struct bp_desc;
 typedef struct bp_desc   bp_desc_t;
 typedef struct bp_socket bp_socket_t;
 
-typedef struct bplib_mpool_block bplib_mpool_block_t;
-typedef struct bplib_mpool       bplib_mpool_t;
+typedef struct BPLib_MEM_block BPLib_MEM_block_t;
+typedef struct BPLib_MEM       BPLib_MEM_t;
 
 typedef struct bplib_cache_block bplib_cache_block_t;
 typedef struct bplib_cache       bplib_cache_t;
@@ -93,10 +93,10 @@ typedef struct bplib_cache_module_api bplib_cache_module_api_t;
  * @brief A reference to another mem block
  *
  * @note At this scope the definition of this pointer is abstract.  Application
- * code should use bplib_mpool_dereference() to obtain the pointer to the block
+ * code should use BPLib_MEM_dereference() to obtain the pointer to the block
  * that this refers to.
  */
-typedef struct bplib_mpool_block_content *bplib_mpool_ref_t;
+typedef struct BPLib_MEM_BlockContent *BPLib_MEM_ref_t;
 
 /**
  * @brief Callback frunction for various mem block actions
@@ -108,7 +108,7 @@ typedef struct bplib_mpool_block_content *bplib_mpool_ref_t;
  * The return value depends on the context and may or may not be used, it
  * should should return 0 unless otherwise specified.
  */
-typedef int (*bplib_mpool_callback_func_t)(void *, bplib_mpool_block_t *);
+typedef int (*BPLib_MEM_CallbackFunc_t)(void *, BPLib_MEM_block_t *);
 
 /**
  * @brief Type of block CRC calculated by bplib
