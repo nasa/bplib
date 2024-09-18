@@ -40,3 +40,35 @@ int BPLib_PL_Init(void)
 
     return UT_GenStub_GetReturnValue(BPLib_PL_Init, int);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_FWP_PL_PerfLog_Entry()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PL_PerfLogEntry(uint32_t PerfLogID) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_PL_PerfLogEntry, BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_PL_PerfLogEntry, uint32_t, PerfLogID);
+
+  UT_GenStub_Execute(BPLib_PL_PerfLogEntry, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_PL_PerfLogEntry, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_FWP_PL_PerfLog_Exit()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PL_PerfLogExit(uint32_t PerfLogID) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_PL_PerfLogExit, BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_PL_PerfLogExit, uint32_t, PerfLogID);
+
+  UT_GenStub_Execute(BPLib_PL_PerfLogExit, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_PL_PerfLogExit, BPLib_Status_t);
+}

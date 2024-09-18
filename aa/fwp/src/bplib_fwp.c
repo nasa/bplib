@@ -69,29 +69,3 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
 
     return BPLIB_SUCCESS;
 }
-
-BPLib_Status_t BPLib_FWP_PL_PerfLog_Entry(uint32_t PerfLogID)
-{
-    if (BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry)
-    {
-        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry(PerfLogID);
-    }
-    else 
-    {
-        return BPLIB_FWP_PL_NULL_CALLBACK_ERROR;                
-    }
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPLib_FWP_PL_PerfLog_Exit(uint32_t PerfLogID)
-{
-    if (BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit)
-    {
-        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit(PerfLogID);
-    }
-    else 
-    {
-        return BPLIB_FWP_PL_NULL_CALLBACK_ERROR;        
-    }
-    return BPLIB_SUCCESS;        
-}

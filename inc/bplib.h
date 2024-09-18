@@ -32,6 +32,7 @@ extern "C" {
 #include "bplib_api_types.h"
 #include "bplib_time.h"
 #include "bplib_fwp.h"
+#include "bplib_pl.h"
 
 #ifdef __cplusplus
 } // extern "C"

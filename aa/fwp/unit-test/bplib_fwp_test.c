@@ -181,33 +181,6 @@ void Test_BPLib_FWP_Init_PERFLOGP_ExitNull(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
-void Test_BPLib_FWP_PL_PerfLog_EntryNominal(void)
-{
-    uint32_t PerfLogID = 10;
-    BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry = BPA_PERFLOGP_Entry;
-    UtAssert_INT32_EQ(BPLib_FWP_PL_PerfLog_Entry(PerfLogID), BPLIB_SUCCESS);    
-}
-
-void Test_BPLib_FWP_PL_PerfLog_ExitNominal(void)
-{
-    uint32_t PerfLogID = 10;
-    BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit = BPA_PERFLOGP_Exit;
-    UtAssert_INT32_EQ(BPLib_FWP_PL_PerfLog_Exit(PerfLogID), BPLIB_SUCCESS);    
-}
-
-void Test_BPLib_FWP_PL_PerfLog_EntryNULL(void)
-{
-    uint32_t PerfLogID = 10;
-    memset(&BPLib_FWP_ProxyCallbacks, 0, sizeof(BPLib_FWP_ProxyCallbacks_t));
-    UtAssert_INT32_EQ(BPLib_FWP_PL_PerfLog_Entry(PerfLogID), BPLIB_FWP_PL_NULL_CALLBACK_ERROR);    
-}
-
-void Test_BPLib_FWP_PL_PerfLog_ExitNULL(void)
-{
-    uint32_t PerfLogID = 10;
-    memset(&BPLib_FWP_ProxyCallbacks, 0, sizeof(BPLib_FWP_ProxyCallbacks_t));
-    UtAssert_INT32_EQ(BPLib_FWP_PL_PerfLog_Exit(PerfLogID), BPLIB_FWP_PL_NULL_CALLBACK_ERROR);    
-}
 
 void TestBplibFwp_Register(void)
 {
@@ -219,8 +192,4 @@ void TestBplibFwp_Register(void)
     UtTest_Add(Test_BPLib_FWP_Init_SingleTableUpdateNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SingleTableUpdateNull");
     UtTest_Add(Test_BPLib_FWP_Init_PERFLOGP_EntryNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_PERFLOGP_EntryNull");
     UtTest_Add(Test_BPLib_FWP_Init_PERFLOGP_ExitNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_PERFLOGP_ExitNull");
-    UtTest_Add(Test_BPLib_FWP_PL_PerfLog_EntryNULL, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_PL_PerfLog_EntryNULL");
-    UtTest_Add(Test_BPLib_FWP_PL_PerfLog_ExitNULL, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_PL_PerfLog_ExitNULL");
-    UtTest_Add(Test_BPLib_FWP_PL_PerfLog_EntryNominal, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_PL_PerfLog_EntryNominal");
-    UtTest_Add(Test_BPLib_FWP_PL_PerfLog_ExitNominal, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_PL_PerfLog_ExitNominal");
 }
