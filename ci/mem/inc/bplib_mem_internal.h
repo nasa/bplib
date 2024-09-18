@@ -28,7 +28,6 @@
 // #include "bplib_os.h" // TODO Unstub bplib_os functions.
 #include "bplib_mem.h"
 #include "bplib_rbtree.h"
-#include "bplib_mem_bblocks.h"
 #include "bplib_mem_ref.h"
 
 /*
@@ -69,7 +68,7 @@ typedef union bplib_mpool_aligned_data
 typedef struct bplib_mpool_api_content
 {
     bplib_rbt_link_t            rbt_link;
-    bplib_mpool_blocktype_api_t api;
+    // STOR bplib_mpool_blocktype_api_t api;
     size_t                      user_content_size;
     bplib_mpool_aligned_data_t  user_data_start;
 } bplib_mpool_api_content_t;
@@ -79,31 +78,25 @@ typedef struct bplib_mpool_generic_data_content
     bplib_mpool_aligned_data_t user_data_start;
 } bplib_mpool_generic_data_content_t;
 
-typedef struct bplib_mpool_bblock_primary_content
-{
-    bplib_mpool_bblock_primary_t pblock;
-    bplib_mpool_aligned_data_t   user_data_start;
-} bplib_mpool_bblock_primary_content_t;
-
-typedef struct bplib_mpool_bblock_canonical_content
-{
-    bplib_mpool_bblock_canonical_t cblock;
-    bplib_mpool_aligned_data_t     user_data_start;
-} bplib_mpool_bblock_canonical_content_t;
-
-#ifdef STOR // duct
-typedef struct bplib_mpool_flow_content
-{
-    bplib_mpool_flow_t         fblock;
-    bplib_mpool_aligned_data_t user_data_start;
-} bplib_mpool_flow_content_t;
-#endif // STOR
-
 typedef struct bplib_mpool_block_ref_content
 {
     bplib_mpool_ref_t          pref_target;
     bplib_mpool_aligned_data_t user_data_start;
 } bplib_mpool_block_ref_content_t;
+
+struct bplib_mem_subq_base
+{
+    bplib_mpool_block_t block_list;
+
+    /* note - "unsigned int" is chosen here as it is likely to be
+     * a single-cycle read in most CPUs.  The range is not as critical
+     * because what matters is the difference between these values.
+     * The "volatile" qualification helps ensure the values are read as they
+     * appear in code and are not rearranged by the compiler, as they could
+     * be changed by other threads.  */
+    volatile unsigned int push_count;
+    volatile unsigned int pull_count;
+};
 
 typedef struct bplib_mpool_block_admin_content
 {
@@ -117,8 +110,8 @@ typedef struct bplib_mpool_block_admin_content
     bplib_mpool_api_content_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
     bplib_mpool_api_content_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
 
-    bplib_mpool_subq_base_t *free_blocks;    /**< blocks which are available for use */
-    bplib_mpool_subq_base_t *recycle_blocks; /**< blocks which can be garbage-collected */
+    bplib_mem_subq_base_t *free_blocks;    /**< blocks which are available for use */
+    bplib_mem_subq_base_t *recycle_blocks; /**< blocks which can be garbage-collected */
 
     /* note that the active_list and managed_block_list are not FIFO in nature, as blocks
      * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
@@ -132,8 +125,8 @@ typedef union bplib_mpool_block_buffer
 {
     bplib_mpool_generic_data_content_t     generic_data;
     bplib_mpool_api_content_t              api;
-    bplib_mpool_bblock_primary_content_t   primary;
-    bplib_mpool_bblock_canonical_content_t canonical;
+    // STOR bplib_mpool_bblock_primary_content_t   primary;
+    // STOR bplib_mpool_bblock_canonical_content_t canonical;
     // TODO fix STOR duct
     // STOR bplib_mpool_flow_content_t             flow;
     bplib_mpool_block_ref_content_t        ref;
@@ -255,6 +248,7 @@ bplib_mpool_lock_t *bplib_mpool_lock_resource(void *resource_addr);
  */
 bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime);
 
+#ifdef STOR // blocktype or subq
 void bplib_mpool_bblock_primary_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_primary_t *pblk);
 void bplib_mpool_bblock_canonical_init(bplib_mpool_block_t *base_block, bplib_mpool_bblock_canonical_t *cblk);
 void bplib_mpool_subq_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_base_t *qblk);
@@ -280,6 +274,8 @@ void bplib_mpool_subq_push_single(bplib_mpool_subq_base_t *subq, bplib_mpool_blo
  */
 bplib_mpool_block_t *bplib_mpool_subq_pull_single(bplib_mpool_subq_base_t *subq);
 
+#endif // STOR blocktype or subq
+
 /**
  * @brief Counts the number of blocks in a list
  *
@@ -292,6 +288,7 @@ bplib_mpool_block_t *bplib_mpool_subq_pull_single(bplib_mpool_subq_base_t *subq)
  */
 uint32_t bplib_mpool_list_count_blocks(bplib_mpool_block_t *list);
 
+#ifdef STOR // subq
 /**
  * @brief Pushes an entire list of blocks into a subq
  *
@@ -334,10 +331,12 @@ uint32_t bplib_mpool_subq_move_all(bplib_mpool_subq_base_t *subq_dst, bplib_mpoo
  */
 uint32_t bplib_mpool_subq_drop_all(bplib_mpool_t *pool, bplib_mpool_subq_base_t *subq);
 
+#endif // STOR subq
+
 #ifdef STOR // job
 void bplib_mpool_job_cancel_internal(bplib_mpool_job_t *job);
 void bplib_mpool_job_mark_active_internal(bplib_mpool_block_t *active_list, bplib_mpool_job_t *job);
-#endif //STOR
+#endif //STOR job
 
 /* gets to the underlying block content (which may be a ref block) */
 bplib_mpool_block_content_t       *bplib_mpool_get_block_content(bplib_mpool_block_t *cb);
@@ -349,8 +348,10 @@ bplib_mpool_block_content_t *bplib_mpool_block_dereference_content(bplib_mpool_b
 void bplib_mpool_init_base_object(bplib_mpool_block_header_t *block_hdr, uint16_t user_content_length,
                                   uint32_t content_type_signature);
 
+#ifdef STOR // blocktype
 bplib_mpool_block_content_t *bplib_mpool_alloc_block_internal(bplib_mpool_t *pool, bplib_mpool_blocktype_t blocktype,
                                                               uint32_t content_type_signature, void *init_arg,
                                                               uint8_t priority);
+#endif // STOR blocktype
 
 #endif /* BPLIB_MEM_INTERNAL_H */

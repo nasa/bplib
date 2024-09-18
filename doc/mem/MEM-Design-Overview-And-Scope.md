@@ -684,3 +684,53 @@ bplib_mpool_bblock_primary_alloc => BPLib_BC_bundle_create
 3. Use uppercase for the short names except "file_offload".
 4. The persistent storage short name will be “file_offload”.
 
+First, move bplib_mpool_bblock to BC: BPLib_BC_bundle. If bundle alone doesn't make sense, maybe bundle_t or least liked bundle_block.
+
+mv bplib/ci/mem/inc/bplib_mem_bblocks.h          bplib/bpa/s/cache/inc/bplib_bc_bundle.h
+Only bplib_mem_internal.h and bplib_mem.c used bplib_mem_bblocks.h
+Transplant from bplib_mem_internal.h to bplib/bpa/s/cache/inc/bplib_cache_internal.h
+
+bplib_mpool uses "subq" and "flow". Are "subq", "flow", and "duct" synonyms?
+
+From this declaration in bplib_mem_internal.h:
+
+```
+**
+ * @brief Append a single bundle to the given queue (flow)
+ *
+ * @note This should only be called from internal contexts where a lock is held
+ *
+ * @param subq
+ * @param cpb
+ */
+void bplib_mpool_subq_push_single(bplib_mpool_subq_base_t *subq, bplib_mpool_block_t *cpb);
+```
+
+Assuming so, transplant "subq" things to QM, except "subq" sometimes means "the mem block list".
+See this code in bplib_mem.c:
+
+```
+    while (remain >= sizeof(bplib_mpool_block_content_t))
+    {
+        #ifdef STOR // blocktype or subq
+        bplib_mpool_link_reset(&pchunk->header.base_link, bplib_mpool_blocktype_undefined, pchunk - &pool->admin_block);
+        bplib_mpool_subq_push_single(admin->free_blocks, &pchunk->header.base_link);
+        #endif STOR // blocktype or subq
+        remain -= sizeof(bplib_mpool_block_content_t);
+        ++pchunk;
+        ++admin->num_bufs_total;
+    }
+```
+
+subq, flow, and duct:
+MEM stores memory pool blocks in linked lists called "mem subqs". BC stores cache blocks in "cache subqs". QM stores ducts, job queues, and bundle queues in queues, which are abstractions of cache subqs. The meaning of "flow" is overloaded: "pseudocode flow", "flow diagram", "bundle flow", etc.
+
+"Duct" means the subq of bundles from a bundle queue that is queued for transmission to the same next node in the BP network. A duct defines how bundles "hop" to the next node.
+
+The MEM memory pool is a subq. The job queues, duct queues, and bundle queues are types of subqs too.
+
+The MEM free and allocated memory lists are subqs. A subq can have a single entry, in which case it is a "singleton".
+
+The MEM "active" list is identified by a pointer to a bplib_mpool_block_t that is the head node.
+
+Even with the decoupling of MEM and BC there is still some overlap in terms, such as MEM subq and BC subq. It might be better to call them MEM block list and CACHE block list. And they both have "sub-lists" of allocated and free blocks.
