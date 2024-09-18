@@ -43,60 +43,17 @@
 #define BPLIB_MPOOL_ALLOC_PRI_MHI 191
 #define BPLIB_MPOOL_ALLOC_PRI_HI  255
 
-/*
- * The basic types of blocks which are cacheable in the mem
- */
-typedef struct bplib_mpool_bblock_primary   bplib_mpool_bblock_primary_t;
-typedef struct bplib_mpool_bblock_canonical bplib_mpool_bblock_canonical_t;
-
-typedef struct bplib_mpool_subq_base bplib_mpool_subq_base_t;
-typedef struct bplib_mpool_flow      bplib_mpool_flow_t;
-
-typedef enum bplib_mpool_blocktype
-{
-    bplib_mpool_blocktype_undefined = 0,
-
-    /*
-     * Note, the enum value here does matter -- these block types
-     * are all refcount-capable, and thus are grouped together so this
-     * can be implemented as a range check.  Do not change the
-     * order of enum values without also updating the checks.
-     */
-    bplib_mpool_blocktype_api       = 1,
-    bplib_mpool_blocktype_generic   = 2,
-    bplib_mpool_blocktype_primary   = 4,
-    bplib_mpool_blocktype_canonical = 5,
-    bplib_mpool_blocktype_flow      = 6,
-    bplib_mpool_blocktype_ref       = 7,
-    bplib_mpool_blocktype_max       = 8, /* placeholder for the max "regular" block type */
-
-    /*
-     * All of these block types are _not_ at the beginning of the structure,
-     * these are members within the structures.  Their position within the parent
-     * is indicated in the parent_offset field so the parent block pointer can be
-     * reconstituted from one of these secondary indices.
-     */
-
-    bplib_mpool_blocktype_secondary_generic = 100,
-    bplib_mpool_blocktype_list_head         = 101,
-    bplib_mpool_blocktype_job               = 102, /* a job or pending work item to do */
-    bplib_mpool_blocktype_secondary_max     = 103,
-
-    /* The administrative block will be marked with 0xFF, this still permits the
-     * type to be stored as a uint8_t if needed to save bits */
-    bplib_mpool_blocktype_admin = 255
-
-} bplib_mpool_blocktype_t;
-
 struct bplib_mpool_block
 {
     /* note that if it becomes necessary to recover bits here,
-     * both the type and offset could be reduced in size */
-    bplib_mpool_blocktype_t   type;
+     * the offset could be reduced in size */
+    // STOR bplib_mpool_blocktype_t   type; // Moved to bplib_cache_block
     uint32_t                  parent_offset;
     struct bplib_mpool_block *next;
     struct bplib_mpool_block *prev;
 };
+
+typedef struct bplib_mem_subq_base bplib_mem_subq_base_t;
 
 /*
  * Enumeration that defines the various possible routing table events.  This enum
@@ -123,6 +80,8 @@ typedef struct bplib_mpool_list_iter
     bplib_mpool_block_t *pending_entry;
 } bplib_mpool_list_iter_t;
 
+#ifdef STOR // blocktype
+
 /**
  * @brief Blocktype API
  *
@@ -135,6 +94,8 @@ typedef struct bplib_mpool_blocktype_api
     bplib_mpool_callback_func_t destruct;  /**< De-initialize a recycled block */
 
 } bplib_mpool_blocktype_api_t;
+
+#endif // STOR blocktype
 
 /**
  * @brief Gets the next block in a list of blocks
@@ -182,6 +143,7 @@ static inline bool bplib_mpool_is_link_unattached(const bplib_mpool_block_t *lis
     return (list->next == list);
 }
 
+#ifdef STOR // blocktype
 /**
  * @brief Checks if this block is the head of a list
  *
@@ -279,6 +241,8 @@ static inline bp_handle_t bplib_mpool_get_external_id(const bplib_mpool_block_t 
     return bp_handle_from_serial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
 }
 
+#endif // STOR blocktype
+
 bplib_mpool_block_t *bplib_mpool_block_from_external_id(bplib_mpool_t *pool, bp_handle_t handle);
 
 /* basic list iterators (forward or reverse) */
@@ -327,6 +291,8 @@ int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter);
  */
 int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter);
 
+#ifdef STOR // blocktype
+
 /**
  * @brief Initialize a secondary link for block indexing purposes
  *
@@ -371,6 +337,8 @@ bplib_mpool_block_t *bplib_mpool_get_block_from_link(bplib_mpool_block_t *lblk);
  * @return size_t
  */
 size_t bplib_mpool_get_user_data_offset_by_blocktype(bplib_mpool_blocktype_t bt);
+
+#endif // STOR blocktype
 
 /**
  * @brief Gets the capacity (maximum size) of the generic data block
@@ -467,6 +435,7 @@ bplib_mpool_t *bplib_mpool_get_parent_pool_from_link(bplib_mpool_block_t *cb);
  */
 void *bplib_mpool_generic_data_cast(bplib_mpool_block_t *cb, uint32_t required_magic);
 
+#ifdef STOR // blocktype
 /**
  * @brief Cast a generic user data segment to its parent block
  *
@@ -507,6 +476,7 @@ size_t bplib_mpool_get_user_content_size(const bplib_mpool_block_t *cb);
  * @return size_t
  */
 size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb);
+#endif // STOR blocktype
 
 /**
  * @brief Allocate a new user data block
@@ -530,6 +500,7 @@ bplib_mpool_block_t *bplib_mpool_generic_data_alloc(bplib_mpool_t *pool, uint32_
  */
 void bplib_mpool_recycle_block(bplib_mpool_block_t *blk);
 
+#ifdef STOR // blocktype
 /**
  * @brief Recycle an entire list of blocks which are no longer needed
  *
@@ -624,6 +595,8 @@ void bplib_mpool_maintain(bplib_mpool_t *pool);
  */
 int bplib_mpool_register_blocktype(bplib_mpool_t *pool, uint32_t magic_number, const bplib_mpool_blocktype_api_t *api,
                                    size_t user_content_size);
+
+#endif // STOR blocktype
 
 /**
  * @brief Creates a memory pool object using a preallocated memory block

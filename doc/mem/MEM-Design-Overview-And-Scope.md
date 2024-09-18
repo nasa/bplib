@@ -46,24 +46,38 @@ BPA Modules can request blocks of memory to store bundles (and other things).
 
 #### In Scope/Out of Scope Allocation for this issue
 
-**IN** All of the CDR design elements listed above. Also requirement DTN.6.25060 Memory Allocator Telemetry. The content of the telemetry will be determined during implementation.
+**Relevant Requirements (from the DTNN-328 Description)**
 
-**IN** The Memory Allocator accepts the memory pool created by BPNode and uses only that memory pool for its operations.
+|Name|Text|
+|:- |:- |
+|DTN.6.25000|Upon accepting a node-shutdown request from AA Node Configuration, CI Memory Allocator shall release the allocated memory.|
+|DTN.6.25010|Upon request, CI Memory Allocator shall provide memory in fixed size blocks to the requsted module.|
+|DTN.6.25020|If there is no available memory, CI Memory Allocator shall reply with an error indication.|
+|DTN.6.25030|CI Memory allocator shall free memory blocks when requested.|
+|DTN.6.25040|Upon initialization, CI Memory Allocator shall configure the available memory pool size.|
+|DTN.6.25050|CI Memory Allocator shall have predictable execution time for free and allocate operations.|
+|DTN.6.25060|Upon request from AA Node Configuration, CI Memory Allocator shall send telemetry to AA Framework Proxy per the Monitor and Control ICD.|
 
-At least one type of bundle data model will be used to implement and test the Memory Allocator because it will lead to a smoother transition to Jira Issue DTNN-339 Bundle Cache and Bundle Queue.
+**IN** All of the CDR design elements for the requirements listed above. Also requirement DTN.6.25060 Memory Allocator Telemetry. The content of the telemetry will be determined during implementation.
 
-**IN** Bundles in the memory pool consist of:
-**IN** Primary Block
-**IN** List of Canonical Blocks ending with the payload block (CBLOCK_LIST)
-**IN** For primary and canonical blocks, links to other blocks (CHUNK_LIST)
-**IN** Payload Block
+**IN** The Memory Allocator (MEM) accepts the fixed memory allocation created by BPNode and uses only that memory allocation as the memory pool for its operations.
 
-One type of `deserialized_bundle` or `flat_bundle` data structure will be chosen for development and test of the Memory Allocator.
+**IN** MEM manages memory blocks in its memory pool.
+
+**OUT** Storage cache manages memory bundle blocks and other cache-related memory block types.
+
+Note: **OUT** means "Migrated to Storage".
+
+**OUT** Bundles in the Storage cache-related memory block types consist of:
+**OUT** Primary Block
+**OUT** List of Canonical Blocks ending with the payload block (CBLOCK_LIST)
+**OUT** For primary and canonical blocks, links to other blocks (CHUNK_LIST)
+**OUT** Payload Block
+
+**OUT** One type of `deserialized_bundle` or `flat_bundle` data structure will be chosen for development and test of the Memory Allocator.
 The type of internal data representation for a bundle will be selectable at compile-time even though in this implementation there will be only one type.
 
-**IN** One type of internal data model for bundle.
-
-Jira Issue DTNN-339 defines the task to create Bundle Cache and Bundle Queue so those are out of scope for this issue.
+Jira Issue DTNN-339 defines the task to create Bundle Cache and Bundle Queue. They are out of scope for this issue.
 
 **OUT** Blocks of memory pool memory are also used for other purposes such as job queues, references, etc.
 
@@ -111,7 +125,7 @@ The CDR API names will be changed to `dtn-cfs bplib` names as follows:
 End of Jira Initial Comment
 
 ----
-#### DDependencies of MEM components on Prototype Components
+#### Dependencies of MEM components on Prototype Components
 
 Analysis of the `mem` component content inherited from the `mpool` implementation revealed important dependencies that need to be met and eventually pared-back to the essentials.
 
@@ -498,7 +512,7 @@ mv ci/mem/common/src/crc.c                                  ci/mem/common/src/bp
 mv ci/mem/common/src/crc_private.h                          ci/mem/common/src/bplib_crc_private.h
 mv ci/mem/common/ut-coverage                                ci/mem/common/unit-test
 mv ci/mem/common/ut_stubs                                   ci/mem/common/unit-test/stubs
-
+```
 
 Update the .h filenames in the .c files.
 

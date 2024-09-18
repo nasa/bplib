@@ -25,6 +25,7 @@
 
 #include "test_bplib_mpool.h"
 #include "bplib_mem.h"
+#include "bplib_os.h"
 
 const uint32 UT_TESTBLOCKTYPE_SIG = 0x5f33c01a;
 
@@ -551,6 +552,7 @@ void test_bplib_mpool_generic_data_alloc(void)
 
 void test_bplib_mpool_recycle_all_blocks_in_list(void)
 {
+    #ifdef STOR // cache
     /* Test function for:
      * void bplib_mpool_recycle_all_blocks_in_list(bplib_mpool_t *pool, bplib_mpool_block_t *list)
      */
@@ -582,10 +584,12 @@ void test_bplib_mpool_recycle_all_blocks_in_list(void)
     UtAssert_VOIDCALL(bplib_mpool_recycle_all_blocks_in_list(NULL, &buf.blk[0].u.primary.pblock.cblock_list));
     UtAssert_ADDRESS_EQ(bplib_mpool_get_next_block(&admin->recycle_blocks.block_list), &buf.blk[2].header.base_link);
     UtAssert_ADDRESS_EQ(bplib_mpool_get_prev_block(&admin->recycle_blocks.block_list), &buf.blk[1].header.base_link);
+    #endif // STOR cache
 }
 
 void test_bplib_mpool_recycle_block(void)
 {
+    #ifdef STOR // cache
     /* Test function for:
      * void bplib_mpool_recycle_block(bplib_mpool_block_t *blk)
      */
@@ -606,6 +610,7 @@ void test_bplib_mpool_recycle_block(void)
     UtAssert_VOIDCALL(bplib_mpool_recycle_block(&buf.blk[1].header.base_link));
     UtAssert_ADDRESS_EQ(bplib_mpool_get_next_block(&admin->recycle_blocks.block_list), &buf.blk[1].header.base_link);
     UtAssert_ADDRESS_EQ(bplib_mpool_get_next_block(&admin->active_list), &buf.blk[0].header.base_link);
+    #endif // STOR cache
 }
 
 void test_bplib_mpool_list_iter_goto_first(void)
