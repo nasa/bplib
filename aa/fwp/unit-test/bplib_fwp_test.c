@@ -179,7 +179,7 @@ void Test_BPLib_FWP_Init_SingleTableUpdateNull(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
-void Test_BPLib_FWP_Init_EVP_Init(void)
+void Test_BPLib_FWP_Init_EVP_InitNull(void)
 {
     BPLib_FWP_ProxyCallbacks_t Callbacks;
 
@@ -188,7 +188,7 @@ void Test_BPLib_FWP_Init_EVP_Init(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
-void Test_BPLib_FWP_Init_EVP_SendEvent(void)
+void Test_BPLib_FWP_Init_EVP_SendEventNull(void)
 {
     BPLib_FWP_ProxyCallbacks_t Callbacks;
 
