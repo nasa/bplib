@@ -58,9 +58,8 @@ BPLib_Status_t BPLib_EM_Init(void);
   * \details Description
   *          Platform-independent routine generation of a software event
   * \return  Execution status
-  * \retval  BPLIB_SUCCESS: Event was successful generated
-  * \retval  BPLIB_ERROR: The max or min length of a message was violated
-  * \retval  BPLIB_EM_STRING_TRUNCATED: The input string was truncated due to size limitations
+  * \retval  BPLIB_SUCCESS (0): Event was successful generated
+  * \retval  BPLIB_EM_EXPANDED_TEXT_ERROR (-14u): An error occured when using vsprintf
   */
 BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText, ...);
 
