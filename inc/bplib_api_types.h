@@ -28,7 +28,7 @@
 
 /**
  * Abstract declarations require bplib_mem.h.
- * For example: "typedef struct BPLib_STOR_MEM_block BPLib_STOR_MEM_Block_t;""
+ * For example: "typedef struct BPLib_MEM_block BPLib_MEM_Block_t;""
  * For internal use, include blib_mem.h befor bplib_api_types.h.
  * #include "bplib_mem.h"
  * #include "bplib_api_types.h" 
@@ -81,11 +81,11 @@ struct bp_desc;
 typedef struct bp_desc   bp_desc_t;
 typedef struct bp_socket bp_socket_t;
 
-typedef struct BPLib_STOR_MEM_Block BPLib_STOR_MEM_Block_t;
-typedef struct BPLib_STOR_MEM_Pool       BPLib_STOR_MEM_Pool_t;
+typedef struct BPLib_MEM_Block    BPLib_MEM_Block_t;
+typedef struct BPLib_MEM_Pool     BPLib_MEM_Pool_t;
 
-typedef struct BPLib_STOR_CACHE_Block BPLib_STOR_CACHE_Block_t;
-typedef struct BPLib_STOR_CACHE_Module       BPLib_STOR_CACHE_Module_t;
+typedef struct BPLib_STOR_CACHE_Block     BPLib_STOR_CACHE_Block_t;
+typedef struct BPLib_STOR_CACHE_Module    BPLib_STOR_CACHE_Module_t;
 
 typedef struct BPLib_STOR_CACHE_Module_module_api BPLib_STOR_CACHE_Module_module_api_t;
 
@@ -93,10 +93,10 @@ typedef struct BPLib_STOR_CACHE_Module_module_api BPLib_STOR_CACHE_Module_module
  * @brief A reference to another mem block
  *
  * @note At this scope the definition of this pointer is abstract.  Application
- * code should use BPLib_STOR_MEM_dereference() to obtain the pointer to the block
+ * code should use BPLib_MEM_dereference() to obtain the pointer to the block
  * that this refers to.
  */
-typedef struct BPLib_STOR_MEM_BlockContent *BPLib_STOR_MEM_ref_t;
+typedef struct BPLib_MEM_BlockContent *BPLib_MEM_ref_t;
 
 /**
  * @brief Callback frunction for various mem block actions
@@ -108,7 +108,7 @@ typedef struct BPLib_STOR_MEM_BlockContent *BPLib_STOR_MEM_ref_t;
  * The return value depends on the context and may or may not be used, it
  * should should return 0 unless otherwise specified.
  */
-typedef int (*BPLib_STOR_MEM_CallbackFunc_t)(void *, BPLib_STOR_MEM_Block_t *);
+typedef int (*BPLib_MEM_CallbackFunc_t)(void *, BPLib_MEM_Block_t *);
 
 /**
  * @brief Type of block CRC calculated by bplib
