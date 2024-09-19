@@ -30,11 +30,11 @@
  * @brief Gets the actual block from a reference pointer (dereference)
  *
  * @param refptr
- * @return BPLib_STOR_MEM_Block_t*
+ * @return BPLib_MEM_Block_t*
  */
-static inline BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_Dereference(BPLib_STOR_MEM_Ref_t refptr)
+static inline BPLib_MEM_Block_t *BPLib_MEM_Dereference(BPLib_MEM_Ref_t refptr)
 {
-    return (BPLib_STOR_MEM_Block_t *)refptr;
+    return (BPLib_MEM_Block_t *)refptr;
 }
 
 /**
@@ -46,11 +46,11 @@ static inline BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_Dereference(BPLib_STOR_MEM_
  * object from being garbage collected.
  *
  * References must be explicitly tracked and released by the user when
- * no longer needed, using BPLib_STOR_MEM_RefRelease()
- * no longer needed, using BPLib_STOR_MEM_RefRelease()
+ * no longer needed, using BPLib_MEM_RefRelease()
+ * no longer needed, using BPLib_MEM_RefRelease()
  *
- * References may also be duplicated via BPLib_STOR_MEM_RefDuplicate()
- * References may also be duplicated via BPLib_STOR_MEM_RefDuplicate()
+ * References may also be duplicated via BPLib_MEM_RefDuplicate()
+ * References may also be duplicated via BPLib_MEM_RefDuplicate()
  *
  * After this call, the passed in blk becomes managed by the pool.
  *
@@ -58,27 +58,27 @@ static inline BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_Dereference(BPLib_STOR_MEM_
  * use the blk pointer that was passed in.  It should only use the reference pointers.
  *
  * @param blk
- * @return BPLib_STOR_MEM_Ref_t*
+ * @return BPLib_MEM_Ref_t*
  */
-BPLib_STOR_MEM_Ref_t BPLib_STOR_MEM_RefCreate(BPLib_STOR_MEM_Block_t *blk);
+BPLib_MEM_Ref_t BPLib_MEM_RefCreate(BPLib_MEM_Block_t *blk);
 
-BPLib_STOR_MEM_Ref_t BPLib_STOR_MEM_RefDuplicate(BPLib_STOR_MEM_Ref_t refptr);
-BPLib_STOR_MEM_Ref_t BPLib_STOR_MEM_RefFromBlock(BPLib_STOR_MEM_Block_t *rblk);
+BPLib_MEM_Ref_t BPLib_MEM_RefDuplicate(BPLib_MEM_Ref_t refptr);
+BPLib_MEM_Ref_t BPLib_MEM_RefFromBlock(BPLib_MEM_Block_t *rblk);
 
 /**
  * @brief Release a lightweight reference
  *
- * This must be invoked once a reference that was previously created by BPLib_STOR_MEM_RefCreate()
- * or BPLib_STOR_MEM_RefDuplicate() is no longer needed by the software application.
- * This must be invoked once a reference that was previously created by BPLib_STOR_MEM_RefCreate()
- * or BPLib_STOR_MEM_RefDuplicate() is no longer needed by the software application.
+ * This must be invoked once a reference that was previously created by BPLib_MEM_RefCreate()
+ * or BPLib_MEM_RefDuplicate() is no longer needed by the software application.
+ * This must be invoked once a reference that was previously created by BPLib_MEM_RefCreate()
+ * or BPLib_MEM_RefDuplicate() is no longer needed by the software application.
  *
  * This decrements the reference count, and if the reference count reaches 0, it also recycles the
  * original object.
  *
  * @param refptr
  */
-void BPLib_STOR_MEM_RefRelease(BPLib_STOR_MEM_Ref_t refptr);
+void BPLib_MEM_RefRelease(BPLib_MEM_Ref_t refptr);
 
 /**
  * @brief Creates a separate block reference to the data block
@@ -87,20 +87,20 @@ void BPLib_STOR_MEM_RefRelease(BPLib_STOR_MEM_Ref_t refptr);
  * of the actual data block wherever a data block is expected, such as for queuing and storage.
  *
  * A reference of this type does not need to be explicitly released by the user, as it
- * will be automatically  released when the block is recycled via BPLib_STOR_MEM_RecycleBlock()
- * or BPLib_STOR_MEM_RecycleAllBlocksInList()
- * will be automatically  released when the block is recycled via BPLib_STOR_MEM_RecycleBlock()
- * or BPLib_STOR_MEM_RecycleAllBlocksInList()
+ * will be automatically  released when the block is recycled via BPLib_MEM_RecycleBlock()
+ * or BPLib_MEM_RecycleAllBlocksInList()
+ * will be automatically  released when the block is recycled via BPLib_MEM_RecycleBlock()
+ * or BPLib_MEM_RecycleAllBlocksInList()
  *
  * @note This increments the refcount, so the calling application should call
- * BPLib_STOR_MEM_RefRelease() on the original ref if it does not keep it.
- * BPLib_STOR_MEM_RefRelease() on the original ref if it does not keep it.
+ * BPLib_MEM_RefRelease() on the original ref if it does not keep it.
+ * BPLib_MEM_RefRelease() on the original ref if it does not keep it.
  *
  * @param refptr
  * @param magic_number
  * @param init_arg Opaque pointer to pass to initializer (may be NULL)
- * @return BPLib_STOR_MEM_Block_t*
+ * @return BPLib_MEM_Block_t*
  */
-BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_RefMakeBlock(BPLib_STOR_MEM_Ref_t refptr, uint32_t magic_number, void *init_arg);
+BPLib_MEM_Block_t *BPLib_MEM_RefMakeBlock(BPLib_MEM_Ref_t refptr, uint32_t magic_number, void *init_arg);
 
 #endif /* BPLIB_MEM_REF_H */

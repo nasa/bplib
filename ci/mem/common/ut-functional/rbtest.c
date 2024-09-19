@@ -30,12 +30,12 @@
 
 typedef struct rbtest_node
 {
-    BPLib_STOR_MEM_RBT_Link_t    link;
+    BPLib_MEM_RBT_Link_t    link;
     int                 internal_value;
     struct rbtest_node *next_seq;
 } rbtest_node_t;
 
-BPLib_STOR_MEM_RBT_Root_t rbtree;
+BPLib_MEM_RBT_Root_t rbtree;
 
 rbtest_node_t *node_array;
 
@@ -47,7 +47,7 @@ rbtest_node_t *tail_used;
 osal_id_t rand_fd;
 
 /* Confirm the subtree confirms to the R-B tree constriants */
-int BPLib_STOR_MEM_RBT_CheckSubtree(int node_print_depth, BPLib_STOR_MEM_RBT_Link_t *node)
+int BPLib_MEM_RBT_CheckSubtree(int node_print_depth, BPLib_MEM_RBT_Link_t *node)
 {
     char           my_color;
     int            my_black_height;
@@ -59,13 +59,13 @@ int BPLib_STOR_MEM_RBT_CheckSubtree(int node_print_depth, BPLib_STOR_MEM_RBT_Lin
     right_black_height = 0;
     my_black_height    = 0;
 
-    if (BPLib_STOR_MEM_RBT_NodeIsRed(node))
+    if (BPLib_MEM_RBT_NodeIsRed(node))
     {
         /* the current node is red - the parent must not also be red.
          * this is one of the core constraints of the R-B tree algorithm */
 
         /* Note this only prints the assertion if not true, to avoid cluttering the log */
-        if (BPLib_STOR_MEM_RBT_NodeIsRed(node->parent))
+        if (BPLib_MEM_RBT_NodeIsRed(node->parent))
         {
             UtAssert_Failed("Red-Red constraint violated");
         }
@@ -83,16 +83,16 @@ int BPLib_STOR_MEM_RBT_CheckSubtree(int node_print_depth, BPLib_STOR_MEM_RBT_Lin
         {
             ++node_print_depth;
         }
-        right_black_height = BPLib_STOR_MEM_RBT_CheckSubtree(node_print_depth, node->right);
+        right_black_height = BPLib_MEM_RBT_CheckSubtree(node_print_depth, node->right);
         my_black_height += right_black_height;
         if (node_print_depth > 0)
         {
             rbtn_ptr = (rbtest_node_t *)node;
-            UtPrintf("%*s%-4lu[%-4d](%c/%d)\n", (node_print_depth - 1) * 3, "", BPLib_STOR_MEM_RBT_GetKeyValue(node),
+            UtPrintf("%*s%-4lu[%-4d](%c/%d)\n", (node_print_depth - 1) * 3, "", BPLib_MEM_RBT_GetKeyValue(node),
                      rbtn_ptr->internal_value, my_color, my_black_height);
         }
 
-        left_black_height = BPLib_STOR_MEM_RBT_CheckSubtree(node_print_depth, node->left);
+        left_black_height = BPLib_MEM_RBT_CheckSubtree(node_print_depth, node->left);
 
         /* Confirm the other constraint of an R-B tree, which is that the left side
          * and right side should have an equal black height. */
@@ -105,7 +105,7 @@ int BPLib_STOR_MEM_RBT_CheckSubtree(int node_print_depth, BPLib_STOR_MEM_RBT_Lin
     return my_black_height;
 }
 
-int rbtest_comparator(const BPLib_STOR_MEM_RBT_Link_t *link, void *arg)
+int rbtest_comparator(const BPLib_MEM_RBT_Link_t *link, void *arg)
 {
     rbtest_node_t *node;
     int            ref_val;
@@ -137,7 +137,7 @@ void bplib_rbtree_fuzz_stress_test(bool unique_only)
     uint8_t           threshold;
     bool              is_add;
     rbtest_node_t    *node_ptr;
-    BPLib_STOR_MEM_RBT_Link_t *removed_link_ptr;
+    BPLib_MEM_RBT_Link_t *removed_link_ptr;
 
     /*
      * Fuzz stress test -
@@ -219,11 +219,11 @@ void bplib_rbtree_fuzz_stress_test(bool unique_only)
 
             if (unique_only)
             {
-                status = BPLib_STOR_MEM_RBT_InsertValueUnique(value, &rbtree, &node_ptr->link);
+                status = BPLib_MEM_RBT_InsertValueUnique(value, &rbtree, &node_ptr->link);
             }
             else
             {
-                status = BPLib_STOR_MEM_RBT_InsertValueGeneric(value, &rbtree, &node_ptr->link, rbtest_comparator,
+                status = BPLib_MEM_RBT_InsertValueGeneric(value, &rbtree, &node_ptr->link, rbtest_comparator,
                                                         &node_ptr->internal_value);
             }
 
@@ -283,15 +283,15 @@ void bplib_rbtree_fuzz_stress_test(bool unique_only)
             }
 
             /* this should always succeed, as the list only contains values that were added */
-            value = BPLib_STOR_MEM_RBT_GetKeyValue(&node_ptr->link);
+            value = BPLib_MEM_RBT_GetKeyValue(&node_ptr->link);
             if (unique_only)
             {
-                removed_link_ptr = BPLib_STOR_MEM_RBT_SearchUnique(value, &rbtree);
+                removed_link_ptr = BPLib_MEM_RBT_SearchUnique(value, &rbtree);
             }
             else
             {
                 removed_link_ptr =
-                    BPLib_STOR_MEM_RBT_SearchGeneric(value, &rbtree, rbtest_comparator, &node_ptr->internal_value);
+                    BPLib_MEM_RBT_SearchGeneric(value, &rbtree, rbtest_comparator, &node_ptr->internal_value);
             }
 
             if (removed_link_ptr != &node_ptr->link)
@@ -300,10 +300,10 @@ void bplib_rbtree_fuzz_stress_test(bool unique_only)
                                 (void *)&node_ptr->link);
             }
 
-            status = BPLib_STOR_MEM_RBT_ExtractNode(&rbtree, removed_link_ptr);
+            status = BPLib_MEM_RBT_ExtractNode(&rbtree, removed_link_ptr);
             if (status != BP_SUCCESS)
             {
-                UtAssert_Failed("BPLib_STOR_MEM_RBT_ExtractNode() failed: %d", (int)status);
+                UtAssert_Failed("BPLib_MEM_RBT_ExtractNode() failed: %d", (int)status);
             }
 
             /* append back to "free" list */
@@ -322,7 +322,7 @@ void bplib_rbtree_fuzz_stress_test(bool unique_only)
         }
 
         /* after every operation, the R-B constraints should be satisfied */
-        if (BPLib_STOR_MEM_RBT_CheckSubtree(0, rbtree.root) != (1 + rbtree.black_height))
+        if (BPLib_MEM_RBT_CheckSubtree(0, rbtree.root) != (1 + rbtree.black_height))
         {
             UtAssert_Failed("RB black height mismatch");
         }

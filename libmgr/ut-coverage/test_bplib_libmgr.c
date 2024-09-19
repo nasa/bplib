@@ -82,14 +82,14 @@ void test_bplib_create_node_intf(void)
      */
     bplib_routetbl_t    rtbl;
     bp_ipn_t            node_num = 101;
-    BPLib_MEM_block_t sblk;
-    BPLib_MEM_ref_t   flow_ref;
-    BPLib_MEM_flow_t  flow;
+    BPLib_MEM_Block_t sblk;
+    BPLib_MEM_Ref_t   flow_ref;
+    BPLib_MEM_Flow_t  flow;
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
-    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
-    memset(&flow_ref, 0, sizeof(BPLib_MEM_ref_t));
-    memset(&flow, 0, sizeof(BPLib_MEM_flow_t));
+    memset(&sblk, 0, sizeof(BPLib_MEM_Block_t));
+    memset(&flow_ref, 0, sizeof(BPLib_MEM_Ref_t));
+    memset(&flow, 0, sizeof(BPLib_MEM_Flow_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_FlowAlloc), UT_lib_sizet_Handler, NULL);
     UtAssert_UINT32_EQ(bplib_create_node_intf(&rtbl, node_num).hdl, 0);
