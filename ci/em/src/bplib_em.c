@@ -57,7 +57,7 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
     Status = BPLIB_SUCCESS;
 
     va_start(EventTextArgPtr, Spec);
-    ExpandedLength = vsprintf((char*)ExpandedEventText, Spec, EventTextArgPtr);
+    ExpandedLength = vsprintf(ExpandedEventText, Spec, EventTextArgPtr);
     va_end(EventTextArgPtr);
 
     if (ExpandedLength < 0)

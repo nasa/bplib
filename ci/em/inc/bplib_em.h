@@ -25,7 +25,6 @@
 /* Include */
 /* ======= */
 #include "bplib_api_types.h"
-#include "cfe.h"
 #include <stdarg.h>
 
 /* ======== */
@@ -40,18 +39,6 @@ typedef enum
     BPLib_EM_EventType_ERROR    = 4,
     BPLib_EM_EventType_CRITICAL = 5
 } BPLib_EM_EventType_t;
-
-// This character is used as an indication
-// that the input string was truncated due
-// to reaching the size limit,
-// BPLIB_EM_MAX_MESSAGE_LENGTH/CFE_MISSION_EVS_MAX_MESSAGE_LENGTH
-#define BPLIB_EM_MSG_TRUNCATED ('$')
-
-// Defines the max length of the expanded event string
-// Limits:
-// - must be greater than or equal to 2
-// - must be less than or equal to host limit (CFE_MISSION_EVS_MAX_MESSAGE_LENGTH)
-#define BPLIB_EM_MAX_MESSAGE_LENGTH (CFE_MISSION_EVS_MAX_MESSAGE_LENGTH)
 
 /* ================== */
 /* Exported Functions */
