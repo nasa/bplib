@@ -47,7 +47,9 @@ static inline BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_Dereference(BPLib_STOR_MEM_
  *
  * References must be explicitly tracked and released by the user when
  * no longer needed, using BPLib_STOR_MEM_RefRelease()
+ * no longer needed, using BPLib_STOR_MEM_RefRelease()
  *
+ * References may also be duplicated via BPLib_STOR_MEM_RefDuplicate()
  * References may also be duplicated via BPLib_STOR_MEM_RefDuplicate()
  *
  * After this call, the passed in blk becomes managed by the pool.
@@ -68,6 +70,8 @@ BPLib_STOR_MEM_Ref_t BPLib_STOR_MEM_RefFromBlock(BPLib_STOR_MEM_Block_t *rblk);
  *
  * This must be invoked once a reference that was previously created by BPLib_STOR_MEM_RefCreate()
  * or BPLib_STOR_MEM_RefDuplicate() is no longer needed by the software application.
+ * This must be invoked once a reference that was previously created by BPLib_STOR_MEM_RefCreate()
+ * or BPLib_STOR_MEM_RefDuplicate() is no longer needed by the software application.
  *
  * This decrements the reference count, and if the reference count reaches 0, it also recycles the
  * original object.
@@ -85,8 +89,11 @@ void BPLib_STOR_MEM_RefRelease(BPLib_STOR_MEM_Ref_t refptr);
  * A reference of this type does not need to be explicitly released by the user, as it
  * will be automatically  released when the block is recycled via BPLib_STOR_MEM_RecycleBlock()
  * or BPLib_STOR_MEM_RecycleAllBlocksInList()
+ * will be automatically  released when the block is recycled via BPLib_STOR_MEM_RecycleBlock()
+ * or BPLib_STOR_MEM_RecycleAllBlocksInList()
  *
  * @note This increments the refcount, so the calling application should call
+ * BPLib_STOR_MEM_RefRelease() on the original ref if it does not keep it.
  * BPLib_STOR_MEM_RefRelease() on the original ref if it does not keep it.
  *
  * @param refptr

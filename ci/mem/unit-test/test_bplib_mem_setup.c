@@ -36,12 +36,14 @@ void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_
 int test_BPLib_STOR_MEM_CallbackStub(void *arg, BPLib_STOR_MEM_Block_t *blk)
 {
     return UT_DEFAULT_IMPL(test_BPLib_STOR_MEM_CallbackStub);
+    return UT_DEFAULT_IMPL(test_BPLib_STOR_MEM_CallbackStub);
 }
 
-void test_make_singleton_link(BPLib_STOR_MEM_pool_t *parent_pool, BPLib_STOR_MEM_Block_t *b)
+void test_make_singleton_link(BPLib_STOR_MEM_Pool_t *parent_pool, BPLib_STOR_MEM_Block_t *b)
 {
     if (parent_pool != NULL)
     {
+        b->parent_offset = ((uintptr_t)b - (uintptr_t)parent_pool) / sizeof(BPLib_STOR_MEM_BlockContent_t);
         b->parent_offset = ((uintptr_t)b - (uintptr_t)parent_pool) / sizeof(BPLib_STOR_MEM_BlockContent_t);
     }
     else
@@ -54,7 +56,7 @@ void test_make_singleton_link(BPLib_STOR_MEM_pool_t *parent_pool, BPLib_STOR_MEM
 }
 
 #ifdef STOR // blocktype
-void test_setup_mpblock(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_BlockContent_t *b, BPLib_STOR_MEM_Blocktype_t blktype,
+void test_setup_mpblock(BPLib_STOR_MEM_Pool_t *pool, BPLib_STOR_MEM_BlockContent_t *b, BPLib_STOR_MEM_Blocktype_t blktype,
                         uint32 sig)
 {
     b->header.base_link.type         = blktype;
@@ -71,7 +73,11 @@ void test_setup_mpblock(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_BlockContent
     {
         case BPLib_STOR_MEM_BlocktypePrimary:
             BPLib_STOR_MEM_BblockPrimaryInit(&b->header.base_link, &b->u.primary.pblock);
+        case BPLib_STOR_MEM_BlocktypePrimary:
+            BPLib_STOR_MEM_BblockPrimaryInit(&b->header.base_link, &b->u.primary.pblock);
             break;
+        case BPLib_STOR_MEM_BlocktypeCanonical:
+            BPLib_STOR_MEM_BblockCanonicalInit(&b->header.base_link, &b->u.canonical.cblock);
         case BPLib_STOR_MEM_BlocktypeCanonical:
             BPLib_STOR_MEM_BblockCanonicalInit(&b->header.base_link, &b->u.canonical.cblock);
             break;
@@ -79,9 +85,15 @@ void test_setup_mpblock(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_BlockContent
             BPLib_STOR_MEM_SubqInit(&b->header.base_link, b->u.admin.free_blocks);
             BPLib_STOR_MEM_SubqInit(&b->header.base_link, b->u.admin.recycle_blocks);
             BPLib_STOR_MEM_InitListHead(&b->header.base_link, b->u.admin.active_list);
+        case BPLib_STOR_MEM_BlocktypeAdmin:
+            BPLib_STOR_MEM_SubqInit(&b->header.base_link, b->u.admin.free_blocks);
+            BPLib_STOR_MEM_SubqInit(&b->header.base_link, b->u.admin.recycle_blocks);
+            BPLib_STOR_MEM_InitListHead(&b->header.base_link, b->u.admin.active_list);
             break;
         case BPLib_STOR_MEM_BlocktypeFlow:
+        case BPLib_STOR_MEM_BlocktypeFlow:
             #ifdef STOR // duct
+            BPLib_STOR_MEM_FlowInit(&b->header.base_link, &b->u.flow.fblock);
             BPLib_STOR_MEM_FlowInit(&b->header.base_link, &b->u.flow.fblock);
             #endif // STOR
             break;
@@ -91,15 +103,19 @@ void test_setup_mpblock(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_BlockContent
     }
 }
 
-void test_setup_allocation(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_BlockContent_t *db, BPLib_STOR_MEM_BlockContent_t *apib)
+void test_setup_allocation(BPLib_STOR_MEM_Pool_t *pool, BPLib_STOR_MEM_BlockContent_t *db, BPLib_STOR_MEM_BlockContent_t *apib)
 {
+    BPLib_STOR_MEM_BlockAdminContent_t *admin;
     BPLib_STOR_MEM_BlockAdminContent_t *admin;
     void                              *api_content;
 
     test_setup_mpblock(pool, &pool->admin_block, BPLib_STOR_MEM_BlocktypeAdmin, 0);
     test_setup_mpblock(pool, db, BPLib_STOR_MEM_BlocktypeUndefined, 0);
+    test_setup_mpblock(pool, &pool->admin_block, BPLib_STOR_MEM_BlocktypeAdmin, 0);
+    test_setup_mpblock(pool, db, BPLib_STOR_MEM_BlocktypeUndefined, 0);
     if (apib != NULL)
     {
+        test_setup_mpblock(pool, apib, BPLib_STOR_MEM_BlocktypeApi, 0);
         test_setup_mpblock(pool, apib, BPLib_STOR_MEM_BlocktypeApi, 0);
         api_content = &apib->u;
     }

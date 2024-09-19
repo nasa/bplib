@@ -49,12 +49,14 @@ typedef struct BPLib_STOR_MEM_BlockHeader
     uint16_t refcount;               /* number of active references to the object */
 
 } BPLib_STOR_MEM_BlockHeader_t;
+} BPLib_STOR_MEM_BlockHeader_t;
 
 /*
  * This union is just to make sure that the "content_start" field
  * in a generic data block is suitably aligned to hold any data type, mainly
  * the max-sized integers, max-sized floating point values, or a pointer.
  */
+typedef union BPLib_STOR_MEM_AlignedData
 typedef union BPLib_STOR_MEM_AlignedData
 {
     uint8_t     first_octet;
@@ -70,12 +72,18 @@ typedef struct BPLib_STOR_MEM_ApiContent
     size_t                      user_content_size;
     BPLib_STOR_MEM_AlignedData_t  user_data_start;
 } BPLib_STOR_MEM_ApiContent_t;
+    BPLib_STOR_MEM_AlignedData_t  user_data_start;
+} BPLib_STOR_MEM_ApiContent_t;
 
+typedef struct BPLib_STOR_MEM_GenericDataContent
 typedef struct BPLib_STOR_MEM_GenericDataContent
 {
     BPLib_STOR_MEM_AlignedData_t user_data_start;
 } BPLib_STOR_MEM_GenericDataContent_t;
+    BPLib_STOR_MEM_AlignedData_t user_data_start;
+} BPLib_STOR_MEM_GenericDataContent_t;
 
+typedef struct BPLib_STOR_MEM_BlockRefContent
 typedef struct BPLib_STOR_MEM_BlockRefContent
 {
     BPLib_STOR_MEM_Ref_t          pref_target;
@@ -96,6 +104,7 @@ struct BPLib_STOR_MEM_SubqBase
     volatile unsigned int pull_count;
 };
 
+typedef struct BPLib_STOR_MEM_BlockAdminContent
 typedef struct BPLib_STOR_MEM_BlockAdminContent
 {
     size_t   buffer_size;
@@ -118,7 +127,9 @@ typedef struct BPLib_STOR_MEM_BlockAdminContent
     BPLib_STOR_MEM_Block_t *active_list; /**< a list of flows/queues that need processing */
 
 } BPLib_STOR_MEM_BlockAdminContent_t;
+} BPLib_STOR_MEM_BlockAdminContent_t;
 
+typedef union BPLib_STOR_MEM_BlockBuffer
 typedef union BPLib_STOR_MEM_BlockBuffer
 {
     BPLib_STOR_MEM_GenericDataContent_t     generic_data;
@@ -158,7 +169,7 @@ struct BPLib_MEM
  * @param pool
  * @return BPLib_STOR_MEM_BlockAdminContent_t*
  */
-static inline BPLib_STOR_MEM_BlockAdminContent_t *BPLib_STOR_MEM_GetAdmin(BPLib_STOR_MEM_pool_t *pool)
+static inline BPLib_STOR_MEM_BlockAdminContent_t *BPLib_STOR_MEM_GetAdmin(BPLib_STOR_MEM_Pool_t *pool)
 {
     /* this just confirms that the passed-in pointer looks OK */
     return &pool->admin_block.u.admin;
@@ -167,6 +178,7 @@ static inline BPLib_STOR_MEM_BlockAdminContent_t *BPLib_STOR_MEM_GetAdmin(BPLib_
 /**
  * @brief Acquires a given lock
  *
+ * The lock should be identified via BPLib_STOR_MEM_LockPrepare() or this
  * The lock should be identified via BPLib_STOR_MEM_LockPrepare() or this
  * can re-acquire the same lock again after releasing it with
  * BPLib_STOR_MEM_LockRelease().
@@ -314,6 +326,7 @@ uint32_t BPLib_STOR_MEM_SubqMergeList(BPLib_STOR_MEM_SubqBase_t *subq_dst, BPLib
  * @return The number of queue entries moved
  */
 uint32_t BPLib_STOR_MEM_SubqMoveAll(BPLib_STOR_MEM_SubqBase_t *subq_dst, BPLib_STOR_MEM_SubqBase_t *subq_src);
+uint32_t BPLib_STOR_MEM_SubqMoveAll(BPLib_STOR_MEM_SubqBase_t *subq_dst, BPLib_STOR_MEM_SubqBase_t *subq_src);
 
 /**
  * @brief Drops the entire contents of a subq
@@ -327,7 +340,7 @@ uint32_t BPLib_STOR_MEM_SubqMoveAll(BPLib_STOR_MEM_SubqBase_t *subq_dst, BPLib_S
  * @param subq
  * @return uint32_t The number of queue entries dropped
  */
-uint32_t BPLib_STOR_MEM_SubqDropAll(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_SubqBase_t *subq);
+uint32_t BPLib_STOR_MEM_SubqDropAll(BPLib_STOR_MEM_Pool_t *pool, BPLib_STOR_MEM_SubqBase_t *subq);
 
 #endif // STOR subq
 
@@ -344,10 +357,11 @@ const BPLib_STOR_MEM_BlockContent_t *BPLib_STOR_MEM_GetBlockContentConst(const B
 BPLib_STOR_MEM_BlockContent_t *BPLib_STOR_MEM_BlockDereferenceContent(BPLib_STOR_MEM_Block_t *cb);
 
 void BPLib_STOR_MEM_InitBaseObject(BPLib_STOR_MEM_BlockHeader_t *block_hdr, uint16_t user_content_length,
+void BPLib_STOR_MEM_InitBaseObject(BPLib_STOR_MEM_BlockHeader_t *block_hdr, uint16_t user_content_length,
                                   uint32_t content_type_signature);
 
 #ifdef STOR // blocktype
-BPLib_STOR_MEM_BlockContent_t *BPLib_STOR_MEM_AllocBlockInternal(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_Blocktype_t blocktype,
+BPLib_STOR_MEM_BlockContent_t *BPLib_STOR_MEM_AllocBlockInternal(BPLib_STOR_MEM_Pool_t *pool, BPLib_STOR_MEM_Blocktype_t blocktype,
                                                               uint32_t content_type_signature, void *init_arg,
                                                               uint8_t priority);
 #endif // STOR blocktype
