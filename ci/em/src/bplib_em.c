@@ -58,7 +58,7 @@ BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTy
 
     // Gather conversion specifiers from remaining arguments
     va_start(EventTextArgPtr, Spec);
-    ExpandedLength = vsprintf(ExpandedEventText, Spec, EventTextArgPtr);
+    ExpandedLength = vsnprintf(ExpandedEventText, BPLIB_EM_EXPANDED_EVENT_SIZE, Spec, EventTextArgPtr);
     va_end(EventTextArgPtr);
 
     if (ExpandedLength < 0)
