@@ -35,8 +35,8 @@
  TYPEDEFS
  ******************************************************************************/
 
-typedef int (*v7_chunk_writer_func_t)(void *, const void *, size_t);
-typedef int (*v7_chunk_reader_func_t)(void *, void *, size_t);
+typedef int (*bplib_chunk_writer_func_t)(void *, const void *, size_t);
+typedef int (*bplib_chunk_reader_func_t)(void *, void *, size_t);
 
 /*
  * Native Type for most BP integers.

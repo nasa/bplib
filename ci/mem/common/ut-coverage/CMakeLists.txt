@@ -9,7 +9,7 @@
 
 add_library(utobj_bplib_mem_common OBJECT
     ../src/crc.c
-    ../src/v7_rbtree.c
+    ../src/bplib_rbtree.c
 )
 
 target_compile_definitions(utobj_bplib_mem_common PRIVATE
