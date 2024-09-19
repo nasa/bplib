@@ -19,21 +19,27 @@
  */
 
 /*
- * Include
- */
-#include "bplib_s_test_utils.h"
+** Include
+*/
+
+#include "bplib_stor_test_utils.h"
 
 /*
-** Test function for
-** int BPLib_STOR_Init()
+** Function Definitions
 */
-void Test_BPLib_STOR_Init(void)
+
+void BPLib_STOR_Test_Setup(void)
 {
-    UtAssert_INT32_EQ(BPLib_STOR_Init(), BPLIB_SUCCESS);
+    /* Initialize test environment to default state for every test */
+    UT_ResetState(0);
 }
 
-
-void TestBplibStor_Register(void)
+void BPLib_STOR_Test_Teardown(void)
 {
-    UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init");
+    /* Clean up test environment */
+}
+
+void UtTest_Setup(void)
+{
+    TestBplibStor_Register();
 }

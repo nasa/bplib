@@ -27,7 +27,7 @@
 #ifdef STOR
 #include "bplib_cache.h"
 #endif // STOR
-#include "v7_base_internal.h"
+#include "BPLib_STOR_CACHE_Module_base_internal.h"
 
 #define BPLIB_BLOCKTYPE_CLA_INTF          0x7b643c85
 #define BPLIB_BLOCKTYPE_CLA_INGRESS_BLOCK 0x9580be4a
@@ -39,11 +39,11 @@
 /******************************************************************************
  LOCAL FUNCTIONS
  ******************************************************************************/
-int bplib_cla_event_impl(void *arg, BPLib_MEM_block_t *intf_block)
+int bplib_cla_event_impl(void *arg, BPLib_STOR_CACHE_Block_t *intf_block)
 {
 #ifdef STOR
     BPLib_STOR_CACHE_FlowGenericEvent_t *event;
-    BPLib_MEM_flow_t               *flow;
+    BPLib_STOR_CACHE_Flow_t               *flow;
 
     event = arg;
 
@@ -80,19 +80,19 @@ int bplib_cla_event_impl(void *arg, BPLib_MEM_block_t *intf_block)
     return BP_SUCCESS;
 }
 
-int bplib_generic_bundle_ingress(BPLib_MEM_ref_t flow_ref, const void *content, size_t size, uint64_t time_limit)
+int bplib_generic_bundle_ingress(BPLib_STOR_CACHE_Ref_t flow_ref, const void *content, size_t size, uint64_t time_limit)
 {
 #ifdef STOR
-    BPLib_MEM_flow_t           *flow;
-    BPLib_MEM_block_t          *pblk;
-    BPLib_MEM_block_t          *rblk;
-    BPLib_MEM_ref_t             refptr;
+    BPLib_STOR_CACHE_Flow_t           *flow;
+    BPLib_STOR_CACHE_Block_t          *pblk;
+    BPLib_STOR_CACHE_Block_t          *rblk;
+    BPLib_STOR_CACHE_Ref_t             refptr;
     BPLib_STOR_CACHE_BblockPrimary_t *pri_block;
     size_t                        imported_sz;
     int                           status;
 
     pblk = NULL;
-    flow = BPLib_STOR_CACHE_FlowCast(BPLib_MEM_dereference(flow_ref));
+    flow = BPLib_STOR_CACHE_FlowCast(BPLib_STOR_CACHE_Dereference(flow_ref));
     if (flow == NULL)
     {
         status = bplog(NULL, BP_FLAG_DIAGNOSTIC, "intf_block invalid\n");
@@ -106,11 +106,11 @@ int bplib_generic_bundle_ingress(BPLib_MEM_ref_t flow_ref, const void *content, 
          * bundle and there isn't a lot of memory available, this might get discarded later.
          */
         pblk =
-            BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_GetParentPoolFromLink(BPLib_MEM_dereference(flow_ref)),
+            BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_GetParentPoolFromLink(BPLib_STOR_CACHE_Dereference(flow_ref)),
                                              0, NULL, BPLIB_MEM_ALLOC_PRI_MHI, 0);
         if (pblk != NULL)
         {
-            imported_sz = v7_copy_full_bundle_in(BPLib_STOR_CACHE_BblockPrimaryCast(pblk), content, size);
+            imported_sz = BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimaryCast(pblk), content, size);
         }
         else
         {
@@ -125,7 +125,7 @@ int bplib_generic_bundle_ingress(BPLib_MEM_ref_t flow_ref, const void *content, 
             pblk = NULL;
         }
 
-        pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_MEM_dereference(refptr));
+        pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_STOR_CACHE_Dereference(refptr));
 
         /*
          * normally the size from the CLA and the size computed from CBOR decoding should agree.
@@ -142,7 +142,7 @@ int bplib_generic_bundle_ingress(BPLib_MEM_ref_t flow_ref, const void *content, 
 
         if (rblk != NULL)
         {
-            pri_block->data.delivery.ingress_intf_id = BPLib_STOR_CACHE_GetExternalId(BPLib_MEM_dereference(flow_ref));
+            pri_block->data.delivery.ingress_intf_id = BPLib_STOR_CACHE_GetExternalId(BPLib_STOR_CACHE_Dereference(flow_ref));
             pri_block->data.delivery.ingress_time    = bplib_os_get_dtntime_ms();
 
             if (BPLib_STOR_CACHE_FlowTryPush(&flow->ingress, rblk, time_limit))
@@ -187,17 +187,17 @@ int bplib_generic_bundle_ingress(BPLib_MEM_ref_t flow_ref, const void *content, 
     return BP_SUCCESS;
 }
 
-int bplib_generic_bundle_egress(BPLib_MEM_ref_t flow_ref, void *content, size_t *size, uint64_t time_limit)
+int bplib_generic_bundle_egress(BPLib_STOR_CACHE_Ref_t flow_ref, void *content, size_t *size, uint64_t time_limit)
 {
 #ifdef STOR
-    BPLib_MEM_flow_t           *flow;
+    BPLib_STOR_CACHE_Flow_t           *flow;
     BPLib_STOR_CACHE_BblockPrimary_t *cpb;
-    BPLib_MEM_block_t          *pblk;
+    BPLib_STOR_CACHE_Block_t          *pblk;
     size_t                        export_sz;
     int                           status;
 
     pblk = NULL;
-    flow = BPLib_STOR_CACHE_FlowCast(BPLib_MEM_dereference(flow_ref));
+    flow = BPLib_STOR_CACHE_FlowCast(BPLib_STOR_CACHE_Dereference(flow_ref));
     if (flow == NULL)
     {
         status = bplog(NULL, BP_FLAG_DIAGNOSTIC, "intf_block invalid\n");
@@ -222,7 +222,7 @@ int bplib_generic_bundle_egress(BPLib_MEM_ref_t flow_ref, void *content, size_t 
             }
             else
             {
-                export_sz = v7_compute_full_bundle_size(cpb);
+                export_sz = BPLib_STOR_CACHE_ComputeFullBundleSize(cpb);
 
                 if (export_sz > *size)
                 {
@@ -232,7 +232,7 @@ int bplib_generic_bundle_egress(BPLib_MEM_ref_t flow_ref, void *content, size_t 
                 else
                 {
 
-                    *size = v7_copy_full_bundle_out(cpb, content, *size);
+                    *size = BPLib_STOR_CACHE_CopyFullBundleOut(cpb, content, *size);
 
                     if (export_sz != *size)
                     {
@@ -243,7 +243,7 @@ int bplib_generic_bundle_egress(BPLib_MEM_ref_t flow_ref, void *content, size_t 
                     {
                         /* indicate that this has been sent out the intf */
                         cpb->data.delivery.egress_intf_id =
-                            BPLib_STOR_CACHE_GetExternalId(BPLib_MEM_dereference(flow_ref));
+                            BPLib_STOR_CACHE_GetExternalId(BPLib_STOR_CACHE_Dereference(flow_ref));
                         cpb->data.delivery.egress_time = bplib_os_get_dtntime_ms();
 
                         status = BP_SUCCESS;
@@ -260,7 +260,7 @@ int bplib_generic_bundle_egress(BPLib_MEM_ref_t flow_ref, void *content, size_t 
     return BP_SUCCESS;
 }
 
-void bplib_cla_init(BPLib_MEM_t *pool)
+void bplib_cla_init(BPLib_STOR_CACHE_Pool_t *pool)
 {
 #ifdef STOR
     BPLib_STOR_CACHE_RegisterBlocktype(pool, BPLIB_BLOCKTYPE_CLA_INTF, NULL, sizeof(bplib_cla_stats_t));
@@ -276,9 +276,9 @@ void bplib_cla_init(BPLib_MEM_t *pool)
 bp_handle_t bplib_create_cla_intf(bplib_routetbl_t *rtbl)
 {
 #ifdef STOR
-    BPLib_MEM_block_t *sblk;
+    BPLib_STOR_CACHE_Block_t *sblk;
     bp_handle_t          self_intf_id;
-    BPLib_MEM_t       *pool;
+    BPLib_STOR_CACHE_Pool_t       *pool;
 
     pool = bplib_route_get_mpool(rtbl);
 
@@ -316,7 +316,7 @@ bp_handle_t bplib_create_cla_intf(bplib_routetbl_t *rtbl)
 int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, uint32_t timeout)
 {
 #ifdef STOR
-    BPLib_MEM_ref_t  flow_ref;
+    BPLib_STOR_CACHE_Ref_t  flow_ref;
     int                status;
     bplib_cla_stats_t *stats;
     uint64_t           egress_time_limit;
@@ -343,7 +343,7 @@ int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, 
         return BP_ERROR;
     }
 
-    stats = BPLib_STOR_CACHE_GenericDataCast(BPLib_MEM_dereference(flow_ref), BPLIB_BLOCKTYPE_CLA_INTF);
+    stats = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(flow_ref), BPLIB_BLOCKTYPE_CLA_INTF);
     if (stats == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Intf ID is not a CLA\n");
@@ -369,7 +369,7 @@ int bplib_cla_egress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, void *bundle, 
 int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, uint32_t timeout)
 {
 #ifdef STOR
-    BPLib_MEM_ref_t  flow_ref;
+    BPLib_STOR_CACHE_Ref_t  flow_ref;
     int                status;
     bplib_cla_stats_t *stats;
     uint64_t           ingress_time_limit;
@@ -381,7 +381,7 @@ int bplib_cla_ingress(bplib_routetbl_t *rtbl, bp_handle_t intf_id, const void *b
         return BP_ERROR;
     }
 
-    stats = BPLib_STOR_CACHE_GenericDataCast(BPLib_MEM_dereference(flow_ref), BPLIB_BLOCKTYPE_CLA_INTF);
+    stats = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(flow_ref), BPLIB_BLOCKTYPE_CLA_INTF);
     if (stats == NULL)
     {
         bplog(NULL, BP_FLAG_DIAGNOSTIC, "Intf ID is not a CLA\n");

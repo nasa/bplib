@@ -33,66 +33,66 @@
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
-typedef enum bplib_cache_module_type
+typedef enum BPLib_STOR_CACHE_Module_module_type
 {
-    bplib_cache_module_type_none,
-    bplib_cache_module_type_internal,
-    bplib_cache_module_type_offload
-} bplib_cache_module_type_t;
+    BPLib_STOR_CACHE_Module_module_type_none,
+    BPLib_STOR_CACHE_Module_module_type_internal,
+    BPLib_STOR_CACHE_Module_module_type_offload
+} BPLib_STOR_CACHE_Module_module_type_t;
 
-typedef enum bplib_cache_module_valtype
+typedef enum BPLib_STOR_CACHE_Module_module_valtype
 {
-    bplib_cache_module_valtype_none,
-    bplib_cache_module_valtype_integer,
-    bplib_cache_module_valtype_string
-} bplib_cache_module_valtype_t;
+    BPLib_STOR_CACHE_Module_module_valtype_none,
+    BPLib_STOR_CACHE_Module_module_valtype_integer,
+    BPLib_STOR_CACHE_Module_module_valtype_string
+} BPLib_STOR_CACHE_Module_module_valtype_t;
 
-typedef enum bplib_cache_confkey
+typedef enum BPLib_STOR_CACHE_Module_confkey
 {
-    bplib_cache_confkey_none,
-    bplib_cache_confkey_offload_base_dir,
-} bplib_cache_confkey_t;
+    BPLib_STOR_CACHE_Module_confkey_none,
+    BPLib_STOR_CACHE_Module_confkey_offload_base_dir,
+} BPLib_STOR_CACHE_Module_confkey_t;
 
-struct bplib_cache_module_api
+struct BPLib_STOR_CACHE_Module_module_api
 {
-    bplib_cache_module_type_t module_type;
-    bplib_cache_block_t *(*instantiate)(bplib_cache_ref_t parent_ref, void *init_arg);
-    int (*configure)(bplib_cache_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void *val);
-    int (*query)(bplib_cache_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void **val);
-    int (*start)(bplib_cache_block_t *svc);
-    int (*stop)(bplib_cache_block_t *svc);
+    BPLib_STOR_CACHE_Module_module_type_t module_type;
+    BPLib_STOR_CACHE_Block_t *(*instantiate)(BPLib_STOR_CACHE_Module_ref_t parent_ref, void *init_arg);
+    int (*configure)(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt, const void *val);
+    int (*query)(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt, const void **val);
+    int (*start)(BPLib_STOR_CACHE_Block_t *svc);
+    int (*stop)(BPLib_STOR_CACHE_Block_t *svc);
 };
 
-typedef struct bplib_cache_offload_api
+typedef struct BPLib_STOR_CACHE_Module_offload_api
 {
-    bplib_cache_module_api_t std;
-    int (*offload)(bplib_cache_block_t *svc, bp_sid_t *sid, bplib_cache_block_t *pblk);
-    int (*restore)(bplib_cache_block_t *svc, bp_sid_t sid, bplib_cache_block_t **pblk);
-    int (*release)(bplib_cache_block_t *svc, bp_sid_t sid);
-} bplib_cache_offload_api_t;
+    BPLib_STOR_CACHE_Module_module_api_t std;
+    int (*offload)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
+    int (*restore)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk);
+    int (*release)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);
+} BPLib_STOR_CACHE_Module_offload_api_t;
 
-struct bplib_cache_block
+struct BPLib_STOR_CACHE_Module_block
 {
     /* note that if it becomes necessary to recover bits here,
      * both the type and offset could be reduced in size */
-    bplib_cache_blocktype_t   type;
+    BPLib_STOR_CACHE_Module_blocktype_t   type;
     uint32_t                  parent_offset;
-    struct bplib_cache_block *next;
-    struct bplib_cache_block *prev;
+    struct BPLib_STOR_CACHE_Block *next;
+    struct BPLib_STOR_CACHE_Block *prev;
 };
 
 /*
  * The basic types of blocks which are cacheable in the mem
  */
-typedef struct bplib_cache_bblock_primary   bplib_cache_bblock_primary_t;
-typedef struct bplib_cache_bblock_canonical bplib_cache_bblock_canonical_t;
+typedef struct BPLib_STOR_CACHE_Module_bblock_primary   BPLib_STOR_CACHE_Module_bblock_primary_t;
+typedef struct BPLib_STOR_CACHE_Module_bblock_canonical BPLib_STOR_CACHE_Module_bblock_canonical_t;
 
-typedef struct bplib_cache_subq_base bplib_cache_subq_base_t;
-typedef struct bplib_cache_duct      bplib_cache_duct_t;
+typedef struct BPLib_STOR_CACHE_Module_subq_base BPLib_STOR_CACHE_Module_subq_base_t;
+typedef struct BPLib_STOR_CACHE_Module_duct      BPLib_STOR_CACHE_Module_duct_t;
 
-typedef enum bplib_cache_blocktype
+typedef enum BPLib_STOR_CACHE_Module_blocktype
 {
-    bplib_cache_blocktype_undefined = 0,
+    BPLib_STOR_CACHE_Module_blocktype_undefined = 0,
 
     /*
      * Note, the enum value here does matter -- these block types
@@ -100,13 +100,13 @@ typedef enum bplib_cache_blocktype
      * can be implemented as a range check.  Do not change the
      * order of enum values without also updating the checks.
      */
-    bplib_cache_blocktype_api       = 1,
-    bplib_cache_blocktype_generic   = 2,
-    bplib_cache_blocktype_primary   = 4,
-    bplib_cache_blocktype_canonical = 5,
-    bplib_cache_blocktype_flow      = 6,
-    bplib_cache_blocktype_ref       = 7,
-    bplib_cache_blocktype_max       = 8, /* placeholder for the max "regular" block type */
+    BPLib_STOR_CACHE_Module_blocktype_api       = 1,
+    BPLib_STOR_CACHE_Module_blocktype_generic   = 2,
+    BPLib_STOR_CACHE_Module_blocktype_primary   = 4,
+    BPLib_STOR_CACHE_Module_blocktype_canonical = 5,
+    BPLib_STOR_CACHE_Module_blocktype_flow      = 6,
+    BPLib_STOR_CACHE_Module_blocktype_ref       = 7,
+    BPLib_STOR_CACHE_Module_blocktype_max       = 8, /* placeholder for the max "regular" block type */
 
     /*
      * All of these block types are _not_ at the beginning of the structure,
@@ -115,16 +115,16 @@ typedef enum bplib_cache_blocktype
      * reconstituted from one of these secondary indices.
      */
 
-    bplib_cache_blocktype_secondary_generic = 100,
-    bplib_cache_blocktype_list_head         = 101,
-    bplib_cache_blocktype_job               = 102, /* a job or pending work item to do */
-    bplib_cache_blocktype_secondary_max     = 103,
+    BPLib_STOR_CACHE_Module_blocktype_secondary_generic = 100,
+    BPLib_STOR_CACHE_Module_blocktype_list_head         = 101,
+    BPLib_STOR_CACHE_Module_blocktype_job               = 102, /* a job or pending work item to do */
+    BPLib_STOR_CACHE_Module_blocktype_secondary_max     = 103,
 
     /* The administrative block will be marked with 0xFF, this still permits the
      * type to be stored as a uint8_t if needed to save bits */
-    bplib_cache_blocktype_admin = 255
+    BPLib_STOR_CACHE_Module_blocktype_admin = 255
 
-} bplib_cache_blocktype_t;
+} BPLib_STOR_CACHE_Module_blocktype_t;
 
 /*
  * Enumeration that defines the various possible routing table events.  This enum
@@ -133,42 +133,30 @@ typedef enum bplib_cache_blocktype
  */
 typedef enum
 {
-    bplib_cache_eventid_undefined,
-    bplib_cache_eventid_recycle,
-    bplib_cache_eventid_max
+    BPLib_STOR_CACHE_Module_eventid_undefined,
+    BPLib_STOR_CACHE_Module_eventid_recycle,
+    BPLib_STOR_CACHE_Module_eventid_max
 
-} bplib_cache_eventid_t;
+} BPLib_STOR_CACHE_Module_eventid_t;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
 /* Service API */
-bp_handle_t bplib_cache_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
-int         bplib_cache_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
+bp_handle_t BPLib_STOR_CACHE_Module_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
+int         BPLib_STOR_CACHE_Module_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr);
 
-bp_handle_t bplib_cache_register_module_service(bplib_routetbl_t *tbl, bp_handle_t cache_intf_id,
-                                                const bplib_cache_module_api_t *api, void *init_arg);
-int bplib_cache_configure(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, bplib_cache_module_valtype_t vt,
+bp_handle_t BPLib_STOR_CACHE_Module_register_module_service(bplib_routetbl_t *tbl, bp_handle_t cache_intf_id,
+                                                const BPLib_STOR_CACHE_Module_module_api_t *api, void *init_arg);
+int BPLib_STOR_CACHE_Module_configure(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt,
                           const void *val);
-int bplib_cache_query(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, bplib_cache_module_valtype_t vt,
+int BPLib_STOR_CACHE_Module_query(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt,
                       const void **val);
-int bplib_cache_start(bplib_routetbl_t *tbl, bp_handle_t module_intf_id);
-int bplib_cache_stop(bplib_routetbl_t *tbl, bp_handle_t module_intf_id);
+int BPLib_STOR_CACHE_Module_start(bplib_routetbl_t *tbl, bp_handle_t module_intf_id);
+int BPLib_STOR_CACHE_Module_stop(bplib_routetbl_t *tbl, bp_handle_t module_intf_id);
 
-void bplib_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id);
-
-/**
- * @brief Blocktype API
- *
- * Specifies functions for module-specific block operations,
- * including construction and destruction
- */
-typedef struct bplib_cache_list_iter
-{
-    bplib_cache_block_t *position;
-    bplib_cache_block_t *pending_entry;
-} bplib_cache_list_iter_t;
+void BPLib_STOR_CACHE_Module_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id);
 
 /**
  * @brief Blocktype API
@@ -176,20 +164,32 @@ typedef struct bplib_cache_list_iter
  * Specifies functions for module-specific block operations,
  * including construction and destruction
  */
-typedef struct bplib_cache_blocktype_api
+typedef struct BPLib_STOR_CACHE_Module_list_iter
 {
-    bplib_cache_callback_func_t construct; /**< Initialize a newly-created block */
-    bplib_cache_callback_func_t destruct;  /**< De-initialize a recycled block */
+    BPLib_STOR_CACHE_Block_t *position;
+    BPLib_STOR_CACHE_Block_t *pending_entry;
+} BPLib_STOR_CACHE_Module_list_iter_t;
 
-} bplib_cache_blocktype_api_t;
+/**
+ * @brief Blocktype API
+ *
+ * Specifies functions for module-specific block operations,
+ * including construction and destruction
+ */
+typedef struct BPLib_STOR_CACHE_Module_blocktype_api
+{
+    BPLib_STOR_CACHE_Module_callback_func_t construct; /**< Initialize a newly-created block */
+    BPLib_STOR_CACHE_Module_callback_func_t destruct;  /**< De-initialize a recycled block */
+
+} BPLib_STOR_CACHE_Module_blocktype_api_t;
 
 /**
  * @brief Gets the next block in a list of blocks
  *
  * @param cb
- * @return bplib_cache_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-static inline bplib_cache_block_t *bplib_cache_get_next_block(bplib_cache_block_t *cb)
+static inline BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Module_get_next_block(BPLib_STOR_CACHE_Block_t *cb)
 {
     return cb->next;
 }
@@ -198,9 +198,9 @@ static inline bplib_cache_block_t *bplib_cache_get_next_block(bplib_cache_block_
  * @brief Gets the previous block in a list of blocks
  *
  * @param cb
- * @return bplib_cache_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-static inline bplib_cache_block_t *bplib_cache_get_prev_block(bplib_cache_block_t *cb)
+static inline BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Module_get_prev_block(BPLib_STOR_CACHE_Block_t *cb)
 {
     return cb->prev;
 }
@@ -212,7 +212,7 @@ static inline bplib_cache_block_t *bplib_cache_get_prev_block(bplib_cache_block_
  * @return true If this is in a list
  * @return false If the block is a singleton
  */
-static inline bool bplib_cache_is_link_attached(const bplib_cache_block_t *list)
+static inline bool BPLib_STOR_CACHE_Module_is_link_attached(const BPLib_STOR_CACHE_Block_t *list)
 {
     return (list->next != list);
 }
@@ -224,7 +224,7 @@ static inline bool bplib_cache_is_link_attached(const bplib_cache_block_t *list)
  * @return true If the block is a singleton
  * @return false If the block is part of a list
  */
-static inline bool bplib_cache_is_link_unattached(const bplib_cache_block_t *list)
+static inline bool BPLib_STOR_CACHE_Module_is_link_unattached(const BPLib_STOR_CACHE_Block_t *list)
 {
     return (list->next == list);
 }
@@ -238,9 +238,9 @@ static inline bool bplib_cache_is_link_unattached(const bplib_cache_block_t *lis
  * @return true If the block is a head node
  * @return false If the block is not a head node
  */
-static inline bool bplib_cache_is_list_head(const bplib_cache_block_t *list)
+static inline bool BPLib_STOR_CACHE_Module_is_list_head(const BPLib_STOR_CACHE_Block_t *list)
 {
-    return (list->type == bplib_cache_blocktype_list_head);
+    return (list->type == BPLib_STOR_CACHE_Module_blocktype_list_head);
 }
 
 /**
@@ -250,9 +250,9 @@ static inline bool bplib_cache_is_list_head(const bplib_cache_block_t *list)
  * @return true If the list is empty
  * @return false If the list is not empty, or not a list head node
  */
-static inline bool bplib_cache_is_empty_list_head(const bplib_cache_block_t *list)
+static inline bool BPLib_STOR_CACHE_Module_is_empty_list_head(const BPLib_STOR_CACHE_Block_t *list)
 {
-    return (bplib_cache_is_list_head(list) && bplib_cache_is_link_unattached(list));
+    return (BPLib_STOR_CACHE_Module_is_list_head(list) && BPLib_STOR_CACHE_Module_is_link_unattached(list));
 }
 
 /**
@@ -262,9 +262,9 @@ static inline bool bplib_cache_is_empty_list_head(const bplib_cache_block_t *lis
  * @return true If the list is not empty
  * @return false If the list is empty, or not a list head node
  */
-static inline bool bplib_cache_is_nonempty_list_head(const bplib_cache_block_t *list)
+static inline bool BPLib_STOR_CACHE_Module_is_nonempty_list_head(const BPLib_STOR_CACHE_Block_t *list)
 {
-    return (bplib_cache_is_list_head(list) && bplib_cache_is_link_attached(list));
+    return (BPLib_STOR_CACHE_Module_is_list_head(list) && BPLib_STOR_CACHE_Module_is_link_attached(list));
 }
 
 /**
@@ -274,9 +274,9 @@ static inline bool bplib_cache_is_nonempty_list_head(const bplib_cache_block_t *
  * @return true
  * @return false
  */
-static inline bool bplib_cache_is_generic_data_block(const bplib_cache_block_t *cb)
+static inline bool BPLib_STOR_CACHE_Module_is_generic_data_block(const BPLib_STOR_CACHE_Block_t *cb)
 {
-    return (cb->type == bplib_cache_blocktype_generic);
+    return (cb->type == BPLib_STOR_CACHE_Module_blocktype_generic);
 }
 
 /**
@@ -286,9 +286,9 @@ static inline bool bplib_cache_is_generic_data_block(const bplib_cache_block_t *
  * @return true
  * @return false
  */
-static inline bool bplib_cache_is_indirect_block(const bplib_cache_block_t *cb)
+static inline bool BPLib_STOR_CACHE_Module_is_indirect_block(const BPLib_STOR_CACHE_Block_t *cb)
 {
-    return (cb->type == bplib_cache_blocktype_ref);
+    return (cb->type == BPLib_STOR_CACHE_Module_blocktype_ref);
 }
 
 /**
@@ -302,9 +302,9 @@ static inline bool bplib_cache_is_indirect_block(const bplib_cache_block_t *cb)
  * @return true
  * @return false
  */
-static inline bool bplib_cache_is_any_content_node(const bplib_cache_block_t *cb)
+static inline bool BPLib_STOR_CACHE_Module_is_any_content_node(const BPLib_STOR_CACHE_Block_t *cb)
 {
-    return (cb->type > bplib_cache_blocktype_undefined && cb->type < bplib_cache_blocktype_max);
+    return (cb->type > BPLib_STOR_CACHE_Module_blocktype_undefined && cb->type < BPLib_STOR_CACHE_Module_blocktype_max);
 }
 
 /**
@@ -316,17 +316,17 @@ static inline bool bplib_cache_is_any_content_node(const bplib_cache_block_t *cb
  * @return true
  * @return false
  */
-static inline bool bplib_cache_is_secondary_index_node(const bplib_cache_block_t *cb)
+static inline bool BPLib_STOR_CACHE_Module_is_secondary_index_node(const BPLib_STOR_CACHE_Block_t *cb)
 {
-    return (cb->type >= bplib_cache_blocktype_secondary_generic && cb->type <= bplib_cache_blocktype_secondary_max);
+    return (cb->type >= BPLib_STOR_CACHE_Module_blocktype_secondary_generic && cb->type <= BPLib_STOR_CACHE_Module_blocktype_secondary_max);
 }
 
-static inline bp_handle_t bplib_cache_get_external_id(const bplib_cache_block_t *cb)
+static inline bp_handle_t BPLib_STOR_CACHE_Module_get_external_id(const BPLib_STOR_CACHE_Block_t *cb)
 {
     return bp_handle_from_serial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
 }
 
-bplib_cache_block_t *bplib_cache_block_from_external_id(bplib_cache_t *pool, bp_handle_t handle);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Block_from_external_id(BPLib_STOR_CACHE_Module_t *pool, bp_handle_t handle);
 
 /* basic list iterators (forward or reverse) */
 
@@ -338,7 +338,7 @@ bplib_cache_block_t *bplib_cache_block_from_external_id(bplib_cache_t *pool, bp_
  * @returns integer status code
  * @retval BP_SUCCESS if iterator is valid
  */
-int bplib_cache_list_iter_goto_first(const bplib_cache_block_t *list, bplib_cache_list_iter_t *iter);
+int BPLib_STOR_CACHE_Module_list_iter_goto_first(const BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_Module_list_iter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -348,7 +348,7 @@ int bplib_cache_list_iter_goto_first(const bplib_cache_block_t *list, bplib_cach
  * @returns integer status code
  * @retval BP_SUCCESS if iterator is valid
  */
-int bplib_cache_list_iter_goto_last(const bplib_cache_block_t *list, bplib_cache_list_iter_t *iter);
+int BPLib_STOR_CACHE_Module_list_iter_goto_last(const BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_Module_list_iter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -360,7 +360,7 @@ int bplib_cache_list_iter_goto_last(const bplib_cache_block_t *list, bplib_cache
  * @param iter          The iterator object to move
  * @retval BP_SUCCESS if iterator is valid
  */
-int bplib_cache_list_iter_forward(bplib_cache_list_iter_t *iter);
+int BPLib_STOR_CACHE_Module_list_iter_forward(BPLib_STOR_CACHE_Module_list_iter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -372,7 +372,7 @@ int bplib_cache_list_iter_forward(bplib_cache_list_iter_t *iter);
  * @param iter          The iterator object to move
  * @retval BP_SUCCESS if iterator is valid
  */
-int bplib_cache_list_iter_reverse(bplib_cache_list_iter_t *iter);
+int BPLib_STOR_CACHE_Module_list_iter_reverse(BPLib_STOR_CACHE_Module_list_iter_t *iter);
 
 /**
  * @brief Initialize a secondary link for block indexing purposes
@@ -387,8 +387,8 @@ int bplib_cache_list_iter_reverse(bplib_cache_list_iter_t *iter);
  * @param base_block
  * @param secondary_link
  */
-void bplib_cache_init_secondary_link(bplib_cache_block_t *base_block, bplib_cache_block_t *secondary_link,
-                                     bplib_cache_blocktype_t block_type);
+void BPLib_STOR_CACHE_Module_init_secondary_link(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Block_t *secondary_link,
+                                     BPLib_STOR_CACHE_Module_blocktype_t block_type);
 
 /**
  * @brief Obtain the pointer to the parent/containing block from a link
@@ -402,10 +402,10 @@ void bplib_cache_init_secondary_link(bplib_cache_block_t *base_block, bplib_cach
  * In all cases, a pointer to the actual content block is returned.
  *
  * @param[in] lblk link structure, such as from a list traversal.  May be a secondary link.
- * @return bplib_cache_block_t* pointer to container block
+ * @return BPLib_STOR_CACHE_Block_t* pointer to container block
  * @retval NULL if the lblk pointer is not convertible to a content block
  */
-bplib_cache_block_t *bplib_cache_get_block_from_link(bplib_cache_block_t *lblk);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Module_get_block_from_link(BPLib_STOR_CACHE_Block_t *lblk);
 
 /**
  * @brief Gets the offset of the block user content section
@@ -417,7 +417,7 @@ bplib_cache_block_t *bplib_cache_get_block_from_link(bplib_cache_block_t *lblk);
  * @param bt Block type
  * @return size_t
  */
-size_t bplib_cache_get_user_data_offset_by_blocktype(bplib_cache_blocktype_t bt);
+size_t BPLib_STOR_CACHE_Module_get_user_data_offset_by_blocktype(BPLib_STOR_CACHE_Module_blocktype_t bt);
 
 /**
  * @brief Gets the capacity (maximum size) of the generic data block
@@ -428,7 +428,7 @@ size_t bplib_cache_get_user_data_offset_by_blocktype(bplib_cache_blocktype_t bt)
  * @param cb
  * @return size_t
  */
-size_t bplib_cache_get_generic_data_capacity(const bplib_cache_block_t *cb);
+size_t BPLib_STOR_CACHE_Module_get_generic_data_capacity(const BPLib_STOR_CACHE_Block_t *cb);
 
 /* basic list ops */
 
@@ -443,12 +443,12 @@ size_t bplib_cache_get_generic_data_capacity(const bplib_cache_block_t *cb);
  * is in an unknown/undefined state.
  *
  * To clear a list that has already been initialized once, use
- * bplib_cache_recycle_all_blocks_in_list()
+ * BPLib_STOR_CACHE_Module_recycle_all_blocks_in_list()
  *
  * @param base_block The parent/container of the list
  * @param list_head  The list to initialize
  */
-void bplib_cache_init_list_head(bplib_cache_block_t *base_block, bplib_cache_block_t *list_head);
+void BPLib_STOR_CACHE_Module_init_list_head(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Block_t *list_head);
 
 /**
  * @brief Inserts a node after the given position or list head
@@ -459,7 +459,7 @@ void bplib_cache_init_list_head(bplib_cache_block_t *base_block, bplib_cache_blo
  * @param list
  * @param node
  */
-void bplib_cache_insert_after(bplib_cache_block_t *list, bplib_cache_block_t *node);
+void BPLib_STOR_CACHE_Module_insert_after(BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_Block_t *node);
 
 /**
  * @brief Inserts a node before the given position or list head
@@ -470,7 +470,7 @@ void bplib_cache_insert_after(bplib_cache_block_t *list, bplib_cache_block_t *no
  * @param list
  * @param node
  */
-void bplib_cache_insert_before(bplib_cache_block_t *list, bplib_cache_block_t *node);
+void BPLib_STOR_CACHE_Module_insert_before(BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_Block_t *node);
 
 /**
  * @brief Removes a node from its list
@@ -480,27 +480,27 @@ void bplib_cache_insert_before(bplib_cache_block_t *list, bplib_cache_block_t *n
  *
  * @param node
  */
-void bplib_cache_extract_node(bplib_cache_block_t *node);
+void BPLib_STOR_CACHE_Module_extract_node(BPLib_STOR_CACHE_Block_t *node);
 
 /**
  * @brief Merge two lists together
  *
  * Note that the entire content is merged, including the head node.  After using this,
- * the bplib_cache_extract_node() should be used to remove one of the head nodes,
+ * the BPLib_STOR_CACHE_Module_extract_node() should be used to remove one of the head nodes,
  * depending on which one should keep the contents.
  *
  * @param dest
  * @param src
  */
-void bplib_cache_merge_list(bplib_cache_block_t *dest, bplib_cache_block_t *src);
+void BPLib_STOR_CACHE_Module_merge_list(BPLib_STOR_CACHE_Block_t *dest, BPLib_STOR_CACHE_Block_t *src);
 
 /**
  * @brief Finds the parent mem container from any link pointer that was obtained from the pool
  *
  * @param cb
- * @return bplib_cache_t*
+ * @return BPLib_STOR_CACHE_Module_t*
  */
-bplib_cache_t *bplib_cache_get_parent_pool_from_link(bplib_cache_block_t *cb);
+BPLib_STOR_CACHE_Module_t *BPLib_STOR_CACHE_Module_get_parent_pool_from_link(BPLib_STOR_CACHE_Block_t *cb);
 
 /**
  * @brief Cast a block to generic user data type
@@ -510,22 +510,22 @@ bplib_cache_t *bplib_cache_get_parent_pool_from_link(bplib_cache_block_t *cb);
  *
  * @param cb
  * @param required_magic
- * @return bplib_cache_generic_data_t*
+ * @return BPLib_STOR_CACHE_Module_generic_data_t*
  */
-void *bplib_cache_generic_data_cast(bplib_cache_block_t *cb, uint32_t required_magic);
+void *BPLib_STOR_CACHE_Module_generic_data_cast(BPLib_STOR_CACHE_Block_t *cb, uint32_t required_magic);
 
 /**
  * @brief Cast a generic user data segment to its parent block
  *
- * This is the inverse of bplib_cache_generic_data_cast() and allows obtaining the pool
+ * This is the inverse of BPLib_STOR_CACHE_Module_generic_data_cast() and allows obtaining the pool
  * block from a generic data pointer.  The pointer passed in must be from a prior call
- * to bplib_cache_generic_data_cast() or else the result is undefined.
+ * to BPLib_STOR_CACHE_Module_generic_data_cast() or else the result is undefined.
  *
- * @param blk pointer from previous call to bplib_cache_generic_data_cast
+ * @param blk pointer from previous call to BPLib_STOR_CACHE_Module_generic_data_cast
  * @param required_magic
- * @return bplib_cache_generic_data_t*
+ * @return BPLib_STOR_CACHE_Module_generic_data_t*
  */
-bplib_cache_block_t *bplib_cache_generic_data_uncast(void *blk, bplib_cache_blocktype_t parent_bt,
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Module_generic_data_uncast(void *blk, BPLib_STOR_CACHE_Module_blocktype_t parent_bt,
                                                      uint32_t required_magic);
 
 /**
@@ -537,7 +537,7 @@ bplib_cache_block_t *bplib_cache_generic_data_uncast(void *blk, bplib_cache_bloc
  * @param cb pointer to block
  * @return size_t
  */
-size_t bplib_cache_get_user_content_size(const bplib_cache_block_t *cb);
+size_t BPLib_STOR_CACHE_Module_get_user_content_size(const BPLib_STOR_CACHE_Block_t *cb);
 
 /**
  * @brief Reads the reference count of the object
@@ -553,7 +553,7 @@ size_t bplib_cache_get_user_content_size(const bplib_cache_block_t *cb);
  * @param cb
  * @return size_t
  */
-size_t bplib_cache_read_refcount(const bplib_cache_block_t *cb);
+size_t BPLib_STOR_CACHE_Module_read_refcount(const BPLib_STOR_CACHE_Block_t *cb);
 
 /**
  * @brief Allocate a new user data block
@@ -564,9 +564,9 @@ size_t bplib_cache_read_refcount(const bplib_cache_block_t *cb);
  * @param pool
  * @param magic_number
  * @param init_arg Opaque pointer passed to initializer (may be NULL)
- * @return bplib_cache_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-bplib_cache_block_t *bplib_cache_generic_data_alloc(bplib_cache_t *pool, uint32_t magic_number, void *init_arg);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Module_generic_data_alloc(BPLib_STOR_CACHE_Module_t *pool, uint32_t magic_number, void *init_arg);
 
 /**
  * @brief Recycle a single block which is no longer needed
@@ -575,7 +575,7 @@ bplib_cache_block_t *bplib_cache_generic_data_alloc(bplib_cache_t *pool, uint32_
  *
  * @param blk
  */
-void bplib_cache_recycle_block(bplib_cache_block_t *blk);
+void BPLib_STOR_CACHE_Module_recycle_block(BPLib_STOR_CACHE_Block_t *blk);
 
 /**
  * @brief Recycle an entire list of blocks which are no longer needed
@@ -592,7 +592,7 @@ void bplib_cache_recycle_block(bplib_cache_block_t *blk);
  * @param pool Originating pool, or NULL to infer/determine from list
  * @param list List of objects to recycle
  */
-void bplib_cache_recycle_all_blocks_in_list(bplib_cache_t *pool, bplib_cache_block_t *list);
+void BPLib_STOR_CACHE_Module_recycle_all_blocks_in_list(BPLib_STOR_CACHE_Module_t *pool, BPLib_STOR_CACHE_Block_t *list);
 
 /**
  * @brief Process every item in the list in sequential order
@@ -609,8 +609,8 @@ void bplib_cache_recycle_all_blocks_in_list(bplib_cache_t *pool, bplib_cache_blo
  * @param callback_arg
  * @return int Number of items that were in the list
  */
-int bplib_cache_foreach_item_in_list(bplib_cache_block_t *list, bool always_remove,
-                                     bplib_cache_callback_func_t callback_fn, void *callback_arg);
+int BPLib_STOR_CACHE_Module_foreach_item_in_list(BPLib_STOR_CACHE_Block_t *list, bool always_remove,
+                                     BPLib_STOR_CACHE_Module_callback_func_t callback_fn, void *callback_arg);
 
 /**
  * @brief Search a list in sequential order
@@ -621,10 +621,10 @@ int bplib_cache_foreach_item_in_list(bplib_cache_block_t *list, bool always_remo
  * @param list The list to search
  * @param match_fn A function that should return 0 if a match is found, nonzero otherwise
  * @param match_arg An opaque argument passed to the match_fn, typically the match reference object
- * @return bplib_cache_block_t* The matching list entry
+ * @return BPLib_STOR_CACHE_Block_t* The matching list entry
  * @retval NULL if no match was found
  */
-bplib_cache_block_t *bplib_cache_search_list(const bplib_cache_block_t *list, bplib_cache_callback_func_t match_fn,
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Module_search_list(const BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_Module_callback_func_t match_fn,
                                              void *match_arg);
 
 /**
@@ -637,7 +637,7 @@ bplib_cache_block_t *bplib_cache_search_list(const bplib_cache_block_t *list, bp
  *
  * @returns The number of blocks collected
  */
-uint32_t bplib_cache_collect_blocks(bplib_cache_t *pool, uint32_t limit);
+uint32_t BPLib_STOR_CACHE_Module_collect_blocks(BPLib_STOR_CACHE_Module_t *pool, uint32_t limit);
 
 /**
  * @brief Run basic maintenance on the memory pool
@@ -647,7 +647,7 @@ uint32_t bplib_cache_collect_blocks(bplib_cache_t *pool, uint32_t limit);
  *
  * @param pool
  */
-void bplib_cache_maintain(bplib_cache_t *pool);
+void BPLib_STOR_CACHE_Module_maintain(BPLib_STOR_CACHE_Module_t *pool);
 
 /**
  * @brief Registers a given block type signature
@@ -669,7 +669,7 @@ void bplib_cache_maintain(bplib_cache_t *pool);
  * @retval BP_SUCCESS if registration successful
  * @retval BP_DUPLICATE if the block type is already registered.
  */
-int bplib_cache_register_blocktype(bplib_cache_t *pool, uint32_t magic_number, const bplib_cache_blocktype_api_t *api,
+int BPLib_STOR_CACHE_Module_register_blocktype(BPLib_STOR_CACHE_Module_t *pool, uint32_t magic_number, const BPLib_STOR_CACHE_Module_blocktype_api_t *api,
                                    size_t user_content_size);
 
 #endif /* BPLIB_CACHE_H */

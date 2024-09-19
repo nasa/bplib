@@ -18,28 +18,22 @@
  *
  */
 
-#ifndef BPLIB_STOR_TEST_UTILS_H
-#define BPLIB_STOR_TEST_UTILS_H
+/*
+ * Include
+ */
+#include "bplib_stor_test_utils.h"
 
 /*
-** Include
+** Test function for
+** int BPLib_STOR_Init()
 */
-
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
-
-#include "bplib.h"
-#include "bplib_s.h"
+void Test_BPLib_STOR_Init(void)
+{
+    UtAssert_INT32_EQ(BPLib_STOR_Init(), BPLIB_SUCCESS);
+}
 
 
-/*
-** Function Definitions
-*/
-
-void BPLib_STOR_Test_Setup(void);
-void BPLib_STOR_Test_Teardown(void);
-
-void TestBplibStor_Register(void);
-
-#endif /* BPLIB_STOR_TEST_UTILS_H */
+void TestBplibStor_Register(void)
+{
+    UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init");
+}

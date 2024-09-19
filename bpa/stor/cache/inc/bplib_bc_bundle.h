@@ -50,8 +50,8 @@ typedef struct BPLib_STOR_CACHE_BblockPrimaryData
 
 struct BPLib_STOR_CACHE_BblockPrimary
 {
-    BPLib_MEM_block_t cblock_list;
-    BPLib_MEM_block_t chunk_list;
+    BPLib_STOR_CACHE_Block_t cblock_list;
+    BPLib_STOR_CACHE_Block_t chunk_list;
     size_t              block_encode_size_cache;
     size_t              bundle_encode_size_cache;
 
@@ -60,7 +60,7 @@ struct BPLib_STOR_CACHE_BblockPrimary
 
 struct BPLib_STOR_CACHE_BblockCanonical
 {
-    BPLib_MEM_block_t           chunk_list;
+    BPLib_STOR_CACHE_Block_t           chunk_list;
     BPLib_STOR_CACHE_BblockPrimary_t *bundle_ref;
     size_t                        block_encode_size_cache;
     size_t                        encoded_content_offset;
@@ -83,9 +83,9 @@ static inline bp_primary_block_t *BPLib_STOR_CACHE_BblockPrimaryGetLogical(BPLib
  * @brief Gets the list of encoded chunks associated with a primary block
  *
  * @param cpb
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-static inline BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryGetEncodedChunks(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
+static inline BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryGetEncodedChunks(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
     return &cpb->chunk_list;
 }
@@ -94,9 +94,9 @@ static inline BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryGetEncodedChunks(
  * @brief Gets the list of canonical blocks associated with a primary block
  *
  * @param cpb
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-static inline BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryGetCanonicalList(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
+static inline BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryGetCanonicalList(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
     return &cpb->cblock_list;
 }
@@ -116,9 +116,9 @@ static inline bp_canonical_block_buffer_t *BPLib_STOR_CACHE_BblockCanonicalGetLo
  * @brief Gets the list of encoded chunks associated with a canonical block
  *
  * @param ccb
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-static inline BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCanonicalGetEncodedChunks(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
+static inline BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockCanonicalGetEncodedChunks(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
 {
     return &ccb->chunk_list;
 }
@@ -170,7 +170,7 @@ static inline size_t BPLib_STOR_CACHE_BblockCanonicalGetContentOffset(const BPLi
  * @param cb
  * @return BPLib_STOR_CACHE_BblockPrimary_t*
  */
-BPLib_STOR_CACHE_BblockPrimary_t *BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_MEM_block_t *cb);
+BPLib_STOR_CACHE_BblockPrimary_t *BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_STOR_CACHE_Block_t *cb);
 
 /**
  * @brief Cast a block to a canonical type
@@ -181,7 +181,7 @@ BPLib_STOR_CACHE_BblockPrimary_t *BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_MEM_b
  * @param cb
  * @return BPLib_STOR_CACHE_BblockCanonical_t*
  */
-BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_MEM_block_t *cb);
+BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_STOR_CACHE_Block_t *cb);
 
 /**
  * @brief Cast a block to a CBOR data type
@@ -191,33 +191,33 @@ BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_M
  * @param cb
  * @return BPLib_STOR_CACHE_GenericData_t*
  */
-void *BPLib_STOR_CACHE_BblockCborCast(BPLib_MEM_block_t *cb);
+void *BPLib_STOR_CACHE_BblockCborCast(BPLib_STOR_CACHE_Block_t *cb);
 
-void BPLib_STOR_CACHE_BblockCborSetSize(BPLib_MEM_block_t *cb, size_t user_content_size);
+void BPLib_STOR_CACHE_BblockCborSetSize(BPLib_STOR_CACHE_Block_t *cb, size_t user_content_size);
 
 /**
  * @brief Allocate a new primary block
  *
  * @param pool
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg, uint8_t priority, uint64_t timeout);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg, uint8_t priority, uint64_t timeout);
 
 /**
  * @brief Allocate a new canonical block
  *
  * @param pool
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg);
 
 /**
  * @brief Allocate a new CBOR data block
  *
  * @param pool
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_MEM_t *pool);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_STOR_CACHE_Pool_t *pool);
 
 /**
  * @brief Append CBOR data to the given list
@@ -225,7 +225,7 @@ BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_MEM_t *pool);
  * @param head
  * @param blk
  */
-void BPLib_STOR_CACHE_BblockCborAppend(BPLib_MEM_block_t *head, BPLib_MEM_block_t *blk);
+void BPLib_STOR_CACHE_BblockCborAppend(BPLib_STOR_CACHE_Block_t *head, BPLib_STOR_CACHE_Block_t *blk);
 
 /**
  * @brief Append a canonical block to the bundle
@@ -233,7 +233,7 @@ void BPLib_STOR_CACHE_BblockCborAppend(BPLib_MEM_block_t *head, BPLib_MEM_block_
  * @param cpb
  * @param blk
  */
-void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb, BPLib_MEM_block_t *blk);
+void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb, BPLib_STOR_CACHE_Block_t *blk);
 
 /**
  * @brief Find a canonical block within the bundle
@@ -241,7 +241,7 @@ void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
  * @param cpb
  * @param block_type
  */
-BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
                                                                  bp_blocktype_t                block_type);
 
 /**
@@ -274,7 +274,7 @@ void BPLib_STOR_CACHE_BblockCanonicalDropEncode(BPLib_STOR_CACHE_BblockCanonical
  * @param max_count
  * @return size_t
  */
-size_t BPLib_STOR_CACHE_BblockCborExport(BPLib_MEM_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
+size_t BPLib_STOR_CACHE_BblockCborExport(BPLib_STOR_CACHE_Block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
                                       size_t max_count);
 
 #endif /* BPLIB_MEM_BBLOCKS_H */

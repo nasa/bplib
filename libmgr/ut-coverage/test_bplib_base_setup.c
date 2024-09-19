@@ -28,7 +28,7 @@ void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKe
     #ifdef STOR
 
     void *retval = NULL;
-    int   count  = UT_GetStubCount(UT_KEY(BPLib_MEM_FlowTryPull));
+    int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_MEM_FlowTryPull));
     if (count > 15)
     {
         UT_Stub_SetReturnValue(FuncKey, retval);
@@ -50,7 +50,7 @@ void UT_lib_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey
     #ifdef STOR
 
     void *retval = NULL;
-    int   count  = UT_GetStubCount(UT_KEY(BPLib_MEM_FlowTryPull));
+    int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_MEM_FlowTryPull));
     if (count > 20)
     {
         UT_Stub_SetReturnValue(FuncKey, retval);
@@ -72,7 +72,7 @@ void UT_lib_baseintf_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncK
     #ifdef STOR
 
     void *retval = NULL;
-    int   count  = UT_GetStubCount(UT_KEY(BPLib_MEM_FlowTryPull));
+    int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_MEM_FlowTryPull));
     if (count > 25)
     {
         UT_Stub_SetReturnValue(FuncKey, retval);

@@ -22,19 +22,19 @@
  INCLUDES
  ******************************************************************************/
 
-#include "v7_cache_internal.h"
+#include "BPLib_STOR_CACHE_Module_cache_internal.h"
 
-typedef bplib_cache_entry_state_t (*bplib_cache_fsm_state_eval_func_t)(bplib_cache_entry_t *);
-typedef void (*bplib_cache_fsm_state_change_func_t)(bplib_cache_entry_t *);
+typedef BPLib_STOR_CACHE_Module_entry_state_t (*BPLib_STOR_CACHE_Module_fsm_state_eval_func_t)(BPLib_STOR_CACHE_Module_entry_t *);
+typedef void (*BPLib_STOR_CACHE_Module_fsm_state_change_func_t)(BPLib_STOR_CACHE_Module_entry_t *);
 
-bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *store_entry)
+BPLib_STOR_CACHE_Module_entry_state_t BPLib_STOR_CACHE_Module_fsm_state_idle_eval(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
-    BPLib_MEM_block_t *pblk;
+    BPLib_STOR_CACHE_Block_t *pblk;
 
     if (store_entry->parent->action_time >= store_entry->expire_time)
     {
         /* bundle has reached the end of its useful life, so it can be discarded */
-        return bplib_cache_entry_state_undefined;
+        return BPLib_STOR_CACHE_Module_entry_state_undefined;
     }
 
     if ((store_entry->flags & BPLIB_STORE_FLAG_LOCAL_CUSTODY) == 0)
@@ -42,7 +42,7 @@ bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *s
         /* no longer have local custody of the bundle, so the content can be deleted,
          * but the metadata can be retained for a holdover period in case the previous custodian
          * sends it again */
-        return bplib_cache_entry_state_delete;
+        return BPLib_STOR_CACHE_Module_entry_state_delete;
     }
 
     if ((store_entry->flags & BPLIB_STORE_FLAGS_ACTION_WAIT_STATE) == 0)
@@ -57,39 +57,39 @@ bplib_cache_entry_state_t bplib_cache_fsm_state_idle_eval(bplib_cache_entry_t *s
 
         if (store_entry->refptr != NULL)
         {
-            return bplib_cache_entry_state_queue;
+            return BPLib_STOR_CACHE_Module_entry_state_queue;
         }
     }
 
     /* no change */
-    return bplib_cache_entry_state_idle;
+    return BPLib_STOR_CACHE_Module_entry_state_idle;
 }
 
-static void bplib_cache_fsm_state_idle_enter(bplib_cache_entry_t *store_entry) {}
+static void BPLib_STOR_CACHE_Module_fsm_state_idle_enter(BPLib_STOR_CACHE_Module_entry_t *store_entry) {}
 
-bplib_cache_entry_state_t bplib_cache_fsm_state_queue_eval(bplib_cache_entry_t *store_entry)
+BPLib_STOR_CACHE_Module_entry_state_t BPLib_STOR_CACHE_Module_fsm_state_queue_eval(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
     if ((store_entry->flags & BPLIB_STORE_FLAG_LOCALLY_QUEUED) == 0)
     {
         /* go back to idle state (will be reevaluated from there) */
-        return bplib_cache_entry_state_idle;
+        return BPLib_STOR_CACHE_Module_entry_state_idle;
     }
 
-    return bplib_cache_entry_state_queue; /* no change */
+    return BPLib_STOR_CACHE_Module_entry_state_queue; /* no change */
 }
 
-void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
+void BPLib_STOR_CACHE_Module_fsm_state_queue_enter(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
     #ifdef STOR
-    BPLib_MEM_block_t *rblk;
-    BPLib_MEM_flow_t  *self_flow;
+    BPLib_STOR_CACHE_Block_t *rblk;
+    BPLib_STOR_CACHE_Flow_t  *self_flow;
 
     store_entry->flags |= BPLIB_STORE_FLAG_PENDING_FORWARD;
 
     rblk = BPLib_STOR_CACHE_RefMakeBlock(store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF, store_entry);
     if (rblk != NULL)
     {
-        self_flow = bplib_cache_get_flow(store_entry->parent);
+        self_flow = BPLib_STOR_CACHE_Module_get_flow(store_entry->parent);
 
         /*
          * note - the flag is always set here, even if it does not actually make it into the queue.
@@ -109,11 +109,11 @@ void bplib_cache_fsm_state_queue_enter(bplib_cache_entry_t *store_entry)
     #endif // STOR
 }
 
-void bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry)
+void BPLib_STOR_CACHE_Module_fsm_state_queue_exit(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
     BPLib_STOR_CACHE_BblockPrimary_t *pri_block;
 
-    pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_MEM_dereference(store_entry->refptr));
+    pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_STOR_CACHE_Dereference(store_entry->refptr));
 
     if (bp_handle_is_valid(pri_block->data.delivery.egress_intf_id))
     {
@@ -141,7 +141,7 @@ void bplib_cache_fsm_state_queue_exit(bplib_cache_entry_t *store_entry)
     }
 }
 
-bplib_cache_entry_state_t bplib_cache_fsm_state_delete_eval(bplib_cache_entry_t *store_entry)
+BPLib_STOR_CACHE_Module_entry_state_t BPLib_STOR_CACHE_Module_fsm_state_delete_eval(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
     if ((store_entry->flags & BPLIB_STORE_FLAG_ACTION_TIME_WAIT) == 0)
     {
@@ -150,7 +150,7 @@ bplib_cache_entry_state_t bplib_cache_fsm_state_delete_eval(bplib_cache_entry_t 
         if ((store_entry->flags & BPLIB_STORE_FLAG_ACTIVITY) == 0)
         {
             /* nothing used this, so should be safe to finally discard it */
-            return bplib_cache_entry_state_undefined;
+            return BPLib_STOR_CACHE_Module_entry_state_undefined;
         }
 
         /* clear it now, it will be re-set if something uses this entry */
@@ -159,10 +159,10 @@ bplib_cache_entry_state_t bplib_cache_fsm_state_delete_eval(bplib_cache_entry_t 
         store_entry->action_time = store_entry->parent->action_time + BP_CACHE_AGE_OUT_TIME;
     }
 
-    return bplib_cache_entry_state_delete;
+    return BPLib_STOR_CACHE_Module_entry_state_delete;
 }
 
-void bplib_cache_fsm_state_delete_enter(bplib_cache_entry_t *store_entry)
+void BPLib_STOR_CACHE_Module_fsm_state_delete_enter(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
     if (store_entry->refptr != NULL)
     {
@@ -179,23 +179,23 @@ void bplib_cache_fsm_state_delete_enter(bplib_cache_entry_t *store_entry)
     store_entry->action_time = store_entry->parent->action_time + BP_CACHE_AGE_OUT_TIME;
 }
 
-bplib_cache_entry_state_t bplib_cache_fsm_state_generate_dacs_eval(bplib_cache_entry_t *store_entry)
+BPLib_STOR_CACHE_Module_entry_state_t BPLib_STOR_CACHE_Module_fsm_state_generate_dacs_eval(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
     /* check if dacs is due for transmit */
     if ((store_entry->flags & BPLIB_STORE_FLAG_ACTION_TIME_WAIT) == 0)
     {
-        return bplib_cache_entry_state_idle;
+        return BPLib_STOR_CACHE_Module_entry_state_idle;
     }
 
-    return bplib_cache_entry_state_generate_dacs;
+    return BPLib_STOR_CACHE_Module_entry_state_generate_dacs;
 }
 
-void bplib_cache_fsm_state_generate_dacs_exit(bplib_cache_entry_t *store_entry)
+void BPLib_STOR_CACHE_Module_fsm_state_generate_dacs_exit(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
-    bplib_cache_custody_finalize_dacs(store_entry->parent, store_entry);
+    BPLib_STOR_CACHE_Module_custody_finalize_dacs(store_entry->parent, store_entry);
 }
 
-void bplib_cache_fsm_reschedule(bplib_cache_state_t *state, bplib_cache_entry_t *store_entry)
+void BPLib_STOR_CACHE_Module_fsm_reschedule(BPLib_STOR_CACHE_Module_state_t *state, BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
     uint64_t ref_time;
     uint64_t prev_key;
@@ -223,7 +223,7 @@ void bplib_cache_fsm_reschedule(bplib_cache_state_t *state, bplib_cache_entry_t 
     /*
      * determine the batch/bucket that this should go into
      */
-    prev_key = bplib_rbt_get_key_value(&store_entry->time_rbt_link);
+    prev_key = BPLib_STOR_CACHE_RBT_GetKeyValue(&store_entry->time_rbt_link);
     if (ref_time != prev_key)
     {
         /*
@@ -232,33 +232,33 @@ void bplib_cache_fsm_reschedule(bplib_cache_state_t *state, bplib_cache_entry_t 
          */
         if (prev_key != 0)
         {
-            bplib_rbt_extract_node(&state->time_jphfix_index, &store_entry->time_rbt_link);
+            BPLib_STOR_CACHE_RBT_ExtractNode(&state->time_jphfix_index, &store_entry->time_rbt_link);
         }
-        bplib_rbt_insert_value_generic(ref_time, &state->time_jphfix_index, &store_entry->time_rbt_link,
-                                       bplib_cache_entry_tree_insert_unsorted, NULL);
+        BPLib_STOR_CACHE_RBT_InsertValueGeneric(ref_time, &state->time_jphfix_index, &store_entry->time_rbt_link,
+                                       BPLib_STOR_CACHE_Module_entry_tree_insert_unsorted, NULL);
     }
 }
 
-static bplib_cache_entry_state_t bplib_cache_fsm_state_noop_eval(bplib_cache_entry_t *store_entry)
+static BPLib_STOR_CACHE_Module_entry_state_t BPLib_STOR_CACHE_Module_fsm_state_noop_eval(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
     /* entries which reach this state will be discarded immediately */
-    return bplib_cache_entry_state_undefined;
+    return BPLib_STOR_CACHE_Module_entry_state_undefined;
 }
 
-bplib_cache_entry_state_t bplib_cache_fsm_get_next_state(bplib_cache_entry_t *entry)
+BPLib_STOR_CACHE_Module_entry_state_t BPLib_STOR_CACHE_Module_fsm_get_next_state(BPLib_STOR_CACHE_Module_entry_t *entry)
 {
-    static const bplib_cache_fsm_state_eval_func_t STATE_EVAL_TABLE[bplib_cache_entry_state_max] = {
-        [bplib_cache_entry_state_undefined]     = bplib_cache_fsm_state_noop_eval,
-        [bplib_cache_entry_state_idle]          = bplib_cache_fsm_state_idle_eval,
-        [bplib_cache_entry_state_queue]         = bplib_cache_fsm_state_queue_eval,
-        [bplib_cache_entry_state_delete]        = bplib_cache_fsm_state_delete_eval,
-        [bplib_cache_entry_state_generate_dacs] = bplib_cache_fsm_state_generate_dacs_eval};
+    static const BPLib_STOR_CACHE_Module_fsm_state_eval_func_t STATE_EVAL_TABLE[BPLib_STOR_CACHE_Module_entry_state_max] = {
+        [BPLib_STOR_CACHE_Module_entry_state_undefined]     = BPLib_STOR_CACHE_Module_fsm_state_noop_eval,
+        [BPLib_STOR_CACHE_Module_entry_state_idle]          = BPLib_STOR_CACHE_Module_fsm_state_idle_eval,
+        [BPLib_STOR_CACHE_Module_entry_state_queue]         = BPLib_STOR_CACHE_Module_fsm_state_queue_eval,
+        [BPLib_STOR_CACHE_Module_entry_state_delete]        = BPLib_STOR_CACHE_Module_fsm_state_delete_eval,
+        [BPLib_STOR_CACHE_Module_entry_state_generate_dacs] = BPLib_STOR_CACHE_Module_fsm_state_generate_dacs_eval};
 
-    bplib_cache_fsm_state_eval_func_t state_eval_func;
-    bplib_cache_entry_state_t         state;
+    BPLib_STOR_CACHE_Module_fsm_state_eval_func_t state_eval_func;
+    BPLib_STOR_CACHE_Module_entry_state_t         state;
 
     state = entry->state;
-    if (state < bplib_cache_entry_state_max)
+    if (state < BPLib_STOR_CACHE_Module_entry_state_max)
     {
         state_eval_func = STATE_EVAL_TABLE[state];
     }
@@ -278,22 +278,22 @@ bplib_cache_entry_state_t bplib_cache_fsm_get_next_state(bplib_cache_entry_t *en
     return state;
 }
 
-void bplib_cache_fsm_transition_state(bplib_cache_entry_t *entry, bplib_cache_entry_state_t next_state)
+void BPLib_STOR_CACHE_Module_fsm_transition_state(BPLib_STOR_CACHE_Module_entry_t *entry, BPLib_STOR_CACHE_Module_entry_state_t next_state)
 {
-    static const bplib_cache_fsm_state_change_func_t STATE_ENTER_TABLE[bplib_cache_entry_state_max] = {
-        [bplib_cache_entry_state_idle]   = bplib_cache_fsm_state_idle_enter,
-        [bplib_cache_entry_state_queue]  = bplib_cache_fsm_state_queue_enter,
-        [bplib_cache_entry_state_delete] = bplib_cache_fsm_state_delete_enter};
+    static const BPLib_STOR_CACHE_Module_fsm_state_change_func_t STATE_ENTER_TABLE[BPLib_STOR_CACHE_Module_entry_state_max] = {
+        [BPLib_STOR_CACHE_Module_entry_state_idle]   = BPLib_STOR_CACHE_Module_fsm_state_idle_enter,
+        [BPLib_STOR_CACHE_Module_entry_state_queue]  = BPLib_STOR_CACHE_Module_fsm_state_queue_enter,
+        [BPLib_STOR_CACHE_Module_entry_state_delete] = BPLib_STOR_CACHE_Module_fsm_state_delete_enter};
 
-    static const bplib_cache_fsm_state_change_func_t STATE_EXIT_TABLE[bplib_cache_entry_state_max] = {
-        [bplib_cache_entry_state_queue]         = bplib_cache_fsm_state_queue_exit,
-        [bplib_cache_entry_state_generate_dacs] = bplib_cache_fsm_state_generate_dacs_exit};
+    static const BPLib_STOR_CACHE_Module_fsm_state_change_func_t STATE_EXIT_TABLE[BPLib_STOR_CACHE_Module_entry_state_max] = {
+        [BPLib_STOR_CACHE_Module_entry_state_queue]         = BPLib_STOR_CACHE_Module_fsm_state_queue_exit,
+        [BPLib_STOR_CACHE_Module_entry_state_generate_dacs] = BPLib_STOR_CACHE_Module_fsm_state_generate_dacs_exit};
 
-    bplib_cache_fsm_state_change_func_t state_enter_func;
-    bplib_cache_fsm_state_change_func_t state_exit_func;
+    BPLib_STOR_CACHE_Module_fsm_state_change_func_t state_enter_func;
+    BPLib_STOR_CACHE_Module_fsm_state_change_func_t state_exit_func;
 
     /* entry->state is the state we are leaving */
-    if (entry->state < bplib_cache_entry_state_max)
+    if (entry->state < BPLib_STOR_CACHE_Module_entry_state_max)
     {
         state_exit_func = STATE_EXIT_TABLE[entry->state];
     }
@@ -303,7 +303,7 @@ void bplib_cache_fsm_transition_state(bplib_cache_entry_t *entry, bplib_cache_en
     }
 
     /* next_state is the state we are entering */
-    if (next_state < bplib_cache_entry_state_max)
+    if (next_state < BPLib_STOR_CACHE_Module_entry_state_max)
     {
         state_enter_func = STATE_ENTER_TABLE[next_state];
     }
@@ -326,17 +326,17 @@ void bplib_cache_fsm_transition_state(bplib_cache_entry_t *entry, bplib_cache_en
     entry->state = next_state;
 }
 
-static void bplib_cache_fsm_debug_report_discard(bplib_cache_entry_t *store_entry)
+static void BPLib_STOR_CACHE_Module_fsm_debug_report_discard(BPLib_STOR_CACHE_Module_entry_t *store_entry)
 {
     fprintf(stderr, "discarding bundle ID %lu.%lu @%lu\n", (unsigned long)store_entry->flow_id_copy.node_number,
             (unsigned long)store_entry->flow_id_copy.service_number, (unsigned long)store_entry->flow_seq_copy);
 }
 
-void bplib_cache_fsm_execute(BPLib_MEM_block_t *sblk)
+void BPLib_STOR_CACHE_Module_fsm_execute(BPLib_STOR_CACHE_Block_t *sblk)
 {
-    bplib_cache_state_t      *state;
-    bplib_cache_entry_t      *store_entry;
-    bplib_cache_entry_state_t next_state;
+    BPLib_STOR_CACHE_Module_state_t      *state;
+    BPLib_STOR_CACHE_Module_entry_t      *store_entry;
+    BPLib_STOR_CACHE_Module_entry_state_t next_state;
 
     /* This cast should always work, unless there is a bug */
     store_entry = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
@@ -357,7 +357,7 @@ void bplib_cache_fsm_execute(BPLib_MEM_block_t *sblk)
              *
              * To avoid this, the "transmit_time" is set to infinite for now, and shouldn't be reset to something
              * real until it is confirmed that there is no bundle copy in pending output anymore (that is,
-             * bplib_cache_handle_ref_recycle() was called and it was cleaned up).
+             * BPLib_STOR_CACHE_Module_handle_ref_recycle() was called and it was cleaned up).
              *
              * This is mainly to avoid any potential snowball effects from a misbehaving CLA.  If the CLA was
              * not able to fetch data, it should declare itself DOWN and then all is OK (because existing entries
@@ -367,19 +367,19 @@ void bplib_cache_fsm_execute(BPLib_MEM_block_t *sblk)
             store_entry->action_time = BP_CACHE_TIME_INFINITE;
         }
 
-        next_state = bplib_cache_fsm_get_next_state(store_entry);
+        next_state = BPLib_STOR_CACHE_Module_fsm_get_next_state(store_entry);
         if (next_state != store_entry->state)
         {
             ++state->fsm_state_exit_count[store_entry->state];
-            bplib_cache_fsm_transition_state(store_entry, next_state);
+            BPLib_STOR_CACHE_Module_fsm_transition_state(store_entry, next_state);
             ++state->fsm_state_enter_count[next_state];
         }
 
         /* entries get set into the "undefined" state once the FSM determines it is no longer useful at all */
-        if (next_state == bplib_cache_entry_state_undefined)
+        if (next_state == BPLib_STOR_CACHE_Module_entry_state_undefined)
         {
             ++state->discard_count;
-            bplib_cache_fsm_debug_report_discard(store_entry);
+            BPLib_STOR_CACHE_Module_fsm_debug_report_discard(store_entry);
             BPLib_STOR_CACHE_RecycleBlock(sblk);
         }
         else
@@ -389,7 +389,7 @@ void bplib_cache_fsm_execute(BPLib_MEM_block_t *sblk)
              * idle list at some point, don't let them linger indefinitely without
              * at least looking at them.
              */
-            bplib_cache_fsm_reschedule(state, store_entry);
+            BPLib_STOR_CACHE_Module_fsm_reschedule(state, store_entry);
             BPLib_STOR_CACHE_InsertBefore(&state->idle_list, sblk);
         }
     }

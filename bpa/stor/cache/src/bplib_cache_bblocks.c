@@ -31,14 +31,13 @@
 
 #include "bplib.h"
 #include "bplib_mem.h"
-#include "bplib_mem_internal.h"
 
 /*----------------------------------------------------------------
  *
  * Function: BPLib_STOR_CACHE_BblockPrimaryCast
  *
  *-----------------------------------------------------------------*/
-BPLib_STOR_CACHE_BblockPrimary_t *BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_MEM_block_t *cb)
+BPLib_STOR_CACHE_BblockPrimary_t *BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_STOR_CACHE_Block_t *cb)
 {
     #ifdef STOR // blocktype
     BPLib_STOR_CACHE_BlockContent_t *content;
@@ -57,7 +56,7 @@ BPLib_STOR_CACHE_BblockPrimary_t *BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_MEM_b
  * Function: BPLib_STOR_CACHE_BblockCanonicalCast
  *
  *-----------------------------------------------------------------*/
-BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_MEM_block_t *cb)
+BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_STOR_CACHE_Block_t *cb)
 {
     BPLib_STOR_CACHE_BlockContent_t *content;
 
@@ -74,7 +73,7 @@ BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_M
  * Function: BPLib_STOR_CACHE_BblockCborCast
  *
  *-----------------------------------------------------------------*/
-void *BPLib_STOR_CACHE_BblockCborCast(BPLib_MEM_block_t *cb)
+void *BPLib_STOR_CACHE_BblockCborCast(BPLib_STOR_CACHE_Block_t *cb)
 {
     /* CBOR data blocks are nothing more than generic blocks with a different sig */
     return BPLib_STOR_CACHE_GenericDataCast(cb, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
@@ -85,7 +84,7 @@ void *BPLib_STOR_CACHE_BblockCborCast(BPLib_MEM_block_t *cb)
  * Function: BPLib_STOR_CACHE_BblockCborSetSize
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_BblockCborSetSize(BPLib_MEM_block_t *cb, size_t user_content_size)
+void BPLib_STOR_CACHE_BblockCborSetSize(BPLib_STOR_CACHE_Block_t *cb, size_t user_content_size)
 {
     BPLib_STOR_CACHE_BlockContent_t *content;
 
@@ -102,7 +101,7 @@ void BPLib_STOR_CACHE_BblockCborSetSize(BPLib_MEM_block_t *cb, size_t user_conte
  * Function: BPLib_STOR_CACHE_BblockPrimaryInit
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_BblockPrimaryInit(BPLib_MEM_block_t *base_block, BPLib_STOR_CACHE_BblockPrimary_t *pblk)
+void BPLib_STOR_CACHE_BblockPrimaryInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_BblockPrimary_t *pblk)
 {
     BPLib_STOR_CACHE_InitListHead(base_block, &pblk->cblock_list);
     BPLib_STOR_CACHE_InitListHead(base_block, &pblk->chunk_list);
@@ -113,7 +112,7 @@ void BPLib_STOR_CACHE_BblockPrimaryInit(BPLib_MEM_block_t *base_block, BPLib_STO
  * Function: BPLib_STOR_CACHE_BblockCanonicalInit
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_BblockCanonicalInit(BPLib_MEM_block_t *base_block, BPLib_STOR_CACHE_BblockCanonical_t *cblk)
+void BPLib_STOR_CACHE_BblockCanonicalInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_BblockCanonical_t *cblk)
 {
     BPLib_STOR_CACHE_InitListHead(base_block, &cblk->chunk_list);
 }
@@ -123,11 +122,11 @@ void BPLib_STOR_CACHE_BblockCanonicalInit(BPLib_MEM_block_t *base_block, BPLib_S
  * Function: BPLib_STOR_CACHE_BblockPrimaryAlloc
  *
  *-----------------------------------------------------------------*/
-BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg,
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg,
                                                       uint8_t priority, uint64_t timeout)
 {
     BPLib_STOR_CACHE_BlockContent_t *result;
-    BPLib_MEM_lock_t          *lock;
+    BPLib_STOR_CACHE_Lock_t          *lock;
     bool                         within_timeout;
 
     lock           = BPLib_STOR_CACHE_LockResource(pool);
@@ -145,7 +144,7 @@ BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_MEM_t *pool, uint32
     }
     BPLib_STOR_CACHE_LockRelease(lock);
 
-    return (BPLib_MEM_block_t *)result;
+    return (BPLib_STOR_CACHE_Block_t *)result;
 }
 
 /*----------------------------------------------------------------
@@ -153,17 +152,17 @@ BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_MEM_t *pool, uint32
  * Function: BPLib_STOR_CACHE_BblockCanonicalAlloc
  *
  *-----------------------------------------------------------------*/
-BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg)
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg)
 {
     BPLib_STOR_CACHE_BlockContent_t *result;
-    BPLib_MEM_lock_t          *lock;
+    BPLib_STOR_CACHE_Lock_t          *lock;
 
     lock   = BPLib_STOR_CACHE_LockResource(pool);
     result = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypeCanonical, magic_number, init_arg,
                                               BPLIB_MEM_ALLOC_PRI_MED);
     BPLib_STOR_CACHE_LockRelease(lock);
 
-    return (BPLib_MEM_block_t *)result;
+    return (BPLib_STOR_CACHE_Block_t *)result;
 }
 
 /*----------------------------------------------------------------
@@ -171,17 +170,17 @@ BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_MEM_t *pool, uint
  * Function: BPLib_STOR_CACHE_BblockCborAlloc
  *
  *-----------------------------------------------------------------*/
-BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_MEM_t *pool)
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_STOR_CACHE_Pool_t *pool)
 {
     BPLib_STOR_CACHE_BlockContent_t *result;
-    BPLib_MEM_lock_t          *lock;
+    BPLib_STOR_CACHE_Lock_t          *lock;
 
     lock   = BPLib_STOR_CACHE_LockResource(pool);
     result = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE,
                                               NULL, BPLIB_MEM_ALLOC_PRI_MED);
     BPLib_STOR_CACHE_LockRelease(lock);
 
-    return (BPLib_MEM_block_t *)result;
+    return (BPLib_STOR_CACHE_Block_t *)result;
 }
 
 /*----------------------------------------------------------------
@@ -189,7 +188,7 @@ BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_MEM_t *pool)
  * Function: BPLib_STOR_CACHE_BblockCborAppend
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_BblockCborAppend(BPLib_MEM_block_t *head, BPLib_MEM_block_t *blk)
+void BPLib_STOR_CACHE_BblockCborAppend(BPLib_STOR_CACHE_Block_t *head, BPLib_STOR_CACHE_Block_t *blk)
 {
     /* this just confirms it actually is a CBOR data block */
     assert(BPLib_STOR_CACHE_BblockCborCast(blk) != NULL);
@@ -203,7 +202,7 @@ void BPLib_STOR_CACHE_BblockCborAppend(BPLib_MEM_block_t *head, BPLib_MEM_block_
  *-----------------------------------------------------------------*/
 void BPLib_STOR_CACHE_BblockPrimaryDropEncode(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
-    BPLib_MEM_block_t *elist;
+    BPLib_STOR_CACHE_Block_t *elist;
 
     /* If there is any existing encoded data, return it to the pool */
     elist = BPLib_STOR_CACHE_BblockPrimaryGetEncodedChunks(cpb);
@@ -222,7 +221,7 @@ void BPLib_STOR_CACHE_BblockPrimaryDropEncode(BPLib_STOR_CACHE_BblockPrimary_t *
  *-----------------------------------------------------------------*/
 void BPLib_STOR_CACHE_BblockCanonicalDropEncode(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
 {
-    BPLib_MEM_block_t *elist;
+    BPLib_STOR_CACHE_Block_t *elist;
 
     /* If there is any existing encoded data, return it to the pool */
     elist = BPLib_STOR_CACHE_BblockCanonicalGetEncodedChunks(ccb);
@@ -244,10 +243,10 @@ void BPLib_STOR_CACHE_BblockCanonicalDropEncode(BPLib_STOR_CACHE_BblockCanonical
  * Function: BPLib_STOR_CACHE_BblockCborExport
  *
  *-----------------------------------------------------------------*/
-size_t BPLib_STOR_CACHE_BblockCborExport(BPLib_MEM_block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
+size_t BPLib_STOR_CACHE_BblockCborExport(BPLib_STOR_CACHE_Block_t *list, void *out_ptr, size_t max_out_size, size_t seek_start,
                                       size_t max_count)
 {
-    BPLib_MEM_block_t *blk;
+    BPLib_STOR_CACHE_Block_t *blk;
     uint8_t             *curr_ptr;
     const uint8_t       *src_ptr;
     size_t               remain_sz;
@@ -311,7 +310,7 @@ size_t BPLib_STOR_CACHE_BblockCborExport(BPLib_MEM_block_t *list, void *out_ptr,
  * Function: BPLib_STOR_CACHE_BblockPrimaryAppend
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb, BPLib_MEM_block_t *blk)
+void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb, BPLib_STOR_CACHE_Block_t *blk)
 {
     BPLib_STOR_CACHE_BblockCanonical_t *ccb;
 
@@ -343,10 +342,10 @@ void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
     ccb->bundle_ref               = cpb;
 }
 
-BPLib_MEM_block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
                                                                  bp_blocktype_t                block_type)
 {
-    BPLib_MEM_block_t            *cblk;
+    BPLib_STOR_CACHE_Block_t            *cblk;
     BPLib_STOR_CACHE_BblockCanonical_t *ccb;
 
     cblk = BPLib_STOR_CACHE_BblockPrimaryGetCanonicalList(cpb);

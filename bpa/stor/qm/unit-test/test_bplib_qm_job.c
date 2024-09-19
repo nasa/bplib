@@ -28,26 +28,26 @@
 struct UT_job_block
 {
     BPLib_STOR_CACHE_BlockHeader_t blkh;
-    BPLib_MEM_job_t          job;
+    BPLib_STOR_CACHE_Job_t          job;
 };
 
 union UT_job_block_content
 {
     BPLib_STOR_CACHE_BlockContent_t reserved_space;
-    BPLib_MEM_block_t         block;
+    BPLib_STOR_CACHE_Block_t         block;
     struct UT_job_block         content;
 };
 
 struct UT_job_poolbuf
 {
-    BPLib_MEM_t              pool;
+    BPLib_STOR_CACHE_Pool_t              pool;
     union UT_job_block_content u;
 };
 
 void test_BPLib_STOR_CACHE_JobInit(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_JobInit(BPLib_MEM_block_t *base_block, BPLib_MEM_job_t *jblk)
+     * void BPLib_STOR_CACHE_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Job_t *jblk)
      */
     struct UT_job_block buf;
 
@@ -59,9 +59,9 @@ void test_BPLib_STOR_CACHE_JobInit(void)
 void test_BPLib_STOR_CACHE_JobCast(void)
 {
     /* Test function for:
-     * BPLib_MEM_job_t *BPLib_STOR_CACHE_JobCast(BPLib_MEM_block_t *cb)
+     * BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobCast(BPLib_STOR_CACHE_Block_t *cb)
      */
-    BPLib_MEM_block_t blk;
+    BPLib_STOR_CACHE_Block_t blk;
 
     UtAssert_NULL(BPLib_STOR_CACHE_JobCast(NULL));
 
@@ -75,11 +75,11 @@ void test_BPLib_STOR_CACHE_JobCast(void)
 void test_BPLib_STOR_CACHE_JobMarkActive(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_JobMarkActive(BPLib_MEM_job_t *job)
+     * void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job)
      */
     struct UT_job_poolbuf              buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
-    BPLib_MEM_job_t                 *job;
+    BPLib_STOR_CACHE_Job_t                 *job;
 
     memset(&buf, 0, sizeof(buf));
 
@@ -104,12 +104,12 @@ void test_BPLib_STOR_CACHE_JobMarkActive(void)
 void test_BPLib_STOR_CACHE_JobGetNextActive(void)
 {
     /* Test function for:
-     * BPLib_MEM_job_t *BPLib_STOR_CACHE_JobGetNextActive(BPLib_MEM_t *pool)
+     * BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobGetNextActive(BPLib_STOR_CACHE_Pool_t *pool)
      */
 
     struct UT_job_poolbuf              buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
-    BPLib_MEM_job_t                 *job;
+    BPLib_STOR_CACHE_Job_t                 *job;
 
     memset(&buf, 0, sizeof(buf));
 
@@ -135,12 +135,12 @@ void test_BPLib_STOR_CACHE_JobGetNextActive(void)
 void test_BPLib_STOR_CACHE_JobRunAll(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_JobRunAll(BPLib_MEM_t *pool, void *arg)
+     * void BPLib_STOR_CACHE_JobRunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg)
      */
 
     struct UT_job_poolbuf              buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
-    BPLib_MEM_job_t                 *job;
+    BPLib_STOR_CACHE_Job_t                 *job;
 
     memset(&buf, 0, sizeof(buf));
 

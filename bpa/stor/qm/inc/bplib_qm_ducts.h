@@ -29,7 +29,7 @@
 #include "bplib_mem_bblocks.h"
 
 #ifdef STOR
-#include "v7_mpool_job.h"
+#include "BPLib_STOR_CACHE_Module_mpool_job.h"
 #endif // STOR
 #define BPLIB_MEM_FLOW_FLAGS_ADMIN_UP 0x01
 #define BPLIB_MEM_FLOW_FLAGS_OPER_UP  0x02
@@ -86,7 +86,7 @@ typedef union BPLib_STOR_CACHE_FlowGenericEvent
     BPLib_STOR_CACHE_FlowStatechangeEvent_t intf_state;
 } BPLib_STOR_CACHE_FlowGenericEvent_t;
 
-struct BPLib_MEM_flow
+struct BPLib_STOR_CACHE_Flow
 {
     uint32_t pending_state_flags;
     uint32_t current_state_flags;
@@ -95,7 +95,7 @@ struct BPLib_MEM_flow
     BPLib_STOR_CACHE_JobStatechange_t statechange_job;
 #endif //STOR
 
-    BPLib_MEM_ref_t             parent;
+    BPLib_STOR_CACHE_Ref_t             parent;
 
     BPLib_STOR_CACHE_SubqWorkitem_t ingress;
     BPLib_STOR_CACHE_SubqWorkitem_t egress;
@@ -105,9 +105,9 @@ struct BPLib_MEM_flow
  * @brief Cast a block to a flow type
  *
  * @param cb
- * @return BPLib_MEM_flow_t*
+ * @return BPLib_STOR_CACHE_Flow_t*
  */
-BPLib_MEM_flow_t *BPLib_STOR_CACHE_FlowCast(BPLib_MEM_block_t *cb);
+BPLib_STOR_CACHE_Flow_t *BPLib_STOR_CACHE_FlowCast(BPLib_STOR_CACHE_Block_t *cb);
 
 /**
  * @brief Allocate a flow block
@@ -115,9 +115,9 @@ BPLib_MEM_flow_t *BPLib_STOR_CACHE_FlowCast(BPLib_MEM_block_t *cb);
  * @param pool
  * @param magic_number
  * @param init_arg Opaque pointer passed to initializer (may be NULL)
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_CACHE_Block_t*
  */
-BPLib_MEM_block_t *BPLib_STOR_CACHE_FlowAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_FlowAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg);
 
 #ifdef STOR
 /**
@@ -132,13 +132,13 @@ BPLib_MEM_block_t *BPLib_STOR_CACHE_FlowAlloc(BPLib_MEM_t *pool, uint32_t magic_
 uint32_t BPLib_STOR_CACHE_FlowDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq);
 void     BPLib_STOR_CACHE_FlowEnable(BPLib_STOR_CACHE_SubqWorkitem_t *subq, uint32_t depth_limit);
 
-bool BPLib_STOR_CACHE_FlowTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_MEM_block_t *qblk, uint64_t abs_timeout);
+bool BPLib_STOR_CACHE_FlowTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk, uint64_t abs_timeout);
 uint32_t BPLib_STOR_CACHE_FlowTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
                                        uint64_t abs_timeout);
 
-BPLib_MEM_block_t *BPLib_STOR_CACHE_FlowTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, uint64_t abs_timeout);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_FlowTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, uint64_t abs_timeout);
 
-bool BPLib_STOR_CACHE_FlowModifyFlags(BPLib_MEM_block_t *cb, uint32_t set_bits, uint32_t clear_bits);
+bool BPLib_STOR_CACHE_FlowModifyFlags(BPLib_STOR_CACHE_Block_t *cb, uint32_t set_bits, uint32_t clear_bits);
 
 #endif // STOR
 
@@ -203,7 +203,7 @@ static inline bool BPLib_STOR_CACHE_SubqWorkitemMayPush(const BPLib_STOR_CACHE_S
 
 #endif // STOR
 
-static inline bool BPLib_STOR_CACHE_FlowIsUp(const BPLib_MEM_flow_t *flow)
+static inline bool BPLib_STOR_CACHE_FlowIsUp(const BPLib_STOR_CACHE_Flow_t *flow)
 {
     #ifdef STOR
     return (~flow->current_state_flags & (BPLIB_MEM_FLOW_FLAGS_ADMIN_UP | BPLIB_MEM_FLOW_FLAGS_OPER_UP)) == 0;

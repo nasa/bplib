@@ -26,9 +26,8 @@
 #include "bplib_os.h"
 
 #include "bplib_mem.h"
-#include "bplib_mem_internal.h"
 
-#include "test_BPLib_MEM.h"
+#include "test_stor_cache.h"
 
 const uint32 UT_TESTBLOCKTYPE_SIG = 0x5f33c01a;
 
@@ -60,7 +59,7 @@ void test_BPLib_STOR_CACHE_LockInit(void)
 void test_BPLib_STOR_CACHE_LockPrepare(void)
 {
     /* Test function for:
-     * BPLib_MEM_lock_t *BPLib_STOR_CACHE_LockPrepare(void *resource_addr)
+     * BPLib_STOR_CACHE_Lock_t *BPLib_STOR_CACHE_LockPrepare(void *resource_addr)
      */
 
     UtAssert_NOT_NULL(BPLib_STOR_CACHE_LockPrepare(NULL));
@@ -69,7 +68,7 @@ void test_BPLib_STOR_CACHE_LockPrepare(void)
 void test_BPLib_STOR_CACHE_LockResource(void)
 {
     /* Test function for:
-     * BPLib_MEM_lock_t *BPLib_STOR_CACHE_LockResource(void *resource_addr)
+     * BPLib_STOR_CACHE_Lock_t *BPLib_STOR_CACHE_LockResource(void *resource_addr)
      */
 
     UtAssert_NOT_NULL(BPLib_STOR_CACHE_LockResource(NULL));
@@ -78,10 +77,10 @@ void test_BPLib_STOR_CACHE_LockResource(void)
 void test_BPLib_STOR_CACHE_LockWait(void)
 {
     /* Test function for:
-     * bool BPLib_STOR_CACHE_LockWait(BPLib_MEM_lock_t *lock, uint64_t until_dtntime)
+     * bool BPLib_STOR_CACHE_LockWait(BPLib_STOR_CACHE_Lock_t *lock, uint64_t until_dtntime)
      */
 
-    BPLib_MEM_lock_t *lock = BPLib_STOR_CACHE_LockPrepare(NULL);
+    BPLib_STOR_CACHE_Lock_t *lock = BPLib_STOR_CACHE_LockPrepare(NULL);
 
     UT_SetDefaultReturnValue(UT_KEY(bplib_os_get_dtntime_ms), 1000);
     UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_LockWait(lock, 0));
@@ -93,9 +92,9 @@ void test_BPLib_STOR_CACHE_LockWait(void)
 void test_BPLib_STOR_CACHE_BlockFromExternalId(void)
 {
     /* Test function for:
-     * BPLib_MEM_block_t *BPLib_STOR_CACHE_BlockFromExternalId(BPLib_MEM_t *pool, bp_handle_t handle)
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_CACHE_Pool_t *pool, bp_handle_t handle)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
     bp_handle_t          id1;
     bp_handle_t          id2;
 
@@ -120,15 +119,15 @@ void test_BPLib_STOR_CACHE_BlockFromExternalId(void)
 void test_BPLib_STOR_CACHE_GetBlockFromLink(void)
 {
     /* Test function for:
-     * BPLib_MEM_block_t *BPLib_STOR_CACHE_GetBlockFromLink(BPLib_MEM_block_t *lblk)
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_GetBlockFromLink(BPLib_STOR_CACHE_Block_t *lblk)
      */
     struct
     {
-        BPLib_MEM_block_t base_blk;
+        BPLib_STOR_CACHE_Block_t base_blk;
         uint8_t             unused1[3];
-        BPLib_MEM_block_t sublink_blk1;
+        BPLib_STOR_CACHE_Block_t sublink_blk1;
         uint8_t             unused2[7];
-        BPLib_MEM_block_t sublink_blk2;
+        BPLib_STOR_CACHE_Block_t sublink_blk2;
     } test_block;
 
     memset(&test_block, 0, sizeof(test_block));
@@ -153,8 +152,8 @@ void test_BPLib_STOR_CACHE_GetBlockFromLink(void)
 void test_BPLib_STOR_CACHE_GetBlockContent(void)
 {
     /* Test function for:
-     * BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_GetBlockContent(BPLib_MEM_block_t *cb)
-     * const BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_GetBlockContentConst(const BPLib_MEM_block_t *cb)
+     * BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_GetBlockContent(BPLib_STOR_CACHE_Block_t *cb)
+     * const BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_GetBlockContentConst(const BPLib_STOR_CACHE_Block_t *cb)
      *
      * NOTE: these two functions are identical except for the const-ness of input and output pointers.
      */
@@ -175,7 +174,7 @@ void test_BPLib_STOR_CACHE_GetBlockContent(void)
 void test_BPLib_STOR_CACHE_BlockDereferenceContent(void)
 {
     /* Test function for:
-     * BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_MEM_block_t *cb)
+     * BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_STOR_CACHE_Block_t *cb)
      */
 
     BPLib_STOR_CACHE_BlockContent_t my_block;
@@ -194,7 +193,7 @@ void test_BPLib_STOR_CACHE_BlockDereferenceContent(void)
 void test_BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(void)
 {
     /* Test function for:
-     * size_t BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(BPLib_MEM_blocktype_t bt)
+     * size_t BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(BPLib_STOR_CACHE_Blocktype_t bt)
      */
 
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(BPLib_STOR_CACHE_BlocktypeUndefined), SIZE_MAX);
@@ -205,7 +204,7 @@ void test_BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(void)
 void test_BPLib_STOR_CACHE_GetGenericDataCapacity(void)
 {
     /* Test function for:
-     * size_t BPLib_STOR_CACHE_GetGenericDataCapacity(const BPLib_MEM_block_t *cb)
+     * size_t BPLib_STOR_CACHE_GetGenericDataCapacity(const BPLib_STOR_CACHE_Block_t *cb)
      */
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
@@ -221,8 +220,8 @@ void test_BPLib_STOR_CACHE_GetGenericDataCapacity(void)
 void test_BPLib_STOR_CACHE_InitSecondaryLink(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_InitSecondaryLink(BPLib_MEM_block_t *base_block, BPLib_MEM_block_t *secondary_link,
-     * BPLib_MEM_blocktype_t block_type)
+     * void BPLib_STOR_CACHE_InitSecondaryLink(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Block_t *secondary_link,
+     * BPLib_STOR_CACHE_Blocktype_t block_type)
      */
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
@@ -237,7 +236,7 @@ void test_BPLib_STOR_CACHE_InitSecondaryLink(void)
 void test_BPLib_STOR_CACHE_InitListHead(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_InitListHead(BPLib_MEM_block_t *base_block, BPLib_MEM_block_t *list_head)
+     * void BPLib_STOR_CACHE_InitListHead(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Block_t *list_head)
      */
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
@@ -249,14 +248,14 @@ void test_BPLib_STOR_CACHE_InitListHead(void)
 void test_BPLib_STOR_CACHE_InsertAfter(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_InsertAfter(BPLib_MEM_block_t *list, BPLib_MEM_block_t *node)
+     * void BPLib_STOR_CACHE_InsertAfter(BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_Block_t *node)
      */
     struct
     {
-        BPLib_MEM_block_t base_blk;
-        BPLib_MEM_block_t head_blk;
+        BPLib_STOR_CACHE_Block_t base_blk;
+        BPLib_STOR_CACHE_Block_t head_blk;
     } list;
-    BPLib_MEM_block_t content[2];
+    BPLib_STOR_CACHE_Block_t content[2];
 
     memset(&list, 0, sizeof(list));
     memset(&content, 0, sizeof(content));
@@ -279,15 +278,15 @@ void test_BPLib_STOR_CACHE_InsertAfter(void)
 void test_BPLib_STOR_CACHE_InsertBefore(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_InsertBefore(BPLib_MEM_block_t *list, BPLib_MEM_block_t *node)
+     * void BPLib_STOR_CACHE_InsertBefore(BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_Block_t *node)
      */
 
     struct
     {
-        BPLib_MEM_block_t base_blk;
-        BPLib_MEM_block_t head_blk;
+        BPLib_STOR_CACHE_Block_t base_blk;
+        BPLib_STOR_CACHE_Block_t head_blk;
     } list;
-    BPLib_MEM_block_t content[2];
+    BPLib_STOR_CACHE_Block_t content[2];
 
     memset(&list, 0, sizeof(list));
     memset(&content, 0, sizeof(content));
@@ -310,15 +309,15 @@ void test_BPLib_STOR_CACHE_InsertBefore(void)
 void test_BPLib_STOR_CACHE_ExtractNode(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_ExtractNode(BPLib_MEM_block_t *node)
+     * void BPLib_STOR_CACHE_ExtractNode(BPLib_STOR_CACHE_Block_t *node)
      */
 
     struct
     {
-        BPLib_MEM_block_t base_blk;
-        BPLib_MEM_block_t head_blk;
+        BPLib_STOR_CACHE_Block_t base_blk;
+        BPLib_STOR_CACHE_Block_t head_blk;
     } list;
-    BPLib_MEM_block_t content[2];
+    BPLib_STOR_CACHE_Block_t content[2];
 
     memset(&list, 0, sizeof(list));
     memset(&content, 0, sizeof(content));
@@ -343,15 +342,15 @@ void test_BPLib_STOR_CACHE_ExtractNode(void)
 void test_BPLib_STOR_CACHE_MergeList(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_MergeList(BPLib_MEM_block_t *dest, BPLib_MEM_block_t *src)
+     * void BPLib_STOR_CACHE_MergeList(BPLib_STOR_CACHE_Block_t *dest, BPLib_STOR_CACHE_Block_t *src)
      */
     struct
     {
-        BPLib_MEM_block_t base_blk;
-        BPLib_MEM_block_t head_blk;
+        BPLib_STOR_CACHE_Block_t base_blk;
+        BPLib_STOR_CACHE_Block_t head_blk;
     } list[2];
-    BPLib_MEM_block_t  content[2];
-    BPLib_MEM_block_t *blk;
+    BPLib_STOR_CACHE_Block_t  content[2];
+    BPLib_STOR_CACHE_Block_t *blk;
 
     memset(&list, 0, sizeof(list));
     memset(&content, 0, sizeof(content));
@@ -383,7 +382,7 @@ void test_BPLib_STOR_CACHE_MergeList(void)
 void test_BPLib_STOR_CACHE_GetUserContentSize(void)
 {
     /* Test function for:
-     * size_t BPLib_STOR_CACHE_GetUserContentSize(const BPLib_MEM_block_t *cb)
+     * size_t BPLib_STOR_CACHE_GetUserContentSize(const BPLib_STOR_CACHE_Block_t *cb)
      */
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
@@ -399,7 +398,7 @@ void test_BPLib_STOR_CACHE_GetUserContentSize(void)
 void test_BPLib_STOR_CACHE_ReadRefcount(void)
 {
     /* Test function for:
-     * size_t BPLib_STOR_CACHE_ReadRefcount(const BPLib_MEM_block_t *cb)
+     * size_t BPLib_STOR_CACHE_ReadRefcount(const BPLib_STOR_CACHE_Block_t *cb)
      */
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
@@ -415,10 +414,10 @@ void test_BPLib_STOR_CACHE_ReadRefcount(void)
 void test_BPLib_STOR_CACHE_GetParentPoolFromLink(void)
 {
     /* Test function for:
-     * BPLib_MEM_t *BPLib_STOR_CACHE_GetParentPoolFromLink(BPLib_MEM_block_t *cb)
+     * BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_GetParentPoolFromLink(BPLib_STOR_CACHE_Block_t *cb)
      */
 
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
 
@@ -435,8 +434,8 @@ void test_BPLib_STOR_CACHE_GetParentPoolFromLink(void)
 void test_BPLib_STOR_CACHE_GenericDataCast(void)
 {
     /* Test function for:
-     * void *BPLib_STOR_CACHE_GenericDataCast(BPLib_MEM_block_t *cb, uint32_t required_magic)
-     * BPLib_MEM_block_t *BPLib_STOR_CACHE_GenericDataUncast(void *blk, BPLib_MEM_blocktype_t parent_bt, uint32_t
+     * void *BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Block_t *cb, uint32_t required_magic)
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_GenericDataUncast(void *blk, BPLib_STOR_CACHE_Blocktype_t parent_bt, uint32_t
      * required_magic)
      *
      * These two functions are inverse ops so they are paired together
@@ -488,11 +487,11 @@ void test_BPLib_STOR_CACHE_InitBaseObject(void)
 void test_BPLib_STOR_CACHE_AllocBlockInternal(void)
 {
     /* Test function for:
-     * BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_MEM_t *pool, BPLib_MEM_blocktype_t
+     * BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_Blocktype_t
      * blocktype, uint32_t content_type_signature, void *init_arg, uint8_t priority)
      */
 
-    UT_BPLib_MEM_buf_t               buf;
+    UT_BPLib_STOR_CACHE_Buf_t               buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
     memset(&buf, 0, sizeof(buf));
@@ -533,10 +532,10 @@ void test_BPLib_STOR_CACHE_AllocBlockInternal(void)
 void test_BPLib_STOR_CACHE_GenericDataAlloc(void)
 {
     /* Test function for:
-     * BPLib_MEM_block_t *BPLib_STOR_CACHE_GenericDataAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg)
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_GenericDataAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg)
      */
 
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
     uint8_t              my_constructor_val;
 
     memset(&buf, 0, sizeof(buf));
@@ -556,9 +555,9 @@ void test_BPLib_STOR_CACHE_GenericDataAlloc(void)
 void test_BPLib_STOR_CACHE_RecycleAllBlocksInList(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_RecycleAllBlocksInList(BPLib_MEM_t *pool, BPLib_MEM_block_t *list)
+     * void BPLib_STOR_CACHE_RecycleAllBlocksInList(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_Block_t *list)
      */
-    UT_BPLib_MEM_buf_t               buf;
+    UT_BPLib_STOR_CACHE_Buf_t               buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
     memset(&buf, 0, sizeof(buf));
@@ -591,9 +590,9 @@ void test_BPLib_STOR_CACHE_RecycleAllBlocksInList(void)
 void test_BPLib_STOR_CACHE_RecycleBlock(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_RecycleBlock(BPLib_MEM_block_t *blk)
+     * void BPLib_STOR_CACHE_RecycleBlock(BPLib_STOR_CACHE_Block_t *blk)
      */
-    UT_BPLib_MEM_buf_t               buf;
+    UT_BPLib_STOR_CACHE_Buf_t               buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
     memset(&buf, 0, sizeof(buf));
@@ -615,9 +614,9 @@ void test_BPLib_STOR_CACHE_RecycleBlock(void)
 void test_BPLib_STOR_CACHE_ListIterGotoFirst(void)
 {
     /* Test function for:
-     * int BPLib_STOR_CACHE_ListIterGotoFirst(const BPLib_MEM_block_t *list, BPLib_STOR_CACHE_ListIter_t *iter)
+     * int BPLib_STOR_CACHE_ListIterGotoFirst(const BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_ListIter_t *iter)
      */
-    BPLib_MEM_block_t     list;
+    BPLib_STOR_CACHE_Block_t     list;
     BPLib_STOR_CACHE_ListIter_t it;
 
     memset(&list, 0, sizeof(list));
@@ -630,10 +629,10 @@ void test_BPLib_STOR_CACHE_ListIterGotoFirst(void)
 void test_BPLib_STOR_CACHE_ListIterGotoLast(void)
 {
     /* Test function for:
-     * int BPLib_STOR_CACHE_ListIterGotoLast(const BPLib_MEM_block_t *list, BPLib_STOR_CACHE_ListIter_t *iter)
+     * int BPLib_STOR_CACHE_ListIterGotoLast(const BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_ListIter_t *iter)
      */
 
-    BPLib_MEM_block_t     list;
+    BPLib_STOR_CACHE_Block_t     list;
     BPLib_STOR_CACHE_ListIter_t it;
 
     memset(&list, 0, sizeof(list));
@@ -649,7 +648,7 @@ void test_BPLib_STOR_CACHE_ListIterForward(void)
      * int BPLib_STOR_CACHE_ListIterForward(BPLib_STOR_CACHE_ListIter_t *iter)
      */
     BPLib_STOR_CACHE_ListIter_t     it;
-    BPLib_MEM_block_t         list;
+    BPLib_STOR_CACHE_Block_t         list;
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
     memset(&it, 0, sizeof(it));
@@ -675,7 +674,7 @@ void test_BPLib_STOR_CACHE_ListIterReverse(void)
      * int BPLib_STOR_CACHE_ListIterReverse(BPLib_STOR_CACHE_ListIter_t *iter)
      */
     BPLib_STOR_CACHE_ListIter_t     it;
-    BPLib_MEM_block_t         list;
+    BPLib_STOR_CACHE_Block_t         list;
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
     memset(&it, 0, sizeof(it));
@@ -699,11 +698,11 @@ void test_BPLib_STOR_CACHE_ListIterReverse(void)
 void test_BPLib_STOR_CACHE_ForeachItemInList(void)
 {
     /* Test function for:
-     * int BPLib_STOR_CACHE_ForeachItemInList(BPLib_MEM_block_t *list, bool always_remove, BPLib_STOR_CACHE_CallbackFunc_t
+     * int BPLib_STOR_CACHE_ForeachItemInList(BPLib_STOR_CACHE_Block_t *list, bool always_remove, BPLib_STOR_CACHE_CallbackFunc_t
      * callback_fn, void *callback_arg)
      */
 
-    BPLib_MEM_block_t         list;
+    BPLib_STOR_CACHE_Block_t         list;
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
     memset(&list, 0, sizeof(list));
@@ -726,10 +725,10 @@ void test_BPLib_STOR_CACHE_ForeachItemInList(void)
 void test_BPLib_STOR_CACHE_SearchList(void)
 {
     /* Test function for:
-     * BPLib_MEM_block_t *BPLib_STOR_CACHE_SearchList(const BPLib_MEM_block_t *list, BPLib_STOR_CACHE_CallbackFunc_t
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_SearchList(const BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_CallbackFunc_t
      * match_fn, void *match_arg)
      */
-    BPLib_MEM_block_t         list;
+    BPLib_STOR_CACHE_Block_t         list;
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
     memset(&list, 0, sizeof(list));
@@ -753,14 +752,14 @@ void test_BPLib_STOR_CACHE_SearchList(void)
 void test_BPLib_STOR_CACHE_RegisterBlocktype(void)
 {
     /* Test function for:
-     * int BPLib_STOR_CACHE_RegisterBlocktype(BPLib_MEM_t *pool, uint32_t magic_number, const BPLib_STOR_CACHE_BlocktypeApi_t
+     * int BPLib_STOR_CACHE_RegisterBlocktype(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, const BPLib_STOR_CACHE_BlocktypeApi_t
      * *api, size_t user_content_size)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
     test_setup_mpblock(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeApi, 0);
-    UT_SetHandlerFunction(UT_KEY(bplib_rbt_search_generic), UT_AltHandler_PointerReturnForSignature, &buf.blk[1].u);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RBT_SearchGeneric), UT_AltHandler_PointerReturnForSignature, &buf.blk[1].u);
 
     UtAssert_INT32_EQ(
         BPLib_STOR_CACHE_RegisterBlocktype(&buf.pool, UT_TESTBLOCKTYPE_SIG, &buf.blk[2].u.api.api, sizeof(uint32)),
@@ -770,8 +769,8 @@ void test_BPLib_STOR_CACHE_RegisterBlocktype(void)
 
     test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
     test_setup_mpblock(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeApi, 0);
-    UT_SetHandlerFunction(UT_KEY(bplib_rbt_search_generic), UT_AltHandler_PointerReturnForSignature, &buf.blk[1].u);
-    UT_SetDefaultReturnValue(UT_KEY(bplib_rbt_insert_value_generic), BP_DUPLICATE);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RBT_SearchGeneric), UT_AltHandler_PointerReturnForSignature, &buf.blk[1].u);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_RBT_InsertValueGeneric), BP_DUPLICATE);
     UtAssert_INT32_EQ(BPLib_STOR_CACHE_RegisterBlocktype(&buf.pool, UT_TESTBLOCKTYPE_SIG, NULL, 0), BP_DUPLICATE);
 
     test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
@@ -784,16 +783,16 @@ void test_BPLib_STOR_CACHE_RegisterBlocktype(void)
 void test_BPLib_STOR_CACHE_CollectBlocks(void)
 {
     /* Test function for:
-     * uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_MEM_t *pool, uint32_t limit)
+     * uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_STOR_CACHE_Pool_t *pool, uint32_t limit)
      */
-    UT_BPLib_MEM_buf_t               buf;
+    UT_BPLib_STOR_CACHE_Buf_t               buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
     memset(&buf, 0, sizeof(buf));
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypeApi, 0);
-    UT_SetHandlerFunction(UT_KEY(bplib_rbt_search_generic), UT_AltHandler_PointerReturn, &buf.blk[0].u);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RBT_SearchGeneric), UT_AltHandler_PointerReturn, &buf.blk[0].u);
     buf.blk[0].u.api.api.destruct = test_BPLib_STOR_CACHE_CallbackStub;
 
     admin = BPLib_STOR_CACHE_GetAdmin(&buf.pool);
@@ -808,7 +807,7 @@ void test_BPLib_STOR_CACHE_CollectBlocks(void)
     UtAssert_STUB_COUNT(test_BPLib_STOR_CACHE_CallbackStub, 2);
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
-    UT_SetHandlerFunction(UT_KEY(bplib_rbt_search_generic), UT_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
     BPLib_STOR_CACHE_SubqPushSingle(admin->recycle_blocks, &buf.blk[0].header.base_link);
     test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeFlow, 0);
@@ -819,35 +818,35 @@ void test_BPLib_STOR_CACHE_CollectBlocks(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_CollectBlocks(&buf.pool, 10), 3);
 }
 
-void test_BPLib_MEM_maintain(void)
+void test_BPLib_STOR_CACHE_Maintain(void)
 {
     /* Test function for:
-     * void BPLib_MEM_maintain(BPLib_MEM_t *pool)
+     * void BPLib_STOR_CACHE_Maintain(BPLib_STOR_CACHE_Pool_t *pool)
      */
-    UT_BPLib_MEM_buf_t               buf;
+    UT_BPLib_STOR_CACHE_Buf_t               buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
     memset(&buf, 0, sizeof(buf));
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
-    UtAssert_VOIDCALL(BPLib_MEM_maintain(&buf.pool));
+    UtAssert_VOIDCALL(BPLib_STOR_CACHE_Maintain(&buf.pool));
 
     admin = BPLib_STOR_CACHE_GetAdmin(&buf.pool);
 
-    UT_SetHandlerFunction(UT_KEY(bplib_rbt_search_generic), UT_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
     BPLib_STOR_CACHE_SubqPushSingle(admin->recycle_blocks, &buf.blk[0].header.base_link);
 
-    UtAssert_VOIDCALL(BPLib_MEM_maintain(&buf.pool));
+    UtAssert_VOIDCALL(BPLib_STOR_CACHE_Maintain(&buf.pool));
 }
 
 void test_BPLib_STOR_CACHE_QueryMemCurrentUse(void)
 {
     /* Test function for:
-     * size_t BPLib_STOR_CACHE_QueryMemCurrentUse(BPLib_MEM_t *pool)
+     * size_t BPLib_STOR_CACHE_QueryMemCurrentUse(BPLib_STOR_CACHE_Pool_t *pool)
      */
 
-    BPLib_MEM_t pool;
+    BPLib_STOR_CACHE_Pool_t pool;
 
     memset(&pool, 0, sizeof(pool));
 
@@ -859,9 +858,9 @@ void test_BPLib_STOR_CACHE_QueryMemCurrentUse(void)
 void test_BPLib_STOR_CACHE_QueryMemMaxUse(void)
 {
     /* Test function for:
-     * size_t BPLib_STOR_CACHE_QueryMemMaxUse(BPLib_MEM_t *pool)
+     * size_t BPLib_STOR_CACHE_QueryMemMaxUse(BPLib_STOR_CACHE_Pool_t *pool)
      */
-    BPLib_MEM_t pool;
+    BPLib_STOR_CACHE_Pool_t pool;
 
     memset(&pool, 0, sizeof(pool));
 
@@ -870,33 +869,33 @@ void test_BPLib_STOR_CACHE_QueryMemMaxUse(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_QueryMemMaxUse(&pool), 0);
 }
 
-void test_BPLib_MEM_create(void)
+void test_BPLib_STOR_CACHE_Create(void)
 {
     /* Test function for:
-     * BPLib_MEM_t *BPLib_MEM_create(void *pool_mem, size_t pool_size)
+     * BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_Create(void *pool_mem, size_t pool_size)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
 
-    UtAssert_NULL(BPLib_MEM_create(NULL, sizeof(buf)));
-    UtAssert_NULL(BPLib_MEM_create(&buf, 1));
-    UtAssert_ADDRESS_EQ(BPLib_MEM_create(&buf, sizeof(buf)), &buf);
+    UtAssert_NULL(BPLib_STOR_CACHE_Create(NULL, sizeof(buf)));
+    UtAssert_NULL(BPLib_STOR_CACHE_Create(&buf, 1));
+    UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_Create(&buf, sizeof(buf)), &buf);
 }
 
 void test_BPLib_STOR_CACHE_DebugScan(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_DebugScan(BPLib_MEM_t *pool)
+     * void BPLib_STOR_CACHE_DebugScan(BPLib_STOR_CACHE_Pool_t *pool)
      *
      * Note this is not really part of the real code, it is for debugging only,
      * and thus may not need a coverage test.  But for now, call it for completeness.
      */
-    UT_BPLib_MEM_buf_t buf;
-    BPLib_MEM_t       *pool;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
+    BPLib_STOR_CACHE_Pool_t       *pool;
 
     memset(&buf, 0, sizeof(buf));
-    UtAssert_NOT_NULL(pool = BPLib_MEM_create(&buf, sizeof(buf)));
+    UtAssert_NOT_NULL(pool = BPLib_STOR_CACHE_Create(&buf, sizeof(buf)));
 
     buf.blk[0].header.base_link.type = BPLib_STOR_CACHE_BlocktypePrimary;
     buf.blk[1].header.base_link.type = BPLib_STOR_CACHE_BlocktypeCanonical;
@@ -968,11 +967,11 @@ void TestBplibMpoolBase_Register(void)
                "BPLib_STOR_CACHE_RegisterBlocktype");
     UtTest_Add(test_BPLib_STOR_CACHE_CollectBlocks, TestBplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_CollectBlocks");
-    UtTest_Add(test_BPLib_MEM_maintain, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_MEM_maintain");
+    UtTest_Add(test_BPLib_STOR_CACHE_Maintain, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_Maintain");
     UtTest_Add(test_BPLib_STOR_CACHE_QueryMemCurrentUse, TestBplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_QueryMemCurrentUse");
     UtTest_Add(test_BPLib_STOR_CACHE_QueryMemMaxUse, TestBplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_QueryMemMaxUse");
-    UtTest_Add(test_BPLib_MEM_create, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_MEM_create");
+    UtTest_Add(test_BPLib_STOR_CACHE_Create, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_Create");
     UtTest_Add(test_BPLib_STOR_CACHE_DebugScan, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_DebugScan");
 }

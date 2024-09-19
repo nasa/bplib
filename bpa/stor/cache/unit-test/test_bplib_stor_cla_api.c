@@ -30,14 +30,14 @@ void test_bplib_create_cla_intf(void)
      * bp_handle_t bplib_create_cla_intf(bplib_routetbl_t *rtbl)
      */
     bplib_routetbl_t    rtbl;
-    BPLib_MEM_block_t sblk;
+    BPLib_STOR_CACHE_Block_t sblk;
     bp_handle_t         self_intf_id;
-    BPLib_MEM_flow_t  flow;
+    BPLib_STOR_CACHE_Flow_t  flow;
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
-    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
+    memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&self_intf_id, 0, sizeof(bp_handle_t));
-    memset(&flow, 0, sizeof(BPLib_MEM_flow_t));
+    memset(&flow, 0, sizeof(BPLib_STOR_CACHE_Flow_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowAlloc), UT_lib_AltHandler_PointerReturn, NULL);
@@ -66,12 +66,12 @@ void test_bplib_cla_ingress(void)
     void             *bundle  = NULL;
     size_t            size    = 100;
     uint64_t          timeout = 3000;
-    BPLib_MEM_ref_t flow_ref;
+    BPLib_STOR_CACHE_Ref_t flow_ref;
     bplib_cla_stats_t stats;
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
     memset(&intf_id, 0, sizeof(bp_handle_t));
-    memset(&flow_ref, 0, sizeof(BPLib_MEM_ref_t));
+    memset(&flow_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&stats, 0, sizeof(bplib_cla_stats_t));
 
     UtAssert_INT32_NEQ(bplib_cla_ingress(&rtbl, intf_id, bundle, size, timeout), 0);
@@ -103,12 +103,12 @@ void test_bplib_cla_egress(void)
     void             *bundle  = NULL;
     size_t            size    = 100;
     uint64_t          timeout = 0;
-    BPLib_MEM_ref_t flow_ref;
+    BPLib_STOR_CACHE_Ref_t flow_ref;
     bplib_cla_stats_t stats;
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
     memset(&intf_id, 0, sizeof(bp_handle_t));
-    memset(&flow_ref, 0, sizeof(BPLib_MEM_ref_t));
+    memset(&flow_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&stats, 0, sizeof(bplib_cla_stats_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowTryPull), UT_lib_AltHandler_PointerReturn, NULL);
@@ -128,17 +128,17 @@ void test_bplib_cla_egress(void)
 void test_bplib_cla_event_impl(void)
 {
     /* Test function for:
-     * int bplib_cla_event_impl(void *arg, BPLib_MEM_block_t *intf_block)
+     * int bplib_cla_event_impl(void *arg, BPLib_STOR_CACHE_Block_t *intf_block)
      */
     BPLib_STOR_CACHE_FlowGenericEvent_t arg;
-    BPLib_MEM_block_t              intf_block;
-    BPLib_MEM_flow_t               flow;
+    BPLib_STOR_CACHE_Block_t              intf_block;
+    BPLib_STOR_CACHE_Flow_t               flow;
 
     UtAssert_INT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
 
     memset(&arg, 0, sizeof(BPLib_STOR_CACHE_FlowGenericEvent_t));
-    memset(&intf_block, 0, sizeof(BPLib_MEM_block_t));
-    memset(&flow, 0, sizeof(BPLib_MEM_flow_t));
+    memset(&intf_block, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&flow, 0, sizeof(BPLib_STOR_CACHE_Flow_t));
 
     arg.event_type = BPLib_STOR_CACHE_FlowEventUp;
     UtAssert_INT32_EQ(bplib_cla_event_impl(&arg, &intf_block), 0);
@@ -156,22 +156,22 @@ void test_bplib_cla_event_impl(void)
 void test_bplib_generic_bundle_ingress(void)
 {
     /* Test function for:
-     * int bplib_generic_bundle_ingress(BPLib_MEM_ref_t flow_ref, const void *content, size_t size, uint64_t
+     * int bplib_generic_bundle_ingress(BPLib_STOR_CACHE_Ref_t flow_ref, const void *content, size_t size, uint64_t
      * time_limit)
      */
     BPLib_STOR_CACHE_BlockContent_t  flow_ref;
     void                        *content    = NULL;
     size_t                       size       = 1;
     uint64_t                     time_limit = 0;
-    BPLib_MEM_flow_t           flow;
-    BPLib_MEM_block_t          pblk;
-    BPLib_MEM_ref_t            refptr;
+    BPLib_STOR_CACHE_Flow_t           flow;
+    BPLib_STOR_CACHE_Block_t          pblk;
+    BPLib_STOR_CACHE_Ref_t            refptr;
     BPLib_STOR_CACHE_BblockPrimary_t pri_block;
 
     memset(&flow_ref, 0, sizeof(BPLib_STOR_CACHE_BlockContent_t));
-    memset(&flow, 0, sizeof(BPLib_MEM_flow_t));
-    memset(&pblk, 0, sizeof(BPLib_MEM_block_t));
-    memset(&refptr, 0, sizeof(BPLib_MEM_ref_t));
+    memset(&flow, 0, sizeof(BPLib_STOR_CACHE_Flow_t));
+    memset(&pblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&pri_block, 0, sizeof(BPLib_STOR_CACHE_BblockPrimary_t));
 
     UtAssert_INT32_EQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), 0);
@@ -179,7 +179,7 @@ void test_bplib_generic_bundle_ingress(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowCast), UT_lib_AltHandler_PointerReturn, &flow);
     UtAssert_INT32_EQ(bplib_generic_bundle_ingress(&flow_ref, content, size, time_limit), BP_ERROR);
 
-    UT_SetHandlerFunction(UT_KEY(v7_copy_full_bundle_in), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_CopyFullBundleIn), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowTryPush), UT_lib_int8_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryAlloc), UT_lib_AltHandler_PointerReturn, &pblk);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &refptr);
@@ -200,31 +200,31 @@ void test_bplib_generic_bundle_ingress(void)
 void test_bplib_generic_bundle_egress(void)
 {
     /* Test function for:
-     * int bplib_generic_bundle_egress(BPLib_MEM_ref_t flow_ref, void *content, size_t *size, uint64_t time_limit)
+     * int bplib_generic_bundle_egress(BPLib_STOR_CACHE_Ref_t flow_ref, void *content, size_t *size, uint64_t time_limit)
      */
     BPLib_STOR_CACHE_BlockContent_t  flow_ref;
     void                        *content    = NULL;
     size_t                       size       = 1;
     uint64_t                     time_limit = 0;
-    BPLib_MEM_flow_t           flow;
-    BPLib_MEM_block_t          pblk;
-    BPLib_MEM_ref_t            refptr;
+    BPLib_STOR_CACHE_Flow_t           flow;
+    BPLib_STOR_CACHE_Block_t          pblk;
+    BPLib_STOR_CACHE_Ref_t            refptr;
     BPLib_STOR_CACHE_BblockPrimary_t pri_block;
 
     memset(&flow_ref, 0, sizeof(BPLib_STOR_CACHE_BlockContent_t));
-    memset(&flow, 0, sizeof(BPLib_MEM_flow_t));
-    memset(&pblk, 0, sizeof(BPLib_MEM_block_t));
-    memset(&refptr, 0, sizeof(BPLib_MEM_ref_t));
+    memset(&flow, 0, sizeof(BPLib_STOR_CACHE_Flow_t));
+    memset(&pblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&pri_block, 0, sizeof(BPLib_STOR_CACHE_BblockPrimary_t));
 
     UtAssert_INT32_EQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
 
-    UT_SetHandlerFunction(UT_KEY(v7_compute_full_bundle_size), UT_lib_sizet_Handler, NULL);
-    UT_SetHandlerFunction(UT_KEY(v7_copy_full_bundle_out), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_ComputeFullBundleSize), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_CopyFullBundleOut), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowCast), UT_lib_AltHandler_PointerReturn, &flow);
     UtAssert_INT32_NEQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
 
-    UT_SetHandlerFunction(UT_KEY(v7_copy_full_bundle_in), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_CopyFullBundleIn), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowTryPull), UT_lib_AltHandler_PointerReturn, &pblk);
     UtAssert_INT32_NEQ(bplib_generic_bundle_egress(&flow_ref, content, &size, time_limit), 0);
 

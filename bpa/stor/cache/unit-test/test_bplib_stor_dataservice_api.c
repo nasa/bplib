@@ -32,10 +32,10 @@ void test_bplib_dataservice_add_base_intf(void)
      */
     bplib_routetbl_t    rtbl;
     bp_ipn_t            node_number = 101;
-    BPLib_MEM_block_t sblk;
+    BPLib_STOR_CACHE_Block_t sblk;
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
-    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
+    memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowAlloc), UT_lib_AltHandler_PointerReturn, NULL);
     UtAssert_UINT32_EQ(bplib_dataservice_add_base_intf(&rtbl, node_number).hdl, 0);
@@ -53,22 +53,22 @@ void test_bplib_dataservice_attach(void)
 {
     /* Test function for:
      * bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn, bplib_dataservice_type_t
-     * type, BPLib_MEM_ref_t blkref)
+     * type, BPLib_STOR_CACHE_Ref_t blkref)
      */
     bplib_routetbl_t            rtbl;
     bp_ipn_addr_t               ipn;
     bplib_dataservice_type_t    type = bplib_dataservice_type_storage;
     BPLib_STOR_CACHE_BlockContent_t blkref;
-    BPLib_MEM_block_t         sblk;
-    BPLib_MEM_ref_t           flow_ref;
-    BPLib_MEM_block_t         temp_block;
+    BPLib_STOR_CACHE_Block_t         sblk;
+    BPLib_STOR_CACHE_Ref_t           flow_ref;
+    BPLib_STOR_CACHE_Block_t         temp_block;
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
     memset(&ipn, 0, sizeof(bp_ipn_addr_t));
     memset(&blkref, 0, sizeof(BPLib_STOR_CACHE_BlockContent_t));
-    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
-    memset(&flow_ref, 0, sizeof(BPLib_MEM_ref_t));
-    memset(&temp_block, 0, sizeof(BPLib_MEM_block_t));
+    memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&flow_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
+    memset(&temp_block, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowCast), UT_lib_AltHandler_PointerReturn, NULL);
     UtAssert_UINT32_EQ(bplib_dataservice_attach(&rtbl, &ipn, type, &blkref).hdl, 0);
@@ -97,27 +97,27 @@ void test_bplib_dataservice_attach(void)
 void test_bplib_dataservice_detach(void)
 {
     /* Test function for:
-     * BPLib_MEM_ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn)
+     * BPLib_STOR_CACHE_Ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn)
      */
     bplib_routetbl_t    rtbl;
     bp_ipn_addr_t       ipn;
-    BPLib_MEM_ref_t   flow_ref;
-    bplib_rbt_link_t    rbt_link;
-    BPLib_MEM_block_t temp_block;
+    BPLib_STOR_CACHE_Ref_t   flow_ref;
+    BPLib_STOR_CACHE_RBT_Link_t    rbt_link;
+    BPLib_STOR_CACHE_Block_t temp_block;
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
     ipn.node_number    = 10;
     ipn.service_number = 100;
     memset(&ipn, 0, sizeof(bp_ipn_addr_t));
-    memset(&flow_ref, 0, sizeof(BPLib_MEM_ref_t));
-    memset(&rbt_link, 0, sizeof(bplib_rbt_link_t));
-    memset(&temp_block, 0, sizeof(BPLib_MEM_block_t));
+    memset(&flow_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
+    memset(&rbt_link, 0, sizeof(BPLib_STOR_CACHE_RBT_Link_t));
+    memset(&temp_block, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
     UtAssert_NULL(bplib_dataservice_detach(&rtbl, &ipn));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &flow_ref);
-    UT_SetHandlerFunction(UT_KEY(bplib_rbt_search_generic), UT_lib_AltHandler_PointerReturn, &rbt_link);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RBT_SearchGeneric), UT_lib_AltHandler_PointerReturn, &rbt_link);
     UtAssert_NULL(bplib_dataservice_detach(&rtbl, &ipn));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, &flow_ref);
@@ -125,7 +125,7 @@ void test_bplib_dataservice_detach(void)
     UtAssert_NULL(bplib_dataservice_detach(&rtbl, &ipn));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(bplib_rbt_search_generic), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RBT_SearchGeneric), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_lib_AltHandler_PointerReturn, NULL);
 }
@@ -176,11 +176,11 @@ void test_bplib_create_socket(void)
      * bp_socket_t *bplib_create_socket(bplib_routetbl_t *rtbl)
      */
     bplib_routetbl_t    rtbl;
-    BPLib_MEM_block_t sblk;
+    BPLib_STOR_CACHE_Block_t sblk;
     bplib_socket_info_t sock;
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
-    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
+    memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&sock, 0, sizeof(bplib_socket_info_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
@@ -204,16 +204,16 @@ void test_bplib_bind_socket(void)
     bp_ipn_addr_t       source_ipn;
     bplib_socket_info_t sock;
     bplib_routetbl_t    rtbl;
-    BPLib_MEM_block_t sblk;
-    BPLib_MEM_ref_t   flow_ref;
+    BPLib_STOR_CACHE_Block_t sblk;
+    BPLib_STOR_CACHE_Ref_t   flow_ref;
 
     memset(&desc, 0, sizeof(bp_socket_t));
     memset(&source_ipn, 0, sizeof(bp_ipn_addr_t));
     memset(&sock, 0, sizeof(bplib_socket_info_t));
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
     sock.parent_rtbl = &rtbl;
-    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
-    memset(&flow_ref, 0, sizeof(BPLib_MEM_ref_t));
+    memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&flow_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UtAssert_UINT32_NEQ(bplib_bind_socket(&desc, &source_ipn), 0);
@@ -230,7 +230,7 @@ void test_bplib_bind_socket(void)
     source_ipn.node_number            = 1;
     UtAssert_UINT32_NEQ(bplib_bind_socket(&desc, &source_ipn), 0);
 
-    UT_SetDefaultReturnValue(UT_KEY(bplib_rbt_extract_node), BP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_RBT_ExtractNode), BP_SUCCESS);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &sblk);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowCast), UT_lib_AltHandler_PointerReturn, &sblk);
@@ -254,7 +254,7 @@ void test_bplib_close_socket(void)
     bplib_socket_info_t            sock;
     bplib_routetbl_t               rtbl;
     bplib_route_serviceintf_info_t base_intf;
-    BPLib_MEM_ref_t              ref;
+    BPLib_STOR_CACHE_Ref_t              ref;
 
     memset(&desc, 0, sizeof(bp_socket_t));
     memset(&sock, 0, sizeof(bplib_socket_info_t));
@@ -263,13 +263,13 @@ void test_bplib_close_socket(void)
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
     sock.parent_rtbl = &rtbl;
     memset(&base_intf, 0, sizeof(bplib_route_serviceintf_info_t));
-    memset(&ref, 0, sizeof(BPLib_MEM_ref_t));
+    memset(&ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UtAssert_VOIDCALL(bplib_close_socket(&desc));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, &sock);
-    UT_SetDefaultReturnValue(UT_KEY(bplib_rbt_extract_node), BP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_RBT_ExtractNode), BP_SUCCESS);
     UtAssert_VOIDCALL(bplib_close_socket(&desc));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
@@ -286,9 +286,9 @@ void test_bplib_send(void)
     uint32_t                       timeout = 3000;
     bplib_socket_info_t            sock;
     bplib_routetbl_t               rtbl;
-    BPLib_MEM_flow_t             flow;
-    BPLib_MEM_block_t            blk;
-    BPLib_MEM_ref_t              refptr;
+    BPLib_STOR_CACHE_Flow_t             flow;
+    BPLib_STOR_CACHE_Block_t            blk;
+    BPLib_STOR_CACHE_Ref_t              refptr;
     BPLib_STOR_CACHE_BblockPrimary_t   pri;
     BPLib_STOR_CACHE_BblockCanonical_t ccb_pay;
 
@@ -296,9 +296,9 @@ void test_bplib_send(void)
     memset(&sock, 0, sizeof(bplib_socket_info_t));
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
     sock.parent_rtbl = &rtbl;
-    memset(&flow, 0, sizeof(BPLib_MEM_flow_t));
-    memset(&blk, 0, sizeof(BPLib_MEM_block_t));
-    memset(&refptr, 0, sizeof(BPLib_MEM_ref_t));
+    memset(&flow, 0, sizeof(BPLib_STOR_CACHE_Flow_t));
+    memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&pri, 0, sizeof(BPLib_STOR_CACHE_BblockPrimary_t));
     memset(&ccb_pay, 0, sizeof(BPLib_STOR_CACHE_BblockCanonical_t));
 
@@ -312,7 +312,7 @@ void test_bplib_send(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowCast), UT_lib_AltHandler_PointerReturn, &flow);
     UtAssert_UINT32_NEQ(bplib_send(&desc, payload, size, timeout), 0);
 
-    UT_SetHandlerFunction(UT_KEY(v7_get_current_time), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetCurrentTime), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalAlloc), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowTryPush), UT_lib_int8_Handler, NULL);
@@ -334,11 +334,11 @@ void test_bplib_send(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_FlowTryPush), UT_lib_bool_Handler, NULL);
     UtAssert_UINT32_EQ(bplib_send(&desc, payload, size, timeout), 0);
 
-    UT_SetDefaultReturnValue(UT_KEY(v7_block_encode_pri), -1);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_BlockEncodePri), -1);
     UtAssert_UINT32_NEQ(bplib_send(&desc, payload, size, timeout), 0);
 
-    UT_SetDefaultReturnValue(UT_KEY(v7_block_encode_pri), 1);
-    UT_SetDefaultReturnValue(UT_KEY(v7_block_encode_pay), -1);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_BlockEncodePri), 1);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_BlockEncodePay), -1);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalAlloc), UT_lib_AltHandler_PointerReturn, &blk);
     UtAssert_UINT32_NEQ(bplib_send(&desc, payload, size, timeout), 0);
 
@@ -362,20 +362,20 @@ void test_bplib_recv(void)
     size_t                         size    = 100;
     uint32_t                       timeout = 3000;
     bplib_socket_info_t            sock;
-    BPLib_MEM_flow_t             flow;
+    BPLib_STOR_CACHE_Flow_t             flow;
     bplib_routetbl_t               rtbl;
-    BPLib_MEM_block_t            blk;
-    BPLib_MEM_ref_t              refptr;
+    BPLib_STOR_CACHE_Block_t            blk;
+    BPLib_STOR_CACHE_Ref_t              refptr;
     BPLib_STOR_CACHE_BblockCanonical_t ccb_pay;
     BPLib_STOR_CACHE_BblockPrimary_t   pri;
 
     memset(&desc, 0, sizeof(bp_socket_t));
     memset(&sock, 0, sizeof(bplib_socket_info_t));
-    memset(&flow, 0, sizeof(BPLib_MEM_flow_t));
+    memset(&flow, 0, sizeof(BPLib_STOR_CACHE_Flow_t));
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
     sock.parent_rtbl = &rtbl;
-    memset(&blk, 0, sizeof(BPLib_MEM_block_t));
-    memset(&refptr, 0, sizeof(BPLib_MEM_ref_t));
+    memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&ccb_pay, 0, sizeof(BPLib_STOR_CACHE_BblockCanonical_t));
     memset(&pri, 0, sizeof(BPLib_STOR_CACHE_BblockPrimary_t));
 
@@ -424,15 +424,15 @@ void test_bplib_recv(void)
 void test_bplib_serviceflow_forward_ingress(void)
 {
     /* Test function for:
-     * int bplib_serviceflow_forward_ingress(void *arg, BPLib_MEM_block_t *subq_src)
+     * int bplib_serviceflow_forward_ingress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
      */
     bplib_routetbl_t    tbl;
-    BPLib_MEM_block_t subq_src;
-    BPLib_MEM_block_t sblk;
+    BPLib_STOR_CACHE_Block_t subq_src;
+    BPLib_STOR_CACHE_Block_t sblk;
 
     memset(&tbl, 0, sizeof(bplib_routetbl_t));
-    memset(&subq_src, 0, sizeof(BPLib_MEM_block_t));
-    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
+    memset(&subq_src, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetBlockFromLink), UT_lib_sizet_Handler, NULL);
     UtAssert_UINT32_EQ(bplib_serviceflow_forward_ingress(&tbl, &subq_src), 0);
@@ -455,18 +455,18 @@ void test_bplib_serviceflow_forward_ingress(void)
 void test_bplib_serviceflow_forward_egress(void)
 {
     /* Test function for:
-     * int bplib_serviceflow_forward_egress(void *arg, BPLib_MEM_block_t *subq_src)
+     * int bplib_serviceflow_forward_egress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
      */
     bplib_routetbl_t               tbl;
-    BPLib_MEM_block_t            subq_src;
-    BPLib_MEM_block_t            sblk;
-    BPLib_MEM_block_t            sblk1;
+    BPLib_STOR_CACHE_Block_t            subq_src;
+    BPLib_STOR_CACHE_Block_t            sblk;
+    BPLib_STOR_CACHE_Block_t            sblk1;
     bplib_route_serviceintf_info_t base_intf;
 
     memset(&tbl, 0, sizeof(bplib_routetbl_t));
-    memset(&subq_src, 0, sizeof(BPLib_MEM_block_t));
-    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
-    memset(&sblk1, 0, sizeof(BPLib_MEM_block_t));
+    memset(&subq_src, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&sblk1, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&base_intf, 0, sizeof(bplib_route_serviceintf_info_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetBlockFromLink), UT_lib_sizet_Handler, NULL);
@@ -491,16 +491,16 @@ void test_bplib_serviceflow_forward_egress(void)
 void test_bplib_dataservice_event_impl(void)
 {
     /* Test function for:
-     * int bplib_dataservice_event_impl(void *arg, BPLib_MEM_block_t *intf_block)
+     * int bplib_dataservice_event_impl(void *arg, BPLib_STOR_CACHE_Block_t *intf_block)
      */
     BPLib_STOR_CACHE_FlowGenericEvent_t event;
-    BPLib_MEM_block_t              intf_block;
-    BPLib_MEM_flow_t               flow;
+    BPLib_STOR_CACHE_Block_t              intf_block;
+    BPLib_STOR_CACHE_Flow_t               flow;
 
     memset(&event, 0, sizeof(BPLib_STOR_CACHE_FlowGenericEvent_t));
-    memset(&intf_block, 0, sizeof(BPLib_MEM_block_t));
+    memset(&intf_block, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&event.intf_state.intf_id, 0, sizeof(bp_handle_t));
-    memset(&flow, 0, sizeof(BPLib_MEM_flow_t));
+    memset(&flow, 0, sizeof(BPLib_STOR_CACHE_Flow_t));
 
     UtAssert_UINT32_EQ(bplib_dataservice_event_impl(&event, &intf_block), 0);
 
@@ -523,13 +523,13 @@ void test_bplib_dataservice_event_impl(void)
 void test_bplib_dataservice_base_construct(void)
 {
     /* Test function for:
-     * int bplib_dataservice_base_construct(void *arg, BPLib_MEM_block_t *blk)
+     * int bplib_dataservice_base_construct(void *arg, BPLib_STOR_CACHE_Block_t *blk)
      */
     void                          *arg = NULL;
-    BPLib_MEM_block_t            blk;
+    BPLib_STOR_CACHE_Block_t            blk;
     bplib_route_serviceintf_info_t base_intf;
 
-    memset(&blk, 0, sizeof(BPLib_MEM_block_t));
+    memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&base_intf, 0, sizeof(bplib_route_serviceintf_info_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);

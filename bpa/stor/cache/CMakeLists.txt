@@ -8,10 +8,15 @@
 ##################################################################
 
 add_library(bplib_cache OBJECT
-
-    src/v7_cache_custody.c
+    src/bplib_cache.c
+    src/bplib_cache_bblocks.c
+    src/bplib_cache_cla_api.c
+    src/bplib_cache_custody.c
+    src/bplib_cache_dataservice_api.c
+    src/bplib_cache_enqueueing.c
+    src/bplib_cache_fsm.c
+    src/bplib_cache_ref.c
 )
-# TODO Removed src/v7_cache_fsm.c and src/v7_cache.c
 
 target_include_directories(bplib_cache PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
@@ -25,6 +30,5 @@ target_include_directories(bplib_cache PUBLIC
 
 # Add unit test coverage subdirectory
 if(BPLIB_ENABLE_UNIT_TESTS)
-  add_subdirectory(ut-stubs)
-  add_subdirectory(ut-coverage)
+  add_subdirectory(unit-test)
 endif(BPLIB_ENABLE_UNIT_TESTS)

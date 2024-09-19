@@ -25,7 +25,7 @@
 
 #include "test_BPLib_MEM.h"
 
-static void test_setup_append_mps_block(BPLib_MEM_t *pool, BPLib_MEM_stream_t *mps, BPLib_STOR_CACHE_BlockContent_t *b,
+static void test_setup_append_mps_block(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_Stream_t *mps, BPLib_STOR_CACHE_BlockContent_t *b,
                                         uint8_t byte_val, size_t amount)
 {
     test_setup_mpblock(pool, b, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
@@ -37,10 +37,10 @@ static void test_setup_append_mps_block(BPLib_MEM_t *pool, BPLib_MEM_stream_t *m
 void test_BPLib_STOR_CACHE_StartStreamInit(void)
 {
     /* Test function for:
-     * void   BPLib_STOR_CACHE_StartStreamInit(BPLib_MEM_stream_t *mps, BPLib_MEM_t *pool, BPLib_STOR_CACHE_StreamDir_t
+     * void   BPLib_STOR_CACHE_StartStreamInit(BPLib_STOR_CACHE_Stream_t *mps, BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_StreamDir_t
      * dir);
      */
-    BPLib_MEM_stream_t mps;
+    BPLib_STOR_CACHE_Stream_t mps;
 
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_StartStreamInit(&mps, NULL, BPLib_STOR_CACHE_StreamDirUndefined));
 }
@@ -48,10 +48,10 @@ void test_BPLib_STOR_CACHE_StartStreamInit(void)
 void test_BPLib_STOR_CACHE_StreamWrite(void)
 {
     /* Test function for:
-     * size_t BPLib_STOR_CACHE_StreamWrite(BPLib_MEM_stream_t *mps, const void *data, size_t size);
+     * size_t BPLib_STOR_CACHE_StreamWrite(BPLib_STOR_CACHE_Stream_t *mps, const void *data, size_t size);
      */
-    UT_BPLib_MEM_buf_t buf;
-    BPLib_MEM_stream_t mps;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
+    BPLib_STOR_CACHE_Stream_t mps;
     uint8_t              data[BPLIB_MEM_MIN_USER_BLOCK_SIZE];
 
     memset(&buf, 0, sizeof(buf));
@@ -72,10 +72,10 @@ void test_BPLib_STOR_CACHE_StreamWrite(void)
 void test_BPLib_STOR_CACHE_StreamRead(void)
 {
     /* Test function for:
-     * size_t BPLib_STOR_CACHE_StreamRead(BPLib_MEM_stream_t *mps, void *data, size_t size);
+     * size_t BPLib_STOR_CACHE_StreamRead(BPLib_STOR_CACHE_Stream_t *mps, void *data, size_t size);
      */
-    UT_BPLib_MEM_buf_t buf;
-    BPLib_MEM_stream_t mps;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
+    BPLib_STOR_CACHE_Stream_t mps;
     uint8_t              data[BPLIB_MEM_MIN_USER_BLOCK_SIZE];
 
     memset(&buf, 0, sizeof(buf));
@@ -100,10 +100,10 @@ void test_BPLib_STOR_CACHE_StreamRead(void)
 void test_BPLib_STOR_CACHE_StreamSeek(void)
 {
     /* Test function for:
-     * size_t BPLib_STOR_CACHE_StreamSeek(BPLib_MEM_stream_t *mps, size_t target_position);
+     * size_t BPLib_STOR_CACHE_StreamSeek(BPLib_STOR_CACHE_Stream_t *mps, size_t target_position);
      */
-    UT_BPLib_MEM_buf_t buf;
-    BPLib_MEM_stream_t mps;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
+    BPLib_STOR_CACHE_Stream_t mps;
     uint8_t              data[BPLIB_MEM_MIN_USER_BLOCK_SIZE];
 
     memset(&buf, 0, sizeof(buf));
@@ -141,10 +141,10 @@ void test_BPLib_STOR_CACHE_StreamSeek(void)
 void test_BPLib_STOR_CACHE_StreamAttach(void)
 {
     /* Test function for:
-     * void   BPLib_STOR_CACHE_StreamAttach(BPLib_MEM_stream_t *mps, BPLib_MEM_block_t *head);
+     * void   BPLib_STOR_CACHE_StreamAttach(BPLib_STOR_CACHE_Stream_t *mps, BPLib_STOR_CACHE_Block_t *head);
      */
-    BPLib_MEM_stream_t mps;
-    BPLib_MEM_block_t  list;
+    BPLib_STOR_CACHE_Stream_t mps;
+    BPLib_STOR_CACHE_Block_t  list;
 
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_StartStreamInit(&mps, NULL, BPLib_STOR_CACHE_StreamDirUndefined));
 
@@ -155,10 +155,10 @@ void test_BPLib_STOR_CACHE_StreamAttach(void)
 void test_BPLib_STOR_CACHE_StreamClose(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_StreamClose(BPLib_MEM_stream_t *mps);
+     * void BPLib_STOR_CACHE_StreamClose(BPLib_STOR_CACHE_Stream_t *mps);
      */
-    BPLib_MEM_t        pool;
-    BPLib_MEM_stream_t mps;
+    BPLib_STOR_CACHE_Pool_t        pool;
+    BPLib_STOR_CACHE_Stream_t mps;
 
     test_setup_mpblock(&pool, &pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
 

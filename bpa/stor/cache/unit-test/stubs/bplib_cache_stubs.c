@@ -29,143 +29,143 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_cache_attach()
+ * Generated stub function for BPLib_STOR_CACHE_Module_attach()
  * ----------------------------------------------------
  */
-bp_handle_t bplib_cache_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr)
+bp_handle_t BPLib_STOR_CACHE_Module_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_cache_attach, bp_handle_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Module_attach, bp_handle_t);
 
-    UT_GenStub_AddParam(bplib_cache_attach, bplib_routetbl_t *, tbl);
-    UT_GenStub_AddParam(bplib_cache_attach, const bp_ipn_addr_t *, service_addr);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_attach, bplib_routetbl_t *, tbl);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_attach, const bp_ipn_addr_t *, service_addr);
 
-    UT_GenStub_Execute(bplib_cache_attach, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_Module_attach, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_cache_attach, bp_handle_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_Module_attach, bp_handle_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_cache_configure()
+ * Generated stub function for BPLib_STOR_CACHE_Module_configure()
  * ----------------------------------------------------
  */
-int bplib_cache_configure(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, bplib_cache_module_valtype_t vt,
+int BPLib_STOR_CACHE_Module_configure(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt,
                           const void *val)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_cache_configure, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Module_configure, int);
 
-    UT_GenStub_AddParam(bplib_cache_configure, bplib_routetbl_t *, tbl);
-    UT_GenStub_AddParam(bplib_cache_configure, bp_handle_t, module_intf_id);
-    UT_GenStub_AddParam(bplib_cache_configure, int, key);
-    UT_GenStub_AddParam(bplib_cache_configure, bplib_cache_module_valtype_t, vt);
-    UT_GenStub_AddParam(bplib_cache_configure, const void *, val);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_configure, bplib_routetbl_t *, tbl);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_configure, bp_handle_t, module_intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_configure, int, key);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_configure, BPLib_STOR_CACHE_Module_module_valtype_t, vt);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_configure, const void *, val);
 
-    UT_GenStub_Execute(bplib_cache_configure, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_Module_configure, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_cache_configure, int);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_Module_configure, int);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_cache_debug_scan()
+ * Generated stub function for BPLib_STOR_CACHE_Module_debug_scan()
  * ----------------------------------------------------
  */
-void bplib_cache_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id)
+void BPLib_STOR_CACHE_Module_debug_scan(bplib_routetbl_t *tbl, bp_handle_t intf_id)
 {
-    UT_GenStub_AddParam(bplib_cache_debug_scan, bplib_routetbl_t *, tbl);
-    UT_GenStub_AddParam(bplib_cache_debug_scan, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_debug_scan, bplib_routetbl_t *, tbl);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_debug_scan, bp_handle_t, intf_id);
 
-    UT_GenStub_Execute(bplib_cache_debug_scan, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_Module_debug_scan, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_cache_detach()
+ * Generated stub function for BPLib_STOR_CACHE_Module_detach()
  * ----------------------------------------------------
  */
-int bplib_cache_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr)
+int BPLib_STOR_CACHE_Module_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *service_addr)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_cache_detach, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Module_detach, int);
 
-    UT_GenStub_AddParam(bplib_cache_detach, bplib_routetbl_t *, tbl);
-    UT_GenStub_AddParam(bplib_cache_detach, const bp_ipn_addr_t *, service_addr);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_detach, bplib_routetbl_t *, tbl);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_detach, const bp_ipn_addr_t *, service_addr);
 
-    UT_GenStub_Execute(bplib_cache_detach, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_Module_detach, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_cache_detach, int);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_Module_detach, int);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_cache_query()
+ * Generated stub function for BPLib_STOR_CACHE_Module_query()
  * ----------------------------------------------------
  */
-int bplib_cache_query(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, bplib_cache_module_valtype_t vt,
+int BPLib_STOR_CACHE_Module_query(bplib_routetbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt,
                       const void **val)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_cache_query, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Module_query, int);
 
-    UT_GenStub_AddParam(bplib_cache_query, bplib_routetbl_t *, tbl);
-    UT_GenStub_AddParam(bplib_cache_query, bp_handle_t, module_intf_id);
-    UT_GenStub_AddParam(bplib_cache_query, int, key);
-    UT_GenStub_AddParam(bplib_cache_query, bplib_cache_module_valtype_t, vt);
-    UT_GenStub_AddParam(bplib_cache_query, const void **, val);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_query, bplib_routetbl_t *, tbl);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_query, bp_handle_t, module_intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_query, int, key);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_query, BPLib_STOR_CACHE_Module_module_valtype_t, vt);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_query, const void **, val);
 
-    UT_GenStub_Execute(bplib_cache_query, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_Module_query, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_cache_query, int);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_Module_query, int);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_cache_register_module_service()
+ * Generated stub function for BPLib_STOR_CACHE_Module_register_module_service()
  * ----------------------------------------------------
  */
-bp_handle_t bplib_cache_register_module_service(bplib_routetbl_t *tbl, bp_handle_t cache_intf_id,
-                                                const bplib_cache_module_api_t *api, void *init_arg)
+bp_handle_t BPLib_STOR_CACHE_Module_register_module_service(bplib_routetbl_t *tbl, bp_handle_t cache_intf_id,
+                                                const BPLib_STOR_CACHE_Module_module_api_t *api, void *init_arg)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_cache_register_module_service, bp_handle_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Module_register_module_service, bp_handle_t);
 
-    UT_GenStub_AddParam(bplib_cache_register_module_service, bplib_routetbl_t *, tbl);
-    UT_GenStub_AddParam(bplib_cache_register_module_service, bp_handle_t, cache_intf_id);
-    UT_GenStub_AddParam(bplib_cache_register_module_service, const bplib_cache_module_api_t *, api);
-    UT_GenStub_AddParam(bplib_cache_register_module_service, void *, init_arg);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_register_module_service, bplib_routetbl_t *, tbl);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_register_module_service, bp_handle_t, cache_intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_register_module_service, const BPLib_STOR_CACHE_Module_module_api_t *, api);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_register_module_service, void *, init_arg);
 
-    UT_GenStub_Execute(bplib_cache_register_module_service, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_Module_register_module_service, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_cache_register_module_service, bp_handle_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_Module_register_module_service, bp_handle_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_cache_start()
+ * Generated stub function for BPLib_STOR_CACHE_Module_start()
  * ----------------------------------------------------
  */
-int bplib_cache_start(bplib_routetbl_t *tbl, bp_handle_t module_intf_id)
+int BPLib_STOR_CACHE_Module_start(bplib_routetbl_t *tbl, bp_handle_t module_intf_id)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_cache_start, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Module_start, int);
 
-    UT_GenStub_AddParam(bplib_cache_start, bplib_routetbl_t *, tbl);
-    UT_GenStub_AddParam(bplib_cache_start, bp_handle_t, module_intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_start, bplib_routetbl_t *, tbl);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_start, bp_handle_t, module_intf_id);
 
-    UT_GenStub_Execute(bplib_cache_start, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_Module_start, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_cache_start, int);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_Module_start, int);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for bplib_cache_stop()
+ * Generated stub function for BPLib_STOR_CACHE_Module_stop()
  * ----------------------------------------------------
  */
-int bplib_cache_stop(bplib_routetbl_t *tbl, bp_handle_t module_intf_id)
+int BPLib_STOR_CACHE_Module_stop(bplib_routetbl_t *tbl, bp_handle_t module_intf_id)
 {
-    UT_GenStub_SetupReturnBuffer(bplib_cache_stop, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Module_stop, int);
 
-    UT_GenStub_AddParam(bplib_cache_stop, bplib_routetbl_t *, tbl);
-    UT_GenStub_AddParam(bplib_cache_stop, bp_handle_t, module_intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_stop, bplib_routetbl_t *, tbl);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Module_stop, bp_handle_t, module_intf_id);
 
-    UT_GenStub_Execute(bplib_cache_stop, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_CACHE_Module_stop, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(bplib_cache_stop, int);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_Module_stop, int);
 }

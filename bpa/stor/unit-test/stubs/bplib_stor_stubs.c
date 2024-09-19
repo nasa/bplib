@@ -18,28 +18,25 @@
  *
  */
 
+/**
+ * @file
+ *
+ * Auto-Generated stub implementations for functions defined in bplib_stor header
+ */
+
+#include "bplib_stor.h"
+#include "utgenstub.h"
+
 /*
-** Include
-*/
-
-#include "bplib_s_test_utils.h"
-
-/*
-** Function Definitions
-*/
-
-void BPLib_STOR_Test_Setup(void)
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_Init()
+ * ----------------------------------------------------
+ */
+int BPLib_STOR_Init(void)
 {
-    /* Initialize test environment to default state for every test */
-    UT_ResetState(0);
-}
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_Init, int);
 
-void BPLib_STOR_Test_Teardown(void)
-{
-    /* Clean up test environment */
-}
+    UT_GenStub_Execute(BPLib_STOR_Init, Basic, NULL);
 
-void UtTest_Setup(void)
-{
-    TestBplibStor_Register();
+    return UT_GenStub_GetReturnValue(BPLib_STOR_Init, int);
 }

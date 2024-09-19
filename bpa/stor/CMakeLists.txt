@@ -6,16 +6,16 @@
 #
 ##################################################################
 
-add_library(bplib_s OBJECT
-    src/bplib_s.c
+add_library(bplib_stor OBJECT
+    src/bplib_stor.c
 )
 
-target_include_directories(bplib_s PUBLIC
+target_include_directories(bplib_stor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests
 if(BPLIB_ENABLE_UNIT_TESTS)
-  # STOR add_subdirectory(unit-test)
+  add_subdirectory(unit-test)
 endif(BPLIB_ENABLE_UNIT_TESTS)

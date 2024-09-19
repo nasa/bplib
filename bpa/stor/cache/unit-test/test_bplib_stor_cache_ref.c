@@ -29,7 +29,7 @@
 void test_BPLib_STOR_CACHE_RefCreate(void)
 {
     /* Test function for:
-     * BPLib_MEM_ref_t BPLib_STOR_CACHE_RefCreate(BPLib_MEM_block_t *blk)
+     * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefCreate(BPLib_STOR_CACHE_Block_t *blk)
      */
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
@@ -46,7 +46,7 @@ void test_BPLib_STOR_CACHE_RefCreate(void)
 void test_BPLib_STOR_CACHE_RefDuplicate(void)
 {
     /* Test function for:
-     * BPLib_MEM_ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_MEM_ref_t refptr)
+     * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_STOR_CACHE_Ref_t refptr)
      */
     BPLib_STOR_CACHE_BlockContent_t my_block;
 
@@ -60,7 +60,7 @@ void test_BPLib_STOR_CACHE_RefDuplicate(void)
 void test_BPLib_STOR_CACHE_RefFromBlock(void)
 {
     /* Test function for:
-     * BPLib_MEM_ref_t BPLib_STOR_CACHE_RefFromBlock(BPLib_MEM_block_t *rblk)
+     * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefFromBlock(BPLib_STOR_CACHE_Block_t *rblk)
      */
     BPLib_STOR_CACHE_BlockContent_t my_block;
     BPLib_STOR_CACHE_BlockContent_t my_ref;
@@ -80,9 +80,9 @@ void test_BPLib_STOR_CACHE_RefFromBlock(void)
 void test_BPLib_STOR_CACHE_RefRelease(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_RefRelease(BPLib_MEM_ref_t refptr)
+     * void BPLib_STOR_CACHE_RefRelease(BPLib_STOR_CACHE_Ref_t refptr)
      */
-    UT_BPLib_MEM_buf_t               buf;
+    UT_BPLib_STOR_CACHE_Buf_t               buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_RefRelease(NULL));
@@ -111,9 +111,9 @@ void test_BPLib_STOR_CACHE_RefRelease(void)
 void test_BPLib_STOR_CACHE_RefMakeBlock(void)
 {
     /* Test function for:
-     * BPLib_MEM_block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_MEM_ref_t refptr, uint32_t magic_number, void *init_arg)
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_STOR_CACHE_Ref_t refptr, uint32_t magic_number, void *init_arg)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
 

@@ -27,7 +27,7 @@
 #include "bplib.h"
 #include "test_bplib_base.h"
 
-const bplib_cache_module_api_t *BPLIB_FILE_OFFLOAD_API = NULL;
+const BPLib_STOR_CACHE_Module_module_api_t *BPLIB_FILE_OFFLOAD_API = NULL;
 
 void test_bplib_init(void)
 {
@@ -69,10 +69,10 @@ void test_bplib_create_file_storage(void)
 
     memset(&storage_addr, 0, sizeof(bp_ipn_addr_t));
 
-    UT_SetDefaultReturnValue(UT_KEY(bplib_cache_register_module_service), 0x1);
-    UT_SetDefaultReturnValue(UT_KEY(bplib_cache_attach), 0x1);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_Module_register_module_service), 0x1);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_Module_attach), 0x1);
     UtAssert_UINT32_GT(bplib_create_file_storage(rtbl, &storage_addr).hdl, 0);
-    UT_SetDefaultReturnValue(UT_KEY(bplib_cache_register_module_service), 0);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_Module_register_module_service), 0);
 }
 
 void test_bplib_create_node_intf(void)
@@ -82,28 +82,28 @@ void test_bplib_create_node_intf(void)
      */
     bplib_routetbl_t    rtbl;
     bp_ipn_t            node_num = 101;
-    BPLib_MEM_block_t sblk;
-    BPLib_MEM_ref_t   flow_ref;
-    BPLib_MEM_flow_t  flow;
+    BPLib_STOR_MEM_Block_t sblk;
+    BPLib_STOR_MEM_ref_t   flow_ref;
+    BPLib_STOR_MEM_flow_t  flow;
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
-    memset(&sblk, 0, sizeof(BPLib_MEM_block_t));
-    memset(&flow_ref, 0, sizeof(BPLib_MEM_ref_t));
-    memset(&flow, 0, sizeof(BPLib_MEM_flow_t));
+    memset(&sblk, 0, sizeof(BPLib_STOR_MEM_Block_t));
+    memset(&flow_ref, 0, sizeof(BPLib_STOR_MEM_ref_t));
+    memset(&flow, 0, sizeof(BPLib_STOR_MEM_flow_t));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_FlowAlloc), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_FlowAlloc), UT_lib_sizet_Handler, NULL);
     UtAssert_UINT32_EQ(bplib_create_node_intf(&rtbl, node_num).hdl, 0);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_FlowAlloc), UT_lib_AltHandler_PointerReturn, &sblk);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, &flow_ref);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_FlowCast), UT_lib_AltHandler_PointerReturn, &flow);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_BlockFromExternalId), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_FlowAlloc), UT_lib_AltHandler_PointerReturn, &sblk);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, &flow_ref);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_FlowCast), UT_lib_AltHandler_PointerReturn, &flow);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_BlockFromExternalId), UT_lib_AltHandler_PointerReturn, NULL);
     UtAssert_UINT32_GT(bplib_create_node_intf(&rtbl, node_num).hdl, 0);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_FlowAlloc), UT_lib_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_FlowCast), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_FlowAlloc), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_FlowCast), UT_lib_AltHandler_PointerReturn, NULL);
 }
 #endif // STOR
 
@@ -180,8 +180,8 @@ void test_bplib_query_integer(void)
 
     memset(&rtbl, 0, sizeof(bplib_routetbl_t));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_QueryMemCurrentUse), UT_lib_sizet_Handler, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_QueryMemMaxUse), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_QueryMemCurrentUse), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_MEM_QueryMemMaxUse), UT_lib_sizet_Handler, NULL);
     UtAssert_UINT32_EQ(bplib_query_integer(&rtbl, intf_id, bplib_variable_mem_current_use, &value), 0);
     UtAssert_UINT32_EQ(bplib_query_integer(&rtbl, intf_id, bplib_variable_mem_high_use, &value), 0);
     UtAssert_UINT32_GT(bplib_query_integer(&rtbl, intf_id, 5, &value), 0);

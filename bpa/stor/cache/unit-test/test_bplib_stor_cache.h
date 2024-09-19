@@ -23,9 +23,9 @@
 #include "utstubs.h"
 #include "uttest.h"
 #include "bplib_api_types.h"
-#include "v7_cache_internal.h"
+#include "BPLib_STOR_CACHE_Module_cache_internal.h"
 
-void test_setup_cache_state(BPLib_MEM_block_t *sblk);
+void test_setup_cache_state(BPLib_STOR_CACHE_Block_t *sblk);
 void UT_cache_sizet_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_cache_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_cache_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
@@ -37,13 +37,13 @@ void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCo
 void TestBplibCacheCustody_Register(void);
 void TestBplibCacheFsm_Register(void);
 void TestBplibCache_Register(void);
-BPLib_MEM_block_t *test_bplib_cache_instantiate_stub(BPLib_MEM_ref_t parent_ref, void *init_arg);
-int                  test_bplib_cache_configure_stub(BPLib_MEM_block_t *svc, int key, bplib_cache_module_valtype_t vt,
+BPLib_STOR_CACHE_Block_t *test_BPLib_STOR_CACHE_Module_instantiate_stub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
+int                  test_BPLib_STOR_CACHE_Module_configure_stub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt,
                                                      const void *val);
-int test_bplib_cache_query_stub(BPLib_MEM_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void **val);
-int test_bplib_cache_startstop_stub(BPLib_MEM_block_t *svc);
-int test_bplib_cache_offload_stub(BPLib_MEM_block_t *svc, bp_sid_t *sid, BPLib_MEM_block_t *pblk);
-int test_bplib_cache_restore_stub(BPLib_MEM_block_t *svc, bp_sid_t sid, BPLib_MEM_block_t **pblk);
-int test_bplib_cache_release_stub(BPLib_MEM_block_t *svc, bp_sid_t sid);
+int test_BPLib_STOR_CACHE_Module_query_stub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt, const void **val);
+int test_BPLib_STOR_CACHE_Module_startstop_stub(BPLib_STOR_CACHE_Block_t *svc);
+int test_BPLib_STOR_CACHE_Module_offload_stub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
+int test_BPLib_STOR_CACHE_Module_restore_stub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk);
+int test_BPLib_STOR_CACHE_Module_release_stub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);
 
 #endif

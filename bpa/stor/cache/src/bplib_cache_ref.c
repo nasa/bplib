@@ -27,7 +27,6 @@
 
 #include "bplib.h"
 #include "bplib_mem.h"
-#include "bplib_mem_internal.h"
 #include "bplib_mem_ref.h"
 
 /*----------------------------------------------------------------
@@ -35,9 +34,9 @@
  * Function: BPLib_STOR_CACHE_RefDuplicate
  *
  *-----------------------------------------------------------------*/
-BPLib_MEM_ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_MEM_ref_t refptr)
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_STOR_CACHE_Ref_t refptr)
 {
-    BPLib_MEM_lock_t *lock;
+    BPLib_STOR_CACHE_Lock_t *lock;
 
     /*
      * If the refcount is 0, that means this is still a regular (non-refcounted) object,
@@ -57,10 +56,10 @@ BPLib_MEM_ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_MEM_ref_t refptr)
  * Function: BPLib_STOR_CACHE_RefCreate
  *
  *-----------------------------------------------------------------*/
-BPLib_MEM_ref_t BPLib_STOR_CACHE_RefCreate(BPLib_MEM_block_t *blk)
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefCreate(BPLib_STOR_CACHE_Block_t *blk)
 {
     BPLib_STOR_CACHE_BlockContent_t *content;
-    BPLib_MEM_lock_t          *lock;
+    BPLib_STOR_CACHE_Lock_t          *lock;
 
     /*
      * This drills down to the actual base object (the "root" so to speak), so that the
@@ -86,14 +85,14 @@ BPLib_MEM_ref_t BPLib_STOR_CACHE_RefCreate(BPLib_MEM_block_t *blk)
  * Function: BPLib_STOR_CACHE_RefMakeBlock
  *
  *-----------------------------------------------------------------*/
-BPLib_MEM_block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_MEM_ref_t refptr, uint32_t magic_number, void *init_arg)
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_STOR_CACHE_Ref_t refptr, uint32_t magic_number, void *init_arg)
 {
     BPLib_STOR_CACHE_BlockContent_t *rblk;
     BPLib_STOR_CACHE_BlockContent_t *bblk;
-    BPLib_MEM_lock_t          *lock;
-    BPLib_MEM_t               *pool;
+    BPLib_STOR_CACHE_Lock_t          *lock;
+    BPLib_STOR_CACHE_Pool_t               *pool;
 
-    bblk = BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_MEM_dereference(refptr));
+    bblk = BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_STOR_CACHE_Dereference(refptr));
     pool = BPLib_STOR_CACHE_GetParentPoolFromLink(&bblk->header.base_link);
 
     lock = BPLib_STOR_CACHE_LockResource(pool);
@@ -108,7 +107,7 @@ BPLib_MEM_block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_MEM_ref_t refptr, uint32_
 
     rblk->u.ref.pref_target = BPLib_STOR_CACHE_RefDuplicate(bblk);
 
-    return (BPLib_MEM_block_t *)rblk;
+    return (BPLib_STOR_CACHE_Block_t *)rblk;
 }
 
 /*----------------------------------------------------------------
@@ -116,7 +115,7 @@ BPLib_MEM_block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_MEM_ref_t refptr, uint32_
  * Function: BPLib_STOR_CACHE_RefFromBlock
  *
  *-----------------------------------------------------------------*/
-BPLib_MEM_ref_t BPLib_STOR_CACHE_RefFromBlock(BPLib_MEM_block_t *rblk)
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefFromBlock(BPLib_STOR_CACHE_Block_t *rblk)
 {
     BPLib_STOR_CACHE_BlockContent_t *content;
 
@@ -135,10 +134,10 @@ BPLib_MEM_ref_t BPLib_STOR_CACHE_RefFromBlock(BPLib_MEM_block_t *rblk)
  * Function: BPLib_STOR_CACHE_RefRelease
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_RefRelease(BPLib_MEM_ref_t refptr)
+void BPLib_STOR_CACHE_RefRelease(BPLib_STOR_CACHE_Ref_t refptr)
 {
     BPLib_STOR_CACHE_BlockHeader_t *block_hdr;
-    BPLib_MEM_lock_t         *lock;
+    BPLib_STOR_CACHE_Lock_t         *lock;
     bool                        needs_recycle;
 
     if (refptr != NULL)

@@ -75,7 +75,7 @@ bp_handle_t bplib_create_ram_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_t
 {
     bp_handle_t intf_id;
 
-    // intf_id = bplib_cache_attach(rtbl, storage_addr);  TODO STOR Restore cache_attace.
+    // intf_id = BPLib_STOR_CACHE_Module_attach(rtbl, storage_addr);  TODO STOR Restore cache_attace.
     intf_id.hdl = 0; // TODO STOR
 
     return intf_id;
@@ -89,18 +89,18 @@ bp_handle_t bplib_create_file_storage(bplib_routetbl_t *rtbl, const bp_ipn_addr_
     bp_handle_t svc_id;
     char        storage_path[64];
 
-    intf_id = bplib_cache_attach(rtbl, storage_addr);
+    intf_id = BPLib_STOR_CACHE_Module_attach(rtbl, storage_addr);
     if (bp_handle_is_valid(intf_id))
     {
-        svc_id = bplib_cache_register_module_service(rtbl, intf_id, BPLIB_FILE_OFFLOAD_API, NULL);
+        svc_id = BPLib_STOR_CACHE_Module_register_module_service(rtbl, intf_id, BPLIB_FILE_OFFLOAD_API, NULL);
 
         if (bp_handle_is_valid(svc_id))
         {
             snprintf(storage_path, sizeof(storage_path), "./storage/%u.%u", (unsigned int)storage_addr->node_number,
                      (unsigned int)storage_addr->service_number);
-            bplib_cache_configure(rtbl, intf_id, bplib_cache_confkey_offload_base_dir,
-                                  bplib_cache_module_valtype_string, storage_path);
-            bplib_cache_start(rtbl, intf_id);
+            BPLib_STOR_CACHE_Module_configure(rtbl, intf_id, BPLib_STOR_CACHE_Module_confkey_offload_base_dir,
+                                  BPLib_STOR_CACHE_Module_module_valtype_string, storage_path);
+            BPLib_STOR_CACHE_Module_start(rtbl, intf_id);
         }
     }
     #else // STOR
@@ -277,12 +277,12 @@ int bplib_query_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_varia
     switch (var_id)
     {
         case 0: // STOR bplib_variable_mem_current_use:
-            // STOR *value = BPLib_MEM_QueryMemCurrentUse(bplib_route_get_mpool(rtbl));
+            // STOR *value = BPLib_STOR_MEM_QueryMemCurrentUse(bplib_route_get_mpool(rtbl));
             retval = BP_SUCCESS;
             break;
 
         case 1: // STOR bplib_variable_mem_high_use:
-            // STOR *value = BPLib_MEM_QueryMemMaxUse(bplib_route_get_mpool(rtbl));
+            // STOR *value = BPLib_STOR_MEM_QueryMemMaxUse(bplib_route_get_mpool(rtbl));
             retval = BP_SUCCESS;
             break;
 

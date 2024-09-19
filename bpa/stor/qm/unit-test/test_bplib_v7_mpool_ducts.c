@@ -28,8 +28,8 @@
 
 void UT_AltHandler_MoveQueue(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    BPLib_MEM_flow_t  *flow = UserObj;
-    BPLib_MEM_block_t *blk;
+    BPLib_STOR_CACHE_Flow_t  *flow = UserObj;
+    BPLib_STOR_CACHE_Block_t *blk;
 
     blk = BPLib_STOR_CACHE_SubqPullSingle(&flow->ingress.base_subq);
     if (blk)
@@ -41,9 +41,9 @@ void UT_AltHandler_MoveQueue(void *UserObj, UT_EntryKey_t FuncKey, const UT_Stub
 void test_BPLib_STOR_CACHE_SubqMergeList(void)
 {
     /* Test function for:
-     * uint32_t BPLib_STOR_CACHE_SubqMergeList(BPLib_STOR_CACHE_SubqBase_t *subq_dst, BPLib_MEM_block_t *list)
+     * uint32_t BPLib_STOR_CACHE_SubqMergeList(BPLib_STOR_CACHE_SubqBase_t *subq_dst, BPLib_STOR_CACHE_Block_t *list)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -68,7 +68,7 @@ void test_BPLib_STOR_CACHE_SubqMoveAll(void)
     /* Test function for:
      * uint32_t BPLib_STOR_CACHE_SubqMoveAll(BPLib_STOR_CACHE_SubqBase_t *subq_dst, BPLib_STOR_CACHE_SubqBase_t *subq_src)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -93,9 +93,9 @@ void test_BPLib_STOR_CACHE_SubqMoveAll(void)
 void test_BPLib_STOR_CACHE_SubqDropAll(void)
 {
     /* Test function for:
-     * uint32_t BPLib_STOR_CACHE_SubqDropAll(BPLib_MEM_t *pool, BPLib_STOR_CACHE_SubqBase_t *subq)
+     * uint32_t BPLib_STOR_CACHE_SubqDropAll(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_SubqBase_t *subq)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -115,9 +115,9 @@ void test_BPLib_STOR_CACHE_SubqDropAll(void)
 void test_BPLib_STOR_CACHE_SubqPullSingle(void)
 {
     /* Test function for:
-     * BPLib_MEM_block_t *BPLib_STOR_CACHE_SubqPullSingle(BPLib_STOR_CACHE_SubqBase_t *subq)
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_SubqPullSingle(BPLib_STOR_CACHE_SubqBase_t *subq)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -130,10 +130,10 @@ void test_BPLib_STOR_CACHE_SubqPullSingle(void)
 void test_BPLib_STOR_CACHE_FlowCast(void)
 {
     /* Test function for:
-     * BPLib_MEM_flow_t *BPLib_STOR_CACHE_FlowCast(BPLib_MEM_block_t *cb)
+     * BPLib_STOR_CACHE_Flow_t *BPLib_STOR_CACHE_FlowCast(BPLib_STOR_CACHE_Block_t *cb)
      */
     BPLib_STOR_CACHE_BlockContent_t my_block;
-    BPLib_MEM_block_t        *cb = &my_block.header.base_link;
+    BPLib_STOR_CACHE_Block_t        *cb = &my_block.header.base_link;
 
     UtAssert_NULL(BPLib_STOR_CACHE_FlowCast(NULL));
 
@@ -150,9 +150,9 @@ void test_BPLib_STOR_CACHE_FlowCast(void)
 void test_BPLib_STOR_CACHE_FlowAlloc(void)
 {
     /* Test function for:
-     * BPLib_MEM_block_t *BPLib_STOR_CACHE_FlowAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg)
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_FlowAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
 
@@ -167,7 +167,7 @@ void test_BPLib_STOR_CACHE_FlowDisable(void)
     /* Test function for:
      * uint32_t BPLib_STOR_CACHE_FlowDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -181,7 +181,7 @@ void test_BPLib_STOR_CACHE_FlowEnable(void)
     /* Test function for:
      * void BPLib_STOR_CACHE_FlowEnable(BPLib_STOR_CACHE_SubqWorkitem_t *subq, uint32_t depth_limit)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -193,10 +193,10 @@ void test_BPLib_STOR_CACHE_FlowEnable(void)
 void test_BPLib_STOR_CACHE_FlowTryPush(void)
 {
     /* Test function for:
-     * bool BPLib_STOR_CACHE_FlowTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_MEM_block_t *qblk, uint64_t
+     * bool BPLib_STOR_CACHE_FlowTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk, uint64_t
      * abs_timeout)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -229,7 +229,7 @@ void test_BPLib_STOR_CACHE_FlowTryMoveAll(void)
      * uint32_t BPLib_STOR_CACHE_FlowTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_SubqWorkitem_t
      * *subq_src, uint64_t abs_timeout)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -262,9 +262,9 @@ void test_BPLib_STOR_CACHE_FlowTryMoveAll(void)
 void test_BPLib_STOR_CACHE_FlowTryPull(void)
 {
     /* Test function for:
-     * BPLib_MEM_block_t *BPLib_STOR_CACHE_FlowTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, uint64_t abs_timeout)
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_FlowTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, uint64_t abs_timeout)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -295,9 +295,9 @@ void test_BPLib_STOR_CACHE_FlowTryPull(void)
 void test_BPLib_STOR_CACHE_FlowModifyFlags(void)
 {
     /* Test function for:
-     * bool BPLib_STOR_CACHE_FlowModifyFlags(BPLib_MEM_block_t *cb, uint32_t set_bits, uint32_t clear_bits)
+     * bool BPLib_STOR_CACHE_FlowModifyFlags(BPLib_STOR_CACHE_Block_t *cb, uint32_t set_bits, uint32_t clear_bits)
      */
-    UT_BPLib_MEM_buf_t buf;
+    UT_BPLib_STOR_CACHE_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
@@ -309,7 +309,7 @@ void test_BPLib_STOR_CACHE_FlowModifyFlags(void)
     UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_FlowModifyFlags(&buf.blk[0].header.base_link, 1, 2));
 }
 
-static int ut_flow_statechange_check(void *arg, BPLib_MEM_block_t *jblk)
+static int ut_flow_statechange_check(void *arg, BPLib_STOR_CACHE_Block_t *jblk)
 {
     return 0;
 }
@@ -317,11 +317,11 @@ static int ut_flow_statechange_check(void *arg, BPLib_MEM_block_t *jblk)
 void test_BPLib_STOR_CACHE_FlowEventHandler(void)
 {
     /* Test function for:
-     * static int BPLib_STOR_CACHE_FlowEventHandler(void *arg, BPLib_MEM_block_t *jblk)
+     * static int BPLib_STOR_CACHE_FlowEventHandler(void *arg, BPLib_STOR_CACHE_Block_t *jblk)
      */
 
     BPLib_STOR_CACHE_BlockContent_t my_block;
-    BPLib_MEM_flow_t         *flow;
+    BPLib_STOR_CACHE_Flow_t         *flow;
     BPLib_STOR_CACHE_CallbackFunc_t evhandler;
 
     memset(&my_block, 0, sizeof(my_block));
