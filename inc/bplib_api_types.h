@@ -72,6 +72,9 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -14u)
 #define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -15u)
 
+/* PerfLog Proxy Errors*/
+#define BPLIB_PL_NULL_CALLBACK_ERROR    ((BPLib_Status_t) -8)
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

@@ -82,6 +82,16 @@ int32_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle)
     return 0;
 }
 
+void BPA_PERFLOGP_Entry(uint32 PerfLogID)
+{
+    return;
+}
+
+void BPA_PERFLOGP_Exit(uint32 PerfLogID)
+{
+    return;
+}
+
 /* Test nominal FWP initialization */
 void Test_BPLib_FWP_Init_Nominal(void)
 {
@@ -94,6 +104,8 @@ void Test_BPLib_FWP_Init_Nominal(void)
     Callbacks.BPA_TABLEP_SingleTableUpdate = BPA_TABLEP_SingleTableUpdate;
     Callbacks.BPA_EVP_Init                 = BPA_EVP_Init;
     Callbacks.BPA_EVP_SendEvent            = BPA_EVP_SendEvent;
+    Callbacks.BPA_PERFLOGP_Entry = BPA_PERFLOGP_Entry;
+    Callbacks.BPA_PERFLOGP_Exit = BPA_PERFLOGP_Exit;
 
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_SUCCESS);
 
@@ -111,6 +123,10 @@ void Test_BPLib_FWP_Init_Nominal(void)
                     "Same BPA_EVP_Init function");
     UtAssert_True(Callbacks.BPA_EVP_SendEvent == BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent,
                     "Same BPA_EVP_SendEvent function");
+    UtAssert_True(Callbacks.BPA_PERFLOGP_Entry == BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry, 
+                    "Same BPA_PERFLOGP_Entry functions");
+    UtAssert_True(Callbacks.BPA_PERFLOGP_Exit == BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit, 
+                    "Same BPA_PERFLOGP_Exit functions");
 }
 
 /* Test FWP initialization with null function */
@@ -163,8 +179,7 @@ void Test_BPLib_FWP_Init_SingleTableUpdateNull(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
-/* Test FWP initialization with null EVP_Init function */
-void Test_BPLib_FWP_Init_EVP_InitNull(void)
+void Test_BPLib_FWP_Init_EVP_Init(void)
 {
     BPLib_FWP_ProxyCallbacks_t Callbacks;
 
@@ -173,8 +188,7 @@ void Test_BPLib_FWP_Init_EVP_InitNull(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
-/* Test FWP initialization with null EVP_SendEvent function */
-void Test_BPLib_FWP_Init_EVP_SendEventNull(void)
+void Test_BPLib_FWP_Init_EVP_SendEvent(void)
 {
     BPLib_FWP_ProxyCallbacks_t Callbacks;
 
@@ -182,6 +196,27 @@ void Test_BPLib_FWP_Init_EVP_SendEventNull(void)
     Callbacks.BPA_EVP_SendEvent = NULL;
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
+
+/* Test FWP initialization with null function */
+void Test_BPLib_FWP_Init_PERFLOGP_EntryNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    Callbacks.BPA_PERFLOGP_Entry = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+/* Test FWP initialization with null function */
+void Test_BPLib_FWP_Init_PERFLOGP_ExitNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    Callbacks.BPA_PERFLOGP_Exit = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
 
 void TestBplibFwp_Register(void)
 {
@@ -193,4 +228,6 @@ void TestBplibFwp_Register(void)
     UtTest_Add(Test_BPLib_FWP_Init_SingleTableUpdateNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SingleTableUpdateNull");
     UtTest_Add(Test_BPLib_FWP_Init_EVP_InitNull,  BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_EVP_InitNull");
     UtTest_Add(Test_BPLib_FWP_Init_EVP_SendEventNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_EVP_SendEventNull");
+    UtTest_Add(Test_BPLib_FWP_Init_PERFLOGP_EntryNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_PERFLOGP_EntryNull");
+    UtTest_Add(Test_BPLib_FWP_Init_PERFLOGP_ExitNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_PERFLOGP_ExitNull");
 }
