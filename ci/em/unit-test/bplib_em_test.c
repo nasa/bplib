@@ -130,7 +130,7 @@ void Test_BPA_EM_SendEvent_ExpandedTextError(void)
     /* Pass in Spec value that will cause vsprintf 
         to return a negative (failure) value */
     Status = BPLIB_UNKNOWN;
-    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFO, "This causes an error", "because there isn't a conversion specifier");
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFO, "This causes an error", NULL);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_EM_EXPANDED_TEXT_ERROR);
 }

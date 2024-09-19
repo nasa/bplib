@@ -27,9 +27,16 @@
 #include "bplib_api_types.h"
 #include <stdarg.h>
 
+/* ====== */
+/* Macros */
+/* ====== */
+
+#define BPLIB_EM_EXPANDED_EVENT_SIZE (300u)
+
 /* ======== */
 /* Typedefs */
 /* ======== */
+
 typedef enum
 {
     BPLib_EM_EventType_UNKNOWN  = 0,

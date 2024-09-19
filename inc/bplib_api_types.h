@@ -62,7 +62,7 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t)  -7)
 
 /* Event Management Errors */
-#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) BPLIB_SUCCESS)
+#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) 2u)
 #define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -8u)
 #define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -9u)
 #define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -10u)
