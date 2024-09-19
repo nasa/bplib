@@ -123,30 +123,21 @@ void Test_BPA_EM_SendEvent_Nominal(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-/* Test that EM truncates test when it exceeds length
-   restrictions and returns a value indicating as much */
-void Test_BPA_EM_SendEvent_TruncatedString(void)
+void Test_BPA_EM_SendEvent_ExpandedTextError(void)
 {
-    char LongString[BPLIB_EM_MAX_MESSAGE_LENGTH + 5];
     BPLib_Status_t Status;
-    int stringLoopControl;
 
-    for(stringLoopControl = 0; stringLoopControl < BPLIB_EM_MAX_MESSAGE_LENGTH + 4; stringLoopControl++)
-    {
-        LongString[stringLoopControl] = 'A';
-    }
-
-    LongString[stringLoopControl] = 'H';
-
+    /* Pass in Spec value that will cause vsprintf 
+        to return a negative (failure) value */
     Status = BPLIB_UNKNOWN;
-    Status = BPLib_EM_SendEvent(142, BPLib_EM_EventType_INFO, LongString);
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFO, "This causes an error", "because there isn't a conversion specifier");
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_EM_STRING_TRUNCATED);
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_EM_EXPANDED_TEXT_ERROR);
 }
 
 void TestBplibEm_Register(void)
 {
     ADD_TEST(Test_BPLib_EM_Init_Nominal);
     ADD_TEST(Test_BPA_EM_SendEvent_Nominal);
-    ADD_TEST(Test_BPA_EM_SendEvent_TruncatedString);
+    ADD_TEST(Test_BPA_EM_SendEvent_ExpandedTextError);
 }

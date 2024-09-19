@@ -49,38 +49,24 @@ BPLib_Status_t BPLib_EM_Init(void)
 BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* Spec, ...)
 {
     BPLib_Status_t Status;
-    char ExpandedEventText[BPLIB_EM_MAX_MESSAGE_LENGTH];
+    char* ExpandedEventText;
     int ExpandedLength;
     va_list EventTextArgPtr;
 
     // Initialize Status to BPLIB_SUCCESS
     Status = BPLIB_SUCCESS;
 
-    /* Verify that the max message length for EM is more than a truncation character and >= the pre-defined
-       max length of an EVS message according to CFE */
-    if ((BPLIB_EM_MAX_MESSAGE_LENGTH < 2) || (BPLIB_EM_MAX_MESSAGE_LENGTH > CFE_MISSION_EVS_MAX_MESSAGE_LENGTH))
+    va_start(EventTextArgPtr, Spec);
+    ExpandedLength = vsprintf((char*)ExpandedEventText, Spec, EventTextArgPtr);
+    va_end(EventTextArgPtr);
+
+    if (ExpandedLength < 0)
     {
-        Status = BPLIB_ERROR;
+        Status = BPLIB_EM_EXPANDED_TEXT_ERROR;
     }
     else
     {
-        va_start(EventTextArgPtr, Spec);
-
-        memset(&ExpandedEventText, 0, sizeof(ExpandedEventText));
-
-        // Format input string based on values provided after Spec
-        ExpandedLength = vsnprintf((char*)ExpandedEventText, sizeof(ExpandedEventText),
-                                   Spec, EventTextArgPtr);
-
-        if (ExpandedLength >= (int)sizeof(ExpandedEventText))
-        {
-            // Mark character before zero terminator to indicate truncation
-            ExpandedEventText[sizeof(ExpandedEventText) - 2u] = BPLIB_EM_MSG_TRUNCATED;
-            Status = BPLIB_EM_STRING_TRUNCATED;
-        }
-
         BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent(EventID, EventType, ExpandedEventText);
-        va_end(EventTextArgPtr);
     }
 
     return Status;
