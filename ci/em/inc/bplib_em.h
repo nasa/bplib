@@ -39,12 +39,12 @@
 
 typedef enum
 {
-    BPLib_EM_EventType_UNKNOWN  = 0,
-    BPLib_EM_EventType_DEBUG    = 1,
-    BPLib_EM_EventType_INFO     = 2,
-    BPLib_EM_EventType_WARNING  = 3,
-    BPLib_EM_EventType_ERROR    = 4,
-    BPLib_EM_EventType_CRITICAL = 5
+    BPLib_EM_EventType_UNKNOWN     = 0,
+    BPLib_EM_EventType_DEBUG       = 1,
+    BPLib_EM_EventType_INFORMATION = 2,
+    BPLib_EM_EventType_WARNING     = 3,
+    BPLib_EM_EventType_ERROR       = 4,
+    BPLib_EM_EventType_CRITICAL    = 5
 } BPLib_EM_EventType_t;
 
 /* ================== */
