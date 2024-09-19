@@ -49,12 +49,9 @@ target_compile_options(utobj_bplib_mem PRIVATE
 
 # Add executable
 add_executable(coverage-bplib_mem-testrunner
-    bplib_mem_ref_test.c
-    bplib_mem_test.c
-    bplib_mem_test.h
-    bplib_mem_test_bblocks.c
-    bplib_mem_test_ducts.c
-    bplib_mem_test_setup.c
+# STOR TODO Add test_bplib_mem.c. The original moved to test_bplib_cache.c
+#    test_bplib_mem.c
+    test_bplib_mem_setup.c
     utilities/bplib_mem_test_utils.c
     $<TARGET_OBJECTS:utobj_bplib_mem>
 )

@@ -43,17 +43,17 @@
 #define BPLIB_MEM_ALLOC_PRI_MHI 191
 #define BPLIB_MEM_ALLOC_PRI_HI  255
 
-struct BPLib_MEM_block
+struct BPLib_STOR_MEM_Block
 {
     /* note that if it becomes necessary to recover bits here,
      * the offset could be reduced in size */
-    // STOR BPLib_MEM_blocktype_t   type; // Moved to bplib_cache_block
+    // STOR BPLib_STOR_MEM_Blocktype_t   type; // Moved to BPLib_STOR_CACHE_Module_block
     uint32_t                  parent_offset;
-    struct BPLib_MEM_block *next;
-    struct BPLib_MEM_block *prev;
+    struct BPLib_STOR_MEM_Block *next;
+    struct BPLib_STOR_MEM_Block *prev;
 };
 
-typedef struct bplib_mem_subq_base bplib_mem_subq_base_t;
+typedef struct BPLib_STOR_MEM_SubqBase BPLib_STOR_MEM_SubqBase_t;
 
 /*
  * Enumeration that defines the various possible routing table events.  This enum
@@ -62,11 +62,11 @@ typedef struct bplib_mem_subq_base bplib_mem_subq_base_t;
  */
 typedef enum
 {
-    BPLib_MEM_EventidUndefined,
-    BPLib_MEM_EventidRecycle,
-    BPLib_MEM_EventidMax
+    BPLib_STOR_MEM_EventidUndefined,
+    BPLib_STOR_MEM_EventidRecycle,
+    BPLib_STOR_MEM_EventidMax
 
-} BPLib_MEM_eventid_t;
+} BPLib_STOR_MEM_Eventid_t;
 
 /**
  * @brief Blocktype API
@@ -74,11 +74,11 @@ typedef enum
  * Specifies functions for module-specific block operations,
  * including construction and destruction
  */
-typedef struct BPLib_MEM_ListIter
+typedef struct BPLib_STOR_MEM_ListIter
 {
-    BPLib_MEM_block_t *position;
-    BPLib_MEM_block_t *pending_entry;
-} BPLib_MEM_ListIter_t;
+    BPLib_STOR_MEM_Block_t *position;
+    BPLib_STOR_MEM_Block_t *pending_entry;
+} BPLib_STOR_MEM_ListIter_t;
 
 #ifdef STOR // blocktype
 
@@ -88,12 +88,12 @@ typedef struct BPLib_MEM_ListIter
  * Specifies functions for module-specific block operations,
  * including construction and destruction
  */
-typedef struct BPLib_MEM_BlocktypeApi
+typedef struct BPLib_STOR_MEM_BlocktypeApi
 {
-    BPLib_MEM_CallbackFunc_t construct; /**< Initialize a newly-created block */
-    BPLib_MEM_CallbackFunc_t destruct;  /**< De-initialize a recycled block */
+    BPLib_STOR_MEM_CallbackFunc_t construct; /**< Initialize a newly-created block */
+    BPLib_STOR_MEM_CallbackFunc_t destruct;  /**< De-initialize a recycled block */
 
-} BPLib_MEM_BlocktypeApi_t;
+} BPLib_STOR_MEM_BlocktypeApi_t;
 
 #endif // STOR blocktype
 
@@ -101,9 +101,9 @@ typedef struct BPLib_MEM_BlocktypeApi
  * @brief Gets the next block in a list of blocks
  *
  * @param cb
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_MEM_Block_t*
  */
-static inline BPLib_MEM_block_t *BPLib_MEM_GetNextBlock(BPLib_MEM_block_t *cb)
+static inline BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_GetNextBlock(BPLib_STOR_MEM_Block_t *cb)
 {
     return cb->next;
 }
@@ -112,9 +112,9 @@ static inline BPLib_MEM_block_t *BPLib_MEM_GetNextBlock(BPLib_MEM_block_t *cb)
  * @brief Gets the previous block in a list of blocks
  *
  * @param cb
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_MEM_Block_t*
  */
-static inline BPLib_MEM_block_t *BPLib_MEM_GetPrevBlock(BPLib_MEM_block_t *cb)
+static inline BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_GetPrevBlock(BPLib_STOR_MEM_Block_t *cb)
 {
     return cb->prev;
 }
@@ -126,7 +126,7 @@ static inline BPLib_MEM_block_t *BPLib_MEM_GetPrevBlock(BPLib_MEM_block_t *cb)
  * @return true If this is in a list
  * @return false If the block is a singleton
  */
-static inline bool BPLib_MEM_IsLinkAttached(const BPLib_MEM_block_t *list)
+static inline bool BPLib_STOR_MEM_IsLinkAttached(const BPLib_STOR_MEM_Block_t *list)
 {
     return (list->next != list);
 }
@@ -138,7 +138,7 @@ static inline bool BPLib_MEM_IsLinkAttached(const BPLib_MEM_block_t *list)
  * @return true If the block is a singleton
  * @return false If the block is part of a list
  */
-static inline bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_block_t *list)
+static inline bool BPLib_STOR_MEM_IsLinkUnattached(const BPLib_STOR_MEM_Block_t *list)
 {
     return (list->next == list);
 }
@@ -153,9 +153,9 @@ static inline bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_block_t *list)
  * @return true If the block is a head node
  * @return false If the block is not a head node
  */
-static inline bool BPLib_MEM_IsListHead(const BPLib_MEM_block_t *list)
+static inline bool BPLib_STOR_MEM_IsListHead(const BPLib_STOR_MEM_Block_t *list)
 {
-    return (list->type == BPLib_MEM_BlocktypeListHead);
+    return (list->type == BPLib_STOR_MEM_BlocktypeListHead);
 }
 
 /**
@@ -165,9 +165,9 @@ static inline bool BPLib_MEM_IsListHead(const BPLib_MEM_block_t *list)
  * @return true If the list is empty
  * @return false If the list is not empty, or not a list head node
  */
-static inline bool BPLib_MEM_IsEmptyListHead(const BPLib_MEM_block_t *list)
+static inline bool BPLib_STOR_MEM_IsEmptyListHead(const BPLib_STOR_MEM_Block_t *list)
 {
-    return (BPLib_MEM_IsListHead(list) && BPLib_MEM_IsLinkUnattached(list));
+    return (BPLib_STOR_MEM_IsListHead(list) && BPLib_STOR_MEM_IsLinkUnattached(list));
 }
 
 /**
@@ -177,9 +177,9 @@ static inline bool BPLib_MEM_IsEmptyListHead(const BPLib_MEM_block_t *list)
  * @return true If the list is not empty
  * @return false If the list is empty, or not a list head node
  */
-static inline bool BPLib_MEM_IsNonemptyListHead(const BPLib_MEM_block_t *list)
+static inline bool BPLib_STOR_MEM_IsNonemptyListHead(const BPLib_STOR_MEM_Block_t *list)
 {
-    return (BPLib_MEM_IsListHead(list) && BPLib_MEM_IsLinkAttached(list));
+    return (BPLib_STOR_MEM_IsListHead(list) && BPLib_STOR_MEM_IsLinkAttached(list));
 }
 
 /**
@@ -189,9 +189,9 @@ static inline bool BPLib_MEM_IsNonemptyListHead(const BPLib_MEM_block_t *list)
  * @return true
  * @return false
  */
-static inline bool BPLib_MEM_IsGenericDataBlock(const BPLib_MEM_block_t *cb)
+static inline bool BPLib_STOR_MEM_IsGenericDataBlock(const BPLib_STOR_MEM_Block_t *cb)
 {
-    return (cb->type == BPLib_MEM_BlocktypeGeneric);
+    return (cb->type == BPLib_STOR_MEM_BlocktypeGeneric);
 }
 
 /**
@@ -201,9 +201,9 @@ static inline bool BPLib_MEM_IsGenericDataBlock(const BPLib_MEM_block_t *cb)
  * @return true
  * @return false
  */
-static inline bool BPLib_MEM_IsIndirectBlock(const BPLib_MEM_block_t *cb)
+static inline bool BPLib_STOR_MEM_IsIndirectBlock(const BPLib_STOR_MEM_Block_t *cb)
 {
-    return (cb->type == BPLib_MEM_BlocktypeRef);
+    return (cb->type == BPLib_STOR_MEM_BlocktypeRef);
 }
 
 /**
@@ -217,9 +217,9 @@ static inline bool BPLib_MEM_IsIndirectBlock(const BPLib_MEM_block_t *cb)
  * @return true
  * @return false
  */
-static inline bool BPLib_MEM_IsAnyContentNode(const BPLib_MEM_block_t *cb)
+static inline bool BPLib_STOR_MEM_IsAnyContentNode(const BPLib_STOR_MEM_Block_t *cb)
 {
-    return (cb->type > BPLib_MEM_BlocktypeUndefined && cb->type < BPLib_MEM_BlocktypeMax);
+    return (cb->type > BPLib_STOR_MEM_BlocktypeUndefined && cb->type < BPLib_STOR_MEM_BlocktypeMax);
 }
 
 /**
@@ -231,19 +231,19 @@ static inline bool BPLib_MEM_IsAnyContentNode(const BPLib_MEM_block_t *cb)
  * @return true
  * @return false
  */
-static inline bool BPLib_MEM_IsSecondaryIndexNode(const BPLib_MEM_block_t *cb)
+static inline bool BPLib_STOR_MEM_IsSecondaryIndexNode(const BPLib_STOR_MEM_Block_t *cb)
 {
-    return (cb->type >= BPLib_MEM_BlocktypeSecondaryGeneric && cb->type <= BPLib_MEM_BlocktypeSecondaryMax);
+    return (cb->type >= BPLib_STOR_MEM_BlocktypeSecondaryGeneric && cb->type <= BPLib_STOR_MEM_BlocktypeSecondaryMax);
 }
 
-static inline bp_handle_t BPLib_MEM_GetExternalId(const BPLib_MEM_block_t *cb)
+static inline bp_handle_t BPLib_STOR_MEM_GetExternalId(const BPLib_STOR_MEM_Block_t *cb)
 {
     return bp_handle_from_serial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
 }
 
 #endif // STOR blocktype
 
-BPLib_MEM_block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_t *pool, bp_handle_t handle);
+BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_BlockFromExternalId(BPLib_STOR_MEM_pool_t *pool, bp_handle_t handle);
 
 /* basic list iterators (forward or reverse) */
 
@@ -255,7 +255,7 @@ BPLib_MEM_block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_t *pool, bp_handle_t 
  * @returns integer status code
  * @retval BP_SUCCESS if iterator is valid
  */
-int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_block_t *list, BPLib_MEM_ListIter_t *iter);
+int BPLib_STOR_MEM_ListIterGotoFirst(const BPLib_STOR_MEM_Block_t *list, BPLib_STOR_MEM_ListIter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -265,7 +265,7 @@ int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_block_t *list, BPLib_MEM_ListIte
  * @returns integer status code
  * @retval BP_SUCCESS if iterator is valid
  */
-int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_block_t *list, BPLib_MEM_ListIter_t *iter);
+int BPLib_STOR_MEM_ListIterGotoLast(const BPLib_STOR_MEM_Block_t *list, BPLib_STOR_MEM_ListIter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -277,7 +277,7 @@ int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_block_t *list, BPLib_MEM_ListIter
  * @param iter          The iterator object to move
  * @retval BP_SUCCESS if iterator is valid
  */
-int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter);
+int BPLib_STOR_MEM_ListIterForward(BPLib_STOR_MEM_ListIter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -289,7 +289,7 @@ int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter);
  * @param iter          The iterator object to move
  * @retval BP_SUCCESS if iterator is valid
  */
-int BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter);
+int BPLib_STOR_MEM_ListIterReverse(BPLib_STOR_MEM_ListIter_t *iter);
 
 #ifdef STOR // blocktype
 
@@ -306,8 +306,8 @@ int BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter);
  * @param base_block
  * @param secondary_link
  */
-void BPLib_MEM_InitSecondaryLink(BPLib_MEM_block_t *base_block, BPLib_MEM_block_t *secondary_link,
-                                     BPLib_MEM_blocktype_t block_type);
+void BPLib_STOR_MEM_InitSecondaryLink(BPLib_STOR_MEM_Block_t *base_block, BPLib_STOR_MEM_Block_t *secondary_link,
+                                     BPLib_STOR_MEM_Blocktype_t block_type);
 
 /**
  * @brief Obtain the pointer to the parent/containing block from a link
@@ -321,10 +321,10 @@ void BPLib_MEM_InitSecondaryLink(BPLib_MEM_block_t *base_block, BPLib_MEM_block_
  * In all cases, a pointer to the actual content block is returned.
  *
  * @param[in] lblk link structure, such as from a list traversal.  May be a secondary link.
- * @return BPLib_MEM_block_t* pointer to container block
+ * @return BPLib_STOR_MEM_Block_t* pointer to container block
  * @retval NULL if the lblk pointer is not convertible to a content block
  */
-BPLib_MEM_block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_block_t *lblk);
+BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_GetBlockFromLink(BPLib_STOR_MEM_Block_t *lblk);
 
 /**
  * @brief Gets the offset of the block user content section
@@ -336,7 +336,7 @@ BPLib_MEM_block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_block_t *lblk);
  * @param bt Block type
  * @return size_t
  */
-size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_blocktype_t bt);
+size_t BPLib_STOR_MEM_GetUserDataOffsetByBlocktype(BPLib_STOR_MEM_Blocktype_t bt);
 
 #endif // STOR blocktype
 
@@ -349,7 +349,7 @@ size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_blocktype_t bt);
  * @param cb
  * @return size_t
  */
-size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_block_t *cb);
+size_t BPLib_STOR_MEM_GetGenericDataCapacity(const BPLib_STOR_MEM_Block_t *cb);
 
 /* basic list ops */
 
@@ -364,12 +364,12 @@ size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_block_t *cb);
  * is in an unknown/undefined state.
  *
  * To clear a list that has already been initialized once, use
- * BPLib_MEM_RecycleAllBlocksInList()
+ * BPLib_STOR_MEM_RecycleAllBlocksInList()
  *
  * @param base_block The parent/container of the list
  * @param list_head  The list to initialize
  */
-void BPLib_MEM_InitListHead(BPLib_MEM_block_t *base_block, BPLib_MEM_block_t *list_head);
+void BPLib_STOR_MEM_InitListHead(BPLib_STOR_MEM_Block_t *base_block, BPLib_STOR_MEM_Block_t *list_head);
 
 /**
  * @brief Inserts a node after the given position or list head
@@ -380,7 +380,7 @@ void BPLib_MEM_InitListHead(BPLib_MEM_block_t *base_block, BPLib_MEM_block_t *li
  * @param list
  * @param node
  */
-void BPLib_MEM_InsertAfter(BPLib_MEM_block_t *list, BPLib_MEM_block_t *node);
+void BPLib_STOR_MEM_InsertAfter(BPLib_STOR_MEM_Block_t *list, BPLib_STOR_MEM_Block_t *node);
 
 /**
  * @brief Inserts a node before the given position or list head
@@ -391,7 +391,7 @@ void BPLib_MEM_InsertAfter(BPLib_MEM_block_t *list, BPLib_MEM_block_t *node);
  * @param list
  * @param node
  */
-void BPLib_MEM_InsertBefore(BPLib_MEM_block_t *list, BPLib_MEM_block_t *node);
+void BPLib_STOR_MEM_InsertBefore(BPLib_STOR_MEM_Block_t *list, BPLib_STOR_MEM_Block_t *node);
 
 /**
  * @brief Removes a node from its list
@@ -401,27 +401,27 @@ void BPLib_MEM_InsertBefore(BPLib_MEM_block_t *list, BPLib_MEM_block_t *node);
  *
  * @param node
  */
-void BPLib_MEM_ExtractNode(BPLib_MEM_block_t *node);
+void BPLib_STOR_MEM_ExtractNode(BPLib_STOR_MEM_Block_t *node);
 
 /**
  * @brief Merge two lists together
  *
  * Note that the entire content is merged, including the head node.  After using this,
- * the BPLib_MEM_ExtractNode() should be used to remove one of the head nodes,
+ * the BPLib_STOR_MEM_ExtractNode() should be used to remove one of the head nodes,
  * depending on which one should keep the contents.
  *
  * @param dest
  * @param src
  */
-void BPLib_MEM_MergeList(BPLib_MEM_block_t *dest, BPLib_MEM_block_t *src);
+void BPLib_STOR_MEM_MergeList(BPLib_STOR_MEM_Block_t *dest, BPLib_STOR_MEM_Block_t *src);
 
 /**
  * @brief Finds the parent mem container from any link pointer that was obtained from the pool
  *
  * @param cb
- * @return BPLib_MEM_t*
+ * @return BPLib_STOR_MEM_pool_t*
  */
-BPLib_MEM_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_block_t *cb);
+BPLib_STOR_MEM_pool_t *BPLib_STOR_MEM_GetParentPoolFromLink(BPLib_STOR_MEM_Block_t *cb);
 
 /**
  * @brief Cast a block to generic user data type
@@ -431,23 +431,23 @@ BPLib_MEM_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_block_t *cb);
  *
  * @param cb
  * @param required_magic
- * @return BPLib_MEM_GenericData_t*
+ * @return BPLib_STOR_MEM_GenericData_t*
  */
-void *BPLib_MEM_GenericDataCast(BPLib_MEM_block_t *cb, uint32_t required_magic);
+void *BPLib_STOR_MEM_GenericDataCast(BPLib_STOR_MEM_Block_t *cb, uint32_t required_magic);
 
 #ifdef STOR // blocktype
 /**
  * @brief Cast a generic user data segment to its parent block
  *
- * This is the inverse of BPLib_MEM_GenericDataCast() and allows obtaining the pool
+ * This is the inverse of BPLib_STOR_MEM_GenericDataCast() and allows obtaining the pool
  * block from a generic data pointer.  The pointer passed in must be from a prior call
- * to BPLib_MEM_GenericDataCast() or else the result is undefined.
+ * to BPLib_STOR_MEM_GenericDataCast() or else the result is undefined.
  *
- * @param blk pointer from previous call to BPLib_MEM_GenericDataCast
+ * @param blk pointer from previous call to BPLib_STOR_MEM_GenericDataCast
  * @param required_magic
- * @return BPLib_MEM_GenericData_t*
+ * @return BPLib_STOR_MEM_GenericData_t*
  */
-BPLib_MEM_block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_blocktype_t parent_bt,
+BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_GenericDataUncast(void *blk, BPLib_STOR_MEM_Blocktype_t parent_bt,
                                                      uint32_t required_magic);
 
 /**
@@ -459,7 +459,7 @@ BPLib_MEM_block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_blocktype_t 
  * @param cb pointer to block
  * @return size_t
  */
-size_t BPLib_MEM_GetUserContentSize(const BPLib_MEM_block_t *cb);
+size_t BPLib_STOR_MEM_GetUserContentSize(const BPLib_STOR_MEM_Block_t *cb);
 
 /**
  * @brief Reads the reference count of the object
@@ -475,7 +475,7 @@ size_t BPLib_MEM_GetUserContentSize(const BPLib_MEM_block_t *cb);
  * @param cb
  * @return size_t
  */
-size_t BPLib_MEM_ReadRefcount(const BPLib_MEM_block_t *cb);
+size_t BPLib_STOR_MEM_ReadRefcount(const BPLib_STOR_MEM_Block_t *cb);
 #endif // STOR blocktype
 
 /**
@@ -487,9 +487,9 @@ size_t BPLib_MEM_ReadRefcount(const BPLib_MEM_block_t *cb);
  * @param pool
  * @param magic_number
  * @param init_arg Opaque pointer passed to initializer (may be NULL)
- * @return BPLib_MEM_block_t*
+ * @return BPLib_STOR_MEM_Block_t*
  */
-BPLib_MEM_block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_t *pool, uint32_t magic_number, void *init_arg);
+BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_GenericDataAlloc(BPLib_STOR_MEM_pool_t *pool, uint32_t magic_number, void *init_arg);
 
 /**
  * @brief Recycle a single block which is no longer needed
@@ -498,7 +498,7 @@ BPLib_MEM_block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_t *pool, uint32_t magic_
  *
  * @param blk
  */
-void BPLib_MEM_RecycleBlock(BPLib_MEM_block_t *blk);
+void BPLib_STOR_MEM_RecycleBlock(BPLib_STOR_MEM_Block_t *blk);
 
 #ifdef STOR // blocktype
 /**
@@ -516,7 +516,7 @@ void BPLib_MEM_RecycleBlock(BPLib_MEM_block_t *blk);
  * @param pool Originating pool, or NULL to infer/determine from list
  * @param list List of objects to recycle
  */
-void BPLib_MEM_RecycleAllBlocksInList(BPLib_MEM_t *pool, BPLib_MEM_block_t *list);
+void BPLib_STOR_MEM_RecycleAllBlocksInList(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_Block_t *list);
 
 /**
  * @brief Process every item in the list in sequential order
@@ -533,8 +533,8 @@ void BPLib_MEM_RecycleAllBlocksInList(BPLib_MEM_t *pool, BPLib_MEM_block_t *list
  * @param callback_arg
  * @return int Number of items that were in the list
  */
-int BPLib_MEM_ForeachItemInList(BPLib_MEM_block_t *list, bool always_remove,
-                                     BPLib_MEM_CallbackFunc_t callback_fn, void *callback_arg);
+int BPLib_STOR_MEM_ForeachItemInList(BPLib_STOR_MEM_Block_t *list, bool always_remove,
+                                     BPLib_STOR_MEM_CallbackFunc_t callback_fn, void *callback_arg);
 
 /**
  * @brief Search a list in sequential order
@@ -545,10 +545,10 @@ int BPLib_MEM_ForeachItemInList(BPLib_MEM_block_t *list, bool always_remove,
  * @param list The list to search
  * @param match_fn A function that should return 0 if a match is found, nonzero otherwise
  * @param match_arg An opaque argument passed to the match_fn, typically the match reference object
- * @return BPLib_MEM_block_t* The matching list entry
+ * @return BPLib_STOR_MEM_Block_t* The matching list entry
  * @retval NULL if no match was found
  */
-BPLib_MEM_block_t *BPLib_MEM_SearchList(const BPLib_MEM_block_t *list, BPLib_MEM_CallbackFunc_t match_fn,
+BPLib_STOR_MEM_Block_t *BPLib_STOR_MEM_SearchList(const BPLib_STOR_MEM_Block_t *list, BPLib_STOR_MEM_CallbackFunc_t match_fn,
                                              void *match_arg);
 
 /**
@@ -561,7 +561,7 @@ BPLib_MEM_block_t *BPLib_MEM_SearchList(const BPLib_MEM_block_t *list, BPLib_MEM
  *
  * @returns The number of blocks collected
  */
-uint32_t BPLib_MEM_CollectBlocks(BPLib_MEM_t *pool, uint32_t limit);
+uint32_t BPLib_STOR_MEM_CollectBlocks(BPLib_STOR_MEM_pool_t *pool, uint32_t limit);
 
 /**
  * @brief Run basic maintenance on the memory pool
@@ -571,7 +571,7 @@ uint32_t BPLib_MEM_CollectBlocks(BPLib_MEM_t *pool, uint32_t limit);
  *
  * @param pool
  */
-void BPLib_MEM_maintain(BPLib_MEM_t *pool);
+void BPLib_STOR_MEM_Maintain(BPLib_STOR_MEM_pool_t *pool);
 
 /**
  * @brief Registers a given block type signature
@@ -593,7 +593,7 @@ void BPLib_MEM_maintain(BPLib_MEM_t *pool);
  * @retval BP_SUCCESS if registration successful
  * @retval BP_DUPLICATE if the block type is already registered.
  */
-int BPLib_MEM_RegisterBlocktype(BPLib_MEM_t *pool, uint32_t magic_number, const BPLib_MEM_BlocktypeApi_t *api,
+int BPLib_STOR_MEM_RegisterBlocktype(BPLib_STOR_MEM_pool_t *pool, uint32_t magic_number, const BPLib_STOR_MEM_BlocktypeApi_t *api,
                                    size_t user_content_size);
 
 #endif // STOR blocktype
@@ -603,9 +603,9 @@ int BPLib_MEM_RegisterBlocktype(BPLib_MEM_t *pool, uint32_t magic_number, const 
  *
  * @param pool_mem  Pointer to pool memory
  * @param pool_size Size of pool memory
- * @return BPLib_MEM_t*
+ * @return BPLib_STOR_MEM_pool_t*
  */
-BPLib_MEM_t *BPLib_MEM_create(void *pool_mem, size_t pool_size);
+BPLib_STOR_MEM_pool_t *BPLib_STOR_MEM_Create(void *pool_mem, size_t pool_size);
 
 /**
  * @brief Obtain current usage of a memory pool
@@ -613,7 +613,7 @@ BPLib_MEM_t *BPLib_MEM_create(void *pool_mem, size_t pool_size);
  * @param pool Pool object
  * @return memory currently in use
  */
-size_t BPLib_MEM_QueryMemCurrentUse(BPLib_MEM_t *pool);
+size_t BPLib_STOR_MEM_QueryMemCurrentUse(BPLib_STOR_MEM_pool_t *pool);
 
 /**
  * @brief Obtain maximum usage of a memory pool
@@ -621,18 +621,18 @@ size_t BPLib_MEM_QueryMemCurrentUse(BPLib_MEM_t *pool);
  * @param pool Pool object
  * @return maximum memory used
  */
-size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_t *pool);
+size_t BPLib_STOR_MEM_QueryMemMaxUse(BPLib_STOR_MEM_pool_t *pool);
 
 /**
  * @brief Initializes the global lock table
  *
  * Must be called once per process using bplib (not per instance).
  */
-void BPLib_MEM_LockInit(void);
+void BPLib_STOR_MEM_LockInit(void);
 
 /* DEBUG/TEST verification routines */
 
-void BPLib_MEM_DebugScan(BPLib_MEM_t *pool);
-void BPLib_MEM_DebugPrintListStats(BPLib_MEM_block_t *list, const char *label);
+void BPLib_STOR_MEM_DebugScan(BPLib_STOR_MEM_pool_t *pool);
+void BPLib_STOR_MEM_DebugPrintListStats(BPLib_STOR_MEM_Block_t *list, const char *label);
 
 #endif /* BPLIB_MEM_H */

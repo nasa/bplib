@@ -24,21 +24,20 @@
 #include "uttest.h"
 
 #include "bplib_mem.h"
-#include "bplib_mem_internal.h"
 
 typedef struct
 {
-    BPLib_MEM_t               pool;
-    BPLib_MEM_BlockContent_t blk[3];
-} UT_BPLib_MEM_buf_t;
+    BPLib_STOR_MEM_pool_t               pool;
+    BPLib_STOR_MEM_BlockContent_t blk[3];
+} UT_BPLib_STOR_MEM_Buf_t;
 
 /* helper functions used in multiple tests */
 void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
-int  test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_block_t *blk);
-void test_make_singleton_link(BPLib_MEM_t *parent_pool, BPLib_MEM_block_t *b);
-void test_setup_mpblock(BPLib_MEM_t *pool, BPLib_MEM_BlockContent_t *b, BPLib_MEM_blocktype_t blktype,
+int  test_BPLib_STOR_MEM_CallbackStub(void *arg, BPLib_STOR_MEM_Block_t *blk);
+void test_make_singleton_link(BPLib_STOR_MEM_pool_t *parent_pool, BPLib_STOR_MEM_Block_t *b);
+void test_setup_mpblock(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_BlockContent_t *b, BPLib_STOR_MEM_Blocktype_t blktype,
                         uint32 sig);
-void test_setup_allocation(BPLib_MEM_t *pool, BPLib_MEM_BlockContent_t *db, BPLib_MEM_BlockContent_t *apib);
+void test_setup_allocation(BPLib_STOR_MEM_pool_t *pool, BPLib_STOR_MEM_BlockContent_t *db, BPLib_STOR_MEM_BlockContent_t *apib);
 
 void TestBplibMpool_ResetTestEnvironment(void);
 
