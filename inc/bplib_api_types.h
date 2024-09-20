@@ -63,17 +63,17 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -8)
 
 /* Event Management Errors */
-#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) 1u)
-#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -9u)
-#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -10u)
-#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -11u)
-#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -12u)
-#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -13u)
-#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -14u)
-#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -15u)
+#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -9u)
+#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -10u)
+#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -11u)
+#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -12u)
+#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -13u)
+#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -14u)
+#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -15u)
+#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -16u)
 
 /* PerfLog Proxy Errors*/
-#define BPLIB_PL_NULL_CALLBACK_ERROR    ((BPLib_Status_t) -8)
+#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -17u)
 
 #ifdef __cplusplus
 } // extern "C"
