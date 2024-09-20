@@ -21,27 +21,22 @@
 /**
  * @file
  *
- * Auto-Generated stub implementations for functions defined in bplib_fwp header
+ * Auto-Generated stub implementations for functions defined in bplib_stor header
  */
 
-#include "bplib_fwp.h"
+#include "bplib_stor.h"
 #include "utgenstub.h"
-
-BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_FWP_Init()
+ * Generated stub function for BPLib_STOR_Init()
  * ----------------------------------------------------
  */
-int BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks)
+int BPLib_STOR_Init(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_FWP_Init, BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_Init, int);
 
-    UT_GenStub_AddParam(BPLib_FWP_Init, BPLib_FWP_ProxyCallbacks_t, Callbacks);
+    UT_GenStub_Execute(BPLib_STOR_Init, Basic, NULL);
 
-    UT_GenStub_Execute(BPLib_FWP_Init, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_FWP_Init, BPLib_Status_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_Init, int);
 }
-

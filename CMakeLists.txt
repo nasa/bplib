@@ -85,8 +85,6 @@ if (BPLIB_ENABLE_UNIT_TESTS AND BPLIB_STANDALONE_BUILD_MODE AND NOT CMAKE_CROSSC
    enable_testing()
 endif()
 
-message("Add subdirectories")
-
 add_subdirectory(version)
 add_subdirectory(cla)
 add_subdirectory(aa/arp)
@@ -105,49 +103,24 @@ add_subdirectory(ci/job)
 add_subdirectory(ci/mem)
 add_subdirectory(ci/pl)
 add_subdirectory(ci/time)
-add_subdirectory(libmgr)
-add_subdirectory(os)
-# add_subdirectory(ci/mem/common)
-# add_subdirectory(ci/mem/cache) TODO Add back cache
 
-# The order of the components must match the order of
-# the add_subdirectory statements.
 list(APPEND BPLIB_COMPONENTS
   bplib_version
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_ndc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
   bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time
-  bplib_libmgr bplib_os
 )
 
-# TODO Add back bplib_common, and bplib_cache above ^
-
-message("BPLIB_COMPONENTS")
-message("${BPLIB_COMPONENTS}")
-
-message("BPLIB_SRC")
 foreach(COMPONENT ${BPLIB_COMPONENTS})
   list(APPEND BPLIB_SRC 
     $<TARGET_OBJECTS:${COMPONENT}>
   )
-  message("$<TARGET_OBJECTS:${COMPONENT}>")
   
   list(APPEND BPLIB_COMPONENT_INCLUDE_DIRS
     $<TARGET_PROPERTY:${COMPONENT},INTERFACE_INCLUDE_DIRECTORIES>
   )
 
 endforeach()
-
-message("BPLIB_SRC")
-message("${BPLIB_SRC}")
-
-# Debugging CMakeLists.txt
-# Show the BPLIB_PRIVATE_INCLUDE_DIRS
-# Failed
-#get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
-#foreach(dir ${dirs})
-#  message(STATUS "dir='${dir}'")
-#endforeach()
 
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
 # this allows simply dropping this module into a CFS project

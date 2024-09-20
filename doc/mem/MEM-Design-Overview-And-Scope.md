@@ -426,8 +426,8 @@ Rename bpa/stor/ to bpa/s
 
 ```
 mv bpa/stor                                                 bpa/s
-mv bpa/s/inc/bplib_stor.h                                bpa/s/inc/bplib_s.h
-mv bpa/s/src/bplib_stor.c                                bpa/s/src/bplib_s.c
+mv bpa/s/inc/bplib_stor.h                                bpa/s/inc/bplib_stor.h
+mv bpa/s/src/bplib_stor.c                                bpa/s/src/bplib_stor.c
 mv bpa/s/unit-test/stubs/bplib_stor_stubs.c              bpa/s/unit-test/stubs/bplib_s_stubs.c
 mv bpa/s/unit-test/bplib_stor_test.c                     bpa/s/unit-test/bplib_s_test.c
 mv bpa/s/unit-test/utilities/bplib_stor_test_utils.h     bpa/s/unit-test/utilities/bplib_s_test_utils.h
@@ -604,9 +604,9 @@ gskenned@ip-10-1-23-64:~/repos/gsfc-dtn/dtn-cfs/libs/bplib/ci
 $ find mem  -name "*.[c|h]" -exec grep -HE "_t;" {} \; | grep -vE "mpool_.*_t" | grep -vE "bp_.*_t"
 mem/common/ut-coverage/test_bplib_rbtree.c:} rbtest_node_t;
 mem/common/inc/bplib_crc.h:typedef const struct bplib_crc_parameters bplib_crc_parameters_t;
-mem/common/inc/bplib_rbtree.h:} bplib_rbt_link_t;
-mem/common/inc/bplib_rbtree.h:} bplib_rbt_root_t;
-mem/common/inc/bplib_rbtree.h:} bplib_rbt_iter_t;
+mem/common/inc/bplib_rbtree.h:} BPLib_MEM_RBT_Link_t;
+mem/common/inc/bplib_rbtree.h:} BPLib_MEM_RBT_Root_t;
+mem/common/inc/bplib_rbtree.h:} BPLib_MEM_RBT_Iter_t;
 mem/common/ut-functional/rbtest.c:} rbtest_node_t;
 ```
 
@@ -734,3 +734,9 @@ The MEM free and allocated memory lists are subqs. A subq can have a single entr
 The MEM "active" list is identified by a pointer to a bplib_mpool_block_t that is the head node.
 
 Even with the decoupling of MEM and BC there is still some overlap in terms, such as MEM subq and BC subq. It might be better to call them MEM block list and CACHE block list. And they both have "sub-lists" of allocated and free blocks.
+
+Use (gdb) info functions and (gdb) info variables to list all symbols in an executable.
+Or use nm executable_name
+
+Most of the MEM unit tests are STOR CACHE tests. Move those to bpa/stor/cache/unit_test
+

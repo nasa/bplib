@@ -28,13 +28,13 @@
 ** Function Definitions
 */
 
-void BPLib_MEM_TestSetup(void)
+void BPLib_MEM_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 }
 
-void BPLib_MEM_TestTeardown(void)
+void BPLib_MEM_Test_Teardown(void)
 {
     /* Clean up test environment */
 }

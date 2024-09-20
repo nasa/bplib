@@ -18,30 +18,28 @@
  *
  */
 
-/**
- * @file
- *
- * Auto-Generated stub implementations for functions defined in bplib_fwp header
- */
+/*
+** Include
+*/
 
-#include "bplib_fwp.h"
-#include "utgenstub.h"
-
-BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
+#include "bplib_stor_test_utils.h"
 
 /*
- * ----------------------------------------------------
- * Generated stub function for BPLib_FWP_Init()
- * ----------------------------------------------------
- */
-int BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks)
+** Function Definitions
+*/
+
+void BPLib_STOR_Test_Setup(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_FWP_Init, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_FWP_Init, BPLib_FWP_ProxyCallbacks_t, Callbacks);
-
-    UT_GenStub_Execute(BPLib_FWP_Init, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_FWP_Init, BPLib_Status_t);
+    /* Initialize test environment to default state for every test */
+    UT_ResetState(0);
 }
 
+void BPLib_STOR_Test_Teardown(void)
+{
+    /* Clean up test environment */
+}
+
+void UtTest_Setup(void)
+{
+    TestBplibStor_Register();
+}
