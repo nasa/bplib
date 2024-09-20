@@ -46,4 +46,38 @@
  */
 int BPLib_PL_Init(void);
 
+/**
+ * \brief FWP PerfLog Proxy Entry
+ *
+ *  \par Description
+ *       Entry marker for use with Software Performance Tool
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] Perf Log ID
+ * 
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS BPLib_PL_PerfLogEntry was successful
+ *  \retval BPLIB_PL_NULL_CALLBACK_ERROR when the callback is NULL
+ */
+BPLib_Status_t BPLib_PL_PerfLogEntry(uint32_t PerfLogID);
+
+/**
+ * \brief FWP PerfLog Proxy Exit
+ *
+ *  \par Description
+ *       Exit marker for use with Software Performance Tool
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] Perf Log ID
+ * 
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS BPLib_PL_PerfLogExit was successful
+ *  \retval BPLIB_PL_NULL_CALLBACK_ERROR when the callback is NULL
+ */
+BPLib_Status_t BPLib_PL_PerfLogExit(uint32_t PerfLogID);
+
 #endif /* BPLIB_PL_H */

@@ -39,10 +39,18 @@ typedef struct
     void (*BPA_TIMEP_GetHostEpoch)(BPLib_TIME_Epoch_t *Epoch);
     BPLib_TIME_ClockState_t (*BPA_TIMEP_GetHostClockState)(void);
     int64_t (*BPA_TIMEP_GetHostTime)(void);
+    
+    /* PerfLog Proxy function callbacks */
+    void (*BPA_PERFLOGP_Entry)(uint32_t PerfLogID);
+    void (*BPA_PERFLOGP_Exit)(uint32_t PerfLogID);
 
     /* Table Proxy function callbacks */
     int32_t (*BPA_TABLEP_SingleTableUpdate)(int16_t TblHandle);
-    
+
+    /* Event Proxy function callbacks */
+    BPLib_Status_t (*BPA_EVP_Init)(void);
+    BPLib_Status_t (*BPA_EVP_SendEvent)(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText);
+
     /* Add other proxies' function callbacks here: TODO */
 
 } BPLib_FWP_ProxyCallbacks_t;
@@ -72,5 +80,6 @@ extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
 BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks);
+
 
 #endif /* BPLIB_FWP_H */
