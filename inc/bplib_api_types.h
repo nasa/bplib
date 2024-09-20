@@ -47,21 +47,33 @@ typedef int32_t BPLib_Status_t;
 */
 
 /* General Return Codes */
-#define BPLIB_SUCCESS                       ((BPLib_Status_t)   0)
-#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t)  -1)
-#define BPLIB_ERROR                         ((BPLib_Status_t)  -2)
+
+#define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)
+#define BPLIB_ERROR                         ((BPLib_Status_t) -1)
+#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)
+#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)
 
 /* Framework Proxy Errors */
-#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t)  -3)
+#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -4)
 
 /* Time Management Errors */
-#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t)  -4)
-#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t)  -5)
-#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t)  -6)
-#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t)  -7)
+#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) -5)
+#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) -6)
+#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) -7)
+#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -8)
+
+/* Event Management Errors */
+#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -9u)
+#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -10u)
+#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -11u)
+#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -12u)
+#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -13u)
+#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -14u)
+#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -15u)
+#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -16u)
 
 /* PerfLog Proxy Errors*/
-#define BPLIB_PL_NULL_CALLBACK_ERROR    ((BPLib_Status_t) -8)
+#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -17u)
 
 #ifdef __cplusplus
 } // extern "C"
