@@ -18,17 +18,32 @@
  *
  */
 
+#ifndef BPLIB_NC_H
+#define BPLIB_NC_H
+
 /*
 ** Include
 */
 
-#include "bplib_ndc.h"
+#include "bplib.h"
 
 
 /*
-** Function Definitions
+** Exported Functions
 */
 
-int BPLib_NDC_Init(void) {
-    return BPLIB_SUCCESS;
-}
+/**
+ * \brief Node Configuration initialization
+ *
+ *  \par Description
+ *       NC initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Initialization was successful
+ */
+int BPLib_NC_Init(void);
+
+#endif /* BPLIB_NC_H */

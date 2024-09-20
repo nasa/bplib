@@ -18,22 +18,28 @@
  *
  */
 
-/*
- * Includes
- */
-#include "bplib_ndc_test_utils.h"
+#ifndef BPLIB_NC_TEST_UTILS_H
+#define BPLIB_NC_TEST_UTILS_H
 
 /*
-** Test function for
-** int BPLib_NDC_Init()
+** Include
 */
-void Test_BPLib_NDC_Init(void)
-{
-    UtAssert_INT32_EQ(BPLib_NDC_Init(), BPLIB_SUCCESS);
-}
+
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
+
+#include "bplib.h"
+#include "bplib_nc.h"
 
 
-void TestBplibNdc_Register(void)
-{
-    UtTest_Add(Test_BPLib_NDC_Init, BPLib_NDC_Test_Setup, BPLib_NDC_Test_Teardown, "Test_BPLib_NDC_Init");
-}
+/*
+** Function Definitions
+*/
+
+void BPLib_NC_Test_Setup(void);
+void BPLib_NC_Test_Teardown(void);
+
+void TestBplibNc_Register(void);
+
+#endif /* BPLIB_NC_TEST_UTILS_H */

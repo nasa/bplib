@@ -18,28 +18,28 @@
  *
  */
 
-#ifndef BPLIB_NDC_TEST_UTILS_H
-#define BPLIB_NDC_TEST_UTILS_H
-
 /*
 ** Include
 */
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
-
-#include "bplib.h"
-#include "bplib_ndc.h"
-
+#include "bplib_nc_test_utils.h"
 
 /*
 ** Function Definitions
 */
 
-void BPLib_NDC_Test_Setup(void);
-void BPLib_NDC_Test_Teardown(void);
+void BPLib_NC_Test_Setup(void)
+{
+    /* Initialize test environment to default state for every test */
+    UT_ResetState(0);
+}
 
-void TestBplibNdc_Register(void);
+void BPLib_NC_Test_Teardown(void)
+{
+    /* Clean up test environment */
+}
 
-#endif /* BPLIB_NDC_TEST_UTILS_H */
+void UtTest_Setup(void)
+{
+    TestBplibNc_Register();
+}

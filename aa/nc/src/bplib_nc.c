@@ -18,25 +18,18 @@
  *
  */
 
-/**
- * @file
- *
- * Auto-Generated stub implementations for functions defined in bplib_ndc header
- */
+/*
+** Include
+*/
 
-#include "bplib_ndc.h"
-#include "utgenstub.h"
+#include "bplib_nc.h"
+
 
 /*
- * ----------------------------------------------------
- * Generated stub function for BPLib_NDC_Init()
- * ----------------------------------------------------
- */
-int BPLib_NDC_Init(void)
+** Function Definitions
+*/
+
+BPLib_Status_t BPLib_NC_SendEvent()
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NDC_Init, int);
-
-    UT_GenStub_Execute(BPLib_NDC_Init, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NDC_Init, int);
+    return BPLIB_SUCCESS;
 }

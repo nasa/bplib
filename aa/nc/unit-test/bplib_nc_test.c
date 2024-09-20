@@ -18,32 +18,22 @@
  *
  */
 
-#ifndef BPLIB_NDC_H
-#define BPLIB_NDC_H
-
 /*
-** Include
-*/
-
-#include "bplib.h"
-
-
-/*
-** Exported Functions
-*/
-
-/**
- * \brief Node Configuration initialization
- *
- *  \par Description
- *       NDC initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
+ * Includes
  */
-int BPLib_NDC_Init(void);
+#include "bplib_nc_test_utils.h"
 
-#endif /* BPLIB_NDC_H */
+/*
+** Test function for
+** int BPLib_NC_Init()
+*/
+void Test_BPLib_NC_Init(void)
+{
+    UtAssert_INT32_EQ(BPLib_NC_Init(), BPLIB_SUCCESS);
+}
+
+
+void TestBplibNc_Register(void)
+{
+    UtTest_Add(Test_BPLib_NC_Init, BPLib_NC_Test_Setup, BPLib_NC_Test_Teardown, "Test_BPLib_NC_Init");
+}

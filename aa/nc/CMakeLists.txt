@@ -2,15 +2,15 @@
 #
 # Bundle Protocol Library (BPLib) CMake build recipe
 #
-# This is for the NDC module
+# This is for the NC module
 #
 ##################################################################
 
-add_library(bplib_ndc OBJECT
-    src/bplib_ndc.c
+add_library(bplib_nc OBJECT
+    src/bplib_nc.c
 )
 
-target_include_directories(bplib_ndc PUBLIC
+target_include_directories(bplib_nc PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
 )
