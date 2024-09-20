@@ -46,7 +46,11 @@ typedef struct
 
     /* Table Proxy function callbacks */
     int32_t (*BPA_TABLEP_SingleTableUpdate)(int16_t TblHandle);
-    
+
+    /* Event Proxy function callbacks */
+    BPLib_Status_t (*BPA_EVP_Init)(void);
+    BPLib_Status_t (*BPA_EVP_SendEvent)(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText);
+
     /* Add other proxies' function callbacks here: TODO */
 
 } BPLib_FWP_ProxyCallbacks_t;

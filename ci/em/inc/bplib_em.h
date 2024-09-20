@@ -21,29 +21,53 @@
 #ifndef BPLIB_EM_H
 #define BPLIB_EM_H
 
-/*
-** Include
-*/
+/* ======= */
+/* Include */
+/* ======= */
+#include "bplib_api_types.h"
+#include <stdarg.h>
 
-#include "bplib.h"
+/* ====== */
+/* Macros */
+/* ====== */
 
+#define BPLIB_EM_EXPANDED_EVENT_SIZE (300u)
 
-/*
-** Exported Functions
-*/
+/* ======== */
+/* Typedefs */
+/* ======== */
+
+typedef enum
+{
+    BPLib_EM_EventType_UNKNOWN     = 0,
+    BPLib_EM_EventType_DEBUG       = 1,
+    BPLib_EM_EventType_INFORMATION = 2,
+    BPLib_EM_EventType_WARNING     = 3,
+    BPLib_EM_EventType_ERROR       = 4,
+    BPLib_EM_EventType_CRITICAL    = 5
+} BPLib_EM_EventType_t;
+
+/* ================== */
+/* Exported Functions */
+/* ================== */
 
 /**
- * \brief Events Management initialization
- *
- *  \par Description
- *       EM initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-int BPLib_EM_Init(void);
+  * \brief   Events Management initialization
+  * \details Initialize values to perform event management
+  * \note    As of right now, this function always returns BPLIB_SUCCESS
+  * \return  Execution status
+  * \retval  BPLIB_SUCCESS: Initialization was successful
+  */
+BPLib_Status_t BPLib_EM_Init(void);
+
+/**
+  * \brief   Platform-independent software event generation
+  * \details Description
+  *          Platform-independent routine generation of a software event
+  * \return  Execution status
+  * \retval  BPLIB_SUCCESS (0): Event was successful generated
+  * \retval  BPLIB_EM_EXPANDED_TEXT_ERROR (-14u): An error occured when using vsprintf
+  */
+BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText, ...);
 
 #endif /* BPLIB_EM_H */
