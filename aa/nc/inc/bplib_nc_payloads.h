@@ -26,11 +26,6 @@
 typedef struct
 {
     uint8_t ExampleParameter;
-} BPLib_AddAllApplicationsCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
 } BPLib_StartAllApplicationsCmd_Payload_t;
 
 typedef struct

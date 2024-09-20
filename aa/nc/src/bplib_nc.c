@@ -26,6 +26,7 @@
 #include "bplib_fwp.h"
 #include "bplib.h"
 #include "bplib_nc_payloads.h"
+#include "bplib_eventids.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -45,18 +46,27 @@ BPLib_Status_t BPLib_NC_NoopCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddAllApplicationsCmd(const BPLib_AddAllApplicationsCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_AddAllApplicationsCmd()
 {
     BPLib_Status_t Status;
     // uint8_t AppIdx;
     // ??? AppList[???];
+    // BPLib_AddApplicationCmd_Payload_t AddPayload;
 
     Status = BPLIB_SUCCESS;
 
-    /* for (AppIdx = 0; AppIdx < <num apps>; AppIdx++)
-    { */
-        BPLib_NC_AddApplicationCmd(/*AppList[AppIdx]*/);
-    // }
+    /*
+    for (AppIdx = 0; AppIdx < <num apps>; AppIdx++)
+    {
+        AddPayload.App = AppList[AppIdx]
+        BPLib_NC_AddApplicationCmd(AddPayload);
+    }
+    */
+
+    // BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
+
+    BPLib_EM_SendEvent(BPLIB_RESET_INF_EID, BPLib_EM_EventType_INFORMATION,
+                        "Add all applications command is unimplemented");
 
     return Status;
 }
@@ -69,10 +79,12 @@ BPLib_Status_t BPLib_NC_StartAllApplicationsCmd(const BPLib_StartAllApplications
 
     Status = BPLIB_SUCCESS;
 
-    /* for (AppIdx = 0; AppIdx < <num apps>; AppIdx++)
-    { */
-        BPLib_NC_StartApplicationCmd(/*AppList[AppIdx]*/);
-    // }
+    /*
+    for (AppIdx = 0; AppIdx < <num apps>; AppIdx++)
+    {
+        BPLib_NC_StartApplicationCmd(AppList[AppIdx]);
+    }
+    */
 
     return Status;
 }
@@ -544,7 +556,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd(const BPLib_SendNodeMibCounters
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd(const BPLib_SendSourceMibCountersHkCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd(const BPLib_SendSourceMibCountersHkCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -553,7 +565,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd(const BPLib_SendSourceMibCoun
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendStorageHkCmd(const BPLib_SendStorageHkCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_SendStorageHkCmd(const BPLib_SendStorageHkCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -562,7 +574,7 @@ BPLib_Status_t BPLib_NC_SendStorageHkCmd(const BPLib_SendStorageHkCmd_Payload_t 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendChannelContactStatHkCmd(const BPLib_SendChannelContactStatHkCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_SendChannelContactStatHkCmd(const BPLib_SendChannelContactStatHkCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
