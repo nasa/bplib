@@ -32,11 +32,25 @@
  * Generated stub function for BPLib_EM_Init()
  * ----------------------------------------------------
  */
-int BPLib_EM_Init(void)
+BPLib_Status_t BPLib_EM_Init(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_EM_Init, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_EM_Init, BPLib_Status_t);
 
     UT_GenStub_Execute(BPLib_EM_Init, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_EM_Init, int);
+    return UT_GenStub_GetReturnValue(BPLib_EM_Init, BPLib_Status_t);
+}
+
+BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType,
+                                    char const* Spec, ...)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_EM_SendEvent, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_EM_SendEvent, uint16_t, EventID);
+    UT_GenStub_AddParam(BPLib_EM_SendEvent, BPLib_EM_EventType_t, EventType);
+    UT_GenStub_AddParam(BPLib_EM_SendEvent, char const*, Spec);
+
+    UT_GenStub_Execute(BPLib_EM_SendEvent, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_EM_SendEvent, BPLib_Status_t);
 }

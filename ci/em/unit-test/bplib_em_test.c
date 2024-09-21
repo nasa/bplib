@@ -18,23 +18,126 @@
  *
  */
 
-/*
- * Include
- */
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_em_test_utils.h"
 
-/*
-** Test function for
-** int BPLib_EM_Init()
-*/
-void Test_BPLib_EM_Init(void)
+/* ================ */
+/* Global Variables */
+/* ================ */
+
+UT_CheckEvent_t EventTest;
+
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
+
+// Test that EM initializes nominally
+void Test_BPLib_EM_Init_Nominal(void)
 {
-    UtAssert_INT32_EQ(BPLib_EM_Init(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_Init();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
+// Test that EM generates an event under nominal conditions
+void Test_BPA_EM_SendEvent_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    /* INFO event with a digit */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFORMATION, "INFO event message with a digit: %d", 100);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* INFO event with a string */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFORMATION, "INFO event message with a string: %s", "useless");
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* INFO event with a digit and a string */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFORMATION, "INFO event message with a digit and a string: %.2f %s", 1.001, "fish");
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* ERROR event with a digit */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_ERROR, "ERROR event message with a digit: %d", 55);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* ERROR event with a string */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_ERROR, "ERROR event message with a string: %s", "the meaning");
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* ERROR event with a digit and a string */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_ERROR, "ERROR event message with a digit and a string: %.2f %s", 2.002, "fish");
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* DEBUG event with a digit */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_DEBUG, "DEBUG event message with a digit: %d", 30);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* DEBUG event with a string */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_DEBUG, "DEBUG event message with a string: %s", "of life");
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* DEBUG event with a digit and a string */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_DEBUG, "DEBUG event message with a digit and a string: %d %s", 1230.00002458, "fish");
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* CRITICAL event with a digit */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_CRITICAL, "CRITICAL event message with a digit: %d", 11);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* CRITICAL event with a string */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_CRITICAL, "CRITICAL event message with a string: %s", "is 42");
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* CRITICAL event with a digit and a string */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_CRITICAL, "CRITICAL event message with a digit and a string: %d %s", 8100, "fish");
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+}
+
+void Test_BPA_EM_SendEvent_ExpandedTextError(void)
+{
+    BPLib_Status_t Status;
+
+    /* Pass in Spec value that will cause vsprintf 
+        to return a negative (failure) value */
+    Status = BPLIB_UNKNOWN;
+    Status = BPLib_EM_SendEvent(42, BPLib_EM_EventType_INFORMATION, NULL, NULL);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_EM_EXPANDED_TEXT_ERROR);
+}
 
 void TestBplibEm_Register(void)
 {
-    UtTest_Add(Test_BPLib_EM_Init, BPLib_EM_Test_Setup, BPLib_EM_Test_Teardown, "Test_BPLib_EM_Init");
+    ADD_TEST(Test_BPLib_EM_Init_Nominal);
+    ADD_TEST(Test_BPA_EM_SendEvent_Nominal);
+    ADD_TEST(Test_BPA_EM_SendEvent_ExpandedTextError);
 }
