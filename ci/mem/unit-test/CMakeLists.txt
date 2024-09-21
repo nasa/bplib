@@ -16,7 +16,9 @@ target_include_directories(bplib_mem_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(bplib_mem_stubs ut_assert ut_core_api_stubs)
+target_link_libraries(
+    bplib_mem_stubs ut_assert ut_core_api_stubs
+)
 
 # Create unit test object
 add_library(utobj_bplib_mem OBJECT
@@ -41,7 +43,9 @@ target_include_directories(utobj_bplib_mem PRIVATE
 # Create test runner executable
 add_executable(coverage-bplib_mem-testrunner
     utilities/bplib_mem_test_utils.c
-    bplib_mem_test.c
+    test_bplib_mem.c
+    test_bplib_mem_rbtree_cov.c
+    test_bplib_mem_setup.c
     $<TARGET_OBJECTS:utobj_bplib_mem>
 )
 

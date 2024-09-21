@@ -23,11 +23,13 @@
 #include "utstubs.h"
 #include "uttest.h"
 
+#include "../src/bplib_mem_internal.h"
+
 #include "bplib_mem.h"
 
 typedef struct
 {
-    BPLib_MEM_Pool_t               pool;
+    BPLib_MEM_Pool_t         pool;
     BPLib_MEM_BlockContent_t blk[3];
 } UT_BPLib_MEM_Buf_t;
 
@@ -35,8 +37,9 @@ typedef struct
 void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 int  test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_Block_t *blk);
 void test_make_singleton_link(BPLib_MEM_Pool_t *parent_pool, BPLib_MEM_Block_t *b);
-void test_setup_mpblock(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *b, BPLib_MEM_Blocktype_t blktype,
-                        uint32 sig);
+// TODO STOR ? test_setup_mpblock
+// void test_setup_mpblock(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *b, BPLib_MEM_Blocktype_t blktype,
+//                        uint32 sig);
 void test_setup_allocation(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *db, BPLib_MEM_BlockContent_t *apib);
 
 void TestBplibMpool_ResetTestEnvironment(void);

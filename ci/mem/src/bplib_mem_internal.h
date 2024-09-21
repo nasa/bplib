@@ -28,27 +28,6 @@
 // #include "bplib_os.h" // TODO Unstub bplib_os functions.
 #include "bplib_mem_rbtree.h"
 
-// TODO START BLOCK - bp_handle should be declared in bplib_api_types.h
-typedef struct bp_handle
-{
-    uint32_t hdl;
-} bp_handle_t;
-
-/* Handles */
-#define BP_INVALID_HANDLE \
-    (const bp_handle_t)   \
-    {                     \
-        0                 \
-    } /* used for integers (os locks, storage services) */
-// TODO END BLOCK - bp_handle
-
-/*
- * Minimum size of a generic data block
- */
-#define BPLIB_MEM_MIN_USER_BLOCK_SIZE 480 // bytes
-
-#define BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE 0x6b243e33
-
 typedef struct BPLib_MEM_Lock
 {
     bp_handle_t lock_id;
@@ -77,11 +56,17 @@ typedef union BPLib_MEM_AlignedData
     long double align_float;
 } BPLib_MEM_AlignedData_t;
 
+
+/**
+ * BPLib_MEM_ApiContent is a specialized variant of BPLib_STOR_CACHE_ApiContent.
+ * 
+ * BPLib_MEM_RBT is the only user in MEM.
+ */
 typedef struct BPLib_MEM_ApiContent
 {
-    BPLib_MEM_RBT_Link_t            rbt_link;
-    // STOR BPLib_MEM_BlocktypeApi_t api;
-    size_t                      user_content_size;
+    BPLib_MEM_RBT_Link_t     rbt_link;
+    BPLib_MEM_BlocktypeApi_t api;
+    size_t                   user_content_size;
     BPLib_MEM_AlignedData_t  user_data_start;
 } BPLib_MEM_ApiContent_t;
 
@@ -89,65 +74,6 @@ typedef struct BPLib_MEM_GenericDataContent
 {
     BPLib_MEM_AlignedData_t user_data_start;
 } BPLib_MEM_GenericDataContent_t;
-
-typedef struct BPLib_MEM_SubqBase
-{
-    BPLib_MEM_Block_t block_list;
-
-    /* note - "unsigned int" is chosen here as it is likely to be
-     * a single-cycle read in most CPUs.  The range is not as critical
-     * because what matters is the difference between these values.
-     * The "volatile" qualification helps ensure the values are read as they
-     * appear in code and are not rearranged by the compiler, as they could
-     * be changed by other threads.  */
-    volatile unsigned int push_count;
-    volatile unsigned int pull_count;
-} BPLib_MEM_SubqBase_t;
-
-typedef struct BPLib_MEM_BlockAdminContent
-{
-    size_t   buffer_size;
-    uint32_t num_bufs_total;
-    uint32_t bblock_alloc_threshold;   /**< threshold at which new bundles will no longer be allocatable */
-    uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
-    uint32_t max_alloc_watermark;
-
-    BPLib_MEM_SubqBase_t free_blocks;    /**< blocks which are available for use */
-    BPLib_MEM_SubqBase_t recycle_blocks; /**< blocks which can be garbage-collected */
-
-    /* note that the active_list and managed_block_list are not FIFO in nature, as blocks
-     * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
-     * is not used for these, because the push_count and pull_count would not remain accurate. */
-
-    BPLib_MEM_Block_t active_list; /**< a list of flows/queues that need processing */
-
-} BPLib_MEM_BlockAdminContent_t;
-
-typedef union BPLib_MEM_BlockBuffer
-{
-    BPLib_MEM_GenericDataContent_t     generic_data;
-    BPLib_MEM_ApiContent_t              api;
-    BPLib_MEM_BlockAdminContent_t      admin;
-
-    /* guarantees a minimum size of the generic data blocks, also determines the amount
-     * of extra space available for user objects in other types of blocks. */
-    uint8_t content_bytes[BPLIB_MEM_MIN_USER_BLOCK_SIZE];
-} BPLib_MEM_BlockBuffer_t;
-
-typedef struct BPLib_MEM_Block_Content
-{
-    BPLib_MEM_BlockHeader_t header; /* must be first */
-    BPLib_MEM_BlockBuffer_t u;
-} BPLib_MEM_BlockContent_t;
-
-typedef struct BPLib_MEM_Pool
-{
-    BPLib_MEM_BlockContent_t admin_block; /**< Start of first real block (see num_bufs_total) */
-} BPLib_MEM_Pool_t;
-
-#define BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(m) (offsetof(bplib_mpool_block_buffer_t, m.user_data_start))
-
-#define BPLIB_MEM_GET_BLOCK_USER_CAPACITY(m) (sizeof(bplib_mpool_block_buffer_t) - MPOOL_GET_BUFFER_USER_START_OFFSET(m))
 
 #ifdef BPLIB_MEM_ABSTRACT_TYPES
 struct BPLib_MEM

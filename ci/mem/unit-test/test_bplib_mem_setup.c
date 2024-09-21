@@ -21,6 +21,7 @@
  */
 #include "test_bplib_mem.h"
 
+#include "bplib_mem_internal.h"
 #include "bplib_mem.h"
 
 void TestBplibMpool_ResetTestEnvironment(void)
@@ -55,7 +56,6 @@ void test_make_singleton_link(BPLib_MEM_Pool_t *parent_pool, BPLib_MEM_Block_t *
     b->prev = b;
 }
 
-#ifdef STOR // blocktype
 void test_setup_mpblock(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *b, BPLib_MEM_Blocktype_t blktype,
                         uint32 sig)
 {
@@ -71,32 +71,10 @@ void test_setup_mpblock(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *b, BPL
     memset(&b->u, 0, sizeof(b->u));
     switch (blktype)
     {
-        case BPLib_MEM_BlocktypePrimary:
-            BPLib_MEM_BblockPrimaryInit(&b->header.base_link, &b->u.primary.pblock);
-        case BPLib_MEM_BlocktypePrimary:
-            BPLib_MEM_BblockPrimaryInit(&b->header.base_link, &b->u.primary.pblock);
-            break;
-        case BPLib_MEM_BlocktypeCanonical:
-            BPLib_MEM_BblockCanonicalInit(&b->header.base_link, &b->u.canonical.cblock);
-        case BPLib_MEM_BlocktypeCanonical:
-            BPLib_MEM_BblockCanonicalInit(&b->header.base_link, &b->u.canonical.cblock);
-            break;
         case BPLib_MEM_BlocktypeAdmin:
             BPLib_MEM_SubqInit(&b->header.base_link, b->u.admin.free_blocks);
             BPLib_MEM_SubqInit(&b->header.base_link, b->u.admin.recycle_blocks);
             BPLib_MEM_InitListHead(&b->header.base_link, b->u.admin.active_list);
-        case BPLib_MEM_BlocktypeAdmin:
-            BPLib_MEM_SubqInit(&b->header.base_link, b->u.admin.free_blocks);
-            BPLib_MEM_SubqInit(&b->header.base_link, b->u.admin.recycle_blocks);
-            BPLib_MEM_InitListHead(&b->header.base_link, b->u.admin.active_list);
-            break;
-        case BPLib_MEM_BlocktypeFlow:
-        case BPLib_MEM_BlocktypeFlow:
-            #ifdef STOR // duct
-            BPLib_MEM_FlowInit(&b->header.base_link, &b->u.flow.fblock);
-            BPLib_MEM_FlowInit(&b->header.base_link, &b->u.flow.fblock);
-            #endif // STOR
-            break;
 
         default:
             break;
@@ -111,11 +89,8 @@ void test_setup_allocation(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *db,
 
     test_setup_mpblock(pool, &pool->admin_block, BPLib_MEM_BlocktypeAdmin, 0);
     test_setup_mpblock(pool, db, BPLib_MEM_BlocktypeUndefined, 0);
-    test_setup_mpblock(pool, &pool->admin_block, BPLib_MEM_BlocktypeAdmin, 0);
-    test_setup_mpblock(pool, db, BPLib_MEM_BlocktypeUndefined, 0);
     if (apib != NULL)
     {
-        test_setup_mpblock(pool, apib, BPLib_MEM_BlocktypeApi, 0);
         test_setup_mpblock(pool, apib, BPLib_MEM_BlocktypeApi, 0);
         api_content = &apib->u;
     }

@@ -28,8 +28,8 @@
 
 #include "bplib.h"
 #include "bplib_api_types.h"
-#include "bplib_mem.h"
 #include "bplib_mem_internal.h"
+#include "bplib_mem.h"
 
 /**
  * @brief Maxmimum number of blocks to be collected in a single maintenace cycle
@@ -40,11 +40,11 @@
 
 BPLib_MEM_Lock_t BPLIB_MEM_LOCK_SET[BPLIB_MEM_NUM_LOCKS];
 
-int BPLib_MEM_Init()
+int BPLib_MEM_Init(void)
 {
     // TODO Add memory pool base link pointer to MEM globals.
     // One option: BPLib_MEM_Block_t * base_link = BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle)
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
 #ifdef BPLIB_MEM_OS_LOCK_CODE
@@ -116,28 +116,28 @@ bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime)
 
 BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle)
 {
+    // TODO Fix BPLib_MEM_BlockFromExternalId.
+    #ifdef BPLIB_MEM_FROM_EXTERNAL
     // BPLib_MEM_BlockAdminContent_t *admin;
     // BPLib_MEM_BlockContent_t       *blk;
-    // TODO int                                serial;
+    int                                serial;
 
     // admin  = BPLib_MEM_GetAdmin(pool);
-    // TODO find bp_handle_to_serial()
-    /**
-     * TODO Find bp_handle_to_serial() : serial = bp_handle_to_serial(handle, BPLIB_HANDLE_MPOOL_BASE);
-     *if (serial < admin->num_bufs_total)
-     *{
-     *    blk = &pool->admin_block;
-     *    blk += serial;
-     *}
-     *else
-     *{
-     *    blk = NULL;
-     *}
-     */
+    serial = bp_handle_to_serial(handle, BPLIB_HANDLE_MPOOL_BASE);
+    if (serial < admin->num_bufs_total)
+    {
+        blk = &pool->admin_block;
+        blk += serial;
+    }
+    else
+    {
+        blk = NULL;
+    }
 
     // return &blk->header.base_link;
-
+    #else // BPLIB_MEM_FROM_EXTERNAL
     return (BPLib_MEM_Block_t *) NULL;
+    #endif // BPLIB_MEM_FROM_EXTERNAL
 }
 
 /*----------------------------------------------------------------
@@ -225,30 +225,6 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_BlockDereferenceContent(BPLib_MEM_Block_t *c
     }
 
     return NULL;
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_MEM_GetUserDataOffsetByBlocktype
- *
- *-----------------------------------------------------------------*/
-size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_Blocktype_t bt)
-{
-    static const size_t USER_DATA_START_OFFSET[BPLib_MEM_BlocktypeMax] = {
-        [BPLib_MEM_BlocktypeUndefined] = SIZE_MAX,
-        [BPLib_MEM_BlocktypeApi]       = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(api),
-        [BPLib_MEM_BlocktypeGeneric]   = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(generic_data),
-        [BPLib_MEM_BlocktypePrimary]   = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(primary),
-        [BPLib_MEM_BlocktypeCanonical] = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(canonical),
-        // STOR [BPLib_MEM_BlocktypeFlow]      = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(flow),
-        [BPLib_MEM_BlocktypeRef]       = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(ref)};
-
-    if (bt >= BPLib_MEM_BlocktypeMax)
-    {
-        return SIZE_MAX;
-    }
-
-    return USER_DATA_START_OFFSET[bt];
 }
 
 /*----------------------------------------------------------------
@@ -475,38 +451,6 @@ void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic)
     }
 
     return result;
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_MEM_GenericDataUncast
- *
- *-----------------------------------------------------------------*/
-BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t parent_bt,
-                                                     uint32_t required_magic)
-{
-    BPLib_MEM_BlockContent_t *block;
-    BPLib_MEM_BlockContent_t *block;
-    size_t                       data_offset;
-
-    data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(parent_bt);
-    if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t))
-    data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(parent_bt);
-    if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t))
-    {
-        return NULL;
-    }
-
-    data_offset += offsetof(BPLib_MEM_BlockContent_t, u);
-    block = (BPLib_MEM_BlockContent_t *)(void *)((uint8_t *)blk - data_offset);
-    data_offset += offsetof(BPLib_MEM_BlockContent_t, u);
-    block = (BPLib_MEM_BlockContent_t *)(void *)((uint8_t *)blk - data_offset);
-    if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
-    {
-        return NULL;
-    }
-
-    return &block->header.base_link;
 }
 
 #endif // STOR blocktype
@@ -960,49 +904,7 @@ size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_Pool_t *pool)
  *-----------------------------------------------------------------*/
 void BPLib_MEM_DebugPrintListStats(BPLib_MEM_Block_t *list, const char *label)
 {
-#ifdef STOR // blocktype, BPLib_MEM_BlocktypeListHead
-    BPLib_MEM_Block_t         *blk;
-    // STOR BPLib_MEM_BlockContent_t *content;
-    size_t                       depth;
-
-    blk   = list;
-    depth = 0;
-    while (true)
-    {
-        blk = BPLib_MEM_GetNextBlock(blk);
-        if (BPLib_MEM_IsListHead(blk))
-        {
-            /* as a sanity check, this should be the same head node as where it started,
-             * there should be one (and only one) head node in a list */
-            assert(blk == list);
-            break;
-        }
-
-        content = BPLib_MEM_GetBlockContent(blk);
-        if (content != NULL)
-        {
-            printf("DEBUG: %s(): block addr=%lx type=%d refcount=%u\n", __func__, (unsigned long)blk,
-                   content->header.base_link.type, content->header.refcount);
-
-            if (blk->type == BPLib_MEM_BlocktypeCanonical)
-            {
-                printf("DEBUG: %s():  --> canonical block type %d\n", __func__,
-                       (int)content->u.canonical.cblock.canonical_logical_data.canonical_block.blockType);
-            }
-            else if (blk->type == BPLib_MEM_BlocktypePrimary)
-            {
-                printf("DEBUG: %s():  -->  primary dest IPN %lu\n", __func__,
-                       (unsigned long)content->u.primary.pblock.data.logical.destinationEID.ssp.ipn.node_number);
-            }
-        }
-
-        ++depth;
-    }
-
-     printf("DEBUG: %s(): %s depth=%lu\n", __func__, label, (unsigned long)depth);
-#endif // STOR blocktype
-
-    printf("DEBUG: %s(): %s Not implemented yet.\n", __func__, label);
+    printf("MEM DEBUG: %s(): %s Not implemented yet.\n", __func__, label);
 }
 
 /*----------------------------------------------------------------
