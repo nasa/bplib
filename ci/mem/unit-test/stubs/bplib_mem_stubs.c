@@ -49,19 +49,19 @@ BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_hand
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_Create()
+ * Generated stub function for BPLib_MEM_PoolCreate()
  * ----------------------------------------------------
  */
-BPLib_MEM_Pool_t *BPLib_MEM_Create(void *pool_mem, size_t pool_size)
+BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_Create, BPLib_MEM_Pool_t *);
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_PoolCreate, BPLib_MEM_Pool_t *);
 
-    UT_GenStub_AddParam(BPLib_MEM_Create, void *, pool_mem);
-    UT_GenStub_AddParam(BPLib_MEM_Create, size_t, pool_size);
+    UT_GenStub_AddParam(BPLib_MEM_PoolCreate, void *, pool_mem);
+    UT_GenStub_AddParam(BPLib_MEM_PoolCreate, size_t, pool_size);
 
-    UT_GenStub_Execute(BPLib_MEM_Create, Basic, NULL);
+    UT_GenStub_Execute(BPLib_MEM_PoolCreate, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_Create, BPLib_MEM_Pool_t *);
+    return UT_GenStub_GetReturnValue(BPLib_MEM_PoolCreate, BPLib_MEM_Pool_t *);
 }
 
 /*

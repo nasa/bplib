@@ -32,6 +32,32 @@
 
 #include "bplib_api_types.h"
 
+#include "bplib_mem_rbtree.h"
+
+// TODO BPLIB_MEM_TIMEOUT should be BP_TIMEOUT in the BPLIB_SUCCESS list.
+#define BPLIB_MEM_TIMEOUT -5 // TODO Based on OS_ERROR_TIMEOUT returned
+
+// TODO BPLIB_FLAG_DIAGNOSTIC (from BP_FLAG_DIAGNOSTIC) should b in bplib.h
+#define BPLIB_MEM_FLAG_DIAGNOSTIC              0x00000000
+
+/*
+ * Priority levels for pool buffers -
+ * The intent here is to give some preference to things which may decrease pool
+ * memory usage (such as receipt of a DACS, which might allow dozens of
+ * bundles to be deleted) over things that may increase pool memory usage
+ * (such as an app sending in new data bundles).
+ *
+ * This only comes into play once the pool is mostly used.  As long as memory
+ * use is low, everything gets allocated without issue.  Once memory becomes
+ * constrained, things need to start becoming more choosy as to who gets the buffer.
+ */
+#define BPLIB_MEM_ALLOC_PRI_LO  0
+#define BPLIB_MEM_ALLOC_PRI_MLO 63
+#define BPLIB_MEM_ALLOC_PRI_MED 127
+#define BPLIB_MEM_ALLOC_PRI_MHI 191
+#define BPLIB_MEM_ALLOC_PRI_HI  255
+
+
 #define BELONGS_IN_BPLIB_API_TYPES  // TODO This whole block of declarations belongs in bplib_api_types.h
 #ifdef BELONGS_IN_BPLIB_API_TYPES
 
@@ -153,6 +179,7 @@ static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
         0x5000000              \
     }
 
+// BPLIB_HANDLE_MPOOL_BASE is from heritage bplib_api_types.h, hence the "MPOOL".
 #define BPLIB_HANDLE_MPOOL_BASE \
     (bp_handle_t)               \
     {                           \
@@ -160,24 +187,18 @@ static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
     }
 #endif // BELONGS_IN_BPLIB_API_TYPES
 
-// TODO Return BPlib_MEM_Block_t to an abstract type.
-typedef struct BPLib_MEM_Block
+/*
+ * This union is just to make sure that the "content_start" field
+ * in a generic data block is suitably aligned to hold any data type, mainly
+ * the max-sized integers, max-sized floating point values, or a pointer.
+ */
+typedef union BPLib_MEM_AlignedData
 {
-    /* note that if it becomes necessary to recover bits here,
-     * both the type and offset could be reduced in size */
-    uint32_t                  parent_offset;
-    struct BPLib_MEM_Block_t  *next;
-    struct BPLib_MEM_Block_t  *prev;
-} BPLib_MEM_Block_t;
-
-//struct BPLib_MEM_Block_abstract // TODO
-//{
-    /* note that if it becomes necessary to recover bits here,
-     * the offset could be reduced in size */
-//    uint32_t                  parent_offset;
-//    struct BPLib_MEM_Block_t *next;
-//    struct BPLib_MEM_Block_t *prev;
-//};
+    uint8_t     first_octet;
+    uintmax_t   align_int;
+    void       *align_ptr;
+    long double align_float;
+} BPLib_MEM_AlignedData_t;
 
 /**
  * BPLib STOR CACHE defines many blocktypes.
@@ -190,14 +211,53 @@ typedef struct BPLib_MEM_Block
 
 typedef enum BPLib_MEM_Blocktype
 {
+    /**
+     * The complete list is in BPLib_STOR_CACHE_Blocktype_t.
+     * The values match, mainly for ease of understanding and debugging.
+     * Declarations in CACHE that are not used in MEM are not in this list, to
+     * cause a build-time error if they are used.
+     */
+
     BPLib_MEM_BlocktypeUndefined = 0,
+    BPLib_MEM_BlocktypeApi       = 1,    // In MEM, used only for RBTree
     BPLib_MEM_BlocktypeGeneric   = 2,
-    BPLib_MEM_BlocktypeMax       = 8,  // From BPLib_STOR_CACHE_BlocktypeMax
-    BPLib_MEM_BlocktypeAdmin     = 255
+    BPLib_MEM_BlocktypeMax       = 8,    // From BPLib_STOR_CACHE_BlocktypeMax
+
+    BPLib_MEM_BlocktypeSecondaryGeneric = 100,
+    BPLib_MEM_BlocktypeListHead         = 101,  // For Available and Free lists (subqs)
+    BPLib_MEM_BlocktypeSecondaryMax     = 103,
+    BPLib_MEM_BlocktypeAdmin            = 255
 } BPLib_MEM_Blocktype_t;
 
+typedef struct BPLib_MEM_Block BPLib_MEM_Block_t;
+
+// TODO Return BPlib_MEM_Block_t to an abstract type.
+struct BPLib_MEM_Block
+{
+    /* note that if it becomes necessary to recover bits here,
+     * the offset could be reduced in size
+     */
+    BPLib_MEM_Blocktype_t     type;
+    uint32_t                  parent_offset;
+    BPLib_MEM_Block_t *next;
+    BPLib_MEM_Block_t *prev;
+};
+
+typedef struct BPLib_MEM_BlockHeader
+{
+    BPLib_MEM_Block_t base_link; /* must be first - this is the pointer used in the application */
+
+    uint32_t content_type_signature; /* a "signature" (sanity check) value for identifying the data */
+    uint16_t user_content_length;    /* actual length of user content (does not include fixed fields) */
+    uint16_t refcount;               /* number of active references to the object */
+
+} BPLib_MEM_BlockHeader_t;
+
+void BPLib_MEM_InitBaseObject(BPLib_MEM_BlockHeader_t *block_hdr, uint16_t user_content_length,
+                                  uint32_t content_type_signature);
+
 /**
- * @brief Callback frunction for various mpool block actions
+ * @brief Callback frunction for various memory pool block actions
  *
  * This is a generic API for a function to handle various events/conditions
  * that occur at the block level.  The generic argument supplies the context
@@ -223,7 +283,7 @@ typedef struct BPLib_MEM_BlocktypeApi
 
 typedef struct BPLib_MEM_SubqBase
 {
-    BPLib_MEM_Block_t *block_list;
+    BPLib_MEM_Block_t block_list;
 
     /* note - "unsigned int" is chosen here as it is likely to be
      * a single-cycle read in most CPUs.  The range is not as critical
@@ -235,6 +295,45 @@ typedef struct BPLib_MEM_SubqBase
     volatile unsigned int pull_count;
 } BPLib_MEM_SubqBase_t;
 
+/**
+ * @brief Checks if this block is a singleon
+ *
+ * @param list
+ * @return true If the block is a singleton
+ * @return false If the block is part of a list
+ */
+static inline bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list)
+{
+    return (list->next == list);
+}
+
+/**
+ * @brief Checks if this block is the head of a list
+ *
+ * This is both a start condition and an end condition when iterating a list
+ *
+ * @param list
+ * @return true If the block is a head node
+ * @return false If the block is not a head node
+ */
+static inline bool BPLib_MEM_IsListHead(const BPLib_MEM_Block_t *list)
+{
+    return (list->type == BPLib_MEM_BlocktypeListHead);
+}
+
+/**
+ * BPLib_MEM_ApiContent is a specialized variant of BPLib_STOR_CACHE_ApiContent.
+ *
+ * BPLib_MEM_RBT and BPLib_MEM are the only users in the MEM module.
+ */
+typedef struct BPLib_MEM_ApiContent
+{
+    BPLib_MEM_RBT_Link_t     rbt_link;
+    BPLib_MEM_BlocktypeApi_t api;
+    size_t                   user_content_size;
+    BPLib_MEM_AlignedData_t  user_data_start;
+} BPLib_MEM_ApiContent_t;
+
 typedef struct BPLib_MEM_BlockAdminContent
 {
     size_t   buffer_size;
@@ -242,6 +341,10 @@ typedef struct BPLib_MEM_BlockAdminContent
     uint32_t bblock_alloc_threshold;   /**< threshold at which new bundles will no longer be allocatable */
     uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
     uint32_t max_alloc_watermark;
+
+    BPLib_MEM_RBT_Root_t       blocktype_registry; /**< registry of block signature values */
+    BPLib_MEM_ApiContent_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
+    BPLib_MEM_ApiContent_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
 
     BPLib_MEM_SubqBase_t free_blocks;    /**< blocks which are available for use */
     BPLib_MEM_SubqBase_t recycle_blocks; /**< blocks which can be garbage-collected */
@@ -261,7 +364,12 @@ typedef struct BPLib_MEM_BlockAdminContent
 
 #define BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE 0x6b243e33
 
+typedef struct BPLib_MEM_GenericDataContent
+{
+    BPLib_MEM_AlignedData_t user_data_start;
+} BPLib_MEM_GenericDataContent_t;
 
+// TODO flat_memory_buffer
 typedef union BPLib_MEM_BlockBuffer
 {
     BPLib_MEM_GenericDataContent_t     generic_data;
@@ -273,20 +381,52 @@ typedef union BPLib_MEM_BlockBuffer
     uint8_t content_bytes[BPLIB_MEM_MIN_USER_BLOCK_SIZE];
 } BPLib_MEM_BlockBuffer_t;
 
-typedef struct BPLib_MEM_Block_Content
+// TODO Abstract eventually - MEM_BlockContent
+typedef struct BPLib_MEM_BlockContent
 {
     BPLib_MEM_BlockHeader_t header; /* must be first */
     BPLib_MEM_BlockBuffer_t u;
 } BPLib_MEM_BlockContent_t;
 
+// TODO Abstract eventually - MEM_Pool
 typedef struct BPLib_MEM_Pool
 {
     BPLib_MEM_BlockContent_t admin_block; /**< Start of first real block (see num_bufs_total) */
 } BPLib_MEM_Pool_t;
 
-#define BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(m) (offsetof(bplib_mpool_block_buffer_t, m.user_data_start))
+#define BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(m) (offsetof(BPLib_MEM_BlockBuffer_t, m.user_data_start))
 
-#define BPLIB_MEM_GET_BLOCK_USER_CAPACITY(m) (sizeof(bplib_mpool_block_buffer_t) - MPOOL_GET_BUFFER_USER_START_OFFSET(m))
+#define BPLIB_MEM_GET_BLOCK_USER_CAPACITY(m) (sizeof(BPLib_MEM_BlockBuffer_t) - MPOOL_GET_BUFFER_USER_START_OFFSET(m))
+
+/**
+ * @brief Checks if the block is any valid content type
+ *
+ * This indicates blocks that have actual content
+ * This is any block type other than a list head, free block, or
+ * secondary index.
+ *
+ * @param cb
+ * @return true
+ * @return false
+ */
+static inline bool BPLib_MEM_IsAnyContentNode(const BPLib_MEM_Block_t *cb)
+{
+    return (cb->type > BPLib_MEM_BlocktypeUndefined && cb->type < BPLib_MEM_BlocktypeMax);
+}
+
+/**
+ * @brief Checks if the block is any secondary index type
+ *
+ * These blocks are members of a larger block
+ *
+ * @param cb
+ * @return true
+ * @return false
+ */
+static inline bool BPLib_MEM_IsSecondaryIndexNode(const BPLib_MEM_Block_t *cb)
+{
+    return (cb->type >= BPLib_MEM_BlocktypeSecondaryGeneric && cb->type <=  BPLib_MEM_BlocktypeSecondaryMax);
+}
 
 BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle);
 
@@ -295,6 +435,59 @@ static inline bp_handle_t BPLib_MEM_GetExternalId(const BPLib_MEM_Block_t *cb)
     return bp_handle_from_serial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
 }
 
+/* basic list ops */
+
+/**
+ * @brief Sets the node to be an empty list head node
+ *
+ * Initialize a new list head object.
+ *
+ * Any existing content will be discarded, so this should typically only
+ * be used on new blocks (such as a temporary list created on the stack)
+ * where it is guaranteed to NOT have any valid content, and the object
+ * is in an unknown/undefined state.
+ *
+ * To clear a list that has already been initialized once, use
+ * bplib_mpool_recycle_all_blocks_in_list()
+ *
+ * @param base_block The parent/container of the list
+ * @param list_head  The list to initialize
+ */
+void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *list_head);
+
+/**
+ * @brief Creates a memory pool object using a preallocated memory block
+ *
+ * @param pool_mem  Pointer to pool memory
+ * @param pool_size Size of pool memory
+ * @return bplib_mpool_t*
+ */
+BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size);
+
+/**
+ * @brief Registers a given block type signature
+ *
+ * The api contains a constructor and destructor function, which will be invoked on newly allocated
+ * and recycled blocks, respectively.  This should be invoked during startup/initialization for all
+ * the services types being used.
+ *
+ * @note At the current time there is no defined method to unregister a block type, as types of services
+ * in use are not expected to change dynamically at runtime.  It is also somewhat difficult to ensure that
+ * there are no instances of the block type in existence in the pool.  If reconfiguration is required, the
+ * entire pool should be reinitialized.
+ *
+ * @param pool
+ * @param magic_number 32-bit Block identifier/signature
+ * @param api Structure containing op callbacks
+ * @param user_content_size Maximum size of user content associated with blocktype
+ * @returns status code
+ * @retval BP_SUCCESS if registration successful
+ * @retval BP_DUPLICATE if the block type is already registered.
+ */
+int BPLib_MEM_RegisterBlocktype (BPLib_MEM_Pool_t *pool, uint32_t magic_number, const BPLib_MEM_BlocktypeApi_t *api,
+                                   size_t user_content_size);
+
+// TODO Move or remove the header for "Exported Functions"
 /**
  *  Exported Functions
  */

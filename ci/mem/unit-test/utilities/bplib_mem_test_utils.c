@@ -41,5 +41,9 @@ void BPLib_MEM_Test_Teardown(void)
 
 void UtTest_Setup(void)
 {
-    TestBplibMem_Register();
+    #ifdef BPLIB_MEM_Test_Setup
+    TestBplib_MEM_Register();
+    TestBplib_MEM_Base_Register();
+    TestBplib_MEM_Stress_Register();
+    #endif // BPLIB_MEM_Test_Setup
 }

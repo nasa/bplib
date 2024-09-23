@@ -17,8 +17,14 @@
  ************************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 
-#include "test_bplib_mem_common.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
+
+#include "bplib.h"
+
 #include "bplib_mem_rbtree.h"
 
 /************************************************************************
@@ -96,7 +102,7 @@ void TestBplibMemCommon_RBT_Basics(void)
     UtAssert_BOOL_FALSE(BPLib_MEM_RBT_NodeIsMember(&tree, &node_array[0].link));
     UtAssert_BOOL_FALSE(BPLib_MEM_RBT_NodeIsMember(&tree, &node_array[1].link));
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &tree, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &tree, &node_array[0].link), BPLIB_SUCCESS);
 
     UtAssert_UINT32_EQ(BPLib_MEM_RBT_GetKeyValue(&node_array[0].link), 0);
     UtAssert_BOOL_FALSE(BPLib_MEM_RBT_TreeIsEmpty(&tree));
@@ -104,7 +110,7 @@ void TestBplibMemCommon_RBT_Basics(void)
     UtAssert_BOOL_TRUE(BPLib_MEM_RBT_NodeIsRed(&node_array[0].link));
     UtAssert_BOOL_FALSE(BPLib_MEM_RBT_NodeIsMember(&tree, &node_array[1].link));
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(1, &tree, &node_array[1].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(1, &tree, &node_array[1].link), BPLIB_SUCCESS);
     UtAssert_UINT32_EQ(BPLib_MEM_RBT_GetKeyValue(&node_array[1].link), 1);
     UtAssert_BOOL_FALSE(BPLib_MEM_RBT_TreeIsEmpty(&tree));
     UtAssert_BOOL_FALSE(BPLib_MEM_RBT_NodeIsRed(&node_array[0].link));
@@ -112,8 +118,8 @@ void TestBplibMemCommon_RBT_Basics(void)
     UtAssert_BOOL_TRUE(BPLib_MEM_RBT_NodeIsMember(&tree, &node_array[0].link));
     UtAssert_BOOL_TRUE(BPLib_MEM_RBT_NodeIsMember(&tree, &node_array[1].link));
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&tree, &node_array[0].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&tree, &node_array[1].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&tree, &node_array[0].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&tree, &node_array[1].link), BPLIB_SUCCESS);
     UtAssert_BOOL_TRUE(BPLib_MEM_RBT_TreeIsEmpty(&tree));
     UtAssert_BOOL_FALSE(BPLib_MEM_RBT_NodeIsMember(&tree, &node_array[0].link));
     UtAssert_BOOL_FALSE(BPLib_MEM_RBT_NodeIsMember(&tree, &node_array[1].link));
@@ -220,105 +226,105 @@ void TestBplibMemCommon_RBT_LeafNodeInsertDelete(void)
      */
 
     /* "parent is black" insert case, as an empty tree */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(16, &rbtree, &node_array[16].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(16, &rbtree, &node_array[16].link), BPLIB_SUCCESS);
 
     /* "red parent at root" case */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(24, &rbtree, &node_array[24].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(24, &rbtree, &node_array[24].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "parent is black" insert case, as a non-empty tree */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(8, &rbtree, &node_array[8].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(8, &rbtree, &node_array[8].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "red parent and uncle" insert case, with uncle at grandparent->right */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(4, &rbtree, &node_array[4].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(4, &rbtree, &node_array[4].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "is_outer_grandchild" insert case, with parent_is_left_side == true */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &rbtree, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &rbtree, &node_array[0].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "red parent and uncle" insert case, with uncle at grandparent->left */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(12, &rbtree, &node_array[12].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(12, &rbtree, &node_array[12].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "parent is black" insert case, as a non-empty tree */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(28, &rbtree, &node_array[28].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(28, &rbtree, &node_array[28].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "is_outer_grandchild" insert case, with parent_is_left_side == false */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(36, &rbtree, &node_array[36].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(36, &rbtree, &node_array[36].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "red parent and uncle" insert case, with uncle at grandparent->right */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(26, &rbtree, &node_array[26].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(26, &rbtree, &node_array[26].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "is_inner_grandchild" insert case, with parent_is_left_side == false, node_is_left_side == true */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(25, &rbtree, &node_array[25].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(25, &rbtree, &node_array[25].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "parent is black" insert case, as a non-empty tree */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(20, &rbtree, &node_array[20].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(20, &rbtree, &node_array[20].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "is_inner_grandchild" insert case, with parent_is_left_side == true, node_is_left_side == false */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(22, &rbtree, &node_array[22].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(22, &rbtree, &node_array[22].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* DELETE CASES */
 
     /* delete red leaf node */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[20].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[20].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "black_subject_with_red_sibling" delete case, node_is_left_side == false (turns parent red) */
     /* Then will invoke a second pass as "black_subject_with_red_parent" (turns parent black) */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[36].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[36].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "black_subject_with_red_distant_nephew" delete case, node_is_left_side == true */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* delete red leaf node (sets up for next case) */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[26].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[26].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "black_subject_with_red_close_nephew" delete case, node_is_left_side == false */
     /* Then will invoke a second pass as "black_subject_with_red_distant_nephew" */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[28].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[28].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "black_subject_with_all_black_relatives" delete case, node_is_left_side == false (moves to parent) */
     /* Then will invoke a second pass at parent as "black_subject_with_red_parent" */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[25].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[25].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "black_subject_with_red_parent" delete case, node_is_left_side == true */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[4].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[4].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* delete red leaf node (sets up for next case) */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[12].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[12].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "black_subject_with_red_close_nephew" delete case, node_is_left_side == true */
     /* Second pass as "black_subject_with_red_distant_nephew" */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[8].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[8].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "black_subject_with_all_black_relatives" delete case, node_is_left_side == true (moves to parent) */
     /* Then will invoke a second pass at parent as "black_subject_is_root" */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[16].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[16].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* delete red leaf node (sets up for next case) */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[24].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[24].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* "black_subject_is_root" delete case, (last/only node) */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[22].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[22].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 }
 
@@ -331,25 +337,25 @@ void TestBplibMemCommon_RBT_NonLeafDelete(void)
      * where the left half is all black, and the right half has a mixture of red and black */
     for (i = 0; i < 30; ++i)
     {
-        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(i, &rbtree, &node_array[i].link), BP_SUCCESS);
+        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(i, &rbtree, &node_array[i].link), BPLIB_SUCCESS);
     }
     Test_RBT_CheckTree(&rbtree);
 
     /* delete 28 (black) node, swaps with red leaf at 29 */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[28].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[28].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* delete 27 (red) node, swaps with black leaf at 26 */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[27].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[27].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* Delete a node that requires a more distant swap (not a child) */
     /* delete 15 (red) node, swaps with black leaf at 14 */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[15].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[15].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* delete 14 (black) node, swaps with 13 but that is not a leaf, so 13 swaps with 12. */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[14].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[14].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* Now just delete the rest of the nodes */
@@ -357,7 +363,7 @@ void TestBplibMemCommon_RBT_NonLeafDelete(void)
     {
         if (i != 14 && i != 15 && i != 27 && i != 28)
         {
-            UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[i].link), BP_SUCCESS);
+            UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[i].link), BPLIB_SUCCESS);
         }
     }
 }
@@ -370,67 +376,67 @@ void TestBplibMemCommon_RBT_Unique(void)
     BPLib_MEM_RBT_InitRoot(&alt_root);
 
     /* Case 1, insert a value and then remove it */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[0].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[1].link), BP_DUPLICATE);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[1].link), BPLIB_MEM_RBT_DUPLICATE);
 
     /* Inserting a second time should be recognized and return an error */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[0].link), BP_ERROR);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[0].link), BPLIB_ERROR);
 
     UtAssert_NULL(BPLib_MEM_RBT_SearchUnique(99, &rbtree));
     UtAssert_ADDRESS_EQ(BPLib_MEM_RBT_SearchUnique(100, &rbtree), &node_array[0].link);
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BPLIB_SUCCESS);
 
     /* Extracting a second time should be recognized and return an error */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BP_ERROR);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BPLIB_ERROR);
 
     UtAssert_NULL(BPLib_MEM_RBT_SearchUnique(100, &rbtree));
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(300, &rbtree, &node_array[3].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(200, &rbtree, &node_array[2].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(300, &rbtree, &node_array[3].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(200, &rbtree, &node_array[2].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &alt_root, &node_array[0].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &alt_root, &node_array[1].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &alt_root, &node_array[0].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &alt_root, &node_array[1].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&alt_root);
 
     /* Attempt to add an already-connected node to a different root - this is not valid */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(200, &alt_root, &node_array[2].link), BP_ERROR);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(300, &alt_root, &node_array[3].link), BP_ERROR);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &rbtree, &node_array[0].link), BP_ERROR);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[1].link), BP_ERROR);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(200, &alt_root, &node_array[2].link), BPLIB_ERROR);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(300, &alt_root, &node_array[3].link), BPLIB_ERROR);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &rbtree, &node_array[0].link), BPLIB_ERROR);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[1].link), BPLIB_ERROR);
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&alt_root, &node_array[0].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&alt_root, &node_array[1].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[2].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[3].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&alt_root, &node_array[0].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&alt_root, &node_array[1].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[2].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[3].link), BPLIB_SUCCESS);
 
     /* Inserting in this order creates a tree with leaves on the far left/right but not in the middle */
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(200, &rbtree, &node_array[2].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(400, &rbtree, &node_array[4].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &rbtree, &node_array[0].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(300, &rbtree, &node_array[3].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[1].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(200, &rbtree, &node_array[2].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(400, &rbtree, &node_array[4].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(0, &rbtree, &node_array[0].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(300, &rbtree, &node_array[3].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[1].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[2].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[2].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(200, &rbtree, &node_array[2].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(200, &rbtree, &node_array[2].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[3].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[1].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[3].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[1].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[4].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[2].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[4].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[2].link), BPLIB_SUCCESS);
 
     /* add some nodes in incrementing order, this should utimately fill up to a tree depth of 3 */
     /* all these nodes (beyond the 1st) are resolved via the "right side outer grandchild" rebalance case */
     for (i = 0; i < 14; i += 2)
     {
-        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100 * i, &rbtree, &node_array[i].link), BP_SUCCESS);
+        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100 * i, &rbtree, &node_array[i].link), BPLIB_SUCCESS);
     }
 
     Test_RBT_CheckTree(&rbtree);
@@ -438,7 +444,7 @@ void TestBplibMemCommon_RBT_Unique(void)
     /* add more nodes in decrementing order */
     for (i = 28; i >= 14; i -= 2)
     {
-        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100 * i, &rbtree, &node_array[i].link), BP_SUCCESS);
+        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100 * i, &rbtree, &node_array[i].link), BPLIB_SUCCESS);
     }
 
     Test_RBT_CheckTree(&rbtree);
@@ -446,38 +452,38 @@ void TestBplibMemCommon_RBT_Unique(void)
     /* fill in the gaps.  This should exercise more of the rebalance cases. */
     for (i = 1; i < 28; i += 2)
     {
-        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100 * i, &rbtree, &node_array[i].link), BP_SUCCESS);
+        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100 * i, &rbtree, &node_array[i].link), BPLIB_SUCCESS);
     }
 
     Test_RBT_CheckTree(&rbtree);
 
     /* do some removals */
     UtAssert_ADDRESS_EQ(BPLib_MEM_RBT_SearchUnique(0, &rbtree), &node_array[0].link);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BPLIB_SUCCESS);
 
     Test_RBT_CheckTree(&rbtree);
 
     /* 1200 is likely the root node */
     UtAssert_ADDRESS_EQ(BPLib_MEM_RBT_SearchUnique(1200, &rbtree), &node_array[12].link);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[12].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[12].link), BPLIB_SUCCESS);
 
     Test_RBT_CheckTree(&rbtree);
 
     /* 500 is a red leaf node (easy) */
     UtAssert_ADDRESS_EQ(BPLib_MEM_RBT_SearchUnique(500, &rbtree), &node_array[5].link);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[5].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[5].link), BPLIB_SUCCESS);
 
     Test_RBT_CheckTree(&rbtree);
 
     /* 400 is a black node but swapped into red leaf position */
     UtAssert_ADDRESS_EQ(BPLib_MEM_RBT_SearchUnique(400, &rbtree), &node_array[4].link);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[4].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[4].link), BPLIB_SUCCESS);
 
     Test_RBT_CheckTree(&rbtree);
 
     /* 300 should be more complex now */
     UtAssert_ADDRESS_EQ(BPLib_MEM_RBT_SearchUnique(300, &rbtree), &node_array[3].link);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[3].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[3].link), BPLIB_SUCCESS);
 
     Test_RBT_CheckTree(&rbtree);
 
@@ -486,7 +492,7 @@ void TestBplibMemCommon_RBT_Unique(void)
         if (i != 0 && !(i >= 3 && i <= 5) && i != 12 && i != 5)
         {
             UtAssert_ADDRESS_EQ(BPLib_MEM_RBT_SearchUnique(100 * i, &rbtree), &node_array[i].link);
-            UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[i].link), BP_SUCCESS);
+            UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[i].link), BPLIB_SUCCESS);
 
             Test_RBT_CheckTree(&rbtree);
         }
@@ -507,54 +513,54 @@ void TestBplibMemCommon_RBT_NonUnique(void)
     /* Case 1, insert a value and then remove it */
     ref_val = 0;
     UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueGeneric(100, &rbtree, &node_array[0].link, rbtest_comparator, &ref_val),
-                      BP_SUCCESS);
+                      BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     ref_val = 0;
     UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueGeneric(100, &rbtree, &node_array[1].link, rbtest_comparator, &ref_val),
-                      BP_DUPLICATE);
+                      BPLIB_MEM_RBT_DUPLICATE);
 
     ref_val = 1;
     UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueGeneric(100, &rbtree, &node_array[1].link, rbtest_comparator, &ref_val),
-                      BP_SUCCESS);
+                      BPLIB_SUCCESS);
 
     ref_val = 1;
     UtAssert_NULL(BPLib_MEM_RBT_SearchGeneric(99, &rbtree, rbtest_comparator, &ref_val));
 
     ref_val = 0;
     UtAssert_ADDRESS_EQ(BPLib_MEM_RBT_SearchGeneric(100, &rbtree, rbtest_comparator, &ref_val), &node_array[0].link);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[0].link), BPLIB_SUCCESS);
 
     ref_val = 0;
     UtAssert_NULL(BPLib_MEM_RBT_SearchGeneric(100, &rbtree, rbtest_comparator, &ref_val));
 
     ref_val = 1;
     UtAssert_ADDRESS_EQ(BPLib_MEM_RBT_SearchGeneric(100, &rbtree, rbtest_comparator, &ref_val), &node_array[1].link);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[1].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[1].link), BPLIB_SUCCESS);
 
     /* part 2, create a case where the tree has duplicate keys but they are not next to each other */
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(150, &rbtree, &node_array[150].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(160, &rbtree, &node_array[160].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(170, &rbtree, &node_array[170].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(180, &rbtree, &node_array[180].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(150, &rbtree, &node_array[150].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(160, &rbtree, &node_array[160].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(170, &rbtree, &node_array[170].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(180, &rbtree, &node_array[180].link), BPLIB_SUCCESS);
 
     Test_RBT_CheckTree(&rbtree);
 
     ref_val = 165;
     UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueGeneric(160, &rbtree, &node_array[165].link, rbtest_comparator, &ref_val),
-                      BP_SUCCESS);
+                      BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     ref_val = 155;
     UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueGeneric(160, &rbtree, &node_array[155].link, rbtest_comparator, &ref_val),
-                      BP_SUCCESS);
+                      BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
     /* iterate only items with key 160, in forward order */
     ref_val = 160;
     count   = 0;
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMin(ref_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMin(ref_val, &rbtree, &it), BPLIB_SUCCESS);
     do
     {
         if (BPLib_MEM_RBT_GetKeyValue(it.position) != ref_val)
@@ -564,12 +570,12 @@ void TestBplibMemCommon_RBT_NonUnique(void)
         status = BPLib_MEM_RBT_IterNext(&it);
         ++count;
     }
-    while (status == BP_SUCCESS);
+    while (status == BPLIB_SUCCESS);
 
     /* iterate only items with key 160, in reverse order */
     ref_val = 160;
     count   = 0;
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(ref_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(ref_val, &rbtree, &it), BPLIB_SUCCESS);
     do
     {
         if (BPLib_MEM_RBT_GetKeyValue(it.position) != ref_val)
@@ -579,30 +585,30 @@ void TestBplibMemCommon_RBT_NonUnique(void)
         status = BPLib_MEM_RBT_IterPrev(&it);
         ++count;
     }
-    while (status == BP_SUCCESS);
+    while (status == BPLIB_SUCCESS);
 
     UtAssert_INT32_EQ(count, 3);
 
     /* iterate all items except 180 in descending order */
     ref_val = 175;
     count   = 0;
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(ref_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(ref_val, &rbtree, &it), BPLIB_SUCCESS);
     do
     {
         UtAssert_UINT32_LTEQ(BPLib_MEM_RBT_GetKeyValue(it.position), ref_val);
         status = BPLib_MEM_RBT_IterPrev(&it);
         ++count;
     }
-    while (status == BP_SUCCESS);
+    while (status == BPLIB_SUCCESS);
 
     UtAssert_INT32_EQ(count, 5);
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[150].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[155].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[160].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[165].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[170].link), BP_SUCCESS);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[180].link), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[150].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[155].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[160].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[165].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[170].link), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[180].link), BPLIB_SUCCESS);
 }
 
 void TestBplibMemCommon_RBT_Iterator(void)
@@ -616,14 +622,14 @@ void TestBplibMemCommon_RBT_Iterator(void)
 
     /* Call with an iterator that has no position */
     memset(&it, 0, sizeof(it));
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterNext(&it), BP_ERROR);
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterPrev(&it), BP_ERROR);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterNext(&it), BPLIB_ERROR);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterPrev(&it), BPLIB_ERROR);
 
     /* goal is to exercise the iterator APIs */
     /* Start by adding a bunch of nodes to a tree */
     for (i = 10; i < 90; i += 2)
     {
-        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(i, &rbtree, &node_array[i].link), BP_SUCCESS);
+        UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(i, &rbtree, &node_array[i].link), BPLIB_SUCCESS);
     }
 
     Test_RBT_CheckTree(&rbtree);
@@ -631,7 +637,7 @@ void TestBplibMemCommon_RBT_Iterator(void)
     /* iterate the entire tree, by supplying 0 as the minimum */
     last_val = 0;
     count    = 0;
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMin(last_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMin(last_val, &rbtree, &it), BPLIB_SUCCESS);
     UtAssert_UINT32_EQ(BPLib_MEM_RBT_GetKeyValue(it.position), 10);
     do
     {
@@ -640,14 +646,14 @@ void TestBplibMemCommon_RBT_Iterator(void)
         last_val = BPLib_MEM_RBT_GetKeyValue(it.position);
         status   = BPLib_MEM_RBT_IterNext(&it);
     }
-    while (status == BP_SUCCESS);
+    while (status == BPLIB_SUCCESS);
 
     UtAssert_INT32_EQ(count, 40);
 
     /* iterate the entire tree, by supplying 100 as the maximum */
     last_val = 100;
     count    = 0;
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(last_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(last_val, &rbtree, &it), BPLIB_SUCCESS);
     UtAssert_UINT32_EQ(BPLib_MEM_RBT_GetKeyValue(it.position), 88);
     do
     {
@@ -656,19 +662,19 @@ void TestBplibMemCommon_RBT_Iterator(void)
         last_val = BPLib_MEM_RBT_GetKeyValue(it.position);
         status   = BPLib_MEM_RBT_IterPrev(&it);
     }
-    while (status == BP_SUCCESS);
+    while (status == BPLIB_SUCCESS);
 
     UtAssert_INT32_EQ(count, 40);
 
     /* iterate partial tree, by supplying 50 as the minimum */
     last_val = 50;
     count    = 0;
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMin(last_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMin(last_val, &rbtree, &it), BPLIB_SUCCESS);
     UtAssert_UINT32_EQ(BPLib_MEM_RBT_GetKeyValue(it.position), 50);
     while (true)
     {
         ++count;
-        if (BPLib_MEM_RBT_IterNext(&it) != BP_SUCCESS)
+        if (BPLib_MEM_RBT_IterNext(&it) != BPLIB_SUCCESS)
         {
             break;
         }
@@ -681,12 +687,12 @@ void TestBplibMemCommon_RBT_Iterator(void)
     /* iterate partial tree, by supplying 50 as the maximum */
     last_val = 50;
     count    = 0;
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(last_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(last_val, &rbtree, &it), BPLIB_SUCCESS);
     UtAssert_UINT32_EQ(BPLib_MEM_RBT_GetKeyValue(it.position), 50);
     while (true)
     {
         ++count;
-        if (BPLib_MEM_RBT_IterPrev(&it) != BP_SUCCESS)
+        if (BPLib_MEM_RBT_IterPrev(&it) != BPLIB_SUCCESS)
         {
             break;
         }
@@ -699,24 +705,24 @@ void TestBplibMemCommon_RBT_Iterator(void)
 
     /* check some other cases */
     last_val = 33;
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(last_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMax(last_val, &rbtree, &it), BPLIB_SUCCESS);
     UtAssert_UINT32_EQ(BPLib_MEM_RBT_GetKeyValue(it.position), 32);
     last_val = 59;
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMin(last_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_IterGotoMin(last_val, &rbtree, &it), BPLIB_SUCCESS);
     UtAssert_UINT32_EQ(BPLib_MEM_RBT_GetKeyValue(it.position), 60);
 
     last_val = 95;
-    UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMin(last_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMin(last_val, &rbtree, &it), BPLIB_SUCCESS);
     last_val = 5;
-    UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMax(last_val, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMax(last_val, &rbtree, &it), BPLIB_SUCCESS);
 
     for (i = 10; i < 90; i += 2)
     {
         UtAssert_NOT_NULL(node_ptr = BPLib_MEM_RBT_SearchUnique(i, &rbtree));
 
-        UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, node_ptr), BP_SUCCESS);
+        UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, node_ptr), BPLIB_SUCCESS);
     }
 
-    UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMin(50, &rbtree, &it), BP_SUCCESS);
-    UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMax(50, &rbtree, &it), BP_SUCCESS);
+    UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMin(50, &rbtree, &it), BPLIB_SUCCESS);
+    UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMax(50, &rbtree, &it), BPLIB_SUCCESS);
 }

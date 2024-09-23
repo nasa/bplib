@@ -27,9 +27,12 @@
 #include <stdio.h> // TODO Change to compile-time conditional DEBUG
 
 #include "bplib.h"
+// TODO Switch to osal bplib/os? OS_ #include "bplib_os.h"
 #include "bplib_api_types.h"
-#include "bplib_mem_internal.h"
 #include "bplib_mem.h"
+#include "bplib_mem_internal.h"
+
+#include "osapi.h"
 
 /**
  * @brief Maxmimum number of blocks to be collected in a single maintenace cycle
@@ -43,11 +46,25 @@ BPLib_MEM_Lock_t BPLIB_MEM_LOCK_SET[BPLIB_MEM_NUM_LOCKS];
 int BPLib_MEM_Init(void)
 {
     // TODO Add memory pool base link pointer to MEM globals.
-    // One option: BPLib_MEM_Block_t * base_link = BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle)
+    BPLib_MEM_OS_Init();
+
     return BPLIB_SUCCESS;
 }
 
-#ifdef BPLIB_MEM_OS_LOCK_CODE
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_LinkReset
+ *
+ *-----------------------------------------------------------------*/
+static inline void BPLib_MEM_LinkReset(BPLib_MEM_Block_t *link, BPLib_MEM_Blocktype_t type,
+                                       uint32_t parent_offset)
+{
+    link->type          = type;
+    link->parent_offset = parent_offset;
+    link->next          = link;
+    link->prev          = link;
+}
+
 void BPLib_MEM_LockInit(void)
 {
     uint32_t            i;
@@ -59,7 +76,7 @@ void BPLib_MEM_LockInit(void)
         lock = &BPLIB_MEM_LOCK_SET[i];
         if (!bp_handle_is_valid(lock->lock_id))
         {
-            // STOR lock->lock_id = bplib_os_createlock();
+            lock->lock_id = BPLib_MEM_OS_CreateLock();
         }
     }
 }
@@ -86,19 +103,17 @@ BPLib_MEM_Lock_t *BPLib_MEM_LockResource(void *resource_addr)
 
     return selected_lock;
 }
-#endif // BPLIB_MEM_OS_LOCK_CODE
 
 bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime)
 {
-    #ifdef BPLIB_MEM_OS_LOCK_CODE
     bool within_timeout;
     int  status;
 
-    within_timeout = (until_dtntime > bplib_os_get_dtntime_ms());
+    within_timeout = (until_dtntime > BPLib_MEM_OS_GetDtnTimeMs());
     if (within_timeout)
     {
-        status = bplib_os_wait_until_ms(lock->lock_id, until_dtntime);
-        if (status == BP_TIMEOUT)
+        status = BPLib_MEM_OS_WaitUntilMs(lock->lock_id, until_dtntime);
+        if (status == BPLIB_MEM_TIMEOUT)
         {
             /* if timeout was returned, then assume that enough time has elapsed
              * such that the current time is beyond until_dtntime now.  note that
@@ -107,11 +122,7 @@ bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime)
             within_timeout = false;
         }
     }
-
     return within_timeout;
-    #else // BPLIB_MEM_OS_LOCK_CODE
-    return true;
-    #endif // BPLIB_MEM_OS_LOCK_CODE
 }
 
 BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle)
@@ -151,7 +162,6 @@ BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk)
 
     bblk = lblk;
 
-    #ifdef STOR // bundletype
     /* Check if this is a secondary index, and if so, jump to the actual block base */
     /* this check of the type is not strictly needed, as the offset should be set to 0 for main blocks */
     while (bblk != NULL && BPLib_MEM_IsSecondaryIndexNode(bblk) && bblk->parent_offset != 0)
@@ -159,7 +169,6 @@ BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk)
         /* the parent_offset field indicates this block position within the parent */
         bblk = (BPLib_MEM_Block_t *)(void *)((uint8_t *)bblk - bblk->parent_offset);
     }
-    #endif // STOR bundletype
 
     return bblk;
 }
@@ -171,12 +180,10 @@ BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk)
  *-----------------------------------------------------------------*/
 BPLib_MEM_BlockContent_t *BPLib_MEM_GetBlockContent(BPLib_MEM_Block_t *cb)
 {
-    #ifdef STOR // blocktype
     if (cb != NULL && BPLib_MEM_IsAnyContentNode(cb))
     {
         return (BPLib_MEM_BlockContent_t *)(void *)cb;
     }
-    #endif // STOR blocktype
     return NULL;
 }
 
@@ -187,16 +194,12 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_GetBlockContent(BPLib_MEM_Block_t *cb)
  *-----------------------------------------------------------------*/
 const BPLib_MEM_BlockContent_t *BPLib_MEM_GetBlockContentConst(const BPLib_MEM_Block_t *cb)
 {
-    #ifdef STOR // blocktype
     if (cb != NULL && BPLib_MEM_IsAnyContentNode(cb))
     {
         return (const BPLib_MEM_BlockContent_t *)(const void *)cb;
     }
-    #endif // STOR blocktype
     return NULL;
 }
-
-#ifdef STOR // blocktype
 
 /*----------------------------------------------------------------
  *
@@ -211,20 +214,42 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_BlockDereferenceContent(BPLib_MEM_Block_t *c
 
     if (block_ptr != NULL)
     {
+        // TODO Does MEM need refs? CACHE has them.
         /* Additionally, if this block is a ref, then also dereference it to get to the real block */
         /* In theory this could be a chain of refs, so this is a while() but in reality it should be just one */
-        while (block_ptr->header.base_link.type == BPLib_MEM_BlocktypeRef)
-        {
-            assert(block_ptr->u.ref.pref_target != NULL);
-            block_ptr = block_ptr->u.ref.pref_target;
-            /* this should have always arrived at an actual content block */
-            assert(BPLib_MEM_IsAnyContentNode(&block_ptr->header.base_link)); // TODO Is base_link correct as pointer?
-        }
-
+        /**
+         * while (block_ptr->header.base_link.type == BPLib_MEM_BlocktypeRef)
+         * {
+         *     assert(block_ptr->u.ref.pref_target != NULL);
+         *     block_ptr = block_ptr->u.ref.pref_target;
+         *     // This should have always arrived at an actual content block
+         *    assert(BPLib_MEM_IsAnyContentNode(&block_ptr->header.base_link));
+         * }
+         */
         return block_ptr;
     }
 
     return NULL;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_GetUserDataOffsetByBlocktype
+ *
+ *-----------------------------------------------------------------*/
+size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_Blocktype_t bt)
+{
+    static const size_t USER_DATA_START_OFFSET[BPLib_MEM_BlocktypeMax] = {
+        [BPLib_MEM_BlocktypeUndefined] = SIZE_MAX,
+        [BPLib_MEM_BlocktypeApi]       = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(api),
+        [BPLib_MEM_BlocktypeGeneric]   = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(generic_data)};
+
+    if (bt >= BPLib_MEM_BlocktypeMax)
+    {
+        return SIZE_MAX;
+    }
+
+    return USER_DATA_START_OFFSET[bt];
 }
 
 /*----------------------------------------------------------------
@@ -280,7 +305,18 @@ void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *li
     BPLib_MEM_InitSecondaryLink(base_block, list_head, BPLib_MEM_BlocktypeListHead);
 }
 
-#endif // STOR blocktype
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_SubqInit
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_MEM_SubqInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqBase_t *qblk)
+{
+    /* init the link structs */
+    BPLib_MEM_InitListHead(base_block, &qblk->block_list);
+    qblk->pull_count = 0;
+    qblk->push_count = 0;
+}
 
 /*----------------------------------------------------------------
  *
@@ -290,12 +326,12 @@ void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *li
 void BPLib_MEM_InsertAfter(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
 {
     /* node being inserted should always be a singleton */
-    // TODO Find IsLinkUn...   assert(BPLib_MEM_IsLinkUnattached(node));
+    assert(BPLib_MEM_IsLinkUnattached(node));
 
     node->next       = list->next;
-    // TODO 1 incomplete type node->prev       = list;
-    // TODO 1 incomplete type list->next       = node;
-    // TODO 1 Fix incomplete type BPLibMEM_Block_t : node->next->prev = node;
+    node->prev       = list;
+    list->next       = node;
+    node->next->prev = node;
 }
 
 /*----------------------------------------------------------------
@@ -306,12 +342,12 @@ void BPLib_MEM_InsertAfter(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
 void BPLib_MEM_InsertBefore(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
 {
     /* node being inserted should always be a singleton */
-    // TODO assert(BPLib_MEM_IsLinkUnattached(node));
+    assert(BPLib_MEM_IsLinkUnattached(node));
 
-    // TODO 1 incomplete type node->prev       = list->prev;
-    // TODO 1 incomplete type node->next       = list;
-    // TODO 1 incomplete type list->prev       = node;
-    // TODO 1 incomplete type node->prev->next = node;
+    node->prev       = list->prev;
+    node->next       = list;
+    list->prev       = node;
+    node->prev->next = node;
 }
 
 /*----------------------------------------------------------------
@@ -321,10 +357,10 @@ void BPLib_MEM_InsertBefore(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
  *-----------------------------------------------------------------*/
 void BPLib_MEM_ExtractNode(BPLib_MEM_Block_t *node)
 {
-    // TODO 1 incomplete type node->prev->next = node->next;
-    // TODO 1 incomplete type node->next->prev = node->prev;
-    // TODO 1 incomplete type node->next       = node;
-    // TODO 1 incomplete type node->prev       = node;
+    node->prev->next = node->next;
+    node->next->prev = node->prev;
+    node->next       = node;
+    node->prev       = node;
 }
 
 /*----------------------------------------------------------------
@@ -334,20 +370,18 @@ void BPLib_MEM_ExtractNode(BPLib_MEM_Block_t *node)
  *-----------------------------------------------------------------*/
 void BPLib_MEM_MergeList(BPLib_MEM_Block_t *dest, BPLib_MEM_Block_t *src)
 {
-    // TODO 1 incomplete type 
-    /*
+
     BPLib_MEM_Block_t *dlast = dest->prev; // last node in dest list
     BPLib_MEM_Block_t *slast = src->prev;  // last node in src list
-    */
+
     /* nominally combine the two lists.
      * NOTE: This (temporarily) yields a list with two head nodes. */
 
-    /* TODO Restore link assignments
     dlast->next = src;
     slast->next = dest;
     dest->prev  = slast;
     src->prev   = dlast;
-    */
+
 }
 
 /*----------------------------------------------------------------
@@ -467,8 +501,6 @@ void BPLib_MEM_InitBaseObject(BPLib_MEM_BlockHeader_t *block_hdr, uint16_t user_
     block_hdr->content_type_signature = content_type_signature;
 }
 
-#ifdef STOR // blocktype or subq
-
 /*----------------------------------------------------------------
  *
  * Function: BPLib_MEM_AllocBlockInternal
@@ -479,26 +511,28 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
                                                               uint32_t content_type_signature, void *init_arg,
                                                               uint8_t priority)
 {
-    BPLib_MEM_Block_t         *node;
-    BPLib_MEM_BlockContent_t *block;
-    BPLib_MEM_ApiContent_t   *api_block;
+    BPLib_MEM_Block_t           *node;
+    BPLib_MEM_BlockContent_t    *block;
+    BPLib_MEM_ApiContent_t      *api_block;
     size_t                       data_offset;
-    // STOR uint32_t                     alloc_threshold;
+    uint32_t                     alloc_threshold;
     uint32_t                     block_count;
 
     BPLib_MEM_BlockAdminContent_t *admin;
 
     admin = BPLib_MEM_GetAdmin(pool);
 
-    /* Only real blocks are allocated here - not secondary links nor head nodes,
-     * as those are embedded within the blocks themselves. */
-    if (blocktype == BPLib_MEM_BlocktypeUndefined || blocktype >= BPLib_MEM_BlocktypeMax)
+    /**
+     * Only BlocktypeGeneric and BlocktypeApi are valid in MEM.
+     */
+    if (!(blocktype == BPLib_MEM_BlocktypeGeneric || blocktype == BPLib_MEM_BlocktypeApi))
     {
         return NULL;
     }
 
-    /*
-     * Check free block threshold: Note that it may take additional pool blocks (refs, cbor, etc)
+    /**
+     * Check free block threshold: This check may be removed because it applies more to CACHE.
+     * Note that Bundle CACHE may take additional pool blocks (refs, cbor, etc)
      * in order to forward stored bundles along when the time comes.
      *
      * Without a sufficient buffer/threshold, if the entire pool is consumed by bundles, it will
@@ -506,16 +540,17 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
      *
      * This soft limit only applies for actual bundle blocks, not for refs.
      */
-    // STOR alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
+    // TODO Consider removing alloc_threshold from BPLib_MEM_AllocBlockInternal
+    alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
 
-    block_count = BPLib_MEM_SubqGetDepth(admin->free_blocks);
+    block_count = BPLib_MEM_SubqGetDepth(&admin->free_blocks);
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
         /* no free blocks available for the requested type */
         return NULL;
     }
 
-    /* figure out how to initialize this block by looking up the content type */
+    /* Determine how to initialize this block by looking up the content type */
     api_block = (BPLib_MEM_ApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
                                                                              &admin->blocktype_registry);
     if (api_block == NULL)
@@ -534,7 +569,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
     }
 
     /* get a block */
-    node = BPLib_MEM_SubqPullSingle(admin->free_blocks);
+    node = BPLib_MEM_SubqPullSingle(&admin->free_blocks);
     if (node == NULL)
     {
         /* this should never happen, because depth was already checked */
@@ -565,33 +600,14 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
 
     BPLib_MEM_InitBaseObject(&block->header, api_block->user_content_size, content_type_signature);
 
-    switch (blocktype)
-    {
-        case BPLib_MEM_BlocktypePrimary:
-            BPLib_MEM_BblockPrimaryInit(node, &block->u.primary.pblock);
-            break;
-        case BPLib_MEM_BlocktypeCanonical:
-            BPLib_MEM_BblockCanonicalInit(node, &block->u.canonical.cblock);
-            break;
-        case BPLib_MEM_BlocktypeFlow:
-            #ifdef STOR // TODO Change flow to duct
-            BPLib_MEM_FlowInit(node, block->u.flow.fblock);
-            break;
-            #endif // STOR
-        default:
-            /* nothing more for this node type (this catches cbor_data)  */
-            break;
-    }
-
     /* If the module did supply a constructor, invoke it now */
     if (api_block->api.construct != NULL)
     {
         /* A constructor really should never fail nominally, if it does there is probably a bug */
-        if (api_block->api.construct(init_arg, node) != BP_SUCCESS)
+        if (api_block->api.construct(init_arg, node) != BPLIB_SUCCESS)
         {
-            // TODO why is BP_FLAG_DIAGNOSTIC undefined?
-            // bplog(NULL, BP_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
-            //      (unsigned long)content_type_signature);
+            bplog(NULL, BPLIB_MEM_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
+                  (unsigned long)content_type_signature);
         }
     }
 
@@ -616,7 +632,38 @@ BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t m
     return (BPLib_MEM_Block_t *)result;
 }
 
-#endif // STOR blocktype or subq
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_SubqPushSingle
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_MEM_SubqPushSingle(BPLib_MEM_SubqBase_t *subq, BPLib_MEM_Block_t *cpb)
+{
+    BPLib_MEM_InsertBefore(&subq->block_list, cpb);
+    ++subq->push_count;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_SubqPullSingle
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_Block_t *BPLib_MEM_SubqPullSingle(BPLib_MEM_SubqBase_t *subq)
+{
+    BPLib_MEM_Block_t *node;
+
+    /* if the head is reached here, then the list is empty */
+    node = subq->block_list.next;
+    if (BPLib_MEM_IsListHead(node))
+    {
+        return NULL;
+    }
+
+    BPLib_MEM_ExtractNode(node);
+    ++subq->pull_count;
+
+    return node;
+}
 
 /*----------------------------------------------------------------
  *
@@ -625,15 +672,13 @@ BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t m
  *-----------------------------------------------------------------*/
 void BPLib_MEM_RecycleBlockInternal(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t *blk)
 {
-    // STOR BPLib_MEM_BlockAdminContent_t *admin;
+    BPLib_MEM_BlockAdminContent_t *admin;
 
-    // STOR subq mem block admin = BPLib_MEM_GetAdmin(pool);
+    admin = BPLib_MEM_GetAdmin(pool);
 
     BPLib_MEM_ExtractNode(blk);
-    #ifdef STOR // Restore subq for MEM blocks
-    BPLib_MEM_SubqPushSingle(admin->recycle_blocks, blk);
-    BPLib_MEM_SubqPushSingle(admin->recycle_blocks, blk);
-    #endif // STOR subq
+    BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, blk);
+    BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, blk);
 }
 
 #ifdef STOR // blocktype, subq, assert
@@ -699,12 +744,10 @@ void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk)
  *-----------------------------------------------------------------*/
 int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
 {
-    #ifdef STOR // blocktype BPLib_MEM_BlocktypeListHead
     if (!BPLib_MEM_IsListHead(list))
     {
-        return BP_ERROR;
+        return BPLIB_ERROR;
     }
-    #endif
 
     iter->pending_entry = list->next;
 
@@ -719,12 +762,10 @@ int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIte
  *-----------------------------------------------------------------*/
 int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
 {
-    #ifdef STOR // subq mem block
     if (!BPLib_MEM_IsListHead(list))
     {
-        return BP_ERROR;
+        return BPLIB_ERROR;
     }
-    #endif // STOR subq mem block
 
     iter->pending_entry = list->prev;
 
@@ -738,17 +779,15 @@ int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter
  *-----------------------------------------------------------------*/
 int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter)
 {
-    #ifdef STOR // subq mem
     if (iter->pending_entry == NULL || BPLib_MEM_IsListHead(iter->pending_entry))
     {
         iter->position = NULL;
-        return BP_ERROR;
+        return BPLIB_ERROR;
     }
-    #endif // STOR subq mem
 
     iter->position      = iter->pending_entry;
     iter->pending_entry = iter->position->next;
-    return BP_SUCCESS;
+    return BPLIB_SUCCESS;
 }
 
 /*----------------------------------------------------------------
@@ -758,14 +797,12 @@ int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter)
  *-----------------------------------------------------------------*/
 int BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter)
 {
-    #ifdef STOR // subq mem
     if (iter->pending_entry == NULL || BPLib_MEM_IsListHead(iter->pending_entry))
     if (iter->pending_entry == NULL || BPLib_MEM_IsListHead(iter->pending_entry))
     {
         iter->position = NULL;
-        return BP_ERROR;
+        return BPLIB_ERROR;
     }
-    #endif // STOR subq mem
     iter->position      = iter->pending_entry;
     iter->pending_entry = iter->position->prev;
     return BPLIB_SUCCESS;
@@ -827,7 +864,7 @@ BPLib_MEM_Block_t *BPLib_MEM_SearchList(const BPLib_MEM_Block_t *list, BPLib_MEM
 
     status = BPLib_MEM_ListIterGotoFirst(list, &iter);
     status = BPLib_MEM_ListIterGotoFirst(list, &iter);
-    while (status == BP_SUCCESS)
+    while (status == BPLIB_SUCCESS)
     {
         /* this calls the match function with the actual content block, as that is where
          * the real information lies (this is typically a list full of secondary links) */
@@ -862,6 +899,72 @@ void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool)
         BPLib_MEM_CollectBlocks(pool, BPLIB_MEM_MAINTENCE_COLLECT_LIMIT);
     }
     #endif // STOR
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_RegisterBlocktypeInternal
+ *
+ *-----------------------------------------------------------------*/
+int BPLib_MEM_RegisterBlocktypeInternal(BPLib_MEM_Pool_t *pool, uint32_t magic_number,
+                                            const BPLib_MEM_BlocktypeApi_t *api, size_t user_content_size)
+{
+    BPLib_MEM_BlockContent_t       *ablk;
+    BPLib_MEM_ApiContent_t         *api_block;
+    int                             status;
+    BPLib_MEM_BlockAdminContent_t  *admin;
+
+    admin = BPLib_MEM_GetAdmin (pool);
+
+    /* before doing anything, check if this is a duplicate.  If so, ignore it.
+     * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
+    if (BPLib_MEM_RBT_SearchUnique(magic_number, &admin->blocktype_registry) != NULL)
+    {
+        return BPLIB_MEM_RBT_DUPLICATE;
+    }
+
+    ablk = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypeApi, 0, NULL, BPLIB_MEM_ALLOC_PRI_LO);
+    if (ablk == NULL)
+    {
+        return BPLIB_ERROR;
+    }
+
+    api_block = &ablk->u.api;
+
+    if (api != NULL)
+    {
+        api_block->api = *api;
+    }
+    api_block->user_content_size = user_content_size;
+
+    status = BPLib_MEM_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, &api_block->rbt_link);
+
+    /* due to the pre-check above this should always have been successful, but just in case, return the block if error
+     */
+    if (status != BPLIB_SUCCESS)
+    {
+        BPLib_MEM_RecycleBlockInternal(pool, &ablk->header.base_link);
+    }
+
+    return status;
+}
+
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_RegisterBlocktype
+ *
+ *-----------------------------------------------------------------*/
+int BPLib_MEM_RegisterBlocktype(BPLib_MEM_Pool_t *pool, uint32_t magic_number, const BPLib_MEM_BlocktypeApi_t *api,
+                                size_t user_content_size)
+{
+    BPLib_MEM_Lock_t   *lock;
+    int                 result;
+
+    lock   = BPLib_MEM_LockResource(pool);
+    result = BPLib_MEM_RegisterBlocktypeInternal(pool, magic_number, api, user_content_size);
+    BPLib_MEM_LockRelease(lock);
+    return result;
 }
 
 /*----------------------------------------------------------------
@@ -968,10 +1071,10 @@ void BPLib_MEM_DebugScan(BPLib_MEM_Pool_t *pool)
 
 /*----------------------------------------------------------------
  *
- * Function: BPLib_MEM_Create
+ * Function: BPLib_MEM_PoolCreate
  *
  *-----------------------------------------------------------------*/
-BPLib_MEM_Pool_t *BPLib_MEM_Create(void *pool_mem, size_t pool_size)
+BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
 {
     BPLib_MEM_Pool_t                     *pool;
     size_t                             remain;
@@ -988,7 +1091,7 @@ BPLib_MEM_Pool_t *BPLib_MEM_Create(void *pool_mem, size_t pool_size)
 
     /* initialize the lock table - OK to call this multiple times,
      * subsequent calls shouldn't do anything */
-    // TODO  What lock table?  BPLib_MEM_LockInit();
+    BPLib_MEM_LockInit();
 
     /* wiping the entire memory might be overkill, but it is only done once
      * at start up, and this may also help verify that the memory "works" */
@@ -996,47 +1099,30 @@ BPLib_MEM_Pool_t *BPLib_MEM_Create(void *pool_mem, size_t pool_size)
 
     pool = pool_mem;
 
-    #ifdef STOR // blocktype
     BPLib_MEM_LinkReset(&pool->admin_block.header.base_link, BPLib_MEM_BlocktypeAdmin, 0);
-    #endif // STOR blocktype
     admin = BPLib_MEM_GetAdmin(pool);
 
     /* the block lists are circular, as this reduces
      * complexity of operations (never a null pointer) */
     admin->buffer_size = sizeof(BPLib_MEM_BlockContent_t);
-    #ifdef STOR // subq
-    BPLib_MEM_SubqInit(&pool->admin_block.header.base_link, admin->free_blocks);
-    BPLib_MEM_SubqInit(&pool->admin_block.header.base_link, admin->recycle_blocks);
-    #endif // STOR subq
-
-
-    // TODO - This looks important :-) BPLib_MEM_InitListHead(&pool->admin_block.header.base_link, admin->active_list);
-
-
-    #ifdef STOR // blocktype rbt
+    BPLib_MEM_SubqInit(&pool->admin_block.header.base_link, &admin->free_blocks);
+    BPLib_MEM_SubqInit(&pool->admin_block.header.base_link, &admin->recycle_blocks);
+    BPLib_MEM_InitListHead(&pool->admin_block.header.base_link, &admin->active_list);
     BPLib_MEM_RBT_InitRoot(&admin->blocktype_registry);
-    #endif
 
     /* start at the _next_ buffer, which is the first usable buffer (first is the admin block) */
     pchunk = &pool->admin_block + 1;
     remain = pool_size - sizeof(BPLib_MEM_BlockContent_t);
 
-    #ifdef STOR // blocktype api rbt
     /* register the first API type, which is 0.
      * Notably this prevents other modules from actually registering something at 0. */
     BPLib_MEM_RBT_InsertValueUnique(BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
                                   &admin->blocktype_cbor.rbt_link);
-    #endif // STOR blocktype api rbt
 
     while (remain >= sizeof(BPLib_MEM_BlockContent_t))
-    while (remain >= sizeof(BPLib_MEM_BlockContent_t))
     {
-        #ifdef STOR // blocktype or subq
         BPLib_MEM_LinkReset(&pchunk->header.base_link, BPLib_MEM_BlocktypeUndefined, pchunk - &pool->admin_block);
-        BPLib_MEM_SubqPushSingle(admin->free_blocks, &pchunk->header.base_link);
-        BPLib_MEM_LinkReset(&pchunk->header.base_link, BPLib_MEM_BlocktypeUndefined, pchunk - &pool->admin_block);
-        BPLib_MEM_SubqPushSingle(admin->free_blocks, &pchunk->header.base_link);
-        #endif // STOR blocktype or subq
+        BPLib_MEM_SubqPushSingle(&admin->free_blocks, &pchunk->header.base_link);
         remain -= sizeof(BPLib_MEM_BlockContent_t);
         ++pchunk;
         ++admin->num_bufs_total;

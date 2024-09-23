@@ -22,6 +22,8 @@
  * Include
  */
 
+#include <string.h>
+
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
@@ -31,22 +33,46 @@
 #include "test_bplib_mem.h"
 
 #include "bplib_mem.h"
+#include "bplib_mem_internal.h"
 
 const uint32 UT_TESTBLOCKTYPE_SIG = 0x5f33c01a;
 
-/*
-** Test function for
-** int BPLib_MEM_Init()
-*/
+#define TEST_BPLIB_MEM_POOL_SIZE 16384
+void *BPLib_MEM_TestPoolPtr;
+
+void *TestUtil_BPLib_OS_Calloc(size_t size)
+{
+    /* Allocate Memory Block */
+    return calloc(size, 1);
+}
+
+void TestUtil_BPLib_OS_Free(void *ptr)
+{
+    /* Free Memory Block */
+    free(ptr);
+}
+
+/**
+ * Test_BPLib_MEM_Init - Test function for int BPLib_MEM_Init()
+ */
 void Test_BPLib_MEM_Init(void)
 {
     UtAssert_INT32_EQ(BPLib_MEM_Init(), BPLIB_SUCCESS);
 }
 
+/**
+ * Test_BPLIB_MEM_PoolCreate
+ */
+void Test_BPLib_MEM_PoolCreate(void)
+{
+    BPLib_MEM_TestPoolPtr = TestUtil_BPLib_OS_Calloc(16384);
+    UtAssert_NOT_NULL(BPLib_MEM_TestPoolPtr);
+    UtAssert_NOT_NULL(BPLib_MEM_PoolCreate(BPLib_MEM_TestPoolPtr, TEST_BPLIB_MEM_POOL_SIZE));
+}
 
 void TestBplibMem_Register(void)
 {
-    UtTest_Add(Test_BPLib_MEM_Init, BPLib_MEM_Test_Setup, BPLib_MEM_Test_Teardown, "Test_BPLib_MEM_Init");
+    ADD_TEST(Test_BPLib_MEM_Init);
 }
 
 void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
