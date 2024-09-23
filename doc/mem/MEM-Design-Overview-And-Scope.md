@@ -722,6 +722,8 @@ See this code in bplib_mem.c:
     }
 ```
 
+UPDATE: 2024-09-23 All #ifdef STOR sections have been implemented or moved to STOR CACHE.
+
 subq, flow, and duct:
 MEM stores memory pool blocks in linked lists called "mem subqs". BC stores cache blocks in "cache subqs". QM stores ducts, job queues, and bundle queues in queues, which are abstractions of cache subqs. The meaning of "flow" is overloaded: "pseudocode flow", "flow diagram", "bundle flow", etc.
 

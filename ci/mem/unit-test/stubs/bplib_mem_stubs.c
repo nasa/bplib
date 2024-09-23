@@ -107,7 +107,7 @@ void BPLib_MEM_ExtractNode(BPLib_MEM_Block_t *node)
     UT_GenStub_Execute(BPLib_MEM_ExtractNode, Basic, NULL);
 }
 
-#ifdef BPLIB_MEM_ENABLE_LIST // TODO
+#ifdef BPLIB_MEM_ENABLE_LIST // TODO If BPLIB_MEM_ENABLE_LIST
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_ForeachItemInList()

@@ -22,6 +22,7 @@
 ** Include
 */
 
+#include "../test_bplib_mem.h"
 #include "bplib_mem_test_utils.h"
 
 /*
@@ -41,9 +42,6 @@ void BPLib_MEM_Test_Teardown(void)
 
 void UtTest_Setup(void)
 {
-    #ifdef BPLIB_MEM_Test_Setup
-    TestBplib_MEM_Register();
-    TestBplib_MEM_Base_Register();
-    TestBplib_MEM_Stress_Register();
-    #endif // BPLIB_MEM_Test_Setup
+    Test_BPLib_MEM_Register();
+    Test_BPLib_MEM_Subqs_Register();
 }

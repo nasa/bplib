@@ -89,6 +89,11 @@ static inline BPLib_MEM_BlockAdminContent_t *BPLib_MEM_GetAdmin(BPLib_MEM_Pool_t
     return &pool->admin_block.u.admin;
 }
 
+// TODO Add briefs for BPLib_MEM_OS_Lock and Unlock.
+void BPLib_MEM_OS_Lock(bp_handle_t h);
+void BPLib_MEM_OS_Unlock(bp_handle_t h);
+
+
 /**
  * @brief Acquires a given lock
  *
@@ -101,7 +106,7 @@ static inline BPLib_MEM_BlockAdminContent_t *BPLib_MEM_GetAdmin(BPLib_MEM_Pool_t
  */
 static inline void BPLib_MEM_LockAcquire(BPLib_MEM_Lock_t *lock)
 {
-    // bplib_os_lock(lock->lock_id); // TODO Unstub.
+    BPLib_MEM_OS_Lock(lock->lock_id);
 }
 
 /**
@@ -116,22 +121,7 @@ static inline void BPLib_MEM_LockAcquire(BPLib_MEM_Lock_t *lock)
  */
 static inline void BPLib_MEM_LockRelease(BPLib_MEM_Lock_t *lock)
 {
-    // bplib_os_unlock(lock->lock_id); // TODO Unstub.
-}
-
-/**
- * @brief Indicate state change of the resource held by the lock
- *
- * Signals to other threads that state of the resource has changed
- *
- * Other threads waiting on the same lock are unblocked and should all re-check the condition
- * they are waiting on.
- *
- * @param lock
- */
-static inline void BPLib_MEM_LockBroadcastSignal(BPLib_MEM_Lock_t *lock)
-{
-    // bplib_os_broadcast_signal(lock->lock_id); // TODO Unstub.
+    BPLib_MEM_OS_Unlock(lock->lock_id);
 }
 
 /**
@@ -172,14 +162,7 @@ BPLib_MEM_Lock_t *BPLib_MEM_LockResource(void *resource_addr);
  */
 bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime);
 
-#ifdef STOR // blocktype
-void BPLib_MEM_BblockPrimaryInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_BblockPrimary_t *pblk);
-void BPLib_MEM_BblockCanonicalInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_BblockCanonical_t *cblk);
-#endif // STOR // blocktype
 void BPLib_MEM_SubqInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqBase_t *qblk);
-#ifdef STOR // flow
-void BPLib_MEM_FlowInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_Flow_t *fblk);
-#endif // STOR // flow
 
 uint64_t BPLib_MEM_OS_GetDtnTimeMs(void);
 
@@ -248,7 +231,7 @@ BPLib_MEM_Block_t *BPLib_MEM_SubqPullSingle(BPLib_MEM_SubqBase_t *subq);
  */
 uint32_t BPLib_MEM_ListCountBlocks(BPLib_MEM_Block_t *list);
 
-#ifdef STOR // subq
+
 /**
  * @brief Pushes an entire list of blocks into a subq
  *
@@ -276,7 +259,6 @@ uint32_t BPLib_MEM_SubqMergeList(BPLib_MEM_SubqBase_t *subq_dst, BPLib_MEM_Block
  * @return The number of queue entries moved
  */
 uint32_t BPLib_MEM_SubqMoveAll(BPLib_MEM_SubqBase_t *subq_dst, BPLib_MEM_SubqBase_t *subq_src);
-uint32_t BPLib_MEM_SubqMoveAll(BPLib_MEM_SubqBase_t *subq_dst, BPLib_MEM_SubqBase_t *subq_src);
 
 /**
  * @brief Drops the entire contents of a subq
@@ -291,13 +273,6 @@ uint32_t BPLib_MEM_SubqMoveAll(BPLib_MEM_SubqBase_t *subq_dst, BPLib_MEM_SubqBas
  * @return uint32_t The number of queue entries dropped
  */
 uint32_t BPLib_MEM_SubqDropAll(BPLib_MEM_Pool_t *pool, BPLib_MEM_SubqBase_t *subq);
-
-#endif // STOR subq
-
-#ifdef STOR // job
-void BPLib_MEM_JobCancelInternal(BPLib_MEM_Job_t *job);
-void BPLib_MEM_JobMarkActiveInternal(BPLib_MEM_Block_t *active_list, BPLib_MEM_Job_t *job);
-#endif //STOR job
 
 /* gets to the underlying block content (which may be a ref block) */
 BPLib_MEM_BlockContent_t       *BPLib_MEM_GetBlockContent(BPLib_MEM_Block_t *cb);

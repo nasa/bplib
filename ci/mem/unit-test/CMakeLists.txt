@@ -52,6 +52,7 @@ add_executable(coverage-bplib_mem-testrunner
     test_bplib_mem.c
     test_bplib_mem_rbtree_cov.c
     test_bplib_mem_setup.c
+    test_bplib_mem_subqs.c
     $<TARGET_OBJECTS:utobj_bplib_mem>
 )
 

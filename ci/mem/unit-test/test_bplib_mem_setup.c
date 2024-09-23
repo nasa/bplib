@@ -40,7 +40,7 @@
  * Functions
  */
 
-void TestBplibMpool_ResetTestEnvironment(void)
+void Test_Bplib_MEM_ResetTestEnvironment(void)
 {
     UT_ResetState(0);
 }

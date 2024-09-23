@@ -70,11 +70,6 @@ void Test_BPLib_MEM_PoolCreate(void)
     UtAssert_NOT_NULL(BPLib_MEM_PoolCreate(BPLib_MEM_TestPoolPtr, TEST_BPLIB_MEM_POOL_SIZE));
 }
 
-void TestBplibMem_Register(void)
-{
-    ADD_TEST(Test_BPLib_MEM_Init);
-}
-
 void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     bp_val_t RefSig = UT_Hook_GetArgValueByName(Context, "search_key_value", bp_val_t);
@@ -87,10 +82,10 @@ void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKe
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
-void test_BPLib_MEM_BlockFromExternalId(void)
+void Test_BPLib_MEM_BlockFromExternalId(void)
 {
     /* Test function for:
-     * bplib_mpool_block_t *test_BPLib_MEM_BlockFromExternalId(bplib_mpool_t *pool, bp_handle_t handle)
+     * bplib_mpool_block_t *BPLib_MEM_BlockFromExternalId(bplib_mpool_t *pool, bp_handle_t handle)
      */
     UT_BPLib_MEM_Buf_t   buf;
     bp_handle_t          id1;
@@ -100,11 +95,11 @@ void test_BPLib_MEM_BlockFromExternalId(void)
 
     UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, BP_INVALID_HANDLE));
 
-    #ifdef STOR // blocktype
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, bplib_mpool_blocktype_admin, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[0], bplib_mpool_blocktype_primary, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[1], bplib_mpool_blocktype_primary, 0);
-    #endif // STOR blocktype
+    
+    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
+    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
+    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_MEM_BlocktypeGeneric, 0);
+    
     UtAssert_BOOL_TRUE(bp_handle_is_valid(id1 = BPLib_MEM_GetExternalId(&buf.blk[0].header.base_link)));
     UtAssert_BOOL_TRUE(bp_handle_is_valid(id2 = BPLib_MEM_GetExternalId(&buf.blk[1].header.base_link)));
     UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, id1));
@@ -114,3 +109,18 @@ void test_BPLib_MEM_BlockFromExternalId(void)
     UtAssert_ADDRESS_EQ(BPLib_MEM_BlockFromExternalId(&buf.pool, id1), &buf.blk[0].header.base_link);
     UtAssert_ADDRESS_EQ(BPLib_MEM_BlockFromExternalId(&buf.pool, id2), &buf.blk[1].header.base_link);
 }
+
+void Test_BPLib_MEM_Register(void)
+{
+    ADD_TEST(Test_BPLib_MEM_Init);
+    ADD_TEST(Test_BPLib_MEM_PoolCreate);
+    ADD_TEST(Test_BPLib_MEM_BlockFromExternalId);
+}
+
+void Test_BPLib_MEM_Subqs_Register(void)
+{
+    ADD_TEST(Test_BPLib_MEM_SubqMoveAll);
+    ADD_TEST(Test_BPLib_MEM_SubqDropAll);
+    ADD_TEST(Test_BPLib_MEM_SubqPullSingle);
+}
+

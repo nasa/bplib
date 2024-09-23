@@ -45,6 +45,31 @@ static OS_time_t BPLIB_MEM_OSAL_LOCALTIME_DTN_CONV;
 static osal_id_t BPLib_MEM_OS_FileDataLock;
 
 /*--------------------------------------------------------------------------------------
+ * BPLib_MEM_OS_Lock -
+ *-------------------------------------------------------------------------------------*/
+void BPLib_MEM_OS_Lock(bp_handle_t h)
+{
+    osal_id_t id;
+
+    id = OS_ObjectIdFromInteger(bp_handle_to_serial(h, BPLIB_HANDLE_MPOOL_BASE));
+
+    OS_CondVarLock(id);
+}
+
+/*--------------------------------------------------------------------------------------
+ * BPLib_MEM_OS_Unlock -
+ *-------------------------------------------------------------------------------------*/
+void BPLib_MEM_OS_Unlock(bp_handle_t h)
+{
+    osal_id_t id;
+
+    id = OS_ObjectIdFromInteger(bp_handle_to_serial(h, BPLIB_HANDLE_MPOOL_BASE));
+
+    OS_CondVarUnlock(id);
+}
+
+
+/*--------------------------------------------------------------------------------------
  * BPLib_MEM_OS_Init -
  *-------------------------------------------------------------------------------------*/
 void BPLib_MEM_OS_Init(void)

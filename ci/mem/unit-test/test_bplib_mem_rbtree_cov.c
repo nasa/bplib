@@ -64,7 +64,7 @@ static int rbtest_comparator(const BPLib_MEM_RBT_Link_t *link, void *arg)
     return (ref_val - node->internal_value);
 }
 
-void TestBplibMemCommon_RBT_Setup(void)
+void Test_BPLib_MEM_Common_RBT_Setup(void)
 {
     int i;
 
@@ -90,7 +90,7 @@ void TestBplibMemCommon_RBT_Setup(void)
     tail_used = NULL;
 }
 
-void TestBplibMemCommon_RBT_Basics(void)
+void Test_BPLib_MEM_Common_RBT_Basics(void)
 {
     BPLib_MEM_RBT_Root_t tree;
 
@@ -214,7 +214,7 @@ static void Test_RBT_CheckTree(BPLib_MEM_RBT_Root_t *tree)
     UtDebug("End tree validation");
 }
 
-void TestBplibMemCommon_RBT_LeafNodeInsertDelete(void)
+void Test_BPLib_MEM_Common_RBT_LeafNodeInsertDelete(void)
 {
     /*
      * Exercise all of the R-B tree rebalancing cases for insert and delete.
@@ -328,7 +328,7 @@ void TestBplibMemCommon_RBT_LeafNodeInsertDelete(void)
     Test_RBT_CheckTree(&rbtree);
 }
 
-void TestBplibMemCommon_RBT_NonLeafDelete(void)
+void Test_BPLib_MEM_Common_RBT_NonLeafDelete(void)
 {
     uint32 i;
 
@@ -368,7 +368,7 @@ void TestBplibMemCommon_RBT_NonLeafDelete(void)
     }
 }
 
-void TestBplibMemCommon_RBT_Unique(void)
+void Test_BPLib_MEM_Common_RBT_Unique(void)
 {
     int              i;
     BPLib_MEM_RBT_Root_t alt_root;
@@ -503,7 +503,7 @@ void TestBplibMemCommon_RBT_Unique(void)
     }
 }
 
-void TestBplibMemCommon_RBT_NonUnique(void)
+void Test_BPLib_MEM_Common_RBT_NonUnique(void)
 {
     BPLib_MEM_RBT_Iter_t it;
     int              status;
@@ -611,7 +611,7 @@ void TestBplibMemCommon_RBT_NonUnique(void)
     UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[180].link), BPLIB_SUCCESS);
 }
 
-void TestBplibMemCommon_RBT_Iterator(void)
+void Test_BPLib_MEM_Common_RBT_Iterator(void)
 {
     int               i;
     int               count;

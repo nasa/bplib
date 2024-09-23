@@ -47,6 +47,5 @@
 void BPLib_MEM_Test_Setup(void);
 void BPLib_MEM_Test_Teardown(void);
 
-void TestBplibMem_Register(void);
 
 #endif /* BPLIB_MEM_TEST_UTILS_H */
