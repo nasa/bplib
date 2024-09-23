@@ -1,8 +1,8 @@
 ---
 # The document metadata is YAML format recognized by pandoc.
-title: DTN-cFS BPLib MEM Design
+title: DTN-cFS BPLib MEM Design Overview and Scope
 # author: Grafton Kennedy
-date: 2024-09-16
+date: 2024-09-23
 output:
     word_document:
 #        pandoc_args: ["--toc"]
@@ -10,7 +10,7 @@ output:
         reference_doc: pandoc-tabloid-reference-sddd.docx
         path: "MEM-Design-Overview-And-Scope.docx"
 ---
-## Design Overview and Scope
+## BPLib Memory Allocator Design Overview and Scope
 
 ### Stages of Prototype to MEM Transition
 
