@@ -35,12 +35,41 @@ void Test_BPLib_CLA_Init(void)
 
 void Test_BPLib_CLA_Ingress_Nominal(void)
 {
+    uint32_t ContId = 0;
+    uint8_t Bundle[5]= {159, 0, 0, 0, 0};
+    size_t Size = 10;
+    uint32_t Timeout = 0;
     
+    UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
 }
 
 void Test_BPLib_CLA_Egress_Nominal(void)
 {
-    
+    uint32_t ContId = 0;
+    uint8_t Bundle[]= {159, 0, 0, 0, 0};
+    size_t Size;
+    uint32_t Timeout = 0;
+    UtAssert_INT32_EQ(BPLib_CLA_Egress(ContId, Bundle, &Size, Timeout), BPLIB_SUCCESS);
+}
+
+void Test_BPLib_CLA_Ingress_MsgData(void)
+{
+    uint32_t ContId = 0;
+    uint8_t Bundle[5]= {1, 0, 0, 0, 0};
+    size_t Size = 10;
+    uint32_t Timeout = 0;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), 1);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ProcessControlMessage), BPLIB_SUCCESS);    
+    UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
+}
+
+void Test_BPLib_CLA_Egress_NULLBundle(void)
+{
+    uint32_t ContId = 0;
+    uint8_t* Bundle = NULL;
+    size_t Size;
+    uint32_t Timeout = 0;
+    UtAssert_INT32_EQ(BPLib_CLA_Egress(ContId, Bundle, &Size, Timeout), BPLIB_SUCCESS);
 }
 
 void TestBplibCla_Register(void)
@@ -48,4 +77,6 @@ void TestBplibCla_Register(void)
     UtTest_Add(Test_BPLib_CLA_Init, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Init");
     UtTest_Add(Test_BPLib_CLA_Ingress_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_Nominal");
     UtTest_Add(Test_BPLib_CLA_Egress_Nominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_Nominal");
+    UtTest_Add(Test_BPLib_CLA_Ingress_MsgData, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Ingress_MsgData");
+    UtTest_Add(Test_BPLib_CLA_Egress_NULLBundle, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_Egress_NULLBundle");
 }

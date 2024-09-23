@@ -46,13 +46,12 @@ int BPLib_CLA_Init(void)
  * Generated stub function for BPLib_CLA_Egress()
  * ----------------------------------------------------
  */
-int BPLib_CLA_Egress(BPLib_ContactsTable_t ContactsTbl, BPLib_Handle_t IntfID,
-                     void *Bundle, size_t *Size, uint32_t Timeout) 
+int BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size,
+                     uint32_t Timeout) 
 {
   UT_GenStub_SetupReturnBuffer(BPLib_CLA_Egress, int);
 
-  UT_GenStub_AddParam(BPLib_CLA_Egress, BPLib_ContactsTable_t, ContactsTbl);
-  UT_GenStub_AddParam(BPLib_CLA_Egress, BPLib_Handle_t, IntfID);
+  UT_GenStub_AddParam(BPLib_CLA_Egress, uint8_t, ContId);
   UT_GenStub_AddParam(BPLib_CLA_Egress, void *, Bundle);
   UT_GenStub_AddParam(BPLib_CLA_Egress, size_t *, Size);
   UT_GenStub_AddParam(BPLib_CLA_Egress, uint32_t, Timeout);
@@ -67,13 +66,12 @@ int BPLib_CLA_Egress(BPLib_ContactsTable_t ContactsTbl, BPLib_Handle_t IntfID,
  * Generated stub function for BPLib_CLA_Ingress()
  * ----------------------------------------------------
  */
-int BPLib_CLA_Ingress(BPLib_ContactsTable_t ContactsTbl, BPLib_Handle_t IntfID,
-                      const void *Bundle, size_t Size, uint32_t Timeout) 
+int BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size,
+                      uint32_t Timeout) 
 {
   UT_GenStub_SetupReturnBuffer(BPLib_CLA_Ingress, int);
 
-  UT_GenStub_AddParam(BPLib_CLA_Ingress, BPLib_ContactsTable_t, ContactsTbl);
-  UT_GenStub_AddParam(BPLib_CLA_Ingress, BPLib_Handle_t, IntfID);
+  UT_GenStub_AddParam(BPLib_CLA_Ingress, uint8_t, ContId);
   UT_GenStub_AddParam(BPLib_CLA_Ingress, const void *, Bundle);
   UT_GenStub_AddParam(BPLib_CLA_Ingress, size_t, Size);
   UT_GenStub_AddParam(BPLib_CLA_Ingress, uint32_t, Timeout);

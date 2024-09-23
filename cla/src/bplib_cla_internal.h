@@ -44,13 +44,6 @@ typedef struct
     uint32_t  SessionID;
 }BPLib_CLA_IDSet_t;
 
-typedef struct
-{
-    uint32_t      RecvBundleCounts; 
-    uint32_t      RecvMsgCounts; 
-} BPLib_CLA_GlobalData_t;
-
-BPLib_CLA_GlobalData_t BPLib_CLA_GlobalData;
 
 /*
 ** Exported Functions
@@ -71,23 +64,6 @@ BPLib_CLA_GlobalData_t BPLib_CLA_GlobalData;
  */
 bool BPLib_CLA_IsAControlMsg(const void *Bundle);
 
-/**
- * \brief Construct a Cancel Request message
- *
- *  \par Description
- *       Construct a Cancel Request message to send out with session ID
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- * 
- *  \param[in] none for now
- * 
- *  \param[in] BootEra Entry in ring buffer to read from
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Operation was successful
- */
-int BPLib_CLA_ConstructCancelRequest(void);
 
 /**
  * \brief Process received control messages from CLs

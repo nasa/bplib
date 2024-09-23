@@ -37,12 +37,6 @@ bool BPLib_CLA_IsAControlMsg(const void *Bundle)
     return true;
 }
 
-/* BPLib_CLA_CancelRequest - constructs cancel request message when receiving a contact-stop directive or node shutdown directive*/
-int BPLib_CLA_ConstructCancelRequest(void)
-{
-    
-    return BPLIB_SUCCESS;
-}
 
 /* BPLib_CLA_ProcessControlMessage*/
 int BPLib_CLA_ProcessControlMessage(void)

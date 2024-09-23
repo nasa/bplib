@@ -25,14 +25,13 @@
 ** Include
 */
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
 #include "bplib.h"
 
+
 #define BPLIB_MAX_EID_LENGTH    256
-#define BPLIB_MAX_NUM_CONTACTS  10
+#define BPLIB_MAX_NUM_CONTACTS  1
 #define BPLIB_CLA_PERF_ID       182
+
 
 /*
 ** Contacts Table
@@ -70,7 +69,6 @@ struct BPLib_ContactsTable
 */
  typedef struct BPLib_ContactsTable BPLib_ContactsTable_t;  
 
-
 /*
 ** Exported Functions
 */
@@ -89,7 +87,6 @@ struct BPLib_ContactsTable
  */
 int BPLib_CLA_Init(void);
 
-
 /* CLA I/O (bundle data units) */
 
 /**
@@ -101,15 +98,14 @@ int BPLib_CLA_Init(void);
  *  \par Assumptions, External Events, and Notes:
  *       None
  *  \param[in] ContactsTbl - Pointer of the Contact Table
- *  \param[in] IntfID - Handle
  *  \param[in] Bundle - Pointer to the received bundle
  *  \param[in] Size - Size of the received bundle
  *  \param[in] Timeout - Time for pending on CL
  *
  *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
+ *  \retval BPLIB_SUCCESS when BPLib_CLA_Ingress was successful
  */
-int BPLib_CLA_Ingress(BPLib_ContactsTable_t ContactsTbl, BPLib_Handle_t IntfID, const void *Bundle, size_t Size, uint32_t Timeout);
+int BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout);
 
 /**
  * \brief CLA Egress function
@@ -120,14 +116,13 @@ int BPLib_CLA_Ingress(BPLib_ContactsTable_t ContactsTbl, BPLib_Handle_t IntfID, 
  *  \par Assumptions, External Events, and Notes:
  *       None
  *  \param[in] ContactsTbl - Pointer of the Contact Table
- *  \param[in] IntfID - Handle
  *  \param[in] Bundle - Pointer to the received bundle
  *  \param[in] Size - Size of the received bundle
  *  \param[in] Timeout - Time for pending on Bundle Queue
  *
  *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
+ *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
-int BPLib_CLA_Egress(BPLib_ContactsTable_t ContactsTbl, BPLib_Handle_t IntfID, void *Bundle, size_t *Size, uint32_t Timeout);
+int BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout);
 
 #endif /* BPLIB_CLA_H */

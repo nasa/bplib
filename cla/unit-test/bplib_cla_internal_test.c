@@ -28,17 +28,13 @@
 ** Test function for
 ** bool BPLib_CLA_IsAControlMsg(const void *Bundle)
 */
-void Test_BPLib_CLA_IsAControlMsg_Nominal(void)
-{
-    UtAssert_INT32_EQ(BPLib_CLA_IsAControlMsg(), BPLIB_SUCCESS);
-}
-
-void Test_BPLib_CLA_ConstructCancelRequest_Nominal(void)
+void Test_BPLib_CLA_IsAControlMsgNominal(void)
 {
     
 }
 
-void Test_BPLib_CLA_ProcessControlMessage_Nominal(void)
+
+void Test_BPLib_CLA_ProcessControlMessageNominal(void)
 {
     
 }
@@ -46,9 +42,8 @@ void Test_BPLib_CLA_ProcessControlMessage_Nominal(void)
 
 void TestBplibClaInternal_Register(void)
 {
-    ADD_TEST(Test_BPLib_CLA_IsAControlMsg_Nominal);
-    ADD_TEST(Test_BPLib_CLA_ConstructCancelRequest_Nominal);
-    ADD_TEST(Test_BPLib_CLA_ProcessControlMessage_Nominal);
+    UtTest_Add(Test_BPLib_CLA_IsAControlMsgNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_IsAControlMsgNominal");
+    UtTest_Add(Test_BPLib_CLA_ProcessControlMessageNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ProcessControlMessageNominal");
 }
 
 

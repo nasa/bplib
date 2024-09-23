@@ -44,6 +44,7 @@ target_include_directories(utobj_bplib_cla PRIVATE
 add_executable(coverage-bplib_cla-testrunner
     utilities/bplib_cla_test_utils.c
     bplib_cla_test.c
+    bplib_cla_internal_test.c
     $<TARGET_OBJECTS:utobj_bplib_cla>
 )
 
