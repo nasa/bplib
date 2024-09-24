@@ -26,62 +26,12 @@
 typedef struct
 {
     uint8_t ExampleParameter;
-} BPLib_StartAllApplicationsCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_VerifyBundleStorageCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_InitBundleStorageCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_VerifyBundleMetadataCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_RebuildBundleMetadataCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_ClearVolatileCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_ReloadSavedDataCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_ResetAllCountersCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
 } BPLib_ResetCounterCmd_Payload_t;
 
 typedef struct
 {
     uint8_t ExampleParameter;
 } BPLib_ResetSourceCountersCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_ResetBundleCountersCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_ResetErrorCountersCmd_Payload_t;
 
 typedef struct
 {
@@ -202,40 +152,5 @@ typedef struct
 {
     uint8_t ExampleParameter;
 } BPLib_RemoveStorageAllocationCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_PerformSelfTestCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_SendNodeMibConfigHkCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_SendSourceMibConfigHkCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_SendNodeMibCountersHkCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_SendSourceMibCountersHkCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_SendStorageHkCmd_Payload_t;
-
-typedef struct
-{
-    uint8_t ExampleParameter;
-} BPLib_SendChannelContactStatHkCmd_Payload_t;
 
 #endif // BPLIB_NC_PAYLOADS_H
