@@ -63,8 +63,6 @@ BPLib_Status_t BPLib_NC_AddAllApplicationsCmd()
     }
     */
 
-    // BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
-
     BPLib_EM_SendEvent(BPLIB_ADD_ALL_APPS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                         "Add all applications command is unimplemented");
 
@@ -84,9 +82,6 @@ BPLib_Status_t BPLib_NC_StartAllApplicationsCmd()
     {
         BPLib_NC_StartApplicationCmd(AppList[AppIdx]);
     }
-
-    BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
-
     */
 
     BPLib_EM_SendEvent(BPNODE_START_ALL_APPS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
@@ -101,8 +96,6 @@ BPLib_Status_t BPLib_NC_VerifyBundleStorageCmd()
 
     Status = BPLIB_SUCCESS;
 
-    // BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
-
     BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                         "Verify bundle storage command not implemented");
 
@@ -114,8 +107,6 @@ BPLib_Status_t BPLib_NC_InitBundleStorageCmd()
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
-
-    // BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
 
     BPLib_EM_SendEvent(BPLIB_INIT_BNDL_STOR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                         "Initialize bundle storage command not implemented");
@@ -129,8 +120,6 @@ BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd()
 
     Status = BPLIB_SUCCESS;
 
-    // BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
-
     BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_META_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                         "Verify bundle metadata (7.2) command not implemented");
 
@@ -142,8 +131,6 @@ BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd()
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
-
-    // BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
 
     BPLib_EM_SendEvent(BPLIB_REBUILD_BNDL_META_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                         "Rebuild bundle metadata command not implemented");
@@ -161,8 +148,6 @@ BPLib_Status_t BPLib_NC_ClearVolatileCmd()
     Status = BPLib_STOR_ClearVolatile();
     */
 
-    // BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
-
     BPLib_EM_SendEvent(BPLIB_CLR_VOLATILE_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                         "Clear volatile command not implemented");
 
@@ -174,8 +159,6 @@ BPLib_Status_t BPLib_NC_ReloadSavedDataCmd()
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
-
-    // BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
 
     BPLib_EM_SendEvent(BPLIB_RELOAD_SVD_DATA_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                         "Reload saved data (7.2) command not implemented");
@@ -216,8 +199,6 @@ BPLib_Status_t BPLib_NC_ResetCounterCmd(const BPLib_ResetCounterCmd_Payload_t Pa
     /*
     Status = BPLib_AS_ResetCounter();
     */
-
-    // BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount++;
 
     BPLib_EM_SendEvent(BPLIB_RESET_CTR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                         "Reset counter command not implemented");
