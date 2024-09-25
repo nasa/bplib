@@ -119,6 +119,7 @@ void Test_BPLib_MEM_Register(void)
 
 void Test_BPLib_MEM_Subqs_Register(void)
 {
+    ADD_TEST(Test_BPLib_MEM_SubqMergeList);
     ADD_TEST(Test_BPLib_MEM_SubqMoveAll);
     ADD_TEST(Test_BPLib_MEM_SubqDropAll);
     ADD_TEST(Test_BPLib_MEM_SubqPullSingle);

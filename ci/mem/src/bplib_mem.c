@@ -571,7 +571,6 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
  *-----------------------------------------------------------------*/
 uint32_t BPLib_MEM_SubqMergeList(BPLib_MEM_SubqBase_t *subq_dst, BPLib_MEM_Block_t *list)
 {
-    #ifdef BPLIB_MEM_SUBQ_TESTS
     uint32_t block_count;
 
     /* for record-keeping, must count the blocks to know how many are being moved here */
@@ -582,9 +581,6 @@ uint32_t BPLib_MEM_SubqMergeList(BPLib_MEM_SubqBase_t *subq_dst, BPLib_MEM_Block
     subq_dst->push_count += block_count;
 
     return block_count;
-    #else // BPLIB_MEM_SUBQ_TESTS
-    return 0;
-    #endif
 }
 
 /*----------------------------------------------------------------
@@ -610,20 +606,21 @@ uint32_t BPLib_MEM_SubqMoveAll(BPLib_MEM_SubqBase_t *subq_dst, BPLib_MEM_SubqBas
 
 /*----------------------------------------------------------------
  *
- * Function: BPLib_MEM_GenericDataAlloc
+ * Function: BPLib_MEM_SubqDropAll
  *
  *-----------------------------------------------------------------*/
-BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg)
+uint32_t BPLib_MEM_SubqDropAll(BPLib_MEM_Pool_t *pool, BPLib_MEM_SubqBase_t *subq)
 {
-    BPLib_MEM_BlockContent_t *result;
-    BPLib_MEM_Lock_t          *lock;
+    uint32_t queue_depth;
 
-    lock   = BPLib_MEM_LockResource(pool);
-    result = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypeGeneric, magic_number, init_arg,
-                                              BPLIB_MEM_ALLOC_PRI_MLO);
-    BPLib_MEM_LockRelease(lock);
-
-    return (BPLib_MEM_Block_t *)result;
+    /* appends the entire subq to the destination */
+    queue_depth = BPLib_MEM_SubqGetDepth(subq);
+    if (queue_depth > 0)
+    {
+        BPLib_MEM_RecycleAllBlocksInList(pool, &subq->block_list);
+        subq->pull_count += queue_depth;
+    }
+    return queue_depth;
 }
 
 /*----------------------------------------------------------------
@@ -657,6 +654,45 @@ BPLib_MEM_Block_t *BPLib_MEM_SubqPullSingle(BPLib_MEM_SubqBase_t *subq)
     ++subq->pull_count;
 
     return node;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_ListCountBlocks
+ *
+ *-----------------------------------------------------------------*/
+uint32_t BPLib_MEM_ListCountBlocks(BPLib_MEM_Block_t *list)
+{
+    BPLib_MEM_Block_t *node;
+    uint32_t           count;
+
+    node  = list->next;
+    count = 0;
+    while (node != list)
+    {
+        ++count;
+        node = node->next;
+    }
+
+    return count;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_GenericDataAlloc
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg)
+{
+    BPLib_MEM_BlockContent_t *result;
+    BPLib_MEM_Lock_t          *lock;
+
+    lock   = BPLib_MEM_LockResource(pool);
+    result = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypeGeneric, magic_number, init_arg,
+                                              BPLIB_MEM_ALLOC_PRI_MLO);
+    BPLib_MEM_LockRelease(lock);
+
+    return (BPLib_MEM_Block_t *)result;
 }
 
 /*----------------------------------------------------------------
@@ -722,25 +758,6 @@ void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk)
     lock = BPLib_MEM_LockResource(pool);
     BPLib_MEM_RecycleBlockInternal(pool, blk);
     BPLib_MEM_LockRelease(lock);
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_MEM_SubqDropAll
- *
- *-----------------------------------------------------------------*/
-uint32_t BPLib_MEM_SubqDropAll(BPLib_MEM_Pool_t *pool, BPLib_MEM_SubqBase_t *subq)
-{
-    uint32_t queue_depth;
-
-    /* appends the entire subq to the destination */
-    queue_depth = BPLib_MEM_SubqGetDepth(subq);
-    if (queue_depth > 0)
-    {
-        BPLib_MEM_RecycleAllBlocksInList(pool, &subq->block_list);
-        subq->pull_count += queue_depth;
-    }
-    return queue_depth;
 }
 
 

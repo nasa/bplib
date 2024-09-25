@@ -465,6 +465,23 @@ void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *li
 BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size);
 
 /**
+ * @brief Recycle an entire list of blocks which are no longer needed
+ *
+ * The blocks will be returned to the pool.  All blocks in the list must have
+ * been allocated from the same pool.
+ *
+ * The pool pointer may also be passed as NULL if the list object is known to be a
+ * member of a block that was also allocted from the pool.  In this case, the pool will
+ * be inferred from the list pointer.  However, if the list is a temporary object
+ * and not connected to the originating pool, then the actual pool pointer must be
+ * passed in.
+ *
+ * @param pool Originating pool, or NULL to infer/determine from list
+ * @param list List of objects to recycle
+ */
+void BPLib_MEM_RecycleAllBlocksInList(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t *list);
+
+/**
  * @brief Registers a given block type signature
  *
  * The api contains a constructor and destructor function, which will be invoked on newly allocated

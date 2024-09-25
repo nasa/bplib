@@ -45,6 +45,7 @@ void test_setup_allocation(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *db,
 void Test_BPLib_MEM_Register(void);
 void Test_BPLib_MEM_Subqs_Register(void);
 
+void Test_BPLib_MEM_SubqMergeList(void);
 void Test_BPLib_MEM_SubqMoveAll(void);
 void Test_BPLib_MEM_SubqDropAll(void);
 void Test_BPLib_MEM_SubqPullSingle(void);
