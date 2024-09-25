@@ -40,6 +40,18 @@ const uint32 UT_TESTBLOCKTYPE_SIG = 0x5f33c01a;
 #define TEST_BPLIB_MEM_POOL_SIZE 16384
 void *BPLib_MEM_TestPoolPtr;
 
+void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    bp_val_t RefSig = UT_Hook_GetArgValueByName(Context, "search_key_value", bp_val_t);
+
+    if (RefSig == UT_TESTBLOCKTYPE_SIG)
+    {
+        UserObj = NULL;
+    }
+
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+}
+
 void *TestUtil_BPLib_OS_Calloc(size_t size)
 {
     /* Allocate Memory Block */
@@ -51,6 +63,8 @@ void TestUtil_BPLib_OS_Free(void *ptr)
     /* Free Memory Block */
     free(ptr);
 }
+
+// Memory Allocator Tests
 
 /**
  * Test_BPLib_MEM_Init - Test function for int BPLib_MEM_Init()
@@ -70,16 +84,25 @@ void Test_BPLib_MEM_PoolCreate(void)
     UtAssert_NOT_NULL(BPLib_MEM_PoolCreate(BPLib_MEM_TestPoolPtr, TEST_BPLIB_MEM_POOL_SIZE));
 }
 
-void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+void Test_BPLib_MEM_InitListHead(void)
 {
-    bp_val_t RefSig = UT_Hook_GetArgValueByName(Context, "search_key_value", bp_val_t);
+    /* Test function for:
+     * void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *list_head)
+     */
+    BPLib_MEM_BlockContent_t my_block;
 
-    if (RefSig == UT_TESTBLOCKTYPE_SIG)
-    {
-        UserObj = NULL;
-    }
+    memset(&my_block, 0, sizeof(my_block));
 
-    UT_Stub_SetReturnValue(FuncKey, UserObj);
+    UtAssert_VOIDCALL(BPLib_MEM_InitListHead(&my_block.header.base_link,
+                                             &my_block.u.admin.recycle_blocks.block_list));
+}
+
+void Test_BPLib_MEM_SubqInit(void)
+{
+    BPLib_MEM_BlockContent_t my_block;
+    memset(&my_block, 0, sizeof(my_block));
+    
+    UtAssert_VOIDCALL(BPLib_MEM_SubqInit(&my_block.header.base_link, &my_block.u.admin.free_blocks));
 }
 
 void Test_BPLib_MEM_BlockFromExternalId(void)
@@ -110,11 +133,204 @@ void Test_BPLib_MEM_BlockFromExternalId(void)
     UtAssert_ADDRESS_EQ(BPLib_MEM_BlockFromExternalId(&buf.pool, id2), &buf.blk[1].header.base_link);
 }
 
+void Test_BPLib_MEM_GetGenericDataCapacity(void)
+{
+    /* Test function for:
+     * size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb)
+     */
+    BPLib_MEM_BlockContent_t my_block;
+
+    memset(&my_block, 0, sizeof(my_block));
+
+    UtAssert_ZERO(BPLib_MEM_GetGenericDataCapacity(&my_block.header.base_link));
+
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeGeneric, 0);
+    UtAssert_UINT32_EQ(BPLib_MEM_GetGenericDataCapacity(&my_block.header.base_link),
+                       sizeof(BPLib_MEM_BlockBuffer_t));
+}
+
+void Test_BPLib_MEM_Maintain(void)
+{
+    /* Test function for:
+     * void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool)
+     */
+    UT_BPLib_MEM_Buf_t               buf;
+    BPLib_MEM_BlockAdminContent_t *admin;
+
+    memset(&buf, 0, sizeof(buf));
+
+    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
+    UtAssert_VOIDCALL(BPLib_MEM_Maintain(&buf.pool));
+
+    admin = BPLib_MEM_GetAdmin(&buf.pool);
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
+    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
+    BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, &buf.blk[0].header.base_link);
+
+    UtAssert_VOIDCALL(BPLib_MEM_Maintain(&buf.pool));
+}
+
+void Test_BPLib_MEM_LockWait(void)
+{
+    /* Test function for:
+     * bool bplib_mpool_lock_wait(bplib_mpool_lock_t *lock, uint64_t until_dtntime)
+     */
+
+    BPLib_MEM_Lock_t *lock = BPLib_MEM_LockPrepare(NULL);
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_OS_GetDtnTimeMs), 1000);
+    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, 0));
+    UtAssert_BOOL_TRUE(BPLib_MEM_LockWait(lock, 5000));
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_OS_WaitUntilMs), BPLIB_MEM_TIMEOUT);
+    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, 5000));
+}
+
+void Test_BPLib_MEM_RegisterBlocktypeInternal(void)
+{
+
+}
+
+void Test_BPLib_MEM_RegisterBlocktype(void)
+{
+
+}
+
+void Test_BPLib_MEM_CollectBlocks(void)
+{
+
+}
+
+void Test_BPLib_MEM_RecycleBlockInternal(void)
+{
+
+}
+
+void Test_BPLIB_MEM_RecycleBlock(void)
+{
+
+}
+
+void Test_BPLib_MEM_RecycleAllBlocksInList(void)
+{
+
+}
+
+void Test_BPLib_MEM_GetBlockContentConst(void)
+{
+
+}
+
+void Test_BPLib_MEM_GetUserContentSize(void)
+{
+
+}
+
+void Test_BPLib_MEM_GetParentPoolFromLink(void)
+{
+
+}
+
+void Test_BPLib_MEM_InitBaseObject(void)
+{
+
+}
+
+void Test_BPLib_MEM_AllocBlockInternal(void)
+{
+
+}
+
+void Test_BPLib_MEM_GenericDataAlloc(void)
+{
+
+}
+
+// MEM Query Tests
+void Test_BPLib_MEM_QueryMemCurrentUse(void)
+{
+
+}
+
+void Test_BPLib_MEM_QueryMemMaxUse(void)
+{
+
+}
+
+
+// MEM Ref Tests
+void Test_BPLib_MEM_BlockDereferenceContent(void)
+{
+
+}
+
+void Test_BPLib_MEM_ReadRefcount(void)
+{
+
+}
+
+
+// MEM Block Offset Tests
+void Test_BPLib_MEM_GetUserDataOffsetByBlocktype(void)
+{
+
+}
+
+// MEM Debug Tests
+void Test_BPLib_MEM_DebugPrintListStats(void)
+{
+
+}
+
+void Test_BPLib_MEM_DebugScan(void)
+{
+
+}
+
 void Test_BPLib_MEM_Register(void)
 {
+    // Memory Allocator Tests
     ADD_TEST(Test_BPLib_MEM_Init);
     ADD_TEST(Test_BPLib_MEM_PoolCreate);
     ADD_TEST(Test_BPLib_MEM_BlockFromExternalId);
+    ADD_TEST(Test_BPLib_MEM_InitListHead);
+    ADD_TEST(Test_BPLib_MEM_SubqInit);
+    ADD_TEST(Test_BPLib_MEM_GetGenericDataCapacity);
+    ADD_TEST(Test_BPLib_MEM_Maintain);
+
+    // MEM Lock Tests
+    ADD_TEST(Test_BPLib_MEM_LockWait);
+
+    // MEM Pool Block Tests
+    ADD_TEST(Test_BPLib_MEM_RegisterBlocktypeInternal);
+    ADD_TEST(Test_BPLib_MEM_RegisterBlocktype);
+    ADD_TEST(Test_BPLib_MEM_SubqPushSingle);
+    ADD_TEST(Test_BPLib_MEM_SubqPullSingle);
+    ADD_TEST(Test_BPLib_MEM_CollectBlocks);
+    ADD_TEST(Test_BPLib_MEM_RecycleBlockInternal);
+    ADD_TEST(Test_BPLIB_MEM_RecycleBlock);
+    ADD_TEST(Test_BPLib_MEM_RecycleAllBlocksInList);
+    ADD_TEST(Test_BPLib_MEM_GetBlockContentConst);
+    ADD_TEST(Test_BPLib_MEM_GetUserContentSize);
+    ADD_TEST(Test_BPLib_MEM_GetParentPoolFromLink);
+    ADD_TEST(Test_BPLib_MEM_InitBaseObject);
+    ADD_TEST(Test_BPLib_MEM_AllocBlockInternal);
+    ADD_TEST(Test_BPLib_MEM_GenericDataAlloc);
+
+    // MEM Query Tests
+    ADD_TEST(Test_BPLib_MEM_QueryMemCurrentUse);
+    ADD_TEST(Test_BPLib_MEM_QueryMemMaxUse);
+
+    // MEM Ref Tests
+    ADD_TEST(Test_BPLib_MEM_BlockDereferenceContent);
+    ADD_TEST(Test_BPLib_MEM_ReadRefcount);
+
+    // MEM Block Offset Tests
+    ADD_TEST(Test_BPLib_MEM_GetUserDataOffsetByBlocktype);
+
+    // MEM Debug Tests
+    ADD_TEST(Test_BPLib_MEM_DebugPrintListStats);
+    ADD_TEST(Test_BPLib_MEM_DebugScan);
 }
 
 void Test_BPLib_MEM_Subqs_Register(void)

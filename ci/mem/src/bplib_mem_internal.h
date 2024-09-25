@@ -162,8 +162,10 @@ BPLib_MEM_Lock_t *BPLib_MEM_LockResource(void *resource_addr);
  */
 bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime);
 
-// TODO Add brief for SubqInit.
+// TODO Add brief for SubqInit and BPLib_MEM_InsertBefore.
 void BPLib_MEM_SubqInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqBase_t *qblk);
+
+void BPLib_MEM_InsertBefore(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node);
 
 uint64_t BPLib_MEM_OS_GetDtnTimeMs(void);
 
@@ -199,6 +201,11 @@ static inline uint32_t BPLib_MEM_SubqGetDepth(const BPLib_MEM_SubqBase_t *subq)
  * @return size_t
  */
 size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_Blocktype_t bt);
+
+// TODO add briefs for BPLib_MEM_GetGenericDataCapacity and BPLib_MEM_Maintain
+size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb);
+
+void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool);
 
 /**
  * @brief Inserts a node after the given position or list head

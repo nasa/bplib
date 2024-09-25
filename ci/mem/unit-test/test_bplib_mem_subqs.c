@@ -27,6 +27,7 @@
 #include "bplib_mem_internal.h"
 #include "test_bplib_mem.h"
 
+
 void UT_AltHandler_MoveQueue(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     BPLib_MEM_SubqBase_t *subq = UserObj;
@@ -112,6 +113,27 @@ void Test_BPLib_MEM_SubqDropAll(void)
     UtAssert_UINT32_EQ(BPLib_MEM_SubqDropAll(&buf.pool, &buf.blk[0].u.admin.recycle_blocks), 2);
     UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.push_count, 2);
     UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.pull_count, 2);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_subq_push_single
+ *
+ *-----------------------------------------------------------------*/
+void bplib_mpool_subq_push_single(BPLib_MEM_SubqBase_t *subq, BPLib_MEM_Block_t *cpb)
+{
+    BPLib_MEM_InsertBefore(&subq->block_list, cpb);
+    ++subq->push_count;
+}
+
+void Test_BPLib_MEM_SubqPushSingle(void)
+{
+    UT_BPLib_MEM_Buf_t buf;
+    BPLib_MEM_Block_t block;
+
+    block.type = BPLib_MEM_BlocktypeAdmin;
+    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
+    UtAssert_VOIDCALL(BPLib_MEM_SubqPushSingle(&buf.blk[0].u.admin.recycle_blocks, &block));
 }
 
 void Test_BPLib_MEM_SubqPullSingle(void)

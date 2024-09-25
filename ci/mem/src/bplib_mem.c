@@ -1116,16 +1116,15 @@ void BPLib_MEM_DebugPrintListStats(BPLib_MEM_Block_t *list, const char *label)
 /*----------------------------------------------------------------
  *
  * Function: BPLib_MEM_DebugScan
- * Function: BPLib_MEM_DebugScan
  *
  *-----------------------------------------------------------------*/
 void BPLib_MEM_DebugScan(BPLib_MEM_Pool_t *pool)
 {
     size_t                             i;
-    BPLib_MEM_BlockContent_t       *pchunk;
+    BPLib_MEM_BlockContent_t          *pchunk;
     uint32_t                           count_by_type[BPLib_MEM_BlocktypeMax];
     uint32_t                           count_invalid;
-    BPLib_MEM_BlockAdminContent_t *admin;
+    BPLib_MEM_BlockAdminContent_t     *admin;
 
     admin = BPLib_MEM_GetAdmin(pool);
 
