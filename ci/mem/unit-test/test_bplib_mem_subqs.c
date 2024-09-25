@@ -54,7 +54,16 @@ void Test_BPLib_MEM_SubqMergeList(void)
     UtAssert_UINT32_EQ(BPLib_MEM_SubqMergeList(&buf.blk[0].u.admin.recycle_blocks,
                                                buf.blk[1].u.admin.recycle_blocks.block_list.next),
                        0);
-}
+
+    test_setup_mpblock(&buf.pool, &buf.blk[2], BPLib_MEM_BlocktypeAdmin, 0);
+    BPLib_MEM_SubqPushSingle(&buf.blk[1].u.admin.recycle_blocks, &buf.blk[2].header.base_link);
+
+    UtAssert_UINT32_EQ(BPLib_MEM_SubqMergeList(&buf.blk[0].u.admin.recycle_blocks,
+                                               buf.blk[1].u.admin.recycle_blocks.block_list.next),
+                       1);
+
+    UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.push_count, 1);
+    UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.pull_count, 0);}
 
 void Test_BPLib_MEM_SubqMoveAll(void)
 {
@@ -75,8 +84,12 @@ void Test_BPLib_MEM_SubqMoveAll(void)
     BPLib_MEM_SubqPushSingle(&buf.blk[1].u.admin.recycle_blocks, &buf.blk[2].header.base_link);
 
     UtAssert_UINT32_EQ(BPLib_MEM_SubqMoveAll(&buf.blk[0].u.admin.recycle_blocks,
-                                                 &buf.blk[1].u.admin.recycle_blocks),
+                                             &buf.blk[1].u.admin.recycle_blocks),
                        1);
+    UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.push_count, 1);
+    UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.pull_count, 0);
+    UtAssert_UINT32_EQ(buf.blk[1].u.admin.recycle_blocks.push_count, 1);
+    UtAssert_UINT32_EQ(buf.blk[1].u.admin.recycle_blocks.pull_count, 1);
 }
 
 void Test_BPLib_MEM_SubqDropAll(void)
@@ -93,11 +106,12 @@ void Test_BPLib_MEM_SubqDropAll(void)
 
     test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_MEM_BlocktypeAdmin, 0);
     test_setup_mpblock(&buf.pool, &buf.blk[2], BPLib_MEM_BlocktypeAdmin, 0);
-    BPLib_MEM_SubqPushSingle(&buf.blk[0].u.admin.recycle_blocks, buf.blk[1].u.admin.recycle_blocks.block_list.next);
+    BPLib_MEM_SubqPushSingle(&buf.blk[0].u.admin.recycle_blocks, &buf.blk[1].header.base_link);
     BPLib_MEM_SubqPushSingle(&buf.blk[0].u.admin.recycle_blocks, &buf.blk[2].header.base_link);
 
     UtAssert_UINT32_EQ(BPLib_MEM_SubqDropAll(&buf.pool, &buf.blk[0].u.admin.recycle_blocks), 2);
-
+    UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.push_count, 2);
+    UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.pull_count, 2);
 }
 
 void Test_BPLib_MEM_SubqPullSingle(void)
