@@ -713,6 +713,26 @@ void BPLib_MEM_RecycleBlockInternal(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t *b
 
 /*----------------------------------------------------------------
  *
+ * Function: BPLIB_MEM_RecycleBlock
+ *
+ *-----------------------------------------------------------------*/
+void BPLIB_MEM_RecycleBlock(BPLib_MEM_Block_t *blk)
+{
+    BPLib_MEM_Lock_t *lock;
+    BPLib_MEM_Pool_t *pool;
+
+    /* only real content blocks should be recycled.  No secondary links or components/members. */
+    assert(BPLib_MEM_IsAnyContentNode(blk));
+
+    pool = BPLib_MEM_GetParentPoolFromLink(blk);
+
+    lock = BPLib_MEM_LockResource(pool);
+    BPLib_MEM_RecycleBlockInternal(pool, blk);
+    BPLib_MEM_LockRelease(lock);
+}
+
+/*----------------------------------------------------------------
+ *
  * Function: BPLib_MEM_RecycleAllBlocksInList
  *
  *-----------------------------------------------------------------*/

@@ -482,6 +482,15 @@ BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size);
 void BPLib_MEM_RecycleAllBlocksInList(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t *list);
 
 /**
+ * @brief Recycle a single block which is no longer needed
+ *
+ * The block will be returned to the pool it originated from.
+ *
+ * @param blk
+ */
+void BPLIB_MEM_RecycleBlock(BPLib_MEM_Block_t *blk);
+
+/**
  * @brief Registers a given block type signature
  *
  * The api contains a constructor and destructor function, which will be invoked on newly allocated
