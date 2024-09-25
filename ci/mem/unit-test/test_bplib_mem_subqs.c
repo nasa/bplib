@@ -128,3 +128,142 @@ void Test_BPLib_MEM_SubqPullSingle(void)
 
     UtAssert_NULL(BPLib_MEM_SubqPullSingle(&buf.blk[0].u.admin.recycle_blocks));
 }
+
+void Test_BPLib_MEM_ListIterGotoFirst(void)
+{
+    /* Test function for:
+     * int bplib_mpool_list_iter_goto_first(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
+     */
+    BPLib_MEM_Block_t     list;
+    BPLib_MEM_ListIter_t it;
+
+    memset(&list, 0, sizeof(list));
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterGotoFirst(&list, &it), BPLIB_ERROR);
+
+    BPLib_MEM_InitListHead(NULL, &list);
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterGotoFirst(&list, &it), BPLIB_ERROR);
+}
+
+void Test_BPLib_MEM_ListIterGotoLast(void)
+{
+    /* Test function for:
+     * int bplib_mpool_list_iter_goto_last(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
+     */
+
+    BPLib_MEM_Block_t     list;
+    BPLib_MEM_ListIter_t it;
+
+    memset(&list, 0, sizeof(list));
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterGotoLast(&list, &it), BPLIB_ERROR);
+
+    BPLib_MEM_InitListHead(NULL, &list);
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterGotoLast(&list, &it), BPLIB_ERROR);
+}
+
+void Test_BPLib_MEM_ListIterForward(void)
+{
+    /* Test function for:
+     * int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter)
+     */
+    BPLib_MEM_ListIter_t     it;
+    BPLib_MEM_Block_t         list;
+    BPLib_MEM_BlockContent_t my_block;
+
+    memset(&it, 0, sizeof(it));
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterForward(&it), BPLIB_ERROR);
+
+    memset(&list, 0, sizeof(list));
+    BPLib_MEM_InitListHead(NULL, &list);
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeGeneric, 0);
+    BPLib_MEM_InsertAfter(&list, &my_block.header.base_link);
+
+    it.pending_entry = &my_block.header.base_link;
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterForward(&it), BPLIB_SUCCESS);
+
+    UtAssert_ADDRESS_EQ(it.position, &my_block);
+    UtAssert_ADDRESS_EQ(it.pending_entry, &list);
+
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterForward(&it), BPLIB_ERROR);
+}
+
+void Test_BPLib_MEM_ListIterReverse(void)
+{
+    /* Test function for:
+     * int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter)
+     */
+    BPLib_MEM_ListIter_t     it;
+    BPLib_MEM_Block_t         list;
+    BPLib_MEM_BlockContent_t my_block;
+
+    memset(&it, 0, sizeof(it));
+
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterReverse(&it), BPLIB_ERROR);
+
+    memset(&list, 0, sizeof(list));
+    BPLib_MEM_InitListHead(NULL, &list);
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeGeneric, 0);
+    BPLib_MEM_InsertAfter(&list, &my_block.header.base_link);
+
+    it.pending_entry = &my_block.header.base_link;
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterReverse(&it), BPLIB_SUCCESS);
+
+    UtAssert_ADDRESS_EQ(it.position, &my_block);
+    UtAssert_ADDRESS_EQ(it.pending_entry, &list);
+
+    UtAssert_INT32_EQ(BPLib_MEM_ListIterReverse(&it), BPLIB_ERROR);
+}
+
+void Test_BPLib_MEM_ForeachItemInList(void)
+{
+    /* Test function for:
+     * int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remove, bplib_mpool_callback_func_t
+     * callback_fn, void *callback_arg)
+     */
+
+    BPLib_MEM_Block_t         list;
+    BPLib_MEM_BlockContent_t my_block;
+
+    memset(&list, 0, sizeof(list));
+    BPLib_MEM_InitListHead(NULL, &list);
+
+    UtAssert_ZERO(BPLib_MEM_ForeachItemInList(&list, false, Test_BPLib_MEM_CallbackStub, NULL));
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 0);
+
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeGeneric, 0);
+    BPLib_MEM_InsertAfter(&list, &my_block.header.base_link);
+
+    UtAssert_INT32_EQ(BPLib_MEM_ForeachItemInList(&list, false, Test_BPLib_MEM_CallbackStub, NULL), 1);
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 1);
+
+    UtAssert_INT32_EQ(BPLib_MEM_ForeachItemInList(&list, true, Test_BPLib_MEM_CallbackStub, NULL), 1);
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 2);
+    UtAssert_BOOL_TRUE(BPLib_MEM_IsLinkUnattached(&my_block.header.base_link));
+}
+
+void Test_BPLib_MEM_SearchList(void)
+{
+    /* Test function for:
+     * bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bplib_mpool_callback_func_t
+     * match_fn, void *match_arg)
+     */
+    BPLib_MEM_Block_t         list;
+    BPLib_MEM_BlockContent_t my_block;
+
+    memset(&list, 0, sizeof(list));
+    BPLib_MEM_InitListHead(NULL, &list);
+
+    UtAssert_NULL(BPLib_MEM_SearchList(&list, Test_BPLib_MEM_CallbackStub, NULL));
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 0);
+
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeGeneric, 0);
+    BPLib_MEM_InsertAfter(&list, &my_block.header.base_link);
+
+    UtAssert_ADDRESS_EQ(BPLib_MEM_SearchList(&list, Test_BPLib_MEM_CallbackStub, NULL),
+                        &my_block.header.base_link);
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 1);
+
+    UT_SetDefaultReturnValue(UT_KEY(Test_BPLib_MEM_CallbackStub), 1);
+    UtAssert_NULL(BPLib_MEM_SearchList(&list, Test_BPLib_MEM_CallbackStub, NULL));
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 2);
+}
+

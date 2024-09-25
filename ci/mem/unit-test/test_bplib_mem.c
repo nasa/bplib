@@ -123,5 +123,10 @@ void Test_BPLib_MEM_Subqs_Register(void)
     ADD_TEST(Test_BPLib_MEM_SubqMoveAll);
     ADD_TEST(Test_BPLib_MEM_SubqDropAll);
     ADD_TEST(Test_BPLib_MEM_SubqPullSingle);
+    ADD_TEST(Test_BPLib_MEM_ListIterGotoFirst);
+    ADD_TEST(Test_BPLib_MEM_ListIterGotoLast);
+    ADD_TEST(Test_BPLib_MEM_ListIterForward);
+    ADD_TEST(Test_BPLib_MEM_ListIterReverse);
+    ADD_TEST(Test_BPLib_MEM_ForeachItemInList);
+    ADD_TEST(Test_BPLib_MEM_SearchList);
 }
-

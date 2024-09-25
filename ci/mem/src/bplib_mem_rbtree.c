@@ -26,9 +26,6 @@
 #include <string.h>
 
 #include "bplib.h"
-#ifdef ADD_OS // TODO Add bplib_os
-#include "bplib_os.h"
-#endif
 #include "bplib_mem_rbtree.h"
 
 /******************************************************************************

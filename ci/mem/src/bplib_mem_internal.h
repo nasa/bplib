@@ -129,7 +129,7 @@ static inline void BPLib_MEM_LockRelease(BPLib_MEM_Lock_t *lock)
  *
  * Locates the correct lock to use for the given resource, but does not acquire the lock
  *
- * @note  it is imperative that all calls use the same referece address (such as the head
+ * @note  it is imperative that all calls use the same reference address (such as the head
  * of the list) when referring to the same resource for locking to work correctly.
  *
  * @param resource_addr
@@ -162,6 +162,7 @@ BPLib_MEM_Lock_t *BPLib_MEM_LockResource(void *resource_addr);
  */
 bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime);
 
+// TODO Add brief for SubqInit.
 void BPLib_MEM_SubqInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqBase_t *qblk);
 
 uint64_t BPLib_MEM_OS_GetDtnTimeMs(void);
@@ -200,7 +201,109 @@ static inline uint32_t BPLib_MEM_SubqGetDepth(const BPLib_MEM_SubqBase_t *subq)
 size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_Blocktype_t bt);
 
 /**
- * @brief Append a single bundle to the given queue (flow)
+ * @brief Inserts a node after the given position or list head
+ *
+ * Note when inserting at a list head, it is essentially a mirror image (outside looking in)
+ * Therefore this call will place a node at the _beginning_ of the list (prepend)
+ *
+ * @param list
+ * @param node
+ */
+void BPLib_MEM_InsertAfter(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node);
+
+/**
+ * Subq-as-list iterator functions for operating on subqs with list-type operations.
+ * CACHE uses subqs more extensively, but they are used in MEM for subqs
+ * like the free_blocks and recycle_blocks subqs.
+ */
+typedef struct BPLib_MEM_ListIter
+{
+    BPLib_MEM_Block_t *position;
+    BPLib_MEM_Block_t *pending_entry;
+} BPLib_MEM_ListIter_t;
+
+/* basic list iterators (forward or reverse) */
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Position an iterator at the first value in the list
+ *
+ * @param iter          The iterator object to position
+ * @returns integer status code
+ * @retval BPLIB_SUCCESS if iterator is valid
+ */
+int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter);
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Position an iterator at the last value in the list
+ *
+ * @param iter          The iterator object to position
+ * @returns integer status code
+ * @retval BPLIB_SUCCESS if iterator is valid
+ */
+int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter);
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Move an iterator forward by one step in the tree
+ *
+ * Sets the iterator to the immediate successor of the current node.
+ * This allows the caller to perform a ascending-order tree traversal.
+ *
+ * @param iter          The iterator object to move
+ * @retval BPLIB_SUCCESS if iterator is valid
+ */
+int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter);
+
+/*--------------------------------------------------------------------------------------*/
+/**
+ * @brief Move an iterator backward by one step in the tree
+ *
+ * Sets the iterator to the immediate predecessor of the current node.
+ * This allows the caller to perform a descending-order tree traversal.
+ *
+ * @param iter          The iterator object to move
+ * @retval BPLIB_SUCCESS if iterator is valid
+ */
+int BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter);
+
+/**
+ * @brief Process every item in the list in sequential order
+ *
+ * The callback function will be invoked for every item in the list, except for the head node.
+ *
+ * If "always_remove" is true, the item will be removed from the list prior to invoking the call.
+ * In this case, the callback function must guarantee to place the block onto another list (or
+ * some other tracking facility) to not leak blocks.
+ *
+ * @param list
+ * @param always_remove
+ * @param callback_fn
+ * @param callback_arg
+ * @return int Number of items that were in the list
+ */
+int BPLib_MEM_ForeachItemInList(BPLib_MEM_Block_t *list, bool always_remove,
+                                BPLib_MEM_CallbackFunc_t callback_fn, void *callback_arg);
+
+/**
+ * @brief Search a list in sequential order
+ *
+ * The match function will be invoked for every entry in the list, and the supplied argument
+ * will be passed to it. If the function returns 0, then the search stops and the node is returned.
+ *
+ * @param list The list to search
+ * @param match_fn A function that should return 0 if a match is found, nonzero otherwise
+ * @param match_arg An opaque argument passed to the match_fn, typically the match reference object
+ * @return bplib_mpool_block_t* The matching list entry
+ * @retval NULL if no match was found
+ */
+BPLib_MEM_Block_t *BPLib_MEM_SearchList(const BPLib_MEM_Block_t *list,
+                                        BPLib_MEM_CallbackFunc_t match_fn,
+                                        void *match_arg);
+
+/**
+ * @brief Append a single bundle to the given sub-queue
  *
  * @note This should only be called from internal contexts where a lock is held
  *
@@ -210,7 +313,7 @@ size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_Blocktype_t bt);
 void BPLib_MEM_SubqPushSingle(BPLib_MEM_SubqBase_t *subq, BPLib_MEM_Block_t *cpb);
 
 /**
- * @brief Get the next bundle from the given queue (flow)
+ * @brief Get the next bundle from the given sub-queue
  *
  * @note This should only be called from internal contexts where a lock is held
  *
@@ -230,7 +333,6 @@ BPLib_MEM_Block_t *BPLib_MEM_SubqPullSingle(BPLib_MEM_SubqBase_t *subq);
  * @return uint32_t number of blocks
  */
 uint32_t BPLib_MEM_ListCountBlocks(BPLib_MEM_Block_t *list);
-
 
 /**
  * @brief Pushes an entire list of blocks into a subq

@@ -50,17 +50,15 @@ void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
-int test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_Block_t *blk)
+int Test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_Block_t *blk)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_MEM_CallbackStub);
-    return UT_DEFAULT_IMPL(test_BPLib_MEM_CallbackStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_MEM_CallbackStub);
 }
 
 void test_make_singleton_link(BPLib_MEM_Pool_t *parent_pool, BPLib_MEM_Block_t *b)
 {
     if (parent_pool != NULL)
     {
-        b->parent_offset = ((uintptr_t)b - (uintptr_t)parent_pool) / sizeof(BPLib_MEM_BlockContent_t);
         b->parent_offset = ((uintptr_t)b - (uintptr_t)parent_pool) / sizeof(BPLib_MEM_BlockContent_t);
     }
     else
@@ -120,3 +118,4 @@ void test_setup_allocation(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *db,
 }
 
 // UtTest_Setup is in bplib_mem_test_utils.c
+

@@ -35,7 +35,7 @@ typedef struct
 
 /* helper functions used in multiple tests */
 void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
-int  test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_Block_t *blk);
+int  Test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_Block_t *blk);
 void test_make_singleton_link(BPLib_MEM_Pool_t *parent_pool, BPLib_MEM_Block_t *b);
 void test_setup_mpblock(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *b, BPLib_MEM_Blocktype_t blktype,
                         uint32 sig);
@@ -45,9 +45,18 @@ void test_setup_allocation(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *db,
 void Test_BPLib_MEM_Register(void);
 void Test_BPLib_MEM_Subqs_Register(void);
 
+// Subq Tests
 void Test_BPLib_MEM_SubqMergeList(void);
 void Test_BPLib_MEM_SubqMoveAll(void);
 void Test_BPLib_MEM_SubqDropAll(void);
 void Test_BPLib_MEM_SubqPullSingle(void);
+
+// Subq-as-List Iterator Tests
+void Test_BPLib_MEM_ListIterGotoFirst(void);
+void Test_BPLib_MEM_ListIterGotoLast(void);
+void Test_BPLib_MEM_ListIterForward(void);
+void Test_BPLib_MEM_ListIterReverse(void);
+void Test_BPLib_MEM_ForeachItemInList(void);
+void Test_BPLib_MEM_SearchList(void);
 
 #endif // TEST_BPLIB_MPOOL_H

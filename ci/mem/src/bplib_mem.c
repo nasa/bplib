@@ -760,11 +760,8 @@ void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk)
     BPLib_MEM_LockRelease(lock);
 }
 
-
-#ifdef BPLIB_MEM_ENABLE_LIST // STOR - Cache does blocktype lists, but MEM needs a generic list.
 /*----------------------------------------------------------------
  *
- * Function: BPLib_MEM_ListIterGotoFirst
  * Function: BPLib_MEM_ListIterGotoFirst
  *
  *-----------------------------------------------------------------*/
@@ -777,7 +774,6 @@ int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIte
 
     iter->pending_entry = list->next;
 
-    return BPLib_MEM_ListIterForward(iter);
     return BPLib_MEM_ListIterForward(iter);
 }
 
@@ -884,30 +880,24 @@ BPLib_MEM_Block_t *BPLib_MEM_SearchList(const BPLib_MEM_Block_t *list, BPLib_MEM
 {
     int                     status;
     BPLib_MEM_ListIter_t iter;
-    BPLib_MEM_ListIter_t iter;
 
     memset(&iter, 0, sizeof(iter));
 
-    status = BPLib_MEM_ListIterGotoFirst(list, &iter);
     status = BPLib_MEM_ListIterGotoFirst(list, &iter);
     while (status == BPLIB_SUCCESS)
     {
         /* this calls the match function with the actual content block, as that is where
          * the real information lies (this is typically a list full of secondary links) */
         if (match_fn(match_arg, BPLib_MEM_GetBlockFromLink(iter.position)) == 0)
-        if (match_fn(match_arg, BPLib_MEM_GetBlockFromLink(iter.position)) == 0)
         {
             break;
         }
-        status = BPLib_MEM_ListIterForward(&iter);
         status = BPLib_MEM_ListIterForward(&iter);
     }
 
     /* the iterator sets position to NULL if end of list was reached */
     return iter.position;
 }
-
-#endif // BPLIB_MEM_ENABLE_LIST
 
 /*----------------------------------------------------------------
  *
@@ -1224,6 +1214,7 @@ BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
      */
     admin->bblock_alloc_threshold   = (admin->num_bufs_total * 30) / 100;
     admin->internal_alloc_threshold = (admin->num_bufs_total * 10) / 100;
+    // TODO ?Remove the heritage code print to stderr in BPLib_MEM_PoolCreate()?
     fprintf(stderr, "%s(): created pool of size %zu, with %u chunks, bblock threshold = %u, internal threshold = %u\n",
             __func__, pool_size, (unsigned int)admin->num_bufs_total, (unsigned int)admin->bblock_alloc_threshold,
             (unsigned int)admin->internal_alloc_threshold);

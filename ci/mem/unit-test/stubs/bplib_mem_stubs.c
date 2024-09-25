@@ -107,10 +107,8 @@ void BPLib_MEM_ExtractNode(BPLib_MEM_Block_t *node)
     UT_GenStub_Execute(BPLib_MEM_ExtractNode, Basic, NULL);
 }
 
-#ifdef BPLIB_MEM_ENABLE_LIST // TODO If BPLIB_MEM_ENABLE_LIST
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_ForeachItemInList()
  * Generated stub function for BPLib_MEM_ForeachItemInList()
  * ----------------------------------------------------
  */
@@ -118,20 +116,14 @@ int BPLib_MEM_ForeachItemInList(BPLib_MEM_Block_t *list, bool always_remove,
                                      BPLib_MEM_CallbackFunc_t callback_fn, void *callback_arg)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_ForeachItemInList, int);
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_ForeachItemInList, int);
 
-    UT_GenStub_AddParam(BPLib_MEM_ForeachItemInList, BPLib_MEM_Block_t *, list);
-    UT_GenStub_AddParam(BPLib_MEM_ForeachItemInList, bool, always_remove);
     UT_GenStub_AddParam(BPLib_MEM_ForeachItemInList, BPLib_MEM_CallbackFunc_t, callback_fn);
     UT_GenStub_AddParam(BPLib_MEM_ForeachItemInList, void *, callback_arg);
 
     UT_GenStub_Execute(BPLib_MEM_ForeachItemInList, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_ForeachItemInList, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_MEM_ForeachItemInList, int);
-    return UT_GenStub_GetReturnValue(BPLib_MEM_ForeachItemInList, int);
 }
-#endif // BPLIB_MEM_ENABLE_LIST
 
 /*
  * ----------------------------------------------------
