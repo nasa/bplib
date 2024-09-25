@@ -15,7 +15,10 @@ output:
 ### TODO For the module guide & implementation
 
 1. Review cfe_es_mempool.c versus MEM
+1. Review Quong's memory allocator and filesystem
 1. Add more unit tests
+1. Review and disposition all #ifdefs
+1. Add required abstract types to ci/mem/bplib_api_types.h.patch ready to patch bplib/inc/bplib_api_types.h
 1. Reconcile bp_blocktype_t in v7_types.h with bplib_mpool_blocktype
 1. Reconcile bplib/v7 with bplib/mem
 1. Verify ut file layout and format
@@ -28,6 +31,8 @@ output:
 ### MEM Module Block Diagram
 
 mem_block, mem_blocktype, mem_subq, mem_pool
+
+### MEM External and Interrnal Constraints
 
 ### MEM Data Structures
 
@@ -48,4 +53,5 @@ mem_block, mem_blocktype, mem_subq, mem_pool
 
 #### MEM Internal API
 
-### MEM Unit Test
+### MEM Unit Tests
+
