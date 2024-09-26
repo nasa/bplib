@@ -32,12 +32,12 @@
 /* Function Definitions */
 /* ==================== */
 
-BPLib_Status_t BPLib_NC_Init()
+BPLib_Status_t BPLib_NC_Init(void)
 {
     return BPLIB_SUCCESS;
 }
 
-BPLib_Status_t BPLib_NC_NoopCmd()
+BPLib_Status_t BPLib_NC_NoopCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -46,7 +46,7 @@ BPLib_Status_t BPLib_NC_NoopCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddAllApplicationsCmd()
+BPLib_Status_t BPLib_NC_AddAllApplicationsCmd(void)
 {
     BPLib_Status_t Status;
     // uint8_t AppIdx;
@@ -77,7 +77,7 @@ BPLib_Status_t BPLib_NC_AddAllApplicationsCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_StartAllApplicationsCmd()
+BPLib_Status_t BPLib_NC_StartAllApplicationsCmd(void)
 {
     BPLib_Status_t Status;
     // uint8_t AppIdx;
@@ -106,7 +106,7 @@ BPLib_Status_t BPLib_NC_StartAllApplicationsCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_VerifyBundleStorageCmd()
+BPLib_Status_t BPLib_NC_VerifyBundleStorageCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -126,7 +126,7 @@ BPLib_Status_t BPLib_NC_VerifyBundleStorageCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_InitBundleStorageCmd()
+BPLib_Status_t BPLib_NC_InitBundleStorageCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -150,7 +150,7 @@ BPLib_Status_t BPLib_NC_InitBundleStorageCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd()
+BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -170,7 +170,7 @@ BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd()
+BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -194,7 +194,7 @@ BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ClearVolatileCmd()
+BPLib_Status_t BPLib_NC_ClearVolatileCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -218,7 +218,7 @@ BPLib_Status_t BPLib_NC_ClearVolatileCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ReloadSavedDataCmd()
+BPLib_Status_t BPLib_NC_ReloadSavedDataCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -238,7 +238,7 @@ BPLib_Status_t BPLib_NC_ReloadSavedDataCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ResetAllCountersCmd()
+BPLib_Status_t BPLib_NC_ResetAllCountersCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -259,12 +259,12 @@ BPLib_Status_t BPLib_NC_ResetAllCountersCmd()
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset all counters command");
+                            "Reset all counters command not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reset all counters command");
+                            "Reset all counters command not implemented");
     }
 
     return Status;
@@ -322,7 +322,7 @@ BPLib_Status_t BPLib_NC_ResetSourceCountersCmd(const BPLib_ResetSourceCountersCm
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ResetBundleCountersCmd()
+BPLib_Status_t BPLib_NC_ResetBundleCountersCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -346,7 +346,7 @@ BPLib_Status_t BPLib_NC_ResetBundleCountersCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ResetErrorCountersCmd()
+BPLib_Status_t BPLib_NC_ResetErrorCountersCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -1041,7 +1041,7 @@ BPLib_Status_t BPLib_NC_RemoveStorageAllocationCmd(const BPLib_RemoveStorageAllo
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_PerformSelfTestCmd()
+BPLib_Status_t BPLib_NC_PerformSelfTestCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -1061,7 +1061,7 @@ BPLib_Status_t BPLib_NC_PerformSelfTestCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibConfigHkCmd()
+BPLib_Status_t BPLib_NC_SendNodeMibConfigHkCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -1069,7 +1069,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHkCmd()
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CFG_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CFG_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send node mib config hk command not implemented");
     }
     else
@@ -1081,7 +1081,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHkCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibConfigHkCmd()
+BPLib_Status_t BPLib_NC_SendSourceMibConfigHkCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -1089,7 +1089,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHkCmd()
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CFG_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CFG_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send per-source mib config hk command not implemented");
     }
     else
@@ -1101,7 +1101,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHkCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd()
+BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -1109,7 +1109,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd()
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CTRS_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send node mib counters HK command not implemented");
     }
     else
@@ -1121,7 +1121,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd()
+BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -1129,7 +1129,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd()
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CTRS_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send per-source mib counter hk command not implemented");
     }
     else
@@ -1141,7 +1141,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendStorageHkCmd()
+BPLib_Status_t BPLib_NC_SendStorageHkCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -1149,7 +1149,7 @@ BPLib_Status_t BPLib_NC_SendStorageHkCmd()
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_SEND_STOR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_SEND_STOR_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send storage hk command not implemented");
     }
     else
@@ -1161,7 +1161,7 @@ BPLib_Status_t BPLib_NC_SendStorageHkCmd()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendChannelContactStatHkCmd()
+BPLib_Status_t BPLib_NC_SendChannelContactStatHkCmd(void)
 {
     BPLib_Status_t Status;
 
@@ -1169,7 +1169,7 @@ BPLib_Status_t BPLib_NC_SendChannelContactStatHkCmd()
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_SEND_CHAN_CONTACT_STAT_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_SEND_CHAN_CONTACT_STAT_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send channel/contact status hk command not implemented");
     }
     else
