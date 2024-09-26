@@ -917,6 +917,55 @@ BPLib_Status_t BPLib_NC_SetMibItemCmd(const BPLib_SetMibItemCmd_Payload_t Payloa
 
     Status = BPLIB_SUCCESS;
 
+    /*
+    // NC verifies that specified MIB item is valid index into the list of MIB items
+    if (Payload.Index > MAX_MIB_ARR_SIZE || Payload.Index < 0)
+    {
+        BPLib_EM_SendEvent(BPLIB_SET_MIB_ITEM_INVALID_INDEX_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Given index (%d) was out of bounds, expected value in range [0, %d]",
+                            Payload.Index, MAX_MIB_ARR_SIZE);
+
+        return BPLIB_INVALID_MIB_ITEM_INDEX;
+    }
+    */
+
+    /*
+    // NC verifies that value provided is a valid value for the MIB item
+    if (Payload.Value > MAX_MIB_VALUE || Payload.Value < MIN_MIB_VALUE)
+    {
+        Status = BPLIB_INVALID_MIB_VALUE;
+
+        BPLib_EM_SendEvent(BPLIB_SET_MID_ITEM_INVALID_VALUE_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Given MIB value (%d) was invalid, expected value in range [%d, %d]",
+                            Payload.Value, MAX_MIB_VALUE, MIN_MID_VALUE);
+    }
+    else
+    {
+        // If valid, NC sets the MIB item to specified value...
+        MIB.Value = Payload.Value;
+
+        // NC synchronously begins using updated table
+    }
+    */
+
+    /*
+    // NC sends notification to Framework Proxy that MIB configuration has been updated
+    */
+
+    /*
+    // Framework Proxy notifies cFS Table Services of MIB table update
+    Status = (BPLib_Status_t) BPA_TABLEP_TableUpdate();
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_SET_MIB_ITEM_TBL_UPDATE_FAIL,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to update the MIB configuration")
+
+        return Status;
+    }
+    */
+
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SET_MIB_ITEM_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
