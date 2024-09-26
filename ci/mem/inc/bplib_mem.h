@@ -296,7 +296,41 @@ typedef struct BPLib_MEM_SubqBase
 } BPLib_MEM_SubqBase_t;
 
 /**
- * @brief Checks if this block is a singleon
+ * @brief Gets the next block in a list of blocks
+ *
+ * @param cb
+ * @return BPLib_MEM_Block_t*
+ */
+static inline BPLib_MEM_Block_t *BPLib_MEM_GetNextBlock(BPLib_MEM_Block_t *cb)
+{
+    return cb->next;
+}
+
+/**
+ * @brief Gets the previous block in a list of blocks
+ *
+ * @param cb
+ * @return BPLib_MEM_Block_t*
+ */
+static inline BPLib_MEM_Block_t *BPLib_MEM_GetPrevBlock(BPLib_MEM_Block_t *cb)
+{
+    return cb->prev;
+}
+
+/**
+ * @brief Checks if this block is part of a list
+ *
+ * @param list
+ * @return true If this is in a list
+ * @return false If the block is a singleton
+ */
+static inline bool BPLib_MEM_IsLinkAttached(const BPLib_MEM_Block_t *list)
+{
+    return (list->next != list);
+}
+
+/**
+ * @brief Checks if this block is a singleton
  *
  * @param list
  * @return true If the block is a singleton
@@ -319,6 +353,30 @@ static inline bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list)
 static inline bool BPLib_MEM_IsListHead(const BPLib_MEM_Block_t *list)
 {
     return (list->type == BPLib_MEM_BlocktypeListHead);
+}
+
+/**
+ * @brief Checks if this block is an empty list
+ *
+ * @param list
+ * @return true If the list is empty
+ * @return false If the list is not empty, or not a list head node
+ */
+static inline bool BPLib_MEM_IsEmptyListHead(const BPLib_MEM_Block_t *list)
+{
+    return (BPLib_MEM_IsListHead(list) && BPLib_MEM_IsLinkUnattached(list));
+}
+
+/**
+ * @brief Checks if this block is a non-empty list
+ *
+ * @param list
+ * @return true If the list is not empty
+ * @return false If the list is empty, or not a list head node
+ */
+static inline bool BPLib_MEM_IsNonEmptyListHead(const BPLib_MEM_Block_t *list)
+{
+    return (BPLib_MEM_IsListHead(list) && BPLib_MEM_IsLinkAttached(list));
 }
 
 /**
@@ -397,6 +455,10 @@ typedef struct BPLib_MEM_Pool
 #define BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(m) (offsetof(BPLib_MEM_BlockBuffer_t, m.user_data_start))
 
 #define BPLIB_MEM_GET_BLOCK_USER_CAPACITY(m) (sizeof(BPLib_MEM_BlockBuffer_t) - MPOOL_GET_BUFFER_USER_START_OFFSET(m))
+
+// TODO Add a brief for BPLib_MEM_RegisterBlockTypeInternal
+int BPLib_MEM_RegisterBlocktypeInternal(BPLib_MEM_Pool_t *pool, uint32_t magic_number,
+                                        const BPLib_MEM_BlocktypeApi_t *api, size_t user_content_size);
 
 /**
  * @brief Checks if the block is any valid content type

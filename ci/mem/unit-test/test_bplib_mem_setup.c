@@ -98,7 +98,7 @@ void test_setup_mpblock(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *b, BPL
 void test_setup_allocation(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *db, BPLib_MEM_BlockContent_t *apib)
 {
     BPLib_MEM_BlockAdminContent_t *admin;
-    void                              *api_content;
+    void                          *api_content;
 
     test_setup_mpblock(pool, &pool->admin_block, BPLib_MEM_BlocktypeAdmin, 0);
     test_setup_mpblock(pool, db, BPLib_MEM_BlocktypeUndefined, 0);

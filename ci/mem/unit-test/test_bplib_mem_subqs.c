@@ -115,25 +115,18 @@ void Test_BPLib_MEM_SubqDropAll(void)
     UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.pull_count, 2);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_subq_push_single
- *
- *-----------------------------------------------------------------*/
-void bplib_mpool_subq_push_single(BPLib_MEM_SubqBase_t *subq, BPLib_MEM_Block_t *cpb)
-{
-    BPLib_MEM_InsertBefore(&subq->block_list, cpb);
-    ++subq->push_count;
-}
-
 void Test_BPLib_MEM_SubqPushSingle(void)
 {
     UT_BPLib_MEM_Buf_t buf;
-    BPLib_MEM_Block_t block;
 
-    block.type = BPLib_MEM_BlocktypeAdmin;
+    memset(&buf, 0, sizeof(buf));
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
-    UtAssert_VOIDCALL(BPLib_MEM_SubqPushSingle(&buf.blk[0].u.admin.recycle_blocks, &block));
+    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeAdmin, 0);
+    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_MEM_BlocktypeAdmin, 0);
+    UtAssert_VOIDCALL(BPLib_MEM_SubqPushSingle(&buf.blk[0].u.admin.recycle_blocks,
+                                               &buf.blk[1].header.base_link));
+    UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.push_count, 1);
+    UtAssert_UINT32_EQ(buf.blk[0].u.admin.recycle_blocks.pull_count, 0);
 }
 
 void Test_BPLib_MEM_SubqPullSingle(void)
@@ -251,7 +244,7 @@ void Test_BPLib_MEM_ForeachItemInList(void)
     UtAssert_ZERO(BPLib_MEM_ForeachItemInList(&list, false, Test_BPLib_MEM_CallbackStub, NULL));
     UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 0);
 
-    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeGeneric, 0);
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeAdmin, 0);
     BPLib_MEM_InsertAfter(&list, &my_block.header.base_link);
 
     UtAssert_INT32_EQ(BPLib_MEM_ForeachItemInList(&list, false, Test_BPLib_MEM_CallbackStub, NULL), 1);

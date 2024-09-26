@@ -202,6 +202,18 @@ static inline uint32_t BPLib_MEM_SubqGetDepth(const BPLib_MEM_SubqBase_t *subq)
  */
 size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_Blocktype_t bt);
 
+/**
+ * @brief Garbage collection routine
+ *
+ * Processes the list of recycled blocks and performing any additional cleanup work
+ *
+ * @param pool The mpool object
+ * @param limit The maximum number of entries to process
+ *
+ * @returns The number of blocks collected
+ */
+uint32_t BPLib_MEM_CollectBlocks(BPLib_MEM_Pool_t *pool, uint32_t limit);
+
 // TODO add briefs for BPLib_MEM_GetGenericDataCapacity and BPLib_MEM_Maintain
 size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb);
 
