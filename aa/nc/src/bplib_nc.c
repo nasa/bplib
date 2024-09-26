@@ -132,6 +132,10 @@ BPLib_Status_t BPLib_NC_InitBundleStorageCmd()
 
     Status = BPLIB_SUCCESS;
 
+    /*
+    Status = BLib_STOR_InitBundleStorage();
+    */
+
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_INIT_BNDL_STOR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
@@ -171,6 +175,10 @@ BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd()
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
+
+    /*
+    Status = BPLib_STOR_RebuildBundleMetadata();
+    */
 
     if (Status == BPLIB_SUCCESS)
     {
@@ -429,6 +437,15 @@ BPLib_Status_t BPLib_NC_SetRegistrationStateCmd(const BPLib_SetRegistrationState
 
     Status = BPLIB_SUCCESS;
 
+    /*
+    Node Configuration calls Storage to set application state in-channel parameters to
+    * Active
+    * Passive, with action entry:
+        * Defer
+        * Abandon
+            * Node Configuration sends Storage request to delete any bundles already queued for the channel and future bundles for that channel
+    */
+
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SET_REGI_STAT_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
@@ -451,6 +468,11 @@ BPLib_Status_t BPLib_NC_StartApplicationCmd(const BPLib_StartApplicationCmd_Payl
 
     Status = BPLIB_SUCCESS;
 
+    /*
+    Node Configuration identifies ADU Proxy instance indicated in request
+    If one exists, Node Configuration calls ADU Proxy instance
+    */
+
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_START_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
@@ -472,6 +494,10 @@ BPLib_Status_t BPLib_NC_StopApplicationCmd(const BPLib_StopApplicationCmd_Payloa
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
+
+    /*
+    Node Configuration calls given ADU Proxy to unsubscribe from predefined cFE message IDs and stops the loops pending on the cFS Software Bus and PI Input Queue
+    */
 
     if (Status == BPLIB_SUCCESS)
     {
@@ -716,40 +742,11 @@ BPLib_Status_t BPLib_NC_ContactSetupCmd(const BPLib_ContactSetupCmd_Payload_t Pa
     Status = BPLIB_SUCCESS;
 
     /*
-    Configure CLA based on configuration
-    Status = BPLib_CLA_ConactSetup();
-    */
-
-    // or
-
-    /*
-    if (path available)
-    {
-        assign path
-        config = <pull configuration from channel configuration table>
-        switch (config)
-        {
-            case A:
-                assign bundle interface instance for config A
-                configure custody transfer instance for config A
-                configure extension block processor for config A
-                configure CLA for config A
-                break;
-            case B:
-                assign bundle interface instance for config B
-                configure custody transfer instance for config B
-                configure extension block processor for config B
-                configure CLA for config B
-            default:
-                Status = BPLIB_ERROR;
-        }
-
-        register CLA with storage
-    }
-    else
-    {
-        Stauts = BPLIB_ERROR;
-    }
+    Verify that table was validated via cFS table upload.    
+    Checks if path is available for assignment
+    Assigns an instance of BI and CLA
+    Configures assigned instances of BI, CT, EBP, CLA based on configuration
+    Registers CLA with Storage given the table configuration (Path ID, EID map)
     */
 
     if (Status == BPLIB_SUCCESS)
@@ -804,12 +801,9 @@ BPLib_Status_t BPLib_NC_ContactStopCmd(const BPLib_ContactStopCmd_Payload_t Payl
     /*
     identify contact to be stopped
 
-    if (LTP)
-    {
-        send cancel request
-    }
-
     Status = BPLib_CLA_ContactStop();
+
+    Node Configuration requests Storage clear all queues associated with the CLA. Storage clears the queues    
     */
 
     if (Status == BPLIB_SUCCESS)
@@ -835,16 +829,8 @@ BPLib_Status_t BPLib_NC_ContactTeardownCmd(const BPLib_ContactTeardownCmd_Payloa
     Status = BPLIB_SUCCESS;
 
     /*
-    Status = BPLib_CLA_ContactTeardown();
-    */
-
-    // or
-
-    /*
-    deconfigure the CLA
-    deconfigure bundle interface
-    deconfigure custody transfer
-    deconfigure extension block processor
+    If contact has been stopped, Node Configuration deconfigures the CLA
+    Node Configuration requests BI/CT/EBP/CLA instances to remove configuration
     */
 
     if (Status == BPLIB_SUCCESS)
@@ -870,7 +856,11 @@ BPLib_Status_t BPLib_NC_AddMibArrayKeyCmd(const BPLib_AddMibArrayKeyCmd_Payload_
     Status = BPLIB_SUCCESS;
 
     /*
-    BPLib_AS_AddMibArrayKey();
+    NC verifies that specified EID (source) is valid (EID schema, table size, and duplicate checking)
+    If valid, NC adds entry to table and synchronously begins using updated table
+    NC sends notification to Framework Proxy that MIB configuration has been updated
+    Framework Proxy notifies cFS Table Services of MIB table update
+    NC calls AS to set the MIB array key
     */
 
     if (Status == BPLIB_SUCCESS)
@@ -950,10 +940,6 @@ BPLib_Status_t BPLib_NC_SetMibItemCmd(const BPLib_SetMibItemCmd_Payload_t Payloa
     */
 
     /*
-    // NC sends notification to Framework Proxy that MIB configuration has been updated
-    */
-
-    /*
     // Framework Proxy notifies cFS Table Services of MIB table update
     Status = (BPLib_Status_t) BPA_TABLEP_TableUpdate();
     if (Status != BPLIB_SUCCESS)
@@ -989,8 +975,27 @@ BPLib_Status_t BPLib_NC_AddStorageAllocationCmd(const BPLib_AddStorageAllocation
     Status = BPLIB_SUCCESS;
 
     /*
-    BPLib_STOR_AddStorageAllocation();
-    BPA_TABLEP_TableUpdate();
+    Status = BPLib_STOR_AddStorageAllocation(Payload.EID, Payload.AllocSize);
+
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_ADD_STOR_ALLOC_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not update storage allocation of size %d for EID %d",
+                            Payload.AllocSize, Payload.EID);
+
+        return Status;
+    }
+
+    Status = (BPLib_Status_t) BPA_TABLEP_TableUpdate();
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_ADD_STOR_ALLOC_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to update the MIB configuration")
+
+        return Status;
+    }
     */
 
     if (Status == BPLIB_SUCCESS)
@@ -1014,6 +1019,11 @@ BPLib_Status_t BPLib_NC_RemoveStorageAllocationCmd(const BPLib_RemoveStorageAllo
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
+
+    /*
+    Node Configuration notifies Storage to remove an allocation with a given EID pattern and allocation size
+    If storage update is successful, NC calls FWP to sync table updates with host
+    */
 
     if (Status == BPLIB_SUCCESS)
     {
