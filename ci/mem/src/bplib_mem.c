@@ -25,7 +25,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h> // TODO Change to compile-time conditional DEBUG
-
+#include <inttypes.h> // TODO For debug print formats like PRIx64.
 #include "bplib.h"
 // TODO Switch to osal bplib/os? OS_ #include "bplib_os.h"
 #include "bplib_api_types.h"
@@ -35,7 +35,7 @@
 #include "osapi.h"
 
 /**
- * @brief Maxmimum number of blocks to be collected in a single maintenace cycle
+ * @brief Maxmimum number of blocks to be collected in a single maintenance cycle
  */
 #define BPLIB_MEM_MAINTENCE_COLLECT_LIMIT 20
 
@@ -67,17 +67,14 @@ static inline void BPLib_MEM_LinkReset(BPLib_MEM_Block_t *link, BPLib_MEM_Blockt
 
 void BPLib_MEM_LockInit(void)
 {
-    uint32_t            i;
     BPLib_MEM_Lock_t *lock;
 
-    /* note - this relies on the BSS section being properly zero'ed out at start */
-    for (i = 0; i < BPLIB_MEM_NUM_LOCKS; ++i)
+    /* note - this relies on the BSS section being properly zero'ed out at start
+     * Even though only one lock is used now, planned changes will require more than one. */
+    lock = &BPLIB_MEM_LOCK_SET[0];
+    if (!bp_handle_is_valid(lock->lock_id))
     {
-        lock = &BPLIB_MEM_LOCK_SET[i];
-        if (!bp_handle_is_valid(lock->lock_id))
-        {
-            lock->lock_id = BPLib_MEM_OS_CreateLock();
-        }
+        lock->lock_id = BPLib_MEM_OS_CreateLock();
     }
 }
 
@@ -109,7 +106,12 @@ bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime)
     bool within_timeout;
     int  status;
 
+    // TODO Can we have DEBUG or TRACE printfs for unit test?
+    // Using format '"%" PRIx64'. There are many others, like PRId64 and PRIu64. See <inttypes.h>.
+    printf("%s:%d DTN ms = 0x%" PRIx64 "\n", __FILE__, __LINE__, BPLib_MEM_OS_GetDtnTimeMs());  // TODO BPLib_MEM_LockTrace.
+    printf("until_dtntime 0x%" PRIx64 "\n", until_dtntime);
     within_timeout = (until_dtntime > BPLib_MEM_OS_GetDtnTimeMs());
+
     if (within_timeout)
     {
         status = BPLib_MEM_OS_WaitUntilMs(lock->lock_id, until_dtntime);
@@ -1189,10 +1191,6 @@ BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
     /* initialize the lock table - OK to call this multiple times,
      * subsequent calls shouldn't do anything */
     BPLib_MEM_LockInit();
-
-    /* wiping the entire memory might be overkill, but it is only done once
-     * at start up, and this may also help verify that the memory "works" */
-    memset(pool_mem, 0, pool_size);
 
     pool = pool_mem;
 

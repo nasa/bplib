@@ -31,7 +31,6 @@
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_BlockFromExternalId()
- * Generated stub function for BPLib_MEM_BlockFromExternalId()
  * ----------------------------------------------------
  */
 BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle)
@@ -41,7 +40,6 @@ BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_hand
     UT_GenStub_AddParam(BPLib_MEM_BlockFromExternalId, BPLib_MEM_Pool_t *, pool);
     UT_GenStub_AddParam(BPLib_MEM_BlockFromExternalId, bp_handle_t, handle);
 
-    UT_GenStub_Execute(BPLib_MEM_BlockFromExternalId, Basic, NULL);
     UT_GenStub_Execute(BPLib_MEM_BlockFromExternalId, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_MEM_BlockFromExternalId, BPLib_MEM_Block_t *);
@@ -67,7 +65,6 @@ BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_DebugPrintListStats()
- * Generated stub function for BPLib_MEM_DebugPrintListStats()
  * ----------------------------------------------------
  */
 void BPLib_MEM_DebugPrintListStats(BPLib_MEM_Block_t *list, const char *label)
@@ -76,12 +73,10 @@ void BPLib_MEM_DebugPrintListStats(BPLib_MEM_Block_t *list, const char *label)
     UT_GenStub_AddParam(BPLib_MEM_DebugPrintListStats, const char *, label);
 
     UT_GenStub_Execute(BPLib_MEM_DebugPrintListStats, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_DebugPrintListStats, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_DebugScan()
  * Generated stub function for BPLib_MEM_DebugScan()
  * ----------------------------------------------------
  */
@@ -90,12 +85,10 @@ void BPLib_MEM_DebugScan(BPLib_MEM_Pool_t *pool)
     UT_GenStub_AddParam(BPLib_MEM_DebugScan, BPLib_MEM_Pool_t *, pool);
 
     UT_GenStub_Execute(BPLib_MEM_DebugScan, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_DebugScan, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_ExtractNode()
  * Generated stub function for BPLib_MEM_ExtractNode()
  * ----------------------------------------------------
  */
@@ -103,7 +96,6 @@ void BPLib_MEM_ExtractNode(BPLib_MEM_Block_t *node)
 {
     UT_GenStub_AddParam(BPLib_MEM_ExtractNode, BPLib_MEM_Block_t *, node);
 
-    UT_GenStub_Execute(BPLib_MEM_ExtractNode, Basic, NULL);
     UT_GenStub_Execute(BPLib_MEM_ExtractNode, Basic, NULL);
 }
 
@@ -128,7 +120,6 @@ int BPLib_MEM_ForeachItemInList(BPLib_MEM_Block_t *list, bool always_remove,
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_GenericDataAlloc()
- * Generated stub function for BPLib_MEM_GenericDataAlloc()
  * ----------------------------------------------------
  */
 BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg)
@@ -140,7 +131,6 @@ BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t m
     UT_GenStub_AddParam(BPLib_MEM_GenericDataAlloc, void *, init_arg);
 
     UT_GenStub_Execute(BPLib_MEM_GenericDataAlloc, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_GenericDataAlloc, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_MEM_GenericDataAlloc, BPLib_MEM_Block_t *);
 }
@@ -148,28 +138,23 @@ BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t m
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_GenericDataCast()
- * Generated stub function for BPLib_MEM_GenericDataCast()
  * ----------------------------------------------------
  */
 void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_GenericDataCast, void *);
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_GenericDataCast, void *);
 
     UT_GenStub_AddParam(BPLib_MEM_GenericDataCast, BPLib_MEM_Block_t *, cb);
     UT_GenStub_AddParam(BPLib_MEM_GenericDataCast, uint32_t, required_magic);
 
     UT_GenStub_Execute(BPLib_MEM_GenericDataCast, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_GenericDataCast, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_GenericDataCast, void *);
     return UT_GenStub_GetReturnValue(BPLib_MEM_GenericDataCast, void *);
 }
 
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_GetBlockFromLink()
  * Generated stub function for BPLib_MEM_GetBlockFromLink()
  * ----------------------------------------------------
  */
@@ -180,7 +165,6 @@ BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk)
     UT_GenStub_AddParam(BPLib_MEM_GetBlockFromLink, BPLib_MEM_Block_t *, lblk);
 
     UT_GenStub_Execute(BPLib_MEM_GetBlockFromLink, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_GetBlockFromLink, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_MEM_GetBlockFromLink, BPLib_MEM_Block_t *);
 }
@@ -188,26 +172,21 @@ BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk)
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_GetGenericDataCapacity()
- * Generated stub function for BPLib_MEM_GetGenericDataCapacity()
  * ----------------------------------------------------
  */
 size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_GetGenericDataCapacity, size_t);
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_GetGenericDataCapacity, size_t);
 
     UT_GenStub_AddParam(BPLib_MEM_GetGenericDataCapacity, const BPLib_MEM_Block_t *, cb);
 
     UT_GenStub_Execute(BPLib_MEM_GetGenericDataCapacity, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_GetGenericDataCapacity, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_GetGenericDataCapacity, size_t);
     return UT_GenStub_GetReturnValue(BPLib_MEM_GetGenericDataCapacity, size_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_GetParentPoolFromLink()
  * Generated stub function for BPLib_MEM_GetParentPoolFromLink()
  * ----------------------------------------------------
  */
@@ -218,7 +197,6 @@ BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb)
     UT_GenStub_AddParam(BPLib_MEM_GetParentPoolFromLink, BPLib_MEM_Block_t *, cb);
 
     UT_GenStub_Execute(BPLib_MEM_GetParentPoolFromLink, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_GetParentPoolFromLink, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_MEM_GetParentPoolFromLink, BPLib_MEM_Pool_t *);
 }
@@ -226,26 +204,21 @@ BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb)
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_GetUserContentSize()
- * Generated stub function for BPLib_MEM_GetUserContentSize()
  * ----------------------------------------------------
  */
 size_t BPLib_MEM_GetUserContentSize(const BPLib_MEM_Block_t *ceb)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_GetUserContentSize, size_t);
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_GetUserContentSize, size_t);
 
     UT_GenStub_AddParam(BPLib_MEM_GetUserContentSize, const BPLib_MEM_Block_t *, ceb);
 
     UT_GenStub_Execute(BPLib_MEM_GetUserContentSize, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_GetUserContentSize, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_GetUserContentSize, size_t);
     return UT_GenStub_GetReturnValue(BPLib_MEM_GetUserContentSize, size_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_InitListHead()
  * Generated stub function for BPLib_MEM_InitListHead()
  * ----------------------------------------------------
  */
@@ -255,12 +228,10 @@ void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *li
     UT_GenStub_AddParam(BPLib_MEM_InitListHead, BPLib_MEM_Block_t *, list_head);
 
     UT_GenStub_Execute(BPLib_MEM_InitListHead, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_InitListHead, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_InsertAfter()
  * Generated stub function for BPLib_MEM_InsertAfter()
  * ----------------------------------------------------
  */
@@ -270,12 +241,10 @@ void BPLib_MEM_InsertAfter(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
     UT_GenStub_AddParam(BPLib_MEM_InsertAfter, BPLib_MEM_Block_t *, node);
 
     UT_GenStub_Execute(BPLib_MEM_InsertAfter, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_InsertAfter, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_InsertBefore()
  * Generated stub function for BPLib_MEM_InsertBefore()
  * ----------------------------------------------------
  */
@@ -284,7 +253,6 @@ void BPLib_MEM_InsertBefore(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
     UT_GenStub_AddParam(BPLib_MEM_InsertBefore, BPLib_MEM_Block_t *, list);
     UT_GenStub_AddParam(BPLib_MEM_InsertBefore, BPLib_MEM_Block_t *, node);
 
-    UT_GenStub_Execute(BPLib_MEM_InsertBefore, Basic, NULL);
     UT_GenStub_Execute(BPLib_MEM_InsertBefore, Basic, NULL);
 }
 
@@ -303,7 +271,6 @@ void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool)
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_MergeList()
- * Generated stub function for BPLib_MEM_MergeList()
  * ----------------------------------------------------
  */
 void BPLib_MEM_MergeList(BPLib_MEM_Block_t *dest, BPLib_MEM_Block_t *src)
@@ -312,72 +279,58 @@ void BPLib_MEM_MergeList(BPLib_MEM_Block_t *dest, BPLib_MEM_Block_t *src)
     UT_GenStub_AddParam(BPLib_MEM_MergeList, BPLib_MEM_Block_t *, src);
 
     UT_GenStub_Execute(BPLib_MEM_MergeList, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_MergeList, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_QueryMemCurrentUse()
  * Generated stub function for BPLib_MEM_QueryMemCurrentUse()
  * ----------------------------------------------------
  */
 size_t BPLib_MEM_QueryMemCurrentUse(BPLib_MEM_Pool_t *pool)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_QueryMemCurrentUse, size_t);
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_QueryMemCurrentUse, size_t);
 
     UT_GenStub_AddParam(BPLib_MEM_QueryMemCurrentUse, BPLib_MEM_Pool_t *, pool);
 
     UT_GenStub_Execute(BPLib_MEM_QueryMemCurrentUse, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_QueryMemCurrentUse, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_QueryMemCurrentUse, size_t);
     return UT_GenStub_GetReturnValue(BPLib_MEM_QueryMemCurrentUse, size_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_QueryMemMaxUse()
  * Generated stub function for BPLib_MEM_QueryMemMaxUse()
  * ----------------------------------------------------
  */
 size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_Pool_t *pool)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_QueryMemMaxUse, size_t);
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_QueryMemMaxUse, size_t);
 
     UT_GenStub_AddParam(BPLib_MEM_QueryMemMaxUse, BPLib_MEM_Pool_t *, pool);
 
     UT_GenStub_Execute(BPLib_MEM_QueryMemMaxUse, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_QueryMemMaxUse, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_QueryMemMaxUse, size_t);
     return UT_GenStub_GetReturnValue(BPLib_MEM_QueryMemMaxUse, size_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_ReadRefcount()
  * Generated stub function for BPLib_MEM_ReadRefcount()
  * ----------------------------------------------------
  */
 size_t BPLib_MEM_ReadRefcount(const BPLib_MEM_Block_t *cb)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_ReadRefcount, size_t);
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_ReadRefcount, size_t);
 
     UT_GenStub_AddParam(BPLib_MEM_ReadRefcount, const BPLib_MEM_Block_t *, cb);
 
     UT_GenStub_Execute(BPLib_MEM_ReadRefcount, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_ReadRefcount, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_ReadRefcount, size_t);
     return UT_GenStub_GetReturnValue(BPLib_MEM_ReadRefcount, size_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_RecycleAllBlocksInList()
  * Generated stub function for BPLib_MEM_RecycleAllBlocksInList()
  * ----------------------------------------------------
  */
@@ -387,12 +340,10 @@ void BPLib_MEM_RecycleAllBlocksInList(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t 
     UT_GenStub_AddParam(BPLib_MEM_RecycleAllBlocksInList, BPLib_MEM_Block_t *, list);
 
     UT_GenStub_Execute(BPLib_MEM_RecycleAllBlocksInList, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_RecycleAllBlocksInList, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_RecycleBlock()
  * Generated stub function for BPLib_MEM_RecycleBlock()
  * ----------------------------------------------------
  */
@@ -401,5 +352,35 @@ void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk)
     UT_GenStub_AddParam(BPLib_MEM_RecycleBlock, BPLib_MEM_Block_t *, blk);
 
     UT_GenStub_Execute(BPLib_MEM_RecycleBlock, Basic, NULL);
-    UT_GenStub_Execute(BPLib_MEM_RecycleBlock, Basic, NULL);
+}
+
+/*----------------------------------------------------------------
+ *
+ * This just translates the 32-bit return status into a 64-bit
+ *
+ *-----------------------------------------------------------------*/
+void UT_DefaultHandler_BPLib_MEM_OS_GetDtnTimeMs(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    int32    StatusCode;
+    uint64_t Result;
+
+    UT_Stub_GetInt32StatusCode(Context, &StatusCode);
+
+    Result = StatusCode;
+
+    UT_Stub_SetReturnValue(FuncKey, Result);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_MEM_OS_GetDtnTimeMs()
+ * ----------------------------------------------------
+ */
+uint64_t BPLib_MEM_OS_GetDtnTimeMs(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_OS_GetDtnTimeMs, uint64_t);
+
+    UT_GenStub_Execute(BPLib_MEM_OS_GetDtnTimeMs, Basic, UT_DefaultHandler_BPLib_MEM_OS_GetDtnTimeMs);
+
+    return UT_GenStub_GetReturnValue(BPLib_MEM_OS_GetDtnTimeMs, uint64_t);
 }

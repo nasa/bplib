@@ -257,7 +257,7 @@ void BPLib_MEM_InitBaseObject(BPLib_MEM_BlockHeader_t *block_hdr, uint16_t user_
                                   uint32_t content_type_signature);
 
 /**
- * @brief Callback frunction for various memory pool block actions
+ * @brief Callback function for various memory pool block actions
  *
  * This is a generic API for a function to handle various events/conditions
  * that occur at the block level.  The generic argument supplies the context
