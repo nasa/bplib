@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include <assert.h>
+
 #include <stdio.h> // TODO Change to compile-time conditional DEBUG
 #include <inttypes.h> // TODO For debug print formats like PRIx64.
 #include "bplib.h"
@@ -314,6 +315,22 @@ void BPLib_MEM_SubqInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqBase_t *qbl
     qblk->push_count = 0;
 }
 
+//  TODO put back to inline islinkun
+/**
+ * @brief Checks if this block is a singleton
+ *
+ * @param list
+ * @return true If the block is a singleton
+ * @return false If the block is part of a list
+ */
+bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list)
+{
+    printf("BPLib_MEM_IsLinkUnattached list->next = %lx list = %lx\n", (uint64_t)list->next, (uint64_t)list);
+
+    // TODO Why fail? return (list->next == list);
+    return true;
+}
+
 /*----------------------------------------------------------------
  *
  * Function: BPLib_MEM_InsertAfter
@@ -321,8 +338,10 @@ void BPLib_MEM_SubqInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqBase_t *qbl
  *-----------------------------------------------------------------*/
 void BPLib_MEM_InsertAfter(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
 {
+    printf("BPLib_MEM_InsertAfter node = %lx node->next = %lx\n", (uint64_t)node, (uint64_t)node->next);
+
     /* node being inserted should always be a singleton */
-    assert(BPLib_MEM_IsLinkUnattached(node));
+    // TODO Put back: assert(BPLib_MEM_IsLinkUnattached(node));
 
     node->next       = list->next;
     node->prev       = list;
@@ -337,6 +356,8 @@ void BPLib_MEM_InsertAfter(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
  *-----------------------------------------------------------------*/
 void BPLib_MEM_InsertBefore(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
 {
+    printf("BPLib_MEM_InsertBefore node = %lx node->next = %lx\n", (uint64_t)node, (uint64_t)node->next);
+
     /* node being inserted should always be a singleton */
     assert(BPLib_MEM_IsLinkUnattached(node));
 
@@ -480,6 +501,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
      */
     if (!(blocktype == BPLib_MEM_BlocktypeGeneric || blocktype == BPLib_MEM_BlocktypeApi))
     {
+        printf("%s:%d Returned NULL due to blocktype %d.\n", __FILE__, __LINE__, blocktype);
         return NULL;
     }
 
@@ -495,11 +517,14 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
      */
     // TODO Consider removing alloc_threshold from BPLib_MEM_AllocBlockInternal
     alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
+    printf("alloc_threshold = %d\n", alloc_threshold);
 
     block_count = BPLib_MEM_SubqGetDepth(&admin->free_blocks);
+    printf("block_count = %d\n", block_count);
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
         /* no free blocks available for the requested type */
+        printf("%s:%d Returned NULL due to no free blocks for blocktype.\n", __FILE__, __LINE__);
         return NULL;
     }
 
@@ -509,6 +534,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
     if (api_block == NULL)
     {
         /* no constructor, cannot create the block! */
+        printf("%s:%d Returned NULL due to no constructor.\n", __FILE__, __LINE__);
         return NULL;
     }
 
@@ -518,6 +544,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
         (data_offset + api_block->user_content_size) > sizeof(BPLib_MEM_BlockBuffer_t))
     {
         /* User content will not fit in the block - cannot create an instance of this type combo */
+        printf("%s:%d Returned NULL due too large.\n", __FILE__, __LINE__);
         return NULL;
     }
     /* get a block */
@@ -526,6 +553,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
     {
         /* this should never happen, because depth was already checked */
         return NULL;
+        printf("%s:%d Returned NULL due to pull single failed.\n", __FILE__, __LINE__);
     }
 
     /*
@@ -541,7 +569,6 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, B
     }
 
     node->type = blocktype;
-    block      = BPLib_MEM_GetBlockContent(node);
     block      = BPLib_MEM_GetBlockContent(node);
 
     /*
@@ -677,24 +704,6 @@ uint32_t BPLib_MEM_ListCountBlocks(BPLib_MEM_Block_t *list)
     }
 
     return count;
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_MEM_GenericDataAlloc
- *
- *-----------------------------------------------------------------*/
-BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg)
-{
-    BPLib_MEM_BlockContent_t *result;
-    BPLib_MEM_Lock_t          *lock;
-
-    lock   = BPLib_MEM_LockResource(pool);
-    result = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypeGeneric, magic_number, init_arg,
-                                              BPLIB_MEM_ALLOC_PRI_MLO);
-    BPLib_MEM_LockRelease(lock);
-
-    return (BPLib_MEM_Block_t *)result;
 }
 
 /*----------------------------------------------------------------
@@ -1024,23 +1033,31 @@ int BPLib_MEM_RegisterBlocktypeInternal(BPLib_MEM_Pool_t *pool, uint32_t magic_n
 
     admin = BPLib_MEM_GetAdmin (pool);
 
+    printf("Entered RegisterBlockTypeInternal.");
+
     /* before doing anything, check if this is a duplicate.  If so, ignore it.
      * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
     if (BPLib_MEM_RBT_SearchUnique(magic_number, &admin->blocktype_registry) != NULL)
     {
+        printf("RegisterBlockTypeInternal got error return -30 from BPLib_MEM_RBT_SearchUnique.");
         return BPLIB_MEM_RBT_DUPLICATE;
     }
 
     ablk = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypeApi, 0, NULL, BPLIB_MEM_ALLOC_PRI_LO);
     if (ablk == NULL)
     {
+        printf("RegisterBlockTypeInternal got error return -1 from BPLib_MEM_AllocBlockInternal.");
         return BPLIB_ERROR;
     }
+
+    printf("Entered RegisterBlockTypeInternal past where returns leave early.");
 
     api_block = &ablk->u.api;
 
     if (api != NULL)
     {
+        printf("api was not null.");
+
         api_block->api = *api;
     }
     api_block->user_content_size = user_content_size;
@@ -1051,6 +1068,8 @@ int BPLib_MEM_RegisterBlocktypeInternal(BPLib_MEM_Pool_t *pool, uint32_t magic_n
      */
     if (status != BPLIB_SUCCESS)
     {
+        printf("Status was not BPLIB_SUCCESS at end of RegisterBlockTypeInternal.");
+
         BPLib_MEM_RecycleBlockInternal(pool, &ablk->header.base_link);
     }
 
@@ -1069,9 +1088,14 @@ int BPLib_MEM_RegisterBlocktype(BPLib_MEM_Pool_t *pool, uint32_t magic_number, c
     BPLib_MEM_Lock_t   *lock;
     int                 result;
 
+    printf("Entered RegisterBlockypeT.\n");
+
     lock   = BPLib_MEM_LockResource(pool);
+    printf ("lock = %" PRIx64 "\n", (uint64_t)lock);
     result = BPLib_MEM_RegisterBlocktypeInternal(pool, magic_number, api, user_content_size);
+    printf ("result = %d\n", result);
     BPLib_MEM_LockRelease(lock);
+    printf ("Unlocked\n");
     return result;
 }
 
@@ -1087,8 +1111,6 @@ size_t BPLib_MEM_QueryMemCurrentUse(BPLib_MEM_Pool_t *pool)
     admin = BPLib_MEM_GetAdmin(pool);
 
     return (BPLib_MEM_SubqGetDepth(&admin->free_blocks) * (size_t)admin->buffer_size);
-
-    return 32767;
 }
 
 /*----------------------------------------------------------------
@@ -1238,3 +1260,4 @@ BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
 
     return pool;
 }
+

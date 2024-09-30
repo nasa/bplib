@@ -24,7 +24,7 @@
 
 #include <assert.h>
 #include <string.h>
-
+#include <stdio.h> // TODO Remove printfs
 #include "bplib.h"
 #include "bplib_mem_rbtree.h"
 
@@ -1112,6 +1112,7 @@ int BPLib_MEM_RBT_InsertValueGeneric(bp_val_t insert_key_value, BPLib_MEM_RBT_Ro
 
     if (tree->root == link_block || node_is_attached(link_block))
     {
+        printf("BPLib_MEM_RBT_InsertValue got -1 from if tree-> root");
         return BPLIB_ERROR;
     }
 
@@ -1133,6 +1134,7 @@ int BPLib_MEM_RBT_InsertValueGeneric(bp_val_t insert_key_value, BPLib_MEM_RBT_Ro
     }
     else
     {
+        printf("BPLib_MEM_RBT_InsertValue got -1 from do_insert_as_leaf");
         /* some use cases use a zero key to mean that it is not in a tree, so be sure to
          * clear the link if not successfully inserted so it does not have a value. */
         memset(link_block, 0, sizeof(*link_block));

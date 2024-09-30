@@ -29,6 +29,14 @@
 
 #include "osapi.h"
 
+/*
+ * Randomly-chosen 32-bit static values that can be put into
+ * data structures to help positively identify those structs later.
+ */
+#define BPLIB_MEM_SIGNATURE_STATE    0x6833597a
+#define BPLIB_MEM_SIGNATURE_ENTRY    0xf223ff9f
+#define BPLIB_MEM_SIGNATURE_BLOCKREF 0x77e961b1
+
 /**
  * Initialize the MEM module's internal calls to OSAL.
  * Most of the internal MEM OS code came from the heritage bplib/os library.
@@ -405,5 +413,20 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_BlockDereferenceContent(BPLib_MEM_Block_t *c
 BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, BPLib_MEM_Blocktype_t blocktype,
                                                        uint32_t content_type_signature, void *init_arg,
                                                        uint8_t priority);
+
+// Mockups for CACHE entries.
+typedef struct BPLib_MEM_EntryState
+{
+    BPLib_MEM_Block_t idle_list;
+} BPLib_MEM_EntryState_t;
+
+typedef struct BPLib_MEM_Entry BPLib_MEM_Entry_t;
+
+struct BPLib_MEM_Entry
+{
+    BPLib_MEM_Entry_t      *parent;
+    BPLib_MEM_EntryState_t state;
+    uint32_t               flags;
+};
 
 #endif /* BPLIB_MEM_INTERNAL_H */

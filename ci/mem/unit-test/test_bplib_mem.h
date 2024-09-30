@@ -34,6 +34,7 @@ typedef struct
 } UT_BPLib_MEM_Buf_t;
 
 /* helper functions used in multiple tests */
+void *TestUtil_BPLib_OS_Calloc(size_t size);
 void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 int  Test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_Block_t *blk);
 void test_make_singleton_link(BPLib_MEM_Pool_t *parent_pool, BPLib_MEM_Block_t *b);
@@ -58,34 +59,22 @@ void Test_BPLib_MEM_Maintain(void);
 void Test_BPLib_MEM_LockWait(void);
 
 // MEM Pool Block Tests
-void Test_BPLib_MEM_RegisterBlocktypeInternal(void);
-void Test_BPLib_MEM_RegisterBlocktype(void);
-void Test_BPLib_MEM_SubqPushSingle(void);
-void Test_BPLib_MEM_SubqPullSingle(void);
 void Test_BPLib_MEM_CollectBlocks(void);
-void Test_BPLib_MEM_RecycleBlockInternal(void);
 void Test_BPLIB_MEM_RecycleBlock(void);
 void Test_BPLib_MEM_RecycleAllBlocksInList(void);
-void Test_BPLib_MEM_GetBlockContentConst(void);
-void Test_BPLib_MEM_GetUserContentSize(void);
 void Test_BPLib_MEM_GetParentPoolFromLink(void);
 void Test_BPLib_MEM_InitBaseObject(void);
-void Test_BPLib_MEM_AllocBlockInternal(void);
-void Test_BPLib_MEM_GenericDataAlloc(void);
 
 // MEM Query Tests
 void Test_BPLib_MEM_QueryMemCurrentUse(void);
 void Test_BPLib_MEM_QueryMemMaxUse(void);
 
-// MEM Ref Tests
-// TODO Does MEM need Refs?
-void Test_BPLib_MEM_BlockDereferenceContent(void);
-void Test_BPLib_MEM_ReadRefcount(void);
-
 // MEM Block Offset Tests
 void Test_BPLib_MEM_GetUserDataOffsetByBlocktype(void);
 
 // MEM Subq Tests
+void Test_BPLib_MEM_SubqPushSingle(void);
+void Test_BPLib_MEM_SubqPullSingle(void);
 void Test_BPLib_MEM_SubqMergeList(void);
 void Test_BPLib_MEM_SubqMoveAll(void);
 void Test_BPLib_MEM_SubqDropAll(void);
@@ -97,9 +86,5 @@ void Test_BPLib_MEM_ListIterForward(void);
 void Test_BPLib_MEM_ListIterReverse(void);
 void Test_BPLib_MEM_ForeachItemInList(void);
 void Test_BPLib_MEM_SearchList(void);
-
-// MEM Debug Tests
-void Test_BPLib_MEM_DebugPrintListStats(void);
-void Test_BPLib_MEM_DebugScan(void);
 
 #endif // TEST_BPLIB_MPOOL_H

@@ -137,7 +137,7 @@ BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t m
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_GenericDataCast()
+ * Generated stub function for BPLib_MEM_GenericDataCast()  // TODO STOR CACHE Only?
  * ----------------------------------------------------
  */
 void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic)

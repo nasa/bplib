@@ -19,6 +19,8 @@
 /*
  * Includes
  */
+#include <inttypes.h>
+
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
@@ -43,7 +45,7 @@ void UT_AltHandler_MoveQueue(void *UserObj, UT_EntryKey_t FuncKey, const UT_Stub
 void Test_BPLib_MEM_SubqMergeList(void)
 {
     /* Test function for:
-     * uint32_t bplib_mpool_subq_merge_list(bplib_mpool_subq_base_t *subq_dst, bplib_mpool_block_t *list)
+     * uint32_t BPLib_MEM_SubqMergeList(BPLib_MEM_SubqBase_t *subq_dst, BPLib_MEM_Block_t *list)
      */
     UT_BPLib_MEM_Buf_t buf;
 
@@ -147,7 +149,7 @@ void Test_BPLib_MEM_SubqPullSingle(void)
 void Test_BPLib_MEM_ListIterGotoFirst(void)
 {
     /* Test function for:
-     * int bplib_mpool_list_iter_goto_first(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
+     * int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
      */
     BPLib_MEM_Block_t     list;
     BPLib_MEM_ListIter_t it;
@@ -162,7 +164,7 @@ void Test_BPLib_MEM_ListIterGotoFirst(void)
 void Test_BPLib_MEM_ListIterGotoLast(void)
 {
     /* Test function for:
-     * int bplib_mpool_list_iter_goto_last(const bplib_mpool_block_t *list, bplib_mpool_list_iter_t *iter)
+     * int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
      */
 
     BPLib_MEM_Block_t     list;
@@ -178,10 +180,10 @@ void Test_BPLib_MEM_ListIterGotoLast(void)
 void Test_BPLib_MEM_ListIterForward(void)
 {
     /* Test function for:
-     * int bplib_mpool_list_iter_forward(bplib_mpool_list_iter_t *iter)
+     * int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter)
      */
     BPLib_MEM_ListIter_t     it;
-    BPLib_MEM_Block_t         list;
+    BPLib_MEM_Block_t        list;
     BPLib_MEM_BlockContent_t my_block;
 
     memset(&it, 0, sizeof(it));
@@ -204,7 +206,7 @@ void Test_BPLib_MEM_ListIterForward(void)
 void Test_BPLib_MEM_ListIterReverse(void)
 {
     /* Test function for:
-     * int bplib_mpool_list_iter_reverse(bplib_mpool_list_iter_t *iter)
+     * int BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter)
      */
     BPLib_MEM_ListIter_t     it;
     BPLib_MEM_Block_t         list;
@@ -231,7 +233,7 @@ void Test_BPLib_MEM_ListIterReverse(void)
 void Test_BPLib_MEM_ForeachItemInList(void)
 {
     /* Test function for:
-     * int bplib_mpool_foreach_item_in_list(bplib_mpool_block_t *list, bool always_remove, bplib_mpool_callback_func_t
+     * int BPLib_MEM_ForeachItemInList(BPLib_MEM_Block_t *list, bool always_remove, BPLib_MEM_CallbackFunc_t
      * callback_fn, void *callback_arg)
      */
 
@@ -258,7 +260,7 @@ void Test_BPLib_MEM_ForeachItemInList(void)
 void Test_BPLib_MEM_SearchList(void)
 {
     /* Test function for:
-     * bplib_mpool_block_t *bplib_mpool_search_list(const bplib_mpool_block_t *list, bplib_mpool_callback_func_t
+     * BPLib_MEM_Block_t *BPLib_MEM_SearchList(const BPLib_MEM_Block_t *list, BPLib_MEM_CallbackFunc_t
      * match_fn, void *match_arg)
      */
     BPLib_MEM_Block_t         list;

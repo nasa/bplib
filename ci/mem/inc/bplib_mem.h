@@ -329,6 +329,7 @@ static inline bool BPLib_MEM_IsLinkAttached(const BPLib_MEM_Block_t *list)
     return (list->next != list);
 }
 
+#ifdef TODO // TODO islinkun
 /**
  * @brief Checks if this block is a singleton
  *
@@ -340,6 +341,16 @@ static inline bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list)
 {
     return (list->next == list);
 }
+#endif
+
+/**
+ * @brief Checks if this block is a singleton
+ *
+ * @param list
+ * @return true If the block is a singleton
+ * @return false If the block is part of a list
+ */
+bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list);
 
 /**
  * @brief Checks if this block is the head of a list
@@ -381,8 +392,7 @@ static inline bool BPLib_MEM_IsNonEmptyListHead(const BPLib_MEM_Block_t *list)
 
 /**
  * BPLib_MEM_ApiContent is a specialized variant of BPLib_STOR_CACHE_ApiContent.
- *
- * BPLib_MEM_RBT and BPLib_MEM are the only users in the MEM module.
+ * Blocks must have a non-NULL pointer to API Content to be allocated.
  */
 typedef struct BPLib_MEM_ApiContent
 {
@@ -461,6 +471,21 @@ int BPLib_MEM_RegisterBlocktypeInternal(BPLib_MEM_Pool_t *pool, uint32_t magic_n
                                         const BPLib_MEM_BlocktypeApi_t *api, size_t user_content_size);
 
 /**
+ * @brief Checks if the block is indirect (a reference)
+ *
+ * @param cb
+ * @return true
+ * @return false
+ */
+static inline bool BPLib_MEM_IsIndirectBlock(const BPLib_MEM_Block_t *cb)
+{
+    // return (cb->type == BPLib_MEM_BlocktypeRef);
+
+    // There are no Refs in MEM.
+    return false;
+}
+
+/**
  * @brief Checks if the block is any valid content type
  *
  * This indicates blocks that have actual content
@@ -526,6 +551,13 @@ void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *li
  */
 BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size);
 
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_RecycleBlockInternal
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_MEM_RecycleBlockInternal(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t *blk);
+
 /**
  * @brief Recycle an entire list of blocks which are no longer needed
  *
@@ -569,11 +601,32 @@ void BPLIB_MEM_RecycleBlock(BPLib_MEM_Block_t *blk);
  * @param api Structure containing op callbacks
  * @param user_content_size Maximum size of user content associated with blocktype
  * @returns status code
- * @retval BP_SUCCESS if registration successful
+ * @retval BPLIB_SUCCESS if registration successful
  * @retval BP_DUPLICATE if the block type is already registered.
  */
 int BPLib_MEM_RegisterBlocktype (BPLib_MEM_Pool_t *pool, uint32_t magic_number, const BPLib_MEM_BlocktypeApi_t *api,
                                    size_t user_content_size);
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_QueryMemCurrentUse
+ *
+ *-----------------------------------------------------------------*/
+size_t BPLib_MEM_QueryMemCurrentUse(BPLib_MEM_Pool_t *pool);
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_QueryMemMaxUse
+ *
+ *-----------------------------------------------------------------*/
+size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_Pool_t *pool);
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_GetParentPoolFromLink
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb);
 
 // TODO Move or remove the header for "Exported Functions"
 /**
