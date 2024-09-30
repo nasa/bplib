@@ -325,14 +325,10 @@ void Test_BPLib_MEM_GetParentPoolFromLink(void)
     UtAssert_NULL(BPLib_MEM_GetParentPoolFromLink(NULL));
 
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeAdmin, 0);
+    BPLib_MEM_InsertAfter(&admin->active_list, &buf.blk[0].header.base_link);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
-    // TODO Maybe can't use free_blocks BPLib_MEM_SubqPushSingle(&admin->free_blocks, &buf.blk[0].header.base_link);
-    BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, &buf.blk[0].header.base_link);
-
-    // TODO Maybe can't use free_blocks UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].u.admin.free_blocks.block_list), &buf.pool);
-    // TODO FAIL UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].u.admin.recycle_blocks.block_list), &buf.pool);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].header.base_link),
+                        &admin->active_list);
 }
 
 void Test_BPLib_MEM_InitBaseObject(void)

@@ -109,8 +109,8 @@ bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime)
 
     // TODO Can we have DEBUG or TRACE printfs for unit test?
     // Using format '"%" PRIx64'. There are many others, like PRId64 and PRIu64. See <inttypes.h>.
-    printf("%s:%d DTN ms = 0x%" PRIx64 "\n", __FILE__, __LINE__, BPLib_MEM_OS_GetDtnTimeMs());  // TODO BPLib_MEM_LockTrace.
-    printf("until_dtntime 0x%" PRIx64 "\n", until_dtntime);
+    // TODO Remove printf("%s:%d DTN ms = 0x%" PRIx64 "\n", __FILE__, __LINE__, BPLib_MEM_OS_GetDtnTimeMs());  // TODO BPLib_MEM_LockTrace.
+    // TODO Remove printf("until_dtntime 0x%" PRIx64 "\n", until_dtntime);
     within_timeout = (until_dtntime > BPLib_MEM_OS_GetDtnTimeMs());
 
     if (within_timeout)
@@ -325,7 +325,7 @@ void BPLib_MEM_SubqInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqBase_t *qbl
  */
 bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list)
 {
-    printf("BPLib_MEM_IsLinkUnattached list->next = %lx list = %lx\n", (uint64_t)list->next, (uint64_t)list);
+    // TODO Remove printf("BPLib_MEM_IsLinkUnattached list->next = %lx list = %lx\n", (uint64_t)list->next, (uint64_t)list);
 
     // TODO Why fail? return (list->next == list);
     return true;
@@ -338,7 +338,7 @@ bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list)
  *-----------------------------------------------------------------*/
 void BPLib_MEM_InsertAfter(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
 {
-    printf("BPLib_MEM_InsertAfter node = %lx node->next = %lx\n", (uint64_t)node, (uint64_t)node->next);
+    // TODO Remove printf("BPLib_MEM_InsertAfter node = %lx node->next = %lx\n", (uint64_t)node, (uint64_t)node->next);
 
     /* node being inserted should always be a singleton */
     // TODO Put back: assert(BPLib_MEM_IsLinkUnattached(node));
@@ -356,7 +356,7 @@ void BPLib_MEM_InsertAfter(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
  *-----------------------------------------------------------------*/
 void BPLib_MEM_InsertBefore(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node)
 {
-    printf("BPLib_MEM_InsertBefore node = %lx node->next = %lx\n", (uint64_t)node, (uint64_t)node->next);
+    // TODO Remove printf("BPLib_MEM_InsertBefore node = %lx node->next = %lx\n", (uint64_t)node, (uint64_t)node->next);
 
     /* node being inserted should always be a singleton */
     assert(BPLib_MEM_IsLinkUnattached(node));
@@ -454,10 +454,6 @@ BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb)
 
         /* this should have always arrived at the admin block, which is the first block */
         assert(block->header.base_link.type == BPLib_MEM_BlocktypeAdmin);
-    }
-    else
-    {
-        block = NULL;
     }
 
     return (BPLib_MEM_Pool_t *)block;
