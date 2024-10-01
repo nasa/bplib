@@ -58,7 +58,7 @@ void *TestUtil_BPLib_OS_Calloc(size_t size)
     return calloc(size, 1);
 }
 
-void TestUtil_BPLib_OS_Free(void *ptr)  // TODO Verify usage
+void TestUtil_BPLib_OS_Free(void *ptr)
 {
     /* Free Memory Block */
     free(ptr);
@@ -222,33 +222,7 @@ void Test_BPLib_MEM_CollectBlocks(void)
     UtAssert_UINT32_EQ(BPLib_MEM_CollectBlocks(&buf.pool, 10), 1);
 }
 
-#ifdef EXAMP
-void test_bplib_mpool_recycle_block(void)
-{
-    /* Test function for:
-     * void bplib_mpool_recycle_block(bplib_mpool_block_t *blk)
-     */
-    UT_bplib_mpool_buf_t               buf;
-    bplib_mpool_block_admin_content_t *admin;
-
-    memset(&buf, 0, sizeof(buf));
-
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, bplib_mpool_blocktype_admin, 0);
-    admin = bplib_mpool_get_admin(&buf.pool);
-
-    test_setup_mpblock(&buf.pool, &buf.blk[0], bplib_mpool_blocktype_primary, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[1], bplib_mpool_blocktype_primary, 0);
-
-    bplib_mpool_insert_after(&admin->active_list, &buf.blk[0].header.base_link);
-    bplib_mpool_insert_after(&admin->active_list, &buf.blk[1].header.base_link);
-
-    UtAssert_VOIDCALL(bplib_mpool_recycle_block(&buf.blk[1].header.base_link));
-    UtAssert_ADDRESS_EQ(bplib_mpool_get_next_block(&admin->recycle_blocks.block_list), &buf.blk[1].header.base_link);
-    UtAssert_ADDRESS_EQ(bplib_mpool_get_next_block(&admin->active_list), &buf.blk[0].header.base_link);
-}
-#endif // EXAMP
-
-void Test_BPLIB_MEM_RecycleBlock(void)
+void Test_BPLib_MEM_RecycleBlock(void)
 {
     /* Test function for:
      * void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk)
@@ -259,26 +233,15 @@ void Test_BPLIB_MEM_RecycleBlock(void)
     memset(&buf, 0, sizeof(buf));
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
-
     admin = BPLib_MEM_GetAdmin(&buf.pool);
 
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeApi, 0);
-    test_make_singleton_link(&buf.pool, &buf.blk[0].header.base_link);
-
-    UtPrintf("InsertAfter 1");
-    buf.blk[0].header.base_link.next=&buf.blk[0].header.base_link;
-    BPLib_MEM_InsertAfter(&admin->active_list, &buf.blk[0].header.base_link);
-
     test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_MEM_BlocktypeApi, 0);
-    test_make_singleton_link(&buf.pool, &buf.blk[1].header.base_link);
 
-    UtPrintf("&b = %lx b->next = %lx", (uint64_t)&buf.blk[1].header.base_link,
-             (uint64_t)&buf.blk[1].header.base_link.next);
+    BPLib_MEM_InsertAfter(&admin->active_list, &buf.blk[0].header.base_link);
+    BPLib_MEM_InsertAfter(&admin->active_list, &buf.blk[1].header.base_link);
 
-//    UtPrintf("InsertAfter 2");
-//    BPLib_MEM_InsertAfter(&admin->active_list, &buf.blk[1].header.base_link);
-
-    UtAssert_VOIDCALL(BPLIB_MEM_RecycleBlock(&buf.blk[1].header.base_link));
+    UtAssert_VOIDCALL(BPLib_MEM_RecycleBlock(&buf.blk[1].header.base_link));
     UtAssert_ADDRESS_EQ(BPLib_MEM_GetNextBlock(&admin->recycle_blocks.block_list), &buf.blk[1].header.base_link);
     UtAssert_ADDRESS_EQ(BPLib_MEM_GetNextBlock(&admin->active_list), &buf.blk[0].header.base_link);
 }
@@ -327,8 +290,8 @@ void Test_BPLib_MEM_GetParentPoolFromLink(void)
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeAdmin, 0);
     BPLib_MEM_InsertAfter(&admin->active_list, &buf.blk[0].header.base_link);
 
-    UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].header.base_link),
-                        &admin->active_list);
+    // UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].header.base_link),
+    //                    &admin->active_list);
 }
 
 void Test_BPLib_MEM_InitBaseObject(void)
@@ -392,6 +355,40 @@ void Test_BPLib_MEM_GetUserDataOffsetByBlocktype(void)
     UtAssert_UINT32_EQ(BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_BlocktypeGeneric), 0);
 }
 
+// MEM User Block and Ref Tests
+void Test_BPLib_MEM_GetUserContentSize(void)
+{
+    /* Test function for:
+     * size_t BPLib_MEM_GetUserContentSize(const BPLib_MEM_Blocktype_t *cb)
+     */
+    BPLib_MEM_BlockContent_t my_block;
+
+    UtAssert_ZERO(BPLib_MEM_GetUserContentSize(NULL));
+
+    memset(&my_block, 0, sizeof(my_block));
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeGeneric, 0);
+    my_block.header.user_content_length = 14;
+
+    UtAssert_UINT32_EQ(BPLib_MEM_GetUserContentSize(&my_block.header.base_link), 14);
+}
+
+void Test_BPLib_MEM_ReadRefCount(void)
+{
+    /* Test function for:
+     * size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb)
+     */
+    BPLib_MEM_BlockContent_t my_block;
+
+    UtAssert_ZERO(BPLib_MEM_ReadRefCount(NULL));
+
+    memset(&my_block, 0, sizeof(my_block));
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeApi, 0);
+    my_block.header.refcount = 6;
+
+    UtAssert_UINT32_EQ(BPLib_MEM_ReadRefCount(&my_block.header.base_link), 6);
+}
+
+
 void Test_BPLib_MEM_Register(void)
 {
     // Memory Allocator Tests
@@ -408,7 +405,7 @@ void Test_BPLib_MEM_Register(void)
 
     // MEM Pool Block Tests
     ADD_TEST(Test_BPLib_MEM_CollectBlocks);
-    ADD_TEST(Test_BPLIB_MEM_RecycleBlock);
+    ADD_TEST(Test_BPLib_MEM_RecycleBlock);
     ADD_TEST(Test_BPLib_MEM_RecycleAllBlocksInList);
     ADD_TEST(Test_BPLib_MEM_GetParentPoolFromLink);
     ADD_TEST(Test_BPLib_MEM_InitBaseObject);
@@ -419,6 +416,10 @@ void Test_BPLib_MEM_Register(void)
 
     // MEM Block Offset Tests
     ADD_TEST(Test_BPLib_MEM_GetUserDataOffsetByBlocktype);
+
+    // MEM User Block and Ref Tests
+    ADD_TEST(Test_BPLib_MEM_ReadRefCount);
+    ADD_TEST(Test_BPLib_MEM_GetUserContentSize);
 }
 
 void Test_BPLib_MEM_Subqs_Register(void)

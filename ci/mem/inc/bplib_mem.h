@@ -231,7 +231,7 @@ typedef enum BPLib_MEM_Blocktype
 
 typedef struct BPLib_MEM_Block BPLib_MEM_Block_t;
 
-// TODO Return BPlib_MEM_Block_t to an abstract type.
+// TODO Return BPlib_MEM_Block_t to an abstract type. The abstract type belongs in bplib_api_types.h
 struct BPLib_MEM_Block
 {
     /* note that if it becomes necessary to recover bits here,
@@ -329,7 +329,6 @@ static inline bool BPLib_MEM_IsLinkAttached(const BPLib_MEM_Block_t *list)
     return (list->next != list);
 }
 
-#ifdef TODO // TODO islinkun
 /**
  * @brief Checks if this block is a singleton
  *
@@ -341,16 +340,6 @@ static inline bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list)
 {
     return (list->next == list);
 }
-#endif
-
-/**
- * @brief Checks if this block is a singleton
- *
- * @param list
- * @return true If the block is a singleton
- * @return false If the block is part of a list
- */
-bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list);
 
 /**
  * @brief Checks if this block is the head of a list
@@ -425,6 +414,30 @@ typedef struct BPLib_MEM_BlockAdminContent
 
 } BPLib_MEM_BlockAdminContent_t;
 
+/**
+ * @brief Gets the size of the user buffer associated with a data block
+ *
+ * @param cb pointer to block
+ * @return size_t
+ */
+size_t BPLib_MEM_GetUserContentSize(const BPLib_MEM_Block_t *cb);
+
+/**
+ * @brief Reads the reference count of the object
+ *
+ * Primary and canonical blocks have a reference count, allowing them to be quickly
+ * duplicated (such as to keep one copy in a storage, while another sent to a CLA) without
+ * actually copying the data itself.  The content blocks will be kept in the pool until
+ * the refcount reaches zero, and then the memory blocks will be recycled.
+ *
+ * If this returns "1" it means that the given block pointer is currently the only reference to
+ * this particular block (that is, it is not also present in an interface queue somewhere else)
+ *
+ * @param cb
+ * @return size_t
+ */
+size_t BPLib_MEM_ReadRefCount(const BPLib_MEM_Block_t *cb);
+
 /*
  * Minimum size of a generic data block
  */
@@ -465,10 +478,6 @@ typedef struct BPLib_MEM_Pool
 #define BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(m) (offsetof(BPLib_MEM_BlockBuffer_t, m.user_data_start))
 
 #define BPLIB_MEM_GET_BLOCK_USER_CAPACITY(m) (sizeof(BPLib_MEM_BlockBuffer_t) - MPOOL_GET_BUFFER_USER_START_OFFSET(m))
-
-// TODO Add a brief for BPLib_MEM_RegisterBlockTypeInternal
-int BPLib_MEM_RegisterBlocktypeInternal(BPLib_MEM_Pool_t *pool, uint32_t magic_number,
-                                        const BPLib_MEM_BlocktypeApi_t *api, size_t user_content_size);
 
 /**
  * @brief Checks if the block is indirect (a reference)
@@ -582,7 +591,7 @@ void BPLib_MEM_RecycleAllBlocksInList(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t 
  *
  * @param blk
  */
-void BPLIB_MEM_RecycleBlock(BPLib_MEM_Block_t *blk);
+void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk);
 
 /**
  * @brief Registers a given block type signature

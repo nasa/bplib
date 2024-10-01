@@ -64,31 +64,6 @@ BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_DebugPrintListStats()
- * ----------------------------------------------------
- */
-void BPLib_MEM_DebugPrintListStats(BPLib_MEM_Block_t *list, const char *label)
-{
-    UT_GenStub_AddParam(BPLib_MEM_DebugPrintListStats, BPLib_MEM_Block_t *, list);
-    UT_GenStub_AddParam(BPLib_MEM_DebugPrintListStats, const char *, label);
-
-    UT_GenStub_Execute(BPLib_MEM_DebugPrintListStats, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_DebugScan()
- * ----------------------------------------------------
- */
-void BPLib_MEM_DebugScan(BPLib_MEM_Pool_t *pool)
-{
-    UT_GenStub_AddParam(BPLib_MEM_DebugScan, BPLib_MEM_Pool_t *, pool);
-
-    UT_GenStub_Execute(BPLib_MEM_DebugScan, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_ExtractNode()
  * ----------------------------------------------------
  */
@@ -315,18 +290,18 @@ size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_Pool_t *pool)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_MEM_ReadRefcount()
+ * Generated stub function for BPLib_MEM_ReadRefCount()
  * ----------------------------------------------------
  */
-size_t BPLib_MEM_ReadRefcount(const BPLib_MEM_Block_t *cb)
+size_t BPLib_MEM_ReadRefCount(const BPLib_MEM_Block_t *cb)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_ReadRefcount, size_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_ReadRefCount, size_t);
 
-    UT_GenStub_AddParam(BPLib_MEM_ReadRefcount, const BPLib_MEM_Block_t *, cb);
+    UT_GenStub_AddParam(BPLib_MEM_ReadRefCount, const BPLib_MEM_Block_t *, cb);
 
-    UT_GenStub_Execute(BPLib_MEM_ReadRefcount, Basic, NULL);
+    UT_GenStub_Execute(BPLib_MEM_ReadRefCount, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_ReadRefcount, size_t);
+    return UT_GenStub_GetReturnValue(BPLib_MEM_ReadRefCount, size_t);
 }
 
 /*

@@ -44,14 +44,6 @@
  */
 void BPLib_MEM_OS_Init(void);
 
-/* The OSAL "os" submodule does not provide bplib_os_log at this time, so its here.  This should be moved  */
-int BPLIB_MEM_OS_Log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...);
-
-/**
- * Lacking bplib_os.h and bplib/os, improvised MEM-local BPLib_MEM_OS_* calls.
- */
-#define bplog(flags, evt, ...) BPLIB_MEM_OS_Log(__FILE__, __LINE__, flags, evt, __VA_ARGS__)
-
 typedef struct BPLib_MEM_Lock
 {
     bp_handle_t lock_id;
@@ -406,13 +398,6 @@ uint32_t BPLib_MEM_SubqDropAll(BPLib_MEM_Pool_t *pool, BPLib_MEM_SubqBase_t *sub
 /* gets to the underlying block content (which may be a ref block) */
 BPLib_MEM_BlockContent_t       *BPLib_MEM_GetBlockContent(BPLib_MEM_Block_t *cb);
 const BPLib_MEM_BlockContent_t *BPLib_MEM_GetBlockContentConst(const BPLib_MEM_Block_t *cb);
-
-/* similar to BPLib_MEM_GetBlockContent() but also dereferences any ref blocks */
-BPLib_MEM_BlockContent_t *BPLib_MEM_BlockDereferenceContent(BPLib_MEM_Block_t *cb);
-
-BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, BPLib_MEM_Blocktype_t blocktype,
-                                                       uint32_t content_type_signature, void *init_arg,
-                                                       uint8_t priority);
 
 // Mockups for CACHE entries.
 typedef struct BPLib_MEM_EntryState

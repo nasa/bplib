@@ -44,4 +44,5 @@ void UtTest_Setup(void)
 {
     Test_BPLib_MEM_Register();
     Test_BPLib_MEM_Subqs_Register();
+    Test_BPLib_MEM_RBT_Register();
 }

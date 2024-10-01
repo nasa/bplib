@@ -25,7 +25,11 @@
 
 #include "bplib.h"
 
+#include "../utilities/bplib_mem_test_utils.h"
+
 #include "bplib_mem_rbtree.h"
+
+#include "test_bplib_mem_rbtree.h"
 
 /************************************************************************
  *
@@ -64,7 +68,7 @@ static int rbtest_comparator(const BPLib_MEM_RBT_Link_t *link, void *arg)
     return (ref_val - node->internal_value);
 }
 
-void Test_BPLib_MEM_Common_RBT_Setup(void)
+void Test_BPLib_MEM_RBT_Setup(void)
 {
     int i;
 
@@ -90,7 +94,7 @@ void Test_BPLib_MEM_Common_RBT_Setup(void)
     tail_used = NULL;
 }
 
-void Test_BPLib_MEM_Common_RBT_Basics(void)
+void Test_BPLib_MEM_RBT_Basics(void)
 {
     BPLib_MEM_RBT_Root_t tree;
 
@@ -214,7 +218,7 @@ static void Test_RBT_CheckTree(BPLib_MEM_RBT_Root_t *tree)
     UtDebug("End tree validation");
 }
 
-void Test_BPLib_MEM_Common_RBT_LeafNodeInsertDelete(void)
+void Test_BPLib_MEM_RBT_LeafNodeInsertDelete(void)
 {
     /*
      * Exercise all of the R-B tree rebalancing cases for insert and delete.
@@ -328,7 +332,7 @@ void Test_BPLib_MEM_Common_RBT_LeafNodeInsertDelete(void)
     Test_RBT_CheckTree(&rbtree);
 }
 
-void Test_BPLib_MEM_Common_RBT_NonLeafDelete(void)
+void Test_BPLib_MEM_RBT_NonLeafDelete(void)
 {
     uint32 i;
 
@@ -368,7 +372,7 @@ void Test_BPLib_MEM_Common_RBT_NonLeafDelete(void)
     }
 }
 
-void Test_BPLib_MEM_Common_RBT_Unique(void)
+void Test_BPLib_MEM_RBT_Unique(void)
 {
     int              i;
     BPLib_MEM_RBT_Root_t alt_root;
@@ -503,7 +507,7 @@ void Test_BPLib_MEM_Common_RBT_Unique(void)
     }
 }
 
-void Test_BPLib_MEM_Common_RBT_NonUnique(void)
+void Test_BPLib_MEM_RBT_NonUnique(void)
 {
     BPLib_MEM_RBT_Iter_t it;
     int              status;
@@ -611,7 +615,7 @@ void Test_BPLib_MEM_Common_RBT_NonUnique(void)
     UtAssert_INT32_EQ(BPLib_MEM_RBT_ExtractNode(&rbtree, &node_array[180].link), BPLIB_SUCCESS);
 }
 
-void Test_BPLib_MEM_Common_RBT_Iterator(void)
+void Test_BPLib_MEM_RBT_Iterator(void)
 {
     int               i;
     int               count;
@@ -725,4 +729,16 @@ void Test_BPLib_MEM_Common_RBT_Iterator(void)
 
     UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMin(50, &rbtree, &it), BPLIB_SUCCESS);
     UtAssert_INT32_NEQ(BPLib_MEM_RBT_IterGotoMax(50, &rbtree, &it), BPLIB_SUCCESS);
+}
+
+void Test_BPLib_MEM_RBT_Register(void)
+{
+    ADD_TEST(Test_BPLib_MEM_RBT_Setup);
+    ADD_TEST(Test_BPLib_MEM_RBT_Basics);
+    ADD_TEST(Test_BPLib_MEM_RBT_Register);
+    ADD_TEST(Test_BPLib_MEM_RBT_LeafNodeInsertDelete);
+    ADD_TEST(Test_BPLib_MEM_RBT_NonLeafDelete);
+    ADD_TEST(Test_BPLib_MEM_RBT_Unique);
+    ADD_TEST(Test_BPLib_MEM_RBT_NonUnique);
+    ADD_TEST(Test_BPLib_MEM_RBT_Iterator);
 }

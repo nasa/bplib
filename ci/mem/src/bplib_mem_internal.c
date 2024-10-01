@@ -24,10 +24,8 @@
 
 #include <string.h>
 #include <assert.h>
-#include <stdio.h> // TODO Change to compile-time conditional DEBUG
 
 #include "bplib.h"
-// TODO Switch to osal OS_ #include "bplib_os.h"
 #include "bplib_api_types.h"
 #include "bplib_mem.h"
 #include "bplib_mem_internal.h"
@@ -108,22 +106,6 @@ unsigned int BPLib_MEM_OS_NextSerial(void)
 
     return next_serial;
 }
-
-/* The OSAL "os" submodule does not provide bplib_os_log at this time, so its here.  This should be moved  */
-int BPLIB_MEM_OS_Log(const char *file, unsigned int line, uint32_t *flags, uint32_t event, const char *fmt, ...)
-{
-    va_list va;
-    char    bpmsg[128];
-
-    snprintf(bpmsg, sizeof(bpmsg), "%s: %d %s ", file, line, fmt);
-
-    va_start(va, fmt);
-    OS_printf(bpmsg, va);
-    va_end(va);
-
-    return BPLIB_SUCCESS;
-}
-
 
 int BPLib_MEM_OS_WaitUntilMs(bp_handle_t h, uint64_t abs_dtntime_ms)
 {

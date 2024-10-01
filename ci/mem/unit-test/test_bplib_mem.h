@@ -26,6 +26,7 @@
 #include "../src/bplib_mem_internal.h"
 
 #include "bplib_mem.h"
+#include "test_bplib_mem_rbtree.h"
 
 typedef struct
 {
@@ -60,7 +61,7 @@ void Test_BPLib_MEM_LockWait(void);
 
 // MEM Pool Block Tests
 void Test_BPLib_MEM_CollectBlocks(void);
-void Test_BPLIB_MEM_RecycleBlock(void);
+void Test_BPLib_MEM_RecycleBlock(void);
 void Test_BPLib_MEM_RecycleAllBlocksInList(void);
 void Test_BPLib_MEM_GetParentPoolFromLink(void);
 void Test_BPLib_MEM_InitBaseObject(void);
@@ -71,6 +72,9 @@ void Test_BPLib_MEM_QueryMemMaxUse(void);
 
 // MEM Block Offset Tests
 void Test_BPLib_MEM_GetUserDataOffsetByBlocktype(void);
+
+// MEM Ref Tests
+void Test_BPLib_MEM_ReadRefCount(void);
 
 // MEM Subq Tests
 void Test_BPLib_MEM_SubqPushSingle(void);
