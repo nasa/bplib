@@ -21,9 +21,9 @@
 #ifndef BPLIB_NC_TEST_UTILS_H
 #define BPLIB_NC_TEST_UTILS_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "utassert.h"
 #include "utstubs.h"
@@ -32,10 +32,16 @@
 #include "bplib.h"
 #include "bplib_nc.h"
 
+/* ====== */
+/* Macros */
+/* ====== */
 
-/*
-** Function Definitions
-*/
+// Add a test case
+#define ADD_TEST(test) UtTest_Add(test, BPLib_NC_Test_Setup, BPLib_NC_Test_Teardown, #test)
+
+/* =================== */
+/* Function Prototypes */
+/* =================== */
 
 void BPLib_NC_Test_Setup(void);
 void BPLib_NC_Test_Teardown(void);
