@@ -25,8 +25,10 @@
 /* Includes */
 /* ======== */
 
-#include "bplib.h"
+#include "bplib_em.h"
 #include "bplib_nc_payloads.h"
+#include "bplib_fwp.h"
+#include "bplib_eventids.h"
 
 /* =================== */
 /* Function Prototypes */

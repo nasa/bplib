@@ -23,10 +23,6 @@
 /* ======== */
 
 #include "bplib_nc.h"
-#include "bplib_fwp.h"
-#include "bplib.h"
-#include "bplib_nc_payloads.h"
-#include "bplib_eventids.h"
 
 /* ==================== */
 /* Function Definitions */

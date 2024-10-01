@@ -18,11 +18,16 @@
  *
  */
 
-/*
- * Includes
- */
+/* ======== */
+/* Includes */
+/* ======== */
+
 #include "bplib_nc.h"
 #include "bplib_nc_test_utils.h"
+
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
 
 void Test_BPLib_NC_Init(void)
 {

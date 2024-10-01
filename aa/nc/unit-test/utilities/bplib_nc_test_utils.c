@@ -18,15 +18,15 @@
  *
  */
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_nc_test_utils.h"
 
-/*
-** Function Definitions
-*/
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
 
 void BPLib_NC_Test_Setup(void)
 {

@@ -21,7 +21,15 @@
 #ifndef BPLIB_NC_PAYLOADS_H
 #define BPLIB_NC_PAYLOADS_H
 
+/* ======== */
+/* Includes */
+/* ======== */
+
 #include "bplib_fwp.h"
+
+/* =========== */
+/* Definitions */
+/* =========== */
 
 typedef struct
 {

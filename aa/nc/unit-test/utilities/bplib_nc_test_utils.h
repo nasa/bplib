@@ -29,7 +29,6 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "bplib.h"
 #include "bplib_nc.h"
 
 /* ====== */
