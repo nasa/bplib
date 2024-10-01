@@ -18,28 +18,29 @@
  *
  */
 
-#ifndef BPLIB_H
-#define BPLIB_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef BPLIB_TLM_TEST_UTILS_H
+#define BPLIB_TLM_TEST_UTILS_H
 
 /*
 ** Include
 */
 
-#include "bplib_api_types.h"
-#include "bplib_time.h"
-#include "bplib_em.h"
-#include "bplib_fwp.h"
-#include "bplib_pl.h"
-#include "bplib_stor.h"
-#include "bplib_ndc.h"
-#include "bplib_as.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
+#include "bplib.h"
+#include "bplib_tlm.h"
 
-#endif /* BPLIB_H */
+
+/*
+** Function Definitions
+*/
+
+void BPLib_TLM_Test_Setup(void);
+void BPLib_TLM_Test_Teardown(void);
+
+void TestBplibTlm_Register(void);
+
+#endif /* BPLIB_TLM_TEST_UTILS_H */
+

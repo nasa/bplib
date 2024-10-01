@@ -31,6 +31,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 /*
 ** Type Definitions
@@ -45,6 +46,8 @@ typedef int32_t BPLib_Status_t;
 /*
 ** Macros
 */
+#define BPLIB_MAX_NUM_BUNDLE_QUEUES         (10u)
+#define BPLIB_MAX_NUM_SOURCE_EID            (10u)
 
 /* General Return Codes */
 

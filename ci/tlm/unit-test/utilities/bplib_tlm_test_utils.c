@@ -18,28 +18,28 @@
  *
  */
 
-#ifndef BPLIB_H
-#define BPLIB_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
 ** Include
 */
 
-#include "bplib_api_types.h"
-#include "bplib_time.h"
-#include "bplib_em.h"
-#include "bplib_fwp.h"
-#include "bplib_pl.h"
-#include "bplib_stor.h"
-#include "bplib_ndc.h"
-#include "bplib_as.h"
+#include "bplib_tlm_test_utils.h"
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
+/*
+** Function Definitions
+*/
 
-#endif /* BPLIB_H */
+void BPLib_TLM_Test_Setup(void)
+{
+    /* Initialize test environment to default state for every test */
+    UT_ResetState(0);
+}
+
+void BPLib_TLM_Test_Teardown(void)
+{
+    /* Clean up test environment */
+}
+
+void UtTest_Setup(void)
+{
+    TestBplibTlm_Register();
+}
