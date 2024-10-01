@@ -31,57 +31,101 @@
 
 void Test_BPLib_NC_Init(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_Init(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_Init();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_NoopCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_NoopCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_NoopCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_AddAllApplicationsCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_AddAllApplicationsCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_AddAllApplicationsCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_StartAllApplicationsCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_StartAllApplicationsCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_StartAllApplicationsCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_VerifyBundleStorageCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_VerifyBundleStorageCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_VerifyBundleStorageCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_InitBundleStorageCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_InitBundleStorageCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_InitBundleStorageCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_VerifyBundleMetadataCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_VerifyBundleMetadataCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_VerifyBundleMetadataCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_RebuildBundleMetadataCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_RebuildBundleMetadataCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_RebuildBundleMetadataCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_ClearVolatileCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_ClearVolatileCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_ClearVolatileCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_ReloadSavedDataCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_ReloadSavedDataCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_ReloadSavedDataCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_ResetAllCountersCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_ResetAllCountersCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_ResetAllCountersCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_ResetCounterCmd(void)
@@ -112,12 +156,20 @@ void Test_BPLib_NC_ResetSourceCountersCmd(void)
 
 void Test_BPLib_NC_ResetBundleCountersCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_ResetBundleCountersCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_ResetBundleCountersCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_ResetErrorCountersCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_ResetErrorCountersCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_ResetErrorCountersCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_AddApplicationCmd(void)
@@ -434,37 +486,65 @@ void Test_BPLib_NC_RemoveStorageAllocationCmd(void)
 
 void Test_BPLib_NC_PerformSelfTestCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_PerformSelfTestCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_PerformSelfTestCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_SendNodeMibConfigHkCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_SendNodeMibConfigHkCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_SendNodeMibConfigHkCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_SendSourceMibConfigHkCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_SendSourceMibConfigHkCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_SendSourceMibConfigHkCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_SendNodeMibCountersHkCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_SendNodeMibCountersHkCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_SendNodeMibCountersHkCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_SendSourceMibCountersHkCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_SendSourceMibCountersHkCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_SendSourceMibCountersHkCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_SendStorageHkCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_SendStorageHkCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_SendStorageHkCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_SendChannelContactStatHkCmd(void)
 {
-    UtAssert_EQ(BPLib_Status_t, BPLib_NC_SendChannelContactStatHkCmd(), BPLIB_SUCCESS);
+    BPLib_Status_t Status;
+
+    Status = BPLib_NC_SendChannelContactStatHkCmd();
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void TestBplibNc_Register(void)
