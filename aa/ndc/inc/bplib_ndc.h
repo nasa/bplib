@@ -29,8 +29,6 @@
 #include "bplib.h"
 
 #define BPLIB_NDC_MAX_NUM_STRING        24
-#define BPLIB_MAX_NUM_CHANNELS          1
-#define BPLIB_MAX_NUM_CONTACTS          1
 #define BPLIB_NDC_MAX_EID_STRING        256
 
 /**

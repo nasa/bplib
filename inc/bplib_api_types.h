@@ -48,6 +48,8 @@ typedef int32_t BPLib_Status_t;
 */
 #define BPLIB_MAX_NUM_BUNDLE_QUEUES         (10u)
 #define BPLIB_MAX_NUM_SOURCE_EID            (10u)
+#define BPLIB_MAX_NUM_CHANNELS              (1u)
+#define BPLIB_MAX_NUM_CONTACTS              (1u)
 
 /* General Return Codes */
 
