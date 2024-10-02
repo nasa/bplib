@@ -1341,9 +1341,6 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd(void)
     }
     */
 
-    BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CTRS_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                        "Send node mib counters HK command not implemented");
-
     return Status;
 }
 
