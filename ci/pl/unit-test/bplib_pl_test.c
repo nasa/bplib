@@ -23,6 +23,19 @@
  */
 
 #include "bplib_pl_test_utils.h"
+#include "bplib_pl.h"
+
+BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
+
+void BPA_PERFLOGP_Entry(uint32 PerfLogID)
+{
+    return;
+}
+
+void BPA_PERFLOGP_Exit(uint32 PerfLogID)
+{
+    return;
+}
 
 /*
 ** Test function for
@@ -33,8 +46,39 @@ void Test_BPLib_PL_Init(void)
     UtAssert_INT32_EQ(BPLib_PL_Init(), BPLIB_SUCCESS);
 }
 
+void Test_BPLib_PL_PerfLogEntryNominal(void)
+{
+    uint32_t PerfLogID = 10;
+    BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry = BPA_PERFLOGP_Entry;
+    UtAssert_INT32_EQ(BPLib_PL_PerfLogEntry(PerfLogID), BPLIB_SUCCESS);    
+}
+
+void Test_BPLib_PL_PerfLogExitNominal(void)
+{
+    uint32_t PerfLogID = 10;
+    BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit = BPA_PERFLOGP_Exit;
+    UtAssert_INT32_EQ(BPLib_PL_PerfLogExit(PerfLogID), BPLIB_SUCCESS);    
+}
+
+void Test_BPLib_PL_PerfLogEntryNULL(void)
+{
+    uint32_t PerfLogID = 10;
+    memset(&BPLib_FWP_ProxyCallbacks, 0, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    UtAssert_INT32_EQ(BPLib_PL_PerfLogEntry(PerfLogID), BPLIB_PL_NULL_CALLBACK_ERROR);    
+}
+
+void Test_BPLib_PL_PerfLogExitNULL(void)
+{
+    uint32_t PerfLogID = 10;
+    memset(&BPLib_FWP_ProxyCallbacks, 0, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    UtAssert_INT32_EQ(BPLib_PL_PerfLogExit(PerfLogID), BPLIB_PL_NULL_CALLBACK_ERROR);    
+}
 
 void TestBplibPl_Register(void)
 {
     UtTest_Add(Test_BPLib_PL_Init, BPLib_PL_Test_Setup, BPLib_PL_Test_Teardown, "Test_BPLib_PL_Init");
+    UtTest_Add(Test_BPLib_PL_PerfLogEntryNULL, BPLib_PL_Test_Setup, BPLib_PL_Test_Teardown, "Test_BPLib_PL_PerfLogEntryNULL");
+    UtTest_Add(Test_BPLib_PL_PerfLogExitNULL, BPLib_PL_Test_Setup, BPLib_PL_Test_Teardown, "Test_BPLib_PL_PerfLogExitNULL");
+    UtTest_Add(Test_BPLib_PL_PerfLogEntryNominal, BPLib_PL_Test_Setup, BPLib_PL_Test_Teardown, "Test_BPLib_PL_PerfLogEntryNominal");
+    UtTest_Add(Test_BPLib_PL_PerfLogExitNominal, BPLib_PL_Test_Setup, BPLib_PL_Test_Teardown, "Test_BPLib_PL_PerfLogExitNominal");
 }

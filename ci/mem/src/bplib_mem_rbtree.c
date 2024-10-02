@@ -23,10 +23,9 @@
  ******************************************************************************/
 
 #include <assert.h>
-
+#include <string.h>
 #include "bplib.h"
-#include "bplib_os.h"
-#include "bplib_rbtree.h"
+#include "bplib_mem_rbtree.h"
 
 /******************************************************************************
  DEFINES
@@ -378,7 +377,7 @@ static inline int BPLib_MEM_RBT_CompareKey(bp_val_t key1, bp_val_t key2)
  * insert_key_value: The value of the node to attempt to insert or merge into the red black tree. [INPUT]
  * tree: A ptr to the BPLib_MEM_RBT_Root_t to insert values into. [OUTPUT]
  * new_node: Pointer to the new node link structure
- * returns: A rb_tree status indicating the result of the insertion attempt (BP_DUPLICATE or BP_SUCCESS)
+ * returns: A rb_tree status indicating the result of the insertion attempt (BPLIB_MEM_RBT_DUPLICATE or BPLIB_SUCCESS)
  *-------------------------------------------------------------------------------------*/
 BP_LOCAL_SCOPE int do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *new_node,
                                      BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
@@ -390,7 +389,7 @@ BP_LOCAL_SCOPE int do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_L
     int                status;
     int                compare_result;
 
-    status           = BP_ERROR;
+    status           = BPLIB_ERROR;
     parent_ptr       = NULL;
     insert_key_value = get_key_value(new_node);
     ref_ptr          = &tree->root;
@@ -402,7 +401,7 @@ BP_LOCAL_SCOPE int do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_L
             /* got to a leaf without a duplicate - so insert it here */
             new_node->parent = parent_ptr;
             *ref_ptr         = new_node;
-            status           = BP_SUCCESS;
+            status           = BPLIB_SUCCESS;
             break;
         }
 
@@ -415,7 +414,7 @@ BP_LOCAL_SCOPE int do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_L
         if (compare_result == 0)
         {
             /* duplicate entries are not allowed */
-            status = BP_DUPLICATE;
+            status = BPLIB_MEM_RBT_DUPLICATE;
             break;
         }
 
@@ -1112,7 +1111,7 @@ int BPLib_MEM_RBT_InsertValueGeneric(bp_val_t insert_key_value, BPLib_MEM_RBT_Ro
 
     if (tree->root == link_block || node_is_attached(link_block))
     {
-        return BP_ERROR;
+        return BPLIB_ERROR;
     }
 
     /*
@@ -1126,7 +1125,7 @@ int BPLib_MEM_RBT_InsertValueGeneric(bp_val_t insert_key_value, BPLib_MEM_RBT_Ro
     initialize_node_value(link_block, insert_key_value);
 
     status = do_insert_as_leaf(tree, link_block, compare_func, compare_arg);
-    if (status == BP_SUCCESS)
+    if (status == BPLIB_SUCCESS)
     {
         /* Correct any violations within the red black tree due to the insertion. */
         do_insert_rebalance(tree, link_block);
@@ -1152,7 +1151,7 @@ int BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *
 {
     if (tree->root != link_block && !node_is_attached(link_block))
     {
-        return BP_ERROR;
+        return BPLIB_ERROR;
     }
 
     /*
@@ -1183,7 +1182,7 @@ int BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *
     /* reset this entire link block - this also clears the node value and resets it to 0 */
     memset(link_block, 0, sizeof(*link_block));
 
-    return BP_SUCCESS;
+    return BPLIB_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1249,10 +1248,10 @@ int BPLib_MEM_RBT_IterNext(BPLib_MEM_RBT_Iter_t *iter)
     if (next_pos == NULL)
     {
         /* reached end of tree */
-        return BP_ERROR;
+        return BPLIB_ERROR;
     }
 
-    return BP_SUCCESS;
+    return BPLIB_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1298,10 +1297,10 @@ int BPLib_MEM_RBT_IterPrev(BPLib_MEM_RBT_Iter_t *iter)
     if (prev_pos == NULL)
     {
         /* reached end of tree */
-        return BP_ERROR;
+        return BPLIB_ERROR;
     }
 
-    return BP_SUCCESS;
+    return BPLIB_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -1357,7 +1356,7 @@ int BPLib_MEM_RBT_IterGotoMin(bp_val_t minimum_value, const BPLib_MEM_RBT_Root_t
     if (iter->position == NULL)
     {
         /* the tree is empty */
-        status = BP_ERROR;
+        status = BPLIB_ERROR;
     }
     else
     {
@@ -1374,7 +1373,7 @@ int BPLib_MEM_RBT_IterGotoMin(bp_val_t minimum_value, const BPLib_MEM_RBT_Root_t
         curr_val = get_key_value(iter->position);
         if (curr_val >= minimum_value)
         {
-            status = BP_SUCCESS;
+            status = BPLIB_SUCCESS;
         }
         else
         {
@@ -1395,7 +1394,7 @@ int BPLib_MEM_RBT_IterGotoMax(bp_val_t maximum_value, const BPLib_MEM_RBT_Root_t
     if (iter->position == NULL)
     {
         /* the tree is empty */
-        status = BP_ERROR;
+        status = BPLIB_ERROR;
     }
     else
     {
@@ -1412,7 +1411,7 @@ int BPLib_MEM_RBT_IterGotoMax(bp_val_t maximum_value, const BPLib_MEM_RBT_Root_t
         curr_val = get_key_value(iter->position);
         if (curr_val <= maximum_value)
         {
-            status = BP_SUCCESS;
+            status = BPLIB_SUCCESS;
         }
         else
         {

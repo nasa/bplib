@@ -16,11 +16,7 @@ target_include_directories(bplib_stor_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_stor,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(
-    bplib_stor_stubs
-    ut_assert
-    ut_core_api_stubs
-)
+target_link_libraries(bplib_stor_stubs ut_assert ut_core_api_stubs)
 
 # Create unit test object
 add_library(utobj_bplib_stor OBJECT
@@ -44,8 +40,8 @@ target_include_directories(utobj_bplib_stor PRIVATE
 
 # Create test runner executable
 add_executable(coverage-bplib_stor-testrunner
-    bplib_stor_test.c
     utilities/bplib_stor_test_utils.c
+    bplib_stor_test.c
     $<TARGET_OBJECTS:utobj_bplib_stor>
 )
 

@@ -24,7 +24,7 @@
  * Auto-Generated stub implementations for functions defined in bplib_rbtree header
  */
 
-#include "bplib_rbtree.h"
+#include "bplib_mem_rbtree.h"
 #include "utgenstub.h"
 
 /*

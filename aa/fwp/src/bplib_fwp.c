@@ -43,7 +43,11 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         Callbacks.BPA_TIMEP_GetHostEpoch == NULL ||
         Callbacks.BPA_TIMEP_GetHostClockState == NULL ||
         Callbacks.BPA_TIMEP_GetHostTime == NULL ||
-        Callbacks.BPA_TABLEP_SingleTableUpdate == NULL)
+        Callbacks.BPA_TABLEP_SingleTableUpdate == NULL ||
+        Callbacks.BPA_EVP_Init                 == NULL ||
+        Callbacks.BPA_EVP_SendEvent            == NULL ||
+        Callbacks.BPA_PERFLOGP_Entry == NULL ||
+        Callbacks.BPA_PERFLOGP_Exit == NULL)
     {
         return BPLIB_FWP_CALLBACK_INIT_ERROR;
     }
@@ -54,10 +58,17 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch = Callbacks.BPA_TIMEP_GetHostEpoch;
         BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = Callbacks.BPA_TIMEP_GetHostClockState;
         BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = Callbacks.BPA_TIMEP_GetHostTime;
+        
+        /* Initialize PerfLog Proxy callbacks */
+        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry = Callbacks.BPA_PERFLOGP_Entry;
+        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit = Callbacks.BPA_PERFLOGP_Exit;
 
         /* Initialize Table Proxy callbacks */
         BPLib_FWP_ProxyCallbacks.BPA_TABLEP_SingleTableUpdate = Callbacks.BPA_TABLEP_SingleTableUpdate;
         
+        /* Initialize Event Proxy callbacks */
+        BPLib_FWP_ProxyCallbacks.BPA_EVP_Init      = Callbacks.BPA_EVP_Init;
+        BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent = Callbacks.BPA_EVP_SendEvent;
         /* Initialize other proxies' callbacks TODO */
     }
 

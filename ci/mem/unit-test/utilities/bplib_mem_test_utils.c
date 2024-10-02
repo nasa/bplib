@@ -22,24 +22,27 @@
 ** Include
 */
 
+#include "../test_bplib_mem.h"
 #include "bplib_mem_test_utils.h"
 
 /*
 ** Function Definitions
 */
 
-void BPLib_MEM_TestSetup(void)
+void BPLib_MEM_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 }
 
-void BPLib_MEM_TestTeardown(void)
+void BPLib_MEM_Test_Teardown(void)
 {
     /* Clean up test environment */
 }
 
 void UtTest_Setup(void)
 {
-    TestBplibMem_Register();
+    Test_BPLib_MEM_Register();
+    Test_BPLib_MEM_Subqs_Register();
+    Test_BPLib_MEM_RBT_Register();
 }

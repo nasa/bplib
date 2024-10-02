@@ -18,17 +18,57 @@
  *
  */
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_em.h"
+#include "bplib_fwp.h"
+#include <string.h>
+#include <stdio.h>
 
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
 
-/*
-** Function Definitions
-*/
+// Event management initialization
+BPLib_Status_t BPLib_EM_Init(void)
+{
+    BPLib_Status_t Status;
 
-int BPLib_EM_Init(void) {
-    return BPLIB_SUCCESS;
+    /* Initialize the Status as BPLIB_SUCCESS and
+       leave open to change under future circumstances */
+    Status = BPLIB_SUCCESS;
+
+    BPLib_FWP_ProxyCallbacks.BPA_EVP_Init();
+
+    return Status;
+}
+
+// Event generation
+BPLib_Status_t BPLib_EM_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* Spec, ...)
+{
+    BPLib_Status_t Status;
+    char ExpandedEventText[BPLIB_EM_EXPANDED_EVENT_SIZE];
+    int ExpandedLength;
+    va_list EventTextArgPtr;
+
+    // Default to success status
+    Status = BPLIB_SUCCESS;
+
+    // Gather conversion specifiers from remaining arguments
+    va_start(EventTextArgPtr, Spec);
+    ExpandedLength = vsnprintf(ExpandedEventText, BPLIB_EM_EXPANDED_EVENT_SIZE, Spec, EventTextArgPtr);
+    va_end(EventTextArgPtr);
+
+    if (ExpandedLength < 0)
+    {
+        Status = BPLIB_EM_EXPANDED_TEXT_ERROR;
+    }
+    else
+    {
+        BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent(EventID, EventType, ExpandedEventText);
+    }
+
+    return Status;
 }

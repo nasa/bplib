@@ -16,21 +16,16 @@
  * limitations under the License.
  ************************************************************************/
 
-/*
- * Includes
- */
-#include "test_bplib_mem_common.h"
+#ifndef TEST_BPLIB_MEM_RBTREE_H
+#define TEST_BPLIB_MEM_RBTREE_H
 
-void UtTest_Setup(void)
-{
-    UtTest_Add(TestBplibMemCommon_CRC_Execute, TestBplibMemCommon_CRC_Setup, NULL, "CRC");
+void Test_BPLib_MEM_RBT_Setup(void);
+void Test_BPLib_MEM_RBT_Basics(void);
+void Test_BPLib_MEM_RBT_Register(void);
+void Test_BPLib_MEM_RBT_LeafNodeInsertDelete(void);
+void Test_BPLib_MEM_RBT_NonLeafDelete(void);
+void Test_BPLib_MEM_RBT_Unique(void);
+void Test_BPLib_MEM_RBT_NonUnique(void);
+void Test_BPLib_MEM_RBT_Iterator(void);
 
-    /* The RBT setup is only needed once, and serves for all RBT tests */
-    UtTest_Add(NULL, TestBplibMemCommon_RBT_Setup, NULL, "RB Tree Setup");
-    UtTest_Add(TestBplibMemCommon_RBT_Basics, NULL, NULL, "RB Tree Basic");
-    UtTest_Add(TestBplibMemCommon_RBT_LeafNodeInsertDelete, NULL, NULL, "RB Tree Leaf Node Insert/Delete");
-    UtTest_Add(TestBplibMemCommon_RBT_NonLeafDelete, NULL, NULL, "RB Tree Non Leaf Delete");
-    UtTest_Add(TestBplibMemCommon_RBT_Unique, NULL, NULL, "RB Tree Unique Indices");
-    UtTest_Add(TestBplibMemCommon_RBT_NonUnique, NULL, NULL, "RB Tree NonUnique Indices");
-    UtTest_Add(TestBplibMemCommon_RBT_Iterator, NULL, NULL, "RB Tree Iterator");
-}
+#endif // TEST_BPLIB_MEM_RBTREE_H

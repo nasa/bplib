@@ -44,3 +44,4 @@ int BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks)
 
     return UT_GenStub_GetReturnValue(BPLib_FWP_Init, BPLib_Status_t);
 }
+

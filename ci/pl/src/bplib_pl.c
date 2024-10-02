@@ -32,3 +32,29 @@
 int BPLib_PL_Init(void) {
     return BPLIB_SUCCESS;
 }
+
+BPLib_Status_t BPLib_PL_PerfLogEntry(uint32_t PerfLogID)
+{
+    if (BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry)
+    {
+        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry(PerfLogID);
+    }
+    else 
+    {
+        return BPLIB_PL_NULL_CALLBACK_ERROR;                
+    }
+    return BPLIB_SUCCESS;
+}
+
+BPLib_Status_t BPLib_PL_PerfLogExit(uint32_t PerfLogID)
+{
+    if (BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit)
+    {
+        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit(PerfLogID);
+    }
+    else 
+    {
+        return BPLIB_PL_NULL_CALLBACK_ERROR;        
+    }
+    return BPLIB_SUCCESS;        
+}

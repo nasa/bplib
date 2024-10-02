@@ -21,13 +21,24 @@
 #ifndef BPLIB_MEM_H
 #define BPLIB_MEM_H
 
+/*
+** Include
+*/
+
+// TODO stdint.h, stddef.h, and stdbool.h belong in bplib_api_types.h.
 #include <stdint.h>
-#include <string.h>
+#include <stddef.h>
+#include <stdbool.h>
 
-
-#include "bplib.h"
 #include "bplib_api_types.h"
-#include "bplib_mem.h"
+
+#include "bplib_mem_rbtree.h"
+
+// TODO BPLIB_MEM_TIMEOUT should be BP_TIMEOUT in the BPLIB_SUCCESS list.
+#define BPLIB_MEM_TIMEOUT -5 // TODO Based on OS_ERROR_TIMEOUT returned
+
+// TODO BPLIB_FLAG_DIAGNOSTIC (from BP_FLAG_DIAGNOSTIC) should b in bplib.h
+#define BPLIB_MEM_FLAG_DIAGNOSTIC              0x00000000
 
 /*
  * Priority levels for pool buffers -
@@ -46,43 +57,216 @@
 #define BPLIB_MEM_ALLOC_PRI_MHI 191
 #define BPLIB_MEM_ALLOC_PRI_HI  255
 
+
+#define BELONGS_IN_BPLIB_API_TYPES  // TODO This whole block of declarations belongs in bplib_api_types.h
+#ifdef BELONGS_IN_BPLIB_API_TYPES
+
+typedef struct bp_handle
+{
+    uint32_t hdl;
+} bp_handle_t;
+
+#define BP_INVALID_HANDLE \
+    (const bp_handle_t)   \
+    {                     \
+        0                 \
+    } /* used for integers (os locks, storage services) */
+
+/**
+ * Checks for validity of given handle
+ *
+ * @param h the handle value
+ * @retval false if the handle is not possibly valid
+ * @retval true if the handle may be valid
+ */
+static inline bool bp_handle_is_valid(bp_handle_t h)
+{
+    return (h.hdl != 0);
+}
+
+/**
+ * Gets the "printable" value of a handle
+ *
+ * This may be used in conjunction with the "%d" format
+ * specifier on printf()-style calls to display the logical
+ * value of a handle.
+ *
+ * @param h the handle value
+ * @returns handle value as an "int"
+ */
+static inline int bp_handle_printable(bp_handle_t h)
+{
+    return (int)h.hdl;
+}
+
+/**
+ * Checks if two handles are equal
+ *
+ * Since handles are not integers, one cannot use the == operator
+ * to check for equality.  This inline function may be used in its place.
+ *
+ * @param h1 the first handle value
+ * @param h2 the second handle value
+ * @retval false if the handles are different
+ * @retval true if the handles are equal
+ */
+static inline bool bp_handle_equal(bp_handle_t h1, bp_handle_t h2)
+{
+    return (h1.hdl == h2.hdl);
+}
+
+/**
+ * Converts the given handle to a serial number
+ *
+ * This determines the 0-based serial number corresponding to a handle,
+ * which can in turn be used to index into a table/array.
+ *
+ * @sa bp_handle_from_serial
+ *
+ * @param h the handle value
+ * @param base the object base handle (indicates the type/class of handle)
+ *
+ * @returns handle as a serial number
+ */
+static inline int bp_handle_to_serial(bp_handle_t h, bp_handle_t base)
+{
+    return (h.hdl - base.hdl);
+}
+
+/**
+ * Converts the given serial number given to a handle
+ *
+ * This determines the handle value corresponding to a 0-based serial number.
+ *
+ * @sa bp_handle_to_serial
+ *
+ * @param hv   the handle value
+ * @param base the object base handle (indicates the type/class of handle)
+ *
+ * @returns handle as a serial number
+ */
+static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
+{
+    return (bp_handle_t) {.hdl = (uint32_t)hv + base.hdl};
+}
+
+#define BPLIB_HANDLE_MAX_SERIAL 0xffffff
+
+#define BPLIB_HANDLE_RAM_STORE_BASE \
+    (bp_handle_t)                   \
+    {                               \
+        0x1000000                   \
+    }
+#define BPLIB_HANDLE_FLASH_STORE_BASE \
+    (bp_handle_t)                     \
+    {                                 \
+        0x2000000                     \
+    }
+#define BPLIB_HANDLE_FILE_STORE_BASE \
+    (bp_handle_t)                    \
+    {                                \
+        0x3000000                    \
+    }
+#define BPLIB_HANDLE_OS_BASE \
+    (bp_handle_t)            \
+    {                        \
+        0x4000000            \
+    }
+
+#define BPLIB_HANDLE_INTF_BASE \
+    (bp_handle_t)              \
+    {                          \
+        0x5000000              \
+    }
+
+// BPLIB_HANDLE_MPOOL_BASE is from heritage bplib_api_types.h, hence the "MPOOL".
+#define BPLIB_HANDLE_MPOOL_BASE \
+    (bp_handle_t)               \
+    {                           \
+        0x6000000               \
+    }
+#endif // BELONGS_IN_BPLIB_API_TYPES
+
+/*
+ * This union is just to make sure that the "content_start" field
+ * in a generic data block is suitably aligned to hold any data type, mainly
+ * the max-sized integers, max-sized floating point values, or a pointer.
+ */
+typedef union BPLib_MEM_AlignedData
+{
+    uint8_t     first_octet;
+    uintmax_t   align_int;
+    void       *align_ptr;
+    long double align_float;
+} BPLib_MEM_AlignedData_t;
+
+/**
+ * BPLib STOR CACHE defines many blocktypes.
+ * MEM only recognizes a few blocktypes, as listed here.
+ * The administrative block will be marked with 0xFF, this still permits the
+ * type to be stored as a uint8_t if needed to save bits.
+ */
+
+#define BPLIB_MEM_BLOCKTYPE_ADMIN 255
+
+typedef enum BPLib_MEM_Blocktype
+{
+    /**
+     * The complete list is in BPLib_STOR_CACHE_Blocktype_t.
+     * The values match, mainly for ease of understanding and debugging.
+     * Declarations in CACHE that are not used in MEM are not in this list, to
+     * cause a build-time error if they are used.
+     */
+
+    BPLib_MEM_BlocktypeUndefined = 0,
+    BPLib_MEM_BlocktypeApi       = 1,    // In MEM, used only for RBTree
+    BPLib_MEM_BlocktypeGeneric   = 2,
+    BPLib_MEM_BlocktypeMax       = 8,    // From BPLib_STOR_CACHE_BlocktypeMax
+
+    BPLib_MEM_BlocktypeSecondaryGeneric = 100,
+    BPLib_MEM_BlocktypeListHead         = 101,  // For Available and Free lists (subqs)
+    BPLib_MEM_BlocktypeSecondaryMax     = 103,
+    BPLib_MEM_BlocktypeAdmin            = 255
+} BPLib_MEM_Blocktype_t;
+
+typedef struct BPLib_MEM_Block BPLib_MEM_Block_t;
+
+// TODO Return BPlib_MEM_Block_t to an abstract type. The abstract type belongs in bplib_api_types.h
 struct BPLib_MEM_Block
 {
     /* note that if it becomes necessary to recover bits here,
-     * the offset could be reduced in size */
-    // STOR BPLib_MEM_Blocktype_t   type; // Moved to BPLib_STOR_CACHE_Module_block
+     * the offset could be reduced in size
+     */
+    BPLib_MEM_Blocktype_t     type;
     uint32_t                  parent_offset;
-    struct BPLib_MEM_Block_t *next;
-    struct BPLib_MEM_Block_t *prev;
+    BPLib_MEM_Block_t *next;
+    BPLib_MEM_Block_t *prev;
 };
 
-typedef struct BPLib_MEM_SubqBase BPLib_MEM_SubqBase_t;
-
-/*
- * Enumeration that defines the various possible routing table events.  This enum
- * must always appear first in the structure that is the argument to the event handler,
- * and indicates the actual event that has occurred
- */
-typedef enum
+typedef struct BPLib_MEM_BlockHeader
 {
-    BPLib_MEM_EventidUndefined,
-    BPLib_MEM_EventidRecycle,
-    BPLib_MEM_EventidMax,
-} BPLib_MEM_Eventid_t;
+    BPLib_MEM_Block_t base_link; /* must be first - this is the pointer used in the application */
+
+    uint32_t content_type_signature; /* a "signature" (sanity check) value for identifying the data */
+    uint16_t user_content_length;    /* actual length of user content (does not include fixed fields) */
+    uint16_t refcount;               /* number of active references to the object */
+
+} BPLib_MEM_BlockHeader_t;
+
+void BPLib_MEM_InitBaseObject(BPLib_MEM_BlockHeader_t *block_hdr, uint16_t user_content_length,
+                                  uint32_t content_type_signature);
 
 /**
- * @brief Blocktype API
+ * @brief Callback function for various memory pool block actions
  *
- * Specifies functions for module-specific block operations,
- * including construction and destruction
+ * This is a generic API for a function to handle various events/conditions
+ * that occur at the block level.  The generic argument supplies the context
+ * information.
+ *
+ * The return value depends on the context and may or may not be used, it
+ * should should return 0 unless otherwise specified.
  */
-typedef struct BPLib_MEM_ListIter
-{
-    BPLib_MEM_Block_t *position;
-    BPLib_MEM_Block_t *pending_entry;
-} BPLib_MEM_ListIter_t;
-
-#ifdef STOR // blocktype
+typedef int (*BPLib_MEM_CallbackFunc_t)(void *, BPLib_MEM_Block_t *);
 
 /**
  * @brief Blocktype API
@@ -97,7 +281,19 @@ typedef struct BPLib_MEM_BlocktypeApi
 
 } BPLib_MEM_BlocktypeApi_t;
 
-#endif // STOR blocktype
+typedef struct BPLib_MEM_SubqBase
+{
+    BPLib_MEM_Block_t block_list;
+
+    /* note - "unsigned int" is chosen here as it is likely to be
+     * a single-cycle read in most CPUs.  The range is not as critical
+     * because what matters is the difference between these values.
+     * The "volatile" qualification helps ensure the values are read as they
+     * appear in code and are not rearranged by the compiler, as they could
+     * be changed by other threads.  */
+    volatile unsigned int push_count;
+    volatile unsigned int pull_count;
+} BPLib_MEM_SubqBase_t;
 
 /**
  * @brief Gets the next block in a list of blocks
@@ -134,7 +330,7 @@ static inline bool BPLib_MEM_IsLinkAttached(const BPLib_MEM_Block_t *list)
 }
 
 /**
- * @brief Checks if this block is a singleon
+ * @brief Checks if this block is a singleton
  *
  * @param list
  * @return true If the block is a singleton
@@ -145,7 +341,6 @@ static inline bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list)
     return (list->next == list);
 }
 
-#ifdef STOR // blocktype
 /**
  * @brief Checks if this block is the head of a list
  *
@@ -157,7 +352,6 @@ static inline bool BPLib_MEM_IsLinkUnattached(const BPLib_MEM_Block_t *list)
  */
 static inline bool BPLib_MEM_IsListHead(const BPLib_MEM_Block_t *list)
 {
-    return (list->type == BPLib_MEM_BlocktypeListHead);
     return (list->type == BPLib_MEM_BlocktypeListHead);
 }
 
@@ -180,289 +374,48 @@ static inline bool BPLib_MEM_IsEmptyListHead(const BPLib_MEM_Block_t *list)
  * @return true If the list is not empty
  * @return false If the list is empty, or not a list head node
  */
-static inline bool BPLib_MEM_IsNonemptyListHead(const BPLib_MEM_Block_t *list)
+static inline bool BPLib_MEM_IsNonEmptyListHead(const BPLib_MEM_Block_t *list)
 {
     return (BPLib_MEM_IsListHead(list) && BPLib_MEM_IsLinkAttached(list));
 }
 
 /**
- * @brief Checks if the block is some form of binary data block
- *
- * @param cb
- * @return true
- * @return false
+ * BPLib_MEM_ApiContent is a specialized variant of BPLib_STOR_CACHE_ApiContent.
+ * Blocks must have a non-NULL pointer to API Content to be allocated.
  */
-static inline bool BPLib_MEM_IsGenericDataBlock(const BPLib_MEM_Block_t *cb)
+typedef struct BPLib_MEM_ApiContent
 {
-    return (cb->type == BPLib_MEM_BlocktypeGeneric);
-}
+    BPLib_MEM_RBT_Link_t     rbt_link;
+    BPLib_MEM_BlocktypeApi_t api;
+    size_t                   user_content_size;
+    BPLib_MEM_AlignedData_t  user_data_start;
+} BPLib_MEM_ApiContent_t;
 
-/**
- * @brief Checks if the block is indirect (a reference)
- *
- * @param cb
- * @return true
- * @return false
- */
-static inline bool BPLib_MEM_IsIndirectBlock(const BPLib_MEM_Block_t *cb)
+typedef struct BPLib_MEM_BlockAdminContent
 {
-    return (cb->type == BPLib_MEM_BlocktypeRef);
-    return (cb->type == BPLib_MEM_BlocktypeRef);
-}
+    size_t   buffer_size;
+    uint32_t num_bufs_total;
+    uint32_t bblock_alloc_threshold;   /**< threshold at which new bundles will no longer be allocatable */
+    uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
+    uint32_t max_alloc_watermark;
 
-/**
- * @brief Checks if the block is any valid content type
- *
- * This indicates blocks that have actual content
- * This is any block type other than a list head, free block, or
- * secondary index.
- *
- * @param cb
- * @return true
- * @return false
- */
-static inline bool BPLib_MEM_IsAnyContentNode(const BPLib_MEM_Block_t *cb)
-{
-    return (cb->type > BPLib_MEM_BlocktypeUndefined && cb->type < BPLib_MEM_BlocktypeMax);
-    return (cb->type > BPLib_MEM_BlocktypeUndefined && cb->type < BPLib_MEM_BlocktypeMax);
-}
+    BPLib_MEM_RBT_Root_t       blocktype_registry; /**< registry of block signature values */
+    BPLib_MEM_ApiContent_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
+    BPLib_MEM_ApiContent_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
 
-/**
- * @brief Checks if the block is any secondary index type
- *
- * These blocks are members of a larger block
- *
- * @param cbj
- * @return true
- * @return false
- */
-static inline bool BPLib_MEM_IsSecondaryIndexNode(const BPLib_MEM_Block_t *cb)
-{
-    return (cb->type >= BPLib_MEM_BlocktypeSecondaryGeneric && cb->type <= BPLib_MEM_BlocktypeSecondaryMax);
-}
+    BPLib_MEM_SubqBase_t free_blocks;    /**< blocks which are available for use */
+    BPLib_MEM_SubqBase_t recycle_blocks; /**< blocks which can be garbage-collected */
 
-static inline bp_handle_t BPLib_MEM_GetExternalId(const BPLib_MEM_Block_t *cb)
-{
-    return bp_handle_from_serial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
-}
+    /* note that the active_list and managed_block_list are not FIFO in nature, as blocks
+     * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
+     * is not used for these, because the push_count and pull_count would not remain accurate. */
 
-#endif // STOR blocktype
+    BPLib_MEM_Block_t active_list; /**< a list of flows/queues that need processing */
 
-BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle);
-
-/* basic list iterators (forward or reverse) */
-
-/*--------------------------------------------------------------------------------------*/
-/**
- * @brief Position an iterator at the first value in the list
- *
- * @param iter          The iterator object to position
- * @returns integer status code
- * @retval BP_SUCCESS if iterator is valid
- */
-int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter);
-
-/*--------------------------------------------------------------------------------------*/
-/**
- * @brief Position an iterator at the last value in the list
- *
- * @param iter          The iterator object to position
- * @returns integer status code
- * @retval BP_SUCCESS if iterator is valid
- */
-int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter);
-
-/*--------------------------------------------------------------------------------------*/
-/**
- * @brief Move an iterator forward by one step in the tree
- *
- * Sets the iterator to the immediate successor of the current node.
- * This allows the caller to perform a ascending-order tree traversal.
- *
- * @param iter          The iterator object to move
- * @retval BP_SUCCESS if iterator is valid
- */
-int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter);
-
-/*--------------------------------------------------------------------------------------*/
-/**
- * @brief Move an iterator backward by one step in the tree
- *
- * Sets the iterator to the immediate predecessor of the current node.
- * This allows the caller to perform a descending-order tree traversal.
- *
- * @param iter          The iterator object to move
- * @retval BP_SUCCESS if iterator is valid
- */
-int BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter);
-
-#ifdef STOR // blocktype
-
-/**
- * @brief Initialize a secondary link for block indexing purposes
- *
- * A secondary link may be required for cases where there needs to be more than one way of
- * indexing data blocks, for example in a case where blocks may need to be located by
- * DTN time or node number.
- *
- * The secondary index may be passed in place of the primary index to any "cast" function,
- * and it will automatically be converted back to a pointer to the same block.
- *
- * @param base_block
- * @param secondary_link
- */
-void BPLib_MEM_InitSecondaryLink(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *secondary_link,
-                                     BPLib_MEM_Blocktype_t block_type);
-
-/**
- * @brief Obtain the pointer to the parent/containing block from a link
- *
- * If the block points to a secondary link structure, convert it back to the
- * parent block structure.
- *
- * If the passed in pointer already directly refers to a memory block then
- * that pointer is passed through.
- *
- * In all cases, a pointer to the actual content block is returned.
- *
- * @param[in] lblk link structure, such as from a list traversal.  May be a secondary link.
- * @return BPLib_MEM_Block_t* pointer to container block
- * @retval NULL if the lblk pointer is not convertible to a content block
- */
-BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk);
-
-/**
- * @brief Gets the offset of the block user content section
- *
- * Some block types have an area that may be used for general purpose data storage.
- * The size and offset of this area depends on the block type.  This gets the offset
- * of the start of the area for the given a block type.
- *
- * @param bt Block type
- * @return size_t
- */
-size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_Blocktype_t bt);
-
-#endif // STOR blocktype
-
-/**
- * @brief Gets the capacity (maximum size) of the generic data block
- *
- * This value is currently fixed at compile time, but the actual object definition
- * is not available outside the mem module, so this call can be used in place of sizeof()
- *
- * @param cb
- * @return size_t
- */
-size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb);
-
-/* basic list ops */
-
-/**
- * @brief Sets the node to be an empty list head node
- *
- * Initialize a new list head object.
- *
- * Any existing content will be discarded, so this should typically only
- * be used on new blocks (such as a temporary list created on the stack)
- * where it is guaranteed to NOT have any valid content, and the object
- * is in an unknown/undefined state.
- *
- * To clear a list that has already been initialized once, use
- * BPLib_MEM_RecycleAllBlocksInList()
- * BPLib_MEM_RecycleAllBlocksInList()
- *
- * @param base_block The parent/container of the list
- * @param list_head  The list to initialize
- */
-void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *list_head);
-
-/**
- * @brief Inserts a node after the given position or list head
- *
- * Note when inserting at a list head, it is essentially a mirror image (outside looking in)
- * Therefore this call will place a node at the _beginning_ of the list (prepend)
- *
- * @param list
- * @param node
- */
-void BPLib_MEM_InsertAfter(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node);
-
-/**
- * @brief Inserts a node before the given position or list head
- *
- * Note when inserting at a list head, it is essentially a mirror image (outside looking in)
- * Therefore this call will place a node at the _end_ of the list (append)
- *
- * @param list
- * @param node
- */
-void BPLib_MEM_InsertBefore(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node);
-
-/**
- * @brief Removes a node from its list
- *
- * The node becomes a singleton.
- * It is OK to invoke this on a node which is already a singleton, it will have no effect.
- *
- * @param node
- */
-void BPLib_MEM_ExtractNode(BPLib_MEM_Block_t *node);
-
-/**
- * @brief Merge two lists together
- *
- * Note that the entire content is merged, including the head node.  After using this,
- * the BPLib_MEM_ExtractNode() should be used to remove one of the head nodes,
- * the BPLib_MEM_ExtractNode() should be used to remove one of the head nodes,
- * depending on which one should keep the contents.
- *
- * @param dest
- * @param src
- */
-void BPLib_MEM_MergeList(BPLib_MEM_Block_t *dest, BPLib_MEM_Block_t *src);
-
-/**
- * @brief Finds the parent mem container from any link pointer that was obtained from the pool
- *
- * @param cb
- * @return BPLib_MEM_Pool_t*
- */
-BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb);
-
-/**
- * @brief Cast a block to generic user data type
- *
- * User blocks require a match on on the "magic number", which may be a random 32-bit integer.
- * This is intended as a data integrity check to confirm the block is indeed the correct flavor.
- *
- * @param cb
- * @param required_magic
- * @return BPLib_MEM_GenericData_t*
- * @return BPLib_MEM_GenericData_t*
- */
-void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic);
-
-#ifdef STOR // blocktype
-/**
- * @brief Cast a generic user data segment to its parent block
- *
- * This is the inverse of BPLib_MEM_GenericDataCast() and allows obtaining the pool
- * block from a generic data pointer.  The pointer passed in must be from a prior call
- * to BPLib_MEM_GenericDataCast() or else the result is undefined.
- *
- * @param blk pointer from previous call to BPLib_MEM_GenericDataCast
- * @param required_magic
- * @return BPLib_MEM_GenericData_t*
- */
-BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t parent_bt,
-                                                     uint32_t required_magic);
+} BPLib_MEM_BlockAdminContent_t;
 
 /**
  * @brief Gets the size of the user buffer associated with a data block
- *
- * For a CBOR block this is the length of the CBOR data within this block.  For a user
- * data block, this refers to the size of the actual user object stored here.
  *
  * @param cb pointer to block
  * @return size_t
@@ -483,32 +436,137 @@ size_t BPLib_MEM_GetUserContentSize(const BPLib_MEM_Block_t *cb);
  * @param cb
  * @return size_t
  */
-size_t BPLib_MEM_ReadRefcount(const BPLib_MEM_Block_t *cb);
-#endif // STOR blocktype
+size_t BPLib_MEM_ReadRefCount(const BPLib_MEM_Block_t *cb);
+
+/*
+ * Minimum size of a generic data block
+ */
+#define BPLIB_MEM_MIN_USER_BLOCK_SIZE 480 // bytes
+
+#define BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE 0x6b243e33
+
+typedef struct BPLib_MEM_GenericDataContent
+{
+    BPLib_MEM_AlignedData_t user_data_start;
+} BPLib_MEM_GenericDataContent_t;
+
+// TODO flat_memory_buffer
+typedef union BPLib_MEM_BlockBuffer
+{
+    BPLib_MEM_GenericDataContent_t     generic_data;
+    BPLib_MEM_ApiContent_t              api;
+    BPLib_MEM_BlockAdminContent_t      admin;
+
+    /* guarantees a minimum size of the generic data blocks, also determines the amount
+     * of extra space available for user objects in other types of blocks. */
+    uint8_t content_bytes[BPLIB_MEM_MIN_USER_BLOCK_SIZE];
+} BPLib_MEM_BlockBuffer_t;
+
+// TODO Abstract eventually - MEM_BlockContent
+typedef struct BPLib_MEM_BlockContent
+{
+    BPLib_MEM_BlockHeader_t header; /* must be first */
+    BPLib_MEM_BlockBuffer_t u;
+} BPLib_MEM_BlockContent_t;
+
+// TODO Abstract eventually - MEM_Pool
+typedef struct BPLib_MEM_Pool
+{
+    BPLib_MEM_BlockContent_t admin_block; /**< Start of first real block (see num_bufs_total) */
+} BPLib_MEM_Pool_t;
+
+#define BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(m) (offsetof(BPLib_MEM_BlockBuffer_t, m.user_data_start))
+
+#define BPLIB_MEM_GET_BLOCK_USER_CAPACITY(m) (sizeof(BPLib_MEM_BlockBuffer_t) - MPOOL_GET_BUFFER_USER_START_OFFSET(m))
 
 /**
- * @brief Allocate a new user data block
+ * @brief Checks if the block is indirect (a reference)
  *
- * Note that the maximum block capacity is set at compile time.  This limits the size
- * of user data objects that can be stored by this mechanism.
- *
- * @param pool
- * @param magic_number
- * @param init_arg Opaque pointer passed to initializer (may be NULL)
- * @return BPLib_MEM_Block_t*
+ * @param cb
+ * @return true
+ * @return false
  */
-BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg);
+static inline bool BPLib_MEM_IsIndirectBlock(const BPLib_MEM_Block_t *cb)
+{
+    // return (cb->type == BPLib_MEM_BlocktypeRef);
+
+    // There are no Refs in MEM.
+    return false;
+}
 
 /**
- * @brief Recycle a single block which is no longer needed
+ * @brief Checks if the block is any valid content type
  *
- * The block will be returned to the pool it originated from.
+ * This indicates blocks that have actual content
+ * This is any block type other than a list head, free block, or
+ * secondary index.
  *
- * @param blk
+ * @param cb
+ * @return true
+ * @return false
  */
-void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk);
+static inline bool BPLib_MEM_IsAnyContentNode(const BPLib_MEM_Block_t *cb)
+{
+    return (cb->type > BPLib_MEM_BlocktypeUndefined && cb->type < BPLib_MEM_BlocktypeMax);
+}
 
-#ifdef STOR // blocktype
+/**
+ * @brief Checks if the block is any secondary index type
+ *
+ * These blocks are members of a larger block
+ *
+ * @param cb
+ * @return true
+ * @return false
+ */
+static inline bool BPLib_MEM_IsSecondaryIndexNode(const BPLib_MEM_Block_t *cb)
+{
+    return (cb->type >= BPLib_MEM_BlocktypeSecondaryGeneric && cb->type <=  BPLib_MEM_BlocktypeSecondaryMax);
+}
+
+BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle);
+
+static inline bp_handle_t BPLib_MEM_GetExternalId(const BPLib_MEM_Block_t *cb)
+{
+    return bp_handle_from_serial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
+}
+
+/* basic list ops */
+
+/**
+ * @brief Sets the node to be an empty list head node
+ *
+ * Initialize a new list head object.
+ *
+ * Any existing content will be discarded, so this should typically only
+ * be used on new blocks (such as a temporary list created on the stack)
+ * where it is guaranteed to NOT have any valid content, and the object
+ * is in an unknown/undefined state.
+ *
+ * To clear a list that has already been initialized once, use
+ * bplib_mpool_recycle_all_blocks_in_list()
+ *
+ * @param base_block The parent/container of the list
+ * @param list_head  The list to initialize
+ */
+void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *list_head);
+
+/**
+ * @brief Creates a memory pool object using a preallocated memory block
+ *
+ * @param pool_mem  Pointer to pool memory
+ * @param pool_size Size of pool memory
+ * @return bplib_mpool_t*
+ */
+BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size);
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_RecycleBlockInternal
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_MEM_RecycleBlockInternal(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t *blk);
+
 /**
  * @brief Recycle an entire list of blocks which are no longer needed
  *
@@ -527,59 +585,13 @@ void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk);
 void BPLib_MEM_RecycleAllBlocksInList(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t *list);
 
 /**
- * @brief Process every item in the list in sequential order
+ * @brief Recycle a single block which is no longer needed
  *
- * The callback function will be invoked for every item in the list, except for the head node.
+ * The block will be returned to the pool it originated from.
  *
- * If "always_remove" is true, the item will be removed from the list prior to invoking the call.
- * In this case, the callback function must guarantee to place the block onto another list (or
- * some other tracking facility) to not leak blocks.
- *
- * @param list
- * @param always_remove
- * @param callback_fn
- * @param callback_arg
- * @return int Number of items that were in the list
+ * @param blk
  */
-int BPLib_MEM_ForeachItemInList(BPLib_MEM_Block_t *list, bool always_remove,
-                                     BPLib_MEM_CallbackFunc_t callback_fn, void *callback_arg);
-
-/**
- * @brief Search a list in sequential order
- *
- * The match function will be invoked for every entry in the list, and the supplied argument
- * will be passed to it. If the function returns 0, then the search stops and the node is returned.
- *
- * @param list The list to search
- * @param match_fn A function that should return 0 if a match is found, nonzero otherwise
- * @param match_arg An opaque argument passed to the match_fn, typically the match reference object
- * @return BPLib_MEM_Block_t* The matching list entry
- * @retval NULL if no match was found
- */
-BPLib_MEM_Block_t *BPLib_MEM_SearchList(const BPLib_MEM_Block_t *list, BPLib_MEM_CallbackFunc_t match_fn,
-                                             void *match_arg);
-
-/**
- * @brief Garbage collection routine
- *
- * Processes the list of recycled blocks and performing any additional cleanup work
- *
- * @param pool The mem object
- * @param limit The maximum number of entries to process
- *
- * @returns The number of blocks collected
- */
-uint32_t BPLib_MEM_CollectBlocks(BPLib_MEM_Pool_t *pool, uint32_t limit);
-
-/**
- * @brief Run basic maintenance on the memory pool
- *
- * Mainly, this performs any garbage-collection tasks on recycled memory blocks, returning the memory
- * back to the free pool so it can be used again.
- *
- * @param pool
- */
-void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool);
+void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk);
 
 /**
  * @brief Registers a given block type signature
@@ -598,50 +610,50 @@ void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool);
  * @param api Structure containing op callbacks
  * @param user_content_size Maximum size of user content associated with blocktype
  * @returns status code
- * @retval BP_SUCCESS if registration successful
+ * @retval BPLIB_SUCCESS if registration successful
  * @retval BP_DUPLICATE if the block type is already registered.
  */
-int BPLib_MEM_RegisterBlocktype(BPLib_MEM_Pool_t *pool, uint32_t magic_number, const BPLib_MEM_BlocktypeApi_t *api,
+int BPLib_MEM_RegisterBlocktype (BPLib_MEM_Pool_t *pool, uint32_t magic_number, const BPLib_MEM_BlocktypeApi_t *api,
                                    size_t user_content_size);
 
-#endif // STOR blocktype
-
-/**
- * @brief Creates a memory pool object using a preallocated memory block
+/*----------------------------------------------------------------
  *
- * @param pool_mem  Pointer to pool memory
- * @param pool_size Size of pool memory
- * @return BPLib_MEM_Pool_t*
- */
-BPLib_MEM_Pool_t *BPLib_MEM_Create(void *pool_mem, size_t pool_size);
-
-/**
- * @brief Obtain current usage of a memory pool
+ * Function: BPLib_MEM_QueryMemCurrentUse
  *
- * @param pool Pool object
- * @return memory currently in use
- */
+ *-----------------------------------------------------------------*/
 size_t BPLib_MEM_QueryMemCurrentUse(BPLib_MEM_Pool_t *pool);
 
-/**
- * @brief Obtain maximum usage of a memory pool
+/*----------------------------------------------------------------
  *
- * @param pool Pool object
- * @return maximum memory used
- */
+ * Function: BPLib_MEM_QueryMemMaxUse
+ *
+ *-----------------------------------------------------------------*/
 size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_Pool_t *pool);
 
-/**
- * @brief Initializes the global lock table
+/*----------------------------------------------------------------
  *
- * Must be called once per process using bplib (not per instance).
+ * Function: BPLib_MEM_GetParentPoolFromLink
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb);
+
+// TODO Move or remove the header for "Exported Functions"
+/**
+ *  Exported Functions
  */
-void BPLib_MEM_LockInit(void);
-void BPLib_MEM_LockInit(void);
 
-/* DEBUG/TEST verification routines */
-
-void BPLib_MEM_DebugScan(BPLib_MEM_Pool_t *pool);
-void BPLib_MEM_DebugPrintListStats(BPLib_MEM_Block_t *list, const char *label);
+/**
+ * \brief Memory Allocator initialization
+ *
+ *  \par Description
+ *       MEM initialization function
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Initialization was successful
+ */
+int BPLib_MEM_Init(void);
 
 #endif /* BPLIB_MEM_H */

@@ -30,5 +30,5 @@
 */
 
 int BPLib_STOR_Init(void) {
-    return BPLIB_SUCCESS;     // STOR
+    return BPLIB_SUCCESS;
 }

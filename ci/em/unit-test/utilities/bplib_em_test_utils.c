@@ -18,20 +18,34 @@
  *
  */
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_em_test_utils.h"
 
-/*
-** Function Definitions
-*/
+/* ========================= */
+/* Stub Function Definitions */
+/* ========================= */
+
+BPLib_Status_t Test_BPA_EVP_Init(void)
+{
+    return BPLIB_SUCCESS;
+}
+
+BPLib_Status_t Test_BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText)
+{
+    return BPLIB_SUCCESS;
+}
 
 void BPLib_EM_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
+
+    /* Set up proxy callback functions */
+    BPLib_FWP_ProxyCallbacks.BPA_EVP_Init = Test_BPA_EVP_Init;
+    BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent = Test_BPA_EVP_SendEvent;
 }
 
 void BPLib_EM_Test_Teardown(void)

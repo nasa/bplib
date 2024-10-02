@@ -32,14 +32,20 @@
 #include "bplib.h"
 #include "bplib_mem.h"
 
+/*
+** Macro Definitions
+*/
+
+
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_MEM_Test_Setup, BPLib_MEM_Test_Teardown, #test)
 
 /*
 ** Function Definitions
 */
 
-void BPLib_MEM_TestSetup(void);
-void BPLib_MEM_TestTeardown(void);
+void BPLib_MEM_Test_Setup(void);
+void BPLib_MEM_Test_Teardown(void);
 
-void TestBplibMem_Register(void);
 
 #endif /* BPLIB_MEM_TEST_UTILS_H */
