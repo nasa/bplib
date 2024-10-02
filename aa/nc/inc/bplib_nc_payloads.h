@@ -161,4 +161,59 @@ typedef struct
     uint8_t ExampleParameter;
 } BPLib_RemoveStorageAllocationCmd_Payload_t;
 
+/**
+ * \brief Node MIB configuration housekeeping payload
+ */
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_NodeMibConfigHkTlm_Payload_t;
+
+/**
+ * \brief Source MIB configuration housekeeping payload
+ */
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_SourceMibConfigHkTlm_Payload_t;
+
+/**
+ * \brief Node MIB counters housekeeping payload
+ */
+typedef struct
+{
+    uint16_t AcceptedDirectiveCount;  /**< \brief Accepted Directive Count */
+    uint16_t RejectedDirectiveCount;  /**< \brief Rejected Directive Count */
+    uint16_t AduCountDelivered;       /**< \brief ADU Delivered Count */
+    uint16_t AduCountReceived;        /**< \brief ADU Received Count */
+
+    uint32_t TimeBootEra;             /**< \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;           /**< \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;       /**< \brief Time Correlation Factor */
+} BPLib_NodeMibCountersHkTlm_Payload_t;
+
+/**
+ * \brief Source MIB counters housekeeping payload
+ */
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_SourceMibCountersHkTlm_Payload_t;
+
+/**
+ * \brief Storage housekeeping payload
+ */
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_StorageHkTlm_Payload_t;
+
+/**
+ * \brief Channel/contact status housekeeping payload
+ */
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_ChannelContactStatHkTlm_Payload_t;
+
 #endif // BPLIB_NC_PAYLOADS_H
