@@ -31,7 +31,7 @@
 /* Function Definitions */
 /* ==================== */
 
-void Test_BPLib_NC_Init(void)
+void Test_BPLib_NC_Init_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -40,7 +40,7 @@ void Test_BPLib_NC_Init(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_NoopCmd(void)
+void Test_BPLib_NC_NoopCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -49,7 +49,7 @@ void Test_BPLib_NC_NoopCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_AddAllApplicationsCmd(void)
+void Test_BPLib_NC_AddAllApplicationsCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -62,7 +62,7 @@ void Test_BPLib_NC_AddAllApplicationsCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_StartAllApplicationsCmd(void)
+void Test_BPLib_NC_StartAllApplicationsCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -75,7 +75,7 @@ void Test_BPLib_NC_StartAllApplicationsCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_VerifyBundleStorageCmd(void)
+void Test_BPLib_NC_VerifyBundleStorageCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -88,7 +88,7 @@ void Test_BPLib_NC_VerifyBundleStorageCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_InitBundleStorageCmd(void)
+void Test_BPLib_NC_InitBundleStorageCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -101,7 +101,7 @@ void Test_BPLib_NC_InitBundleStorageCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_VerifyBundleMetadataCmd(void)
+void Test_BPLib_NC_VerifyBundleMetadataCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -114,7 +114,7 @@ void Test_BPLib_NC_VerifyBundleMetadataCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_RebuildBundleMetadataCmd(void)
+void Test_BPLib_NC_RebuildBundleMetadataCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -127,7 +127,7 @@ void Test_BPLib_NC_RebuildBundleMetadataCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ClearVolatileCmd(void)
+void Test_BPLib_NC_ClearVolatileCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -140,7 +140,7 @@ void Test_BPLib_NC_ClearVolatileCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ReloadSavedDataCmd(void)
+void Test_BPLib_NC_ReloadSavedDataCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -153,7 +153,7 @@ void Test_BPLib_NC_ReloadSavedDataCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ResetAllCountersCmd(void)
+void Test_BPLib_NC_ResetAllCountersCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -166,7 +166,7 @@ void Test_BPLib_NC_ResetAllCountersCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ResetCounterCmd(void)
+void Test_BPLib_NC_ResetCounterCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_ResetCounterCmd_Payload_t Payload;
@@ -183,7 +183,7 @@ void Test_BPLib_NC_ResetCounterCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ResetSourceCountersCmd(void)
+void Test_BPLib_NC_ResetSourceCountersCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_ResetSourceCountersCmd_Payload_t Payload;
@@ -200,7 +200,7 @@ void Test_BPLib_NC_ResetSourceCountersCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ResetBundleCountersCmd(void)
+void Test_BPLib_NC_ResetBundleCountersCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -213,7 +213,7 @@ void Test_BPLib_NC_ResetBundleCountersCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ResetErrorCountersCmd(void)
+void Test_BPLib_NC_ResetErrorCountersCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -226,7 +226,7 @@ void Test_BPLib_NC_ResetErrorCountersCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_AddApplicationCmd(void)
+void Test_BPLib_NC_AddApplicationCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_AddApplicationCmd_Payload_t Payload;
@@ -243,7 +243,7 @@ void Test_BPLib_NC_AddApplicationCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_RemoveApplicationCmd(void)
+void Test_BPLib_NC_RemoveApplicationCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_RemoveApplicationCmd_Payload_t Payload;
@@ -260,7 +260,7 @@ void Test_BPLib_NC_RemoveApplicationCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_SetRegistrationStateCmd(void)
+void Test_BPLib_NC_SetRegistrationStateCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_SetRegistrationStateCmd_Payload_t Payload;
@@ -277,7 +277,7 @@ void Test_BPLib_NC_SetRegistrationStateCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_StartApplicationCmd(void)
+void Test_BPLib_NC_StartApplicationCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_StartApplicationCmd_Payload_t Payload;
@@ -294,7 +294,7 @@ void Test_BPLib_NC_StartApplicationCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_StopApplicationCmd(void)
+void Test_BPLib_NC_StopApplicationCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_StopApplicationCmd_Payload_t Payload;
@@ -311,7 +311,7 @@ void Test_BPLib_NC_StopApplicationCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_AddAuthSourcesCmd(void)
+void Test_BPLib_NC_AddAuthSourcesCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_AddAuthSourcesCmd_Payload_t Payload;
@@ -328,7 +328,7 @@ void Test_BPLib_NC_AddAuthSourcesCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_RemoveAuthSourcesCmd(void)
+void Test_BPLib_NC_RemoveAuthSourcesCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_RemoveAuthSourcesCmd_Payload_t Payload;
@@ -345,7 +345,7 @@ void Test_BPLib_NC_RemoveAuthSourcesCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_AddAuthCustodySourcesCmd(void)
+void Test_BPLib_NC_AddAuthCustodySourcesCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_AddAuthCustodySourcesCmd_Payload_t Payload;
@@ -362,7 +362,7 @@ void Test_BPLib_NC_AddAuthCustodySourcesCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_RemoveAuthCustodySourcesCmd(void)
+void Test_BPLib_NC_RemoveAuthCustodySourcesCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_RemoveAuthCustodySourcesCmd_Payload_t Payload;
@@ -379,7 +379,7 @@ void Test_BPLib_NC_RemoveAuthCustodySourcesCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_AddAuthCustodiansCmd(void)
+void Test_BPLib_NC_AddAuthCustodiansCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_AddAuthCustodiansCmd_Payload_t Payload;
@@ -396,7 +396,7 @@ void Test_BPLib_NC_AddAuthCustodiansCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_RemoveAuthCustodiansCmd(void)
+void Test_BPLib_NC_RemoveAuthCustodiansCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_RemoveAuthCustodiansCmd_Payload_t Payload;
@@ -413,7 +413,7 @@ void Test_BPLib_NC_RemoveAuthCustodiansCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_AddAuthReportToEidCmd(void)
+void Test_BPLib_NC_AddAuthReportToEidCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_AddAuthReportToEidCmd_Payload_t Payload;
@@ -430,7 +430,7 @@ void Test_BPLib_NC_AddAuthReportToEidCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_RemoveAuthReportToEidCmd(void)
+void Test_BPLib_NC_RemoveAuthReportToEidCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_RemoveAuthReportToEidCmd_Payload_t Payload;
@@ -447,7 +447,7 @@ void Test_BPLib_NC_RemoveAuthReportToEidCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_AddLatencyCmd(void)
+void Test_BPLib_NC_AddLatencyCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_AddLatencyCmd_Payload_t Payload;
@@ -464,7 +464,7 @@ void Test_BPLib_NC_AddLatencyCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_RemoveLatencyCmd(void)
+void Test_BPLib_NC_RemoveLatencyCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_RemoveLatencyCmd_Payload_t Payload;
@@ -481,7 +481,7 @@ void Test_BPLib_NC_RemoveLatencyCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ContactSetupCmd(void)
+void Test_BPLib_NC_ContactSetupCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_ContactSetupCmd_Payload_t Payload;
@@ -498,7 +498,7 @@ void Test_BPLib_NC_ContactSetupCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ContactStartCmd(void)
+void Test_BPLib_NC_ContactStartCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_ContactStartCmd_Payload_t Payload;
@@ -515,7 +515,7 @@ void Test_BPLib_NC_ContactStartCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ContactStopCmd(void)
+void Test_BPLib_NC_ContactStopCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_ContactStopCmd_Payload_t Payload;
@@ -532,7 +532,7 @@ void Test_BPLib_NC_ContactStopCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_ContactTeardownCmd(void)
+void Test_BPLib_NC_ContactTeardownCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_ContactTeardownCmd_Payload_t Payload;
@@ -549,7 +549,7 @@ void Test_BPLib_NC_ContactTeardownCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_AddMibArrayKeyCmd(void)
+void Test_BPLib_NC_AddMibArrayKeyCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_AddMibArrayKeyCmd_Payload_t Payload;
@@ -566,7 +566,7 @@ void Test_BPLib_NC_AddMibArrayKeyCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_RemoveMibArrayKeyCmd(void)
+void Test_BPLib_NC_RemoveMibArrayKeyCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_RemoveMibArrayKeyCmd_Payload_t Payload;
@@ -583,7 +583,7 @@ void Test_BPLib_NC_RemoveMibArrayKeyCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_SetMibItemCmd(void)
+void Test_BPLib_NC_SetMibItemCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_SetMibItemCmd_Payload_t Payload;
@@ -600,7 +600,7 @@ void Test_BPLib_NC_SetMibItemCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_AddStorageAllocationCmd(void)
+void Test_BPLib_NC_AddStorageAllocationCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_AddStorageAllocationCmd_Payload_t Payload;
@@ -617,7 +617,7 @@ void Test_BPLib_NC_AddStorageAllocationCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_RemoveStorageAllocationCmd(void)
+void Test_BPLib_NC_RemoveStorageAllocationCmd_Nominal(void)
 {
     BPLib_Status_t Status;
     BPLib_RemoveStorageAllocationCmd_Payload_t Payload;
@@ -634,7 +634,7 @@ void Test_BPLib_NC_RemoveStorageAllocationCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_PerformSelfTestCmd(void)
+void Test_BPLib_NC_PerformSelfTestCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -647,7 +647,7 @@ void Test_BPLib_NC_PerformSelfTestCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_SendNodeMibConfigHkCmd(void)
+void Test_BPLib_NC_SendNodeMibConfigHkCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -660,7 +660,7 @@ void Test_BPLib_NC_SendNodeMibConfigHkCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_SendSourceMibConfigHkCmd(void)
+void Test_BPLib_NC_SendSourceMibConfigHkCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -673,7 +673,7 @@ void Test_BPLib_NC_SendSourceMibConfigHkCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_SendNodeMibCountersHkCmd(void)
+void Test_BPLib_NC_SendNodeMibCountersHkCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -686,7 +686,7 @@ void Test_BPLib_NC_SendNodeMibCountersHkCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_SendSourceMibCountersHkCmd(void)
+void Test_BPLib_NC_SendSourceMibCountersHkCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -699,7 +699,7 @@ void Test_BPLib_NC_SendSourceMibCountersHkCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_SendStorageHkCmd(void)
+void Test_BPLib_NC_SendStorageHkCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -712,7 +712,7 @@ void Test_BPLib_NC_SendStorageHkCmd(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
-void Test_BPLib_NC_SendChannelContactStatHkCmd(void)
+void Test_BPLib_NC_SendChannelContactStatHkCmd_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -727,50 +727,50 @@ void Test_BPLib_NC_SendChannelContactStatHkCmd(void)
 
 void TestBplibNc_Register(void)
 {
-    ADD_TEST(Test_BPLib_NC_Init);
-    ADD_TEST(Test_BPLib_NC_NoopCmd);
-    ADD_TEST(Test_BPLib_NC_AddAllApplicationsCmd);
-    ADD_TEST(Test_BPLib_NC_StartAllApplicationsCmd);
-    ADD_TEST(Test_BPLib_NC_VerifyBundleStorageCmd);
-    ADD_TEST(Test_BPLib_NC_InitBundleStorageCmd);
-    ADD_TEST(Test_BPLib_NC_VerifyBundleMetadataCmd);
-    ADD_TEST(Test_BPLib_NC_RebuildBundleMetadataCmd);
-    ADD_TEST(Test_BPLib_NC_ClearVolatileCmd);
-    ADD_TEST(Test_BPLib_NC_ReloadSavedDataCmd);
-    ADD_TEST(Test_BPLib_NC_ResetAllCountersCmd);
-    ADD_TEST(Test_BPLib_NC_ResetCounterCmd);
-    ADD_TEST(Test_BPLib_NC_ResetSourceCountersCmd);
-    ADD_TEST(Test_BPLib_NC_ResetBundleCountersCmd);
-    ADD_TEST(Test_BPLib_NC_ResetErrorCountersCmd);
-    ADD_TEST(Test_BPLib_NC_AddApplicationCmd);
-    ADD_TEST(Test_BPLib_NC_RemoveApplicationCmd);
-    ADD_TEST(Test_BPLib_NC_SetRegistrationStateCmd);
-    ADD_TEST(Test_BPLib_NC_StartApplicationCmd);
-    ADD_TEST(Test_BPLib_NC_StopApplicationCmd);
-    ADD_TEST(Test_BPLib_NC_AddAuthSourcesCmd);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthSourcesCmd);
-    ADD_TEST(Test_BPLib_NC_AddAuthCustodySourcesCmd);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodySourcesCmd);
-    ADD_TEST(Test_BPLib_NC_AddAuthCustodiansCmd);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodiansCmd);
-    ADD_TEST(Test_BPLib_NC_AddAuthReportToEidCmd);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthReportToEidCmd);
-    ADD_TEST(Test_BPLib_NC_AddLatencyCmd);
-    ADD_TEST(Test_BPLib_NC_RemoveLatencyCmd);
-    ADD_TEST(Test_BPLib_NC_ContactSetupCmd);
-    ADD_TEST(Test_BPLib_NC_ContactStartCmd);
-    ADD_TEST(Test_BPLib_NC_ContactStopCmd);
-    ADD_TEST(Test_BPLib_NC_ContactTeardownCmd);
-    ADD_TEST(Test_BPLib_NC_AddMibArrayKeyCmd);
-    ADD_TEST(Test_BPLib_NC_RemoveMibArrayKeyCmd);
-    ADD_TEST(Test_BPLib_NC_SetMibItemCmd);
-    ADD_TEST(Test_BPLib_NC_AddStorageAllocationCmd);
-    ADD_TEST(Test_BPLib_NC_RemoveStorageAllocationCmd);
-    ADD_TEST(Test_BPLib_NC_PerformSelfTestCmd);
-    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHkCmd);
-    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHkCmd);
-    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHkCmd);
-    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHkCmd);
-    ADD_TEST(Test_BPLib_NC_SendStorageHkCmd);
-    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHkCmd);
+    ADD_TEST(Test_BPLib_NC_Init_Nominal);
+    ADD_TEST(Test_BPLib_NC_NoopCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAllApplicationsCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_StartAllApplicationsCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_VerifyBundleStorageCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_InitBundleStorageCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_VerifyBundleMetadataCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_RebuildBundleMetadataCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ClearVolatileCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ReloadSavedDataCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetAllCountersCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetCounterCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetSourceCountersCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetBundleCountersCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetErrorCountersCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddApplicationCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveApplicationCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_SetRegistrationStateCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_StartApplicationCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_StopApplicationCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthSourcesCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthSourcesCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodySourcesCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodySourcesCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodiansCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodiansCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthReportToEidCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthReportToEidCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddLatencyCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveLatencyCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactSetupCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactStartCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactStopCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactTeardownCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddMibArrayKeyCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveMibArrayKeyCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_SetMibItemCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddStorageAllocationCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveStorageAllocationCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_PerformSelfTestCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHkCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHkCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHkCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHkCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendStorageHkCmd_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHkCmd_Nominal);
 }
