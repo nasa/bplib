@@ -25,22 +25,8 @@
  * bplib_cla_internal header
  */
 
-//#include "bplib_cla_internal.h"
+#include "bplib_cla_internal.h"
 #include "utgenstub.h"
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_CLA_ConstructCancelRequest()
- * ----------------------------------------------------
- */
-int BPLib_CLA_ConstructCancelRequest(void) 
-{
-  UT_GenStub_SetupReturnBuffer(BPLib_CLA_ConstructCancelRequest, int);
-
-  UT_GenStub_Execute(BPLib_CLA_ConstructCancelRequest, Basic, NULL);
-
-  return UT_GenStub_GetReturnValue(BPLib_CLA_ConstructCancelRequest, int);
-}
 
 /*
  * ----------------------------------------------------

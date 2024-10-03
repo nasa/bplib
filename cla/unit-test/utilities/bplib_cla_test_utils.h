@@ -42,5 +42,6 @@ void BPLib_CLA_Test_Setup(void);
 void BPLib_CLA_Test_Teardown(void);
 
 void TestBplibCla_Register(void);
+void TestBplibClaInternal_Register(void);
 
 #endif /* BPLIB_CLA_TEST_UTILS_H */

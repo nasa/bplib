@@ -30,13 +30,14 @@
 */
 void Test_BPLib_CLA_IsAControlMsgNominal(void)
 {
-    
+    void *Bundle = NULL;
+    UtAssert_BOOL_TRUE(BPLib_CLA_IsAControlMsg(Bundle));
 }
 
 
 void Test_BPLib_CLA_ProcessControlMessageNominal(void)
 {
-    
+    UtAssert_INT32_EQ(BPLib_CLA_ProcessControlMessage(), BPLIB_SUCCESS);
 }
 
 

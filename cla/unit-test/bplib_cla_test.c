@@ -69,7 +69,7 @@ void Test_BPLib_CLA_Ingress_NonControlMsg(void)
     uint8_t Bundle[5]= {1, 0, 0, 0, 0};
     size_t Size = 10;
     uint32_t Timeout = 0;
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), 1);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), 0);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ProcessControlMessage), BPLIB_ERROR);    
     UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
 }
