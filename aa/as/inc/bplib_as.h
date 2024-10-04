@@ -25,40 +25,44 @@
 ** Include
 */
 
-#include "bplib.h"
-
+#include "bplib_api_types.h"
 
 /**
  * \brief Node MIB counters housekeeping payload
  */
+
+typedef struct BPLib_NodeMibCountersHkTlm_Payload BPLib_NodeMibCountersHkTlm_Payload_t;
+typedef struct BPLib_SourceMibCountersHkTlm_Payload BPLib_SourceMibCountersHkTlm_Payload_t;
+
 struct BPLib_NodeMibCountersHkTlm_Payload
 {
-    uint16_t BundleCountGeneratedAnonymous;         /**< \brief Bundle count generated anonymous */
-    uint16_t SystemNodeUpTime;                      /**< \brief System node up time */
-    uint16_t AcceptedDirectiveCount;                /**< \brief Bundle Agent Accepted Directive Count */
-    uint16_t RejectedDirectiveCount;                /**< \brief Bundle Agent Rejected Directive Count */
-    uint16_t BundleCountGeneratedCustody;           /**< \brief Bundle Number of custody signal generated */
-    uint16_t BundleCountGeneratedBsrReceived;       /**< \brief Bundle Received BSR Counts */
-    uint16_t BundleCountGeneratedBsrAccepted;       /**< \brief Bundle Accepted BSR Counts */
-    uint16_t BundleCountGeneratedBsrForwarded;      /**< \brief Bundle Forwarded BSR Counts */
-    uint16_t BundleCountGeneratedBsrDelivered;      /**< \brief Bundle Delivered BSR Counts */
-    uint16_t BundleCountGeneratedBsrDeleted;        /**< \brief Bundle Deleted BSR Counts */
-    uint16_t BundleCountInvalidPrimaryBlock;        /**< \brief Bundle unprocessed due to Invalid primary block Counts */
-    uint16_t BundleCountCustodySignalReceived;      /**< \brief Received custody signal Bundle Counts */
-    uint16_t BundleCountDeletedUnauthorizedSrc;     /**< \brief Deleted bundle Counts for unauthorized Src EID*/
-    uint16_t BundleCountGeneratedCrsReceived;       /**< \brief Bundle Received CRS Counts */
-    uint16_t BundleCountGeneratedCrsAccepted;       /**< \brief Bundle Accepted CRS Counts */
-    uint16_t BundleCountGeneratedCrsForwarded;      /**< \brief Bundle Forwarded CRS Counts */
-    uint16_t BundleCountGeneratedCrsDelivered;      /**< \brief Bundle Delivered CRS Counts */
-    uint16_t BundleCountGeneratedCrsDeleted;        /**< \brief Bundle Deleted CRS Counts */
-    uint16_t BundleCountMaxCrsRateExceeded;         /**< \brief Number of CRS bundles not sent to avoid exceeding max rate */
-    uint16_t NodeStartupCounter;                    /**< \brief Number of times the node has been started up */
-    uint16_t BundleCountGeneratedCrs;               /**< \brief Number of CRSs generated */
-    uint16_t BundleCountReceivedCrs;                /**< \brief Number of CRSs received */
+    uint32_t BundleCountGeneratedAnonymous;         /**< \brief Bundle count generated anonymous */
+    uint32_t SystemNodeUpTime;                      /**< \brief System node up time */
+    uint32_t AcceptedDirectiveCount;                /**< \brief Bundle Agent Accepted Directive Count */
+    uint32_t RejectedDirectiveCount;                /**< \brief Bundle Agent Rejected Directive Count */
+    uint32_t BundleCountGeneratedCustody;           /**< \brief Bundle Number of custody signal generated */
+    uint32_t BundleCountGeneratedBsrReceived;       /**< \brief Bundle Received BSR Counts */
+    uint32_t BundleCountGeneratedBsrAccepted;       /**< \brief Bundle Accepted BSR Counts */
+    uint32_t BundleCountGeneratedBsrForwarded;      /**< \brief Bundle Forwarded BSR Counts */
+    uint32_t BundleCountGeneratedBsrDelivered;      /**< \brief Bundle Delivered BSR Counts */
+    uint32_t BundleCountGeneratedBsrDeleted;        /**< \brief Bundle Deleted BSR Counts */
+    uint32_t BundleCountInvalidPrimaryBlock;        /**< \brief Bundle unprocessed due to Invalid primary block Counts */
+    uint32_t BundleCountCustodySignalReceived;      /**< \brief Received custody signal Bundle Counts */
+    uint32_t BundleCountDeletedUnauthorizedSrc;     /**< \brief Deleted bundle Counts for unauthorized Src EID*/
+    uint32_t BundleCountGeneratedCrsReceived;       /**< \brief Bundle Received CRS Counts */
+    uint32_t BundleCountGeneratedCrsAccepted;       /**< \brief Bundle Accepted CRS Counts */
+    uint32_t BundleCountGeneratedCrsForwarded;      /**< \brief Bundle Forwarded CRS Counts */
+    uint32_t BundleCountGeneratedCrsDelivered;      /**< \brief Bundle Delivered CRS Counts */
+    uint32_t BundleCountGeneratedCrsDeleted;        /**< \brief Bundle Deleted CRS Counts */
+    uint32_t BundleCountMaxCrsRateExceeded;         /**< \brief Number of CRS bundles not sent to avoid exceeding max rate */
+    uint32_t NodeStartupCounter;                    /**< \brief Number of times the node has been started up */
+    uint32_t BundleCountGeneratedCrs;               /**< \brief Number of CRSs generated */
+    uint32_t BundleCountReceivedCrs;                /**< \brief Number of CRSs received */
 
-    uint16_t AduCountDelivered;                     /**< \brief ADU Delivered Count */
-    uint16_t AduCountReceived;                      /**< \brief ADU Received Count */
-        
+    uint32_t AduCountDelivered;                     /**< \brief ADU Delivered Count */
+    uint32_t AduCountReceived;                      /**< \brief ADU Received Count */
+    
+    uint32_t Spare1;        
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */    
@@ -69,7 +73,7 @@ struct BPLib_NodeMibCountersHkTlm_Payload
  */
 typedef struct BPLib_SourceMibCountersSet
 {    
-    char SourceEID[64];                         /**< \brief Source EID this telemetry corresponds to */
+    char SourceEID[BPLIB_SRC_EID_STRING_LENGTH];/**< \brief Source EID this telemetry corresponds to */
     uint32_t BundleCountGeneratedAccepted;      /**< \brief Number of accepted bundle transmission requests */
     uint32_t BundleCountGeneratedRejected;      /**< \brief Number of rejected bundle transmission requests */
     uint32_t BundleCountMaxBsrRateExceeded;     /**< \brief Number of BSR bundles not sent because sending would exceed a maximum rate */
@@ -131,12 +135,14 @@ typedef struct BPLib_SourceMibCountersSet
     uint32_t BundleCountReceivedCrsDelivered;   /**< \brief Number of delivered bundle reports included in each received CRS since the last counter reset. */
     uint32_t BundleCountReceivedCrsDeleted;     /**< \brief Number of deleted bundle reports included in each received CRS since the last counter reset. */
     uint32_t BundleCountReceivedAdminRecord;    /**< \brief Number of admin record bundles received for this DTN Node. */
+    uint32_t Spare1;
 }BPLib_SourceMibCountersSet_t;
 
 struct BPLib_SourceMibCountersHkTlm_Payload
 {
     BPLib_SourceMibCountersSet_t SourceCounters[BPLIB_MAX_NUM_SOURCE_EID]; /**< \brief Counters for each source */
     
+    uint32_t Spare2;
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */

@@ -32,6 +32,9 @@
 /**
  * \brief Storage housekeeping payload
  */
+
+typedef struct BPLib_StorageHkTlm_Payload BPLib_StorageHkTlm_Payload_t;
+
 struct BPLib_StorageHkTlm_Payload
 {
     uint32_t    NumBundlesQueued[BPLIB_MAX_NUM_BUNDLE_QUEUES];  /**< \brief Number of bundles queued per queue */

@@ -26,17 +26,13 @@
 */
 
 #include "bplib.h"
-
-
+#include "bplib_api_types.h"
+#include "bplib_ndc.h"
+#include "bplib_as.h"
+#include "bplib_stor.h"
 /*
 ** Type Definitions
 */
-typedef struct BPLib_StorageHkTlm_Payload BPLib_StorageHkTlm_Payload_t;
-typedef struct BPLib_NodeMibCountersHkTlm_Payload BPLib_NodeMibCountersHkTlm_Payload_t;
-typedef struct BPLib_SourceMibCountersHkTlm_Payload BPLib_SourceMibCountersHkTlm_Payload_t;
-typedef struct BPLib_ChannelContactStatHkTlm_Payload BPLib_ChannelContactStatHkTlm_Payload_t;
-typedef struct BPLib_NodeMibConfigHkTlm_Payload BPLib_NodeMibConfigHkTlm_Payload_t;
-typedef struct BPLib_SourceMibConfigHkTlm_Payload BPLib_SourceMibConfigHkTlm_Payload_t;
 
 typedef struct 
 {
