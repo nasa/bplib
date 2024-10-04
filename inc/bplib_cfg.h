@@ -18,28 +18,38 @@
  *
  */
 
-#ifndef BPLIB_H
-#define BPLIB_H
+#ifndef BPLIB_CFG_H
+#define BPLIB_CFG_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
 /*
-** Include
+** Macros
 */
 
-#include "bplib_api_types.h"
-#include "bplib_cfg.h"
+/** 
+ * \brief Maximum length of EID strings
+ */
 
-#include "bplib_time.h"
-#include "bplib_em.h"
-#include "bplib_fwp.h"
-#include "bplib_pl.h"
-#include "bplib_pi.h"
+#define BPLIB_MAX_EID_LENGTH                256
+
+/** 
+ * \brief Maximum number of channels that can be running at once
+ *          This drives the number of entries in the channel and ADU proxy configuration
+ *          tables, as well as the number of ADU In/Out tasks in BPNode
+ */
+#define BPLIB_MAX_NUM_CHANNELS              2
+
+/** 
+ * \brief Maximum number of canonical blocks per bundle
+ */
+#define BPLIB_MAX_NUM_CANONICAL_BLOCK       10
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif /* BPLIB_H */
+#endif /* BPLIB_CFG_H */

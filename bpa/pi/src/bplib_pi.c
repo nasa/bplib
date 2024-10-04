@@ -18,6 +18,12 @@
  *
  */
 
+/**
+ * @file
+ *
+ * Public APIs for Payload Interface
+ */
+
 /*
 ** Include
 */
@@ -29,6 +35,40 @@
 ** Function Definitions
 */
 
-int BPLib_PI_Init(void) {
+/* Add application configurations */
+BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId)
+{
+    return BPLIB_SUCCESS;
+}
+
+/* Remove application configurations */
+BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId)
+{
+    return BPLIB_SUCCESS;
+}
+
+/* Validate channel configuration parameters */
+BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
+{
+    BPLib_PI_ChannelTable_t *TblDataPtr = (BPLib_PI_ChannelTable_t *)TblData;
+
+    /* Temporary check, implement full validation TODO */
+    if (TblDataPtr->Configs[0].MaxBundlePayloadSize == -1)
+    {
+        return BPLIB_PI_INVALID_CONFIG_ERROR;
+    }
+
+    return BPLIB_SUCCESS;
+}
+
+/* Ingress an ADU */
+BPLib_Status_t BPLib_PI_Ingress(uint8_t ChanId, void *AduPtr, size_t AduSize)
+{
+    return BPLIB_SUCCESS;
+}
+
+/* Egress an ADU */
+BPLib_Status_t BPLib_PI_Egress(uint8_t ChanId, void *BundlePtr, size_t BundleSize)
+{
     return BPLIB_SUCCESS;
 }

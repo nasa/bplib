@@ -32,6 +32,8 @@
 #include "bplib.h"
 #include "bplib_pi.h"
 
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_PI_Test_Setup, BPLib_PI_Test_Teardown, #test)
 
 /*
 ** Function Definitions

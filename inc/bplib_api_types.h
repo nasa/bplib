@@ -31,6 +31,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 /*
 ** Type Definitions
@@ -74,6 +75,9 @@ typedef int32_t BPLib_Status_t;
 
 /* PerfLog Proxy Errors*/
 #define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -17u)
+
+/* Payload Interface Errors */
+#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -18u)
 
 #ifdef __cplusplus
 } // extern "C"
