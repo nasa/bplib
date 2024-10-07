@@ -24,10 +24,36 @@
 #include <string.h>
 
 #include "bplib.h"
+
+#include "bplib_time.h"
+
 #include "bplib_mem.h"
 #include "bplib_mem_rbtree.h"
 
 #include "osapi.h"
+
+// Candidates for inclusion in bplib_time.h also in bplib_stor_cache_types.h.
+#define BPLIB_TIME_TO_INT(t)   ((t).Time)
+#define BPLIB_TIME_FROM_INT(t) { (t) }
+#define BPLIB_TIME_IS_VALID(t) (BPLIB_TIME_TO_INT(t) != 0)
+#define BPLIB_TIME_IS_INFINITE(t) (BPLIB_TIME_TO_INT(t) == UINT64_MAX)
+
+// TODO MEM-local Time helpers, also in the cache code separately. Should be in bplib_api_types.h or TIME.
+// TODO Reconcile heritage time functions with bplib_time.h TIME module.
+
+static inline uint64_t BPLib_MEM_GetDtnTime(void)
+{
+    BPLib_TIME_MonotonicTime_t monotime;
+    BPLib_TIME_GetMonotonicTime(&monotime);
+    return BPLib_TIME_GetDtnTime(monotime);
+}
+
+static inline BPLib_TIME_MonotonicTime_t BPLib_MEM_GetMonotonicTime(void)
+{
+    BPLib_TIME_MonotonicTime_t monotime;
+    BPLib_TIME_GetMonotonicTime(&monotime);
+    return monotime;
+}
 
 /*
  * Randomly-chosen 32-bit static values that can be put into
@@ -43,21 +69,6 @@
  * It's only a subset of that library.
  */
 void BPLib_MEM_OS_Init(void);
-
-typedef struct BPLib_MEM_Lock
-{
-    bp_handle_t lock_id;
-} BPLib_MEM_Lock_t;
-
-typedef struct BPLib_MEM_Global
-{
-    BPLib_MEM_Lock_t BPLib_MEM_PoolLock;
-} BPLib_MEM_Global_T;
-
-/*--------------------------------------------------------------------------------------
- * BPLib_MEM_OS_CreateLock -
- *-------------------------------------------------------------------------------------*/
-bp_handle_t BPLib_MEM_OS_CreateLock(void);
 
 /*--------------------------------------------------------------------------------------
  * BPLib_MEM_OS_NextSerial -
@@ -88,79 +99,6 @@ static inline BPLib_MEM_BlockAdminContent_t *BPLib_MEM_GetAdmin(BPLib_MEM_Pool_t
     /* this just confirms that the passed-in pointer looks OK */
     return &pool->admin_block.u.admin;
 }
-
-// TODO Add briefs for BPLib_MEM_OS_Lock and Unlock.
-void BPLib_MEM_OS_Lock(bp_handle_t h);
-void BPLib_MEM_OS_Unlock(bp_handle_t h);
-
-
-/**
- * @brief Acquires a given lock
- *
- * The lock should be identified via BPLib_MEM_LockPrepare() or this
- * The lock should be identified via BPLib_MEM_LockPrepare() or this
- * can re-acquire the same lock again after releasing it with
- * BPLib_MEM_LockRelease().
- *
- * @param lock
- */
-static inline void BPLib_MEM_LockAcquire(BPLib_MEM_Lock_t *lock)
-{
-    BPLib_MEM_OS_Lock(lock->lock_id);
-}
-
-/**
- * @brief Release a given lock (simple)
- *
- * This simply unlocks a resource.
- *
- * This API will NOT automatically wake any task that might be waiting for a
- * state change of the underlying resource
- *
- * @param lock
- */
-static inline void BPLib_MEM_LockRelease(BPLib_MEM_Lock_t *lock)
-{
-    BPLib_MEM_OS_Unlock(lock->lock_id);
-}
-
-/**
- * @brief Prepares for resource-based locking
- *
- * Locates the correct lock to use for the given resource, but does not acquire the lock
- *
- * @note  it is imperative that all calls use the same reference address (such as the head
- * of the list) when referring to the same resource for locking to work correctly.
- *
- * @param resource_addr
- * @return BPLib_MEM_Lock_t*
- */
-BPLib_MEM_Lock_t *BPLib_MEM_LockPrepare(void *resource_addr);
-
-/**
- * @brief Lock a given resource
- *
- * Locates the correct lock to use for a given resource address, and also acquires it
- *
- * @note  it is imperative that all calls use the same referece address (such as the head
- * of the list) when referring to the same resource for locking to work correctly.
- *
- * @param resource_addr
- * @return BPLib_MEM_Lock_t*
- */
-BPLib_MEM_Lock_t *BPLib_MEM_LockResource(void *resource_addr);
-
-/**
- * @brief Waits for a state change related to the given lock
- *
- * @note The resource must be locked when called.
- *
- * @param lock
- * @param until_dtntime
- * @return true
- * @return false
- */
-bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime);
 
 // TODO Add brief for SubqInit and BPLib_MEM_InsertBefore.
 void BPLib_MEM_SubqInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqBase_t *qblk);

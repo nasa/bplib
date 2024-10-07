@@ -131,7 +131,7 @@ int BPLib_MEM_OS_WaitUntilMs(bp_handle_t h, uint64_t abs_dtntime_ms)
         status = OS_CondVarTimedWait(id, &until_time);
     }
 
-    /* check for timeout error explicitly and translate to BP_TIMEOUT */
+    /* check for timeout error explicitly and translate to BPLIB_TIMEOUT */
     if (status == OS_ERROR_TIMEOUT)
     {
         return BPLIB_MEM_TIMEOUT;

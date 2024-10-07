@@ -174,17 +174,25 @@ void Test_BPLib_MEM_Maintain(void)
 void Test_BPLib_MEM_LockWait(void)
 {
     /* Test function for:
-     * bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime)
+     * bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, BPLib_TIME_MonotonicTime_t until_time)
      */
 
-    uint64_t time;
+    BPLib_TIME_MonotonicTime_t zero_time;
+    BPLib_TIME_MonotonicTime_t time;
+    BPLib_TIME_MonotonicTime_t expiry_time;
+    BPLib_TIME_MonotonicTime_t wait_time;
+
+    zero_time.Time = 0;
+
     BPLib_MEM_Lock_t *lock = BPLib_MEM_LockPrepare(NULL);
 
-    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, 0));
-    time = BPLib_MEM_OS_GetDtnTimeMs();
-    UtAssert_BOOL_TRUE(BPLib_MEM_LockWait(lock, time + 5000));
+    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, zero_time));
+    time = BPLib_MEM_GetMonotonicTime();
+    expiry_time.Time = time.Time + 5000;
+    UtAssert_BOOL_TRUE(BPLib_MEM_LockWait(lock, expiry_time));
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_OS_WaitUntilMs), BPLIB_MEM_TIMEOUT);
-    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, 5000));
+    wait_time.Time = 5000;
+    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, wait_time));
 }
 
 void Test_BPLib_MEM_CollectBlocks(void)
@@ -375,7 +383,7 @@ void Test_BPLib_MEM_GetUserContentSize(void)
 void Test_BPLib_MEM_ReadRefCount(void)
 {
     /* Test function for:
-     * size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb)
+     * size_t BPLib_STOR_CACHE_ReadRefcount(const bplib_mpool_block_t *cb)
      */
     BPLib_MEM_BlockContent_t my_block;
 

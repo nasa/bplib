@@ -32,9 +32,11 @@
 
 #include "bplib_api_types.h"
 
+#include "bplib_time.h"
+
 #include "bplib_mem_rbtree.h"
 
-// TODO BPLIB_MEM_TIMEOUT should be BP_TIMEOUT in the BPLIB_SUCCESS list.
+// TODO BPLIB_MEM_TIMEOUT should be BPLIB_TIMEOUT in the BPLIB_SUCCESS list.
 #define BPLIB_MEM_TIMEOUT -5 // TODO Based on OS_ERROR_TIMEOUT returned
 
 // TODO BPLIB_FLAG_DIAGNOSTIC (from BP_FLAG_DIAGNOSTIC) should b in bplib.h
@@ -199,6 +201,93 @@ typedef union BPLib_MEM_AlignedData
     void       *align_ptr;
     long double align_float;
 } BPLib_MEM_AlignedData_t;
+
+typedef struct BPLib_MEM_Lock
+{
+    bp_handle_t lock_id;
+} BPLib_MEM_Lock_t;
+
+typedef struct BPLib_MEM_Global
+{
+    BPLib_MEM_Lock_t BPLib_MEM_PoolLock;
+} BPLib_MEM_Global_T;
+
+// TODO Add briefs for BPLib_MEM_OS_Lock and Unlock.
+void BPLib_MEM_OS_Lock(bp_handle_t h);
+void BPLib_MEM_OS_Unlock(bp_handle_t h);
+
+/*--------------------------------------------------------------------------------------
+ * BPLib_MEM_OS_CreateLock -
+ *-------------------------------------------------------------------------------------*/
+bp_handle_t BPLib_MEM_OS_CreateLock(void);
+
+/**
+ * @brief Acquires a given lock
+ *
+ * The lock should be identified via BPLib_MEM_LockPrepare() or this
+ * The lock should be identified via BPLib_MEM_LockPrepare() or this
+ * can re-acquire the same lock again after releasing it with
+ * BPLib_MEM_LockRelease().
+ *
+ * @param lock
+ */
+static inline void BPLib_MEM_LockAcquire(BPLib_MEM_Lock_t *lock)
+{
+    BPLib_MEM_OS_Lock(lock->lock_id);
+}
+
+/**
+ * @brief Release a given lock (simple)
+ *
+ * This simply unlocks a resource.
+ *
+ * This API will NOT automatically wake any task that might be waiting for a
+ * state change of the underlying resource
+ *
+ * @param lock
+ */
+static inline void BPLib_MEM_LockRelease(BPLib_MEM_Lock_t *lock)
+{
+    BPLib_MEM_OS_Unlock(lock->lock_id);
+}
+
+/**
+ * @brief Prepares for resource-based locking
+ *
+ * Locates the correct lock to use for the given resource, but does not acquire the lock
+ *
+ * @note  it is imperative that all calls use the same reference address (such as the head
+ * of the list) when referring to the same resource for locking to work correctly.
+ *
+ * @param resource_addr
+ * @return BPLib_MEM_Lock_t*
+ */
+BPLib_MEM_Lock_t *BPLib_MEM_LockPrepare(void *resource_addr);
+
+/**
+ * @brief Lock a given resource
+ *
+ * Locates the correct lock to use for a given resource address, and also acquires it
+ *
+ * @note  it is imperative that all calls use the same referece address (such as the head
+ * of the list) when referring to the same resource for locking to work correctly.
+ *
+ * @param resource_addr
+ * @return BPLib_MEM_Lock_t*
+ */
+BPLib_MEM_Lock_t *BPLib_MEM_LockResource(void *resource_addr);
+
+/**
+ * @brief Waits for a state change related to the given lock
+ *
+ * @note The resource must be locked when called.
+ *
+ * @param lock
+ * @param BPLIB_TIME_TO_INT(until_time)
+ * @return true
+ * @return false
+ */
+bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, BPLib_TIME_MonotonicTime_t until_time);
 
 /**
  * BPLib STOR CACHE defines many blocktypes.
@@ -544,7 +633,7 @@ static inline bp_handle_t BPLib_MEM_GetExternalId(const BPLib_MEM_Block_t *cb)
  * is in an unknown/undefined state.
  *
  * To clear a list that has already been initialized once, use
- * bplib_mpool_recycle_all_blocks_in_list()
+ * BPLib_STOR_CACHE_RecycleAllBlocksInList()
  *
  * @param base_block The parent/container of the list
  * @param list_head  The list to initialize
@@ -636,6 +725,8 @@ size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_Pool_t *pool);
  *
  *-----------------------------------------------------------------*/
 BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb);
+
+BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk);
 
 // TODO Move or remove the header for "Exported Functions"
 /**

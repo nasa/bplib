@@ -27,6 +27,9 @@
 
 #include "bplib.h"
 #include "bplib_api_types.h"
+
+#include "bplib_time.h"
+
 #include "bplib_mem.h"
 #include "bplib_mem_internal.h"
 
@@ -99,20 +102,20 @@ BPLib_MEM_Lock_t *BPLib_MEM_LockResource(void *resource_addr)
     return selected_lock;
 }
 
-bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime)
+bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, BPLib_TIME_MonotonicTime_t until_time)
 {
     bool within_timeout;
     int  status;
 
-    within_timeout = (until_dtntime > BPLib_MEM_OS_GetDtnTimeMs());
+    within_timeout = (BPLIB_TIME_TO_INT(until_time) > BPLib_MEM_OS_GetDtnTimeMs());
 
     if (within_timeout)
     {
-        status = BPLib_MEM_OS_WaitUntilMs(lock->lock_id, until_dtntime);
+        status = BPLib_MEM_OS_WaitUntilMs(lock->lock_id, BPLIB_TIME_TO_INT(until_time));
         if (status == BPLIB_MEM_TIMEOUT)
         {
             /* if timeout was returned, then assume that enough time has elapsed
-             * such that the current time is beyond until_dtntime now.  note that
+             * such that the current time is beyond BPLIB_TIME_TO_INT(until_time) now.  note that
              * the caller should still check for whatever condition was being waited
              * on. */
             within_timeout = false;

@@ -66,6 +66,8 @@ target_include_directories(coverage-bplib_mem-testrunner PRIVATE
 target_link_libraries(coverage-bplib_mem-testrunner PUBLIC
     ut_coverage_link
     ut_assert
+    bplib_time
+    bplib_fwp_stubs
     bplib_mem_stubs
 )
 
