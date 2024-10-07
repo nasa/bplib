@@ -23,9 +23,12 @@
  ******************************************************************************/
 
 #include "bplib.h"
-#include "bplib_os.h"
 #include "bplib_mem.h"
-#include "BPLib_STOR_CACHE_Module_base_internal.h"
+#include "bplib_stor_cache_base_internal.h"
+
+#include "bplib_stor_qm.h"
+
+#include "bplib_stor_cache_ducts.h"
 
 /**
  * @brief Minimum time between interface poll cycles
@@ -37,7 +40,7 @@
 
 #define BPLIB_INTF_AVAILABLE_FLAGS (BPLIB_INTF_STATE_OPER_UP | BPLIB_INTF_STATE_ADMIN_UP)
 
-BPLib_STOR_CACHE_Ref_t bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, bp_handle_t intf_id)
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
 {
     BPLib_STOR_CACHE_Block_t *blk;
 
@@ -45,66 +48,66 @@ BPLib_STOR_CACHE_Ref_t bplib_route_get_intf_controlblock(bplib_routetbl_t *tbl, 
     return BPLib_STOR_CACHE_RefCreate(blk);
 }
 
-void bplib_route_release_intf_controlblock(bplib_routetbl_t *tbl, BPLib_STOR_CACHE_Ref_t refptr)
+void BPLib_STOR_QM_ReleaseIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_STOR_CACHE_Ref_t refptr)
 {
     BPLib_STOR_CACHE_RefRelease(refptr);
 }
 
-BPLib_STOR_CACHE_Flow_t *bplip_route_lookup_intf(const bplib_routetbl_t *tbl, bp_handle_t intf_id)
+BPLib_STOR_CACHE_Duct_t *bplip_queue_lookup_intf(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
 {
     BPLib_STOR_CACHE_Block_t *blk;
 
     blk = BPLib_STOR_CACHE_BlockFromExternalId(tbl->pool, intf_id);
-    return BPLib_STOR_CACHE_FlowCast(blk);
+    return BPLib_STOR_CACHE_DuctCast(blk);
 }
 
-static inline const BPLib_STOR_CACHE_Flow_t *bplip_route_lookup_intf_const(const bplib_routetbl_t *tbl, bp_handle_t intf_id)
+static inline const BPLib_STOR_CACHE_Duct_t *bplip_queue_lookup_intf_const(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
 {
-    /* note that bplip_route_lookup_intf does not modify its argument itself */
-    return bplip_route_lookup_intf(tbl, intf_id);
+    /* note that bplip_queue_lookup_intf does not modify its argument itself */
+    return bplip_queue_lookup_intf(tbl, intf_id);
 }
 
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-int bplib_route_ingress_to_parent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
+int BPLib_STOR_QM_QueueIngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
 {
-    BPLib_STOR_CACHE_Flow_t *curr_flow;
-    BPLib_STOR_CACHE_Flow_t *next_flow;
+    BPLib_STOR_CACHE_Duct_t *curr_duct;
+    BPLib_STOR_CACHE_Duct_t *next_duct;
     uint32_t            queue_depth;
 
     /* This implements a simple ingress for sub-interfaces (of any kind) where the ingress
      * of the sub-interface nodes is simply funneled into the parent */
 
-    curr_flow = BPLib_STOR_CACHE_FlowCast(BPLib_STOR_CACHE_GetBlockFromLink(subq_src));
-    if (curr_flow == NULL)
+    curr_duct = BPLib_STOR_CACHE_DuctCast(BPLib_STOR_CACHE_GetBlockFromLink(subq_src));
+    if (curr_duct == NULL)
     {
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to cast flow block\n");
+        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to cast duct block\n");
         return -1;
     }
 
-    next_flow = BPLib_STOR_CACHE_FlowCast(BPLib_STOR_CACHE_Dereference(curr_flow->parent));
-    if (next_flow == NULL)
+    next_duct = BPLib_STOR_CACHE_DuctCast(BPLib_STOR_CACHE_Dereference(curr_duct->parent));
+    if (next_duct == NULL)
     {
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to cast flow parent block\n");
+        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to cast duct parent block\n");
         return -1;
     }
 
     /* Entire contents moved as a batch. */
-    queue_depth = BPLib_STOR_CACHE_FlowTryMoveAll(&next_flow->ingress, &curr_flow->ingress, 0);
+    queue_depth = BPLib_STOR_CACHE_DuctTryMoveAll(&next_duct->ingress, &curr_duct->ingress, BPLIB_MONOTIME_ZERO);
 
     return queue_depth;
 }
 
-void bplib_route_ingress_route_single_bundle(bplib_routetbl_t *tbl, BPLib_STOR_CACHE_Block_t *pblk)
+void BPLib_STOR_QM_IngressQueueSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_STOR_CACHE_Block_t *pblk)
 {
     BPLib_STOR_CACHE_BblockPrimary_t *pri_block;
-    bp_primary_block_t           *pri;
-    bp_ipn_addr_t                 dest_addr;
-    bp_handle_t                   next_hop;
-    uint32_t                      req_flags;
-    uint32_t                      flag_mask;
+    BPLib_STOR_CACHE_PrimaryBlock_t  *pri;
+    bp_ipn_addr_t                     dest_addr;
+    bp_handle_t                       next_hop;
+    uint32_t                          req_flags;
+    uint32_t                          flag_mask;
 
     /* is this routable right now? */
     pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(pblk);
@@ -121,16 +124,16 @@ void bplib_route_ingress_route_single_bundle(bplib_routetbl_t *tbl, BPLib_STOR_C
         flag_mask = req_flags;
 
         if (!bp_handle_is_valid(pri_block->data.delivery.storage_intf_id) &&
-            pri_block->data.delivery.delivery_policy != bplib_policy_delivery_none)
+            pri_block->data.delivery.delivery_policy !=BPLib_STOR_CACHE_PolicyDeliveryNone)
         {
             /* not yet stored and needs to be, so next hop must be a storage */
-            flag_mask |= BPLIB_MEM_FLOW_FLAGS_STORAGE;
-            req_flags |= BPLIB_MEM_FLOW_FLAGS_STORAGE;
+            flag_mask |= BPLIB_MPOOL_FLOW_FLAGS_STORAGE;
+            req_flags |= BPLIB_MPOOL_FLOW_FLAGS_STORAGE;
         }
-        next_hop = bplib_route_get_next_intf_with_flags(tbl, dest_addr.node_number, req_flags, flag_mask);
-        if (bp_handle_is_valid(next_hop) && bplib_route_push_egress_bundle(tbl, next_hop, pblk) == 0)
+        next_hop = BPLib_STOR_QM_GetNextIntfWithFlags(tbl, dest_addr.node_number, req_flags, flag_mask);
+        if (bp_handle_is_valid(next_hop) && BPLib_STOR_QM_PushEgressBundle(tbl, next_hop, pblk) == 0)
         {
-            /* successfully routed */
+            /* successfully queued */
             ++tbl->routing_success_count;
             pblk = NULL;
         }
@@ -145,23 +148,23 @@ void bplib_route_ingress_route_single_bundle(bplib_routetbl_t *tbl, BPLib_STOR_C
     }
 }
 
-int bplib_route_ingress_baseintf_forwarder(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
+int BPLib_STOR_QM_IngressBaseintfForwarder(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
 {
     BPLib_STOR_CACHE_Block_t *qblk;
-    BPLib_STOR_CACHE_Flow_t  *flow;
+    BPLib_STOR_CACHE_Duct_t  *duct;
     int                  forward_count;
 
-    flow = BPLib_STOR_CACHE_FlowCast(BPLib_STOR_CACHE_GetBlockFromLink(subq_src));
-    if (flow == NULL)
+    duct = BPLib_STOR_CACHE_DuctCast(BPLib_STOR_CACHE_GetBlockFromLink(subq_src));
+    if (duct == NULL)
     {
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Failed to cast flow block\n");
+        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to cast duct block\n");
         return -1;
     }
 
     forward_count = 0;
     while (true)
     {
-        qblk = BPLib_STOR_CACHE_FlowTryPull(&flow->ingress, 0);
+        qblk = BPLib_STOR_CACHE_DuctTryPull(&duct->ingress, BPLIB_MONOTIME_ZERO);
         if (qblk == NULL)
         {
             /* no more bundles */
@@ -177,7 +180,7 @@ int bplib_route_ingress_baseintf_forwarder(void *arg, BPLib_STOR_CACHE_Block_t *
          * This call always puts the block somewhere -
          * if its unroutable, the block will be put into the recycle bin.
          */
-        bplib_route_ingress_route_single_bundle(arg, qblk);
+        BPLib_STOR_QM_IngressQueueSingleBundle(arg, qblk);
     }
 
     /* This should return 0 if it did no work and no errors.
@@ -185,38 +188,38 @@ int bplib_route_ingress_baseintf_forwarder(void *arg, BPLib_STOR_CACHE_Block_t *
     return forward_count;
 }
 
-BPLib_STOR_CACHE_Pool_t *bplib_route_get_mpool(const bplib_routetbl_t *tbl)
+BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetMpool(const BPLib_STOR_QM_QueueTbl_t *tbl)
 {
     return tbl->pool;
 }
 
-bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, size_t cache_mem_size)
+BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_queues, size_t cache_mem_size)
 {
     size_t            complete_size;
     size_t            align;
-    size_t            route_offset;
+    size_t            queue_offset;
     size_t            BPLib_STOR_CACHE_Offset;
     uint8_t          *mem_ptr;
-    bplib_routetbl_t *tbl_ptr;
-    struct routeentry_align
+    BPLib_STOR_QM_QueueTbl_t *tbl_ptr;
+    struct queueentry_align
     {
         /* This byte only exists to check the offset of the following member */
         /* cppcheck-suppress unusedStructMember */
         uint8_t            byte;
-        bplib_routeentry_t route_tbl_offset;
+        BPLib_STOR_QM_QueueEntry_t queue_tbl_offset;
     };
 
-    if (max_routes == 0)
+    if (max_queues == 0)
     {
         return NULL;
     }
 
-    complete_size = sizeof(bplib_routetbl_t);
+    complete_size = sizeof(BPLib_STOR_QM_QueueTbl_t);
 
-    align         = offsetof(struct routeentry_align, route_tbl_offset) - 1;
+    align         = offsetof(struct queueentry_align, queue_tbl_offset) - 1;
     complete_size = (complete_size + align) & ~align;
-    route_offset  = complete_size;
-    complete_size += sizeof(bplib_routeentry_t) * max_routes;
+    queue_offset  = complete_size;
+    complete_size += sizeof(BPLib_STOR_QM_QueueEntry_t) * max_queues;
 
     align = sizeof(void *) - 1;
     align |= sizeof(uintmax_t) - 1;
@@ -226,7 +229,7 @@ bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, size_t cache_mem_
 
     complete_size = (complete_size + align) & ~align;
 
-    tbl_ptr = (bplib_routetbl_t *)bplib_os_calloc(complete_size);
+    tbl_ptr = (BPLib_STOR_QM_QueueTbl_t *)bplib_os_calloc(complete_size);
     mem_ptr = (uint8_t *)tbl_ptr;
 
     if (tbl_ptr != NULL)
@@ -241,52 +244,52 @@ bplib_routetbl_t *bplib_route_alloc_table(uint32_t max_routes, size_t cache_mem_
 
     if (tbl_ptr != NULL)
     {
-        tbl_ptr->activity_lock  = bplib_os_createlock();
-        tbl_ptr->last_intf_poll = bplib_os_get_dtntime_ms();
-        BPLib_STOR_CACHE_InitListHead(NULL, &tbl_ptr->flow_list);
+        tbl_ptr->activity_lock.hdl  = bplib_os_createlock();
+        tbl_ptr->last_intf_poll.Time = bplib_os_get_dtntime_ms();
+        BPLib_STOR_CACHE_InitListHead(NULL, &tbl_ptr->duct_list);
 
-        tbl_ptr->max_routes = max_routes;
-        tbl_ptr->route_tbl  = (void *)(mem_ptr + route_offset);
+        tbl_ptr->max_queues = max_queues;
+        tbl_ptr->queue_tbl  = (void *)(mem_ptr + queue_offset);
     }
 
     return tbl_ptr;
 }
 
-bp_handle_t bplib_route_register_generic_intf(bplib_routetbl_t *tbl, bp_handle_t parent_intf_id,
-                                              BPLib_STOR_CACHE_Block_t *flow_block)
+bp_handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t parent_intf_id,
+                                              BPLib_STOR_CACHE_Block_t *duct_block)
 {
-    BPLib_STOR_CACHE_Flow_t *flow;
+    BPLib_STOR_CACHE_Duct_t *duct;
     BPLib_STOR_CACHE_Ref_t   fref;
     bp_handle_t         result;
 
     result = BP_INVALID_HANDLE;
-    flow   = BPLib_STOR_CACHE_FlowCast(flow_block);
-    if (flow == NULL)
+    duct   = BPLib_STOR_CACHE_DuctCast(duct_block);
+    if (duct == NULL)
     {
-        bplog(NULL, BP_FLAG_OUT_OF_MEMORY, "Failed to cast flow block\n");
+        bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to cast duct block\n");
         return result;
     }
 
-    fref = bplib_route_get_intf_controlblock(tbl, parent_intf_id);
+    fref = BPLib_STOR_QM_GetIntfControlblock(tbl, parent_intf_id);
 
     if (fref == NULL && bp_handle_is_valid(parent_intf_id))
     {
         /* this is an error */
-        bplog(NULL, BP_FLAG_DIAGNOSTIC, "Parent intf not valid\n");
+        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Parent intf not valid\n");
     }
     else
     {
-        flow->parent = fref;
-        result       = BPLib_STOR_CACHE_GetExternalId(flow_block);
+        duct->parent = fref;
+        result       = BPLib_STOR_CACHE_GetExternalId(duct_block);
 
-        /* keep track of all flows here in the flow_list - this counts as a ref so it
+        /* keep track of all ducts here in the duct_list - this counts as a ref so it
          * will not be auto-collected as long as its here in this list.  The ref is
-         * intentionally _not_ released here, see bplib_route_del_intf */
-        fref = BPLib_STOR_CACHE_RefCreate(flow_block);
+         * intentionally _not_ released here, see BPLib_STOR_QM_DelIntf */
+        fref = BPLib_STOR_CACHE_RefCreate(duct_block);
         if (fref != NULL)
         {
             bplib_os_lock(tbl->activity_lock);
-            BPLib_STOR_CACHE_InsertBefore(&tbl->flow_list, flow_block);
+            BPLib_STOR_CACHE_InsertBefore(&tbl->duct_list, duct_block);
             bplib_os_unlock(tbl->activity_lock);
         }
     }
@@ -294,14 +297,14 @@ bp_handle_t bplib_route_register_generic_intf(bplib_routetbl_t *tbl, bp_handle_t
     return result;
 }
 
-int bplib_route_register_handler_impl(bplib_routetbl_t *tbl, bp_handle_t intf_id, size_t func_position,
+int BPLib_STOR_QM_RegisterHandlerImpl(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, size_t func_position,
                                       BPLib_STOR_CACHE_CallbackFunc_t new_func)
 {
-    BPLib_STOR_CACHE_Flow_t          *ifp;
+    BPLib_STOR_CACHE_Duct_t          *ifp;
     uint8_t                     *base_ptr;
     BPLib_STOR_CACHE_SubqWorkitem_t *subq;
 
-    ifp = bplip_route_lookup_intf(tbl, intf_id);
+    ifp = bplip_queue_lookup_intf(tbl, intf_id);
     if (ifp == NULL)
     {
         /* Not a valid handle */
@@ -329,23 +332,23 @@ int bplib_route_register_handler_impl(bplib_routetbl_t *tbl, bp_handle_t intf_id
     return 0;
 }
 
-int bplib_route_register_forward_ingress_handler(bplib_routetbl_t *tbl, bp_handle_t intf_id,
+int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
                                                  BPLib_STOR_CACHE_CallbackFunc_t ingress)
 {
-    return bplib_route_register_handler_impl(tbl, intf_id, offsetof(BPLib_STOR_CACHE_Flow_t, ingress), ingress);
+    return BPLib_STOR_QM_RegisterHandlerImpl(tbl, intf_id, offsetof(BPLib_STOR_CACHE_Duct_t, ingress), ingress);
 }
 
-int bplib_route_register_forward_egress_handler(bplib_routetbl_t *tbl, bp_handle_t intf_id,
+int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
                                                 BPLib_STOR_CACHE_CallbackFunc_t egress)
 {
-    return bplib_route_register_handler_impl(tbl, intf_id, offsetof(BPLib_STOR_CACHE_Flow_t, egress), egress);
+    return BPLib_STOR_QM_RegisterHandlerImpl(tbl, intf_id, offsetof(BPLib_STOR_CACHE_Duct_t, egress), egress);
 }
 
-int bplib_route_register_event_handler(bplib_routetbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_CallbackFunc_t event)
+int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_CallbackFunc_t event)
 {
-    BPLib_STOR_CACHE_Flow_t *ifp;
+    BPLib_STOR_CACHE_Duct_t *ifp;
 
-    ifp = bplip_route_lookup_intf(tbl, intf_id);
+    ifp = bplip_queue_lookup_intf(tbl, intf_id);
     if (ifp == NULL)
     {
         /* Not a valid handle */
@@ -369,43 +372,43 @@ int bplib_route_register_event_handler(bplib_routetbl_t *tbl, bp_handle_t intf_i
     return 0;
 }
 
-int bplib_route_del_intf(bplib_routetbl_t *tbl, bp_handle_t intf_id)
+int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
 {
     uint32_t            pos;
-    bplib_routeentry_t *rp;
+    BPLib_STOR_QM_QueueEntry_t *rp;
     BPLib_STOR_CACHE_Ref_t   ref;
-    BPLib_STOR_CACHE_Flow_t *ifp;
+    BPLib_STOR_CACHE_Duct_t *ifp;
 
-    ref = bplib_route_get_intf_controlblock(tbl, intf_id);
+    ref = BPLib_STOR_QM_GetIntfControlblock(tbl, intf_id);
     if (ref == NULL)
     {
         /* Not a valid handle */
         return -1;
     }
 
-    ifp = BPLib_STOR_CACHE_FlowCast(BPLib_STOR_CACHE_Dereference(ref));
+    ifp = BPLib_STOR_CACHE_DuctCast(BPLib_STOR_CACHE_Dereference(ref));
     if (ifp != NULL)
     {
         /* before it can be deleted, should ensure it is not referenced */
-        for (pos = 0; pos < tbl->registered_routes; ++pos)
+        for (pos = 0; pos < tbl->registered_queues; ++pos)
         {
-            rp = &tbl->route_tbl[pos];
+            rp = &tbl->queue_tbl[pos];
             if (bp_handle_equal(rp->intf_id, intf_id))
             {
-                --tbl->registered_routes;
+                --tbl->registered_queues;
 
                 /* close the gap, if this left one */
-                if (pos < tbl->registered_routes)
+                if (pos < tbl->registered_queues)
                 {
-                    memmove(&rp[0], &rp[1], sizeof(*rp) * (tbl->registered_routes - pos));
+                    memmove(&rp[0], &rp[1], sizeof(*rp) * (tbl->registered_queues - pos));
                 }
                 break;
             }
         }
     }
 
-    /* remove the flow from the flow_list.  This releases the reference
-     * that was created during bplib_route_register_generic_intf()  */
+    /* remove the duct from the duct_list.  This releases the reference
+     * that was created during BPLib_STOR_QM_RegisterGenericIntf()  */
     bplib_os_lock(tbl->activity_lock);
     if (BPLib_STOR_CACHE_IsLinkAttached(BPLib_STOR_CACHE_Dereference(ref)))
     {
@@ -421,25 +424,25 @@ int bplib_route_del_intf(bplib_routetbl_t *tbl, bp_handle_t intf_id)
     return 0;
 }
 
-bp_handle_t bplib_route_get_next_intf_with_flags(const bplib_routetbl_t *tbl, bp_ipn_t dest, uint32_t req_flags,
+bp_handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, uint32_t req_flags,
                                                  uint32_t flag_mask)
 {
     uint32_t                  pos;
-    bplib_routeentry_t       *rp;
+    BPLib_STOR_QM_QueueEntry_t       *rp;
     bp_handle_t               intf;
-    const BPLib_STOR_CACHE_Flow_t *ifp;
+    const BPLib_STOR_CACHE_Duct_t *ifp;
     uint32_t                  intf_flags;
 
     intf = BP_INVALID_HANDLE;
-    for (pos = 0; pos < tbl->registered_routes; ++pos)
+    for (pos = 0; pos < tbl->registered_queues; ++pos)
     {
-        rp = &tbl->route_tbl[pos];
+        rp = &tbl->queue_tbl[pos];
         if (((rp->dest ^ dest) & rp->mask) == 0)
         {
             intf_flags = ~req_flags;
             if (flag_mask != 0)
             {
-                ifp = bplip_route_lookup_intf_const(tbl, rp->intf_id);
+                ifp = bplip_queue_lookup_intf_const(tbl, rp->intf_id);
                 if (ifp != NULL)
                 {
                     intf_flags = ifp->current_state_flags;
@@ -456,19 +459,19 @@ bp_handle_t bplib_route_get_next_intf_with_flags(const bplib_routetbl_t *tbl, bp
     return intf;
 }
 
-bp_handle_t bplib_route_get_next_avail_intf(const bplib_routetbl_t *tbl, bp_ipn_t dest)
+bp_handle_t BPLib_STOR_QM_GetNextAvailIntf(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest)
 {
-    return bplib_route_get_next_intf_with_flags(tbl, dest, BPLIB_INTF_AVAILABLE_FLAGS, BPLIB_INTF_AVAILABLE_FLAGS);
+    return BPLib_STOR_QM_GetNextIntfWithFlags(tbl, dest, BPLIB_INTF_AVAILABLE_FLAGS, BPLIB_INTF_AVAILABLE_FLAGS);
 }
 
-int bplib_route_push_ingress_bundle(const bplib_routetbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
+int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
 {
-    BPLib_STOR_CACHE_Flow_t *flow;
+    BPLib_STOR_CACHE_Duct_t *duct;
     int                 status;
 
     status = -1;
-    flow   = bplip_route_lookup_intf(tbl, intf_id);
-    if (flow != NULL && BPLib_STOR_CACHE_FlowTryPush(&flow->ingress, cb, 0))
+    duct   = bplip_queue_lookup_intf(tbl, intf_id);
+    if (duct != NULL && BPLib_STOR_CACHE_DuctTryPush(&duct->ingress, cb, BPLIB_MONOTIME_ZERO))
     {
         status = 0;
     }
@@ -476,14 +479,14 @@ int bplib_route_push_ingress_bundle(const bplib_routetbl_t *tbl, bp_handle_t int
     return status;
 }
 
-int bplib_route_push_egress_bundle(const bplib_routetbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
+int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
 {
-    BPLib_STOR_CACHE_Flow_t *flow;
+    BPLib_STOR_CACHE_Duct_t *duct;
     int                 status;
 
     status = -1;
-    flow   = bplip_route_lookup_intf(tbl, intf_id);
-    if (flow != NULL && BPLib_STOR_CACHE_FlowTryPush(&flow->egress, cb, 0))
+    duct   = bplip_queue_lookup_intf(tbl, intf_id);
+    if (duct != NULL && BPLib_STOR_CACHE_DuctTryPush(&duct->egress, cb, BPLIB_MONOTIME_ZERO))
     {
         status = 0;
     }
@@ -491,13 +494,13 @@ int bplib_route_push_egress_bundle(const bplib_routetbl_t *tbl, bp_handle_t intf
     return status;
 }
 
-int bplib_route_add(bplib_routetbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
+int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
 {
     uint32_t            pos;
     uint32_t            insert_pos;
-    bplib_routeentry_t *rp;
+    BPLib_STOR_QM_QueueEntry_t *rp;
 
-    if (tbl->registered_routes >= tbl->max_routes)
+    if (tbl->registered_queues >= tbl->max_queues)
     {
         return -1;
     }
@@ -510,116 +513,116 @@ int bplib_route_add(bplib_routetbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_hand
 
     /* Find the position, the sequence should go from most specific to least specific mask */
     insert_pos = 0;
-    for (pos = 0; pos < tbl->registered_routes; ++pos)
+    for (pos = 0; pos < tbl->registered_queues; ++pos)
     {
-        rp = &tbl->route_tbl[pos];
+        rp = &tbl->queue_tbl[pos];
         if (rp->mask == mask && rp->dest == dest && bp_handle_equal(rp->intf_id, intf_id))
         {
             break;
         }
         if ((rp->mask & mask) == mask)
         {
-            ++insert_pos; /* must come (at least) after this route */
+            ++insert_pos; /* must come (at least) after this queue */
         }
     }
 
-    if (pos < tbl->registered_routes)
+    if (pos < tbl->registered_queues)
     {
-        /* duplicate route */
+        /* duplicate queue */
         return -1;
     }
 
     /* If necessary, shift entries back to make a gap.
-     * This is somewhat expensive, but route add/remove probably does not
+     * This is somewhat expensive, but queue add/remove probably does not
      * happen that often */
-    rp = &tbl->route_tbl[insert_pos];
-    if (insert_pos < tbl->registered_routes)
+    rp = &tbl->queue_tbl[insert_pos];
+    if (insert_pos < tbl->registered_queues)
     {
-        memmove(&rp[1], &rp[0], sizeof(*rp) * (tbl->registered_routes - insert_pos));
+        memmove(&rp[1], &rp[0], sizeof(*rp) * (tbl->registered_queues - insert_pos));
     }
 
     rp->dest    = dest;
     rp->mask    = mask;
     rp->intf_id = intf_id;
 
-    ++tbl->registered_routes;
+    ++tbl->registered_queues;
 
     return 0;
 }
 
-int bplib_route_del(bplib_routetbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
+int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
 {
     uint32_t            pos;
-    bplib_routeentry_t *rp;
+    BPLib_STOR_QM_QueueEntry_t *rp;
 
-    if (tbl->registered_routes == 0)
+    if (tbl->registered_queues == 0)
     {
         return -1;
     }
 
     /* Find the position, the sequence should go from most specific to least specific */
-    for (pos = 0; pos < tbl->registered_routes; ++pos)
+    for (pos = 0; pos < tbl->registered_queues; ++pos)
     {
-        rp = &tbl->route_tbl[pos];
+        rp = &tbl->queue_tbl[pos];
         if (rp->mask == mask && rp->dest == dest && bp_handle_equal(rp->intf_id, intf_id))
         {
             break;
         }
     }
 
-    if (pos >= tbl->registered_routes)
+    if (pos >= tbl->registered_queues)
     {
-        /* route not found */
+        /* queue not found */
         return -1;
     }
 
-    --tbl->registered_routes;
+    --tbl->registered_queues;
 
     /* If this was in the middle, close the gap */
-    rp = &tbl->route_tbl[pos];
-    if (pos < tbl->registered_routes)
+    rp = &tbl->queue_tbl[pos];
+    if (pos < tbl->registered_queues)
     {
-        memmove(&rp[0], &rp[1], sizeof(*rp) * (tbl->registered_routes - pos));
+        memmove(&rp[0], &rp[1], sizeof(*rp) * (tbl->registered_queues - pos));
     }
 
     return 0;
 }
 
-int bplib_route_intf_set_flags(bplib_routetbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
+int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
 {
-    BPLib_STOR_CACHE_Ref_t flow_ref;
+    BPLib_STOR_CACHE_Ref_t duct_ref;
 
-    flow_ref = bplib_route_get_intf_controlblock(tbl, intf_id);
-    if (flow_ref != NULL)
+    duct_ref = BPLib_STOR_QM_GetIntfControlblock(tbl, intf_id);
+    if (duct_ref != NULL)
     {
-        if (BPLib_STOR_CACHE_FlowModifyFlags(BPLib_STOR_CACHE_Dereference(flow_ref), flags, 0))
+        if (BPLib_STOR_CACHE_DuctModifyFlags(BPLib_STOR_CACHE_Dereference(duct_ref), flags, 0))
         {
-            bplib_route_set_maintenance_request(tbl);
+            BPLib_STOR_QM_SetMaintenanceRequest(tbl);
         }
     }
-    bplib_route_release_intf_controlblock(tbl, flow_ref);
+    BPLib_STOR_QM_ReleaseIntfControlblock(tbl, duct_ref);
 
     return 0;
 }
 
-int bplib_route_intf_unset_flags(bplib_routetbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
+int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
 {
-    BPLib_STOR_CACHE_Ref_t flow_ref;
+    BPLib_STOR_CACHE_Ref_t duct_ref;
 
-    flow_ref = bplib_route_get_intf_controlblock(tbl, intf_id);
-    if (flow_ref != NULL)
+    duct_ref = BPLib_STOR_QM_GetIntfControlblock(tbl, intf_id);
+    if (duct_ref != NULL)
     {
-        if (BPLib_STOR_CACHE_FlowModifyFlags(BPLib_STOR_CACHE_Dereference(flow_ref), 0, flags))
+        if (BPLib_STOR_CACHE_DuctModifyFlags(BPLib_STOR_CACHE_Dereference(duct_ref), 0, flags))
         {
-            bplib_route_set_maintenance_request(tbl);
+            BPLib_STOR_QM_SetMaintenanceRequest(tbl);
         }
     }
-    bplib_route_release_intf_controlblock(tbl, flow_ref);
+    BPLib_STOR_QM_ReleaseIntfControlblock(tbl, duct_ref);
 
     return 0;
 }
 
-void bplib_route_do_timed_poll(bplib_routetbl_t *tbl)
+void BPLib_STOR_QM_DoTimedPoll(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
     uint64_t                current_time;
     uint64_t                poll_time;
@@ -637,24 +640,24 @@ void bplib_route_do_timed_poll(bplib_routetbl_t *tbl)
      * be sampled and updated inside of a lock section to ensure the value
      * is consistent */
     bplib_os_lock(tbl->activity_lock);
-    poll_time = tbl->last_intf_poll + BPLIB_INTF_MIN_POLL_INTERVAL;
+    poll_time = tbl->last_intf_poll.Time + BPLIB_INTF_MIN_POLL_INTERVAL;
     if (current_time >= poll_time)
     {
-        tbl->last_intf_poll = poll_time;
+        tbl->last_intf_poll.Time = poll_time;
         ++tbl->poll_count;
         poll_cycle = (tbl->poll_count & 1);
 
         if (poll_cycle)
         {
-            set_flags = BPLIB_MEM_FLOW_FLAGS_POLL;
+            set_flags = BPLIB_MPOOL_FLOW_FLAGS_POLL;
         }
         else
         {
-            clear_flags = BPLIB_MEM_FLOW_FLAGS_POLL;
+            clear_flags = BPLIB_MPOOL_FLOW_FLAGS_POLL;
         }
 
-        status = BPLib_STOR_CACHE_ListIterGotoFirst(&tbl->flow_list, &iter);
-        while (status == BP_SUCCESS)
+        status = BPLib_STOR_CACHE_ListIterGotoFirst(&tbl->duct_list, &iter);
+        while (status == BPLIB_SUCCESS)
         {
             /* NOTE: this will end up taking the pool lock as well, when it schedules the
              * state change for processing.  This means this task will have two locks at
@@ -662,20 +665,20 @@ void bplib_route_do_timed_poll(bplib_routetbl_t *tbl)
              * are always taken in that order (and not the other way around) this should be OK
              * for now, but it needs to be ensured that locks are never taken in the opposite
              * order. */
-            BPLib_STOR_CACHE_FlowModifyFlags(iter.position, set_flags, clear_flags);
+            BPLib_STOR_CACHE_DuctModifyFlags(iter.position, set_flags, clear_flags);
             status = BPLib_STOR_CACHE_ListIterForward(&iter);
         }
     }
     bplib_os_unlock(tbl->activity_lock);
 }
 
-void bplib_route_set_maintenance_request(bplib_routetbl_t *tbl)
+void BPLib_STOR_QM_SetMaintenanceRequest(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
     tbl->maint_request_flag = true;
-    bplib_os_broadcast_signal(tbl->activity_lock);
+    // TODO OSAL bplib_os_broadcast_signal(tbl->activity_lock);
 }
 
-void bplib_route_maintenance_request_wait(bplib_routetbl_t *tbl)
+void BPLib_STOR_QM_MaintenanceRequestWait(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
     uint64_t poll_time;
 
@@ -684,7 +687,7 @@ void bplib_route_maintenance_request_wait(bplib_routetbl_t *tbl)
     /* because the time is a 64-bit value and may not be atomic, it should
      * be sampled and updated inside of a lock section to ensure the value
      * is consistent */
-    poll_time = tbl->last_intf_poll + BPLIB_INTF_MIN_POLL_INTERVAL;
+    poll_time = tbl->last_intf_poll.Time + BPLIB_INTF_MIN_POLL_INTERVAL;
 
     while (!tbl->maint_request_flag && bplib_os_get_dtntime_ms() < poll_time)
     {
@@ -697,35 +700,35 @@ void bplib_route_maintenance_request_wait(bplib_routetbl_t *tbl)
     bplib_os_unlock(tbl->activity_lock);
 }
 
-void bplib_route_maintenance_complete_wait(bplib_routetbl_t *tbl)
+void BPLib_STOR_QM_MaintenanceCompleteWait(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
     bplib_os_lock(tbl->activity_lock);
 
     while (tbl->maint_request_flag || tbl->maint_active_flag)
     {
-        bplib_os_wait_until_ms(tbl->activity_lock, BP_DTNTIME_INFINITE);
+        bplib_os_wait_until_ms(tbl->activity_lock, BPLIB_DTNTIME_INFINITE);
     }
 
     bplib_os_unlock(tbl->activity_lock);
 }
 
-void bplib_route_process_active_flows(bplib_routetbl_t *tbl)
+void BPLib_STOR_QM_ProcessActiveDucts(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
     BPLib_STOR_CACHE_JobRunAll(tbl->pool, tbl);
 }
 
-void bplib_route_periodic_maintenance(bplib_routetbl_t *tbl)
+void BPLib_STOR_QM_PeriodicMaintenance(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
     /* execute time-based interface polling for intfs that require it */
-    bplib_route_do_timed_poll(tbl);
+    BPLib_STOR_QM_DoTimedPoll(tbl);
 
-    /* now forward any bundles between interfaces, based on active flows */
-    bplib_route_process_active_flows(tbl);
+    /* now forward any bundles between interfaces, based on active ducts */
+    BPLib_STOR_QM_ProcessActiveDucts(tbl);
 
     /* do general pool garbage collection to make sure it was done at least once */
     BPLib_STOR_CACHE_Maintain(tbl->pool);
 
     bplib_os_lock(tbl->activity_lock);
     tbl->maint_active_flag = false;
-    bplib_os_broadcast_signal_and_unlock(tbl->activity_lock);
+    // TODO OSAL BPLib_STOR_CACHE_OsBroadcastSignalAndUnlock(tbl->activity_lock);
 }

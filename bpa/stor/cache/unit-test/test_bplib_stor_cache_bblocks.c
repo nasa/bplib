@@ -23,7 +23,7 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "test_BPLib_MEM.h"
+#include "test_bplib_stor_cache.h"
 
 void test_BPLib_STOR_CACHE_BblockPrimaryCast(void)
 {
@@ -117,7 +117,7 @@ void test_BPLib_STOR_CACHE_BblockCborSetSize(void)
     UtAssert_UINT32_EQ(my_block.header.user_content_length, 123);
 }
 
-void test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
+void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg,
@@ -363,32 +363,34 @@ void test_BPLib_STOR_CACHE_BblockCborExport(void)
                                                  sizeof(output)));
 }
 
-void TestBplibMpoolBBlocks_Register(void)
+#ifdef QM
+void Test_BplibMpoolBBlocks_Register(void)
 {
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryCast, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryCast, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryCast");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCanonicalCast, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockCanonicalCast, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCanonicalCast");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborCast, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborCast, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborCast");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborSetSize, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborSetSize, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborSetSize");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryAlloc, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryAlloc, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryAlloc");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCanonicalAlloc, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockCanonicalAlloc, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCanonicalAlloc");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborAlloc, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborAlloc, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborAlloc");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborAppend, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborAppend, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborAppend");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryAppend, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryAppend, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryAppend");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryLocateCanonical");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryDropEncode, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryDropEncode, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryDropEncode");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCanonicalDropEncode, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockCanonicalDropEncode, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCanonicalDropEncode");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborExport, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborExport, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborExport");
 }
+#endif // QM

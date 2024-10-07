@@ -1,0 +1,61 @@
+/*
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
+ *
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef BPLIB_STOR_CACHE_H
+#define BPLIB_STOR_CACHE_H
+
+/******************************************************************************
+ INCLUDES
+ ******************************************************************************/
+
+#include "bplib.h"
+#include "bplib_api_types.h"
+
+#include "bplib_stor_cache_types.h"
+#include "bplib_stor_cache_job.h"
+#include "bplib_stor_cache_ducts.h"
+#include "bplib_stor_cache_internal.h"
+
+/******************************************************************************
+ TYPEDEFS
+ ******************************************************************************/
+
+/* Endpoint IDs */
+#define BP_MAX_EID_STRING 128
+#define BP_IPN_NULL       0
+
+/******************************************************************************
+ PROTOTYPES
+ ******************************************************************************/
+
+/* Service API */
+bp_handle_t BPLib_STOR_CACHE_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr);
+int         BPLib_STOR_CACHE_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr);
+
+bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t cache_intf_id,
+                                                const BPLib_STOR_CACHE_ModuleApi_t *api, void *init_arg);
+int BPLib_STOR_CACHE_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Valtype_t vt,
+                          const void *val);
+int BPLib_STOR_CACHE_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Valtype_t vt,
+                      const void **val);
+int BPLib_STOR_CACHE_Start(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id);
+int BPLib_STOR_CACHE_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id);
+
+#endif /* BPLIB_STOR_CACHE_H */

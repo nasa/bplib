@@ -27,6 +27,8 @@
 
 #include "bplib.h"
 
+// TODO BPLIB_FLAG_DIAGNOSTIC (from BP_FLAG_DIAGNOSTIC) should b in bplib.h
+#define BPLIB_FLAG_DIAGNOSTIC              0x00000000
 
 /*
 ** Exported Functions

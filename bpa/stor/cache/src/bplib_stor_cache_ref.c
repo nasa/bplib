@@ -27,7 +27,11 @@
 
 #include "bplib.h"
 #include "bplib_mem.h"
-#include "bplib_mem_ref.h"
+
+#include "bplib_stor_cache_types.h"
+#include "bplib_stor_cache_block.h"
+#include "bplib_stor_cache_ref.h"
+#include "bplib_stor_cache_internal.h"
 
 /*----------------------------------------------------------------
  *
@@ -36,17 +40,17 @@
  *-----------------------------------------------------------------*/
 BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_STOR_CACHE_Ref_t refptr)
 {
-    BPLib_STOR_CACHE_Lock_t *lock;
+    BPLib_MEM_Lock_t *lock;
 
     /*
      * If the refcount is 0, that means this is still a regular (non-refcounted) object,
      * or it should have been garbage-collected already, so something is broken.
      */
 
-    lock = BPLib_STOR_CACHE_LockResource(&refptr->header.base_link);
+    lock = BPLib_MEM_LockResource(&refptr->header.base_link);
     assert(refptr->header.refcount > 0);
     ++refptr->header.refcount;
-    BPLib_STOR_CACHE_LockRelease(lock);
+    BPLib_MEM_LockRelease(lock);
 
     return refptr;
 }
@@ -59,7 +63,7 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_STOR_CACHE_Ref_t refp
 BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefCreate(BPLib_STOR_CACHE_Block_t *blk)
 {
     BPLib_STOR_CACHE_BlockContent_t *content;
-    BPLib_STOR_CACHE_Lock_t          *lock;
+    BPLib_MEM_Lock_t          *lock;
 
     /*
      * This drills down to the actual base object (the "root" so to speak), so that the
@@ -73,9 +77,9 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefCreate(BPLib_STOR_CACHE_Block_t *blk)
         return NULL;
     }
 
-    lock = BPLib_STOR_CACHE_LockResource(content);
+    lock = BPLib_MEM_LockResource(content);
     ++content->header.refcount;
-    BPLib_STOR_CACHE_LockRelease(lock);
+    BPLib_MEM_LockRelease(lock);
 
     return content;
 }
@@ -89,16 +93,16 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_STOR_CACHE_Ref_t r
 {
     BPLib_STOR_CACHE_BlockContent_t *rblk;
     BPLib_STOR_CACHE_BlockContent_t *bblk;
-    BPLib_STOR_CACHE_Lock_t          *lock;
+    BPLib_MEM_Lock_t          *lock;
     BPLib_STOR_CACHE_Pool_t               *pool;
 
     bblk = BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_STOR_CACHE_Dereference(refptr));
     pool = BPLib_STOR_CACHE_GetParentPoolFromLink(&bblk->header.base_link);
 
-    lock = BPLib_STOR_CACHE_LockResource(pool);
+    lock = BPLib_MEM_LockResource(pool);
     rblk = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypeRef, magic_number, init_arg,
                                             BPLIB_MEM_ALLOC_PRI_MHI);
-    BPLib_STOR_CACHE_LockRelease(lock);
+    BPLib_MEM_LockRelease(lock);
 
     if (rblk == NULL)
     {
@@ -137,7 +141,7 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefFromBlock(BPLib_STOR_CACHE_Block_t *r
 void BPLib_STOR_CACHE_RefRelease(BPLib_STOR_CACHE_Ref_t refptr)
 {
     BPLib_STOR_CACHE_BlockHeader_t *block_hdr;
-    BPLib_STOR_CACHE_Lock_t         *lock;
+    BPLib_MEM_Lock_t         *lock;
     bool                        needs_recycle;
 
     if (refptr != NULL)
@@ -148,13 +152,13 @@ void BPLib_STOR_CACHE_RefRelease(BPLib_STOR_CACHE_Ref_t refptr)
          * Refcount decrement must be done under lock, but it can be
          * a fine-grained lock.
          */
-        lock = BPLib_STOR_CACHE_LockResource(refptr);
+        lock = BPLib_MEM_LockResource(refptr);
         if (block_hdr->refcount > 0)
         {
             --block_hdr->refcount;
         }
         needs_recycle = (block_hdr->refcount == 0);
-        BPLib_STOR_CACHE_LockRelease(lock);
+        BPLib_MEM_LockRelease(lock);
 
         if (needs_recycle)
         {

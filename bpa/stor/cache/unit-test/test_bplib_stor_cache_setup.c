@@ -19,7 +19,11 @@
 /*
  * Includes
  */
-#include "test_bplib_cache.h"
+#include "test_bplib_stor_cache.h"
+
+#include "bplib_api_types.h"
+#include "test_bplib_stor_cache.h"
+#include "bplib.h"
 
 BPLib_STOR_CACHE_Block_t retblk;
 
@@ -64,7 +68,7 @@ void UT_cache_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, con
 void UT_cache_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     void *retval = NULL;
-    int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_CACHE_FlowTryPull));
+    int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_CACHE_DuctTryPull));
     if (count > 10)
     {
         UT_Stub_SetReturnValue(FuncKey, retval);
@@ -93,45 +97,115 @@ void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCo
     UT_Stub_SetReturnValue(FuncKey, retval);
 }
 
-BPLib_STOR_CACHE_Block_t *test_BPLib_STOR_CACHE_Module_instantiate_stub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg)
+BPLib_STOR_CACHE_Block_t *test_BPLib_STOR_CACHE_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg)
 {
     memset(&retblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     return &retblk;
 }
 
-int test_BPLib_STOR_CACHE_Module_configure_stub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt, const void *val)
+int test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Valtype_t vt, const void *val)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_Module_configure_stub);
+    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_ConfigureStub);
 }
 
-int test_BPLib_STOR_CACHE_Module_query_stub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Module_module_valtype_t vt, const void **val)
+int test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Valtype_t vt, const void **val)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_Module_query_stub);
+    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_QueryStub);
 }
 
-int test_BPLib_STOR_CACHE_Module_startstop_stub(BPLib_STOR_CACHE_Block_t *svc)
+int test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_Module_startstop_stub);
+    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_StartstopStub);
 }
 
-int test_BPLib_STOR_CACHE_Module_offload_stub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
+int test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_Module_offload_stub);
+    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_OffloadStub);
 }
 
-int test_BPLib_STOR_CACHE_Module_restore_stub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
+int test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_Module_restore_stub);
+    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_RestoreStub);
 }
 
-int test_BPLib_STOR_CACHE_Module_release_stub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
+int test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_Module_release_stub);
+    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_ReleaseStub);
 }
 
-void UtTest_Setup(void)
+void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    TestBplibCacheCustody_Register();
-    TestBplibCacheFsm_Register();
-    TestBplibCache_Register();
+    void *retval = NULL;
+    int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_CACHE_DuctTryPull));
+    if (count > 15)
+    {
+        UT_Stub_SetReturnValue(FuncKey, retval);
+    }
+    else
+    {
+        UT_Stub_SetReturnValue(FuncKey, UserObj);
+    }
+}
+
+void UT_lib_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    void *retval = NULL;
+    int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_CACHE_DuctTryPull));
+    if (count > 20)
+    {
+        UT_Stub_SetReturnValue(FuncKey, retval);
+    }
+    else
+    {
+        UT_Stub_SetReturnValue(FuncKey, UserObj);
+    }
+}
+
+void UT_lib_baseintf_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    void *retval = NULL;
+    int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_CACHE_DuctTryPull));
+    if (count > 25)
+    {
+        UT_Stub_SetReturnValue(FuncKey, retval);
+    }
+    else
+    {
+        UT_Stub_SetReturnValue(FuncKey, UserObj);
+    }
+}
+
+void UT_lib_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+}
+
+void UT_lib_sizet_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    size_t retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
+
+void UT_lib_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    int32    StatusCode;
+    uint64_t Result;
+
+    UT_Stub_GetInt32StatusCode(Context, &StatusCode);
+
+    Result = StatusCode;
+
+    UT_Stub_SetReturnValue(FuncKey, Result);
+}
+
+void UT_lib_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    int8 retval = 0;
+    UT_Stub_SetReturnValue(FuncKey, retval);
+}
+
+void UT_lib_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    bool retval = true;
+    UT_Stub_SetReturnValue(FuncKey, retval);
 }

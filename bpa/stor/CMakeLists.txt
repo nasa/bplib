@@ -15,6 +15,8 @@ target_include_directories(bplib_stor PUBLIC
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
+add_subdirectory(cache)
+
 # Add unit tests
 if(BPLIB_ENABLE_UNIT_TESTS)
   add_subdirectory(unit-test)

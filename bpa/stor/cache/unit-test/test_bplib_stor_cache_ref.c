@@ -23,7 +23,7 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "test_BPLib_MEM.h"
+#include "test_bplib_stor_cache.h"
 #include "bplib_mem_ref.h"
 
 void test_BPLib_STOR_CACHE_RefCreate(void)
@@ -129,13 +129,13 @@ void test_BPLib_STOR_CACHE_RefMakeBlock(void)
     UtAssert_NULL(BPLib_STOR_CACHE_RefMakeBlock(&buf.blk[2], 0, NULL));
 }
 
-void TestBplibMpoolRef_Register(void)
+void Test_BplibMpoolRef_Register(void)
 {
-    UtTest_Add(test_BPLib_STOR_CACHE_RefCreate, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefCreate");
-    UtTest_Add(test_BPLib_STOR_CACHE_RefDuplicate, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefDuplicate");
-    UtTest_Add(test_BPLib_STOR_CACHE_RefFromBlock, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_RefCreate, Test_BplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefCreate");
+    UtTest_Add(test_BPLib_STOR_CACHE_RefDuplicate, Test_BplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefDuplicate");
+    UtTest_Add(test_BPLib_STOR_CACHE_RefFromBlock, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_RefFromBlock");
-    UtTest_Add(test_BPLib_STOR_CACHE_RefRelease, TestBplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefRelease");
-    UtTest_Add(test_BPLib_STOR_CACHE_RefMakeBlock, TestBplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(test_BPLib_STOR_CACHE_RefRelease, Test_BplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefRelease");
+    UtTest_Add(test_BPLib_STOR_CACHE_RefMakeBlock, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_RefMakeBlock");
 }

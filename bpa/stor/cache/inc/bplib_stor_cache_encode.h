@@ -18,27 +18,27 @@
  *
  */
 
-#ifndef BPLIB_DATASERVICE_H
-#define BPLIB_DATASERVICE_H
+#ifndef BPLIB_STOR_CACHE_ENCODE_H
+#define BPLIB_STOR_CACHE_ENCODE_H
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
+#include "bplib.h"
 #include "bplib_mem.h"
-#include "bplib_api_types.h"
+#include "bplib_stor_cache_types.h"
 
-typedef enum
-{
-    bplib_dataservice_type_undefined,
-    bplib_dataservice_type_application,
-    bplib_dataservice_type_storage,
-    bplib_dataservice_type_max
-} bplib_dataservice_type_t;
+/*
+ * On the encode side of things, the block types are known ahead of time.  Encoding of a payload block is separate
+ * because the data needs to be passed in, but for all other canonical block types all the information should already be
+ * in the logical data - so nothing extra is needed (but this may change as more block types get implemented, too).
+ * One possible option would be to pass in NULL/0 for the block types that do not have separate data, to keep the APIs
+ * more consistent.
+ */
+int v7_block_encode_pri(BPLib_STOR_CACHE_BblockPrimary_t *cpb);
+int v7_block_encode_pay(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size);
 
-bp_handle_t bplib_dataservice_add_base_intf(bplib_routetbl_t *rtbl, bp_ipn_t node_number);
-bp_handle_t bplib_dataservice_attach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn, bplib_dataservice_type_t type,
-                                     BPLib_STOR_CACHE_Ref_t blkref);
-BPLib_STOR_CACHE_Ref_t bplib_dataservice_detach(bplib_routetbl_t *tbl, const bp_ipn_addr_t *ipn);
+int v7_block_encode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb);
 
-#endif /* BPLIB_DATASERVICE_H */
+#endif /* BPLIB_STOR_CACHE_ENCODE_H */

@@ -1,0 +1,99 @@
+/*
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
+ *
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef BPLIB_STOR_CACHE_REF_H
+#define BPLIB_STOR_CACHE_REF_H
+
+#include <string.h>
+
+#include "bplib_api_types.h"
+#include "bplib_mem.h"
+
+/**
+ * @brief Gets the actual block from a reference pointer (dereference)
+ *
+ * @param refptr
+ * @return BPLib_STOR_CACHE_Block_t*
+ */
+static inline BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Dereference(BPLib_STOR_CACHE_Ref_t refptr)
+{
+    return (BPLib_STOR_CACHE_Block_t *)refptr;
+}
+
+/**
+ * @brief Creates a lightweight reference to the data block
+ *
+ * This creates an opaque pointer that can be stored into another user object
+ * A light reference increses the reference count on the target object, but does
+ * not consume any pool memory directly itself.  It will prevent the target
+ * object from being garbage collected.
+ *
+ * References must be explicitly tracked and released by the user when
+ * no longer needed, using BPLib_STOR_CACHE_RefRelease()
+ *
+ * References may also be duplicated via BPLib_STOR_CACHE_RefDuplicate()
+ *
+ * After this call, the passed in blk becomes managed by the pool.
+ *
+ * @note If this function returns non-NULL, the calling application should no longer directly
+ * use the blk pointer that was passed in.  It should only use the reference pointers.
+ *
+ * @param blk
+ * @return BPLib_STOR_CACHE_Ref_t*
+ */
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefCreate(BPLib_STOR_CACHE_Block_t *blk);
+
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_STOR_CACHE_Ref_t refptr);
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefFromBlock(BPLib_STOR_CACHE_Block_t *rblk);
+
+/**
+ * @brief Release a lightweight reference
+ *
+ * This must be invoked once a reference that was previously created by BPLib_STOR_CACHE_RefCreate()
+ * or BPLib_STOR_CACHE_RefDuplicate() is no longer needed by the software application.
+ *
+ * This decrements the reference count, and if the reference count reaches 0, it also recycles the
+ * original object.
+ *
+ * @param refptr
+ */
+void BPLib_STOR_CACHE_RefRelease(BPLib_STOR_CACHE_Ref_t refptr);
+
+/**
+ * @brief Creates a separate block reference to the data block
+ *
+ * A block is allocated from the pool which refers to the original data block, and can stand in place
+ * of the actual data block wherever a data block is expected, such as for queuing and storage.
+ *
+ * A reference of this type does not need to be explicitly released by the user, as it
+ * will be automatically  released when the block is recycled via BPLib_STOR_CACHE_RecycleBlock()
+ * or BPLib_STOR_CACHE_RecycleAllBlocksInList()
+ *
+ * @note This increments the refcount, so the calling application should call
+ * BPLib_STOR_CACHE_RefRelease() on the original ref if it does not keep it.
+ *
+ * @param refptr
+ * @param magic_number
+ * @param init_arg Opaque pointer to pass to initializer (may be NULL)
+ * @return BPLib_STOR_CACHE_Block_t*
+ */
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_STOR_CACHE_Ref_t refptr, uint32_t magic_number, void *init_arg);
+
+#endif /* BPLIB_STOR_CACHE_REF_H */

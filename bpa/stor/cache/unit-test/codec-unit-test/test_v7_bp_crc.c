@@ -1,0 +1,78 @@
+/************************************************************************
+ * NASA Docket No. GSC-18,719-1, and identified as “core Flight System: Bootes”
+ *
+ * Copyright (c) 2020 United States Government as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ************************************************************************/
+
+/*
+ * Includes
+ */
+#include "test_bplib_v7.h"
+
+void test_v7_encode_crc(void)
+{
+    /* Test function for:
+     * void v7_encode_crc(v7_encode_state_t *enc)
+     */
+    v7_encode_state_t enc;
+
+    memset(&enc, 0, sizeof(v7_encode_state_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(cbor_encode_byte_string), CborUnknownError);
+    UtAssert_VOIDCALL(v7_encode_crc(&enc));
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_CrcGetWidth), UT_V7_uint8_Handler, NULL);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_CrcGetWidth), 40);
+    UtAssert_VOIDCALL(v7_encode_crc(&enc));
+}
+
+void test_v7_decode_crc(void)
+{
+    /* Test function for:
+     * void v7_decode_crc(v7_decode_state_t *dec, bp_crcval_t *v)
+     */
+    v7_decode_state_t dec;
+    bp_crcval_t       v;
+    CborValue         cval;
+
+    memset(&dec, 0, sizeof(v7_decode_state_t));
+    memset(&v, 0, sizeof(bp_crcval_t));
+    memset(&cval, 0, sizeof(CborValue));
+    dec.error      = false;
+    dec.cbor       = &cval;
+    cval.remaining = 10;
+
+    UtAssert_VOIDCALL(v7_decode_crc(&dec, &v));
+
+    dec.error = false;
+    cval.type = CborByteStringType;
+    UT_SetDefaultReturnValue(UT_KEY(_cbor_value_copy_string), CborUnknownError);
+    UtAssert_VOIDCALL(v7_decode_crc(&dec, &v));
+
+    dec.error = false;
+    UT_SetDefaultReturnValue(UT_KEY(_cbor_value_copy_string), CborNoError);
+    UT_SetDefaultReturnValue(UT_KEY(cbor_value_advance), CborUnknownError);
+    UtAssert_VOIDCALL(v7_decode_crc(&dec, &v));
+
+    dec.error = false;
+    UT_SetDefaultReturnValue(UT_KEY(cbor_value_advance), CborNoError);
+    UtAssert_VOIDCALL(v7_decode_crc(&dec, &v));
+}
+
+void TestV7BpCrc_Rgister(void)
+{
+    UtTest_Add(test_v7_encode_crc, NULL, NULL, "Test v7_encode_crc");
+    UtTest_Add(test_v7_decode_crc, NULL, NULL, "Test v7_decode_crc");
+}

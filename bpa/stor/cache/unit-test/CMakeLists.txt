@@ -7,60 +7,75 @@
 #
 ##################################################################
 
-add_library(bplib_stor_cache_coverage OBJECT
-    ../src/bplib_cache.c
-    ../src/bplib_cache_bblocks.c
-    ../src/bplib_cache_cla_api.c
-    ../src/bplib_cache_custody.c
-    ../src/bplib_cache_dataservice_api.c
-    ../src/bplib_cache_enqueueing.c
-    ../src/bplib_cache_fsm.c
-    ../src/bplib_cache_ref.c
+# Create stubs (for external use)
+add_subdirectory(stubs)
+
+# Add temporary stubs
+add_subdirectory(qm/stubs)
+
+# Create unit test object
+add_library(utobj_bplib_stor_cache OBJECT
+    ../src/bplib_stor_cache.c
+    ../src/bplib_stor_cache_lists.c
+    ../src/bplib_stor_cache_bblocks.c
+    # QM ../src/bplib_stor_cache_cla_api.c
+    # CUSTODY ../src/bplib_stor_cache_custody.c
+    # QM ../src/bplib_stor_cache_dataservice_api.c
+    # QM ../src/bplib_stor_qm.c
+    ../src/bplib_stor_cache_fsm.c
+    # QM JOB ../src/bplib_stor_cache_job.c
+    ../src/bplib_stor_cache_ref.c
+    # PS ../src/bplib_stor_cache_storage.c
+    ../src/crc.c
+    utilities/bplib_stor_cache_utils.c
 )
 
-target_compile_definitions(bplib_stor_cache_coverage PRIVATE
+target_compile_definitions(utobj_bplib_stor_cache PRIVATE
     $<TARGET_PROPERTY:bplib_stor_cache,COMPILE_DEFINITIONS>
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_COMPILE_DEFINITIONS>
 )
 
-target_compile_options(bplib_stor_cache_coverage PRIVATE
+target_compile_options(utobj_bplib_stor_cache PRIVATE
     $<TARGET_PROPERTY:bplib_stor_cache,COMPILE_OPTIONS>
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_COMPILE_OPTIONS>
 )
 
-target_include_directories(bplib_stor_cache_coverage PRIVATE
+target_include_directories(utobj_bplib_stor_cache PRIVATE
     $<TARGET_PROPERTY:bplib_stor_cache,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-add_subdirectory(stubs)
-
 # Add executable
 add_executable(coverage-bplib_stor_cache-testrunner
-    test_bplib_stor_cache.c
-    test_bplib_stor_cache_bblocks.c
-    test_bplib_stor_cache_custody.c
-    test_bplib_stor_cache_fsm.c
-    test_bplib_stor_cache_module.c
-    test_bplib_stor_cache_ref.c
     test_bplib_stor_cache_setup.c
-    test_bplib_stor_cla_api.c
-    test_bplib_stor_dataservice_api.c
-    test_bplib_stor_enqueueing.c
-    $<TARGET_OBJECTS:bplib_stor_cache_coverage>
-    $<TARGET_OBJECTS:bplib_stor_cache_stubs>
+    test_bplib_stor_cache.c
+    test_bplib_stor_cache_fsm.c
+    test_bplib_stor_cache_bblocks.c
+    # test_bplib_stor_cache_custody.c
+    # test_bplib_stor_cache_module.c
+    # test_bplib_stor_cache_ref.c
+    # test_bplib_stor_cla_api.c
+    # test_bplib_stor_dataservice_api.c
+    # test_bplib_stor_enqueueing.c
+    $<TARGET_OBJECTS:utobj_bplib_stor_cache>
 )
 
 target_include_directories(coverage-bplib_stor_cache-testrunner PRIVATE
-    $<TARGET_PROPERTY:bplib_stor_cache,INCLUDE_DIRECTORIES>
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}../inc
+    ${CMAKE_CURRENT_SOURCE_DIR}../src
+
+    $<TARGET_PROPERTY:bplib_stor_cache,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_time,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_stor_cache-testrunner PUBLIC
     ut_coverage_link
-    bplib_stor_cache_stubs
-    bplib_mem_stubs
-    bplib_mem_common_stubs
-    bplib_os_stubs
+    bplib_mem
+    coverage-bplib-stubs
+    bplib_v7_codec_stubs
+    bplib_stor_qm_stubs
     ut_assert
 )
 
