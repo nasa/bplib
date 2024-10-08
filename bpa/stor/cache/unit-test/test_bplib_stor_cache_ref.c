@@ -38,7 +38,7 @@ void test_BPLib_STOR_CACHE_RefCreate(void)
     memset(&my_block, 0, sizeof(my_block));
     UtAssert_NULL(BPLib_STOR_CACHE_RefCreate(&my_block.header.base_link));
 
-    test_setup_mpblock(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeGeneric, 0);
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeGeneric, 0);
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_RefCreate(&my_block.header.base_link), &my_block);
     UtAssert_UINT16_EQ(my_block.header.refcount, 1);
 }
@@ -71,7 +71,7 @@ void test_BPLib_STOR_CACHE_RefFromBlock(void)
     UtAssert_NULL(BPLib_STOR_CACHE_RefFromBlock(NULL));
     UtAssert_NULL(BPLib_STOR_CACHE_RefFromBlock(&my_block.header.base_link));
 
-    test_setup_mpblock(NULL, &my_ref, BPLib_STOR_CACHE_BlocktypeRef, 0);
+    test_setup_cpool_block(NULL, &my_ref, BPLib_STOR_CACHE_BlocktypeRef, 0);
     my_ref.u.ref.pref_target = &my_block;
     my_block.header.refcount = 1;
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_RefFromBlock(&my_ref.header.base_link), &my_block);
@@ -88,8 +88,8 @@ void test_BPLib_STOR_CACHE_RefRelease(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_RefRelease(NULL));
 
     memset(&buf, 0, sizeof(buf));
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
+    test_setup_cpool_block(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
     buf.blk[0].header.refcount = 2;
 
     admin = BPLib_STOR_CACHE_GetAdmin(&buf.pool);
@@ -103,7 +103,7 @@ void test_BPLib_STOR_CACHE_RefRelease(void)
     UtAssert_ZERO(buf.blk[0].header.refcount);
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_GetPrevBlock(&admin->recycle_blocks->block_list), &buf.blk[0]);
 
-    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_RefRelease(&buf.blk[1]));
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_GetPrevBlock(&admin->recycle_blocks->block_list), &buf.blk[1]);
 }
@@ -118,8 +118,8 @@ void test_BPLib_STOR_CACHE_RefMakeBlock(void)
     memset(&buf, 0, sizeof(buf));
 
     /* Nominal (need to do each blocktype that has a different init) */
-    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
-    test_setup_mpblock(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
+    test_setup_cpool_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    test_setup_cpool_block(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
     buf.blk[2].header.refcount = 1;
 
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_RefMakeBlock(&buf.blk[2], 0, NULL), &buf.blk[0]);

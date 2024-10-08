@@ -547,12 +547,17 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
 
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
+    printf("%s:%d blocktype is %d\n", __FILE__, __LINE__, blocktype);
+
     admin = BPLib_STOR_CACHE_GetAdmin(pool);
+
+    printf("%s:%d admin is %ld\n", __FILE__, __LINE__, (uint64_t)admin);
 
     /* Only real blocks are allocated here - not secondary links nor head nodes,
      * as those are embedded within the blocks themselves. */
     if (blocktype == BPLib_STOR_CACHE_BlocktypeUndefined || blocktype >= BPLib_STOR_CACHE_BlocktypeMax)
     {
+        printf("%s:%d Bad blocktype. Return null.\n", __FILE__, __LINE__);
         return NULL;
     }
 
@@ -571,6 +576,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
 
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
+        printf("%s:%d No free blocks. Return null.\n", __FILE__, __LINE__);
         /* no free blocks available for the requested type */
         return NULL;
     }
@@ -580,6 +586,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
                                                                                    &admin->blocktype_registry);
     if (api_block == NULL)
     {
+        printf("%s:%d No constructor. Return null.\n", __FILE__, __LINE__);
         /* no constructor, cannot create the block! */
         return NULL;
     }
@@ -589,6 +596,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
     if (data_offset > sizeof(BPLib_STOR_CACHE_BlockBuffer_t) ||
         (data_offset + api_block->user_content_size) > sizeof(BPLib_STOR_CACHE_BlockBuffer_t))
     {
+        printf("%s:%d User content won't fit. Return null.\n", __FILE__, __LINE__);
         /* User content will not fit in the block - cannot create an instance of this type combo */
         return NULL;
     }
@@ -600,6 +608,8 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         /* this should never happen, because depth was already checked */
         return NULL;
     }
+
+    printf("%s:%d Got block.\n", __FILE__, __LINE__);
 
     /*
      * Convert from blocks free to blocks used, and update high watermark if necessary.

@@ -39,10 +39,10 @@ void test_BPLib_STOR_CACHE_BblockPrimaryCast(void)
     memset(&my_block, 0, sizeof(my_block));
     UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryCast(cb));
 
-    test_setup_mpblock(NULL, &my_block, BPLib_STOR_CACHE_BlocktypePrimary, 0);
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypePrimary, 0);
     UtAssert_ADDRESS_EQ(pri = BPLib_STOR_CACHE_BblockPrimaryCast(cb), &my_block.u);
 
-    test_setup_mpblock(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeCanonical, 0);
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeCanonical, 0);
     UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryCast(cb));
 
     /* Ensure that the logical accessors work (inline) */
@@ -63,10 +63,10 @@ void test_BPLib_STOR_CACHE_BblockCanonicalCast(void)
     memset(&my_block, 0, sizeof(my_block));
     UtAssert_NULL(BPLib_STOR_CACHE_BblockCanonicalCast(cb));
 
-    test_setup_mpblock(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeCanonical, 0);
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeCanonical, 0);
     UtAssert_ADDRESS_EQ(canonical = BPLib_STOR_CACHE_BblockCanonicalCast(cb), &my_block.u);
 
-    test_setup_mpblock(NULL, &my_block, BPLib_STOR_CACHE_BlocktypePrimary, 0);
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypePrimary, 0);
     UtAssert_NULL(BPLib_STOR_CACHE_BblockCanonicalCast(cb));
 
     /* Ensure that the logical accessors work (inline) */
@@ -89,7 +89,7 @@ void test_BPLib_STOR_CACHE_BblockCborCast(void)
     memset(&my_block, 0, sizeof(my_block));
     UtAssert_NULL(BPLib_STOR_CACHE_BblockCborCast(cb));
 
-    test_setup_mpblock(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockCborCast(cb), &my_block.u);
 }
 
@@ -105,13 +105,13 @@ void test_BPLib_STOR_CACHE_BblockCborSetSize(void)
     memset(&my_block, 0, sizeof(my_block));
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockCborSetSize(&my_block.header.base_link, 0));
 
-    test_setup_mpblock(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeGeneric, ~BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeGeneric, ~BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockCborSetSize(&my_block.header.base_link, 0));
 
-    test_setup_mpblock(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeCanonical, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeCanonical, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockCborSetSize(&my_block.header.base_link, 0));
 
-    test_setup_mpblock(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockCborSetSize(&my_block.header.base_link, 123));
 
     UtAssert_UINT32_EQ(my_block.header.user_content_length, 123);
@@ -124,13 +124,14 @@ void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
      * uint8_t priority, uint64_t timeout);
      */
     UT_BPLib_STOR_CACHE_Buf_t buf;
+    BPLib_TIME_MonotonicTime_t time_zero;
 
+    time_zero.Time = 0;
     memset(&buf, 0, sizeof(buf));
 
-    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, 0));
-
-    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
-    UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, 0), &buf.blk[0]);
+    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero));
+    test_setup_cpool_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero), &buf.blk[0]);
 }
 
 void test_BPLib_STOR_CACHE_BblockCanonicalAlloc(void)
@@ -146,7 +147,7 @@ void test_BPLib_STOR_CACHE_BblockCanonicalAlloc(void)
 
     UtAssert_NULL(BPLib_STOR_CACHE_BblockCanonicalAlloc(&buf.pool, 1234, NULL));
 
-    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    test_setup_cpool_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockCanonicalAlloc(&buf.pool, 1234, NULL), &buf.blk[0]);
 }
 
@@ -162,7 +163,7 @@ void test_BPLib_STOR_CACHE_BblockCborAlloc(void)
 
     UtAssert_NULL(BPLib_STOR_CACHE_BblockCborAlloc(&buf.pool));
 
-    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    test_setup_cpool_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockCborAlloc(&buf.pool), &buf.blk[0]);
 }
 
@@ -175,8 +176,8 @@ void test_BPLib_STOR_CACHE_BblockCborAppend(void)
 
     memset(&buf, 0, sizeof(buf));
 
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
-    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
 
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockCborAppend(&buf.blk[0].header.base_link, &buf.blk[1].header.base_link));
 }
@@ -192,13 +193,13 @@ void test_BPLib_STOR_CACHE_BblockPrimaryAppend(void)
 
     memset(&buf, 0, sizeof(buf));
 
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
 
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockPrimaryAppend(&buf.blk[0].u.primary.pblock, &buf.blk[1].header.base_link));
 
     /* Test the special case if inserting blocknum 1, it should go last */
-    test_setup_mpblock(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
     b                           = BPLib_STOR_CACHE_BblockCanonicalGetLogical(&buf.blk[2].u.canonical.cblock);
     b->canonical_block.blockNum = 1;
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockPrimaryAppend(&buf.blk[0].u.primary.pblock, &buf.blk[2].header.base_link));
@@ -216,10 +217,10 @@ void test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(void)
 
     memset(&buf, 0, sizeof(buf));
 
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
     UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, bp_blocktype_undefined));
 
-    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
     BPLib_STOR_CACHE_InsertAfter(&buf.blk[0].u.primary.pblock.cblock_list, &buf.blk[1].header.base_link);
     b                            = BPLib_STOR_CACHE_BblockCanonicalGetLogical(&buf.blk[1].u.canonical.cblock);
     b->canonical_block.blockType = bp_blocktype_bundleAge;
@@ -232,7 +233,7 @@ void test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(void)
         BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, bp_blocktype_bundleAge), &buf.blk[1]);
 
     /* include a block that is NOT a canonical block */
-    test_setup_mpblock(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
     BPLib_STOR_CACHE_InsertBefore(&buf.blk[0].u.primary.pblock.cblock_list, &buf.blk[2].header.base_link);
     UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, bp_blocktype_hopCount));
 }
@@ -247,21 +248,21 @@ void test_BPLib_STOR_CACHE_BblockPrimaryDropEncode(void)
 
     memset(&buf, 0, sizeof(buf));
 
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
+    test_setup_cpool_block(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
     admin = BPLib_STOR_CACHE_GetAdmin(&buf.pool);
 
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockPrimaryDropEncode(&buf.blk[0].u.primary.pblock));
 
     /* confirms nothing got recycled (empty cbor block list) */
-    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->recycle_blocks->block_list));
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->recycle_blocks.block_list));
 
-    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
     BPLib_STOR_CACHE_InsertAfter(&buf.blk[0].u.primary.pblock.chunk_list, &buf.blk[1].header.base_link);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockPrimaryDropEncode(&buf.blk[0].u.primary.pblock));
 
     /* confirms that cbor block got recycled */
-    UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->recycle_blocks->block_list));
+    UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->recycle_blocks.block_list));
 }
 
 void test_BPLib_STOR_CACHE_BblockCanonicalDropEncode(void)
@@ -274,31 +275,31 @@ void test_BPLib_STOR_CACHE_BblockCanonicalDropEncode(void)
 
     memset(&buf, 0, sizeof(buf));
 
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
+    test_setup_cpool_block(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
     admin = BPLib_STOR_CACHE_GetAdmin(&buf.pool);
 
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
     buf.blk[0].u.canonical.cblock.block_encode_size_cache = 32;
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockCanonicalDropEncode(&buf.blk[0].u.canonical.cblock));
     UtAssert_ZERO(buf.blk[0].u.canonical.cblock.block_encode_size_cache);
 
     /* confirms nothing got recycled (empty cbor block list) */
-    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->recycle_blocks->block_list));
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->recycle_blocks.block_list));
 
-    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
     buf.blk[0].u.canonical.cblock.block_encode_size_cache = 32;
     BPLib_STOR_CACHE_InsertAfter(&buf.blk[0].u.canonical.cblock.chunk_list, &buf.blk[1].header.base_link);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockCanonicalDropEncode(&buf.blk[0].u.canonical.cblock));
     UtAssert_ZERO(buf.blk[0].u.canonical.cblock.block_encode_size_cache);
 
     /* confirms that cbor block got recycled */
-    UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->recycle_blocks->block_list));
+    UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->recycle_blocks.block_list));
 
     /* confirm that a primary block associated with this canonical block is also invalidated */
     memset(&buf, 0, sizeof(buf));
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
+    test_setup_cpool_block(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
     BPLib_STOR_CACHE_InsertAfter(&buf.blk[0].u.primary.pblock.cblock_list, &buf.blk[1].header.base_link);
     buf.blk[0].u.primary.pblock.bundle_encode_size_cache  = 16;
     buf.blk[1].u.canonical.cblock.block_encode_size_cache = 32;
@@ -319,9 +320,9 @@ void test_BPLib_STOR_CACHE_BblockCborExport(void)
 
     memset(&buf, 0, sizeof(buf));
 
-    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
-    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(&buf.pool, &buf.pool.admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
+    test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
 
     /* call with a direct ref to a cbor block (invalid, should be a list) */
     UtAssert_ZERO(
@@ -357,7 +358,7 @@ void test_BPLib_STOR_CACHE_BblockCborExport(void)
         BPLib_STOR_CACHE_BblockCborExport(&buf.blk[0].u.primary.pblock.chunk_list, output, 16, 0, sizeof(output)));
 
     /* include a block that is NOT cbor, should stop at that point */
-    test_setup_mpblock(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeGeneric, ~BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    test_setup_cpool_block(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeGeneric, ~BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
     BPLib_STOR_CACHE_InsertAfter(&buf.blk[0].u.primary.pblock.chunk_list, &buf.blk[2].header.base_link);
     UtAssert_ZERO(BPLib_STOR_CACHE_BblockCborExport(&buf.blk[0].u.primary.pblock.chunk_list, output, sizeof(output), 0,
                                                  sizeof(output)));

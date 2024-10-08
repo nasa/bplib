@@ -209,3 +209,75 @@ void UT_lib_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCont
     bool retval = true;
     UT_Stub_SetReturnValue(FuncKey, retval);
 }
+
+void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+}
+
+int Test_BPLib_STOR_CACHE_CallbackStub(void *arg, BPLib_STOR_CACHE_Block_t *blk)
+{
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_CallbackStub);
+}
+
+void test_make_cblock_singleton_link(BPLib_STOR_CACHE_Pool_t *parent_pool, BPLib_STOR_CACHE_Block_t *b)
+{
+    if (parent_pool != NULL)
+    {
+        b->parent_offset = ((uintptr_t)b - (uintptr_t)parent_pool) / sizeof(BPLib_STOR_CACHE_BlockContent_t);
+    }
+    else
+    {
+        b->parent_offset = 0;
+    }
+
+    b->next = b;
+    b->prev = b;
+}
+
+void test_setup_cpool_block(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_BlockContent_t *b, BPLib_STOR_CACHE_Blocktype_t blktype,
+                            uint32 sig)
+{
+    b->header.base_link.type         = blktype;
+    b->header.content_type_signature = sig;
+    test_make_cblock_singleton_link(pool, &b->header.base_link);
+
+    /*
+     * Need to also initialize the fields within the content part, this calls the real internal function to do so.
+     * It is done here because it is needed to be valid more often than not; test cases may unset/corrupt fields
+     * if there is a specific path to target
+     */
+    memset(&b->u, 0, sizeof(b->u));
+    switch (blktype)
+    {
+        case BPLib_STOR_CACHE_BlocktypeAdmin:
+            BPLib_STOR_CACHE_SubqInit(&b->header.base_link, &b->u.admin.free_blocks);
+            BPLib_STOR_CACHE_SubqInit(&b->header.base_link, &b->u.admin.recycle_blocks);
+            BPLib_STOR_CACHE_InitListHead(&b->header.base_link, &b->u.admin.active_list);
+
+        default:
+            break;
+    }
+}
+
+void test_setup_cpool_allocation(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_BlockContent_t *db, BPLib_STOR_CACHE_BlockContent_t *apib)
+{
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    void                          *api_content;
+
+    test_setup_cpool_block(pool, &pool->admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
+    test_setup_cpool_block(pool, db, BPLib_STOR_CACHE_BlocktypeUndefined, 0);
+    if (apib != NULL)
+    {
+        test_setup_cpool_block(pool, apib, BPLib_STOR_CACHE_BlocktypeApi, 0);
+        api_content = &apib->u;
+    }
+    else
+    {
+        api_content = NULL;
+    }
+
+    admin = BPLib_STOR_CACHE_GetAdmin(pool);
+    BPLib_STOR_CACHE_SubqPushSingle(&admin->free_blocks, &db->header.base_link);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, api_content);
+}
