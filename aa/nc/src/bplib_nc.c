@@ -277,38 +277,21 @@ BPLib_Status_t BPLib_NC_ReloadSavedDataCmd(void)
 BPLib_Status_t BPLib_NC_ResetAllCountersCmd(void)
 {
     BPLib_Status_t Status;
-
+    
     Status = BPLIB_SUCCESS;
 
-    /*
-    Status = BPLib_AS_ResetAllCounters();
+    BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION, 
+                    "Reset all counters command");
 
-    BPLib_AS_ResetAllCounters()
-    {
-        BPNode_AppData.NodeMibCountersHkTlm.Payload.AcceptedDirectiveCount = 0;
-        BPNode_AppData.NodeMibCountersHkTlm.Payload.RejectedDirectiveCount = 0;
-        BPNode_AppData.NodeMibCountersHkTlm.Payload.AduCountDelivered = 0;
-        BPNode_AppData.NodeMibCountersHkTlm.Payload.AduCountReceived = 0;
-    }
-    */
+    return Status;
 
     /*
-    if (Status == BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset all counters command not implemented");
-    }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Reset all counters command not implemented");
     }
     */
-
-    BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                        "Reset all counters command not implemented");
-
-    return Status;
 }
 
 BPLib_Status_t BPLib_NC_ResetCounterCmd(const BPLib_ResetCounterCmd_Payload_t Payload)
@@ -437,43 +420,22 @@ BPLib_Status_t BPLib_NC_AddApplicationCmd(const BPLib_AddApplicationCmd_Payload_
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    /* Add application configurations */
+    Status = BPA_ADUP_AddApplication(Payload.ChanId);
 
-    /*
-    if (path available for assignment)
-    {
-        assign path
-        pull configuration from channel configuration table
-        set configuration of payload interface instance
-        set configuration of ADU proxy instance
-        Use FWP to establish mapping with client application
-        register channel with storage
-        Use STOR to create output queue for the channel
-    }
-    else
-    {
-        Status = BPLIB_ERROR;
-    }
-    */
-
-    /*
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_ADD_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add application command not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                        "Successful add-application directive for ChanId=%d",
+                        Payload.ChanId);
     }
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_ADD_APP_ERR_EID, BPLib_EM_EventType_ERROR,
+
+    /*
+    BPLib_EM_SendEvent(BPLIB_ADD_APP_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Add application command not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     */
-
-    BPLib_EM_SendEvent(BPLIB_ADD_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                        "Add application command not implemented, received %d in payload",
-                        Payload.ExampleParameter);
 
     return Status;
 }
@@ -547,31 +509,15 @@ BPLib_Status_t BPLib_NC_StartApplicationCmd(const BPLib_StartApplicationCmd_Payl
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    /* Start application */
+    Status = BPA_ADUP_StartApplication(Payload.ChanId);
 
-    /*
-    Node Configuration identifies ADU Proxy instance indicated in request
-    If one exists, Node Configuration calls ADU Proxy instance
-    */
-
-    /*
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_START_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Start application command not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                        "Successful start-application directive for ChanId=%d",
+                        Payload.ChanId);
     }
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_START_APP_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Start application command not implemented, received %d in payload",
-                            Payload.ExampleParameter);
-    }
-    */
-
-    BPLib_EM_SendEvent(BPLIB_START_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                        "Start application command not implemented, received %d in payload",
-                        Payload.ExampleParameter);
 
     return Status;
 }
@@ -580,19 +526,17 @@ BPLib_Status_t BPLib_NC_StopApplicationCmd(const BPLib_StopApplicationCmd_Payloa
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    /* Stop application */
+    Status = BPA_ADUP_StopApplication(Payload.ChanId);
 
-    /*
-    Node Configuration calls given ADU Proxy to unsubscribe from predefined cFE message IDs and stops the loops pending on the cFS Software Bus and PI Input Queue
-    */
-
-    /*
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_STOP_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Stop application command not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                        "Successful stop-application directive for ChanId=%d",
+                        Payload.ChanId);
     }
+
+    /*
     else
     {
         BPLib_EM_SendEvent(BPLIB_STOP_APP_ERR_EID, BPLib_EM_EventType_ERROR,
@@ -600,10 +544,6 @@ BPLib_Status_t BPLib_NC_StopApplicationCmd(const BPLib_StopApplicationCmd_Payloa
                             Payload.ExampleParameter);
     }
     */
-
-    BPLib_EM_SendEvent(BPLIB_STOP_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                        "Stop application command not implemented, received %d in payload",
-                        Payload.ExampleParameter);
 
     return Status;
 }

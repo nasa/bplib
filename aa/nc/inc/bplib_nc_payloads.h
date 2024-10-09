@@ -43,7 +43,8 @@ typedef struct
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint8_t ChanId;         /**< \brief Channel ID */
+    uint8_t Spare[3];       /**< \brief Spare bytes */
 } BPLib_AddApplicationCmd_Payload_t;
 
 typedef struct
@@ -58,12 +59,14 @@ typedef struct
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint8_t ChanId;         /**< \brief Channel ID */
+    uint8_t Spare[3];       /**< \brief Spare bytes */
 } BPLib_StartApplicationCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint8_t ChanId;         /**< \brief Channel ID */
+    uint8_t Spare[3];       /**< \brief Spare bytes */
 } BPLib_StopApplicationCmd_Payload_t;
 
 typedef struct
@@ -187,6 +190,8 @@ typedef struct
     uint16_t AduCountDelivered;       /**< \brief ADU Delivered Count */
     uint16_t AduCountReceived;        /**< \brief ADU Received Count */
 
+    uint32_t Spare;                   /* Temporary padding */
+
     uint32_t TimeBootEra;             /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;           /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;       /**< \brief Time Correlation Factor */
@@ -209,11 +214,36 @@ typedef struct
 } BPLib_StorageHkTlm_Payload_t;
 
 /**
+ * \brief Channel status data
+ */
+typedef struct
+{
+    uint32_t LocalServiceNum;         /**< \brief Service number for local application */
+    uint8_t  State;                   /**< \brief Channel state (ADDED, STARTED, or STOPPED) */
+    uint8_t  RegistrationState;       /**< \brief Active, PassiveDeferred, or PassiveAbandon */
+    uint16_t Spare;                   /**< \brief Padding */
+    uint32_t OutputQueueId;           /**< \brief PI output queue ID */
+} BPLib_ChannelStats_t;
+
+/**
+ * \brief Contact status data
+ */
+typedef struct
+{
+    uint32_t ExampleParameter;       /* TODO */
+} BPLib_ContactStats_t;
+
+/**
  * \brief Channel/contact status housekeeping payload
  */
 typedef struct
 {
-    uint32_t ExampleParameter;
+    BPLib_ChannelStats_t ChannelStats[BPNODE_MAX_NUM_CHANNELS];
+    BPLib_ContactStats_t ContactStats[BPNODE_MAX_NUM_CONTACTS];
+
+    uint32_t TimeBootEra;             /**< \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;           /**< \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;       /**< \brief Time Correlation Factor */
 } BPLib_ChannelContactStatHkTlm_Payload_t;
 
 #endif // BPLIB_NC_PAYLOADS_H
