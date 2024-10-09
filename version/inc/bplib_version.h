@@ -36,7 +36,7 @@
 /*
  * Development Build Macro Definitions
  */
-#define BPLIB_BUILD_NUMBER (3u) /*!< Development Build: Number of development builds (not commits) since baseline */
+#define BPLIB_BUILD_NUMBER (4u) /*!< Development Build: Number of development builds (not commits) since baseline */
 
 /**
  * @brief Max Version String length.
