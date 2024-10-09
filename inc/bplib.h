@@ -33,6 +33,7 @@ extern "C" {
 #include "bplib_time.h"
 #include "bplib_em.h"
 #include "bplib_fwp.h"
+#include "bplib_cla.h"
 #include "bplib_pl.h"
 
 #ifdef __cplusplus

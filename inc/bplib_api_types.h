@@ -31,6 +31,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 /*
 ** Type Definitions
@@ -40,7 +41,6 @@ extern "C" {
  * \brief BPLib status type for type safety
  */
 typedef int32_t BPLib_Status_t;
-
 
 /*
 ** Macros
@@ -74,6 +74,10 @@ typedef int32_t BPLib_Status_t;
 
 /* PerfLog Proxy Errors*/
 #define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -17u)
+
+/* CLA Errors*/
+#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -18u)
+
 
 #ifdef __cplusplus
 } // extern "C"
