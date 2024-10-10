@@ -19,7 +19,11 @@
 /*
  * Includes
  */
-#include "test_bplib_stor_cache.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
+
+#include "test_bplib_stor_qm.h"
 #include "bplib_stor_cache_block.h"
 
 BPLib_TIME_MonotonicTime_t UT_MONOTIME_1 = BPLIB_TIME_FROM_INT(1);

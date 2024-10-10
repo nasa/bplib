@@ -24,7 +24,7 @@
  * Auto-Generated stub implementations for functions defined in v7_codec header
  */
 
-#include "bplib_stor_cache_codec.h"
+#include "bplib_stor_qm_codec.h"
 #include "utgenstub.h"
 #include "bplib_stor_cache_block.h"
 

@@ -22,8 +22,6 @@
 #include "bplib_api_types.h"
 #include "test_bplib_base.h"
 #include "bplib_routing.h"
-#include "bplib.h"
-
 void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     void *retval = NULL;

@@ -19,7 +19,11 @@
 /*
  * Includes
  */
-#include "test_bplib_stor_cache.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
+
+#include "test_bplib_stor_qm.h"
 #include "bplib_stor_qm.h"
 
 void test_BPLib_STOR_CACHE_EntryMakePending(void)

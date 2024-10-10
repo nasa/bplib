@@ -29,8 +29,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "bplib.h"
-
 #include "bplib_stor_cache_internal.h"
 
 /*----------------------------------------------------------------

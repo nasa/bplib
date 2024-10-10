@@ -19,11 +19,13 @@
 /*
  * Includes
  */
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
 
-#include "bplib.h"
 #include "bplib_api_types.h"
 
-#include "test_bplib_stor_cache.h"
+#include "test_bplib_stor_qm.h"
 #include "utilities/bplib_stor_cache_utils.h"
 
 #ifdef QM

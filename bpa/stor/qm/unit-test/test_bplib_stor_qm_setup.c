@@ -19,11 +19,13 @@
 /*
  * Includes
  */
-#include "test_bplib_stor_cache.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
 
 #include "bplib_api_types.h"
-#include "test_bplib_stor_cache.h"
-#include "bplib.h"
+
+#include "test_bplib_stor_qm.h"
 
 BPLib_STOR_CACHE_Block_t retblk;
 

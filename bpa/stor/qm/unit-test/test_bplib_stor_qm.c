@@ -19,13 +19,20 @@
 /*
  * Includes
  */
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
 
-#include "test_bplib_stor_cache.h"
+#include "bplib_api_types.h"
+
+#include "bplib_stor_cache_module_api.h"
+#include "bplib_stor_cache_ref.h"
+
+#include "test_bplib_stor_qm.h"
+
 #include "utilities/bplib_stor_cache_utils.h"
 
-#ifdef QM
 #include "bplib_stor_qm.h"
-#endif // QM
 
 void test_BPLib_STOR_CACHE_EntryMakePending(void)
 {
@@ -45,7 +52,6 @@ void test_BPLib_STOR_CACHE_EntryMakePending(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-#ifdef QM
 void test_BPLib_STOR_CACHE_Attach(void)
 {
     /* Test function for:
@@ -319,7 +325,6 @@ void test_BPLib_STOR_CACHE_FlushPending(void)
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
-#endif // QM
 
 void test_BPLib_STOR_CACHE_DoPoll(void)
 {
@@ -339,7 +344,6 @@ void test_BPLib_STOR_CACHE_DoPoll(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-#ifdef QM
 void test_BPLib_STOR_CACHE_DoRouteUp(void)
 {
     /* Test function for:
@@ -435,7 +439,6 @@ void test_BPLib_STOR_CACHE_ProcessPending(void)
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
-#endif // QM
 
 void test_BPLib_STOR_CACHE_DestructState(void)
 {

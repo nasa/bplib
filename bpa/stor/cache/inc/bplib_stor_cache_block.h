@@ -27,7 +27,6 @@
 
 #include <stdint.h>
 
-#include "bplib.h"
 #include "bplib_api_types.h"
 
 #include "bplib_mem.h"
@@ -1215,5 +1214,12 @@ static inline BPLib_TIME_MonotonicTime_t BPLib_STOR_CACHE_TimeSubtractMs(BPLib_T
 {
     return (BPLib_TIME_MonotonicTime_t) BPLIB_TIME_FROM_INT(BPLIB_TIME_TO_INT(t1) - msec);
 }
+
+// TODO Add briefs for copy full bundle in/out and compute full bundle size.
+size_t BPLib_STOR_CACHE_CopyFullBundleOut(BPLib_STOR_CACHE_BblockPrimary_t *cpb, void *buffer, size_t buf_sz);
+
+size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *buffer, size_t buf_sz);
+
+size_t BPLib_STOR_CACHE_ComputeFullBundleSize(BPLib_STOR_CACHE_BblockPrimary_t *cpb);
 
 #endif /* BPLIB_STOR_CACHE_BLOCK_H */

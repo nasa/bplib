@@ -23,7 +23,6 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "bplib.h"
 #include "bplib_api_types.h"
 
 #include "bplib_mem.h"
@@ -49,7 +48,6 @@ typedef struct
     BPLib_STOR_CACHE_BlockContent_t blk[3];
 } UT_BPLib_STOR_QM_Buf_t;
 
-#ifdef TBD_QM_TESTS
 void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 int  Test_BPLib_STOR_CACHE_CallbackStub(void *arg, BPLib_STOR_CACHE_Block_t *blk);
 void test_make_cblock_singleton_link(BPLib_STOR_CACHE_Pool_t *parent_pool, BPLib_STOR_CACHE_Block_t *b);
@@ -91,7 +89,5 @@ void Test_BplibStorCache_Register(void);
 void Test_BplibCache_ClaApi_Register(void);
 void Test_BplibCache_DataServiceApi_Register(void);
 void Test_BplibCache_Routing_Register(void);
-
-#endif // TBD_QM_TESTS
 
 #endif // TEST_BPLIB_STOR_QM_H

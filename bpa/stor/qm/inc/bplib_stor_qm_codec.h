@@ -18,22 +18,22 @@
  *
  */
 
-#ifndef BPLIB_STOR_CACHE_CODEC_H
-#define BPLIB_STOR_CACHE_CODEC_H
+#ifndef BPLIB_STOR_QM_CODEC_H
+#define BPLIB_STOR_QM_CODEC_H
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
 #include "bplib_mem.h"
 #include "bplib_stor_cache_types.h"
-#include "bplib_stor_cache_decode.h"
-#include "bplib_stor_cache_encode.h"
 #include "bplib_stor_cache_block.h"
+
+#include "bplib_stor_qm_decode.h"
+#include "bplib_stor_qm_encode.h"
 
 size_t v7_compute_full_bundle_size(BPLib_STOR_CACHE_BblockPrimary_t *cpb);
 size_t v7_copy_full_bundle_out(BPLib_STOR_CACHE_BblockPrimary_t *cpb, void *buffer, size_t buf_sz);
 size_t v7_copy_full_bundle_in(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *buffer, size_t buf_sz);
 
-#endif /* BPLIB_STOR_CACHE_CODEC_H */
+#endif /* BPLIB_STOR_QM_CODEC_H */

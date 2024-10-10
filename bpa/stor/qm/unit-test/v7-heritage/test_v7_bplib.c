@@ -24,11 +24,11 @@
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
-#include "bplib.h"
+
 #include "bplib_file_offload.h"
 #include "test_bplib_base.h"
 
-#include "test_bplib_stor_cache.h"
+#include "test_bplib_stor_qm.h"
 
 #include "bplib_stor_qm.h"
 

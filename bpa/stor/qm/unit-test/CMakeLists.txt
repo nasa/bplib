@@ -15,10 +15,10 @@ add_library(utobj_bplib_stor_qm OBJECT
     ../src/bplib_ct_custody.c
     ../src/bplib_stor_qm.c
     ../src/bplib_stor_qm_cla_api.c
-    ../src/bplib_stor_qm_dataservice_api.c
-    ../src/bplib_stor_qm_fsm.c
-    ../src/bplib_stor_qm_job.c
-    ../src/crc.c
+    # ../src/bplib_stor_qm_dataservice_api.c
+    # ../src/bplib_stor_qm_fsm.c
+    # ../src/bplib_stor_qm_job.c
+    # ../src/crc.c
 )
 
 target_compile_definitions(utobj_bplib_stor_qm PRIVATE

@@ -29,7 +29,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "bplib.h"
 #include "bplib_mem.h"
 #include "bplib_time.h"
 
@@ -397,7 +396,7 @@ size_t BPLib_STOR_CACHE_SumPrencodedSize(BPLib_STOR_CACHE_Block_t *list)
     return size_sum;
 }
 
-size_t BPLib_STOR_CACHE_ComputeFullBundleSzie(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
+size_t BPLib_STOR_CACHE_ComputeFullBundleSize(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
     BPLib_STOR_CACHE_Block_t            *blk;
     BPLib_STOR_CACHE_BblockCanonical_t *ccb;

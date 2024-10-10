@@ -25,7 +25,6 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "bplib.h"
 #include "bplib_api_types.h"
 
 #include "bplib_stor_cache_types.h"

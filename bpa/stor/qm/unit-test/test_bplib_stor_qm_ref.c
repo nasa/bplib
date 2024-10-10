@@ -23,8 +23,8 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "test_bplib_stor_cache.h"
-#include "bplib_mem_ref.h"
+#include "test_bplib_stor_qm.h"
+#include "bplib_stor_cache_ref.h"
 
 void test_BPLib_STOR_CACHE_RefCreate(void)
 {
@@ -82,7 +82,7 @@ void test_BPLib_STOR_CACHE_RefRelease(void)
     /* Test function for:
      * void BPLib_STOR_CACHE_RefRelease(BPLib_STOR_CACHE_Ref_t refptr)
      */
-    UT_BPLib_STOR_CACHE_Buf_t               buf;
+    UT_BPLib_STOR_QM_Buf_t               buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_RefRelease(NULL));
@@ -113,7 +113,7 @@ void test_BPLib_STOR_CACHE_RefMakeBlock(void)
     /* Test function for:
      * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_STOR_CACHE_Ref_t refptr, uint32_t magic_number, void *init_arg)
      */
-    UT_BPLib_STOR_CACHE_Buf_t buf;
+    UT_BPLib_STOR_QM_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
 

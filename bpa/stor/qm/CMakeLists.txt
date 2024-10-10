@@ -8,16 +8,16 @@
 ##################################################################
 
 # TODO Use the new codec stubs when available.
-# Build the heritage v7 codec stubs
-add_subdirectory(unit-test/codec-unit-test/stubs)
+# Remove add_subdirectory(unit-test/codec-unit-test/stubs)
 
 add_library(bplib_stor_qm OBJECT
     src/bplib_ct_custody.c
     src/bplib_stor_qm.c
     src/bplib_stor_qm_cla_api.c
-    src/bplib_stor_qm_dataservice_api.c
-    src/bplib_stor_qm_fsm.c
-    src/bplib_stor_qm_job.c
+    # src/bplib_stor_qm_dataservice_api.c
+    # src/bplib_stor_qm_fsm.c
+    # src/bplib_stor_qm_job.c
+    # src/crc.c
 )
 
 # TODO Decouple crc.h from CACHE and QM to something like bplib/crc or bplib/ci/crc.

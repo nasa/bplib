@@ -23,7 +23,7 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "test_bplib_stor_cache.h"
+#include "test_bplib_stor_qm.h"
 
 void test_BPLib_STOR_CACHE_BblockPrimaryCast(void)
 {
@@ -123,7 +123,7 @@ void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
      * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg,
      * uint8_t priority, uint64_t timeout);
      */
-    UT_BPLib_STOR_CACHE_Buf_t buf;
+    UT_BPLib_STOR_QM_Buf_t buf;
     BPLib_TIME_MonotonicTime_t time_zero;
 
     time_zero.Time = 0;
@@ -141,7 +141,7 @@ void test_BPLib_STOR_CACHE_BblockCanonicalAlloc(void)
      * *init_arg);
      */
 
-    UT_BPLib_STOR_CACHE_Buf_t buf;
+    UT_BPLib_STOR_QM_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
 
@@ -157,7 +157,7 @@ void test_BPLib_STOR_CACHE_BblockCborAlloc(void)
      * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_STOR_CACHE_Pool_t *pool);
      */
 
-    UT_BPLib_STOR_CACHE_Buf_t buf;
+    UT_BPLib_STOR_QM_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
 
@@ -172,7 +172,7 @@ void test_BPLib_STOR_CACHE_BblockCborAppend(void)
     /* Test function for:
      * void BPLib_STOR_CACHE_BblockCborAppend(BPLib_STOR_CACHE_Block_t *head, BPLib_STOR_CACHE_Block_t *blk);
      */
-    UT_BPLib_STOR_CACHE_Buf_t buf;
+    UT_BPLib_STOR_QM_Buf_t buf;
 
     memset(&buf, 0, sizeof(buf));
 
@@ -188,7 +188,7 @@ void test_BPLib_STOR_CACHE_BblockPrimaryAppend(void)
      * void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb, BPLib_STOR_CACHE_Block_t *ccb);
      */
 
-    UT_BPLib_STOR_CACHE_Buf_t         buf;
+    UT_BPLib_STOR_QM_Buf_t         buf;
     bp_canonical_block_buffer_t *b;
 
     memset(&buf, 0, sizeof(buf));
@@ -212,7 +212,7 @@ void test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(void)
      * bp_blocktype_t block_type);
      */
 
-    UT_BPLib_STOR_CACHE_Buf_t         buf;
+    UT_BPLib_STOR_QM_Buf_t         buf;
     bp_canonical_block_buffer_t *b;
 
     memset(&buf, 0, sizeof(buf));
@@ -243,7 +243,7 @@ void test_BPLib_STOR_CACHE_BblockPrimaryDropEncode(void)
     /* Test function for:
      * void BPLib_STOR_CACHE_BblockPrimaryDropEncode(BPLib_STOR_CACHE_BblockPrimary_t *cpb);
      */
-    UT_BPLib_STOR_CACHE_Buf_t               buf;
+    UT_BPLib_STOR_QM_Buf_t               buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
     memset(&buf, 0, sizeof(buf));
@@ -270,7 +270,7 @@ void test_BPLib_STOR_CACHE_BblockCanonicalDropEncode(void)
     /* Test function for:
      * void BPLib_STOR_CACHE_BblockCanonicalDropEncode(BPLib_STOR_CACHE_BblockCanonical_t *ccb);
      */
-    UT_BPLib_STOR_CACHE_Buf_t               buf;
+    UT_BPLib_STOR_QM_Buf_t               buf;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
     memset(&buf, 0, sizeof(buf));
@@ -315,7 +315,7 @@ void test_BPLib_STOR_CACHE_BblockCborExport(void)
      * size_t BPLib_STOR_CACHE_BblockCborExport(BPLib_STOR_CACHE_Block_t *list, void *out_ptr, size_t max_out_size, size_t
      * seek_start, size_t max_count);
      */
-    UT_BPLib_STOR_CACHE_Buf_t buf;
+    UT_BPLib_STOR_QM_Buf_t buf;
     uint8_t              output[128];
 
     memset(&buf, 0, sizeof(buf));

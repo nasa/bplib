@@ -25,13 +25,12 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
 #include "bplib_time.h"
 #include "bplib_mem.h"
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_decode.h"
 #include "bplib_stor_cache_encode.h"
-#include "bplib_stor_cache_codec.h"
+#include "bplib_stor_qm_codec.h"
 #include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_mpstream.h"
 #include "crc.h"

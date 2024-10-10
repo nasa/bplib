@@ -24,7 +24,9 @@
 #include <string.h>
 
 #include "bplib_api_types.h"
+
 #include "bplib_mem.h"
+#include "bplib_stor_cache_types.h"
 
 /**
  * @brief Gets the actual block from a reference pointer (dereference)

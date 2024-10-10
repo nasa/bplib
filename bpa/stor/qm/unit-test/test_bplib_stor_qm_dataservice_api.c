@@ -22,10 +22,13 @@
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
-#include "bplib_stor_cache_dataservice.h"
-#include "bplib_stor_qm.h"
-#include "test_bplib_stor_cache.h"
+
 #include "bplib_stor_cache_block.h"
+
+#include "bplib_stor_qm.h"
+#include "bplib_stor_qm_dataservice.h"
+
+#include "test_bplib_stor_qm.h"
 
 void test_BPLib_STOR_CACHE_DataserviceAddBaseIntf(void)
 {

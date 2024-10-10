@@ -38,9 +38,9 @@ void *BPLib_OS_Calloc(size_t size)
 }
 
 /*----------------------------------------------------------------------------
- * BPLIB_OS_Free
+ * BPLib_OS_Free
  *----------------------------------------------------------------------------*/
-void BPLIB_OS_Free(void *ptr)
+void BPLib_OS_Free(void *ptr)
 {
     /* Free Memory Block */
     free(ptr);

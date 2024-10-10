@@ -22,8 +22,10 @@
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
-#include "test_bplib_stor_cache.h"
+
+#include "test_bplib_stor_qm.h"
 #include "bplib_stor_qm.h"
+
 #include "bplib_stor_cache_block.h"
 
 void test BPLib_STOR_CACHE_CreateClaIntf(void)

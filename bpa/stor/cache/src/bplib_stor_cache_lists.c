@@ -32,9 +32,9 @@
 
 #include "bplib_stor_qm_ducts.h"
 
+#include "bplib_stor_cache_internal.h"
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
-#include "bplib_stor_cache_internal.h"
 #include "bplib_stor_cache_ref.h"
 
 // TODO BPLIB_TIMEOUT should be in bplib_api_types.h.
@@ -76,7 +76,7 @@ void BPLib_STOR_CACHE_LockInit(void)
         lock = &BPLIB_CACHE_LOCK_SET[i];
         if (!bp_handle_is_valid(lock->lock_id))
         {
-            // STOR lock->lock_id = bplib_os_createlock();
+            // STOR lock->lock_id = BPLib_MEM_OS_CreateLock();
         }
     }
 }

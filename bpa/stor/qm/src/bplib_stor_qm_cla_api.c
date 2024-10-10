@@ -22,12 +22,11 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
+#include "bplib_api_types.h"
 
 #include "bplib_time.h"
 
 #include "bplib_mem.h"
-#include "bplib_stor_qm.h"
 
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_internal.h"
@@ -35,7 +34,8 @@
 #include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_ref.h"
 
-#include "bplib_stor_cache_codec.h"
+#include "bplib_stor_qm.h"
+#include "bplib_stor_qm_ducts.h"
 
 #define BPLIB_BLOCKTYPE_CLA_INTF          0x7b643c85
 #define BPLIB_BLOCKTYPE_CLA_INGRESS_BLOCK 0x9580be4a
@@ -49,7 +49,7 @@
  ******************************************************************************/
 int BPLib_STOR_CACHE_ClaEventImpl(void *arg, BPLib_STOR_CACHE_Block_t *intf_block)
 {
-    BPLib_STOR_QM_DuctGenericEvent_t *event;
+    BPLib_STOR_QM_DuctGenericEvent_t   *event;
     BPLib_STOR_QM_Duct_t               *duct;
 
     event = arg;
@@ -114,7 +114,7 @@ int BPLib_STOR_CACHE_GenericBundleIngress(BPLib_STOR_CACHE_Ref_t duct_ref, const
                                              0, NULL, BPLIB_MPOOL_ALLOC_PRI_MHI, BPLIB_MONOTIME_ZERO);
         if (pblk != NULL)
         {
-            imported_sz = v7_copy_full_bundle_in(BPLib_STOR_CACHE_BblockPrimaryCast(pblk), content, size);
+            imported_sz = BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimaryCast(pblk), content, size);
         }
         else
         {
@@ -223,7 +223,7 @@ int BPLib_STOR_CACHE_GenericBundleEgress(BPLib_STOR_CACHE_Ref_t duct_ref, void *
             }
             else
             {
-                export_sz = v7_compute_full_bundle_size(cpb);
+                export_sz = BPLib_STOR_CACHE_ComputeFullBundleSize(cpb);
 
                 if (export_sz > *size)
                 {
@@ -233,7 +233,7 @@ int BPLib_STOR_CACHE_GenericBundleEgress(BPLib_STOR_CACHE_Ref_t duct_ref, void *
                 else
                 {
 
-                    *size = v7_copy_full_bundle_out(cpb, content, *size);
+                    *size = BPLib_STOR_CACHE_CopyFullBundleOut(cpb, content, *size);
 
                     if (export_sz != *size)
                     {

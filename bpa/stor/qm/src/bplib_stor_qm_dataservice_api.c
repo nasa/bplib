@@ -24,22 +24,20 @@
 
 #include <assert.h>
 
-#include "bplib.h"
-
 #include "bplib_time.h"
 
 #include "bplib_mem.h"
 #include "bplib_mem_rbtree.h"
 
-#include "bplib_stor_qm.h"
-
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_internal.h"
 #include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_ref.h"
-#include "bplib_stor_cache_codec.h"
-#include "bplib_stor_cache_dataservice.h"
 #include "bplib_stor_cache_base_internal.h"
+
+#include "bplib_stor_qm.h"
+#include "bplib_stor_qm_codec.h"
+#include "bplib_stor_qm_dataservice.h"
 
 /******************************************************************************
  TYPEDEFS

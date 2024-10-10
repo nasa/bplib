@@ -22,8 +22,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
-
 #include "bplib_stor_cache_types.h"
 
 #include "crc_private.h"

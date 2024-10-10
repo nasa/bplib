@@ -22,7 +22,6 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
 #include "bplib_mem.h"
 #include "bplib_os_heap.h"
 
@@ -250,8 +249,8 @@ BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_queues, size_t c
 
     if (tbl_ptr != NULL)
     {
-        tbl_ptr->activity_lock.hdl  = bplib_os_createlock();
-        tbl_ptr->last_intf_poll.Time = bplib_os_get_dtntime_ms();
+        tbl_ptr->activity_lock = BPLib_MEM_OS_CreateLock();
+        tbl_ptr->last_intf_poll = BPLib_STOR_CACHE_GetMonotonicTime();
         BPLib_STOR_CACHE_InitListHead(NULL, &tbl_ptr->duct_list);
 
         tbl_ptr->max_queues = max_queues;
@@ -294,9 +293,9 @@ bp_handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_
         fref = BPLib_STOR_CACHE_RefCreate(duct_block);
         if (fref != NULL)
         {
-            bplib_os_lock(tbl->activity_lock);
+            BPLib_MEM_OS_Lock(tbl->activity_lock);
             BPLib_STOR_CACHE_InsertBefore(&tbl->duct_list, duct_block);
-            bplib_os_unlock(tbl->activity_lock);
+            BPLib_MEM_OS_Unlock(tbl->activity_lock);
         }
     }
 
@@ -415,12 +414,12 @@ int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
 
     /* remove the duct from the duct_list.  This releases the reference
      * that was created during BPLib_STOR_QM_RegisterGenericIntf()  */
-    bplib_os_lock(tbl->activity_lock);
+    BPLib_MEM_OS_Lock(tbl->activity_lock);
     if (BPLib_STOR_CACHE_IsLinkAttached(BPLib_STOR_CACHE_Dereference(ref)))
     {
         BPLib_STOR_CACHE_ExtractNode(BPLib_STOR_CACHE_Dereference(ref));
     }
-    bplib_os_unlock(tbl->activity_lock);
+    BPLib_MEM_OS_Unlock(tbl->activity_lock);
 
     /* release the local ref, this should make the refcount 0 again */
     BPLib_STOR_CACHE_RefRelease(ref);
@@ -638,14 +637,14 @@ void BPLib_STOR_QM_DoTimedPoll(BPLib_STOR_QM_QueueTbl_t *tbl)
     BPLib_STOR_CACHE_ListIter_t iter;
     int                     status;
 
-    current_time = bplib_os_get_dtntime_ms();
+    current_time = BPLib_STOR_CACHE_GetDtnTime();
     set_flags    = 0;
     clear_flags  = 0;
 
     /* because the time is a 64-bit value and may not be atomic, it should
      * be sampled and updated inside of a lock section to ensure the value
      * is consistent */
-    bplib_os_lock(tbl->activity_lock);
+    BPLib_MEM_OS_Lock(tbl->activity_lock);
     poll_time = tbl->last_intf_poll.Time + BPLIB_INTF_MIN_POLL_INTERVAL;
     if (current_time >= poll_time)
     {
@@ -675,7 +674,7 @@ void BPLib_STOR_QM_DoTimedPoll(BPLib_STOR_QM_QueueTbl_t *tbl)
             status = BPLib_STOR_CACHE_ListIterForward(&iter);
         }
     }
-    bplib_os_unlock(tbl->activity_lock);
+    BPLib_MEM_OS_Unlock(tbl->activity_lock);
 }
 
 void BPLib_STOR_QM_SetMaintenanceRequest(BPLib_STOR_QM_QueueTbl_t *tbl)
@@ -686,41 +685,49 @@ void BPLib_STOR_QM_SetMaintenanceRequest(BPLib_STOR_QM_QueueTbl_t *tbl)
 
 void BPLib_STOR_QM_MaintenanceRequestWait(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
+    #ifdef WAIT_UNTIL_MS  // TODO 1 Fix bplib_os_wait_until_ms.
     uint64_t poll_time;
+    #endif // WAIT_UNTIL_MS
 
-    bplib_os_lock(tbl->activity_lock);
+    BPLib_MEM_OS_Lock(tbl->activity_lock);
 
     /* because the time is a 64-bit value and may not be atomic, it should
      * be sampled and updated inside of a lock section to ensure the value
      * is consistent */
+    #ifdef WAIT_UNTIL_MS  // TODO 1 Fix bplib_os_wait_until_ms.
     poll_time = tbl->last_intf_poll.Time + BPLIB_INTF_MIN_POLL_INTERVAL;
 
     while (!tbl->maint_request_flag && bplib_os_get_dtntime_ms() < poll_time)
     {
-        bplib_os_wait_until_ms(tbl->activity_lock, poll_time);
+         bplib_os_wait_until_ms(tbl->activity_lock, poll_time);
     }
+    #endif // WAIT_UNTIL_MS
 
     tbl->maint_request_flag = false;
     tbl->maint_active_flag  = true;
 
-    bplib_os_unlock(tbl->activity_lock);
+    BPLib_MEM_OS_Unlock(tbl->activity_lock);
 }
 
 void BPLib_STOR_QM_MaintenanceCompleteWait(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
-    bplib_os_lock(tbl->activity_lock);
+    BPLib_MEM_OS_Lock(tbl->activity_lock);
 
+    #ifdef WAIT_UNTIL_MS  // TODO 1 Fix bplib_os_wait_until_ms.
     while (tbl->maint_request_flag || tbl->maint_active_flag)
     {
         bplib_os_wait_until_ms(tbl->activity_lock, BPLIB_DTNTIME_INFINITE);
     }
+    #endif // WAIT_UNTIL_MS
 
-    bplib_os_unlock(tbl->activity_lock);
+    BPLib_MEM_OS_Unlock(tbl->activity_lock);
 }
 
 void BPLib_STOR_QM_ProcessActiveDucts(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
+    #ifdef JOB
     BPLib_STOR_CACHE_JobRunAll(tbl->pool, tbl);
+    #endif // JOB
 }
 
 void BPLib_STOR_QM_PeriodicMaintenance(BPLib_STOR_QM_QueueTbl_t *tbl)
@@ -734,7 +741,7 @@ void BPLib_STOR_QM_PeriodicMaintenance(BPLib_STOR_QM_QueueTbl_t *tbl)
     /* do general pool garbage collection to make sure it was done at least once */
     BPLib_STOR_CACHE_Maintain(tbl->pool);
 
-    bplib_os_lock(tbl->activity_lock);
+    BPLib_MEM_OS_Lock(tbl->activity_lock);
     tbl->maint_active_flag = false;
     // TODO OSAL BPLib_STOR_CACHE_OsBroadcastSignalAndUnlock(tbl->activity_lock);
 }

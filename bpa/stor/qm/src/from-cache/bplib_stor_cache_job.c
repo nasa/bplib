@@ -29,8 +29,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "bplib.h"
-
 #include "bplib_stor_cache_internal.h"
 
 /*----------------------------------------------------------------
@@ -101,7 +99,7 @@ void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job)
 
     lock = BPLib_STOR_CACHE_LockResource(pool);
     BPLib_STOR_CACHE_MarkActiveInternal(&admin->active_list, job);
-    BPLib_STOR_CACHE_LockBroadcastSignal(lock);
+    // TODO OSAL BPLib_STOR_CACHE_LockBroadcastSignal(lock);
     BPLib_STOR_CACHE_LockRelease(lock);
 }
 

@@ -26,16 +26,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bplib.h"
+#include "bplib_api_types.h"
+
 #include "crc.h"
-#include "bplib_stor_qm_eid.h"
+
 #include "bplib_mem.h"
 
 #include "bplib_stor_cache.h"
 #include "bplib_stor_cache_types.h"
-#include "bplib_stor_cache_codec.h"
 #include "bplib_stor_cache.h"
-#include "bplib_stor_cache_dataservice.h"
 #include "bplib_stor_cache_module_api.h"
 
 #include "bplib_stor_qm.h"

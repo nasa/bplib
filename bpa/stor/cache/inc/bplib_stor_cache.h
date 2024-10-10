@@ -25,11 +25,9 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib.h"
 #include "bplib_api_types.h"
 
 #include "bplib_stor_cache_types.h"
-#include "bplib_stor_cache_job.h"
 #include "bplib_stor_cache_internal.h"
 
 #ifdef __cplusplus
