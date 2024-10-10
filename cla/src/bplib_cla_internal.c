@@ -18,31 +18,29 @@
  *
  */
 
+/**
+ * @file
+ *
+ * Internal function definitions for CLA
+ */
+
 /*
 ** Include
 */
 
-#include "../test_bplib_mem.h"
-#include "bplib_mem_test_utils.h"
+#include "bplib_cla.h"
+#include "bplib_cla_internal.h"
 
-/*
-** Function Definitions
-*/
 
-void BPLib_MEM_Test_Setup(void)
+bool BPLib_CLA_IsAControlMsg(const void *Bundle)
 {
-    /* Initialize test environment to default state for every test */
-    UT_ResetState(0);
+    return true;
 }
 
-void BPLib_MEM_Test_Teardown(void)
+
+/* BPLib_CLA_ProcessControlMessage*/
+int BPLib_CLA_ProcessControlMessage(void)
 {
-    /* Clean up test environment */
+    return BPLIB_SUCCESS;
 }
 
-void UtTest_Setup(void)
-{
-    Test_BPLib_MEM_Register();
-    Test_BPLib_MEM_Subqs_Register();
-    Test_BPLib_MEM_RBT_Register();
-}

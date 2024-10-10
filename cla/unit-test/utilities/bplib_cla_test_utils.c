@@ -42,4 +42,5 @@ void BPLib_CLA_Test_Teardown(void)
 void UtTest_Setup(void)
 {
     TestBplibCla_Register();
+    TestBplibClaInternal_Register();
 }

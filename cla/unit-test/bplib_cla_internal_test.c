@@ -22,19 +22,29 @@
  * Include
  */
 
-#include "bplib_mem_test_utils.h"
+#include "bplib_cla_test_utils.h"
 
 /*
 ** Test function for
-** int BPLib_MEM_Init()
+** bool BPLib_CLA_IsAControlMsg(const void *Bundle)
 */
-void Test_BPLib_MEM_Init(void)
+void Test_BPLib_CLA_IsAControlMsgNominal(void)
 {
-    UtAssert_INT32_EQ(BPLib_MEM_Init(), BPLIB_SUCCESS);
+    void *Bundle = NULL;
+    UtAssert_BOOL_TRUE(BPLib_CLA_IsAControlMsg(Bundle));
 }
 
 
-void TestBplibMem_Register(void)
+void Test_BPLib_CLA_ProcessControlMessageNominal(void)
 {
-    UtTest_Add(Test_BPLib_MEM_Init, BPLib_MEM_Test_Setup, BPLib_MEM_Test_Teardown, "Test_BPLib_MEM_Init");
+    UtAssert_INT32_EQ(BPLib_CLA_ProcessControlMessage(), BPLIB_SUCCESS);
 }
+
+
+void TestBplibClaInternal_Register(void)
+{
+    UtTest_Add(Test_BPLib_CLA_IsAControlMsgNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_IsAControlMsgNominal");
+    UtTest_Add(Test_BPLib_CLA_ProcessControlMessageNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ProcessControlMessageNominal");
+}
+
+
