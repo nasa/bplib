@@ -18,30 +18,29 @@
  *
  */
 
-#ifndef BPLIB_CLA_TEST_UTILS_H
-#define BPLIB_CLA_TEST_UTILS_H
+/**
+ * @file
+ *
+ * Internal function definitions for CLA
+ */
 
 /*
 ** Include
 */
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
-
-#include "bplib.h"
 #include "bplib_cla.h"
-#include "bplib_api_types.h"
 #include "bplib_cla_internal.h"
 
-/*
-** Function Definitions
-*/
 
-void BPLib_CLA_Test_Setup(void);
-void BPLib_CLA_Test_Teardown(void);
+bool BPLib_CLA_IsAControlMsg(const void *Bundle)
+{
+    return true;
+}
 
-void TestBplibCla_Register(void);
-void TestBplibClaInternal_Register(void);
 
-#endif /* BPLIB_CLA_TEST_UTILS_H */
+/* BPLib_CLA_ProcessControlMessage*/
+int BPLib_CLA_ProcessControlMessage(void)
+{
+    return BPLIB_SUCCESS;
+}
+
