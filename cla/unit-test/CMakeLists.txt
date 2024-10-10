@@ -10,10 +10,12 @@
 # Create stubs (for external use)
 add_library(bplib_cla_stubs STATIC
     stubs/bplib_cla_stubs.c
+    stubs/bplib_cla_internal_stubs.c
 )
 
 target_include_directories(bplib_cla_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_cla,INTERFACE_INCLUDE_DIRECTORIES>
+    ../src
 )
 
 target_link_libraries(bplib_cla_stubs ut_assert ut_core_api_stubs)
@@ -21,6 +23,7 @@ target_link_libraries(bplib_cla_stubs ut_assert ut_core_api_stubs)
 # Create unit test object
 add_library(utobj_bplib_cla OBJECT
     ../src/bplib_cla.c
+    ../src/bplib_cla_internal.c
 )
 
 target_compile_definitions(utobj_bplib_cla PRIVATE
@@ -42,6 +45,7 @@ target_include_directories(utobj_bplib_cla PRIVATE
 add_executable(coverage-bplib_cla-testrunner
     utilities/bplib_cla_test_utils.c
     bplib_cla_test.c
+    bplib_cla_internal_test.c
     $<TARGET_OBJECTS:utobj_bplib_cla>
 )
 
