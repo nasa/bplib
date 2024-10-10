@@ -577,6 +577,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
         printf("%s:%d No free blocks. Return null.\n", __FILE__, __LINE__);
+        BPLib_STOR_CACHE_PrintTrace();
         /* no free blocks available for the requested type */
         return NULL;
     }
@@ -587,6 +588,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
     if (api_block == NULL)
     {
         printf("%s:%d No constructor. Return null.\n", __FILE__, __LINE__);
+        BPLib_STOR_CACHE_PrintTrace();
         /* no constructor, cannot create the block! */
         return NULL;
     }
@@ -597,6 +599,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         (data_offset + api_block->user_content_size) > sizeof(BPLib_STOR_CACHE_BlockBuffer_t))
     {
         printf("%s:%d User content won't fit. Return null.\n", __FILE__, __LINE__);
+        BPLib_STOR_CACHE_PrintTrace();
         /* User content will not fit in the block - cannot create an instance of this type combo */
         return NULL;
     }
@@ -610,6 +613,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
     }
 
     printf("%s:%d Got block.\n", __FILE__, __LINE__);
+    BPLib_STOR_CACHE_PrintTrace();
 
     /*
      * Convert from blocks free to blocks used, and update high watermark if necessary.

@@ -225,7 +225,6 @@ bp_handle_t BPLib_MEM_OS_CreateLock(void);
  * @brief Acquires a given lock
  *
  * The lock should be identified via BPLib_MEM_LockPrepare() or this
- * The lock should be identified via BPLib_MEM_LockPrepare() or this
  * can re-acquire the same lock again after releasing it with
  * BPLib_MEM_LockRelease().
  *

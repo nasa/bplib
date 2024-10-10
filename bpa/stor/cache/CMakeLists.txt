@@ -13,6 +13,7 @@ add_subdirectory(unit-test/codec-unit-test/stubs)
 
 add_library(bplib_stor_cache OBJECT
     src/bplib_stor_cache.c
+    src/bplib_stor_cache_internal.c
     src/bplib_stor_cache_lists.c
     src/bplib_stor_cache_bblocks.c
     # QM src/bplib_stor_cache_cla_api.c

@@ -27,6 +27,9 @@
 
 #include "bplib_stor_cache_block.h"
 
+// TODO Migrate PrintTrace stack trace to broader scope.
+void BPLib_STOR_CACHE_PrintTrace(void);
+
 // TODO OSAL #define bplog(flags, evt, ...) BPLIB_MEM_OS_Log(__FILE__, __LINE__, flags, evt, __VA_ARGS__)
 int bplog(uint32_t *flags, uint32_t event, ...);
 
