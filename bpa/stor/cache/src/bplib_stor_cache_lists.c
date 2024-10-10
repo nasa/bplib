@@ -26,13 +26,15 @@
 
 #include <assert.h>
 
+#include "bplib_api_types.h"
+
 #include "bplib_mem.h"
+
+#include "bplib_stor_qm_ducts.h"
 
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_internal.h"
-#include "bplib_stor_cache_ducts.h"
-#include "bplib_stor_cache_job.h"
 #include "bplib_stor_cache_ref.h"
 
 // TODO BPLIB_TIMEOUT should be in bplib_api_types.h.
@@ -496,14 +498,17 @@ void *BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Block_t *cb, uint32_t re
  *
  *-----------------------------------------------------------------*/
 BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_GenericDataUncast(void *blk, BPLib_STOR_CACHE_Blocktype_t parent_bt,
-                                                     uint32_t required_magic)
+                                                             uint32_t required_magic)
 {
     BPLib_STOR_CACHE_BlockContent_t *block;
-    size_t                       data_offset;
+    size_t                           data_offset;
 
     data_offset = BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(parent_bt);
+    printf("%s:%d data_offset is %ld\n", __FILE__, __LINE__, data_offset);
+
     if (data_offset > sizeof(BPLib_STOR_CACHE_BlockBuffer_t))
     {
+        printf("%s:%d data_offset too large. Returned null.\n", __FILE__, __LINE__);
         return NULL;
     }
 
@@ -511,6 +516,8 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_GenericDataUncast(void *blk, BPLib_ST
     block = (BPLib_STOR_CACHE_BlockContent_t *)(void *)((uint8_t *)blk - data_offset);
     if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
     {
+        printf("%s:%d base_link.type or magic wrong, %d %d %d %d\n", __FILE__, __LINE__, 
+            block->header.base_link.type, parent_bt, block->header.content_type_signature, required_magic);
         return NULL;
     }
 
@@ -647,7 +654,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
             BPLib_STOR_CACHE_BblockCanonicalInit(node, &block->u.canonical.cblock);
             break;
         case BPLib_STOR_CACHE_BlocktypeDuct:
-            BPLib_STOR_CACHE_DuctInit(node, &block->u.duct.dblock);
+            BPLib_STOR_QM_DuctInit(node, &block->u.duct.dblock);
             break;
                     default:
             /* nothing more for this node type (this catches cbor_data)  */
@@ -1404,10 +1411,10 @@ uint32_t BPLib_STOR_CACHE_SubqDropAll(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_
 
 /*----------------------------------------------------------------
  *
- * Function: BPLib_STOR_CACHE_DuctCast
+ * Function: BPLib_STOR_QM_DuctCast
  *
  *-----------------------------------------------------------------*/
-BPLib_STOR_CACHE_Duct_t *BPLib_STOR_CACHE_DuctCast(BPLib_STOR_CACHE_Block_t *cb)
+BPLib_STOR_QM_Duct_t *BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Block_t *cb)
 {
     BPLib_STOR_CACHE_BlockContent_t *content;
 
@@ -1472,10 +1479,10 @@ bool BPLib_STOR_CACHE_SubqWorkitemWaitForFill(BPLib_MEM_Lock_t *lock, BPLib_STOR
 
 /*----------------------------------------------------------------
  *
- * Function: BPLib_STOR_CACHE_DuctTryPush
+ * Function: BPLib_STOR_QM_DuctTryPush
  *
  *-----------------------------------------------------------------*/
-bool BPLib_STOR_CACHE_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk, BPLib_TIME_MonotonicTime_t abs_timeout)
+bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk, BPLib_TIME_MonotonicTime_t abs_timeout)
 {
     BPLib_MEM_Lock_t                *lock;
     bool                               got_space;
@@ -1509,192 +1516,3 @@ bool BPLib_STOR_CACHE_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPL
     return got_space;
 }
 
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_DuctTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, BPLib_TIME_MonotonicTime_t abs_timeout)
-{
-    BPLib_MEM_Lock_t  *lock;
-    BPLib_STOR_CACHE_Block_t *qblk;
-    bool                 got_space;
-    BPLib_STOR_CACHE_Pool_t       *pool;
-
-    qblk = NULL;
-    pool = BPLib_STOR_CACHE_GetParentPoolFromLink(&subq_src->job_header.link);
-    lock = BPLib_MEM_LockResource(pool);
-
-    got_space = BPLib_STOR_CACHE_SubqWorkitemWaitForFill(lock, subq_src, 1, abs_timeout);
-    if (got_space)
-    {
-        qblk = BPLib_STOR_CACHE_SubqPullSingle(&subq_src->base_subq);
-
-        /* in case any threads were waiting on a non-full queue */
-        // TODO OSAL BPLib_MEM_LockBroadcastSignal(lock);
-    }
-
-    BPLib_MEM_LockRelease(lock);
-
-    return qblk;
-}
-
-uint32_t BPLib_STOR_CACHE_DuctTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
-                                       BPLib_TIME_MonotonicTime_t abs_timeout)
-{
-    BPLib_MEM_Lock_t                     *lock;
-    uint32_t                              prev_quantity;
-    uint32_t                              quantity;
-    bool                                  got_space;
-    #ifdef QM
-    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
-    #endif // QM
-    BPLib_STOR_CACHE_Pool_t              *pool;
-
-    got_space = false;
-    pool      = BPLib_STOR_CACHE_GetParentPoolFromLink(&subq_dst->job_header.link);
-    #ifdef QM
-    admin     = BPLib_STOR_CACHE_GetAdmin(pool);
-    #endif // QM
-    lock      = BPLib_MEM_LockResource(pool);
-
-    /* note, there is a possibility that while waiting, another task puts more entries
-     * into the source queue.  This loop will catch that and wait again.  However it
-     * will not catch the case of another thread taking out of the source queue, as
-     * it will still wait for the original amount. */
-    quantity = BPLib_STOR_CACHE_SubqGetDepth(&subq_src->base_subq);
-    do
-    {
-        prev_quantity = quantity;
-        got_space     = BPLib_STOR_CACHE_SubqWorkitemWaitForSpace(lock, subq_dst, quantity, abs_timeout);
-        quantity      = BPLib_STOR_CACHE_SubqGetDepth(&subq_src->base_subq);
-    }
-    while (got_space && quantity > prev_quantity);
-
-    if (got_space)
-    {
-        /* this does not fail, but must be done under lock to keep things consistent */
-        quantity = BPLib_STOR_CACHE_SubqMoveAll(&subq_dst->base_subq, &subq_src->base_subq);
-
-        /* mark the duct as "active" - done directly here while the lock is still held */
-        #ifdef QM
-        BPLib_STOR_CACHE_JobMarkActiveInternal(&admin->active_list, &subq_dst->job_header);
-        #endif // QM
-    
-        /* in case any threads were waiting on a non-empty queue */
-        // TODO OSAL BPLib_MEM_LockBroadcastSignal(lock);
-    }
-    else
-    {
-        quantity = 0;
-    }
-
-    BPLib_MEM_LockRelease(lock);
-
-    return quantity;
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_STOR_CACHE_DuctDisable
- *
- *-----------------------------------------------------------------*/
-uint32_t BPLib_STOR_CACHE_DuctDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq)
-{
-    BPLib_STOR_CACHE_Pool_t      *pool;
-    BPLib_MEM_Lock_t *lock;
-    uint32_t            quantity_dropped;
-
-    pool = BPLib_STOR_CACHE_GetParentPoolFromLink(&subq->job_header.link);
-    lock = BPLib_MEM_LockResource(pool);
-
-    /* prevents any additional entries in duct queues */
-    subq->current_depth_limit = 0;
-    quantity_dropped          = BPLib_STOR_CACHE_SubqDropAll(pool, &subq->base_subq);
-
-    #ifdef QM
-    BPLib_STOR_CACHE_JobCancelInternal(&subq->job_header);
-    #endif // QM
-    BPLib_MEM_LockRelease(lock);
-
-    return quantity_dropped;
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_STOR_CACHE_DuctEnable
- *
- *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_DuctEnable(BPLib_STOR_CACHE_SubqWorkitem_t *subq, uint32_t depth_limit)
-{
-    BPLib_STOR_CACHE_Pool_t      *pool;
-    BPLib_MEM_Lock_t *lock;
-
-    pool = BPLib_STOR_CACHE_GetParentPoolFromLink(&subq->job_header.link);
-    lock = BPLib_MEM_LockResource(pool);
-
-    /* prevents any additional entries in duct queues */
-    subq->current_depth_limit = depth_limit;
-
-    BPLib_MEM_LockRelease(lock);
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_STOR_CACHE_DuctAlloc
- *
- *-----------------------------------------------------------------*/
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_DuctAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg)
-{
-    BPLib_STOR_CACHE_BlockContent_t *result;
-    BPLib_MEM_Lock_t          *lock;
-
-    lock   = BPLib_MEM_LockResource(pool);
-    result = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypeDuct, magic_number, init_arg, BPLIB_MPOOL_ALLOC_PRI_LO);
-    BPLib_MEM_LockRelease(lock);
-
-    return (BPLib_STOR_CACHE_Block_t *)result;
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_STOR_CACHE_DuctModifyFlags
- *
- *-----------------------------------------------------------------*/
-bool BPLib_STOR_CACHE_DuctModifyFlags(BPLib_STOR_CACHE_Block_t *cb, uint32_t set_bits, uint32_t clear_bits)
-{
-    BPLib_MEM_Lock_t                     *lock;
-    BPLib_STOR_CACHE_Pool_t              *pool;
-    #ifdef QM
-    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
-    #endif // QM
-    BPLib_STOR_CACHE_Duct_t              *duct;
-    uint32_t                              next_flags;
-    bool                                  flags_changed;
-
-    pool  = BPLib_STOR_CACHE_GetParentPoolFromLink(cb);
-    #ifdef QM
-    admin = BPLib_STOR_CACHE_GetAdmin(pool);
-    #endif // QM
-    lock  = BPLib_MEM_LockResource(pool);
-    duct  = BPLib_STOR_CACHE_DuctCast(cb);
-    if (duct != NULL)
-    {
-        next_flags = duct->pending_state_flags;
-        next_flags |= set_bits;
-        next_flags &= ~clear_bits;
-        flags_changed = (duct->pending_state_flags != next_flags);
-
-        if (flags_changed)
-        {
-            duct->pending_state_flags = next_flags;
-            #ifdef QM
-            BPLib_STOR_CACHE_JobMarkActiveInternal(&admin->active_list, &duct->statechange_job.base_job);
-            #endif // QM
-    
-            // TODO OSAL BPLib_MEM_LockBroadcastSignal(lock);
-        }
-    }
-    else
-    {
-        flags_changed = false;
-    }
-    BPLib_MEM_LockRelease(lock);
-
-    return flags_changed;
-}

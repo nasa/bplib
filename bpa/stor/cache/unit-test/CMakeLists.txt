@@ -10,23 +10,13 @@
 # Create stubs (for external use)
 add_subdirectory(stubs)
 
-# Add temporary stubs
-add_subdirectory(qm/stubs)
-
 # Create unit test object
 add_library(utobj_bplib_stor_cache OBJECT
     ../src/bplib_stor_cache.c
     ../src/bplib_stor_cache_internal.c
     ../src/bplib_stor_cache_lists.c
     ../src/bplib_stor_cache_bblocks.c
-    # QM ../src/bplib_stor_cache_cla_api.c
-    # CUSTODY ../src/bplib_stor_cache_custody.c
-    # QM ../src/bplib_stor_cache_dataservice_api.c
-    # QM ../src/bplib_stor_qm.c
-    ../src/bplib_stor_cache_fsm.c
-    # QM JOB ../src/bplib_stor_cache_job.c
     ../src/bplib_stor_cache_ref.c
-    # PS ../src/bplib_stor_cache_storage.c
     ../src/crc.c
     utilities/bplib_stor_cache_utils.c
 )
@@ -50,14 +40,6 @@ target_include_directories(utobj_bplib_stor_cache PRIVATE
 add_executable(coverage-bplib_stor_cache-testrunner
     test_bplib_stor_cache_setup.c
     test_bplib_stor_cache.c
-    test_bplib_stor_cache_fsm.c
-    test_bplib_stor_cache_bblocks.c
-    # test_bplib_stor_cache_custody.c
-    # test_bplib_stor_cache_module.c
-    # test_bplib_stor_cache_ref.c
-    # test_bplib_stor_cla_api.c
-    # test_bplib_stor_dataservice_api.c
-    # test_bplib_stor_enqueueing.c
     $<TARGET_OBJECTS:utobj_bplib_stor_cache>
 )
 
@@ -75,7 +57,6 @@ target_link_libraries(coverage-bplib_stor_cache-testrunner PUBLIC
     ut_coverage_link
     bplib_mem
     coverage-bplib-stubs
-    bplib_v7_codec_stubs
     bplib_stor_qm_stubs
     ut_assert
 )

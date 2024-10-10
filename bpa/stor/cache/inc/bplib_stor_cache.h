@@ -30,8 +30,11 @@
 
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_job.h"
-#include "bplib_stor_cache_ducts.h"
 #include "bplib_stor_cache_internal.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /******************************************************************************
  TYPEDEFS
@@ -51,11 +54,11 @@ int         BPLib_STOR_CACHE_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_
 
 bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t cache_intf_id,
                                                 const BPLib_STOR_CACHE_ModuleApi_t *api, void *init_arg);
-int BPLib_STOR_CACHE_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Valtype_t vt,
-                          const void *val);
-int BPLib_STOR_CACHE_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Valtype_t vt,
-                      const void **val);
-int BPLib_STOR_CACHE_Start(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id);
-int BPLib_STOR_CACHE_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id);
+
+bp_handle_t BPLib_STOR_CACHE_CreateRamStorage(BPLib_STOR_QM_QueueTbl_t *rtbl, const bp_ipn_addr_t *storage_addr);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif /* BPLIB_STOR_CACHE_H */

@@ -7,7 +7,8 @@
 ##################################################################
 
 add_library(bplib_stor_cache_stubs STATIC
-    bplib_dataservice_stubs.c
+    bplib_stor_cache_pool_stubs.c
+    bplib_stor_cache_stubs.c
 )
 
 target_include_directories(bplib_stor_cache_stubs PUBLIC

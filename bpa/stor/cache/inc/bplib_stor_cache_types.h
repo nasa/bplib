@@ -65,8 +65,8 @@ typedef struct BPLib_STOR_CACHE_BblockTracking         BPLib_STOR_CACHE_BblockTr
 typedef struct BPLib_STOR_CACHE_BblockCanonical        BPLib_STOR_CACHE_BblockCanonical_t;
 
 typedef struct BPLib_STOR_CACHE_SubqBase               BPLib_STOR_CACHE_SubqBase_t;
-typedef struct BPLib_STOR_CACHE_Duct                   BPLib_STOR_CACHE_Duct_t;
-typedef struct BPLib_STOR_CACHE_DuctContent            BPLib_STOR_CACHE_DuctContent_t;
+typedef struct BPLib_STOR_QM_Duct                   BPLib_STOR_QM_Duct_t;
+typedef struct BPLib_STOR_QM_DuctContent            BPLib_STOR_QM_DuctContent_t;
 
 typedef struct BPLib_STOR_CACHE_BblockPrimaryContent   BPLib_STOR_CACHE_BBlockPrimaryContent_t;
 typedef struct BPLib_STOR_CACHE_BblockCanonicalContent BPLib_STOR_CACHE_BblockCanonicalContent_t;
@@ -450,9 +450,9 @@ void BPLib_STOR_CACHE_DebugPrintListStats(BPLib_STOR_CACHE_Block_t *list, const 
 void BPLib_STOR_CACHE_BblockPrimaryInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_BblockPrimary_t *pblk);
 void BPLib_STOR_CACHE_BblockCanonicalInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_BblockCanonical_t *cblk);
 void BPLib_STOR_CACHE_SubqInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_SubqBase_t *qblk);
-void BPLib_STOR_CACHE_DuctInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Duct_t *fblk);
+void BPLib_STOR_QM_DuctInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_Duct_t *fblk);
 
-int BPLib_STOR_QM_QueueIngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
+int BPLib_STOR_QM_IngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
 
 #ifdef __cplusplus
 } // extern "C"

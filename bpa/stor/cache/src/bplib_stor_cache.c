@@ -23,22 +23,17 @@
  ******************************************************************************/
 
 #include <assert.h>
-
 #include <stdio.h>
 
 #include "bplib.h"
 #include "bplib_api_types.h"
 
-#include "bplib_stor_cache.h"
 #include "bplib_stor_cache_types.h"
-#include "bplib_stor_cache.h"
 #include "bplib_stor_cache_internal.h"
-#include "bplib_stor_cache_ducts.h"
-#include "bplib_stor_cache_dataservice.h"
-#include "bplib_stor_cache_ref.h"
-#include "bplib_stor_qm.h"
 
-// TODO OSAL #define bplog(flags, evt, ...) BPLIB_MEM_OS_Log(__FILE__, __LINE__, flags, evt, __VA_ARGS__)
+
+// TODO Remove OSAL #define bplog(flags, evt, ...) BPLIB_MEM_OS_Log(__FILE__, __LINE__, flags, evt, __VA_ARGS__)
+#ifdef KEEP_BPLOG
 int bplog(uint32_t *flags, uint32_t event, ...)
 {
     if (event > 0)
@@ -50,6 +45,7 @@ int bplog(uint32_t *flags, uint32_t event, ...)
         return BPLIB_SUCCESS;
     }
 }
+#endif // KEEP_BPLOG
 
 BPLib_STOR_CACHE_State_t *BPLib_STOR_CACHE_GetState(BPLib_STOR_CACHE_Block_t *intf_block)
 {
@@ -58,7 +54,7 @@ BPLib_STOR_CACHE_State_t *BPLib_STOR_CACHE_GetState(BPLib_STOR_CACHE_Block_t *in
     state = BPLib_STOR_CACHE_GenericDataCast(intf_block, BPLIB_STORE_SIGNATURE_STATE);
     if (state == NULL)
     {
-        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): storage_block incorrect for BPLib_STOR_CACHE_State_t\n", __func__);
+        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): storage_block incorrect for BPLib_STOR_CACHE_State_t\n", __func__);
         return NULL;
     }
 
@@ -83,6 +79,7 @@ void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, ui
     store_entry->flags &= ~clear_flags;
 
     sblk = BPLib_STOR_CACHE_GenericDataUncast(store_entry, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_STORE_SIGNATURE_ENTRY);
+    printf("%s:%d data_offset is %ld\n", __FILE__, __LINE__, (uint64_t)sblk);
     assert(sblk != NULL);
 
     BPLib_STOR_CACHE_ExtractNode(sblk);
@@ -94,7 +91,7 @@ void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, ui
 
 int BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
 {
-    BPLib_STOR_CACHE_Duct_t  *duct;
+    BPLib_STOR_QM_Duct_t  *duct;
     BPLib_STOR_CACHE_Block_t *qblk;
     BPLib_STOR_CACHE_Block_t *intf_block;
     BPLib_STOR_CACHE_State_t *state;
@@ -107,7 +104,7 @@ int BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
         return -1;
     }
 
-    duct = BPLib_STOR_CACHE_DuctCast(intf_block);
+    duct = BPLib_STOR_QM_DuctCast(intf_block);
     if (duct == NULL)
     {
         return -1;
@@ -117,7 +114,7 @@ int BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
     forward_count      = 0;
     while (true)
     {
-        qblk = BPLib_STOR_CACHE_DuctTryPull(&duct->egress, BPLIB_MONOTIME_ZERO);
+        qblk = BPLib_STOR_QM_DuctTryPull(&duct->egress, BPLIB_MONOTIME_ZERO);
         if (qblk == NULL)
         {
             /* no more bundles */
@@ -152,7 +149,7 @@ void BPLib_STOR_CACHE_FlushPending(BPLib_STOR_CACHE_State_t *state)
 {
     BPLib_STOR_CACHE_ListIter_t list_it;
     int                     status;
-    BPLib_STOR_CACHE_Duct_t     *self_duct;
+    BPLib_STOR_QM_Duct_t     *self_duct;
 
     self_duct = BPLib_STOR_CACHE_GetDuct(state);
 
@@ -221,7 +218,7 @@ int BPLib_STOR_CACHE_DoRouteUp(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, b
 
 int BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_up)
 {
-    BPLib_STOR_CACHE_Duct_t *self_duct;
+    BPLib_STOR_QM_Duct_t *self_duct;
 
     self_duct = BPLib_STOR_CACHE_GetDuct(state);
     if (!is_up)
@@ -245,7 +242,7 @@ int BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_
 int BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_block)
 {
     BPLib_STOR_CACHE_State_t              *state;
-    BPLib_STOR_CACHE_DuctGenericEvent_t *event;
+    BPLib_STOR_QM_DuctGenericEvent_t *event;
     bp_handle_t                       self_intf_id;
 
     event        = event_arg;
@@ -257,14 +254,14 @@ int BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_b
     }
 
     state->action_time = BPLib_STOR_CACHE_GetMonotonicTime();
-    if (event->event_type == BPLib_STOR_CACHE_DuctEventPoll)
+    if (event->event_type == BPLib_STOR_QM_DuctEventPoll)
     {
         BPLib_STOR_CACHE_DoPoll(state);
     }
-    else if ((event->event_type == BPLib_STOR_CACHE_DuctEventUp || event->event_type == BPLib_STOR_CACHE_DuctEventDown) &&
+    else if ((event->event_type == BPLib_STOR_QM_DuctEventUp || event->event_type == BPLib_STOR_QM_DuctEventDown) &&
              bp_handle_equal(self_intf_id, event->intf_state.intf_id))
     {
-        BPLib_STOR_CACHE_DoIntfStatechange(state, event->event_type == BPLib_STOR_CACHE_DuctEventUp);
+        BPLib_STOR_CACHE_DoIntfStatechange(state, event->event_type == BPLib_STOR_QM_DuctEventUp);
     }
 
     /* any sort of action may have put bundles in the pending queue, so flush it now */
@@ -467,13 +464,13 @@ bp_handle_t BPLib_STOR_CACHE_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_
     /* register Mem Cache storage module */
     BPLib_STOR_CACHE_Init(pool);
 
-    sblk = BPLib_STOR_CACHE_DuctAlloc(pool, BPLIB_STORE_SIGNATURE_STATE, pool);
+    sblk = BPLib_STOR_QM_DuctAlloc(pool, BPLIB_STORE_SIGNATURE_STATE, pool);
     #else // QM
     sblk = NULL;
     #endif // QM
     if (sblk == NULL)
     {
-        bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "%s(): Insufficient memory to create file storage\n", __func__);
+        // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "%s(): Insufficient memory to create file storage\n", __func__);
         return BP_INVALID_HANDLE;
     }
 
@@ -489,14 +486,14 @@ bp_handle_t BPLib_STOR_CACHE_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_
 
     if (!bp_handle_is_valid(storage_intf_id))
     {
-        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot attach - service addr invalid?\n", __func__);
+        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot attach - service addr invalid?\n", __func__);
         BPLib_STOR_CACHE_RefRelease(duct_block_ref);
     }
     else
     {
         /* there should be no reason for any of these reg calls to fail */
         BPLib_STOR_QM_RegisterForwardEgressHandler(tbl, storage_intf_id, BPLib_STOR_CACHE_EgressImpl);
-        BPLib_STOR_QM_RegisterForwardIngressHandler(tbl, storage_intf_id, BPLib_STOR_QM_QueueIngressToParent);
+        BPLib_STOR_QM_RegisterForwardIngressHandler(tbl, storage_intf_id, BPLib_STOR_QM_IngressToParent);
         BPLib_STOR_QM_RegisterEventHandler(tbl, storage_intf_id, BPLib_STOR_CACHE_EventImpl);
 
         /* This will keep the ref to itself inside of the state struct, this
@@ -530,7 +527,7 @@ int BPLib_STOR_CACHE_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *
 
     if (state == NULL)
     {
-        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot detach - service addr invalid?\n", __func__);
+        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot detach - service addr invalid?\n", __func__);
         status = BPLIB_ERROR;
     }
     else
@@ -594,91 +591,6 @@ bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl
     return handle;
 }
 
-int BPLib_STOR_CACHE_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Valtype_t vt,
-                          const void *val)
-{
-    BPLib_STOR_CACHE_Block_t *cblk;
-    BPLib_STOR_CACHE_State_t *state;
-    int                  result;
-
-    result = BPLIB_ERROR;
-    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetMpool(tbl), module_intf_id);
-    state  = BPLib_STOR_CACHE_GenericDataCast(cblk, BPLIB_STORE_SIGNATURE_STATE);
-    if (state != NULL)
-    {
-        /* currently the only module is offload, so all keys are passed here */
-        if (state->offload_blk != NULL)
-        {
-            result = state->offload_api->std.configure(state->offload_blk, key, vt, val);
-        }
-    }
-
-    return result;
-}
-int BPLib_STOR_CACHE_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Valtype_t vt,
-                      const void **val)
-{
-    BPLib_STOR_CACHE_Block_t *cblk;
-    BPLib_STOR_CACHE_State_t *state;
-    int                  result;
-
-    result = BPLIB_ERROR;
-    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetMpool(tbl), module_intf_id);
-    state  = BPLib_STOR_CACHE_GenericDataCast(cblk, BPLIB_STORE_SIGNATURE_STATE);
-    if (state != NULL)
-    {
-        /* currently the only module is offload, so all keys are passed here */
-        if (state->offload_blk != NULL)
-        {
-            result = state->offload_api->std.query(state->offload_blk, key, vt, val);
-        }
-    }
-
-    return result;
-}
-
-int BPLib_STOR_CACHE_Start(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
-{
-    BPLib_STOR_CACHE_Block_t *cblk;
-    BPLib_STOR_CACHE_State_t *state;
-    int                  result;
-
-    result = BPLIB_ERROR;
-    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetMpool(tbl), module_intf_id);
-    state  = BPLib_STOR_CACHE_GenericDataCast(cblk, BPLIB_STORE_SIGNATURE_STATE);
-    if (state != NULL)
-    {
-        /* currently the only module is offload, so all keys are passed here */
-        if (state->offload_blk != NULL)
-        {
-            result = state->offload_api->std.start(state->offload_blk);
-        }
-    }
-
-    return result;
-}
-
-int BPLib_STOR_CACHE_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
-{
-    BPLib_STOR_CACHE_Block_t *cblk;
-    BPLib_STOR_CACHE_State_t *state;
-    int                  result;
-
-    result = BPLIB_ERROR;
-    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetMpool(tbl), module_intf_id);
-    state  = BPLib_STOR_CACHE_GenericDataCast(cblk, BPLIB_STORE_SIGNATURE_STATE);
-    if (state != NULL)
-    {
-        /* currently the only module is offload, so all keys are passed here */
-        if (state->offload_blk != NULL)
-        {
-            result = state->offload_api->std.stop(state->offload_blk);
-        }
-    }
-
-    return result;
-}
-
 #define BPLib_STOR_CACHE_DebugFsmStatePrint(s, n) BPLib_STOR_CACHE_DebugFsmStatePrintImpl(s, n, "[" #n "]")
 void BPLib_STOR_CACHE_DebugFsmStatePrintImpl(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_EntryState_t n,
                                             const char *fsmname)
@@ -702,14 +614,14 @@ void BPLib_STOR_CACHE_DebugScanQueue(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t 
     intf_block_ref = BPLib_STOR_QM_GetIntfControlblock(tbl, intf_id);
     if (intf_block_ref == NULL)
     {
-        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): Parent intf invalid\n", __func__);
+        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): Parent intf invalid\n", __func__);
         return;
     }
 
     state = BPLib_STOR_CACHE_GetState(BPLib_STOR_CACHE_Dereference(intf_block_ref));
     if (state == NULL)
     {
-        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): Parent intf is not a storage cache\n", __func__);
+        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): Parent intf is not a storage cache\n", __func__);
         return;
     }
 

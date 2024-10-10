@@ -16,8 +16,8 @@
  * limitations under the License.
  ************************************************************************/
 
-#ifndef TEST_BPLIB_CACHE_H
-#define TEST_BPLIB_CACHE_H
+#ifndef TEST_BPLIB_STOR_CACHE_H
+#define TEST_BPLIB_STOR_CACHE_H
 
 #include "utassert.h"
 #include "utstubs.h"
@@ -31,23 +31,18 @@
 #include "bplib_mem.h"
 #include "bplib_mem_rbtree.h"
 
-#include "bplib_stor_cache.h"
-#include "bplib_stor_cache_internal.h"
-#include "bplib_stor_cache_ducts.h"
-#include "bplib_stor_cache_base_internal.h"
-#include "bplib_stor_cache_ref.h"
-#include "bplib_stor_cache_types.h"
-#include "bplib_stor_cache_block.h"
-#include "bplib_stor_cache_eid.h"
-#include "bplib_stor_cache_ref.h"
-#include "bplib_stor_cache_ducts.h"
-#include "bplib_stor_cache_codec.h"
-#include "bplib_stor_cache_dataservice.h"
-
 #include "bplib.h"
 #include "bplib_api_types.h"
 
-#include "bplib_stor_qm.h"
+#include "bplib_stor_cache.h"
+#include "bplib_stor_cache_types.h"
+#include "bplib_stor_cache_internal.h"
+#include "bplib_stor_cache_base_internal.h"
+#include "bplib_stor_cache_ref.h"
+#include "bplib_stor_cache_block.h"
+#include "bplib_stor_cache_ref.h"
+#include "bplib_stor_cache_codec.h"
+#include "bplib_stor_cache_dataservice.h"
 
 typedef struct
 {
@@ -76,9 +71,9 @@ void Test_BplibCacheCustody_Register(void);
 void Test_BplibCacheFsm_Register(void);
 void Test_BplibStorCache_Register(void);
 BPLib_STOR_CACHE_Block_t *test_BPLib_STOR_CACHE_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
-int                  test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Valtype_t vt,
+int                  test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt,
                                                      const void *val);
-int test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Valtype_t vt, const void **val);
+int test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val);
 int test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc);
 int test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
 int test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk);
@@ -98,4 +93,4 @@ void Test_BplibCache_DataServiceApi_Register(void);
 void Test_BplibCache_Routing_Register(void);
 
 
-#endif
+#endif // TEST_BPLIB_STOR_CACHE_H

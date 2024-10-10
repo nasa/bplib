@@ -7,23 +7,13 @@
 #
 ##################################################################
 
-# TODO Use the new codec stubs when available.
-# Build the heritage v7 codec stubs
-add_subdirectory(unit-test/codec-unit-test/stubs)
-
 add_library(bplib_stor_cache OBJECT
     src/bplib_stor_cache.c
+    src/bplib_stor_cache_bblocks.c
     src/bplib_stor_cache_internal.c
     src/bplib_stor_cache_lists.c
-    src/bplib_stor_cache_bblocks.c
-    # QM src/bplib_stor_cache_cla_api.c
-    # CUSTODY src/bplib_stor_cache_custody.c
-    # QM src/bplib_stor_cache_dataservice_api.c
-    # QM src/bplib_stor_qm.c
-    src/bplib_stor_cache_fsm.c
-    # QM JOB src/bplib_stor_cache_job.c
+    src/bplib_stor_cache_module_api.c
     src/bplib_stor_cache_ref.c
-    # PS src/bplib_stor_cache_storage.c
     src/crc.c
 )
 
@@ -34,6 +24,7 @@ target_include_directories(bplib_stor_cache PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_stor_qm,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit test coverage subdirectory

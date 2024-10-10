@@ -70,8 +70,6 @@ typedef enum
     BPLib_STOR_CACHE_EntryStateMax
 } BPLib_STOR_CACHE_EntryState_t;
 
-#include "bplib_stor_cache_job.h"
-
 typedef struct BPLib_STOR_CACHE_State
 {
     int placeholder;
@@ -187,14 +185,14 @@ static inline BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_ParentPool(BPLib_STOR_CA
  * @brief Cast a block to a duct type
  *
  * @param cb
- * @return BPLib_STOR_CACHE_Duct_t*
+ * @return BPLib_STOR_QM_Duct_t*
  */
-BPLib_STOR_CACHE_Duct_t *BPLib_STOR_CACHE_DuctCast(BPLib_STOR_CACHE_Block_t *cb);
+BPLib_STOR_QM_Duct_t *BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Block_t *cb);
 
 /* Allows reconstitution of the duct object from a cache state pointer */
-static inline BPLib_STOR_CACHE_Duct_t *BPLib_STOR_CACHE_GetDuct(BPLib_STOR_CACHE_State_t *state)
+static inline BPLib_STOR_QM_Duct_t *BPLib_STOR_CACHE_GetDuct(BPLib_STOR_CACHE_State_t *state)
 {
-    return BPLib_STOR_CACHE_DuctCast(BPLib_STOR_CACHE_StateSeldblock(state));
+    return BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_StateSeldblock(state));
 }
 
 /* Allows reconstitution of the queue struct from an RBT link pointer */

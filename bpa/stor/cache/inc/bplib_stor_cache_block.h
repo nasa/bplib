@@ -89,12 +89,10 @@
 
 BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_CACHE_Pool_t *pool, bp_handle_t handle);
 
-// TODO Belongs in BPLib_STOR_CACHE_ModuleApiTypes.h
+// TODO bp_sid_t elongs in higher level.
 
 /* Storage ID */
 typedef unsigned long bp_sid_t;
-
-// TODO End of block that belongs in BPLib_STOR_CACHE_ModuleApiTypes.h
 
 typedef enum BPLib_STOR_CACHE_Blocktype
 {
@@ -137,14 +135,14 @@ typedef enum BPLib_STOR_CACHE_Type
     BPLib_STOR_CACHE_TypeNone,
     BPLib_STOR_CACHE_TypeInternal,
     BPLib_STOR_CACHE_TypeOffload
-} BPLib_STOR_CACHE_Type_t;
+} BPLib_STOR_CACHE_ModuleType_t;
 
 typedef enum BPLib_STOR_CACHE_Valtype
 {
     BPLib_STOR_CACHE_ValtypeNone,
     BPLib_STOR_CACHE_ValtypeInteger,
     BPLib_STOR_CACHE_ValtypeString
-} BPLib_STOR_CACHE_Valtype_t;
+} BPLib_STOR_CACHE_ModuleValtype_t;
 
 typedef enum BPLib_STOR_CACHE_Confkey
 {
@@ -176,10 +174,10 @@ typedef struct BPLib_STOR_CACHE_BlockHeader
 
 struct BPLib_STOR_CACHE_ModuleApi
 {
-    BPLib_STOR_CACHE_Type_t module_type;
+    BPLib_STOR_CACHE_ModuleType_t module_type;
     BPLib_STOR_CACHE_Block_t *(*instantiate)(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
-    int (*configure)(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Valtype_t vt, const void *val);
-    int (*query)(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_Valtype_t vt, const void **val);
+    int (*configure)(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val);
+    int (*query)(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val);
     int (*start)(BPLib_STOR_CACHE_Block_t *svc);
     int (*stop)(BPLib_STOR_CACHE_Block_t *svc);
 };
@@ -274,7 +272,7 @@ typedef struct BPLib_STOR_CACHE_SubqWorkitem
 } BPLib_STOR_CACHE_SubqWorkitem_t;
 
 
-struct BPLib_STOR_CACHE_Duct
+struct BPLib_STOR_QM_Duct
 {
     uint32_t pending_state_flags;
     uint32_t current_state_flags;
@@ -502,9 +500,9 @@ struct BPLib_STOR_CACHE_BblockCanonicalContent
     BPLib_MEM_AlignedData_t             user_data_start;
 };
 
-struct BPLib_STOR_CACHE_DuctContent
+struct BPLib_STOR_QM_DuctContent
 {
-    BPLib_STOR_CACHE_Duct_t             dblock;
+    BPLib_STOR_QM_Duct_t             dblock;
     BPLib_MEM_AlignedData_t             user_data_start;
 };
 
@@ -560,9 +558,11 @@ size_t BPLib_STOR_CACHE_QueryMemMaxUse(BPLib_STOR_CACHE_Pool_t *pool);
 /**
  * @brief Initializes the global lock table
  *
+ * ** Removed ** This is a placeholder in case it returns
  * Must be called once per process using bplib (not per instance).
  */
-void BPLib_STOR_CACHE_LockInit(void);
+// TODO BPLib_STOR_CACHE_LockInit belongs here.
+// void BPLib_STOR_CACHE_LockInit(void);
 
 /* IPN Schema Endpoint ID Integer Definition */
 typedef bp_val_t bp_ipn_t;
@@ -801,7 +801,7 @@ typedef union BPLib_STOR_CACHE_BlockBuffer
     BPLib_STOR_CACHE_ModuleApiContent_t             api;
     BPLib_STOR_CACHE_BBlockPrimaryContent_t   primary;
     BPLib_STOR_CACHE_BblockCanonicalContent_t canonical;
-    BPLib_STOR_CACHE_DuctContent_t            duct;
+    BPLib_STOR_QM_DuctContent_t            duct;
     BPLib_STOR_CACHE_BlockRefContent_t        ref;
     BPLib_STOR_CACHE_BlockAdminContent_t      admin;
 
