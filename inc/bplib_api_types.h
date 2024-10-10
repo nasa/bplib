@@ -78,6 +78,8 @@ typedef int32_t BPLib_Status_t;
 /* CLA Errors*/
 #define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -18u)
 
+/* Payload Interface Errors */
+#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -19u)
 
 #ifdef __cplusplus
 } // extern "C"
