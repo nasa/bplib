@@ -39,15 +39,21 @@ BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 /* Initialize proxy callbacks */
 BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
 
-    if (Callbacks.BPA_TIMEP_GetMonotonicTime == NULL ||
-        Callbacks.BPA_TIMEP_GetHostEpoch == NULL ||
-        Callbacks.BPA_TIMEP_GetHostClockState == NULL ||
-        Callbacks.BPA_TIMEP_GetHostTime == NULL ||
+    if (Callbacks.BPA_TIMEP_GetMonotonicTime   == NULL ||
+        Callbacks.BPA_TIMEP_GetHostEpoch       == NULL ||
+        Callbacks.BPA_TIMEP_GetHostClockState  == NULL ||
+        Callbacks.BPA_TIMEP_GetHostTime        == NULL ||
         Callbacks.BPA_TABLEP_SingleTableUpdate == NULL ||
         Callbacks.BPA_EVP_Init                 == NULL ||
         Callbacks.BPA_EVP_SendEvent            == NULL ||
-        Callbacks.BPA_PERFLOGP_Entry == NULL ||
-        Callbacks.BPA_PERFLOGP_Exit == NULL)
+        Callbacks.BPA_PERFLOGP_Entry           == NULL ||
+        Callbacks.BPA_PERFLOGP_Exit            == NULL ||
+        Callbacks.BPA_ADUP_ValidateConfigTbl   == NULL ||
+        Callbacks.BPA_ADUP_In                  == NULL ||
+        Callbacks.BPA_ADUP_Out                 == NULL ||
+        Callbacks.BPA_ADUP_AddApplication      == NULL ||
+        Callbacks.BPA_ADUP_StartApplication    == NULL ||
+        Callbacks.BPA_ADUP_StopApplication     == NULL)
     {
         return BPLIB_FWP_CALLBACK_INIT_ERROR;
     }
@@ -69,6 +75,15 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         /* Initialize Event Proxy callbacks */
         BPLib_FWP_ProxyCallbacks.BPA_EVP_Init      = Callbacks.BPA_EVP_Init;
         BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent = Callbacks.BPA_EVP_SendEvent;
+
+        /* Initialize ADU Proxy callbacks */
+        BPLib_FWP_ProxyCallbacks.BPA_ADUP_ValidateConfigTbl = Callbacks.BPA_ADUP_ValidateConfigTbl;
+        BPLib_FWP_ProxyCallbacks.BPA_ADUP_In                = Callbacks.BPA_ADUP_In;
+        BPLib_FWP_ProxyCallbacks.BPA_ADUP_Out               = Callbacks.BPA_ADUP_Out;
+        BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication    = Callbacks.BPA_ADUP_AddApplication;
+        BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication  = Callbacks.BPA_ADUP_StartApplication;
+        BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication   = Callbacks.BPA_ADUP_StopApplication;
+
         /* Initialize other proxies' callbacks TODO */
     }
 

@@ -51,6 +51,14 @@ typedef struct
     BPLib_Status_t (*BPA_EVP_Init)(void);
     BPLib_Status_t (*BPA_EVP_SendEvent)(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText);
 
+    /* ADU Proxy function callbacks */
+    BPLib_Status_t (*BPA_ADUP_ValidateConfigTbl)(void *TblData);
+    BPLib_Status_t (*BPA_ADUP_In)(void *AduPtr, uint8_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_Out)(void *AduPtr, uint8_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_AddApplication)(uint8_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_StartApplication)(uint8_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_StopApplication)(uint8_t ChanId);
+
     /* Add other proxies' function callbacks here: TODO */
 
 } BPLib_FWP_ProxyCallbacks_t;
