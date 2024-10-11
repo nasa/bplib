@@ -57,7 +57,7 @@ BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd(void);
 BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd(void);
 BPLib_Status_t BPLib_NC_ClearVolatileCmd(void);
 BPLib_Status_t BPLib_NC_ReloadSavedDataCmd(void);
-BPLib_Status_t BPLib_NC_ResetAllCountersCmd(void);
+void BPLib_NC_ResetAllCountersCmd(void);
 BPLib_Status_t BPLib_NC_ResetCounterCmd(const BPLib_ResetCounterCmd_Payload_t Payload);
 BPLib_Status_t BPLib_NC_ResetSourceCountersCmd(const BPLib_ResetSourceCountersCmd_Payload_t Payload);
 BPLib_Status_t BPLib_NC_ResetBundleCountersCmd(void);
