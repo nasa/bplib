@@ -27,7 +27,7 @@
 
 #include "test_bplib_stor_qm.h"
 
-void test_BPLib_STOR_CACHE_CustodyFinalizeDacs(void)
+void Test_BPLib_STOR_CACHE_CustodyFinalizeDacs(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyFinalizeDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -42,7 +42,7 @@ void test_BPLib_STOR_CACHE_CustodyFinalizeDacs(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyFinalizeDacs(&state, &store_entry));
 }
 
-void test_BPLib_STOR_CACHE_CustodyCheckDacs(void)
+void Test_BPLib_STOR_CACHE_CustodyCheckDacs(void)
 {
     /* Test function for:
      * bool BPLib_STOR_CACHE_CustodyCheckDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_Block_t *qblk)
@@ -77,7 +77,7 @@ void test_BPLib_STOR_CACHE_CustodyCheckDacs(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
+void Test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyStoreBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_Block_t *qblk)
@@ -121,7 +121,7 @@ void test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_cache_AltHandler_PointerReturn, &sblk);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyStoreBundle(&state, &qblk));
 
-    offload_api.offload                     = test_BPLib_STOR_CACHE_OffloadStub;
+    offload_api.offload                     = Test_BPLib_STOR_CACHE_OffloadStub;
     state.offload_api                       = &offload_api;
     pri_block.data.delivery.delivery_policy =BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking;
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalAlloc), UT_cache_sizet_Handler, NULL);
@@ -135,7 +135,7 @@ void test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyInsertTrackingBlock(void)
+void Test_BPLib_STOR_CACHE_CustodyInsertTrackingBlock(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyInsertTrackingBlock(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_BblockPrimary_t
@@ -161,7 +161,7 @@ void test_BPLib_STOR_CACHE_CustodyInsertTrackingBlock(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyFindDacsMatch(void)
+void Test_BPLib_STOR_CACHE_CustodyFindDacsMatch(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_MEM_RBT_Link_t *node, void *arg)
@@ -177,7 +177,7 @@ void test_BPLib_STOR_CACHE_CustodyFindDacsMatch(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_CustodyFindDacsMatch(&store_entry.hash_rbt_link, &custody_info), 0);
 }
 
-void test_BPLib_STOR_CACHE_CustodyFindPendingDacs(void)
+void Test_BPLib_STOR_CACHE_CustodyFindPendingDacs(void)
 {
     /* Test function for:
      * bool BPLib_STOR_CACHE_CustodyFindPendingDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *dacs_info)
@@ -196,7 +196,7 @@ void test_BPLib_STOR_CACHE_CustodyFindPendingDacs(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyCreateDacs(void)
+void Test_BPLib_STOR_CACHE_CustodyCreateDacs(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_CustodyCreateDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_BblockPrimary_t
@@ -237,7 +237,7 @@ void test_BPLib_STOR_CACHE_CustodyCreateDacs(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyOpenDacs(void)
+void Test_BPLib_STOR_CACHE_CustodyOpenDacs(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyOpenDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *custody_info)
@@ -282,7 +282,7 @@ void test_BPLib_STOR_CACHE_CustodyOpenDacs(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyAppendDacs(void)
+void Test_BPLib_STOR_CACHE_CustodyAppendDacs(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyAppendDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *custody_info)
@@ -312,7 +312,7 @@ void test_BPLib_STOR_CACHE_CustodyAppendDacs(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyUpdateTrackingBlock(void)
+void Test_BPLib_STOR_CACHE_CustodyUpdateTrackingBlock(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyUpdateTrackingBlock(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t
@@ -332,7 +332,7 @@ void test_BPLib_STOR_CACHE_CustodyUpdateTrackingBlock(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyFindBundleMatch(void)
+void Test_BPLib_STOR_CACHE_CustodyFindBundleMatch(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_MEM_RBT_Link_t *node, void *arg)
@@ -347,7 +347,7 @@ void test_BPLib_STOR_CACHE_CustodyFindBundleMatch(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyFindBundleMatch(&store_entry.hash_rbt_link, &custody_info));
 }
 
-void test_BPLib_STOR_CACHE_CustodyProcessBundle(void)
+void Test_BPLib_STOR_CACHE_CustodyProcessBundle(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyProcessBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
@@ -370,7 +370,7 @@ void test_BPLib_STOR_CACHE_CustodyProcessBundle(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyProcessBundle(&state, &pri_block, &custody_info));
 }
 
-void test_BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(void)
+void Test_BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_BblockPrimary_t
@@ -394,7 +394,7 @@ void test_BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyInitInfoFromPblock(void)
+void Test_BPLib_STOR_CACHE_CustodyInitInfoFromPblock(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyInitInfoFromPblock(BPLib_STOR_CACHE_CustodianInfo_t *custody_info,
@@ -418,7 +418,7 @@ void test_BPLib_STOR_CACHE_CustodyInitInfoFromPblock(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CustodyAckTrackingBlock(void)
+void Test_BPLib_STOR_CACHE_CustodyAckTrackingBlock(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_CustodyAckTrackingBlock(BPLib_STOR_CACHE_State_t *state,const BPLib_STOR_CACHE_CustodianInfo_t
@@ -443,23 +443,23 @@ void test_BPLib_STOR_CACHE_CustodyAckTrackingBlock(void)
 
 void Test_BplibCacheCustody_Register(void)
 {
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyFinalizeDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyFinalizeDacs");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyCheckDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyCheckDacs");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyStoreBundle, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyStoreBundle");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyInsertTrackingBlock, NULL, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyFinalizeDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyFinalizeDacs");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyCheckDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyCheckDacs");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyStoreBundle, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyStoreBundle");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyInsertTrackingBlock, NULL, NULL,
                "Test BPLib_STOR_CACHE_CustodyInsertTrackingBlock");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyFindDacsMatch, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyFindDacsMatch");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyFindPendingDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyFindPendingDacs");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyCreateDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyCreateDacs");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyOpenDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyOpenDacs");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyAppendDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyAppendDacs");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyUpdateTrackingBlock, NULL, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyFindDacsMatch, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyFindDacsMatch");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyFindPendingDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyFindPendingDacs");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyCreateDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyCreateDacs");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyOpenDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyOpenDacs");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyAppendDacs, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyAppendDacs");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyUpdateTrackingBlock, NULL, NULL,
                "Test BPLib_STOR_CACHE_CustodyUpdateTrackingBlock");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyFindBundleMatch, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyFindBundleMatch");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyProcessBundle, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyProcessBundle");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle, NULL, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyFindBundleMatch, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyFindBundleMatch");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyProcessBundle, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyProcessBundle");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle, NULL, NULL,
                "Test BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyInitInfoFromPblock, NULL, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyInitInfoFromPblock, NULL, NULL,
                "Test BPLib_STOR_CACHE_CustodyInitInfoFromPblock");
-    UtTest_Add(test_BPLib_STOR_CACHE_CustodyAckTrackingBlock, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyAckTrackingBlock");
+    UtTest_Add(Test_BPLib_STOR_CACHE_CustodyAckTrackingBlock, NULL, NULL, "Test BPLib_STOR_CACHE_CustodyAckTrackingBlock");
 }

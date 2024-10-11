@@ -68,14 +68,14 @@ void UT_V7_uint8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCont
     UT_Stub_SetReturnValue(FuncKey, Result);
 }
 
-int test_BPLib_STOR_CACHE_V7WriterFuncStub(void *arg, const void *data_ptr, size_t data_len)
+int Test_BPLib_STOR_CACHE_V7WriterFuncStub(void *arg, const void *data_ptr, size_t data_len)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_V7WriterFuncStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_V7WriterFuncStub);
 }
 
-void test_BPLib_STOR_CACHE_V7EncodeFuncStub(v7_encode_state_t *enc, const void *arg) {}
+void Test_BPLib_STOR_CACHE_V7EncodeFuncStub(v7_encode_state_t *enc, const void *arg) {}
 
-void test_BPLib_STOR_CACHE_V7DecodeFuncStub(v7_decode_state_t *dec, void *arg) {}
+void Test_BPLib_STOR_CACHE_V7DecodeFuncStub(v7_decode_state_t *dec, void *arg) {}
 
 void UtTest_Setup(void)
 {

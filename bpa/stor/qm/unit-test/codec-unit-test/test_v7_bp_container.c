@@ -28,7 +28,7 @@ void test_v7_encode_container(void)
      */
     v7_encode_state_t enc;
     size_t            entries = 1;
-    v7_encode_func_t  func    = test_BPLib_STOR_CACHE_V7EncodeFuncStub;
+    v7_encode_func_t  func    = Test_BPLib_STOR_CACHE_V7EncodeFuncStub;
     void             *arg     = NULL;
     CborEncoder       cval;
 
@@ -52,7 +52,7 @@ void test_v7_decode_container(void)
      */
     v7_decode_state_t dec;
     size_t            entries = 1;
-    v7_decode_func_t  func    = test_BPLib_STOR_CACHE_V7DecodeFuncStub;
+    v7_decode_func_t  func    = Test_BPLib_STOR_CACHE_V7DecodeFuncStub;
     void             *arg     = NULL;
     CborValue         cval;
 

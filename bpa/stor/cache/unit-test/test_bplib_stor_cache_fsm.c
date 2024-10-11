@@ -30,7 +30,7 @@ BPLib_TIME_MonotonicTime_t UT_MONOTIME_1 = BPLIB_TIME_FROM_INT(1);
 BPLib_TIME_MonotonicTime_t UT_MONOTIME_10 = BPLIB_TIME_FROM_INT(10);
 
 
-void test_BPLib_STOR_CACHE_FsmStateIdleEval(void)
+void Test_BPLib_STOR_CACHE_FsmStateIdleEval(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateIdleEval(BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -45,7 +45,7 @@ void test_BPLib_STOR_CACHE_FsmStateIdleEval(void)
     memset(&offload_api, 0, sizeof(BPLib_STOR_CACHE_OffloadApi_t));
     memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     store_entry.parent  = &parent;
-    offload_api.restore = test_BPLib_STOR_CACHE_RestoreStub;
+    offload_api.restore = Test_BPLib_STOR_CACHE_RestoreStub;
     parent.offload_api  = &offload_api;
 
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_FsmStateIdleEval(&store_entry), 0);
@@ -60,7 +60,7 @@ void test_BPLib_STOR_CACHE_FsmStateIdleEval(void)
     UtAssert_UINT32_GT(BPLib_STOR_CACHE_FsmStateIdleEval(&store_entry), 0);
 }
 
-void test_BPLib_STOR_CACHE_FsmStateQueueEval(void)
+void Test_BPLib_STOR_CACHE_FsmStateQueueEval(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateQueueEval(BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -75,7 +75,7 @@ void test_BPLib_STOR_CACHE_FsmStateQueueEval(void)
     UtAssert_UINT32_GT(BPLib_STOR_CACHE_FsmStateQueueEval(&store_entry), 0);
 }
 
-void test_BPLib_STOR_CACHE_FsmStateQueueEnter(void)
+void Test_BPLib_STOR_CACHE_FsmStateQueueEnter(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_FsmStateQueueEnter(BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -94,7 +94,7 @@ void test_BPLib_STOR_CACHE_FsmStateQueueEnter(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefMakeBlock), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_FsmExecute(void)
+void Test_BPLib_STOR_CACHE_FsmExecute(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_FsmExecute(BPLib_STOR_CACHE_Block_t *sblk)
@@ -128,7 +128,7 @@ void test_BPLib_STOR_CACHE_FsmExecute(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_FsmStateQueueExit(void)
+void Test_BPLib_STOR_CACHE_FsmStateQueueExit(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_FsmStateQueueExit(BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -150,7 +150,7 @@ void test_BPLib_STOR_CACHE_FsmStateQueueExit(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_FsmStateDeleteEval(void)
+void Test_BPLib_STOR_CACHE_FsmStateDeleteEval(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateDeleteEval(BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -168,7 +168,7 @@ void test_BPLib_STOR_CACHE_FsmStateDeleteEval(void)
     UtAssert_NOT_NULL(BPLib_STOR_CACHE_FsmStateDeleteEval(&store_entry));
 }
 
-void test_BPLib_STOR_CACHE_FsmStateDeleteEnter(void)
+void Test_BPLib_STOR_CACHE_FsmStateDeleteEnter(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_FsmStateDeleteEnter(BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -182,7 +182,7 @@ void test_BPLib_STOR_CACHE_FsmStateDeleteEnter(void)
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
     memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&offload_api, 0, sizeof(BPLib_STOR_CACHE_OffloadApi_t));
-    offload_api.release             = test_BPLib_STOR_CACHE_ReleaseStub;
+    offload_api.release             = Test_BPLib_STOR_CACHE_ReleaseStub;
     store_entry.parent              = &state;
     store_entry.refptr              = refptr;
     store_entry.offload_sid         = 1;
@@ -191,7 +191,7 @@ void test_BPLib_STOR_CACHE_FsmStateDeleteEnter(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmStateDeleteEnter(&store_entry));
 }
 
-void test_BPLib_STOR_CACHE_FsmReschedule(void)
+void Test_BPLib_STOR_CACHE_FsmReschedule(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_FsmReschedule(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -210,7 +210,7 @@ void test_BPLib_STOR_CACHE_FsmReschedule(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmReschedule(&state, &store_entry));
 }
 
-void test_BPLib_STOR_CACHE_FsmStateGenerateDacsEval(void)
+void Test_BPLib_STOR_CACHE_FsmStateGenerateDacsEval(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateGenerateDacsEval(BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -225,7 +225,7 @@ void test_BPLib_STOR_CACHE_FsmStateGenerateDacsEval(void)
     UtAssert_NOT_NULL(BPLib_STOR_CACHE_FsmStateGenerateDacsEval(&store_entry));
 }
 
-void test_BPLib_STOR_CACHE_FsmStateGenerateDacsExit(void)
+void Test_BPLib_STOR_CACHE_FsmStateGenerateDacsExit(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_FsmStateGenerateDacsExit(BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -239,7 +239,7 @@ void test_BPLib_STOR_CACHE_FsmStateGenerateDacsExit(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmStateGenerateDacsExit(&store_entry));
 }
 
-void test_BPLib_STOR_CACHE_FsmTransitionState(void)
+void Test_BPLib_STOR_CACHE_FsmTransitionState(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_FsmTransitionState(BPLib_STOR_CACHE_Entry_t *entry, BPLib_STOR_CACHE_EntryState_t next_state)
@@ -256,7 +256,7 @@ void test_BPLib_STOR_CACHE_FsmTransitionState(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmTransitionState(&entry, next_state));
 }
 
-void test_BPLib_STOR_CACHE_FsmGetNextState(void)
+void Test_BPLib_STOR_CACHE_FsmGetNextState(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmGetNextState(BPLib_STOR_CACHE_Entry_t *entry)
@@ -270,18 +270,18 @@ void test_BPLib_STOR_CACHE_FsmGetNextState(void)
 
 void Test_BplibCacheFsm_Register(void)
 {
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmStateIdleEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateIdleEval");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmStateQueueEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateQueueEval");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmStateQueueEnter, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateQueueEnter");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmExecute, NULL, NULL, "Test BPLib_STOR_CACHE_FsmExecute");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmStateQueueExit, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateQueueExit");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmStateDeleteEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateDeleteEval");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmStateDeleteEnter, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateDeleteEnter");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmReschedule, NULL, NULL, "Test BPLib_STOR_CACHE_FsmReschedule");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmStateGenerateDacsEval, NULL, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateIdleEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateIdleEval");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateQueueEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateQueueEval");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateQueueEnter, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateQueueEnter");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmExecute, NULL, NULL, "Test BPLib_STOR_CACHE_FsmExecute");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateQueueExit, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateQueueExit");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateDeleteEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateDeleteEval");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateDeleteEnter, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateDeleteEnter");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmReschedule, NULL, NULL, "Test BPLib_STOR_CACHE_FsmReschedule");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateGenerateDacsEval, NULL, NULL,
                "Test BPLib_STOR_CACHE_FsmStateGenerateDacsEval");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmStateGenerateDacsExit, NULL, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateGenerateDacsExit, NULL, NULL,
                "Test BPLib_STOR_CACHE_FsmStateGenerateDacsExit");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmTransitionState, NULL, NULL, "Test BPLib_STOR_CACHE_FsmTransitionState");
-    UtTest_Add(test_BPLib_STOR_CACHE_FsmGetNextState, NULL, NULL, "Test BPLib_STOR_CACHE_FsmGetNextState");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmTransitionState, NULL, NULL, "Test BPLib_STOR_CACHE_FsmTransitionState");
+    UtTest_Add(Test_BPLib_STOR_CACHE_FsmGetNextState, NULL, NULL, "Test BPLib_STOR_CACHE_FsmGetNextState");
 }

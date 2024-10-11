@@ -37,9 +37,9 @@ void UT_V7_sizet_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCont
 void UT_V7_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_V7_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_V7_uint8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
-int  test_BPLib_STOR_CACHE_V7WriterFuncStub(void *arg, const void *data_ptr, size_t data_len);
-void test_BPLib_STOR_CACHE_V7EncodeFuncStub(v7_encode_state_t *enc, const void *arg);
-void test_BPLib_STOR_CACHE_V7DecodeFuncStub(v7_decode_state_t *dec, void *arg);
+int  Test_BPLib_STOR_CACHE_V7WriterFuncStub(void *arg, const void *data_ptr, size_t data_len);
+void Test_BPLib_STOR_CACHE_V7EncodeFuncStub(v7_encode_state_t *enc, const void *arg);
+void Test_BPLib_STOR_CACHE_V7DecodeFuncStub(v7_decode_state_t *dec, void *arg);
 
 void TestBpV7_Register(void);
 void TestBpV7AdminRecord_Register(void);

@@ -125,7 +125,7 @@ void test_v7_encoder_write_crc(void)
 
     memset(&enc, 0, sizeof(v7_encode_state_t));
 
-    enc.next_writer = test_BPLib_STOR_CACHE_V7WriterFuncStub;
+    enc.next_writer = Test_BPLib_STOR_CACHE_V7WriterFuncStub;
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_CrcGetWidth), UT_V7_uint8_Handler, NULL);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_CrcGetWidth), 16);
     UtAssert_INT32_EQ(v7_encoder_write_crc(&enc), 0);
@@ -143,12 +143,12 @@ void test_v7_encoder_write_wrapper(void)
 
     memset(&enc, 0, sizeof(v7_encode_state_t));
     enc.crc_flag = false;
-    UT_SetDefaultReturnValue(UT_KEY(test_BPLib_STOR_CACHE_V7WriterFuncStub), BP_ERROR);
-    enc.next_writer = test_BPLib_STOR_CACHE_V7WriterFuncStub;
+    UT_SetDefaultReturnValue(UT_KEY(Test_BPLib_STOR_CACHE_V7WriterFuncStub), BP_ERROR);
+    enc.next_writer = Test_BPLib_STOR_CACHE_V7WriterFuncStub;
     UtAssert_INT32_NEQ(v7_encoder_write_wrapper(&enc, ptr, sz, at), 0);
 
     enc.crc_flag = true;
-    UT_SetDefaultReturnValue(UT_KEY(test_BPLib_STOR_CACHE_V7WriterFuncStub), BP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(Test_BPLib_STOR_CACHE_V7WriterFuncStub), BP_SUCCESS);
     UtAssert_INT32_EQ(v7_encoder_write_wrapper(&enc, ptr, sz, at), 0);
 }
 

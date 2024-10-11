@@ -26,7 +26,7 @@
 #include "test_bplib_stor_qm.h"
 #include "bplib_stor_cache_ref.h"
 
-void test_BPLib_STOR_CACHE_RefCreate(void)
+void Test_BPLib_STOR_CACHE_RefCreate(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefCreate(BPLib_STOR_CACHE_Block_t *blk)
@@ -43,7 +43,7 @@ void test_BPLib_STOR_CACHE_RefCreate(void)
     UtAssert_UINT16_EQ(my_block.header.refcount, 1);
 }
 
-void test_BPLib_STOR_CACHE_RefDuplicate(void)
+void Test_BPLib_STOR_CACHE_RefDuplicate(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefDuplicate(BPLib_STOR_CACHE_Ref_t refptr)
@@ -57,7 +57,7 @@ void test_BPLib_STOR_CACHE_RefDuplicate(void)
     UtAssert_UINT16_EQ(my_block.header.refcount, 2);
 }
 
-void test_BPLib_STOR_CACHE_RefFromBlock(void)
+void Test_BPLib_STOR_CACHE_RefFromBlock(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_RefFromBlock(BPLib_STOR_CACHE_Block_t *rblk)
@@ -77,7 +77,7 @@ void test_BPLib_STOR_CACHE_RefFromBlock(void)
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_RefFromBlock(&my_ref.header.base_link), &my_block);
 }
 
-void test_BPLib_STOR_CACHE_RefRelease(void)
+void Test_BPLib_STOR_CACHE_RefRelease(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_RefRelease(BPLib_STOR_CACHE_Ref_t refptr)
@@ -108,7 +108,7 @@ void test_BPLib_STOR_CACHE_RefRelease(void)
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_GetPrevBlock(&admin->recycle_blocks->block_list), &buf.blk[1]);
 }
 
-void test_BPLib_STOR_CACHE_RefMakeBlock(void)
+void Test_BPLib_STOR_CACHE_RefMakeBlock(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_RefMakeBlock(BPLib_STOR_CACHE_Ref_t refptr, uint32_t magic_number, void *init_arg)
@@ -131,11 +131,11 @@ void test_BPLib_STOR_CACHE_RefMakeBlock(void)
 
 void Test_BplibMpoolRef_Register(void)
 {
-    UtTest_Add(test_BPLib_STOR_CACHE_RefCreate, Test_BplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefCreate");
-    UtTest_Add(test_BPLib_STOR_CACHE_RefDuplicate, Test_BplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefDuplicate");
-    UtTest_Add(test_BPLib_STOR_CACHE_RefFromBlock, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_RefCreate, Test_BplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefCreate");
+    UtTest_Add(Test_BPLib_STOR_CACHE_RefDuplicate, Test_BplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefDuplicate");
+    UtTest_Add(Test_BPLib_STOR_CACHE_RefFromBlock, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_RefFromBlock");
-    UtTest_Add(test_BPLib_STOR_CACHE_RefRelease, Test_BplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefRelease");
-    UtTest_Add(test_BPLib_STOR_CACHE_RefMakeBlock, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_RefRelease, Test_BplibMpool_ResetTestEnvironment, NULL, "BPLib_STOR_CACHE_RefRelease");
+    UtTest_Add(Test_BPLib_STOR_CACHE_RefMakeBlock, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_RefMakeBlock");
 }

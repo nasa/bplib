@@ -30,7 +30,7 @@
 
 #include "test_bplib_stor_qm.h"
 
-void test_BPLib_STOR_CACHE_DataserviceAddBaseIntf(void)
+void Test_BPLib_STOR_CACHE_DataserviceAddBaseIntf(void)
 {
     /* Test function for:
      * bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_ipn_t node_number)
@@ -54,7 +54,7 @@ void test_BPLib_STOR_CACHE_DataserviceAddBaseIntf(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctAlloc), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_DataserviceAttach(void)
+void Test_BPLib_STOR_CACHE_DataserviceAttach(void)
 {
     /* Test function for:
      * bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn,BPLib_STOR_CACHE_DataserviceType_t
@@ -135,7 +135,7 @@ void test BPLib_STOR_CACHE_DataserviceDetach(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_ConnectSocket(void)
+void Test_BPLib_STOR_CACHE_ConnectSocket(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_ConnectSocket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn)
@@ -175,7 +175,7 @@ void test_BPLib_STOR_CACHE_ConnectSocket(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CreateSocket(void)
+void Test_BPLib_STOR_CACHE_CreateSocket(void)
 {
     /* Test function for:
      * bp_socket_t BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *rtbl)
@@ -200,7 +200,7 @@ void test_BPLib_STOR_CACHE_CreateSocket(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_BindSocket(void)
+void Test_BPLib_STOR_CACHE_BindSocket(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_BindSocket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
@@ -250,7 +250,7 @@ void test_BPLib_STOR_CACHE_BindSocket(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_CloseSocket(void)
+void Test_BPLib_STOR_CACHE_CloseSocket(void)
 {
     /* Test function for:
      * void_BPLib_STOR_CACHE_CloseSocket(bp_socket_t *desc)
@@ -426,7 +426,7 @@ void test_bplib_recv(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_ServiceductForwardIngress(void)
+void Test_BPLib_STOR_CACHE_ServiceductForwardIngress(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_ServiceductForwardIngress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
@@ -457,7 +457,7 @@ void test_BPLib_STOR_CACHE_ServiceductForwardIngress(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctTryPull), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_ServiceductForwardEgress(void)
+void Test_BPLib_STOR_CACHE_ServiceductForwardEgress(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
@@ -493,7 +493,7 @@ void test_BPLib_STOR_CACHE_ServiceductForwardEgress(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctTryPull), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_DataserviceEventImpl(void)
+void Test_BPLib_STOR_CACHE_DataserviceEventImpl(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_DataserviceEventImpl(void *arg, BPLib_STOR_CACHE_Block_t *intf_block)
@@ -525,7 +525,7 @@ void test_BPLib_STOR_CACHE_DataserviceEventImpl(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_DataserviceBaseConstruct(void)
+void Test_BPLib_STOR_CACHE_DataserviceBaseConstruct(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_DataserviceBaseConstruct(void *arg, BPLib_STOR_CACHE_Block_t *blk)

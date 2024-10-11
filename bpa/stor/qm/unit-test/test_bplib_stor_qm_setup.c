@@ -99,40 +99,40 @@ void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCo
     UT_Stub_SetReturnValue(FuncKey, retval);
 }
 
-BPLib_STOR_CACHE_Block_t *test_BPLib_STOR_CACHE_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg)
+BPLib_STOR_CACHE_Block_t *Test_BPLib_STOR_CACHE_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg)
 {
     memset(&retblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     return &retblk;
 }
 
-int test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val)
+int Test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_ConfigureStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_ConfigureStub);
 }
 
-int test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val)
+int Test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_QueryStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_QueryStub);
 }
 
-int test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc)
+int Test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_StartstopStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_StartstopStub);
 }
 
-int test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
+int Test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_OffloadStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_OffloadStub);
 }
 
-int test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
+int Test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_RestoreStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_RestoreStub);
 }
 
-int test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
+int Test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_ReleaseStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_ReleaseStub);
 }
 
 void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)

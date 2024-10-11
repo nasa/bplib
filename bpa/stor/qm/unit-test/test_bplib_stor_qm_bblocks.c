@@ -25,7 +25,7 @@
 
 #include "test_bplib_stor_qm.h"
 
-void test_BPLib_STOR_CACHE_BblockPrimaryCast(void)
+void Test_BPLib_STOR_CACHE_BblockPrimaryCast(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_BblockPrimary_t *BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_STOR_CACHE_Block_t *cb);
@@ -49,7 +49,7 @@ void test_BPLib_STOR_CACHE_BblockPrimaryCast(void)
     UtAssert_NOT_NULL(BPLib_STOR_CACHE_BblockPrimaryGetLogical(pri));
 }
 
-void test_BPLib_STOR_CACHE_BblockCanonicalCast(void)
+void Test_BPLib_STOR_CACHE_BblockCanonicalCast(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_STOR_CACHE_Block_t *cb);
@@ -76,7 +76,7 @@ void test_BPLib_STOR_CACHE_BblockCanonicalCast(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_BblockCanonicalGetContentOffset(canonical), 1);
 }
 
-void test_BPLib_STOR_CACHE_BblockCborCast(void)
+void Test_BPLib_STOR_CACHE_BblockCborCast(void)
 {
     /* Test function for:
      * void *BPLib_STOR_CACHE_BblockCborCast(BPLib_STOR_CACHE_Block_t *cb);
@@ -93,7 +93,7 @@ void test_BPLib_STOR_CACHE_BblockCborCast(void)
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockCborCast(cb), &my_block.u);
 }
 
-void test_BPLib_STOR_CACHE_BblockCborSetSize(void)
+void Test_BPLib_STOR_CACHE_BblockCborSetSize(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_BblockCborSetSize(BPLib_STOR_CACHE_Block_t *cb, size_t user_content_size);
@@ -117,24 +117,7 @@ void test_BPLib_STOR_CACHE_BblockCborSetSize(void)
     UtAssert_UINT32_EQ(my_block.header.user_content_length, 123);
 }
 
-void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
-{
-    /* Test function for:
-     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg,
-     * uint8_t priority, uint64_t timeout);
-     */
-    UT_BPLib_STOR_QM_Buf_t buf;
-    BPLib_TIME_MonotonicTime_t time_zero;
-
-    time_zero.Time = 0;
-    memset(&buf, 0, sizeof(buf));
-
-    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero));
-    test_setup_cpool_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
-    UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero), &buf.blk[0]);
-}
-
-void test_BPLib_STOR_CACHE_BblockCanonicalAlloc(void)
+void Test_BPLib_STOR_CACHE_BblockCanonicalAlloc(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void
@@ -151,7 +134,7 @@ void test_BPLib_STOR_CACHE_BblockCanonicalAlloc(void)
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockCanonicalAlloc(&buf.pool, 1234, NULL), &buf.blk[0]);
 }
 
-void test_BPLib_STOR_CACHE_BblockCborAlloc(void)
+void Test_BPLib_STOR_CACHE_BblockCborAlloc(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockCborAlloc(BPLib_STOR_CACHE_Pool_t *pool);
@@ -167,7 +150,7 @@ void test_BPLib_STOR_CACHE_BblockCborAlloc(void)
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockCborAlloc(&buf.pool), &buf.blk[0]);
 }
 
-void test_BPLib_STOR_CACHE_BblockCborAppend(void)
+void Test_BPLib_STOR_CACHE_BblockCborAppend(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_BblockCborAppend(BPLib_STOR_CACHE_Block_t *head, BPLib_STOR_CACHE_Block_t *blk);
@@ -182,7 +165,7 @@ void test_BPLib_STOR_CACHE_BblockCborAppend(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockCborAppend(&buf.blk[0].header.base_link, &buf.blk[1].header.base_link));
 }
 
-void test_BPLib_STOR_CACHE_BblockPrimaryAppend(void)
+void Test_BPLib_STOR_CACHE_BblockPrimaryAppend(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb, BPLib_STOR_CACHE_Block_t *ccb);
@@ -205,7 +188,7 @@ void test_BPLib_STOR_CACHE_BblockPrimaryAppend(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_BblockPrimaryAppend(&buf.blk[0].u.primary.pblock, &buf.blk[2].header.base_link));
 }
 
-void test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(void)
+void Test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
@@ -238,7 +221,7 @@ void test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(void)
     UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, bp_blocktype_hopCount));
 }
 
-void test_BPLib_STOR_CACHE_BblockPrimaryDropEncode(void)
+void Test_BPLib_STOR_CACHE_BblockPrimaryDropEncode(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_BblockPrimaryDropEncode(BPLib_STOR_CACHE_BblockPrimary_t *cpb);
@@ -265,7 +248,7 @@ void test_BPLib_STOR_CACHE_BblockPrimaryDropEncode(void)
     UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_IsEmptyListHead(&admin->recycle_blocks.block_list));
 }
 
-void test_BPLib_STOR_CACHE_BblockCanonicalDropEncode(void)
+void Test_BPLib_STOR_CACHE_BblockCanonicalDropEncode(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_BblockCanonicalDropEncode(BPLib_STOR_CACHE_BblockCanonical_t *ccb);
@@ -309,7 +292,7 @@ void test_BPLib_STOR_CACHE_BblockCanonicalDropEncode(void)
     UtAssert_ZERO(buf.blk[1].u.canonical.cblock.block_encode_size_cache);
 }
 
-void test_BPLib_STOR_CACHE_BblockCborExport(void)
+void Test_BPLib_STOR_CACHE_BblockCborExport(void)
 {
     /* Test function for:
      * size_t BPLib_STOR_CACHE_BblockCborExport(BPLib_STOR_CACHE_Block_t *list, void *out_ptr, size_t max_out_size, size_t
@@ -367,31 +350,31 @@ void test_BPLib_STOR_CACHE_BblockCborExport(void)
 #ifdef QM
 void Test_BplibMpoolBBlocks_Register(void)
 {
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryCast, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockPrimaryCast, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryCast");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCanonicalCast, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockCanonicalCast, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCanonicalCast");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborCast, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockCborCast, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborCast");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborSetSize, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockCborSetSize, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborSetSize");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryAlloc, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockPrimaryAlloc, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryAlloc");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCanonicalAlloc, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockCanonicalAlloc, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCanonicalAlloc");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborAlloc, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockCborAlloc, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborAlloc");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborAppend, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockCborAppend, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborAppend");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryAppend, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockPrimaryAppend, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryAppend");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryLocateCanonical");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockPrimaryDropEncode, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockPrimaryDropEncode, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockPrimaryDropEncode");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCanonicalDropEncode, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockCanonicalDropEncode, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCanonicalDropEncode");
-    UtTest_Add(test_BPLib_STOR_CACHE_BblockCborExport, Test_BplibMpool_ResetTestEnvironment, NULL,
+    UtTest_Add(Test_BPLib_STOR_CACHE_BblockCborExport, Test_BplibMpool_ResetTestEnvironment, NULL,
                "BPLib_STOR_CACHE_BblockCborExport");
 }
 #endif // QM

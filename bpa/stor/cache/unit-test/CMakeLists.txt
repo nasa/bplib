@@ -35,6 +35,7 @@ target_compile_options(utobj_bplib_stor_cache PRIVATE
 
 target_include_directories(utobj_bplib_stor_cache PRIVATE
     $<TARGET_PROPERTY:bplib_stor_cache,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_time,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_INCLUDE_DIRECTORIES>
 )
 

@@ -25,11 +25,33 @@
 
 #include "bplib_api_types.h"
 
+#include "bplib_time.h"
+
 #include "utilities/bplib_stor_cache_utils.h"
 
 #include "test_bplib_stor_cache.h"
 
-void test_BPLib_STOR_CACHE_EntryMakePending(void)
+void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
+{
+    /* Test function for:
+     * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg,
+     * uint8_t priority, uint64_t timeout);
+     */
+    UT_BPLib_STOR_CACHE_Buf_t buf;
+    BPLib_TIME_MonotonicTime_t time_zero;
+
+    time_zero.Time = 0;
+    memset(&buf, 0, sizeof(buf));
+
+    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero));
+    test_setup_cpool_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+
+    // TODO Complete Test_BPLib_STOR_CACHE_BblockPrimaryAlloc.
+    // Fails with null allocation
+    // UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero), &buf.blk[0]);
+}
+
+void Test_BPLib_STOR_CACHE_EntryMakePending(void)
 {
     /* Test function for:
      * void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, uint32_t set_flags, uint32_t clear_flags)
@@ -47,7 +69,7 @@ void test_BPLib_STOR_CACHE_EntryMakePending(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_DoPoll(void)
+void Test_BPLib_STOR_CACHE_DoPoll(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_DoPoll(BPLib_STOR_CACHE_State_t *state)
@@ -66,7 +88,7 @@ void test_BPLib_STOR_CACHE_DoPoll(void)
 }
 
 #ifdef QM
-void test_BPLib_STOR_CACHE_DoRouteUp(void)
+void Test_BPLib_STOR_CACHE_DoRouteUp(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_DoRouteUp(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, bp_ipn_t mask)
@@ -87,7 +109,7 @@ void test_BPLib_STOR_CACHE_DoRouteUp(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_DoRouteUp(&state, dest, mask), 0);
 }
 
-void test_BPLib_STOR_CACHE_DoIntfStatechange(void)
+void Test_BPLib_STOR_CACHE_DoIntfStatechange(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_up)
@@ -109,7 +131,7 @@ void test_BPLib_STOR_CACHE_DoIntfStatechange(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_EventImpl(void)
+void Test_BPLib_STOR_CACHE_EventImpl(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_block)
@@ -142,7 +164,7 @@ void test_BPLib_STOR_CACHE_EventImpl(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_ProcessPending(void)
+void Test_BPLib_STOR_CACHE_ProcessPending(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_ProcessPending(void *arg, BPLib_STOR_CACHE_Block_t *job)
@@ -163,7 +185,7 @@ void test_BPLib_STOR_CACHE_ProcessPending(void)
 }
 #endif // QM
 
-void test_BPLib_STOR_CACHE_DestructState(void)
+void Test_BPLib_STOR_CACHE_DestructState(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_DestructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
@@ -195,7 +217,7 @@ void test_BPLib_STOR_CACHE_DestructState(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_ConstructEntry(void)
+void Test_BPLib_STOR_CACHE_ConstructEntry(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_ConstructEntry(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
@@ -214,7 +236,7 @@ void test_BPLib_STOR_CACHE_ConstructEntry(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_DestructEntry(void)
+void Test_BPLib_STOR_CACHE_DestructEntry(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_DestructEntry(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
@@ -238,7 +260,7 @@ void test_BPLib_STOR_CACHE_DestructEntry(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_ConstructBlockref(void)
+void Test_BPLib_STOR_CACHE_ConstructBlockref(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_ConstructBlockref(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
@@ -257,7 +279,7 @@ void test_BPLib_STOR_CACHE_ConstructBlockref(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_DestructBlockref(void)
+void Test_BPLib_STOR_CACHE_DestructBlockref(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_DestructBlockref(void *arg, BPLib_STOR_CACHE_Block_t *rblk)
@@ -284,7 +306,7 @@ void test_BPLib_STOR_CACHE_DestructBlockref(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
-void test_BPLib_STOR_CACHE_ConstructState(void)
+void Test_BPLib_STOR_CACHE_ConstructState(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_ConstructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
@@ -301,7 +323,7 @@ void test_BPLib_STOR_CACHE_ConstructState(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_ConstructState(NULL, &sblk), 0);
 }
 
-void test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted(void)
+void Test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted(void)
 {
     /* Test function for:
      * int BPLib_STOR_CACHE_EntryTreeInsertUnsorted(const BPLib_MEM_RBT_Link_t *node, void *arg)

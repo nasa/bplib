@@ -102,40 +102,40 @@ void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCo
     UT_Stub_SetReturnValue(FuncKey, retval);
 }
 
-BPLib_STOR_CACHE_Block_t *test_BPLib_STOR_CACHE_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg)
+BPLib_STOR_CACHE_Block_t *Test_BPLib_STOR_CACHE_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg)
 {
     memset(&retblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     return &retblk;
 }
 
-int test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val)
+int Test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_ConfigureStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_ConfigureStub);
 }
 
-int test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val)
+int Test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_QueryStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_QueryStub);
 }
 
-int test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc)
+int Test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_StartstopStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_StartstopStub);
 }
 
-int test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
+int Test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_OffloadStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_OffloadStub);
 }
 
-int test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
+int Test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_RestoreStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_RestoreStub);
 }
 
-int test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
+int Test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
 {
-    return UT_DEFAULT_IMPL(test_BPLib_STOR_CACHE_ReleaseStub);
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_ReleaseStub);
 }
 
 void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
@@ -290,28 +290,28 @@ void test_setup_cpool_allocation(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE
 
 void Test_BplibStorCache_Register(void)
 {
-    // ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryAlloc);
-    // UtTest_Add(test_BPLib_STOR_CACHE_EntryMakePending, NULL, NULL, "Test BPLib_STOR_CACHE_EntryMakePending");
-    // UtTest_Add(test_BPLib_STOR_CACHE_Attach, NULL, NULL, "Test BPLib_STOR_CACHE_Attach");
-    // UtTest_Add(test_BPLib_STOR_CACHE_Detach, NULL, NULL, "Test BPLib_STOR_CACHE_Detach");
-    // UtTest_Add(test_BPLib_STOR_CACHE_RegisterModuleService, NULL, NULL, "Test BPLib_STOR_CACHE_RegisterModuleService");
-    // UtTest_Add(test_BPLib_STOR_CACHE_Configure, NULL, NULL, "Test BPLib_STOR_PS_Configure");
-    // UtTest_Add(test_BPLib_STOR_CACHE_Query, NULL, NULL, "Test BPLib_STOR_PS_Query");
-    // UtTest_Add(test_BPLib_STOR_CACHE_Start, NULL, NULL, "Test BPLib_STOR_PS_Start");
-    // UtTest_Add(test_BPLib_STOR_CACHE_Stop, NULL, NULL, "Test BPLib_STOR_PS_Stop");
-    // UtTest_Add(test_BPLib_STOR_CACHE_DebugScanQueue, NULL, NULL, "Test BPLib_STOR_CACHE_DebugScanQueue");
-    // UtTest_Add(test_BPLib_STOR_CACHE_EgressImpl, NULL, NULL, "Test BPLib_STOR_CACHE_EgressImpl");
-    // UtTest_Add(test_BPLib_STOR_CACHE_FlushPending, NULL, NULL, "Test BPLib_STOR_CACHE_FlushPending");
-    // UtTest_Add(test_BPLib_STOR_CACHE_DoPoll, NULL, NULL, "Test BPLib_STOR_CACHE_DoPoll");
-    // UtTest_Add(test_BPLib_STOR_CACHE_DoRouteUp, NULL, NULL, "Test BPLib_STOR_CACHE_DoRouteUp");
-    // UtTest_Add(test_BPLib_STOR_CACHE_DoIntfStatechange, NULL, NULL, "Test BPLib_STOR_CACHE_DoIntfStatechange");
-    // UtTest_Add(test_BPLib_STOR_CACHE_EventImpl, NULL, NULL, "Test BPLib_STOR_CACHE_EventImpl");
-    // UtTest_Add(test_BPLib_STOR_CACHE_ProcessPending, NULL, NULL, "Test BPLib_STOR_CACHE_ProcessPending");
-    // UtTest_Add(test_BPLib_STOR_CACHE_DestructState, NULL, NULL, "Test BPLib_STOR_CACHE_DestructState");
-    // UtTest_Add(test_BPLib_STOR_CACHE_ConstructEntry, NULL, NULL, "Test BPLib_STOR_CACHE_ConstructEntry");
-    // UtTest_Add(test_BPLib_STOR_CACHE_DestructEntry, NULL, NULL, "Test BPLib_STOR_CACHE_DestructEntry");
-    // UtTest_Add(test_BPLib_STOR_CACHE_ConstructBlockref, NULL, NULL, "Test BPLib_STOR_CACHE_ConstructBlockref");
-    // UtTest_Add(test_BPLib_STOR_CACHE_DestructBlockref, NULL, NULL, "Test BPLib_STOR_CACHE_DestructBlockref");
-    // UtTest_Add(test_BPLib_STOR_CACHE_ConstructState, NULL, NULL, "Test BPLib_STOR_CACHE_ConstructState");
-    // UtTest_Add(test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted, NULL, NULL, "Test BPLib_STOR_CACHE_EntryTreeInsertUnsorted");
+    ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryAlloc);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_EntryMakePending);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_Attach);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_Detach);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_RegisterModuleService);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_Configure);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_Query);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_Start);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_Stop);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_DebugScanQueue);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_EgressImpl);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_FlushPending);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_DoPoll);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_DoRouteUp);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_DoIntfStatechange);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_EventImpl);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_ProcessPending);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_DestructState);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_ConstructEntry);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_DestructEntry);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_ConstructBlockref);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_DestructBlockref);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_ConstructState);
+    // ADD_TEST(Test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted);
 }
