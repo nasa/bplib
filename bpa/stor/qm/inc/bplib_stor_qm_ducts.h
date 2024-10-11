@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_STOR_CACHE_FLOWS_H
-#define BPLIB_STOR_CACHE_FLOWS_H
+#ifndef BPLIB_STOR_QM_DUCTS_H
+#define BPLIB_STOR_QM_DUCTS_H
 
 #include <string.h>
 
@@ -36,11 +36,11 @@
  TYPEDEFS
  ******************************************************************************/
 
-#define BPLIB_MPOOL_FLOW_FLAGS_ADMIN_UP 0x01
-#define BPLIB_MPOOL_FLOW_FLAGS_OPER_UP  0x02
-#define BPLIB_MPOOL_FLOW_FLAGS_STORAGE  0x04
-#define BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT 0x08
-#define BPLIB_MPOOL_FLOW_FLAGS_POLL     0x10
+#define BPLIB_CACHE_STATE_FLAG_ADMIN_UP 0x01
+#define BPLIB_CACHE_STATE_FLAG_OPER_UP  0x02
+#define BPLIB_CACHE_STATE_FLAG_STORAGE  0x04
+#define BPLIB_CACHE_STATE_FLAG_ENDPOINT 0x08
+#define BPLIB_CACHE_STATE_FLAG_POLL     0x10
 
 /**
  * @brief Upper limit to how deep a single queue may ever be
@@ -112,7 +112,8 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctAlloc(BPLib_STOR_CACHE_Pool_t *pool,
 uint32_t BPLib_STOR_QM_DuctDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq);
 void     BPLib_STOR_QM_DuctEnable(BPLib_STOR_CACHE_SubqWorkitem_t *subq, uint32_t depth_limit);
 
-bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk, BPLib_TIME_MonotonicTime_t abs_timeout);
+bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk,
+                               BPLib_TIME_MonotonicTime_t abs_timeout);
 uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
                                        BPLib_TIME_MonotonicTime_t abs_timeout);
 
@@ -180,7 +181,7 @@ static inline bool BPLib_STOR_CACHE_SubqWorkitemMayPush(const BPLib_STOR_CACHE_S
 
 static inline bool BPLib_STOR_QM_DuctIsUp(const BPLib_STOR_QM_Duct_t *duct)
 {
-    return (duct->current_state_flags & (BPLIB_MPOOL_FLOW_FLAGS_ADMIN_UP | BPLIB_MPOOL_FLOW_FLAGS_OPER_UP)) == 0;
+    return (duct->current_state_flags & (BPLIB_CACHE_STATE_FLAG_ADMIN_UP | BPLIB_CACHE_STATE_FLAG_OPER_UP)) == 0;
 }
 
-#endif /* BPLIB_STOR_CACHE_FLOWS_H */
+#endif /* BPLIB_STOR_QM_DUCTS_H */

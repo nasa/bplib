@@ -24,7 +24,13 @@
  * Auto-Generated stub implementations for functions defined in bplib_cache.header
  */
 
-#include "bplib_cache.h"
+#include "bplib_mem.h"
+
+#include "bplib_stor_cache_types.h"
+#include "bplib_stor_cache_block.h"
+#include "bplib_stor_cache_module_api.h"
+#include "bplib_stor_cache_ref.h"
+
 #include "utgenstub.h"
 
 /*
@@ -128,7 +134,7 @@ bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl
 
     UT_GenStub_AddParam(BPLib_STOR_CACHE_RegisterModuleService, BPLib_STOR_QM_QueueTbl_t *, tbl);
     UT_GenStub_AddParam(BPLib_STOR_CACHE_RegisterModuleService, bp_handle_t, cache_intf_id);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_ModuleApi_t *, api);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_RegisterModuleService, BPLib_STOR_CACHE_ModuleApi_t *, api);
     UT_GenStub_AddParam(BPLib_STOR_CACHE_RegisterModuleService, void *, init_arg);
 
     UT_GenStub_Execute(BPLib_STOR_CACHE_RegisterModuleService, Basic, NULL);

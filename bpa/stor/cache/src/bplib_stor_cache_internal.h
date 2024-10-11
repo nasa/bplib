@@ -25,6 +25,8 @@
 
 #include "bplib_time.h"
 
+#include "bplib_mem.h"
+
 #include "bplib_stor_cache_block.h"
 
 // TODO Migrate PrintTrace stack trace to broader scope.

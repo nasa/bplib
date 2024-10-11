@@ -19,7 +19,15 @@
 /*
  * Includes
  */
-#include "test_bplib_cache.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
+
+#include "bplib_stor_cache_block.h"
+#include "bplib_stor_cache_ref.h"
+
+#include "test_bplib_stor_qm.h"
+#include "bplib_stor_qm.h"
 
 void test_BPLib_STOR_CACHE_EntryMakePending(void)
 {
@@ -124,7 +132,7 @@ void test_BPLib_STOR_CACHE_RegisterModuleService(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BlockFromExternalId), UT_cache_AltHandler_PointerReturn, &cblk);
     api.instantiate = test_BPLib_STOR_CACHE_InstantiateStub;
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_RegisterModuleService(tbl, cache_intf_id, &api, init_arg).hdl, 0);
-    api.module_type = BPLib_STOR_CACHE_TypeOffload;
+    api.module_type = BPLib_STOR_CACHE_ModuleTypeOffload;
     UtAssert_UINT32_GT(BPLib_STOR_CACHE_RegisterModuleService(tbl, cache_intf_id, &api, init_arg).hdl, 0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
@@ -135,13 +143,13 @@ void test_BPLib_STOR_CACHE_RegisterModuleService(void)
 void test_BPLib_STOR_CACHE_Configure(void)
 {
     /* Test function for:
-     * int BPLib_STOR_PS_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
-     * BPLib_STOR_CACHE_Valtype_t vt, const void *val)
+     * int BPLib_STOR_CACHE_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
+     * BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val)
      */
     BPLib_STOR_QM_QueueTbl_t            *tbl            = NULL;
     bp_handle_t                  module_intf_id = BP_INVALID_HANDLE;
     int                          key            = 0;
-    BPLib_STOR_CACHE_Valtype_t vt             = BPLib_STOR_CACHE_ValtypeInteger;
+    BPLib_STOR_CACHE_ModuleValtype_t vt             = BPLib_STOR_CACHE_ModuleValtypeInteger;
     void                        *val            = NULL;
     BPLib_STOR_CACHE_State_t          state;
     BPLib_STOR_CACHE_Block_t          blk;
@@ -157,7 +165,7 @@ void test_BPLib_STOR_CACHE_Configure(void)
     state.offload_api = &api;
     api.std.configure = test_BPLib_STOR_CACHE_ConfigureStub;
 
-    UtAssert_UINT32_EQ(BPLib_STOR_PS_Configure(tbl, module_intf_id, key, vt, val), 0);
+    UtAssert_UINT32_EQ(BPLib_STOR_CACHE_Configure(tbl, module_intf_id, key, vt, val), 0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
@@ -165,13 +173,13 @@ void test_BPLib_STOR_CACHE_Configure(void)
 void test_BPLib_STOR_CACHE_Query(void)
 {
     /* Test function for:
-     * int BPLib_STOR_PS_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_Valtype_t
+     * int BPLib_STOR_PS_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_ModuleValtype_t
      * vt, const void **val)
      */
     BPLib_STOR_QM_QueueTbl_t            *tbl            = NULL;
     bp_handle_t                  module_intf_id = BP_INVALID_HANDLE;
     int                          key            = 0;
-    BPLib_STOR_CACHE_Valtype_t vt             = BPLib_STOR_CACHE_ValtypeInteger;
+    BPLib_STOR_CACHE_ModuleValtype_t vt             = BPLib_STOR_CACHE_ModuleValtypeInteger;
     void                        *val            = NULL;
     BPLib_STOR_CACHE_State_t          state;
     BPLib_STOR_CACHE_Block_t          blk;
@@ -307,7 +315,7 @@ void test_BPLib_STOR_CACHE_FlushPending(void)
     duct.ingress.current_depth_limit = 2;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_cache_AltHandler_PointerReturn, &duct);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterForward), BP_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterForward), BPLIB_ERROR);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FlushPending(&state));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_cache_AltHandler_PointerReturn, NULL);
@@ -325,7 +333,7 @@ void test_BPLib_STOR_CACHE_DoPoll(void)
     memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &sblk);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_IterGotoMax), BP_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_IterGotoMax), BPLIB_ERROR);
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_DoPoll(&state), 0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
@@ -345,7 +353,7 @@ void test_BPLib_STOR_CACHE_DoRouteUp(void)
     memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     dest = 1;
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_IterGotoMin), BP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_IterGotoMin), BPLIB_SUCCESS);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_GetKeyValue), 1);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_GetKeyValue), UT_cache_uint64_Handler, NULL);
 
@@ -393,9 +401,9 @@ void test_BPLib_STOR_CACHE_EventImpl(void)
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, &state);
     event_arg.event_type = BPLib_STOR_QM_DuctEventPoll;
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_IterGotoMax), BP_ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterForward), BP_ERROR);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterGotoFirst), BP_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_IterGotoMax), BPLIB_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterForward), BPLIB_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterGotoFirst), BPLIB_ERROR);
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_EventImpl(&event_arg, &intf_block), 0);
 
     event_arg.event_type         = BPLib_STOR_QM_DuctEventUp;
@@ -420,7 +428,7 @@ void test_BPLib_STOR_CACHE_ProcessPending(void)
 
     duct.ingress.current_depth_limit = 2;
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_cache_AltHandler_PointerReturn, &duct);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterForward), BP_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterForward), BPLIB_ERROR);
 
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_ProcessPending(NULL, &job), 0);
 
@@ -583,10 +591,10 @@ void Test_BplibStorCache_Register(void)
     UtTest_Add(test_BPLib_STOR_CACHE_Attach, NULL, NULL, "Test BPLib_STOR_CACHE_Attach");
     UtTest_Add(test_BPLib_STOR_CACHE_Detach, NULL, NULL, "Test BPLib_STOR_CACHE_Detach");
     UtTest_Add(test_BPLib_STOR_CACHE_RegisterModuleService, NULL, NULL, "Test BPLib_STOR_CACHE_RegisterModuleService");
-    UtTest_Add(test_BPLib_STOR_CACHE_Configure, NULL, NULL, "Test BPLib_STOR_PS_Configure");
-    UtTest_Add(test_BPLib_STOR_CACHE_Query, NULL, NULL, "Test BPLib_STOR_PS_Query");
-    UtTest_Add(test_BPLib_STOR_CACHE_Start, NULL, NULL, "Test BPLib_STOR_PS_Start");
-    UtTest_Add(test_BPLib_STOR_CACHE_Stop, NULL, NULL, "Test BPLib_STOR_PS_Stop");
+    UtTest_Add(test_BPLib_STOR_CACHE_Configure, NULL, NULL,"Test BPLib_STOR_CACHE_Configure");
+    UtTest_Add(test_BPLib_STOR_CACHE_Query, NULL, NULL, "Test BPLib_STOR_CACHE_Query");
+    UtTest_Add(test_BPLib_STOR_CACHE_Start, NULL, NULL, "Test BPLib_STOR_CACHE_Start");
+    UtTest_Add(test_BPLib_STOR_CACHE_Stop, NULL, NULL, "Test BPLib_STOR_CACHE_Stop");
     UtTest_Add(test_BPLib_STOR_CACHE_DebugScanQueue, NULL, NULL, "Test BPLib_STOR_CACHE_DebugScanQueue");
     UtTest_Add(test_BPLib_STOR_CACHE_EgressImpl, NULL, NULL, "Test BPLib_STOR_CACHE_EgressImpl");
     UtTest_Add(test_BPLib_STOR_CACHE_FlushPending, NULL, NULL, "Test BPLib_STOR_CACHE_FlushPending");

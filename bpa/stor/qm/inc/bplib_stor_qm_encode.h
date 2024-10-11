@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_STOR_CACHE_ENCODE_H
-#define BPLIB_STOR_CACHE_ENCODE_H
+#ifndef BPLIB_STOR_QM_ENCODE_H
+#define BPLIB_STOR_QM_ENCODE_H
 
 /******************************************************************************
  INCLUDES
@@ -40,4 +40,4 @@ int v7_block_encode_pay(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *dat
 
 int v7_block_encode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb);
 
-#endif /* BPLIB_STOR_CACHE_ENCODE_H */
+#endif /* BPLIB_STOR_QM_ENCODE_H */

@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_STOR_CACHE_ENCODE_INTERNAL_H
-#define BPLIB_STOR_CACHE_ENCODE_INTERNAL_H
+#ifndef BPLIB_STOR_QM_ENCODE_INTERNAL_H
+#define BPLIB_STOR_QM_ENCODE_INTERNAL_H
 
 /******************************************************************************
  INCLUDES
@@ -111,4 +111,4 @@ void      v7_encode_bp_adu_length(v7_encode_state_t *enc, const bp_adu_length_t 
 void      v7_encode_bp_primary_block_impl(v7_encode_state_t *enc, const void *arg);
 void      v7_encode_bp_creation_timestamp(v7_encode_state_t *enc, const bp_creation_timestamp_t *v);
 
-#endif /* BPLIB_STOR_CACHE_ENCODE_INTERNAL_H */
+#endif /* BPLIB_STOR_QM_ENCODE_INTERNAL_H */

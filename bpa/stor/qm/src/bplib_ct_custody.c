@@ -23,7 +23,12 @@
 
 #include "crc.h"
 
+#include "bplib_mem.h"
+#include "bplib_mem_rbtree.h"
+
+#include "bplib_stor_cache.h"
 #include "bplib_stor_cache_internal.h"
+#include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_ref.h"
 
 #include "bplib_stor_qm_eid.h"
@@ -524,7 +529,7 @@ bool BPLib_STOR_CACHE_CustodyCheckDacs(BPLib_STOR_CACHE_State_t *state, BPLib_ST
 
 void BPLib_STOR_CACHE_CustodyStoreBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_Block_t *qblk)
 {
-    BPLib_STOR_CACHE_Block_t          *sblk;
+    BPLib_STOR_CACHE_Block_t         *sblk;
     BPLib_STOR_CACHE_BblockPrimary_t *pri_block;
     BPLib_STOR_CACHE_CustodianInfo_t  custody_info;
 
@@ -596,6 +601,8 @@ void BPLib_STOR_CACHE_CustodyStoreBundle(BPLib_STOR_CACHE_State_t *state, BPLib_
                 BPLib_STOR_CACHE_CustodyProcessBundle(state, pri_block, &custody_info);
             }
 
+            // TODO Fix BPLib_STOR_CACHE_State_t usage with error of incomplete typedef.
+            #ifdef VALID_STATE_TYPEDEF
             if (state->offload_api->offload(state->offload_blk, &custody_info.store_entry->offload_sid, qblk) ==
                 BPLIB_SUCCESS)
             {
@@ -604,6 +611,7 @@ void BPLib_STOR_CACHE_CustodyStoreBundle(BPLib_STOR_CACHE_State_t *state, BPLib_
                 /* Acknowledge the block in the bundle */
                 BPLib_STOR_CACHE_CustodyAckTrackingBlock(state, &custody_info);
             }
+            #endif // VALID_STATE_TYPEDEF
         }
 
         /*

@@ -7,9 +7,6 @@
 #
 ##################################################################
 
-# TODO Use the new codec stubs when available.
-# Remove add_subdirectory(unit-test/codec-unit-test/stubs)
-
 add_library(bplib_stor_qm OBJECT
     src/bplib_ct_custody.c
     src/bplib_stor_qm.c

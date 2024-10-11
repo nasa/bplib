@@ -26,14 +26,13 @@
 
 #include <stdio.h>
 
-#include "bplib_time.h"
+#include "../../qm/inc/bplib_stor_qm_ducts.h"
 
-#include "bplib_stor_cache_block.h"
-#include "bplib_stor_cache.h"
 #include "bplib_stor_cache_types.h"
-#include "bplib_stor_cache_ref.h"
+#include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_internal.h"
-#include "bplib_stor_qm.h"
+#include "bplib_stor_cache_ref.h"
+#include "bplib_stor_cache_module_api.h"
 
 typedef BPLib_STOR_CACHE_EntryState_t (*BPLib_STOR_CACHE_FsmStateEvalFunc_t)(BPLib_STOR_CACHE_Entry_t *);
 typedef void (*BPLib_STOR_CACHE_FsmStateChangeFunc_t)(BPLib_STOR_CACHE_Entry_t *);
@@ -47,6 +46,10 @@ BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateIdleEval(BPLib_STOR_CACHE
         /* bundle has reached the end of its useful life, so it can be discarded */
         return BPLib_STOR_CACHE_EntryStateUndefined;
     }
+
+    // TODO Fix incomplete type.
+    #define VALID_STORE_ENTRY
+    #ifdef VALID_STORE_ENTRY
 
     if ((store_entry->flags & BPLIB_STORE_FLAG_LOCAL_CUSTODY) == 0)
     {
@@ -71,6 +74,8 @@ BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateIdleEval(BPLib_STOR_CACHE
             return BPLib_STOR_CACHE_EntryStateQueue;
         }
     }
+
+    #endif // VALID_STORE_ENTRY
 
     /* no change */
     return BPLib_STOR_CACHE_EntryStateIdle;
@@ -172,6 +177,9 @@ BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateDeleteEval(BPLib_STOR_CAC
 
 void BPLib_STOR_CACHE_FsmStateDeleteEnter(BPLib_STOR_CACHE_Entry_t *store_entry)
 {
+    // TODO Fix incomplete type.
+    #ifdef VALID_STORE_ENTRY
+
     if (store_entry->refptr != NULL)
     {
         BPLib_STOR_CACHE_RefRelease(store_entry->refptr);
@@ -185,6 +193,7 @@ void BPLib_STOR_CACHE_FsmStateDeleteEnter(BPLib_STOR_CACHE_Entry_t *store_entry)
 
     store_entry->flags |= BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
     store_entry->action_time =BPLib_STOR_CACHE_TimeAddMs(store_entry->parent->action_time, BP_CACHE_AGE_OUT_TIME);
+    #endif // VALID_STORE_ENTRY
 }
 
 BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateGenerateDacsEval(BPLib_STOR_CACHE_Entry_t *store_entry)

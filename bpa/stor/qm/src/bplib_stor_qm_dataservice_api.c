@@ -490,7 +490,7 @@ int BPLib_STOR_CACHE_DataserviceEventImpl(void *arg, BPLib_STOR_CACHE_Block_t *i
     if (event->event_type == BPLib_STOR_QM_DuctEventUp)
     {
         /* Allows bundles to be pushed to duct queues */
-        if (duct->current_state_flags & BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT)
+        if (duct->current_state_flags & BPLIB_CACHE_STATE_FLAG_ENDPOINT)
         {
             BPLib_STOR_QM_DuctEnable(&duct->ingress, BP_MPOOL_SHORT_SUBQ_DEPTH);
         }
@@ -646,7 +646,7 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
         else if (type == BPLib_STOR_CACHE_DataserviceTypeStorage)
         {
             /* success; mark this as a storage-capable intf */
-            BPLib_STOR_QM_IntfSetFlags(tbl, parent_intf_id, BPLIB_MPOOL_FLOW_FLAGS_STORAGE);
+            BPLib_STOR_QM_IntfSetFlags(tbl, parent_intf_id, BPLIB_CACHE_STATE_FLAG_STORAGE);
         }
     }
 
@@ -813,7 +813,7 @@ int BPLib_STOR_CACHE_ConnectSocket(bp_socket_t *desc, const bp_ipn_addr_t *desti
     sock->params.remote_ipn = *destination_ipn;
 
     BPLib_STOR_QM_IntfSetFlags(sock->parent_rtbl, sock->socket_intf_id,
-                               BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT | BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP);
+                               BPLIB_CACHE_STATE_FLAG_ENDPOINT | BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP);
 
     return 0;
 }

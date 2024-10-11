@@ -27,9 +27,14 @@
 
 #include "bplib_api_types.h"
 
+#include "../qm/inc/bplib_stor_qm.h"
+#include "../qm/inc/bplib_stor_qm_ducts.h"
+
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_internal.h"
-
+#include "bplib_stor_cache_ref.h"
+#include "bplib_stor_cache_module_api.h"
+#include "bplib_stor_cache_block.h"
 
 // TODO Remove OSAL #define bplog(flags, evt, ...) BPLIB_MEM_OS_Log(__FILE__, __LINE__, flags, evt, __VA_ARGS__)
 #ifdef KEEP_BPLOG
@@ -159,7 +164,10 @@ void BPLib_STOR_CACHE_FlushPending(BPLib_STOR_CACHE_State_t *state)
     {
         /* removal of an iterator node is allowed */
         BPLib_STOR_CACHE_ExtractNode(list_it.position);
+        // TODO 1 Define BPLib_STOR_CACHE_FsmExecute
+        #ifdef FSM_DEFINED
         BPLib_STOR_CACHE_FsmExecute(list_it.position);
+        #endif // FSM_DEFINED
         status = BPLib_STOR_CACHE_ListIterForward(&list_it);
     }
 }
@@ -225,7 +233,7 @@ int BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_
         self_duct->ingress.current_depth_limit = 0;
         self_duct->egress.current_depth_limit  = 0;
     }
-    else if ((self_duct->current_state_flags & BPLIB_MPOOL_FLOW_FLAGS_ENDPOINT) != 0)
+    else if ((self_duct->current_state_flags & BPLIB_CACHE_STATE_FLAG_ENDPOINT) != 0)
     {
         self_duct->ingress.current_depth_limit = BP_MPOOL_SHORT_SUBQ_DEPTH;
         self_duct->egress.current_depth_limit  = BP_MPOOL_SHORT_SUBQ_DEPTH;
@@ -558,7 +566,10 @@ bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl
         parent_ref = BPLib_STOR_CACHE_RefCreate(cblk);
         if (parent_ref != NULL)
         {
+            // TODO fix api error incomplete type.
+            #ifdef VALID_API_TYPEDEF
             svc = api->instantiate(parent_ref, init_arg);
+            #endif // VALID_API_TYPEDEF
             BPLib_STOR_CACHE_RefRelease(parent_ref);
         }
     }
@@ -571,7 +582,7 @@ bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl
     {
         switch (api->module_type)
         {
-            case BPLib_STOR_CACHE_TypeOffload:
+            case BPLib_STOR_CACHE_ModuleTypeOffload:
                 state->offload_api = (const BPLib_STOR_CACHE_OffloadApi_t *)api;
                 state->offload_blk = svc;
                 status             = BPLIB_SUCCESS;

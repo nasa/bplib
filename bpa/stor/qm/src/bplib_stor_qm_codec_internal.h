@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_STOR_CACHE_CODEC_INTERNAL_H
-#define BPLIB_STOR_CACHE_CODEC_INTERNAL_H
+#ifndef BPLIB_STOR_QM_CODEC_INTERNAL_H
+#define BPLIB_STOR_QM_CODEC_INTERNAL_H
 
 /******************************************************************************
  INCLUDES
@@ -55,4 +55,4 @@ bplib_crc_parameters_t *v7_codec_get_crc_algorithm(bp_crctype_t crctype);
 size_t                  v7_sum_preencoded_size(BPLib_STOR_CACHE_Block_t *list);
 void                    v7_init_ipn_eid(bp_endpointid_buffer_t *eid, bp_ipn_t node, bp_ipn_t service);
 size_t                  v7_sum_preencoded_size(BPLib_STOR_CACHE_Block_t *list);
-#endif /* BPLIB_STOR_CACHE_CODEC_INTERNAL_H */
+#endif /* BPLIB_STOR_QM_CODEC_INTERNAL_H */

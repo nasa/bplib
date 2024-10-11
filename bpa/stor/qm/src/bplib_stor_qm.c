@@ -132,8 +132,8 @@ void BPLib_STOR_QM_IngressQueueSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib
             pri_block->data.delivery.delivery_policy !=BPLib_STOR_CACHE_PolicyDeliveryNone)
         {
             /* not yet stored and needs to be, so next hop must be a storage */
-            flag_mask |= BPLIB_MPOOL_FLOW_FLAGS_STORAGE;
-            req_flags |= BPLIB_MPOOL_FLOW_FLAGS_STORAGE;
+            flag_mask |= BPLIB_CACHE_STATE_FLAG_STORAGE;
+            req_flags |= BPLIB_CACHE_STATE_FLAG_STORAGE;
         }
         next_hop = BPLib_STOR_QM_GetNextIntfWithFlags(tbl, dest_addr.node_number, req_flags, flag_mask);
         if (bp_handle_is_valid(next_hop) && BPLib_STOR_QM_PushEgressBundle(tbl, next_hop, pblk) == 0)
@@ -654,11 +654,11 @@ void BPLib_STOR_QM_DoTimedPoll(BPLib_STOR_QM_QueueTbl_t *tbl)
 
         if (poll_cycle)
         {
-            set_flags = BPLIB_MPOOL_FLOW_FLAGS_POLL;
+            set_flags = BPLIB_CACHE_STATE_FLAG_POLL;
         }
         else
         {
-            clear_flags = BPLIB_MPOOL_FLOW_FLAGS_POLL;
+            clear_flags = BPLIB_CACHE_STATE_FLAG_POLL;
         }
 
         status = BPLib_STOR_CACHE_ListIterGotoFirst(&tbl->duct_list, &iter);

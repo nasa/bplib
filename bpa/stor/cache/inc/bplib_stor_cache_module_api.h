@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_STOR_PS_STORAGE_H
-#define BPLIB_STOR_PS_STORAGE_H
+#ifndef BPLIB_STOR_CACHE_MODULE_API_H
+#define BPLIB_STOR_CACHE_MODULE_API_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,21 +42,30 @@ extern "C" {
  PROTOTYPES
  ******************************************************************************/
 
-extern const BPLib_STOR_CACHE_ModuleApi_t *BPLIB_FILE_OFFLOAD_API;
+struct BPLib_STOR_CACHE_ModuleApi
+{
+    BPLib_STOR_CACHE_ModuleType_t module_type;
+    BPLib_STOR_CACHE_Block_t *(*instantiate)(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
+    int (*configure)(BPLib_STOR_CACHE_Block_t *svc, bp_handle_t cache_intf_id, int key,
+                     BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val);
+    int (*query)(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt,
+                 const void **val);
+    int (*start)(BPLib_STOR_CACHE_Block_t *svc);
+    int (*stop)(BPLib_STOR_CACHE_Block_t *svc);
+};
 
-static BPLib_STOR_CACHE_Block_t *BPLib_STOR_PS_Instantiate(BPLib_STOR_CACHE_Ref_t parent, void *init_arg);
-static int BPLib_STOR_PS_Configure(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt,
-                                        const void *val);
-static int BPLib_STOR_PS_Query(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt,
-                                    const void **val);
-static int BPLib_STOR_PS_Start(BPLib_STOR_CACHE_Block_t *svc);
-static int BPLib_STOR_PS_Stop(BPLib_STOR_CACHE_Block_t *svc);
-static int BPLib_STOR_PS_Offload(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
-static int BPLib_STOR_PS_Restore(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk_out);
-static int BPLib_STOR_PS_Release(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);
+struct BPLib_STOR_CACHE_OffloadApi
+{
+    BPLib_STOR_CACHE_ModuleApi_t std;
+    int (*offload)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
+    int (*restore)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk);
+    int (*release)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);
+};
+
+extern const BPLib_STOR_CACHE_ModuleApi_t *BPLIB_FILE_OFFLOAD_API;
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif /* BPLIB_STOR_PS_STORAGE_H */
+#endif /* BPLIB_STOR_CACHE_MODULE_API_H */

@@ -131,16 +131,16 @@ typedef enum BPLib_STOR_CACHE_Blocktype
 
 typedef enum BPLib_STOR_CACHE_Type
 {
-    BPLib_STOR_CACHE_TypeNone,
-    BPLib_STOR_CACHE_TypeInternal,
-    BPLib_STOR_CACHE_TypeOffload
+    BPLib_STOR_CACHE_ModuleTypeNone,
+    BPLib_STOR_CACHE_ModuleTypeInternal,
+    BPLib_STOR_CACHE_ModuleTypeOffload
 } BPLib_STOR_CACHE_ModuleType_t;
 
-typedef enum BPLib_STOR_CACHE_Valtype
+typedef enum BPLib_STOR_CACHE_ModuleValtype
 {
-    BPLib_STOR_CACHE_ValtypeNone,
-    BPLib_STOR_CACHE_ValtypeInteger,
-    BPLib_STOR_CACHE_ValtypeString
+    BPLib_STOR_CACHE_ModuleValtypeNone,
+    BPLib_STOR_CACHE_ModuleValtypeInteger,
+    BPLib_STOR_CACHE_ModuleValtypeString
 } BPLib_STOR_CACHE_ModuleValtype_t;
 
 typedef enum BPLib_STOR_CACHE_Confkey
@@ -169,25 +169,6 @@ typedef struct BPLib_STOR_CACHE_BlockHeader
     uint16_t refcount;               /* number of active references to the object */
 
 } BPLib_STOR_CACHE_BlockHeader_t;
-
-
-struct BPLib_STOR_CACHE_ModuleApi
-{
-    BPLib_STOR_CACHE_ModuleType_t module_type;
-    BPLib_STOR_CACHE_Block_t *(*instantiate)(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
-    int (*configure)(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val);
-    int (*query)(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val);
-    int (*start)(BPLib_STOR_CACHE_Block_t *svc);
-    int (*stop)(BPLib_STOR_CACHE_Block_t *svc);
-};
-
-struct BPLib_STOR_CACHE_OffloadApi
-{
-    BPLib_STOR_CACHE_ModuleApi_t std;
-    int (*offload)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
-    int (*restore)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk);
-    int (*release)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);
-};
 
 struct BPLib_STOR_CACHE_BblockTracking
 {

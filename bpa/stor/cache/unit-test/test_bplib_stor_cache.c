@@ -25,12 +25,9 @@
 
 #include "bplib_api_types.h"
 
-#include "test_bplib_stor_qm.h"
 #include "utilities/bplib_stor_cache_utils.h"
 
-#ifdef QM
-#include "bplib_stor_qm.h"
-#endif // QM
+#include "test_bplib_stor_cache.h"
 
 void test_BPLib_STOR_CACHE_EntryMakePending(void)
 {
