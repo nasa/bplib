@@ -26,6 +26,7 @@
 */
 
 #include "bplib_api_types.h"
+#include "bplib_cfg.h"
 
 
 /**

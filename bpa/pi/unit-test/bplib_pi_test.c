@@ -24,17 +24,75 @@
 
 #include "bplib_pi_test_utils.h"
 
-/*
-** Test function for
-** int BPLib_PI_Init()
-*/
-void Test_BPLib_PI_Init(void)
+/* Test nominal add application function */
+void Test_BPLib_PI_AddApplication_Nominal(void)
 {
-    UtAssert_INT32_EQ(BPLib_PI_Init(), BPLIB_SUCCESS);
+    uint8_t ChanId = 0;
+
+    UtAssert_INT32_EQ(BPLib_PI_AddApplication(ChanId), BPLIB_SUCCESS);
+}
+
+/* Test nominal remove application function */
+void Test_BPLib_PI_RemoveApplication_Nominal(void)
+{
+    uint8_t ChanId = 0;
+
+    UtAssert_INT32_EQ(BPLib_PI_RemoveApplication(ChanId), BPLIB_SUCCESS);
+}
+
+/* Test nominal validate configs function */
+void Test_BPLib_PI_ValidateConfigs_Nominal(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_SUCCESS);
+}
+
+/* Test validate configs function when it fails */
+void Test_BPLib_PI_ValidateConfigs_Failure(void)
+{
+    BPLib_PI_ChannelTable_t ChanTbl;
+
+    memset(&ChanTbl, 0, sizeof(ChanTbl));
+
+    ChanTbl.Configs[0].MaxBundlePayloadSize = -1;
+
+    UtAssert_INT32_EQ(BPLib_PI_ValidateConfigs(&ChanTbl), BPLIB_PI_INVALID_CONFIG_ERROR);
+}
+
+/* Test nominal ingress function */
+void Test_BPLib_PI_Ingress_Nominal(void)
+{
+    uint8_t ChanId = 0;
+    void *AduPtr = NULL;
+    size_t AduSize = 0;
+
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(ChanId, AduPtr, AduSize), BPLIB_SUCCESS);
+}
+
+/* Test nominal egress function */
+void Test_BPLib_PI_Egress_Nominal(void)
+{
+    uint8_t ChanId = 0;
+    void *BundlePtr = NULL;
+    size_t BundleSize = 0;
+
+    UtAssert_INT32_EQ(BPLib_PI_Egress(ChanId, BundlePtr, BundleSize), BPLIB_SUCCESS);
 }
 
 
 void TestBplibPi_Register(void)
 {
-    UtTest_Add(Test_BPLib_PI_Init, BPLib_PI_Test_Setup, BPLib_PI_Test_Teardown, "Test_BPLib_PI_Init");
+    ADD_TEST(Test_BPLib_PI_AddApplication_Nominal);
+
+    ADD_TEST(Test_BPLib_PI_RemoveApplication_Nominal);
+
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_Nominal);
+    ADD_TEST(Test_BPLib_PI_ValidateConfigs_Failure);
+
+    ADD_TEST(Test_BPLib_PI_Ingress_Nominal);
+
+    ADD_TEST(Test_BPLib_PI_Egress_Nominal);
 }

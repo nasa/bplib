@@ -47,7 +47,6 @@ typedef int32_t BPLib_Status_t;
 */
 #define BPLIB_MAX_NUM_BUNDLE_QUEUES         (16u)
 #define BPLIB_MAX_NUM_SOURCE_EID            (16u)
-#define BPLIB_MAX_NUM_CHANNELS              (1u)
 #define BPLIB_MAX_NUM_CONTACTS              (1u)
 #define BPLIB_MAX_NUM_STRING                (24u)
 #define BPLIB_MAX_EID_LIST_STRING           (256u)
@@ -85,6 +84,8 @@ typedef int32_t BPLib_Status_t;
 /* CLA Errors*/
 #define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -18u)
 
+/* Payload Interface Errors */
+#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -19u)
 
 #ifdef __cplusplus
 } // extern "C"

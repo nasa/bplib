@@ -29,14 +29,84 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_PI_Init()
+ * Generated stub function for BPLib_PI_AddApplication()
  * ----------------------------------------------------
  */
-int BPLib_PI_Init(void)
+BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_PI_Init, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_PI_AddApplication, BPLib_Status_t);
 
-    UT_GenStub_Execute(BPLib_PI_Init, Basic, NULL);
+    UT_GenStub_AddParam(BPLib_PI_AddApplication, uint8_t, ChanId);
 
-    return UT_GenStub_GetReturnValue(BPLib_PI_Init, int);
+    UT_GenStub_Execute(BPLib_PI_AddApplication, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_PI_AddApplication, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PI_Egress()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PI_Egress(uint8_t ChanId, void *BundlePtr, size_t BundleSize)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_PI_Egress, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_PI_Egress, uint8_t, ChanId);
+    UT_GenStub_AddParam(BPLib_PI_Egress, void *, BundlePtr);
+    UT_GenStub_AddParam(BPLib_PI_Egress, size_t, BundleSize);
+
+    UT_GenStub_Execute(BPLib_PI_Egress, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_PI_Egress, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PI_Ingress()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PI_Ingress(uint8_t ChanId, void *AduPtr, size_t AduSize)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_PI_Ingress, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_PI_Ingress, uint8_t, ChanId);
+    UT_GenStub_AddParam(BPLib_PI_Ingress, void *, AduPtr);
+    UT_GenStub_AddParam(BPLib_PI_Ingress, size_t, AduSize);
+
+    UT_GenStub_Execute(BPLib_PI_Ingress, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_PI_Ingress, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PI_RemoveApplication()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_PI_RemoveApplication, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_PI_RemoveApplication, uint8_t, ChanId);
+
+    UT_GenStub_Execute(BPLib_PI_RemoveApplication, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_PI_RemoveApplication, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PI_ValidateConfigs()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_PI_ValidateConfigs, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_PI_ValidateConfigs, void *, TblData);
+
+    UT_GenStub_Execute(BPLib_PI_ValidateConfigs, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_PI_ValidateConfigs, BPLib_Status_t);
 }
