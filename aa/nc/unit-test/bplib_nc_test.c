@@ -160,10 +160,9 @@ void Test_BPLib_NC_ResetAllCountersCmd_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_RESET_ALL_CTRS_SUCCESS_EID,
     //                    "Reset all counters command not implemented");
 
-    Status = BPLib_NC_ResetAllCountersCmd();
+    BPLib_NC_ResetAllCountersCmd();
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_ResetCounterCmd_Nominal(void)
@@ -175,8 +174,6 @@ void Test_BPLib_NC_ResetCounterCmd_Nominal(void)
     //                    "Reset counter command not implemented, received 42 in payload");
 
     Payload.ExampleParameter = 42;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_ResetCounterCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -192,8 +189,6 @@ void Test_BPLib_NC_ResetSourceCountersCmd_Nominal(void)
     //                    "Reset source counters command not implemented, received 19 in payload");
 
     Payload.ExampleParameter = 19;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_ResetSourceCountersCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -234,9 +229,7 @@ void Test_BPLib_NC_AddApplicationCmd_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_ADD_APP_SUCCESS_EID,
     //                    "Add application command not implemented, received 1 in payload");
 
-    Payload.ExampleParameter = 1;
-
-    Status = BPLIB_UNKNOWN;
+    Payload.ChanId = 1;
     Status = BPLib_NC_AddApplicationCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -252,8 +245,6 @@ void Test_BPLib_NC_RemoveApplicationCmd_Nominal(void)
     //                    "Remove application command not implemented, received 2 in payload");
 
     Payload.ExampleParameter = 2;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_RemoveApplicationCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -269,8 +260,6 @@ void Test_BPLib_NC_SetRegistrationStateCmd_Nominal(void)
     //                    "Set registration state command not implemented, received 3 in payload");
 
     Payload.ExampleParameter = 3;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_SetRegistrationStateCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -285,9 +274,7 @@ void Test_BPLib_NC_StartApplicationCmd_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_START_APP_SUCCESS_EID,
     //                    "Start application command not implemented, received 4 in payload");
 
-    Payload.ExampleParameter = 4;
-
-    Status = BPLIB_UNKNOWN;
+    Payload.ChanId = 1;
     Status = BPLib_NC_StartApplicationCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -302,9 +289,7 @@ void Test_BPLib_NC_StopApplicationCmd_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_STOP_APP_SUCCESS_EID,
     //                    "Stop application command not implemented, received 5 in payload");
 
-    Payload.ExampleParameter = 5;
-
-    Status = BPLIB_UNKNOWN;
+    Payload.ChanId = 1;
     Status = BPLib_NC_StopApplicationCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -320,8 +305,6 @@ void Test_BPLib_NC_AddAuthSourcesCmd_Nominal(void)
     //                    "Add authorized sources command not implemented, received 6 in payload");
 
     Payload.ExampleParameter = 6;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_AddAuthSourcesCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -337,8 +320,6 @@ void Test_BPLib_NC_RemoveAuthSourcesCmd_Nominal(void)
     //                    "Remove authorized sources command not implemented, received 7 in payload");
 
     Payload.ExampleParameter = 7;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_RemoveAuthSourcesCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -354,8 +335,6 @@ void Test_BPLib_NC_AddAuthCustodySourcesCmd_Nominal(void)
     //                    "Add authorized custody sources command not implemented, received 8 in payload");
 
     Payload.ExampleParameter = 8;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_AddAuthCustodySourcesCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -371,8 +350,6 @@ void Test_BPLib_NC_RemoveAuthCustodySourcesCmd_Nominal(void)
     //                    "Remove authorized custody sources command not implemented, received 9 in payload");
 
     Payload.ExampleParameter = 9;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_RemoveAuthCustodySourcesCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -388,8 +365,6 @@ void Test_BPLib_NC_AddAuthCustodiansCmd_Nominal(void)
     //                    "Add authorized custodians command not implemented, received 10 in payload");
 
     Payload.ExampleParameter = 10;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_AddAuthCustodiansCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -405,8 +380,6 @@ void Test_BPLib_NC_RemoveAuthCustodiansCmd_Nominal(void)
     //                    "Remove authorized custodians command not implemented, received 11 in payload");
 
     Payload.ExampleParameter = 11;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_RemoveAuthCustodiansCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -422,8 +395,6 @@ void Test_BPLib_NC_AddAuthReportToEidCmd_Nominal(void)
     //                    "Add authorized report-to eid command not implemented, received 12 in payload");
 
     Payload.ExampleParameter = 12;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_AddAuthReportToEidCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -439,8 +410,6 @@ void Test_BPLib_NC_RemoveAuthReportToEidCmd_Nominal(void)
     //                    "Remove authorized report-to eid command not implemented, received 13 in payload");
 
     Payload.ExampleParameter = 13;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_RemoveAuthReportToEidCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -456,8 +425,6 @@ void Test_BPLib_NC_AddLatencyCmd_Nominal(void)
     //                    "Add latency command not implemented, received 14 in payload");
 
     Payload.ExampleParameter = 14;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_AddLatencyCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -473,8 +440,6 @@ void Test_BPLib_NC_RemoveLatencyCmd_Nominal(void)
     //                    "Remove latency command not implemented, received 15 in payload");
 
     Payload.ExampleParameter = 15;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_RemoveLatencyCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -490,8 +455,6 @@ void Test_BPLib_NC_ContactSetupCmd_Nominal(void)
     //                    "Contact setup command not implemented, received 16 in payload");
 
     Payload.ExampleParameter = 16;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_ContactSetupCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -507,8 +470,6 @@ void Test_BPLib_NC_ContactStartCmd_Nominal(void)
     //                    "Contact start command not implemented, received 17 in payload");
 
     Payload.ExampleParameter = 17;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_ContactStartCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -524,8 +485,6 @@ void Test_BPLib_NC_ContactStopCmd_Nominal(void)
     //                    "Contact stop command not implemented, received 18 in payload");
 
     Payload.ExampleParameter = 18;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_ContactStopCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -541,8 +500,6 @@ void Test_BPLib_NC_ContactTeardownCmd_Nominal(void)
     //                    "Contact teardown command not implemented, received 19 in payload");
 
     Payload.ExampleParameter = 19;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_ContactTeardownCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -558,8 +515,6 @@ void Test_BPLib_NC_AddMibArrayKeyCmd_Nominal(void)
     //                    "Add mib array key command not implemented, received 20 in payload");
 
     Payload.ExampleParameter = 20;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_AddMibArrayKeyCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -575,8 +530,6 @@ void Test_BPLib_NC_RemoveMibArrayKeyCmd_Nominal(void)
     //                    "Remove mib array key command not implemented, received 21 in payload");
 
     Payload.ExampleParameter = 21;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_RemoveMibArrayKeyCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -592,8 +545,6 @@ void Test_BPLib_NC_SetMibItemCmd_Nominal(void)
     //                    "Set mib item command not implemented, received 22 in payload");
 
     Payload.ExampleParameter = 22;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_SetMibItemCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -609,8 +560,6 @@ void Test_BPLib_NC_AddStorageAllocationCmd_Nominal(void)
     //                    "Add storage allocation command not implemented, received 23 in payload");
 
     Payload.ExampleParameter = 23;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_AddStorageAllocationCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -626,8 +575,6 @@ void Test_BPLib_NC_RemoveStorageAllocationCmd_Nominal(void)
     //                    "Remove storage allocation command not implemented, received 24 in payload");
 
     Payload.ExampleParameter = 24;
-
-    Status = BPLIB_UNKNOWN;
     Status = BPLib_NC_RemoveStorageAllocationCmd(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
