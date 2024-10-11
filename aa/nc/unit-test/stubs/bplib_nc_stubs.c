@@ -467,7 +467,6 @@ BPLib_Status_t BPLib_NC_RemoveStorageAllocationCmd(const BPLib_RemoveStorageAllo
  */
 void BPLib_NC_ResetAllCountersCmd(void)
 {
-
     UT_GenStub_Execute(BPLib_NC_ResetAllCountersCmd, Basic, NULL);
 }
 
