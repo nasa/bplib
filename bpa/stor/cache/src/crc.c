@@ -43,42 +43,42 @@ static uint32_t BPLIB_CRC32_C_TABLE[256];
 /*
  * Digest function/wrapper that does nothing
  */
-static bp_crcval_t bplib_crc_digest_NOOP(bp_crcval_t crc, const void *ptr, size_t size);
+static bp_crcval_t BPLib_STOR_CACHE_CrcDigestNOOP(bp_crcval_t crc, const void *ptr, size_t size);
 
 /*
  * Digest function/wrapper specific for CRC16 X.25 algorithm
  */
-static bp_crcval_t bplib_crc_digest_CRC16_X25(bp_crcval_t crc, const void *ptr, size_t size);
+static bp_crcval_t BPLib_STOR_CACHE_CrcDigestCRC16X25(bp_crcval_t crc, const void *ptr, size_t size);
 
 /*
  * Digest function/wrapper specific for CRC32 Castagnoli algorithm
  */
-static bp_crcval_t bplib_crc_digest_CRC32_CASTAGNOLI(bp_crcval_t crc, const void *ptr, size_t size);
+static bp_crcval_t BPLib_STOR_CACHE_CrcDigestCRC32CASTAGNOLI(bp_crcval_t crc, const void *ptr, size_t size);
 
 /*
  * Global definition of "No CRC" algorithm
  * This is a placeholder that can be used when no CRC is desired, it provides a digest
  * function that does nothing.  It will always generate a CRC of "0".
  */
-bplib_crc_parameters_t BPLIB_CRC_NONE = {.name = "No CRC", .digest = bplib_crc_digest_NOOP};
+BPLib_STOR_CACHE_CrcParameters_t BPLIB_CRC_NONE = {.name = "No CRC", .digest = BPLib_STOR_CACHE_CrcDigestNOOP};
 
 /*
  * Global definition of CRC16 X.25 algorithm
  */
-bplib_crc_parameters_t BPLIB_CRC16_X25 = {.name                  = "CRC-16 X25",
+BPLib_STOR_CACHE_CrcParameters_t BPLIB_CRC16_X25 = {.name                  = "CRC-16 X25",
                                           .length                = 16,
                                           .should_reflect_output = true,
-                                          .digest                = bplib_crc_digest_CRC16_X25,
+                                          .digest                = BPLib_STOR_CACHE_CrcDigestCRC16X25,
                                           .initial_value         = 0xFFFF,
                                           .final_xor             = 0xFFFF};
 
 /*
  * Global definition of CRC32 Castagnoli algorithm
  */
-bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI = {.name                  = "CRC-32 Castagnoli",
+BPLib_STOR_CACHE_CrcParameters_t BPLIB_CRC32_CASTAGNOLI = {.name                  = "CRC-32 Castagnoli",
                                                  .length                = 32,
                                                  .should_reflect_output = true,
-                                                 .digest                = bplib_crc_digest_CRC32_CASTAGNOLI,
+                                                 .digest                = BPLib_STOR_CACHE_CrcDigestCRC32CASTAGNOLI,
                                                  .initial_value         = 0xFFFFFFFF,
                                                  .final_xor             = 0xFFFFFFFF};
 
@@ -86,7 +86,7 @@ bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI = {.name                  = "CRC-3
  STATIC FUNCTIONS
  ******************************************************************************/
 
-static uint16_t bplib_crc_generic16_impl(const uint8_t *input_table, const uint16_t *xor_table, uint16_t crc,
+static uint16_t BPLib_STOR_CACHE_CrcGeneric16Impl(const uint8_t *input_table, const uint16_t *xor_table, uint16_t crc,
                                          const uint8_t *ptr, size_t size)
 {
     while (size > 0)
@@ -99,7 +99,7 @@ static uint16_t bplib_crc_generic16_impl(const uint8_t *input_table, const uint1
     return crc;
 }
 
-static uint32_t bplib_crc_generic32_impl(const uint8_t *input_table, const uint32_t *xor_table, uint32_t crc,
+static uint32_t BPLib_STOR_CACHE_CrcGeneric32Impl(const uint8_t *input_table, const uint32_t *xor_table, uint32_t crc,
                                          const uint8_t *ptr, size_t size)
 {
     while (size > 0)
@@ -112,22 +112,22 @@ static uint32_t bplib_crc_generic32_impl(const uint8_t *input_table, const uint3
     return crc;
 }
 
-bp_crcval_t bplib_crc_digest_NOOP(bp_crcval_t crc, const void *ptr, size_t size)
+bp_crcval_t BPLib_STOR_CACHE_CrcDigestNOOP(bp_crcval_t crc, const void *ptr, size_t size)
 {
     return crc;
 }
 
-bp_crcval_t bplib_crc_digest_CRC16_X25(bp_crcval_t crc, const void *ptr, size_t size)
+bp_crcval_t BPLib_STOR_CACHE_CrcDigestCRC16X25(bp_crcval_t crc, const void *ptr, size_t size)
 {
-    return bplib_crc_generic16_impl(BPLIB_CRC_REFLECT_TABLE, BPLIB_CRC16_X25_TABLE, crc, ptr, size);
+    return BPLib_STOR_CACHE_CrcGeneric16Impl(BPLIB_CRC_REFLECT_TABLE, BPLIB_CRC16_X25_TABLE, crc, ptr, size);
 }
 
-bp_crcval_t bplib_crc_digest_CRC32_CASTAGNOLI(bp_crcval_t crc, const void *ptr, size_t size)
+bp_crcval_t BPLib_STOR_CACHE_CrcDigestCRC32CASTAGNOLI(bp_crcval_t crc, const void *ptr, size_t size)
 {
-    return bplib_crc_generic32_impl(BPLIB_CRC_REFLECT_TABLE, BPLIB_CRC32_C_TABLE, crc, ptr, size);
+    return BPLib_STOR_CACHE_CrcGeneric32Impl(BPLIB_CRC_REFLECT_TABLE, BPLIB_CRC32_C_TABLE, crc, ptr, size);
 }
 
-bp_crcval_t bplib_precompute_crc_byte(uint8_t width, uint8_t byte, bp_crcval_t polynomial)
+bp_crcval_t BPLib_STOR_CACHE_PrecomputeCrcByte(uint8_t width, uint8_t byte, bp_crcval_t polynomial)
 {
     uint8_t     mask;
     bp_crcval_t next_bit;
@@ -162,7 +162,7 @@ bp_crcval_t bplib_precompute_crc_byte(uint8_t width, uint8_t byte, bp_crcval_t p
     return crcval;
 }
 
-uint8_t bplib_precompute_reflection(uint8_t byte)
+uint8_t BPLib_STOR_CACHE_PrecomputeReflection(uint8_t byte)
 {
     uint8_t mask;
     uint8_t input;
@@ -193,9 +193,9 @@ uint8_t bplib_precompute_reflection(uint8_t byte)
  ******************************************************************************/
 
 /*--------------------------------------------------------------------------------------
- * bplib_crc_init - Inits the subsystem by creating the xor table for all defined CRC types
+ * BPLib_STOR_CACHE_CrcInit - Inits the subsystem by creating the xor table for all defined CRC types
  *-------------------------------------------------------------------------------------*/
-void bplib_crc_init(void)
+void BPLib_STOR_CACHE_CrcInit(void)
 {
     uint8_t byte;
 
@@ -203,42 +203,42 @@ void bplib_crc_init(void)
     do
     {
         BPLIB_CRC_DIRECT_TABLE[byte]  = byte;
-        BPLIB_CRC_REFLECT_TABLE[byte] = bplib_precompute_reflection(byte);
+        BPLIB_CRC_REFLECT_TABLE[byte] = BPLib_STOR_CACHE_PrecomputeReflection(byte);
 
         /*
          * note that the "width" passed to this function should indicate the
          * table data type, not necessarily the width of the CRC (although for the
          * two implemented algorithms, they are the same)
          */
-        BPLIB_CRC16_X25_TABLE[byte] = bplib_precompute_crc_byte(16, byte, BPLIB_CRC16_X25_POLY);
-        BPLIB_CRC32_C_TABLE[byte]   = bplib_precompute_crc_byte(32, byte, BPLIB_CRC32_C_POLY);
+        BPLIB_CRC16_X25_TABLE[byte] = BPLib_STOR_CACHE_PrecomputeCrcByte(16, byte, BPLIB_CRC16_X25_POLY);
+        BPLIB_CRC32_C_TABLE[byte]   = BPLib_STOR_CACHE_PrecomputeCrcByte(32, byte, BPLIB_CRC32_C_POLY);
 
         ++byte;
     }
     while (byte != 0);
 }
 
-const char *bplib_crc_get_name(bplib_crc_parameters_t *params)
+const char *BPLib_STOR_CACHE_CrcGetName(BPLib_STOR_CACHE_CrcParameters_t *params)
 {
     return params->name;
 }
 
-uint8_t bplib_crc_get_width(bplib_crc_parameters_t *params)
+uint8_t BPLib_STOR_CACHE_CrcGetWidth(BPLib_STOR_CACHE_CrcParameters_t *params)
 {
     return params->length;
 }
 
-bp_crcval_t bplib_crc_initial_value(bplib_crc_parameters_t *params)
+bp_crcval_t BPLib_STOR_CACHE_CrcInitialValue(BPLib_STOR_CACHE_CrcParameters_t *params)
 {
     return params->initial_value;
 }
 
-bp_crcval_t bplib_crc_update(bplib_crc_parameters_t *params, bp_crcval_t crc, const void *data, size_t size)
+bp_crcval_t BPLib_STOR_CACHE_CrcUpdate(BPLib_STOR_CACHE_CrcParameters_t *params, bp_crcval_t crc, const void *data, size_t size)
 {
     return params->digest(crc, data, size);
 }
 
-bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc)
+bp_crcval_t BPLib_STOR_CACHE_CrcFinalize(BPLib_STOR_CACHE_CrcParameters_t *params, bp_crcval_t crc)
 {
     bp_crcval_t crc_final;
     uint8_t     i;
@@ -282,18 +282,18 @@ bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc)
 }
 
 /*--------------------------------------------------------------------------------------
- * bplib_crc_get - Calculates the CRC from a byte array using the crc provided as params.
+ * BPLib_STOR_CACHE_CrcGet - Calculates the CRC from a byte array using the crc provided as params.
  *      crc_init must be called on the provided params before every calling this function.
  *
  * data: A ptr to a byte array containing data to calculate a CRC over. [INPUT]
  * length: The length of the provided data in bytes. [INPUT]
- * params: A ptr to a bplib_crc_parameters_t struct defining how to calculate the crc and has
+ * params: A ptr to a BPLib_STOR_CACHE_CrcParameters_t struct defining how to calculate the crc and has
  *      an XOR lookup table. [INPUT]
  *
  * returns: A crc remainder of the provided data. If a crc length is used that is less
  *      than the returned data type size than expect it to be cast.
  *-------------------------------------------------------------------------------------*/
-bp_crcval_t bplib_crc_get(const void *data, const uint32_t length, bplib_crc_parameters_t *params)
+bp_crcval_t BPLib_STOR_CACHE_CrcGet(const void *data, const uint32_t length, BPLib_STOR_CACHE_CrcParameters_t *params)
 {
-    return bplib_crc_finalize(params, params->digest(params->initial_value, data, length));
+    return BPLib_STOR_CACHE_CrcFinalize(params, params->digest(params->initial_value, data, length));
 }

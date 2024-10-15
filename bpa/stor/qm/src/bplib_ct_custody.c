@@ -33,7 +33,7 @@
 
 #include "bplib_stor_qm_eid.h"
 
-static const bplib_crc_parameters_t *const BPLIB_CACHE_CUSTODY_HASH_ALGORITHM = &BPLIB_CRC32_CASTAGNOLI;
+static const BPLib_STOR_CACHE_CrcParameters_t *const BPLIB_CACHE_CUSTODY_HASH_ALGORITHM = &BPLIB_CRC32_CASTAGNOLI;
 
 static const uint32_t BPLIB_CACHE_CUSTODY_HASH_SALT_DACS   = 0x3126c0cf;
 static const uint32_t BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE = 0x7739ae76;
@@ -93,11 +93,11 @@ int BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_MEM_RBT_Link_t *node, void
     dacs_pending = &store_entry->data.dacs;
 
     /* confirm match of custodian ID */
-    result = v7_compare_ipn2ipn(&custody_info->custodian_id, &dacs_pending->prev_custodian_id);
+    result = BPLib_STOR_QM_CompareIpn2Ipn(&custody_info->custodian_id, &dacs_pending->prev_custodian_id);
     if (result == 0)
     {
         /* confirm match of the duct ID */
-        result = v7_compare_ipn2eid(&custody_info->duct_id, &dacs_pending->payload_ref->duct_source_eid);
+        result = BPLib_STOR_QM_CompareIpn2Eid(&custody_info->duct_id, &dacs_pending->payload_ref->duct_source_eid);
     }
 
     return result;
@@ -110,13 +110,13 @@ bool BPLib_STOR_CACHE_CustodyFindPendingDacs(BPLib_STOR_CACHE_State_t *state, BP
 
     /* use a CRC as a hash function */
     /* when searching for DACS this includes duct and custodian but NOT sequence number (which has multiple values) */
-    hash = bplib_crc_initial_value(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM);
-    hash = bplib_crc_update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &dacs_info->duct_id, sizeof(dacs_info->duct_id));
-    hash = bplib_crc_update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &dacs_info->custodian_id,
+    hash = BPLib_STOR_CACHE_CrcInitialValue(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM);
+    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &dacs_info->duct_id, sizeof(dacs_info->duct_id));
+    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &dacs_info->custodian_id,
                             sizeof(dacs_info->custodian_id));
-    hash = bplib_crc_update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &BPLIB_CACHE_CUSTODY_HASH_SALT_DACS,
+    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &BPLIB_CACHE_CUSTODY_HASH_SALT_DACS,
                             sizeof(BPLIB_CACHE_CUSTODY_HASH_SALT_DACS));
-    dacs_info->eid_hash = bplib_crc_finalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
+    dacs_info->eid_hash = BPLib_STOR_CACHE_CrcFinalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
 
     custody_rbt_link = BPLib_MEM_RBT_SearchGeneric(dacs_info->eid_hash, &state->dacs_index,
                                                 BPLib_STOR_CACHE_CustodyFindDacsMatch, dacs_info);
@@ -137,10 +137,10 @@ void BPLib_STOR_CACHE_CustodyInitInfoFromPblock(BPLib_STOR_CACHE_CustodianInfo_t
 
     memset(custody_info, 0, sizeof(*custody_info));
 
-    BPLib_STOR_QM_GetEID(&custody_info->duct_id, &pri_block->data.logical.sourceEID);
+    BPLib_STOR_QM_GetEid(&custody_info->duct_id, &pri_block->data.logical.sourceEID);
     custody_info->sequence_num = pri_block->data.logical.creationTimeStamp.sequence_num;
 
-    BPLib_STOR_QM_GetEID(&final_dest_addr, &pri_block->data.logical.destinationEID);
+    BPLib_STOR_QM_GetEid(&final_dest_addr, &pri_block->data.logical.destinationEID);
     custody_info->final_dest_node = final_dest_addr.node_number;
 
     custody_info->prev_cblk = BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(pri_block, bp_blocktype_custodyTrackingBlock);
@@ -150,7 +150,7 @@ void BPLib_STOR_CACHE_CustodyInitInfoFromPblock(BPLib_STOR_CACHE_CustodianInfo_t
         if (custody_block != NULL)
         {
             /* need to generate a DACS back to the previous custodian indicated in the custody block */
-            BPLib_STOR_QM_GetEID(&custody_info->custodian_id,
+            BPLib_STOR_QM_GetEid(&custody_info->custodian_id,
                        &custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian);
 
             custody_block->canonical_logical_data.canonical_block.blockType = bp_blocktype_previousCustodianBlock;
@@ -194,8 +194,8 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_CustodyCreateDacs(BPLib_STOR_CACHE_State
         /* Initialize Primary Block */
         pri->version = 7;
 
-        v7_set_eid(&pri->sourceEID, &state->self_addr);
-        v7_set_eid(&pri->reportEID, &state->self_addr);
+        BPLib_STOR_QM_SetEid(&pri->sourceEID, &state->self_addr);
+        BPLib_STOR_QM_SetEid(&pri->reportEID, &state->self_addr);
 
         pri->creationTimeStamp.sequence_num = state->generated_dacs_seq;
         ++state->generated_dacs_seq;
@@ -259,7 +259,7 @@ void BPLib_STOR_CACHE_CustodyOpenDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STO
     /* Create the storage-specific data block for keeping local refs  */
     sblk           = BPLib_STOR_CACHE_GenericDataAlloc(BPLib_STOR_CACHE_ParentPool(state), BPLIB_STORE_SIGNATURE_ENTRY, state);
     pending_bundle = BPLib_STOR_CACHE_CustodyCreateDacs(state, &pri_block, &ack_content);
-    store_entry    = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    store_entry    = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_ENTRY);
     if (store_entry != NULL && pending_bundle != NULL)
     {
         /* need to fill out the delivery_data so this will look like a regular bundle when sent */
@@ -282,14 +282,14 @@ void BPLib_STOR_CACHE_CustodyOpenDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STO
         store_entry->refptr        = BPLib_STOR_CACHE_RefDuplicate(pending_bundle);
 
         /* the ack will be sent to the previous custodian of record */
-        v7_set_eid(&pri_block->data.logical.destinationEID, &custody_info->custodian_id);
-        v7_set_eid(&ack_content->duct_source_eid, &custody_info->duct_id);
+        BPLib_STOR_QM_SetEid(&pri_block->data.logical.destinationEID, &custody_info->custodian_id);
+        BPLib_STOR_QM_SetEid(&ack_content->duct_source_eid, &custody_info->duct_id);
 
         /* set convenience pointers in the dacs_pending extension data - this is mainly
          * so these don't need to be re-found when they are needed again later */
         dacs_pending              = &store_entry->data.dacs;
         dacs_pending->payload_ref = ack_content;
-        BPLib_STOR_QM_GetEID(&dacs_pending->prev_custodian_id, &pri_block->data.logical.destinationEID);
+        BPLib_STOR_QM_GetEid(&dacs_pending->prev_custodian_id, &pri_block->data.logical.destinationEID);
 
         BPLib_MEM_RBT_InsertValueGeneric(custody_info->eid_hash, &state->dacs_index, &store_entry->hash_rbt_link,
                                        BPLib_STOR_CACHE_CustodyFindDacsMatch, custody_info);
@@ -358,7 +358,7 @@ void BPLib_STOR_CACHE_CustodyAckTrackingBlock(BPLib_STOR_CACHE_State_t          
         custody_block = BPLib_STOR_CACHE_BblockCanonicalCast(custody_info->prev_cblk);
         if (custody_block != NULL)
         {
-            BPLib_STOR_QM_GetEID(&dacs_info.custodian_id,
+            BPLib_STOR_QM_GetEid(&dacs_info.custodian_id,
                        &custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian);
         }
 
@@ -383,7 +383,7 @@ void BPLib_STOR_CACHE_CustodyUpdateTrackingBlock(BPLib_STOR_CACHE_State_t *state
     custody_block = BPLib_STOR_CACHE_BblockCanonicalCast(custody_info->this_cblk);
     if (custody_block != NULL)
     {
-        v7_set_eid(&custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian,
+        BPLib_STOR_QM_SetEid(&custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian,
                    &state->self_addr);
         custody_info->custodian_id = state->self_addr;
     }
@@ -431,7 +431,7 @@ int BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_MEM_RBT_Link_t *node, vo
     result = v7_compare_numeric(custody_info->sequence_num, store_entry->duct_seq_copy);
     if (result == 0)
     {
-        result = v7_compare_ipn2ipn(&custody_info->duct_id, &store_entry->duct_id_copy);
+        result = BPLib_STOR_QM_CompareIpn2Ipn(&custody_info->duct_id, &store_entry->duct_id_copy);
     }
 
     return result;
@@ -444,14 +444,14 @@ bool BPLib_STOR_CACHE_CustodyFindExistingBundle(BPLib_STOR_CACHE_State_t *state,
 
     /* use a CRC as a hash function */
     /* when searching for bundles this includes duct and sequence number but NOT custodian (which would always be us) */
-    hash = bplib_crc_initial_value(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM);
-    hash = bplib_crc_update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &custody_info->duct_id,
+    hash = BPLib_STOR_CACHE_CrcInitialValue(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM);
+    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &custody_info->duct_id,
                             sizeof(custody_info->duct_id));
-    hash = bplib_crc_update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &custody_info->sequence_num,
+    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &custody_info->sequence_num,
                             sizeof(custody_info->sequence_num));
-    hash = bplib_crc_update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE,
+    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE,
                             sizeof(BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE));
-    custody_info->eid_hash = bplib_crc_finalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
+    custody_info->eid_hash = BPLib_STOR_CACHE_CrcFinalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
 
     custody_rbt_link = BPLib_MEM_RBT_SearchGeneric(custody_info->eid_hash, &state->bundle_index,
                                                 BPLib_STOR_CACHE_CustodyFindBundleMatch, custody_info);
@@ -476,8 +476,8 @@ void BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(BPLib_STOR_CACHE_State_t *s
 
     memset(&custody_info, 0, sizeof(custody_info));
 
-    BPLib_STOR_QM_GetEID(&custody_info.custodian_id, &pri_block->data.logical.destinationEID);
-    BPLib_STOR_QM_GetEID(&custody_info.duct_id, &ack_payload->duct_source_eid);
+    BPLib_STOR_QM_GetEid(&custody_info.custodian_id, &pri_block->data.logical.destinationEID);
+    BPLib_STOR_QM_GetEid(&custody_info.duct_id, &ack_payload->duct_source_eid);
 
     for (i = 0; i < ack_payload->num_entries; ++i)
     {
@@ -556,7 +556,7 @@ void BPLib_STOR_CACHE_CustodyStoreBundle(BPLib_STOR_CACHE_State_t *state, BPLib_
     /* Create the storage-specific data block for keeping local refs  */
     sblk = BPLib_STOR_CACHE_GenericDataAlloc(BPLib_STOR_CACHE_ParentPool(state), BPLIB_STORE_SIGNATURE_ENTRY, state);
 
-    custody_info.store_entry = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    custody_info.store_entry = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_ENTRY);
 
     if (custody_info.store_entry != NULL)
     {
@@ -578,7 +578,7 @@ void BPLib_STOR_CACHE_CustodyStoreBundle(BPLib_STOR_CACHE_State_t *state, BPLib_
 
         custody_info.store_entry->flags |= BPLIB_STORE_FLAG_LOCAL_CUSTODY | BPLIB_STORE_FLAG_ACTIVITY;
         custody_info.store_entry->duct_seq_copy = pri_block->data.logical.creationTimeStamp.sequence_num;
-        BPLib_STOR_QM_GetEID(&custody_info.store_entry->duct_id_copy, &pri_block->data.logical.sourceEID);
+        BPLib_STOR_QM_GetEid(&custody_info.store_entry->duct_id_copy, &pri_block->data.logical.sourceEID);
 
         custody_info.store_entry->expire_time =
             BPLib_STOR_CACHE_CalculateExpireTime(pri_block->data.logical.creationTimeStamp.time,

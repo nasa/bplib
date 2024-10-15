@@ -22,15 +22,15 @@
  INCLUDES
  ******************************************************************************/
 
-#include "bplib_mem.h"
+// #include "bplib_mem.h"
 #include "bplib_os_heap.h"
-
-#include "bplib_stor_cache_internal.h"
-#include "bplib_stor_cache_base_internal.h"
-#include "bplib_stor_cache_types.h"
+// 
+// #include "bplib_stor_cache_base_internal.h"
+// #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
+#include "bplib_stor_cache_internal.h"
 #include "bplib_stor_cache_ref.h"
-
+// 
 #include "bplib_stor_qm.h"
 #include "bplib_stor_qm_eid.h"
 #include "bplib_stor_qm_ducts.h"
@@ -120,7 +120,7 @@ void BPLib_STOR_QM_IngressQueueSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib
     {
         pri = BPLib_STOR_CACHE_BblockPrimaryGetLogical(pri_block);
 
-        BPLib_STOR_QM_GetEID(&dest_addr, &pri->destinationEID);
+        BPLib_STOR_QM_GetEid(&dest_addr, &pri->destinationEID);
 
         /* the next hop must be "up" (both administratively and operationally) to be valid */
         /* Also, if this bundle has not yet been stored, and the delivery policy wants some form of acknowledgement,
@@ -139,7 +139,7 @@ void BPLib_STOR_QM_IngressQueueSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib
         if (bp_handle_is_valid(next_hop) && BPLib_STOR_QM_PushEgressBundle(tbl, next_hop, pblk) == 0)
         {
             /* successfully queued */
-            ++tbl->routing_success_count;
+            ++tbl->queueing_success_count;
             pblk = NULL;
         }
     }
@@ -149,7 +149,7 @@ void BPLib_STOR_QM_IngressQueueSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib
     {
         /* this should never happen, must discard the block because there is nowhere to put it */
         BPLib_STOR_CACHE_RecycleBlock(pblk);
-        ++tbl->routing_error_count;
+        ++tbl->queueing_error_count;
     }
 }
 
@@ -193,18 +193,18 @@ int BPLib_STOR_QM_IngressBaseintfForwarder(void *arg, BPLib_STOR_CACHE_Block_t *
     return forward_count;
 }
 
-BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetMpool(const BPLib_STOR_QM_QueueTbl_t *tbl)
+BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetQtblPool(const BPLib_STOR_QM_QueueTbl_t *tbl)
 {
     return tbl->pool;
 }
 
 BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_queues, size_t cache_mem_size)
 {
-    size_t            complete_size;
-    size_t            align;
-    size_t            queue_offset;
-    size_t            BPLib_STOR_CACHE_Offset;
-    uint8_t          *mem_ptr;
+    size_t                    complete_size;
+    size_t                    align;
+    size_t                    queue_offset;
+    size_t                    BPLib_STOR_CACHE_Offset;
+    uint8_t                  *mem_ptr;
     BPLib_STOR_QM_QueueTbl_t *tbl_ptr;
     struct queueentry_align
     {
@@ -697,9 +697,9 @@ void BPLib_STOR_QM_MaintenanceRequestWait(BPLib_STOR_QM_QueueTbl_t *tbl)
     #ifdef WAIT_UNTIL_MS  // TODO 1 Fix bplib_os_wait_until_ms.
     poll_time = tbl->last_intf_poll.Time + BPLIB_INTF_MIN_POLL_INTERVAL;
 
-    while (!tbl->maint_request_flag && bplib_os_get_dtntime_ms() < poll_time)
+    while (!tbl->maint_request_flag && BPLib_STOR_CACHE_OsGetDtntimeMs() < poll_time)
     {
-         bplib_os_wait_until_ms(tbl->activity_lock, poll_time);
+         BPLib_STOR_CACHE_OsWaitUntilMs(tbl->activity_lock, poll_time);
     }
     #endif // WAIT_UNTIL_MS
 
@@ -716,7 +716,7 @@ void BPLib_STOR_QM_MaintenanceCompleteWait(BPLib_STOR_QM_QueueTbl_t *tbl)
     #ifdef WAIT_UNTIL_MS  // TODO 1 Fix bplib_os_wait_until_ms.
     while (tbl->maint_request_flag || tbl->maint_active_flag)
     {
-        bplib_os_wait_until_ms(tbl->activity_lock, BPLIB_DTNTIME_INFINITE);
+        BPLib_STOR_CACHE_OsWaitUntilMs(tbl->activity_lock, BPLIB_DTNTIME_INFINITE);
     }
     #endif // WAIT_UNTIL_MS
 

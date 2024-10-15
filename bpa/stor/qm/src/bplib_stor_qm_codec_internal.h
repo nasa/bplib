@@ -51,8 +51,8 @@ typedef struct v7_bitmap_table
     bp_integer_t mask;
 } v7_bitmap_table_t;
 
-bplib_crc_parameters_t *v7_codec_get_crc_algorithm(bp_crctype_t crctype);
+BPLib_STOR_CACHE_CrcParameters_t *v7_codec_get_crc_algorithm(bp_crctype_t crctype);
 size_t                  v7_sum_preencoded_size(BPLib_STOR_CACHE_Block_t *list);
-void                    v7_init_ipn_eid(bp_endpointid_buffer_t *eid, bp_ipn_t node, bp_ipn_t service);
+void                    v7_init_ipn_eid(BPLib_STOR_CACHE_EidBuffer_t *eid, bp_ipn_t node, bp_ipn_t service);
 size_t                  v7_sum_preencoded_size(BPLib_STOR_CACHE_Block_t *list);
 #endif /* BPLIB_STOR_QM_CODEC_INTERNAL_H */

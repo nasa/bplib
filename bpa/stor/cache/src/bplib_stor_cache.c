@@ -55,7 +55,7 @@ BPLib_STOR_CACHE_State_t *BPLib_STOR_CACHE_GetState(BPLib_STOR_CACHE_Block_t *in
 {
     BPLib_STOR_CACHE_State_t *state;
 
-    state = BPLib_STOR_CACHE_GenericDataCast(intf_block, BPLIB_STORE_SIGNATURE_STATE);
+    state = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)intf_block, BPLIB_STORE_SIGNATURE_STATE);
     if (state == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): storage_block incorrect for BPLib_STOR_CACHE_State_t\n", __func__);
@@ -82,8 +82,8 @@ void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, ui
     store_entry->flags |= set_flags;
     store_entry->flags &= ~clear_flags;
 
-    sblk = BPLib_STOR_CACHE_GenericDataUncast(store_entry, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_STORE_SIGNATURE_ENTRY);
-    printf("%s:%d data_offset is %ld\n", __FILE__, __LINE__, (uint64_t)sblk);
+    sblk = (BPLib_STOR_CACHE_Block_t *)BPLib_MEM_GenericDataUncast(store_entry, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_STORE_SIGNATURE_ENTRY);
+    printf("%s:%d sblk is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)sblk);
     assert(sblk != NULL);
 
     BPLib_STOR_CACHE_ExtractNode(sblk);
@@ -152,8 +152,8 @@ int BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
 void BPLib_STOR_CACHE_FlushPending(BPLib_STOR_CACHE_State_t *state)
 {
     BPLib_STOR_CACHE_ListIter_t list_it;
-    int                     status;
-    BPLib_STOR_QM_Duct_t     *self_duct;
+    int                         status;
+    BPLib_STOR_QM_Duct_t       *self_duct;
 
     self_duct = BPLib_STOR_CACHE_GetDuct(state);
 
@@ -288,7 +288,7 @@ int BPLib_STOR_CACHE_ConstructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
     #ifdef QM
     BPLib_STOR_CACHE_State_t *state;
 
-    state = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_STATE);
+    state = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_STATE);
     if (state == NULL)
     {
         return BPLIB_ERROR;
@@ -315,7 +315,7 @@ int BPLib_STOR_CACHE_DestructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
 {
     BPLib_STOR_CACHE_State_t *state;
 
-    state = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_STATE);
+    state = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_STATE);
     if (state == NULL)
     {
         return BPLIB_ERROR;
@@ -339,7 +339,7 @@ int BPLib_STOR_CACHE_ConstructEntry(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
 {
     BPLib_STOR_CACHE_Entry_t *store_entry;
 
-    store_entry = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    store_entry = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_ENTRY);
     if (store_entry == NULL)
     {
         return BPLIB_ERROR;
@@ -355,7 +355,7 @@ int BPLib_STOR_CACHE_DestructEntry(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
     BPLib_STOR_CACHE_Entry_t *store_entry;
     BPLib_STOR_CACHE_State_t *state;
 
-    store_entry = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    store_entry = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_ENTRY);
     if (store_entry == NULL)
     {
         return BPLIB_ERROR;
@@ -398,7 +398,7 @@ int BPLib_STOR_CACHE_ConstructBlockref(void *arg, BPLib_STOR_CACHE_Block_t *sblk
     BPLib_STOR_CACHE_Entry_t    *store_entry;
 
     store_entry = arg;
-    blockref    = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_BLOCKREF);
+    blockref    = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_BLOCKREF);
     if (blockref == NULL)
     {
         return BPLIB_ERROR;
@@ -415,7 +415,7 @@ int BPLib_STOR_CACHE_DestructBlockref(void *arg, BPLib_STOR_CACHE_Block_t *rblk)
 {
     BPLib_STOR_CACHE_Blockref_t *block_ref;
 
-    block_ref = BPLib_STOR_CACHE_GenericDataCast(rblk, BPLIB_STORE_SIGNATURE_BLOCKREF);
+    block_ref = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)rblk, BPLIB_STORE_SIGNATURE_BLOCKREF);
     if (block_ref == NULL)
     {
         return BPLIB_ERROR;
@@ -465,8 +465,8 @@ bp_handle_t BPLib_STOR_CACHE_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_
     BPLib_STOR_CACHE_Ref_t    duct_block_ref;
     bp_handle_t          storage_intf_id;
 
-    #ifdef QM
-    pool = BPLib_STOR_QM_GetMpool(tbl);
+    #ifdef QM  // TODO Enable QM Cache Init.
+    pool = BPLib_STOR_QM_GetQtblPool(tbl);
 
     /* register Mem Cache storage module */
     BPLib_STOR_CACHE_Init(pool);
@@ -483,7 +483,7 @@ bp_handle_t BPLib_STOR_CACHE_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_
 
     /* this must always work, it was just created above */
     duct_block_ref = BPLib_STOR_CACHE_RefCreate(sblk);
-    state          = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_STATE);
+    state          = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_STATE);
 
     #ifdef QM
     storage_intf_id = BPLib_STOR_CACHE_DataserviceAttach(tbl, service_addr, BPLib_STOR_CACHE_DataserviceTypeStorage, duct_block_ref);
@@ -518,14 +518,14 @@ int BPLib_STOR_CACHE_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *
     BPLib_STOR_CACHE_Ref_t    duct_block_ref;
     int                  status;
 
-    #ifdef QM
+    #ifdef QM  // TODO Cache Detach
     duct_block_ref =BPLib_STOR_CACHE_DataserviceDetach(tbl, service_addr);
     #else // QM
     duct_block_ref = NULL;
     #endif // QM
     if (duct_block_ref != NULL)
     {
-        state = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(duct_block_ref), BPLIB_STORE_SIGNATURE_STATE);
+        state = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(duct_block_ref), BPLIB_STORE_SIGNATURE_STATE);
     }
     else
     {
@@ -559,8 +559,8 @@ bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl
 
     svc    = NULL;
     handle = BP_INVALID_HANDLE;
-    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetMpool(tbl), cache_intf_id);
-    state  = BPLib_STOR_CACHE_GenericDataCast(cblk, BPLIB_STORE_SIGNATURE_STATE);
+    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetQtblPool(tbl), cache_intf_id);
+    state  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)cblk, BPLIB_STORE_SIGNATURE_STATE);
     if (state != NULL)
     {
         parent_ref = BPLib_STOR_CACHE_RefCreate(cblk);
@@ -583,7 +583,7 @@ bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl
         switch (api->module_type)
         {
             case BPLib_STOR_CACHE_ModuleTypeOffload:
-                state->offload_api = (const BPLib_STOR_CACHE_OffloadApi_t *)api;
+                state->offload_api = (const BPLib_STOR_PS_OffloadApi_t *)api;
                 state->offload_blk = svc;
                 status             = BPLIB_SUCCESS;
                 break;
@@ -615,7 +615,7 @@ void BPLib_STOR_CACHE_DebugFsmStatePrintImpl(BPLib_STOR_CACHE_State_t *state, BP
             (unsigned long)exitcount, (unsigned long)(entercount - exitcount));
 }
 
-void BPLib_STOR_CACHE_DebugScanQueue(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
+void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, bp_handle_t intf_id)
 {
     #ifdef QM
     BPLib_STOR_CACHE_Ref_t    intf_block_ref;

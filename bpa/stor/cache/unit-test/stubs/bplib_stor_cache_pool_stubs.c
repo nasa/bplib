@@ -156,42 +156,6 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_GenericDataAlloc(BPLib_STOR_CACHE_Poo
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_CACHE_GenericDataCast()
- * ----------------------------------------------------
- */
-void *BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Block_t *cb, uint32_t required_magic)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_GenericDataCast, void *);
-
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_GenericDataCast, BPLib_STOR_CACHE_Block_t *, cb);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_GenericDataCast, uint32_t, required_magic);
-
-    UT_GenStub_Execute(BPLib_STOR_CACHE_GenericDataCast, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_GenericDataCast, void *);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_CACHE_GenericDataUncast()
- * ----------------------------------------------------
- */
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_GenericDataUncast(void *blk, BPLib_STOR_CACHE_Blocktype_t parent_bt,
-                                                     uint32_t required_magic)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_GenericDataUncast, BPLib_STOR_CACHE_Block_t *);
-
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_GenericDataUncast, void *, blk);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_GenericDataUncast, BPLib_STOR_CACHE_Blocktype_t, parent_bt);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_GenericDataUncast, uint32_t, required_magic);
-
-    UT_GenStub_Execute(BPLib_STOR_CACHE_GenericDataUncast, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_GenericDataUncast, BPLib_STOR_CACHE_Block_t *);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_STOR_CACHE_GetBlockFromLink()
  * ----------------------------------------------------
  */

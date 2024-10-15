@@ -27,6 +27,8 @@
 
 #include "bplib_mem.h"
 
+#include "bplib_stor_ps_file_offload.h"
+
 #include "bplib_stor_cache_block.h"
 
 // TODO Migrate PrintTrace stack trace to broader scope.
@@ -110,8 +112,8 @@ typedef struct BPLib_STOR_CACHE_State
     BPLib_MEM_RBT_Root_t time_index;
     #endif // jphfix
 
-    const BPLib_STOR_CACHE_OffloadApi_t  *offload_api;
-    BPLib_STOR_CACHE_Block_t             *offload_blk;
+    const BPLib_STOR_PS_OffloadApi_t *offload_api;
+    BPLib_STOR_CACHE_Block_t         *offload_blk;
 
 
     uint32_t generated_dacs_seq;

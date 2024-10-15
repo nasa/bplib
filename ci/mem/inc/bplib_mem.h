@@ -63,6 +63,42 @@
 #define BELONGS_IN_BPLIB_API_TYPES  // TODO This whole block of declarations belongs in bplib_api_types.h
 #ifdef BELONGS_IN_BPLIB_API_TYPES
 
+#define BPLIB_HANDLE_MAX_SERIAL 0xffffff
+
+#define BPLIB_HANDLE_RAM_STORE_BASE \
+    (bp_handle_t)                   \
+    {                               \
+        0x1000000                   \
+    }
+#define BPLIB_HANDLE_FLASH_STORE_BASE \
+    (bp_handle_t)                     \
+    {                                 \
+        0x2000000                     \
+    }
+#define BPLIB_HANDLE_FILE_STORE_BASE \
+    (bp_handle_t)                    \
+    {                                \
+        0x3000000                    \
+    }
+#define BPLIB_HANDLE_OS_BASE \
+    (bp_handle_t)            \
+    {                        \
+        0x4000000            \
+    }
+
+#define BPLIB_HANDLE_INTF_BASE \
+    (bp_handle_t)              \
+    {                          \
+        0x5000000              \
+    }
+
+// BPLIB_HANDLE_MPOOL_BASE is from heritage bplib_api_types.h, hence the "MPOOL".
+#define BPLIB_HANDLE_MPOOL_BASE \
+    (bp_handle_t)               \
+    {                           \
+        0x6000000               \
+    }
+
 typedef struct bp_handle
 {
     uint32_t hdl;
@@ -73,6 +109,11 @@ typedef struct bp_handle
     {                     \
         0                 \
     } /* used for integers (os locks, storage services) */
+#endif // BELONGS_IN_BPLIB_API_TYPES
+
+/**
+ *  Exported Functions
+ */
 
 /**
  * Checks for validity of given handle
@@ -151,43 +192,6 @@ static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
 {
     return (bp_handle_t) {.hdl = (uint32_t)hv + base.hdl};
 }
-
-#define BPLIB_HANDLE_MAX_SERIAL 0xffffff
-
-#define BPLIB_HANDLE_RAM_STORE_BASE \
-    (bp_handle_t)                   \
-    {                               \
-        0x1000000                   \
-    }
-#define BPLIB_HANDLE_FLASH_STORE_BASE \
-    (bp_handle_t)                     \
-    {                                 \
-        0x2000000                     \
-    }
-#define BPLIB_HANDLE_FILE_STORE_BASE \
-    (bp_handle_t)                    \
-    {                                \
-        0x3000000                    \
-    }
-#define BPLIB_HANDLE_OS_BASE \
-    (bp_handle_t)            \
-    {                        \
-        0x4000000            \
-    }
-
-#define BPLIB_HANDLE_INTF_BASE \
-    (bp_handle_t)              \
-    {                          \
-        0x5000000              \
-    }
-
-// BPLIB_HANDLE_MPOOL_BASE is from heritage bplib_api_types.h, hence the "MPOOL".
-#define BPLIB_HANDLE_MPOOL_BASE \
-    (bp_handle_t)               \
-    {                           \
-        0x6000000               \
-    }
-#endif // BELONGS_IN_BPLIB_API_TYPES
 
 /*
  * This union is just to make sure that the "content_start" field
@@ -725,12 +729,51 @@ size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_Pool_t *pool);
  *-----------------------------------------------------------------*/
 BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb);
 
+/**
+ * @brief Allocate a new user data block
+ *
+ * Note that the maximum block capacity is set at compile time.  This limits the size
+ * of user data objects that can be stored by this mechanism.
+ *
+ * @param pool
+ * @param magic_number
+ * @param init_arg Opaque pointer passed to initializer (may be NULL)
+ * @return BPLib_MEM_Block_t*
+ */
+BPLib_MEM_Block_t *bplib_mpool_generic_data_alloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg);
+
+/**
+ * @brief Cast a block to generic user data type
+ *
+ * User blocks require a match on on the "magic number", which may be a random 32-bit integer.
+ * This is intended as a data integrity check to confirm the block is indeed the correct flavor.
+ *
+ * @param cb
+ * @param required_magic
+ * @return BPLib_MEM_GenericData_t*
+ */
+void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic);
+
+/**
+ * @brief Cast a generic user data segment to its parent block
+ *
+ * This is the inverse of BPLib_MEM_GenericDataCast() and allows obtaining the pool
+ * block from a generic data pointer.  The pointer passed in must be from a prior call
+ * to BPLib_MEM_GenericDataCast() or else the result is undefined.
+ *
+ * @param blk pointer from previous call to BPLib_MEM_GenericDataCast
+ * @param required_magic
+ * @return BPLib_MEM_GenericData_t*
+ */
+BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t parent_bt,
+                                               uint32_t required_magic);
+
 BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk);
 
-// TODO Move or remove the header for "Exported Functions"
-/**
- *  Exported Functions
- */
+// TODO add briefs for BPLib_MEM_GetGenericDataCapacity and BPLib_MEM_Maintain
+size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb);
+
+void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool);
 
 /**
  * \brief Memory Allocator initialization

@@ -22,7 +22,7 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdio.h>  // For fprintf to stderr in BPLib_STOR_CACHE_Create.
+#include <stdio.h>
 
 #include <assert.h>
 
@@ -116,7 +116,7 @@ bool BPLib_STOR_CACHE_LockWait(BPLib_STOR_CACHE_Lock_t *lock, BPLib_TIME_Monoton
     within_timeout = (BPLIB_TIME_TO_INT(until_time) > ms);
     if (within_timeout)
     {
-        status = bplib_os_wait_until_ms(lock->lock_id, BPLIB_TIME_TO_INT(until_time));
+        status = BPLib_STOR_CACHE_OsWaitUntilMs(lock->lock_id, BPLIB_TIME_TO_INT(until_time));
         if (status == BPLIB_SUCCESS) //BPLIB_TIMEOUT)
         {
             /* if timeout was returned, then assume that enough time has elapsed
@@ -451,77 +451,6 @@ BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_GetParentPoolFromLink(BPLib_STOR_CACHE
     }
 
     return (BPLib_STOR_CACHE_Pool_t *)block;
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_STOR_CACHE_GenericDataCast
- *
- *-----------------------------------------------------------------*/
-void *BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Block_t *cb, uint32_t required_magic)
-{
-    BPLib_STOR_CACHE_BlockContent_t *block;
-    size_t                       data_offset;
-    void                        *result;
-
-    /* note that any block such as refs, ducts, bundle blocks, etc. may have generic data
-     * associated with it, not just a generic_data block.  The difference is that the generic
-     * data block _only_ has the generic data, whereas the other block types can have both. */
-    result = NULL;
-    block  = BPLib_STOR_CACHE_GetBlockContent(cb);
-    while (block != NULL && BPLib_STOR_CACHE_IsAnyContentNode(&block->header.base_link))
-    {
-        if (block->header.content_type_signature == required_magic)
-        {
-            data_offset = BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(block->header.base_link.type);
-            if (data_offset < sizeof(BPLib_STOR_CACHE_BlockBuffer_t))
-            {
-                result = &block->u.content_bytes[data_offset];
-            }
-            break;
-        }
-
-        if (!BPLib_STOR_CACHE_IsIndirectBlock(&block->header.base_link))
-        {
-            break;
-        }
-
-        block = block->u.ref.pref_target;
-    }
-
-    return result;
-}
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_STOR_CACHE_GenericDataUncast
- *
- *-----------------------------------------------------------------*/
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_GenericDataUncast(void *blk, BPLib_STOR_CACHE_Blocktype_t parent_bt,
-                                                             uint32_t required_magic)
-{
-    BPLib_STOR_CACHE_BlockContent_t *block;
-    size_t                           data_offset;
-
-    data_offset = BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(parent_bt);
-    printf("%s:%d data_offset is %ld\n", __FILE__, __LINE__, data_offset);
-
-    if (data_offset > sizeof(BPLib_STOR_CACHE_BlockBuffer_t))
-    {
-        printf("%s:%d data_offset too large. Returned null.\n", __FILE__, __LINE__);
-        return NULL;
-    }
-
-    data_offset += offsetof(BPLib_STOR_CACHE_BlockContent_t, u);
-    block = (BPLib_STOR_CACHE_BlockContent_t *)(void *)((uint8_t *)blk - data_offset);
-    if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
-    {
-        printf("%s:%d base_link.type or magic wrong, %d %d %d %d\n", __FILE__, __LINE__, 
-            block->header.base_link.type, parent_bt, block->header.content_type_signature, required_magic);
-        return NULL;
-    }
-
-    return &block->header.base_link;
 }
 
 /*----------------------------------------------------------------
@@ -1247,7 +1176,8 @@ BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_Create(void *pool_mem, size_t pool_siz
 
     /* wiping the entire memory might be overkill, but it is only done once
      * at start up, and this may also help verify that the memory "works" */
-    memset(pool_mem, 0, pool_size);
+    // TODO Removed wiping pool_mem at start for both MEM and CACHE - Verify.
+    // memset(pool_mem, 0, pool_size);
 
     pool = pool_mem;
 
@@ -1289,7 +1219,7 @@ BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_Create(void *pool_mem, size_t pool_siz
      */
     admin->bblock_alloc_threshold   = (admin->num_bufs_total * 30) / 100;
     admin->internal_alloc_threshold = (admin->num_bufs_total * 10) / 100;
-    fprintf(stderr, "%s(): created pool of size %zu, with %u chunks, bblock threshold = %u, internal threshold = %u\n",
+    fprintf(stderr, "%s(): created cache pool of size %zu, with %u chunks, bblock threshold = %u, internal threshold = %u\n",
             __func__, pool_size, (unsigned int)admin->num_bufs_total, (unsigned int)admin->bblock_alloc_threshold,
             (unsigned int)admin->internal_alloc_threshold);
 

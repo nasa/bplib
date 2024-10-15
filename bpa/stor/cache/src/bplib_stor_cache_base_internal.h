@@ -27,15 +27,10 @@
 
 #include "bplib_time.h"
 
+#include "bplib_stor_qm.h"
+
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
-
-struct bp_socket
-{
-    BPLib_STOR_CACHE_Block_t fblk;
-};
-
-BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetMpool(const BPLib_STOR_QM_QueueTbl_t *tbl);
 
 typedef struct BPLib_STOR_CACHE_ClaStats
 {
@@ -52,45 +47,10 @@ typedef struct BPLib_STOR_QM_ServiceintfInfo
 
 } BPLib_STOR_QM_ServiceintfInfo_t;
 
-struct BPLib_STOR_CACHE_ServiceEndpt
+static inline BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_GetPool(const BPLib_STOR_QM_QueueTbl_t *svc)
 {
-    BPLib_MEM_RBT_Link_t     rbt_link; /* for storage in RB tree, must be first */
-    BPLib_STOR_CACHE_Block_t *self_ptr;
-    BPLib_STOR_CACHE_Ref_t    subduct_ref;
-};
-
-struct BPLib_STOR_CACHE_SocketInfo
-{
-    BPLib_STOR_QM_QueueTbl_t   *parent_rtbl;
-    bp_handle_t         socket_intf_id;
-   BPLib_STOR_CACHE_Connection_t  params;
-    uintmax_t           ingress_byte_count;
-    uintmax_t           egress_byte_count;
-    bp_sequencenumber_t last_bundle_seq;
-};
-
-typedef struct BPLib_STOR_QM_QueueEntry
-{
-    bp_ipn_t    dest;
-    bp_ipn_t    mask;
-    bp_handle_t intf_id;
-} BPLib_STOR_QM_QueueEntry_t;
-
-struct BPLib_STOR_QM_QueueTbl
-{
-    uint32_t            max_queues;
-    uint32_t            registered_queues;
-    bp_handle_t         activity_lock;
-    volatile bool       maint_request_flag;
-    volatile bool       maint_active_flag;
-    uint8_t             poll_count;
-    BPLib_TIME_MonotonicTime_t    last_intf_poll;
-    uintmax_t           routing_success_count;
-    uintmax_t           routing_error_count;
-    BPLib_STOR_CACHE_Pool_t      *pool;
-    BPLib_STOR_CACHE_Block_t duct_list;
-    BPLib_STOR_QM_QueueEntry_t *queue_tbl;
-};
+    return svc->pool;
+}
 
 int BPLib_STOR_CACHE_ServiceductForwardIngress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
 int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);

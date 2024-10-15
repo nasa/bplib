@@ -96,22 +96,22 @@ void test_v7_encode_bp_ipn_uri_ssp(void)
     UtAssert_VOIDCALL(v7_encode_bp_ipn_uri_ssp(&enc, &v));
 }
 
-void test_v7_encode_bp_endpointid_buffer_impl(void)
+void test_v7_encode_BPLib_STOR_CACHE_EidBuffer_impl(void)
 {
     /* Test function for:
-     * void v7_encode_bp_endpointid_buffer_impl(v7_encode_state_t *enc, const void *arg)
+     * void v7_encode_BPLib_STOR_CACHE_EidBuffer_impl(v7_encode_state_t *enc, const void *arg)
      */
     v7_encode_state_t      enc;
-    bp_endpointid_buffer_t v;
+    BPLib_STOR_CACHE_EidBuffer_t v;
 
     memset(&enc, 0, sizeof(v7_encode_state_t));
-    memset(&v, 0, sizeof(bp_endpointid_buffer_t));
+    memset(&v, 0, sizeof(BPLib_STOR_CACHE_EidBuffer_t));
 
     v.scheme = bp_endpointid_scheme_ipn;
-    UtAssert_VOIDCALL(v7_encode_bp_endpointid_buffer_impl(&enc, &v));
+    UtAssert_VOIDCALL(v7_encode_BPLib_STOR_CACHE_EidBuffer_impl(&enc, &v));
 
     v.scheme = bp_endpointid_scheme_undefined;
-    UtAssert_VOIDCALL(v7_encode_bp_endpointid_buffer_impl(&enc, &v));
+    UtAssert_VOIDCALL(v7_encode_BPLib_STOR_CACHE_EidBuffer_impl(&enc, &v));
 }
 
 void test_v7_decode_bp_endpointid_scheme(void)
@@ -191,43 +191,43 @@ void test_v7_decode_bp_ipn_uri_ssp_impl(void)
     UtAssert_VOIDCALL(v7_decode_bp_ipn_uri_ssp_impl(&dec, &arg));
 }
 
-void test_v7_decode_bp_endpointid_buffer_impl(void)
+void test_v7_decode_BPLib_STOR_CACHE_EidBuffer_impl(void)
 {
     /* Test function for:
-     * void v7_decode_bp_endpointid_buffer_impl(v7_decode_state_t *dec, void *arg)
+     * void v7_decode_BPLib_STOR_CACHE_EidBuffer_impl(v7_decode_state_t *dec, void *arg)
      */
     v7_decode_state_t      dec;
-    bp_endpointid_buffer_t arg;
+    BPLib_STOR_CACHE_EidBuffer_t arg;
     CborValue              cval;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
-    memset(&arg, 0, sizeof(bp_endpointid_buffer_t));
+    memset(&arg, 0, sizeof(BPLib_STOR_CACHE_EidBuffer_t));
     memset(&cval, 0, sizeof(CborValue));
 
     dec.error = false;
     dec.cbor  = &cval;
-    UtAssert_VOIDCALL(v7_decode_bp_endpointid_buffer_impl(&dec, &arg));
+    UtAssert_VOIDCALL(v7_decode_BPLib_STOR_CACHE_EidBuffer_impl(&dec, &arg));
 
     dec.error      = false;
     cval.remaining = 10;
     cval.flags     = 0;
     cval.extra     = bp_endpointid_scheme_ipn;
-    UtAssert_VOIDCALL(v7_decode_bp_endpointid_buffer_impl(&dec, &arg));
+    UtAssert_VOIDCALL(v7_decode_BPLib_STOR_CACHE_EidBuffer_impl(&dec, &arg));
 }
 
-void test_v7_decode_bp_endpointid_buffer(void)
+void test_v7_decode_BPLib_STOR_CACHE_EidBuffer(void)
 {
     /* Test function for:
-     * void v7_decode_bp_endpointid_buffer(v7_decode_state_t *dec, bp_endpointid_buffer_t *v)
+     * void v7_decode_BPLib_STOR_CACHE_EidBuffer(v7_decode_state_t *dec, BPLib_STOR_CACHE_EidBuffer_t *v)
      */
     v7_decode_state_t      dec;
-    bp_endpointid_buffer_t v;
+    BPLib_STOR_CACHE_EidBuffer_t v;
 
     memset(&dec, 0, sizeof(v7_decode_state_t));
-    memset(&v, 0, sizeof(bp_endpointid_buffer_t));
+    memset(&v, 0, sizeof(BPLib_STOR_CACHE_EidBuffer_t));
 
     dec.error = true;
-    UtAssert_VOIDCALL(v7_decode_bp_endpointid_buffer(&dec, &v));
+    UtAssert_VOIDCALL(v7_decode_BPLib_STOR_CACHE_EidBuffer(&dec, &v));
 }
 
 void TestV7BpEndpointid_Rgister(void)
@@ -237,12 +237,12 @@ void TestV7BpEndpointid_Rgister(void)
     UtTest_Add(test_v7_encode_bp_ipn_servicenumber, NULL, NULL, "Test v7_encode_bp_ipn_servicenumber");
     UtTest_Add(test_v7_encode_bp_ipn_uri_ssp_impl, NULL, NULL, "Test v7_encode_bp_ipn_uri_ssp_impl");
     UtTest_Add(test_v7_encode_bp_ipn_uri_ssp, NULL, NULL, "Test v7_encode_bp_ipn_uri_ssp");
-    UtTest_Add(test_v7_encode_bp_endpointid_buffer_impl, NULL, NULL, "Test v7_encode_bp_endpointid_buffer_impl");
+    UtTest_Add(test_v7_encode_BPLib_STOR_CACHE_EidBuffer_impl, NULL, NULL, "Test v7_encode_BPLib_STOR_CACHE_EidBuffer_impl");
     UtTest_Add(test_v7_decode_bp_endpointid_scheme, NULL, NULL, "Test v7_decode_bp_endpointid_scheme");
     UtTest_Add(test_v7_decode_bp_ipn_nodenumber, NULL, NULL, "Test v7_decode_bp_ipn_nodenumber");
     UtTest_Add(test_v7_decode_bp_ipn_servicenumber, NULL, NULL, "Test v7_decode_bp_ipn_servicenumber");
     UtTest_Add(test_v7_decode_bp_ipn_uri_ssp, NULL, NULL, "Test v7_decode_bp_ipn_uri_ssp");
     UtTest_Add(test_v7_decode_bp_ipn_uri_ssp_impl, NULL, NULL, "Test v7_decode_bp_ipn_uri_ssp_impl");
-    UtTest_Add(test_v7_decode_bp_endpointid_buffer_impl, NULL, NULL, "Test v7_decode_bp_endpointid_buffer_impl");
-    UtTest_Add(test_v7_decode_bp_endpointid_buffer, NULL, NULL, "Test v7_decode_bp_endpointid_buffer");
+    UtTest_Add(test_v7_decode_BPLib_STOR_CACHE_EidBuffer_impl, NULL, NULL, "Test v7_decode_BPLib_STOR_CACHE_EidBuffer_impl");
+    UtTest_Add(test_v7_decode_BPLib_STOR_CACHE_EidBuffer, NULL, NULL, "Test v7_decode_BPLib_STOR_CACHE_EidBuffer");
 }

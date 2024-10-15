@@ -32,6 +32,8 @@
 
 #include "bplib_mem.h"
 
+#include "bplib_stor_qm.h"
+
 typedef enum
 {
     BPLib_STOR_CACHE_DataserviceTypeUndefined,
@@ -40,13 +42,13 @@ typedef enum
     BPLib_STOR_CACHE_DataserviceTypeMax
 }BPLib_STOR_CACHE_DataserviceType_t;
 
-bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_ipn_t node_number);
+bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_CACHE_Block_t *rtbl, bp_ipn_t node_number);
 
 bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
     BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn,
     BPLib_STOR_CACHE_DataserviceType_t type,
     BPLib_STOR_CACHE_Ref_t blkref);
 
-BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn);
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_CACHE_Block_t *tbl, const bp_ipn_addr_t *ipn);
 
 #endif /* BPLIB_DATASERVICE_H */

@@ -39,9 +39,9 @@ void test_v7_block_encode_pri(void)
     cpb.data.logical.version        = 7;
     cpb.data.logical.crctype        = bp_crctype_CRC32C;
     cpb.data.logical.crcval         = 2;
-    cpb.data.logical.destinationEID = (bp_endpointid_buffer_t) {.scheme = bp_endpointid_scheme_ipn};
-    cpb.data.logical.sourceEID      = (bp_endpointid_buffer_t) {.scheme = bp_endpointid_scheme_ipn};
-    cpb.data.logical.reportEID      = (bp_endpointid_buffer_t) {.scheme = bp_endpointid_scheme_ipn};
+    cpb.data.logical.destinationEID = (BPLib_STOR_CACHE_EidBuffer_t) {.scheme = bp_endpointid_scheme_ipn};
+    cpb.data.logical.sourceEID      = (BPLib_STOR_CACHE_EidBuffer_t) {.scheme = bp_endpointid_scheme_ipn};
+    cpb.data.logical.reportEID      = (BPLib_STOR_CACHE_EidBuffer_t) {.scheme = bp_endpointid_scheme_ipn};
     UtAssert_UINT8_NEQ(v7_block_encode_pri(&cpb), 0);
 }
 

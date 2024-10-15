@@ -275,7 +275,7 @@ bp_handle_t BPLib_STOR_CACHE_CreateClaIntf(BPLib_STOR_QM_QueueTbl_t *rtbl)
     bp_handle_t          self_intf_id;
     BPLib_STOR_CACHE_Pool_t       *pool;
 
-    pool = BPLib_STOR_QM_GetMpool(rtbl);
+    pool = BPLib_STOR_QM_GetQtblPool(rtbl);
 
     /* register CLA API module */
    BPLib_STOR_CACHE_ClaInit(pool);
@@ -324,7 +324,7 @@ int BPLib_STOR_CACHE_ClaEgress(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_handle_t intf_
         return BPLIB_ERROR;
     }
 
-    stats = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(duct_ref), BPLIB_BLOCKTYPE_CLA_INTF);
+    stats = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(duct_ref), BPLIB_BLOCKTYPE_CLA_INTF);
     if (stats == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Intf ID is not a CLA\n");
@@ -358,7 +358,7 @@ int BPLib_STOR_CACHE_ClaIngress(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_handle_t intf
         return BPLIB_ERROR;
     }
 
-    stats = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(duct_ref), BPLIB_BLOCKTYPE_CLA_INTF);
+    stats = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(duct_ref), BPLIB_BLOCKTYPE_CLA_INTF);
     if (stats == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Intf ID is not a CLA\n");

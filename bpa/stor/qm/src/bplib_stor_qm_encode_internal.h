@@ -34,7 +34,7 @@ typedef struct v7_encode_state
 
     bool                    crc_flag;
     bp_crcval_t             crc_val;
-   bplib_crc_parameters_t *crc_params;
+   BPLib_STOR_CACHE_CrcParameters_t *crc_params;
 
     CborEncoder *cbor;
 
@@ -72,7 +72,7 @@ void v7_encode_bp_blocknum(v7_encode_state_t *enc, const bp_blocknum_t *v);
 void v7_encode_bp_blocktype(v7_encode_state_t *enc, const bp_blocktype_t *v);
 void v7_encode_bp_crctype(v7_encode_state_t *enc, const bp_crctype_t *v);
 void v7_encode_bp_dtntime(v7_encode_state_t *enc, const bp_dtntime_t *v);
-void v7_encode_bp_endpointid_buffer(v7_encode_state_t *enc, const bp_endpointid_buffer_t *v);
+void v7_encode_BPLib_STOR_CACHE_EidBuffer(v7_encode_state_t *enc, const BPLib_STOR_CACHE_EidBuffer_t *v);
 void v7_encode_bitmap(v7_encode_state_t *enc, const uint8_t *v, const v7_bitmap_table_t *ptbl);
 
 /* Block encoders */
@@ -100,7 +100,7 @@ void      v7_encode_bp_ipn_nodenumber(v7_encode_state_t *enc, const bp_ipn_noden
 void      v7_encode_bp_ipn_servicenumber(v7_encode_state_t *enc, const bp_ipn_servicenumber_t *v);
 void      v7_encode_bp_ipn_uri_ssp(v7_encode_state_t *enc, const bp_ipn_uri_ssp_t *v);
 void      v7_encode_bp_ipn_uri_ssp_impl(v7_encode_state_t *enc, const void *arg);
-void      v7_encode_bp_endpointid_buffer_impl(v7_encode_state_t *enc, const void *arg);
+void      v7_encode_BPLib_STOR_CACHE_EidBuffer_impl(v7_encode_state_t *enc, const void *arg);
 void      v7_encode_bp_hop_count_block_impl(v7_encode_state_t *enc, const void *arg);
 void      v7_encode_bp_bundle_processing_control_flags(v7_encode_state_t                          *enc,
                                                        const bp_bundle_processing_control_flags_t *v);

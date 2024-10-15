@@ -46,13 +46,6 @@ extern "C" {
  PROTOTYPES
  ******************************************************************************/
 
-/* Service API */
-bp_handle_t BPLib_STOR_CACHE_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr);
-int         BPLib_STOR_CACHE_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr);
-
-bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t cache_intf_id,
-                                                const BPLib_STOR_CACHE_ModuleApi_t *api, void *init_arg);
-
 bp_handle_t BPLib_STOR_CACHE_CreateRamStorage(BPLib_STOR_QM_QueueTbl_t *rtbl, const bp_ipn_addr_t *storage_addr);
 
 #ifdef __cplusplus

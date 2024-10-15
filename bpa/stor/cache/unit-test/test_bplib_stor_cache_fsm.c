@@ -37,12 +37,12 @@ void Test_BPLib_STOR_CACHE_FsmStateIdleEval(void)
      */
     BPLib_STOR_CACHE_Entry_t       store_entry;
     BPLib_STOR_CACHE_State_t       parent;
-    BPLib_STOR_CACHE_OffloadApi_t  offload_api;
+    BPLib_STOR_PS_OffloadApi_t  offload_api;
     BPLib_STOR_CACHE_Block_t       refptr;
 
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
     memset(&parent, 0, sizeof(BPLib_STOR_CACHE_State_t));
-    memset(&offload_api, 0, sizeof(BPLib_STOR_CACHE_OffloadApi_t));
+    memset(&offload_api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
     memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     store_entry.parent  = &parent;
     offload_api.restore = Test_BPLib_STOR_CACHE_RestoreStub;
@@ -115,7 +115,7 @@ void Test_BPLib_STOR_CACHE_FsmExecute(void)
     store_entry.flags  = BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
     store_entry.state  = BPLib_STOR_CACHE_EntryStateIdle;
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, &store_entry);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, &store_entry);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmExecute(&sblk));
 
     store_entry.expire_time = UT_MONOTIME_1;
@@ -125,7 +125,7 @@ void Test_BPLib_STOR_CACHE_FsmExecute(void)
     store_entry.state = BPLib_STOR_CACHE_EntryStateIdle;
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmExecute(&sblk));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
 void Test_BPLib_STOR_CACHE_FsmStateQueueExit(void)
@@ -176,12 +176,12 @@ void Test_BPLib_STOR_CACHE_FsmStateDeleteEnter(void)
     BPLib_STOR_CACHE_Entry_t       store_entry;
     BPLib_STOR_CACHE_State_t       state;
     BPLib_STOR_CACHE_Ref_t         refptr;
-    BPLib_STOR_CACHE_OffloadApi_t offload_api;
+    BPLib_STOR_PS_OffloadApi_t offload_api;
 
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
     memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Block_t));
-    memset(&offload_api, 0, sizeof(BPLib_STOR_CACHE_OffloadApi_t));
+    memset(&offload_api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
     offload_api.release             = Test_BPLib_STOR_CACHE_ReleaseStub;
     store_entry.parent              = &state;
     store_entry.refptr              = refptr;

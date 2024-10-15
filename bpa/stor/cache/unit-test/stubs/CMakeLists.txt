@@ -7,9 +7,10 @@
 ##################################################################
 
 add_library(bplib_stor_cache_stubs STATIC
-    bplib_stor_cache_module_api_stubs.c
+    bplib_stor_cache_bblocks_stubs.c
+    # QM Stubs bplib_stor_cache_module_api_stubs.c
     bplib_stor_cache_pool_stubs.c
-    bplib_stor_cache_stubs.c
+    # QM Stubs bplib_stor_cache_stubs.c
 )
 
 target_include_directories(bplib_stor_cache_stubs PUBLIC

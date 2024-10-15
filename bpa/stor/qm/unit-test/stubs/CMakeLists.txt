@@ -7,7 +7,6 @@
 ##################################################################
 
 add_library(bplib_stor_qm_stubs STATIC
-    bplib_stor_qm_bblocks_stubs.c
     bplib_stor_qm_codec_stubs.c
     bplib_stor_qm_dataservice_stubs.c
     bplib_stor_qm_decode_stubs.c
@@ -26,7 +25,7 @@ target_include_directories(bplib_stor_qm_stubs PUBLIC
 
 target_link_libraries(bplib_stor_qm_stubs PUBLIC
     ut_coverage_link
-    bplib_mem
+    bplib_mem_stubs
     coverage-bplib-stubs
     ut_assert
 )

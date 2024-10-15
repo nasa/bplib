@@ -18,12 +18,12 @@
  *
  */
 
+#ifndef BPLIB_STOR_QM_H
+#define BPLIB_STOR_QM_H
+
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
-
-#ifndef BPLIB_STOR_QM_H
-#define BPLIB_STOR_QM_H
 
 #include <stdint.h>
 #include "bplib_api_types.h"
@@ -31,13 +31,30 @@
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
 
+#include "bplib_stor_qm_base_internal.h"
+
 /* JPHFIX: These are duplicate of the flow flags, should be consolidated */
 #define BPLIB_INTF_STATE_ADMIN_UP 0x01
 #define BPLIB_INTF_STATE_OPER_UP  0x02
 
 /******************************************************************************
- TYPEDEFS
+ GLOBALS
  ******************************************************************************/
+
+// TODO Define the global Queue Table, formerly the global Route Table.
+/**
+ * bp_global.h and bp_global.c must define BPLib_GlobalData.QueueTBL formerly BP_GlobalData.RouteTbl
+ * Then bp_app.c can have code like:
+ * 
+ *     // Test queue table with 1MB of cache
+ *     BP_GlobalData.QueueTbl = BPLib_STOR_QM_AllocQueueTbl(10, 16 << 20);
+ *     if (BP_GlobalData.QueueTbl == NULL)
+ *     {
+ *         fprintf(stderr, "%s(): BPLib_STOR_QM_AllocQueueTbl\n", __func__);
+ *         return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+ *     }
+ */
+
 
 /******************************************************************************
  DEFINES
@@ -48,6 +65,7 @@
  TYPEDEFS
  ******************************************************************************/
 
+typedef struct BPLib_STOR_QM_QueueTbl BPLib_STOR_QM_QueueTbl_t;
 
 typedef int (*BPLib_STOR_QM_ActionFunc_t)(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_STOR_CACHE_Ref_t ref, void *arg);
 
@@ -71,7 +89,7 @@ typedef int (*BPLib_STOR_QM_ActionFunc_t)(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_S
 typedef int (*BPLib_STOR_QM_CallbackFunc_t)(void *, BPLib_STOR_CACHE_Block_t *);
 
 BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_routes, size_t cache_mem_size);
-BPLib_STOR_CACHE_Pool_t    *BPLib_STOR_QM_GetMpool(const BPLib_STOR_QM_QueueTbl_t *tbl);
+BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetQtblPool(const BPLib_STOR_QM_QueueTbl_t *tbl);
 
 bp_handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t parent_intf_id,
                                               BPLib_STOR_CACHE_Block_t *flow_block);

@@ -38,8 +38,8 @@
 #include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_module_api.h"
 
-#include "../qm/inc/bplib_stor_qm.h"
-#include "../qm/inc/bplib_stor_qm_dataservice.h"
+#include "bplib_stor_qm.h"
+#include "bplib_stor_qm_dataservice.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -52,222 +52,101 @@
 /******************************************************************************
  EXPORTED FUNCTIONS
  ******************************************************************************/
-#define BPLIB_FILE_PATH_SIZE     128
-#define BPLIB_FILE_OFFLOAD_MAGIC 0xdb5e774e
-
-static BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Instantiate(BPLib_STOR_CACHE_Ref_t parent, void *init_arg);
-static int BPLib_STOR_CACHE_Configure(BPLib_STOR_CACHE_Block_t *svc, bp_handle_t cache_intf_id, int key,
-                                      BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val);
-static int BPLib_STOR_CACHE_Query(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt,
-                                  const void **val);
-static int BPLib_STOR_CACHE_Start(BPLib_STOR_CACHE_Block_t *svc);
-static int BPLib_STOR_CACHE_Stop(BPLib_STOR_CACHE_Block_t *svc);
-static int BPLib_STOR_CACHE_Offload(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
-static int BPLib_STOR_CACHE_Restore(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk_out);
-static int BPLib_STOR_CACHE_Release(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);
-
-typedef struct BPLib_PS_FileOffloadState
-{
-    char     base_dir[BPLIB_FILE_PATH_SIZE];
-    bp_sid_t last_sid;
-
-} BPLib_PS_FileOffloadState;
-
-typedef struct BPLib_PS_FileOffloadRecord
-{
-    uint32_t check_val;
-    uint32_t num_blocks;
-    uint32_t num_bytes;
-    uint32_t crc;
-} BPLib_PS_FileOffloadRecord_t;
-
-
-static const BPLib_STOR_CACHE_OffloadApi_t BPLIB_FILE_OFFLOAD_INTERNAL_API = {
-    .std.module_type = BPLib_STOR_CACHE_ModuleTypeOffload,
-    .std.instantiate = BPLib_STOR_CACHE_Instantiate,
-    .std.configure   = BPLib_STOR_CACHE_Configure,
-    .std.query       = BPLib_STOR_CACHE_Query,
-    .std.start       = BPLib_STOR_CACHE_Start,
-    .std.stop        = BPLib_STOR_CACHE_Stop,
-    .offload         = BPLib_STOR_CACHE_Offload,
-    .restore         = BPLib_STOR_CACHE_Restore,
-    .release         = BPLib_STOR_CACHE_Release};
-
-const BPLib_STOR_CACHE_ModuleApi_t *BPLIB_FILE_OFFLOAD_API =
-    (const BPLib_STOR_CACHE_ModuleApi_t *)&BPLIB_FILE_OFFLOAD_INTERNAL_API;
 
 BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_Instantiate(BPLib_STOR_CACHE_Ref_t parent, void *init_arg)
 {
     return NULL;
 }
 
-int BPLib_STOR_CACHE_Configure(BPLib_STOR_CACHE_Block_t *svc, bp_handle_t cache_intf_id, int key,
-                                      BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val)
-{
-    return BPLIB_SUCCESS;
-}
-
-int BPLib_STOR_CACHE_Query(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt,
-                                  const void **val)
-{
-    return BPLIB_SUCCESS;
-}
-
-int BPLib_STOR_CACHE_Start(BPLib_STOR_CACHE_Block_t *svc)
-{
-    return BPLIB_SUCCESS;
-}
-
-int BPLib_STOR_CACHE_Stop(BPLib_STOR_CACHE_Block_t *svc)
-{
-    return BPLIB_SUCCESS;
-}
-
-int BPLib_STOR_CACHE_Offload(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
-{
-    return BPLIB_SUCCESS;
-}
-
-int BPLib_STOR_CACHE_Restore(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk_out)
-{
-    return BPLIB_SUCCESS;
-}
-
-int BPLib_STOR_CACHE_Release(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
-{
-    return BPLIB_SUCCESS;
-}
-
-#ifdef PS
-int BPLib_STOR_PS_Configure(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id, int key,
-                            BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val)
+int BPLib_STOR_CACHE_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
+                               BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val)
 {
     BPLib_STOR_CACHE_Block_t *cblk;
     BPLib_STOR_CACHE_State_t *state;
-    int                  result;
+    int                       result;
 
     result = BPLIB_ERROR;
-    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetMpool(tbl), module_intf_id);
-    state  = BPLib_STOR_CACHE_GenericDataCast(cblk, BPLIB_STORE_SIGNATURE_STATE);
+    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetQtblPool(tbl), module_intf_id);
+    state  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)cblk, BPLIB_STORE_SIGNATURE_STATE);
     if (state != NULL)
     {
         /* currently the only module is offload, so all keys are passed here */
         if (state->offload_blk != NULL)
         {
-            result = state->offload_api->std.configure(state->offload_blk, module_intf_id, key, vt, val);
-        }
-    }
-
-    return result;
-}
-int BPLib_STOR_PS_Query(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_CACHE_ModuleValtype_t vt,
-                      const void **val)
-{
-    BPLib_STOR_CACHE_Block_t *cblk;
-    BPLib_STOR_CACHE_State_t *state;
-    int                  result;
-
-    result = BPLIB_ERROR;
-    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetMpool(tbl), module_intf_id);
-    state  = BPLib_STOR_CACHE_GenericDataCast(cblk, BPLIB_STORE_SIGNATURE_STATE);
-    if (state != NULL)
-    {
-        /* currently the only module is offload, so all keys are passed here */
-        if (state->offload_blk != NULL)
-        {
-            result = state->offload_api->std.query(state->offload_blk, key, vt, val);
+            // TODO "std" API is File Offload, TBD
+            // result = state->offload_api->std.configure(state->offload_blk, module_intf_id, key, vt, val);
         }
     }
 
     return result;
 }
 
-int BPLib_STOR_PS_Start(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id)
+int BPLib_STOR_CACHE_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
+                           BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val)
 {
     BPLib_STOR_CACHE_Block_t *cblk;
     BPLib_STOR_CACHE_State_t *state;
-    int                  result;
+    int                       result;
 
     result = BPLIB_ERROR;
-    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetMpool(tbl), module_intf_id);
-    state  = BPLib_STOR_CACHE_GenericDataCast(cblk, BPLIB_STORE_SIGNATURE_STATE);
+    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetQtblPool(tbl), module_intf_id);
+    state  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)cblk, BPLIB_STORE_SIGNATURE_STATE);
     if (state != NULL)
     {
         /* currently the only module is offload, so all keys are passed here */
         if (state->offload_blk != NULL)
         {
-            result = state->offload_api->std.start(state->offload_blk);
+            // TODO "std" API is File Offload, TBD
+            // result = state->offload_api->std.query(state->offload_blk, module_intf_id, key, vt, val);
         }
     }
 
     return result;
 }
 
-int BPLib_STOR_PS_Stop(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id)
+int BPLib_STOR_CACHE_Start(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
 {
     BPLib_STOR_CACHE_Block_t *cblk;
     BPLib_STOR_CACHE_State_t *state;
-    int                  result;
+    int                       result;
 
     result = BPLIB_ERROR;
-    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetMpool(tbl), module_intf_id);
-    state  = BPLib_STOR_CACHE_GenericDataCast(cblk, BPLIB_STORE_SIGNATURE_STATE);
+    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetQtblPool(tbl), module_intf_id);
+    state  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)cblk, BPLIB_STORE_SIGNATURE_STATE);
     if (state != NULL)
     {
         /* currently the only module is offload, so all keys are passed here */
         if (state->offload_blk != NULL)
         {
-            result = state->offload_api->std.stop(state->offload_blk);
+            // TODO "std" API is File Offload, TBD
+            // result = state->offload_api->std.start(state->offload_blk, module_intf_id);
         }
     }
 
     return result;
 }
 
-bp_handle_t BPLib_STOR_CACHE_CreateFileStorage(BPLib_STOR_CACHE_Block_t *rtbl, const bp_ipn_addr_t *storage_addr)
+int BPLib_STOR_CACHE_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
 {
-    bp_handle_t intf_id;
-    bp_handle_t svc_id;
-    char        storage_path[64];
+    BPLib_STOR_CACHE_Block_t *cblk;
+    BPLib_STOR_CACHE_State_t *state;
+    int                  result;
 
-    intf_id = BPLib_STOR_CACHE_Attach(rtbl, storage_addr);
-    if (bp_handle_is_valid(intf_id))
+    result = BPLIB_ERROR;
+    cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetQtblPool(tbl), module_intf_id);
+    state  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)cblk, BPLIB_STORE_SIGNATURE_STATE);
+    if (state != NULL)
     {
-        svc_id = BPLib_STOR_CACHE_RegisterModuleService(rtbl, intf_id, BPLIB_FILE_OFFLOAD_API, NULL);
-
-        if (bp_handle_is_valid(svc_id))
+        /* currently the only module is offload, so all keys are passed here */
+        if (state->offload_blk != NULL)
         {
-            snprintf(storage_path, sizeof(storage_path), "./storage/%u.%u", (unsigned int)storage_addr->node_number,
-                     (unsigned int)storage_addr->service_number);
-            BPLib_STOR_CACHE_Configure(rtbl, intf_id, BPLib_STOR_CACHE_ConfkeyOffloadBaseDir,
-                                       BPLib_STOR_CACHE_ModuleValtypeString, storage_path);
-            BPLib_STOR_PS_Start(rtbl, intf_id);
+            // TODO "std" API is File Offload, TBD
+            // result = state->offload_api->std.stop(state->offload_blk, module_intf_id);
         }
     }
 
-    return intf_id;
+    return result;
 }
-
-bp_handle_t BPLib_STOR_CACHE_CreateNodeIntf(BPLib_STOR_CACHE_Block_t *rtbl, bp_ipn_t node_num)
-{
-    bp_handle_t intf_id;
-
-    intf_id = BPLib_STOR_CACHE_DataserviceAddBaseIntf(rtbl, node_num);
-    if (!bp_handle_is_valid(intf_id))
-    {
-        // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "BPLib_STOR_QM_AddIntf failed\n");
-        return BP_INVALID_HANDLE;
-    }
-
-    if (BPLib_STOR_QM_Add(rtbl, node_num, ~(bp_ipn_t)0, intf_id) < 0)
-    {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "BPLib_STOR_QM_Add failed\n");
-        return BP_INVALID_HANDLE;
-    }
-
-    return intf_id;
-}
-#endif // PS
 
 /*--------------------------------------------------------------------------------------
  *BPLib_STOR_CACHE_Display -
@@ -414,12 +293,12 @@ int BPLib_STOR_CACHE_QueryInteger(BPLib_STOR_CACHE_Block_t *rtbl, bp_handle_t in
     switch (var_id)
     {
         case BPLib_STOR_CACHE_VariableMemCurrentUse:
-            *value = BPLib_STOR_CACHE_QueryMemCurrentUse(BPLib_STOR_QM_GetMpool(rtbl));
+            *value = BPLib_STOR_CACHE_QueryMemCurrentUse(BPLib_STOR_QM_GetQtblPool(rtbl));
             retval = BPLIB_SUCCESS;
             break;
 
         case BPLib_STOR_CACHE_VariableMemHighUse:
-            *value = BPLib_STOR_CACHE_QueryMemMaxUse(BPLib_STOR_QM_GetMpool(rtbl));
+            *value = BPLib_STOR_CACHE_QueryMemMaxUse(BPLib_STOR_QM_GetQtblPool(rtbl));
             retval = BPLIB_SUCCESS;
             break;
 

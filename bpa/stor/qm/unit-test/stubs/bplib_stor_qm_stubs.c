@@ -152,18 +152,18 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_QM_GetMpool()
+ * Generated stub function for BPLib_STOR_QM_GetQtblPool()
  * ----------------------------------------------------
  */
-BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetMpool(const BPLib_STOR_QM_QueueTbl_t *tbl)
+BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetQtblPool(const BPLib_STOR_QM_QueueTbl_t *tbl)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_GetMpool, BPLib_STOR_CACHE_Pool_t *);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_GetQtblPool, BPLib_STOR_CACHE_Pool_t *);
 
-    UT_GenStub_AddParam(BPLib_STOR_QM_GetMpool, const BPLib_STOR_QM_QueueTbl_t *, tbl);
+    UT_GenStub_AddParam(BPLib_STOR_QM_GetQtblPool, const BPLib_STOR_QM_QueueTbl_t *, tbl);
 
-    UT_GenStub_Execute(BPLib_STOR_QM_GetMpool, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_GetQtblPool, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_GetMpool, BPLib_STOR_CACHE_Pool_t *);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_GetQtblPool, BPLib_STOR_CACHE_Pool_t *);
 }
 
 /*

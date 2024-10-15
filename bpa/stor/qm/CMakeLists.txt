@@ -8,9 +8,10 @@
 ##################################################################
 
 add_library(bplib_stor_qm OBJECT
-    src/bplib_ct_custody.c
+    # TODO ct_custody build and qm builds broken by header file dependencies.
+    # src/bplib_ct_custody.c
     src/bplib_stor_qm.c
-    src/bplib_stor_qm_cla_api.c
+    # src/bplib_stor_qm_cla_api.c
     # src/bplib_stor_qm_dataservice_api.c
     # src/bplib_stor_qm_fsm.c
     # src/bplib_stor_qm_job.c

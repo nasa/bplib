@@ -80,9 +80,9 @@ int BPLib_STOR_CACHE_ServiceductBundleizePayload (
         /* Initialize Primary Block */
         pri->version = 7;
 
-        v7_set_eid(&pri->destinationEID, &sock_inf->params.remote_ipn);
-        v7_set_eid(&pri->sourceEID, &sock_inf->params.local_ipn);
-        v7_set_eid(&pri->reportEID, &sock_inf->params.report_ipn);
+        BPLib_STOR_QM_SetEid(&pri->destinationEID, &sock_inf->params.remote_ipn);
+        BPLib_STOR_QM_SetEid(&pri->sourceEID, &sock_inf->params.local_ipn);
+        BPLib_STOR_QM_SetEid(&pri->reportEID, &sock_inf->params.report_ipn);
 
         pri->creationTimeStamp.sequence_num = sock_inf->last_bundle_seq;
         ++sock_inf->last_bundle_seq;
@@ -105,7 +105,7 @@ int BPLib_STOR_CACHE_ServiceductBundleizePayload (
         }
 
         /* Update Payload Block */
-        cblk    = BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_STOR_QM_GetMpool(sock_inf->parent_rtbl), 0, NULL);
+        cblk    = BPLib_STOR_CACHE_BblockCanonicalAlloc(BPLib_STOR_QM_GetQtblPool(sock_inf->parent_rtbl), 0, NULL);
         ccb_pay = BPLib_STOR_CACHE_BblockCanonicalCast(cblk);
         if (ccb_pay == NULL)
         {
@@ -221,7 +221,7 @@ int BPLib_STOR_CACHE_ServiceductForwardIngress(void *arg, BPLib_STOR_CACHE_Block
     int                             forward_count;
 
     intf_block = BPLib_STOR_CACHE_GetBlockFromLink(subq_src);
-    base_intf  = BPLib_STOR_CACHE_GenericDataCast(intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
+    base_intf  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "intf_block invalid\n");
@@ -293,7 +293,7 @@ int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_
     int                               forward_count;
 
     intf_block = BPLib_STOR_CACHE_GetBlockFromLink(subq_src);
-    base_intf  = BPLib_STOR_CACHE_GenericDataCast(intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
+    base_intf  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "intf_block invalid\n");
@@ -330,8 +330,8 @@ int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_
 
             if (next_duct_ref == NULL)
             {
-                BPLib_STOR_QM_GetEID(&bundle_src, &BPLib_STOR_CACHE_BblockPrimaryGetLogical(pri_block)->sourceEID);
-                BPLib_STOR_QM_GetEID(&bundle_dest, &BPLib_STOR_CACHE_BblockPrimaryGetLogical(pri_block)->destinationEID);
+                BPLib_STOR_QM_GetEid(&bundle_src, &BPLib_STOR_CACHE_BblockPrimaryGetLogical(pri_block)->sourceEID);
+                BPLib_STOR_QM_GetEid(&bundle_dest, &BPLib_STOR_CACHE_BblockPrimaryGetLogical(pri_block)->destinationEID);
 
                 /* Find a dataservice that matches this src/dest combo */
                 tgt_subintf = BPLib_MEM_RBT_SearchUnique(bundle_dest.service_number, &base_intf->service_index);
@@ -378,7 +378,7 @@ int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_bl
    BPLib_STOR_CACHE_ServiceEndpt_t          *endpoint_intf;
     int                             status;
 
-    base_intf = BPLib_STOR_CACHE_GenericDataCast(base_intf_blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
+    base_intf = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)base_intf_blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf != NULL)
     {
         BPLib_STOR_CACHE_Block_t *temp_block;
@@ -390,7 +390,7 @@ int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_bl
             return BPLIB_ERROR;
         }
 
-        endpoint_intf           = BPLib_STOR_CACHE_GenericDataCast(temp_block, BPLIB_BLOCKTYPE_SERVICE_ENDPOINT);
+        endpoint_intf           = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)temp_block, BPLIB_BLOCKTYPE_SERVICE_ENDPOINT);
         endpoint_intf->self_ptr = temp_block;
 
         /* This can fail in the event the service number is duplicated */
@@ -436,7 +436,7 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_ServiceductRemoveFromBase(BPLib_STOR_CAC
     int                              status;
 
     endpoint_intf_ref = NULL;
-    base_intf         = BPLib_STOR_CACHE_GenericDataCast(base_intf_blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
+    base_intf         = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)base_intf_blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf != NULL)
     {
         /* This can fail in the event the service number is duplicated */
@@ -516,7 +516,7 @@ int BPLib_STOR_CACHE_DataserviceBaseConstruct(void *arg, BPLib_STOR_CACHE_Block_
 {
     BPLib_STOR_QM_ServiceintfInfo_t *base_intf;
 
-    base_intf = BPLib_STOR_CACHE_GenericDataCast(blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
+    base_intf = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         return BPLIB_ERROR;
@@ -560,7 +560,7 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rt
     bp_handle_t                     self_intf_id;
     BPLib_STOR_CACHE_Pool_t                  *pool;
 
-    pool = BPLib_STOR_QM_GetMpool(rtbl);
+    pool = BPLib_STOR_QM_GetQtblPool(rtbl);
 
     /* register Dataservice API module */
    BPLib_STOR_CACHE_DataserviceInit(pool);
@@ -573,7 +573,7 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rt
         return BP_INVALID_HANDLE;
     }
 
-    base_intf = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_BLOCKTYPE_SERVICE_BASE);
+    base_intf = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to convert sblk to ref\n");
@@ -701,13 +701,13 @@ bp_socket_t *BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *rtbl)
    BPLib_STOR_CACHE_SocketInfo_t *sock;
     BPLib_STOR_CACHE_Ref_t    sock_ref;
 
-    pool = BPLib_STOR_QM_GetMpool(rtbl);
+    pool = BPLib_STOR_QM_GetQtblPool(rtbl);
 
     /* Allocate Duct */
     sblk = BPLib_STOR_QM_DuctAlloc(pool, BPLIB_BLOCKTYPE_SERVICE_SOCKET, NULL);
     if (sblk != NULL)
     {
-        sock = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_BLOCKTYPE_SERVICE_SOCKET);
+        sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_BLOCKTYPE_SERVICE_SOCKET);
         assert(sock != NULL);
 
         sock->parent_rtbl = rtbl;
@@ -739,7 +739,7 @@ int BPLib_STOR_CACHE_BindSocket(bp_socket_t *desc, const bp_ipn_addr_t *source_i
 
     sock_ref = (BPLib_STOR_CACHE_Ref_t)desc;
 
-    sock = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
+    sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -784,7 +784,7 @@ int BPLib_STOR_CACHE_ConnectSocket(bp_socket_t *desc, const bp_ipn_addr_t *desti
 
     sock_ref = (BPLib_STOR_CACHE_Ref_t)desc;
 
-    sock = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
+    sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -826,7 +826,7 @@ void BPLib_STOR_CACHE_CloseSocket(bp_socket_t *desc)
 
     sock_ref = (BPLib_STOR_CACHE_Ref_t)desc;
 
-    sock = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
+    sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -867,7 +867,7 @@ int BPLib_STOR_CACHE_Send(bp_socket_t *desc, const void *payload, size_t size, u
     ingress_time  = BPLib_STOR_CACHE_GetMonotonicTime();
     ingress_limit.Time = ingress_time.Time + timeout; // TODO Exist? BPLib_*_TimeAddMs(ingress_time, timeout);
 
-    sock = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
+    sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
@@ -882,7 +882,7 @@ int BPLib_STOR_CACHE_Send(bp_socket_t *desc, const void *payload, size_t size, u
     }
 
     /* If no pri block is available, this should block and wait for one (up to ingress_limit) */
-    pblk = BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_QM_GetMpool(sock->parent_rtbl), 0, NULL, BPLIB_MPOOL_ALLOC_PRI_LO,
+    pblk = BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_QM_GetQtblPool(sock->parent_rtbl), 0, NULL, BPLIB_MPOOL_ALLOC_PRI_LO,
                                             ingress_limit);
     if (pblk == NULL)
     {
@@ -959,7 +959,7 @@ int BPLib_STOR_CACHE_Recv(bp_socket_t *desc, void *payload, size_t *size, uint32
 
     sock_ref = (BPLib_STOR_CACHE_Ref_t)desc;
 
-    sock = BPLib_STOR_CACHE_GenericDataCast(BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
+    sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);

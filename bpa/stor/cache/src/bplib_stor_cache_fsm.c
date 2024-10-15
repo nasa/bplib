@@ -359,7 +359,7 @@ void BPLib_STOR_CACHE_FsmExecute(BPLib_STOR_CACHE_Block_t *sblk)
     BPLib_STOR_CACHE_EntryState_t next_state;
 
     /* This cast should always work, unless there is a bug */
-    store_entry = BPLib_STOR_CACHE_GenericDataCast(sblk, BPLIB_STORE_SIGNATURE_ENTRY);
+    store_entry = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_ENTRY);
     if (store_entry != NULL)
     {
         state = store_entry->parent;

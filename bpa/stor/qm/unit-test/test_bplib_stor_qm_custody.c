@@ -24,8 +24,9 @@
 #include "uttest.h"
 
 #include "bplib_stor_cache_block.h"
+#include "bplib_stor_cache_ref.h"
 
-#include "test_bplib_stor_qm.h"
+#include "test_BPLib_STOR_CACHE_StorQm.h"
 
 void Test_BPLib_STOR_CACHE_CustodyFinalizeDacs(void)
 {
@@ -67,14 +68,14 @@ void Test_BPLib_STOR_CACHE_CustodyCheckDacs(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, &pri_block);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, &c_block);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, &custody_rbt_link);
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &blk);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &blk);
     c_block.canonical_logical_data.data.custody_accept_payload_block.num_entries = 1;
     UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_CustodyCheckDacs(&state, &qblk));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
 void Test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
@@ -89,7 +90,7 @@ void Test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
     BPLib_MEM_RBT_Link_t               custody_rbt_link;
     BPLib_STOR_CACHE_Entry_t            store_entry;
     BPLib_STOR_CACHE_BblockCanonical_t custody_block;
-    BPLib_STOR_CACHE_OffloadApi_t      offload_api;
+    BPLib_STOR_PS_OffloadApi_t      offload_api;
     BPLib_STOR_CACHE_Block_t            sblk;
 
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
@@ -99,13 +100,13 @@ void Test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
     memset(&custody_rbt_link, 0, sizeof(BPLib_MEM_RBT_Link_t));
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
     memset(&custody_block, 0, sizeof(BPLib_STOR_CACHE_BblockCanonical_t));
-    memset(&offload_api, 0, sizeof(BPLib_STOR_CACHE_OffloadApi_t));
+    memset(&offload_api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
     memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetBlockFromLink), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetParentPoolFromLink), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_cache_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyStoreBundle(&state, &qblk));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefFromBlock), UT_cache_sizet_Handler, NULL);
@@ -116,7 +117,7 @@ void Test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
     pri_block.data.delivery.committed_storage_id = 1;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, &store_entry);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, &store_entry);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetBlockFromLink), UT_cache_AltHandler_PointerReturn, &qblk1);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_cache_AltHandler_PointerReturn, &sblk);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyStoreBundle(&state, &qblk));
@@ -127,7 +128,7 @@ void Test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalAlloc), UT_cache_sizet_Handler, NULL);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyStoreBundle(&state, &qblk));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyStoreBundle(&state, &qblk));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, NULL);
@@ -265,21 +266,21 @@ void Test_BPLib_STOR_CACHE_CustodyOpenDacs(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyOpenDacs(&state, &custody_info));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefDuplicate), UT_cache_sizet_Handler, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, &store_entry);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, &store_entry);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_cache_AltHandler_PointerReturn, &ref);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetBlockFromLink), UT_cache_AltHandler_PointerReturn, &blk);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, &pri_block);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, &c_block);
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &blk);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &blk);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyOpenDacs(&state, &custody_info));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_cache_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetBlockFromLink), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
 void Test_BPLib_STOR_CACHE_CustodyAppendDacs(void)
@@ -302,14 +303,14 @@ void Test_BPLib_STOR_CACHE_CustodyAppendDacs(void)
     store_entry.data.dacs.payload_ref = &payload_ref;
     custody_info.store_entry          = &store_entry;
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &blk);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &blk);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyAppendDacs(&state, &custody_info));
 
     custody_info.sequence_num = 1;
     payload_ref.num_entries   = 2;
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyAppendDacs(&state, &custody_info));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
 void Test_BPLib_STOR_CACHE_CustodyUpdateTrackingBlock(void)
@@ -387,11 +388,11 @@ void Test_BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(void)
     ack_payload.num_entries = 1;
     memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &blk);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &blk);
 
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(&state, &pri_block, &ack_payload));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
 void Test_BPLib_STOR_CACHE_CustodyInitInfoFromPblock(void)

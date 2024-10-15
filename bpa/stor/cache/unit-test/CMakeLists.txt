@@ -17,7 +17,7 @@ add_library(utobj_bplib_stor_cache OBJECT
     ../src/bplib_stor_cache_lists.c
     ../src/bplib_stor_cache_bblocks.c
     # Incomplete state entry ../src/bplib_stor_cache_fsm.c
-    # Used but never defined error ../src/bplib_stor_cache_module_api.c
+    ../src/bplib_stor_cache_module_api.c
     ../src/bplib_stor_cache_ref.c
     ../src/crc.c
     utilities/bplib_stor_cache_utils.c
@@ -42,8 +42,9 @@ target_include_directories(utobj_bplib_stor_cache PRIVATE
 # Add executable
 add_executable(coverage-bplib_stor_cache-testrunner
     test_bplib_stor_cache.c
+    test_bplib_stor_cache_bblocks.c
     # test_bplib_stor_cache_fsm.c
-    # test_bplib_stor_cache_module_api.c
+    # QM Stubs test_bplib_stor_cache_module_api.c
     test_bplib_stor_cache_setup.c
     $<TARGET_OBJECTS:utobj_bplib_stor_cache>
 )
@@ -61,7 +62,7 @@ target_include_directories(coverage-bplib_stor_cache-testrunner PRIVATE
 
 target_link_libraries(coverage-bplib_stor_cache-testrunner PUBLIC
     ut_coverage_link
-    bplib_mem
+    bplib_mem_stubs
     bplib_time_stubs
     bplib_stor_qm_stubs
     ut_assert

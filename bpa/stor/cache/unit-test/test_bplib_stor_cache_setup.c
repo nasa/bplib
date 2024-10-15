@@ -23,6 +23,8 @@
 #include "utstubs.h"
 #include "uttest.h"
 
+#include "stdio.h"
+
 #include "bplib_api_types.h"
 
 #include "../../qm/inc/bplib_stor_qm_ducts.h"
@@ -67,6 +69,7 @@ void UT_cache_valid_bphandle_Handler(void *UserObj, UT_EntryKey_t FuncKey, const
 
 void UT_cache_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
+    printf ("Set return value for FuncKey: %ld %ld\n", (uint64_t)FuncKey, (uint64_t)UserObj);
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
@@ -217,6 +220,7 @@ void UT_lib_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCont
 
 void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
+    printf("%s:%d UT_AltHandler_PointerReturn. UserObj is: %ld.\n", __FILE__, __LINE__, (uint64_t)UserObj);
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
@@ -268,7 +272,10 @@ void test_setup_cpool_block(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_Bloc
 void test_setup_cpool_allocation(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_BlockContent_t *db, BPLib_STOR_CACHE_BlockContent_t *apib)
 {
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
-    void                          *api_content;
+    void                                 *api_content;
+
+    printf("%s:%d test_setup_cpool_allocation. pool is: %ld, db is: %ld, apib is: %ld\n",
+           __FILE__, __LINE__, (uint64_t)pool, (uint64_t)db, (uint64_t)apib);
 
     test_setup_cpool_block(pool, &pool->admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
     test_setup_cpool_block(pool, db, BPLib_STOR_CACHE_BlocktypeUndefined, 0);
@@ -276,10 +283,12 @@ void test_setup_cpool_allocation(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE
     {
         test_setup_cpool_block(pool, apib, BPLib_STOR_CACHE_BlocktypeApi, 0);
         api_content = &apib->u;
+        printf("%s:%d test_setup_cpool_allocation. api_content: %ld\n", __FILE__, __LINE__, (uint64_t)api_content);
     }
     else
     {
         api_content = NULL;
+        printf("%s:%d test_setup_cpool_allocation. api_content: NULL\n", __FILE__, __LINE__);
     }
 
     admin = BPLib_STOR_CACHE_GetAdmin(pool);
@@ -290,9 +299,10 @@ void test_setup_cpool_allocation(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE
 
 void Test_BplibStorCache_Register(void)
 {
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryAlloc);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_EntryMakePending);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_Attach);
+    ADD_TEST(Test_BPLib_STOR_CACHE_Create);
+    // Alloc error ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryAlloc);
+    // Alloc error ADD_TEST(Test_BPLib_STOR_CACHE_EntryMakePending);
+    // module_api.c ADD_TEST(Test_BPLib_STOR_CACHE_Attach);
     // ADD_TEST(Test_BPLib_STOR_CACHE_Detach);
     // ADD_TEST(Test_BPLib_STOR_CACHE_RegisterModuleService);
     // ADD_TEST(Test_BPLib_STOR_CACHE_Configure);
@@ -307,9 +317,9 @@ void Test_BplibStorCache_Register(void)
     // ADD_TEST(Test_BPLib_STOR_CACHE_DoIntfStatechange);
     // ADD_TEST(Test_BPLib_STOR_CACHE_EventImpl);
     // ADD_TEST(Test_BPLib_STOR_CACHE_ProcessPending);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_DestructState);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_ConstructEntry);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_DestructEntry);
+    ADD_TEST(Test_BPLib_STOR_CACHE_DestructState);
+    ADD_TEST(Test_BPLib_STOR_CACHE_ConstructEntry);
+    ADD_TEST(Test_BPLib_STOR_CACHE_DestructEntry);
     // ADD_TEST(Test_BPLib_STOR_CACHE_ConstructBlockref);
     // ADD_TEST(Test_BPLib_STOR_CACHE_DestructBlockref);
     // ADD_TEST(Test_BPLib_STOR_CACHE_ConstructState);

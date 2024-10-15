@@ -80,7 +80,7 @@ BPLib_STOR_CACHE_BblockCanonical_t *BPLib_STOR_CACHE_BblockCanonicalCast(BPLib_S
 void *BPLib_STOR_CACHE_BblockCborCast(BPLib_STOR_CACHE_Block_t *cb)
 {
     /* CBOR data blocks are nothing more than generic blocks with a different sig */
-    return BPLib_STOR_CACHE_GenericDataCast(cb, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
+    return BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)cb, BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE);
 }
 
 /*----------------------------------------------------------------

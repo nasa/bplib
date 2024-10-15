@@ -63,6 +63,29 @@ static inline BPLib_TIME_MonotonicTime_t BPLib_MEM_GetMonotonicTime(void)
 #define BPLIB_MEM_SIGNATURE_ENTRY    0xf223ff9f
 #define BPLIB_MEM_SIGNATURE_BLOCKREF 0x77e961b1
 
+typedef struct BPLib_MEM_ModuleApiContent
+{
+    BPLib_MEM_RBT_Link_t                rbt_link;
+    BPLib_MEM_BlocktypeApi_t            api;
+    size_t                              user_content_size;
+    BPLib_MEM_AlignedData_t             user_data_start;
+} BPLib_MEM_ModuleApiContent_t;
+
+// Mockups for CACHE entries.
+typedef struct BPLib_MEM_EntryState
+{
+    BPLib_MEM_Block_t idle_list;
+} BPLib_MEM_EntryState_t;
+
+typedef struct BPLib_MEM_Entry BPLib_MEM_Entry_t;
+
+struct BPLib_MEM_Entry
+{
+    BPLib_MEM_Entry_t      *parent;
+    BPLib_MEM_EntryState_t state;
+    uint32_t               flags;
+};
+
 /**
  * Initialize the MEM module's internal calls to OSAL.
  * Most of the internal MEM OS code came from the heritage bplib/os library.
@@ -151,11 +174,6 @@ size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_Blocktype_t bt);
  * @returns The number of blocks collected
  */
 uint32_t BPLib_MEM_CollectBlocks(BPLib_MEM_Pool_t *pool, uint32_t limit);
-
-// TODO add briefs for BPLib_MEM_GetGenericDataCapacity and BPLib_MEM_Maintain
-size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb);
-
-void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool);
 
 /**
  * @brief Inserts a node after the given position or list head
@@ -337,19 +355,7 @@ uint32_t BPLib_MEM_SubqDropAll(BPLib_MEM_Pool_t *pool, BPLib_MEM_SubqBase_t *sub
 BPLib_MEM_BlockContent_t       *BPLib_MEM_GetBlockContent(BPLib_MEM_Block_t *cb);
 const BPLib_MEM_BlockContent_t *BPLib_MEM_GetBlockContentConst(const BPLib_MEM_Block_t *cb);
 
-// Mockups for CACHE entries.
-typedef struct BPLib_MEM_EntryState
-{
-    BPLib_MEM_Block_t idle_list;
-} BPLib_MEM_EntryState_t;
-
-typedef struct BPLib_MEM_Entry BPLib_MEM_Entry_t;
-
-struct BPLib_MEM_Entry
-{
-    BPLib_MEM_Entry_t      *parent;
-    BPLib_MEM_EntryState_t state;
-    uint32_t               flags;
-};
+BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
+    BPLib_MEM_Blocktype_t blocktype, uint32_t content_type_signature, void *init_arg, uint8_t priority);
 
 #endif /* BPLIB_MEM_INTERNAL_H */

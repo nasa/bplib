@@ -64,10 +64,33 @@ void UT_cache_valid_bphandle_Handler(void *UserObj, UT_EntryKey_t FuncKey, const
 void UT_cache_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_cache_GetTime_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+
+void Test_BPLib_STOR_CACHE_Create(void);
 void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void);
-void Test_BplibCacheCustody_Register(void);
-void Test_BplibCacheFsm_Register(void);
-void Test_BplibStorCache_Register(void);
+void Test_BPLib_STOR_CACHE_EntryMakePending(void);
+void Test_BPLib_STOR_CACHE_Attach(void);
+void Test_BPLib_STOR_CACHE_Detach(void);
+void Test_BPLib_STOR_CACHE_RegisterModuleService(void);
+void Test_BPLib_STOR_CACHE_Configure(void);
+void Test_BPLib_STOR_CACHE_Query(void);
+void Test_BPLib_STOR_CACHE_Start(void);
+void Test_BPLib_STOR_CACHE_Stop(void);
+void Test_BPLib_STOR_CACHE_DebugScanQueue(void);
+void Test_BPLib_STOR_CACHE_EgressImpl(void);
+void Test_BPLib_STOR_CACHE_FlushPending(void);
+void Test_BPLib_STOR_CACHE_DoPoll(void);
+void Test_BPLib_STOR_CACHE_DoRouteUp(void);
+void Test_BPLib_STOR_CACHE_DoIntfStatechange(void);
+void Test_BPLib_STOR_CACHE_EventImpl(void);
+void Test_BPLib_STOR_CACHE_ProcessPending(void);
+void Test_BPLib_STOR_CACHE_DestructState(void);
+void Test_BPLib_STOR_CACHE_ConstructEntry(void);
+void Test_BPLib_STOR_CACHE_DestructEntry(void);
+void Test_BPLib_STOR_CACHE_ConstructBlockref(void);
+void Test_BPLib_STOR_CACHE_DestructBlockref(void);
+void Test_BPLib_STOR_CACHE_ConstructState(void);
+void Test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted(void);
+
 BPLib_STOR_CACHE_Block_t *Test_BPLib_STOR_CACHE_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
 int                  Test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt,
                                                      const void *val);
@@ -85,6 +108,7 @@ void UT_lib_sizet_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCon
 void UT_lib_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_lib_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_lib_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+
 void Test_BplibStorCache_Register(void);
 void Test_BplibCache_ClaApi_Register(void);
 void Test_BplibCache_DataServiceApi_Register(void);

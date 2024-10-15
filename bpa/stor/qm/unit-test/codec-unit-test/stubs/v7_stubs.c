@@ -29,60 +29,60 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_compare_ipn2eid()
+ * Generated stub function for BPLib_STOR_QM_CompareIpn2Eid()
  * ----------------------------------------------------
  */
-int v7_compare_ipn2eid(const bp_ipn_addr_t *ipn, const bp_endpointid_buffer_t *eid)
+int BPLib_STOR_QM_CompareIpn2Eid(const bp_ipn_addr_t *ipn, const BPLib_STOR_CACHE_EidBuffer_t *eid)
 {
-    UT_GenStub_SetupReturnBuffer(v7_compare_ipn2eid, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_CompareIpn2Eid, int);
 
-    UT_GenStub_AddParam(v7_compare_ipn2eid, const bp_ipn_addr_t *, ipn);
-    UT_GenStub_AddParam(v7_compare_ipn2eid, const bp_endpointid_buffer_t *, eid);
+    UT_GenStub_AddParam(BPLib_STOR_QM_CompareIpn2Eid, const bp_ipn_addr_t *, ipn);
+    UT_GenStub_AddParam(BPLib_STOR_QM_CompareIpn2Eid, const BPLib_STOR_CACHE_EidBuffer_t *, eid);
 
-    UT_GenStub_Execute(v7_compare_ipn2eid, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_CompareIpn2Eid, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_compare_ipn2eid, int);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_CompareIpn2Eid, int);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_compare_ipn2ipn()
+ * Generated stub function for BPLib_STOR_QM_CompareIpn2Ipn()
  * ----------------------------------------------------
  */
-int v7_compare_ipn2ipn(const bp_ipn_addr_t *ipn1, const bp_ipn_addr_t *ipn2)
+int BPLib_STOR_QM_CompareIpn2Ipn(const bp_ipn_addr_t *ipn1, const bp_ipn_addr_t *ipn2)
 {
-    UT_GenStub_SetupReturnBuffer(v7_compare_ipn2ipn, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_CompareIpn2Ipn, int);
 
-    UT_GenStub_AddParam(v7_compare_ipn2ipn, const bp_ipn_addr_t *, ipn1);
-    UT_GenStub_AddParam(v7_compare_ipn2ipn, const bp_ipn_addr_t *, ipn2);
+    UT_GenStub_AddParam(BPLib_STOR_QM_CompareIpn2Ipn, const bp_ipn_addr_t *, ipn1);
+    UT_GenStub_AddParam(BPLib_STOR_QM_CompareIpn2Ipn, const bp_ipn_addr_t *, ipn2);
 
-    UT_GenStub_Execute(v7_compare_ipn2ipn, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_CompareIpn2Ipn, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_compare_ipn2ipn, int);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_CompareIpn2Ipn, int);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_QM_GetEID()
+ * Generated stub function for BPLib_STOR_QM_GetEid()
  * ----------------------------------------------------
  */
-void BPLib_STOR_QM_GetEID(bp_ipn_addr_t *bp_addr, const bp_endpointid_buffer_t *eid)
+void BPLib_STOR_QM_GetEid(bp_ipn_addr_t *bp_addr, const BPLib_STOR_CACHE_EidBuffer_t *eid)
 {
-    UT_GenStub_AddParam(BPLib_STOR_QM_GetEID, bp_ipn_addr_t *, bp_addr);
-    UT_GenStub_AddParam(BPLib_STOR_QM_GetEID, const bp_endpointid_buffer_t *, eid);
+    UT_GenStub_AddParam(BPLib_STOR_QM_GetEid, bp_ipn_addr_t *, bp_addr);
+    UT_GenStub_AddParam(BPLib_STOR_QM_GetEid, const BPLib_STOR_CACHE_EidBuffer_t *, eid);
 
-    UT_GenStub_Execute(BPLib_STOR_QM_GetEID, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_GetEid, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_set_eid()
+ * Generated stub function for BPLib_STOR_QM_SetEid()
  * ----------------------------------------------------
  */
-void v7_set_eid(bp_endpointid_buffer_t *eid, const bp_ipn_addr_t *bp_addr)
+void BPLib_STOR_QM_SetEid(BPLib_STOR_CACHE_EidBuffer_t *eid, const bp_ipn_addr_t *bp_addr)
 {
-    UT_GenStub_AddParam(v7_set_eid, bp_endpointid_buffer_t *, eid);
-    UT_GenStub_AddParam(v7_set_eid, const bp_ipn_addr_t *, bp_addr);
+    UT_GenStub_AddParam(BPLib_STOR_QM_SetEid, BPLib_STOR_CACHE_EidBuffer_t *, eid);
+    UT_GenStub_AddParam(BPLib_STOR_QM_SetEid, const bp_ipn_addr_t *, bp_addr);
 
-    UT_GenStub_Execute(v7_set_eid, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_SetEid, Basic, NULL);
 }

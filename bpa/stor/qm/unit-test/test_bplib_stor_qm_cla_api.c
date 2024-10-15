@@ -23,7 +23,7 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "test_bplib_stor_qm.h"
+#include "test_BPLib_STOR_CACHE_StorQm.h"
 #include "bplib_stor_qm.h"
 
 #include "bplib_stor_cache_block.h"
@@ -80,21 +80,21 @@ void test BPLib_STOR_CACHE_ClaIngress(void)
 
     UtAssert_INT32_NEQ(BPLib_STOR_CACHE_ClaIngress(&rtbl, intf_id, bundle, size, timeout), 0);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetParentPoolFromLink), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryAlloc), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &duct_ref);
     UtAssert_INT32_NEQ(BPLib_STOR_CACHE_ClaIngress(&rtbl, intf_id, bundle, size, timeout), 0);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, &duct_ref);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, &duct_ref);
     UtAssert_INT32_EQ(BPLib_STOR_CACHE_ClaIngress(&rtbl, intf_id, bundle, size, timeout), 0);
 
     timeout = 0;
     UtAssert_INT32_EQ(BPLib_STOR_CACHE_ClaIngress(&rtbl, intf_id, bundle, size, timeout), 0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
 }
 
 void test BPLib_STOR_CACHE_ClaEgress(void)
@@ -122,10 +122,10 @@ void test BPLib_STOR_CACHE_ClaEgress(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &duct_ref);
     UtAssert_INT32_NEQ(BPLib_STOR_CACHE_ClaEgress(&rtbl, intf_id, bundle, &size, timeout), 0);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, &stats);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, &stats);
     UtAssert_INT32_EQ(BPLib_STOR_CACHE_ClaEgress(&rtbl, intf_id, bundle, &size, timeout), 0);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
 }
 

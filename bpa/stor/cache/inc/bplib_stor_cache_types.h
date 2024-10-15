@@ -31,10 +31,60 @@
 
 #include "bplib_mem.h"
 
+// #include "bplib_stor_qm.h"
+
 // TODO Verify ifdef __cplusplus is on all public header files.
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/******************************************************************************
+ DEFINES
+ ******************************************************************************/
+
+// TODO Should be in bplib_time.h?
+/* time constants */
+#define BPLIB_DTNTIME_UNDEFINED  0
+#define BPLIB_DTNTIME_INFINITE   UINT64_MAX
+
+#define BPLIB_MONOTIME_ZERO ((BPLib_TIME_MonotonicTime_t) BPLIB_TIME_FROM_INT(0))
+#define BP_MONOTIME_INFINITE ((BPLib_TIME_MonotonicTime_t) BPLIB_TIME_FROM_INT(UINT64_MAX))
+// TODO End of block that should be in bplib_time.h
+
+#define BPLIB_MPOOL_ALLOC_PRI_LO  0
+#define BPLIB_MPOOL_ALLOC_PRI_MLO 63
+#define BPLIB_MPOOL_ALLOC_PRI_MED 127
+#define BPLIB_MPOOL_ALLOC_PRI_MHI 191
+#define BPLIB_MPOOL_ALLOC_PRI_HI  255
+
+// TODO Belongs in bplib.h
+
+/* Event Flags */
+#define BPLIB_FLAG_DIAGNOSTIC              0x00000000
+#define BPLIB_FLAG_NONCOMPLIANT            0x00000001 /* valid bundle but agent not able to comply with standard */
+#define BPLIB_FLAG_INCOMPLETE              0x00000002 /* block in bundle was not recognized */
+#define BPLIB_FLAG_UNRELIABLE_TIME         0x00000004 /* the os call to get time return a suspicious value */
+#define BPLIB_FLAG_DROPPED                 0x00000008 /* bundle dropped because a required extension block could not be processed */
+#define BPLIB_FLAG_FAILED_INTEGRITY_CHECK  0x00000010 /* bundle with BIB failed the integrity check on the payload */
+#define BPLIB_FLAG_BUNDLE_TOO_LARGE        0x00000020 /* size of bundle exceeds capacity allowed by library */
+#define BPLIB_FLAG_ROUTE_NEEDED            0x00000040 /* the bundle returned should be queued before transmission */
+#define BPLIB_FLAG_STORE_FAILURE           0x00000080 /* storage service failed to deliver data */
+#define BPLIB_FLAG_UNKNOWN_CID             0x00000100 /* received CID in acknowledgment for which no bundle was found */
+#define BPLIB_FLAG_SDNV_OVERFLOW           0x00000200 /* insufficient room in variable to read/write value */
+#define BPLIB_FLAG_SDNV_INCOMPLETE         0x00000400 /* insufficient room in block to read/write value */
+#define BPLIB_FLAG_ACTIVE_TABLE_WRAP       0x00000800 /* the active table wrapped */
+#define BPLIB_FLAG_DUPLICATES              0x00001000 /* multiple bundles on the network have the same custody id */
+#define BPLIB_FLAG_CUSTODY_FULL            0x00002000 /* the dacs rb_tree was full */
+#define BPLIB_FLAG_UNKNOWNREC              0x00004000 /* bundle contained unknown adminstrative record */
+#define BPLIB_FLAG_INVALID_CIPHER_SUITEID  0x00008000 /* invalid cipher suite ID found in BIB */
+#define BPLIB_FLAG_INVALID_BIB_RESULT_TYPE 0x00010000 /* invalid result type found in BIB */
+#define BPLIB_FLAG_INVALID_BIB_TARGET_TYPE 0x00020000 /* invalid target type found in BIB */
+#define BPLIB_FLAG_FAILED_TO_PARSE         0x00040000 /* unable to parse bundle due to internal inconsistencies in bundle */
+#define BPLIB_FLAG_API_ERROR               0x00080000 /* calling code incorrectly used library */
+#define BPLIB_FLAG_OUT_OF_MEMORY           0x00100000 /* memory pool exhausted */
+#define BPLIB_FLAG_UNIMPLEMENTED           0x80000000 /* request requires a feature not implemented in BPLib */
+
+// TODO End of block that belongs in bplib.h
 
 #define BP_DACS_MAX_SEQ_PER_PAYLOAD 16
 
@@ -50,11 +100,9 @@ extern "C" {
 struct bp_desc;
 
 typedef struct bp_desc   bp_desc_t;
-typedef struct bp_socket bp_socket_t;
 
 typedef struct BPLib_STOR_CACHE_Block BPLib_STOR_CACHE_Block_t;
 typedef struct BPLib_STOR_CACHE_ModuleApi BPLib_STOR_CACHE_ModuleApi_t;
-typedef struct BPLib_STOR_CACHE_OffloadApi BPLib_STOR_CACHE_OffloadApi_t;
 
 /*
  * The basic types of blocks which are cacheable in the mem
@@ -65,8 +113,8 @@ typedef struct BPLib_STOR_CACHE_BblockTracking         BPLib_STOR_CACHE_BblockTr
 typedef struct BPLib_STOR_CACHE_BblockCanonical        BPLib_STOR_CACHE_BblockCanonical_t;
 
 typedef struct BPLib_STOR_CACHE_SubqBase               BPLib_STOR_CACHE_SubqBase_t;
-typedef struct BPLib_STOR_QM_Duct                   BPLib_STOR_QM_Duct_t;
-typedef struct BPLib_STOR_QM_DuctContent            BPLib_STOR_QM_DuctContent_t;
+typedef struct BPLib_STOR_QM_Duct                      BPLib_STOR_QM_Duct_t;
+typedef struct BPLib_STOR_QM_DuctContent               BPLib_STOR_QM_DuctContent_t;
 
 typedef struct BPLib_STOR_CACHE_BblockPrimaryContent   BPLib_STOR_CACHE_BBlockPrimaryContent_t;
 typedef struct BPLib_STOR_CACHE_BblockCanonicalContent BPLib_STOR_CACHE_BblockCanonicalContent_t;
@@ -112,7 +160,6 @@ typedef int (*BPLib_STOR_CACHE_CallbackFunc_t)(void *, BPLib_STOR_CACHE_Block_t 
  */
 typedef enum bp_crctype
 {
-
     /**
      * @brief No CRC is present.
      */
@@ -145,8 +192,6 @@ typedef enum
    BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking /**< enable full custody transfer signals and acknowledgement (not yet
                                               implemented) */
 }BPLib_STOR_CACHE_PolicyDelivery_t;
-
-typedef struct BPLib_STOR_QM_QueueTbl BPLib_STOR_QM_QueueTbl_t;
 
 /* Storage service - reserved for future use */
 typedef struct bp_store
@@ -191,10 +236,6 @@ typedef enum
 typedef int (*v7_chunk_writer_func_t)(void *, const void *, size_t);
 typedef int (*v7_chunk_reader_func_t)(void *, void *, size_t);
 
-/*
- * Native Type for most BP integers.
- * TBD: does this need an option to be smaller?
- */
 typedef uint64_t bp_integer_t;
 
 typedef uint8_t bp_blocknum_t;
@@ -277,7 +318,6 @@ typedef struct bp_creation_timestamp
 
 typedef struct bp_bundle_processing_control_flags
 {
-
     /**
      * @brief Bundle deletion status reports are requested.
      */
@@ -349,9 +389,6 @@ typedef struct bp_block_processing_flags
 
 } bp_block_processing_flags_t;
 
-typedef struct BPLib_STOR_CACHE_ServiceEndpt BPLib_STOR_CACHE_ServiceEndpt_t;
-typedef struct BPLib_STOR_CACHE_SocketInfo BPLib_STOR_CACHE_SocketInfo_t;
-
 typedef bp_integer_t bp_lifetime_t;
 typedef bp_integer_t bp_adu_length_t;
 
@@ -361,20 +398,20 @@ typedef union bp_endpointid_ssp
     bp_ipn_uri_ssp_t ipn; /* present if scheme == bp_endpointid_scheme_ipn */
 } bp_endpointid_ssp_t;
 
-typedef struct bp_endpointid_buffer
+typedef struct BPLib_STOR_CACHE_EidBuffer
 {
     bp_endpointid_scheme_t scheme; /* always present, indicates which union field is valid */
     bp_endpointid_ssp_t    ssp;
-} bp_endpointid_buffer_t;
+} BPLib_STOR_CACHE_EidBuffer_t;
 
 typedef struct BPLib_STOR_CACHE_PrimaryBlock
 {
     uint8_t                              version;
     bp_bundle_processing_control_flags_t controlFlags;
     bp_crctype_t                         crctype; /* always present, indicates which CRC field is valid */
-    bp_endpointid_buffer_t               destinationEID;
-    bp_endpointid_buffer_t               sourceEID;
-    bp_endpointid_buffer_t               reportEID;
+    BPLib_STOR_CACHE_EidBuffer_t               destinationEID;
+    BPLib_STOR_CACHE_EidBuffer_t               sourceEID;
+    BPLib_STOR_CACHE_EidBuffer_t               reportEID;
     bp_creation_timestamp_t              creationTimeStamp;
     bp_lifetime_t                        lifetime;
     bp_adu_length_t                      fragmentOffset;
@@ -396,7 +433,7 @@ typedef struct bp_canonical_bundle_block
 
 typedef struct bp_previous_node_block
 {
-    bp_endpointid_buffer_t nodeId;
+    BPLib_STOR_CACHE_EidBuffer_t nodeId;
 } bp_previous_node_block_t;
 
 typedef struct bp_bundle_age_block
@@ -412,13 +449,13 @@ typedef struct bp_hop_count_block
 
 typedef struct bp_custody_tracking_block
 {
-    bp_endpointid_buffer_t current_custodian;
+    BPLib_STOR_CACHE_EidBuffer_t current_custodian;
 } bp_custody_tracking_block_t;
 
 /* This reflects the payload block (1) of a bundle containing a custody block w/bp_custody_op_accept */
 typedef struct BPLIB_CT_AcceptPayloadBlock
 {
-    bp_endpointid_buffer_t duct_source_eid;
+    BPLib_STOR_CACHE_EidBuffer_t duct_source_eid;
     bp_integer_t           num_entries;
     bp_integer_t           sequence_nums[BP_DACS_MAX_SEQ_PER_PAYLOAD];
 } BPLIB_CT_AcceptPayloadBlock_t;
@@ -438,8 +475,265 @@ typedef struct bp_canonical_block_buffer
     bp_canonical_block_data_t   data;            /* variable data field, depends on type */
 } bp_canonical_block_buffer_t;
 
+// TODO bp_sid_t belongs in higher level.
+
+/* Storage ID */
+typedef unsigned long bp_sid_t;
+
+typedef enum BPLib_STOR_CACHE_Blocktype
+{
+    BPLib_STOR_CACHE_BlocktypeUndefined = 0,
+
+    /*
+     * Note, the enum value here does matter -- these block types
+     * are all refcount-capable, and thus are grouped together so this
+     * can be implemented as a range check.  Do not change the
+     * order of enum values without also updating the checks.
+     */
+    BPLib_STOR_CACHE_BlocktypeApi       = 1,
+    BPLib_STOR_CACHE_BlocktypeGeneric   = 2,
+    BPLib_STOR_CACHE_BlocktypePrimary   = 4,
+    BPLib_STOR_CACHE_BlocktypeCanonical = 5,
+    BPLib_STOR_CACHE_BlocktypeDuct      = 6,
+    BPLib_STOR_CACHE_BlocktypeRef       = 7,
+    BPLib_STOR_CACHE_BlocktypeMax       = 8, /* placeholder for the max "regular" block type */
+
+    /*
+     * All of these block types are _not_ at the beginning of the structure,
+     * these are members within the structures.  Their position within the parent
+     * is indicated in the parent_offset field so the parent block pointer can be
+     * reconstituted from one of these secondary indices.
+     */
+
+    BPLib_STOR_CACHE_BlocktypeSecondaryGeneric = 100,
+    BPLib_STOR_CACHE_BlocktypeListHead         = 101,
+    BPLib_STOR_CACHE_BlocktypeJob              = 102, /* a job or pending work item to do */
+    BPLib_STOR_CACHE_BlocktypeSecondaryMax     = 103,
+
+    /* The administrative block will be marked with 0xFF, this still permits the
+     * type to be stored as a uint8_t if needed to save bits */
+    BPLib_STOR_CACHE_BlocktypeAdmin = 255
+
+} BPLib_STOR_CACHE_Blocktype_t;
+
+struct BPLib_STOR_CACHE_Block
+{
+    /* note that if it becomes necessary to recover bits here,
+     * the offset could be reduced in size
+     */
+    BPLib_STOR_CACHE_Blocktype_t   type;
+    uint32_t                       parent_offset;
+    struct BPLib_STOR_CACHE_Block *next;
+    struct BPLib_STOR_CACHE_Block *prev;
+};
+
+typedef struct BPLib_STOR_CACHE_BlockHeader
+{
+    BPLib_STOR_CACHE_Block_t base_link; /* must be first - this is the pointer used in the application */
+
+    uint32_t content_type_signature; /* a "signature" (sanity check) value for identifying the data */
+    uint16_t user_content_length;    /* actual length of user content (does not include fixed fields) */
+    uint16_t refcount;               /* number of active references to the object */
+
+} BPLib_STOR_CACHE_BlockHeader_t;
+
+struct BPLib_STOR_CACHE_BblockTracking
+{
+   BPLib_STOR_CACHE_PolicyDelivery_t delivery_policy;
+    bp_handle_t                 ingress_intf_id;
+    BPLib_TIME_MonotonicTime_t  ingress_time;
+    bp_handle_t                 egress_intf_id;
+    BPLib_TIME_MonotonicTime_t  egress_time;
+    bp_handle_t                 storage_intf_id;
+    bp_sid_t                    committed_storage_id;
+
+    /* JPHFIX: this is here for now, but really it belongs on the egress CLA intf based on its RTT */
+    uint64_t local_retx_interval;
+};
+
+struct BPLib_STOR_CACHE_BblockPrimaryData
+{
+    BPLib_STOR_CACHE_PrimaryBlock_t logical;
+    BPLib_STOR_CACHE_BblockTracking_t     delivery;
+};
+
+struct BPLib_STOR_CACHE_BblockPrimary
+{
+    BPLib_STOR_CACHE_Block_t cblock_list;
+    BPLib_STOR_CACHE_Block_t chunk_list;
+    size_t              block_encode_size_cache;
+    size_t              bundle_encode_size_cache;
+
+    BPLib_STOR_CACHE_BblockPrimaryData_t data;
+};
+
+struct BPLib_STOR_CACHE_BblockPrimaryContent
+{
+    BPLib_STOR_CACHE_BblockPrimary_t    pblock;
+    BPLib_MEM_AlignedData_t             user_data_start;
+};
+
+struct BPLib_STOR_CACHE_BblockCanonical
+{
+    BPLib_STOR_CACHE_Block_t           chunk_list;
+    BPLib_STOR_CACHE_BblockPrimary_t *bundle_ref;
+    size_t                        block_encode_size_cache;
+    size_t                        encoded_content_offset;
+    size_t                        encoded_content_length;
+    bp_canonical_block_buffer_t   canonical_logical_data;
+};
+
+typedef struct BPLib_STOR_CACHE_Job
+{
+    BPLib_STOR_CACHE_Block_t        link;
+    BPLib_STOR_CACHE_CallbackFunc_t handler;
+} BPLib_STOR_CACHE_Job_t;
+
+typedef struct BPLib_STOR_CACHE_JobStatechange
+{
+    BPLib_STOR_CACHE_Job_t base_job;
+
+    /* JPHFIX: this single event handler may be separated into per-event-type handlers */
+    BPLib_STOR_CACHE_CallbackFunc_t event_handler;
+} BPLib_STOR_CACHE_JobStatechange_t;
+
+struct BPLib_STOR_CACHE_SubqBase
+{
+    BPLib_STOR_CACHE_Block_t block_list;
+
+    /* note - "unsigned int" is chosen here as it is likely to be
+     * a single-cycle read in most CPUs.  The range is not as critical
+     * because what matters is the difference between these values.
+     * The "volatile" qualification helps ensure the values are read as they
+     * appear in code and are not rearranged by the compiler, as they could
+     * be changed by other threads.  */
+    volatile unsigned int push_count;
+    volatile unsigned int pull_count;
+};
+
+typedef struct BPLib_STOR_CACHE_SubqWorkitem
+{
+    BPLib_STOR_CACHE_Job_t       job_header;
+    BPLib_STOR_CACHE_SubqBase_t         base_subq;
+    unsigned int                 current_depth_limit;
+} BPLib_STOR_CACHE_SubqWorkitem_t;
+
+
+struct BPLib_STOR_QM_Duct
+{
+    uint32_t pending_state_flags;
+    uint32_t current_state_flags;
+
+    BPLib_STOR_CACHE_JobStatechange_t statechange_job;
+    BPLib_STOR_CACHE_Ref_t             parent;
+
+    BPLib_STOR_CACHE_SubqWorkitem_t ingress;
+    BPLib_STOR_CACHE_SubqWorkitem_t egress;
+};
+
+/*
+ * Enumeration that defines the various possible queueing table events.  This enum
+ * must always appear first in the structure that is the argument to the event handler,
+ * and indicates the actual event that has occurred
+ */
+typedef enum
+{
+    BPLib_STOR_CACHE_EventidUndefined,
+    BPLib_STOR_CACHE_EventidRecycle,
+    BPLib_STOR_CACHE_EventidMax
+
+} BPLib_STOR_CACHE_Eventid_t;
+
+/* IPN Schema Endpoint ID Integer Definition */
+typedef bp_val_t bp_ipn_t;
+
+/* combine IPN node+service */
+typedef struct bp_ipn_addr
+{
+    bp_ipn_t node_number;
+    bp_ipn_t service_number;
+} bp_ipn_addr_t;
+
+typedef struct BPLib_STOR_CACHE_Connection
+{
+    bp_ipn_addr_t local_ipn;
+    bp_ipn_addr_t remote_ipn;
+    bp_ipn_addr_t report_ipn;
+
+    bp_val_t lifetime;
+    bp_val_t local_retx_interval;
+
+    bool is_admin_service;
+    bool allow_fragmentation;
+
+    bp_crctype_t crctype;
+
+   BPLib_STOR_CACHE_PolicyDelivery_t local_delivery_policy;
+
+}BPLib_STOR_CACHE_Connection_t;
+
+/**
+ * @brief Blocktype API
+ *
+ * Specifies functions for module-specific block operations,
+ * including construction and destruction
+ */
+typedef struct BPLib_STOR_CACHE_ListIter
+{
+    BPLib_STOR_CACHE_Block_t *position;
+    BPLib_STOR_CACHE_Block_t *pending_entry;
+} BPLib_STOR_CACHE_ListIter_t;
+
+/**
+ * @brief Blocktype API
+ *
+ * Specifies functions for module-specific block operations,
+ * including construction and destruction
+ */
+typedef struct BPLib_STOR_CACHE_BlocktypeApi
+{
+    BPLib_STOR_CACHE_CallbackFunc_t construct; /**< Initialize a newly-created block */
+    BPLib_STOR_CACHE_CallbackFunc_t destruct;  /**< De-initialize a recycled block */
+} BPLib_STOR_CACHE_BlocktypeApi_t;
+
+typedef struct BPLib_STOR_CACHE_GenericDataContent
+{
+    BPLib_MEM_AlignedData_t             user_data_start;
+} BPLib_STOR_CACHE_GenericDataContent_t;
+
+typedef struct BPLib_STOR_CACHE_ModuleApiContent
+{
+    BPLib_MEM_RBT_Link_t                rbt_link;
+    BPLib_STOR_CACHE_BlocktypeApi_t     api;
+    size_t                              user_content_size;
+    BPLib_MEM_AlignedData_t             user_data_start;
+} BPLib_STOR_CACHE_ModuleApiContent_t;
+
+typedef struct BPLib_STOR_CACHE_BlockAdminContent
+{
+    size_t   buffer_size;
+    uint32_t num_bufs_total;
+    uint32_t bblock_alloc_threshold;   /**< threshold at which new bundles will no longer be allocatable */
+    uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
+    uint32_t max_alloc_watermark;
+
+    BPLib_MEM_RBT_Root_t          blocktype_registry; /**< registry of block signature values */
+    BPLib_STOR_CACHE_ModuleApiContent_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
+    BPLib_STOR_CACHE_ModuleApiContent_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
+
+    BPLib_STOR_CACHE_SubqBase_t free_blocks;    /**< blocks which are available for use */
+    BPLib_STOR_CACHE_SubqBase_t recycle_blocks; /**< blocks which can be garbage-collected */
+
+    /* note that the active_list and managed_block_list are not FIFO in nature, as blocks
+     * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
+     * is not used for these, because the push_count and pull_count would not remain accurate. */
+
+    BPLib_STOR_CACHE_Block_t active_list; /**< a list of flows/queues that need processing */
+
+} BPLib_STOR_CACHE_BlockAdminContent_t;
+
 void BPLib_STOR_CACHE_DebugScanPool(BPLib_STOR_CACHE_Pool_t *pool);
-void BPLib_STOR_CACHE_DebugScanQueue(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id);
+void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, bp_handle_t intf_id);
 void BPLib_STOR_CACHE_DebugPrintListStats(BPLib_STOR_CACHE_Block_t *list, const char *label);
 
 #define BPLIB_TIME_TO_INT(t)   ((t).Time)
@@ -453,6 +747,56 @@ void BPLib_STOR_CACHE_SubqInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_
 void BPLib_STOR_QM_DuctInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_Duct_t *fblk);
 
 int BPLib_STOR_QM_IngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
+
+// TODO Reconcile heritage time functions with bplib_time.h TIME module.
+
+static inline uint64_t BPLib_STOR_CACHE_GetDtnTime(void)
+{
+    BPLib_TIME_MonotonicTime_t monotime;
+    BPLib_TIME_GetMonotonicTime(&monotime);
+    return BPLib_TIME_GetDtnTime(monotime);
+}
+
+static inline BPLib_TIME_MonotonicTime_t BPLib_STOR_CACHE_GetMonotonicTime(void)
+{
+    BPLib_TIME_MonotonicTime_t monotime;
+    BPLib_TIME_GetMonotonicTime(&monotime);
+    return monotime;
+}
+
+static inline BPLib_TIME_MonotonicTime_t BPLib_STOR_CACHE_TimeRelativeToAbsolute(uint32_t ms)
+{
+    BPLib_TIME_MonotonicTime_t monotime;
+    uint64_t result;
+    if (ms == UINT32_MAX)
+    {
+        /* effectively forever */
+        result = UINT64_MAX;
+    }
+    else
+    {
+        BPLib_TIME_GetMonotonicTime(&monotime);
+        result = monotime.Time + ms;
+    }
+
+    return (BPLib_TIME_MonotonicTime_t) BPLIB_TIME_FROM_INT(result);
+}
+
+// TODO Verify TimeCompare is still needed when we have BPLib_TIME_GetTimeDelta.
+static inline int BPLib_STOR_CACHE_TimeCompare(BPLib_TIME_MonotonicTime_t t1, BPLib_TIME_MonotonicTime_t t2)
+{
+    return (t1.Time > t2.Time) - (t1.Time < t2.Time);
+}
+
+static inline BPLib_TIME_MonotonicTime_t BPLib_STOR_CACHE_TimeAddMs(BPLib_TIME_MonotonicTime_t t1, uint64_t msec)
+{
+    return (BPLib_TIME_MonotonicTime_t) BPLIB_TIME_FROM_INT(BPLIB_TIME_TO_INT(t1) + msec);
+}
+
+static inline BPLib_TIME_MonotonicTime_t BPLib_STOR_CACHE_TimeSubtractMs(BPLib_TIME_MonotonicTime_t t1, uint64_t msec)
+{
+    return (BPLib_TIME_MonotonicTime_t) BPLIB_TIME_FROM_INT(BPLIB_TIME_TO_INT(t1) - msec);
+}
 
 #ifdef __cplusplus
 } // extern "C"

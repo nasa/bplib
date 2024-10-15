@@ -24,79 +24,79 @@
 void test_v7_init_ipn_eid(void)
 {
     /* Test function for:
-     * void v7_init_ipn_eid(bp_endpointid_buffer_t *eid, bp_ipn_t node, bp_ipn_t service)
+     * void v7_init_ipn_eid(BPLib_STOR_CACHE_EidBuffer_t *eid, bp_ipn_t node, bp_ipn_t service)
      */
-    bp_endpointid_buffer_t eid;
+    BPLib_STOR_CACHE_EidBuffer_t eid;
     bp_ipn_t               node    = 1;
     bp_ipn_t               service = 2;
 
     UtAssert_VOIDCALL(v7_init_ipn_eid(&eid, node, service));
 }
 
-void test_v7_set_eid(void)
+void test_BPLib_STOR_QM_SetEid(void)
 {
     /* Test function for:
-     * void v7_set_eid(bp_endpointid_buffer_t *eid, const bp_ipn_addr_t *bp_addr)
+     * void BPLib_STOR_QM_SetEid(BPLib_STOR_CACHE_EidBuffer_t *eid, const bp_ipn_addr_t *bp_addr)
      */
-    bp_endpointid_buffer_t buff;
+    BPLib_STOR_CACHE_EidBuffer_t buff;
     bp_ipn_addr_t          bp_addr;
 
     bp_addr.node_number    = 11;
     bp_addr.service_number = 12;
 
-    UtAssert_VOIDCALL(v7_set_eid(&buff, &bp_addr));
+    UtAssert_VOIDCALL(BPLib_STOR_QM_SetEid(&buff, &bp_addr));
     UtAssert_UINT32_EQ(buff.scheme, bp_endpointid_scheme_ipn);
     UtAssert_UINT32_EQ(buff.ssp.ipn.node_number, 11);
     UtAssert_UINT32_EQ(buff.ssp.ipn.service_number, 12);
 }
 
-void test_BPLib_STOR_QM_GetEID(void)
+void test_BPLib_STOR_QM_GetEid(void)
 {
     /* Test function for:
-     * void BPLib_STOR_QM_GetEID(bp_ipn_addr_t *bp_addr, const bp_endpointid_buffer_t *eid)
+     * void BPLib_STOR_QM_GetEid(bp_ipn_addr_t *bp_addr, const BPLib_STOR_CACHE_EidBuffer_t *eid)
      */
-    bp_endpointid_buffer_t buff;
+    BPLib_STOR_CACHE_EidBuffer_t buff;
     bp_ipn_addr_t          bp_addr;
 
     buff.scheme                 = bp_endpointid_scheme_ipn;
     buff.ssp.ipn.node_number    = 11;
     buff.ssp.ipn.service_number = 12;
 
-    UtAssert_VOIDCALL(BPLib_STOR_QM_GetEID(&bp_addr, &buff));
+    UtAssert_VOIDCALL(BPLib_STOR_QM_GetEid(&bp_addr, &buff));
 
     buff.scheme = 0;
-    UtAssert_VOIDCALL(BPLib_STOR_QM_GetEID(&bp_addr, &buff));
+    UtAssert_VOIDCALL(BPLib_STOR_QM_GetEid(&bp_addr, &buff));
     UtAssert_UINT32_EQ(bp_addr.node_number, 0);
     UtAssert_UINT32_EQ(bp_addr.service_number, 0);
 }
 
-void test_v7_compare_ipn2eid(void)
+void test_BPLib_STOR_QM_CompareIpn2Eid(void)
 {
     /* Test function for:
-     * int v7_compare_ipn2eid(const bp_ipn_addr_t *ipn, const bp_endpointid_buffer_t *eid)
+     * int BPLib_STOR_QM_CompareIpn2Eid(const bp_ipn_addr_t *ipn, const BPLib_STOR_CACHE_EidBuffer_t *eid)
      */
-    bp_endpointid_buffer_t buff;
+    BPLib_STOR_CACHE_EidBuffer_t buff;
     bp_ipn_addr_t          bp_addr;
 
     buff.scheme                 = bp_endpointid_scheme_ipn;
     buff.ssp.ipn.node_number    = 11;
     buff.ssp.ipn.service_number = 12;
-    UtAssert_VOIDCALL(BPLib_STOR_QM_GetEID(&bp_addr, &buff));
-    UtAssert_UINT32_EQ(v7_compare_ipn2eid(&bp_addr, &buff), 0);
+    UtAssert_VOIDCALL(BPLib_STOR_QM_GetEid(&bp_addr, &buff));
+    UtAssert_UINT32_EQ(BPLib_STOR_QM_CompareIpn2Eid(&bp_addr, &buff), 0);
     buff.scheme = 0;
-    UtAssert_UINT32_NEQ(v7_compare_ipn2eid(&bp_addr, &buff), 0);
+    UtAssert_UINT32_NEQ(BPLib_STOR_QM_CompareIpn2Eid(&bp_addr, &buff), 0);
     buff.scheme              = bp_endpointid_scheme_ipn;
     buff.ssp.ipn.node_number = 1;
-    UtAssert_UINT32_NEQ(v7_compare_ipn2eid(&bp_addr, &buff), 0);
+    UtAssert_UINT32_NEQ(BPLib_STOR_QM_CompareIpn2Eid(&bp_addr, &buff), 0);
     buff.ssp.ipn.node_number    = 11;
     buff.ssp.ipn.service_number = 2;
-    UtAssert_UINT32_NEQ(v7_compare_ipn2eid(&bp_addr, &buff), 0);
+    UtAssert_UINT32_NEQ(BPLib_STOR_QM_CompareIpn2Eid(&bp_addr, &buff), 0);
 }
 
-void test_v7_compare_ipn2ipn(void)
+void test_BPLib_STOR_QM_CompareIpn2Ipn(void)
 {
     /* Test function for:
-     * int v7_compare_ipn2ipn(const bp_ipn_addr_t *ipn1, const bp_ipn_addr_t *ipn2)
+     * int BPLib_STOR_QM_CompareIpn2Ipn(const bp_ipn_addr_t *ipn1, const bp_ipn_addr_t *ipn2)
      */
     bp_ipn_addr_t bp_addr1;
     bp_ipn_addr_t bp_addr2;
@@ -105,19 +105,19 @@ void test_v7_compare_ipn2ipn(void)
     bp_addr1.service_number = 12;
     bp_addr2.node_number    = 11;
     bp_addr2.service_number = 12;
-    UtAssert_UINT32_EQ(v7_compare_ipn2ipn(&bp_addr1, &bp_addr2), 0);
+    UtAssert_UINT32_EQ(BPLib_STOR_QM_CompareIpn2Ipn(&bp_addr1, &bp_addr2), 0);
     bp_addr1.node_number = 1;
-    UtAssert_UINT32_NEQ(v7_compare_ipn2ipn(&bp_addr1, &bp_addr2), 0);
+    UtAssert_UINT32_NEQ(BPLib_STOR_QM_CompareIpn2Ipn(&bp_addr1, &bp_addr2), 0);
     bp_addr1.node_number    = 11;
     bp_addr1.service_number = 2;
-    UtAssert_UINT32_NEQ(v7_compare_ipn2ipn(&bp_addr1, &bp_addr2), 0);
+    UtAssert_UINT32_NEQ(BPLib_STOR_QM_CompareIpn2Ipn(&bp_addr1, &bp_addr2), 0);
 }
 
 void TestBpV7_Register(void)
 {
     UtTest_Add(test_v7_init_ipn_eid, NULL, NULL, "Test v7_init_ipn_eid");
-    UtTest_Add(test_v7_set_eid, NULL, NULL, "Test v7_set_eid");
-    UtTest_Add(test_BPLib_STOR_QM_GetEID, NULL, NULL, "Test BPLib_STOR_QM_GetEID");
-    UtTest_Add(test_v7_compare_ipn2eid, NULL, NULL, "Test v7_compare_ipn2eid");
-    UtTest_Add(test_v7_compare_ipn2ipn, NULL, NULL, "Test v7_compare_ipn2ipn");
+    UtTest_Add(test_BPLib_STOR_QM_SetEid, NULL, NULL, "Test BPLib_STOR_QM_SetEid");
+    UtTest_Add(test_BPLib_STOR_QM_GetEid, NULL, NULL, "Test BPLib_STOR_QM_GetEid");
+    UtTest_Add(test_BPLib_STOR_QM_CompareIpn2Eid, NULL, NULL, "Test BPLib_STOR_QM_CompareIpn2Eid");
+    UtTest_Add(test_BPLib_STOR_QM_CompareIpn2Ipn, NULL, NULL, "Test BPLib_STOR_QM_CompareIpn2Ipn");
 }

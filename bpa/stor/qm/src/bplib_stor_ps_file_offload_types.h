@@ -18,43 +18,25 @@
  *
  */
 
-#ifndef BPLIB_STOR_CACHE_EID_H
-#define BPLIB_STOR_CACHE_EID_H
+#ifndef BPLIB_STOR_PS_FILE_OFFLOAD_TYPES_H
+#define BPLIB_STOR_PS_FILE_OFFLOAD_TYPES_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-#include "bplib_stor_cache_types.h"
-#include "bplib_stor_cache_block.h"
-
 /******************************************************************************
- DEFINES
+ TYPEDEFS
  ******************************************************************************/
 
-/******************************************************************************
- EXPORTED FUNCTIONS
- ******************************************************************************/
+typedef struct BPLib_STOR_PS_ModuleApi BPLib_STOR_PS_ModuleApi_t;
 
-void         BPLib_STOR_QM_SetEid(BPLib_STOR_CACHE_EidBuffer_t *eid, const bp_ipn_addr_t *bp_addr);
-void         BPLib_STOR_QM_GetEid(bp_ipn_addr_t *bp_addr, const BPLib_STOR_CACHE_EidBuffer_t *eid);
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
-static inline int v7_compare_numeric(bp_val_t n1, bp_val_t n2)
-{
-    if (n1 == n2)
-    {
-        return 0;
-    }
-    if (n1 > n2)
-    {
-        return 1;
-    }
-    return -1;
-}
-
-/* A generic strcmp-like call to compare an IPN address to a BP endpoint ID value */
-int BPLib_STOR_QM_CompareIpn2Eid(const bp_ipn_addr_t *ipn, const BPLib_STOR_CACHE_EidBuffer_t *eid);
-/* A generic strcmp-like call to compare two IPN addresses */
-int BPLib_STOR_QM_CompareIpn2Ipn(const bp_ipn_addr_t *ipn1, const bp_ipn_addr_t *ipn2);
-
-#endif /* BPLIB_STOR_CACHE_EID_H */
+#endif /* BPLIB_STOR_PS_FILE_OFFLOAD_TYPES_H */

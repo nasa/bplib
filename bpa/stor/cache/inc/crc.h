@@ -25,7 +25,10 @@
  INCLUDES
  ******************************************************************************/
 
+// TODO Removing #include "bplib.h" and "bplib_api_types.h" caused errors like unknown type bp_crcval_t and uint8_t.
+#include "bplib.h"
 #include "bplib_stor_cache_types.h"
+#include "bplib_stor_cache_block.h"
 
 /******************************************************************************
  DEFINES
@@ -36,29 +39,29 @@
  ******************************************************************************/
 
 /* Standard parameters for calculating a CRC. */
-struct bplib_crc_parameters;
-typedef const struct bplib_crc_parameters bplib_crc_parameters_t;
+struct BPLib_STOR_CACHE_CrcParameters;
+typedef const struct BPLib_STOR_CACHE_CrcParameters BPLib_STOR_CACHE_CrcParameters_t;
 
 /*
  * CRC algorithms that are implemented in BPLIB
  * These definitions are always fixed/const
  */
-extern bplib_crc_parameters_t BPLIB_CRC_NONE;
-extern bplib_crc_parameters_t BPLIB_CRC16_X25;
-extern bplib_crc_parameters_t BPLIB_CRC32_CASTAGNOLI;
+extern BPLib_STOR_CACHE_CrcParameters_t BPLIB_CRC_NONE;
+extern BPLib_STOR_CACHE_CrcParameters_t BPLIB_CRC16_X25;
+extern BPLib_STOR_CACHE_CrcParameters_t BPLIB_CRC32_CASTAGNOLI;
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
-void bplib_crc_init(void);
+void BPLib_STOR_CACHE_CrcInit(void);
 
-const char *bplib_crc_get_name(bplib_crc_parameters_t *params);
-uint8_t     bplib_crc_get_width(bplib_crc_parameters_t *params);
-bp_crcval_t bplib_crc_initial_value(bplib_crc_parameters_t *params);
-bp_crcval_t bplib_crc_update(bplib_crc_parameters_t *params, bp_crcval_t crc, const void *data, size_t size);
-bp_crcval_t bplib_crc_finalize(bplib_crc_parameters_t *params, bp_crcval_t crc);
+const char *BPLib_STOR_CACHE_CrcGetName(BPLib_STOR_CACHE_CrcParameters_t *params);
+uint8_t     BPLib_STOR_CACHE_CrcGetWidth(BPLib_STOR_CACHE_CrcParameters_t *params);
+bp_crcval_t BPLib_STOR_CACHE_CrcInitialValue(BPLib_STOR_CACHE_CrcParameters_t *params);
+bp_crcval_t BPLib_STOR_CACHE_CrcUpdate(BPLib_STOR_CACHE_CrcParameters_t *params, bp_crcval_t crc, const void *data, size_t size);
+bp_crcval_t BPLib_STOR_CACHE_CrcFinalize(BPLib_STOR_CACHE_CrcParameters_t *params, bp_crcval_t crc);
 
-bp_crcval_t bplib_crc_get(const void *data, const uint32_t length, bplib_crc_parameters_t *params);
+bp_crcval_t BPLib_STOR_CACHE_CrcGet(const void *data, const uint32_t length, BPLib_STOR_CACHE_CrcParameters_t *params);
 
 #endif /* CRC_H */

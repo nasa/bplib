@@ -158,3 +158,123 @@ uint64_t BPLib_MEM_OS_GetDtnTimeMs(void)
     /* Convert to milliseconds */
     return OS_TimeGetTotalMilliseconds(ref_tm);
 }
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_AllocBlockInternal
+ *
+ * NOTE: this must be invoked with the lock already held
+ *-----------------------------------------------------------------*/
+BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
+    BPLib_MEM_Blocktype_t blocktype, uint32_t content_type_signature, void *init_arg, uint8_t priority)
+{
+    BPLib_MEM_Block_t            *node;
+    BPLib_MEM_BlockContent_t     *block;
+    BPLib_MEM_ModuleApiContent_t *api_block;
+    size_t                        data_offset;
+    uint32_t                      alloc_threshold;
+    uint32_t                      block_count;
+
+    BPLib_MEM_BlockAdminContent_t *admin;
+
+    printf("%s:%d blocktype is %d\n", __FILE__, __LINE__, blocktype);
+
+    admin = BPLib_MEM_GetAdmin(pool);
+
+    printf("%s:%d admin is %ld\n", __FILE__, __LINE__, (uint64_t)admin);
+
+    /* Only real blocks are allocated here - not secondary links nor head nodes,
+     * as those are embedded within the blocks themselves. */
+    if (blocktype == BPLib_MEM_BlocktypeUndefined || blocktype >= BPLib_MEM_BlocktypeMax)
+    {
+        printf("%s:%d Bad blocktype. Return null.\n", __FILE__, __LINE__);
+        return NULL;
+    }
+
+    /*
+     * Check free block threshold: Note that it may take additional pool blocks (refs, cbor, etc)
+     * in order to forward stored bundles along when the time comes.
+     *
+     * Without a sufficient buffer/threshold, if the entire pool is consumed by bundles, it will
+     * prevent any blocks from being forwarded (and eventually freed) as well, creating deadlock.
+     *
+     * This soft limit only applies for actual bundle blocks, not for refs.
+     */
+    alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
+
+    block_count = BPLib_MEM_SubqGetDepth(&admin->free_blocks);
+
+    if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
+    {
+        printf("%s:%d No free blocks. Return null.\n", __FILE__, __LINE__);
+        /* no free blocks available for the requested type */
+        return NULL;
+    }
+
+    /* Determine how to initialize this block by looking up the content type */
+    api_block = (BPLib_MEM_ModuleApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
+                                                                                   &admin->blocktype_registry);
+    if (api_block == NULL)
+    {
+        printf("%s:%d No constructor. Return null.\n", __FILE__, __LINE__);
+        /* no constructor, cannot create the block! */
+        return NULL;
+    }
+
+    /* sanity check that the user content will fit in the block */
+    data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(blocktype);
+    if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t) ||
+        (data_offset + api_block->user_content_size) > sizeof(BPLib_MEM_BlockBuffer_t))
+    {
+        printf("%s:%d User content won't fit. Return null.\n", __FILE__, __LINE__);
+        /* User content will not fit in the block - cannot create an instance of this type combo */
+        return NULL;
+    }
+
+    /* get a block */
+    node = BPLib_MEM_SubqPullSingle(&admin->free_blocks);
+    if (node == NULL)
+    {
+        /* this should never happen, because depth was already checked */
+        return NULL;
+    }
+
+    printf("%s:%d Got block.\n", __FILE__, __LINE__);
+
+    /*
+     * Convert from blocks free to blocks used, and update high watermark if necessary.
+     * This is +1 to include the block that was just pulled (that is, a call to
+     * BPLib_MEM_SubqGetDepth() on the free list now will return 1 fewer than it
+     * did earlier in this function).
+     */
+    block_count = 1 + admin->num_bufs_total - block_count;
+    if (block_count > admin->max_alloc_watermark)
+    {
+        admin->max_alloc_watermark = block_count;
+    }
+
+    node->type = blocktype;
+    block      = BPLib_MEM_GetBlockContent(node);
+
+    /*
+     * zero fill the content part first, this ensures that this is always done,
+     * and avoids the need for the module to supply a dedicated constructor just to zero it
+     */
+    memset(&block->u, 0, data_offset + api_block->user_content_size);
+
+    BPLib_MEM_InitBaseObject(&block->header, api_block->user_content_size, content_type_signature);
+
+    /* If the module did supply a constructor, invoke it now */
+    if (api_block->api.construct != NULL)
+    {
+        /* A constructor really should never fail nominally, if it does there is probably a bug */
+        if (api_block->api.construct(init_arg, node) != BPLIB_SUCCESS)
+        {
+            // TODO Use bplog?
+            // bplog(NULL, BP_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
+            //      (unsigned long)content_type_signature);
+        }
+    }
+
+    return block;
+}

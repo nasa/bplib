@@ -406,6 +406,98 @@ BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb)
 
 /*----------------------------------------------------------------
  *
+ * Function: BPLib_MEM_GenericDataAlloc
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg)
+{
+    BPLib_MEM_BlockContent_t *result;
+    BPLib_MEM_Lock_t          *lock;
+
+    lock   = BPLib_MEM_LockResource(pool);
+    result = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypeGeneric, magic_number, init_arg,
+                                              BPLIB_MEM_ALLOC_PRI_MLO);
+    BPLib_MEM_LockRelease(lock);
+
+    return (BPLib_MEM_Block_t *)result;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_GenericDataCast
+ *
+ *-----------------------------------------------------------------*/
+void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic)
+{
+    BPLib_MEM_BlockContent_t *block;
+    size_t                           data_offset;
+    void                            *result;
+
+    /* note that any block such as refs, ducts, bundle blocks, etc. may have generic data
+     * associated with it, not just a generic_data block.  The difference is that the generic
+     * data block _only_ has the generic data, whereas the other block types can have both. */
+    result = NULL;
+    block  = BPLib_MEM_GetBlockContent(cb);
+    while (block != NULL && BPLib_MEM_IsAnyContentNode(&block->header.base_link))
+    {
+        if (block->header.content_type_signature == required_magic)
+        {
+            data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(block->header.base_link.type);
+            if (data_offset < sizeof(BPLib_MEM_BlockBuffer_t))
+            {
+                result = &block->u.content_bytes[data_offset];
+            }
+            break;
+        }
+
+        if (!BPLib_MEM_IsIndirectBlock(&block->header.base_link))
+        {
+            break;
+        }
+    }
+
+    return result;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_GenericDataUncast
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t parent_bt,
+                                                             uint32_t required_magic)
+{
+    BPLib_MEM_BlockContent_t *block;
+    size_t                           data_offset;
+
+    printf("%s:%d BPLib_MEM_GenericDataUncast, blk is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)blk);
+
+    data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(parent_bt);
+    printf("%s:%d data_offset is %ld\n", __FILE__, __LINE__, data_offset);
+
+    if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t))
+    {
+        printf("%s:%d data_offset too large. Returned null.\n", __FILE__, __LINE__);
+        return NULL;
+    }
+
+    data_offset += offsetof(BPLib_MEM_BlockContent_t, u);
+    printf("%s:%d updated data_offset is %ld\n", __FILE__, __LINE__, data_offset);
+
+    block = (BPLib_MEM_BlockContent_t *)(void *)((uint8_t *)blk - data_offset);
+    printf ("block = %ld\n", (uint64_t)block);
+    if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
+    {
+        printf("%s:%d base_link.type or magic wrong, %d %d 0x%08x 0x%08x\n", __FILE__, __LINE__, 
+            block->header.base_link.type, parent_bt, block->header.content_type_signature, required_magic);
+        return NULL;
+    }
+
+    return &block->header.base_link;
+}
+
+/*----------------------------------------------------------------
+ *
  * Function: BPLib_MEM_InitBaseObject
  *
  *-----------------------------------------------------------------*/
