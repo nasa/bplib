@@ -62,6 +62,75 @@ typedef struct
 
 } BPLib_FWP_ProxyCallbacks_t;
 
+/**
+ * \brief Channel status data
+ */
+typedef struct
+{
+    uint32_t LocalServiceNum;         /**< \brief Service number for local application */
+    uint8_t  State;                   /**< \brief Channel state (ADDED, STARTED, or STOPPED) */
+    uint8_t  RegistrationState;       /**< \brief Active, PassiveDeferred, or PassiveAbandon */
+    uint16_t Spare;                   /**< \brief Padding */
+    uint32_t OutputQueueId;           /**< \brief PI output queue ID */
+} BPLib_ChannelStats_t;
+
+/**
+ * \brief Contact status data
+ */
+typedef struct
+{
+    uint32_t ExampleParameter;       /* TODO */
+} BPLib_ContactStats_t;
+
+/*
+** Channel Config Table
+*/
+typedef struct
+{
+    uint32_t    Version;
+    uint32_t    CrcType;
+    uint64_t    BundleProcFlags;
+    char        DestEID[BPLIB_MAX_EID_LENGTH];
+    char        SrcEID[BPLIB_MAX_EID_LENGTH];
+    char        ReportToEID[BPLIB_MAX_EID_LENGTH];
+    uint64_t    LifeTime;
+} BPLib_PriBlkConfig_t;
+
+typedef struct
+{
+    uint32_t    BlockType;
+    uint32_t    BlockNum;
+    uint64_t    BlockProcFlags;
+    uint32_t    CrcType;
+    uint32_t    Spare;
+} BPLib_CanBlkConfig_t;
+
+typedef enum {
+    Active,
+    PassiveDefer,
+    PassiveAbandon,
+} RegistrationState_t;
+
+typedef struct
+{
+    bool                    AddAutomatically;
+    bool                    RequestCustody;
+    bool                    IncludePrevNodeBlk;
+    bool                    IncludeHopCountBlk;
+    bool                    AduWrapping;
+    bool                    AduUnwrapping;
+    uint8_t                 RegState;
+    uint8_t                 HopLimit;
+    uint32_t                LocalServiceNumber;
+    uint32_t                MaxBundlePayloadSize;
+    BPLib_PriBlkConfig_t   PriBlkConfig;
+    BPLib_CanBlkConfig_t   CanBlkConfig[BPLIB_MAX_NUM_CANONICAL_BLOCK];
+} BPLib_ChannelSet_t;
+
+typedef struct
+{
+    BPLib_ChannelSet_t ChannelSet[BPLIB_MAX_NUM_CHANNELS];
+} BPLib_ChannelTable_t;
 
 /*
 ** Global Data
