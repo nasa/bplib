@@ -200,6 +200,60 @@ void Test_BPLib_FWP_Init_PERFLOGP_ExitNull(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
+/* Test FWP initialization with null function */
+void Test_BPLib_FWP_Init_ADUP_ValidateConfigTblNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    Callbacks.BPA_ADUP_ValidateConfigTbl = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+void Test_BPLib_FWP_Init_ADUP_InNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    Callbacks.BPA_ADUP_In = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+void Test_BPLib_FWP_Init_ADUP_OutNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    Callbacks.BPA_ADUP_Out = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+void Test_BPLib_FWP_Init_ADUP_AddApplicationNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    Callbacks.BPA_ADUP_AddApplication = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+void Test_BPLib_FWP_Init_ADUP_StartApplicationNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    Callbacks.BPA_ADUP_StartApplication = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
+void Test_BPLib_FWP_Init_ADUP_StopApplicationNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    Callbacks.BPA_ADUP_StopApplication = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
 
 void TestBplibFwp_Register(void)
 {
