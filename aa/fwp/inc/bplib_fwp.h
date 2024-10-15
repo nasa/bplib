@@ -62,26 +62,6 @@ typedef struct
 
 } BPLib_FWP_ProxyCallbacks_t;
 
-/**
- * \brief Channel status data
- */
-typedef struct
-{
-    uint32_t LocalServiceNum;         /**< \brief Service number for local application */
-    uint8_t  State;                   /**< \brief Channel state (ADDED, STARTED, or STOPPED) */
-    uint8_t  RegistrationState;       /**< \brief Active, PassiveDeferred, or PassiveAbandon */
-    uint16_t Spare;                   /**< \brief Padding */
-    uint32_t OutputQueueId;           /**< \brief PI output queue ID */
-} BPLib_ChannelStats_t;
-
-/**
- * \brief Contact status data
- */
-typedef struct
-{
-    uint32_t ExampleParameter;       /* TODO */
-} BPLib_ContactStats_t;
-
 /*
 ** Channel Config Table
 */

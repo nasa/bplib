@@ -31,6 +31,34 @@
 /* Definitions */
 /* =========== */
 
+/**
+ * \brief Channel status data
+ * \note This is defined here so BPLib_ChannelContactStatHkTlm_Payload_t
+ *       can see the definitions
+ */
+typedef struct
+{
+    uint32_t LocalServiceNum;         /**< \brief Service number for local application */
+    uint8_t  State;                   /**< \brief Channel state (ADDED, STARTED, or STOPPED) */
+    uint8_t  RegistrationState;       /**< \brief Active, PassiveDeferred, or PassiveAbandon */
+    uint16_t Spare;                   /**< \brief Padding */
+    uint32_t OutputQueueId;           /**< \brief PI output queue ID */
+} BPLib_ChannelStats_t;
+
+/**
+ * \brief Contact status data
+ * \note This is defined here so BPLib_ChannelContactStatHkTlm_Payload_t
+ *       can see the definitions
+ */
+typedef struct
+{
+    uint32_t ExampleParameter;       /* TODO */
+} BPLib_ContactStats_t;
+
+/* =================== */
+/* Payload Definitions */
+/* =================== */
+
 typedef struct
 {
     uint8_t ExampleParameter;
