@@ -28,6 +28,21 @@
 /* Function Definitions */
 /* ==================== */
 
+BPLib_Status_t Test_BPA_ADUP_AddApplication(uint8 ChanId)
+{
+    return BPLIB_SUCCESS;
+}
+
+BPLib_Status_t Test_BPA_ADUP_StartApplication(uint8 ChanId)
+{
+    return BPLIB_SUCCESS;
+}
+
+BPLib_Status_t Test_BPA_ADUP_StopApplication(uint8 ChanId)
+{
+    return BPLIB_SUCCESS;
+}
+
 void BPLib_NC_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */

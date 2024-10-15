@@ -25,7 +25,6 @@
 #include "bplib_nc.h"
 #include "bplib_nc_test_utils.h"
 #include "bplib_eventids.h"
-// #include "bpnode_test_utils.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -227,6 +226,8 @@ void Test_BPLib_NC_AddApplicationCmd_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_ADD_APP_SUCCESS_EID,
     //                    "Add application command not implemented, received 1 in payload");
 
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication = Test_BPA_ADUP_AddApplication;
+
     Payload.ChanId = 1;
     Status = BPLib_NC_AddApplicationCmd(Payload);
 
@@ -272,6 +273,8 @@ void Test_BPLib_NC_StartApplicationCmd_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_START_APP_SUCCESS_EID,
     //                    "Start application command not implemented, received 4 in payload");
 
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication = Test_BPA_ADUP_StartApplication;
+
     Payload.ChanId = 1;
     Status = BPLib_NC_StartApplicationCmd(Payload);
 
@@ -286,6 +289,8 @@ void Test_BPLib_NC_StopApplicationCmd_Nominal(void)
 
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_STOP_APP_SUCCESS_EID,
     //                    "Stop application command not implemented, received 5 in payload");
+
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication = Test_BPA_ADUP_StopApplication;
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StopApplicationCmd(Payload);
