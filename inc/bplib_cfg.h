@@ -43,6 +43,8 @@ extern "C" {
  */
 #define BPLIB_MAX_NUM_CHANNELS              2
 
+#define BPLIB_MAX_NUM_CONTACTS              1
+
 /** 
  * \brief Maximum number of canonical blocks per bundle
  */
