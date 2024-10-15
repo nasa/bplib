@@ -238,8 +238,8 @@ typedef struct
  */
 typedef struct
 {
-    BPLib_ChannelStats_t ChannelStats[BPNODE_MAX_NUM_CHANNELS];
-    BPLib_ContactStats_t ContactStats[BPNODE_MAX_NUM_CONTACTS];
+    BPLib_ChannelStats_t ChannelStats[BPLIB_MAX_NUM_CHANNELS];
+    BPLib_ContactStats_t ContactStats[BPLIB_MAX_NUM_CONTACTS];
 
     uint32_t TimeBootEra;             /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;           /**< \brief Monotonic Time Counter */
