@@ -27,7 +27,6 @@
 
 #include "bplib.h"
 
-
 /*
 ** Type Definitions
 */
