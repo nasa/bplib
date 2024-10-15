@@ -41,71 +41,42 @@
 ** Stub functions for callback testing
 */
 
-int64_t BPA_TIMEP_GetMonotonicTime(void)
-{
-    return 0;
-}
-
-/* Returns host time epoch */
-void BPA_TIMEP_GetHostEpoch(BPLib_TIME_Epoch_t *Epoch)
-{
-    return;
-}
-
-/* Returns current host clock state */
-BPLib_TIME_ClockState_t BPA_TIMEP_GetHostClockState(void)
-{
-    return BPLIB_TIME_CLOCK_VALID;
-}
-
-/* Returns current host time */
-int64_t BPA_TIMEP_GetHostTime(void)
-{
-    return 0;
-}
-
-/* Initializes event services */
-BPLib_Status_t BPA_EVP_Init(void)
-{
-    return 0;
-}
-
-/* Sends an event */
-BPLib_Status_t BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText)
-{
-    return 0;
-}
-
-/* Returns current host time */
-int32_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle)
-{
-    return 0;
-}
-
-void BPA_PERFLOGP_Entry(uint32 PerfLogID)
-{
-    return;
-}
-
-void BPA_PERFLOGP_Exit(uint32 PerfLogID)
-{
-    return;
-}
+int64_t BPA_TIMEP_GetMonotonicTime(void) { return 0; }
+void BPA_TIMEP_GetHostEpoch(BPLib_TIME_Epoch_t *Epoch) { return; }
+BPLib_TIME_ClockState_t BPA_TIMEP_GetHostClockState(void) { return BPLIB_TIME_CLOCK_VALID; }
+int64_t BPA_TIMEP_GetHostTime(void) { return 0; }
+BPLib_Status_t BPA_EVP_Init(void) { return 0; }
+BPLib_Status_t BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText) { return 0; }
+int32_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle) { return 0; }
+void BPA_PERFLOGP_Entry(uint32 PerfLogID) { return; }
+void BPA_PERFLOGP_Exit(uint32 PerfLogID) { return; }
+BPLib_Status_t BPA_ADUP_ValidateConfigTbl(void *TblData) { return BPLIB_SUCCESS; }
+BPLib_Status_t BPA_ADUP_In(void *AduPtr, uint8_t ChanId) { return BPLIB_SUCCESS; }
+BPLib_Status_t BPA_ADUP_Out(void *AduPtr, uint8_t ChanId) { return BPLIB_SUCCESS; }
+BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId) { return BPLIB_SUCCESS; }
+BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId) { return BPLIB_SUCCESS; }
+BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId) { return BPLIB_SUCCESS; }
 
 /* Test nominal FWP initialization */
 void Test_BPLib_FWP_Init_Nominal(void)
 {
     BPLib_FWP_ProxyCallbacks_t Callbacks;
 
-    Callbacks.BPA_TIMEP_GetHostClockState = BPA_TIMEP_GetHostClockState;
-    Callbacks.BPA_TIMEP_GetHostEpoch = BPA_TIMEP_GetHostEpoch;
-    Callbacks.BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime;
-    Callbacks.BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime;
+    Callbacks.BPA_TIMEP_GetHostClockState  = BPA_TIMEP_GetHostClockState;
+    Callbacks.BPA_TIMEP_GetHostEpoch       = BPA_TIMEP_GetHostEpoch;
+    Callbacks.BPA_TIMEP_GetHostTime        = BPA_TIMEP_GetHostTime;
+    Callbacks.BPA_TIMEP_GetMonotonicTime   = BPA_TIMEP_GetMonotonicTime;
     Callbacks.BPA_TABLEP_SingleTableUpdate = BPA_TABLEP_SingleTableUpdate;
     Callbacks.BPA_EVP_Init                 = BPA_EVP_Init;
     Callbacks.BPA_EVP_SendEvent            = BPA_EVP_SendEvent;
-    Callbacks.BPA_PERFLOGP_Entry = BPA_PERFLOGP_Entry;
-    Callbacks.BPA_PERFLOGP_Exit = BPA_PERFLOGP_Exit;
+    Callbacks.BPA_PERFLOGP_Entry           = BPA_PERFLOGP_Entry;
+    Callbacks.BPA_PERFLOGP_Exit            = BPA_PERFLOGP_Exit;
+    Callbacks.BPA_ADUP_ValidateConfigTbl   = BPA_ADUP_ValidateConfigTbl;
+    Callbacks.BPA_ADUP_In                  = BPA_ADUP_In;
+    Callbacks.BPA_ADUP_Out                 = BPA_ADUP_Out;
+    Callbacks.BPA_ADUP_AddApplication      = BPA_ADUP_AddApplication;
+    Callbacks.BPA_ADUP_StartApplication    = BPA_ADUP_StartApplication;
+    Callbacks.BPA_ADUP_StopApplication     = BPA_ADUP_StopApplication;
 
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_SUCCESS);
 
@@ -127,6 +98,18 @@ void Test_BPLib_FWP_Init_Nominal(void)
                     "Same BPA_PERFLOGP_Entry functions");
     UtAssert_True(Callbacks.BPA_PERFLOGP_Exit == BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit, 
                     "Same BPA_PERFLOGP_Exit functions");
+    UtAssert_True(Callbacks.BPA_ADUP_ValidateConfigTbl == BPLib_FWP_ProxyCallbacks.BPA_ADUP_ValidateConfigTbl,
+                    "Same BPA_ADUP_ValidateConfigTbl functions");
+    UtAssert_True(Callbacks.BPA_ADUP_In == BPLib_FWP_ProxyCallbacks.BPA_ADUP_In,
+                    "Same BPA_ADUP_In functions");
+    UtAssert_True(Callbacks.BPA_ADUP_Out == BPLib_FWP_ProxyCallbacks.BPA_ADUP_Out,
+                    "Same BPA_ADUP_Out functions");
+    UtAssert_True(Callbacks.BPA_ADUP_AddApplication == BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication,
+                    "Same BPA_ADUP_AddApplication functions");
+    UtAssert_True(Callbacks.BPA_ADUP_StartApplication == BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication,
+                    "Same BPA_ADUP_StartApplication functions");
+    UtAssert_True(Callbacks.BPA_ADUP_StopApplication == BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication,
+                    "Same BPA_ADUP_StopApplication functions");
 }
 
 /* Test FWP initialization with null function */

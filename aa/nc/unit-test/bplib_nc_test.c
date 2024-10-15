@@ -155,8 +155,6 @@ void Test_BPLib_NC_ReloadSavedDataCmd_Nominal(void)
 
 void Test_BPLib_NC_ResetAllCountersCmd_Nominal(void)
 {
-    BPLib_Status_t Status;
-
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_RESET_ALL_CTRS_SUCCESS_EID,
     //                    "Reset all counters command not implemented");
 
