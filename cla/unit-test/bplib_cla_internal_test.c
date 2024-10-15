@@ -18,30 +18,33 @@
  *
  */
 
-#ifndef BPLIB_CLA_TEST_UTILS_H
-#define BPLIB_CLA_TEST_UTILS_H
+/*
+ * Include
+ */
+
+#include "bplib_cla_test_utils.h"
 
 /*
-** Include
+** Test function for
+** bool BPLib_CLA_IsAControlMsg(const void *Bundle)
 */
+void Test_BPLib_CLA_IsAControlMsgNominal(void)
+{
+    void *Bundle = NULL;
+    UtAssert_BOOL_TRUE(BPLib_CLA_IsAControlMsg(Bundle));
+}
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
 
-#include "bplib.h"
-#include "bplib_cla.h"
-#include "bplib_api_types.h"
-#include "bplib_cla_internal.h"
+void Test_BPLib_CLA_ProcessControlMessageNominal(void)
+{
+    UtAssert_INT32_EQ(BPLib_CLA_ProcessControlMessage(), BPLIB_SUCCESS);
+}
 
-/*
-** Function Definitions
-*/
 
-void BPLib_CLA_Test_Setup(void);
-void BPLib_CLA_Test_Teardown(void);
+void TestBplibClaInternal_Register(void)
+{
+    UtTest_Add(Test_BPLib_CLA_IsAControlMsgNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_IsAControlMsgNominal");
+    UtTest_Add(Test_BPLib_CLA_ProcessControlMessageNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ProcessControlMessageNominal");
+}
 
-void TestBplibCla_Register(void);
-void TestBplibClaInternal_Register(void);
 
-#endif /* BPLIB_CLA_TEST_UTILS_H */

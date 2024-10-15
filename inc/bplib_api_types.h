@@ -31,6 +31,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 /*
 ** Type Definitions
@@ -40,7 +41,6 @@ extern "C" {
  * \brief BPLib status type for type safety
  */
 typedef int32_t BPLib_Status_t;
-
 
 /*
 ** Macros
@@ -88,6 +88,12 @@ typedef int32_t BPLib_Status_t;
 /* Node Configuration (NC) errors */
 #define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -26u)
 #define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -27u)
+
+/* CLA Errors*/
+#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -28u)
+
+/* Payload Interface Errors */
+#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -29u)
 
 #ifdef __cplusplus
 } // extern "C"

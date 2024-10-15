@@ -18,30 +18,38 @@
  *
  */
 
-#ifndef BPLIB_CLA_TEST_UTILS_H
-#define BPLIB_CLA_TEST_UTILS_H
+#ifndef BPLIB_CFG_H
+#define BPLIB_CFG_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /*
-** Include
+** Macros
 */
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
+/** 
+ * \brief Maximum length of EID strings
+ */
 
-#include "bplib.h"
-#include "bplib_cla.h"
-#include "bplib_api_types.h"
-#include "bplib_cla_internal.h"
+#define BPLIB_MAX_EID_LENGTH                256
 
-/*
-** Function Definitions
-*/
+/** 
+ * \brief Maximum number of channels that can be running at once
+ *          This drives the number of entries in the channel and ADU proxy configuration
+ *          tables, as well as the number of ADU In/Out tasks in BPNode
+ */
+#define BPLIB_MAX_NUM_CHANNELS              2
 
-void BPLib_CLA_Test_Setup(void);
-void BPLib_CLA_Test_Teardown(void);
+/** 
+ * \brief Maximum number of canonical blocks per bundle
+ */
+#define BPLIB_MAX_NUM_CANONICAL_BLOCK       10
 
-void TestBplibCla_Register(void);
-void TestBplibClaInternal_Register(void);
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
-#endif /* BPLIB_CLA_TEST_UTILS_H */
+#endif /* BPLIB_CFG_H */

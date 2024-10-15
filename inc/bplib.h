@@ -30,11 +30,15 @@ extern "C" {
 */
 
 #include "bplib_api_types.h"
+#include "bplib_cfg.h"
+
 #include "bplib_time.h"
 #include "bplib_em.h"
 #include "bplib_fwp.h"
 #include "bplib_nc.h"
+#include "bplib_cla.h"
 #include "bplib_pl.h"
+#include "bplib_pi.h"
 
 #ifdef __cplusplus
 } // extern "C"
