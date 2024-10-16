@@ -31,7 +31,6 @@
 #define BPLIB_VALUE_INF_EID                         (1u)
 #define BPLIB_SUB_HK_ERR_EID                        (2u)
 #define BPLIB_DELETE_HNDLR_ERR_EID                  (3u)
-#define BPLIB_ADU_IN_INIT_SEM_ERR_EID               (4u)
 #define BPLIB_ADU_IN_SUB_PIPE_ERR_EID               (5u)
 #define BPLIB_ADU_OUT_EXIT_SEM_ERR_EID              (6u)
 #define BPLIB_NOOP_EID                              (7u)
