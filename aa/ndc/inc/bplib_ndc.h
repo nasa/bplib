@@ -49,7 +49,7 @@ typedef struct BPLib_ContactHkTlmPayloadSet
 {
     uint32_t    ContactID;                              /**< \brief Unique ID for this contact */
     uint32_t    Status;                                 /**< \brief Configured, Running, or Off */
-    char        EIDs[BPLIB_MAX_EID_LIST_STRING];        /**< \brief List of EIDs */
+    char        EIDs[BPLIB_MAX_EID_LENGTH];             /**< \brief List of EIDs */
     uint32_t    OutputQueueID;                          /**< \brief Output queue ID */
     uint32_t    Spare1;
 }BPLib_ContactHkTlmPayloadSet_t;

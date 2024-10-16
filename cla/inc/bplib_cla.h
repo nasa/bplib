@@ -27,10 +27,6 @@
 
 #include "bplib.h"
 
-
-#define BPLIB_MAX_EID_LENGTH    256
-
-
 /*
 ** Contacts Table
 */

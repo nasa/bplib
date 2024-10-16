@@ -26,6 +26,7 @@
 */
 
 #include "bplib_api_types.h"
+#include "bplib_cfg.h"
 
 /**
  * \brief Node MIB counters housekeeping payload
@@ -73,7 +74,7 @@ struct BPLib_NodeMibCountersHkTlm_Payload
  */
 typedef struct BPLib_SourceMibCountersSet
 {    
-    char SourceEID[BPLIB_SRC_EID_STRING_LENGTH];/**< \brief Source EID this telemetry corresponds to */
+    char SourceEID[BPLIB_MAX_EID_LENGTH];       /**< \brief Source EID this telemetry corresponds to */
     uint32_t BundleCountGeneratedAccepted;      /**< \brief Number of accepted bundle transmission requests */
     uint32_t BundleCountGeneratedRejected;      /**< \brief Number of rejected bundle transmission requests */
     uint32_t BundleCountMaxBsrRateExceeded;     /**< \brief Number of BSR bundles not sent because sending would exceed a maximum rate */

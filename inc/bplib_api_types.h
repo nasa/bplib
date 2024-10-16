@@ -45,12 +45,6 @@ typedef int32_t BPLib_Status_t;
 /*
 ** Macros
 */
-#define BPLIB_MAX_NUM_BUNDLE_QUEUES         (16u)
-#define BPLIB_MAX_NUM_SOURCE_EID            (16u)
-#define BPLIB_MAX_NUM_CONTACTS              (1u)
-#define BPLIB_MAX_NUM_STRING                (24u)
-#define BPLIB_MAX_EID_LIST_STRING           (256u)
-#define BPLIB_SRC_EID_STRING_LENGTH         (64u)
 
 /* General Return Codes */
 
