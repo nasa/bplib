@@ -59,6 +59,17 @@ BPLib_Status_t BPLib_NC_AddAllApplicationsCmd(void)
     }
     */
 
+    if (Status == BPLIB_SUCCESS)
+    {
+         BPLib_EM_SendEvent(BPLIB_ADD_ALL_APPS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Add all applications command is unimplemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_ADD_ALL_APPS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Add all applications command is unimplemented");
+    }
+
     return Status;
 }
 
@@ -79,6 +90,17 @@ BPLib_Status_t BPLib_NC_StartAllApplicationsCmd(void)
     }
     */
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_START_ALL_APPS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Start all applications command not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_START_ALL_APPS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Start all applications command not implemented");
+    }
+
     return Status;
 }
 
@@ -87,6 +109,17 @@ BPLib_Status_t BPLib_NC_VerifyBundleStorageCmd(void)
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Verify bundle storage command not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Verify bundle storage command not implemented");
+    }
 
     return Status;
 }
@@ -97,6 +130,17 @@ BPLib_Status_t BPLib_NC_InitBundleStorageCmd(void)
 
     Status = BPLIB_SUCCESS;
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_INIT_BNDL_STOR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Initialize bundle storage command not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_INIT_BNDL_STOR_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Initialize bundle storage command not implemented");
+    }
+
     return Status;
 }
 
@@ -105,6 +149,17 @@ BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd(void)
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_META_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Verify bundle metadata (7.2) command not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_META_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Verify bundle metadata (7.2) command not implemented");
+    }
 
     return Status;
 }
@@ -119,6 +174,17 @@ BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd(void)
     Status = BPLib_STOR_RebuildBundleMetadata();
     */
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_REBUILD_BNDL_META_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Rebuild bundle metadata command not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_REBUILD_BNDL_META_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Rebuild bundle metadata command not implemented");
+    }
+
     return Status;
 }
 
@@ -132,6 +198,17 @@ BPLib_Status_t BPLib_NC_ClearVolatileCmd(void)
     Status = BPLib_STOR_ClearVolatile();
     */
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_CLR_VOLATILE_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Clear volatile command not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_CLR_VOLATILE_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Clear volatile command not implemented");
+    }
+
     return Status;
 }
 
@@ -140,6 +217,17 @@ BPLib_Status_t BPLib_NC_ReloadSavedDataCmd(void)
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_RELOAD_SVD_DATA_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Reload saved data (7.2) command not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_RELOAD_SVD_DATA_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Reload saved data (7.2) command not implemented");
+    }
 
     return Status;
 }
@@ -155,6 +243,19 @@ BPLib_Status_t BPLib_NC_ResetCounterCmd(const BPLib_ResetCounterCmd_Payload_t Pa
 
     Status = BPLIB_SUCCESS;
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_CTR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Reset counter command not implemented, received %d in payload",
+                            Payload.ExampleParameter);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_CTR_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Reset counter command not implemented, received %d in payload",
+                            Payload.ExampleParameter);
+    }
+
     return Status;
 }
 
@@ -167,6 +268,19 @@ BPLib_Status_t BPLib_NC_ResetSourceCountersCmd(const BPLib_ResetSourceCountersCm
     /*
     Status = BPLib_AS_ResetSourceCounters();
     */
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_SRC_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Reset source counters command not implemented, received %d in payload",
+                            Payload.ExampleParameter);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_SRC_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Reset source counters command not implemented, received %d in payload",
+                            Payload.ExampleParameter);
+    }
 
     return Status;
 }
@@ -181,6 +295,17 @@ BPLib_Status_t BPLib_NC_ResetBundleCountersCmd(void)
     Status = BPLib_AS_ResetBundleCounters();
     */
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_BNDL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Reset bundle counters command not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_BNDL_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Reset bundle counters command not implemented");
+    }
+
     return Status;
 }
 
@@ -194,6 +319,17 @@ BPLib_Status_t BPLib_NC_ResetErrorCountersCmd(void)
     Status = BPLib_AS_ResetErrorCounters();
     */
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_ERR_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Reset error counters command not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_ERR_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Reset error counters command not implemented");
+    }
+
     return Status;
 }
 
@@ -204,6 +340,33 @@ BPLib_Status_t BPLib_NC_AddApplicationCmd(const BPLib_AddApplicationCmd_Payload_
     /* Add application configurations */
     Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication(Payload.ChanId);
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_ADD_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Successful add-application directive for ChanId=%d",
+                            Payload.ChanId);
+    }
+    else
+    {
+        switch (Status)
+        {
+            case BPLIB_ADU_ADD_CHAN_ERR:
+                BPLib_EM_SendEvent(BPLIB_ADU_ADD_CHAN_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error with add-application directive, invalid ChanId=%d",
+                                    Payload.ChanId);
+
+                break;
+            case BPLIB_ADU_ADD_STAT_ERR:
+                BPLib_EM_SendEvent(BPLIB_ADU_ADD_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error with add-application directive, invalid app state for ChanId=%d", 
+                                    Payload.ChanId);
+
+                break;
+            default:
+                break;
+        }
+    }
+
     return Status;
 }
 
@@ -212,6 +375,19 @@ BPLib_Status_t BPLib_NC_RemoveApplicationCmd(const BPLib_RemoveApplicationCmd_Pa
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_RM_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Remove application command not implemented, received %d in payload",
+                            Payload.ExampleParameter);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_RM_APP_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Remove application command not implemented, received %d in payload",
+                            Payload.ExampleParameter);
+    }
 
     return Status;
 }
@@ -231,6 +407,19 @@ BPLib_Status_t BPLib_NC_SetRegistrationStateCmd(const BPLib_SetRegistrationState
             * Node Configuration sends Storage request to delete any bundles already queued for the channel and future bundles for that channel
     */
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_SET_REGI_STAT_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Set registration state command not implemented, received %d in payload",
+                            Payload.ExampleParameter);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_SET_REGI_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Set registration state command not implemented, received %d in payload",
+                            Payload.ExampleParameter);
+    }
+
     return Status;
 }
 
@@ -241,6 +430,39 @@ BPLib_Status_t BPLib_NC_StartApplicationCmd(const BPLib_StartApplicationCmd_Payl
     /* Start application */
     Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication(Payload.ChanId);
 
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_START_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Successful start-application directive for ChanId=%d",
+                            Payload.ChanId);
+    }
+    else
+    {
+        switch (Status)
+        {
+            case BPLIB_ADU_START_CHAN_ERR:
+                BPLib_EM_SendEvent(BPLIB_ADU_START_CHAN_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error with start-application directive, invalid ChanId=%d",
+                                    Payload.ChanId);
+
+                break;
+            case BPLIB_ADU_START_STAT_ERR:
+                BPLib_EM_SendEvent(BPLIB_ADU_START_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error with start-application directive, invalid app state for ChanId=%d", 
+                                    Payload.ChanId);
+
+                break;
+            case BPLIB_ADU_START_SUB_ERR:
+                BPLib_EM_SendEvent(BPLIB_ADU_START_SUB_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error subscribing to ADU on channel #%d",
+                                    Payload.ChanId);
+
+                break;
+            default:
+                break;
+        }
+    }
+
     return Status;
 }
 
@@ -250,6 +472,39 @@ BPLib_Status_t BPLib_NC_StopApplicationCmd(const BPLib_StopApplicationCmd_Payloa
 
     /* Stop application */
     Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication(Payload.ChanId);
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_START_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Successful stop-application directive for ChanId=%d",
+                            Payload.ChanId);
+    }
+    else
+    {
+        switch (Status)
+        {
+            case BPLIB_ADU_STOP_CHAN_ERR:
+                BPLib_EM_SendEvent(BPLIB_ADU_STOP_CHAN_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error with stop-application directive, invalid ChanId=%d",
+                                    Payload.ChanId);
+
+                break;
+            case BPLIB_ADU_STOP_STAT_ERR:
+                BPLib_EM_SendEvent(BPLIB_ADU_STOP_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error with stop-application directive, invalid app state for ChanId=%d", 
+                                    Payload.ChanId);
+
+                break;
+            case BPLIB_ADU_STOP_UNSUB_ERR:
+                BPLib_EM_SendEvent(BPLIB_ADU_UNSUB_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Error unsubscribing from ADU on channel #%d", 
+                                    Payload.ChanId);
+
+                break;
+            default:
+                break;
+        }
+    }
 
     return Status;
 }
