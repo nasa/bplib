@@ -39,18 +39,24 @@ BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 /* Initialize proxy callbacks */
 BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
 
-    if (Callbacks.BPA_TIMEP_GetMonotonicTime   == NULL ||
-        Callbacks.BPA_TIMEP_GetHostEpoch       == NULL ||
-        Callbacks.BPA_TIMEP_GetHostClockState  == NULL ||
-        Callbacks.BPA_TIMEP_GetHostTime        == NULL ||
-        Callbacks.BPA_TABLEP_SingleTableUpdate == NULL ||
-        Callbacks.BPA_EVP_Init                 == NULL ||
-        Callbacks.BPA_EVP_SendEvent            == NULL ||
-        Callbacks.BPA_PERFLOGP_Entry           == NULL ||
-        Callbacks.BPA_PERFLOGP_Exit            == NULL ||
-        Callbacks.BPA_ADUP_AddApplication      == NULL ||
-        Callbacks.BPA_ADUP_StartApplication    == NULL ||
-        Callbacks.BPA_ADUP_StopApplication     == NULL)
+    if (Callbacks.BPA_TIMEP_GetMonotonicTime            == NULL ||
+        Callbacks.BPA_TIMEP_GetHostEpoch                == NULL ||
+        Callbacks.BPA_TIMEP_GetHostClockState           == NULL ||
+        Callbacks.BPA_TIMEP_GetHostTime                 == NULL ||
+        Callbacks.BPA_TABLEP_SingleTableUpdate          == NULL ||
+        Callbacks.BPA_EVP_Init                          == NULL ||
+        Callbacks.BPA_EVP_SendEvent                     == NULL ||
+        Callbacks.BPA_PERFLOGP_Entry                    == NULL ||
+        Callbacks.BPA_PERFLOGP_Exit                     == NULL ||
+        Callbacks.BPA_ADUP_AddApplication               == NULL ||
+        Callbacks.BPA_ADUP_StartApplication             == NULL ||
+        Callbacks.BPA_ADUP_StopApplication              == NULL ||
+        Callbacks.BPA_TLMP_SendNodeMibConfigPkt         == NULL ||
+        Callbacks.BPA_TLMP_SendPerSourceMibConfigPkt    == NULL ||
+        Callbacks.BPA_TLMP_SendNodeMibCounterPkt        == NULL ||
+        Callbacks.BPA_TLMP_SendPerSourceMibCounterPkt   == NULL ||
+        Callbacks.BPA_TLMP_SendChannelContactPkt        == NULL ||
+        Callbacks.BPA_TLMP_SendStoragePkt               == NULL)              
     {
         return BPLIB_FWP_CALLBACK_INIT_ERROR;
     }
@@ -78,6 +84,14 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication  = Callbacks.BPA_ADUP_StartApplication;
         BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication   = Callbacks.BPA_ADUP_StopApplication;
 
+        /* Initialize Telemetry Proxy callbacks*/
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt          = Callbacks.BPA_TLMP_SendNodeMibConfigPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt     = Callbacks.BPA_TLMP_SendPerSourceMibConfigPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt         = Callbacks.BPA_TLMP_SendNodeMibCounterPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt    = Callbacks.BPA_TLMP_SendPerSourceMibCounterPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt         = Callbacks.BPA_TLMP_SendChannelContactPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt                = Callbacks.BPA_TLMP_SendStoragePkt;                
+        
         /* Initialize other proxies' callbacks TODO */
     }
 
