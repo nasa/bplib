@@ -25,10 +25,34 @@
 ** Include
 */
 
-#include "bplib.h"
+#include "bplib_api_types.h"
+#include "bplib_cfg.h"
 
 // TODO BPLIB_FLAG_DIAGNOSTIC (from BP_FLAG_DIAGNOSTIC) should b in bplib.h
 #define BPLIB_FLAG_DIAGNOSTIC              0x00000000
+
+
+/**
+ * \brief Storage housekeeping payload
+ */
+
+typedef struct BPLib_StorageHkTlm_Payload BPLib_StorageHkTlm_Payload_t;
+
+struct BPLib_StorageHkTlm_Payload
+{
+    uint32_t    NumBundlesQueued[BPLIB_MAX_NUM_BUNDLE_QUEUES];  /**< \brief Number of bundles queued per queue */
+    float       StoragePercentFull;                             /**< \brief Percentage of storage which triggers discarding deleted bundles from storage */
+    float       MemInUse;                                       /**< \brief Memory in use */
+    uint32_t    MemHighWater;                                   /**< \brief Memory high water mark */
+    uint32_t    NumFreeFlashBlocks;                             /**< \brief Free Flash memory statistics counter */
+    uint32_t    NumUsedFlashBlocks;                             /**< \brief Used Flash memory statistics counter */
+    uint32_t    NumFailedFlashBlocks;                           /**< \brief Failed Flash memory statistics counter */
+    uint32_t    FlashErrorCount;                                /**< \brief Flash memory statistics counter */
+    
+    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */    
+};
 
 /*
 ** Exported Functions
