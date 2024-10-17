@@ -33,7 +33,7 @@ BPLib_Status_t BPLib_NC_Init(void)
     return BPLIB_SUCCESS;
 }
 
-BPLib_Status_t BPLib_NC_NoopCmd(void)
+BPLib_Status_t BPLib_NC_Noop(void)
 {
     BPLib_Status_t Status;
 
@@ -42,7 +42,7 @@ BPLib_Status_t BPLib_NC_NoopCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddAllApplicationsCmd(void)
+BPLib_Status_t BPLib_NC_AddAllApplications(void)
 {
     BPLib_Status_t Status;
     // uint8_t AppIdx;
@@ -55,7 +55,7 @@ BPLib_Status_t BPLib_NC_AddAllApplicationsCmd(void)
     for (AppIdx = 0; AppIdx < <num apps>; AppIdx++)
     {
         AddAllAppsPayload.ChanId = AppList[AppIdx]
-        Status &= BPLib_NC_AddApplicationCmd(AddAllAppsPayload);
+        Status &= BPLib_NC_AddApplication(AddAllAppsPayload);
     }
     */
 
@@ -73,7 +73,7 @@ BPLib_Status_t BPLib_NC_AddAllApplicationsCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_StartAllApplicationsCmd(void)
+BPLib_Status_t BPLib_NC_StartAllApplications(void)
 {
     BPLib_Status_t Status;
     // BPLib_StartApplicationCmd_Payload_t StartAllAppsPayload;
@@ -86,7 +86,7 @@ BPLib_Status_t BPLib_NC_StartAllApplicationsCmd(void)
     for (AppIdx = 0; AppIdx < <num apps>; AppIdx++)
     {
         StartAllAppsPayload.ChanId = AppList[AppIdx];
-        Status &= BPLib_NC_StartApplicationCmd(StartAllAppsPayload);
+        Status &= BPLib_NC_StartApplication(StartAllAppsPayload);
     }
     */
 
@@ -104,7 +104,7 @@ BPLib_Status_t BPLib_NC_StartAllApplicationsCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_VerifyBundleStorageCmd(void)
+BPLib_Status_t BPLib_NC_VerifyBundleStorage(void)
 {
     BPLib_Status_t Status;
 
@@ -124,7 +124,7 @@ BPLib_Status_t BPLib_NC_VerifyBundleStorageCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_InitBundleStorageCmd(void)
+BPLib_Status_t BPLib_NC_InitBundleStorage(void)
 {
     BPLib_Status_t Status;
 
@@ -144,7 +144,7 @@ BPLib_Status_t BPLib_NC_InitBundleStorageCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd(void)
+BPLib_Status_t BPLib_NC_VerifyBundleMetadata(void)
 {
     BPLib_Status_t Status;
 
@@ -164,7 +164,7 @@ BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd(void)
+BPLib_Status_t BPLib_NC_RebuildBundleMetadata(void)
 {
     BPLib_Status_t Status;
 
@@ -188,7 +188,7 @@ BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ClearVolatileCmd(void)
+BPLib_Status_t BPLib_NC_ClearVolatile(void)
 {
     BPLib_Status_t Status;
 
@@ -212,7 +212,7 @@ BPLib_Status_t BPLib_NC_ClearVolatileCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ReloadSavedDataCmd(void)
+BPLib_Status_t BPLib_NC_ReloadSavedData(void)
 {
     BPLib_Status_t Status;
 
@@ -232,14 +232,14 @@ BPLib_Status_t BPLib_NC_ReloadSavedDataCmd(void)
     return Status;
 }
 
-void BPLib_NC_ResetAllCountersCmd(void)
+void BPLib_NC_ResetAllCounters(void)
 {
     /* Call to other function(s) */
     BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION, 
                         "Reset all counters command");
 }
 
-BPLib_Status_t BPLib_NC_ResetCounterCmd(const BPLib_ResetCounterCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounterCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -261,7 +261,7 @@ BPLib_Status_t BPLib_NC_ResetCounterCmd(const BPLib_ResetCounterCmd_Payload_t Pa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ResetSourceCountersCmd(const BPLib_ResetSourceCountersCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCountersCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -287,7 +287,7 @@ BPLib_Status_t BPLib_NC_ResetSourceCountersCmd(const BPLib_ResetSourceCountersCm
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ResetBundleCountersCmd(void)
+BPLib_Status_t BPLib_NC_ResetBundleCounters(void)
 {
     BPLib_Status_t Status;
 
@@ -311,7 +311,7 @@ BPLib_Status_t BPLib_NC_ResetBundleCountersCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ResetErrorCountersCmd(void)
+BPLib_Status_t BPLib_NC_ResetErrorCounters(void)
 {
     BPLib_Status_t Status;
 
@@ -335,7 +335,7 @@ BPLib_Status_t BPLib_NC_ResetErrorCountersCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddApplicationCmd(const BPLib_AddApplicationCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplicationCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -372,7 +372,7 @@ BPLib_Status_t BPLib_NC_AddApplicationCmd(const BPLib_AddApplicationCmd_Payload_
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RemoveApplicationCmd(const BPLib_RemoveApplicationCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_RemoveApplication(const BPLib_RemoveApplicationCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -394,7 +394,7 @@ BPLib_Status_t BPLib_NC_RemoveApplicationCmd(const BPLib_RemoveApplicationCmd_Pa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SetRegistrationStateCmd(const BPLib_SetRegistrationStateCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationStateCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -425,7 +425,7 @@ BPLib_Status_t BPLib_NC_SetRegistrationStateCmd(const BPLib_SetRegistrationState
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_StartApplicationCmd(const BPLib_StartApplicationCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_StartApplication(const BPLib_StartApplicationCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -468,7 +468,7 @@ BPLib_Status_t BPLib_NC_StartApplicationCmd(const BPLib_StartApplicationCmd_Payl
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_StopApplicationCmd(const BPLib_StopApplicationCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplicationCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -511,7 +511,7 @@ BPLib_Status_t BPLib_NC_StopApplicationCmd(const BPLib_StopApplicationCmd_Payloa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddAuthSourcesCmd(const BPLib_AddAuthSourcesCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_AddAuthSources(const BPLib_AddAuthSourcesCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -533,7 +533,7 @@ BPLib_Status_t BPLib_NC_AddAuthSourcesCmd(const BPLib_AddAuthSourcesCmd_Payload_
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RemoveAuthSourcesCmd(const BPLib_RemoveAuthSourcesCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSourcesCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -555,7 +555,7 @@ BPLib_Status_t BPLib_NC_RemoveAuthSourcesCmd(const BPLib_RemoveAuthSourcesCmd_Pa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddAuthCustodySourcesCmd(const BPLib_AddAuthCustodySourcesCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySourcesCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -577,7 +577,7 @@ BPLib_Status_t BPLib_NC_AddAuthCustodySourcesCmd(const BPLib_AddAuthCustodySourc
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RemoveAuthCustodySourcesCmd(const BPLib_RemoveAuthCustodySourcesCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySourcesCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -599,7 +599,7 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodySourcesCmd(const BPLib_RemoveAuthCustod
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddAuthCustodiansCmd(const BPLib_AddAuthCustodiansCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodiansCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -621,7 +621,7 @@ BPLib_Status_t BPLib_NC_AddAuthCustodiansCmd(const BPLib_AddAuthCustodiansCmd_Pa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RemoveAuthCustodiansCmd(const BPLib_RemoveAuthCustodiansCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodiansCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -643,7 +643,7 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodiansCmd(const BPLib_RemoveAuthCustodians
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddAuthReportToEidCmd(const BPLib_AddAuthReportToEidCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEidCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -665,7 +665,7 @@ BPLib_Status_t BPLib_NC_AddAuthReportToEidCmd(const BPLib_AddAuthReportToEidCmd_
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RemoveAuthReportToEidCmd(const BPLib_RemoveAuthReportToEidCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEidCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -687,7 +687,7 @@ BPLib_Status_t BPLib_NC_RemoveAuthReportToEidCmd(const BPLib_RemoveAuthReportToE
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddLatencyCmd(const BPLib_AddLatencyCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_AddLatency(const BPLib_AddLatencyCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -709,7 +709,7 @@ BPLib_Status_t BPLib_NC_AddLatencyCmd(const BPLib_AddLatencyCmd_Payload_t Payloa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RemoveLatencyCmd(const BPLib_RemoveLatencyCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_RemoveLatency(const BPLib_RemoveLatencyCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -731,7 +731,7 @@ BPLib_Status_t BPLib_NC_RemoveLatencyCmd(const BPLib_RemoveLatencyCmd_Payload_t 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ContactSetupCmd(const BPLib_ContactSetupCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_ContactSetup(const BPLib_ContactSetupCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -761,7 +761,7 @@ BPLib_Status_t BPLib_NC_ContactSetupCmd(const BPLib_ContactSetupCmd_Payload_t Pa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ContactStartCmd(const BPLib_ContactStartCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_ContactStart(const BPLib_ContactStartCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -788,7 +788,7 @@ BPLib_Status_t BPLib_NC_ContactStartCmd(const BPLib_ContactStartCmd_Payload_t Pa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ContactStopCmd(const BPLib_ContactStopCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_ContactStop(const BPLib_ContactStopCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -818,7 +818,7 @@ BPLib_Status_t BPLib_NC_ContactStopCmd(const BPLib_ContactStopCmd_Payload_t Payl
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ContactTeardownCmd(const BPLib_ContactTeardownCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_ContactTeardown(const BPLib_ContactTeardownCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -845,7 +845,7 @@ BPLib_Status_t BPLib_NC_ContactTeardownCmd(const BPLib_ContactTeardownCmd_Payloa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddMibArrayKeyCmd(const BPLib_AddMibArrayKeyCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKeyCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -875,7 +875,7 @@ BPLib_Status_t BPLib_NC_AddMibArrayKeyCmd(const BPLib_AddMibArrayKeyCmd_Payload_
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RemoveMibArrayKeyCmd(const BPLib_RemoveMibArrayKeyCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKeyCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -897,7 +897,7 @@ BPLib_Status_t BPLib_NC_RemoveMibArrayKeyCmd(const BPLib_RemoveMibArrayKeyCmd_Pa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SetMibItemCmd(const BPLib_SetMibItemCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_SetMibItem(const BPLib_SetMibItemCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -967,7 +967,7 @@ BPLib_Status_t BPLib_NC_SetMibItemCmd(const BPLib_SetMibItemCmd_Payload_t Payloa
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_AddStorageAllocationCmd(const BPLib_AddStorageAllocationCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocationCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -1012,7 +1012,7 @@ BPLib_Status_t BPLib_NC_AddStorageAllocationCmd(const BPLib_AddStorageAllocation
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_RemoveStorageAllocationCmd(const BPLib_RemoveStorageAllocationCmd_Payload_t Payload)
+BPLib_Status_t BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocationCmd_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
@@ -1039,7 +1039,7 @@ BPLib_Status_t BPLib_NC_RemoveStorageAllocationCmd(const BPLib_RemoveStorageAllo
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_PerformSelfTestCmd(void)
+BPLib_Status_t BPLib_NC_PerformSelfTest(void)
 {
     BPLib_Status_t Status;
 
@@ -1059,7 +1059,7 @@ BPLib_Status_t BPLib_NC_PerformSelfTestCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibConfigHkCmd(void)
+BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1079,7 +1079,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHkCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibConfigHkCmd(void)
+BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1099,7 +1099,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHkCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd(void)
+BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1119,7 +1119,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd(void)
+BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1139,7 +1139,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendStorageHkCmd(void)
+BPLib_Status_t BPLib_NC_SendStorageHk(void)
 {
     BPLib_Status_t Status;
 
@@ -1159,7 +1159,7 @@ BPLib_Status_t BPLib_NC_SendStorageHkCmd(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendChannelContactStatHkCmd(void)
+BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void)
 {
     BPLib_Status_t Status;
 

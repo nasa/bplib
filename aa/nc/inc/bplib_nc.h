@@ -52,7 +52,7 @@ BPLib_Status_t BPLib_NC_Init(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_NoopCmd(void);
+BPLib_Status_t BPLib_NC_Noop(void);
 
 /**
   * \brief     Run add-application for all applications configured to start at startup
@@ -62,7 +62,7 @@ BPLib_Status_t BPLib_NC_NoopCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddAllApplicationsCmd(void);
+BPLib_Status_t BPLib_NC_AddAllApplications(void);
 
 /**
   * \brief     Start accepting and delivering ADUs for all configured applications
@@ -72,7 +72,7 @@ BPLib_Status_t BPLib_NC_AddAllApplicationsCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_StartAllApplicationsCmd(void);
+BPLib_Status_t BPLib_NC_StartAllApplications(void);
 
 /**
   * \brief     Verify headers of all bundles in persistent storage on a cold start
@@ -82,7 +82,7 @@ BPLib_Status_t BPLib_NC_StartAllApplicationsCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_VerifyBundleStorageCmd(void);
+BPLib_Status_t BPLib_NC_VerifyBundleStorage(void);
 
 /**
   * \brief     Delete all bundles in storage for a factory reset
@@ -92,7 +92,7 @@ BPLib_Status_t BPLib_NC_VerifyBundleStorageCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_InitBundleStorageCmd(void);
+BPLib_Status_t BPLib_NC_InitBundleStorage(void);
 
 /**
   * \brief     Verify bundle metadata reflects actual bundle storage
@@ -102,7 +102,7 @@ BPLib_Status_t BPLib_NC_InitBundleStorageCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd(void);
+BPLib_Status_t BPLib_NC_VerifyBundleMetadata(void);
 
 /**
   * \brief     Rebuild bundle storage metadata from stored bundles, including their indices (source EID, destination EID, next action time)
@@ -112,7 +112,7 @@ BPLib_Status_t BPLib_NC_VerifyBundleMetadataCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd(void);
+BPLib_Status_t BPLib_NC_RebuildBundleMetadata(void);
 
 /**
   * \brief     Clear volatile data, including bundle metadata and bundles not in persistent storage
@@ -122,7 +122,7 @@ BPLib_Status_t BPLib_NC_RebuildBundleMetadataCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ClearVolatileCmd(void);
+BPLib_Status_t BPLib_NC_ClearVolatile(void);
 
 /**
   * \brief     Reload saved node configuration, bundle metadata from persistent storage, and saved MIB counters
@@ -132,7 +132,7 @@ BPLib_Status_t BPLib_NC_ClearVolatileCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ReloadSavedDataCmd(void);
+BPLib_Status_t BPLib_NC_ReloadSavedData(void);
 
 /**
   * \brief     Reload saved node configuration, bundle metadata from persistent storage, and saved MIB counters
@@ -142,7 +142,7 @@ BPLib_Status_t BPLib_NC_ReloadSavedDataCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-void BPLib_NC_ResetAllCountersCmd(void);
+void BPLib_NC_ResetAllCounters(void);
 
 /**
   * \brief     Set given MIB counter to zero. If targeted counter is node-only, source EID is unused.
@@ -152,7 +152,7 @@ void BPLib_NC_ResetAllCountersCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ResetCounterCmd(const BPLib_ResetCounterCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounterCmd_Payload_t Payload);
 
 /**
   * \brief     Set all resettable MIB counters associated with given source EID pattern to zero
@@ -162,7 +162,7 @@ BPLib_Status_t BPLib_NC_ResetCounterCmd(const BPLib_ResetCounterCmd_Payload_t Pa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ResetSourceCountersCmd(const BPLib_ResetSourceCountersCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCountersCmd_Payload_t Payload);
 
 /**
   * \brief     Set all bundle-related counters to zero
@@ -172,7 +172,7 @@ BPLib_Status_t BPLib_NC_ResetSourceCountersCmd(const BPLib_ResetSourceCountersCm
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ResetBundleCountersCmd(void);
+BPLib_Status_t BPLib_NC_ResetBundleCounters(void);
 
 /**
   * \brief     Set all error counters to zero
@@ -182,7 +182,7 @@ BPLib_Status_t BPLib_NC_ResetBundleCountersCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ResetErrorCountersCmd(void);
+BPLib_Status_t BPLib_NC_ResetErrorCounters(void);
 
 /**
   * \brief     Adds new application configurations from ADU Proxy and Channel Config Tables
@@ -194,7 +194,7 @@ BPLib_Status_t BPLib_NC_ResetErrorCountersCmd(void);
   * \retval    BPLIB_ADU_ADD_CHAN_ERR: Payload.ChanId is out of bounds
   * \retval    BPLIB_ADU_ADD_STAT_ERR: State of desired app is STARTED
   */
-BPLib_Status_t BPLib_NC_AddApplicationCmd(const BPLib_AddApplicationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplicationCmd_Payload_t Payload);
 
 /**
   * \brief     Terminate given application’s connection, close its ADU channel, and empty its queues
@@ -204,7 +204,7 @@ BPLib_Status_t BPLib_NC_AddApplicationCmd(const BPLib_AddApplicationCmd_Payload_
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveApplicationCmd(const BPLib_RemoveApplicationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveApplication(const BPLib_RemoveApplicationCmd_Payload_t Payload);
 
 /**
   * \brief     Set given application's channel state to specified state
@@ -214,7 +214,7 @@ BPLib_Status_t BPLib_NC_RemoveApplicationCmd(const BPLib_RemoveApplicationCmd_Pa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SetRegistrationStateCmd(const BPLib_SetRegistrationStateCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationStateCmd_Payload_t Payload);
 
 /**
   * \brief     Verify given application’s channel configuration and begin moving bundles bidirectionally between host and PI
@@ -227,7 +227,7 @@ BPLib_Status_t BPLib_NC_SetRegistrationStateCmd(const BPLib_SetRegistrationState
   * \retval    BPLIB_ADU_START_STAT_ERR: State of desired application is not ADDED
   * \retval    BPLIB_ADU_START_SUB_ERR: Error in platform-dependent software bus subscription
   */
-BPLib_Status_t BPLib_NC_StartApplicationCmd(const BPLib_StartApplicationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_StartApplication(const BPLib_StartApplicationCmd_Payload_t Payload);
 
 /**
   * \brief     Stop moving bundles bidirectionally between host and PI for the given application
@@ -240,7 +240,7 @@ BPLib_Status_t BPLib_NC_StartApplicationCmd(const BPLib_StartApplicationCmd_Payl
   * \retval    BPLIB_ADU_STOP_STAT_ERR: State of desired application is not STARTED
   * \retval    BPLIB_ADU_STOP_UNSUB_ERR: Error in platform-dependent software bus un-subscription
   */
-BPLib_Status_t BPLib_NC_StopApplicationCmd(const BPLib_StopApplicationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplicationCmd_Payload_t Payload);
 
 /**
   * \brief     Reject if adding pattern would exceed maximum size of authorized sources, else add EID pattern to set of authorized source EIDs
@@ -250,7 +250,7 @@ BPLib_Status_t BPLib_NC_StopApplicationCmd(const BPLib_StopApplicationCmd_Payloa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddAuthSourcesCmd(const BPLib_AddAuthSourcesCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddAuthSources(const BPLib_AddAuthSourcesCmd_Payload_t Payload);
 
 /**
   * \brief     Remove EID pattern from set of authorized source EIDs
@@ -260,7 +260,7 @@ BPLib_Status_t BPLib_NC_AddAuthSourcesCmd(const BPLib_AddAuthSourcesCmd_Payload_
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveAuthSourcesCmd(const BPLib_RemoveAuthSourcesCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSourcesCmd_Payload_t Payload);
 
 /**
   * \brief     Add EID pattern to set of authorized custody source EIDs
@@ -270,7 +270,7 @@ BPLib_Status_t BPLib_NC_RemoveAuthSourcesCmd(const BPLib_RemoveAuthSourcesCmd_Pa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddAuthCustodySourcesCmd(const BPLib_AddAuthCustodySourcesCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySourcesCmd_Payload_t Payload);
 
 /**
   * \brief     Remove EID pattern from set of authorized custody source EIDs
@@ -280,7 +280,7 @@ BPLib_Status_t BPLib_NC_AddAuthCustodySourcesCmd(const BPLib_AddAuthCustodySourc
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveAuthCustodySourcesCmd(const BPLib_RemoveAuthCustodySourcesCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySourcesCmd_Payload_t Payload);
 
 /**
   * \brief     Add EID pattern to set of authorized custodian EIDs
@@ -290,7 +290,7 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodySourcesCmd(const BPLib_RemoveAuthCustod
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddAuthCustodiansCmd(const BPLib_AddAuthCustodiansCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodiansCmd_Payload_t Payload);
 
 /**
   * \brief     Remove EID pattern from set of authorized custodian EIDs
@@ -300,7 +300,7 @@ BPLib_Status_t BPLib_NC_AddAuthCustodiansCmd(const BPLib_AddAuthCustodiansCmd_Pa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveAuthCustodiansCmd(const BPLib_RemoveAuthCustodiansCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodiansCmd_Payload_t Payload);
 
 /**
   * \brief     Add EID pattern to set of authorized report-to-EIDs
@@ -310,7 +310,7 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodiansCmd(const BPLib_RemoveAuthCustodians
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddAuthReportToEidCmd(const BPLib_AddAuthReportToEidCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEidCmd_Payload_t Payload);
 
 /**
   * \brief     Remove EID pattern from set of authorized report-to-EIDs
@@ -320,7 +320,7 @@ BPLib_Status_t BPLib_NC_AddAuthReportToEidCmd(const BPLib_AddAuthReportToEidCmd_
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveAuthReportToEidCmd(const BPLib_RemoveAuthReportToEidCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEidCmd_Payload_t Payload);
 
 /**
   * \brief     Add source EID pattern and latency info to set
@@ -330,7 +330,7 @@ BPLib_Status_t BPLib_NC_RemoveAuthReportToEidCmd(const BPLib_RemoveAuthReportToE
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddLatencyCmd(const BPLib_AddLatencyCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddLatency(const BPLib_AddLatencyCmd_Payload_t Payload);
 
 /**
   * \brief     Remove source EID pattern and latency info from set
@@ -340,7 +340,7 @@ BPLib_Status_t BPLib_NC_AddLatencyCmd(const BPLib_AddLatencyCmd_Payload_t Payloa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveLatencyCmd(const BPLib_RemoveLatencyCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveLatency(const BPLib_RemoveLatencyCmd_Payload_t Payload);
 
 /**
   * \brief     Establish connection, create output queue, and configure CLA for bundle exchange
@@ -350,7 +350,7 @@ BPLib_Status_t BPLib_NC_RemoveLatencyCmd(const BPLib_RemoveLatencyCmd_Payload_t 
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ContactSetupCmd(const BPLib_ContactSetupCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ContactSetup(const BPLib_ContactSetupCmd_Payload_t Payload);
 
 /**
   * \brief     Start transferring bundles between underlying network and BI
@@ -360,7 +360,7 @@ BPLib_Status_t BPLib_NC_ContactSetupCmd(const BPLib_ContactSetupCmd_Payload_t Pa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ContactStartCmd(const BPLib_ContactStartCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ContactStart(const BPLib_ContactStartCmd_Payload_t Payload);
 
 /**
   * \brief     Stop transferring bundles, stop requesting BI for output queue bundles, and notify BI of incomplete actions
@@ -370,7 +370,7 @@ BPLib_Status_t BPLib_NC_ContactStartCmd(const BPLib_ContactStartCmd_Payload_t Pa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ContactStopCmd(const BPLib_ContactStopCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ContactStop(const BPLib_ContactStopCmd_Payload_t Payload);
 
 /**
   * \brief     Disestablish CLA, free all CLA resources, discard output queue, and delete custody timers
@@ -380,7 +380,7 @@ BPLib_Status_t BPLib_NC_ContactStopCmd(const BPLib_ContactStopCmd_Payload_t Payl
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ContactTeardownCmd(const BPLib_ContactTeardownCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ContactTeardown(const BPLib_ContactTeardownCmd_Payload_t Payload);
 
 /**
   * \brief     Add given EID pattern as key to map of MIB counters accessed by source EID
@@ -391,7 +391,7 @@ BPLib_Status_t BPLib_NC_ContactTeardownCmd(const BPLib_ContactTeardownCmd_Payloa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddMibArrayKeyCmd(const BPLib_AddMibArrayKeyCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKeyCmd_Payload_t Payload);
 
 /**
   * \brief     Remove elements indexed by given EID pattern from the map of MIB counters accessed by source EID
@@ -401,7 +401,7 @@ BPLib_Status_t BPLib_NC_AddMibArrayKeyCmd(const BPLib_AddMibArrayKeyCmd_Payload_
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveMibArrayKeyCmd(const BPLib_RemoveMibArrayKeyCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKeyCmd_Payload_t Payload);
 
 /**
   * \brief     Set given MIB configuration item to given value
@@ -411,7 +411,7 @@ BPLib_Status_t BPLib_NC_RemoveMibArrayKeyCmd(const BPLib_RemoveMibArrayKeyCmd_Pa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SetMibItemCmd(const BPLib_SetMibItemCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_SetMibItem(const BPLib_SetMibItemCmd_Payload_t Payload);
 
 /**
   * \brief     Add storage partition of given size for storing bundles whose source EID matches given pattern
@@ -421,7 +421,7 @@ BPLib_Status_t BPLib_NC_SetMibItemCmd(const BPLib_SetMibItemCmd_Payload_t Payloa
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddStorageAllocationCmd(const BPLib_AddStorageAllocationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocationCmd_Payload_t Payload);
 
 /**
   * \brief     Remove storage partition corresponding to given EID pattern
@@ -431,7 +431,7 @@ BPLib_Status_t BPLib_NC_AddStorageAllocationCmd(const BPLib_AddStorageAllocation
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveStorageAllocationCmd(const BPLib_RemoveStorageAllocationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocationCmd_Payload_t Payload);
 
 /**
   * \brief     Perform TBD tests and return pass/fail
@@ -441,7 +441,7 @@ BPLib_Status_t BPLib_NC_RemoveStorageAllocationCmd(const BPLib_RemoveStorageAllo
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_PerformSelfTestCmd(void);
+BPLib_Status_t BPLib_NC_PerformSelfTest(void);
 
 /**
   * \brief     Send Per Node MIB Configuration telemetry packet
@@ -451,7 +451,7 @@ BPLib_Status_t BPLib_NC_PerformSelfTestCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SendNodeMibConfigHkCmd(void);
+BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void);
 
 /**
   * \brief     Send Per Source MIB Configuration telemetry packet
@@ -461,7 +461,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHkCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SendSourceMibConfigHkCmd(void);
+BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void);
 
 /**
   * \brief     Send Per Node MIB Counter telemetry packet
@@ -471,7 +471,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHkCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd(void);
+BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void);
 
 /**
   * \brief     Send Per Source MIB Counter telemetry packet
@@ -481,7 +481,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHkCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd(void);
+BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void);
 
 /**
   * \brief     Send Storage housekeeping telemetry packet
@@ -491,17 +491,17 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHkCmd(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SendStorageHkCmd(void);
+BPLib_Status_t BPLib_NC_SendStorageHk(void);
 
 /**
   * \brief     Send Storage housekeeping telemetry packet
   * \details   Node Configuration Send Storage Housekeeping Packet command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \note      Command is primarily handled by BPA_DP_SendChannelContactStatHkCmd() found in fwp_dp.h
+  * \note      Command is primarily handled by BPA_DP_SendChannelContactStatHk() found in fwp_dp.h
   * \param[in] void No arguments accepted
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SendChannelContactStatHkCmd(void);
+BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void);
 
 #endif /* BPLIB_NC_H */
