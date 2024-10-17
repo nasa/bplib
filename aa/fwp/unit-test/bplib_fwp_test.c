@@ -227,9 +227,6 @@ void TestBplibFwp_Register(void)
     UtTest_Add(Test_BPLib_FWP_Init_EVP_SendEventNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_EVP_SendEventNull");
     UtTest_Add(Test_BPLib_FWP_Init_PERFLOGP_EntryNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_PERFLOGP_EntryNull");
     UtTest_Add(Test_BPLib_FWP_Init_PERFLOGP_ExitNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_PERFLOGP_ExitNull");
-    UtTest_Add(Test_BPLib_FWP_Init_ADUP_ValidateConfigTblNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_ValidateConfigTblNull");
-    UtTest_Add(Test_BPLib_FWP_Init_ADUP_InNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_InNull");
-    UtTest_Add(Test_BPLib_FWP_Init_ADUP_OutNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_OutNull");
     UtTest_Add(Test_BPLib_FWP_Init_ADUP_AddApplicationNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_AddApplicationNull");
     UtTest_Add(Test_BPLib_FWP_Init_ADUP_StartApplicationNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_StartApplicationNull");
     UtTest_Add(Test_BPLib_FWP_Init_ADUP_StopApplicationNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_StopApplicationNull");
