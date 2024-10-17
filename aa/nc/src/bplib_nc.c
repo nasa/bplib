@@ -62,12 +62,12 @@ BPLib_Status_t BPLib_NC_AddAllApplications(void)
     if (Status == BPLIB_SUCCESS)
     {
          BPLib_EM_SendEvent(BPLIB_ADD_ALL_APPS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add all applications command is unimplemented");
+                            "Add all applications directive is unimplemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_ADD_ALL_APPS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Add all applications command is unimplemented");
+                            "Add all applications directive is unimplemented");
     }
 
     return Status;
@@ -93,12 +93,12 @@ BPLib_Status_t BPLib_NC_StartAllApplications(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_START_ALL_APPS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Start all applications command not implemented");
+                            "Start all applications directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_START_ALL_APPS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Start all applications command not implemented");
+                            "Start all applications directive not implemented");
     }
 
     return Status;
@@ -113,12 +113,12 @@ BPLib_Status_t BPLib_NC_VerifyBundleStorage(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Verify bundle storage command not implemented");
+                            "Verify bundle storage directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Verify bundle storage command not implemented");
+                            "Verify bundle storage directive not implemented");
     }
 
     return Status;
@@ -133,12 +133,12 @@ BPLib_Status_t BPLib_NC_InitBundleStorage(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_INIT_BNDL_STOR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Initialize bundle storage command not implemented");
+                            "Initialize bundle storage directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_INIT_BNDL_STOR_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Initialize bundle storage command not implemented");
+                            "Initialize bundle storage directive not implemented");
     }
 
     return Status;
@@ -153,12 +153,12 @@ BPLib_Status_t BPLib_NC_VerifyBundleMetadata(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_META_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Verify bundle metadata (7.2) command not implemented");
+                            "Verify bundle metadata (7.2) directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_META_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Verify bundle metadata (7.2) command not implemented");
+                            "Verify bundle metadata (7.2) directive not implemented");
     }
 
     return Status;
@@ -177,12 +177,12 @@ BPLib_Status_t BPLib_NC_RebuildBundleMetadata(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_REBUILD_BNDL_META_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Rebuild bundle metadata command not implemented");
+                            "Rebuild bundle metadata directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_REBUILD_BNDL_META_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Rebuild bundle metadata command not implemented");
+                            "Rebuild bundle metadata directive not implemented");
     }
 
     return Status;
@@ -201,12 +201,12 @@ BPLib_Status_t BPLib_NC_ClearVolatile(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_CLR_VOLATILE_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Clear volatile command not implemented");
+                            "Clear volatile directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_CLR_VOLATILE_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Clear volatile command not implemented");
+                            "Clear volatile directive not implemented");
     }
 
     return Status;
@@ -221,22 +221,37 @@ BPLib_Status_t BPLib_NC_ReloadSavedData(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RELOAD_SVD_DATA_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reload saved data (7.2) command not implemented");
+                            "Reload saved data (7.2) directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RELOAD_SVD_DATA_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reload saved data (7.2) command not implemented");
+                            "Reload saved data (7.2) directive not implemented");
     }
 
     return Status;
 }
 
-void BPLib_NC_ResetAllCounters(void)
+BPLib_Status_t BPLib_NC_ResetAllCounters(void)
 {
-    /* Call to other function(s) */
-    BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION, 
-                        "Reset all counters command");
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    /* Status = BPLib_AS_ResetAllCounters(); */
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION, 
+                            "Reset all counters directive not implemented");
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_ERR_EID, BPLib_EM_EventType_INFORMATION, 
+                            "Reset all counters directive not implemented");
+    }
+
+    return Status;
 }
 
 BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounterCmd_Payload_t Payload)
@@ -248,13 +263,13 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounterCmd_Payload_t Paylo
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RESET_CTR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset counter command not implemented, received %d in payload",
+                            "Reset counter directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RESET_CTR_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reset counter command not implemented, received %d in payload",
+                            "Reset counter directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -274,13 +289,13 @@ BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCountersCmd_P
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RESET_SRC_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset source counters command not implemented, received %d in payload",
+                            "Reset source counters directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RESET_SRC_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reset source counters command not implemented, received %d in payload",
+                            "Reset source counters directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -300,12 +315,12 @@ BPLib_Status_t BPLib_NC_ResetBundleCounters(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RESET_BNDL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset bundle counters command not implemented");
+                            "Reset bundle counters directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RESET_BNDL_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reset bundle counters command not implemented");
+                            "Reset bundle counters directive not implemented");
     }
 
     return Status;
@@ -324,12 +339,12 @@ BPLib_Status_t BPLib_NC_ResetErrorCounters(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RESET_ERR_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset error counters command not implemented");
+                            "Reset error counters directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RESET_ERR_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reset error counters command not implemented");
+                            "Reset error counters directive not implemented");
     }
 
     return Status;
@@ -381,13 +396,13 @@ BPLib_Status_t BPLib_NC_RemoveApplication(const BPLib_RemoveApplicationCmd_Paylo
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RM_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Remove application command not implemented, received %d in payload",
+                            "Remove application directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RM_APP_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Remove application command not implemented, received %d in payload",
+                            "Remove application directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -412,13 +427,13 @@ BPLib_Status_t BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationStateCmd
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SET_REGI_STAT_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Set registration state command not implemented, received %d in payload",
+                            "Set registration state directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_SET_REGI_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Set registration state command not implemented, received %d in payload",
+                            "Set registration state directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -520,13 +535,13 @@ BPLib_Status_t BPLib_NC_AddAuthSources(const BPLib_AddAuthSourcesCmd_Payload_t P
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_SRCS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add authorized sources command not implemented, received %d in payload",
+                            "Add authorized sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_SRCS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Add authorized sources command not implemented, received %d in payload",
+                            "Add authorized sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -542,13 +557,13 @@ BPLib_Status_t BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSourcesCmd_Paylo
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_SRCS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Remove authorized sources command not implemented, received %d in payload",
+                            "Remove authorized sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_SRCS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Remove authorized sources command not implemented, received %d in payload",
+                            "Remove authorized sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -564,13 +579,13 @@ BPLib_Status_t BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySourcesC
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUST_SRCS_SUCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add authorized custody sources command not implemented, received %d in payload",
+                            "Add authorized custody sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUST_SRCS_SUCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add authorized custody sources command not implemented, received %d in payload",
+                            "Add authorized custody sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -586,13 +601,13 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySo
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_CUST_SRCS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Remove authorized custody sources command not implemented, received %d in payload",
+                            "Remove authorized custody sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_CUST_SRCS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Remove authorized custody sources command not implemented, received %d in payload",
+                            "Remove authorized custody sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -608,13 +623,13 @@ BPLib_Status_t BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodiansCmd_Paylo
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUSTODIANS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add authorized custodians command not implemented, received %d in payload",
+                            "Add authorized custodians directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUSTODIANS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Add authorized custodians command not implemented, received %d in payload",
+                            "Add authorized custodians directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -630,13 +645,13 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodiansCmd
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_CUSTODIANS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Remove authorized custodians command not implemented, received %d in payload",
+                            "Remove authorized custodians directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_CUSTODIANS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Remove authorized custodians command not implemented, received %d in payload",
+                            "Remove authorized custodians directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -652,13 +667,13 @@ BPLib_Status_t BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEidCmd_Pay
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_RPT_EID_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add authorized report-to eid command not implemented, received %d in payload",
+                            "Add authorized report-to eid directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_RPT_EID_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Add authorized report-to eid command not implemented, received %d in payload",
+                            "Add authorized report-to eid directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -674,13 +689,13 @@ BPLib_Status_t BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEidC
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_RPT_EID_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Remove authorized report-to eid command not implemented, received %d in payload",
+                            "Remove authorized report-to eid directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_RPT_EID_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Remove authorized report-to eid command not implemented, received %d in payload",
+                            "Remove authorized report-to eid directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -696,13 +711,13 @@ BPLib_Status_t BPLib_NC_AddLatency(const BPLib_AddLatencyCmd_Payload_t Payload)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_ADD_LATENCY_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add latency command not implemented, received %d in payload",
+                            "Add latency directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_ADD_LATENCY_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Add latency command not implemented, received %d in payload",
+                            "Add latency directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -718,13 +733,13 @@ BPLib_Status_t BPLib_NC_RemoveLatency(const BPLib_RemoveLatencyCmd_Payload_t Pay
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RM_LATENCY_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Remove latency command not implemented, received %d in payload",
+                            "Remove latency directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RM_LATENCY_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Remove latency command not implemented, received %d in payload",
+                            "Remove latency directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -748,13 +763,13 @@ BPLib_Status_t BPLib_NC_ContactSetup(const BPLib_ContactSetupCmd_Payload_t Paylo
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_SETUP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Contact setup command not implemented, received %d in payload",
+                            "Contact setup directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_SETUP_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Contact setup command not implemented, received %d in payload",
+                            "Contact setup directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -775,13 +790,13 @@ BPLib_Status_t BPLib_NC_ContactStart(const BPLib_ContactStartCmd_Payload_t Paylo
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_START_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Contact start command not implemented, received %d in payload",
+                            "Contact start directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_START_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Contact start command not implemented, received %d in payload",
+                            "Contact start directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -805,13 +820,13 @@ BPLib_Status_t BPLib_NC_ContactStop(const BPLib_ContactStopCmd_Payload_t Payload
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_STOP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Contact stop command not implemented, received %d in payload",
+                            "Contact stop directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_STOP_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Contact stop command not implemented, received %d in payload",
+                            "Contact stop directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -832,13 +847,13 @@ BPLib_Status_t BPLib_NC_ContactTeardown(const BPLib_ContactTeardownCmd_Payload_t
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_TEARDOWN_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Contact teardown command not implemented, received %d in payload",
+                            "Contact teardown directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_TEARDOWN_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Contact teardown command not implemented, received %d in payload",
+                            "Contact teardown directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -862,13 +877,13 @@ BPLib_Status_t BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKeyCmd_Payload_t P
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_ADD_MIB_ARR_KEY_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add mib array key command not implemented, received %d in payload",
+                            "Add mib array key directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_ADD_MIB_ARR_KEY_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Add mib array key command not implemented, received %d in payload",
+                            "Add mib array key directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -884,13 +899,13 @@ BPLib_Status_t BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKeyCmd_Paylo
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RM_MIB_ARR_KEY_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Remove mib array key command not implemented, received %d in payload",
+                            "Remove mib array key directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RM_MIB_ARR_KEY_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Remove mib array key command not implemented, received %d in payload",
+                            "Remove mib array key directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -934,7 +949,7 @@ BPLib_Status_t BPLib_NC_SetMibItem(const BPLib_SetMibItemCmd_Payload_t Payload)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SET_MIB_ITEM_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Set mib item command not implemented, received %d in payload",
+                            "Set mib item directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
@@ -985,7 +1000,7 @@ BPLib_Status_t BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocationCmd
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_ADD_STOR_ALLOC_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Add storage allocation command not implemented, received %d in payload",
+                            "Add storage allocation directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
@@ -1026,13 +1041,13 @@ BPLib_Status_t BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocat
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_RM_STOR_ALLOC_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Remove storage allocation command not implemented, received %d in payload",
+                            "Remove storage allocation directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_RM_STOR_ALLOC_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Remove storage allocation command not implemented, received %d in payload",
+                            "Remove storage allocation directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
 
@@ -1048,12 +1063,12 @@ BPLib_Status_t BPLib_NC_PerformSelfTest(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_PERFORM_SELF_TEST_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Perform self test (7.2) command not implemented");
+                            "Perform self test (7.2) directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_PERFORM_SELF_TEST_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Perform self test (7.2) command not implemented");
+                            "Perform self test (7.2) directive not implemented");
     }
 
     return Status;
@@ -1068,12 +1083,12 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CFG_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send node mib config hk command not implemented");
+                            "Send node mib config hk directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CFG_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send node mib config hk command not implemented");
+                            "Send node mib config hk directive not implemented");
     }
 
     return Status;
@@ -1088,12 +1103,12 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CFG_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send per-source mib config hk command not implemented");
+                            "Send per-source mib config hk directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CFG_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send per-source mib config hk command not implemented");
+                            "Send per-source mib config hk directive not implemented");
     }
 
     return Status;
@@ -1108,12 +1123,12 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CTRS_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send node mib counters HK command not implemented");
+                            "Send node mib counters HK directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send node mib counters HK command not implemented");
+                            "Send node mib counters HK directive not implemented");
     }
 
     return Status;
@@ -1128,12 +1143,12 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CTRS_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send per-source mib counter hk command not implemented");
+                            "Send per-source mib counter hk directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send per-source mib counter hk command not implemented");
+                            "Send per-source mib counter hk directive not implemented");
     }
 
     return Status;
@@ -1148,12 +1163,12 @@ BPLib_Status_t BPLib_NC_SendStorageHk(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SEND_STOR_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send storage hk command not implemented");
+                            "Send storage hk directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_SEND_STOR_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send storage hk command not implemented");
+                            "Send storage hk directive not implemented");
     }
 
     return Status;
@@ -1168,12 +1183,12 @@ BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_SEND_CHAN_CONTACT_STAT_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send channel/contact status hk command not implemented");
+                            "Send channel/contact status hk directive not implemented");
     }
     else
     {
         BPLib_EM_SendEvent(BPLIB_SEND_CHAN_CONTACT_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send channel/contact status hk command not implemented");
+                            "Send channel/contact status hk directive not implemented");
     }
 
     return Status;

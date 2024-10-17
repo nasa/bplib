@@ -142,7 +142,7 @@ BPLib_Status_t BPLib_NC_ReloadSavedData(void);
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-void BPLib_NC_ResetAllCounters(void);
+BPLib_Status_t BPLib_NC_ResetAllCounters(void);
 
 /**
   * \brief     Set given MIB counter to zero. If targeted counter is node-only, source EID is unused.
