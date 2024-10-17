@@ -61,12 +61,12 @@ typedef struct
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_ResetCounterCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_ResetSourceCountersCmd_Payload_t;
 
 typedef struct
@@ -77,12 +77,12 @@ typedef struct
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_RemoveApplicationCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_SetRegistrationStateCmd_Payload_t;
 
 typedef struct
@@ -99,97 +99,97 @@ typedef struct
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_AddAuthSourcesCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_RemoveAuthSourcesCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_AddAuthCustodySourcesCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_RemoveAuthCustodySourcesCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_AddAuthCustodiansCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_RemoveAuthCustodiansCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_AddAuthReportToEidCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_RemoveAuthReportToEidCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_AddLatencyCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_RemoveLatencyCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_ContactSetupCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_ContactStartCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_ContactStopCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_ContactTeardownCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_AddMibArrayKeyCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_RemoveMibArrayKeyCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_SetMibItemCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_AddStorageAllocationCmd_Payload_t;
 
 typedef struct
 {
-    uint8_t ExampleParameter;
+    uint32_t ExampleParameter;
 } BPLib_RemoveStorageAllocationCmd_Payload_t;
 
 /**
