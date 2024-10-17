@@ -465,9 +465,13 @@ BPLib_Status_t BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocat
  * Generated stub function for BPLib_NC_ResetAllCounters()
  * ----------------------------------------------------
  */
-void BPLib_NC_ResetAllCounters(void)
+BPLib_Status_t BPLib_NC_ResetAllCounters(void)
 {
+    UT_GenStub_SetupReturnBuffer(BPLib_NC_ResetAllCounters, BPLib_Status_t);
+
     UT_GenStub_Execute(BPLib_NC_ResetAllCounters, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_NC_ResetAllCounters, BPLib_Status_t);
 }
 
 /*
