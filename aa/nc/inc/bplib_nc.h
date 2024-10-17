@@ -148,21 +148,21 @@ BPLib_Status_t BPLib_NC_ResetAllCounters(void);
   * \brief     Set given MIB counter to zero. If targeted counter is node-only, source EID is unused.
   * \details   Node Configuration Reset Counter command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_ResetCounterCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_ResetCounter_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounterCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload);
 
 /**
   * \brief     Set all resettable MIB counters associated with given source EID pattern to zero
   * \details   Node Configuration Reset Source Counters command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_ResetSourceCountersCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_ResetSourceCounters_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCountersCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payload);
 
 /**
   * \brief     Set all bundle-related counters to zero
@@ -188,250 +188,250 @@ BPLib_Status_t BPLib_NC_ResetErrorCounters(void);
   * \brief     Adds new application configurations from ADU Proxy and Channel Config Tables
   * \details   Node Configuration Add Application command
   * \note      Calls BPA_ADUP_AddApplication() from fwp_adup.h
-  * \param[in] Payload BPLib_AddApplicationCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_AddApplication_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   * \retval    BPLIB_ADU_ADD_CHAN_ERR: Payload.ChanId is out of bounds
   * \retval    BPLIB_ADU_ADD_STAT_ERR: State of desired app is STARTED
   */
-BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplicationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payload);
 
 /**
   * \brief     Terminate given application’s connection, close its ADU channel, and empty its queues
   * \details   Node Configuration Remove Application command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_RemoveApplicationCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_RemoveApplication_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveApplication(const BPLib_RemoveApplicationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload);
 
 /**
   * \brief     Set given application's channel state to specified state
   * \details   Node Configuration Set Registration State command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_SetRegistrationStateCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_SetRegistrationState_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationStateCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationState_Payload_t Payload);
 
 /**
   * \brief     Verify given application’s channel configuration and begin moving bundles bidirectionally between host and PI
   * \details   Node Configuration Start Application command
   * \note      Calls BPA_ADUP_StartApplication() from fwp_adup.h
-  * \param[in] Payload BPLib_StartApplicationCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_StartApplication_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   * \retval    BPLIB_ADU_START_CHAN_ERR: Payload.ChanId is out of bounds
   * \retval    BPLIB_ADU_START_STAT_ERR: State of desired application is not ADDED
   * \retval    BPLIB_ADU_START_SUB_ERR: Error in platform-dependent software bus subscription
   */
-BPLib_Status_t BPLib_NC_StartApplication(const BPLib_StartApplicationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_StartApplication(const BPLib_StartApplication_Payload_t Payload);
 
 /**
   * \brief     Stop moving bundles bidirectionally between host and PI for the given application
   * \details   Node Configuration Stop Application command
   * \note      Calls BPA_ADUP_StopApplication() from fwp_adup.h
-  * \param[in] Payload BPLib_StopApplicationCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_StopApplication_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   * \retval    BPLIB_ADU_STOP_CHAN_ERR: Payload.ChanId is out of bounds
   * \retval    BPLIB_ADU_STOP_STAT_ERR: State of desired application is not STARTED
   * \retval    BPLIB_ADU_STOP_UNSUB_ERR: Error in platform-dependent software bus un-subscription
   */
-BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplicationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Payload);
 
 /**
   * \brief     Reject if adding pattern would exceed maximum size of authorized sources, else add EID pattern to set of authorized source EIDs
   * \details   Node Configuration Add Authorized Sources command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_AddAuthSourcesCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_AddAuthSources_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddAuthSources(const BPLib_AddAuthSourcesCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddAuthSources(const BPLib_AddAuthSources_Payload_t Payload);
 
 /**
   * \brief     Remove EID pattern from set of authorized source EIDs
   * \details   Node Configuration Remove Authorized Sources command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_RemoveAuthSourcesCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_RemoveAuthSources_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSourcesCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSources_Payload_t Payload);
 
 /**
   * \brief     Add EID pattern to set of authorized custody source EIDs
   * \details   Node Configuration Add Authorized Custody Source command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_AddAuthCustodySourcesCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_AddAuthCustodySources_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySourcesCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_Payload_t Payload);
 
 /**
   * \brief     Remove EID pattern from set of authorized custody source EIDs
   * \details   Node Configuration Remove Authorized Custody Source command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_RemoveAuthCustodySourcesCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_RemoveAuthCustodySources_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySourcesCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySources_Payload_t Payload);
 
 /**
   * \brief     Add EID pattern to set of authorized custodian EIDs
   * \details   Node Configuration Add Authorized Custodians command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_AddAuthCustodiansCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_AddAuthCustodians_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodiansCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodians_Payload_t Payload);
 
 /**
   * \brief     Remove EID pattern from set of authorized custodian EIDs
   * \details   Node Configuration Remove Authorized Custodians command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_RemoveAuthCustodiansCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_RemoveAuthCustodians_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodiansCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodians_Payload_t Payload);
 
 /**
   * \brief     Add EID pattern to set of authorized report-to-EIDs
   * \details   Node Configuration Add Authorized Report-to-EIDs command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_AddAuthReportToEidCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_AddAuthReportToEid_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEidCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEid_Payload_t Payload);
 
 /**
   * \brief     Remove EID pattern from set of authorized report-to-EIDs
   * \details   Node Configuration Remove Authorized Report-to-EIDs command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_RemoveAuthReportToEidCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_RemoveAuthReportToEid_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEidCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEid_Payload_t Payload);
 
 /**
   * \brief     Add source EID pattern and latency info to set
   * \details   Node Configuration Add Latency Info command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_AddLatencyCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_AddLatency_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddLatency(const BPLib_AddLatencyCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddLatency(const BPLib_AddLatency_Payload_t Payload);
 
 /**
   * \brief     Remove source EID pattern and latency info from set
   * \details   Node Configuration Remove Latency Info command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_RemoveLatencyCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_RemoveLatency_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveLatency(const BPLib_RemoveLatencyCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payload);
 
 /**
   * \brief     Establish connection, create output queue, and configure CLA for bundle exchange
   * \details   Node Configuration Contact Setup command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_ContactSetupCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_ContactSetup_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ContactSetup(const BPLib_ContactSetupCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload);
 
 /**
   * \brief     Start transferring bundles between underlying network and BI
   * \details   Node Configuration Contact Start command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_ContactStartCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_ContactStart_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ContactStart(const BPLib_ContactStartCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload);
 
 /**
   * \brief     Stop transferring bundles, stop requesting BI for output queue bundles, and notify BI of incomplete actions
   * \details   Node Configuration Contact Stop command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_ContactStopCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_ContactStop_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ContactStop(const BPLib_ContactStopCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload);
 
 /**
   * \brief     Disestablish CLA, free all CLA resources, discard output queue, and delete custody timers
   * \details   Node Configuration Contact Teardown command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_ContactTeardownCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_ContactTeardown_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ContactTeardown(const BPLib_ContactTeardownCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload);
 
 /**
   * \brief     Add given EID pattern as key to map of MIB counters accessed by source EID
   * \details   Node Configuration Add MIB Array Key command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \note      Max number of entries is mission-defined (MAX_MIB_ARRAY_KEYS)
-  * \param[in] Payload BPLib_AddMibArrayKeyCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_AddMibArrayKey_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKeyCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload);
 
 /**
   * \brief     Remove elements indexed by given EID pattern from the map of MIB counters accessed by source EID
   * \details   Node Configuration Remove MIB Array Key command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_RemoveMibArrayKeyCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_RemoveMibArrayKey_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKeyCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_t Payload);
 
 /**
   * \brief     Set given MIB configuration item to given value
   * \details   Node Configuration Set MIB Item command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_SetMibItemCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_SetMibItem_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_SetMibItem(const BPLib_SetMibItemCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload);
 
 /**
   * \brief     Add storage partition of given size for storing bundles whose source EID matches given pattern
   * \details   Node Configuration Add Storage Allocation command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_AddStorageAllocationCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_AddStorageAllocation_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Payload_t Payload);
 
 /**
   * \brief     Remove storage partition corresponding to given EID pattern
   * \details   Node Configuration Remove Storage Allocation command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] Payload BPLib_RemoveStorageAllocationCmd_Payload_t type found in bplib_nc_payloads.h
+  * \param[in] Payload BPLib_RemoveStorageAllocation_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocationCmd_Payload_t Payload);
+BPLib_Status_t BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocation_Payload_t Payload);
 
 /**
   * \brief     Perform TBD tests and return pass/fail
