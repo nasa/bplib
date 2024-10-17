@@ -26,17 +26,20 @@
  *
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
-#include "bplib_stor_cache_internal.h"
+#include "bplib_mem.h"
+#include "bplib_stor_cache.h"
 
+#ifdef QM_JOB
 /*----------------------------------------------------------------
  *
  * Function: BPLib_STOR_CACHE_Init
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_Init(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Job_t *jblk)
+void BPLib_STOR_CACHE_Init(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_Job_t *jblk)
 {
     BPLib_STOR_CACHE_InitSecondaryLink(base_block, &jblk->link, BPLib_STOR_CACHE_BlocktypeJob);
 }
@@ -46,11 +49,11 @@ void BPLib_STOR_CACHE_Init(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACH
  * Function: BPLib_STOR_CACHE_Cast
  *
  *-----------------------------------------------------------------*/
-BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_Cast(BPLib_STOR_CACHE_Block_t *cb)
+BPLib_STOR_QM_Job_t *BPLib_STOR_CACHE_Cast(BPLib_STOR_CACHE_Block_t *cb)
 {
     if (cb != NULL && cb->type == BPLib_STOR_CACHE_BlocktypeJob)
     {
-        return (BPLib_STOR_CACHE_Job_t *)cb;
+        return (BPLib_STOR_QM_Job_t *)cb;
     }
 
     return NULL;
@@ -58,10 +61,10 @@ BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_Cast(BPLib_STOR_CACHE_Block_t *cb)
 
 /*----------------------------------------------------------------
  *
- * Function: BPLib_STOR_CACHE_JobCancelInternal
+ * Function: BPLib_STOR_QM_JobCancelInternal
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_JobCancelInternal(BPLib_STOR_CACHE_Job_t *job)
+void BPLib_STOR_QM_JobCancelInternal(BPLib_STOR_QM_Job_t *job)
 {
     assert(job->link.type == BPLib_STOR_CACHE_BlocktypeJob);
     BPLib_STOR_CACHE_ExtractNode(&job->link);
@@ -72,11 +75,11 @@ void BPLib_STOR_CACHE_JobCancelInternal(BPLib_STOR_CACHE_Job_t *job)
  * Function: BPLib_STOR_CACHE_MarkActiveInternal
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_JobMarkActiveInternal(BPLib_STOR_CACHE_Block_t *active_list, BPLib_STOR_CACHE_Job_t *job)
+void BPLib_STOR_QM_JobMarkActiveInternal(BPLib_STOR_CACHE_Block_t *active_list, BPLib_STOR_QM_Job_t *job)
 {
     /* first cancel the job it if it was already active */
     /* this permits it to be marked as active multiple times, it will still only be in the runnable list once */
-    BPLib_STOR_CACHE_JobCancelInternal(job);
+    BPLib_STOR_QM_JobCancelInternal(job);
     if (job->handler)
     {
         BPLib_STOR_CACHE_InsertBefore(active_list, &job->link);
@@ -88,11 +91,13 @@ void BPLib_STOR_CACHE_JobMarkActiveInternal(BPLib_STOR_CACHE_Block_t *active_lis
  * Function: BPLib_STOR_CACHE_MarkActive
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job)
+void BPLib_STOR_QM_JobMarkActive(BPLib_STOR_QM_Job_t *job)
 {
-    BPLib_MEM_Lock_t                *lock;
+    BPLib_MEM_Lock_t                     *lock;
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
-    BPLib_STOR_CACHE_Pool_t                     *pool;
+    BPLib_STOR_CACHE_Pool_t              *pool;
+
+    printf("%s:%d job is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)job);
 
     pool  = BPLib_STOR_CACHE_GetParentPoolFromLink(&job->link);
     admin = BPLib_STOR_CACHE_GetAdmin(pool);
@@ -108,12 +113,12 @@ void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job)
  * Function: BPLib_STOR_CACHE_GetNextActive
  *
  *-----------------------------------------------------------------*/
-BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_GetNextActive(BPLib_STOR_CACHE_Pool_t *pool)
+BPLib_STOR_QM_Job_t *BPLib_STOR_CACHE_GetNextActive(BPLib_STOR_CACHE_Pool_t *pool)
 {
-    BPLib_STOR_CACHE_Job_t                 *job;
-    BPLib_STOR_CACHE_Lock_t                *lock;
+    BPLib_STOR_QM_Job_t                 *job;
+    BPLib_MEM_Lock_t                       *lock;
     BPLib_STOR_CACHE_Block_t               *jblk;
-    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    BPLib_STOR_CACHE_BlockAdminContent_t   *admin;
 
     admin = BPLib_STOR_CACHE_GetAdmin(pool);
 
@@ -142,7 +147,7 @@ BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_GetNextActive(BPLib_STOR_CACHE_Pool_t *
 
 void BPLib_STOR_CACHE_RunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg)
 {
-    BPLib_STOR_CACHE_Job_t *job;
+    BPLib_STOR_QM_Job_t *job;
 
     /* forward any bundles between interfaces, based on active flow list */
     while (true)
@@ -163,3 +168,4 @@ void BPLib_STOR_CACHE_RunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg)
         }
     }
 }
+#endif // QM_JOB

@@ -36,8 +36,7 @@
 #include "bplib_stor_cache_base_internal.h"
 
 #include "bplib_stor_qm.h"
-#include "bplib_stor_qm_codec.h"
-#include "bplib_stor_qm_dataservice.h"
+#include "bplib_stor_qm_base_internal.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -375,8 +374,8 @@ int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_bl
                                   BPLib_STOR_CACHE_Ref_t endpoint_intf_ref)
 {
     BPLib_STOR_QM_ServiceintfInfo_t *base_intf;
-   BPLib_STOR_CACHE_ServiceEndpt_t          *endpoint_intf;
-    int                             status;
+    BPLib_STOR_CACHE_ServiceEndpt_t *endpoint_intf;
+    int                              status;
 
     base_intf = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)base_intf_blk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf != NULL)
@@ -398,6 +397,7 @@ int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_bl
         if (status == BPLIB_SUCCESS)
         {
             /* success */
+            #ifdef QM_SUBDUCT_REF
             endpoint_intf->subduct_ref = BPLib_STOR_CACHE_RefDuplicate(endpoint_intf_ref);
             if (type == BPLib_STOR_CACHE_DataserviceTypeStorage)
             {
@@ -407,6 +407,7 @@ int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_bl
                 }
                 base_intf->storage_service = BPLib_STOR_CACHE_RefDuplicate(endpoint_intf_ref);
             }
+            #endif QM_SUBDUCT_REF
         }
         else
         {
@@ -452,8 +453,9 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_ServiceductRemoveFromBase(BPLib_STOR_CAC
         if (status == BPLIB_SUCCESS)
         {
             endpoint_intf     = (BPLib_STOR_CACHE_ServiceEndpt_t *)rbt_link; /* because its the first item */
+            #ifdef QM_SUBQ
             endpoint_intf_ref = endpoint_intf->subduct_ref;
-
+            #endif // QM_SUBQ
             if (endpoint_intf_ref == base_intf->storage_service)
             {
                 BPLib_STOR_CACHE_RefRelease(base_intf->storage_service);
@@ -623,7 +625,7 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
     if (parent_block_ref == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): no parent intf for node %lu\n", __func__,
-              (unsigned long)ipn->node_number);
+        //      (unsigned long)ipn->node_number);
         return BP_INVALID_HANDLE;
     }
 
@@ -632,7 +634,7 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
     if (status != BPLIB_SUCCESS)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot add service %lu to node %lu - duplicate?\n", __func__,
-              (unsigned long)ipn->node_number, (unsigned long)ipn->node_number);
+        //      (unsigned long)ipn->node_number, (unsigned long)ipn->node_number);
     }
     else
     {
@@ -641,7 +643,7 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
         {
            BPLib_STOR_CACHE_ServiceductRemoveFromBase(BPLib_STOR_CACHE_Dereference(parent_block_ref), ipn->service_number);
             // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): could not register service %lu\n", __func__,
-                  (unsigned long)ipn->node_number);
+            //      (unsigned long)ipn->node_number);
         }
         else if (type == BPLib_STOR_CACHE_DataserviceTypeStorage)
         {
@@ -668,7 +670,7 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl
     if (parent_block_ref == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): no parent intf for node %lu\n", __func__,
-              (unsigned long)ipn->node_number);
+        //      (unsigned long)ipn->node_number);
         return NULL;
     }
 
@@ -887,7 +889,7 @@ int BPLib_STOR_CACHE_Send(bp_socket_t *desc, const void *payload, size_t size, u
     if (pblk == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): unable to alloc pri block\n", __func__);
-        return BPLIB_MEM_TIMEOUT;
+        return BPLIB_TIMEOUT;
     }
 
     status =BPLib_STOR_CACHE_ServiceductBundleizePayload(sock, pblk, payload, size);
@@ -925,7 +927,7 @@ int BPLib_STOR_CACHE_Send(bp_socket_t *desc, const void *payload, size_t size, u
         }
         else
         {
-            status = BPLIB_MEM_TIMEOUT;
+            status = BPLIB_TIMEOUT;
         }
     }
     else
@@ -985,7 +987,7 @@ int BPLib_STOR_CACHE_Recv(bp_socket_t *desc, void *payload, size_t *size, uint32
 
     if (pblk == NULL)
     {
-        status = BPLIB_MEM_TIMEOUT;
+        status = BPLIB_TIMEOUT;
     }
     else
     {

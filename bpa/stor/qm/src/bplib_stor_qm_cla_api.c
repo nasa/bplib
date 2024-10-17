@@ -35,7 +35,6 @@
 #include "bplib_stor_cache_ref.h"
 
 #include "bplib_stor_qm.h"
-#include "bplib_stor_qm_ducts.h"
 
 #define BPLIB_BLOCKTYPE_CLA_INTF          0x7b643c85
 #define BPLIB_BLOCKTYPE_CLA_INGRESS_BLOCK 0x9580be4a
@@ -49,6 +48,7 @@
  ******************************************************************************/
 int BPLib_STOR_CACHE_ClaEventImpl(void *arg, BPLib_STOR_CACHE_Block_t *intf_block)
 {
+    #ifdef QM
     BPLib_STOR_QM_DuctGenericEvent_t   *event;
     BPLib_STOR_QM_Duct_t               *duct;
 
@@ -81,10 +81,11 @@ int BPLib_STOR_CACHE_ClaEventImpl(void *arg, BPLib_STOR_CACHE_Block_t *intf_bloc
         BPLib_STOR_QM_DuctDisable(&duct->ingress);
         BPLib_STOR_QM_DuctDisable(&duct->egress);
     }
-
+    #endif // QM
     return BPLIB_SUCCESS;
 }
 
+#ifdef QM
 int BPLib_STOR_CACHE_GenericBundleIngress(BPLib_STOR_CACHE_Ref_t duct_ref, const void *content, size_t size, BPLib_TIME_MonotonicTime_t time_limit)
 {
     BPLib_STOR_QM_Duct_t           *duct;
@@ -157,7 +158,7 @@ int BPLib_STOR_CACHE_GenericBundleIngress(BPLib_STOR_CACHE_Ref_t duct_ref, const
             else
             {
                 BPLib_STOR_CACHE_RecycleBlock(rblk);
-                status = BPLIB_MEM_TIMEOUT;
+                status = BPLIB_TIMEOUT;
             }
         }
         else
@@ -211,7 +212,7 @@ int BPLib_STOR_CACHE_GenericBundleEgress(BPLib_STOR_CACHE_Ref_t duct_ref, void *
         if (pblk == NULL)
         {
             /* queue is empty */
-            status = BPLIB_MEM_TIMEOUT;
+            status = BPLIB_TIMEOUT;
         }
         else
         {
@@ -383,3 +384,4 @@ int BPLib_STOR_CACHE_ClaIngress(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_handle_t intf
 
     return status;
 }
+#endif // QM

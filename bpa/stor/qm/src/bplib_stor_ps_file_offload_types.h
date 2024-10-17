@@ -33,7 +33,7 @@ extern "C" {
  TYPEDEFS
  ******************************************************************************/
 
-typedef struct BPLib_STOR_PS_ModuleApi BPLib_STOR_PS_ModuleApi_t;
+typedef struct BPLib_STOR_QM_ModuleApi_t;
 
 #ifdef __cplusplus
 } // extern "C"

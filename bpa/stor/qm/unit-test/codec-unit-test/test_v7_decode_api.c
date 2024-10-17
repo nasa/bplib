@@ -23,10 +23,10 @@
 
 #include "bplib_stor_cache_block.h"
 
-void test_v7_block_decode_pri(void)
+void test_BPLib_STOR_QM_DecodePrimary(void)
 {
     /* Test function for:
-     * int v7_block_decode_pri(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *data_ptr, size_t data_size)
+     * int BPLib_STOR_QM_DecodePrimary(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *data_ptr, size_t data_size)
      */
     BPLib_STOR_CACHE_BblockPrimary_t cpb;
     uint8_t                      data;
@@ -36,16 +36,16 @@ void test_v7_block_decode_pri(void)
     memset(&data, 0, sizeof(uint8_t));
 
     UT_SetDefaultReturnValue(UT_KEY(cbor_parser_init), CborUnknownError);
-    UtAssert_INT32_NEQ(v7_block_decode_pri(&cpb, &data, data_size), 0);
+    UtAssert_INT32_NEQ(BPLib_STOR_QM_DecodePrimary(&cpb, &data, data_size), 0);
 
     UT_SetDefaultReturnValue(UT_KEY(cbor_parser_init), CborNoError);
-    UtAssert_INT32_NEQ(v7_block_decode_pri(&cpb, &data, data_size), 0);
+    UtAssert_INT32_NEQ(BPLib_STOR_QM_DecodePrimary(&cpb, &data, data_size), 0);
 }
 
-void test_v7_block_decode_canonical(void)
+void test_BPLib_STOR_QM_DecodeCanonical(void)
 {
     /* Test function for:
-     * int v7_block_decode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size,
+     * int BPLib_STOR_QM_DecodeCanonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size,
      * bp_blocktype_t payload_block_hint)
      */
     BPLib_STOR_CACHE_BblockCanonical_t ccb;
@@ -56,10 +56,10 @@ void test_v7_block_decode_canonical(void)
     memset(&ccb, 0, sizeof(BPLib_STOR_CACHE_BblockCanonical_t));
 
     UT_SetDefaultReturnValue(UT_KEY(cbor_parser_init), CborNoError);
-    UtAssert_INT32_NEQ(v7_block_decode_canonical(&ccb, data, data_size, payload_block_hint), 0);
+    UtAssert_INT32_NEQ(BPLib_STOR_QM_DecodeCanonical(&ccb, data, data_size, payload_block_hint), 0);
 
     UT_SetDefaultReturnValue(UT_KEY(cbor_parser_init), CborUnknownError);
-    UtAssert_INT32_NEQ(v7_block_decode_canonical(&ccb, data, data_size, payload_block_hint), 0);
+    UtAssert_INT32_NEQ(BPLib_STOR_QM_DecodeCanonical(&ccb, data, data_size, payload_block_hint), 0);
 }
 
 void test_v7_save_and_verify_block(void)
@@ -88,7 +88,7 @@ void test_v7_save_and_verify_block(void)
 
 void TestV7DecodecApi_Rgister(void)
 {
-    UtTest_Add(test_v7_block_decode_pri, NULL, NULL, "Test v7 block_decode_pri");
-    UtTest_Add(test_v7_block_decode_canonical, NULL, NULL, "Test v7_block_decode_canonical");
+    UtTest_Add(test_BPLib_STOR_QM_DecodePrimary, NULL, NULL, "Test v7 block_decode_pri");
+    UtTest_Add(test_BPLib_STOR_QM_DecodeCanonical, NULL, NULL, "Test BPLib_STOR_QM_DecodeCanonical");
     UtTest_Add(test_v7_save_and_verify_block, NULL, NULL, "Test v7_save_and_verify_block");
 }

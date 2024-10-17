@@ -27,11 +27,19 @@
 
 #include <stdint.h>
 #include "bplib_api_types.h"
-
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
 
-#include "bplib_stor_qm_base_internal.h"
+#include "bplib_stor_qm_types.h"
+#include "bplib_stor_qm_codec.h"
+#include "bplib_stor_qm_dataservice.h"
+#include "bplib_stor_qm_decode.h"
+#include "bplib_stor_qm_ducts.h"
+#include "bplib_stor_qm_encode.h"
+#include "bplib_stor_qm_job.h"
+#include "bplib_stor_qm_module_api.h"
+#include "bplib_stor_qm_module_api_content.h"
+#include "bplib_stor_qm_mpstream.h"
 
 /* JPHFIX: These are duplicate of the flow flags, should be consolidated */
 #define BPLIB_INTF_STATE_ADMIN_UP 0x01
@@ -64,10 +72,6 @@
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
-
-typedef struct BPLib_STOR_QM_QueueTbl BPLib_STOR_QM_QueueTbl_t;
-
-typedef int (*BPLib_STOR_QM_ActionFunc_t)(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_STOR_CACHE_Ref_t ref, void *arg);
 
 /******************************************************************************
  LOCAL FUNCTIONS

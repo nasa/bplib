@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_STOR_CACHE_DECODE_H
-#define BPLIB_STOR_CACHE_DECODE_H
+#ifndef BPLIB_STOR_QM_DECODE_H
+#define BPLIB_STOR_QM_DECODE_H
 
 /******************************************************************************
  INCLUDES
@@ -34,8 +34,8 @@
  * can be assumed canonical.  Payload of the bundle will be recorded as an offset and size into that block, there
  * is no separate output.
  */
-int v7_block_decode_pri(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *data_ptr, size_t data_size);
-int v7_block_decode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size,
+int BPLib_STOR_QM_DecodePrimary(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *data_ptr, size_t data_size);
+int BPLib_STOR_QM_DecodeCanonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size,
                               bp_blocktype_t payload_block_hint);
 
-#endif /* BPLIB_STOR_CACHE_DECODE_H */
+#endif /* BPLIB_STOR_QM_DECODE_H */

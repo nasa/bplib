@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_STOR_CACHE_DECODE_INTERNAL
-#define BPLIB_STOR_CACHE_DECODE_INTERNAL
+#ifndef BPLIB_STOR_QM_DECODE_INTERNAL
+#define BPLIB_STOR_QM_DECODE_INTERNAL
 
 /******************************************************************************
  INCLUDES
@@ -102,4 +102,4 @@ void   v7_decode_bp_custody_acceptance_seqlist_impl(v7_decode_state_t *dec, void
 void   v7_decode_bp_custody_acknowledement_record_impl(v7_decode_state_t *dec, void *arg);
 void   v7_decode_bp_canonical_block_buffer_impl(v7_decode_state_t *dec, void *arg);
 
-#endif /* BPLIB_STOR_CACHE_DECODE_INTERNAL */
+#endif /* BPLIB_STOR_QM_DECODE_INTERNAL */

@@ -21,10 +21,18 @@
 #ifndef BPLIB_QM_BASE_INTERNAL_H
 #define BPLIB_QM_BASE_INTERNAL_H
 
-#include "bplib_api_types.h"
-
+#include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
+
 #include "bplib_mem_rbtree.h"
+
+struct BPLib_STOR_QM_ModuleApiContent
+{
+    BPLib_MEM_RBT_Link_t                rbt_link;
+    BPLib_STOR_CACHE_BlocktypeApi_t     api;
+    size_t                              user_content_size;
+    BPLib_MEM_AlignedData_t             user_data_start;
+};
 
 // TODO typedef struct BPLib_STOR_CACHE_ClaStats
 //{

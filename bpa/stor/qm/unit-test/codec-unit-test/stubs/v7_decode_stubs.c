@@ -31,38 +31,38 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_block_decode_canonical()
+ * Generated stub function for BPLib_STOR_QM_DecodeCanonical()
  * ----------------------------------------------------
  */
-int v7_block_decode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size,
+int BPLib_STOR_QM_DecodeCanonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size,
                               bp_blocktype_t payload_block_hint)
 {
-    UT_GenStub_SetupReturnBuffer(v7_block_decode_canonical, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DecodeCanonical, int);
 
-    UT_GenStub_AddParam(v7_block_decode_canonical, BPLib_STOR_CACHE_BblockCanonical_t *, ccb);
-    UT_GenStub_AddParam(v7_block_decode_canonical, const void *, data_ptr);
-    UT_GenStub_AddParam(v7_block_decode_canonical, size_t, data_size);
-    UT_GenStub_AddParam(v7_block_decode_canonical, bp_blocktype_t, payload_block_hint);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DecodeCanonical, BPLib_STOR_CACHE_BblockCanonical_t *, ccb);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DecodeCanonical, const void *, data_ptr);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DecodeCanonical, size_t, data_size);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DecodeCanonical, bp_blocktype_t, payload_block_hint);
 
-    UT_GenStub_Execute(v7_block_decode_canonical, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_DecodeCanonical, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_block_decode_canonical, int);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_DecodeCanonical, int);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_block_decode_pri()
+ * Generated stub function for BPLib_STOR_QM_DecodePrimary()
  * ----------------------------------------------------
  */
-int v7_block_decode_pri(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *data_ptr, size_t data_size)
+int BPLib_STOR_QM_DecodePrimary(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *data_ptr, size_t data_size)
 {
-    UT_GenStub_SetupReturnBuffer(v7_block_decode_pri, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DecodePrimary, int);
 
-    UT_GenStub_AddParam(v7_block_decode_pri, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
-    UT_GenStub_AddParam(v7_block_decode_pri, const void *, data_ptr);
-    UT_GenStub_AddParam(v7_block_decode_pri, size_t, data_size);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DecodePrimary, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DecodePrimary, const void *, data_ptr);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DecodePrimary, size_t, data_size);
 
-    UT_GenStub_Execute(v7_block_decode_pri, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_DecodePrimary, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_block_decode_pri, int);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_DecodePrimary, int);
 }

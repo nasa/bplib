@@ -33,7 +33,6 @@ extern "C" {
 
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
-#include "bplib_stor_cache_module_api.h"
 
 /******************************************************************************
  TYPEDEFS
@@ -43,7 +42,7 @@ extern "C" {
  PROTOTYPES
  ******************************************************************************/
 
-// TODO PS extern const BPLib_STOR_CACHE_ModuleApi_t *BPLIB_FILE_OFFLOAD_API;
+// TODO PS extern const BPLib_STOR_QM_ModuleApi_t *BPLIB_FILE_OFFLOAD_API;
 
 /**
  * The Heritage CACHE API is in bplib_stor_cache_module_api.h.
@@ -55,21 +54,22 @@ extern "C" {
  * int bplib_file_offload_stop(bplib_mpool_block_t *svc)
  */
 
-struct BPLib_STOR_PS_ModuleApi
+#ifdef QM_MODULE_API
+struct BPLib_STOR_QM_ModuleApi
 {
-    BPLib_STOR_CACHE_ModuleType_t module_type;
+    BPLib_STOR_QM_ModuleType_t module_type;
     BPLib_STOR_CACHE_Block_t *(*instantiate)(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
     int (*configure)(BPLib_STOR_CACHE_Pool_t *svc, bp_handle_t ps_intf_id, int key,
-                     BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val);
+                     BPLib_STOR_QM_ModuleValtype_t vt, const void *val);
     int (*query)(BPLib_STOR_CACHE_Pool_t *tbl, bp_handle_t module_intf_id, int key,
-                 BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val);
+                 BPLib_STOR_QM_ModuleValtype_t vt, const void **val);
     int (*start)(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id);
     int (*stop)(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id);
 };
 
 typedef struct BPLib_STOR_PS_OffloadApi
 {
-    BPLib_STOR_CACHE_ModuleApi_t std;
+    BPLib_STOR_QM_ModuleApi_t std;
     int (*offload)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
     int (*restore)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk);
     int (*release)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);
@@ -79,6 +79,7 @@ static inline int BPLib_STOR_CACHE_FileOffloadConstructBlock(void *arg, BPLib_ST
 {
     return BPLIB_SUCCESS;
 }
+#endif // QM_MODULE_API
 
 #ifdef __cplusplus
 } // extern "C"

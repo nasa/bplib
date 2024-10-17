@@ -55,7 +55,7 @@
 #define BP_MPOOL_SHORT_SUBQ_DEPTH 0x10
 
 /*
- * Enumeration that defines the various possible routing table events.  This enum
+ * Enumeration that defines the various possible queueing table events.  This enum
  * must always appear first in the structure that is the argument to the event handler,
  * and indicates the actual event that has occurred
  */
@@ -98,6 +98,7 @@ typedef union BPLib_STOR_QM_DuctGenericEvent
  */
 BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg);
 
+#ifdef QM_SUBQ
 /**
  * @brief Drops the entire contents of a subq
  *
@@ -181,5 +182,10 @@ static inline bool BPLib_STOR_QM_DuctIsUp(const BPLib_STOR_QM_Duct_t *duct)
 {
     return (duct->current_state_flags & (BPLIB_CACHE_STATE_FLAG_ADMIN_UP | BPLIB_CACHE_STATE_FLAG_OPER_UP)) == 0;
 }
+
+void BPLib_STOR_QM_DuctInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_Duct_t *fblk);
+
+int BPLib_STOR_QM_IngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
+#endif // QM_SUBQ
 
 #endif /* BPLIB_STOR_QM_DUCTS_H */

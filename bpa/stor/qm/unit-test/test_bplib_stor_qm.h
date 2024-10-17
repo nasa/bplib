@@ -34,14 +34,6 @@
 
 #include "bplib_stor_qm.h"
 
-#include "bplib_stor_qm_codec.h"
-#include "bplib_stor_qm_dataservice.h"
-#include "bplib_stor_qm_decode.h"
-#include "bplib_stor_qm_ducts.h"
-#include "bplib_stor_qm_encode.h"
-#include "bplib_stor_qm_job.h"
-#include "bplib_stor_qm_mpstream.h"
-
 typedef struct
 {
     BPLib_STOR_CACHE_Pool_t               pool;
@@ -66,14 +58,13 @@ void UT_cache_GetTime_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_Stu
 void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
 void Test_BplibCacheCustody_Register(void);
-void Test_BplibCacheFsm_Register(void);
 
-BPLib_STOR_CACHE_Block_t *Test_BPLib_STOR_CACHE_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
-
-int Test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val);
-
-int Test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val);
-int Test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc);
+// File Offload API Stubs
+// TODO Rename to STOR_PS from STOR_CACHE.
+BPLib_STOR_CACHE_Block_t *Test_BPLib_STOR_QM_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
+int Test_BPLib_STOR_QM_ConfigureStub(BPLib_STOR_CACHE_Pool_t *svc, bp_handle_t cache_intf_id, int key, BPLib_STOR_QM_ModuleValtype_t vt, const void *val);
+int Test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Pool_t *svc, bp_handle_t module_intf_id, int key, BPLib_STOR_QM_ModuleValtype_t vt, const void **val);
+int Test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc, bp_handle_t module_intf_id);
 int Test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
 int Test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk);
 int Test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);

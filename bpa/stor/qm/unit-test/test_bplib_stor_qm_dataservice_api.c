@@ -24,14 +24,15 @@
 #include "uttest.h"
 
 #include "bplib_stor_cache_block.h"
+#include "bplib_stor_cache_internal.h"
+#include "bplib_stor_cache_ref.h"
 
 #include "bplib_stor_qm.h"
-#include "bplib_stor_qm_dataservice.h"
-
-#include "test_BPLib_STOR_CACHE_StorQm.h"
+#include "bplib_stor_qm_base_internal.h"
 
 void Test_BPLib_STOR_CACHE_DataserviceAddBaseIntf(void)
 {
+    #ifdef QM_DUCT
     /* Test function for:
      * bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_ipn_t node_number)
      */
@@ -52,10 +53,12 @@ void Test_BPLib_STOR_CACHE_DataserviceAddBaseIntf(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_DataserviceAddBaseIntf(&rtbl, node_number).hdl, 0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctAlloc), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_DUCT
 }
 
 void Test_BPLib_STOR_CACHE_DataserviceAttach(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn,BPLib_STOR_CACHE_DataserviceType_t
      * type, BPLib_STOR_CACHE_Ref_t blkref)
@@ -97,10 +100,12 @@ void Test_BPLib_STOR_CACHE_DataserviceAttach(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
-void test BPLib_STOR_CACHE_DataserviceDetach(void)
+void Test_BPLib_STOR_CACHE_DataserviceDetach(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn)
      */
@@ -133,10 +138,12 @@ void test BPLib_STOR_CACHE_DataserviceDetach(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void Test_BPLib_STOR_CACHE_ConnectSocket(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * int BPLib_STOR_CACHE_ConnectSocket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn)
      */
@@ -173,10 +180,12 @@ void Test_BPLib_STOR_CACHE_ConnectSocket(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_ConnectSocket(&desc, &destination_ipn), 0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif QM_MODULE_API
 }
 
 void Test_BPLib_STOR_CACHE_CreateSocket(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * bp_socket_t BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *rtbl)
      */
@@ -198,10 +207,12 @@ void Test_BPLib_STOR_CACHE_CreateSocket(void)
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctAlloc), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void Test_BPLib_STOR_CACHE_BindSocket(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * int BPLib_STOR_CACHE_BindSocket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
      */
@@ -248,10 +259,12 @@ void Test_BPLib_STOR_CACHE_BindSocket(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void Test_BPLib_STOR_CACHE_CloseSocket(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * void_BPLib_STOR_CACHE_CloseSocket(bp_socket_t *desc)
      */
@@ -278,10 +291,12 @@ void Test_BPLib_STOR_CACHE_CloseSocket(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CloseSocket(&desc));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void test_BPLib_STOR_CACHE_Send(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * int BPLib_STOR_CACHE_Send(bp_socket_t *desc, const void *payload, size_t size, uint32_t timeout)
      */
@@ -355,10 +370,12 @@ void test_BPLib_STOR_CACHE_Send(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefMakeBlock), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalAlloc), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void test_BPLib_STOR_CACHE_Recv(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * int BPLib_STOR_CACHE_Recv(bp_socket_t *desc, void *payload, size_t *size, uint32_t timeout)
      */
@@ -424,10 +441,12 @@ void test_BPLib_STOR_CACHE_Recv(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctTryPull), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefFromBlock), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void Test_BPLib_STOR_CACHE_ServiceductForwardIngress(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * int BPLib_STOR_CACHE_ServiceductForwardIngress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
      */
@@ -455,10 +474,12 @@ void Test_BPLib_STOR_CACHE_ServiceductForwardIngress(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctTryPull), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void Test_BPLib_STOR_CACHE_ServiceductForwardEgress(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
      */
@@ -491,10 +512,12 @@ void Test_BPLib_STOR_CACHE_ServiceductForwardEgress(void)
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctTryPull), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void Test_BPLib_STOR_CACHE_DataserviceEventImpl(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * int BPLib_STOR_CACHE_DataserviceEventImpl(void *arg, BPLib_STOR_CACHE_Block_t *intf_block)
      */
@@ -523,10 +546,12 @@ void Test_BPLib_STOR_CACHE_DataserviceEventImpl(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_DataserviceEventImpl(&event, &intf_block), 0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void Test_BPLib_STOR_CACHE_DataserviceBaseConstruct(void)
 {
+    #ifdef QM_MODULE_API
     /* Test function for:
      * int BPLib_STOR_CACHE_DataserviceBaseConstruct(void *arg, BPLib_STOR_CACHE_Block_t *blk)
      */
@@ -544,10 +569,12 @@ void Test_BPLib_STOR_CACHE_DataserviceBaseConstruct(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_DataserviceBaseConstruct(arg, &blk), 0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }
 
 void Test_BplibCache_DataServiceApi_Register(void)
 {
+    #ifdef QM_MODULE_API
     UtTest_Add(testBPLib_STOR_CACHE_DataserviceAddBaseIntf, NULL, NULL, "Test_BPLib_STOR_CACHE_DataserviceAddBaseIntf");
     UtTest_Add(testBPLib_STOR_CACHE_DataserviceAttach, NULL, NULL, "Test_BPLib_STOR_CACHE_DataserviceAttach");
     UtTest_Add(test BPLib_STOR_CACHE_DataserviceDetach, NULL, NULL, "Test BPLib_STOR_CACHE_DataserviceDetach");
@@ -561,4 +588,123 @@ void Test_BplibCache_DataServiceApi_Register(void)
     UtTest_Add(testBPLib_STOR_CACHE_ServiceductForwardEgress, NULL, NULL, "Test_BPLib_STOR_CACHE_ServiceductForwardEgress");
     UtTest_Add(testBPLib_STOR_CACHE_DataserviceEventImpl, NULL, NULL, "Test_BPLib_STOR_CACHE_DataserviceEventImpl");
     UtTest_Add(testBPLib_STOR_CACHE_DataserviceBaseConstruct, NULL, NULL, "Test_BPLib_STOR_CACHE_DataserviceBaseConstruct");
+    #endif // QM_MODULE_API
+}
+
+void Test_BPLib_STOR_QM_Configure(void)
+{
+    #ifdef QM_MODULE_API
+    /* Test function for:
+     * int BPLib_STOR_QM_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
+     * BPLib_STOR_QM_ModuleValtype_t vt, const void *val)
+     */
+    BPLib_STOR_QM_QueueTbl_t         tbl;
+    bp_handle_t                      module_intf_id = BP_INVALID_HANDLE;
+    int                              key            = 0;
+    BPLib_STOR_QM_ModuleValtype_t vt             = BPLib_STOR_QM_ModuleValtypeInteger;
+    void                            *val            = NULL;
+    BPLib_STOR_CACHE_State_t         state;
+    BPLib_STOR_CACHE_Block_t         blk;
+    BPLib_STOR_CACHE_BlockContent_t  blk_content;
+    BPLib_STOR_PS_OffloadApi_t       api;
+
+    memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
+    memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
+    memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_BlockFromExternalId), UT_cache_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, &state);
+    state.offload_blk = &blk;
+    state.offload_api = &api;
+    api.std.configure = Test_BPLib_STOR_QM_ConfigureStub;
+
+    test_setup_cpool_allocation(&tbl.pool, &blk_content, &api);
+
+    UtAssert_UINT32_EQ(BPLib_STOR_QM_Configure(&tbl, module_intf_id, key, vt, val), 0);
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
+}
+
+void Test_BPLib_STOR_QM_Query(void)
+{
+    #ifdef QM_MODULE_API
+    /* Test function for:
+     * int BPLib_STOR_QM_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_QM_ModuleValtype_t
+     * vt, const void **val)
+     */
+    BPLib_STOR_QM_QueueTbl_t         *tbl            = NULL;
+    bp_handle_t                       module_intf_id = BP_INVALID_HANDLE;
+    int                               key            = 0;
+    BPLib_STOR_QM_ModuleValtype_t  vt             = BPLib_STOR_QM_ModuleValtypeInteger;
+    void                             *val            = NULL;
+    BPLib_STOR_CACHE_State_t          state;
+    BPLib_STOR_CACHE_Block_t          blk;
+    BPLib_STOR_PS_OffloadApi_t        api;
+
+    memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
+    memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
+
+    state.offload_blk = &blk;
+    state.offload_api = &api;
+    api.std.query     = Test_BPLib_STOR_CACHE_QueryStub;
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, &state);
+    UtAssert_UINT32_EQ(BPLib_STOR_QM_Query(tbl, module_intf_id, key, vt, val), 0);
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
+}
+
+void Test_BPLib_STOR_QM_Start(void)
+{
+    #ifdef QM_MODULE_API
+    /* Test function for:
+     * int BPLib_STOR_PS_Start(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
+     */
+    BPLib_STOR_QM_QueueTbl_t         *tbl = NULL;
+    bp_handle_t               module_intf_id;
+    BPLib_STOR_CACHE_State_t       state;
+    BPLib_STOR_CACHE_Block_t       blk;
+    BPLib_STOR_PS_OffloadApi_t api;
+
+    memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
+    memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
+    state.offload_blk = &blk;
+    state.offload_api = &api;
+    api.std.start     = Test_BPLib_STOR_CACHE_StartstopStub;
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, &state);
+    UtAssert_UINT32_EQ(BPLib_STOR_QM_Start(tbl, module_intf_id), 0);
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
+}
+
+void Test_BPLib_STOR_QM_Stop(void)
+{
+    #ifdef QM_MODULE_API
+    /* Test function for:
+     * int BPLib_STOR_PS_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
+     */
+    BPLib_STOR_QM_QueueTbl_t         *tbl = NULL;
+    bp_handle_t               module_intf_id;
+    BPLib_STOR_CACHE_State_t       state;
+    BPLib_STOR_CACHE_Block_t       blk;
+    BPLib_STOR_PS_OffloadApi_t api;
+
+    memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
+    memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    memset(&api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
+    state.offload_blk = &blk;
+    state.offload_api = &api;
+    api.std.stop      = Test_BPLib_STOR_CACHE_StartstopStub;
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, &state);
+    UtAssert_UINT32_EQ(BPLib_STOR_QM_Stop(tbl, module_intf_id), 0);
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
+    #endif // QM_MODULE_API
 }

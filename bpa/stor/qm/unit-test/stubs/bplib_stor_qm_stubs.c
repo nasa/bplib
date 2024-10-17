@@ -24,8 +24,15 @@
  * Auto-Generated stub implementations for functions defined in bplib_stor_qm header
  */
 
+#include <string.h>
+
+#include "bplib_stor_cache_types.h"
+#include "bplib_stor_cache_block.h"
 #include "bplib_stor_qm.h"
+
 #include "utgenstub.h"
+
+BPLib_STOR_CACHE_Block_t retblk;  // For Test_BPLib_STOR_QM_InstantiateStub.
 
 /*
  * ----------------------------------------------------
@@ -152,22 +159,6 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_QM_GetQtblPool()
- * ----------------------------------------------------
- */
-BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetQtblPool(const BPLib_STOR_QM_QueueTbl_t *tbl)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_GetQtblPool, BPLib_STOR_CACHE_Pool_t *);
-
-    UT_GenStub_AddParam(BPLib_STOR_QM_GetQtblPool, const BPLib_STOR_QM_QueueTbl_t *, tbl);
-
-    UT_GenStub_Execute(BPLib_STOR_QM_GetQtblPool, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_GetQtblPool, BPLib_STOR_CACHE_Pool_t *);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_STOR_QM_GetNextAvailIntf()
  * ----------------------------------------------------
  */
@@ -201,6 +192,22 @@ bp_handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *t
     UT_GenStub_Execute(BPLib_STOR_QM_GetNextIntfWithFlags, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_STOR_QM_GetNextIntfWithFlags, bp_handle_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_QM_GetQtblPool()
+ * ----------------------------------------------------
+ */
+BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetQtblPool(const BPLib_STOR_QM_QueueTbl_t *tbl)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_GetQtblPool, BPLib_STOR_CACHE_Pool_t *);
+
+    UT_GenStub_AddParam(BPLib_STOR_QM_GetQtblPool, const BPLib_STOR_QM_QueueTbl_t *, tbl);
+
+    UT_GenStub_Execute(BPLib_STOR_QM_GetQtblPool, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_GetQtblPool, BPLib_STOR_CACHE_Pool_t *);
 }
 
 /*
@@ -484,4 +491,55 @@ void BPLib_STOR_QM_SetMaintenanceRequest(BPLib_STOR_QM_QueueTbl_t *tbl)
     UT_GenStub_AddParam(BPLib_STOR_QM_SetMaintenanceRequest, BPLib_STOR_QM_QueueTbl_t *, tbl);
 
     UT_GenStub_Execute(BPLib_STOR_QM_SetMaintenanceRequest, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_QM_DuctInit()  // TODO Manually added.
+ * ----------------------------------------------------
+ */
+void BPLib_STOR_QM_DuctInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_Duct_t *fblk)
+{
+    UT_GenStub_AddParam(BPLib_STOR_QM_DuctInit, BPLib_STOR_CACHE_Block_t *, base_block);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DuctInit, BPLib_STOR_QM_Duct_t *, fblk);
+
+    UT_GenStub_Execute(BPLib_STOR_QM_DuctInit, Basic, NULL);
+}
+
+BPLib_STOR_CACHE_Block_t *Test_BPLib_STOR_QM_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg)
+{
+    memset(&retblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    return &retblk;
+}
+
+int Test_BPLib_STOR_QM_ConfigureStub(BPLib_STOR_CACHE_Pool_t *svc, bp_handle_t cache_intf_id, int key,
+                                        BPLib_STOR_QM_ModuleValtype_t vt, const void *val)
+{
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_QM_ConfigureStub);
+}
+
+int Test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Pool_t *svc, bp_handle_t module_intf_id, int key,
+                                    BPLib_STOR_QM_ModuleValtype_t vt, const void **val)
+{
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_QueryStub);
+}
+
+int Test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc, bp_handle_t module_intf_id)
+{
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_StartstopStub);
+}
+
+int Test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
+{
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_OffloadStub);
+}
+
+int Test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
+{
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_RestoreStub);
+}
+
+int Test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
+{
+    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_ReleaseStub);
 }

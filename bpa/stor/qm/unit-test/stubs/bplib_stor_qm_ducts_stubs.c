@@ -32,8 +32,7 @@
  * Generated stub function for BPLib_STOR_QM_DuctAlloc()
  * ----------------------------------------------------
  */
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number,
-                                                     void *init_arg)
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctAlloc(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, void *init_arg)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DuctAlloc, BPLib_STOR_CACHE_Block_t *);
 
@@ -46,6 +45,7 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctAlloc(BPLib_STOR_CACHE_Pool_t *pool,
     return UT_GenStub_GetReturnValue(BPLib_STOR_QM_DuctAlloc, BPLib_STOR_CACHE_Block_t *);
 }
 
+#ifdef QM_SUBQ
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_STOR_QM_DuctDisable()
@@ -99,8 +99,7 @@ bool BPLib_STOR_QM_DuctModifyFlags(BPLib_STOR_CACHE_Block_t *cb, uint32_t set_bi
  * ----------------------------------------------------
  */
 uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst,
-                                         BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
-                                         BPLib_TIME_MonotonicTime_t       abs_timeout)
+                                      BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, BPLib_TIME_MonotonicTime_t abs_timeout)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DuctTryMoveAll, uint32_t);
 
@@ -119,7 +118,7 @@ uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst,
  * ----------------------------------------------------
  */
 BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
-                                                       BPLib_TIME_MonotonicTime_t       abs_timeout)
+                                                    BPLib_TIME_MonotonicTime_t       abs_timeout)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DuctTryPull, BPLib_STOR_CACHE_Block_t *);
 
@@ -137,7 +136,7 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_CACHE_SubqWorkite
  * ----------------------------------------------------
  */
 bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk,
-                                  BPLib_TIME_MonotonicTime_t abs_timeout)
+                               BPLib_TIME_MonotonicTime_t abs_timeout)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DuctTryPush, bool);
 
@@ -149,16 +148,4 @@ bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_
 
     return UT_GenStub_GetReturnValue(BPLib_STOR_QM_DuctTryPush, bool);
 }
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_QM_DuctInit()
- * ----------------------------------------------------
- */
-void BPLib_STOR_QM_DuctInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_Duct_t *fblk)
-{
-    UT_GenStub_AddParam(BPLib_STOR_QM_DuctInit, BPLib_STOR_CACHE_Block_t *, base_block);
-    UT_GenStub_AddParam(BPLib_STOR_QM_DuctInit, BPLib_STOR_QM_Duct_t *, fblk);
-
-    UT_GenStub_Execute(BPLib_STOR_QM_DuctInit, Basic, NULL);
-}
+#endif // QM_SUBQ

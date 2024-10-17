@@ -22,18 +22,11 @@
  INCLUDES
  ******************************************************************************/
 
-// #include "bplib_mem.h"
-#include "bplib_os_heap.h"
-// 
-// #include "bplib_stor_cache_base_internal.h"
-// #include "bplib_stor_cache_types.h"
-#include "bplib_stor_cache_block.h"
-#include "bplib_stor_cache_internal.h"
-#include "bplib_stor_cache_ref.h"
-// 
+// #include "bplib_os.h"
+
+#include "bplib_mem.h"
+
 #include "bplib_stor_qm.h"
-#include "bplib_stor_qm_eid.h"
-#include "bplib_stor_qm_ducts.h"
 
 /**
  * @brief Minimum time between interface poll cycles
@@ -47,29 +40,43 @@
 
 BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
 {
+    #ifdef QM
     BPLib_STOR_CACHE_Block_t *blk;
 
     blk = BPLib_STOR_CACHE_BlockFromExternalId(tbl->pool, intf_id);
     return BPLib_STOR_CACHE_RefCreate(blk);
+    #else // QM
+    return NULL;
+    #endif
 }
 
 void BPLib_STOR_QM_ReleaseIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_STOR_CACHE_Ref_t refptr)
 {
+    #ifdef QM
     BPLib_STOR_CACHE_RefRelease(refptr);
+    #endif // QM
 }
 
 BPLib_STOR_QM_Duct_t *bplip_queue_lookup_intf(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
 {
+    #ifdef QM
     BPLib_STOR_CACHE_Block_t *blk;
 
     blk = BPLib_STOR_CACHE_BlockFromExternalId(tbl->pool, intf_id);
     return BPLib_STOR_QM_DuctCast(blk);
+    #else // QM
+    return NULL;
+    #endif // QM
 }
 
 static inline const BPLib_STOR_QM_Duct_t *bplip_queue_lookup_intf_const(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
 {
+    #ifdef QM
     /* note that bplip_queue_lookup_intf does not modify its argument itself */
     return bplip_queue_lookup_intf(tbl, intf_id);
+    #else // QM
+    return NULL;
+    #endif // QM
 }
 
 /******************************************************************************
@@ -78,6 +85,7 @@ static inline const BPLib_STOR_QM_Duct_t *bplip_queue_lookup_intf_const(const BP
 
 int BPLib_STOR_QM_QueueIngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
 {
+    #ifdef QM
     BPLib_STOR_QM_Duct_t *curr_duct;
     BPLib_STOR_QM_Duct_t *next_duct;
     uint32_t            queue_depth;
@@ -103,8 +111,12 @@ int BPLib_STOR_QM_QueueIngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq
     queue_depth = BPLib_STOR_QM_DuctTryMoveAll(&next_duct->ingress, &curr_duct->ingress, BPLIB_MONOTIME_ZERO);
 
     return queue_depth;
+    #else // QM
+    return 0;
+    #endif // QM
 }
 
+#ifdef QM
 void BPLib_STOR_QM_IngressQueueSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_STOR_CACHE_Block_t *pblk)
 {
     BPLib_STOR_CACHE_BblockPrimary_t *pri_block;
@@ -234,7 +246,7 @@ BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_queues, size_t c
 
     complete_size = (complete_size + align) & ~align;
 
-    tbl_ptr = (BPLib_STOR_QM_QueueTbl_t *)BPLib_OS_Calloc(complete_size);
+    tbl_ptr = (BPLib_STOR_QM_QueueTbl_t *)bplib_os_calloc(complete_size);
     mem_ptr = (uint8_t *)tbl_ptr;
 
     if (tbl_ptr != NULL)
@@ -242,7 +254,7 @@ BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_queues, size_t c
         tbl_ptr->pool = BPLib_STOR_CACHE_Create(mem_ptr + BPLib_STOR_CACHE_Offset, complete_size - BPLib_STOR_CACHE_Offset);
         if (tbl_ptr->pool == NULL)
         {
-            BPLib_OS_Free(tbl_ptr);
+            bplib_os_free(tbl_ptr);
             tbl_ptr = NULL;
         }
     }
@@ -726,7 +738,7 @@ void BPLib_STOR_QM_MaintenanceCompleteWait(BPLib_STOR_QM_QueueTbl_t *tbl)
 void BPLib_STOR_QM_ProcessActiveDucts(BPLib_STOR_QM_QueueTbl_t *tbl)
 {
     #ifdef JOB
-    BPLib_STOR_CACHE_JobRunAll(tbl->pool, tbl);
+    BPLib_STOR_QM_JobRunAll(tbl->pool, tbl);
     #endif // JOB
 }
 
@@ -745,3 +757,5 @@ void BPLib_STOR_QM_PeriodicMaintenance(BPLib_STOR_QM_QueueTbl_t *tbl)
     tbl->maint_active_flag = false;
     // TODO OSAL BPLib_STOR_CACHE_OsBroadcastSignalAndUnlock(tbl->activity_lock);
 }
+
+#endif // QM

@@ -24,75 +24,79 @@
  * Auto-Generated stub implementations for functions defined in bplib_stor_qm_job header
  */
 
+#include <stdio.h>
+
 #include "bplib_stor_qm_job.h"
 #include "utgenstub.h"
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_CACHE_JobCast()
+ * Generated stub function for BPLib_STOR_QM_JobCast()
  * ----------------------------------------------------
  */
-BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobCast(BPLib_STOR_CACHE_Block_t *cb)
+BPLib_STOR_QM_Job_t *BPLib_STOR_QM_JobCast(BPLib_STOR_CACHE_Block_t *cb)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_JobCast, BPLib_STOR_CACHE_Job_t *);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_JobCast, BPLib_STOR_QM_Job_t *);
 
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_JobCast, BPLib_STOR_CACHE_Block_t *, cb);
+    UT_GenStub_AddParam(BPLib_STOR_QM_JobCast, BPLib_STOR_CACHE_Block_t *, cb);
 
-    UT_GenStub_Execute(BPLib_STOR_CACHE_JobCast, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_JobCast, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_JobCast, BPLib_STOR_CACHE_Job_t *);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_JobCast, BPLib_STOR_QM_Job_t *);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_CACHE_JobGetNextActive()
+ * Generated stub function for BPLib_STOR_QM_JobGetNextActive()
  * ----------------------------------------------------
  */
-BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobGetNextActive(BPLib_STOR_CACHE_Pool_t *pool)
+BPLib_STOR_QM_Job_t *BPLib_STOR_QM_JobGetNextActive(BPLib_STOR_CACHE_Pool_t *pool)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_JobGetNextActive, BPLib_STOR_CACHE_Job_t *);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_JobGetNextActive, BPLib_STOR_QM_Job_t *);
 
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_JobGetNextActive, BPLib_STOR_CACHE_Pool_t *, pool);
+    UT_GenStub_AddParam(BPLib_STOR_QM_JobGetNextActive, BPLib_STOR_CACHE_Pool_t *, pool);
 
-    UT_GenStub_Execute(BPLib_STOR_CACHE_JobGetNextActive, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_JobGetNextActive, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_JobGetNextActive, BPLib_STOR_CACHE_Job_t *);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_JobGetNextActive, BPLib_STOR_QM_Job_t *);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_CACHE_JobInit()
+ * Generated stub function for BPLib_STOR_QM_JobInit()
  * ----------------------------------------------------
  */
-void BPLib_STOR_CACHE_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Job_t *jblk)
+void BPLib_STOR_QM_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_Job_t *jblk)
 {
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_JobInit, BPLib_STOR_CACHE_Block_t *, base_block);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_JobInit, BPLib_STOR_CACHE_Job_t *, jblk);
+    UT_GenStub_AddParam(BPLib_STOR_QM_JobInit, BPLib_STOR_CACHE_Block_t *, base_block);
+    UT_GenStub_AddParam(BPLib_STOR_QM_JobInit, BPLib_STOR_QM_Job_t *, jblk);
 
-    UT_GenStub_Execute(BPLib_STOR_CACHE_JobInit, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_JobInit, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_CACHE_JobMarkActive()
+ * Generated stub function for BPLib_STOR_QM_JobMarkActive()
  * ----------------------------------------------------
  */
-void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job)
+void BPLib_STOR_QM_JobMarkActive(BPLib_STOR_QM_Job_t *job)
 {
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_JobMarkActive, BPLib_STOR_CACHE_Job_t *, job);
+    printf("%s:%d job is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)job);
 
-    UT_GenStub_Execute(BPLib_STOR_CACHE_JobMarkActive, Basic, NULL);
+    UT_GenStub_AddParam(BPLib_STOR_QM_JobMarkActive, BPLib_STOR_QM_Job_t *, job);
+
+    UT_GenStub_Execute(BPLib_STOR_QM_JobMarkActive, Basic, NULL);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_CACHE_JobRunAll()
+ * Generated stub function for BPLib_STOR_QM_JobRunAll()
  * ----------------------------------------------------
  */
-void BPLib_STOR_CACHE_JobRunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg)
+void BPLib_STOR_QM_JobRunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg)
 {
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_JobRunAll, BPLib_STOR_CACHE_Pool_t *, pool);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_JobRunAll, void *, arg);
+    UT_GenStub_AddParam(BPLib_STOR_QM_JobRunAll, BPLib_STOR_CACHE_Pool_t *, pool);
+    UT_GenStub_AddParam(BPLib_STOR_QM_JobRunAll, void *, arg);
 
-    UT_GenStub_Execute(BPLib_STOR_CACHE_JobRunAll, Basic, NULL);
+    UT_GenStub_Execute(BPLib_STOR_QM_JobRunAll, Basic, NULL);
 }

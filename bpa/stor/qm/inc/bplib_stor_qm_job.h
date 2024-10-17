@@ -18,22 +18,23 @@
  *
  */
 
-#ifndef BPLIB_STOR_CACHE_JOB_H
-#define BPLIB_STOR_CACHE_JOB_H
+#ifndef BPLIB_STOR_QM_JOB_H
+#define BPLIB_STOR_QM_JOB_H
 
 #include <string.h>
 
 #include "bplib_stor_cache_block.h"
 
+#ifdef QM_JOB
 /**
  * @brief Cast a block to a job type
  *
  * @param cb
- * @return BPLib_STOR_CACHE_Job_t*
+ * @return BPLib_STOR_QM_Job_t*
  */
-BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobCast(BPLib_STOR_CACHE_Block_t *cb);
+BPLib_STOR_QM_Job_t *BPLib_STOR_QM_JobCast(BPLib_STOR_CACHE_Block_t *cb);
 
-void BPLib_STOR_CACHE_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Job_t *jblk);
+void BPLib_STOR_QM_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_Job_t *jblk);
 
 /**
  * @brief Mark a given job as runnable
@@ -47,7 +48,7 @@ void BPLib_STOR_CACHE_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_C
  *
  * @param job Job that is ready to run
  */
-void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job);
+void BPLib_STOR_QM_JobMarkActive(BPLib_STOR_QM_Job_t *job);
 
 /**
  * @brief Get the next active duct in the pool
@@ -56,10 +57,11 @@ void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job);
  * currently marked as active
  *
  * @param pool
- * @return BPLib_STOR_CACHE_Job_t *
+ * @return BPLib_STOR_QM_Job_t *
  */
-BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobGetNextActive(BPLib_STOR_CACHE_Pool_t *pool);
+BPLib_STOR_QM_Job_t *BPLib_STOR_QM_JobGetNextActive(BPLib_STOR_CACHE_Pool_t *pool);
 
-void BPLib_STOR_CACHE_JobRunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg);
+void BPLib_STOR_QM_JobRunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg);
+#endif // QM_JOB
 
-#endif /* BPLIB_STOR_CACHE_JOB_H */
+#endif /* BPLIB_STOR_QM_JOB_H */

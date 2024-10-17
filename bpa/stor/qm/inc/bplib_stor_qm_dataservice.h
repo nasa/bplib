@@ -27,12 +27,7 @@
 
 #include "bplib_api_types.h"
 
-#include "bplib_stor_cache_types.h"
-#include "bplib_stor_cache_block.h"
-
 #include "bplib_mem.h"
-
-#include "bplib_stor_qm.h"
 
 typedef enum
 {
@@ -44,10 +39,12 @@ typedef enum
 
 bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_CACHE_Block_t *rtbl, bp_ipn_t node_number);
 
+#ifdef QM_QUEUE_TABLE
 bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
     BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn,
     BPLib_STOR_CACHE_DataserviceType_t type,
     BPLib_STOR_CACHE_Ref_t blkref);
+#endif // QM_QUEUE_TABLE
 
 BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_CACHE_Block_t *tbl, const bp_ipn_addr_t *ipn);
 
