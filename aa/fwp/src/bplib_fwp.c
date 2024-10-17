@@ -48,9 +48,6 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         Callbacks.BPA_EVP_SendEvent            == NULL ||
         Callbacks.BPA_PERFLOGP_Entry           == NULL ||
         Callbacks.BPA_PERFLOGP_Exit            == NULL ||
-        Callbacks.BPA_ADUP_ValidateConfigTbl   == NULL ||
-        Callbacks.BPA_ADUP_In                  == NULL ||
-        Callbacks.BPA_ADUP_Out                 == NULL ||
         Callbacks.BPA_ADUP_AddApplication      == NULL ||
         Callbacks.BPA_ADUP_StartApplication    == NULL ||
         Callbacks.BPA_ADUP_StopApplication     == NULL)
@@ -77,9 +74,6 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent = Callbacks.BPA_EVP_SendEvent;
 
         /* Initialize ADU Proxy callbacks */
-        BPLib_FWP_ProxyCallbacks.BPA_ADUP_ValidateConfigTbl = Callbacks.BPA_ADUP_ValidateConfigTbl;
-        BPLib_FWP_ProxyCallbacks.BPA_ADUP_In                = Callbacks.BPA_ADUP_In;
-        BPLib_FWP_ProxyCallbacks.BPA_ADUP_Out               = Callbacks.BPA_ADUP_Out;
         BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication    = Callbacks.BPA_ADUP_AddApplication;
         BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication  = Callbacks.BPA_ADUP_StartApplication;
         BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication   = Callbacks.BPA_ADUP_StopApplication;
