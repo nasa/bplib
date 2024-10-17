@@ -26,20 +26,20 @@
 
 #include <stdio.h>
 
-#include "../../qm/inc/bplib_stor_qm_ducts.h"
-
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_internal.h"
 #include "bplib_stor_cache_ref.h"
-#include "bplib_stor_cache_module_api.h"
+#include "bplib_stor_qm.h"
 
 typedef BPLib_STOR_CACHE_EntryState_t (*BPLib_STOR_CACHE_FsmStateEvalFunc_t)(BPLib_STOR_CACHE_Entry_t *);
 typedef void (*BPLib_STOR_CACHE_FsmStateChangeFunc_t)(BPLib_STOR_CACHE_Entry_t *);
 
 BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateIdleEval(BPLib_STOR_CACHE_Entry_t *store_entry)
 {
+    #ifdef QM_MODULE_API
     BPLib_STOR_CACHE_Block_t *pblk;
+    #endif // QM_MODULE_API
 
     if (BPLib_STOR_CACHE_TimeCompare(store_entry->parent->action_time, store_entry->expire_time) >= 0)
     {
@@ -59,6 +59,7 @@ BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateIdleEval(BPLib_STOR_CACHE
         return BPLib_STOR_CACHE_EntryStateDelete;
     }
 
+    #ifdef QM_MODULE_API
     if ((store_entry->flags & BPLIB_STORE_FLAGS_ACTION_WAIT_STATE) == 0)
     {
         /* bundle is due for [re]transmit */
@@ -74,7 +75,7 @@ BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateIdleEval(BPLib_STOR_CACHE
             return BPLib_STOR_CACHE_EntryStateQueue;
         }
     }
-
+    #endif // QM_MODULE_API
     #endif // VALID_STORE_ENTRY
 
     /* no change */
@@ -96,11 +97,14 @@ BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateQueueEval(BPLib_STOR_CACH
 
 void BPLib_STOR_CACHE_FsmStateQueueEnter(BPLib_STOR_CACHE_Entry_t *store_entry)
 {
+    #ifdef QM_DUCT
     BPLib_STOR_CACHE_Block_t *rblk;
     BPLib_STOR_QM_Duct_t  *self_duct;
+    #endif // QM_DUCT
 
     store_entry->flags |= BPLIB_STORE_FLAG_PENDING_FORWARD;
 
+    #ifdef QM_DUCT
     rblk = BPLib_STOR_CACHE_RefMakeBlock(store_entry->refptr, BPLIB_STORE_SIGNATURE_BLOCKREF, store_entry);
     if (rblk != NULL)
     {
@@ -120,6 +124,7 @@ void BPLib_STOR_CACHE_FsmStateQueueEnter(BPLib_STOR_CACHE_Entry_t *store_entry)
             BPLib_STOR_CACHE_RecycleBlock(rblk);
         }
     }
+    #endif // QM_DUCT
 }
 
 void BPLib_STOR_CACHE_FsmStateQueueExit(BPLib_STOR_CACHE_Entry_t *store_entry)
@@ -128,29 +133,32 @@ void BPLib_STOR_CACHE_FsmStateQueueExit(BPLib_STOR_CACHE_Entry_t *store_entry)
 
     pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(BPLib_STOR_CACHE_Dereference(store_entry->refptr));
 
-    if (bp_handle_is_valid(pri_block->data.delivery.egress_intf_id))
+    if (pri_block != NULL)
     {
-        store_entry->flags &= ~BPLIB_STORE_FLAG_PENDING_FORWARD;
-
-        if (pri_block->data.delivery.delivery_policy !=BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking)
+        if (bp_handle_is_valid(pri_block->data.delivery.egress_intf_id))
         {
-            /* If not doing full custody tracking, then the egress CLA is considered the implicit custodian */
-            store_entry->flags &= ~BPLIB_STORE_FLAG_LOCAL_CUSTODY;
-        }
-        else
-        {
-            /* reschedule the next retransmit time based on the anticipted round-trip time of the egress intf */
-            /* JPHFIX: this is fixed for now, but should be configurable/specific to the egress intf */
-            store_entry->action_time =
-                BPLib_STOR_CACHE_TimeAddMs(pri_block->data.delivery.egress_time, pri_block->data.delivery.local_retx_interval);
-            store_entry->flags |= BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
-        }
-    }
+            store_entry->flags &= ~BPLIB_STORE_FLAG_PENDING_FORWARD;
 
-    if (store_entry->offload_sid != 0)
-    {
-        BPLib_STOR_CACHE_RefRelease(store_entry->refptr);
-        store_entry->refptr = NULL;
+            if (pri_block->data.delivery.delivery_policy !=BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking)
+            {
+                /* If not doing full custody tracking, then the egress CLA is considered the implicit custodian */
+                store_entry->flags &= ~BPLIB_STORE_FLAG_LOCAL_CUSTODY;
+            }
+            else
+            {
+                /* reschedule the next retransmit time based on the anticipted round-trip time of the egress intf */
+                /* JPHFIX: this is fixed for now, but should be configurable/specific to the egress intf */
+                store_entry->action_time =
+                    BPLib_STOR_CACHE_TimeAddMs(pri_block->data.delivery.egress_time, pri_block->data.delivery.local_retx_interval);
+                store_entry->flags |= BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
+            }
+        }
+
+        if (store_entry->offload_sid != 0)
+        {
+            BPLib_STOR_CACHE_RefRelease(store_entry->refptr);
+            store_entry->refptr = NULL;
+        }
     }
 }
 
@@ -186,11 +194,12 @@ void BPLib_STOR_CACHE_FsmStateDeleteEnter(BPLib_STOR_CACHE_Entry_t *store_entry)
         store_entry->refptr = NULL;
     }
 
+    #ifdef QM_MODULE_API
     if (store_entry->offload_sid != 0)
     {
         store_entry->parent->offload_api->release(store_entry->parent->offload_blk, store_entry->offload_sid);
     }
-
+    #endif // QM_MODULE_API
     store_entry->flags |= BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
     store_entry->action_time =BPLib_STOR_CACHE_TimeAddMs(store_entry->parent->action_time, BP_CACHE_AGE_OUT_TIME);
     #endif // VALID_STORE_ENTRY
@@ -400,7 +409,9 @@ void BPLib_STOR_CACHE_FsmExecute(BPLib_STOR_CACHE_Block_t *sblk)
         {
             ++state->discard_count;
             BPLib_STOR_CACHE_FsmDebugReportDiscard(store_entry);
+            #ifdef QM_SUBQ
             BPLib_STOR_CACHE_RecycleBlock(sblk);
+            #endif // QM_SUBQ
         }
         else
         {
@@ -410,7 +421,9 @@ void BPLib_STOR_CACHE_FsmExecute(BPLib_STOR_CACHE_Block_t *sblk)
              * at least looking at them.
              */
             BPLib_STOR_CACHE_FsmReschedule(state, store_entry);
+            #ifdef QM_SUBQ
             BPLib_STOR_CACHE_InsertBefore(&state->idle_list, sblk);
+            #endif // QM_SUBQ
         }
     }
 }

@@ -8,7 +8,6 @@
 ##################################################################
 
 add_library(bplib_stor_cache OBJECT
-    src/bplib_stor_cache_module_api.c
     src/bplib_stor_cache.c
     src/bplib_stor_cache_bblocks.c
     src/bplib_stor_cache_fsm.c
@@ -22,18 +21,16 @@ target_include_directories(bplib_stor_cache PRIVATE
     $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# TODO Fix relative include paths like ../qm/inc.
 target_include_directories(bplib_stor_cache PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ../qm/inc
-    ../qm/src
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_time,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_stor_qm,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:coverage-bplib_stor_qm-testrunner,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# Add unit test coverage subdirectory
+# Add unit test subdirectory
 if(BPLIB_ENABLE_UNIT_TESTS)
     add_subdirectory(unit-test)
 endif(BPLIB_ENABLE_UNIT_TESTS)

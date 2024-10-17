@@ -31,7 +31,7 @@
 
 #include "bplib_mem.h"
 
-// #include "bplib_stor_qm.h"
+#include "bplib_mem_rbtree.h"
 
 // TODO Verify ifdef __cplusplus is on all public header files.
 #ifdef __cplusplus
@@ -102,7 +102,6 @@ struct bp_desc;
 typedef struct bp_desc   bp_desc_t;
 
 typedef struct BPLib_STOR_CACHE_Block BPLib_STOR_CACHE_Block_t;
-typedef struct BPLib_STOR_CACHE_ModuleApi BPLib_STOR_CACHE_ModuleApi_t;
 
 /*
  * The basic types of blocks which are cacheable in the mem
@@ -113,8 +112,6 @@ typedef struct BPLib_STOR_CACHE_BblockTracking         BPLib_STOR_CACHE_BblockTr
 typedef struct BPLib_STOR_CACHE_BblockCanonical        BPLib_STOR_CACHE_BblockCanonical_t;
 
 typedef struct BPLib_STOR_CACHE_SubqBase               BPLib_STOR_CACHE_SubqBase_t;
-typedef struct BPLib_STOR_QM_Duct                      BPLib_STOR_QM_Duct_t;
-typedef struct BPLib_STOR_QM_DuctContent               BPLib_STOR_QM_DuctContent_t;
 
 typedef struct BPLib_STOR_CACHE_BblockPrimaryContent   BPLib_STOR_CACHE_BBlockPrimaryContent_t;
 typedef struct BPLib_STOR_CACHE_BblockCanonicalContent BPLib_STOR_CACHE_BblockCanonicalContent_t;
@@ -192,46 +189,6 @@ typedef enum
    BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking /**< enable full custody transfer signals and acknowledgement (not yet
                                               implemented) */
 }BPLib_STOR_CACHE_PolicyDelivery_t;
-
-/* Storage service - reserved for future use */
-typedef struct bp_store
-{
-    uint32_t reserved;
-} bp_store_t;
-
-/* Channel Statistics */
-typedef struct
-{
-    /* Errors */
-    uint32_t lost;         /* storage failure (load, process, accept) */
-    uint32_t expired;      /* bundles, dacs, and payloads with expired lifetime (load, process, accept) */
-    uint32_t unrecognized; /* unable to parse input OR bundle type not supported (process) */
-    /* Data Duct */
-    uint32_t transmitted_bundles;   /* bundles sent for first time, does not includes re-sends (load) */
-    uint32_t transmitted_dacs;      /* dacs sent (load) */
-    uint32_t retransmitted_bundles; /* bundles timed-out and resent (load) */
-    uint32_t delivered_payloads;    /* payloads delivered to application (accept) */
-    uint32_t received_bundles;      /* bundles destined for local node (process) */
-    uint32_t forwarded_bundles;     /* bundles received by local node but destined for another node (process) */
-    uint32_t received_dacs;         /* dacs destined for local node (process) */
-    /* Storage */
-    uint32_t stored_bundles;  /* number of data bundles currently in storage */
-    uint32_t stored_payloads; /* number of payloads currently in storage */
-    uint32_t stored_dacs;     /* number of dacs bundles currently in storage */
-    /* Active */
-    uint32_t acknowledged_bundles; /* freed by custody signal - process */
-    uint32_t active_bundles;       /* number of slots in active table in use */
-} bp_stats_t;
-
-typedef enum
-{
-   BPLib_STOR_CACHE_VariableNone,            /**< reserved value, keep first */
-   BPLib_STOR_CACHE_VariableMemCurrentUse, /**< replaces BPLib_STOR_CACHE_OsMemused() for external API use */
-   BPLib_STOR_CACHE_VariableMemHighUse,    /**< replaces BPLib_STOR_CACHE_OsMemhigh() for external API use */
-   BPLib_STOR_CACHE_VariableMax              /**< reserved value, keep last */
-}BPLib_STOR_CACHE_Variable_t;
-
-// TODO End of block that belongs in BPLib_STOR_CACHE_ModuleApiTypes.h
 
 typedef int (*v7_chunk_writer_func_t)(void *, const void *, size_t);
 typedef int (*v7_chunk_reader_func_t)(void *, void *, size_t);
@@ -516,121 +473,6 @@ typedef enum BPLib_STOR_CACHE_Blocktype
 
 } BPLib_STOR_CACHE_Blocktype_t;
 
-struct BPLib_STOR_CACHE_Block
-{
-    /* note that if it becomes necessary to recover bits here,
-     * the offset could be reduced in size
-     */
-    BPLib_STOR_CACHE_Blocktype_t   type;
-    uint32_t                       parent_offset;
-    struct BPLib_STOR_CACHE_Block *next;
-    struct BPLib_STOR_CACHE_Block *prev;
-};
-
-typedef struct BPLib_STOR_CACHE_BlockHeader
-{
-    BPLib_STOR_CACHE_Block_t base_link; /* must be first - this is the pointer used in the application */
-
-    uint32_t content_type_signature; /* a "signature" (sanity check) value for identifying the data */
-    uint16_t user_content_length;    /* actual length of user content (does not include fixed fields) */
-    uint16_t refcount;               /* number of active references to the object */
-
-} BPLib_STOR_CACHE_BlockHeader_t;
-
-struct BPLib_STOR_CACHE_BblockTracking
-{
-   BPLib_STOR_CACHE_PolicyDelivery_t delivery_policy;
-    bp_handle_t                 ingress_intf_id;
-    BPLib_TIME_MonotonicTime_t  ingress_time;
-    bp_handle_t                 egress_intf_id;
-    BPLib_TIME_MonotonicTime_t  egress_time;
-    bp_handle_t                 storage_intf_id;
-    bp_sid_t                    committed_storage_id;
-
-    /* JPHFIX: this is here for now, but really it belongs on the egress CLA intf based on its RTT */
-    uint64_t local_retx_interval;
-};
-
-struct BPLib_STOR_CACHE_BblockPrimaryData
-{
-    BPLib_STOR_CACHE_PrimaryBlock_t logical;
-    BPLib_STOR_CACHE_BblockTracking_t     delivery;
-};
-
-struct BPLib_STOR_CACHE_BblockPrimary
-{
-    BPLib_STOR_CACHE_Block_t cblock_list;
-    BPLib_STOR_CACHE_Block_t chunk_list;
-    size_t              block_encode_size_cache;
-    size_t              bundle_encode_size_cache;
-
-    BPLib_STOR_CACHE_BblockPrimaryData_t data;
-};
-
-struct BPLib_STOR_CACHE_BblockPrimaryContent
-{
-    BPLib_STOR_CACHE_BblockPrimary_t    pblock;
-    BPLib_MEM_AlignedData_t             user_data_start;
-};
-
-struct BPLib_STOR_CACHE_BblockCanonical
-{
-    BPLib_STOR_CACHE_Block_t           chunk_list;
-    BPLib_STOR_CACHE_BblockPrimary_t *bundle_ref;
-    size_t                        block_encode_size_cache;
-    size_t                        encoded_content_offset;
-    size_t                        encoded_content_length;
-    bp_canonical_block_buffer_t   canonical_logical_data;
-};
-
-typedef struct BPLib_STOR_CACHE_Job
-{
-    BPLib_STOR_CACHE_Block_t        link;
-    BPLib_STOR_CACHE_CallbackFunc_t handler;
-} BPLib_STOR_CACHE_Job_t;
-
-typedef struct BPLib_STOR_CACHE_JobStatechange
-{
-    BPLib_STOR_CACHE_Job_t base_job;
-
-    /* JPHFIX: this single event handler may be separated into per-event-type handlers */
-    BPLib_STOR_CACHE_CallbackFunc_t event_handler;
-} BPLib_STOR_CACHE_JobStatechange_t;
-
-struct BPLib_STOR_CACHE_SubqBase
-{
-    BPLib_STOR_CACHE_Block_t block_list;
-
-    /* note - "unsigned int" is chosen here as it is likely to be
-     * a single-cycle read in most CPUs.  The range is not as critical
-     * because what matters is the difference between these values.
-     * The "volatile" qualification helps ensure the values are read as they
-     * appear in code and are not rearranged by the compiler, as they could
-     * be changed by other threads.  */
-    volatile unsigned int push_count;
-    volatile unsigned int pull_count;
-};
-
-typedef struct BPLib_STOR_CACHE_SubqWorkitem
-{
-    BPLib_STOR_CACHE_Job_t       job_header;
-    BPLib_STOR_CACHE_SubqBase_t         base_subq;
-    unsigned int                 current_depth_limit;
-} BPLib_STOR_CACHE_SubqWorkitem_t;
-
-
-struct BPLib_STOR_QM_Duct
-{
-    uint32_t pending_state_flags;
-    uint32_t current_state_flags;
-
-    BPLib_STOR_CACHE_JobStatechange_t statechange_job;
-    BPLib_STOR_CACHE_Ref_t             parent;
-
-    BPLib_STOR_CACHE_SubqWorkitem_t ingress;
-    BPLib_STOR_CACHE_SubqWorkitem_t egress;
-};
-
 /*
  * Enumeration that defines the various possible queueing table events.  This enum
  * must always appear first in the structure that is the argument to the event handler,
@@ -701,52 +543,13 @@ typedef struct BPLib_STOR_CACHE_GenericDataContent
     BPLib_MEM_AlignedData_t             user_data_start;
 } BPLib_STOR_CACHE_GenericDataContent_t;
 
-typedef struct BPLib_STOR_CACHE_ModuleApiContent
-{
-    BPLib_MEM_RBT_Link_t                rbt_link;
-    BPLib_STOR_CACHE_BlocktypeApi_t     api;
-    size_t                              user_content_size;
-    BPLib_MEM_AlignedData_t             user_data_start;
-} BPLib_STOR_CACHE_ModuleApiContent_t;
-
-typedef struct BPLib_STOR_CACHE_BlockAdminContent
-{
-    size_t   buffer_size;
-    uint32_t num_bufs_total;
-    uint32_t bblock_alloc_threshold;   /**< threshold at which new bundles will no longer be allocatable */
-    uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
-    uint32_t max_alloc_watermark;
-
-    BPLib_MEM_RBT_Root_t          blocktype_registry; /**< registry of block signature values */
-    BPLib_STOR_CACHE_ModuleApiContent_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
-    BPLib_STOR_CACHE_ModuleApiContent_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
-
-    BPLib_STOR_CACHE_SubqBase_t free_blocks;    /**< blocks which are available for use */
-    BPLib_STOR_CACHE_SubqBase_t recycle_blocks; /**< blocks which can be garbage-collected */
-
-    /* note that the active_list and managed_block_list are not FIFO in nature, as blocks
-     * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
-     * is not used for these, because the push_count and pull_count would not remain accurate. */
-
-    BPLib_STOR_CACHE_Block_t active_list; /**< a list of flows/queues that need processing */
-
-} BPLib_STOR_CACHE_BlockAdminContent_t;
-
 void BPLib_STOR_CACHE_DebugScanPool(BPLib_STOR_CACHE_Pool_t *pool);
 void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, bp_handle_t intf_id);
 void BPLib_STOR_CACHE_DebugPrintListStats(BPLib_STOR_CACHE_Block_t *list, const char *label);
 
-#define BPLIB_TIME_TO_INT(t)   ((t).Time)
-#define BPLIB_TIME_FROM_INT(t) { (t) }
-#define BPLIB_TIME_IS_VALID(t) (BPLIB_TIME_TO_INT(t) != 0)
-#define BPLIB_TIME_IS_INFINITE(t) (BPLIB_TIME_TO_INT(t) == UINT64_MAX)
-
 void BPLib_STOR_CACHE_BblockPrimaryInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_BblockPrimary_t *pblk);
 void BPLib_STOR_CACHE_BblockCanonicalInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_BblockCanonical_t *cblk);
 void BPLib_STOR_CACHE_SubqInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_SubqBase_t *qblk);
-void BPLib_STOR_QM_DuctInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_Duct_t *fblk);
-
-int BPLib_STOR_QM_IngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
 
 // TODO Reconcile heritage time functions with bplib_time.h TIME module.
 

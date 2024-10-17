@@ -29,9 +29,6 @@
 
 #include "bplib_api_types.h"
 
-#include "bplib_mem.h"
-#include "bplib_mem_rbtree.h"
-
 #include "bplib_stor_cache_types.h"
 
 /******************************************************************************
@@ -43,15 +40,115 @@
  ******************************************************************************/
 
 // Defs for abstract types
-struct BPLib_STOR_CACHE_BblockCanonicalContent
+struct BPLib_STOR_CACHE_Block
 {
-    BPLib_STOR_CACHE_BblockCanonical_t  cblock;
+    /* note that if it becomes necessary to recover bits here,
+     * the offset could be reduced in size
+     */
+    BPLib_STOR_CACHE_Blocktype_t   type;
+    uint32_t                       parent_offset;
+    struct BPLib_STOR_CACHE_Block *next;
+    struct BPLib_STOR_CACHE_Block *prev;
+};
+
+typedef struct BPLib_STOR_CACHE_BlockHeader
+{
+    BPLib_STOR_CACHE_Block_t base_link; /* must be first - this is the pointer used in the application */
+
+    uint32_t content_type_signature; /* a "signature" (sanity check) value for identifying the data */
+    uint16_t user_content_length;    /* actual length of user content (does not include fixed fields) */
+    uint16_t refcount;               /* number of active references to the object */
+
+} BPLib_STOR_CACHE_BlockHeader_t;
+
+struct BPLib_STOR_CACHE_SubqBase
+{
+    BPLib_STOR_CACHE_Block_t block_list;
+
+    /* note - "unsigned int" is chosen here as it is likely to be
+     * a single-cycle read in most CPUs.  The range is not as critical
+     * because what matters is the difference between these values.
+     * The "volatile" qualification helps ensure the values are read as they
+     * appear in code and are not rearranged by the compiler, as they could
+     * be changed by other threads.  */
+    volatile unsigned int push_count;
+    volatile unsigned int pull_count;
+};
+
+typedef struct BPLib_STOR_CACHE_BlockAdminContent
+{
+    size_t   buffer_size;
+    uint32_t num_bufs_total;
+    uint32_t bblock_alloc_threshold;   /**< threshold at which new bundles will no longer be allocatable */
+    uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
+    uint32_t max_alloc_watermark;
+
+    BPLib_MEM_RBT_Root_t          blocktype_registry;    /**< registry of block signature values */
+    #ifdef QM_MODULE_API
+    BPLib_STOR_QM_ModuleApiContent_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
+    BPLib_STOR_QM_ModuleApiContent_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
+    #endif // QM_MODULE_API
+
+    BPLib_STOR_CACHE_SubqBase_t free_blocks;    /**< blocks which are available for use */
+    BPLib_STOR_CACHE_SubqBase_t recycle_blocks; /**< blocks which can be garbage-collected */
+
+    /* note that the active_list and managed_block_list are not FIFO in nature, as blocks
+     * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
+     * is not used for these, because the push_count and pull_count would not remain accurate. */
+
+    BPLib_STOR_CACHE_Block_t active_list; /**< a list of flows/queues that need processing */
+
+} BPLib_STOR_CACHE_BlockAdminContent_t;
+
+struct BPLib_STOR_CACHE_BblockTracking
+{
+   BPLib_STOR_CACHE_PolicyDelivery_t delivery_policy;
+    bp_handle_t                 ingress_intf_id;
+    BPLib_TIME_MonotonicTime_t  ingress_time;
+    bp_handle_t                 egress_intf_id;
+    BPLib_TIME_MonotonicTime_t  egress_time;
+    bp_handle_t                 storage_intf_id;
+    bp_sid_t                    committed_storage_id;
+
+    /* JPHFIX: this is here for now, but really it belongs on the egress CLA intf based on its RTT */
+    uint64_t local_retx_interval;
+};
+
+struct BPLib_STOR_CACHE_BblockPrimaryData
+{
+    BPLib_STOR_CACHE_PrimaryBlock_t logical;
+    BPLib_STOR_CACHE_BblockTracking_t     delivery;
+};
+
+struct BPLib_STOR_CACHE_BblockPrimary
+{
+    BPLib_STOR_CACHE_Block_t cblock_list;
+    BPLib_STOR_CACHE_Block_t chunk_list;
+    size_t              block_encode_size_cache;
+    size_t              bundle_encode_size_cache;
+
+    BPLib_STOR_CACHE_BblockPrimaryData_t data;
+};
+
+struct BPLib_STOR_CACHE_BblockPrimaryContent
+{
+    BPLib_STOR_CACHE_BblockPrimary_t    pblock;
     BPLib_MEM_AlignedData_t             user_data_start;
 };
 
-struct BPLib_STOR_QM_DuctContent
+struct BPLib_STOR_CACHE_BblockCanonical
 {
-    BPLib_STOR_QM_Duct_t             dblock;
+    BPLib_STOR_CACHE_Block_t           chunk_list;
+    BPLib_STOR_CACHE_BblockPrimary_t *bundle_ref;
+    size_t                        block_encode_size_cache;
+    size_t                        encoded_content_offset;
+    size_t                        encoded_content_length;
+    bp_canonical_block_buffer_t   canonical_logical_data;
+};
+
+struct BPLib_STOR_CACHE_BblockCanonicalContent
+{
+    BPLib_STOR_CACHE_BblockCanonical_t  cblock;
     BPLib_MEM_AlignedData_t             user_data_start;
 };
 
@@ -64,10 +161,14 @@ struct BPLib_STOR_CACHE_BlockRefContent
 typedef union BPLib_STOR_CACHE_BlockBuffer
 {
     BPLib_STOR_CACHE_GenericDataContent_t     generic_data;
-    BPLib_STOR_CACHE_ModuleApiContent_t       api;
+    #ifdef QM_MODULE_API
+    BPLib_STOR_QM_ModuleApiContent_t          api;
+    #endif // QM_MODULE_API
     BPLib_STOR_CACHE_BBlockPrimaryContent_t   primary;
     BPLib_STOR_CACHE_BblockCanonicalContent_t canonical;
+    #ifdef QM_MODULE_API
     BPLib_STOR_QM_DuctContent_t               duct;
+    #endif // QM_MODULE_API
     BPLib_STOR_CACHE_BlockRefContent_t        ref;
     BPLib_STOR_CACHE_BlockAdminContent_t      admin;
 

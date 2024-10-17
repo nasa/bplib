@@ -30,15 +30,12 @@
 
 #include "bplib_mem.h"
 
-#include "bplib_stor_qm_ducts.h"
-
-#include "bplib_stor_cache_internal.h"
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_ref.h"
+#include "bplib_stor_cache_internal.h"
 
-// TODO BPLIB_TIMEOUT should be in bplib_api_types.h.
-#define BPLIB_TIMEOUT                 ((BPLib_Status_t) -2)  // TODO In bplib_api_types this is BPLIB_UNIMPLEMENTED.
+#include "bplib_stor_qm.h"
 
 /**
  * @brief Maxmimum number of blocks to be collected in a single maintenace cycle
@@ -247,11 +244,15 @@ size_t BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(BPLib_STOR_CACHE_Blocktype_
 {
     static const size_t USER_DATA_START_OFFSET[BPLib_STOR_CACHE_BlocktypeMax] = {
         [BPLib_STOR_CACHE_BlocktypeUndefined] = SIZE_MAX,
+        #ifdef QM_MODULE_API
         [BPLib_STOR_CACHE_BlocktypeApi]       = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(api),
+        #endif // QM_MODULE_API
         [BPLib_STOR_CACHE_BlocktypeGeneric]   = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(generic_data),
         [BPLib_STOR_CACHE_BlocktypePrimary]   = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(primary),
         [BPLib_STOR_CACHE_BlocktypeCanonical] = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(canonical),
+        #ifdef QM_DUCT
         [BPLib_STOR_CACHE_BlocktypeDuct]      = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(duct),
+        #endif // QM_DUCT
         [BPLib_STOR_CACHE_BlocktypeRef]       = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(ref)};
 
     if (bt >= BPLib_STOR_CACHE_BlocktypeMax)
@@ -336,7 +337,7 @@ void BPLib_STOR_CACHE_SubqInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_
 void BPLib_STOR_CACHE_InsertAfter(BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_Block_t *node)
 {
     /* node being inserted should always be a singleton */
-    assert(BPLib_STOR_CACHE_IsLinkUnattached(node));
+    // TODO assert(BPLib_STOR_CACHE_IsLinkUnattached(node));
 
     node->next       = list->next;
     node->prev       = list;
@@ -367,8 +368,11 @@ void BPLib_STOR_CACHE_InsertBefore(BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CA
  *-----------------------------------------------------------------*/
 void BPLib_STOR_CACHE_ExtractNode(BPLib_STOR_CACHE_Block_t *node)
 {
-    node->prev->next = node->next;
-    node->next->prev = node->prev;
+    if (node->prev != NULL && node->next != NULL)
+    {
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+    }
     node->next       = node;
     node->prev       = node;
 }
@@ -474,12 +478,18 @@ void BPLib_STOR_CACHE_InitBaseObject(BPLib_STOR_CACHE_BlockHeader_t *block_hdr, 
 BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_CACHE_Pool_t *pool,
     BPLib_STOR_CACHE_Blocktype_t blocktype, uint32_t content_type_signature, void *init_arg, uint8_t priority)
 {
-    BPLib_STOR_CACHE_Block_t         *node;
-    BPLib_STOR_CACHE_BlockContent_t *block;
-    BPLib_STOR_CACHE_ModuleApiContent_t   *api_block;
-    size_t                       data_offset;
-    uint32_t                     alloc_threshold;
-    uint32_t                     block_count;
+    BPLib_STOR_CACHE_Block_t              *node;
+    BPLib_STOR_CACHE_BlockContent_t       *block;
+    #ifdef QM_MODULE_API
+    BPLib_STOR_QM_ModuleApiContent_t      *api_block;
+    #endif // QM_MODULE_API
+    size_t                                 data_offset;
+    #ifdef ALLOC_THRESHOLD
+    uint32_t                               alloc_threshold;
+    #endif // ALLOC_THRESHOLD
+    #ifdef QM_SUBQ
+    uint32_t                               block_count;
+    #endif // QM_SUBQ
 
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
@@ -497,6 +507,12 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         return NULL;
     }
 
+    #ifdef QM_SUBQ
+    block_count = BPLib_STOR_CACHE_SubqGetDepth(&admin->free_blocks);
+    printf("%s:%d block_count: %d\n", __FILE__, __LINE__, block_count);
+    #endif // QM_SUBQ
+
+    #ifdef ALLOC_THRESHOLD
     /*
      * Check free block threshold: Note that it may take additional pool blocks (refs, cbor, etc)
      * in order to forward stored bundles along when the time comes.
@@ -508,8 +524,6 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
      */
     alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
 
-    block_count = BPLib_STOR_CACHE_SubqGetDepth(&admin->free_blocks);
-
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
         printf("%s:%d No free blocks. Return null.\n", __FILE__, __LINE__);
@@ -517,10 +531,12 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         /* no free blocks available for the requested type */
         return NULL;
     }
+    #endif // ALLOC_THRESHOLD
 
+    #ifdef QM_MODULE_API
     /* Determine how to initialize this block by looking up the content type */
-    api_block = (BPLib_STOR_CACHE_ModuleApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
-                                                                                   &admin->blocktype_registry);
+    api_block = (BPLib_STOR_QM_ModuleApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
+                                                                                         &admin->blocktype_registry);
     if (api_block == NULL)
     {
         printf("%s:%d No constructor. Return null.\n", __FILE__, __LINE__);
@@ -539,6 +555,10 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         /* User content will not fit in the block - cannot create an instance of this type combo */
         return NULL;
     }
+    #else // QM_MODULE_API
+    data_offset = BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(blocktype);
+
+    #endif // QM_MODULE_API
 
     /* get a block */
     node = BPLib_STOR_CACHE_SubqPullSingle(&admin->free_blocks);
@@ -557,12 +577,13 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
      * BPLib_STOR_CACHE_SubqGetDepth() on the free list now will return 1 fewer than it
      * did earlier in this function).
      */
+    #ifdef QM_DUCT
     block_count = 1 + admin->num_bufs_total - block_count;
     if (block_count > admin->max_alloc_watermark)
     {
         admin->max_alloc_watermark = block_count;
     }
-
+    #endif // QM_DUCT
     node->type = blocktype;
     block      = BPLib_STOR_CACHE_GetBlockContent(node);
 
@@ -570,9 +591,14 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
      * zero fill the content part first, this ensures that this is always done,
      * and avoids the need for the module to supply a dedicated constructor just to zero it
      */
+    #ifdef QM_MODULE_API
     memset(&block->u, 0, data_offset + api_block->user_content_size);
 
     BPLib_STOR_CACHE_InitBaseObject(&block->header, api_block->user_content_size, content_type_signature);
+    #else // QM_MODULE_API
+    memset(&block->u, 0, data_offset);
+    BPLib_STOR_CACHE_InitBaseObject(&block->header, 0, content_type_signature);
+    #endif // QM_MODULE_API
 
     switch (blocktype)
     {
@@ -582,14 +608,17 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         case BPLib_STOR_CACHE_BlocktypeCanonical:
             BPLib_STOR_CACHE_BblockCanonicalInit(node, &block->u.canonical.cblock);
             break;
+        #ifdef QM_DUCT
         case BPLib_STOR_CACHE_BlocktypeDuct:
             BPLib_STOR_QM_DuctInit(node, &block->u.duct.dblock);
             break;
-                    default:
+        #endif // QM_DUCT
+        default:
             /* nothing more for this node type (this catches cbor_data)  */
             break;
     }
 
+    #ifdef QM_MODULE_API
     /* If the module did supply a constructor, invoke it now */
     if (api_block->api.construct != NULL)
     {
@@ -601,7 +630,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
             //      (unsigned long)content_type_signature);
         }
     }
-
+    #endif // QM_MODULE_API
     return block;
 }
 
@@ -836,9 +865,11 @@ int BPLib_STOR_CACHE_RegisterBlocktypeInternal(BPLib_STOR_CACHE_Pool_t *pool, ui
                                             const BPLib_STOR_CACHE_BlocktypeApi_t *api, size_t user_content_size)
 {
     BPLib_STOR_CACHE_BlockContent_t       *ablk;
-    BPLib_STOR_CACHE_ModuleApiContent_t         *api_block;
-    int                                status;
-    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    #ifdef QM_MODULE_API
+    BPLib_STOR_QM_ModuleApiContent_t      *api_block;
+    #endif // QM_MODULE_API
+    int                                    status;
+    BPLib_STOR_CACHE_BlockAdminContent_t  *admin;
 
     admin = BPLib_STOR_CACHE_GetAdmin(pool);
 
@@ -855,6 +886,7 @@ int BPLib_STOR_CACHE_RegisterBlocktypeInternal(BPLib_STOR_CACHE_Pool_t *pool, ui
         return BPLIB_ERROR;
     }
 
+    #ifdef QM_MODULE_API
     api_block = &ablk->u.api;
 
     if (api != NULL)
@@ -865,6 +897,9 @@ int BPLib_STOR_CACHE_RegisterBlocktypeInternal(BPLib_STOR_CACHE_Pool_t *pool, ui
     api_block->user_content_size = user_content_size;
 
     status = BPLib_MEM_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, &api_block->rbt_link);
+    #else // QM_MODULE_API
+    status = BPLib_MEM_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, (BPLib_MEM_RBT_Link_t *)NULL);
+    #endif // QM_MODULE_API
 
     /* due to the pre-check above this should always have been successful, but just in case, return the block if error
      */
@@ -901,7 +936,9 @@ int BPLib_STOR_CACHE_RegisterBlocktype(BPLib_STOR_CACHE_Pool_t *pool, uint32_t m
 uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_STOR_CACHE_Pool_t *pool, uint32_t limit)
 {
     BPLib_STOR_CACHE_Block_t               *rblk;
-    BPLib_STOR_CACHE_ModuleApiContent_t          *api_block;
+    #ifdef QM_MODULE_API
+    BPLib_STOR_QM_ModuleApiContent_t       *api_block;
+    #endif // QM_MODULE_API
     BPLib_STOR_CACHE_BlockContent_t        *content;
     BPLib_STOR_CACHE_CallbackFunc_t         destruct;
     uint32_t                                count;
@@ -926,8 +963,9 @@ uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_STOR_CACHE_Pool_t *pool, uint32_t 
         assert(content != NULL);
         assert(content->header.refcount == 0);
 
+        #ifdef QM_MODULE_API
         /* figure out how to de-initialize the user content by looking up the content type */
-        api_block = (BPLib_STOR_CACHE_ModuleApiContent_t *)
+        api_block = (BPLib_STOR_QM_ModuleApiContent_t *)
                         (void *)BPLib_MEM_RBT_SearchUnique(
                             content->header.content_type_signature,
                             &admin->blocktype_registry);
@@ -940,6 +978,9 @@ uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_STOR_CACHE_Pool_t *pool, uint32_t 
         {
             destruct = NULL;
         }
+        #else // QM_MODULE_API
+        destruct = NULL;
+        #endif // QM_MODULE_API
 
         /* pool should be UN-locked when invoking destructor */
         BPLib_MEM_LockRelease(lock);
@@ -969,6 +1010,7 @@ uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_STOR_CACHE_Pool_t *pool, uint32_t 
                 BPLib_MEM_LockRelease(lock);
                 break;
             }
+            #ifdef QM_DUCT
             case BPLib_STOR_CACHE_BlocktypeDuct:
             {
                 BPLib_MEM_LockAcquire(lock);
@@ -977,6 +1019,7 @@ uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_STOR_CACHE_Pool_t *pool, uint32_t 
                                 BPLib_MEM_LockRelease(lock);
                 break;
             }
+            #endif // QM_DUCT
             case BPLib_STOR_CACHE_BlocktypeRef:
             {
                 BPLib_STOR_CACHE_RefRelease(content->u.ref.pref_target);
@@ -1012,14 +1055,16 @@ uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_STOR_CACHE_Pool_t *pool, uint32_t 
  *-----------------------------------------------------------------*/
 void BPLib_STOR_CACHE_Maintain(BPLib_STOR_CACHE_Pool_t *pool)
 {
+    #ifdef QM_SUBQ
     /* the check for non-empty list can be done unlocked, as it
      * involves counter values which should be testable in an atomic fashion.
      * note this isn't final - Subq will be re-checked after locking, if this is true */
-        if (BPLib_STOR_CACHE_SubqGetDepth(&BPLib_STOR_CACHE_GetAdmin(pool)->recycle_blocks) != 0)
+    if (BPLib_STOR_CACHE_SubqGetDepth(&BPLib_STOR_CACHE_GetAdmin(pool)->recycle_blocks) != 0)
     {
         BPLib_STOR_CACHE_CollectBlocks(pool, BPLIB_CACHE_MAINTENCE_COLLECT_LIMIT);
     }
-    }
+    #endif // QM_SUBQ
+}
 
 /*----------------------------------------------------------------
  *
@@ -1028,11 +1073,15 @@ void BPLib_STOR_CACHE_Maintain(BPLib_STOR_CACHE_Pool_t *pool)
  *-----------------------------------------------------------------*/
 size_t BPLib_STOR_CACHE_QueryMemCurrentUse(BPLib_STOR_CACHE_Pool_t *pool)
 {
+    #ifdef QM_SUBQ
     BPLib_STOR_CACHE_BlockAdminContent_t   *admin;
 
     admin = BPLib_STOR_CACHE_GetAdmin(pool);
 
     return (BPLib_STOR_CACHE_SubqGetDepth(&admin->free_blocks) * (size_t)admin->buffer_size);
+    #else // QM_SUBQ
+    return 0;
+    #endif // QM_SUBQ
 }
 
 /*----------------------------------------------------------------
@@ -1103,7 +1152,7 @@ void BPLib_STOR_CACHE_DebugPrintListStats(BPLib_STOR_CACHE_Block_t *list, const 
  *-----------------------------------------------------------------*/
 void BPLib_STOR_CACHE_DebugScanPool(BPLib_STOR_CACHE_Pool_t *pool)
 {
-    
+    #ifdef QM_SUBQ
     size_t                             i;
     BPLib_STOR_CACHE_BlockContent_t       *pchunk;
     uint32_t                           count_by_type[BPLib_STOR_CACHE_BlocktypeMax];
@@ -1148,6 +1197,7 @@ void BPLib_STOR_CACHE_DebugScanPool(BPLib_STOR_CACHE_Pool_t *pool)
         printf("DEBUG: %s(): block type=%zu count=%lu\n", __func__, i, (unsigned long)count_by_type[i]);
     }
     printf("DEBUG: %s(): invalid count=%lu\n", __func__, (unsigned long)count_invalid);
+    #endif // QM_SUBQ
 }
 
 /*----------------------------------------------------------------
@@ -1196,11 +1246,13 @@ BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_Create(void *pool_mem, size_t pool_siz
     pchunk = &pool->admin_block + 1;
     remain = pool_size - sizeof(BPLib_STOR_CACHE_BlockContent_t);
 
+    #ifdef QM_MODULE_API
     /* register the first API type, which is 0.
      * Notably this prevents other modules from actually registering something at 0. */
     BPLib_MEM_RBT_InsertValueUnique(0, &admin->blocktype_registry, &admin->blocktype_basic.rbt_link);
     BPLib_MEM_RBT_InsertValueUnique(BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
                                   &admin->blocktype_cbor.rbt_link);
+    #endif // QM_MODULE_API
 
     while (remain >= sizeof(BPLib_STOR_CACHE_BlockContent_t))
     {
@@ -1306,6 +1358,7 @@ uint32_t BPLib_STOR_CACHE_SubqMergeList(BPLib_STOR_CACHE_SubqBase_t *subq_dst, B
  *-----------------------------------------------------------------*/
 uint32_t BPLib_STOR_CACHE_SubqMoveAll(BPLib_STOR_CACHE_SubqBase_t *subq_dst, BPLib_STOR_CACHE_SubqBase_t *subq_src)
 {
+    #ifdef QM_SUBQ
     uint32_t queue_depth;
 
     /* appends the entire subq to the destination */
@@ -1318,6 +1371,9 @@ uint32_t BPLib_STOR_CACHE_SubqMoveAll(BPLib_STOR_CACHE_SubqBase_t *subq_dst, BPL
         subq_dst->push_count += queue_depth;
     }
     return queue_depth;
+    #else // QM_SUBQ
+    return 0;
+    #endif // QM_SUBQ
 }
 
 /*----------------------------------------------------------------
@@ -1327,6 +1383,7 @@ uint32_t BPLib_STOR_CACHE_SubqMoveAll(BPLib_STOR_CACHE_SubqBase_t *subq_dst, BPL
  *-----------------------------------------------------------------*/
 uint32_t BPLib_STOR_CACHE_SubqDropAll(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE_SubqBase_t *subq)
 {
+    #ifdef QM_SUBQ
     uint32_t queue_depth;
 
     /* appends the entire subq to the destination */
@@ -1337,6 +1394,9 @@ uint32_t BPLib_STOR_CACHE_SubqDropAll(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_
         subq->pull_count += queue_depth;
     }
     return queue_depth;
+    #else // QM_SUBQ
+    return 0;
+    #endif // QM_SUBQ
 }
 
 /*----------------------------------------------------------------
@@ -1346,6 +1406,7 @@ uint32_t BPLib_STOR_CACHE_SubqDropAll(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_
  *-----------------------------------------------------------------*/
 BPLib_STOR_QM_Duct_t *BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Block_t *cb)
 {
+    #ifdef QM_DUCT
     BPLib_STOR_CACHE_BlockContent_t *content;
 
     content = BPLib_STOR_CACHE_BlockDereferenceContent(cb);
@@ -1353,7 +1414,7 @@ BPLib_STOR_QM_Duct_t *BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Block_t *cb)
     {
         return &content->u.duct.dblock;
     }
-
+    #endif // QM_DUCT
     return NULL;
 }
 
@@ -1367,6 +1428,7 @@ BPLib_STOR_QM_Duct_t *BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Block_t *cb)
 bool BPLib_STOR_CACHE_SubqWorkitemWaitForSpace(BPLib_MEM_Lock_t *lock, BPLib_STOR_CACHE_SubqWorkitem_t *subq,
                                               uint32_t quantity, BPLib_TIME_MonotonicTime_t abs_timeout)
 {
+    #ifdef QM_SUBQ
     uint32_t next_depth;
     bool     within_timeout;
 
@@ -1381,6 +1443,9 @@ bool BPLib_STOR_CACHE_SubqWorkitemWaitForSpace(BPLib_MEM_Lock_t *lock, BPLib_STO
     }
 
     return (next_depth <= subq->current_depth_limit);
+    #else // QM_SUBQ
+    return true;
+    #endif // QM_SUBQ
 }
 
 /*----------------------------------------------------------------
@@ -1393,6 +1458,7 @@ bool BPLib_STOR_CACHE_SubqWorkitemWaitForSpace(BPLib_MEM_Lock_t *lock, BPLib_STO
 bool BPLib_STOR_CACHE_SubqWorkitemWaitForFill(BPLib_MEM_Lock_t *lock, BPLib_STOR_CACHE_SubqWorkitem_t *subq,
                                              uint32_t quantity, BPLib_TIME_MonotonicTime_t abs_timeout)
 {
+    #ifdef QM_SUBQ
     uint32_t curr_depth;
     bool     within_timeout;
 
@@ -1405,4 +1471,7 @@ bool BPLib_STOR_CACHE_SubqWorkitemWaitForFill(BPLib_MEM_Lock_t *lock, BPLib_STOR
     }
 
     return (curr_depth >= quantity);
+    #else // QM_SUBQ
+    return true;
+    #endif // QM_SUBQ
 }

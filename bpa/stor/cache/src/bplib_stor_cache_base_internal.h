@@ -49,7 +49,11 @@ typedef struct BPLib_STOR_QM_ServiceintfInfo
 
 static inline BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_GetPool(const BPLib_STOR_QM_QueueTbl_t *svc)
 {
+    #ifdef QM_QUEUE_TABLE
     return svc->pool;
+    #else // QM_QUEUE_TABLE
+    return (BPLib_STOR_CACHE_Pool_t *) NULL;
+    #endif // QM_QUEUE_TABLE 
 }
 
 int BPLib_STOR_CACHE_ServiceductForwardIngress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);

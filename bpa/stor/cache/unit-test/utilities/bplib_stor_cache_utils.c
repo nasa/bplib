@@ -43,7 +43,5 @@ void BPLib_STOR_CACHE_Test_Teardown(void)
 void UtTest_Setup(void)
 {
     Test_BplibStorCache_Register();
-    // TODO QM Test_BplibCache_ClaApi_Register();
-    // TODO QM Test_BplibCache_DataServiceApi_Register();
-    // TODO QM Test_BplibCache_Routing_Register();
+    Test_BplibStorCacheFsm_Register();
 }

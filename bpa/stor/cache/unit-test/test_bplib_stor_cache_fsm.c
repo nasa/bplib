@@ -23,8 +23,19 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "test_bplib_stor_qm.h"
+#include "bplib_api_types.h"
+
+#include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
+#include "bplib_stor_cache_internal.h"
+
+#include "test_bplib_stor_cache.h"
+
+#include "test_bplib_stor_qm.h"
+#include "bplib_stor_qm.h"
+#include "bplib_stor_ps_file_offload.h"
+
+#include "bplib_time.h"
 
 BPLib_TIME_MonotonicTime_t UT_MONOTIME_1 = BPLIB_TIME_FROM_INT(1);
 BPLib_TIME_MonotonicTime_t UT_MONOTIME_10 = BPLIB_TIME_FROM_INT(10);
@@ -37,17 +48,22 @@ void Test_BPLib_STOR_CACHE_FsmStateIdleEval(void)
      */
     BPLib_STOR_CACHE_Entry_t       store_entry;
     BPLib_STOR_CACHE_State_t       parent;
-    BPLib_STOR_PS_OffloadApi_t  offload_api;
+    #ifdef QM_MODULE_API
+    BPLib_STOR_PS_OffloadApi_t     offload_api;
+    #endif // QM_MODULE_API
     BPLib_STOR_CACHE_Block_t       refptr;
 
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
     memset(&parent, 0, sizeof(BPLib_STOR_CACHE_State_t));
+    #ifdef QM_MODULE_API
     memset(&offload_api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
+    #endif // QM_MODULE_API
     memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     store_entry.parent  = &parent;
+    #ifdef QM_MODULE_API
     offload_api.restore = Test_BPLib_STOR_CACHE_RestoreStub;
     parent.offload_api  = &offload_api;
-
+    #endif // QM_MODULE_API
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_FsmStateIdleEval(&store_entry), 0);
 
     store_entry.expire_time = UT_MONOTIME_10;
@@ -86,8 +102,10 @@ void Test_BPLib_STOR_CACHE_FsmStateQueueEnter(void)
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
     memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
+    #ifdef QM_DUCT
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_cache_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctTryPush), UT_cache_int8_Handler, NULL);
+    #endif // QM_DUCT
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefMakeBlock), UT_cache_AltHandler_PointerReturn, &blk);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmStateQueueEnter(&store_entry));
 
@@ -134,20 +152,24 @@ void Test_BPLib_STOR_CACHE_FsmStateQueueExit(void)
      * void BPLib_STOR_CACHE_FsmStateQueueExit(BPLib_STOR_CACHE_Entry_t *store_entry)
      */
     BPLib_STOR_CACHE_Entry_t          store_entry;
-    BPLib_STOR_CACHE_BblockPrimary_t pri_block;
+    BPLib_STOR_CACHE_BblockPrimary_t  pri_block;
 
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
     memset(&pri_block, 0, sizeof(BPLib_STOR_CACHE_BblockPrimary_t));
     pri_block.data.delivery.egress_intf_id = BPLIB_HANDLE_RAM_STORE_BASE;
     store_entry.offload_sid                = 1;
 
+    #ifdef PRIMARY_CAST_STUB
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, &pri_block);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmStateQueueExit(&store_entry));
 
-    pri_block.data.delivery.delivery_policy =BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking;
+    pri_block.data.delivery.delivery_policy = BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking;
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmStateQueueExit(&store_entry));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, NULL);
+    #else // PRIMARY_CAST_STUB
+    UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmStateQueueExit(&store_entry));
+    #endif // PRIMARY_CAST_STUB
 }
 
 void Test_BPLib_STOR_CACHE_FsmStateDeleteEval(void)
@@ -176,17 +198,22 @@ void Test_BPLib_STOR_CACHE_FsmStateDeleteEnter(void)
     BPLib_STOR_CACHE_Entry_t       store_entry;
     BPLib_STOR_CACHE_State_t       state;
     BPLib_STOR_CACHE_Ref_t         refptr;
+    #ifdef QM_MODULE_API
     BPLib_STOR_PS_OffloadApi_t offload_api;
-
+    #endif // QM_MODULE_API
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
     memset(&refptr, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    #ifdef QM_MODULE_API
     memset(&offload_api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
     offload_api.release             = Test_BPLib_STOR_CACHE_ReleaseStub;
+    #endif // QM_MODULE_API
     store_entry.parent              = &state;
     store_entry.refptr              = refptr;
     store_entry.offload_sid         = 1;
+    #ifdef QM_MODULE_API
     store_entry.parent->offload_api = &offload_api;
+    #endif // QM_MODULE_API
 
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmStateDeleteEnter(&store_entry));
 }
@@ -268,7 +295,7 @@ void Test_BPLib_STOR_CACHE_FsmGetNextState(void)
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_FsmGetNextState(&entry), 0);
 }
 
-void Test_BplibCacheFsm_Register(void)
+void Test_BplibStorCacheFsm_Register(void)
 {
     UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateIdleEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateIdleEval");
     UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateQueueEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateQueueEval");

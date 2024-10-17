@@ -27,8 +27,6 @@
 
 #include "bplib_mem.h"
 
-#include "bplib_stor_ps_file_offload.h"
-
 #include "bplib_stor_cache_block.h"
 
 // TODO Migrate PrintTrace stack trace to broader scope.
@@ -80,7 +78,9 @@ typedef struct BPLib_STOR_CACHE_State
 
     bp_ipn_addr_t self_addr;
 
-    BPLib_STOR_CACHE_Job_t pending_job;
+    #ifdef QM_JOB
+    BPLib_STOR_QM_Job_t pending_job;
+    #endif // QM_JOB
 
     /*
      * pending_list holds bundle refs that are currently actionable in some way,
@@ -112,7 +112,7 @@ typedef struct BPLib_STOR_CACHE_State
     BPLib_MEM_RBT_Root_t time_index;
     #endif // jphfix
 
-    const BPLib_STOR_PS_OffloadApi_t *offload_api;
+    // TODO const BPLib_STOR_PS_OffloadApi_t *offload_api;
     BPLib_STOR_CACHE_Block_t         *offload_blk;
 
 
@@ -185,6 +185,7 @@ static inline BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_ParentPool(BPLib_STOR_CA
     return BPLib_STOR_CACHE_GetParentPoolFromLink(BPLib_STOR_CACHE_StateSeldblock(state));
 }
 
+#ifdef QM_DUCT
 /**
  * @brief Cast a block to a duct type
  *
@@ -198,6 +199,7 @@ static inline BPLib_STOR_QM_Duct_t *BPLib_STOR_CACHE_GetDuct(BPLib_STOR_CACHE_St
 {
     return BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_StateSeldblock(state));
 }
+#endif // QM_DUCT
 
 /* Allows reconstitution of the queue struct from an RBT link pointer */
 #define BPLib_STOR_CACHE_EntryFromLink(ptr, member) \
@@ -234,7 +236,9 @@ void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, ui
 int  BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
 void BPLib_STOR_CACHE_FlushPending(BPLib_STOR_CACHE_State_t *state);
 int  BPLib_STOR_CACHE_DoPoll(BPLib_STOR_CACHE_State_t *state);
-int  BPLib_STOR_CACHE_DoRouteUp(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, bp_ipn_t mask);
+#ifdef UNUSED_ENTRIES_MAKE_PENDING
+int  BPLib_STOR_CACHE_EntriesMakePending(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, bp_ipn_t mask);
+#endif // UNUSED_ENTRIES_MAKE_PENDING
 int  BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_up);
 int  BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_block);
 int  BPLib_STOR_CACHE_ProcessPending(void *arg, BPLib_STOR_CACHE_Block_t *job);
@@ -359,10 +363,6 @@ uint32_t BPLib_STOR_CACHE_SubqDropAll(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_
 /* gets to the underlying block content (which may be a ref block) */
 BPLib_STOR_CACHE_BlockContent_t       *BPLib_STOR_CACHE_GetBlockContent(BPLib_STOR_CACHE_Block_t *cb);
 const BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_GetBlockContentConst(const BPLib_STOR_CACHE_Block_t *cb);
-
-void BPLib_STOR_CACHE_JobCancelInternal(BPLib_STOR_CACHE_Job_t *job);
-void BPLib_STOR_CACHE_JobMarkActiveInternal(BPLib_STOR_CACHE_Block_t *active_list, BPLib_STOR_CACHE_Job_t *job);
-void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job);
 
 BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_STOR_CACHE_Block_t *cb);
 BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_CACHE_Pool_t *pool,

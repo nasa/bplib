@@ -32,8 +32,6 @@
 #include "test_bplib_stor_cache.h"
 #include "utilities/bplib_stor_cache_utils.h"
 
-BPLib_STOR_CACHE_Block_t retblk;
-
 void test_setup_cache_state(BPLib_STOR_CACHE_Block_t *sblk)
 {
     BPLib_STOR_CACHE_ListIter_t list_it;
@@ -64,17 +62,19 @@ void UT_cache_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_Stub
 void UT_cache_valid_bphandle_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     bp_handle_t retval = BPLIB_HANDLE_RAM_STORE_BASE;
+    printf ("Set bp_handle_t return value for FuncKey: 0x%016lx 0x%016lx\n", (uint64_t)FuncKey, (uint64_t)retval.hdl);
     UT_Stub_SetReturnValue(FuncKey, retval);
 }
 
 void UT_cache_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    printf ("Set return value for FuncKey: %ld %ld\n", (uint64_t)FuncKey, (uint64_t)UserObj);
+    printf ("Set pointer return value for FuncKey: 0x%016lx 0x%016lx\n", (uint64_t)FuncKey, (uint64_t)UserObj);
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
 void UT_cache_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
+    #ifdef QM_DUCT
     void *retval = NULL;
     int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_QM_DuctTryPull));
     if (count > 10)
@@ -85,6 +85,9 @@ void UT_cache_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncK
     {
         UT_Stub_SetReturnValue(FuncKey, UserObj);
     }
+    #else // QM_DUCT
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+    #endif // QM_DUCT
 }
 
 void UT_cache_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
@@ -105,44 +108,9 @@ void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCo
     UT_Stub_SetReturnValue(FuncKey, retval);
 }
 
-BPLib_STOR_CACHE_Block_t *Test_BPLib_STOR_CACHE_InstantiateStub(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg)
-{
-    memset(&retblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
-    return &retblk;
-}
-
-int Test_BPLib_STOR_CACHE_ConfigureStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void *val)
-{
-    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_ConfigureStub);
-}
-
-int Test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_CACHE_ModuleValtype_t vt, const void **val)
-{
-    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_QueryStub);
-}
-
-int Test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc)
-{
-    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_StartstopStub);
-}
-
-int Test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
-{
-    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_OffloadStub);
-}
-
-int Test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
-{
-    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_RestoreStub);
-}
-
-int Test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
-{
-    return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_ReleaseStub);
-}
-
 void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
+    #ifdef QM_DUCT
     void *retval = NULL;
     int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_QM_DuctTryPull));
     if (count > 15)
@@ -153,10 +121,14 @@ void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKe
     {
         UT_Stub_SetReturnValue(FuncKey, UserObj);
     }
+    #else // QM_DUCT
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+    #endif // QM_DUCT
 }
 
 void UT_lib_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
+    #ifdef QM_DUCT
     void *retval = NULL;
     int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_QM_DuctTryPull));
     if (count > 20)
@@ -167,10 +139,14 @@ void UT_lib_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey
     {
         UT_Stub_SetReturnValue(FuncKey, UserObj);
     }
+    #else // QM_DUCT
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+    #endif // QM_DUCT
 }
 
 void UT_lib_baseintf_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
+    #ifdef QM_DUCT
     void *retval = NULL;
     int   count  = UT_GetStubCount(UT_KEY(BPLib_STOR_QM_DuctTryPull));
     if (count > 25)
@@ -181,6 +157,9 @@ void UT_lib_baseintf_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncK
     {
         UT_Stub_SetReturnValue(FuncKey, UserObj);
     }
+    #else // QM_DUCT
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+    #endif // QM_DUCT
 }
 
 void UT_lib_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
@@ -296,32 +275,24 @@ void test_setup_cpool_allocation(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, api_content);
 }
 
-
 void Test_BplibStorCache_Register(void)
 {
     ADD_TEST(Test_BPLib_STOR_CACHE_Create);
-    // Alloc error ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryAlloc);
-    // Alloc error ADD_TEST(Test_BPLib_STOR_CACHE_EntryMakePending);
-    // module_api.c ADD_TEST(Test_BPLib_STOR_CACHE_Attach);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_Detach);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_RegisterModuleService);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_Configure);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_Query);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_Start);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_Stop);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_DebugScanQueue);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_EgressImpl);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_FlushPending);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_DoPoll);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_DoRouteUp);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_DoIntfStatechange);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_EventImpl);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_ProcessPending);
+    ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryAlloc);
+    ADD_TEST(Test_BPLib_STOR_CACHE_EntryMakePending);
+    // QM ADD_TEST(Test_BPLib_STOR_CACHE_DebugScanQueue);
+    // QM SUBQ ADD_TEST(Test_BPLib_STOR_CACHE_EgressImpl);
+    // QM SUBQ ADD_TEST(Test_BPLib_STOR_CACHE_FlushPending);
+    ADD_TEST(Test_BPLib_STOR_CACHE_DoPoll);
+    // UNUSED ADD_TEST(Test_BPLib_STOR_CACHE_EntriesMakePending);
+    ADD_TEST(Test_BPLib_STOR_CACHE_DoIntfStatechange);
+    ADD_TEST(Test_BPLib_STOR_CACHE_EventImpl);
+    ADD_TEST(Test_BPLib_STOR_CACHE_ProcessPending);
     ADD_TEST(Test_BPLib_STOR_CACHE_DestructState);
     ADD_TEST(Test_BPLib_STOR_CACHE_ConstructEntry);
     ADD_TEST(Test_BPLib_STOR_CACHE_DestructEntry);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_ConstructBlockref);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_DestructBlockref);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_ConstructState);
-    // ADD_TEST(Test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted);
+    ADD_TEST(Test_BPLib_STOR_CACHE_ConstructBlockref);
+    ADD_TEST(Test_BPLib_STOR_CACHE_DestructBlockref);
+    // Fork? ADD_TEST(Test_BPLib_STOR_CACHE_ConstructState);
+    ADD_TEST(Test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted);
 }

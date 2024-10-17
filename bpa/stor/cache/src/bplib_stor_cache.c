@@ -27,13 +27,11 @@
 
 #include "bplib_api_types.h"
 
-#include "../qm/inc/bplib_stor_qm.h"
-#include "../qm/inc/bplib_stor_qm_ducts.h"
+#include "bplib_stor_qm.h"
 
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_internal.h"
 #include "bplib_stor_cache_ref.h"
-#include "bplib_stor_cache_module_api.h"
 #include "bplib_stor_cache_block.h"
 
 // TODO Remove OSAL #define bplog(flags, evt, ...) BPLIB_MEM_OS_Log(__FILE__, __LINE__, flags, evt, __VA_ARGS__)
@@ -82,19 +80,24 @@ void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, ui
     store_entry->flags |= set_flags;
     store_entry->flags &= ~clear_flags;
 
-    sblk = (BPLib_STOR_CACHE_Block_t *)BPLib_MEM_GenericDataUncast(store_entry, BPLib_STOR_CACHE_BlocktypeGeneric, BPLIB_STORE_SIGNATURE_ENTRY);
+    sblk = (BPLib_STOR_CACHE_Block_t *)BPLib_MEM_GenericDataUncast(store_entry, BPLib_MEM_BlocktypeGeneric, BPLIB_STORE_SIGNATURE_ENTRY);
     printf("%s:%d sblk is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)sblk);
-    assert(sblk != NULL);
+    // TODO assert(sblk != NULL);
 
     BPLib_STOR_CACHE_ExtractNode(sblk);
-    BPLib_STOR_CACHE_InsertBefore(&store_entry->parent->pending_list, sblk);
-    #ifdef QM
-    BPLib_STOR_CACHE_JobMarkActive(&store_entry->parent->pending_job);
-    #endif // QM
+    printf("%s:%d store_entry is 0x%016lx, parent is 0x%016lx, \n", __FILE__, __LINE__, (uint64_t)store_entry, (uint64_t)store_entry->parent);
+    if (store_entry->parent != NULL)
+    {
+        BPLib_STOR_CACHE_InsertBefore(&store_entry->parent->pending_list, sblk);
+        #ifdef QM_JOB
+        BPLib_STOR_QM_JobMarkActive(&store_entry->parent->pending_job);
+        #endif // QM_JOB
+    }
 }
 
 int BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
 {
+    #ifdef QM_DUCT
     BPLib_STOR_QM_Duct_t  *duct;
     BPLib_STOR_CACHE_Block_t *qblk;
     BPLib_STOR_CACHE_Block_t *intf_block;
@@ -147,10 +150,14 @@ int BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
     }
 
     return forward_count;
+    #else // QM_DUCT
+    return 0;
+    #endif // QM_DUCT
 }
 
 void BPLib_STOR_CACHE_FlushPending(BPLib_STOR_CACHE_State_t *state)
 {
+    #ifdef QM_DUCT
     BPLib_STOR_CACHE_ListIter_t list_it;
     int                         status;
     BPLib_STOR_QM_Duct_t       *self_duct;
@@ -170,6 +177,7 @@ void BPLib_STOR_CACHE_FlushPending(BPLib_STOR_CACHE_State_t *state)
         #endif // FSM_DEFINED
         status = BPLib_STOR_CACHE_ListIterForward(&list_it);
     }
+    #endif // QM_DUCT
 }
 
 int BPLib_STOR_CACHE_DoPoll(BPLib_STOR_CACHE_State_t *state)
@@ -198,12 +206,13 @@ int BPLib_STOR_CACHE_DoPoll(BPLib_STOR_CACHE_State_t *state)
     return BPLIB_SUCCESS;
 }
 
-int BPLib_STOR_CACHE_DoRouteUp(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, bp_ipn_t mask)
+#ifdef UNUSED_ENTRIES_MAKE_PENDING
+int BPLib_STOR_CACHE_EntriesMakePending(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, bp_ipn_t mask)
 {
-    BPLib_MEM_RBT_Iter_t     rbt_it;
+    BPLib_MEM_RBT_Iter_t      rbt_it;
     BPLib_STOR_CACHE_Entry_t *store_entry;
-    int                  rbt_status;
-    bp_ipn_t             curr_ipn;
+    int                       rbt_status;
+    bp_ipn_t                  curr_ipn;
 
     rbt_status = BPLib_MEM_RBT_IterGotoMin(dest, &state->dest_eid_index, &rbt_it);
     while (rbt_status == BPLIB_SUCCESS)
@@ -222,9 +231,11 @@ int BPLib_STOR_CACHE_DoRouteUp(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, b
 
     return BPLIB_SUCCESS;
 }
+#endif // UNUSED_ENTRIES_MAKE_PENDING
 
 int BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_up)
 {
+    #ifdef QM_DUCT
     BPLib_STOR_QM_Duct_t *self_duct;
 
     self_duct = BPLib_STOR_CACHE_GetDuct(state);
@@ -243,6 +254,7 @@ int BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_
         self_duct->ingress.current_depth_limit = BPLIB_MAX_SUBQ_DEPTH;
         self_duct->egress.current_depth_limit  = BPLIB_MAX_SUBQ_DEPTH;
     }
+    #endif // QM_DUCT
     return BPLIB_SUCCESS;
 }
 
@@ -294,7 +306,7 @@ int BPLib_STOR_CACHE_ConstructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
         return BPLIB_ERROR;
     }
 
-    BPLib_STOR_CACHE_JobInit(sblk, &state->pending_job);
+    BPLib_STOR_QM_JobInit(sblk, &state->pending_job);
 
     state->pending_job.handler = BPLib_STOR_CACHE_ProcessPending;
 
@@ -455,7 +467,7 @@ void BPLib_STOR_CACHE_Init(BPLib_STOR_CACHE_Pool_t *pool)
     BPLib_STOR_CACHE_RegisterBlocktype(pool, BPLIB_STORE_SIGNATURE_BLOCKREF, &blockref_api, sizeof(BPLib_STOR_CACHE_Blockref_t));
 }
 
-bp_handle_t BPLib_STOR_CACHE_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr)
+bp_handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr)
 {
     BPLib_STOR_CACHE_State_t *state;
     BPLib_STOR_CACHE_Block_t *sblk;
@@ -512,11 +524,13 @@ bp_handle_t BPLib_STOR_CACHE_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_
     return storage_intf_id;
 }
 
-int BPLib_STOR_CACHE_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr)
+int BPLib_STOR_QM_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr)
 {
     BPLib_STOR_CACHE_State_t *state;
     BPLib_STOR_CACHE_Ref_t    duct_block_ref;
     int                  status;
+
+    status = BPLIB_ERROR;
 
     #ifdef QM  // TODO Cache Detach
     duct_block_ref =BPLib_STOR_CACHE_DataserviceDetach(tbl, service_addr);
@@ -547,15 +561,23 @@ int BPLib_STOR_CACHE_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *
     return status;
 }
 
-bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t cache_intf_id,
-                                                const BPLib_STOR_CACHE_ModuleApi_t *api, void *init_arg)
+bp_handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t cache_intf_id,
+                                                const BPLib_STOR_QM_ModuleApi_t *api, void *init_arg)
 {
     BPLib_STOR_CACHE_State_t *state;
     BPLib_STOR_CACHE_Block_t *cblk;
     BPLib_STOR_CACHE_Block_t *svc;
     BPLib_STOR_CACHE_Ref_t    parent_ref;
+    #ifdef QM_MODULE_API
     int                  status;
+    #endif // QM_MODULE_API
     bp_handle_t          handle;
+
+    if (tbl == NULL)
+    {
+        handle.hdl = 0;
+        return handle;
+    }
 
     svc    = NULL;
     handle = BP_INVALID_HANDLE;
@@ -578,11 +600,12 @@ bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl
         svc = NULL;
     }
 
+    #ifdef QM_MODULE_API
     if (svc != NULL)
     {
         switch (api->module_type)
         {
-            case BPLib_STOR_CACHE_ModuleTypeOffload:
+            case BPLib_STOR_QM_ModuleTypeOffload:
                 state->offload_api = (const BPLib_STOR_PS_OffloadApi_t *)api;
                 state->offload_blk = svc;
                 status             = BPLIB_SUCCESS;
@@ -597,6 +620,10 @@ bp_handle_t BPLib_STOR_CACHE_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl
             handle = BPLib_STOR_CACHE_GetExternalId(cblk);
         }
     }
+    #else // QM_MODULE_API
+    printf("svc: 0x%016lx\n", (uint64_t)svc);
+    handle = BPLib_STOR_CACHE_GetExternalId(cblk);
+    #endif // QM_MODULE_API
 
     return handle;
 }

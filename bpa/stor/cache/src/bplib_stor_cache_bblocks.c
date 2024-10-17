@@ -26,6 +26,7 @@
  * CBOR-encoded blocks representing the primary/canonical block data.
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
@@ -35,8 +36,8 @@
 #include "bplib_stor_cache.h"
 #include "bplib_stor_cache_block.h"
 
-#include "../qm/inc/bplib_stor_qm_encode.h"
-#include "../qm/inc/bplib_stor_qm_decode.h"
+#include "bplib_stor_qm_encode.h"
+#include "bplib_stor_qm_decode.h"
 
 /*----------------------------------------------------------------
  *
@@ -130,15 +131,15 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_P
                                                               void *init_arg, uint8_t priority, BPLib_TIME_MonotonicTime_t timeout)
 {
     BPLib_STOR_CACHE_BlockContent_t *result;
-    BPLib_MEM_Lock_t          *lock;
-    bool                         within_timeout;
+    BPLib_MEM_Lock_t                *lock;
+    bool                             within_timeout;
 
     lock           = BPLib_MEM_LockResource(pool);
     within_timeout = true;
     while (true)
     {
-        result =
-            BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypePrimary, magic_number, init_arg, priority);
+        printf("%s:%d Calling BPLib_STOR_CACHE_AllocBlockInternal pool: 0x%016lx\n", __FILE__, __LINE__, (uint64_t)pool);
+        result = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypePrimary, magic_number, init_arg, priority);
         if (result != NULL || !within_timeout)
         {
             break;
@@ -147,7 +148,7 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_P
         within_timeout = BPLib_MEM_LockWait(lock, timeout);
     }
     BPLib_MEM_LockRelease(lock);
-
+    printf("%s:%d result is 0x%016lx", __FILE__, __LINE__, (uint64_t)result);
     return (BPLib_STOR_CACHE_Block_t *)result;
 }
 
@@ -566,7 +567,7 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
         {
             /* First block is always a primary block */
             /* Decode Primary Block */
-            if (v7_block_decode_pri(cpb, in_p, remain_sz) < 0)
+            if (BPLib_STOR_QM_DecodePrimary(cpb, in_p, remain_sz) < 0)
             {
                 /* fail to decode */
                 break;
@@ -597,7 +598,7 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
             BPLib_STOR_CACHE_BblockPrimaryAppend(cpb, cblk);
 
             /* Decode Canonical/Payload Block */
-            if (v7_block_decode_canonical(ccb, in_p, remain_sz, payload_block_hint) < 0)
+            if (BPLib_STOR_QM_DecodeCanonical(ccb, in_p, remain_sz, payload_block_hint) < 0)
             {
                 /* fail to decode */
                 break;

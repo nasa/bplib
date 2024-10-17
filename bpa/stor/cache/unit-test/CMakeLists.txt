@@ -13,11 +13,10 @@ add_subdirectory(stubs)
 # Create unit test object
 add_library(utobj_bplib_stor_cache OBJECT
     ../src/bplib_stor_cache.c
+    ../src/bplib_stor_cache_bblocks.c
+    ../src/bplib_stor_cache_fsm.c
     ../src/bplib_stor_cache_internal.c
     ../src/bplib_stor_cache_lists.c
-    ../src/bplib_stor_cache_bblocks.c
-    # Incomplete state entry ../src/bplib_stor_cache_fsm.c
-    ../src/bplib_stor_cache_module_api.c
     ../src/bplib_stor_cache_ref.c
     ../src/crc.c
     utilities/bplib_stor_cache_utils.c
@@ -43,8 +42,7 @@ target_include_directories(utobj_bplib_stor_cache PRIVATE
 add_executable(coverage-bplib_stor_cache-testrunner
     test_bplib_stor_cache.c
     test_bplib_stor_cache_bblocks.c
-    # test_bplib_stor_cache_fsm.c
-    # QM Stubs test_bplib_stor_cache_module_api.c
+    test_bplib_stor_cache_fsm.c
     test_bplib_stor_cache_setup.c
     $<TARGET_OBJECTS:utobj_bplib_stor_cache>
 )

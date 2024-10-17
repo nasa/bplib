@@ -46,7 +46,9 @@ extern "C" {
  PROTOTYPES
  ******************************************************************************/
 
+#ifdef QM_QUEUE_TABLE
 bp_handle_t BPLib_STOR_CACHE_CreateRamStorage(BPLib_STOR_QM_QueueTbl_t *rtbl, const bp_ipn_addr_t *storage_addr);
+#endif // QM_QUEUE_TABLE
 
 #ifdef __cplusplus
 } // extern "C"
