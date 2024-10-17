@@ -112,7 +112,7 @@ bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, BPLib_TIME_MonotonicTime_t until
     if (within_timeout)
     {
         status = BPLib_MEM_OS_WaitUntilMs(lock->lock_id, BPLIB_TIME_TO_INT(until_time));
-        if (status == BPLIB_MEM_TIMEOUT)
+        if (status == BPLIB_TIMEOUT)
         {
             /* if timeout was returned, then assume that enough time has elapsed
              * such that the current time is beyond BPLIB_TIME_TO_INT(until_time) now.  note that
@@ -468,12 +468,12 @@ BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t 
                                                              uint32_t required_magic)
 {
     BPLib_MEM_BlockContent_t *block;
-    size_t                           data_offset;
+    size_t                    data_offset;
 
     printf("%s:%d BPLib_MEM_GenericDataUncast, blk is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)blk);
 
     data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(parent_bt);
-    printf("%s:%d data_offset is %ld\n", __FILE__, __LINE__, data_offset);
+    printf("%s:%d data_offset is 0x%016lx\n", __FILE__, __LINE__, data_offset);
 
     if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t))
     {
@@ -482,10 +482,10 @@ BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t 
     }
 
     data_offset += offsetof(BPLib_MEM_BlockContent_t, u);
-    printf("%s:%d updated data_offset is %ld\n", __FILE__, __LINE__, data_offset);
+    printf("%s:%d updated data_offset is 0x%016lx\n", __FILE__, __LINE__, data_offset);
 
     block = (BPLib_MEM_BlockContent_t *)(void *)((uint8_t *)blk - data_offset);
-    printf ("block = %ld\n", (uint64_t)block);
+    printf ("block = 0x%016lx\n", (uint64_t)block);
     if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
     {
         printf("%s:%d base_link.type or magic wrong, %d %d 0x%08x 0x%08x\n", __FILE__, __LINE__, 

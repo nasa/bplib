@@ -52,18 +52,6 @@ void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKe
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
-void *TestUtil_BPLib_OS_Calloc(size_t size)
-{
-    /* Allocate Memory Block */
-    return calloc(size, 1);
-}
-
-void TestUtil_BPLib_OS_Free(void *ptr)
-{
-    /* Free Memory Block */
-    free(ptr);
-}
-
 // Memory Allocator Tests
 
 /**
@@ -79,9 +67,16 @@ void Test_BPLib_MEM_Init(void)
  */
 void Test_BPLib_MEM_PoolCreate(void)
 {
-    BPLib_MEM_TestPoolPtr = TestUtil_BPLib_OS_Calloc(TEST_BPLIB_MEM_POOL_SIZE);
-    UtAssert_NOT_NULL(BPLib_MEM_TestPoolPtr);
-    UtAssert_NOT_NULL(BPLib_MEM_PoolCreate(BPLib_MEM_TestPoolPtr, TEST_BPLIB_MEM_POOL_SIZE));
+    /* Test function for:
+     * BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
+     */
+    UT_BPLib_MEM_Buf_t buf;
+
+    memset(&buf, 0, sizeof(buf));
+
+    UtAssert_NULL(BPLib_MEM_PoolCreate(NULL, sizeof(buf)));
+    UtAssert_NULL(BPLib_MEM_PoolCreate(&buf, 1));
+    UtAssert_ADDRESS_EQ(BPLib_MEM_PoolCreate(&buf, sizeof(buf)), &buf);
 }
 
 void Test_BPLib_MEM_InitListHead(void)
@@ -190,7 +185,7 @@ void Test_BPLib_MEM_LockWait(void)
     time = BPLib_MEM_GetMonotonicTime();
     expiry_time.Time = time.Time + 5000;
     UtAssert_BOOL_TRUE(BPLib_MEM_LockWait(lock, expiry_time));
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_OS_WaitUntilMs), BPLIB_MEM_TIMEOUT);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_OS_WaitUntilMs), BPLIB_TIMEOUT);
     wait_time.Time = 5000;
     UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, wait_time));
 }

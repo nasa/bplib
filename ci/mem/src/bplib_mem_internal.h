@@ -32,12 +32,6 @@
 
 #include "osapi.h"
 
-// Candidates for inclusion in bplib_time.h also in bplib_stor_cache_types.h.
-#define BPLIB_TIME_TO_INT(t)   ((t).Time)
-#define BPLIB_TIME_FROM_INT(t) { (t) }
-#define BPLIB_TIME_IS_VALID(t) (BPLIB_TIME_TO_INT(t) != 0)
-#define BPLIB_TIME_IS_INFINITE(t) (BPLIB_TIME_TO_INT(t) == UINT64_MAX)
-
 // TODO MEM-local Time helpers, also in the cache code separately. Should be in bplib_api_types.h or TIME.
 // TODO Reconcile heritage time functions with bplib_time.h TIME module.
 
@@ -62,14 +56,6 @@ static inline BPLib_TIME_MonotonicTime_t BPLib_MEM_GetMonotonicTime(void)
 #define BPLIB_MEM_SIGNATURE_STATE    0x6833597a
 #define BPLIB_MEM_SIGNATURE_ENTRY    0xf223ff9f
 #define BPLIB_MEM_SIGNATURE_BLOCKREF 0x77e961b1
-
-typedef struct BPLib_MEM_ModuleApiContent
-{
-    BPLib_MEM_RBT_Link_t                rbt_link;
-    BPLib_MEM_BlocktypeApi_t            api;
-    size_t                              user_content_size;
-    BPLib_MEM_AlignedData_t             user_data_start;
-} BPLib_MEM_ModuleApiContent_t;
 
 // Mockups for CACHE entries.
 typedef struct BPLib_MEM_EntryState

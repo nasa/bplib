@@ -12,15 +12,11 @@ add_library(bplib_mem OBJECT
     src/bplib_mem_internal.c
 )
 
-target_link_libraries(
-  bplib_mem
-  bplib_time
-  osal
-)
-
 target_include_directories(bplib_mem PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_stor_cache,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_stor_qm,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests

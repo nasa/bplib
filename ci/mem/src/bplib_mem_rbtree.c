@@ -22,6 +22,8 @@
  INCLUDES
  ******************************************************************************/
 
+#include <stdio.h>
+
 #include <assert.h>
 #include <string.h>
 #include "bplib.h"
@@ -1069,6 +1071,9 @@ BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(bp_val_t search_key_value, con
     int               compare_result;
 
     curr_ptr = tree->root;
+
+    printf("%s:%d Calling BPLib_MEM_RBT_CompareKey curr_ptr: 0x%016lx\n", __FILE__, __LINE__, (uint64_t)curr_ptr);
+
     while (curr_ptr != NULL)
     {
         compare_result = BPLib_MEM_RBT_CompareKey(search_key_value, get_key_value(curr_ptr));
@@ -1092,6 +1097,8 @@ BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(bp_val_t search_key_value, con
             curr_ptr = curr_ptr->left;
         }
     }
+
+    printf("%s:%d Returning curr_ptr: 0x%016lx\n", __FILE__, __LINE__, (uint64_t)curr_ptr);
 
     return curr_ptr;
 }

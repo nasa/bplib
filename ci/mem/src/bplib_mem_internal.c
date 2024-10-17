@@ -27,8 +27,11 @@
 
 #include "bplib.h"
 #include "bplib_api_types.h"
+
 #include "bplib_mem.h"
 #include "bplib_mem_internal.h"
+
+#include "bplib_stor_qm.h"
 
 #include "osapi.h"
 
@@ -134,7 +137,7 @@ int BPLib_MEM_OS_WaitUntilMs(bp_handle_t h, uint64_t abs_dtntime_ms)
     /* check for timeout error explicitly and translate to BPLIB_TIMEOUT */
     if (status == OS_ERROR_TIMEOUT)
     {
-        return BPLIB_MEM_TIMEOUT;
+        return BPLIB_TIMEOUT;
     }
 
     /* other unexpected/unhandled errors become BPLIB_ERROR */
@@ -168,12 +171,14 @@ uint64_t BPLib_MEM_OS_GetDtnTimeMs(void)
 BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
     BPLib_MEM_Blocktype_t blocktype, uint32_t content_type_signature, void *init_arg, uint8_t priority)
 {
-    BPLib_MEM_Block_t            *node;
-    BPLib_MEM_BlockContent_t     *block;
-    BPLib_MEM_ModuleApiContent_t *api_block;
-    size_t                        data_offset;
-    uint32_t                      alloc_threshold;
-    uint32_t                      block_count;
+    BPLib_MEM_Block_t                 *node;
+    BPLib_MEM_BlockContent_t          *block;
+    #ifdef QM_MODULE_API_AVAILABLE
+    BPLib_STOR_QM_ModuleApiContent_t  *api_block;
+    #endif //QM_MODULE_API_AVAILABLE
+    size_t                             data_offset;
+    uint32_t                           alloc_threshold;
+    uint32_t                           block_count;
 
     BPLib_MEM_BlockAdminContent_t *admin;
 
@@ -211,8 +216,9 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
         return NULL;
     }
 
+    #ifdef QM_MODULE_API_AVAILABLE
     /* Determine how to initialize this block by looking up the content type */
-    api_block = (BPLib_MEM_ModuleApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
+    api_block = (BPLib_STOR_QM_ModuleApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
                                                                                    &admin->blocktype_registry);
     if (api_block == NULL)
     {
@@ -230,6 +236,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
         /* User content will not fit in the block - cannot create an instance of this type combo */
         return NULL;
     }
+    #endif // QM_MODULE_API_AVAILABLE
 
     /* get a block */
     node = BPLib_MEM_SubqPullSingle(&admin->free_blocks);
@@ -260,6 +267,10 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
      * zero fill the content part first, this ensures that this is always done,
      * and avoids the need for the module to supply a dedicated constructor just to zero it
      */
+    #ifndef QM_MODULE_API_AVAILABLE
+    data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(blocktype);
+    memset(&block->u, 0, data_offset);
+    #else // QM_MODULE_API_AVAILABLE
     memset(&block->u, 0, data_offset + api_block->user_content_size);
 
     BPLib_MEM_InitBaseObject(&block->header, api_block->user_content_size, content_type_signature);
@@ -275,6 +286,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
             //      (unsigned long)content_type_signature);
         }
     }
+    #endif // QM_MODULE_API_AVAILABLE
 
     return block;
 }

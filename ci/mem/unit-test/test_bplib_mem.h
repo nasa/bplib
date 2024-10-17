@@ -16,8 +16,8 @@
  * limitations under the License.
  ************************************************************************/
 
-#ifndef TEST_BPLIB_MPOOL_H
-#define TEST_BPLIB_MPOOL_H
+#ifndef TEST_BPLIB_MEM_H
+#define TEST_BPLIB_MEM_H
 
 #include "utassert.h"
 #include "utstubs.h"
@@ -35,7 +35,6 @@ typedef struct
 } UT_BPLib_MEM_Buf_t;
 
 /* helper functions used in multiple tests */
-void *TestUtil_BPLib_OS_Calloc(size_t size);
 void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 int  Test_BPLib_MEM_CallbackStub(void *arg, BPLib_MEM_Block_t *blk);
 void test_make_singleton_link(BPLib_MEM_Pool_t *parent_pool, BPLib_MEM_Block_t *b);
@@ -91,4 +90,4 @@ void Test_BPLib_MEM_ListIterReverse(void);
 void Test_BPLib_MEM_ForeachItemInList(void);
 void Test_BPLib_MEM_SearchList(void);
 
-#endif // TEST_BPLIB_MPOOL_H
+#endif // TEST_BPLIB_MEM_H

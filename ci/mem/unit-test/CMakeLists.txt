@@ -69,6 +69,7 @@ target_link_libraries(coverage-bplib_mem-testrunner PUBLIC
     bplib_time
     bplib_fwp_stubs
     bplib_mem_stubs
+    bplib_stor_qm_stubs
 )
 
 add_test(coverage-bplib_mem-testrunner coverage-bplib_mem-testrunner)
