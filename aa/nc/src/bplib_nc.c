@@ -1120,17 +1120,6 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void)
 
     Status = BPLIB_SUCCESS;
 
-    if (Status == BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CTRS_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send node mib counters HK directive not implemented");
-    }
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send node mib counters HK directive not implemented");
-    }
-
     return Status;
 }
 
@@ -1179,17 +1168,6 @@ BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void)
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
-
-    if (Status == BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_CHAN_CONTACT_STAT_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send channel/contact status hk directive not implemented");
-    }
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_CHAN_CONTACT_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send channel/contact status hk directive not implemented");
-    }
 
     return Status;
 }
