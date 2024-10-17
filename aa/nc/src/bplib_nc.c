@@ -363,26 +363,6 @@ BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payl
                             "Successful add-application directive for ChanId=%d",
                             Payload.ChanId);
     }
-    else
-    {
-        switch (Status)
-        {
-            case BPLIB_ADU_ADD_CHAN_ERR:
-                BPLib_EM_SendEvent(BPLIB_ADU_ADD_CHAN_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error with add-application directive, invalid ChanId=%d",
-                                    Payload.ChanId);
-
-                break;
-            case BPLIB_ADU_ADD_STAT_ERR:
-                BPLib_EM_SendEvent(BPLIB_ADU_ADD_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error with add-application directive, invalid app state for ChanId=%d", 
-                                    Payload.ChanId);
-
-                break;
-            default:
-                break;
-        }
-    }
 
     return Status;
 }
@@ -453,32 +433,6 @@ BPLib_Status_t BPLib_NC_StartApplication(const BPLib_StartApplication_Payload_t 
                             "Successful start-application directive for ChanId=%d",
                             Payload.ChanId);
     }
-    else
-    {
-        switch (Status)
-        {
-            case BPLIB_ADU_START_CHAN_ERR:
-                BPLib_EM_SendEvent(BPLIB_ADU_START_CHAN_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error with start-application directive, invalid ChanId=%d",
-                                    Payload.ChanId);
-
-                break;
-            case BPLIB_ADU_START_STAT_ERR:
-                BPLib_EM_SendEvent(BPLIB_ADU_START_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error with start-application directive, invalid app state for ChanId=%d", 
-                                    Payload.ChanId);
-
-                break;
-            case BPLIB_ADU_START_SUB_ERR:
-                BPLib_EM_SendEvent(BPLIB_ADU_START_SUB_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error subscribing to ADU on channel #%d",
-                                    Payload.ChanId);
-
-                break;
-            default:
-                break;
-        }
-    }
 
     return Status;
 }
@@ -495,32 +449,6 @@ BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Pa
         BPLib_EM_SendEvent(BPLIB_START_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Successful stop-application directive for ChanId=%d",
                             Payload.ChanId);
-    }
-    else
-    {
-        switch (Status)
-        {
-            case BPLIB_ADU_STOP_CHAN_ERR:
-                BPLib_EM_SendEvent(BPLIB_ADU_STOP_CHAN_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error with stop-application directive, invalid ChanId=%d",
-                                    Payload.ChanId);
-
-                break;
-            case BPLIB_ADU_STOP_STAT_ERR:
-                BPLib_EM_SendEvent(BPLIB_ADU_STOP_STAT_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error with stop-application directive, invalid app state for ChanId=%d", 
-                                    Payload.ChanId);
-
-                break;
-            case BPLIB_ADU_STOP_UNSUB_ERR:
-                BPLib_EM_SendEvent(BPLIB_ADU_UNSUB_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Error unsubscribing from ADU on channel #%d", 
-                                    Payload.ChanId);
-
-                break;
-            default:
-                break;
-        }
     }
 
     return Status;
