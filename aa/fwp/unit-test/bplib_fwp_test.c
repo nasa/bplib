@@ -50,9 +50,6 @@ BPLib_Status_t BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventTyp
 int32_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle) { return 0; }
 void BPA_PERFLOGP_Entry(uint32 PerfLogID) { return; }
 void BPA_PERFLOGP_Exit(uint32 PerfLogID) { return; }
-BPLib_Status_t BPA_ADUP_ValidateConfigTbl(void *TblData) { return BPLIB_SUCCESS; }
-BPLib_Status_t BPA_ADUP_In(void *AduPtr, uint8_t ChanId) { return BPLIB_SUCCESS; }
-BPLib_Status_t BPA_ADUP_Out(void *AduPtr, uint8_t ChanId) { return BPLIB_SUCCESS; }
 BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId) { return BPLIB_SUCCESS; }
 BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId) { return BPLIB_SUCCESS; }
 BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId) { return BPLIB_SUCCESS; }
@@ -66,14 +63,11 @@ void Test_BPLib_FWP_Init_Nominal(void)
     Callbacks.BPA_TIMEP_GetHostEpoch       = BPA_TIMEP_GetHostEpoch;
     Callbacks.BPA_TIMEP_GetHostTime        = BPA_TIMEP_GetHostTime;
     Callbacks.BPA_TIMEP_GetMonotonicTime   = BPA_TIMEP_GetMonotonicTime;
+    Callbacks.BPA_PERFLOGP_Entry           = BPA_PERFLOGP_Entry;
+    Callbacks.BPA_PERFLOGP_Exit            = BPA_PERFLOGP_Exit;
     Callbacks.BPA_TABLEP_SingleTableUpdate = BPA_TABLEP_SingleTableUpdate;
     Callbacks.BPA_EVP_Init                 = BPA_EVP_Init;
     Callbacks.BPA_EVP_SendEvent            = BPA_EVP_SendEvent;
-    Callbacks.BPA_PERFLOGP_Entry           = BPA_PERFLOGP_Entry;
-    Callbacks.BPA_PERFLOGP_Exit            = BPA_PERFLOGP_Exit;
-    Callbacks.BPA_ADUP_ValidateConfigTbl   = BPA_ADUP_ValidateConfigTbl;
-    Callbacks.BPA_ADUP_In                  = BPA_ADUP_In;
-    Callbacks.BPA_ADUP_Out                 = BPA_ADUP_Out;
     Callbacks.BPA_ADUP_AddApplication      = BPA_ADUP_AddApplication;
     Callbacks.BPA_ADUP_StartApplication    = BPA_ADUP_StartApplication;
     Callbacks.BPA_ADUP_StopApplication     = BPA_ADUP_StopApplication;
@@ -88,22 +82,16 @@ void Test_BPLib_FWP_Init_Nominal(void)
                     "Same BPA_TIMEP_GetHostTime functions");
     UtAssert_True(Callbacks.BPA_TIMEP_GetMonotonicTime == BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime,
                     "Same BPA_TIMEP_GetMonotonicTime functions");
+    UtAssert_True(Callbacks.BPA_PERFLOGP_Entry == BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry,
+                    "Same BPA_PERFLOGP_Entry functions");
+    UtAssert_True(Callbacks.BPA_PERFLOGP_Exit == BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit,
+                    "Same BPA_PERFLOGP_Exit functions");
     UtAssert_True(Callbacks.BPA_TABLEP_SingleTableUpdate == BPLib_FWP_ProxyCallbacks.BPA_TABLEP_SingleTableUpdate,
                     "Same BPA_TABLEP_SingleTableUpdate functions");
     UtAssert_True(Callbacks.BPA_EVP_Init == BPLib_FWP_ProxyCallbacks.BPA_EVP_Init,
                     "Same BPA_EVP_Init function");
     UtAssert_True(Callbacks.BPA_EVP_SendEvent == BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent,
                     "Same BPA_EVP_SendEvent function");
-    UtAssert_True(Callbacks.BPA_PERFLOGP_Entry == BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry, 
-                    "Same BPA_PERFLOGP_Entry functions");
-    UtAssert_True(Callbacks.BPA_PERFLOGP_Exit == BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit, 
-                    "Same BPA_PERFLOGP_Exit functions");
-    UtAssert_True(Callbacks.BPA_ADUP_ValidateConfigTbl == BPLib_FWP_ProxyCallbacks.BPA_ADUP_ValidateConfigTbl,
-                    "Same BPA_ADUP_ValidateConfigTbl functions");
-    UtAssert_True(Callbacks.BPA_ADUP_In == BPLib_FWP_ProxyCallbacks.BPA_ADUP_In,
-                    "Same BPA_ADUP_In functions");
-    UtAssert_True(Callbacks.BPA_ADUP_Out == BPLib_FWP_ProxyCallbacks.BPA_ADUP_Out,
-                    "Same BPA_ADUP_Out functions");
     UtAssert_True(Callbacks.BPA_ADUP_AddApplication == BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication,
                     "Same BPA_ADUP_AddApplication functions");
     UtAssert_True(Callbacks.BPA_ADUP_StartApplication == BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication,
@@ -197,34 +185,6 @@ void Test_BPLib_FWP_Init_PERFLOGP_ExitNull(void)
 
     memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
     Callbacks.BPA_PERFLOGP_Exit = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
-}
-
-/* Test FWP initialization with null function */
-void Test_BPLib_FWP_Init_ADUP_ValidateConfigTblNull(void)
-{
-    BPLib_FWP_ProxyCallbacks_t Callbacks;
-
-    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
-    Callbacks.BPA_ADUP_ValidateConfigTbl = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_ADUP_InNull(void)
-{
-    BPLib_FWP_ProxyCallbacks_t Callbacks;
-
-    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
-    Callbacks.BPA_ADUP_In = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_ADUP_OutNull(void)
-{
-    BPLib_FWP_ProxyCallbacks_t Callbacks;
-
-    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
-    Callbacks.BPA_ADUP_Out = NULL;
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
