@@ -59,7 +59,9 @@ BPLib_Status_t BPLib_NC_AddAllApplications(void)
     }
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
          BPLib_EM_SendEvent(BPLIB_ADD_ALL_APPS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Add all applications directive is unimplemented");
@@ -92,7 +94,9 @@ BPLib_Status_t BPLib_NC_StartAllApplications(void)
     }
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_START_ALL_APPS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Start all applications directive not implemented");
@@ -114,7 +118,9 @@ BPLib_Status_t BPLib_NC_VerifyBundleStorage(void)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Verify bundle storage directive not implemented");
@@ -136,7 +142,9 @@ BPLib_Status_t BPLib_NC_InitBundleStorage(void)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_INIT_BNDL_STOR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Initialize bundle storage directive not implemented");
@@ -158,7 +166,9 @@ BPLib_Status_t BPLib_NC_VerifyBundleMetadata(void)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_VERIF_BNDL_META_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Verify bundle metadata (7.2) directive not implemented");
@@ -184,7 +194,9 @@ BPLib_Status_t BPLib_NC_RebuildBundleMetadata(void)
     Status = BPLib_STOR_RebuildBundleMetadata();
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_REBUILD_BNDL_META_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Rebuild bundle metadata directive not implemented");
@@ -210,7 +222,9 @@ BPLib_Status_t BPLib_NC_ClearVolatile(void)
     Status = BPLib_STOR_ClearVolatile();
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_CLR_VOLATILE_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Clear volatile directive not implemented");
@@ -232,7 +246,9 @@ BPLib_Status_t BPLib_NC_ReloadSavedData(void)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RELOAD_SVD_DATA_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Reload saved data (7.2) directive not implemented");
@@ -256,7 +272,9 @@ BPLib_Status_t BPLib_NC_ResetAllCounters(void)
 
     /* Status = BPLib_AS_ResetAllCounters(); */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION, 
                             "Reset all counters directive not implemented");
@@ -278,7 +296,9 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RESET_CTR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Reset counter directive not implemented, received %d in payload",
@@ -306,7 +326,9 @@ BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payl
     Status = BPLib_AS_ResetSourceCounters();
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RESET_SRC_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Reset source counters directive not implemented, received %d in payload",
@@ -334,7 +356,9 @@ BPLib_Status_t BPLib_NC_ResetBundleCounters(void)
     Status = BPLib_AS_ResetBundleCounters();
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RESET_BNDL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Reset bundle counters directive not implemented");
@@ -360,7 +384,9 @@ BPLib_Status_t BPLib_NC_ResetErrorCounters(void)
     Status = BPLib_AS_ResetErrorCounters();
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RESET_ERR_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Reset error counters directive not implemented");
@@ -399,7 +425,9 @@ BPLib_Status_t BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RM_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Remove application directive not implemented, received %d in payload",
@@ -432,7 +460,9 @@ BPLib_Status_t BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationState_Pa
             * Node Configuration sends Storage request to delete any bundles already queued for the channel and future bundles for that channel
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_SET_REGI_STAT_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Set registration state directive not implemented, received %d in payload",
@@ -490,7 +520,9 @@ BPLib_Status_t BPLib_NC_AddAuthSources(const BPLib_AddAuthSources_Payload_t Payl
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_SRCS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Add authorized sources directive not implemented, received %d in payload",
@@ -514,7 +546,9 @@ BPLib_Status_t BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSources_Payload_
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_SRCS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Remove authorized sources directive not implemented, received %d in payload",
@@ -538,7 +572,9 @@ BPLib_Status_t BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUST_SRCS_SUCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Add authorized custody sources directive not implemented, received %d in payload",
@@ -562,7 +598,9 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySo
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_CUST_SRCS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Remove authorized custody sources directive not implemented, received %d in payload",
@@ -586,7 +624,9 @@ BPLib_Status_t BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodians_Payload_
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUSTODIANS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Add authorized custodians directive not implemented, received %d in payload",
@@ -610,7 +650,9 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodians_Pa
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_CUSTODIANS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Remove authorized custodians directive not implemented, received %d in payload",
@@ -634,7 +676,9 @@ BPLib_Status_t BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEid_Payloa
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_ADD_AUTH_RPT_EID_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Add authorized report-to eid directive not implemented, received %d in payload",
@@ -658,7 +702,9 @@ BPLib_Status_t BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEid_
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RM_AUTH_RPT_EID_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Remove authorized report-to eid directive not implemented, received %d in payload",
@@ -682,7 +728,9 @@ BPLib_Status_t BPLib_NC_AddLatency(const BPLib_AddLatency_Payload_t Payload)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_ADD_LATENCY_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Add latency directive not implemented, received %d in payload",
@@ -706,7 +754,9 @@ BPLib_Status_t BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payloa
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RM_LATENCY_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Remove latency directive not implemented, received %d in payload",
@@ -738,7 +788,9 @@ BPLib_Status_t BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
     Registers CLA with Storage given the table configuration (Path ID, EID map)
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_SETUP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Contact setup directive not implemented, received %d in payload",
@@ -767,7 +819,9 @@ BPLib_Status_t BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
     Status = BPLib_CLA_ContactStart();
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_START_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Contact start directive not implemented, received %d in payload",
@@ -799,7 +853,9 @@ BPLib_Status_t BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
     Node Configuration requests Storage clear all queues associated with the CLA. Storage clears the queues    
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_STOP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Contact stop directive not implemented, received %d in payload",
@@ -828,7 +884,9 @@ BPLib_Status_t BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Pa
     Node Configuration requests BI/CT/EBP/CLA instances to remove configuration
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_CONTACT_TEARDOWN_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Contact teardown directive not implemented, received %d in payload",
@@ -860,7 +918,9 @@ BPLib_Status_t BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payl
     NC calls AS to set the MIB array key
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_ADD_MIB_ARR_KEY_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Add mib array key directive not implemented, received %d in payload",
@@ -884,7 +944,9 @@ BPLib_Status_t BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RM_MIB_ARR_KEY_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Remove mib array key directive not implemented, received %d in payload",
@@ -936,7 +998,9 @@ BPLib_Status_t BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
     Status = (BPLib_Status_t) BPA_TABLEP_TableUpdate();
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_SET_MIB_ITEM_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Set mib item directive not implemented, received %d in payload",
@@ -989,7 +1053,9 @@ BPLib_Status_t BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Pa
     }
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_ADD_STOR_ALLOC_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Add storage allocation directive not implemented, received %d in payload",
@@ -1032,7 +1098,9 @@ BPLib_Status_t BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocat
     If storage update is successful, NC calls FWP to sync table updates with host
     */
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_RM_STOR_ALLOC_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Remove storage allocation directive not implemented, received %d in payload",
@@ -1056,7 +1124,9 @@ BPLib_Status_t BPLib_NC_PerformSelfTest(void)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_PERFORM_SELF_TEST_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Perform self test (7.2) directive not implemented");
@@ -1078,7 +1148,9 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CFG_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send node mib config hk directive not implemented");
@@ -1100,7 +1172,9 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CFG_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send per-source mib config hk directive not implemented");
@@ -1131,7 +1205,9 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CTRS_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send per-source mib counter hk directive not implemented");
@@ -1153,7 +1229,9 @@ BPLib_Status_t BPLib_NC_SendStorageHk(void)
 
     Status = BPLIB_SUCCESS;
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_SEND_STOR_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Send storage hk directive not implemented");
