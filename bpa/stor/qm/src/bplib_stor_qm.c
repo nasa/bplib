@@ -22,8 +22,6 @@
  INCLUDES
  ******************************************************************************/
 
-// #include "bplib_os.h"
-
 #include "bplib_mem.h"
 
 #include "bplib_stor_qm.h"
