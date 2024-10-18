@@ -25,35 +25,14 @@
 /* Includes */
 /* ======== */
 
-#include "bplib_fwp.h"
+#include "bplib_api_types.h"
+#include "bplib_cfg.h"
 
 /* =========== */
 /* Definitions */
 /* =========== */
 
-/**
- * \brief Channel status data
- * \note This is defined here so BPLib_ChannelContactStatHkTlm_Payload_t
- *       can see the definitions
- */
-typedef struct
-{
-    uint32_t LocalServiceNum;         /**< \brief Service number for local application */
-    uint8_t  State;                   /**< \brief Channel state (ADDED, STARTED, or STOPPED) */
-    uint8_t  RegistrationState;       /**< \brief Active, PassiveDeferred, or PassiveAbandon */
-    uint16_t Spare;                   /**< \brief Padding */
-    uint32_t OutputQueueId;           /**< \brief PI output queue ID */
-} BPLib_ChannelStats_t;
 
-/**
- * \brief Contact status data
- * \note This is defined here so BPLib_ChannelContactStatHkTlm_Payload_t
- *       can see the definitions
- */
-typedef struct
-{
-    uint32_t ExampleParameter;       /* TODO */
-} BPLib_ContactStats_t;
 
 /* =================== */
 /* Payload Definitions */
@@ -193,11 +172,69 @@ typedef struct
 } BPLib_RemoveStorageAllocation_Payload_t;
 
 /**
+ * \brief Channel/contact status housekeeping payload
+ */
+typedef struct
+{
+    uint32_t    LocalServiceNum;    /**< \brief Service number for application sending/receiving ADUs on this channel */
+    uint32_t    Status;             /**< \brief Configured, Running, or Off */
+    uint32_t    RegistrationState;  /**< \brief Active, PassiveDefered or PassiveAbandon */
+    uint32_t    OutputQueueID;      /**< \brief Output queue ID */
+} BPLib_ChannelHkTlmPayloadSet_t;
+
+typedef struct
+{
+    uint32_t    ContactID;                              /**< \brief Unique ID for this contact */
+    uint32_t    Status;                                 /**< \brief Configured, Running, or Off */
+    char        EIDs[BPLIB_MAX_EID_LENGTH];             /**< \brief List of EIDs */
+    uint32_t    OutputQueueID;                          /**< \brief Output queue ID */
+    uint32_t    Spare1;
+} BPLib_ContactHkTlmPayloadSet_t;
+
+typedef struct
+{
+    BPLib_ChannelHkTlmPayloadSet_t ChannelStatus[BPLIB_MAX_NUM_CHANNELS]; /**< \brief Status for each channel */
+    BPLib_ContactHkTlmPayloadSet_t ContactStatus[BPLIB_MAX_NUM_CONTACTS]; /**< \brief Status for each contact */
+    uint32_t Spare2;
+    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
+} BPLib_ChannelContactStatHkTlm_Payload_t;
+
+/**
  * \brief Node MIB configuration housekeeping payload
  */
 typedef struct
 {
-    uint32_t ExampleParameter;
+    char SystemNodeName[BPLIB_MAX_NUM_STRING];                  /**< \brief Textual name of a DTN Node entity */
+    char SystemNodeOwner[BPLIB_MAX_NUM_STRING];                 /**< \brief Textual identifier of the node manager */
+    char SystemSoftwareExec[BPLIB_MAX_NUM_STRING];              /**< \brief Textual identification of the underlying OS or excutive */
+    char SystemSoftwareExecVersion[BPLIB_MAX_NUM_STRING];       /**< \brief Textual representation of the version and patch-level */
+    char BundleAgentVersion[BPLIB_MAX_NUM_STRING];              /**< \brief Version of the executing Node */
+    char BundleAgentOperationalState[BPLIB_MAX_NUM_STRING];     /**< \brief Indication of the Node operational state */
+    char BundleAgentConfiguration[BPLIB_MAX_NUM_STRING];        /**< \brief Indication of the current Node configuration */
+    uint32_t BundleAgentNodeNumber;                             /**< \brief Node Number */
+    uint32_t BundleAgentAvailableStorage;                       /**< \brief Amount of memory initially allocated for bundle storage */
+    uint32_t BundleAgentCtdbSize;                               /**< \brief Storage allocatted to Custody Transfer Database (CTDB) use */
+    uint32_t ParamSetMaxSequenceNum;                            /**< \brief Maximum bundle sequence number */
+    uint32_t ParamSetMaxPayloadLength;                          /**< \brief Maximum payload length for fragmentation */
+    uint32_t ParamSetMaxBundleLength;                           /**< \brief Maximum bundle length */
+    uint32_t ParamSetMaxTransmissionId;                         /**< \brief Maximum value for the transmissionID before it wraps back around */
+    uint32_t ParamSetMaxForwardingRetries;                      /**< \brief Number of Bundle Forwarding Retries to attempt before giving up */
+    uint32_t ParamSetMaxSimultaneousContacts;                   /**< \brief Maximum number of simultaneous contacts */
+    uint32_t ParamSetBehaviorEventReporting;                    /**< \brief Indication that only events at specified level or above are generated and reported via the M&C interface */
+    bool ParamSupportBIBE;                                      /**< \brief Indication of node’s Bundle In Bundle Encapsulation (BIBE) capability */
+    bool ParamSupportCustody;                                   /**< \brief Indication of whether the node can become a Custodian */
+    bool ParamSupportConfidentiality;                           /**< \brief Indication of node’s confidentiality handling capabilities */
+    bool ParamSetBehaviorReturnToSender;                        /**< \brief Flag indicating that bundles which cannot be forwarded should be returned to sender */
+    bool ParamSetBehaviorTransIdReuse;                          /**< \brief Flag indicating whether transmission IDs should be reused on retries */
+    bool ParamSetBehaviorTransIdRollover;                       /**< \brief Flag indicating that the transmissionID has wrapped around */
+    bool ParamSetBehaviorWrapResponse;                          /**< \brief Indication of whether the oldest or newest bundle will be dropped when CTDB buffer is full */
+    uint8_t Spare1;
+    uint32_t BundleSizeFragment;                                /**< \brief Maximum size of bundles that can traverse DTN without additional bundle layer fragmentation */
+    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_NodeMibConfigHkTlm_Payload_t;
 
 /**
@@ -205,53 +242,30 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t ExampleParameter;
+    char SourceEID[BPLIB_MAX_NUM_STRING];       /**< \brief Source EID to which this telemetry corresponds */
+    bool BundleSetBehaviorReceivedBSRGenerate;  /**< \brief Flag indicating that Bundle Status Report (BSR) should be generated for bundles received */
+    bool BundleSetBehaviorAcceptedBSRGenerate;  /**< \brief Flag indicating that BSR should be generated for bundles accepted to custody */
+    bool BundleSetBehaviorForwardedBSRGenerate; /**< \brief Flag indicating that BSR should be generated for bundles forwarded */
+    bool BundleSetBehaviorDeliveredBSRGenerate; /**< \brief Flag indicating that BSR should be generated for bundles delivered */
+    bool BundleSetBehaviorDeletedBSRGenerate;   /**< \brief Flag indicating that BSR should be generated for bundles deleted */ 
+    bool BundleSetBehaviorReceivedCBRGenerate;  /**< \brief Flag indicating that Compressed Bundle Reporting (CBR) should be generated for bundles received */
+    bool BundleSetBehaviorAcceptedCBRGenerate;  /**< \brief Flag indicating that CBR should be generated for bundles accepted to custody */
+    bool BundleSetBehaviorForwardedCBRGenerate; /**< \brief Flag indicating that CBR should be generated for bundles forwarded */
+    bool BundleSetBehaviorDeliveredCBRGenerate; /**< \brief Flag indicating that CBR should be generated for bundles delivered */
+    bool BundleSetBehaviorDeletedCBRGenerate;   /**< \brief Flag indicating that CBR should be generated for bundles deleted */
+    uint16_t Spare1;
+    uint32_t ParamSetMaxLifetime;               /**< \brief Maximum bundle lifetime */
+    uint32_t ParamSetMaxBSRGenerationRate;      /**< \brief Maximum number of BSRs per minute that a node can generate overall and on behalf of each source */
+    uint32_t ParamSetMaxCBRGenerationRate;      /**< \brief Maximum number of CBRs per minute that a node can generate overall and on behalf of each source */
+} BPLib_SourceMibConfigSet_t;
+
+typedef struct
+{
+    BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_SOURCE_EID];
+    uint32_t Spare2;
+    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_SourceMibConfigHkTlm_Payload_t;
-
-/**
- * \brief Node MIB counters housekeeping payload
- */
-typedef struct
-{
-    uint16_t AcceptedDirectiveCount;  /**< \brief Accepted Directive Count */
-    uint16_t RejectedDirectiveCount;  /**< \brief Rejected Directive Count */
-    uint16_t AduCountDelivered;       /**< \brief ADU Delivered Count */
-    uint16_t AduCountReceived;        /**< \brief ADU Received Count */
-
-    uint32_t Spare;                   /* Temporary padding */
-
-    uint32_t TimeBootEra;             /**< \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;           /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;       /**< \brief Time Correlation Factor */
-} BPLib_NodeMibCountersHkTlm_Payload_t;
-
-/**
- * \brief Source MIB counters housekeeping payload
- */
-typedef struct
-{
-    uint32_t ExampleParameter;
-} BPLib_SourceMibCountersHkTlm_Payload_t;
-
-/**
- * \brief Storage housekeeping payload
- */
-typedef struct
-{
-    uint32_t ExampleParameter;
-} BPLib_StorageHkTlm_Payload_t;
-
-/**
- * \brief Channel/contact status housekeeping payload
- */
-typedef struct
-{
-    BPLib_ChannelStats_t ChannelStats[BPLIB_MAX_NUM_CHANNELS];
-    BPLib_ContactStats_t ContactStats[BPLIB_MAX_NUM_CONTACTS];
-
-    uint32_t TimeBootEra;             /**< \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;           /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;       /**< \brief Time Correlation Factor */
-} BPLib_ChannelContactStatHkTlm_Payload_t;
 
 #endif // BPLIB_NC_PAYLOADS_H

@@ -30,6 +30,7 @@
 #include "bplib_fwp_test_utils.h"
 #include "bplib_time.h"
 #include "bplib_em.h"
+#include "bplib_nc_payloads.h"
 
 
 /*
