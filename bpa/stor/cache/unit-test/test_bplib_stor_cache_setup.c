@@ -61,8 +61,8 @@ void UT_cache_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_Stub
 
 void UT_cache_valid_bphandle_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    bp_handle_t retval = BPLIB_HANDLE_RAM_STORE_BASE;
-    printf ("Set bp_handle_t return value for FuncKey: 0x%016lx 0x%016lx\n", (uint64_t)FuncKey, (uint64_t)retval.hdl);
+    BPLib_Handle_t retval = BPLIB_HANDLE_RAM_STORE_BASE;
+    printf ("Set BPLib_Handle_t return value for FuncKey: 0x%016lx 0x%016lx\n", (uint64_t)FuncKey, (uint64_t)retval.hdl);
     UT_Stub_SetReturnValue(FuncKey, retval);
 }
 

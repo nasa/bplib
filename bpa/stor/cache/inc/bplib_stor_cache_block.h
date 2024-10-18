@@ -103,12 +103,12 @@ typedef struct BPLib_STOR_CACHE_BlockAdminContent
 struct BPLib_STOR_CACHE_BblockTracking
 {
    BPLib_STOR_CACHE_PolicyDelivery_t delivery_policy;
-    bp_handle_t                 ingress_intf_id;
+    BPLib_Handle_t                 ingress_intf_id;
     BPLib_TIME_MonotonicTime_t  ingress_time;
-    bp_handle_t                 egress_intf_id;
+    BPLib_Handle_t                 egress_intf_id;
     BPLib_TIME_MonotonicTime_t  egress_time;
-    bp_handle_t                 storage_intf_id;
-    bp_sid_t                    committed_storage_id;
+    BPLib_Handle_t                 storage_intf_id;
+    BPLib_STOR_CACHE_Sid_t                    committed_storage_id;
 
     /* JPHFIX: this is here for now, but really it belongs on the egress CLA intf based on its RTT */
     uint64_t local_retx_interval;
@@ -143,7 +143,7 @@ struct BPLib_STOR_CACHE_BblockCanonical
     size_t                        block_encode_size_cache;
     size_t                        encoded_content_offset;
     size_t                        encoded_content_length;
-    bp_canonical_block_buffer_t   canonical_logical_data;
+    BPLib_STOR_CACHE_CanonicalBlockBuffer_t   canonical_logical_data;
 };
 
 struct BPLib_STOR_CACHE_BblockCanonicalContent
@@ -192,7 +192,7 @@ struct BPLib_STOR_CACHE_Pool
  PROTOTYPES
  ******************************************************************************/
 
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_CACHE_Pool_t *pool, bp_handle_t handle);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_CACHE_Pool_t *pool, BPLib_Handle_t handle);
 
 /**
  * @brief Gets the logical information associated with a primary block
@@ -231,9 +231,9 @@ static inline BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryGetCanonic
  * @brief Gets the logical data associated with a canonical block
  *
  * @param ccb
- * @return bp_canonical_block_buffer_t*
+ * @return BPLib_STOR_CACHE_CanonicalBlockBuffer_t*
  */
-static inline bp_canonical_block_buffer_t *BPLib_STOR_CACHE_BblockCanonicalGetLogical(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
+static inline BPLib_STOR_CACHE_CanonicalBlockBuffer_t *BPLib_STOR_CACHE_BblockCanonicalGetLogical(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
 {
     return &ccb->canonical_logical_data;
 }
@@ -369,7 +369,7 @@ void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
  * @param block_type
  */
 BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
-                                                                 bp_blocktype_t                block_type);
+                                                                 BPLib_STOR_CACHE_Blocktype_t                block_type);
 
 /**
  * @brief Drop all encode data (CBOR) from a primary block
@@ -569,12 +569,12 @@ static inline bool BPLib_STOR_CACHE_IsAnyContentNode(const BPLib_STOR_CACHE_Bloc
  */
 static inline bool BPLib_STOR_CACHE_IsSecondaryIndexNode(const BPLib_STOR_CACHE_Block_t *cb)
 {
-    return (cb->type >= BPLib_STOR_CACHE_BlocktypeSecondaryGeneric && cb->type <= BPLib_STOR_CACHE_BlocktypeSecondaryMax);
+    return (cb->type >= BPLib_STOR_CACHE_BlocktypeSpecialBlocksStart && cb->type <= BPLib_STOR_CACHE_BlocktypeSpecialBlocksMax);
 }
 
-static inline bp_handle_t BPLib_STOR_CACHE_GetExternalId(const BPLib_STOR_CACHE_Block_t *cb)
+static inline BPLib_Handle_t BPLib_STOR_CACHE_GetExternalId(const BPLib_STOR_CACHE_Block_t *cb)
 {
-    return bp_handle_from_serial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
+    return BPLib_HandleFromSerial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
 }
 
 /* basic list iterators (forward or reverse) */
@@ -585,7 +585,7 @@ static inline bp_handle_t BPLib_STOR_CACHE_GetExternalId(const BPLib_STOR_CACHE_
  *
  * @param iter          The iterator object to position
  * @returns integer status code
- * @retval BP_SUCCESS if iterator is valid
+ * @retval BPLIB_SUCCESS if iterator is valid
  */
 int BPLib_STOR_CACHE_ListIterGotoFirst(const BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_ListIter_t *iter);
 
@@ -595,7 +595,7 @@ int BPLib_STOR_CACHE_ListIterGotoFirst(const BPLib_STOR_CACHE_Block_t *list, BPL
  *
  * @param iter          The iterator object to position
  * @returns integer status code
- * @retval BP_SUCCESS if iterator is valid
+ * @retval BPLIB_SUCCESS if iterator is valid
  */
 int BPLib_STOR_CACHE_ListIterGotoLast(const BPLib_STOR_CACHE_Block_t *list, BPLib_STOR_CACHE_ListIter_t *iter);
 
@@ -607,7 +607,7 @@ int BPLib_STOR_CACHE_ListIterGotoLast(const BPLib_STOR_CACHE_Block_t *list, BPLi
  * This allows the caller to perform a ascending-order tree traversal.
  *
  * @param iter          The iterator object to move
- * @retval BP_SUCCESS if iterator is valid
+ * @retval BPLIB_SUCCESS if iterator is valid
  */
 int BPLib_STOR_CACHE_ListIterForward(BPLib_STOR_CACHE_ListIter_t *iter);
 
@@ -619,7 +619,7 @@ int BPLib_STOR_CACHE_ListIterForward(BPLib_STOR_CACHE_ListIter_t *iter);
  * This allows the caller to perform a descending-order tree traversal.
  *
  * @param iter          The iterator object to move
- * @retval BP_SUCCESS if iterator is valid
+ * @retval BPLIB_SUCCESS if iterator is valid
  */
 int BPLib_STOR_CACHE_ListIterReverse(BPLib_STOR_CACHE_ListIter_t *iter);
 
@@ -889,8 +889,8 @@ void BPLib_STOR_CACHE_Maintain(BPLib_STOR_CACHE_Pool_t *pool);
  * @param api Structure containing op callbacks
  * @param user_content_size Maximum size of user content associated with blocktype
  * @returns status code
- * @retval BP_SUCCESS if registration successful
- * @retval BP_DUPLICATE if the block type is already registered.
+ * @retval BPLIB_SUCCESS if registration successful
+ * @retval BPLIB_DUPLICATE if the block type is already registered.
  */
 int BPLib_STOR_CACHE_RegisterBlocktype(BPLib_STOR_CACHE_Pool_t *pool, uint32_t magic_number, const BPLib_STOR_CACHE_BlocktypeApi_t *api,
                                    size_t user_content_size);

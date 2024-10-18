@@ -39,15 +39,15 @@ extern "C" {
  ******************************************************************************/
 
 /* Endpoint IDs */
-#define BP_MAX_EID_STRING 128
-#define BP_IPN_NULL       0
+#define BPLIB_MAX_EID_STRING 128
+#define BPLIB_IPN_NULL       0
 
 /******************************************************************************
  PROTOTYPES
  ******************************************************************************/
 
 #ifdef QM_QUEUE_TABLE
-bp_handle_t BPLib_STOR_CACHE_CreateRamStorage(BPLib_STOR_QM_QueueTbl_t *rtbl, const bp_ipn_addr_t *storage_addr);
+BPLib_Handle_t BPLib_STOR_CACHE_CreateRamStorage(BPLib_STOR_QM_QueueTbl_t *rtbl, const BPLib_IpnAddr_t *storage_addr);
 #endif // QM_QUEUE_TABLE
 
 #ifdef __cplusplus

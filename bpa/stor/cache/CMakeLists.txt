@@ -14,7 +14,6 @@ add_library(bplib_stor_cache OBJECT
     src/bplib_stor_cache_internal.c
     src/bplib_stor_cache_lists.c
     src/bplib_stor_cache_ref.c
-    src/crc.c
 )
 
 target_include_directories(bplib_stor_cache PRIVATE
@@ -27,6 +26,7 @@ target_include_directories(bplib_stor_cache PUBLIC
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_time,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_stor_qm,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_crc,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit test subdirectory

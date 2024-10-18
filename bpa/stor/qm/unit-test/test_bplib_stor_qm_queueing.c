@@ -107,15 +107,15 @@ void test_BPLib_STOR_QM_IngressBaseintfForwarder(void)
 void test_BPLib_STOR_QM_RegisterGenericIntf(void)
 {
     /* Test function for:
-     * bp_handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t parent_intf_id,
+     * BPLib_Handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t parent_intf_id,
      * BPLib_STOR_CACHE_Block_t *duct_block)
      */
     BPLib_STOR_QM_QueueTbl_t    tbl;
-    bp_handle_t         parent_intf_id;
+    BPLib_Handle_t         parent_intf_id;
     BPLib_STOR_CACHE_Block_t duct_block;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&parent_intf_id, 0, sizeof(bp_handle_t));
+    memset(&parent_intf_id, 0, sizeof(BPLib_Handle_t));
     parent_intf_id.hdl = 101;
     memset(&duct_block, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     duct_block.parent_offset = 20;
@@ -132,15 +132,15 @@ void test_BPLib_STOR_QM_RegisterGenericIntf(void)
 void test_BPLib_STOR_QM_RegisterForwardIngressHandler(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
+     * int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
      * BPLib_STOR_CACHE_CallbackFunc_t ingress)
      */
     BPLib_STOR_QM_QueueTbl_t tbl;
-    bp_handle_t      intf_id;
+    BPLib_Handle_t      intf_id;
     BPLib_STOR_CACHE_CallbackFunc_t ingress = NULL;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
 
     UtAssert_UINT32_NEQ(BPLib_STOR_QM_RegisterForwardIngressHandler(&tbl, intf_id, ingress), 0);
 }
@@ -148,15 +148,15 @@ void test_BPLib_STOR_QM_RegisterForwardIngressHandler(void)
 void test_BPLib_STOR_QM_RegisterForwardEgressHandler(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
+     * int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
      * BPLib_STOR_CACHE_CallbackFunc_t ingress)
      */
     BPLib_STOR_QM_QueueTbl_t            tbl;
-    bp_handle_t                 intf_id;
+    BPLib_Handle_t                 intf_id;
     BPLib_STOR_CACHE_CallbackFunc_t egress = NULL;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
 
     UtAssert_UINT32_NEQ(BPLib_STOR_QM_RegisterForwardEgressHandler(&tbl, intf_id, egress), 0);
 }
@@ -164,14 +164,14 @@ void test_BPLib_STOR_QM_RegisterForwardEgressHandler(void)
 void test_BPLib_STOR_QM_PushEgressBundle(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
+     * int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
      */
     BPLib_STOR_QM_QueueTbl_t     tbl;
-    bp_handle_t          intf_id;
+    BPLib_Handle_t          intf_id;
     BPLib_STOR_CACHE_Block_t *cb = NULL;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
 
     UtAssert_UINT32_NEQ(BPLib_STOR_QM_PushEgressBundle(&tbl, intf_id, cb), 0);
 }
@@ -193,16 +193,16 @@ void test_BPLib_STOR_QM_MaintenanceRequestWait(void)
 void test_BPLib_STOR_QM_RegisterEventHandler(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_CallbackFunc_t
+     * int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_CallbackFunc_t
      * event)
      */
     BPLib_STOR_QM_QueueTbl_t            tbl;
-    bp_handle_t                 intf_id;
+    BPLib_Handle_t                 intf_id;
     BPLib_STOR_CACHE_CallbackFunc_t event = NULL;
     BPLib_STOR_QM_Duct_t          duct;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
     memset(&duct, 0, sizeof(BPLib_STOR_QM_Duct_t));
 
     UtAssert_UINT32_NEQ(BPLib_STOR_QM_RegisterEventHandler(&tbl, intf_id, event), 0);
@@ -216,17 +216,17 @@ void test_BPLib_STOR_QM_RegisterEventHandler(void)
 void test_BPLib_STOR_QM_DelIntf(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
+     * int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
      */
     BPLib_STOR_QM_QueueTbl_t   tbl;
     BPLib_STOR_QM_QueueEntry_t queue_entry;
-    bp_handle_t        intf_id;
+    BPLib_Handle_t        intf_id;
     BPLib_STOR_CACHE_Ref_t  ref;
     BPLib_STOR_QM_Duct_t ifp;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
     memset(&queue_entry, 0, sizeof(BPLib_STOR_QM_QueueEntry_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
     memset(&ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&ifp, 0, sizeof(BPLib_STOR_QM_Duct_t));
 
@@ -246,27 +246,27 @@ void test_BPLib_STOR_QM_DelIntf(void)
 void test_BPLib_STOR_QM_GetNextAvailIntf(void)
 {
     /* Test function for:
-     * bp_handle_t BPLib_STOR_QM_GetNextAvailIntf(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest)
+     * BPLib_Handle_t BPLib_STOR_QM_GetNextAvailIntf(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest)
      */
     BPLib_STOR_QM_QueueTbl_t tbl;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    bp_ipn_t dest = 101;
+    BPLib_Ipn_t dest = 101;
     UtAssert_UINT32_EQ(BPLib_STOR_QM_GetNextAvailIntf(&tbl, dest).hdl, 0);
 }
 
 void test_BPLib_STOR_QM_PushIngressBundle(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
+     * int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
      */
     BPLib_STOR_QM_QueueTbl_t     tbl;
-    bp_handle_t          intf_id;
+    BPLib_Handle_t          intf_id;
     BPLib_STOR_CACHE_Block_t *cb = NULL;
     BPLib_STOR_QM_Duct_t   duct_block;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
     memset(&duct_block, 0, sizeof(BPLib_STOR_QM_Duct_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, &duct_block);
@@ -278,14 +278,14 @@ void test_BPLib_STOR_QM_PushIngressBundle(void)
 void test_BPLib_STOR_QM_Add(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
+     * int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
      */
     BPLib_STOR_QM_QueueTbl_t   rtbl;
     BPLib_STOR_QM_QueueEntry_t queue_entry;
     BPLib_STOR_CACHE_Pool_t      pool;
-    bp_ipn_t           dest = 101;
-    bp_ipn_t           mask = 100;
-    bp_handle_t        intf_id;
+    BPLib_Ipn_t           dest = 101;
+    BPLib_Ipn_t           mask = 100;
+    BPLib_Handle_t        intf_id;
 
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
     memset(&queue_entry, 0, sizeof(BPLib_STOR_QM_QueueEntry_t));
@@ -295,7 +295,7 @@ void test_BPLib_STOR_QM_Add(void)
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_OsCalloc), UT_lib_AltHandler_PointerReturn, &rtbl);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_Create), UT_lib_AltHandler_PointerReturn, &pool);
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
 
     rtbl.registered_queues = 20;
     UtAssert_UINT32_NEQ(BPLib_STOR_QM_Add((BPLib_STOR_QM_QueueTbl_t *)&rtbl, dest, mask, intf_id), 0);
@@ -320,17 +320,17 @@ void test_BPLib_STOR_QM_Add(void)
 void test_BPLib_STOR_QM_Del(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
+     * int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
      */
     BPLib_STOR_QM_QueueTbl_t   tbl;
     BPLib_STOR_QM_QueueEntry_t queue_entry;
-    bp_ipn_t           dest = 101;
-    bp_ipn_t           mask = 100;
-    bp_handle_t        intf_id;
+    BPLib_Ipn_t           dest = 101;
+    BPLib_Ipn_t           mask = 100;
+    BPLib_Handle_t        intf_id;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
     memset(&queue_entry, 0, sizeof(BPLib_STOR_QM_QueueEntry_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
 
     UtAssert_UINT32_NEQ(BPLib_STOR_QM_Del((BPLib_STOR_QM_QueueTbl_t *)&tbl, dest, mask, intf_id), 0);
     tbl.registered_queues = 1;
@@ -343,12 +343,12 @@ void test_BPLib_STOR_QM_Del(void)
 void test_BPLib_STOR_QM_GetNextIntfWithFlags(void)
 {
     /* Test function for:
-     * bp_handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, uint32_t req_flags,
+     * BPLib_Handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, uint32_t req_flags,
      * uint32_t flag_mask)
      */
     BPLib_STOR_QM_QueueTbl_t   tbl;
     BPLib_STOR_QM_QueueEntry_t queue_entry;
-    bp_ipn_t           dest      = 101;
+    BPLib_Ipn_t           dest      = 101;
     uint32_t           req_flags = 0;
     uint32_t           flag_mask = 0;
     BPLib_STOR_QM_Duct_t duct_block;
@@ -373,10 +373,10 @@ void test_BPLib_STOR_QM_GetNextIntfWithFlags(void)
 void test_BPLib_STOR_QM_IntfSetFlags(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
+     * int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
      */
     BPLib_STOR_QM_QueueTbl_t  tbl;
-    bp_handle_t       intf_id = BP_INVALID_HANDLE;
+    BPLib_Handle_t       intf_id = BPLIB_INVALID_HANDLE;
     uint32_t          flags   = 0;
     BPLib_STOR_CACHE_Ref_t ref;
 
@@ -393,15 +393,15 @@ void test_BPLib_STOR_QM_IntfSetFlags(void)
 void test_BPLib_STOR_QM_IntfUnsetFlags(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
+     * int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
      */
     BPLib_STOR_QM_QueueTbl_t  tbl;
-    bp_handle_t       intf_id = BP_INVALID_HANDLE;
+    BPLib_Handle_t       intf_id = BPLIB_INVALID_HANDLE;
     uint32_t          flags   = 0;
     BPLib_STOR_CACHE_Ref_t ref;
 
     memset(&tbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
     memset(&ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &ref);
@@ -431,7 +431,7 @@ void test_BPLib_STOR_QM_PeriodicMaintenance(void)
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_OsGetDtntimeMs), BPLib_STOR_QM_GetTimeHandler, NULL);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterForward), BP_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_STOR_CACHE_ListIterForward), BPLIB_ERROR);
     UtAssert_VOIDCALL(BPLib_STOR_QM_PeriodicMaintenance((BPLib_STOR_QM_QueueTbl_t *)&rtbl));
 
     rtbl.poll_count = 1;

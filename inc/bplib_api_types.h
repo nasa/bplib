@@ -42,10 +42,28 @@ extern "C" {
  */
 typedef int32_t BPLib_Status_t;
 
-typedef struct bp_handle
+typedef struct BPLib_handle
 {
     uint32_t hdl;
-} bp_handle_t;
+} BPLib_Handle_t;
+
+// Integer typedefs
+
+typedef uintmax_t BPLib_Val_t;
+typedef intmax_t  BPLib_Sval_t;
+typedef uint16_t  BPLib_Index_t;
+
+// Bundle Protocol Typedefs
+
+/* IPN Schema Endpoint ID Integer Definition */
+typedef BPLib_Val_t BPLib_Ipn_t;
+
+/* combine IPN node+service */
+typedef struct BPLib_IpnAddr
+{
+    BPLib_Ipn_t node_number;
+    BPLib_Ipn_t service_number;
+} BPLib_IpnAddr_t;
 
 /*
 ** Macros
@@ -89,47 +107,47 @@ typedef struct bp_handle
 //BPLIB_TIMEOUT was -5 in the prototype.
 #define BPLIB_TIMEOUT                       ((BPLib_Status_t) -20u)
 
-// BPLIB_FLAG_DIAGNOSTIC (from BP_FLAG_DIAGNOSTIC)
+// BPLIB_FLAG_DIAGNOSTIC
 #define BPLIB_MEM_FLAG_DIAGNOSTIC              0x00000000
 
 #define BPLIB_HANDLE_MAX_SERIAL 0xffffff
 
 #define BPLIB_HANDLE_RAM_STORE_BASE \
-    (bp_handle_t)                   \
+    (BPLib_Handle_t)                   \
     {                               \
         0x1000000                   \
     }
 #define BPLIB_HANDLE_FLASH_STORE_BASE \
-    (bp_handle_t)                     \
+    (BPLib_Handle_t)                     \
     {                                 \
         0x2000000                     \
     }
 #define BPLIB_HANDLE_FILE_STORE_BASE \
-    (bp_handle_t)                    \
+    (BPLib_Handle_t)                    \
     {                                \
         0x3000000                    \
     }
 #define BPLIB_HANDLE_OS_BASE \
-    (bp_handle_t)            \
+    (BPLib_Handle_t)            \
     {                        \
         0x4000000            \
     }
 
 #define BPLIB_HANDLE_INTF_BASE \
-    (bp_handle_t)              \
+    (BPLib_Handle_t)              \
     {                          \
         0x5000000              \
     }
 
 // BPLIB_HANDLE_MPOOL_BASE is from heritage bplib_api_types.h, hence the "MPOOL".
 #define BPLIB_HANDLE_MPOOL_BASE \
-    (bp_handle_t)               \
+    (BPLib_Handle_t)               \
     {                           \
         0x6000000               \
     }
 
-#define BP_INVALID_HANDLE \
-    (const bp_handle_t)   \
+#define BPLIB_INVALID_HANDLE \
+    (const BPLib_Handle_t)   \
     {                     \
         0                 \
     } /* used for integers (os locks, storage services) */
@@ -145,7 +163,7 @@ typedef struct bp_handle
  * @retval false if the handle is not possibly valid
  * @retval true if the handle may be valid
  */
-static inline bool bp_handle_is_valid(bp_handle_t h)
+static inline bool BPLib_HandleIsValid(BPLib_Handle_t h)
 {
     return (h.hdl != 0);
 }
@@ -160,7 +178,7 @@ static inline bool bp_handle_is_valid(bp_handle_t h)
  * @param h the handle value
  * @returns handle value as an "int"
  */
-static inline int bp_handle_printable(bp_handle_t h)
+static inline int BPLib_HandlePrintable(BPLib_Handle_t h)
 {
     return (int)h.hdl;
 }
@@ -176,7 +194,7 @@ static inline int bp_handle_printable(bp_handle_t h)
  * @retval false if the handles are different
  * @retval true if the handles are equal
  */
-static inline bool bp_handle_equal(bp_handle_t h1, bp_handle_t h2)
+static inline bool BPLib_HandleEqual(BPLib_Handle_t h1, BPLib_Handle_t h2)
 {
     return (h1.hdl == h2.hdl);
 }
@@ -187,14 +205,14 @@ static inline bool bp_handle_equal(bp_handle_t h1, bp_handle_t h2)
  * This determines the 0-based serial number corresponding to a handle,
  * which can in turn be used to index into a table/array.
  *
- * @sa bp_handle_from_serial
+ * @sa BPLib_HandleFromSerial
  *
  * @param h the handle value
  * @param base the object base handle (indicates the type/class of handle)
  *
  * @returns handle as a serial number
  */
-static inline int bp_handle_to_serial(bp_handle_t h, bp_handle_t base)
+static inline int BPLib_HandleToSerial(BPLib_Handle_t h, BPLib_Handle_t base)
 {
     return (h.hdl - base.hdl);
 }
@@ -204,16 +222,16 @@ static inline int bp_handle_to_serial(bp_handle_t h, bp_handle_t base)
  *
  * This determines the handle value corresponding to a 0-based serial number.
  *
- * @sa bp_handle_to_serial
+ * @sa BPLib_HandleToSerial
  *
  * @param hv   the handle value
  * @param base the object base handle (indicates the type/class of handle)
  *
  * @returns handle as a serial number
  */
-static inline bp_handle_t bp_handle_from_serial(int hv, bp_handle_t base)
+static inline BPLib_Handle_t BPLib_HandleFromSerial(int hv, BPLib_Handle_t base)
 {
-    return (bp_handle_t) {.hdl = (uint32_t)hv + base.hdl};
+    return (BPLib_Handle_t) {.hdl = (uint32_t)hv + base.hdl};
 }
 
 // TODO TIME Helpers

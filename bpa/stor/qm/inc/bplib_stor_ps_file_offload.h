@@ -59,20 +59,20 @@ struct BPLib_STOR_QM_ModuleApi
 {
     BPLib_STOR_QM_ModuleType_t module_type;
     BPLib_STOR_CACHE_Block_t *(*instantiate)(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
-    int (*configure)(BPLib_STOR_CACHE_Pool_t *svc, bp_handle_t ps_intf_id, int key,
+    int (*configure)(BPLib_STOR_CACHE_Pool_t *svc, BPLib_Handle_t ps_intf_id, int key,
                      BPLib_STOR_QM_ModuleValtype_t vt, const void *val);
-    int (*query)(BPLib_STOR_CACHE_Pool_t *tbl, bp_handle_t module_intf_id, int key,
+    int (*query)(BPLib_STOR_CACHE_Pool_t *tbl, BPLib_Handle_t module_intf_id, int key,
                  BPLib_STOR_QM_ModuleValtype_t vt, const void **val);
-    int (*start)(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id);
-    int (*stop)(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id);
+    int (*start)(BPLib_STOR_CACHE_Block_t *tbl, BPLib_Handle_t module_intf_id);
+    int (*stop)(BPLib_STOR_CACHE_Block_t *tbl, BPLib_Handle_t module_intf_id);
 };
 
 typedef struct BPLib_STOR_PS_OffloadApi
 {
     BPLib_STOR_QM_ModuleApi_t std;
-    int (*offload)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
-    int (*restore)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk);
-    int (*release)(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);
+    int (*offload)(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
+    int (*restore)(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid, BPLib_STOR_CACHE_Block_t **pblk);
+    int (*release)(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid);
 } BPLib_STOR_PS_OffloadApi_t;
 
 static inline int BPLib_STOR_CACHE_FileOffloadConstructBlock(void *arg, BPLib_STOR_CACHE_Block_t *blk)

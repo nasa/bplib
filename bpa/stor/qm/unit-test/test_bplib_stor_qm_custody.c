@@ -299,7 +299,7 @@ void Test_BPLib_STOR_CACHE_CustodyAppendDacs(void)
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
     memset(&payload_ref, 0, sizeof(BPLIB_CT_AcceptPayloadBlock_t));
     memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
-    payload_ref.num_entries           = BP_DACS_MAX_SEQ_PER_PAYLOAD;
+    payload_ref.num_entries           = BPLIB_DACS_MAX_SEQ_PER_PAYLOAD;
     store_entry.data.dacs.payload_ref = &payload_ref;
     custody_info.store_entry          = &store_entry;
 

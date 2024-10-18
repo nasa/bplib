@@ -41,7 +41,7 @@ typedef struct BPLib_STOR_CACHE_ClaStats
 
 typedef struct BPLib_STOR_QM_ServiceintfInfo
 {
-    bp_ipn_t          node_number;
+    BPLib_Ipn_t          node_number;
     BPLib_MEM_RBT_Root_t  service_index;
     BPLib_STOR_CACHE_Ref_t storage_service;
 

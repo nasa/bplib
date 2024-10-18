@@ -33,12 +33,12 @@
  * Generated stub function for BPLib_MEM_BlockFromExternalId()
  * ----------------------------------------------------
  */
-BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle)
+BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, BPLib_Handle_t handle)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_BlockFromExternalId, BPLib_MEM_Block_t *);
 
     UT_GenStub_AddParam(BPLib_MEM_BlockFromExternalId, BPLib_MEM_Pool_t *, pool);
-    UT_GenStub_AddParam(BPLib_MEM_BlockFromExternalId, bp_handle_t, handle);
+    UT_GenStub_AddParam(BPLib_MEM_BlockFromExternalId, BPLib_Handle_t, handle);
 
     UT_GenStub_Execute(BPLib_MEM_BlockFromExternalId, Basic, NULL);
 
@@ -230,13 +230,13 @@ bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, BPLib_TIME_MonotonicTime_t until
  * Generated stub function for BPLib_MEM_OS_CreateLock()
  * ----------------------------------------------------
  */
-bp_handle_t BPLib_MEM_OS_CreateLock(void)
+BPLib_Handle_t BPLib_MEM_OS_CreateLock(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_OS_CreateLock, bp_handle_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_OS_CreateLock, BPLib_Handle_t);
 
     UT_GenStub_Execute(BPLib_MEM_OS_CreateLock, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_OS_CreateLock, bp_handle_t);
+    return UT_GenStub_GetReturnValue(BPLib_MEM_OS_CreateLock, BPLib_Handle_t);
 }
 
 /*
@@ -244,9 +244,9 @@ bp_handle_t BPLib_MEM_OS_CreateLock(void)
  * Generated stub function for BPLib_MEM_OS_Lock()
  * ----------------------------------------------------
  */
-void BPLib_MEM_OS_Lock(bp_handle_t h)
+void BPLib_MEM_OS_Lock(BPLib_Handle_t h)
 {
-    UT_GenStub_AddParam(BPLib_MEM_OS_Lock, bp_handle_t, h);
+    UT_GenStub_AddParam(BPLib_MEM_OS_Lock, BPLib_Handle_t, h);
 
     UT_GenStub_Execute(BPLib_MEM_OS_Lock, Basic, NULL);
 }
@@ -256,9 +256,9 @@ void BPLib_MEM_OS_Lock(bp_handle_t h)
  * Generated stub function for BPLib_MEM_OS_Unlock()
  * ----------------------------------------------------
  */
-void BPLib_MEM_OS_Unlock(bp_handle_t h)
+void BPLib_MEM_OS_Unlock(BPLib_Handle_t h)
 {
-    UT_GenStub_AddParam(BPLib_MEM_OS_Unlock, bp_handle_t, h);
+    UT_GenStub_AddParam(BPLib_MEM_OS_Unlock, BPLib_Handle_t, h);
 
     UT_GenStub_Execute(BPLib_MEM_OS_Unlock, Basic, NULL);
 }

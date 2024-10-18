@@ -42,7 +42,7 @@
  * keep the color value.
  */
 #define BPLIB_RBT_RED_FLAG   0x01
-#define BPLIB_RBT_COLOR_MASK (~((bp_val_t)BPLIB_RBT_RED_FLAG))
+#define BPLIB_RBT_COLOR_MASK (~((BPLib_Val_t)BPLIB_RBT_RED_FLAG))
 
 /******************************************************************************
  LOCAL FUNCTIONS
@@ -83,7 +83,7 @@ static inline void swap_colors(BPLib_MEM_RBT_Link_t *node1, BPLib_MEM_RBT_Link_t
  *
  * Color will be set to RED (default for all new nodes)
  *-------------------------------------------------------------------------------------*/
-static inline void initialize_node_value(BPLib_MEM_RBT_Link_t *node, bp_val_t value)
+static inline void initialize_node_value(BPLib_MEM_RBT_Link_t *node, BPLib_Val_t value)
 {
     node->key_value_and_color = BPLIB_RBT_RED_FLAG | (value << 1);
 }
@@ -91,7 +91,7 @@ static inline void initialize_node_value(BPLib_MEM_RBT_Link_t *node, bp_val_t va
 /*--------------------------------------------------------------------------------------
  * get_key_value - gets the key value from the given node
  *-------------------------------------------------------------------------------------*/
-static inline bp_val_t get_key_value(const BPLib_MEM_RBT_Link_t *node)
+static inline BPLib_Val_t get_key_value(const BPLib_MEM_RBT_Link_t *node)
 {
     return (node->key_value_and_color >> 1);
 }
@@ -245,7 +245,7 @@ static inline bool node_is_attached(const BPLib_MEM_RBT_Link_t *node)
  * @param node The node to find the parent reference to
  * @return Pointer to the reference in the parent pointing to node
  */
-BP_LOCAL_SCOPE BPLib_MEM_RBT_Link_t **find_parent_ref(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *node)
+BPLIB_LOCAL_SCOPE BPLib_MEM_RBT_Link_t **find_parent_ref(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *node)
 {
     BPLib_MEM_RBT_Link_t **ref;
 
@@ -277,7 +277,7 @@ BP_LOCAL_SCOPE BPLib_MEM_RBT_Link_t **find_parent_ref(BPLib_MEM_RBT_Root_t *tree
  * @param parent Pointer to the current parent which should become child
  * @param child  Pointer to the current child which should become parent
  */
-BP_LOCAL_SCOPE void swap_parent_and_child(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *parent, BPLib_MEM_RBT_Link_t *child)
+BPLIB_LOCAL_SCOPE void swap_parent_and_child(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *parent, BPLib_MEM_RBT_Link_t *child)
 {
     BPLib_MEM_RBT_Link_t **grandparent_ref;
     BPLib_MEM_RBT_Link_t  *saved_left;
@@ -321,7 +321,7 @@ BP_LOCAL_SCOPE void swap_parent_and_child(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_
  * @param node1  Pointer to the current parent which should become child
  * @param node2  Pointer to the current child which should become parent
  */
-BP_LOCAL_SCOPE void swap_distant_nodes(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *node1, BPLib_MEM_RBT_Link_t *node2)
+BPLIB_LOCAL_SCOPE void swap_distant_nodes(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *node1, BPLib_MEM_RBT_Link_t *node2)
 {
     BPLib_MEM_RBT_Link_t *saved_left;
     BPLib_MEM_RBT_Link_t *saved_right;
@@ -351,7 +351,7 @@ BP_LOCAL_SCOPE void swap_distant_nodes(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT
  * returns: A ptr to a BPLib_MEM_RBT_Link_t to populate with the identified node. This is set to NULL
  *      if no node is found.
  *--------------------------------------------------------------------------------------*/
-static inline int BPLib_MEM_RBT_CompareKey(bp_val_t key1, bp_val_t key2)
+static inline int BPLib_MEM_RBT_CompareKey(BPLib_Val_t key1, BPLib_Val_t key2)
 {
     if (key1 == key2)
     {
@@ -381,13 +381,13 @@ static inline int BPLib_MEM_RBT_CompareKey(bp_val_t key1, bp_val_t key2)
  * new_node: Pointer to the new node link structure
  * returns: A rb_tree status indicating the result of the insertion attempt (BPLIB_MEM_RBT_DUPLICATE or BPLIB_SUCCESS)
  *-------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE int do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *new_node,
+BPLIB_LOCAL_SCOPE int do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *new_node,
                                      BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
 {
     BPLib_MEM_RBT_Link_t  *curr_ptr;
     BPLib_MEM_RBT_Link_t **ref_ptr;
     BPLib_MEM_RBT_Link_t  *parent_ptr;
-    bp_val_t           insert_key_value;
+    BPLib_Val_t           insert_key_value;
     int                status;
     int                compare_result;
 
@@ -446,7 +446,7 @@ BP_LOCAL_SCOPE int do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_L
  * initial_subject: A ptr to the last inserted node in the red black tree. Must be red (initial color for new nodes)
  *
  *--------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE void do_insert_rebalance(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *initial_subject)
+BPLIB_LOCAL_SCOPE void do_insert_rebalance(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *initial_subject)
 {
     BPLib_MEM_RBT_Link_t *grandparent;
     BPLib_MEM_RBT_Link_t *parent;
@@ -783,7 +783,7 @@ void do_delete_make_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *node)
  * initial_subject: A ptr to the BPLib_MEM_RBT_Link_t from which to start the rebalancing operation. [INPUT]
  *
  *--------------------------------------------------------------------------------------*/
-BP_LOCAL_SCOPE void do_delete_rebalance(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *initial_subject)
+BPLIB_LOCAL_SCOPE void do_delete_rebalance(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *initial_subject)
 {
     BPLib_MEM_RBT_Link_t *sibling;
     BPLib_MEM_RBT_Link_t *close_nephew;
@@ -1064,7 +1064,7 @@ bool BPLib_MEM_RBT_NodeIsMember(const BPLib_MEM_RBT_Root_t *tree, const BPLib_ME
  * returns: A ptr to a BPLib_MEM_RBT_Link_t to populate with the identified node. This is set to NULL
  *      if no node is found.
  *--------------------------------------------------------------------------------------*/
-BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(bp_val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree,
+BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(BPLib_Val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree,
                                            BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
 {
     BPLib_MEM_RBT_Link_t *curr_ptr;
@@ -1111,7 +1111,7 @@ BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(bp_val_t search_key_value, con
  * new_node: Memory block for storage of the new value [INPUT]
  * returns: Status code indicating the result of the insertion.
  *--------------------------------------------------------------------------------------*/
-int BPLib_MEM_RBT_InsertValueGeneric(bp_val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block,
+int BPLib_MEM_RBT_InsertValueGeneric(BPLib_Val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block,
                                    BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
 {
     int status;
@@ -1197,7 +1197,7 @@ int BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *
  *
  * returns: Value of the given node
  *--------------------------------------------------------------------------------------*/
-bp_val_t BPLib_MEM_RBT_GetKeyValue(const BPLib_MEM_RBT_Link_t *node)
+BPLib_Val_t BPLib_MEM_RBT_GetKeyValue(const BPLib_MEM_RBT_Link_t *node)
 {
     return get_key_value(node);
 }
@@ -1316,11 +1316,11 @@ int BPLib_MEM_RBT_IterPrev(BPLib_MEM_RBT_Iter_t *iter)
  * Find a node that is either exactly matching the target value, or if that does not exist,
  * returns the nearest leaf node where that value would be attached.
  *--------------------------------------------------------------------------------------*/
-const BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_IterFindClosest(bp_val_t target_value, const BPLib_MEM_RBT_Link_t *start_pos)
+const BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_IterFindClosest(BPLib_Val_t target_value, const BPLib_MEM_RBT_Link_t *start_pos)
 {
     const BPLib_MEM_RBT_Link_t *prev_pos;
     const BPLib_MEM_RBT_Link_t *curr_pos;
-    bp_val_t                curr_val;
+    BPLib_Val_t                curr_val;
 
     prev_pos = NULL;
     curr_pos = start_pos;
@@ -1354,9 +1354,9 @@ const BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_IterFindClosest(bp_val_t target_value,
     return curr_pos;
 }
 
-int BPLib_MEM_RBT_IterGotoMin(bp_val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
+int BPLib_MEM_RBT_IterGotoMin(BPLib_Val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
 {
-    bp_val_t curr_val;
+    BPLib_Val_t curr_val;
     int      status;
 
     iter->position = BPLib_MEM_RBT_IterFindClosest(minimum_value, tree->root);
@@ -1392,9 +1392,9 @@ int BPLib_MEM_RBT_IterGotoMin(bp_val_t minimum_value, const BPLib_MEM_RBT_Root_t
     return status;
 }
 
-int BPLib_MEM_RBT_IterGotoMax(bp_val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
+int BPLib_MEM_RBT_IterGotoMax(BPLib_Val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
 {
-    bp_val_t curr_val;
+    BPLib_Val_t curr_val;
     int      status;
 
     iter->position = BPLib_MEM_RBT_IterFindClosest(maximum_value, tree->root);

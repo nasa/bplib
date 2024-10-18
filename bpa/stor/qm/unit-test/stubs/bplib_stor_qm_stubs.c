@@ -39,14 +39,14 @@ BPLib_STOR_CACHE_Block_t retblk;  // For Test_BPLib_STOR_QM_InstantiateStub.
  * Generated stub function for BPLib_STOR_QM_Add()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
+int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_Add, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_Add, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_Add, bp_ipn_t, dest);
-    UT_GenStub_AddParam(BPLib_STOR_QM_Add, bp_ipn_t, mask);
-    UT_GenStub_AddParam(BPLib_STOR_QM_Add, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_Add, BPLib_Ipn_t, dest);
+    UT_GenStub_AddParam(BPLib_STOR_QM_Add, BPLib_Ipn_t, mask);
+    UT_GenStub_AddParam(BPLib_STOR_QM_Add, BPLib_Handle_t, intf_id);
 
     UT_GenStub_Execute(BPLib_STOR_QM_Add, Basic, NULL);
 
@@ -75,16 +75,16 @@ BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_routes, size_t c
  * Generated stub function for BPLib_STOR_QM_BindSubIntf()
  * ----------------------------------------------------
  */
-bp_handle_t BPLib_STOR_QM_BindSubIntf(BPLib_STOR_CACHE_Block_t *flow_block, bp_handle_t parent_intf_id)
+BPLib_Handle_t BPLib_STOR_QM_BindSubIntf(BPLib_STOR_CACHE_Block_t *flow_block, BPLib_Handle_t parent_intf_id)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_BindSubIntf, bp_handle_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_BindSubIntf, BPLib_Handle_t);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_BindSubIntf, BPLib_STOR_CACHE_Block_t *, flow_block);
-    UT_GenStub_AddParam(BPLib_STOR_QM_BindSubIntf, bp_handle_t, parent_intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_BindSubIntf, BPLib_Handle_t, parent_intf_id);
 
     UT_GenStub_Execute(BPLib_STOR_QM_BindSubIntf, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_BindSubIntf, bp_handle_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_BindSubIntf, BPLib_Handle_t);
 }
 
 /*
@@ -92,14 +92,14 @@ bp_handle_t BPLib_STOR_QM_BindSubIntf(BPLib_STOR_CACHE_Block_t *flow_block, bp_h
  * Generated stub function for BPLib_STOR_QM_Del()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
+int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_Del, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_Del, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_Del, bp_ipn_t, dest);
-    UT_GenStub_AddParam(BPLib_STOR_QM_Del, bp_ipn_t, mask);
-    UT_GenStub_AddParam(BPLib_STOR_QM_Del, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_Del, BPLib_Ipn_t, dest);
+    UT_GenStub_AddParam(BPLib_STOR_QM_Del, BPLib_Ipn_t, mask);
+    UT_GenStub_AddParam(BPLib_STOR_QM_Del, BPLib_Handle_t, intf_id);
 
     UT_GenStub_Execute(BPLib_STOR_QM_Del, Basic, NULL);
 
@@ -111,12 +111,12 @@ int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mas
  * Generated stub function for BPLib_STOR_QM_DelIntf()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
+int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DelIntf, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_DelIntf, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_DelIntf, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DelIntf, BPLib_Handle_t, intf_id);
 
     UT_GenStub_Execute(BPLib_STOR_QM_DelIntf, Basic, NULL);
 
@@ -145,12 +145,12 @@ int BPLib_STOR_QM_ForwardBaseintfBundle(BPLib_STOR_CACHE_Block_t *flow_block, vo
  * Generated stub function for BPLib_STOR_QM_GetIntfControlblock()
  * ----------------------------------------------------
  */
-BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_GetIntfControlblock, BPLib_STOR_CACHE_Ref_t);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_GetIntfControlblock, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_GetIntfControlblock, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_GetIntfControlblock, BPLib_Handle_t, intf_id);
 
     UT_GenStub_Execute(BPLib_STOR_QM_GetIntfControlblock, Basic, NULL);
 
@@ -162,16 +162,16 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_
  * Generated stub function for BPLib_STOR_QM_GetNextAvailIntf()
  * ----------------------------------------------------
  */
-bp_handle_t BPLib_STOR_QM_GetNextAvailIntf(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest)
+BPLib_Handle_t BPLib_STOR_QM_GetNextAvailIntf(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_GetNextAvailIntf, bp_handle_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_GetNextAvailIntf, BPLib_Handle_t);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_GetNextAvailIntf, const BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_GetNextAvailIntf, bp_ipn_t, dest);
+    UT_GenStub_AddParam(BPLib_STOR_QM_GetNextAvailIntf, BPLib_Ipn_t, dest);
 
     UT_GenStub_Execute(BPLib_STOR_QM_GetNextAvailIntf, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_GetNextAvailIntf, bp_handle_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_GetNextAvailIntf, BPLib_Handle_t);
 }
 
 /*
@@ -179,19 +179,19 @@ bp_handle_t BPLib_STOR_QM_GetNextAvailIntf(const BPLib_STOR_QM_QueueTbl_t *tbl, 
  * Generated stub function for BPLib_STOR_QM_GetNextIntfWithFlags()
  * ----------------------------------------------------
  */
-bp_handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, uint32_t req_flags,
+BPLib_Handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, uint32_t req_flags,
                                                uint32_t flag_mask)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_GetNextIntfWithFlags, bp_handle_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_GetNextIntfWithFlags, BPLib_Handle_t);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_GetNextIntfWithFlags, const BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_GetNextIntfWithFlags, bp_ipn_t, dest);
+    UT_GenStub_AddParam(BPLib_STOR_QM_GetNextIntfWithFlags, BPLib_Ipn_t, dest);
     UT_GenStub_AddParam(BPLib_STOR_QM_GetNextIntfWithFlags, uint32_t, req_flags);
     UT_GenStub_AddParam(BPLib_STOR_QM_GetNextIntfWithFlags, uint32_t, flag_mask);
 
     UT_GenStub_Execute(BPLib_STOR_QM_GetNextIntfWithFlags, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_GetNextIntfWithFlags, bp_handle_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_GetNextIntfWithFlags, BPLib_Handle_t);
 }
 
 /*
@@ -275,12 +275,12 @@ int BPLib_STOR_QM_IngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
  * Generated stub function for BPLib_STOR_QM_IntfSetFlags()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
+int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_IntfSetFlags, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_IntfSetFlags, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_IntfSetFlags, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_IntfSetFlags, BPLib_Handle_t, intf_id);
     UT_GenStub_AddParam(BPLib_STOR_QM_IntfSetFlags, uint32_t, flags);
 
     UT_GenStub_Execute(BPLib_STOR_QM_IntfSetFlags, Basic, NULL);
@@ -293,12 +293,12 @@ int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_i
  * Generated stub function for BPLib_STOR_QM_IntfUnsetFlags()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
+int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_IntfUnsetFlags, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_IntfUnsetFlags, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_IntfUnsetFlags, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_IntfUnsetFlags, BPLib_Handle_t, intf_id);
     UT_GenStub_AddParam(BPLib_STOR_QM_IntfUnsetFlags, uint32_t, flags);
 
     UT_GenStub_Execute(BPLib_STOR_QM_IntfUnsetFlags, Basic, NULL);
@@ -359,13 +359,13 @@ void BPLib_STOR_QM_ProcessActiveFlows(BPLib_STOR_QM_QueueTbl_t *tbl)
  * Generated stub function for BPLib_STOR_QM_PushEgressBundle()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
+int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
                                    BPLib_STOR_CACHE_Block_t *cb)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_PushEgressBundle, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_PushEgressBundle, const BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_PushEgressBundle, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_PushEgressBundle, BPLib_Handle_t, intf_id);
     UT_GenStub_AddParam(BPLib_STOR_QM_PushEgressBundle, BPLib_STOR_CACHE_Block_t *, cb);
 
     UT_GenStub_Execute(BPLib_STOR_QM_PushEgressBundle, Basic, NULL);
@@ -378,13 +378,13 @@ int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handl
  * Generated stub function for BPLib_STOR_QM_PushIngressBundle()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
+int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
                                     BPLib_STOR_CACHE_Block_t *cb)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_PushIngressBundle, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_PushIngressBundle, const BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_PushIngressBundle, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_PushIngressBundle, BPLib_Handle_t, intf_id);
     UT_GenStub_AddParam(BPLib_STOR_QM_PushIngressBundle, BPLib_STOR_CACHE_Block_t *, cb);
 
     UT_GenStub_Execute(BPLib_STOR_QM_PushIngressBundle, Basic, NULL);
@@ -397,13 +397,13 @@ int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_hand
  * Generated stub function for BPLib_STOR_QM_RegisterEventHandler()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
+int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
                                        BPLib_STOR_QM_CallbackFunc_t event)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_RegisterEventHandler, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterEventHandler, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterEventHandler, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterEventHandler, BPLib_Handle_t, intf_id);
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterEventHandler, BPLib_STOR_QM_CallbackFunc_t, event);
 
     UT_GenStub_Execute(BPLib_STOR_QM_RegisterEventHandler, Basic, NULL);
@@ -416,13 +416,13 @@ int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_
  * Generated stub function for BPLib_STOR_QM_RegisterForwardEgressHandler()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
+int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
                                                BPLib_STOR_QM_CallbackFunc_t egress)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_RegisterForwardEgressHandler, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterForwardEgressHandler, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterForwardEgressHandler, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterForwardEgressHandler, BPLib_Handle_t, intf_id);
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterForwardEgressHandler, BPLib_STOR_QM_CallbackFunc_t, egress);
 
     UT_GenStub_Execute(BPLib_STOR_QM_RegisterForwardEgressHandler, Basic, NULL);
@@ -435,13 +435,13 @@ int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp
  * Generated stub function for BPLib_STOR_QM_RegisterForwardIngressHandler()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
+int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
                                                 BPLib_STOR_QM_CallbackFunc_t ingress)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_RegisterForwardIngressHandler, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterForwardIngressHandler, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterForwardIngressHandler, bp_handle_t, intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterForwardIngressHandler, BPLib_Handle_t, intf_id);
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterForwardIngressHandler, BPLib_STOR_QM_CallbackFunc_t, ingress);
 
     UT_GenStub_Execute(BPLib_STOR_QM_RegisterForwardIngressHandler, Basic, NULL);
@@ -454,18 +454,18 @@ int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, b
  * Generated stub function for BPLib_STOR_QM_RegisterGenericIntf()
  * ----------------------------------------------------
  */
-bp_handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t parent_intf_id,
+BPLib_Handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t parent_intf_id,
                                               BPLib_STOR_CACHE_Block_t *flow_block)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_RegisterGenericIntf, bp_handle_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_RegisterGenericIntf, BPLib_Handle_t);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterGenericIntf, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterGenericIntf, bp_handle_t, parent_intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterGenericIntf, BPLib_Handle_t, parent_intf_id);
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterGenericIntf, BPLib_STOR_CACHE_Block_t *, flow_block);
 
     UT_GenStub_Execute(BPLib_STOR_QM_RegisterGenericIntf, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_RegisterGenericIntf, bp_handle_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_QM_RegisterGenericIntf, BPLib_Handle_t);
 }
 
 /*
@@ -512,34 +512,34 @@ BPLib_STOR_CACHE_Block_t *Test_BPLib_STOR_QM_InstantiateStub(BPLib_STOR_CACHE_Re
     return &retblk;
 }
 
-int Test_BPLib_STOR_QM_ConfigureStub(BPLib_STOR_CACHE_Pool_t *svc, bp_handle_t cache_intf_id, int key,
+int Test_BPLib_STOR_QM_ConfigureStub(BPLib_STOR_CACHE_Pool_t *svc, BPLib_Handle_t cache_intf_id, int key,
                                         BPLib_STOR_QM_ModuleValtype_t vt, const void *val)
 {
     return UT_DEFAULT_IMPL(Test_BPLib_STOR_QM_ConfigureStub);
 }
 
-int Test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Pool_t *svc, bp_handle_t module_intf_id, int key,
+int Test_BPLib_STOR_CACHE_QueryStub(BPLib_STOR_CACHE_Pool_t *svc, BPLib_Handle_t module_intf_id, int key,
                                     BPLib_STOR_QM_ModuleValtype_t vt, const void **val)
 {
     return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_QueryStub);
 }
 
-int Test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc, bp_handle_t module_intf_id)
+int Test_BPLib_STOR_CACHE_StartstopStub(BPLib_STOR_CACHE_Block_t *svc, BPLib_Handle_t module_intf_id)
 {
     return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_StartstopStub);
 }
 
-int Test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
+int Test_BPLib_STOR_CACHE_OffloadStub(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
 {
     return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_OffloadStub);
 }
 
-int Test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
+int Test_BPLib_STOR_CACHE_RestoreStub(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid, BPLib_STOR_CACHE_Block_t **pblk)
 {
     return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_RestoreStub);
 }
 
-int Test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
+int Test_BPLib_STOR_CACHE_ReleaseStub(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid)
 {
     return UT_DEFAULT_IMPL(Test_BPLib_STOR_CACHE_ReleaseStub);
 }

@@ -59,12 +59,12 @@ struct BPLib_STOR_QM_ModuleApi
 {
     BPLib_STOR_QM_ModuleType_t module_type;
     BPLib_STOR_CACHE_Block_t *(*instantiate)(BPLib_STOR_CACHE_Ref_t parent_ref, void *init_arg);
-    int (*configure)(BPLib_STOR_CACHE_Pool_t *svc, bp_handle_t cache_intf_id, int key,
+    int (*configure)(BPLib_STOR_CACHE_Pool_t *svc, BPLib_Handle_t cache_intf_id, int key,
                      BPLib_STOR_QM_ModuleValtype_t vt, const void *val);
-    int (*query)(BPLib_STOR_CACHE_Pool_t *tbl, bp_handle_t module_intf_id, int key,
+    int (*query)(BPLib_STOR_CACHE_Pool_t *tbl, BPLib_Handle_t module_intf_id, int key,
                  BPLib_STOR_QM_ModuleValtype_t vt, const void **val);
-    int (*start)(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id);
-    int (*stop)(BPLib_STOR_CACHE_Block_t *tbl, bp_handle_t module_intf_id);
+    int (*start)(BPLib_STOR_CACHE_Block_t *tbl, BPLib_Handle_t module_intf_id);
+    int (*stop)(BPLib_STOR_CACHE_Block_t *tbl, BPLib_Handle_t module_intf_id);
 };
 
 /* Storage service - reserved for future use */
@@ -113,20 +113,20 @@ typedef enum
 BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_Instantiate(BPLib_STOR_CACHE_Ref_t parent, void *init_arg);
 
 /* Service API */
-bp_handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr);
-int         BPLib_STOR_QM_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr);
+BPLib_Handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *service_addr);
+int         BPLib_STOR_QM_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *service_addr);
 
-bp_handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t cache_intf_id,
+BPLib_Handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t cache_intf_id,
                                                 const BPLib_STOR_QM_ModuleApi_t *api, void *init_arg);
 
-int BPLib_STOR_QM_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
+int BPLib_STOR_QM_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id, int key,
                                BPLib_STOR_QM_ModuleValtype_t vt, const void *val);
-int BPLib_STOR_QM_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
+int BPLib_STOR_QM_Query(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id, int key,
                            BPLib_STOR_QM_ModuleValtype_t vt, const void **val);
-int BPLib_STOR_QM_Start(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id);
-int BPLib_STOR_QM_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id);
+int BPLib_STOR_QM_Start(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id);
+int BPLib_STOR_QM_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id);
 
-void BPLib_STOR_QM_DebugScan(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id);
+void BPLib_STOR_QM_DebugScan(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id);
 
 #ifdef __cplusplus
 } // extern "C"

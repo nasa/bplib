@@ -31,8 +31,6 @@
 #include "bplib_mem.h"
 #include "bplib_mem_internal.h"
 
-#include "bplib_stor_qm.h"
-
 #include "osapi.h"
 
 /**
@@ -48,11 +46,11 @@ static osal_id_t BPLib_MEM_OS_FileDataLock;
 /*--------------------------------------------------------------------------------------
  * BPLib_MEM_OS_Lock -
  *-------------------------------------------------------------------------------------*/
-void BPLib_MEM_OS_Lock(bp_handle_t h)
+void BPLib_MEM_OS_Lock(BPLib_Handle_t h)
 {
     osal_id_t id;
 
-    id = OS_ObjectIdFromInteger(bp_handle_to_serial(h, BPLIB_HANDLE_MPOOL_BASE));
+    id = OS_ObjectIdFromInteger(BPLib_HandleToSerial(h, BPLIB_HANDLE_MPOOL_BASE));
 
     OS_CondVarLock(id);
 }
@@ -60,11 +58,11 @@ void BPLib_MEM_OS_Lock(bp_handle_t h)
 /*--------------------------------------------------------------------------------------
  * BPLib_MEM_OS_Unlock -
  *-------------------------------------------------------------------------------------*/
-void BPLib_MEM_OS_Unlock(bp_handle_t h)
+void BPLib_MEM_OS_Unlock(BPLib_Handle_t h)
 {
     osal_id_t id;
 
-    id = OS_ObjectIdFromInteger(bp_handle_to_serial(h, BPLIB_HANDLE_MPOOL_BASE));
+    id = OS_ObjectIdFromInteger(BPLib_HandleToSerial(h, BPLIB_HANDLE_MPOOL_BASE));
 
     OS_CondVarUnlock(id);
 }
@@ -82,7 +80,7 @@ void BPLib_MEM_OS_Init(void)
 /*--------------------------------------------------------------------------------------
  * BPLib_MEM_OS_CreateLock -
  *-------------------------------------------------------------------------------------*/
-bp_handle_t BPLib_MEM_OS_CreateLock(void)
+BPLib_Handle_t BPLib_MEM_OS_CreateLock(void)
 {
     char      lock_name[OS_MAX_API_NAME];
     int32     status;
@@ -92,10 +90,10 @@ bp_handle_t BPLib_MEM_OS_CreateLock(void)
     status = OS_CondVarCreate(&id, lock_name, 0);
     if (status != OS_SUCCESS)
     {
-        return BP_INVALID_HANDLE;
+        return BPLIB_INVALID_HANDLE;
     }
 
-    return bp_handle_from_serial(OS_ObjectIdToInteger(id), BPLIB_HANDLE_OS_BASE);
+    return BPLib_HandleFromSerial(OS_ObjectIdToInteger(id), BPLIB_HANDLE_OS_BASE);
 }
 
 unsigned int BPLib_MEM_OS_NextSerial(void)
@@ -110,13 +108,13 @@ unsigned int BPLib_MEM_OS_NextSerial(void)
     return next_serial;
 }
 
-int BPLib_MEM_OS_WaitUntilMs(bp_handle_t h, uint64_t abs_dtntime_ms)
+int BPLib_MEM_OS_WaitUntilMs(BPLib_Handle_t h, uint64_t abs_dtntime_ms)
 {
     osal_id_t id;
     OS_time_t until_time;
     int32     status;
 
-    id = OS_ObjectIdFromInteger(bp_handle_to_serial(h, BPLIB_HANDLE_OS_BASE));
+    id = OS_ObjectIdFromInteger(BPLib_HandleToSerial(h, BPLIB_HANDLE_OS_BASE));
 
     if (abs_dtntime_ms == BPLIB_MEM_DTNTIME_INFINITE)
     {
@@ -282,7 +280,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
         if (api_block->api.construct(init_arg, node) != BPLIB_SUCCESS)
         {
             // TODO Use bplog?
-            // bplog(NULL, BP_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
+            // bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
             //      (unsigned long)content_type_signature);
         }
     }

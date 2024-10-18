@@ -53,14 +53,14 @@ int bplog(uint32_t *flags, uint32_t event, ...);
  * if any of these becomes UN-set, retention of the entry is NOT required */
 #define BPLIB_STORE_FLAGS_ACTION_WAIT_STATE (BPLIB_STORE_FLAG_ACTION_TIME_WAIT | BPLIB_STORE_FLAG_LOCALLY_QUEUED)
 
-#define BP_CACHE_DACS_LIFETIME   86400000 /* 24 hrs */
-#define BP_CACHE_DACS_OPEN_TIME  10000    /* 10 sec */
-#define BP_CACHE_FAST_RETRY_TIME 3000     /* 3 sec */
-#define BP_CACHE_IDLE_RETRY_TIME 3600000  /* 1 hour */
-#define BP_CACHE_AGE_OUT_TIME    5000     /* 5 seconds */
+#define BPLIB_CACHE_DACS_LIFETIME   86400000 /* 24 hrs */
+#define BPLIB_CACHE_DACS_OPEN_TIME  10000    /* 10 sec */
+#define BPLIB_CACHE_FAST_RETRY_TIME 3000     /* 3 sec */
+#define BPLIB_CACHE_IDLE_RETRY_TIME 3600000  /* 1 hour */
+#define BPLIB_CACHE_AGE_OUT_TIME    5000     /* 5 seconds */
 
-// #define BP_CACHE_TIME_INFINITE BP_MONOTIME_INFINITE
-#define BP_CACHE_TIME_INFINITE BPLIB_DTNTIME_INFINITE
+// #define BPLIB_CACHE_TIME_INFINITE BPLIB_MONOTIME_INFINITE
+#define BPLIB_CACHE_TIME_INFINITE BPLIB_DTNTIME_INFINITE
 
 typedef enum
 {
@@ -76,7 +76,7 @@ typedef struct BPLib_STOR_CACHE_State
 {
     int placeholder;
 
-    bp_ipn_addr_t self_addr;
+    BPLib_IpnAddr_t self_addr;
 
     #ifdef QM_JOB
     BPLib_STOR_QM_Job_t pending_job;
@@ -124,10 +124,10 @@ typedef struct BPLib_STOR_CACHE_State
 
 } BPLib_STOR_CACHE_State_t;
 
-// #include "bplib_cache.h"  // For bp_ipn_addr_t?
+// #include "bplib_cache.h"  // For BPLib_IpnAddr_t?
 typedef struct BPLib_STOR_CACHE_DacsPending
 {
-    bp_ipn_addr_t                      prev_custodian_id;
+    BPLib_IpnAddr_t                      prev_custodian_id;
     BPLIB_CT_AcceptPayloadBlock_t *payload_ref;
 
 } BPLib_STOR_CACHE_DacsPending_t;
@@ -142,10 +142,10 @@ struct BPLib_STOR_CACHE_Entry
     BPLib_STOR_CACHE_State_t      *parent;
     BPLib_STOR_CACHE_EntryState_t state;
     uint32_t                      flags;
-    bp_ipn_addr_t                 duct_id_copy;
-    bp_sequencenumber_t           duct_seq_copy;
+    BPLib_IpnAddr_t                 duct_id_copy;
+    BPLib_STOR_CACHE_SequenceNumber_t           duct_seq_copy;
     BPLib_STOR_CACHE_Ref_t        refptr;
-    bp_sid_t                      offload_sid;
+    BPLib_STOR_CACHE_Sid_t                      offload_sid;
     BPLib_TIME_MonotonicTime_t    action_time; /**< DTN time when entity is due to have some action (e.g. transmit) */
     BPLib_TIME_MonotonicTime_t    expire_time; /**< DTN time when entity is due to have some action (e.g. transmit) */
     BPLib_MEM_RBT_Link_t          hash_rbt_link;
@@ -162,13 +162,13 @@ typedef struct BPLib_STOR_CACHE_Blockref
 typedef struct BPLib_STOR_CACHE_CustodianInfo
 {
     bool                 match_dacs;
-    bp_ipn_addr_t        duct_id;
-    bp_ipn_addr_t        custodian_id;
+    BPLib_IpnAddr_t        duct_id;
+    BPLib_IpnAddr_t        custodian_id;
     BPLib_STOR_CACHE_Block_t *this_cblk;
     BPLib_STOR_CACHE_Block_t *prev_cblk;
-    bp_val_t             eid_hash;
-    bp_sequencenumber_t  sequence_num;
-    bp_ipn_t             final_dest_node;
+    BPLib_Val_t             eid_hash;
+    BPLib_STOR_CACHE_SequenceNumber_t  sequence_num;
+    BPLib_Ipn_t             final_dest_node;
     BPLib_STOR_CACHE_Entry_t *store_entry;
 } BPLib_STOR_CACHE_CustodianInfo_t;
 
@@ -237,7 +237,7 @@ int  BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
 void BPLib_STOR_CACHE_FlushPending(BPLib_STOR_CACHE_State_t *state);
 int  BPLib_STOR_CACHE_DoPoll(BPLib_STOR_CACHE_State_t *state);
 #ifdef UNUSED_ENTRIES_MAKE_PENDING
-int  BPLib_STOR_CACHE_EntriesMakePending(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, bp_ipn_t mask);
+int  BPLib_STOR_CACHE_EntriesMakePending(BPLib_STOR_CACHE_State_t *state, BPLib_Ipn_t dest, BPLib_Ipn_t mask);
 #endif // UNUSED_ENTRIES_MAKE_PENDING
 int  BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_up);
 int  BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_block);

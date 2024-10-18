@@ -173,7 +173,7 @@ void Test_BPLib_STOR_CACHE_BblockPrimaryAppend(void)
      */
 
     UT_BPLib_STOR_CACHE_Buf_t         buf;
-    bp_canonical_block_buffer_t *b;
+    BPLib_STOR_CACHE_CanonicalBlockBuffer_t *b;
 
     memset(&buf, 0, sizeof(buf));
 
@@ -193,33 +193,33 @@ void Test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(void)
 {
     /* Test function for:
      * BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
-     * bp_blocktype_t block_type);
+     * BPLib_STOR_CACHE_Blocktype_t block_type);
      */
 
     UT_BPLib_STOR_CACHE_Buf_t         buf;
-    bp_canonical_block_buffer_t *b;
+    BPLib_STOR_CACHE_CanonicalBlockBuffer_t *b;
 
     memset(&buf, 0, sizeof(buf));
 
     test_setup_cpool_block(&buf.pool, &buf.blk[0], BPLib_STOR_CACHE_BlocktypePrimary, 0);
-    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, bp_blocktype_undefined));
+    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeUndefined));
 
     test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
     BPLib_STOR_CACHE_InsertAfter(&buf.blk[0].u.primary.pblock.cblock_list, &buf.blk[1].header.base_link);
     b                            = BPLib_STOR_CACHE_BblockCanonicalGetLogical(&buf.blk[1].u.canonical.cblock);
-    b->canonical_block.blockType = bp_blocktype_bundleAge;
+    b->canonical_block.blockType = BPLib_STOR_CACHE_BlocktypeBundleage;
 
     /* canonical block of a different type should not be found */
-    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, bp_blocktype_hopCount));
+    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeHopcount));
 
     /* canonical block of the correct type should be found */
     UtAssert_ADDRESS_EQ(
-        BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, bp_blocktype_bundleAge), &buf.blk[1]);
+        BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeBundleage), &buf.blk[1]);
 
     /* include a block that is NOT a canonical block */
     test_setup_cpool_block(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
     BPLib_STOR_CACHE_InsertBefore(&buf.blk[0].u.primary.pblock.cblock_list, &buf.blk[2].header.base_link);
-    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, bp_blocktype_hopCount));
+    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeHopcount));
 }
 
 void Test_BPLib_STOR_CACHE_BblockPrimaryDropEncode(void)

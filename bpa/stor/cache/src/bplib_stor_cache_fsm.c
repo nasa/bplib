@@ -135,7 +135,7 @@ void BPLib_STOR_CACHE_FsmStateQueueExit(BPLib_STOR_CACHE_Entry_t *store_entry)
 
     if (pri_block != NULL)
     {
-        if (bp_handle_is_valid(pri_block->data.delivery.egress_intf_id))
+        if (BPLib_HandleIsValid(pri_block->data.delivery.egress_intf_id))
         {
             store_entry->flags &= ~BPLIB_STORE_FLAG_PENDING_FORWARD;
 
@@ -177,7 +177,7 @@ BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmStateDeleteEval(BPLib_STOR_CAC
         /* clear it now, it will be re-set if something uses this entry */
         store_entry->flags &= ~BPLIB_STORE_FLAG_ACTIVITY;
         store_entry->flags |= BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
-        store_entry->action_time = BPLib_STOR_CACHE_TimeAddMs(store_entry->parent->action_time, BP_CACHE_AGE_OUT_TIME);
+        store_entry->action_time = BPLib_STOR_CACHE_TimeAddMs(store_entry->parent->action_time, BPLIB_CACHE_AGE_OUT_TIME);
     }
 
     return BPLib_STOR_CACHE_EntryStateDelete;
@@ -201,7 +201,7 @@ void BPLib_STOR_CACHE_FsmStateDeleteEnter(BPLib_STOR_CACHE_Entry_t *store_entry)
     }
     #endif // QM_MODULE_API
     store_entry->flags |= BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
-    store_entry->action_time =BPLib_STOR_CACHE_TimeAddMs(store_entry->parent->action_time, BP_CACHE_AGE_OUT_TIME);
+    store_entry->action_time =BPLib_STOR_CACHE_TimeAddMs(store_entry->parent->action_time, BPLIB_CACHE_AGE_OUT_TIME);
     #endif // VALID_STORE_ENTRY
 }
 
@@ -234,12 +234,12 @@ void BPLib_STOR_CACHE_FsmReschedule(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_
     {
         /* item is pending action but blocked for some (hopefully) temporary external reason, so retry more aggressively
          */
-        ref_time =BPLib_STOR_CACHE_TimeAddMs(ref_time, BP_CACHE_FAST_RETRY_TIME);
+        ref_time =BPLib_STOR_CACHE_TimeAddMs(ref_time, BPLIB_CACHE_FAST_RETRY_TIME);
     }
     else
     {
         /* item is blocked for now, but don't want to leave it in a state where it is never checked again at all */
-        ref_time =BPLib_STOR_CACHE_TimeAddMs(ref_time, BP_CACHE_IDLE_RETRY_TIME);
+        ref_time =BPLib_STOR_CACHE_TimeAddMs(ref_time, BPLIB_CACHE_IDLE_RETRY_TIME);
     }
 
     /* calculate the time for the next action event */
@@ -393,7 +393,7 @@ void BPLib_STOR_CACHE_FsmExecute(BPLib_STOR_CACHE_Block_t *sblk)
              * in the egress queue get purged when an intf goes down, and we don't deliver anything new to it).
              */
             store_entry->flags &= ~BPLIB_STORE_FLAG_ACTION_TIME_WAIT;
-            store_entry->action_time = (BPLib_TIME_MonotonicTime_t) BPLIB_TIME_FROM_INT(BP_CACHE_TIME_INFINITE);
+            store_entry->action_time = (BPLib_TIME_MonotonicTime_t) BPLIB_TIME_FROM_INT(BPLIB_CACHE_TIME_INFINITE);
         }
 
         next_state = BPLib_STOR_CACHE_FsmGetNextState(store_entry);

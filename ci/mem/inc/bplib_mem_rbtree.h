@@ -25,12 +25,10 @@
  INCLUDES
  ******************************************************************************/
 
-#include <stdbool.h>  // TODO Should be in bplib_api_types.h
-
 #include "bplib_api_types.h"
 
 // TODO Should be in the build without _MEM. Only used by RBT so far.
-#define BP_LOCAL_SCOPE static
+#define BPLIB_LOCAL_SCOPE static
 
 // TODO Could be in bplib_api_types as a frequent error code from searches.
 /* BPLib MEM RBT Duplicate Search Result*/
@@ -39,11 +37,6 @@
 /******************************************************************************
  TYPEDEFS
  ******************************************************************************/
-
-// TODO bp_val_t, bp_sval_t, and bp_index_t belong in bplib_api_types.h
-typedef uintmax_t bp_val_t;
-typedef intmax_t  bp_sval_t;
-typedef uint16_t  bp_index_t;
 
 /*
  * Link structure for use in red-black storage trees
@@ -54,7 +47,7 @@ typedef uint16_t  bp_index_t;
  */
 typedef struct BPLib_MEM_RBT_Link
 {
-    bp_val_t               key_value_and_color;
+    BPLib_Val_t               key_value_and_color;
     struct BPLib_MEM_RBT_Link *left;
     struct BPLib_MEM_RBT_Link *right;
     struct BPLib_MEM_RBT_Link *parent;
@@ -148,7 +141,7 @@ bool BPLib_MEM_RBT_NodeIsMember(const BPLib_MEM_RBT_Root_t *tree, const BPLib_ME
  * @return Pointer to the matching node
  * @retval NULL if no matching node was found
  */
-BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(bp_val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree,
+BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(BPLib_Val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree,
                                            BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg);
 
 /*--------------------------------------------------------------------------------------*/
@@ -165,7 +158,7 @@ BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(bp_val_t search_key_value, con
  * @return Pointer to the matching node
  * @retval NULL if no matching node was found
  */
-static inline BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchUnique(bp_val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree)
+static inline BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchUnique(BPLib_Val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree)
 {
     return BPLib_MEM_RBT_SearchGeneric(search_key_value, tree, NULL, NULL);
 }
@@ -200,7 +193,7 @@ static inline BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchUnique(bp_val_t search_k
  * @retval BPLIB_SUCCESS if node was successfully inserted
  * @retval BPLIB_MEM_RBT_DUPLICATE if the tree already contained the specified value (duplicates are not allowed)
  */
-int BPLib_MEM_RBT_InsertValueGeneric(bp_val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block,
+int BPLib_MEM_RBT_InsertValueGeneric(BPLib_Val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block,
                                    BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg);
 
 /*--------------------------------------------------------------------------------------*/
@@ -231,7 +224,7 @@ int BPLib_MEM_RBT_InsertValueGeneric(bp_val_t insert_key_value, BPLib_MEM_RBT_Ro
  * @retval BPLIB_SUCCESS if node was successfully inserted
  * @retval BPLIB_MEM_RBT_DUPLICATE if the tree already contained the specified value (duplicates are not allowed)
  */
-static inline int BPLib_MEM_RBT_InsertValueUnique(bp_val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree,
+static inline int BPLib_MEM_RBT_InsertValueUnique(BPLib_Val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree,
                                                 BPLib_MEM_RBT_Link_t *link_block)
 {
     return BPLib_MEM_RBT_InsertValueGeneric(insert_key_value, tree, link_block, NULL, NULL);
@@ -263,7 +256,7 @@ int BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *
  * @returns integer status code
  * @retval BPLIB_SUCCESS if iterator is valid
  */
-int BPLib_MEM_RBT_IterGotoMin(bp_val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter);
+int BPLib_MEM_RBT_IterGotoMin(BPLib_Val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -275,7 +268,7 @@ int BPLib_MEM_RBT_IterGotoMin(bp_val_t minimum_value, const BPLib_MEM_RBT_Root_t
  * @returns integer status code
  * @retval BPLIB_SUCCESS if iterator is valid
  */
-int BPLib_MEM_RBT_IterGotoMax(bp_val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter);
+int BPLib_MEM_RBT_IterGotoMax(BPLib_Val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -313,7 +306,7 @@ int BPLib_MEM_RBT_IterPrev(BPLib_MEM_RBT_Iter_t *iter);
  * @param node The node to check
  * @return The key value from this node
  */
-bp_val_t BPLib_MEM_RBT_GetKeyValue(const BPLib_MEM_RBT_Link_t *node);
+BPLib_Val_t BPLib_MEM_RBT_GetKeyValue(const BPLib_MEM_RBT_Link_t *node);
 
 /*--------------------------------------------------------------------------------------*/
 /**

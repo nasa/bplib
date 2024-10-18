@@ -34,10 +34,10 @@ void Test_BPLib_STOR_CACHE_DataserviceAddBaseIntf(void)
 {
     #ifdef QM_DUCT
     /* Test function for:
-     * bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_ipn_t node_number)
+     * BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rtbl, BPLib_Ipn_t node_number)
      */
     BPLib_STOR_QM_QueueTbl_t    rtbl;
-    bp_ipn_t            node_number = 101;
+    BPLib_Ipn_t            node_number = 101;
     BPLib_STOR_CACHE_Block_t sblk;
 
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
@@ -60,11 +60,11 @@ void Test_BPLib_STOR_CACHE_DataserviceAttach(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn,BPLib_STOR_CACHE_DataserviceType_t
+     * BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAttach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *ipn,BPLib_STOR_CACHE_DataserviceType_t
      * type, BPLib_STOR_CACHE_Ref_t blkref)
      */
     BPLib_STOR_QM_QueueTbl_t            rtbl;
-    bp_ipn_addr_t               ipn;
+    BPLib_IpnAddr_t               ipn;
    BPLib_STOR_CACHE_DataserviceType_t    type = BPLib_STOR_CACHE_DataserviceTypeStorage;
     BPLib_STOR_CACHE_BlockContent_t blkref;
     BPLib_STOR_CACHE_Block_t         sblk;
@@ -72,7 +72,7 @@ void Test_BPLib_STOR_CACHE_DataserviceAttach(void)
     BPLib_STOR_CACHE_Block_t         temp_block;
 
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&ipn, 0, sizeof(bp_ipn_addr_t));
+    memset(&ipn, 0, sizeof(BPLib_IpnAddr_t));
     memset(&blkref, 0, sizeof(BPLib_STOR_CACHE_BlockContent_t));
     memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&duct_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
@@ -107,10 +107,10 @@ void Test_BPLib_STOR_CACHE_DataserviceDetach(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn)
+     * BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *ipn)
      */
     BPLib_STOR_QM_QueueTbl_t    rtbl;
-    bp_ipn_addr_t       ipn;
+    BPLib_IpnAddr_t       ipn;
     BPLib_STOR_CACHE_Ref_t   duct_ref;
     BPLib_MEM_RBT_Link_t    rbt_link;
     BPLib_STOR_CACHE_Block_t temp_block;
@@ -118,7 +118,7 @@ void Test_BPLib_STOR_CACHE_DataserviceDetach(void)
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
     ipn.node_number    = 10;
     ipn.service_number = 100;
-    memset(&ipn, 0, sizeof(bp_ipn_addr_t));
+    memset(&ipn, 0, sizeof(BPLib_IpnAddr_t));
     memset(&duct_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&rbt_link, 0, sizeof(BPLib_MEM_RBT_Link_t));
     memset(&temp_block, 0, sizeof(BPLib_STOR_CACHE_Block_t));
@@ -145,15 +145,15 @@ void Test_BPLib_STOR_CACHE_ConnectSocket(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * int BPLib_STOR_CACHE_ConnectSocket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn)
+     * int BPLib_STOR_CACHE_ConnectSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_IpnAddr_t *destination_ipn)
      */
-    bp_socket_t         desc;
-    bp_ipn_addr_t       destination_ipn;
+    BPLib_STOR_QM_Socket_t         desc;
+    BPLib_IpnAddr_t       destination_ipn;
    BPLib_STOR_CACHE_SocketInfo_t sock;
     BPLib_STOR_QM_QueueTbl_t    rbtl;
 
-    memset(&desc, 0, sizeof(bp_socket_t));
-    memset(&destination_ipn, 0, sizeof(bp_ipn_addr_t));
+    memset(&desc, 0, sizeof(BPLib_STOR_QM_Socket_t));
+    memset(&destination_ipn, 0, sizeof(BPLib_IpnAddr_t));
     destination_ipn.node_number    = 10;
     destination_ipn.service_number = 11;
     memset(&sock, 0, sizeof(BPLib_STOR_CACHE_SocketInfo_t));
@@ -187,7 +187,7 @@ void Test_BPLib_STOR_CACHE_CreateSocket(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * bp_socket_t BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *rtbl)
+     * BPLib_STOR_QM_Socket_t BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *rtbl)
      */
     BPLib_STOR_QM_QueueTbl_t    rtbl;
     BPLib_STOR_CACHE_Block_t sblk;
@@ -214,17 +214,17 @@ void Test_BPLib_STOR_CACHE_BindSocket(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * int BPLib_STOR_CACHE_BindSocket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
+     * int BPLib_STOR_CACHE_BindSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_IpnAddr_t *source_ipn)
      */
-    bp_socket_t         desc;
-    bp_ipn_addr_t       source_ipn;
+    BPLib_STOR_QM_Socket_t         desc;
+    BPLib_IpnAddr_t       source_ipn;
    BPLib_STOR_CACHE_SocketInfo_t sock;
     BPLib_STOR_QM_QueueTbl_t    rtbl;
     BPLib_STOR_CACHE_Block_t sblk;
     BPLib_STOR_CACHE_Ref_t   duct_ref;
 
-    memset(&desc, 0, sizeof(bp_socket_t));
-    memset(&source_ipn, 0, sizeof(bp_ipn_addr_t));
+    memset(&desc, 0, sizeof(BPLib_STOR_QM_Socket_t));
+    memset(&source_ipn, 0, sizeof(BPLib_IpnAddr_t));
     memset(&sock, 0, sizeof(BPLib_STOR_CACHE_SocketInfo_t));
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
     sock.parent_rtbl = &rtbl;
@@ -246,7 +246,7 @@ void Test_BPLib_STOR_CACHE_BindSocket(void)
     source_ipn.node_number            = 1;
     UtAssert_UINT32_NEQ(BPLib_STOR_CACHE_BindSocket(&desc, &source_ipn), 0);
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_ExtractNode), BP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_ExtractNode), BPLIB_SUCCESS);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &sblk);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, &sblk);
@@ -266,15 +266,15 @@ void Test_BPLib_STOR_CACHE_CloseSocket(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * void_BPLib_STOR_CACHE_CloseSocket(bp_socket_t *desc)
+     * void_BPLib_STOR_CACHE_CloseSocket(BPLib_STOR_QM_Socket_t *desc)
      */
-    bp_socket_t                    desc;
+    BPLib_STOR_QM_Socket_t                    desc;
    BPLib_STOR_CACHE_SocketInfo_t            sock;
     BPLib_STOR_QM_QueueTbl_t               rtbl;
     BPLib_STOR_QM_ServiceintfInfo_t base_intf;
     BPLib_STOR_CACHE_Ref_t              ref;
 
-    memset(&desc, 0, sizeof(bp_socket_t));
+    memset(&desc, 0, sizeof(BPLib_STOR_QM_Socket_t));
     memset(&sock, 0, sizeof(BPLib_STOR_CACHE_SocketInfo_t));
     sock.params.local_ipn.node_number    = 10;
     sock.params.local_ipn.service_number = 11;
@@ -287,7 +287,7 @@ void Test_BPLib_STOR_CACHE_CloseSocket(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CloseSocket(&desc));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, &sock);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_ExtractNode), BP_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_ExtractNode), BPLIB_SUCCESS);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CloseSocket(&desc));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
@@ -298,9 +298,9 @@ void test_BPLib_STOR_CACHE_Send(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * int BPLib_STOR_CACHE_Send(bp_socket_t *desc, const void *payload, size_t size, uint32_t timeout)
+     * int BPLib_STOR_CACHE_Send(BPLib_STOR_QM_Socket_t *desc, const void *payload, size_t size, uint32_t timeout)
      */
-    bp_socket_t                    desc;
+    BPLib_STOR_QM_Socket_t                    desc;
     void                          *payload = NULL;
     size_t                         size    = 100;
     uint32_t                       timeout = 3000;
@@ -312,7 +312,7 @@ void test_BPLib_STOR_CACHE_Send(void)
     BPLib_STOR_CACHE_BblockPrimary_t   pri;
     BPLib_STOR_CACHE_BblockCanonical_t ccb_pay;
 
-    memset(&desc, 0, sizeof(bp_socket_t));
+    memset(&desc, 0, sizeof(BPLib_STOR_QM_Socket_t));
     memset(&sock, 0, sizeof(BPLib_STOR_CACHE_SocketInfo_t));
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
     sock.parent_rtbl = &rtbl;
@@ -377,9 +377,9 @@ void test_BPLib_STOR_CACHE_Recv(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * int BPLib_STOR_CACHE_Recv(bp_socket_t *desc, void *payload, size_t *size, uint32_t timeout)
+     * int BPLib_STOR_CACHE_Recv(BPLib_STOR_QM_Socket_t *desc, void *payload, size_t *size, uint32_t timeout)
      */
-    bp_socket_t                    desc;
+    BPLib_STOR_QM_Socket_t                    desc;
     void                          *payload = NULL;
     size_t                         size    = 100;
     uint32_t                       timeout = 3000;
@@ -391,7 +391,7 @@ void test_BPLib_STOR_CACHE_Recv(void)
     BPLib_STOR_CACHE_BblockCanonical_t ccb_pay;
     BPLib_STOR_CACHE_BblockPrimary_t   pri;
 
-    memset(&desc, 0, sizeof(bp_socket_t));
+    memset(&desc, 0, sizeof(BPLib_STOR_QM_Socket_t));
     memset(&sock, 0, sizeof(BPLib_STOR_CACHE_SocketInfo_t));
     memset(&duct, 0, sizeof(BPLib_STOR_QM_Duct_t));
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
@@ -527,7 +527,7 @@ void Test_BPLib_STOR_CACHE_DataserviceEventImpl(void)
 
     memset(&event, 0, sizeof(BPLib_STOR_QM_DuctGenericEvent_t));
     memset(&intf_block, 0, sizeof(BPLib_STOR_CACHE_Block_t));
-    memset(&event.intf_state.intf_id, 0, sizeof(bp_handle_t));
+    memset(&event.intf_state.intf_id, 0, sizeof(BPLib_Handle_t));
     memset(&duct, 0, sizeof(BPLib_STOR_QM_Duct_t));
 
     UtAssert_UINT32_EQ(BPLib_STOR_CACHE_DataserviceEventImpl(&event, &intf_block), 0);
@@ -595,11 +595,11 @@ void Test_BPLib_STOR_QM_Configure(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * int BPLib_STOR_QM_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
+     * int BPLib_STOR_QM_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id, int key,
      * BPLib_STOR_QM_ModuleValtype_t vt, const void *val)
      */
     BPLib_STOR_QM_QueueTbl_t         tbl;
-    bp_handle_t                      module_intf_id = BP_INVALID_HANDLE;
+    BPLib_Handle_t                      module_intf_id = BPLIB_INVALID_HANDLE;
     int                              key            = 0;
     BPLib_STOR_QM_ModuleValtype_t vt             = BPLib_STOR_QM_ModuleValtypeInteger;
     void                            *val            = NULL;
@@ -631,11 +631,11 @@ void Test_BPLib_STOR_QM_Query(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * int BPLib_STOR_QM_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key, BPLib_STOR_QM_ModuleValtype_t
+     * int BPLib_STOR_QM_Query(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id, int key, BPLib_STOR_QM_ModuleValtype_t
      * vt, const void **val)
      */
     BPLib_STOR_QM_QueueTbl_t         *tbl            = NULL;
-    bp_handle_t                       module_intf_id = BP_INVALID_HANDLE;
+    BPLib_Handle_t                       module_intf_id = BPLIB_INVALID_HANDLE;
     int                               key            = 0;
     BPLib_STOR_QM_ModuleValtype_t  vt             = BPLib_STOR_QM_ModuleValtypeInteger;
     void                             *val            = NULL;
@@ -661,10 +661,10 @@ void Test_BPLib_STOR_QM_Start(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * int BPLib_STOR_PS_Start(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
+     * int BPLib_STOR_PS_Start(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id)
      */
     BPLib_STOR_QM_QueueTbl_t         *tbl = NULL;
-    bp_handle_t               module_intf_id;
+    BPLib_Handle_t               module_intf_id;
     BPLib_STOR_CACHE_State_t       state;
     BPLib_STOR_CACHE_Block_t       blk;
     BPLib_STOR_PS_OffloadApi_t api;
@@ -687,10 +687,10 @@ void Test_BPLib_STOR_QM_Stop(void)
 {
     #ifdef QM_MODULE_API
     /* Test function for:
-     * int BPLib_STOR_PS_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
+     * int BPLib_STOR_PS_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id)
      */
     BPLib_STOR_QM_QueueTbl_t         *tbl = NULL;
-    bp_handle_t               module_intf_id;
+    BPLib_Handle_t               module_intf_id;
     BPLib_STOR_CACHE_State_t       state;
     BPLib_STOR_CACHE_Block_t       blk;
     BPLib_STOR_PS_OffloadApi_t api;

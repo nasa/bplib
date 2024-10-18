@@ -84,9 +84,9 @@ void BPLib_MEM_OS_Init(void);
  *-------------------------------------------------------------------------------------*/
 unsigned int BPLib_MEM_OS_NextSerial(void);
 
-#define BPLIB_MEM_DTNTIME_INFINITE UINT64_MAX // TODO Should be in bplib.h as BP_DTNTIME_INFINITE (or BPLIB_)
+#define BPLIB_MEM_DTNTIME_INFINITE UINT64_MAX // TODO Should be in bplib.h as BPLIB_DTNTIME_INFINITE.
 
-int BPLib_MEM_OS_WaitUntilMs(bp_handle_t h, uint64_t abs_dtntime_ms);
+int BPLib_MEM_OS_WaitUntilMs(BPLib_Handle_t h, uint64_t abs_dtntime_ms);
 
 #ifdef BPLIB_MEM_ABSTRACT_TYPES
 struct BPLib_MEM

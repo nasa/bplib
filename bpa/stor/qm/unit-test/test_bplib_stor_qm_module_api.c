@@ -37,14 +37,14 @@
 void Test_BPLib_STOR_QM_Attach(void)
 {
     /* Test function for:
-     * bp_handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr)
+     * BPLib_Handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *service_addr)
      */
     BPLib_STOR_QM_QueueTbl_t   *tbl = NULL;
-    bp_ipn_addr_t       service_addr;
+    BPLib_IpnAddr_t       service_addr;
     BPLib_STOR_CACHE_Block_t sblk;
     BPLib_STOR_CACHE_State_t state;
 
-    memset(&service_addr, 0, sizeof(bp_ipn_addr_t));
+    memset(&service_addr, 0, sizeof(BPLib_IpnAddr_t));
     memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
 
@@ -70,14 +70,14 @@ void Test_BPLib_STOR_QM_Attach(void)
 void Test_BPLib_STOR_QM_Detach(void)
 {
     /* Test function for:
-     * int BPLib_STOR_QM_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr)
+     * int BPLib_STOR_QM_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *service_addr)
      */
     BPLib_STOR_QM_QueueTbl_t   *tbl = NULL;
-    bp_ipn_addr_t       service_addr;
+    BPLib_IpnAddr_t       service_addr;
     BPLib_STOR_CACHE_Ref_t   duct_block_ref;
     BPLib_STOR_CACHE_State_t state;
 
-    memset(&service_addr, 0, sizeof(bp_ipn_addr_t));
+    memset(&service_addr, 0, sizeof(BPLib_IpnAddr_t));
     service_addr.node_number    = 100;
     service_addr.service_number = 101;
     memset(&duct_block_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
@@ -97,11 +97,11 @@ void Test_BPLib_STOR_QM_Detach(void)
 void Test_BPLib_STOR_QM_RegisterModuleService(void)
 {
     /* Test function for:
-     * bp_handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t cache_intf_id, const
+     * BPLib_Handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t cache_intf_id, const
      * BPLib_STOR_QM_ModuleApi_t *api, void *init_arg)
      */
     BPLib_STOR_QM_QueueTbl_t        *tbl           = NULL;
-    bp_handle_t                      cache_intf_id = BP_INVALID_HANDLE;
+    BPLib_Handle_t                      cache_intf_id = BPLIB_INVALID_HANDLE;
     BPLib_STOR_QM_ModuleApi_t api;
     void                            *init_arg = NULL;
     BPLib_STOR_CACHE_State_t         state;
@@ -131,10 +131,10 @@ void Test_BPLib_STOR_QM_RegisterModuleService(void)
 void Test_BPLib_STOR_CACHE_DebugScanQueue(void)
 {
     /* Test function for:
-     * void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, bp_handle_t intf_id)
+     * void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, BPLib_Handle_t intf_id)
      */
     void   *tbl = NULL;
-    bp_handle_t         intf_id;
+    BPLib_Handle_t         intf_id;
     BPLib_STOR_CACHE_State_t state;
     BPLib_STOR_CACHE_Ref_t   duct_block_ref;
 

@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "crc.h"
+#include "bplib_crc.h"
 
 #include "bplib_mem.h"
 #include "bplib_mem_rbtree.h"
@@ -33,7 +33,7 @@
 
 #include "bplib_stor_qm_eid.h"
 
-static const BPLib_STOR_CACHE_CrcParameters_t *const BPLIB_CACHE_CUSTODY_HASH_ALGORITHM = &BPLIB_CRC32_CASTAGNOLI;
+static const BPLib_CRC_Parameters_t *const BPLIB_CACHE_CUSTODY_HASH_ALGORITHM = &BPLIB_CRC32_CASTAGNOLI;
 
 static const uint32_t BPLIB_CACHE_CUSTODY_HASH_SALT_DACS   = 0x3126c0cf;
 static const uint32_t BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE = 0x7739ae76;
@@ -67,8 +67,8 @@ void BPLib_STOR_CACHE_CustodyInsertTrackingBlock(BPLib_STOR_CACHE_State_t *state
         custody_block = BPLib_STOR_CACHE_BblockCanonicalCast(custody_info->this_cblk);
         if (custody_block != NULL)
         {
-            custody_block->canonical_logical_data.canonical_block.blockType = bp_blocktype_custodyTrackingBlock;
-            custody_block->canonical_logical_data.canonical_block.blockNum  = bp_blocktype_custodyTrackingBlock;
+            custody_block->canonical_logical_data.canonical_block.blockType = BPLib_STOR_CACHE_BlocktypeCustodytrackingblock;
+            custody_block->canonical_logical_data.canonical_block.blockNum  = BPLib_STOR_CACHE_BlocktypeCustodytrackingblock;
             custody_block->canonical_logical_data.canonical_block.crctype   = pri_block->data.logical.crctype;
         }
     }
@@ -106,17 +106,17 @@ int BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_MEM_RBT_Link_t *node, void
 bool BPLib_STOR_CACHE_CustodyFindPendingDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *dacs_info)
 {
     BPLib_MEM_RBT_Link_t *custody_rbt_link;
-    bp_crcval_t       hash;
+    BPLib_CRC_Val_t       hash;
 
     /* use a CRC as a hash function */
     /* when searching for DACS this includes duct and custodian but NOT sequence number (which has multiple values) */
-    hash = BPLib_STOR_CACHE_CrcInitialValue(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM);
-    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &dacs_info->duct_id, sizeof(dacs_info->duct_id));
-    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &dacs_info->custodian_id,
+    hash = BPLib_CRC_InitialValue(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM);
+    hash = BPLib_CRC_Update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &dacs_info->duct_id, sizeof(dacs_info->duct_id));
+    hash = BPLib_CRC_Update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &dacs_info->custodian_id,
                             sizeof(dacs_info->custodian_id));
-    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &BPLIB_CACHE_CUSTODY_HASH_SALT_DACS,
+    hash = BPLib_CRC_Update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &BPLIB_CACHE_CUSTODY_HASH_SALT_DACS,
                             sizeof(BPLIB_CACHE_CUSTODY_HASH_SALT_DACS));
-    dacs_info->eid_hash = BPLib_STOR_CACHE_CrcFinalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
+    dacs_info->eid_hash = BPLib_CRC_Finalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
 
     custody_rbt_link = BPLib_MEM_RBT_SearchGeneric(dacs_info->eid_hash, &state->dacs_index,
                                                 BPLib_STOR_CACHE_CustodyFindDacsMatch, dacs_info);
@@ -133,7 +133,7 @@ void BPLib_STOR_CACHE_CustodyInitInfoFromPblock(BPLib_STOR_CACHE_CustodianInfo_t
                                                BPLib_STOR_CACHE_BblockPrimary_t *pri_block)
 {
     BPLib_STOR_CACHE_BblockCanonical_t *custody_block;
-    bp_ipn_addr_t                   final_dest_addr;
+    BPLib_IpnAddr_t                   final_dest_addr;
 
     memset(custody_info, 0, sizeof(*custody_info));
 
@@ -143,7 +143,7 @@ void BPLib_STOR_CACHE_CustodyInitInfoFromPblock(BPLib_STOR_CACHE_CustodianInfo_t
     BPLib_STOR_QM_GetEid(&final_dest_addr, &pri_block->data.logical.destinationEID);
     custody_info->final_dest_node = final_dest_addr.node_number;
 
-    custody_info->prev_cblk = BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(pri_block, bp_blocktype_custodyTrackingBlock);
+    custody_info->prev_cblk = BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(pri_block, BPLib_STOR_CACHE_BlocktypeCustodytrackingblock);
     if (custody_info->prev_cblk != NULL)
     {
         custody_block = BPLib_STOR_CACHE_BblockCanonicalCast(custody_info->prev_cblk);
@@ -153,7 +153,7 @@ void BPLib_STOR_CACHE_CustodyInitInfoFromPblock(BPLib_STOR_CACHE_CustodianInfo_t
             BPLib_STOR_QM_GetEid(&custody_info->custodian_id,
                        &custody_block->canonical_logical_data.data.custody_tracking_block.current_custodian);
 
-            custody_block->canonical_logical_data.canonical_block.blockType = bp_blocktype_previousCustodianBlock;
+            custody_block->canonical_logical_data.canonical_block.blockType = BPLib_STOR_CACHE_BlocktypePreviouscustodianblock;
         }
     }
 }
@@ -170,7 +170,7 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_CustodyCreateDacs(BPLib_STOR_CACHE_State
     BPLib_STOR_CACHE_BblockPrimary_t   *pri_block;
     BPLib_STOR_CACHE_PrimaryBlock_t             *pri;
     BPLib_STOR_CACHE_BblockCanonical_t *c_block;
-    bp_canonical_block_buffer_t    *pay;
+    BPLib_STOR_CACHE_CanonicalBlockBuffer_t    *pay;
 
     /* This needs to turn the DACS information in the temporary object into a full bundle */
     /* Allocate Blocks */
@@ -202,10 +202,10 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_CustodyCreateDacs(BPLib_STOR_CACHE_State
 
         pri->creationTimeStamp.time = BPLIB_DTNTIME_UNDEFINED;
 
-        pri->lifetime                     = BP_CACHE_DACS_LIFETIME;
+        pri->lifetime                     = BPLIB_CACHE_DACS_LIFETIME;
         pri->controlFlags.isAdminRecord   = true;
         pri->controlFlags.mustNotFragment = true;
-        pri->crctype                      = bp_crctype_CRC16;
+        pri->crctype                      = BPLib_CRC_Type_CRC16;
 
         /* Add Payload Block */
         cblk    = BPLib_STOR_CACHE_BblockCanonicalAlloc(ppool, 0, NULL);
@@ -218,9 +218,9 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_CustodyCreateDacs(BPLib_STOR_CACHE_State
 
         pay = BPLib_STOR_CACHE_BblockCanonicalGetLogical(c_block);
 
-        pay->canonical_block.blockNum  = bp_blocktype_payloadBlock;
-        pay->canonical_block.blockType = bp_blocktype_custodyAcceptPayloadBlock;
-        pay->canonical_block.crctype   = bp_crctype_CRC16;
+        pay->canonical_block.blockNum  = BPLib_STOR_CACHE_BlocktypePayloadblock;
+        pay->canonical_block.blockType = BPLib_STOR_CACHE_BlocktypeCustodyacceptpayloadblock;
+        pay->canonical_block.crctype   = BPLib_CRC_Type_CRC16;
 
         BPLib_STOR_CACHE_BblockPrimaryAppend(pri_block, cblk);
         cblk   = NULL; /* do not need now that it is stored */
@@ -254,7 +254,7 @@ void BPLib_STOR_CACHE_CustodyOpenDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STO
     BPLib_STOR_CACHE_Ref_t                  pending_bundle;
     BPLib_STOR_CACHE_BblockPrimary_t      *pri_block;
     BPLIB_CT_AcceptPayloadBlock_t *ack_content;
-    bp_handle_t                        self_intf_id;
+    BPLib_Handle_t                        self_intf_id;
 
     /* Create the storage-specific data block for keeping local refs  */
     sblk           = BPLib_STOR_CACHE_GenericDataAlloc(BPLib_STOR_CACHE_ParentPool(state), BPLIB_STORE_SIGNATURE_ENTRY, state);
@@ -265,18 +265,18 @@ void BPLib_STOR_CACHE_CustodyOpenDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STO
         /* need to fill out the delivery_data so this will look like a regular bundle when sent */
         self_intf_id                                 = BPLib_STOR_CACHE_GetExternalId(BPLib_STOR_CACHE_StateSeldblock(state));
         pri_block->data.delivery.delivery_policy     = BPLib_STOR_CACHE_PolicyDeliveryLocalAck;
-        pri_block->data.delivery.local_retx_interval = BP_CACHE_FAST_RETRY_TIME;
+        pri_block->data.delivery.local_retx_interval = BPLIB_CACHE_FAST_RETRY_TIME;
         pri_block->data.delivery.ingress_intf_id     = self_intf_id;
         pri_block->data.delivery.storage_intf_id     = self_intf_id;
-        pri_block->data.delivery.committed_storage_id = (bp_sid_t)sblk;
+        pri_block->data.delivery.committed_storage_id = (BPLib_STOR_CACHE_Sid_t)sblk;
 
         store_entry->state = BPLib_STOR_CACHE_EntryStateGenerateDacs;
         ++state->fsm_state_enter_count[store_entry->state];
 
         /* the "action_time" reflects when this bundle will be finalized and sent, until
          * then it is open for appending with additional sequence numbers. */
-        store_entry->action_time   = BPLib_STOR_CACHE_TimeAddMs(pri_block->data.delivery.ingress_time, BP_CACHE_DACS_OPEN_TIME);
-        store_entry->expire_time   = BPLib_STOR_CACHE_TimeAddMs(pri_block->data.delivery.ingress_time, BP_CACHE_DACS_LIFETIME);
+        store_entry->action_time   = BPLib_STOR_CACHE_TimeAddMs(pri_block->data.delivery.ingress_time, BPLIB_CACHE_DACS_OPEN_TIME);
+        store_entry->expire_time   = BPLib_STOR_CACHE_TimeAddMs(pri_block->data.delivery.ingress_time, BPLIB_CACHE_DACS_LIFETIME);
         store_entry->duct_id_copy  = state->self_addr;
         store_entry->duct_seq_copy = pri_block->data.logical.creationTimeStamp.sequence_num;
         store_entry->refptr        = BPLib_STOR_CACHE_RefDuplicate(pending_bundle);
@@ -316,7 +316,7 @@ void BPLib_STOR_CACHE_CustodyOpenDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STO
 void BPLib_STOR_CACHE_CustodyAppendDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *custody_info)
 {
     BPLIB_CT_AcceptPayloadBlock_t *payload;
-    bp_integer_t                       i;
+    uint64_t                       i;
 
     if (custody_info->store_entry != NULL)
     {
@@ -331,14 +331,14 @@ void BPLib_STOR_CACHE_CustodyAppendDacs(BPLib_STOR_CACHE_State_t *state, BPLib_S
             }
         }
 
-        if (i == payload->num_entries && i < BP_DACS_MAX_SEQ_PER_PAYLOAD)
+        if (i == payload->num_entries && i < BPLIB_DACS_MAX_SEQ_PER_PAYLOAD)
         {
             payload->sequence_nums[i] = custody_info->sequence_num;
             ++payload->num_entries;
         }
 
         /* if DACS bundle is full now, mark it as "done" */
-        if (payload->num_entries == BP_DACS_MAX_SEQ_PER_PAYLOAD)
+        if (payload->num_entries == BPLIB_DACS_MAX_SEQ_PER_PAYLOAD)
         {
             BPLib_STOR_CACHE_CustodyFinalizeDacs(state, custody_info->store_entry);
             BPLib_STOR_CACHE_EntryMakePending(custody_info->store_entry, 0, BPLIB_STORE_FLAG_ACTION_TIME_WAIT);
@@ -428,7 +428,7 @@ int BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_MEM_RBT_Link_t *node, vo
     custody_info = arg;
     store_entry  = BPLib_STOR_CACHE_EntryFromLink(node, hash_rbt_link);
 
-    result = v7_compare_numeric(custody_info->sequence_num, store_entry->duct_seq_copy);
+    result = compare_numeric(custody_info->sequence_num, store_entry->duct_seq_copy);
     if (result == 0)
     {
         result = BPLib_STOR_QM_CompareIpn2Ipn(&custody_info->duct_id, &store_entry->duct_id_copy);
@@ -440,18 +440,18 @@ int BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_MEM_RBT_Link_t *node, vo
 bool BPLib_STOR_CACHE_CustodyFindExistingBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *custody_info)
 {
     BPLib_MEM_RBT_Link_t *custody_rbt_link;
-    bp_crcval_t       hash;
+    BPLib_CRC_Val_t       hash;
 
     /* use a CRC as a hash function */
     /* when searching for bundles this includes duct and sequence number but NOT custodian (which would always be us) */
-    hash = BPLib_STOR_CACHE_CrcInitialValue(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM);
-    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &custody_info->duct_id,
+    hash = BPLib_CRC_InitialValue(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM);
+    hash = BPLib_CRC_Update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &custody_info->duct_id,
                             sizeof(custody_info->duct_id));
-    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &custody_info->sequence_num,
+    hash = BPLib_CRC_Update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &custody_info->sequence_num,
                             sizeof(custody_info->sequence_num));
-    hash = BPLib_STOR_CACHE_CrcUpdate(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE,
+    hash = BPLib_CRC_Update(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash, &BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE,
                             sizeof(BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE));
-    custody_info->eid_hash = BPLib_STOR_CACHE_CrcFinalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
+    custody_info->eid_hash = BPLib_CRC_Finalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
 
     custody_rbt_link = BPLib_MEM_RBT_SearchGeneric(custody_info->eid_hash, &state->bundle_index,
                                                 BPLib_STOR_CACHE_CustodyFindBundleMatch, custody_info);
@@ -471,7 +471,7 @@ bool BPLib_STOR_CACHE_CustodyFindExistingBundle(BPLib_STOR_CACHE_State_t *state,
 void BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
                                                     const BPLIB_CT_AcceptPayloadBlock_t *ack_payload)
 {
-    bp_integer_t                 i;
+    uint64_t                 i;
     BPLib_STOR_CACHE_CustodianInfo_t custody_info;
 
     memset(&custody_info, 0, sizeof(custody_info));
@@ -515,7 +515,7 @@ bool BPLib_STOR_CACHE_CustodyCheckDacs(BPLib_STOR_CACHE_State_t *state, BPLib_ST
     {
         /* check if it has a custody_ack payload type */
         c_block = BPLib_STOR_CACHE_BblockCanonicalCast(
-            BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(pri_block, bp_blocktype_custodyAcceptPayloadBlock));
+            BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(pri_block, BPLib_STOR_CACHE_BlocktypeCustodyacceptpayloadblock));
         if (c_block != NULL)
         {
             /* it is an acceptance block (dacs) */
@@ -588,7 +588,7 @@ void BPLib_STOR_CACHE_CustodyStoreBundle(BPLib_STOR_CACHE_State_t *state, BPLib_
 
         if (state->offload_api == NULL)
         {
-            pri_block->data.delivery.committed_storage_id = (bp_sid_t)sblk;
+            pri_block->data.delivery.committed_storage_id = (BPLib_STOR_CACHE_Sid_t)sblk;
         }
         else
         {

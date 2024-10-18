@@ -52,7 +52,7 @@
  * to track queue depth (which are currently 32 bit values).
  */
 #define BPLIB_MAX_SUBQ_DEPTH   0x10000000
-#define BP_MPOOL_SHORT_SUBQ_DEPTH 0x10
+#define BPLIB_MPOOL_SHORT_SUBQ_DEPTH 0x10
 
 /*
  * Enumeration that defines the various possible queueing table events.  This enum
@@ -72,14 +72,14 @@ typedef enum
 typedef struct BPLib_STOR_QM_StateEvent
 {
     BPLib_STOR_QM_DuctEvent_t event_type; /* must be first */
-    bp_ipn_t                 dest;
-    bp_ipn_t                 mask;
+    BPLib_Ipn_t                 dest;
+    BPLib_Ipn_t                 mask;
 } BPLib_STOR_QM_StateEvent_t;
 
 typedef struct BPLib_STOR_QM_DuctStatechangeEvent
 {
     BPLib_STOR_QM_DuctEvent_t event_type; /* must be first */
-    bp_handle_t              intf_id;
+    BPLib_Handle_t              intf_id;
 } BPLib_STOR_QM_DuctStatechangeEvent_t;
 
 typedef union BPLib_STOR_QM_DuctGenericEvent

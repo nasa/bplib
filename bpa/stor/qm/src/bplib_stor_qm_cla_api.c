@@ -62,7 +62,7 @@ int BPLib_STOR_CACHE_ClaEventImpl(void *arg, BPLib_STOR_CACHE_Block_t *intf_bloc
 
     /* only care about state change events for the local i/f */
     duct = BPLib_STOR_QM_DuctCast(intf_block);
-    if (duct == NULL || !bp_handle_equal(event->intf_state.intf_id, BPLib_STOR_CACHE_GetExternalId(intf_block)))
+    if (duct == NULL || !BPLib_HandleEqual(event->intf_state.intf_id, BPLib_STOR_CACHE_GetExternalId(intf_block)))
     {
         return BPLIB_SUCCESS;
     }
@@ -270,10 +270,10 @@ void BPLib_STOR_CACHE_ClaInit(BPLib_STOR_CACHE_Pool_t *pool)
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-bp_handle_t BPLib_STOR_CACHE_CreateClaIntf(BPLib_STOR_QM_QueueTbl_t *rtbl)
+BPLib_Handle_t BPLib_STOR_CACHE_CreateClaIntf(BPLib_STOR_QM_QueueTbl_t *rtbl)
 {
     BPLib_STOR_CACHE_Block_t *sblk;
-    bp_handle_t          self_intf_id;
+    BPLib_Handle_t          self_intf_id;
     BPLib_STOR_CACHE_Pool_t       *pool;
 
     pool = BPLib_STOR_QM_GetQtblPool(rtbl);
@@ -286,11 +286,11 @@ bp_handle_t BPLib_STOR_CACHE_CreateClaIntf(BPLib_STOR_QM_QueueTbl_t *rtbl)
     if (sblk == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to allocate intf block\n");
-        return BP_INVALID_HANDLE;
+        return BPLIB_INVALID_HANDLE;
     }
 
-    self_intf_id = BPLib_STOR_QM_RegisterGenericIntf(rtbl, BP_INVALID_HANDLE, sblk);
-    if (bp_handle_is_valid(self_intf_id))
+    self_intf_id = BPLib_STOR_QM_RegisterGenericIntf(rtbl, BPLIB_INVALID_HANDLE, sblk);
+    if (BPLib_HandleIsValid(self_intf_id))
     {
         BPLib_STOR_QM_RegisterForwardIngressHandler(rtbl, self_intf_id, BPLib_STOR_QM_IngressBaseintfForwarder);
         BPLib_STOR_QM_RegisterEventHandler(rtbl, self_intf_id,BPLib_STOR_CACHE_ClaEventImpl);
@@ -303,7 +303,7 @@ bp_handle_t BPLib_STOR_CACHE_CreateClaIntf(BPLib_STOR_QM_QueueTbl_t *rtbl)
     return self_intf_id;
 }
 
-int BPLib_STOR_CACHE_ClaEgress(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, uint32_t timeout)
+int BPLib_STOR_CACHE_ClaEgress(BPLib_STOR_QM_QueueTbl_t *rtbl, BPLib_Handle_t intf_id, void *bundle, size_t *size, uint32_t timeout)
 {
     BPLib_STOR_CACHE_Ref_t  duct_ref;
     int                status;
@@ -345,7 +345,7 @@ int BPLib_STOR_CACHE_ClaEgress(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_handle_t intf_
     return status;
 }
 
-int BPLib_STOR_CACHE_ClaIngress(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, uint32_t timeout)
+int BPLib_STOR_CACHE_ClaIngress(BPLib_STOR_QM_QueueTbl_t *rtbl, BPLib_Handle_t intf_id, const void *bundle, size_t size, uint32_t timeout)
 {
     BPLib_STOR_CACHE_Ref_t  duct_ref;
     int                status;

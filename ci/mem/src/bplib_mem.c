@@ -73,7 +73,7 @@ void BPLib_MEM_LockInit(void)
     /* note - this relies on the BSS section being properly zero'ed out at start
      * Even though only one lock is used now, planned changes will require more than one. */
     lock = &BPLIB_MEM_LOCK_SET[0];
-    if (!bp_handle_is_valid(lock->lock_id))
+    if (!BPLib_HandleIsValid(lock->lock_id))
     {
         lock->lock_id = BPLib_MEM_OS_CreateLock();
     }
@@ -124,14 +124,14 @@ bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, BPLib_TIME_MonotonicTime_t until
     return within_timeout;
 }
 
-BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle)
+BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, BPLib_Handle_t handle)
 {
     BPLib_MEM_BlockAdminContent_t *admin;
     BPLib_MEM_BlockContent_t      *blk;
     int                            serial;
 
     admin  = BPLib_MEM_GetAdmin(pool);
-    serial = bp_handle_to_serial(handle, BPLIB_HANDLE_MPOOL_BASE);
+    serial = BPLib_HandleToSerial(handle, BPLIB_HANDLE_MPOOL_BASE);
     if (serial < admin->num_bufs_total)
     {
         blk = &pool->admin_block;

@@ -29,7 +29,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "crc.h"
+#include "bplib_crc.h"
 
 #include "bplib_mem.h"
 
@@ -50,14 +50,14 @@ static int BPLib_STOR_PS_FileOffloadQuery(BPLib_STOR_CACHE_Block_t *svc, int key
                                     const void **val);
 static int BPLib_STOR_PS_FileOffloadStart(BPLib_STOR_CACHE_Block_t *svc);
 static int BPLib_STOR_PS_FileOffloadStop(BPLib_STOR_CACHE_Block_t *svc);
-static int BPLib_STOR_PS_FileOffloadOffload(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
-static int BPLib_STOR_PS_FileOffloadRestore(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk_out);
-static int BPLib_STOR_PS_FileOffloadRelease(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid);
+static int BPLib_STOR_PS_FileOffloadOffload(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk);
+static int BPLib_STOR_PS_FileOffloadRestore(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid, BPLib_STOR_CACHE_Block_t **pblk_out);
+static int BPLib_STOR_PS_FileOffloadRelease(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid);
 
 typedef struct BPLib_STOR_PS_FileOffloadState
 {
     char     base_dir[BPLIB_FILE_PATH_SIZE];
-    bp_sid_t last_sid;
+    BPLib_STOR_CACHE_Sid_t last_sid;
 
 } BPLib_STOR_PS_FileOffloadState_t;
 
@@ -155,7 +155,7 @@ int BPLib_STOR_PS_FileOffloadStop(BPLib_STOR_CACHE_Block_t *svc)
 }
 
 static void BPLib_STOR_PS_FileOffloadSidToName(BPLib_STOR_PS_FileOffloadState_t *state, char *name_buf, size_t name_sz,
-                                           bp_sid_t sid, bool create_dirs)
+                                           BPLib_STOR_CACHE_Sid_t sid, bool create_dirs)
 {
     char *p;
     int   result;
@@ -224,7 +224,7 @@ static int BPLib_STOR_PS_FileOffloadWrite_block_content(int fd, BPLib_STOR_PS_Fi
     }
 
     rec->num_bytes += sz;
-    rec->crc = BPLib_STOR_CACHE_CrcUpdate(&BPLIB_CRC32_CASTAGNOLI, rec->crc, ptr, sz);
+    rec->crc = BPLib_CRC_Update(&BPLIB_CRC32_CASTAGNOLI, rec->crc, ptr, sz);
 
     res = write(fd, ptr, sz);
     if (res == sz)
@@ -261,7 +261,7 @@ static int BPLib_STOR_PS_FileOffloadRead_block_content(int fd, BPLib_STOR_PS_Fil
     if (res == sz)
     {
         status   = BPLIB_SUCCESS;
-        rec->crc = BPLib_STOR_CACHE_CrcUpdate(&BPLIB_CRC32_CASTAGNOLI, rec->crc, ptr, sz);
+        rec->crc = BPLib_CRC_Update(&BPLIB_CRC32_CASTAGNOLI, rec->crc, ptr, sz);
     }
     else
     {
@@ -334,7 +334,7 @@ static int BPLib_STOR_PS_FileOffloadWrite_blocks(int fd, BPLib_STOR_PS_FileOfflo
                                                        sizeof(c_block->canonical_logical_data.canonical_block));
             if (write_status == BPLIB_SUCCESS)
             {
-                if (c_block->canonical_logical_data.canonical_block.blockType == bp_blocktype_payloadBlock)
+                if (c_block->canonical_logical_data.canonical_block.blockType == BPLib_STOR_CACHE_BlocktypePayloadblock)
                 {
                     write_status = BPLib_STOR_PS_FileOffloadWritePayload(fd, rec, c_block);
                 }
@@ -457,7 +457,7 @@ static BPLib_STOR_CACHE_Block_t *BPLib_STOR_PS_FileOffloadReadBlocks(int fd, BPL
                                                               sizeof(c_block->canonical_logical_data.canonical_block));
                     if (read_status == BPLIB_SUCCESS)
                     {
-                        if (c_block->canonical_logical_data.canonical_block.blockType == bp_blocktype_payloadBlock)
+                        if (c_block->canonical_logical_data.canonical_block.blockType == BPLib_STOR_CACHE_BlocktypePayloadblock)
                         {
                             /* payload block has multiple parts */
                             read_status = BPLib_STOR_PS_FileOffloadReadPayload(fd, rec, pool, c_block);
@@ -496,7 +496,7 @@ static BPLib_STOR_CACHE_Block_t *BPLib_STOR_PS_FileOffloadReadBlocks(int fd, BPL
     return pblk;
 }
 
-static int BPLib_STOR_PS_FileOffloadOffload(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
+static int BPLib_STOR_PS_FileOffloadOffload(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
 {
     char                        bundle_file[BPLIB_FILE_PATH_SIZE];
     BPLib_STOR_PS_FileOffloadState_t *state;
@@ -522,7 +522,7 @@ static int BPLib_STOR_PS_FileOffloadOffload(BPLib_STOR_CACHE_Block_t *svc, bp_si
     {
         memset(&rec, 0, sizeof(rec));
         rec.check_val = BPLIB_FILE_OFFLOAD_MAGIC;
-        rec.crc       = BPLib_STOR_CACHE_CrcInitialValue(&BPLIB_CRC32_CASTAGNOLI);
+        rec.crc       = BPLib_CRC_InitialValue(&BPLIB_CRC32_CASTAGNOLI);
 
         off = lseek(fd, sizeof(rec), SEEK_SET);
         if (off != sizeof(rec))
@@ -536,7 +536,7 @@ static int BPLib_STOR_PS_FileOffloadOffload(BPLib_STOR_CACHE_Block_t *svc, bp_si
             fsync(fd);
 
             lseek(fd, 0, SEEK_SET);
-            rec.crc = BPLib_STOR_CACHE_CrcFinalize(&BPLIB_CRC32_CASTAGNOLI, rec.crc);
+            rec.crc = BPLib_CRC_Finalize(&BPLIB_CRC32_CASTAGNOLI, rec.crc);
             if (write(fd, &rec, sizeof(rec)) != sizeof(rec))
             {
                 result = BPLIB_ERROR;
@@ -549,13 +549,13 @@ static int BPLib_STOR_PS_FileOffloadOffload(BPLib_STOR_CACHE_Block_t *svc, bp_si
     return result;
 }
 
-static int BPLib_STOR_PS_FileOffloadRestore(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk_out)
+static int BPLib_STOR_PS_FileOffloadRestore(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid, BPLib_STOR_CACHE_Block_t **pblk_out)
 {
     char                        bundle_file[BPLIB_FILE_PATH_SIZE];
     BPLib_STOR_PS_FileOffloadState_t *state;
     BPLib_STOR_CACHE_Block_t        *pblk;
     BPLib_STOR_PS_FileOffloadRecord_t rec;
-    bp_crcval_t                 crcval;
+    BPLib_CRC_Val_t                 crcval;
     BPLib_STOR_CACHE_Pool_t              *pool;
     int                         result;
     int                         fd;
@@ -587,12 +587,12 @@ static int BPLib_STOR_PS_FileOffloadRestore(BPLib_STOR_CACHE_Block_t *svc, bp_si
         }
 
         crcval  = rec.crc;
-        rec.crc = BPLib_STOR_CACHE_CrcInitialValue(&BPLIB_CRC32_CASTAGNOLI);
+        rec.crc = BPLib_CRC_InitialValue(&BPLIB_CRC32_CASTAGNOLI);
 
         pblk = BPLib_STOR_PS_FileOffloadReadBlocks(fd, &rec, pool);
         if (pblk != NULL)
         {
-            rec.crc = BPLib_STOR_CACHE_CrcFinalize(&BPLIB_CRC32_CASTAGNOLI, rec.crc);
+            rec.crc = BPLib_CRC_Finalize(&BPLIB_CRC32_CASTAGNOLI, rec.crc);
             if (rec.crc == crcval)
             {
                 result = BPLIB_SUCCESS;
@@ -621,7 +621,7 @@ static int BPLib_STOR_PS_FileOffloadRestore(BPLib_STOR_CACHE_Block_t *svc, bp_si
     return result;
 }
 
-static int BPLib_STOR_PS_FileOffloadRelease(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
+static int BPLib_STOR_PS_FileOffloadRelease(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid)
 {
     char                        bundle_file[BPLIB_FILE_PATH_SIZE];
     BPLib_STOR_PS_FileOffloadState_t *state;
@@ -639,18 +639,18 @@ static int BPLib_STOR_PS_FileOffloadRelease(BPLib_STOR_CACHE_Block_t *svc, bp_si
     return 0;
 }
 
-bp_handle_t BPLib_STOR_CACHE_CreateFileStorage(BPLib_STOR_CACHE_Block_t *rtbl, const bp_ipn_addr_t *storage_addr)
+BPLib_Handle_t BPLib_STOR_CACHE_CreateFileStorage(BPLib_STOR_CACHE_Block_t *rtbl, const BPLib_IpnAddr_t *storage_addr)
 {
-    bp_handle_t intf_id;
-    bp_handle_t svc_id;
+    BPLib_Handle_t intf_id;
+    BPLib_Handle_t svc_id;
     char        storage_path[64];
 
     intf_id = BPLib_STOR_QM_Attach(rtbl, storage_addr);
-    if (bp_handle_is_valid(intf_id))
+    if (BPLib_HandleIsValid(intf_id))
     {
         svc_id = BPLib_STOR_QM_RegisterModuleService(rtbl, intf_id, BPLIB_FILE_OFFLOAD_API, NULL);
 
-        if (bp_handle_is_valid(svc_id))
+        if (BPLib_HandleIsValid(svc_id))
         {
             snprintf(storage_path, sizeof(storage_path), "./storage/%u.%u", (unsigned int)storage_addr->node_number,
                      (unsigned int)storage_addr->service_number);
@@ -663,21 +663,21 @@ bp_handle_t BPLib_STOR_CACHE_CreateFileStorage(BPLib_STOR_CACHE_Block_t *rtbl, c
     return intf_id;
 }
 
-bp_handle_t BPLib_STOR_CACHE_CreateNodeIntf(BPLib_STOR_CACHE_Block_t *rtbl, bp_ipn_t node_num)
+BPLib_Handle_t BPLib_STOR_CACHE_CreateNodeIntf(BPLib_STOR_CACHE_Block_t *rtbl, BPLib_Ipn_t node_num)
 {
-    bp_handle_t intf_id;
+    BPLib_Handle_t intf_id;
 
     intf_id = BPLib_STOR_CACHE_DataserviceAddBaseIntf(rtbl, node_num);
-    if (!bp_handle_is_valid(intf_id))
+    if (!BPLib_HandleIsValid(intf_id))
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "BPLib_STOR_CACHE_AddIntf failed\n");
-        return BP_INVALID_HANDLE;
+        return BPLIB_INVALID_HANDLE;
     }
 
-    if (BPLib_STOR_CACHE_Add(rtbl, node_num, ~(bp_ipn_t)0, intf_id) < 0)
+    if (BPLib_STOR_CACHE_Add(rtbl, node_num, ~(BPLib_Ipn_t)0, intf_id) < 0)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "BPLib_STOR_CACHE_Add failed\n");
-        return BP_INVALID_HANDLE;
+        return BPLIB_INVALID_HANDLE;
     }
 
     return intf_id;

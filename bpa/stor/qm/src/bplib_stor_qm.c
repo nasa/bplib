@@ -36,7 +36,7 @@
 
 #define BPLIB_INTF_AVAILABLE_FLAGS (BPLIB_INTF_STATE_OPER_UP | BPLIB_INTF_STATE_ADMIN_UP)
 
-BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
 {
     #ifdef QM
     BPLib_STOR_CACHE_Block_t *blk;
@@ -55,7 +55,7 @@ void BPLib_STOR_QM_ReleaseIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_
     #endif // QM
 }
 
-BPLib_STOR_QM_Duct_t *bplip_queue_lookup_intf(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
+BPLib_STOR_QM_Duct_t *bplip_queue_lookup_intf(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
 {
     #ifdef QM
     BPLib_STOR_CACHE_Block_t *blk;
@@ -67,7 +67,7 @@ BPLib_STOR_QM_Duct_t *bplip_queue_lookup_intf(const BPLib_STOR_QM_QueueTbl_t *tb
     #endif // QM
 }
 
-static inline const BPLib_STOR_QM_Duct_t *bplip_queue_lookup_intf_const(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
+static inline const BPLib_STOR_QM_Duct_t *bplip_queue_lookup_intf_const(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
 {
     #ifdef QM
     /* note that bplip_queue_lookup_intf does not modify its argument itself */
@@ -119,8 +119,8 @@ void BPLib_STOR_QM_IngressQueueSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib
 {
     BPLib_STOR_CACHE_BblockPrimary_t *pri_block;
     BPLib_STOR_CACHE_PrimaryBlock_t  *pri;
-    bp_ipn_addr_t                     dest_addr;
-    bp_handle_t                       next_hop;
+    BPLib_IpnAddr_t                     dest_addr;
+    BPLib_Handle_t                       next_hop;
     uint32_t                          req_flags;
     uint32_t                          flag_mask;
 
@@ -138,7 +138,7 @@ void BPLib_STOR_QM_IngressQueueSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib
         req_flags = BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP;
         flag_mask = req_flags;
 
-        if (!bp_handle_is_valid(pri_block->data.delivery.storage_intf_id) &&
+        if (!BPLib_HandleIsValid(pri_block->data.delivery.storage_intf_id) &&
             pri_block->data.delivery.delivery_policy !=BPLib_STOR_CACHE_PolicyDeliveryNone)
         {
             /* not yet stored and needs to be, so next hop must be a storage */
@@ -146,7 +146,7 @@ void BPLib_STOR_QM_IngressQueueSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib
             req_flags |= BPLIB_CACHE_STATE_FLAG_STORAGE;
         }
         next_hop = BPLib_STOR_QM_GetNextIntfWithFlags(tbl, dest_addr.node_number, req_flags, flag_mask);
-        if (bp_handle_is_valid(next_hop) && BPLib_STOR_QM_PushEgressBundle(tbl, next_hop, pblk) == 0)
+        if (BPLib_HandleIsValid(next_hop) && BPLib_STOR_QM_PushEgressBundle(tbl, next_hop, pblk) == 0)
         {
             /* successfully queued */
             ++tbl->queueing_success_count;
@@ -270,14 +270,14 @@ BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_queues, size_t c
     return tbl_ptr;
 }
 
-bp_handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t parent_intf_id,
+BPLib_Handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t parent_intf_id,
                                               BPLib_STOR_CACHE_Block_t *duct_block)
 {
     BPLib_STOR_QM_Duct_t *duct;
     BPLib_STOR_CACHE_Ref_t   fref;
-    bp_handle_t         result;
+    BPLib_Handle_t         result;
 
-    result = BP_INVALID_HANDLE;
+    result = BPLIB_INVALID_HANDLE;
     duct   = BPLib_STOR_QM_DuctCast(duct_block);
     if (duct == NULL)
     {
@@ -287,7 +287,7 @@ bp_handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_
 
     fref = BPLib_STOR_QM_GetIntfControlblock(tbl, parent_intf_id);
 
-    if (fref == NULL && bp_handle_is_valid(parent_intf_id))
+    if (fref == NULL && BPLib_HandleIsValid(parent_intf_id))
     {
         /* this is an error */
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Parent intf not valid\n");
@@ -312,7 +312,7 @@ bp_handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_
     return result;
 }
 
-int BPLib_STOR_QM_RegisterHandlerImpl(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, size_t func_position,
+int BPLib_STOR_QM_RegisterHandlerImpl(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, size_t func_position,
                                       BPLib_STOR_CACHE_CallbackFunc_t new_func)
 {
     BPLib_STOR_QM_Duct_t          *ifp;
@@ -347,19 +347,19 @@ int BPLib_STOR_QM_RegisterHandlerImpl(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t
     return 0;
 }
 
-int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
+int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
                                                  BPLib_STOR_CACHE_CallbackFunc_t ingress)
 {
     return BPLib_STOR_QM_RegisterHandlerImpl(tbl, intf_id, offsetof(BPLib_STOR_QM_Duct_t, ingress), ingress);
 }
 
-int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id,
+int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
                                                 BPLib_STOR_CACHE_CallbackFunc_t egress)
 {
     return BPLib_STOR_QM_RegisterHandlerImpl(tbl, intf_id, offsetof(BPLib_STOR_QM_Duct_t, egress), egress);
 }
 
-int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_CallbackFunc_t event)
+int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_CallbackFunc_t event)
 {
     BPLib_STOR_QM_Duct_t *ifp;
 
@@ -387,7 +387,7 @@ int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_
     return 0;
 }
 
-int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
+int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
 {
     uint32_t            pos;
     BPLib_STOR_QM_QueueEntry_t *rp;
@@ -408,7 +408,7 @@ int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
         for (pos = 0; pos < tbl->registered_queues; ++pos)
         {
             rp = &tbl->queue_tbl[pos];
-            if (bp_handle_equal(rp->intf_id, intf_id))
+            if (BPLib_HandleEqual(rp->intf_id, intf_id))
             {
                 --tbl->registered_queues;
 
@@ -439,16 +439,16 @@ int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id)
     return 0;
 }
 
-bp_handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, uint32_t req_flags,
+BPLib_Handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, uint32_t req_flags,
                                                  uint32_t flag_mask)
 {
     uint32_t                  pos;
     BPLib_STOR_QM_QueueEntry_t       *rp;
-    bp_handle_t               intf;
+    BPLib_Handle_t               intf;
     const BPLib_STOR_QM_Duct_t *ifp;
     uint32_t                  intf_flags;
 
-    intf = BP_INVALID_HANDLE;
+    intf = BPLIB_INVALID_HANDLE;
     for (pos = 0; pos < tbl->registered_queues; ++pos)
     {
         rp = &tbl->queue_tbl[pos];
@@ -474,12 +474,12 @@ bp_handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *t
     return intf;
 }
 
-bp_handle_t BPLib_STOR_QM_GetNextAvailIntf(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest)
+BPLib_Handle_t BPLib_STOR_QM_GetNextAvailIntf(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest)
 {
     return BPLib_STOR_QM_GetNextIntfWithFlags(tbl, dest, BPLIB_INTF_AVAILABLE_FLAGS, BPLIB_INTF_AVAILABLE_FLAGS);
 }
 
-int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
+int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
 {
     BPLib_STOR_QM_Duct_t *duct;
     int                 status;
@@ -494,7 +494,7 @@ int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_hand
     return status;
 }
 
-int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
+int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb)
 {
     BPLib_STOR_QM_Duct_t *duct;
     int                 status;
@@ -509,7 +509,7 @@ int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, bp_handl
     return status;
 }
 
-int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
+int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
 {
     uint32_t            pos;
     uint32_t            insert_pos;
@@ -531,7 +531,7 @@ int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mas
     for (pos = 0; pos < tbl->registered_queues; ++pos)
     {
         rp = &tbl->queue_tbl[pos];
-        if (rp->mask == mask && rp->dest == dest && bp_handle_equal(rp->intf_id, intf_id))
+        if (rp->mask == mask && rp->dest == dest && BPLib_HandleEqual(rp->intf_id, intf_id))
         {
             break;
         }
@@ -565,7 +565,7 @@ int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mas
     return 0;
 }
 
-int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mask, bp_handle_t intf_id)
+int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
 {
     uint32_t            pos;
     BPLib_STOR_QM_QueueEntry_t *rp;
@@ -579,7 +579,7 @@ int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mas
     for (pos = 0; pos < tbl->registered_queues; ++pos)
     {
         rp = &tbl->queue_tbl[pos];
-        if (rp->mask == mask && rp->dest == dest && bp_handle_equal(rp->intf_id, intf_id))
+        if (rp->mask == mask && rp->dest == dest && BPLib_HandleEqual(rp->intf_id, intf_id))
         {
             break;
         }
@@ -603,7 +603,7 @@ int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, bp_ipn_t dest, bp_ipn_t mas
     return 0;
 }
 
-int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
+int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
 {
     BPLib_STOR_CACHE_Ref_t duct_ref;
 
@@ -620,7 +620,7 @@ int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_i
     return 0;
 }
 
-int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t intf_id, uint32_t flags)
+int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
 {
     BPLib_STOR_CACHE_Ref_t duct_ref;
 

@@ -27,7 +27,7 @@
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
 #include "bplib_mem.h"
-#include "crc.h"
+#include "bplib_crc.h"
 
 typedef enum BPLib_STOR_CACHE_StreamDir
 {

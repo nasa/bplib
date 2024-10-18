@@ -67,7 +67,7 @@ typedef union BPLib_MEM_AlignedData
 
 typedef struct BPLib_MEM_Lock
 {
-    bp_handle_t lock_id;
+    BPLib_Handle_t lock_id;
 } BPLib_MEM_Lock_t;
 
 typedef struct BPLib_MEM_Global
@@ -76,13 +76,13 @@ typedef struct BPLib_MEM_Global
 } BPLib_MEM_Global_T;
 
 // TODO Add briefs for BPLib_MEM_OS_Lock and Unlock.
-void BPLib_MEM_OS_Lock(bp_handle_t h);
-void BPLib_MEM_OS_Unlock(bp_handle_t h);
+void BPLib_MEM_OS_Lock(BPLib_Handle_t h);
+void BPLib_MEM_OS_Unlock(BPLib_Handle_t h);
 
 /*--------------------------------------------------------------------------------------
  * BPLib_MEM_OS_CreateLock -
  *-------------------------------------------------------------------------------------*/
-bp_handle_t BPLib_MEM_OS_CreateLock(void);
+BPLib_Handle_t BPLib_MEM_OS_CreateLock(void);
 
 /**
  * @brief Acquires a given lock
@@ -475,11 +475,11 @@ static inline bool BPLib_MEM_IsSecondaryIndexNode(const BPLib_MEM_Block_t *cb)
     return (cb->type >= BPLib_MEM_BlocktypeSecondaryGeneric && cb->type <=  BPLib_MEM_BlocktypeSecondaryMax);
 }
 
-BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, bp_handle_t handle);
+BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, BPLib_Handle_t handle);
 
-static inline bp_handle_t BPLib_MEM_GetExternalId(const BPLib_MEM_Block_t *cb)
+static inline BPLib_Handle_t BPLib_MEM_GetExternalId(const BPLib_MEM_Block_t *cb)
 {
-    return bp_handle_from_serial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
+    return BPLib_HandleFromSerial(cb->parent_offset, BPLIB_HANDLE_MPOOL_BASE);
 }
 
 /* basic list ops */
@@ -562,7 +562,7 @@ void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk);
  * @param user_content_size Maximum size of user content associated with blocktype
  * @returns status code
  * @retval BPLIB_SUCCESS if registration successful
- * @retval BP_DUPLICATE if the block type is already registered.
+ * @retval BPLIB_DUPLICATE if the block type is already registered.
  */
 int BPLib_MEM_RegisterBlocktype (BPLib_MEM_Pool_t *pool, uint32_t magic_number, const BPLib_MEM_BlocktypeApi_t *api,
                                    size_t user_content_size);

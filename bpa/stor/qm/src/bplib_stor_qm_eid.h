@@ -36,10 +36,10 @@
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-void         BPLib_STOR_QM_SetEid(BPLib_STOR_CACHE_EidBuffer_t *eid, const bp_ipn_addr_t *bp_addr);
-void         BPLib_STOR_QM_GetEid(bp_ipn_addr_t *bp_addr, const BPLib_STOR_CACHE_EidBuffer_t *eid);
+void         BPLib_STOR_QM_SetEid(BPLib_STOR_CACHE_EidBuffer_t *eid, const BPLib_IpnAddr_t *bundle_addr);
+void         BPLib_STOR_QM_GetEid(BPLib_IpnAddr_t *bundle_addr, const BPLib_STOR_CACHE_EidBuffer_t *eid);
 
-static inline int v7_compare_numeric(bp_val_t n1, bp_val_t n2)
+static inline int compare_numeric(BPLib_Val_t n1, BPLib_Val_t n2)
 {
     if (n1 == n2)
     {
@@ -53,8 +53,8 @@ static inline int v7_compare_numeric(bp_val_t n1, bp_val_t n2)
 }
 
 /* A generic strcmp-like call to compare an IPN address to a BP endpoint ID value */
-int BPLib_STOR_QM_CompareIpn2Eid(const bp_ipn_addr_t *ipn, const BPLib_STOR_CACHE_EidBuffer_t *eid);
+int BPLib_STOR_QM_CompareIpn2Eid(const BPLib_IpnAddr_t *ipn, const BPLib_STOR_CACHE_EidBuffer_t *eid);
 /* A generic strcmp-like call to compare two IPN addresses */
-int BPLib_STOR_QM_CompareIpn2Ipn(const bp_ipn_addr_t *ipn1, const bp_ipn_addr_t *ipn2);
+int BPLib_STOR_QM_CompareIpn2Ipn(const BPLib_IpnAddr_t *ipn1, const BPLib_IpnAddr_t *ipn2);
 
 #endif /* BPLIB_STOR_QM_EID_H */

@@ -49,15 +49,15 @@ int BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *
  * Generated stub function for BPLib_MEM_RBT_GetKeyValue()
  * ----------------------------------------------------
  */
-bp_val_t BPLib_MEM_RBT_GetKeyValue(const BPLib_MEM_RBT_Link_t *node)
+BPLib_Val_t BPLib_MEM_RBT_GetKeyValue(const BPLib_MEM_RBT_Link_t *node)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_MEM_RBT_GetKeyValue, bp_val_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_RBT_GetKeyValue, BPLib_Val_t);
 
     UT_GenStub_AddParam(BPLib_MEM_RBT_GetKeyValue, const BPLib_MEM_RBT_Link_t *, node);
 
     UT_GenStub_Execute(BPLib_MEM_RBT_GetKeyValue, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_RBT_GetKeyValue, bp_val_t);
+    return UT_GenStub_GetReturnValue(BPLib_MEM_RBT_GetKeyValue, BPLib_Val_t);
 }
 
 /*
@@ -77,12 +77,12 @@ void BPLib_MEM_RBT_InitRoot(BPLib_MEM_RBT_Root_t *tree)
  * Generated stub function for BPLib_MEM_RBT_InsertValueGeneric()
  * ----------------------------------------------------
  */
-int BPLib_MEM_RBT_InsertValueGeneric(bp_val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block,
+int BPLib_MEM_RBT_InsertValueGeneric(BPLib_Val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block,
                                    BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_RBT_InsertValueGeneric, int);
 
-    UT_GenStub_AddParam(BPLib_MEM_RBT_InsertValueGeneric, bp_val_t, insert_key_value);
+    UT_GenStub_AddParam(BPLib_MEM_RBT_InsertValueGeneric, BPLib_Val_t, insert_key_value);
     UT_GenStub_AddParam(BPLib_MEM_RBT_InsertValueGeneric, BPLib_MEM_RBT_Root_t *, tree);
     UT_GenStub_AddParam(BPLib_MEM_RBT_InsertValueGeneric, BPLib_MEM_RBT_Link_t *, link_block);
     UT_GenStub_AddParam(BPLib_MEM_RBT_InsertValueGeneric, BPLib_MEM_RBT_CompareFunc_t, compare_func);
@@ -98,11 +98,11 @@ int BPLib_MEM_RBT_InsertValueGeneric(bp_val_t insert_key_value, BPLib_MEM_RBT_Ro
  * Generated stub function for BPLib_MEM_RBT_IterGotoMax()
  * ----------------------------------------------------
  */
-int BPLib_MEM_RBT_IterGotoMax(bp_val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
+int BPLib_MEM_RBT_IterGotoMax(BPLib_Val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_RBT_IterGotoMax, int);
 
-    UT_GenStub_AddParam(BPLib_MEM_RBT_IterGotoMax, bp_val_t, maximum_value);
+    UT_GenStub_AddParam(BPLib_MEM_RBT_IterGotoMax, BPLib_Val_t, maximum_value);
     UT_GenStub_AddParam(BPLib_MEM_RBT_IterGotoMax, const BPLib_MEM_RBT_Root_t *, tree);
     UT_GenStub_AddParam(BPLib_MEM_RBT_IterGotoMax, BPLib_MEM_RBT_Iter_t *, iter);
 
@@ -116,11 +116,11 @@ int BPLib_MEM_RBT_IterGotoMax(bp_val_t maximum_value, const BPLib_MEM_RBT_Root_t
  * Generated stub function for BPLib_MEM_RBT_IterGotoMin()
  * ----------------------------------------------------
  */
-int BPLib_MEM_RBT_IterGotoMin(bp_val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
+int BPLib_MEM_RBT_IterGotoMin(BPLib_Val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_RBT_IterGotoMin, int);
 
-    UT_GenStub_AddParam(BPLib_MEM_RBT_IterGotoMin, bp_val_t, minimum_value);
+    UT_GenStub_AddParam(BPLib_MEM_RBT_IterGotoMin, BPLib_Val_t, minimum_value);
     UT_GenStub_AddParam(BPLib_MEM_RBT_IterGotoMin, const BPLib_MEM_RBT_Root_t *, tree);
     UT_GenStub_AddParam(BPLib_MEM_RBT_IterGotoMin, BPLib_MEM_RBT_Iter_t *, iter);
 
@@ -199,12 +199,12 @@ bool BPLib_MEM_RBT_NodeIsRed(const BPLib_MEM_RBT_Link_t *node)
  * Generated stub function for BPLib_MEM_RBT_SearchGeneric()
  * ----------------------------------------------------
  */
-BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(bp_val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree,
+BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(BPLib_Val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree,
                                            BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_RBT_SearchGeneric, BPLib_MEM_RBT_Link_t *);
 
-    UT_GenStub_AddParam(BPLib_MEM_RBT_SearchGeneric, bp_val_t, search_key_value);
+    UT_GenStub_AddParam(BPLib_MEM_RBT_SearchGeneric, BPLib_Val_t, search_key_value);
     UT_GenStub_AddParam(BPLib_MEM_RBT_SearchGeneric, const BPLib_MEM_RBT_Root_t *, tree);
     UT_GenStub_AddParam(BPLib_MEM_RBT_SearchGeneric, BPLib_MEM_RBT_CompareFunc_t, compare_func);
     UT_GenStub_AddParam(BPLib_MEM_RBT_SearchGeneric, void *, compare_arg);

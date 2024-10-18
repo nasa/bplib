@@ -28,19 +28,19 @@
 #include "bplib_stor_qm_codec_internal.h"
 #include "cbor.h"
 
-typedef struct v7_decode_state
+typedef struct decode_state
 {
     bool           error;
     const uint8_t *base;
     CborValue     *cbor;
-} v7_decode_state_t;
+} decode_state_t;
 
 typedef struct
 {
-    bp_adminrectype_t          decode_rectype;
-    bp_canonical_block_data_t *payload_data;
+    bundle_adminrectype_t          decode_rectype;
+    bundle_canonical_block_data_t *payload_data;
 
-} v7_admin_rec_payload_decode_info_t;
+} admin_rec_payload_decode_info_t;
 
 /*
  * Generic encode/decode container (aka CBOR array) helpers.
@@ -51,55 +51,55 @@ typedef struct
  *  - close out the sub-state after function returns
  *  - resume in the parent.
  */
-typedef void (*v7_decode_func_t)(v7_decode_state_t *dec, void *arg);
+typedef void (*decode_func_t)(decode_state_t *dec, void *arg);
 
-void v7_decode_container(v7_decode_state_t *dec, size_t entries, v7_decode_func_t func, void *arg);
+void decode_container(decode_state_t *dec, size_t entries, decode_func_t func, void *arg);
 
 /* Component decoders */
-int  v7_decode_small_int(v7_decode_state_t *dec);
-void v7_decode_crc(v7_decode_state_t *dec, bp_crcval_t *v);
+int  decode_small_int(decode_state_t *dec);
+void decode_crc(decode_state_t *dec, BPLib_CRC_Val_t *v);
 
-void v7_decode_bitmap(v7_decode_state_t *dec, uint8_t *v, const v7_bitmap_table_t *ptbl);
-void v7_decode_bp_blocknum(v7_decode_state_t *dec, bp_blocknum_t *v);
-void v7_decode_bp_blocktype(v7_decode_state_t *dec, bp_blocktype_t *v);
-void v7_decode_bp_integer(v7_decode_state_t *dec, bp_integer_t *v);
-void v7_decode_bp_dtntime(v7_decode_state_t *dec, bp_dtntime_t *v);
-void v7_decode_bp_crctype(v7_decode_state_t *dec, bp_crctype_t *v);
-void v7_decode_BPLib_STOR_CACHE_EidBuffer(v7_decode_state_t *dec, BPLib_STOR_CACHE_EidBuffer_t *v);
+void decode_bitmap(decode_state_t *dec, uint8_t *v, const bitmap_table_t *ptbl);
+void decode_bundle_blocknum(decode_state_t *dec, bundle_blocknum_t *v);
+void decode_bundle_blocktype(decode_state_t *dec, BPLib_STOR_CACHE_Blocktype_t *v);
+void decode_bundle_integer(decode_state_t *dec, uint64_t *v);
+void decode_bundle_dtntime(decode_state_t *dec, bundle_dtntime_t *v);
+void decode_bundle_crctype(decode_state_t *dec, BPLib_CRC_Type_t *v);
+void decode_BPLib_STOR_CACHE_EidBuffer(decode_state_t *dec, BPLib_STOR_CACHE_EidBuffer_t *v);
 
 /* Block decoders */
-void v7_decode_bp_primary_block(v7_decode_state_t *dec, bp_primary_block_t *v);
-void v7_decode_bp_admin_record_payload(v7_decode_state_t *dec, bp_canonical_block_buffer_t *v);
-void v7_decode_bp_previous_node_block(v7_decode_state_t *dec, bp_previous_node_block_t *v);
-void v7_decode_bp_bundle_age_block(v7_decode_state_t *dec, bp_bundle_age_block_t *v);
-void v7_decode_bp_hop_count_block(v7_decode_state_t *dec, bp_hop_count_block_t *v);
-void v7_decode_bp_custody_tracking_block(v7_decode_state_t *dec, bp_custody_tracking_block_t *v);
-void v7_decode_bp_custody_acknowledement_record(v7_decode_state_t *dec, BPLIB_CT_AcceptPayloadBlock_t *v);
+void decode_bundle_primary_block(decode_state_t *dec, bundle_primary_block_t *v);
+void decode_bundle_admin_record_payload(decode_state_t *dec, bundle_canonical_block_buffer_t *v);
+void decode_bundle_previous_node_block(decode_state_t *dec, bundle_previous_node_block_t *v);
+void decode_bundle_bundle_age_block(decode_state_t *dec, bundle_bundle_age_block_t *v);
+void decode_bundle_hop_count_block(decode_state_t *dec, bundle_hop_count_block_t *v);
+void decode_bundle_custody_tracking_block(decode_state_t *dec, bundle_custody_tracking_block_t *v);
+void decode_bundle_custody_acknowledement_record(decode_state_t *dec, BPLIB_CT_AcceptPayloadBlock_t *v);
 
-void   v7_decode_bp_canonical_bundle_block(v7_decode_state_t *dec, bp_canonical_bundle_block_t *v,
-                                           v7_canonical_block_info_t *info);
-void   v7_decode_bp_canonical_block_buffer(v7_decode_state_t *dec, bp_canonical_block_buffer_t *v,
+void   decode_bundle_canonical_bundle_block(decode_state_t *dec, bundle_canonical_bundle_block_t *v,
+                                           canonical_block_info_t *info);
+void   decode_bundle_canonical_block_buffer(decode_state_t *dec, bundle_canonical_block_buffer_t *v,
                                            size_t *content_encoded_offset, size_t *content_length);
-size_t v7_save_and_verify_block(BPLib_MEM_Block_t *head, const uint8_t *block_base, size_t block_size,
-                                bp_crctype_t crc_type, bp_crcval_t crc_check);
-void   v7_decode_bp_adminrec_payload_impl(v7_decode_state_t *dec, void *arg);
-void   v7_decode_bp_block_processing_flags(v7_decode_state_t *dec, bp_block_processing_flags_t *v);
-void   v7_decode_bp_endpointid_scheme(v7_decode_state_t *dec, bp_endpointid_scheme_t *v);
-void   v7_decode_bp_ipn_nodenumber(v7_decode_state_t *dec, bp_ipn_nodenumber_t *v);
-void   v7_decode_bp_ipn_servicenumber(v7_decode_state_t *dec, bp_ipn_servicenumber_t *v);
-void   v7_decode_bp_ipn_uri_ssp(v7_decode_state_t *dec, bp_ipn_uri_ssp_t *v);
-void   v7_decode_bp_ipn_uri_ssp_impl(v7_decode_state_t *dec, void *arg);
-void   v7_decode_BPLib_STOR_CACHE_EidBuffer_impl(v7_decode_state_t *dec, void *arg);
-void   v7_decode_bp_hop_count_block_impl(v7_decode_state_t *dec, void *arg);
-void   v7_decode_bp_sequencenumber(v7_decode_state_t *dec, bp_sequencenumber_t *v);
-void   v7_decode_bp_creation_timestamp_impl(v7_decode_state_t *dec, void *arg);
-void   v7_decode_bp_creation_timestamp(v7_decode_state_t *dec, bp_creation_timestamp_t *v);
-void   v7_decode_bp_bundle_processing_control_flags(v7_decode_state_t *dec, bp_bundle_processing_control_flags_t *v);
-void   v7_decode_bp_lifetime(v7_decode_state_t *dec, bp_lifetime_t *v);
-void   v7_decode_bp_adu_length(v7_decode_state_t *dec, bp_adu_length_t *v);
-void   v7_decode_bp_primary_block_impl(v7_decode_state_t *dec, void *arg);
-void   v7_decode_bp_custody_acceptance_seqlist_impl(v7_decode_state_t *dec, void *arg);
-void   v7_decode_bp_custody_acknowledement_record_impl(v7_decode_state_t *dec, void *arg);
-void   v7_decode_bp_canonical_block_buffer_impl(v7_decode_state_t *dec, void *arg);
+size_t save_and_verify_block(BPLib_MEM_Block_t *head, const uint8_t *block_base, size_t block_size,
+                                BPLib_CRC_Type_t crc_type, BPLib_CRC_Val_t crc_check);
+void   decode_bundle_adminrec_payload_impl(decode_state_t *dec, void *arg);
+void   decode_bundle_block_processing_flags(decode_state_t *dec, bundle_block_processing_flags_t *v);
+void   decode_bundle_endpointid_scheme(decode_state_t *dec, bundle_endpointid_scheme_t *v);
+void   decode_bundle_ipn_nodenumber(decode_state_t *dec, bundle_ipn_nodenumber_t *v);
+void   decode_bundle_ipn_servicenumber(decode_state_t *dec, bundle_ipn_servicenumber_t *v);
+void   decode_bundle_ipn_uri_ssp(decode_state_t *dec, bundle_ipn_uri_ssp_t *v);
+void   decode_bundle_ipn_uri_ssp_impl(decode_state_t *dec, void *arg);
+void   decode_BPLib_STOR_CACHE_EidBuffer_impl(decode_state_t *dec, void *arg);
+void   decode_bundle_hop_count_block_impl(decode_state_t *dec, void *arg);
+void   decode_BPLib_STOR_CACHE_SequenceNumber(decode_state_t *dec, BPLib_STOR_CACHE_SequenceNumber_t *v);
+void   decode_bundle_creation_timestamp_impl(decode_state_t *dec, void *arg);
+void   decode_bundle_creation_timestamp(decode_state_t *dec, bundle_creation_timestamp_t *v);
+void   decode_bundle_bundle_processing_control_flags(decode_state_t *dec, bundle_bundle_processing_control_flags_t *v);
+void   decode_bundle_lifetime(decode_state_t *dec, bundle_lifetime_t *v);
+void   decode_bundle_adu_length(decode_state_t *dec, bundle_adu_length_t *v);
+void   decode_bundle_primary_block_impl(decode_state_t *dec, void *arg);
+void   decode_bundle_custody_acceptance_seqlist_impl(decode_state_t *dec, void *arg);
+void   decode_bundle_custody_acknowledement_record_impl(decode_state_t *dec, void *arg);
+void   decode_bundle_canonical_block_buffer_impl(decode_state_t *dec, void *arg);
 
 #endif /* BPLIB_STOR_QM_DECODE_INTERNAL */

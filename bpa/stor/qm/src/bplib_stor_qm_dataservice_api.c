@@ -55,12 +55,12 @@ int BPLib_STOR_CACHE_ServiceductBundleizePayload (
     BPLib_STOR_CACHE_SocketInfo_t *sock_inf, BPLib_STOR_CACHE_Block_t *pblk,
     const void *content, size_t size)
 {
-    BPLib_STOR_CACHE_Block_t            *cblk;
-    BPLib_STOR_CACHE_BblockPrimary_t   *pri_block;
-    BPLib_STOR_CACHE_PrimaryBlock_t             *pri;
-    BPLib_STOR_CACHE_BblockCanonical_t *ccb_pay;
-    bp_canonical_block_buffer_t    *pay;
-    int                             result;
+    BPLib_STOR_CACHE_Block_t                *cblk;
+    BPLib_STOR_CACHE_BblockPrimary_t        *pri_block;
+    BPLib_STOR_CACHE_PrimaryBlock_t         *pri;
+    BPLib_STOR_CACHE_BblockCanonical_t      *ccb_pay;
+    BPLib_STOR_CACHE_CanonicalBlockBuffer_t *pay;
+    int                                      result;
 
     cblk   = NULL;
     result = BPLIB_ERROR;
@@ -97,7 +97,7 @@ int BPLib_STOR_CACHE_ServiceductBundleizePayload (
         pri_block->data.delivery.local_retx_interval = sock_inf->params.local_retx_interval;
 
         /* Pre-Encode Primary Block */
-        if (v7_block_encode_pri(pri_block) < 0)
+        if (block_encode_pri(pri_block) < 0)
         {
             // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed encoding pri block\n");
             break;
@@ -115,11 +115,11 @@ int BPLib_STOR_CACHE_ServiceductBundleizePayload (
         pay = BPLib_STOR_CACHE_BblockCanonicalGetLogical(ccb_pay);
 
         pay->canonical_block.blockNum  = 1;
-        pay->canonical_block.blockType = bp_blocktype_payloadBlock;
+        pay->canonical_block.blockType = BPLib_STOR_CACHE_BlocktypePayloadblock;
         pay->canonical_block.crctype   = sock_inf->params.crctype;
 
         /* Encode Payload Block */
-        if (v7_block_encode_pay(ccb_pay, content, size) < 0)
+        if (block_encode_pay(ccb_pay, content, size) < 0)
         {
             // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed encoding pay block\n");
             break;
@@ -164,7 +164,7 @@ int BPLib_STOR_CACHE_ServiceductUnbundleizePayload(
         }
 
         /* find the payload */
-        cblk    = BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(pri, bp_blocktype_payloadBlock);
+        cblk    = BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(pri, BPLib_STOR_CACHE_BlocktypePayloadblock);
         ccb_pay = BPLib_STOR_CACHE_BblockCanonicalCast(cblk);
         if (ccb_pay == NULL)
         {
@@ -253,7 +253,7 @@ int BPLib_STOR_CACHE_ServiceductForwardIngress(void *arg, BPLib_STOR_CACHE_Block
          * to the storage service yet, send it there now */
         pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(qblk);
         if (pri_block != NULL && base_intf->storage_service != NULL &&
-            !bp_handle_is_valid(pri_block->data.delivery.storage_intf_id))
+            !BPLib_HandleIsValid(pri_block->data.delivery.storage_intf_id))
         {
             storage_duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Dereference(base_intf->storage_service));
             if (storage_duct != NULL && BPLib_STOR_QM_DuctTryPush(&storage_duct->egress, qblk, BPLIB_MONOTIME_ZERO))
@@ -287,8 +287,8 @@ int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_
     BPLib_STOR_CACHE_Block_t         *pblk;
     BPLib_STOR_CACHE_Block_t         *intf_block;
     BPLib_STOR_CACHE_BblockPrimary_t *pri_block;
-    bp_ipn_addr_t                     bundle_src;
-    bp_ipn_addr_t                     bundle_dest;
+    BPLib_IpnAddr_t                     bundle_src;
+    BPLib_IpnAddr_t                     bundle_dest;
     int                               forward_count;
 
     intf_block = BPLib_STOR_CACHE_GetBlockFromLink(subq_src);
@@ -321,7 +321,7 @@ int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_
         if (pri_block != NULL)
         {
             /* Egress bundles also need to be checked if they need to go to storage */
-            if (!bp_handle_is_valid(pri_block->data.delivery.storage_intf_id) && base_intf->storage_service != NULL)
+            if (!BPLib_HandleIsValid(pri_block->data.delivery.storage_intf_id) && base_intf->storage_service != NULL)
             {
                 /* borrows the ref */
                 next_duct_ref = base_intf->storage_service;
@@ -370,7 +370,7 @@ int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_
  * @param type
  * @param endpoint_intf_ref
  */
-int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_blk, bp_val_t svc_num,BPLib_STOR_CACHE_DataserviceType_t type,
+int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_blk, BPLib_Val_t svc_num,BPLib_STOR_CACHE_DataserviceType_t type,
                                   BPLib_STOR_CACHE_Ref_t endpoint_intf_ref)
 {
     BPLib_STOR_QM_ServiceintfInfo_t *base_intf;
@@ -428,7 +428,7 @@ int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_bl
  * @param base_intf_blk
  * @param svc_num
  */
-BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_ServiceductRemoveFromBase(BPLib_STOR_CACHE_Block_t *base_intf_blk, bp_val_t svc_num)
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_ServiceductRemoveFromBase(BPLib_STOR_CACHE_Block_t *base_intf_blk, BPLib_Val_t svc_num)
 {
     BPLib_STOR_QM_ServiceintfInfo_t *base_intf;
     BPLib_MEM_RBT_Link_t            *rbt_link;
@@ -484,7 +484,7 @@ int BPLib_STOR_CACHE_DataserviceEventImpl(void *arg, BPLib_STOR_CACHE_Block_t *i
 
     /* only care about state change events for the local i/f */
     duct = BPLib_STOR_QM_DuctCast(intf_block);
-    if (duct == NULL || !bp_handle_equal(event->intf_state.intf_id, BPLib_STOR_CACHE_GetExternalId(intf_block)))
+    if (duct == NULL || !BPLib_HandleEqual(event->intf_state.intf_id, BPLib_STOR_CACHE_GetExternalId(intf_block)))
     {
         return BPLIB_SUCCESS;
     }
@@ -494,7 +494,7 @@ int BPLib_STOR_CACHE_DataserviceEventImpl(void *arg, BPLib_STOR_CACHE_Block_t *i
         /* Allows bundles to be pushed to duct queues */
         if (duct->current_state_flags & BPLIB_CACHE_STATE_FLAG_ENDPOINT)
         {
-            BPLib_STOR_QM_DuctEnable(&duct->ingress, BP_MPOOL_SHORT_SUBQ_DEPTH);
+            BPLib_STOR_QM_DuctEnable(&duct->ingress, BPLIB_MPOOL_SHORT_SUBQ_DEPTH);
         }
         else
         {
@@ -555,11 +555,11 @@ void BPLib_STOR_CACHE_DataserviceInit(BPLib_STOR_CACHE_Pool_t *pool)
     BPLib_STOR_CACHE_RegisterBlocktype(pool, BPLIB_BLOCKTYPE_SERVICE_BLOCK, &svc_block_api, 0);
 }
 
-bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_ipn_t node_number)
+BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rtbl, BPLib_Ipn_t node_number)
 {
     BPLib_STOR_CACHE_Block_t            *sblk;
     BPLib_STOR_QM_ServiceintfInfo_t *base_intf;
-    bp_handle_t                     self_intf_id;
+    BPLib_Handle_t                     self_intf_id;
     BPLib_STOR_CACHE_Pool_t                  *pool;
 
     pool = BPLib_STOR_QM_GetQtblPool(rtbl);
@@ -572,22 +572,22 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rt
     if (sblk == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to allocate intf block\n");
-        return BP_INVALID_HANDLE;
+        return BPLIB_INVALID_HANDLE;
     }
 
     base_intf = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to convert sblk to ref\n");
-        self_intf_id = BP_INVALID_HANDLE;
+        self_intf_id = BPLIB_INVALID_HANDLE;
     }
     else
     {
-        self_intf_id           = BPLib_STOR_QM_RegisterGenericIntf(rtbl, BP_INVALID_HANDLE, sblk);
+        self_intf_id           = BPLib_STOR_QM_RegisterGenericIntf(rtbl, BPLIB_INVALID_HANDLE, sblk);
         base_intf->node_number = node_number;
     }
 
-    if (bp_handle_is_valid(self_intf_id))
+    if (BPLib_HandleIsValid(self_intf_id))
     {
         BPLib_STOR_QM_RegisterForwardIngressHandler(rtbl, self_intf_id,BPLib_STOR_CACHE_ServiceductForwardIngress);
         BPLib_STOR_QM_RegisterForwardEgressHandler(rtbl, self_intf_id,BPLib_STOR_CACHE_ServiceductForwardEgress);
@@ -601,13 +601,13 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rt
     return self_intf_id;
 }
 
-bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
-    BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn,
+BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAttach(
+    BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *ipn,
     BPLib_STOR_CACHE_DataserviceType_t type,
     BPLib_STOR_CACHE_Ref_t blkref)
 {
-    bp_handle_t         self_intf_id = BP_INVALID_HANDLE;
-    bp_handle_t         parent_intf_id;
+    BPLib_Handle_t         self_intf_id = BPLIB_INVALID_HANDLE;
+    BPLib_Handle_t         parent_intf_id;
     BPLib_STOR_CACHE_Ref_t   parent_block_ref;
     BPLib_STOR_QM_Duct_t *duct;
     int                 status;
@@ -616,7 +616,7 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
     if (duct == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
-        return BP_INVALID_HANDLE;
+        return BPLIB_INVALID_HANDLE;
     }
 
     /* Find the intf ID, even if it is not currently enabled */
@@ -626,7 +626,7 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): no parent intf for node %lu\n", __func__,
         //      (unsigned long)ipn->node_number);
-        return BP_INVALID_HANDLE;
+        return BPLIB_INVALID_HANDLE;
     }
 
     status =
@@ -639,7 +639,7 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
     else
     {
         self_intf_id = BPLib_STOR_QM_RegisterGenericIntf(tbl, parent_intf_id, BPLib_STOR_CACHE_Dereference(blkref));
-        if (!bp_handle_is_valid(self_intf_id))
+        if (!BPLib_HandleIsValid(self_intf_id))
         {
            BPLib_STOR_CACHE_ServiceductRemoveFromBase(BPLib_STOR_CACHE_Dereference(parent_block_ref), ipn->service_number);
             // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): could not register service %lu\n", __func__,
@@ -657,9 +657,9 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(
     return self_intf_id;
 }
 
-BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn)
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *ipn)
 {
-    bp_handle_t         parent_intf_id;
+    BPLib_Handle_t         parent_intf_id;
     BPLib_STOR_CACHE_Ref_t   parent_block_ref;
     BPLib_STOR_CACHE_Ref_t   refptr;
     BPLib_STOR_QM_Duct_t *duct;
@@ -696,7 +696,7 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
-bp_socket_t *BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *rtbl)
+BPLib_STOR_QM_Socket_t *BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *rtbl)
 {
     BPLib_STOR_CACHE_Pool_t       *pool;
     BPLib_STOR_CACHE_Block_t *sblk;
@@ -715,7 +715,7 @@ bp_socket_t *BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *rtbl)
         sock->parent_rtbl = rtbl;
 
         /* following parameters are just hardcoded for now, need an API to set these items */
-        sock->params.crctype               = bp_crctype_CRC16;
+        sock->params.crctype               = BPLib_CRC_Type_CRC16;
         sock->params.local_delivery_policy =BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking;
         sock->params.local_retx_interval   = 30000;
         sock->params.lifetime              = 3600000;
@@ -728,12 +728,12 @@ bp_socket_t *BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *rtbl)
         sock_ref = NULL;
     }
 
-    return (bp_socket_t *)sock_ref;
+    return (BPLib_STOR_QM_Socket_t *)sock_ref;
 }
 
 
 // TODO Newer code in prototype. Some flags needed for error: cast increases required alignment of target type [-Werror=cast-align] ?
-int BPLib_STOR_CACHE_BindSocket(bp_socket_t *desc, const bp_ipn_addr_t *source_ipn)
+int BPLib_STOR_CACHE_BindSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_IpnAddr_t *source_ipn)
 {
     #ifdef NOT_READY // sockets
     BPLib_STOR_CACHE_SocketInfo_t *sock;
@@ -762,7 +762,7 @@ int BPLib_STOR_CACHE_BindSocket(bp_socket_t *desc, const bp_ipn_addr_t *source_i
 
     sock->socket_intf_id =
        BPLib_STOR_CACHE_DataserviceAttach(sock->parent_rtbl, source_ipn,BPLib_STOR_CACHE_DataserviceTypeApplication, sock_ref);
-    if (!bp_handle_is_valid(sock->socket_intf_id))
+    if (!BPLib_HandleIsValid(sock->socket_intf_id))
     {
         return BPLIB_ERROR;
     }
@@ -779,7 +779,7 @@ int BPLib_STOR_CACHE_BindSocket(bp_socket_t *desc, const bp_ipn_addr_t *source_i
     return BPLIB_SUCCESS;
 }
 
-int BPLib_STOR_CACHE_ConnectSocket(bp_socket_t *desc, const bp_ipn_addr_t *destination_ipn)
+int BPLib_STOR_CACHE_ConnectSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_IpnAddr_t *destination_ipn)
 {
    BPLib_STOR_CACHE_SocketInfo_t *sock;
     BPLib_STOR_CACHE_Ref_t    sock_ref;
@@ -793,7 +793,7 @@ int BPLib_STOR_CACHE_ConnectSocket(bp_socket_t *desc, const bp_ipn_addr_t *desti
         return -1;
     }
 
-    if (!bp_handle_is_valid(sock->socket_intf_id))
+    if (!BPLib_HandleIsValid(sock->socket_intf_id))
     {
         /* not yet bound */
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): socket not bound\n", __func__);
@@ -820,7 +820,7 @@ int BPLib_STOR_CACHE_ConnectSocket(bp_socket_t *desc, const bp_ipn_addr_t *desti
     return 0;
 }
 
-void BPLib_STOR_CACHE_CloseSocket(bp_socket_t *desc)
+void BPLib_STOR_CACHE_CloseSocket(BPLib_STOR_QM_Socket_t *desc)
 {
    BPLib_STOR_CACHE_SocketInfo_t *sock;
     BPLib_STOR_CACHE_Ref_t    sock_ref;
@@ -852,7 +852,7 @@ void BPLib_STOR_CACHE_CloseSocket(bp_socket_t *desc)
     BPLib_STOR_CACHE_RefRelease(sock_ref);
 }
 
-int BPLib_STOR_CACHE_Send(bp_socket_t *desc, const void *payload, size_t size, uint32_t timeout)
+int BPLib_STOR_CACHE_Send(BPLib_STOR_QM_Socket_t *desc, const void *payload, size_t size, uint32_t timeout)
 {
     int                           status;
     BPLib_STOR_CACHE_Block_t          *rblk;
@@ -948,7 +948,7 @@ int BPLib_STOR_CACHE_Send(bp_socket_t *desc, const void *payload, size_t size, u
     return status;
 }
 
-int BPLib_STOR_CACHE_Recv(bp_socket_t *desc, void *payload, size_t *size, uint32_t timeout)
+int BPLib_STOR_CACHE_Recv(BPLib_STOR_QM_Socket_t *desc, void *payload, size_t *size, uint32_t timeout)
 {
     int                           status;
    BPLib_STOR_CACHE_SocketInfo_t          *sock;

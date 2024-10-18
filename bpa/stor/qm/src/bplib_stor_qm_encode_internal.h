@@ -28,28 +28,28 @@
 #include "bplib_stor_qm_codec_internal.h"
 #include "cbor.h"
 
-typedef struct v7_encode_state
+typedef struct encode_state
 {
     bool error;
 
     bool                    crc_flag;
-    bp_crcval_t             crc_val;
-   BPLib_STOR_CACHE_CrcParameters_t *crc_params;
+    BPLib_CRC_Val_t             crc_val;
+   BPLib_CRC_Parameters_t *crc_params;
 
     CborEncoder *cbor;
 
     size_t total_bytes_encoded;
 
-    v7_chunk_writer_func_t next_writer;
+    chunk_writer_func_t next_writer;
     void                  *next_writer_arg;
-} v7_encode_state_t;
+} encode_state_t;
 
 typedef struct
 {
-    bp_adminrectype_t                encode_rectype;
-    const bp_canonical_block_data_t *payload_data;
+    bundle_adminrectype_t                encode_rectype;
+    const bundle_canonical_block_data_t *payload_data;
 
-} v7_admin_rec_payload_encode_info_t;
+} admin_rec_payload_encode_info_t;
 
 /*
  * Generic encode/decode container (aka CBOR array) helpers.
@@ -60,55 +60,55 @@ typedef struct
  *  - close out the sub-state after function returns
  *  - resume in the parent.
  */
-typedef void (*v7_encode_func_t)(v7_encode_state_t *enc, const void *arg);
+typedef void (*encode_func_t)(encode_state_t *enc, const void *arg);
 
-void v7_encode_container(v7_encode_state_t *enc, size_t entries, v7_encode_func_t func, const void *arg);
+void encode_container(encode_state_t *enc, size_t entries, encode_func_t func, const void *arg);
 
 /* Component encoders */
-void v7_encode_small_int(v7_encode_state_t *enc, int val);
-void v7_encode_crc(v7_encode_state_t *enc);
-void v7_encode_bp_integer(v7_encode_state_t *enc, const bp_integer_t *v);
-void v7_encode_bp_blocknum(v7_encode_state_t *enc, const bp_blocknum_t *v);
-void v7_encode_bp_blocktype(v7_encode_state_t *enc, const bp_blocktype_t *v);
-void v7_encode_bp_crctype(v7_encode_state_t *enc, const bp_crctype_t *v);
-void v7_encode_bp_dtntime(v7_encode_state_t *enc, const bp_dtntime_t *v);
-void v7_encode_BPLib_STOR_CACHE_EidBuffer(v7_encode_state_t *enc, const BPLib_STOR_CACHE_EidBuffer_t *v);
-void v7_encode_bitmap(v7_encode_state_t *enc, const uint8_t *v, const v7_bitmap_table_t *ptbl);
+void encode_small_int(encode_state_t *enc, int val);
+void encode_crc(encode_state_t *enc);
+void encode_bundle_integer(encode_state_t *enc, const uint64_t *v);
+void encode_bundle_blocknum(encode_state_t *enc, const bundle_blocknum_t *v);
+void encode_bundle_blocktype(encode_state_t *enc, const BPLib_STOR_CACHE_Blocktype_t *v);
+void encode_bundle_crctype(encode_state_t *enc, const BPLib_CRC_Type_t *v);
+void encode_bundle_dtntime(encode_state_t *enc, const bundle_dtntime_t *v);
+void encode_BPLib_STOR_CACHE_EidBuffer(encode_state_t *enc, const BPLib_STOR_CACHE_EidBuffer_t *v);
+void encode_bitmap(encode_state_t *enc, const uint8_t *v, const bitmap_table_t *ptbl);
 
 /* Block encoders */
-void v7_encode_bp_primary_block(v7_encode_state_t *enc, const bp_primary_block_t *v);
-void v7_encode_bp_admin_record_payload(v7_encode_state_t *enc, const bp_canonical_block_buffer_t *v);
-void v7_encode_bp_previous_node_block(v7_encode_state_t *enc, const bp_previous_node_block_t *v);
-void v7_encode_bp_bundle_age_block(v7_encode_state_t *enc, const bp_bundle_age_block_t *v);
-void v7_encode_bp_hop_count_block(v7_encode_state_t *enc, const bp_hop_count_block_t *v);
-void v7_encode_bp_custody_tracking_block(v7_encode_state_t *enc, const bp_custody_tracking_block_t *v);
-void v7_encode_bp_custody_acknowledement_record(v7_encode_state_t *enc, const BPLIB_CT_AcceptPayloadBlock_t *v);
+void encode_bundle_primary_block(encode_state_t *enc, const bundle_primary_block_t *v);
+void encode_bundle_admin_record_payload(encode_state_t *enc, const bundle_canonical_block_buffer_t *v);
+void encode_bundle_previous_node_block(encode_state_t *enc, const bundle_previous_node_block_t *v);
+void encode_bundle_bundle_age_block(encode_state_t *enc, const bundle_bundle_age_block_t *v);
+void encode_bundle_hop_count_block(encode_state_t *enc, const bundle_hop_count_block_t *v);
+void encode_bundle_custody_tracking_block(encode_state_t *enc, const bundle_custody_tracking_block_t *v);
+void encode_bundle_custody_acknowledement_record(encode_state_t *enc, const BPLIB_CT_AcceptPayloadBlock_t *v);
 
-void v7_encode_bp_canonical_bundle_block(v7_encode_state_t *enc, const bp_canonical_bundle_block_t *v,
-                                         const v7_canonical_block_info_t *info);
-void v7_encode_bp_canonical_block_buffer(v7_encode_state_t *enc, const bp_canonical_block_buffer_t *v,
+void encode_bundle_canonical_bundle_block(encode_state_t *enc, const bundle_canonical_bundle_block_t *v,
+                                         const canonical_block_info_t *info);
+void encode_bundle_canonical_block_buffer(encode_state_t *enc, const bundle_canonical_block_buffer_t *v,
                                          const void *content_ptr, size_t content_length,
                                          size_t *content_encoded_offset);
 
-int       v7_encoder_mpstream_write(void *arg, const void *ptr, size_t sz);
-int       v7_encoder_write_crc(v7_encode_state_t *enc);
-CborError v7_encoder_write_wrapper(void *arg, const void *ptr, size_t sz, CborEncoderAppendType at);
-void      v7_encode_bp_adminrec_payload_impl(v7_encode_state_t *enc, const void *arg);
-void      v7_encode_bp_custody_acceptance_seqlist_impl(v7_encode_state_t *enc, const void *arg);
-void      v7_encode_bp_endpointid_scheme(v7_encode_state_t *enc, const bp_endpointid_scheme_t *v);
-void      v7_encode_bp_ipn_nodenumber(v7_encode_state_t *enc, const bp_ipn_nodenumber_t *v);
-void      v7_encode_bp_ipn_servicenumber(v7_encode_state_t *enc, const bp_ipn_servicenumber_t *v);
-void      v7_encode_bp_ipn_uri_ssp(v7_encode_state_t *enc, const bp_ipn_uri_ssp_t *v);
-void      v7_encode_bp_ipn_uri_ssp_impl(v7_encode_state_t *enc, const void *arg);
-void      v7_encode_BPLib_STOR_CACHE_EidBuffer_impl(v7_encode_state_t *enc, const void *arg);
-void      v7_encode_bp_hop_count_block_impl(v7_encode_state_t *enc, const void *arg);
-void      v7_encode_bp_bundle_processing_control_flags(v7_encode_state_t                          *enc,
-                                                       const bp_bundle_processing_control_flags_t *v);
-void      v7_encode_bp_sequencenumber(v7_encode_state_t *enc, const bp_sequencenumber_t *v);
-void      v7_encode_bp_creation_timestamp_impl(v7_encode_state_t *enc, const void *arg);
-void      v7_encode_bp_lifetime(v7_encode_state_t *enc, const bp_lifetime_t *v);
-void      v7_encode_bp_adu_length(v7_encode_state_t *enc, const bp_adu_length_t *v);
-void      v7_encode_bp_primary_block_impl(v7_encode_state_t *enc, const void *arg);
-void      v7_encode_bp_creation_timestamp(v7_encode_state_t *enc, const bp_creation_timestamp_t *v);
+int       encoder_mpstream_write(void *arg, const void *ptr, size_t sz);
+int       encoder_write_crc(encode_state_t *enc);
+CborError encoder_write_wrapper(void *arg, const void *ptr, size_t sz, CborEncoderAppendType at);
+void      encode_bundle_adminrec_payload_impl(encode_state_t *enc, const void *arg);
+void      encode_bundle_custody_acceptance_seqlist_impl(encode_state_t *enc, const void *arg);
+void      encode_bundle_endpointid_scheme(encode_state_t *enc, const bundle_endpointid_scheme_t *v);
+void      encode_bundle_ipn_nodenumber(encode_state_t *enc, const bundle_ipn_nodenumber_t *v);
+void      encode_bundle_ipn_servicenumber(encode_state_t *enc, const bundle_ipn_servicenumber_t *v);
+void      encode_bundle_ipn_uri_ssp(encode_state_t *enc, const bundle_ipn_uri_ssp_t *v);
+void      encode_bundle_ipn_uri_ssp_impl(encode_state_t *enc, const void *arg);
+void      encode_BPLib_STOR_CACHE_EidBuffer_impl(encode_state_t *enc, const void *arg);
+void      encode_bundle_hop_count_block_impl(encode_state_t *enc, const void *arg);
+void      encode_bundle_bundle_processing_control_flags(encode_state_t                          *enc,
+                                                       const bundle_bundle_processing_control_flags_t *v);
+void      encode_BPLib_STOR_CACHE_SequenceNumber(encode_state_t *enc, const BPLib_STOR_CACHE_SequenceNumber_t *v);
+void      encode_bundle_creation_timestamp_impl(encode_state_t *enc, const void *arg);
+void      encode_bundle_lifetime(encode_state_t *enc, const bundle_lifetime_t *v);
+void      encode_bundle_adu_length(encode_state_t *enc, const bundle_adu_length_t *v);
+void      encode_bundle_primary_block_impl(encode_state_t *enc, const void *arg);
+void      encode_bundle_creation_timestamp(encode_state_t *enc, const bundle_creation_timestamp_t *v);
 
 #endif /* BPLIB_STOR_QM_ENCODE_INTERNAL_H */

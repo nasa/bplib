@@ -224,12 +224,12 @@ void BPLib_STOR_CACHE_BblockPrimaryDropEncode(BPLib_STOR_CACHE_BblockPrimary_t *
  * ----------------------------------------------------
  */
 BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
-                                                                 bp_blocktype_t                block_type)
+                                                                 BPLib_STOR_CACHE_Blocktype_t                block_type)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical, BPLib_STOR_CACHE_Block_t *);
 
     UT_GenStub_AddParam(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical, bp_blocktype_t, block_type);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical, BPLib_STOR_CACHE_Blocktype_t, block_type);
 
     UT_GenStub_Execute(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical, Basic, NULL);
 

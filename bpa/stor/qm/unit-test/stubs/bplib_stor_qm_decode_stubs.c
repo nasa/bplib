@@ -33,14 +33,14 @@
  * ----------------------------------------------------
  */
 int BPLib_STOR_QM_DecodeCanonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size,
-                              bp_blocktype_t payload_block_hint)
+                              BPLib_STOR_CACHE_Blocktype_t payload_block_hint)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DecodeCanonical, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_DecodeCanonical, BPLib_STOR_CACHE_BblockCanonical_t *, ccb);
     UT_GenStub_AddParam(BPLib_STOR_QM_DecodeCanonical, const void *, data_ptr);
     UT_GenStub_AddParam(BPLib_STOR_QM_DecodeCanonical, size_t, data_size);
-    UT_GenStub_AddParam(BPLib_STOR_QM_DecodeCanonical, bp_blocktype_t, payload_block_hint);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DecodeCanonical, BPLib_STOR_CACHE_Blocktype_t, payload_block_hint);
 
     UT_GenStub_Execute(BPLib_STOR_QM_DecodeCanonical, Basic, NULL);
 

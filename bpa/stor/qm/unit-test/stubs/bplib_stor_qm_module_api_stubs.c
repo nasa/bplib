@@ -32,13 +32,13 @@
  * Generated stub function for BPLib_STOR_QM_Configure()
  * ----------------------------------------------------
  */
-static int BPLib_STOR_QM_Configure(BPLib_STOR_CACHE_Block_t *svc, bp_handle_t cache_intf_id, int key,
+static int BPLib_STOR_QM_Configure(BPLib_STOR_CACHE_Block_t *svc, BPLib_Handle_t cache_intf_id, int key,
                                       BPLib_STOR_QM_ModuleValtype_t vt, const void *val)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_Configure, int);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_Configure, BPLib_STOR_CACHE_Block_t *, svc);
-    UT_GenStub_AddParam(BPLib_STOR_QM_Configure, bp_handle_t, cache_intf_id);
+    UT_GenStub_AddParam(BPLib_STOR_QM_Configure, BPLib_Handle_t, cache_intf_id);
     UT_GenStub_AddParam(BPLib_STOR_QM_Configure, int, key);
     UT_GenStub_AddParam(BPLib_STOR_QM_Configure, BPLib_STOR_QM_ModuleValtype_t, vt);
     UT_GenStub_AddParam(BPLib_STOR_QM_Configure, const void *, val);
@@ -70,12 +70,12 @@ static BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_Instantiate(BPLib_STOR_CACHE_Ref_
  * Generated stub function for BPLib_STOR_CACHE_Offload()
  * ----------------------------------------------------
  */
-static int BPLib_STOR_CACHE_Offload(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
+static int BPLib_STOR_CACHE_Offload(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t *sid, BPLib_STOR_CACHE_Block_t *pblk)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Offload, int);
 
     UT_GenStub_AddParam(BPLib_STOR_CACHE_Offload, BPLib_STOR_CACHE_Block_t *, svc);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_Offload, bp_sid_t *, sid);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Offload, BPLib_STOR_CACHE_Sid_t *, sid);
     UT_GenStub_AddParam(BPLib_STOR_CACHE_Offload, BPLib_STOR_CACHE_Block_t *, pblk);
 
     UT_GenStub_Execute(BPLib_STOR_CACHE_Offload, Basic, NULL);
@@ -108,12 +108,12 @@ static int BPLib_STOR_QM_Query(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STO
  * Generated stub function for BPLib_STOR_CACHE_Release()
  * ----------------------------------------------------
  */
-static int BPLib_STOR_CACHE_Release(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
+static int BPLib_STOR_CACHE_Release(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Release, int);
 
     UT_GenStub_AddParam(BPLib_STOR_CACHE_Release, BPLib_STOR_CACHE_Block_t *, svc);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_Release, bp_sid_t, sid);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Release, BPLib_STOR_CACHE_Sid_t, sid);
 
     UT_GenStub_Execute(BPLib_STOR_CACHE_Release, Basic, NULL);
 
@@ -125,12 +125,12 @@ static int BPLib_STOR_CACHE_Release(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid)
  * Generated stub function for BPLib_STOR_CACHE_Restore()
  * ----------------------------------------------------
  */
-static int BPLib_STOR_CACHE_Restore(BPLib_STOR_CACHE_Block_t *svc, bp_sid_t sid, BPLib_STOR_CACHE_Block_t **pblk_out)
+static int BPLib_STOR_CACHE_Restore(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid, BPLib_STOR_CACHE_Block_t **pblk_out)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_Restore, int);
 
     UT_GenStub_AddParam(BPLib_STOR_CACHE_Restore, BPLib_STOR_CACHE_Block_t *, svc);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_Restore, bp_sid_t, sid);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_Restore, BPLib_STOR_CACHE_Sid_t, sid);
     UT_GenStub_AddParam(BPLib_STOR_CACHE_Restore, BPLib_STOR_CACHE_Block_t **, pblk_out);
 
     UT_GenStub_Execute(BPLib_STOR_CACHE_Restore, Basic, NULL);

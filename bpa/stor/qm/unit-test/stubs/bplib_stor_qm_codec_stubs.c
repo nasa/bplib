@@ -29,52 +29,52 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_compute_full_bundle_size()
+ * Generated stub function for compute_full_bundle_size()
  * ----------------------------------------------------
  */
-size_t v7_compute_full_bundle_size(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
+size_t compute_full_bundle_size(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
-    UT_GenStub_SetupReturnBuffer(v7_compute_full_bundle_size, size_t);
+    UT_GenStub_SetupReturnBuffer(compute_full_bundle_size, size_t);
 
-    UT_GenStub_AddParam(v7_compute_full_bundle_size, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
+    UT_GenStub_AddParam(compute_full_bundle_size, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
 
-    UT_GenStub_Execute(v7_compute_full_bundle_size, Basic, NULL);
+    UT_GenStub_Execute(compute_full_bundle_size, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_compute_full_bundle_size, size_t);
+    return UT_GenStub_GetReturnValue(compute_full_bundle_size, size_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_copy_full_bundle_in()
+ * Generated stub function for copy_full_bundle_in()
  * ----------------------------------------------------
  */
-size_t v7_copy_full_bundle_in(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *buffer, size_t buf_sz)
+size_t copy_full_bundle_in(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *buffer, size_t buf_sz)
 {
-    UT_GenStub_SetupReturnBuffer(v7_copy_full_bundle_in, size_t);
+    UT_GenStub_SetupReturnBuffer(copy_full_bundle_in, size_t);
 
-    UT_GenStub_AddParam(v7_copy_full_bundle_in, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
-    UT_GenStub_AddParam(v7_copy_full_bundle_in, const void *, buffer);
-    UT_GenStub_AddParam(v7_copy_full_bundle_in, size_t, buf_sz);
+    UT_GenStub_AddParam(copy_full_bundle_in, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
+    UT_GenStub_AddParam(copy_full_bundle_in, const void *, buffer);
+    UT_GenStub_AddParam(copy_full_bundle_in, size_t, buf_sz);
 
-    UT_GenStub_Execute(v7_copy_full_bundle_in, Basic, NULL);
+    UT_GenStub_Execute(copy_full_bundle_in, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_copy_full_bundle_in, size_t);
+    return UT_GenStub_GetReturnValue(copy_full_bundle_in, size_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_copy_full_bundle_out()
+ * Generated stub function for copy_full_bundle_out()
  * ----------------------------------------------------
  */
-size_t v7_copy_full_bundle_out(BPLib_STOR_CACHE_BblockPrimary_t *cpb, void *buffer, size_t buf_sz)
+size_t copy_full_bundle_out(BPLib_STOR_CACHE_BblockPrimary_t *cpb, void *buffer, size_t buf_sz)
 {
-    UT_GenStub_SetupReturnBuffer(v7_copy_full_bundle_out, size_t);
+    UT_GenStub_SetupReturnBuffer(copy_full_bundle_out, size_t);
 
-    UT_GenStub_AddParam(v7_copy_full_bundle_out, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
-    UT_GenStub_AddParam(v7_copy_full_bundle_out, void *, buffer);
-    UT_GenStub_AddParam(v7_copy_full_bundle_out, size_t, buf_sz);
+    UT_GenStub_AddParam(copy_full_bundle_out, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
+    UT_GenStub_AddParam(copy_full_bundle_out, void *, buffer);
+    UT_GenStub_AddParam(copy_full_bundle_out, size_t, buf_sz);
 
-    UT_GenStub_Execute(v7_copy_full_bundle_out, Basic, NULL);
+    UT_GenStub_Execute(copy_full_bundle_out, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_copy_full_bundle_out, size_t);
+    return UT_GenStub_GetReturnValue(copy_full_bundle_out, size_t);
 }

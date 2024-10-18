@@ -43,7 +43,7 @@ struct BPLib_STOR_QM_ModuleApiContent
 
 typedef struct BPLib_STOR_CACHE_RouteServiceintfInfo
 {
-    bp_ipn_t          node_number;
+    BPLib_Ipn_t          node_number;
     BPLib_MEM_RBT_Root_t  service_index;
     BPLib_STOR_CACHE_Ref_t storage_service;
 
@@ -60,16 +60,16 @@ struct BPLib_STOR_CACHE_ServiceEndpt
 
 typedef struct BPLib_STOR_QM_QueueEntry
 {
-    bp_ipn_t    dest;
-    bp_ipn_t    mask;
-    bp_handle_t intf_id;
+    BPLib_Ipn_t    dest;
+    BPLib_Ipn_t    mask;
+    BPLib_Handle_t intf_id;
 } BPLib_STOR_QM_QueueEntry_t;
 
 struct BPLib_STOR_QM_QueueTbl
 {
     uint32_t                      max_queues;
     uint32_t                      registered_queues;
-    bp_handle_t                   activity_lock;
+    BPLib_Handle_t                   activity_lock;
     volatile bool                 maint_request_flag;
     volatile bool                 maint_active_flag;
     uint8_t                       poll_count;
@@ -81,8 +81,8 @@ struct BPLib_STOR_QM_QueueTbl
     BPLib_STOR_QM_QueueEntry_t   *queue_tbl;
 };
 
-typedef struct bp_socket bp_socket_t;
-struct bp_socket
+typedef struct BPLib_STOR_QM_Socket BPLib_STOR_QM_Socket_t;
+struct BPLib_STOR_QM_Socket
 {
     BPLib_MEM_Block_t fblk;
 };
@@ -91,11 +91,11 @@ typedef struct BPLib_STOR_CACHE_SocketInfo BPLib_STOR_CACHE_SocketInfo_t;
 struct BPLib_STOR_CACHE_SocketInfo
 {
     struct BPLib_STOR_QM_QueueTbl  *parent_rtbl;
-    bp_handle_t                     socket_intf_id;
+    BPLib_Handle_t                     socket_intf_id;
     BPLib_STOR_CACHE_Connection_t   params;
     uintmax_t                       ingress_byte_count;
     uintmax_t                       egress_byte_count;
-    bp_sequencenumber_t             last_bundle_seq;
+    BPLib_STOR_CACHE_SequenceNumber_t             last_bundle_seq;
 };
 
 #endif /* BPLIB_QM_BASE_INTERNAL_H*/

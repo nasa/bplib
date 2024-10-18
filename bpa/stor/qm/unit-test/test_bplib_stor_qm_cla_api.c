@@ -31,16 +31,16 @@
 void test BPLib_STOR_CACHE_CreateClaIntf(void)
 {
     /* Test function for:
-     * bp_handle_t BPLib_STOR_CACHE_CreateClaIntf(BPLib_STOR_QM_QueueTbl_t *rtbl)
+     * BPLib_Handle_t BPLib_STOR_CACHE_CreateClaIntf(BPLib_STOR_QM_QueueTbl_t *rtbl)
      */
     BPLib_STOR_QM_QueueTbl_t    rtbl;
     BPLib_STOR_CACHE_Block_t sblk;
-    bp_handle_t         self_intf_id;
+    BPLib_Handle_t         self_intf_id;
     BPLib_STOR_QM_Duct_t  duct;
 
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
     memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
-    memset(&self_intf_id, 0, sizeof(bp_handle_t));
+    memset(&self_intf_id, 0, sizeof(BPLib_Handle_t));
     memset(&duct, 0, sizeof(BPLib_STOR_QM_Duct_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, NULL);
@@ -62,11 +62,11 @@ void test BPLib_STOR_CACHE_CreateClaIntf(void)
 void test BPLib_STOR_CACHE_ClaIngress(void)
 {
     /* Test function for:
-     * int BPLib_STOR_CACHE_ClaIngress(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_handle_t intf_id, const void *bundle, size_t size, uint32_t
+     * int BPLib_STOR_CACHE_ClaIngress(BPLib_STOR_QM_QueueTbl_t *rtbl, BPLib_Handle_t intf_id, const void *bundle, size_t size, uint32_t
      * timeout)
      */
     BPLib_STOR_QM_QueueTbl_t  rtbl;
-    bp_handle_t       intf_id;
+    BPLib_Handle_t       intf_id;
     void             *bundle  = NULL;
     size_t            size    = 100;
     uint64_t          timeout = 3000;
@@ -74,7 +74,7 @@ void test BPLib_STOR_CACHE_ClaIngress(void)
    BPLib_STOR_CACHE_ClaStats_t stats;
 
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
     memset(&duct_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&stats, 0, sizeof BPLib_STOR_CACHE_ClaStats_t));
 
@@ -100,10 +100,10 @@ void test BPLib_STOR_CACHE_ClaIngress(void)
 void test BPLib_STOR_CACHE_ClaEgress(void)
 {
     /* Test function for:
-     * int BPLib_STOR_CACHE_ClaEgress(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_handle_t intf_id, void *bundle, size_t *size, uint32_t timeout)
+     * int BPLib_STOR_CACHE_ClaEgress(BPLib_STOR_QM_QueueTbl_t *rtbl, BPLib_Handle_t intf_id, void *bundle, size_t *size, uint32_t timeout)
      */
     BPLib_STOR_QM_QueueTbl_t  rtbl;
-    bp_handle_t       intf_id;
+    BPLib_Handle_t       intf_id;
     void             *bundle  = NULL;
     size_t            size    = 100;
     uint64_t          timeout = 0;
@@ -111,7 +111,7 @@ void test BPLib_STOR_CACHE_ClaEgress(void)
    BPLib_STOR_CACHE_ClaStats_t stats;
 
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
-    memset(&intf_id, 0, sizeof(bp_handle_t));
+    memset(&intf_id, 0, sizeof(BPLib_Handle_t));
     memset(&duct_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
     memset(&stats, 0, sizeof BPLib_STOR_CACHE_ClaStats_t));
 
@@ -181,13 +181,13 @@ void test BPLib_STOR_CACHE_GenericBundleIngress(void)
     UtAssert_INT32_EQ(BPLib_STOR_CACHE_GenericBundleIngress(&duct_ref, content, size, time_limit), 0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, &duct);
-    UtAssert_INT32_EQ(BPLib_STOR_CACHE_GenericBundleIngress(&duct_ref, content, size, time_limit), BP_ERROR);
+    UtAssert_INT32_EQ(BPLib_STOR_CACHE_GenericBundleIngress(&duct_ref, content, size, time_limit), BPLIB_ERROR);
 
-    UT_SetHandlerFunction(UT_KEY(v7_copy_full_bundle_in), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(copy_full_bundle_in), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctTryPush), UT_lib_int8_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryAlloc), UT_lib_AltHandler_PointerReturn, &pblk);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &refptr);
-    UtAssert_INT32_EQ(BPLib_STOR_CACHE_GenericBundleIngress(&duct_ref, content, size, time_limit), BP_ERROR);
+    UtAssert_INT32_EQ(BPLib_STOR_CACHE_GenericBundleIngress(&duct_ref, content, size, time_limit), BPLIB_ERROR);
 
     size = 0;
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_lib_AltHandler_PointerReturn, &pri_block);
@@ -223,12 +223,12 @@ void test BPLib_STOR_CACHE_GenericBundleEgress(void)
 
     UtAssert_INT32_EQ(BPLib_STOR_CACHE_GenericBundleEgress(&duct_ref, content, &size, time_limit), 0);
 
-    UT_SetHandlerFunction(UT_KEY(v7_compute_full_bundle_size), UT_lib_sizet_Handler, NULL);
-    UT_SetHandlerFunction(UT_KEY(v7_copy_full_bundle_out), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(compute_full_bundle_size), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(copy_full_bundle_out), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, &duct);
     UtAssert_INT32_NEQ(BPLib_STOR_CACHE_GenericBundleEgress(&duct_ref, content, &size, time_limit), 0);
 
-    UT_SetHandlerFunction(UT_KEY(v7_copy_full_bundle_in), UT_lib_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(copy_full_bundle_in), UT_lib_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctTryPull), UT_lib_AltHandler_PointerReturn, &pblk);
     UtAssert_INT32_NEQ(BPLib_STOR_CACHE_GenericBundleEgress(&duct_ref, content, &size, time_limit), 0);
 

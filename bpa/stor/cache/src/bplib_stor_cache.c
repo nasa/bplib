@@ -184,7 +184,7 @@ int BPLib_STOR_CACHE_DoPoll(BPLib_STOR_CACHE_State_t *state)
 {
     BPLib_MEM_RBT_Iter_t     rbt_it;
     BPLib_STOR_CACHE_Entry_t *store_entry;
-    bp_val_t             ref_val;
+    BPLib_Val_t             ref_val;
     int                  rbt_status;
 
     ref_val = BPLIB_TIME_TO_INT(BPLib_STOR_CACHE_GetMonotonicTime());
@@ -207,12 +207,12 @@ int BPLib_STOR_CACHE_DoPoll(BPLib_STOR_CACHE_State_t *state)
 }
 
 #ifdef UNUSED_ENTRIES_MAKE_PENDING
-int BPLib_STOR_CACHE_EntriesMakePending(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, bp_ipn_t mask)
+int BPLib_STOR_CACHE_EntriesMakePending(BPLib_STOR_CACHE_State_t *state, BPLib_Ipn_t dest, BPLib_Ipn_t mask)
 {
     BPLib_MEM_RBT_Iter_t      rbt_it;
     BPLib_STOR_CACHE_Entry_t *store_entry;
     int                       rbt_status;
-    bp_ipn_t                  curr_ipn;
+    BPLib_Ipn_t                  curr_ipn;
 
     rbt_status = BPLib_MEM_RBT_IterGotoMin(dest, &state->dest_eid_index, &rbt_it);
     while (rbt_status == BPLIB_SUCCESS)
@@ -246,8 +246,8 @@ int BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_
     }
     else if ((self_duct->current_state_flags & BPLIB_CACHE_STATE_FLAG_ENDPOINT) != 0)
     {
-        self_duct->ingress.current_depth_limit = BP_MPOOL_SHORT_SUBQ_DEPTH;
-        self_duct->egress.current_depth_limit  = BP_MPOOL_SHORT_SUBQ_DEPTH;
+        self_duct->ingress.current_depth_limit = BPLIB_MPOOL_SHORT_SUBQ_DEPTH;
+        self_duct->egress.current_depth_limit  = BPLIB_MPOOL_SHORT_SUBQ_DEPTH;
     }
     else
     {
@@ -262,7 +262,7 @@ int BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_b
 {
     BPLib_STOR_CACHE_State_t              *state;
     BPLib_STOR_QM_DuctGenericEvent_t *event;
-    bp_handle_t                       self_intf_id;
+    BPLib_Handle_t                       self_intf_id;
 
     event        = event_arg;
     self_intf_id = BPLib_STOR_CACHE_GetExternalId(intf_block);
@@ -278,7 +278,7 @@ int BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_b
         BPLib_STOR_CACHE_DoPoll(state);
     }
     else if ((event->event_type == BPLib_STOR_QM_DuctEventUp || event->event_type == BPLib_STOR_QM_DuctEventDown) &&
-             bp_handle_equal(self_intf_id, event->intf_state.intf_id))
+             BPLib_HandleEqual(self_intf_id, event->intf_state.intf_id))
     {
         BPLib_STOR_CACHE_DoIntfStatechange(state, event->event_type == BPLib_STOR_QM_DuctEventUp);
     }
@@ -467,7 +467,7 @@ void BPLib_STOR_CACHE_Init(BPLib_STOR_CACHE_Pool_t *pool)
     BPLib_STOR_CACHE_RegisterBlocktype(pool, BPLIB_STORE_SIGNATURE_BLOCKREF, &blockref_api, sizeof(BPLib_STOR_CACHE_Blockref_t));
 }
 
-bp_handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr)
+BPLib_Handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *service_addr)
 {
     BPLib_STOR_CACHE_State_t *state;
     BPLib_STOR_CACHE_Block_t *sblk;
@@ -475,7 +475,7 @@ bp_handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_add
     BPLib_STOR_CACHE_Pool_t       *pool;
     #endif
     BPLib_STOR_CACHE_Ref_t    duct_block_ref;
-    bp_handle_t          storage_intf_id;
+    BPLib_Handle_t          storage_intf_id;
 
     #ifdef QM  // TODO Enable QM Cache Init.
     pool = BPLib_STOR_QM_GetQtblPool(tbl);
@@ -490,7 +490,7 @@ bp_handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_add
     if (sblk == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "%s(): Insufficient memory to create file storage\n", __func__);
-        return BP_INVALID_HANDLE;
+        return BPLIB_INVALID_HANDLE;
     }
 
     /* this must always work, it was just created above */
@@ -500,10 +500,10 @@ bp_handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_add
     #ifdef QM
     storage_intf_id = BPLib_STOR_CACHE_DataserviceAttach(tbl, service_addr, BPLib_STOR_CACHE_DataserviceTypeStorage, duct_block_ref);
     #else // QM
-    storage_intf_id = BP_INVALID_HANDLE;
+    storage_intf_id = BPLIB_INVALID_HANDLE;
     #endif // QM
 
-    if (!bp_handle_is_valid(storage_intf_id))
+    if (!BPLib_HandleIsValid(storage_intf_id))
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot attach - service addr invalid?\n", __func__);
         BPLib_STOR_CACHE_RefRelease(duct_block_ref);
@@ -524,7 +524,7 @@ bp_handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_add
     return storage_intf_id;
 }
 
-int BPLib_STOR_QM_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *service_addr)
+int BPLib_STOR_QM_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *service_addr)
 {
     BPLib_STOR_CACHE_State_t *state;
     BPLib_STOR_CACHE_Ref_t    duct_block_ref;
@@ -561,7 +561,7 @@ int BPLib_STOR_QM_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ser
     return status;
 }
 
-bp_handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t cache_intf_id,
+BPLib_Handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t cache_intf_id,
                                                 const BPLib_STOR_QM_ModuleApi_t *api, void *init_arg)
 {
     BPLib_STOR_CACHE_State_t *state;
@@ -571,7 +571,7 @@ bp_handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, b
     #ifdef QM_MODULE_API
     int                  status;
     #endif // QM_MODULE_API
-    bp_handle_t          handle;
+    BPLib_Handle_t          handle;
 
     if (tbl == NULL)
     {
@@ -580,7 +580,7 @@ bp_handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl, b
     }
 
     svc    = NULL;
-    handle = BP_INVALID_HANDLE;
+    handle = BPLIB_INVALID_HANDLE;
     cblk   = BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_QM_GetQtblPool(tbl), cache_intf_id);
     state  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)cblk, BPLIB_STORE_SIGNATURE_STATE);
     if (state != NULL)
@@ -642,7 +642,7 @@ void BPLib_STOR_CACHE_DebugFsmStatePrintImpl(BPLib_STOR_CACHE_State_t *state, BP
             (unsigned long)exitcount, (unsigned long)(entercount - exitcount));
 }
 
-void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, bp_handle_t intf_id)
+void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, BPLib_Handle_t intf_id)
 {
     #ifdef QM
     BPLib_STOR_CACHE_Ref_t    intf_block_ref;
@@ -662,7 +662,7 @@ void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, bp_handle_t intf_id)
         return;
     }
 
-    fprintf(stderr, "DEBUG: %s() intf_id=%d\n", __func__, bp_handle_printable(intf_id));
+    fprintf(stderr, "DEBUG: %s() intf_id=%d\n", __func__, BPLib_HandlePrintable(intf_id));
 
     BPLib_STOR_CACHE_DebugFsmStatePrint(state, BPLib_STOR_CACHE_EntryStateUndefined);
     BPLib_STOR_CACHE_DebugFsmStatePrint(state, BPLib_STOR_CACHE_EntryStateIdle);

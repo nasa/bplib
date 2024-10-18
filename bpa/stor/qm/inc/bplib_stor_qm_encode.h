@@ -35,9 +35,9 @@
  * One possible option would be to pass in NULL/0 for the block types that do not have separate data, to keep the APIs
  * more consistent.
  */
-int v7_block_encode_pri(BPLib_STOR_CACHE_BblockPrimary_t *cpb);
-int v7_block_encode_pay(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size);
+int block_encode_pri(BPLib_STOR_CACHE_BblockPrimary_t *cpb);
+int block_encode_pay(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size);
 
-int v7_block_encode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb);
+int block_encode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb);
 
 #endif /* BPLIB_STOR_QM_ENCODE_H */

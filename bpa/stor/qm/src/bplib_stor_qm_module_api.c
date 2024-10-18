@@ -29,7 +29,7 @@
 
 #include "bplib_api_types.h"
 
-#include "crc.h"
+#include "bplib_crc.h"
 
 #include "bplib_mem.h"
 
@@ -56,7 +56,7 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_Instantiate(BPLib_STOR_CACHE_Ref_t paren
     return NULL;
 }
 
-int BPLib_STOR_QM_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
+int BPLib_STOR_QM_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id, int key,
                                BPLib_STOR_QM_ModuleValtype_t vt, const void *val)
 {
     BPLib_STOR_CACHE_Block_t *cblk;
@@ -83,7 +83,7 @@ int BPLib_STOR_QM_Configure(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_in
     return result;
 }
 
-int BPLib_STOR_QM_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id, int key,
+int BPLib_STOR_QM_Query(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id, int key,
                            BPLib_STOR_QM_ModuleValtype_t vt, const void **val)
 {
     BPLib_STOR_CACHE_Block_t *cblk;
@@ -106,7 +106,7 @@ int BPLib_STOR_QM_Query(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_i
     return result;
 }
 
-int BPLib_STOR_QM_Start(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
+int BPLib_STOR_QM_Start(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id)
 {
     BPLib_STOR_CACHE_Block_t *cblk;
     BPLib_STOR_CACHE_State_t *state;
@@ -128,7 +128,7 @@ int BPLib_STOR_QM_Start(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_i
     return result;
 }
 
-int BPLib_STOR_QM_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, bp_handle_t module_intf_id)
+int BPLib_STOR_QM_Stop(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t module_intf_id)
 {
     BPLib_STOR_CACHE_Block_t *cblk;
     BPLib_STOR_CACHE_State_t *state;
@@ -172,9 +172,9 @@ int BPLib_STOR_CACHE_Display(const void *bundle, size_t size, uint32_t *flags)
  *  service -               service number as read from eid [OUTPUT]
  *  Returns:                BPLIB_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int BPLib_STOR_CACHE_Eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn_t *service)
+int BPLib_STOR_CACHE_Eid2ipn(const char *eid, size_t len, BPLib_Ipn_t *node, BPLib_Ipn_t *service)
 {
-    char          eidtmp[BP_MAX_EID_STRING];
+    char          eidtmp[BPLIB_MAX_EID_STRING];
     int           tmplen;
     char         *node_ptr;
     char         *service_ptr;
@@ -193,9 +193,9 @@ int BPLib_STOR_CACHE_Eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn
     {
         return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID must be at least 7 characters, act: %d\n", len);
     }
-    else if (len > BP_MAX_EID_STRING)
+    else if (len > BPLIB_MAX_EID_STRING)
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID cannot exceed %d bytes in length, act: %d\n", BP_MAX_EID_STRING, len);
+        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID cannot exceed %d bytes in length, act: %d\n", BPLIB_MAX_EID_STRING, len);
     }
 
     /* Check IPN Scheme */
@@ -238,8 +238,8 @@ int BPLib_STOR_CACHE_Eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn
     }
 
     /* Set Outputs */
-    *node    = (bp_ipn_t)node_result;
-    *service = (bp_ipn_t)service_result;
+    *node    = (BPLib_Ipn_t)node_result;
+    *service = (BPLib_Ipn_t)service_result;
     return BPLIB_SUCCESS;
 }
 
@@ -252,7 +252,7 @@ int BPLib_STOR_CACHE_Eid2ipn(const char *eid, size_t len, bp_ipn_t *node, bp_ipn
  *  service -               service number to be written into eid [INPUT]
  *  Returns:                BPLIB_SUCCESS or error code
  *-------------------------------------------------------------------------------------*/
-int BPLib_STOR_CACHE_Ipn2eid(char *eid, size_t len, bp_ipn_t node, bp_ipn_t service)
+int BPLib_STOR_CACHE_Ipn2eid(char *eid, size_t len, BPLib_Ipn_t node, BPLib_Ipn_t service)
 {
     /* Sanity Check EID Buffer Pointer */
     if (eid == NULL)
@@ -265,10 +265,10 @@ int BPLib_STOR_CACHE_Ipn2eid(char *eid, size_t len, bp_ipn_t node, bp_ipn_t serv
     {
         return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID buffer must be at least 7 characters, act: %d\n", len);
     }
-    else if (len > BP_MAX_EID_STRING)
+    else if (len > BPLIB_MAX_EID_STRING)
     {
         return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID buffer cannot exceed %d bytes in length, act: %d\n",
-                    //  BP_MAX_EID_STRING, len);
+                    //  BPLIB_MAX_EID_STRING, len);
     }
 
     /* Write EID */
@@ -286,7 +286,7 @@ int BPLib_STOR_CACHE_Ipn2eid(char *eid, size_t len, bp_ipn_t node, bp_ipn_t serv
  * See description in header for argument/return detail
  *
  *-----------------------------------------------------------------*/
-int BPLib_STOR_CACHE_QueryInteger(BPLib_STOR_CACHE_Block_t *rtbl, bp_handle_t intf_id,BPLib_STOR_CACHE_Variable_t var_id, bp_sval_t *value)
+int BPLib_STOR_CACHE_QueryInteger(BPLib_STOR_CACHE_Block_t *rtbl, BPLib_Handle_t intf_id,BPLib_STOR_CACHE_Variable_t var_id, BPLib_Sval_t *value)
 {
     int retval;
 
@@ -321,7 +321,7 @@ int BPLib_STOR_CACHE_QueryInteger(BPLib_STOR_CACHE_Block_t *rtbl, bp_handle_t in
  * See description in header for argument/return detail
  *
  *-----------------------------------------------------------------*/
-int BPLib_STOR_CACHE_ConfigInteger(BPLib_STOR_CACHE_Block_t *rtbl, bp_handle_t intf_id,BPLib_STOR_CACHE_Variable_t var_id, bp_sval_t value)
+int BPLib_STOR_CACHE_ConfigInteger(BPLib_STOR_CACHE_Block_t *rtbl, BPLib_Handle_t intf_id,BPLib_STOR_CACHE_Variable_t var_id, BPLib_Sval_t value)
 {
     int retval;
 

@@ -29,50 +29,50 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_block_encode_canonical()
+ * Generated stub function for block_encode_canonical()
  * ----------------------------------------------------
  */
-int v7_block_encode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
+int block_encode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
 {
-    UT_GenStub_SetupReturnBuffer(v7_block_encode_canonical, int);
+    UT_GenStub_SetupReturnBuffer(block_encode_canonical, int);
 
-    UT_GenStub_AddParam(v7_block_encode_canonical, BPLib_STOR_CACHE_BblockCanonical_t *, ccb);
+    UT_GenStub_AddParam(block_encode_canonical, BPLib_STOR_CACHE_BblockCanonical_t *, ccb);
 
-    UT_GenStub_Execute(v7_block_encode_canonical, Basic, NULL);
+    UT_GenStub_Execute(block_encode_canonical, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_block_encode_canonical, int);
+    return UT_GenStub_GetReturnValue(block_encode_canonical, int);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_block_encode_pay()
+ * Generated stub function for block_encode_pay()
  * ----------------------------------------------------
  */
-int v7_block_encode_pay(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size)
+int block_encode_pay(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size)
 {
-    UT_GenStub_SetupReturnBuffer(v7_block_encode_pay, int);
+    UT_GenStub_SetupReturnBuffer(block_encode_pay, int);
 
-    UT_GenStub_AddParam(v7_block_encode_pay, BPLib_STOR_CACHE_BblockCanonical_t *, ccb);
-    UT_GenStub_AddParam(v7_block_encode_pay, const void *, data_ptr);
-    UT_GenStub_AddParam(v7_block_encode_pay, size_t, data_size);
+    UT_GenStub_AddParam(block_encode_pay, BPLib_STOR_CACHE_BblockCanonical_t *, ccb);
+    UT_GenStub_AddParam(block_encode_pay, const void *, data_ptr);
+    UT_GenStub_AddParam(block_encode_pay, size_t, data_size);
 
-    UT_GenStub_Execute(v7_block_encode_pay, Basic, NULL);
+    UT_GenStub_Execute(block_encode_pay, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_block_encode_pay, int);
+    return UT_GenStub_GetReturnValue(block_encode_pay, int);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for v7_block_encode_pri()
+ * Generated stub function for block_encode_pri()
  * ----------------------------------------------------
  */
-int v7_block_encode_pri(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
+int block_encode_pri(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
 {
-    UT_GenStub_SetupReturnBuffer(v7_block_encode_pri, int);
+    UT_GenStub_SetupReturnBuffer(block_encode_pri, int);
 
-    UT_GenStub_AddParam(v7_block_encode_pri, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
+    UT_GenStub_AddParam(block_encode_pri, BPLib_STOR_CACHE_BblockPrimary_t *, cpb);
 
-    UT_GenStub_Execute(v7_block_encode_pri, Basic, NULL);
+    UT_GenStub_Execute(block_encode_pri, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(v7_block_encode_pri, int);
+    return UT_GenStub_GetReturnValue(block_encode_pri, int);
 }

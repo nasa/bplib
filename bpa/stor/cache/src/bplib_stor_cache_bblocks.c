@@ -348,7 +348,7 @@ void BPLib_STOR_CACHE_BblockPrimaryAppend(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
 }
 
 BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
-                                                                 bp_blocktype_t                block_type)
+                                                                 BPLib_STOR_CACHE_Blocktype_t                block_type)
 {
     BPLib_STOR_CACHE_Block_t            *cblk;
     BPLib_STOR_CACHE_BblockCanonical_t *ccb;
@@ -417,7 +417,7 @@ size_t BPLib_STOR_CACHE_ComputeFullBundleSize(BPLib_STOR_CACHE_BblockPrimary_t *
          */
         if (cpb->block_encode_size_cache == 0)
         {
-            last_encode = v7_block_encode_pri(cpb);
+            last_encode = block_encode_pri(cpb);
         }
         else
         {
@@ -444,7 +444,7 @@ size_t BPLib_STOR_CACHE_ComputeFullBundleSize(BPLib_STOR_CACHE_BblockPrimary_t *
 
             if (ccb->block_encode_size_cache == 0)
             {
-                last_encode = v7_block_encode_canonical(ccb);
+                last_encode = block_encode_canonical(ccb);
             }
 
             sum_result += ccb->block_encode_size_cache;
@@ -508,7 +508,7 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
     size_t         remain_sz;
     size_t         chunk_sz;
     const uint8_t *in_p;
-    bp_blocktype_t payload_block_hint;
+    BPLib_STOR_CACHE_Blocktype_t payload_block_hint;
     BPLib_STOR_CACHE_Pool_t *ppool;
 
     BPLib_STOR_CACHE_Block_t           *cblk;
@@ -555,7 +555,7 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
      * In this case, the presence of certain extension blocks will indicate
      * how the payload block should really be interpreted.
      */
-    payload_block_hint = bp_blocktype_undefined;
+    payload_block_hint = BPLib_STOR_CACHE_BlocktypeUndefined;
 
     /*
      * From this point forward, any allocated blocks will need to
@@ -578,7 +578,7 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
             /* if the block is an admin record, this determines how to interpret the payload */
             if (cpb->data.logical.controlFlags.isAdminRecord)
             {
-                payload_block_hint = bp_blocktype_adminRecordPayloadBlock;
+                payload_block_hint = BPLib_STOR_CACHE_BlocktypeAdminrecordpayloadblock;
             }
         }
         else
@@ -616,15 +616,15 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
              */
             switch (ccb->canonical_logical_data.canonical_block.blockType)
             {
-                case bp_blocktype_payloadConfidentialityBlock:
+                case BPLib_STOR_CACHE_BlocktypePayloadconfidentialityblock:
                     /* bpsec not implemented yet, but this is the idea */
-                    if (payload_block_hint == bp_blocktype_undefined)
+                    if (payload_block_hint == BPLib_STOR_CACHE_BlocktypeUndefined)
                     {
-                        payload_block_hint = bp_blocktype_ciphertextPayloadBlock;
+                        payload_block_hint = BPLib_STOR_CACHE_BlocktypeCiphertextpayloadblock;
                     }
                     break;
 
-                case bp_blocktype_custodyTrackingBlock:
+                case BPLib_STOR_CACHE_BlocktypeCustodytrackingblock:
                     /* if this block is present it requests full custody tracking */
                     cpb->data.delivery.delivery_policy = BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking;
                     break;

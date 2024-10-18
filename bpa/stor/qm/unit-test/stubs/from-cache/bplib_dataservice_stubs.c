@@ -32,16 +32,16 @@
  * Generated stub function for_BPLib_STOR_CACHE_DataserviceAddBaseIntf()
  * ----------------------------------------------------
  */
-bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rtbl, bp_ipn_t node_number)
+BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rtbl, BPLib_Ipn_t node_number)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_DataserviceAddBaseIntf, bp_handle_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_DataserviceAddBaseIntf, BPLib_Handle_t);
 
     UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceAddBaseIntf, BPLib_STOR_QM_QueueTbl_t *, rtbl);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceAddBaseIntf, bp_ipn_t, node_number);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceAddBaseIntf, BPLib_Ipn_t, node_number);
 
     UT_GenStub_Execute(BPLib_STOR_CACHE_DataserviceAddBaseIntf, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_DataserviceAddBaseIntf, bp_handle_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_DataserviceAddBaseIntf, BPLib_Handle_t);
 }
 
 /*
@@ -49,19 +49,19 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t *rt
  * Generated stub function for_BPLib_STOR_CACHE_DataserviceAttach()
  * ----------------------------------------------------
  */
-bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn,BPLib_STOR_CACHE_DataserviceType_t type,
+BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAttach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *ipn,BPLib_STOR_CACHE_DataserviceType_t type,
                                      BPLib_STOR_CACHE_Ref_t blkref)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_DataserviceAttach, bp_handle_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_DataserviceAttach, BPLib_Handle_t);
 
     UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceAttach, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceAttach, const bp_ipn_addr_t *, ipn);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceAttach, const BPLib_IpnAddr_t *, ipn);
     UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceAttach,BPLib_STOR_CACHE_DataserviceType_t, type);
     UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceAttach, BPLib_STOR_CACHE_Ref_t, blkref);
 
     UT_GenStub_Execute(BPLib_STOR_CACHE_DataserviceAttach, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_DataserviceAttach, bp_handle_t);
+    return UT_GenStub_GetReturnValue(BPLib_STOR_CACHE_DataserviceAttach, BPLib_Handle_t);
 }
 
 /*
@@ -69,12 +69,12 @@ bp_handle_t BPLib_STOR_CACHE_DataserviceAttach(BPLib_STOR_QM_QueueTbl_t *tbl, co
  * Generated stub function for BPLib_STOR_CACHE_DataserviceDetach()
  * ----------------------------------------------------
  */
-BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl_t *tbl, const bp_ipn_addr_t *ipn)
+BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *ipn)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_DataserviceDetach, BPLib_STOR_CACHE_Ref_t);
 
     UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceDetach, BPLib_STOR_QM_QueueTbl_t *, tbl);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceDetach, const bp_ipn_addr_t *, ipn);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_DataserviceDetach, const BPLib_IpnAddr_t *, ipn);
 
     UT_GenStub_Execute(BPLib_STOR_CACHE_DataserviceDetach, Basic, NULL);
 

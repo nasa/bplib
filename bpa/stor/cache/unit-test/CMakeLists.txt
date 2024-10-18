@@ -18,7 +18,6 @@ add_library(utobj_bplib_stor_cache OBJECT
     ../src/bplib_stor_cache_internal.c
     ../src/bplib_stor_cache_lists.c
     ../src/bplib_stor_cache_ref.c
-    ../src/crc.c
     utilities/bplib_stor_cache_utils.c
 )
 

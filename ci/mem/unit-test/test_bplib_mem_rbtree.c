@@ -620,7 +620,7 @@ void Test_BPLib_MEM_RBT_Iterator(void)
     int               i;
     int               count;
     int               status;
-    bp_val_t          last_val;
+    BPLib_Val_t          last_val;
     BPLib_MEM_RBT_Link_t *node_ptr;
     BPLib_MEM_RBT_Iter_t  it;
 

@@ -33,26 +33,26 @@
 #include "bplib_stor_qm_codec.h"
 #include "bplib_stor_cache_block.h"
 #include "bplib_stor_cache_mpstream.h"
-#include "crc.h"
+#include "bplib_crc.h"
 
 typedef struct
 {
-    const bp_canonical_bundle_block_t *encode_block;
-    bp_canonical_bundle_block_t       *decode_block;
+    const BPLib_STOR_CACHE_CanonicalBundleBlock_t *encode_block;
+    BPLib_STOR_CACHE_CanonicalBundleBlock_t       *decode_block;
     const void                        *content_vptr;
     size_t                            *content_offset_out;
     size_t                             content_size;
 
-} v7_canonical_block_info_t;
+} canonical_block_info_t;
 
-typedef struct v7_bitmap_table
+typedef struct bitmap_table
 {
     size_t       offset;
-    bp_integer_t mask;
-} v7_bitmap_table_t;
+    uint64_t mask;
+} bitmap_table_t;
 
-BPLib_STOR_CACHE_CrcParameters_t *v7_codec_get_crc_algorithm(bp_crctype_t crctype);
-size_t                  v7_sum_preencoded_size(BPLib_STOR_CACHE_Block_t *list);
-void                    v7_init_ipn_eid(BPLib_STOR_CACHE_EidBuffer_t *eid, bp_ipn_t node, bp_ipn_t service);
-size_t                  v7_sum_preencoded_size(BPLib_STOR_CACHE_Block_t *list);
+BPLib_CRC_Parameters_t *codec_get_crc_algorithm(BPLib_CRC_Type_t crctype);
+size_t                  sum_preencoded_size(BPLib_STOR_CACHE_Block_t *list);
+void                    init_ipn_eid(BPLib_STOR_CACHE_EidBuffer_t *eid, BPLib_Ipn_t node, BPLib_Ipn_t service);
+size_t                  sum_preencoded_size(BPLib_STOR_CACHE_Block_t *list);
 #endif /* BPLIB_STOR_QM_CODEC_INTERNAL_H */

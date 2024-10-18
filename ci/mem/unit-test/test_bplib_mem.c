@@ -42,7 +42,7 @@ void *BPLib_MEM_TestPoolPtr;
 
 void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    bp_val_t RefSig = UT_Hook_GetArgValueByName(Context, "search_key_value", bp_val_t);
+    BPLib_Val_t RefSig = UT_Hook_GetArgValueByName(Context, "search_key_value", BPLib_Val_t);
 
     if (RefSig == UT_TESTBLOCKTYPE_SIG)
     {
@@ -103,23 +103,23 @@ void Test_BPLib_MEM_SubqInit(void)
 void Test_BPLib_MEM_BlockFromExternalId(void)
 {
     /* Test function for:
-     * BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(bplib_mpool_t *pool, bp_handle_t handle)
+     * BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(bplib_mpool_t *pool, BPLib_Handle_t handle)
      */
-    UT_BPLib_MEM_Buf_t   buf;
-    bp_handle_t          id1;
-    bp_handle_t          id2;
+    UT_BPLib_MEM_Buf_t      buf;
+    BPLib_Handle_t          id1;
+    BPLib_Handle_t          id2;
 
     memset(&buf, 0, sizeof(buf));
 
-    UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, BP_INVALID_HANDLE));
+    UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, BPLIB_INVALID_HANDLE));
 
     
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
     test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_MEM_BlocktypeGeneric, 0);
     
-    UtAssert_BOOL_TRUE(bp_handle_is_valid(id1 = BPLib_MEM_GetExternalId(&buf.blk[0].header.base_link)));
-    UtAssert_BOOL_TRUE(bp_handle_is_valid(id2 = BPLib_MEM_GetExternalId(&buf.blk[1].header.base_link)));
+    UtAssert_BOOL_TRUE(BPLib_HandleIsValid(id1 = BPLib_MEM_GetExternalId(&buf.blk[0].header.base_link)));
+    UtAssert_BOOL_TRUE(BPLib_HandleIsValid(id2 = BPLib_MEM_GetExternalId(&buf.blk[1].header.base_link)));
     UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, id1));
     UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, id2));
 

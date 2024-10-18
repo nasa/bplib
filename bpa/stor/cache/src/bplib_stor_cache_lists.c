@@ -71,7 +71,7 @@ void BPLib_STOR_CACHE_LockInit(void)
     for (i = 0; i < BPLIB_CACHE_NUM_LOCKS; ++i)
     {
         lock = &BPLIB_CACHE_LOCK_SET[i];
-        if (!bp_handle_is_valid(lock->lock_id))
+        if (!BPLib_HandleIsValid(lock->lock_id))
         {
             // STOR lock->lock_id = BPLib_MEM_OS_CreateLock();
         }
@@ -130,14 +130,14 @@ bool BPLib_STOR_CACHE_LockWait(BPLib_STOR_CACHE_Lock_t *lock, BPLib_TIME_Monoton
 #endif // BPLIB_STOR_CACHE_OWN_LOCK
 
 
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_CACHE_Pool_t *pool, bp_handle_t handle)
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_CACHE_Pool_t *pool, BPLib_Handle_t handle)
 {
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
     BPLib_STOR_CACHE_BlockContent_t      *blk;
     int                                   serial;
 
     admin  = BPLib_STOR_CACHE_GetAdmin(pool);
-    serial = bp_handle_to_serial(handle, BPLIB_HANDLE_MPOOL_BASE);
+    serial = BPLib_HandleToSerial(handle, BPLIB_HANDLE_MPOOL_BASE);
     if (serial < admin->num_bufs_total)
     {
         blk = &pool->admin_block;
@@ -242,7 +242,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_
  *-----------------------------------------------------------------*/
 size_t BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(BPLib_STOR_CACHE_Blocktype_t bt)
 {
-    static const size_t USER_DATA_START_OFFSET[BPLib_STOR_CACHE_BlocktypeMax] = {
+    static const size_t USER_DATA_START_OFFSET[BPLib_STOR_CACHE_BlocktypeSpecialBlocksMax] = {
         [BPLib_STOR_CACHE_BlocktypeUndefined] = SIZE_MAX,
         #ifdef QM_MODULE_API
         [BPLib_STOR_CACHE_BlocktypeApi]       = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(api),
@@ -255,7 +255,7 @@ size_t BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(BPLib_STOR_CACHE_Blocktype_
         #endif // QM_DUCT
         [BPLib_STOR_CACHE_BlocktypeRef]       = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(ref)};
 
-    if (bt >= BPLib_STOR_CACHE_BlocktypeMax)
+    if (bt >= BPLib_STOR_CACHE_BlocktypeSpecialBlocksMax)
     {
         return SIZE_MAX;
     }
@@ -626,7 +626,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         if (api_block->api.construct(init_arg, node) != BPLIB_SUCCESS)
         {
             // TODO Use bplog?
-            // bplog(NULL, BP_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
+            // bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
             //      (unsigned long)content_type_signature);
         }
     }

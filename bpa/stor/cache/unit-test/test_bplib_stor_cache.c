@@ -118,11 +118,11 @@ void Test_BPLib_STOR_CACHE_DoPoll(void)
 void Test_BPLib_STOR_CACHE_EntriesMakePending(void)
 {
     /* Test function for:
-     * int BPLib_STOR_CACHE_EntriesMakePending(BPLib_STOR_CACHE_State_t *state, bp_ipn_t dest, bp_ipn_t mask)
+     * int BPLib_STOR_CACHE_EntriesMakePending(BPLib_STOR_CACHE_State_t *state, BPLib_Ipn_t dest, BPLib_Ipn_t mask)
      */
     BPLib_STOR_CACHE_State_t state;
-    bp_ipn_t            dest;
-    bp_ipn_t            mask = 0;
+    BPLib_Ipn_t            dest;
+    BPLib_Ipn_t            mask = 0;
     BPLib_STOR_CACHE_Block_t sblk;
 
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));

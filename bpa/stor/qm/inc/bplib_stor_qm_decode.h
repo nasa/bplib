@@ -36,6 +36,6 @@
  */
 int BPLib_STOR_QM_DecodePrimary(BPLib_STOR_CACHE_BblockPrimary_t *cpb, const void *data_ptr, size_t data_size);
 int BPLib_STOR_QM_DecodeCanonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size,
-                              bp_blocktype_t payload_block_hint);
+                                  BPLib_STOR_CACHE_Blocktype_t payload_block_hint);
 
 #endif /* BPLIB_STOR_QM_DECODE_H */

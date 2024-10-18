@@ -50,7 +50,7 @@
  * to track queue depth (which are currently 32 bit values).
  */
 #define BPLIB_MAX_SUBQ_DEPTH   0x10000000
-#define BP_MPOOL_SHORT_SUBQ_DEPTH 0x10
+#define BPLIB_MPOOL_SHORT_SUBQ_DEPTH 0x10
 
 /******************************************************************************
  TYPEDEFS

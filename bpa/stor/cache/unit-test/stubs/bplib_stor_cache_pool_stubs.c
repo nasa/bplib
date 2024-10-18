@@ -21,7 +21,7 @@
 /**
  * @file
  *
- * Auto-Generated stub implementations for functions defined in v7_mpool header
+ * Auto-Generated stub implementations for functions defined in mpool header
  */
 
 #include "utgenstub.h"
@@ -33,12 +33,12 @@
  * Generated stub function for BPLib_STOR_CACHE_BlockFromExternalId()
  * ----------------------------------------------------
  */
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_CACHE_Pool_t *pool, bp_handle_t handle)
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BlockFromExternalId(BPLib_STOR_CACHE_Pool_t *pool, BPLib_Handle_t handle)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_CACHE_BlockFromExternalId, BPLib_STOR_CACHE_Block_t *);
 
     UT_GenStub_AddParam(BPLib_STOR_CACHE_BlockFromExternalId, BPLib_STOR_CACHE_Pool_t *, pool);
-    UT_GenStub_AddParam(BPLib_STOR_CACHE_BlockFromExternalId, bp_handle_t, handle);
+    UT_GenStub_AddParam(BPLib_STOR_CACHE_BlockFromExternalId, BPLib_Handle_t, handle);
 
     UT_GenStub_Execute(BPLib_STOR_CACHE_BlockFromExternalId, Basic, NULL);
 

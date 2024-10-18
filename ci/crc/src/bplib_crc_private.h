@@ -18,14 +18,14 @@
  *
  */
 
-#ifndef CRC_PRIVATE_H
-#define CRC_PRIVATE_H
+#ifndef BPLIB_CRC_PRIVATE_H
+#define BPLIB_CRC_PRIVATE_H
 
 /******************************************************************************
  INCLUDES
  ******************************************************************************/
 
-#include "crc.h"
+#include "bplib.h"
 
 /******************************************************************************
  DEFINES
@@ -42,12 +42,12 @@
  * Definition of generic-ish CRC data digest function.
  * Updates the CRC based on the data in the given buffer.
  */
-typedef bp_crcval_t (*BPLib_STOR_CACHE_CrcDigestFunc_t)(bp_crcval_t crc, const void *data, size_t size);
+typedef BPLib_CRC_Val_t (*BPLib_CRC_DigestFunc_t)(BPLib_CRC_Val_t crc, const void *data, size_t size);
 
 /*
  * Actual definition of CRC parameters
  */
-struct BPLib_STOR_CACHE_CrcParameters
+struct BPLib_CRC_Parameters
 {
     const char *name;                  /* Name of the CRC. */
     uint8_t     length;                /* The number of bits in the CRC. */
@@ -56,16 +56,16 @@ struct BPLib_STOR_CACHE_CrcParameters
     const uint8_t *input_table; /* A ptr to a table for input translation (reflect or direct) */
     const void    *xor_table;   /* A ptr to a table with the precomputed XOR values. */
 
-    BPLib_STOR_CACHE_CrcDigestFunc_t digest; /* externally-callable "digest" routine to update CRC with new data */
+    BPLib_CRC_DigestFunc_t digest; /* externally-callable "digest" routine to update CRC with new data */
 
-    bp_crcval_t initial_value; /* The value used to initialize a CRC (normalized). */
-    bp_crcval_t final_xor;     /* The final value to xor with the crc before returning (normalized). */
+    BPLib_CRC_Val_t initial_value; /* The value used to initialize a CRC (normalized). */
+    BPLib_CRC_Val_t final_xor;     /* The final value to xor with the crc before returning (normalized). */
 };
 
-bp_crcval_t BPLib_STOR_CACHE_PrecomputeCrcByte(uint8_t width, uint8_t byte, bp_crcval_t polynomial);
+BPLib_CRC_Val_t PrecomputeCrcByte(uint8_t width, uint8_t byte, BPLib_CRC_Val_t polynomial);
 uint8_t     BPLib_STOR_CACHE_PrecomputeReflection(uint8_t byte);
 
 extern uint8_t BPLIB_CRC_DIRECT_TABLE[256];
 extern uint8_t BPLIB_CRC_REFLECT_TABLE[256];
 
-#endif /* CRC_PRIVATE_H */
+#endif /* BPLIB_CRC_PRIVATE_H */
