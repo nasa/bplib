@@ -137,7 +137,7 @@ bool BPLib_RBT_NodeIsMember(const BPLib_RBT_Root_t *tree, const BPLib_RBT_Link_t
  * @retval NULL if no matching node was found
  */
 BPLib_RBT_Link_t *BPLib_RBT_SearchGeneric(BPLib_Val_t search_key_value, const BPLib_RBT_Root_t *tree,
-                                                  BPLib_RBT_CompareFunc_t compare_func, void *compare_arg);
+                                          BPLib_RBT_CompareFunc_t compare_func, void *compare_arg);
 
 /*--------------------------------------------------------------------------------------*/
 /**

@@ -198,9 +198,7 @@ void Test_BPLib_MEM_AllocBlockInternal(void)
 
     UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeUndefined, 0, NULL, 0));
     UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeMax, 0, NULL, 0));
-    #ifdef TEST_GENERIC // TODO Move to CACHE
     UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeGeneric, 0, NULL, 0));
-    #endif // TEST_GENERIC
 
     /* Nominal (need to do each blocktype that has a different init) */
     test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
@@ -212,11 +210,8 @@ void Test_BPLib_MEM_AllocBlockInternal(void)
      *  If the api_content is null, the test assumes the stubs are not being used and provides a dummy value.
      */
 
-    #ifdef TEST_GENERIC
     UtAssert_ADDRESS_EQ(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeGeneric, 0, NULL, 0), &buf.blk[0]);
     test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
-    #endif
-
     UtAssert_ADDRESS_EQ(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypePrimary, 0, NULL, 0), &buf.blk[0]);
     test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
     UtAssert_ADDRESS_EQ(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeCanonical, 0, NULL, 0), &buf.blk[0]);
@@ -229,15 +224,11 @@ void Test_BPLib_MEM_AllocBlockInternal(void)
     /* Too Big */
     test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
     buf.blk[1].u.api.user_content_size = 16 + sizeof(BPLib_MEM_BlockBuffer_t);
-    // TODO The Too Big test should be for NULL.
-    UtPrintf("The test for user content too large is invalid due to not having RBT stubs.");
-    UtAssert_NOT_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypePrimary, 0, NULL, 0));
+    UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypePrimary, 0, NULL, 0));
 
     /* No API */
     test_setup_allocation(&buf.pool, &buf.blk[0], NULL);
-    // TODO The No API test should be for NULL.
-    UtPrintf("The test for No API is invalid due to not having RBT stubs.");
-    UtAssert_NOT_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypePrimary, 0, NULL, 0));
+    UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypePrimary, 0, NULL, 0));
 }
 
 void Test_BPLib_MEM_GenericDataAlloc(void)
@@ -348,9 +339,9 @@ void Test_BPLib_MEM_CollectBlocks(void)
     BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, &buf.blk[2].header.base_link);
 
     UtAssert_UINT32_EQ(BPLib_MEM_CollectBlocks(&buf.pool, 1), 1);
-    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 0);  // TODO Passes, but may be invalid check value.
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 1);
     UtAssert_UINT32_EQ(BPLib_MEM_CollectBlocks(&buf.pool, 1), 1);
-    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 0);  // TODO Passes, but may be invalid check value.
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 2);
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
     UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);

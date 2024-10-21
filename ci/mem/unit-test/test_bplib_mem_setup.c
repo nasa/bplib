@@ -23,6 +23,7 @@
 #include "bplib_api_types.h"
 #include "test_bplib_mem.h"
 
+#include "bplib_rbt.h"
 #include "bplib_mem.h"
 #include "bplib_mem_internal.h"
 

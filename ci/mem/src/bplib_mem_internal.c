@@ -191,9 +191,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
     BPLib_MEM_BlockContent_t          *block;
     BPLib_MEM_ApiContent_t            *api_block;
     size_t                             data_offset;
-    #ifdef USE_THRESHOLD
     uint32_t                           alloc_threshold;
-    #endif // USE_THRESHOLD
     uint32_t                           block_count;
 
     BPLib_MEM_BlockAdminContent_t *admin;
@@ -216,46 +214,33 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
      *
      * This soft limit only applies for actual bundle blocks, not for refs.
      */
-    #ifdef USE_THRESHOLD
     alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
-    #endif // USE_THRESHOLD
 
     block_count = BPLib_MEM_SubqGetDepth(&admin->free_blocks);
 
-    #ifdef USE_THRESHOLD
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
         /* no free blocks available for the requested type */
         return NULL;
     }
-    #else // USE_THRESHOLD
-    if (block_count == 0)
-    {
-        return NULL;
-    }
-    #endif // USE_THRESHOLD
 
     /* Determine how to initialize this block by looking up the content type */
     api_block = (BPLib_MEM_ApiContent_t *)(void *)BPLib_RBT_SearchUnique(content_type_signature,
-                                                                             &admin->blocktype_registry);
+                                                                         &admin->blocktype_registry);
     if (api_block == NULL)
     {
-        api_block = (BPLib_MEM_ApiContent_t *)0xff;
         /* no constructor, cannot create the block! */
-        // TODO return NULL; for NULL api_block.
+        return NULL;
     }
 
     /* sanity check that the user content will fit in the block */
     data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(blocktype);
 
-    if (api_block != (BPLib_MEM_ApiContent_t *)0xff)
+    if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t) ||
+        (data_offset + api_block->user_content_size) > sizeof(BPLib_MEM_BlockBuffer_t))
     {
-        if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t) ||
-             (data_offset + api_block->user_content_size) > sizeof(BPLib_MEM_BlockBuffer_t))
-        {
-            /* User content will not fit in the block - cannot create an instance of this type combo */
-            return NULL;
-        }
+        /* User content will not fit in the block - cannot create an instance of this type combo */
+        return NULL;
     }
 
     /* get a block */
@@ -285,13 +270,25 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
      * zero fill the content part first, this ensures that this is always done,
      * and avoids the need for the module to supply a dedicated constructor just to zero it
      */
-    #ifndef QM_MODULE_API_AVAILABLE
-    data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(blocktype);
-    memset(&block->u, 0, data_offset);
-    #else // QM_MODULE_API_AVAILABLE
     memset(&block->u, 0, data_offset + api_block->user_content_size);
 
     BPLib_MEM_InitBaseObject(&block->header, api_block->user_content_size, content_type_signature);
+
+    switch (blocktype)
+    {
+        case BPLib_MEM_BlocktypePrimary:
+            BPLib_MEM_BblockPrimaryInit(node, &block->u.primary.pblock);
+            break;
+        case BPLib_MEM_BlocktypeCanonical:
+            BPLib_MEM_BblockCanonicalInit(node, &block->u.canonical.cblock);
+            break;
+        case BPLib_MEM_BlocktypeDuct:
+            BPLib_MEM_DuctInit(node, &block->u.duct.dblock);
+            break;
+        default:
+            /* nothing more for this node type (this catches cbor_data)  */
+            break;
+    }
 
     /* If the module did supply a constructor, invoke it now */
     if (api_block->api.construct != NULL)
@@ -299,12 +296,9 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
         /* A constructor really should never fail nominally, if it does there is probably a bug */
         if (api_block->api.construct(init_arg, node) != BPLIB_SUCCESS)
         {
-            // TODO Use bplog?
-            // bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
-            //      (unsigned long)content_type_signature);
+            return NULL;
         }
     }
-    #endif // QM_MODULE_API_AVAILABLE
 
     return block;
 }
