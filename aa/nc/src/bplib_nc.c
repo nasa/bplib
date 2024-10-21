@@ -409,7 +409,9 @@ BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payl
     /* Add application configurations */
     Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication(Payload.ChanId);
 
+    /*
     if (Status == BPLIB_SUCCESS)
+    */
     {
         BPLib_EM_SendEvent(BPLIB_ADD_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Successful add-application directive for ChanId=%d",
@@ -576,14 +578,14 @@ BPLib_Status_t BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_
     if (Status == BPLIB_SUCCESS)
     */
     {
-        BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUST_SRCS_SUCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUST_SRCS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Add authorized custody sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
     /*
     else
     {
-        BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUST_SRCS_SUCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_ADD_AUTH_CUST_SRCS_ERR_EID, BPLib_EM_EventType_INFORMATION,
                             "Add authorized custody sources directive not implemented, received %d in payload",
                             Payload.ExampleParameter);
     }
