@@ -30,7 +30,9 @@
 
 #include "bplib_stor_cache_internal.h"
 
-// TODO Migrate PrintTrace stack trace to broader scope.
+// Placeholder for CACHE internal functions
+
+// TODO Delete Print Trace and move CACHE internal files here.
 void BPLib_STOR_CACHE_PrintTrace(void)
 {
     void *array[10];

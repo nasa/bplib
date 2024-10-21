@@ -34,6 +34,7 @@ target_compile_options(utobj_bplib_stor_cache PRIVATE
 target_include_directories(utobj_bplib_stor_cache PRIVATE
     $<TARGET_PROPERTY:bplib_stor_cache,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_time,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_crc,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
@@ -52,9 +53,10 @@ target_include_directories(coverage-bplib_stor_cache-testrunner PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}../src
 
     $<TARGET_PROPERTY:bplib_stor_cache,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_mem_stubs,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_time_stubs,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_stor_qm_stubs,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_time,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_stor_qm,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_crc,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_stor_cache-testrunner PUBLIC

@@ -41,15 +41,19 @@ void         BPLib_STOR_QM_GetEid(BPLib_IpnAddr_t *bundle_addr, const BPLib_STOR
 
 static inline int compare_numeric(BPLib_Val_t n1, BPLib_Val_t n2)
 {
+    /**
+     * The comments on the return values state that they are not BPLib_Status_t
+     * values for code reviews that look for invalid return values.
+     */
     if (n1 == n2)
     {
-        return 0;
+        return 0;  // n1 == n2
     }
     if (n1 > n2)
     {
-        return 1;
+        return 1;  // n1 > n2
     }
-    return -1;
+    return -1;     // n1 < n2
 }
 
 /* A generic strcmp-like call to compare an IPN address to a BP endpoint ID value */

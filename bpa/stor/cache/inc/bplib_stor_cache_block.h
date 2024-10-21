@@ -28,7 +28,6 @@
 #include <stdint.h>
 
 #include "bplib_api_types.h"
-
 #include "bplib_stor_cache_types.h"
 
 /******************************************************************************
@@ -75,6 +74,15 @@ struct BPLib_STOR_CACHE_SubqBase
     volatile unsigned int pull_count;
 };
 
+typedef struct BPLib_STOR_CACHE_ModuleApiContent
+{
+    BPLib_MEM_RBT_Link_t                rbt_link;
+    BPLib_STOR_CACHE_BlocktypeApi_t     api;
+    size_t                              user_content_size;
+    BPLib_MEM_AlignedData_t             user_data_start;
+} BPLib_STOR_CACHE_ModuleApiContent_t;
+
+
 typedef struct BPLib_STOR_CACHE_BlockAdminContent
 {
     size_t   buffer_size;
@@ -83,11 +91,9 @@ typedef struct BPLib_STOR_CACHE_BlockAdminContent
     uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
     uint32_t max_alloc_watermark;
 
-    BPLib_MEM_RBT_Root_t          blocktype_registry;    /**< registry of block signature values */
-    #ifdef QM_MODULE_API
-    BPLib_STOR_QM_ModuleApiContent_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
-    BPLib_STOR_QM_ModuleApiContent_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
-    #endif // QM_MODULE_API
+    BPLib_MEM_RBT_Root_t                blocktype_registry;    /**< registry of block signature values */
+    BPLib_STOR_CACHE_ModuleApiContent_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
+    BPLib_STOR_CACHE_ModuleApiContent_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
 
     BPLib_STOR_CACHE_SubqBase_t free_blocks;    /**< blocks which are available for use */
     BPLib_STOR_CACHE_SubqBase_t recycle_blocks; /**< blocks which can be garbage-collected */
@@ -96,19 +102,19 @@ typedef struct BPLib_STOR_CACHE_BlockAdminContent
      * can be removed from the middle of the list or otherwise rearranged. Therefore a subq
      * is not used for these, because the push_count and pull_count would not remain accurate. */
 
-    BPLib_STOR_CACHE_Block_t active_list; /**< a list of flows/queues that need processing */
+    BPLib_STOR_CACHE_Block_t active_list; /**< a list of ducts/queues that need processing */
 
 } BPLib_STOR_CACHE_BlockAdminContent_t;
 
 struct BPLib_STOR_CACHE_BblockTracking
 {
    BPLib_STOR_CACHE_PolicyDelivery_t delivery_policy;
-    BPLib_Handle_t                 ingress_intf_id;
-    BPLib_TIME_MonotonicTime_t  ingress_time;
-    BPLib_Handle_t                 egress_intf_id;
-    BPLib_TIME_MonotonicTime_t  egress_time;
-    BPLib_Handle_t                 storage_intf_id;
-    BPLib_STOR_CACHE_Sid_t                    committed_storage_id;
+    BPLib_Handle_t                   ingress_intf_id;
+    BPLib_TIME_MonotonicTime_t       ingress_time;
+    BPLib_Handle_t                   egress_intf_id;
+    BPLib_TIME_MonotonicTime_t       egress_time;
+    BPLib_Handle_t                   storage_intf_id;
+    BPLib_STOR_CACHE_Sid_t           committed_storage_id;
 
     /* JPHFIX: this is here for now, but really it belongs on the egress CLA intf based on its RTT */
     uint64_t local_retx_interval;
@@ -116,16 +122,17 @@ struct BPLib_STOR_CACHE_BblockTracking
 
 struct BPLib_STOR_CACHE_BblockPrimaryData
 {
-    BPLib_STOR_CACHE_PrimaryBlock_t logical;
-    BPLib_STOR_CACHE_BblockTracking_t     delivery;
+    BPLib_STOR_CACHE_PrimaryBlock_t   logical;
+    BPLib_STOR_CACHE_BblockTracking_t delivery;
 };
 
 struct BPLib_STOR_CACHE_BblockPrimary
 {
     BPLib_STOR_CACHE_Block_t cblock_list;
     BPLib_STOR_CACHE_Block_t chunk_list;
-    size_t              block_encode_size_cache;
-    size_t              bundle_encode_size_cache;
+
+    size_t block_encode_size_cache;
+    size_t bundle_encode_size_cache;
 
     BPLib_STOR_CACHE_BblockPrimaryData_t data;
 };
@@ -158,17 +165,55 @@ struct BPLib_STOR_CACHE_BlockRefContent
     BPLib_MEM_AlignedData_t             user_data_start;
 };
 
+typedef struct BPLib_STOR_CACHE_Job
+{
+    BPLib_STOR_CACHE_Block_t        link;
+    BPLib_STOR_CACHE_CallbackFunc_t handler;
+} BPLib_STOR_CACHE_Job_t;
+
+typedef struct BPLib_STOR_CACHE_JobStateChange
+{
+    BPLib_STOR_CACHE_Job_t base_job;
+
+    /* JPHFIX: this single event handler may be separated into per-event-type handlers */
+    BPLib_STOR_CACHE_CallbackFunc_t event_handler;
+} BPLib_STOR_CACHE_JobStateChange_t;
+
+typedef struct BPLib_STOR_CACHE_SubqWorkitem
+{
+    BPLib_STOR_CACHE_Job_t               job_header;
+    BPLib_STOR_CACHE_SubqBase_t  base_subq;
+    unsigned int                 current_depth_limit;
+} BPLib_STOR_CACHE_SubqWorkitem_t;
+
+// The abstract type definitions are ready to be split between header files, if needed.
+typedef struct BPLib_STOR_CACHE_Duct BPLib_STOR_CACHE_Duct_t;
+struct BPLib_STOR_CACHE_Duct
+{
+    uint32_t pending_state_flags;
+    uint32_t current_state_flags;
+
+    BPLib_STOR_CACHE_JobStateChange_t statechange_job;
+    BPLib_STOR_CACHE_Ref_t    parent;
+
+    BPLib_STOR_CACHE_SubqWorkitem_t ingress;
+    BPLib_STOR_CACHE_SubqWorkitem_t egress;
+};
+
+typedef struct BPLib_STOR_CACHE_DuctContent BPLib_STOR_CACHE_DuctContent_t;
+struct BPLib_STOR_CACHE_DuctContent
+{
+    BPLib_STOR_CACHE_Duct_t                dblock;
+    BPLib_MEM_AlignedData_t             user_data_start;
+};
+
 typedef union BPLib_STOR_CACHE_BlockBuffer
 {
+    BPLib_STOR_CACHE_ModuleApiContent_t          api;
     BPLib_STOR_CACHE_GenericDataContent_t     generic_data;
-    #ifdef QM_MODULE_API
-    BPLib_STOR_QM_ModuleApiContent_t          api;
-    #endif // QM_MODULE_API
     BPLib_STOR_CACHE_BBlockPrimaryContent_t   primary;
     BPLib_STOR_CACHE_BblockCanonicalContent_t canonical;
-    #ifdef QM_MODULE_API
-    BPLib_STOR_QM_DuctContent_t               duct;
-    #endif // QM_MODULE_API
+    BPLib_STOR_CACHE_DuctContent_t               duct;
     BPLib_STOR_CACHE_BlockRefContent_t        ref;
     BPLib_STOR_CACHE_BlockAdminContent_t      admin;
 

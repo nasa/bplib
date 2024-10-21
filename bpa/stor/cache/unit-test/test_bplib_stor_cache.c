@@ -58,18 +58,13 @@ void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
      * uint8_t priority, uint64_t timeout);
      */
     UT_BPLib_STOR_CACHE_Buf_t buf;
-    BPLib_TIME_MonotonicTime_t time_zero;
-
-    time_zero.Time = 0;
     memset(&buf, 0, sizeof(buf));
 
-    printf("%s:%d pool: Calling BPLib_STOR_CACHE_BblockPrimaryAlloc &buf.pool 0x%016lx time_zero.Time 0x%016lx\n",
-           __FILE__, __LINE__, (uint64_t)&buf.pool, time_zero.Time);
-
     #ifdef PRIMARY_ALLOC
+    BPLib_TIME_MonotonicTime_t time_zero;
+    time_zero.Time = 0;
     UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero));
 
-    printf("%s:%d pool: 0x%016lx, blk0: 0x%016lx, blk1: 0x%016lx\n", __FILE__, __LINE__,
            (uint64_t)&buf.pool, (uint64_t)&buf.blk[0], (uint64_t)&buf.blk[1]);
 
     test_setup_cpool_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);

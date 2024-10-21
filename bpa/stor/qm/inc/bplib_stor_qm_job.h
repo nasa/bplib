@@ -21,8 +21,7 @@
 #ifndef BPLIB_STOR_QM_JOB_H
 #define BPLIB_STOR_QM_JOB_H
 
-#include <string.h>
-
+#include "bplib_api_types.h"
 #include "bplib_stor_cache_block.h"
 
 #ifdef QM_JOB

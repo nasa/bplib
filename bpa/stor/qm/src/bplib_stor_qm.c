@@ -95,14 +95,14 @@ int BPLib_STOR_QM_QueueIngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq
     if (curr_duct == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to cast duct block\n");
-        return -1;
+        return -1; // The return value is -1 for failure to ingress, otherwise the queue depth after ingress.
     }
 
     next_duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Dereference(curr_duct->parent));
     if (next_duct == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to cast duct parent block\n");
-        return -1;
+        return -1; // The return value is -1 for failure to ingress, otherwise the queue depth after ingress.
     }
 
     /* Entire contents moved as a batch. */
@@ -110,7 +110,7 @@ int BPLib_STOR_QM_QueueIngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq
 
     return queue_depth;
     #else // QM
-    return 0;
+    return 0; // Temporary ingress queue depth until QM is implemented.
     #endif // QM
 }
 
@@ -173,7 +173,7 @@ int BPLib_STOR_QM_IngressBaseintfForwarder(void *arg, BPLib_STOR_CACHE_Block_t *
     if (duct == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to cast duct block\n");
-        return -1;
+        return -1; // The return value is -1 for failure to ingress, otherwise the bundle count after ingress.
     }
 
     forward_count = 0;
@@ -312,39 +312,39 @@ BPLib_Handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, 
     return result;
 }
 
-int BPLib_STOR_QM_RegisterHandlerImpl(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, size_t func_position,
+BPLib_Status_t BPLib_STOR_QM_RegisterHandlerImpl(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, size_t func_position,
                                       BPLib_STOR_CACHE_CallbackFunc_t new_func)
 {
     BPLib_STOR_QM_Duct_t          *ifp;
     uint8_t                     *base_ptr;
-    BPLib_STOR_CACHE_SubqWorkitem_t *subq;
+    BPLib_STOR_QM_SubqWorkitem_t *subq;
 
     ifp = bplip_queue_lookup_intf(tbl, intf_id);
     if (ifp == NULL)
     {
         /* Not a valid handle */
-        return -1;
+        return BPLIB_ERROR;
     }
 
     base_ptr = (uint8_t *)ifp;
 
-    subq = (BPLib_STOR_CACHE_SubqWorkitem_t *)(void *)(base_ptr + func_position);
+    subq = (BPLib_STOR_QM_SubqWorkitem_t *)(void *)(base_ptr + func_position);
 
     if (subq->job_header.handler == new_func)
     {
         /* already registered */
-        return 0;
+        return BPLIB_SUCCESS;
     }
 
     /* One or the other must be NULL or else this is an invalid registration */
     if (subq->job_header.handler != NULL && new_func != NULL)
     {
-        return -1;
+        return BPLIB_ERROR;
     }
 
     /* OK, now set it to the new value */
     subq->job_header.handler = new_func;
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
 int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
@@ -359,7 +359,7 @@ int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BP
     return BPLib_STOR_QM_RegisterHandlerImpl(tbl, intf_id, offsetof(BPLib_STOR_QM_Duct_t, egress), egress);
 }
 
-int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_CallbackFunc_t event)
+BPLib_Status_t BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_CallbackFunc_t event)
 {
     BPLib_STOR_QM_Duct_t *ifp;
 
@@ -367,27 +367,27 @@ int BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Hand
     if (ifp == NULL)
     {
         /* Not a valid handle */
-        return -1;
+        return BPLIB_ERROR;
     }
 
     if (ifp->statechange_job.event_handler == event)
     {
         /* already registered */
-        return 0;
+        return BPLIB_SUCCESS;
     }
 
     /* One or the other must be NULL or else this is an invalid registration */
     if (ifp->statechange_job.event_handler != NULL && event != NULL)
     {
-        return -1;
+        return BPLIB_ERROR;
     }
 
     /* OK, now set it to the new value */
     ifp->statechange_job.event_handler = event;
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
-int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
+BPLib_Status_t BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
 {
     uint32_t            pos;
     BPLib_STOR_QM_QueueEntry_t *rp;
@@ -398,7 +398,7 @@ int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
     if (ref == NULL)
     {
         /* Not a valid handle */
-        return -1;
+        return BPLIB_ERROR;
     }
 
     ifp = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Dereference(ref));
@@ -436,7 +436,7 @@ int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
 
     /* just wipe it */
     memset(ifp, 0, sizeof(*ifp));
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
 BPLib_Handle_t BPLib_STOR_QM_GetNextIntfWithFlags(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, uint32_t req_flags,
@@ -509,7 +509,7 @@ int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ha
     return status;
 }
 
-int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
+BPLib_Status_t BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
 {
     uint32_t            pos;
     uint32_t            insert_pos;
@@ -517,13 +517,13 @@ int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn
 
     if (tbl->registered_queues >= tbl->max_queues)
     {
-        return -1;
+        return BPLIB_ERROR;
     }
 
     /* Mask check: should have MSB's set, no gaps */
     if (((~mask + 1) & (~mask)) != 0)
     {
-        return -1;
+        return BPLIB_ERROR;
     }
 
     /* Find the position, the sequence should go from most specific to least specific mask */
@@ -544,7 +544,7 @@ int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn
     if (pos < tbl->registered_queues)
     {
         /* duplicate queue */
-        return -1;
+        return BPLIB_ERROR;
     }
 
     /* If necessary, shift entries back to make a gap.
@@ -562,17 +562,17 @@ int BPLib_STOR_QM_Add(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn
 
     ++tbl->registered_queues;
 
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
-int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
+BPLib_Status_t BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn_t mask, BPLib_Handle_t intf_id)
 {
     uint32_t            pos;
     BPLib_STOR_QM_QueueEntry_t *rp;
 
     if (tbl->registered_queues == 0)
     {
-        return -1;
+        return BPLIB_ERROR;
     }
 
     /* Find the position, the sequence should go from most specific to least specific */
@@ -588,7 +588,7 @@ int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn
     if (pos >= tbl->registered_queues)
     {
         /* queue not found */
-        return -1;
+        return BPLIB_ERROR;
     }
 
     --tbl->registered_queues;
@@ -600,10 +600,10 @@ int BPLib_STOR_QM_Del(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Ipn_t dest, BPLib_Ipn
         memmove(&rp[0], &rp[1], sizeof(*rp) * (tbl->registered_queues - pos));
     }
 
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
-int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
+BPLib_Status_t BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
 {
     BPLib_STOR_CACHE_Ref_t duct_ref;
 
@@ -617,10 +617,10 @@ int BPLib_STOR_QM_IntfSetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t int
     }
     BPLib_STOR_QM_ReleaseIntfControlblock(tbl, duct_ref);
 
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
-int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
+BPLib_Status_t BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, uint32_t flags)
 {
     BPLib_STOR_CACHE_Ref_t duct_ref;
 
@@ -634,7 +634,7 @@ int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t i
     }
     BPLib_STOR_QM_ReleaseIntfControlblock(tbl, duct_ref);
 
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
 void BPLib_STOR_QM_DoTimedPoll(BPLib_STOR_QM_QueueTbl_t *tbl)

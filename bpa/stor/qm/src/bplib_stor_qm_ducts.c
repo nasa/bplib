@@ -18,8 +18,8 @@
  *
  */
 
-#include <string.h>
 #include <assert.h>
+#include "bplib_api_types.h"
 
 #include "bplib_mem.h"
 
@@ -40,14 +40,14 @@ void BPLib_STOR_QM_SubqInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CAC
     qblk->push_count = 0;
 }
 
-void BPLib_STOR_QM_SubqWorkitemInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_SubqWorkitem_t *wblk)
+void BPLib_STOR_QM_SubqWorkitemInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_SubqWorkitem_t *wblk)
 {
     BPLib_STOR_QM_JobInit(base_block, &wblk->job_header);
     BPLib_STOR_QM_SubqInit(base_block, &wblk->base_subq);
     wblk->current_depth_limit = 0;
 }
 
-static int BPLib_STOR_QM_DuctEventHandler(void *arg, BPLib_STOR_CACHE_Block_t *jblk)
+static BPLib_Status_t BPLib_STOR_QM_DuctEventHandler(void *arg, BPLib_STOR_CACHE_Block_t *jblk)
 {
     BPLib_STOR_CACHE_Block_t             *fblk;
     BPLib_STOR_QM_Duct_t              *duct;
@@ -60,7 +60,7 @@ static int BPLib_STOR_QM_DuctEventHandler(void *arg, BPLib_STOR_CACHE_Block_t *j
     duct = BPLib_STOR_QM_DuctCast(fblk);
     if (duct == NULL)
     {
-        return -1;
+        return BPLIB_ERROR;
     }
 
     was_running   = BPLib_STOR_QM_DuctIsUp(duct);
@@ -91,7 +91,7 @@ static int BPLib_STOR_QM_DuctEventHandler(void *arg, BPLib_STOR_CACHE_Block_t *j
         duct->statechange_job.event_handler(&event, fblk);
     }
 
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
 /*----------------------------------------------------------------
@@ -247,7 +247,7 @@ BPLib_STOR_QM_Duct_t *BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Block_t *cb)
  * Internal function, lock must be held when invoked
  *
  *-----------------------------------------------------------------*/
-bool BPLib_STOR_QM_SubqWorkitemWaitForSpace(BPLib_MEM_Lock_t *lock, BPLib_STOR_CACHE_SubqWorkitem_t *subq,
+bool BPLib_STOR_QM_SubqWorkitemWaitForSpace(BPLib_MEM_Lock_t *lock, BPLib_STOR_QM_SubqWorkitem_t *subq,
                                               uint32_t quantity, uint64_t abs_timeout)
 {
     uint32_t next_depth;
@@ -273,7 +273,7 @@ bool BPLib_STOR_QM_SubqWorkitemWaitForSpace(BPLib_MEM_Lock_t *lock, BPLib_STOR_C
  * Internal function, lock must be held when invoked
  *
  *-----------------------------------------------------------------*/
-bool BPLib_STOR_QM_SubqWorkitemWaitForFill(BPLib_MEM_Lock_t *lock, BPLib_STOR_CACHE_SubqWorkitem_t *subq,
+bool BPLib_STOR_QM_SubqWorkitemWaitForFill(BPLib_MEM_Lock_t *lock, BPLib_STOR_QM_SubqWorkitem_t *subq,
                                              uint32_t quantity, uint64_t abs_timeout)
 {
     uint32_t curr_depth;
@@ -295,7 +295,7 @@ bool BPLib_STOR_QM_SubqWorkitemWaitForFill(BPLib_MEM_Lock_t *lock, BPLib_STOR_CA
  * Function: BPLib_STOR_QM_DuctTryPush
  *
  *-----------------------------------------------------------------*/
-bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk, uint64_t abs_timeout)
+bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_QM_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk, uint64_t abs_timeout)
 {
     BPLib_MEM_Lock_t                     *lock;
     bool                                  got_space;
@@ -326,7 +326,7 @@ bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_
     return true;
 }
 
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, uint64_t abs_timeout)
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_QM_SubqWorkitem_t *subq_src, uint64_t abs_timeout)
 {
     BPLib_MEM_Lock_t  *lock;
     BPLib_STOR_CACHE_Block_t *qblk;
@@ -351,7 +351,7 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_CACHE_SubqWorkite
     return qblk;
 }
 
-uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
+uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_QM_SubqWorkitem_t *subq_dst, BPLib_STOR_QM_SubqWorkitem_t *subq_src,
                                        uint64_t abs_timeout)
 {
     BPLib_MEM_Lock_t                     *lock;
@@ -405,7 +405,7 @@ uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst,
  * Function: BPLib_STOR_QM_DuctDisable
  *
  *-----------------------------------------------------------------*/
-uint32_t BPLib_STOR_QM_DuctDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq)
+uint32_t BPLib_STOR_QM_DuctDisable(BPLib_STOR_QM_SubqWorkitem_t *subq)
 {
     BPLib_STOR_CACHE_Pool_t      *pool;
     BPLib_MEM_Lock_t *lock;
@@ -430,7 +430,7 @@ uint32_t BPLib_STOR_QM_DuctDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq)
  * Function: BPLib_STOR_QM_DuctEnable
  *
  *-----------------------------------------------------------------*/
-void BPLib_STOR_QM_DuctEnable(BPLib_STOR_CACHE_SubqWorkitem_t *subq, uint32_t depth_limit)
+void BPLib_STOR_QM_DuctEnable(BPLib_STOR_QM_SubqWorkitem_t *subq, uint32_t depth_limit)
 {
     BPLib_STOR_CACHE_Pool_t      *pool;
     BPLib_MEM_Lock_t *lock;

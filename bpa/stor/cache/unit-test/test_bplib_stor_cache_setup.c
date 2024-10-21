@@ -62,13 +62,11 @@ void UT_cache_uint64_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_Stub
 void UT_cache_valid_bphandle_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
     BPLib_Handle_t retval = BPLIB_HANDLE_RAM_STORE_BASE;
-    printf ("Set BPLib_Handle_t return value for FuncKey: 0x%016lx 0x%016lx\n", (uint64_t)FuncKey, (uint64_t)retval.hdl);
     UT_Stub_SetReturnValue(FuncKey, retval);
 }
 
 void UT_cache_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    printf ("Set pointer return value for FuncKey: 0x%016lx 0x%016lx\n", (uint64_t)FuncKey, (uint64_t)UserObj);
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
@@ -199,7 +197,6 @@ void UT_lib_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCont
 
 void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    printf("%s:%d UT_AltHandler_PointerReturn. UserObj is: %ld.\n", __FILE__, __LINE__, (uint64_t)UserObj);
     UT_Stub_SetReturnValue(FuncKey, UserObj);
 }
 
@@ -253,21 +250,16 @@ void test_setup_cpool_allocation(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
     void                                 *api_content;
 
-    printf("%s:%d test_setup_cpool_allocation. pool is: %ld, db is: %ld, apib is: %ld\n",
-           __FILE__, __LINE__, (uint64_t)pool, (uint64_t)db, (uint64_t)apib);
-
     test_setup_cpool_block(pool, &pool->admin_block, BPLib_STOR_CACHE_BlocktypeAdmin, 0);
     test_setup_cpool_block(pool, db, BPLib_STOR_CACHE_BlocktypeUndefined, 0);
     if (apib != NULL)
     {
         test_setup_cpool_block(pool, apib, BPLib_STOR_CACHE_BlocktypeApi, 0);
         api_content = &apib->u;
-        printf("%s:%d test_setup_cpool_allocation. api_content: %ld\n", __FILE__, __LINE__, (uint64_t)api_content);
     }
     else
     {
         api_content = NULL;
-        printf("%s:%d test_setup_cpool_allocation. api_content: NULL\n", __FILE__, __LINE__);
     }
 
     admin = BPLib_STOR_CACHE_GetAdmin(pool);

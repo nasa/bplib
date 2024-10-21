@@ -21,8 +21,7 @@
 #ifndef BPLIB_STOR_QM_DUCTS_H
 #define BPLIB_STOR_QM_DUCTS_H
 
-#include <string.h>
-
+#include "bplib_api_types.h"
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
 
@@ -106,17 +105,17 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctAlloc(BPLib_STOR_CACHE_Pool_t *pool,
  * this removes any pending items that were in it.
  *
  * @param subq
- * @return uint32_t
+ * @return BPLib_STOR_CACHE_Block_t
  */
-uint32_t BPLib_STOR_QM_DuctDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq);
-void     BPLib_STOR_QM_DuctEnable(BPLib_STOR_CACHE_SubqWorkitem_t *subq, uint32_t depth_limit);
+uint32_t BPLib_STOR_QM_DuctDisable(BPLib_STOR_QM_SubqWorkitem_t *subq);
+void     BPLib_STOR_QM_DuctEnable(BPLib_STOR_QM_SubqWorkitem_t *subq, uint32_t depth_limit);
 
-bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk,
+bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_QM_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk,
                                BPLib_TIME_MonotonicTime_t abs_timeout);
-uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
+uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_QM_SubqWorkitem_t *subq_dst, BPLib_STOR_QM_SubqWorkitem_t *subq_src,
                                        BPLib_TIME_MonotonicTime_t abs_timeout);
 
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, BPLib_TIME_MonotonicTime_t abs_timeout);
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_QM_SubqWorkitem_t *subq_src, BPLib_TIME_MonotonicTime_t abs_timeout);
 
 bool BPLib_STOR_QM_DuctModifyFlags(BPLib_STOR_CACHE_Block_t *cb, uint32_t set_bits, uint32_t clear_bits);
 
@@ -147,12 +146,12 @@ static inline uint32_t BPLib_STOR_CACHE_SubqGetDepth(const BPLib_STOR_CACHE_Subq
  * @note This check is lockless, therefore the state of the subq may change at any time
  * if other threads/tasks are pulling from the same subq.  Therefore even if this function
  * returns true, it does not guarantee that a subsequent call to
- * BPLib_STOR_CACHE_SubqWorkitemTryPull() will return a valid block.
+ * BPLib_STOR_QM_SubqWorkitemTryPull() will return a valid block.
  *
  * @param subq
  * @retval true if subq has at least one entry
  */
-static inline bool BPLib_STOR_CACHE_SubqWorkitemMayPull(const BPLib_STOR_CACHE_SubqWorkitem_t *subq)
+static inline bool BPLib_STOR_QM_SubqWorkitemMayPull(const BPLib_STOR_QM_SubqWorkitem_t *subq)
 {
     return (BPLib_STOR_CACHE_SubqGetDepth(&subq->base_subq) != 0);
 }
@@ -162,18 +161,18 @@ static inline bool BPLib_STOR_CACHE_SubqWorkitemMayPull(const BPLib_STOR_CACHE_S
  *
  * The check is for the "half full" point at which the application should generally stop
  * adding new entries to the queue, and shift focus toward draining the queue.  At the
- * half-full point there is still room in the queue so BPLib_STOR_CACHE_SubqWorkitemTryPush()
+ * half-full point there is still room in the queue so BPLib_STOR_QM_SubqWorkitemTryPush()
  * may still succeed even if this test returns false.
  *
  * @note This check is lockless, therefore the state of the subq may change at any time
  * if other threads/tasks are pushing from the same subq.  Therefore even if this function
  * returns true, it does not guarantee that a subsequent call to
- * BPLib_STOR_CACHE_SubqWorkitemTryPush() will succeed.
+ * BPLib_STOR_QM_SubqWorkitemTryPush() will succeed.
  *
  * @param subq
  * @retval true if subq is less than half full.
  */
-static inline bool BPLib_STOR_CACHE_SubqWorkitemMayPush(const BPLib_STOR_CACHE_SubqWorkitem_t *subq)
+static inline bool BPLib_STOR_QM_SubqWorkitemMayPush(const BPLib_STOR_QM_SubqWorkitem_t *subq)
 {
     return (BPLib_STOR_CACHE_SubqGetDepth(&subq->base_subq) < (subq->current_depth_limit / 2));
 }

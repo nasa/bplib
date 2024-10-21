@@ -25,7 +25,8 @@
 #include <stdio.h>
 
 #include <assert.h>
-#include <string.h>
+
+#include "bplib_api_types.h"
 #include "bplib.h"
 #include "bplib_mem_rbtree.h"
 
@@ -353,17 +354,21 @@ BPLIB_LOCAL_SCOPE void swap_distant_nodes(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_
  *--------------------------------------------------------------------------------------*/
 static inline int BPLib_MEM_RBT_CompareKey(BPLib_Val_t key1, BPLib_Val_t key2)
 {
+    /**
+     * The comments on the return values state that they are not BPLib_Status_t
+     * values for code reviews that look for invalid return values.
+     */
     if (key1 == key2)
     {
-        return 0;
+        return 0;  // key1 == key2
     }
     else if (key1 > key2)
     {
-        return 1;
+        return 1;  // key1 > key2
     }
     else
     {
-        return -1;
+        return -1;  // key1 < key2
     }
 }
 
@@ -379,16 +384,16 @@ static inline int BPLib_MEM_RBT_CompareKey(BPLib_Val_t key1, BPLib_Val_t key2)
  * insert_key_value: The value of the node to attempt to insert or merge into the red black tree. [INPUT]
  * tree: A ptr to the BPLib_MEM_RBT_Root_t to insert values into. [OUTPUT]
  * new_node: Pointer to the new node link structure
- * returns: A rb_tree status indicating the result of the insertion attempt (BPLIB_MEM_RBT_DUPLICATE or BPLIB_SUCCESS)
+ * returns: BPLib_Status_t indicating the result of the insertion attempt (BPLIB_RBT_DUPLICATE or BPLIB_SUCCESS)
  *-------------------------------------------------------------------------------------*/
-BPLIB_LOCAL_SCOPE int do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *new_node,
+BPLIB_LOCAL_SCOPE BPLib_Status_t do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *new_node,
                                      BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
 {
     BPLib_MEM_RBT_Link_t  *curr_ptr;
     BPLib_MEM_RBT_Link_t **ref_ptr;
     BPLib_MEM_RBT_Link_t  *parent_ptr;
     BPLib_Val_t           insert_key_value;
-    int                status;
+    BPLib_Status_t                status;
     int                compare_result;
 
     status           = BPLIB_ERROR;
@@ -416,7 +421,7 @@ BPLIB_LOCAL_SCOPE int do_insert_as_leaf(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RB
         if (compare_result == 0)
         {
             /* duplicate entries are not allowed */
-            status = BPLIB_MEM_RBT_DUPLICATE;
+            status = BPLIB_RBT_DUPLICATE;
             break;
         }
 
@@ -1065,14 +1070,12 @@ bool BPLib_MEM_RBT_NodeIsMember(const BPLib_MEM_RBT_Root_t *tree, const BPLib_ME
  *      if no node is found.
  *--------------------------------------------------------------------------------------*/
 BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(BPLib_Val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree,
-                                           BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
+                                                  BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
 {
     BPLib_MEM_RBT_Link_t *curr_ptr;
     int               compare_result;
 
     curr_ptr = tree->root;
-
-    printf("%s:%d Calling BPLib_MEM_RBT_CompareKey curr_ptr: 0x%016lx\n", __FILE__, __LINE__, (uint64_t)curr_ptr);
 
     while (curr_ptr != NULL)
     {
@@ -1098,8 +1101,6 @@ BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(BPLib_Val_t search_key_value, 
         }
     }
 
-    printf("%s:%d Returning curr_ptr: 0x%016lx\n", __FILE__, __LINE__, (uint64_t)curr_ptr);
-
     return curr_ptr;
 }
 
@@ -1111,8 +1112,9 @@ BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(BPLib_Val_t search_key_value, 
  * new_node: Memory block for storage of the new value [INPUT]
  * returns: Status code indicating the result of the insertion.
  *--------------------------------------------------------------------------------------*/
-int BPLib_MEM_RBT_InsertValueGeneric(BPLib_Val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block,
-                                   BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
+BPLib_Status_t BPLib_MEM_RBT_InsertValueGeneric(BPLib_Val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree,
+                                                BPLib_MEM_RBT_Link_t *link_block,
+                                                BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg)
 {
     int status;
 
@@ -1154,7 +1156,7 @@ int BPLib_MEM_RBT_InsertValueGeneric(BPLib_Val_t insert_key_value, BPLib_MEM_RBT
  * link_block: Memory block that previously stored the value
  * returns: Status code indicating the result of the deletion.
  *--------------------------------------------------------------------------------------*/
-int BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block)
+BPLib_Status_t BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block)
 {
     if (tree->root != link_block && !node_is_attached(link_block))
     {
@@ -1217,7 +1219,7 @@ bool BPLib_MEM_RBT_NodeIsRed(const BPLib_MEM_RBT_Link_t *node)
  *
  * Move to the next node in an iterator
  *--------------------------------------------------------------------------------------*/
-int BPLib_MEM_RBT_IterNext(BPLib_MEM_RBT_Iter_t *iter)
+BPLib_Status_t BPLib_MEM_RBT_IterNext(BPLib_MEM_RBT_Iter_t *iter)
 {
     const BPLib_MEM_RBT_Link_t *next_pos;
 
@@ -1266,7 +1268,7 @@ int BPLib_MEM_RBT_IterNext(BPLib_MEM_RBT_Iter_t *iter)
  *
  * Move to the previous node in an iterator
  *--------------------------------------------------------------------------------------*/
-int BPLib_MEM_RBT_IterPrev(BPLib_MEM_RBT_Iter_t *iter)
+BPLib_Status_t BPLib_MEM_RBT_IterPrev(BPLib_MEM_RBT_Iter_t *iter)
 {
     const BPLib_MEM_RBT_Link_t *prev_pos;
 
@@ -1354,7 +1356,8 @@ const BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_IterFindClosest(BPLib_Val_t target_val
     return curr_pos;
 }
 
-int BPLib_MEM_RBT_IterGotoMin(BPLib_Val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
+BPLib_Status_t BPLib_MEM_RBT_IterGotoMin(BPLib_Val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree,
+                                         BPLib_MEM_RBT_Iter_t *iter)
 {
     BPLib_Val_t curr_val;
     int      status;
@@ -1392,7 +1395,8 @@ int BPLib_MEM_RBT_IterGotoMin(BPLib_Val_t minimum_value, const BPLib_MEM_RBT_Roo
     return status;
 }
 
-int BPLib_MEM_RBT_IterGotoMax(BPLib_Val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter)
+BPLib_Status_t BPLib_MEM_RBT_IterGotoMax(BPLib_Val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree,
+                                         BPLib_MEM_RBT_Iter_t *iter)
 {
     BPLib_Val_t curr_val;
     int      status;

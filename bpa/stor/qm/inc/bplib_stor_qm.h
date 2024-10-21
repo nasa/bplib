@@ -81,7 +81,7 @@
  EXPORTED FUNCTIONS
  ******************************************************************************/
 /**
- * @brief Callback frunction for various mpool block actions
+ * @brief Callback function for various mpool block actions
  *
  * This is a generic API for a function to handle various events/conditions
  * that occur at the block level.  The generic argument supplies the context
@@ -96,13 +96,13 @@ BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_routes, size_t c
 BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetQtblPool(const BPLib_STOR_QM_QueueTbl_t *tbl);
 
 BPLib_Handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t parent_intf_id,
-                                              BPLib_STOR_CACHE_Block_t *flow_block);
+                                              BPLib_STOR_CACHE_Block_t *duct_block);
 
 void BPLib_STOR_QM_IngressRouteSingleBundle(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_STOR_CACHE_Block_t *pblk);
 int  BPLib_STOR_QM_IngressBaseintfForwarder(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
 int  BPLib_STOR_QM_IngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src);
 
-BPLib_Handle_t       BPLib_STOR_QM_BindSubIntf(BPLib_STOR_CACHE_Block_t *flow_block, BPLib_Handle_t parent_intf_id);
+BPLib_Handle_t       BPLib_STOR_QM_BindSubIntf(BPLib_STOR_CACHE_Block_t *duct_block, BPLib_Handle_t parent_intf_id);
 BPLib_STOR_CACHE_Ref_t BPLib_STOR_QM_GetIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id);
 void              BPLib_STOR_QM_ReleaseIntfControlblock(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_STOR_CACHE_Ref_t refptr);
 
@@ -127,7 +127,7 @@ int BPLib_STOR_QM_IntfUnsetFlags(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t i
 int BPLib_STOR_QM_PushIngressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb);
 int BPLib_STOR_QM_PushEgressBundle(const BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_Block_t *cb);
 
-int BPLib_STOR_QM_ForwardBaseintfBundle(BPLib_STOR_CACHE_Block_t *flow_block, void *forward_arg);
+int BPLib_STOR_QM_ForwardBaseintfBundle(BPLib_STOR_CACHE_Block_t *duct_block, void *forward_arg);
 
 void BPLib_STOR_QM_SetMaintenanceRequest(BPLib_STOR_QM_QueueTbl_t *tbl);
 void BPLib_STOR_QM_MaintenanceRequestWait(BPLib_STOR_QM_QueueTbl_t *tbl);

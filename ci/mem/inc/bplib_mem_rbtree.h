@@ -27,12 +27,7 @@
 
 #include "bplib_api_types.h"
 
-// TODO Should be in the build without _MEM. Only used by RBT so far.
 #define BPLIB_LOCAL_SCOPE static
-
-// TODO Could be in bplib_api_types as a frequent error code from searches.
-/* BPLib MEM RBT Duplicate Search Result*/
-#define BPLIB_MEM_RBT_DUPLICATE ((BPLib_Status_t) -30u) // Less than current BPLib_Status_t codes.
 
 /******************************************************************************
  TYPEDEFS
@@ -142,7 +137,7 @@ bool BPLib_MEM_RBT_NodeIsMember(const BPLib_MEM_RBT_Root_t *tree, const BPLib_ME
  * @retval NULL if no matching node was found
  */
 BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(BPLib_Val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree,
-                                           BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg);
+                                                  BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -158,7 +153,8 @@ BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchGeneric(BPLib_Val_t search_key_value, 
  * @return Pointer to the matching node
  * @retval NULL if no matching node was found
  */
-static inline BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchUnique(BPLib_Val_t search_key_value, const BPLib_MEM_RBT_Root_t *tree)
+static inline BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchUnique(BPLib_Val_t search_key_value,
+                                                               const BPLib_MEM_RBT_Root_t *tree)
 {
     return BPLib_MEM_RBT_SearchGeneric(search_key_value, tree, NULL, NULL);
 }
@@ -191,10 +187,11 @@ static inline BPLib_MEM_RBT_Link_t *BPLib_MEM_RBT_SearchUnique(BPLib_Val_t searc
  * @param[in] compare_func     Comparison function to be called on every node with matching key
  * @param[in] compare_arg      Opaque argument passed through to comparison function
  * @retval BPLIB_SUCCESS if node was successfully inserted
- * @retval BPLIB_MEM_RBT_DUPLICATE if the tree already contained the specified value (duplicates are not allowed)
+ * @retval BPLIB_RBT_DUPLICATE if the tree already contained the specified value (duplicates are not allowed)
  */
-int BPLib_MEM_RBT_InsertValueGeneric(BPLib_Val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block,
-                                   BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg);
+BPLib_Status_t BPLib_MEM_RBT_InsertValueGeneric(BPLib_Val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree,
+                                                BPLib_MEM_RBT_Link_t *link_block,
+                                                BPLib_MEM_RBT_CompareFunc_t compare_func, void *compare_arg);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -222,7 +219,7 @@ int BPLib_MEM_RBT_InsertValueGeneric(BPLib_Val_t insert_key_value, BPLib_MEM_RBT
  * @param[inout] link_block       Memory block to store the value, contents will be overwitten.  Must be allocated by
  * caller.
  * @retval BPLIB_SUCCESS if node was successfully inserted
- * @retval BPLIB_MEM_RBT_DUPLICATE if the tree already contained the specified value (duplicates are not allowed)
+ * @retval BPLIB_RBT_DUPLICATE if the tree already contained the specified value (duplicates are not allowed)
  */
 static inline int BPLib_MEM_RBT_InsertValueUnique(BPLib_Val_t insert_key_value, BPLib_MEM_RBT_Root_t *tree,
                                                 BPLib_MEM_RBT_Link_t *link_block)
@@ -244,7 +241,7 @@ static inline int BPLib_MEM_RBT_InsertValueUnique(BPLib_Val_t insert_key_value, 
  * @retval BPLIB_SUCCESS if node was successfully extracted
  * @retval BPLIB_ERROR if the tree did not contain the specified value
  */
-int BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block);
+BPLib_Status_t BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *link_block);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -256,7 +253,8 @@ int BPLib_MEM_RBT_ExtractNode(BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Link_t *
  * @returns integer status code
  * @retval BPLIB_SUCCESS if iterator is valid
  */
-int BPLib_MEM_RBT_IterGotoMin(BPLib_Val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter);
+BPLib_Status_t BPLib_MEM_RBT_IterGotoMin(BPLib_Val_t minimum_value, const BPLib_MEM_RBT_Root_t *tree,
+                                         BPLib_MEM_RBT_Iter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -268,7 +266,8 @@ int BPLib_MEM_RBT_IterGotoMin(BPLib_Val_t minimum_value, const BPLib_MEM_RBT_Roo
  * @returns integer status code
  * @retval BPLIB_SUCCESS if iterator is valid
  */
-int BPLib_MEM_RBT_IterGotoMax(BPLib_Val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree, BPLib_MEM_RBT_Iter_t *iter);
+BPLib_Status_t BPLib_MEM_RBT_IterGotoMax(BPLib_Val_t maximum_value, const BPLib_MEM_RBT_Root_t *tree,
+                                         BPLib_MEM_RBT_Iter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -280,7 +279,7 @@ int BPLib_MEM_RBT_IterGotoMax(BPLib_Val_t maximum_value, const BPLib_MEM_RBT_Roo
  * @param iter          The iterator object to move
  * @retval BPLIB_SUCCESS if iterator is valid
  */
-int BPLib_MEM_RBT_IterNext(BPLib_MEM_RBT_Iter_t *iter);
+BPLib_Status_t BPLib_MEM_RBT_IterNext(BPLib_MEM_RBT_Iter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**
@@ -292,7 +291,7 @@ int BPLib_MEM_RBT_IterNext(BPLib_MEM_RBT_Iter_t *iter);
  * @param iter          The iterator object to move
  * @retval BPLIB_SUCCESS if iterator is valid
  */
-int BPLib_MEM_RBT_IterPrev(BPLib_MEM_RBT_Iter_t *iter);
+BPLib_Status_t BPLib_MEM_RBT_IterPrev(BPLib_MEM_RBT_Iter_t *iter);
 
 /*--------------------------------------------------------------------------------------*/
 /**

@@ -24,8 +24,7 @@
  * Auto-Generated stub implementations for functions defined in bplib_stor_qm header
  */
 
-#include <string.h>
-
+#include "bplib_api_types.h"
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
 #include "bplib_stor_qm.h"
@@ -75,11 +74,11 @@ BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_routes, size_t c
  * Generated stub function for BPLib_STOR_QM_BindSubIntf()
  * ----------------------------------------------------
  */
-BPLib_Handle_t BPLib_STOR_QM_BindSubIntf(BPLib_STOR_CACHE_Block_t *flow_block, BPLib_Handle_t parent_intf_id)
+BPLib_Handle_t BPLib_STOR_QM_BindSubIntf(BPLib_STOR_CACHE_Block_t *duct_block, BPLib_Handle_t parent_intf_id)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_BindSubIntf, BPLib_Handle_t);
 
-    UT_GenStub_AddParam(BPLib_STOR_QM_BindSubIntf, BPLib_STOR_CACHE_Block_t *, flow_block);
+    UT_GenStub_AddParam(BPLib_STOR_QM_BindSubIntf, BPLib_STOR_CACHE_Block_t *, duct_block);
     UT_GenStub_AddParam(BPLib_STOR_QM_BindSubIntf, BPLib_Handle_t, parent_intf_id);
 
     UT_GenStub_Execute(BPLib_STOR_QM_BindSubIntf, Basic, NULL);
@@ -128,11 +127,11 @@ int BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
  * Generated stub function for BPLib_STOR_QM_ForwardBaseintfBundle()
  * ----------------------------------------------------
  */
-int BPLib_STOR_QM_ForwardBaseintfBundle(BPLib_STOR_CACHE_Block_t *flow_block, void *forward_arg)
+int BPLib_STOR_QM_ForwardBaseintfBundle(BPLib_STOR_CACHE_Block_t *duct_block, void *forward_arg)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_ForwardBaseintfBundle, int);
 
-    UT_GenStub_AddParam(BPLib_STOR_QM_ForwardBaseintfBundle, BPLib_STOR_CACHE_Block_t *, flow_block);
+    UT_GenStub_AddParam(BPLib_STOR_QM_ForwardBaseintfBundle, BPLib_STOR_CACHE_Block_t *, duct_block);
     UT_GenStub_AddParam(BPLib_STOR_QM_ForwardBaseintfBundle, void *, forward_arg);
 
     UT_GenStub_Execute(BPLib_STOR_QM_ForwardBaseintfBundle, Basic, NULL);
@@ -455,13 +454,13 @@ int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, B
  * ----------------------------------------------------
  */
 BPLib_Handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t parent_intf_id,
-                                              BPLib_STOR_CACHE_Block_t *flow_block)
+                                              BPLib_STOR_CACHE_Block_t *duct_block)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_RegisterGenericIntf, BPLib_Handle_t);
 
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterGenericIntf, BPLib_STOR_QM_QueueTbl_t *, tbl);
     UT_GenStub_AddParam(BPLib_STOR_QM_RegisterGenericIntf, BPLib_Handle_t, parent_intf_id);
-    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterGenericIntf, BPLib_STOR_CACHE_Block_t *, flow_block);
+    UT_GenStub_AddParam(BPLib_STOR_QM_RegisterGenericIntf, BPLib_STOR_CACHE_Block_t *, duct_block);
 
     UT_GenStub_Execute(BPLib_STOR_QM_RegisterGenericIntf, Basic, NULL);
 

@@ -275,7 +275,7 @@ size_t BPLib_STOR_CACHE_GetGenericDataCapacity(const BPLib_STOR_CACHE_Block_t *c
     data_offset = BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(cb->type);
     if (data_offset > sizeof(BPLib_STOR_CACHE_BlockBuffer_t))
     {
-        return 0;
+        return 0; // Data capacity is zero.
     }
 
     return sizeof(BPLib_STOR_CACHE_BlockBuffer_t) - data_offset;
@@ -409,7 +409,7 @@ size_t BPLib_STOR_CACHE_GetUserContentSize(const BPLib_STOR_CACHE_Block_t *cb)
     {
         return block->header.user_content_length;
     }
-    return 0;
+    return 0; // User content size is zero.
 }
 
 /*----------------------------------------------------------------
@@ -426,7 +426,7 @@ size_t BPLib_STOR_CACHE_ReadRefcount(const BPLib_STOR_CACHE_Block_t *cb)
     {
         return block->header.refcount;
     }
-    return 0;
+    return 0; // Reference count is zero.
 }
 
 /*----------------------------------------------------------------
@@ -493,23 +493,17 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
 
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
-    printf("%s:%d blocktype is %d\n", __FILE__, __LINE__, blocktype);
-
     admin = BPLib_STOR_CACHE_GetAdmin(pool);
-
-    printf("%s:%d admin is %ld\n", __FILE__, __LINE__, (uint64_t)admin);
 
     /* Only real blocks are allocated here - not secondary links nor head nodes,
      * as those are embedded within the blocks themselves. */
     if (blocktype == BPLib_STOR_CACHE_BlocktypeUndefined || blocktype >= BPLib_STOR_CACHE_BlocktypeMax)
     {
-        printf("%s:%d Bad blocktype. Return null.\n", __FILE__, __LINE__);
         return NULL;
     }
 
     #ifdef QM_SUBQ
     block_count = BPLib_STOR_CACHE_SubqGetDepth(&admin->free_blocks);
-    printf("%s:%d block_count: %d\n", __FILE__, __LINE__, block_count);
     #endif // QM_SUBQ
 
     #ifdef ALLOC_THRESHOLD
@@ -526,8 +520,6 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
 
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
-        printf("%s:%d No free blocks. Return null.\n", __FILE__, __LINE__);
-        BPLib_STOR_CACHE_PrintTrace();
         /* no free blocks available for the requested type */
         return NULL;
     }
@@ -539,8 +531,6 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
                                                                                          &admin->blocktype_registry);
     if (api_block == NULL)
     {
-        printf("%s:%d No constructor. Return null.\n", __FILE__, __LINE__);
-        BPLib_STOR_CACHE_PrintTrace();
         /* no constructor, cannot create the block! */
         return NULL;
     }
@@ -550,8 +540,6 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
     if (data_offset > sizeof(BPLib_STOR_CACHE_BlockBuffer_t) ||
         (data_offset + api_block->user_content_size) > sizeof(BPLib_STOR_CACHE_BlockBuffer_t))
     {
-        printf("%s:%d User content won't fit. Return null.\n", __FILE__, __LINE__);
-        BPLib_STOR_CACHE_PrintTrace();
         /* User content will not fit in the block - cannot create an instance of this type combo */
         return NULL;
     }
@@ -567,9 +555,6 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         /* this should never happen, because depth was already checked */
         return NULL;
     }
-
-    printf("%s:%d Got block.\n", __FILE__, __LINE__);
-    BPLib_STOR_CACHE_PrintTrace();
 
     /*
      * Convert from blocks free to blocks used, and update high watermark if necessary.
@@ -877,7 +862,7 @@ int BPLib_STOR_CACHE_RegisterBlocktypeInternal(BPLib_STOR_CACHE_Pool_t *pool, ui
      * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
     if (BPLib_MEM_RBT_SearchUnique(magic_number, &admin->blocktype_registry) != NULL)
     {
-        return BPLIB_MEM_RBT_DUPLICATE;
+        return BPLIB_RBT_DUPLICATE;
     }
 
     ablk = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypeApi, 0, NULL, BPLIB_MPOOL_ALLOC_PRI_LO);
@@ -1032,7 +1017,6 @@ uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_STOR_CACHE_Pool_t *pool, uint32_t 
             }
         }
 
-        // printf("DEBUG: %s() recycled block type %d\n", __func__, rblk->type);
         ++count;
 
         /* always return _this_ node to the free pile */
@@ -1080,7 +1064,7 @@ size_t BPLib_STOR_CACHE_QueryMemCurrentUse(BPLib_STOR_CACHE_Pool_t *pool)
 
     return (BPLib_STOR_CACHE_SubqGetDepth(&admin->free_blocks) * (size_t)admin->buffer_size);
     #else // QM_SUBQ
-    return 0;
+    return 0; // Temporary return value of zero used blocks.
     #endif // QM_SUBQ
 }
 
@@ -1142,7 +1126,6 @@ void BPLib_STOR_CACHE_DebugPrintListStats(BPLib_STOR_CACHE_Block_t *list, const 
 
         ++depth;
     }
-    printf("DEBUG: %s(): %s depth=%lu\n", __func__, label, (unsigned long)depth);
 }
 
 /*----------------------------------------------------------------
@@ -1372,7 +1355,7 @@ uint32_t BPLib_STOR_CACHE_SubqMoveAll(BPLib_STOR_CACHE_SubqBase_t *subq_dst, BPL
     }
     return queue_depth;
     #else // QM_SUBQ
-    return 0;
+    return 0; // Temporary return value of queue depth is zero.
     #endif // QM_SUBQ
 }
 
@@ -1395,7 +1378,7 @@ uint32_t BPLib_STOR_CACHE_SubqDropAll(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_
     }
     return queue_depth;
     #else // QM_SUBQ
-    return 0;
+    return 0; // Temporary subqueue drop all return value is zero.
     #endif // QM_SUBQ
 }
 
@@ -1420,12 +1403,12 @@ BPLib_STOR_QM_Duct_t *BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Block_t *cb)
 
 /*----------------------------------------------------------------
  *
- * Function: BPLib_STOR_CACHE_SubqWorkitemWaitForSpace
+ * Function: BPLib_STOR_QM_SubqWorkitemWaitForSpace
  *
  * Internal function, lock must be held when invoked
  *
  *-----------------------------------------------------------------*/
-bool BPLib_STOR_CACHE_SubqWorkitemWaitForSpace(BPLib_MEM_Lock_t *lock, BPLib_STOR_CACHE_SubqWorkitem_t *subq,
+bool BPLib_STOR_QM_SubqWorkitemWaitForSpace(BPLib_MEM_Lock_t *lock, BPLib_STOR_QM_SubqWorkitem_t *subq,
                                               uint32_t quantity, BPLib_TIME_MonotonicTime_t abs_timeout)
 {
     #ifdef QM_SUBQ
@@ -1450,12 +1433,12 @@ bool BPLib_STOR_CACHE_SubqWorkitemWaitForSpace(BPLib_MEM_Lock_t *lock, BPLib_STO
 
 /*----------------------------------------------------------------
  *
- * Function: BPLib_STOR_CACHE_SubqWorkitemWaitForFill
+ * Function: BPLib_STOR_QM_SubqWorkitemWaitForFill
  *
  * Internal function, lock must be held when invoked
  *
  *-----------------------------------------------------------------*/
-bool BPLib_STOR_CACHE_SubqWorkitemWaitForFill(BPLib_MEM_Lock_t *lock, BPLib_STOR_CACHE_SubqWorkitem_t *subq,
+bool BPLib_STOR_QM_SubqWorkitemWaitForFill(BPLib_MEM_Lock_t *lock, BPLib_STOR_QM_SubqWorkitem_t *subq,
                                              uint32_t quantity, BPLib_TIME_MonotonicTime_t abs_timeout)
 {
     #ifdef QM_SUBQ

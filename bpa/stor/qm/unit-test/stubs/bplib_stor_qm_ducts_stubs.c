@@ -51,11 +51,11 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctAlloc(BPLib_STOR_CACHE_Pool_t *pool,
  * Generated stub function for BPLib_STOR_QM_DuctDisable()
  * ----------------------------------------------------
  */
-uint32_t BPLib_STOR_QM_DuctDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq)
+uint32_t BPLib_STOR_QM_DuctDisable(BPLib_STOR_QM_SubqWorkitem_t *subq)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DuctDisable, uint32_t);
 
-    UT_GenStub_AddParam(BPLib_STOR_QM_DuctDisable, BPLib_STOR_CACHE_SubqWorkitem_t *, subq);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DuctDisable, BPLib_STOR_QM_SubqWorkitem_t *, subq);
 
     UT_GenStub_Execute(BPLib_STOR_QM_DuctDisable, Basic, NULL);
 
@@ -67,9 +67,9 @@ uint32_t BPLib_STOR_QM_DuctDisable(BPLib_STOR_CACHE_SubqWorkitem_t *subq)
  * Generated stub function for BPLib_STOR_QM_DuctEnable()
  * ----------------------------------------------------
  */
-void BPLib_STOR_QM_DuctEnable(BPLib_STOR_CACHE_SubqWorkitem_t *subq, uint32_t depth_limit)
+void BPLib_STOR_QM_DuctEnable(BPLib_STOR_QM_SubqWorkitem_t *subq, uint32_t depth_limit)
 {
-    UT_GenStub_AddParam(BPLib_STOR_QM_DuctEnable, BPLib_STOR_CACHE_SubqWorkitem_t *, subq);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DuctEnable, BPLib_STOR_QM_SubqWorkitem_t *, subq);
     UT_GenStub_AddParam(BPLib_STOR_QM_DuctEnable, uint32_t, depth_limit);
 
     UT_GenStub_Execute(BPLib_STOR_QM_DuctEnable, Basic, NULL);
@@ -98,13 +98,13 @@ bool BPLib_STOR_QM_DuctModifyFlags(BPLib_STOR_CACHE_Block_t *cb, uint32_t set_bi
  * Generated stub function for BPLib_STOR_QM_DuctTryMoveAll()
  * ----------------------------------------------------
  */
-uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst,
-                                      BPLib_STOR_CACHE_SubqWorkitem_t *subq_src, BPLib_TIME_MonotonicTime_t abs_timeout)
+uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_QM_SubqWorkitem_t *subq_dst,
+                                      BPLib_STOR_QM_SubqWorkitem_t *subq_src, BPLib_TIME_MonotonicTime_t abs_timeout)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DuctTryMoveAll, uint32_t);
 
-    UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryMoveAll, BPLib_STOR_CACHE_SubqWorkitem_t *, subq_dst);
-    UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryMoveAll, BPLib_STOR_CACHE_SubqWorkitem_t *, subq_src);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryMoveAll, BPLib_STOR_QM_SubqWorkitem_t *, subq_dst);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryMoveAll, BPLib_STOR_QM_SubqWorkitem_t *, subq_src);
     UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryMoveAll, BPLib_TIME_MonotonicTime_t, abs_timeout);
 
     UT_GenStub_Execute(BPLib_STOR_QM_DuctTryMoveAll, Basic, NULL);
@@ -117,12 +117,12 @@ uint32_t BPLib_STOR_QM_DuctTryMoveAll(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst,
  * Generated stub function for BPLib_STOR_QM_DuctTryPull()
  * ----------------------------------------------------
  */
-BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_CACHE_SubqWorkitem_t *subq_src,
+BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_QM_SubqWorkitem_t *subq_src,
                                                     BPLib_TIME_MonotonicTime_t       abs_timeout)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DuctTryPull, BPLib_STOR_CACHE_Block_t *);
 
-    UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryPull, BPLib_STOR_CACHE_SubqWorkitem_t *, subq_src);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryPull, BPLib_STOR_QM_SubqWorkitem_t *, subq_src);
     UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryPull, BPLib_TIME_MonotonicTime_t, abs_timeout);
 
     UT_GenStub_Execute(BPLib_STOR_QM_DuctTryPull, Basic, NULL);
@@ -135,12 +135,12 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_QM_DuctTryPull(BPLib_STOR_CACHE_SubqWorkite
  * Generated stub function for BPLib_STOR_QM_DuctTryPush()
  * ----------------------------------------------------
  */
-bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_CACHE_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk,
+bool BPLib_STOR_QM_DuctTryPush(BPLib_STOR_QM_SubqWorkitem_t *subq_dst, BPLib_STOR_CACHE_Block_t *qblk,
                                BPLib_TIME_MonotonicTime_t abs_timeout)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_STOR_QM_DuctTryPush, bool);
 
-    UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryPush, BPLib_STOR_CACHE_SubqWorkitem_t *, subq_dst);
+    UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryPush, BPLib_STOR_QM_SubqWorkitem_t *, subq_dst);
     UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryPush, BPLib_STOR_CACHE_Block_t *, qblk);
     UT_GenStub_AddParam(BPLib_STOR_QM_DuctTryPush, BPLib_TIME_MonotonicTime_t, abs_timeout);
 

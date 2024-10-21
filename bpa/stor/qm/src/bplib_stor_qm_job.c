@@ -27,9 +27,9 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 #include <assert.h>
 
+#include "bplib_api_types.h"
 #include "bplib_mem.h"
 #include "bplib_stor_cache.h"
 
@@ -97,8 +97,6 @@ void BPLib_STOR_QM_JobMarkActive(BPLib_STOR_QM_Job_t *job)
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
     BPLib_STOR_CACHE_Pool_t              *pool;
 
-    printf("%s:%d job is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)job);
-
     pool  = BPLib_STOR_CACHE_GetParentPoolFromLink(&job->link);
     admin = BPLib_STOR_CACHE_GetAdmin(pool);
 
@@ -149,7 +147,7 @@ void BPLib_STOR_CACHE_RunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg)
 {
     BPLib_STOR_QM_Job_t *job;
 
-    /* forward any bundles between interfaces, based on active flow list */
+    /* forward any bundles between interfaces, based on active duct list */
     while (true)
     {
         job = BPLib_STOR_CACHE_GetNextActive(pool);

@@ -17,8 +17,8 @@
  ************************************************************************/
 
 #include <stdlib.h>
-#include <string.h>
 
+#include "bplib_api_types.h"
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
@@ -383,7 +383,7 @@ void Test_BPLib_MEM_RBT_Unique(void)
     UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[0].link), BPLIB_SUCCESS);
     Test_RBT_CheckTree(&rbtree);
 
-    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[1].link), BPLIB_MEM_RBT_DUPLICATE);
+    UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[1].link), BPLIB_RBT_DUPLICATE);
 
     /* Inserting a second time should be recognized and return an error */
     UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueUnique(100, &rbtree, &node_array[0].link), BPLIB_ERROR);
@@ -522,7 +522,7 @@ void Test_BPLib_MEM_RBT_NonUnique(void)
 
     ref_val = 0;
     UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueGeneric(100, &rbtree, &node_array[1].link, rbtest_comparator, &ref_val),
-                      BPLIB_MEM_RBT_DUPLICATE);
+                      BPLIB_RBT_DUPLICATE);
 
     ref_val = 1;
     UtAssert_INT32_EQ(BPLib_MEM_RBT_InsertValueGeneric(100, &rbtree, &node_array[1].link, rbtest_comparator, &ref_val),

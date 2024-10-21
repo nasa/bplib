@@ -21,8 +21,6 @@
 #ifndef BPLIB_STOR_CACHE_REF_H
 #define BPLIB_STOR_CACHE_REF_H
 
-#include <string.h>
-
 #include "bplib_api_types.h"
 
 #include "bplib_mem.h"

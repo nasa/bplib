@@ -81,8 +81,6 @@ void BPLib_STOR_QM_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_QM_J
  */
 void BPLib_STOR_QM_JobMarkActive(BPLib_STOR_QM_Job_t *job)
 {
-    printf("%s:%d job is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)job);
-
     UT_GenStub_AddParam(BPLib_STOR_QM_JobMarkActive, BPLib_STOR_QM_Job_t *, job);
 
     UT_GenStub_Execute(BPLib_STOR_QM_JobMarkActive, Basic, NULL);

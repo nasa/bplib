@@ -27,9 +27,9 @@
 
 #include <stdbool.h>
 #include "bplib_api_types.h"
+#include "bplib_crc.h"
 #include "bplib_mem.h"
 #include "bplib_mem_rbtree.h"
-#include "bplib_crc.h"
 
 // TODO Verify ifdef __cplusplus is on all public header files.
 #ifdef __cplusplus
@@ -128,7 +128,7 @@ typedef struct BPLib_STOR_CACHE_Pool                   BPLib_STOR_CACHE_Pool_t;
 typedef struct BPLib_STOR_CACHE_BlockContent BPLib_STOR_CACHE_BlockContent_t;
 
 /**
- * @brief A reference to another mpool block
+ * @brief A reference to another CACHE block
  *
  * @note At this scope the definition of this pointer is abstract.  Application
  * code should use BPLib_STOR_CACHE_Dereference() to obtain the pointer to the block
@@ -137,7 +137,7 @@ typedef struct BPLib_STOR_CACHE_BlockContent BPLib_STOR_CACHE_BlockContent_t;
 typedef BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_Ref_t;
 
 /**
- * @brief Callback frunction for various mpool block actions
+ * @brief Callback function for various CACHE block actions
  *
  * This is a generic API for a function to handle various events/conditions
  * that occur at the block level.  The generic argument supplies the context
@@ -161,26 +161,24 @@ typedef enum
 typedef int (*chunk_writer_func_t)(void *, const void *, size_t);
 typedef int (*chunk_reader_func_t)(void *, void *, size_t);
 
-typedef uint64_t uint64_t;
-
 typedef uint8_t BPLib_STOR_CACHE_Blocknum_t;
 
 typedef enum BPLib_STOR_CACHE_Blocktype
 {
     BPLib_STOR_CACHE_BlocktypeUndefined                   = 0,
-    BPLib_STOR_CACHE_BlocktypePayloadblock                = 1,
-    BPLib_STOR_CACHE_BlocktypeBundleauthenicationblock    = 2,
-    BPLib_STOR_CACHE_BlocktypePayloadintegrityblock       = 3,
-    BPLib_STOR_CACHE_BlocktypePayloadconfidentialityblock = 4,
-    BPLib_STOR_CACHE_BlocktypePrevioushopinsertionblock   = 5,
-    BPLib_STOR_CACHE_BlocktypePreviousnode                = 6,
-    BPLib_STOR_CACHE_BlocktypeBundleage                   = 7,
-    BPLib_STOR_CACHE_BlocktypeMetadataextensionblock      = 8,
-    BPLib_STOR_CACHE_BlocktypeExtensionsecurityblock      = 9,
-    BPLib_STOR_CACHE_BlocktypeHopcount                    = 10,
+    BPLib_STOR_CACHE_BlocktypePayloadBlock                = 1,
+    BPLib_STOR_CACHE_BlocktypeBundleAuthenicationBlock    = 2,
+    BPLib_STOR_CACHE_BlocktypePayloadIntegrityBlock       = 3,
+    BPLib_STOR_CACHE_BlocktypePayloadConfidentialityBlock = 4,
+    BPLib_STOR_CACHE_BlocktypePreviousHopInsertionBlock   = 5,
+    BPLib_STOR_CACHE_BlocktypePreviousNode                = 6,
+    BPLib_STOR_CACHE_BlocktypeBundleAge                   = 7,
+    BPLib_STOR_CACHE_BlocktypeMetadataExtensionBlock      = 8,
+    BPLib_STOR_CACHE_BlocktypeExtensionSecurityBlock      = 9,
+    BPLib_STOR_CACHE_BlocktypeHopCount                    = 10,
     BPLib_STOR_CACHE_BlocktypeBpsecBib                    = 11,
     BPLib_STOR_CACHE_BlocktypeBpsecBcb                    = 12,
-    BPLib_STOR_CACHE_BlocktypeCustodytrackingblock        = 73,
+    BPLib_STOR_CACHE_BlocktypeCustodyTrackingBlock        = 73,
     BPLib_STOR_CACHE_BlocktypeMax,
     /*
      * These are internal block types - they exist only locally in this implementation
@@ -188,10 +186,10 @@ typedef enum BPLib_STOR_CACHE_Blocktype
      * the payload block, or it may not appear in the RFC-compliant bundle at all).
      */
     BPLib_STOR_CACHE_BlocktypeSpecialBlocksStart        = 100,
-    BPLib_STOR_CACHE_BlocktypeAdminrecordpayloadblock   = BPLib_STOR_CACHE_BlocktypeSpecialBlocksStart,
-    BPLib_STOR_CACHE_BlocktypeCiphertextpayloadblock    = 101,
-    BPLib_STOR_CACHE_BlocktypeCustodyacceptpayloadblock = 102,
-    BPLib_STOR_CACHE_BlocktypePreviouscustodianblock    = 103,
+    BPLib_STOR_CACHE_BlocktypeAdminRecordPayloadBlock   = BPLib_STOR_CACHE_BlocktypeSpecialBlocksStart,
+    BPLib_STOR_CACHE_BlocktypeCiphertextPayloadBlock    = 101,
+    BPLib_STOR_CACHE_BlocktypeCustodyAcceptPayloadBlock = 102,
+    BPLib_STOR_CACHE_BlocktypePreviousCustodianBlock    = 103,
     /**
      * These are block types that correspond to MEM block types with similar names.
      */
@@ -341,17 +339,17 @@ typedef struct BPLib_STOR_CACHE_EidBuffer
 
 typedef struct BPLib_STOR_CACHE_PrimaryBlock
 {
-    uint8_t                              version;
+    uint8_t                                version;
     BPLib_STOR_CACHE_BundleProcessingControlFlags_t controlFlags;
-    BPLib_CRC_Type_t                         crctype; /* always present, indicates which CRC field is valid */
-    BPLib_STOR_CACHE_EidBuffer_t               destinationEID;
-    BPLib_STOR_CACHE_EidBuffer_t               sourceEID;
-    BPLib_STOR_CACHE_EidBuffer_t               reportEID;
-    BPLib_STOR_CACHE_CreationTimestamp_t              creationTimeStamp;
-    BPLib_STOR_CACHE_Lifetime_t                        lifetime;
-    BPLib_STOR_CACHE_AduLength_t                      fragmentOffset;
-    BPLib_STOR_CACHE_AduLength_t                      totalADUlength;
-    BPLib_CRC_Val_t                          crcval;
+    BPLib_CRC_Type_t                       crctype; /* always present, indicates which CRC field is valid */
+    BPLib_STOR_CACHE_EidBuffer_t           destinationEID;
+    BPLib_STOR_CACHE_EidBuffer_t           sourceEID;
+    BPLib_STOR_CACHE_EidBuffer_t           reportEID;
+    BPLib_STOR_CACHE_CreationTimestamp_t   creationTimeStamp;
+    BPLib_STOR_CACHE_Lifetime_t            lifetime;
+    BPLib_STOR_CACHE_AduLength_t           fragmentOffset;
+    BPLib_STOR_CACHE_AduLength_t           totalADUlength;
+    BPLib_CRC_Val_t                        crcval;
 
 } BPLib_STOR_CACHE_PrimaryBlock_t;
 
@@ -401,7 +399,7 @@ typedef union BPLib_STOR_CACHE_CanonicalBlockData
     BPLib_STOR_CACHE_BundleAgeBlock_t             age_block;
     BPLib_STOR_CACHE_HopCountBlock_t              hop_count_block;
     BPLib_STOR_CACHE_CustodyTrackingBlock_t       custody_tracking_block;
-    BPLIB_CT_AcceptPayloadBlock_t custody_accept_payload_block;
+    BPLIB_CT_AcceptPayloadBlock_t                 custody_accept_payload_block;
 } BPLib_STOR_CACHE_CanonicalBlockData_t;
 
 typedef struct BPLib_STOR_CACHE_CanonicalBlockBuffer

@@ -229,7 +229,7 @@ int BPLib_STOR_CACHE_ServiceductForwardIngress(void *arg, BPLib_STOR_CACHE_Block
     curr_duct = BPLib_STOR_QM_DuctCast(intf_block);
     if (curr_duct == NULL)
     {
-        return -1;
+        return -1; // The return value is -1 for failure to forward, otherwise a count of the bundles forwarded.
     }
 
     forward_count = 0;
@@ -301,7 +301,7 @@ int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_
     curr_duct = BPLib_STOR_QM_DuctCast(intf_block);
     if (curr_duct == NULL)
     {
-        return -1;
+        return -1; // The return value is -1 for failure to egress, otherwise a count of the bundles egressed.
     }
 
     forward_count = 0;
@@ -779,7 +779,7 @@ int BPLib_STOR_CACHE_BindSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_IpnAdd
     return BPLIB_SUCCESS;
 }
 
-int BPLib_STOR_CACHE_ConnectSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_IpnAddr_t *destination_ipn)
+BPLib_Status_t BPLib_STOR_CACHE_ConnectSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_IpnAddr_t *destination_ipn)
 {
    BPLib_STOR_CACHE_SocketInfo_t *sock;
     BPLib_STOR_CACHE_Ref_t    sock_ref;
@@ -790,26 +790,26 @@ int BPLib_STOR_CACHE_ConnectSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_Ipn
     if (sock == NULL)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
-        return -1;
+        return BPLIB_ERROR;
     }
 
     if (!BPLib_HandleIsValid(sock->socket_intf_id))
     {
         /* not yet bound */
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): socket not bound\n", __func__);
-        return -1;
+        return BPLIB_ERROR;
     }
 
     if (sock->params.remote_ipn.node_number != 0)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): socket already connected\n", __func__);
-        return -1;
+        return BPLIB_ERROR;
     }
 
     if (destination_ipn->node_number == 0)
     {
         // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): invalid destination node number\n", __func__);
-        return -1;
+        return BPLIB_ERROR;
     }
 
     sock->params.remote_ipn = *destination_ipn;
@@ -817,7 +817,7 @@ int BPLib_STOR_CACHE_ConnectSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_Ipn
     BPLib_STOR_QM_IntfSetFlags(sock->parent_rtbl, sock->socket_intf_id,
                                BPLIB_CACHE_STATE_FLAG_ENDPOINT | BPLIB_INTF_STATE_ADMIN_UP | BPLIB_INTF_STATE_OPER_UP);
 
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
 void BPLib_STOR_CACHE_CloseSocket(BPLib_STOR_QM_Socket_t *desc)

@@ -485,8 +485,6 @@ void BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(BPLib_STOR_CACHE_State_t *s
         if (BPLib_STOR_CACHE_CustodyFindExistingBundle(state, &custody_info))
         {
             /* found it ! */
-            printf("%s(): Got custody ACK for seq %lu\n", __func__, (unsigned long)custody_info.sequence_num);
-
             /* confirmed that another custodian has the bundle -
              * can clear the flag that says we are the active custodian, and reevaluate */
             BPLib_STOR_CACHE_EntryMakePending(custody_info.store_entry, 0, BPLIB_STORE_FLAG_LOCAL_CUSTODY);

@@ -22,10 +22,8 @@
  INCLUDES
  ******************************************************************************/
 
-#include <string.h>
 #include <assert.h>
 
-#include "bplib.h"
 #include "bplib_api_types.h"
 
 #include "bplib_mem.h"
@@ -40,8 +38,6 @@
 #define OSAL_LOCALTIME_SECS_AT_2000 946684800
 
 static OS_time_t BPLIB_MEM_OSAL_LOCALTIME_DTN_CONV;
-
-static osal_id_t BPLib_MEM_OS_FileDataLock;
 
 /*--------------------------------------------------------------------------------------
  * BPLib_MEM_OS_Lock -
@@ -71,10 +67,33 @@ void BPLib_MEM_OS_Unlock(BPLib_Handle_t h)
 /*--------------------------------------------------------------------------------------
  * BPLib_MEM_OS_Init -
  *-------------------------------------------------------------------------------------*/
-void BPLib_MEM_OS_Init(void)
+BPLib_Status_t BPLib_MEM_OS_Init(void)
 {
-    OS_MutSemCreate(&BPLib_MEM_OS_FileDataLock, "bplib_mem_osal", 0);
+    int32 status;
+
+    BPLib_MEM_OS_FileDataLock = 0xFF; // The lock ID fro OSAL can be zero.
+
+    status = OS_MutSemCreate(&BPLib_MEM_OS_FileDataLock, "bplib_mem_osal", 0);
+    /**
+     * Check return status of OS_MutSemCreate
+     *   0 #OS_SUCCESS OS_SUCCESS
+     *  -1 #OS_ERROR OS_ERROR
+     *  -2 #OS_INVALID_POINTER if sem_id or sem_name are NULL
+     * -13 #OS_ERR_NAME_TOO_LONG name length including null terminator greater than      * #OS_MAX_API_NAME
+     * -14 #OS_ERR_NO_FREE_IDS if there are no more free mutex Ids
+     * -15 #OS_ERR_NAME_TAKEN if there is already a mutex with the same name
+     *  -6 #OS_SEM_FAILURE if the OS call failed @covtest
+     * 
+     * See osapi_error.h for other values.
+     * 
+     */
+    if (status != OS_SUCCESS)
+    {
+        // TODO Send an event if OS_MutSemCreate fails.
+        return BPLIB_ERROR;
+    }
     BPLIB_MEM_OSAL_LOCALTIME_DTN_CONV = OS_TimeAssembleFromMilliseconds(OSAL_LOCALTIME_SECS_AT_2000, 0);
+    return BPLIB_SUCCESS;
 }
 
 /*--------------------------------------------------------------------------------------
@@ -83,9 +102,8 @@ void BPLib_MEM_OS_Init(void)
 BPLib_Handle_t BPLib_MEM_OS_CreateLock(void)
 {
     char      lock_name[OS_MAX_API_NAME];
-    int32     status;
     osal_id_t id;
-
+    int32     status;
     snprintf(lock_name, sizeof(lock_name), "bpl_mem%02u", BPLib_MEM_OS_NextSerial());
     status = OS_CondVarCreate(&id, lock_name, 0);
     if (status != OS_SUCCESS)
@@ -171,28 +189,23 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
 {
     BPLib_MEM_Block_t                 *node;
     BPLib_MEM_BlockContent_t          *block;
-    #ifdef QM_MODULE_API_AVAILABLE
-    BPLib_STOR_QM_ModuleApiContent_t  *api_block;
-    #endif //QM_MODULE_API_AVAILABLE
+    BPLib_MEM_ApiContent_t            *api_block;
     size_t                             data_offset;
+    #ifdef USE_THRESHOLD
     uint32_t                           alloc_threshold;
+    #endif // USE_THRESHOLD
     uint32_t                           block_count;
 
     BPLib_MEM_BlockAdminContent_t *admin;
-
-    printf("%s:%d blocktype is %d\n", __FILE__, __LINE__, blocktype);
-
-    admin = BPLib_MEM_GetAdmin(pool);
-
-    printf("%s:%d admin is %ld\n", __FILE__, __LINE__, (uint64_t)admin);
 
     /* Only real blocks are allocated here - not secondary links nor head nodes,
      * as those are embedded within the blocks themselves. */
     if (blocktype == BPLib_MEM_BlocktypeUndefined || blocktype >= BPLib_MEM_BlocktypeMax)
     {
-        printf("%s:%d Bad blocktype. Return null.\n", __FILE__, __LINE__);
         return NULL;
     }
+
+    admin = BPLib_MEM_GetAdmin(pool);
 
     /*
      * Check free block threshold: Note that it may take additional pool blocks (refs, cbor, etc)
@@ -203,38 +216,47 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
      *
      * This soft limit only applies for actual bundle blocks, not for refs.
      */
+    #ifdef USE_THRESHOLD
     alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
+    #endif // USE_THRESHOLD
 
     block_count = BPLib_MEM_SubqGetDepth(&admin->free_blocks);
 
+    #ifdef USE_THRESHOLD
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
-        printf("%s:%d No free blocks. Return null.\n", __FILE__, __LINE__);
         /* no free blocks available for the requested type */
         return NULL;
     }
+    #else // USE_THRESHOLD
+    if (block_count == 0)
+    {
+        return NULL;
+    }
+    #endif // USE_THRESHOLD
 
-    #ifdef QM_MODULE_API_AVAILABLE
     /* Determine how to initialize this block by looking up the content type */
-    api_block = (BPLib_STOR_QM_ModuleApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
-                                                                                   &admin->blocktype_registry);
+    api_block = (BPLib_MEM_ApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
+                                                                             &admin->blocktype_registry);
     if (api_block == NULL)
     {
-        printf("%s:%d No constructor. Return null.\n", __FILE__, __LINE__);
+        api_block = (BPLib_MEM_ApiContent_t *)0xff;
         /* no constructor, cannot create the block! */
-        return NULL;
+        // TODO return NULL; for NULL api_block.
     }
 
     /* sanity check that the user content will fit in the block */
     data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(blocktype);
-    if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t) ||
-        (data_offset + api_block->user_content_size) > sizeof(BPLib_MEM_BlockBuffer_t))
+
+    if (api_block != (BPLib_MEM_ApiContent_t *)0xff)
     {
-        printf("%s:%d User content won't fit. Return null.\n", __FILE__, __LINE__);
-        /* User content will not fit in the block - cannot create an instance of this type combo */
-        return NULL;
+        if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t) ||
+             (data_offset + api_block->user_content_size) > sizeof(BPLib_MEM_BlockBuffer_t))
+        {
+            /* User content will not fit in the block - cannot create an instance of this type combo */
+            return NULL;
+        }
     }
-    #endif // QM_MODULE_API_AVAILABLE
 
     /* get a block */
     node = BPLib_MEM_SubqPullSingle(&admin->free_blocks);
@@ -243,8 +265,6 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
         /* this should never happen, because depth was already checked */
         return NULL;
     }
-
-    printf("%s:%d Got block.\n", __FILE__, __LINE__);
 
     /*
      * Convert from blocks free to blocks used, and update high watermark if necessary.
@@ -288,3 +308,151 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
 
     return block;
 }
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_BblockPrimaryInit
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_MEM_BblockPrimaryInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_BblockPrimary_t *pblk)
+{
+    BPLib_MEM_InitListHead(base_block, &pblk->cblock_list);
+    BPLib_MEM_InitListHead(base_block, &pblk->chunk_list);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_BblockCanonicalInit
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_MEM_BblockCanonicalInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_BblockCanonical_t *cblk)
+{
+    BPLib_MEM_InitListHead(base_block, &cblk->chunk_list);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_BblockPrimaryAlloc
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_Block_t *BPLib_MEM_BblockPrimaryAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number,
+                                                void *init_arg, uint8_t priority, BPLib_TIME_MonotonicTime_t timeout)
+{
+    BPLib_MEM_BlockContent_t *result;
+    BPLib_MEM_Lock_t                *lock;
+    bool                             within_timeout;
+
+    lock           = BPLib_MEM_LockResource(pool);
+    within_timeout = true;
+    while (true)
+    {
+        result = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypePrimary, magic_number, init_arg, priority);
+        if (result != NULL || !within_timeout)
+        {
+            break;
+        }
+
+        within_timeout = BPLib_MEM_LockWait(lock, timeout);
+    }
+    BPLib_MEM_LockRelease(lock);
+
+    return (BPLib_MEM_Block_t *)result;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_BblockCanonicalAlloc
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_Block_t *BPLib_MEM_BblockCanonicalAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg)
+{
+    BPLib_MEM_BlockContent_t *result;
+    BPLib_MEM_Lock_t          *lock;
+
+    lock   = BPLib_MEM_LockResource(pool);
+    result = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypeCanonical, magic_number, init_arg,
+                                              BPLIB_MEM_ALLOC_PRI_MED);
+    BPLib_MEM_LockRelease(lock);
+
+    return (BPLib_MEM_Block_t *)result;
+}
+
+static BPLib_Status_t BPLib_MEM_DuctEventHandler(void *arg, BPLib_MEM_Block_t *jblk)
+{
+    BPLib_MEM_Block_t                *fblk;
+    BPLib_MEM_Duct_t            *duct;
+    uint32_t                          changed_flags;
+    BPLib_MEM_DuctGenericEvent_t event;
+    bool                              was_running;
+    bool                              is_running;
+
+    fblk = BPLib_MEM_GetBlockFromLink(jblk);
+    duct = BPLib_MEM_DuctCast(fblk);
+    if (duct == NULL)
+    {
+        return BPLIB_ERROR;
+    }
+
+    was_running   = BPLib_MEM_DuctIsUp(duct);
+    changed_flags = duct->pending_state_flags ^ duct->current_state_flags;
+    duct->current_state_flags ^= changed_flags;
+    is_running = BPLib_MEM_DuctIsUp(duct);
+
+    /* detect changes from up->down or vice versa */
+    /* this is the combination of several flags, so its not simply checking changed_flags */
+    if (was_running != is_running)
+    {
+        if (is_running)
+        {
+            event.intf_state.event_type = BPLib_MEM_DuctEventUp;
+        }
+        else
+        {
+            event.intf_state.event_type = BPLib_MEM_DuctEventDown;
+        }
+
+        event.intf_state.intf_id = BPLib_MEM_GetExternalId(fblk);
+        duct->statechange_job.event_handler(&event, fblk);
+    }
+
+    if (changed_flags & BPLIB_CACHE_STATE_FLAG_POLL)
+    {
+        event.event_type = BPLib_MEM_DuctEventPoll;
+        duct->statechange_job.event_handler(&event, fblk);
+    }
+
+    return BPLIB_SUCCESS;
+}
+
+void BPLib_MEM_SubqWorkitemInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqWorkitem_t *wblk)
+{
+    BPLib_MEM_JobInit(base_block, &wblk->job_header);
+    BPLib_MEM_SubqInit(base_block, &wblk->base_subq);
+    wblk->current_depth_limit = 0;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_DuctInit
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_MEM_DuctInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_Duct_t *fblk)
+{
+    /* now init the link structs */
+    BPLib_MEM_JobInit(base_block, &fblk->statechange_job.base_job);
+    fblk->statechange_job.base_job.handler = BPLib_MEM_DuctEventHandler;
+
+    BPLib_MEM_SubqWorkitemInit(base_block, &fblk->ingress);
+    BPLib_MEM_SubqWorkitemInit(base_block, &fblk->egress);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_JobInit
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_MEM_JobInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_Job_t *jblk)
+{
+    BPLib_MEM_InitSecondaryLink(base_block, &jblk->link, BPLib_MEM_BlocktypeJob);
+}
+

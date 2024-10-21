@@ -22,7 +22,7 @@
  INCLUDES
  ******************************************************************************/
 
-#include <string.h>
+#include "bplib_api_types.h"
 #include <assert.h>
 
 #include "bplib_mem.h"

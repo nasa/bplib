@@ -43,6 +43,7 @@ target_compile_options(utobj_bplib_mem PRIVATE
 
 target_include_directories(utobj_bplib_mem PRIVATE
     $<TARGET_PROPERTY:bplib_mem,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_crc,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:ut_coverage_compile,INTERFACE_INCLUDE_DIRECTORIES>
 )
 

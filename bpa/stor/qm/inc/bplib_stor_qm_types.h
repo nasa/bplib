@@ -68,20 +68,20 @@ typedef struct BPLib_STOR_QM_Job
     BPLib_STOR_CACHE_CallbackFunc_t handler;
 } BPLib_STOR_QM_Job_t;
 
-typedef struct BPLib_STOR_QM_JobStatechange
+typedef struct BPLib_STOR_QM_JobStateChange
 {
     BPLib_STOR_QM_Job_t base_job;
 
     /* JPHFIX: this single event handler may be separated into per-event-type handlers */
     BPLib_STOR_CACHE_CallbackFunc_t event_handler;
-} BPLib_STOR_QM_JobStatechange_t;
+} BPLib_STOR_QM_JobStateChange_t;
 
-typedef struct BPLib_STOR_CACHE_SubqWorkitem
+typedef struct BPLib_STOR_QM_SubqWorkitem
 {
     BPLib_STOR_QM_Job_t               job_header;
     BPLib_STOR_CACHE_SubqBase_t  base_subq;
     unsigned int                 current_depth_limit;
-} BPLib_STOR_CACHE_SubqWorkitem_t;
+} BPLib_STOR_QM_SubqWorkitem_t;
 
 typedef struct BPLib_STOR_QM_Duct BPLib_STOR_QM_Duct_t;
 struct BPLib_STOR_QM_Duct
@@ -89,11 +89,11 @@ struct BPLib_STOR_QM_Duct
     uint32_t pending_state_flags;
     uint32_t current_state_flags;
 
-    BPLib_STOR_QM_JobStatechange_t statechange_job;
+    BPLib_STOR_QM_JobStateChange_t statechange_job;
     BPLib_STOR_CACHE_Ref_t    parent;
 
-    BPLib_STOR_CACHE_SubqWorkitem_t ingress;
-    BPLib_STOR_CACHE_SubqWorkitem_t egress;
+    BPLib_STOR_QM_SubqWorkitem_t ingress;
+    BPLib_STOR_QM_SubqWorkitem_t egress;
 };
 
 typedef struct BPLib_STOR_QM_DuctContent BPLib_STOR_QM_DuctContent_t;

@@ -29,12 +29,6 @@
 
 #include "bplib_stor_cache_block.h"
 
-// TODO Migrate PrintTrace stack trace to broader scope.
-void BPLib_STOR_CACHE_PrintTrace(void);
-
-// TODO OSAL #define bplog(flags, evt, ...) BPLIB_MEM_OS_Log(__FILE__, __LINE__, flags, evt, __VA_ARGS__)
-int bplog(uint32_t *flags, uint32_t event, ...);
-
 /*
  * Randomly-chosen 32-bit static values that can be put into
  * data structures to help positively identify those structs later.
@@ -124,7 +118,6 @@ typedef struct BPLib_STOR_CACHE_State
 
 } BPLib_STOR_CACHE_State_t;
 
-// #include "bplib_cache.h"  // For BPLib_IpnAddr_t?
 typedef struct BPLib_STOR_CACHE_DacsPending
 {
     BPLib_IpnAddr_t                      prev_custodian_id;
@@ -204,6 +197,7 @@ static inline BPLib_STOR_QM_Duct_t *BPLib_STOR_CACHE_GetDuct(BPLib_STOR_CACHE_St
 /* Allows reconstitution of the queue struct from an RBT link pointer */
 #define BPLib_STOR_CACHE_EntryFromLink(ptr, member) \
     BPLib_STOR_CACHE_EntryGetContainer(ptr, offsetof(BPLib_STOR_CACHE_Entry_t, member))
+
 static inline BPLib_STOR_CACHE_Entry_t *BPLib_STOR_CACHE_EntryGetContainer(const BPLib_MEM_RBT_Link_t *link, size_t offset)
 {
     return (BPLib_STOR_CACHE_Entry_t *)(void *)((uint8_t *)link - offset);

@@ -69,7 +69,7 @@ int BPLib_STOR_CACHE_EntryTreeInsertUnsorted(const BPLib_MEM_RBT_Link_t *node, v
      * what order nodes with the same key appear in.  So this always returns 1.  Note
      * this can only be used for insertion, it cannot be used for finding nodes, because
      * no actual comparison is done. */
-    return 1;
+    return 1; // Always returns 1, indicating insert after (or don't care - unsorted).
 }
 
 void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, uint32_t set_flags, uint32_t clear_flags)
@@ -81,11 +81,9 @@ void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, ui
     store_entry->flags &= ~clear_flags;
 
     sblk = (BPLib_STOR_CACHE_Block_t *)BPLib_MEM_GenericDataUncast(store_entry, BPLib_MEM_BlocktypeGeneric, BPLIB_STORE_SIGNATURE_ENTRY);
-    printf("%s:%d sblk is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)sblk);
     // TODO assert(sblk != NULL);
 
     BPLib_STOR_CACHE_ExtractNode(sblk);
-    printf("%s:%d store_entry is 0x%016lx, parent is 0x%016lx, \n", __FILE__, __LINE__, (uint64_t)store_entry, (uint64_t)store_entry->parent);
     if (store_entry->parent != NULL)
     {
         BPLib_STOR_CACHE_InsertBefore(&store_entry->parent->pending_list, sblk);
@@ -108,13 +106,13 @@ int BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
     state      = BPLib_STOR_CACHE_GetState(intf_block);
     if (state == NULL)
     {
-        return -1;
+        return -1; // The return value is -1 for failure to egress, otherwise a count of the bundles egressed.
     }
 
     duct = BPLib_STOR_QM_DuctCast(intf_block);
     if (duct == NULL)
     {
-        return -1;
+        return -1; // The return value is -1 for failure to egress, otherwise a count of the bundles egressed.
     }
 
     state->action_time = BPLib_STOR_CACHE_GetMonotonicTime();
@@ -151,7 +149,7 @@ int BPLib_STOR_CACHE_EgressImpl(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
 
     return forward_count;
     #else // QM_DUCT
-    return 0;
+    return -1; // Temporary return value until QM is implemented.
     #endif // QM_DUCT
 }
 
@@ -167,7 +165,7 @@ void BPLib_STOR_CACHE_FlushPending(BPLib_STOR_CACHE_State_t *state)
     /* Attempt to re-queue all bundles in the pending list */
     /* In some cases the bundle can get re-added to the pending list, so this is done in a loop */
     status = BPLib_STOR_CACHE_ListIterGotoFirst(&state->pending_list, &list_it);
-    while (status == BPLIB_SUCCESS && BPLib_STOR_CACHE_SubqWorkitemMayPush(&self_duct->ingress))
+    while (status == BPLIB_SUCCESS && BPLib_STOR_QM_SubqWorkitemMayPush(&self_duct->ingress))
     {
         /* removal of an iterator node is allowed */
         BPLib_STOR_CACHE_ExtractNode(list_it.position);
@@ -258,7 +256,7 @@ int BPLib_STOR_CACHE_DoIntfStatechange(BPLib_STOR_CACHE_State_t *state, bool is_
     return BPLIB_SUCCESS;
 }
 
-int BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_block)
+BPLib_Status_t BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_block)
 {
     BPLib_STOR_CACHE_State_t              *state;
     BPLib_STOR_QM_DuctGenericEvent_t *event;
@@ -269,7 +267,7 @@ int BPLib_STOR_CACHE_EventImpl(void *event_arg, BPLib_STOR_CACHE_Block_t *intf_b
     state        = BPLib_STOR_CACHE_GetState(intf_block);
     if (state == NULL)
     {
-        return -1;
+        return BPLIB_ERROR;
     }
 
     state->action_time = BPLib_STOR_CACHE_GetMonotonicTime();
@@ -621,7 +619,10 @@ BPLib_Handle_t BPLib_STOR_QM_RegisterModuleService(BPLib_STOR_QM_QueueTbl_t *tbl
         }
     }
     #else // QM_MODULE_API
-    printf("svc: 0x%016lx\n", (uint64_t)svc);
+    if (svc != NULL)
+    {
+        state = state;  // TODO Placeholder for QM_MODULE_API svc action.
+    }
     handle = BPLib_STOR_CACHE_GetExternalId(cblk);
     #endif // QM_MODULE_API
 

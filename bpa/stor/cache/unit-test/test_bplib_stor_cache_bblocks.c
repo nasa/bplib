@@ -207,19 +207,19 @@ void Test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(void)
     test_setup_cpool_block(&buf.pool, &buf.blk[1], BPLib_STOR_CACHE_BlocktypeCanonical, 0);
     BPLib_STOR_CACHE_InsertAfter(&buf.blk[0].u.primary.pblock.cblock_list, &buf.blk[1].header.base_link);
     b                            = BPLib_STOR_CACHE_BblockCanonicalGetLogical(&buf.blk[1].u.canonical.cblock);
-    b->canonical_block.blockType = BPLib_STOR_CACHE_BlocktypeBundleage;
+    b->canonical_block.blockType = BPLib_STOR_CACHE_BlocktypeBundleAge;
 
     /* canonical block of a different type should not be found */
-    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeHopcount));
+    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeHopCount));
 
     /* canonical block of the correct type should be found */
     UtAssert_ADDRESS_EQ(
-        BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeBundleage), &buf.blk[1]);
+        BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeBundleAge), &buf.blk[1]);
 
     /* include a block that is NOT a canonical block */
     test_setup_cpool_block(&buf.pool, &buf.blk[2], BPLib_STOR_CACHE_BlocktypeGeneric, 0);
     BPLib_STOR_CACHE_InsertBefore(&buf.blk[0].u.primary.pblock.cblock_list, &buf.blk[2].header.base_link);
-    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeHopcount));
+    UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(&buf.blk[0].u.primary.pblock, BPLib_STOR_CACHE_BlocktypeHopCount));
 }
 
 void Test_BPLib_STOR_CACHE_BblockPrimaryDropEncode(void)

@@ -22,18 +22,23 @@
  INCLUDES
  ******************************************************************************/
 
-#include <string.h>
 #include <assert.h>
 
-#include "bplib.h"
 #include "bplib_api_types.h"
 
 #include "bplib_time.h"
 
-#include "bplib_mem.h"
 #include "bplib_mem_internal.h"
 
 #include "osapi.h"
+
+// Global MEM Mutex
+osal_id_t BPLib_MEM_OS_FileDataLock;
+
+#define BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(m) (offsetof(BPLib_MEM_BlockBuffer_t, m.user_data_start))
+
+#define BPLIB_MEM_GET_BLOCK_USER_CAPACITY(m) (sizeof(BPLib_MEM_BlockBuffer_t) - MPOOL_GET_BUFFER_USER_START_OFFSET(m))
+
 
 /**
  * @brief Maxmimum number of blocks to be collected in a single maintenance cycle
@@ -44,12 +49,9 @@
 
 BPLib_MEM_Lock_t BPLIB_MEM_LOCK_SET[BPLIB_MEM_NUM_LOCKS];
 
-int BPLib_MEM_Init(void)
+BPLib_Status_t BPLib_MEM_Init(void)
 {
-    // TODO Add memory pool base link pointer to MEM globals for CACHE?
-    BPLib_MEM_OS_Init();
-
-    return BPLIB_SUCCESS;
+    return BPLib_MEM_OS_Init();
 }
 
 /*----------------------------------------------------------------
@@ -204,7 +206,11 @@ size_t BPLib_MEM_GetUserDataOffsetByBlocktype(BPLib_MEM_Blocktype_t bt)
     static const size_t USER_DATA_START_OFFSET[BPLib_MEM_BlocktypeMax] = {
         [BPLib_MEM_BlocktypeUndefined] = SIZE_MAX,
         [BPLib_MEM_BlocktypeApi]       = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(api),
-        [BPLib_MEM_BlocktypeGeneric]   = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(generic_data)};
+        [BPLib_MEM_BlocktypeGeneric]   = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(generic_data),
+        [BPLib_MEM_BlocktypePrimary]   = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(primary),
+        [BPLib_MEM_BlocktypeCanonical] = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(canonical),
+        [BPLib_MEM_BlocktypeDuct]      = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(duct),
+        [BPLib_MEM_BlocktypeRef]       = BPLIB_MEM_GET_BUFFER_USER_START_OFFSET(ref)};
 
     if (bt >= BPLib_MEM_BlocktypeMax)
     {
@@ -226,7 +232,7 @@ size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb)
     data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(cb->type);
     if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t))
     {
-        return 0;
+        return 0; // Returns zero data capacity when data offset is greater than block buffer size.
     }
 
     return sizeof(BPLib_MEM_BlockBuffer_t) - data_offset;
@@ -238,7 +244,7 @@ size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb)
  *
  *-----------------------------------------------------------------*/
 void BPLib_MEM_InitSecondaryLink(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *secondary_link,
-                                     BPLib_MEM_Blocktype_t block_type)
+                                 BPLib_MEM_Blocktype_t block_type)
 {
     size_t offset;
 
@@ -360,7 +366,7 @@ size_t BPLib_MEM_GetUserContentSize(const BPLib_MEM_Block_t *cb)
     {
         return block->header.user_content_length;
     }
-    return 0;
+    return 0; // Returns zero user content size when there is no user content.
 }
 
 /*----------------------------------------------------------------
@@ -377,7 +383,7 @@ size_t BPLib_MEM_ReadRefCount(const BPLib_MEM_Block_t *cb)
     {
         return block->header.refcount;
     }
-    return 0;
+    return 0; // Returns zero reference count when there is no block content.
 }
 
 /*----------------------------------------------------------------
@@ -470,26 +476,19 @@ BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t 
     BPLib_MEM_BlockContent_t *block;
     size_t                    data_offset;
 
-    printf("%s:%d BPLib_MEM_GenericDataUncast, blk is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)blk);
-
     data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(parent_bt);
-    printf("%s:%d data_offset is 0x%016lx\n", __FILE__, __LINE__, data_offset);
 
     if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t))
     {
-        printf("%s:%d data_offset too large. Returned null.\n", __FILE__, __LINE__);
         return NULL;
     }
 
     data_offset += offsetof(BPLib_MEM_BlockContent_t, u);
-    printf("%s:%d updated data_offset is 0x%016lx\n", __FILE__, __LINE__, data_offset);
 
     block = (BPLib_MEM_BlockContent_t *)(void *)((uint8_t *)blk - data_offset);
-    printf ("block = 0x%016lx\n", (uint64_t)block);
+
     if (block->header.base_link.type != parent_bt || block->header.content_type_signature != required_magic)
     {
-        printf("%s:%d base_link.type or magic wrong, %d %d 0x%08x 0x%08x\n", __FILE__, __LINE__, 
-            block->header.base_link.type, parent_bt, block->header.content_type_signature, required_magic);
         return NULL;
     }
 
@@ -598,6 +597,53 @@ BPLib_MEM_Block_t *BPLib_MEM_SubqPullSingle(BPLib_MEM_SubqBase_t *subq)
     ++subq->pull_count;
 
     return node;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_BlockDereferenceContent
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_BlockContent_t *BPLib_MEM_BlockDereferenceContent(BPLib_MEM_Block_t *cb)
+{
+    BPLib_MEM_BlockContent_t *block_ptr;
+
+    block_ptr = BPLib_MEM_GetBlockContent(cb);
+
+    if (block_ptr != NULL)
+    {
+        /* Additionally, if this block is a ref, then also dereference it to get to the real block */
+        /* In theory this could be a chain of refs, so this is a while() but in reality it should be just one */
+        while (block_ptr->header.base_link.type == BPLib_MEM_BlocktypeRef)
+        {
+            assert(block_ptr->u.ref.pref_target != NULL);
+            block_ptr = (BPLib_MEM_BlockContent_t *)block_ptr->u.ref.pref_target;
+            /* this should have always arrived at an actual content block */
+            assert(BPLib_MEM_IsAnyContentNode(&block_ptr->header.base_link));
+        }
+
+        return block_ptr;
+    }
+
+    return NULL;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_DuctCast
+ *
+ *-----------------------------------------------------------------*/
+BPLib_MEM_Duct_t *BPLib_MEM_DuctCast(BPLib_MEM_Block_t *cb)
+{
+    BPLib_MEM_BlockContent_t *content;
+
+    content = BPLib_MEM_BlockDereferenceContent(cb);
+    if (content != NULL && content->header.base_link.type == BPLib_MEM_BlocktypeDuct)
+    {
+        return &content->u.duct.dblock;
+    }
+
+    return NULL;
 }
 
 /*----------------------------------------------------------------
@@ -1006,3 +1052,66 @@ BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
     return pool;
 }
 
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_RegisterBlocktypeInternal
+ *----------------------------------------------------------------*/
+int BPLib_MEM_RegisterBlocktypeInternal(BPLib_MEM_Pool_t *pool, uint32_t magic_number,
+                                        const BPLib_MEM_BlocktypeApi_t *api, size_t user_content_size)
+{
+    BPLib_MEM_BlockContent_t       *ablk;
+    BPLib_MEM_ApiContent_t         *api_block;
+    int                                status;
+    BPLib_MEM_BlockAdminContent_t *admin;
+
+    admin = BPLib_MEM_GetAdmin(pool);
+
+    /* before doing anything, check if this is a duplicate.  If so, ignore it.
+     * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
+    if (BPLib_MEM_RBT_SearchUnique(magic_number, &admin->blocktype_registry) != NULL)
+    {
+        return BPLIB_RBT_DUPLICATE;
+    }
+
+    ablk = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypeApi, 0, NULL, BPLIB_MPOOL_ALLOC_PRI_LO);
+    if (ablk == NULL)
+    {
+        return BPLIB_ERROR;
+    }
+
+    api_block = &ablk->u.api;
+
+    if (api != NULL)
+    {
+        api_block->api = *api;
+    }
+    api_block->user_content_size = user_content_size;
+
+    status = BPLib_MEM_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, &api_block->rbt_link);
+
+    /* due to the pre-check above this should always have been successful, but just in case, return the block if error
+     */
+    if (status != BPLIB_SUCCESS)
+    {
+        BPLib_MEM_RecycleBlockInternal(pool, &ablk->header.base_link);
+    }
+
+    return status;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_MEM_RegisterBlocktype
+ *
+ *-----------------------------------------------------------------*/
+int BPLib_MEM_RegisterBlocktype(BPLib_MEM_Pool_t *pool, uint32_t magic_number, const BPLib_MEM_BlocktypeApi_t *api,
+                                   size_t user_content_size)
+{
+    BPLib_MEM_Lock_t *lock;
+    int               result;
+
+    lock   = BPLib_MEM_LockResource(pool);
+    result = BPLib_MEM_RegisterBlocktypeInternal(pool, magic_number, api, user_content_size);
+    BPLib_MEM_LockRelease(lock);
+    return result;
+}

@@ -32,6 +32,7 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 
 /*
 ** Type Definitions
@@ -107,53 +108,54 @@ typedef struct BPLib_IpnAddr
 //BPLIB_TIMEOUT was -5 in the prototype.
 #define BPLIB_TIMEOUT                       ((BPLib_Status_t) -20u)
 
-// BPLIB_FLAG_DIAGNOSTIC
-#define BPLIB_MEM_FLAG_DIAGNOSTIC              0x00000000
+// BPLib Red-Black Tree (RBT) Duplicate Search Result
+#define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -21u)
 
+// BPLib_Handle_t - Multi-purpose handle for locks, APIs, and other allocated resources
 #define BPLIB_HANDLE_MAX_SERIAL 0xffffff
 
 #define BPLIB_HANDLE_RAM_STORE_BASE \
-    (BPLib_Handle_t)                   \
+    (BPLib_Handle_t)                \
     {                               \
         0x1000000                   \
     }
 #define BPLIB_HANDLE_FLASH_STORE_BASE \
-    (BPLib_Handle_t)                     \
+    (BPLib_Handle_t)                  \
     {                                 \
         0x2000000                     \
     }
 #define BPLIB_HANDLE_FILE_STORE_BASE \
-    (BPLib_Handle_t)                    \
+    (BPLib_Handle_t)                 \
     {                                \
         0x3000000                    \
     }
 #define BPLIB_HANDLE_OS_BASE \
-    (BPLib_Handle_t)            \
+    (BPLib_Handle_t)         \
     {                        \
         0x4000000            \
     }
 
 #define BPLIB_HANDLE_INTF_BASE \
-    (BPLib_Handle_t)              \
+    (BPLib_Handle_t)           \
     {                          \
         0x5000000              \
     }
 
 // BPLIB_HANDLE_MPOOL_BASE is from heritage bplib_api_types.h, hence the "MPOOL".
 #define BPLIB_HANDLE_MPOOL_BASE \
-    (BPLib_Handle_t)               \
+    (BPLib_Handle_t)            \
     {                           \
         0x6000000               \
     }
 
 #define BPLIB_INVALID_HANDLE \
     (const BPLib_Handle_t)   \
-    {                     \
-        0                 \
+    {                        \
+        0                    \
     } /* used for integers (os locks, storage services) */
 
 /**
- *  Exported Functions
+ *  Exported BPLib_Handle_t Functions
  */
 
 /**

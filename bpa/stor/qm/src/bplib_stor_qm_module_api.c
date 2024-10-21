@@ -25,7 +25,6 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "bplib_api_types.h"
 

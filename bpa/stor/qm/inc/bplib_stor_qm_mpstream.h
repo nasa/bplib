@@ -21,8 +21,6 @@
 #ifndef BPLIB_STOR_CACHE_MPSTREAM_H
 #define BPLIB_STOR_CACHE_MPSTREAM_H
 
-#include <string.h>
-
 #include "bplib_api_types.h"
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"

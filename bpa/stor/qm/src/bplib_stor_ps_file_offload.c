@@ -123,10 +123,12 @@ int BPLib_STOR_PS_FileOffloadConfigure(BPLib_STOR_CACHE_Block_t *svc, int key, B
 
     return result;
 }
-int BPLib_STOR_PS_FileOffloadQuery(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_QM_ModuleValtype_t vt, const void **val)
+
+BPLib_Status_t BPLib_STOR_PS_FileOffloadQuery(BPLib_STOR_CACHE_Block_t *svc, int key, BPLib_STOR_QM_ModuleValtype_t vt, const void **val)
 {
-    return 0;
+    return BPLIB_SUCCESS; // Temporary return value until PS is implemented.
 }
+
 int BPLib_STOR_PS_FileOffloadStart(BPLib_STOR_CACHE_Block_t *svc)
 {
     BPLib_STOR_PS_FileOffloadState_t *state;
@@ -149,9 +151,9 @@ int BPLib_STOR_PS_FileOffloadStart(BPLib_STOR_CACHE_Block_t *svc)
 
     return result;
 }
-int BPLib_STOR_PS_FileOffloadStop(BPLib_STOR_CACHE_Block_t *svc)
+BPLib_Status_t BPLib_STOR_PS_FileOffloadStop(BPLib_STOR_CACHE_Block_t *svc)
 {
-    return 0;
+    return BPLIB_SUCCESS; // Temporary return value until PS is implemented.
 }
 
 static void BPLib_STOR_PS_FileOffloadSidToName(BPLib_STOR_PS_FileOffloadState_t *state, char *name_buf, size_t name_sz,
@@ -621,7 +623,7 @@ static int BPLib_STOR_PS_FileOffloadRestore(BPLib_STOR_CACHE_Block_t *svc, BPLib
     return result;
 }
 
-static int BPLib_STOR_PS_FileOffloadRelease(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid)
+static BPLib_Status_t BPLib_STOR_PS_FileOffloadRelease(BPLib_STOR_CACHE_Block_t *svc, BPLib_STOR_CACHE_Sid_t sid)
 {
     char                        bundle_file[BPLIB_FILE_PATH_SIZE];
     BPLib_STOR_PS_FileOffloadState_t *state;
@@ -629,14 +631,14 @@ static int BPLib_STOR_PS_FileOffloadRelease(BPLib_STOR_CACHE_Block_t *svc, BPLib
     state = BPLib_STOR_CACHE_MpoolGenericDataCast(svc, BPLIB_FILE_OFFLOAD_MAGIC);
     if (state == NULL)
     {
-        return bplog(NULL, BPLIB_MEM_FLAG_DIAGNOSTIC, "Not a valid offload state object\n");
+        return BPLIB_ERROR;
     }
 
     BPLib_STOR_PS_FileOffloadSidToName(state, bundle_file, sizeof(bundle_file), sid, false);
 
     unlink(bundle_file);
 
-    return 0;
+    return BPLIB_SUCCESS;
 }
 
 BPLib_Handle_t BPLib_STOR_CACHE_CreateFileStorage(BPLib_STOR_CACHE_Block_t *rtbl, const BPLib_IpnAddr_t *storage_addr)

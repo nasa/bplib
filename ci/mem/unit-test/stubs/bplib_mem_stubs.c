@@ -52,7 +52,6 @@ BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t *pool, BPLib_H
  */
 void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic)
 {
-    printf("%s:%d BPLib_MEM_GenericDataCast stub, cb is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)cb);
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_GenericDataCast, void *);
 
     UT_GenStub_AddParam(BPLib_MEM_GenericDataCast, BPLib_MEM_Block_t *, cb);
@@ -71,15 +70,11 @@ void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic)
 BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t parent_bt,
                                                      uint32_t required_magic)
 {
-    printf("%s:%d BPLib_MEM_GenericDataUncast stub, blk is 0x%016lx\n", __FILE__, __LINE__, (uint64_t)blk);
-
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_GenericDataUncast, BPLib_MEM_Block_t *);
 
     UT_GenStub_AddParam(BPLib_MEM_GenericDataUncast, void *, blk);
     UT_GenStub_AddParam(BPLib_MEM_GenericDataUncast, BPLib_MEM_Blocktype_t, parent_bt);
     UT_GenStub_AddParam(BPLib_MEM_GenericDataUncast, uint32_t, required_magic);
-
-    printf("%s:%d Execute BPLib_MEM_GenericDataUncast\n", __FILE__, __LINE__);
 
     UT_GenStub_Execute(BPLib_MEM_GenericDataUncast, Basic, NULL);
 
@@ -139,13 +134,13 @@ size_t BPLib_MEM_GetUserContentSize(const BPLib_MEM_Block_t *cb)
  * Generated stub function for BPLib_MEM_Init()
  * ----------------------------------------------------
  */
-int BPLib_MEM_Init(void)
+BPLib_Status_t BPLib_MEM_Init(void)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_MEM_Init, int);
 
     UT_GenStub_Execute(BPLib_MEM_Init, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_MEM_Init, int);
+    return UT_GenStub_GetReturnValue(BPLib_MEM_Init, BPLib_Status_t);
 }
 
 /*

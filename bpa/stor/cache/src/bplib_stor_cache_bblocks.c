@@ -27,7 +27,7 @@
  */
 
 #include <stdio.h>
-#include <string.h>
+#include "bplib_api_types.h"
 #include <assert.h>
 
 #include "bplib_mem.h"
@@ -138,7 +138,6 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_P
     within_timeout = true;
     while (true)
     {
-        printf("%s:%d Calling BPLib_STOR_CACHE_AllocBlockInternal pool: 0x%016lx\n", __FILE__, __LINE__, (uint64_t)pool);
         result = BPLib_STOR_CACHE_AllocBlockInternal(pool, BPLib_STOR_CACHE_BlocktypePrimary, magic_number, init_arg, priority);
         if (result != NULL || !within_timeout)
         {
@@ -148,7 +147,6 @@ BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_BblockPrimaryAlloc(BPLib_STOR_CACHE_P
         within_timeout = BPLib_MEM_LockWait(lock, timeout);
     }
     BPLib_MEM_LockRelease(lock);
-    printf("%s:%d result is 0x%016lx", __FILE__, __LINE__, (uint64_t)result);
     return (BPLib_STOR_CACHE_Block_t *)result;
 }
 
@@ -468,7 +466,7 @@ size_t BPLib_STOR_CACHE_CopyFullBundleOut(BPLib_STOR_CACHE_BblockPrimary_t *cpb,
      */
     if (buf_sz < 2)
     {
-        return 0;
+        return 0; // Returned bundle count of zero for too small buffer size.
     }
 
     out_p  = buffer;
@@ -533,14 +531,14 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
      */
     if (buf_sz < 2)
     {
-        return 0;
+        return 0; // Bundle count is zero on error.
     }
 
     in_p = buffer;
     if (*in_p != 0x9F) /* CBOR indefinite-length array */
     {
         /* not well formed BP */
-        return 0;
+        return 0; // Bundle count is zero on error.
     }
 
     ++in_p;
@@ -578,7 +576,7 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
             /* if the block is an admin record, this determines how to interpret the payload */
             if (cpb->data.logical.controlFlags.isAdminRecord)
             {
-                payload_block_hint = BPLib_STOR_CACHE_BlocktypeAdminrecordpayloadblock;
+                payload_block_hint = BPLib_STOR_CACHE_BlocktypeAdminRecordPayloadBlock;
             }
         }
         else
@@ -616,15 +614,15 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
              */
             switch (ccb->canonical_logical_data.canonical_block.blockType)
             {
-                case BPLib_STOR_CACHE_BlocktypePayloadconfidentialityblock:
+                case BPLib_STOR_CACHE_BlocktypePayloadConfidentialityBlock:
                     /* bpsec not implemented yet, but this is the idea */
                     if (payload_block_hint == BPLib_STOR_CACHE_BlocktypeUndefined)
                     {
-                        payload_block_hint = BPLib_STOR_CACHE_BlocktypeCiphertextpayloadblock;
+                        payload_block_hint = BPLib_STOR_CACHE_BlocktypeCiphertextPayloadBlock;
                     }
                     break;
 
-                case BPLib_STOR_CACHE_BlocktypeCustodytrackingblock:
+                case BPLib_STOR_CACHE_BlocktypeCustodyTrackingBlock:
                     /* if this block is present it requests full custody tracking */
                     cpb->data.delivery.delivery_policy = BPLib_STOR_CACHE_PolicyDeliveryCustodyTracking;
                     break;
@@ -644,11 +642,11 @@ size_t BPLib_STOR_CACHE_CopyFullBundleIn(BPLib_STOR_CACHE_BblockPrimary_t *cpb, 
      * If remain_sz != 0 at this point, it means there was some mismatch
      * between what the CLA saw as a bundle, verses what CBOR decoding
      * saw as a bundle.  This may or may not be an issue, may depend on
-     * context.  So the size is returned, so the caller can decide.
+     * context.  So the size of zero is returned, so the caller can decide.
      */
     if (cpb == NULL || *in_p != 0xFF) /* CBOR break code */
     {
-        return 0;
+        return 0; // Bundle count is zero on error.
     }
 
     ++in_p;
