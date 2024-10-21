@@ -28,19 +28,59 @@
 /* Function Definitions */
 /* ==================== */
 
-BPLib_Status_t Test_BPA_ADUP_AddApplication(uint8 ChanId)
+BPLib_Status_t Test_BPA_ADUP_AddApplication_Success(uint8 ChanId)
 {
     return BPLIB_SUCCESS;
 }
 
-BPLib_Status_t Test_BPA_ADUP_StartApplication(uint8 ChanId)
+BPLib_Status_t Test_BPA_ADUP_AddApplication_ChanErr(uint8 ChanId)
+{
+    return BPLIB_ADU_ADD_CHAN_ERR;
+}
+
+BPLib_Status_t Test_BPA_ADUP_AddApplication_StateErr(uint8 ChanId)
+{
+    return BPLIB_ADU_ADD_STAT_ERR;
+}
+
+BPLib_Status_t Test_BPA_ADUP_StartApplication_Success(uint8 ChanId)
 {
     return BPLIB_SUCCESS;
 }
 
-BPLib_Status_t Test_BPA_ADUP_StopApplication(uint8 ChanId)
+BPLib_Status_t Test_BPA_ADUP_StartApplication_ChanErr(uint8 ChanId)
+{
+    return BPLIB_ADU_START_CHAN_ERR;
+}
+
+BPLib_Status_t Test_BPA_ADUP_StartApplication_StateErr(uint8 ChanId)
+{
+    return BPLIB_ADU_START_STAT_ERR;
+}
+
+BPLib_Status_t Test_BPA_ADUP_StartApplication_SubErr(uint8 ChanId)
+{
+    return BPLIB_ADU_START_SUB_ERR;
+}
+
+BPLib_Status_t Test_BPA_ADUP_StopApplication_Success(uint8 ChanId)
 {
     return BPLIB_SUCCESS;
+}
+
+BPLib_Status_t Test_BPA_ADUP_StopApplication_ChanErr(uint8 ChanId)
+{
+    return BPLIB_ADU_STOP_CHAN_ERR;
+}
+
+BPLib_Status_t Test_BPA_ADUP_StopApplication_StateErr(uint8 ChanId)
+{
+    return BPLIB_ADU_STOP_STAT_ERR;
+}
+
+BPLib_Status_t Test_BPA_ADUP_StopApplication_UnsubErr(uint8 ChanId)
+{
+    return BPLIB_ADU_STOP_UNSUB_ERR;
 }
 
 void BPLib_NC_Test_Setup(void)

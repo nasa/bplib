@@ -43,9 +43,19 @@
 /* =================== */
 
 /* Proxy Fakes */
-BPLib_Status_t Test_BPA_ADUP_AddApplication(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_StartApplication(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_StopApplication(uint8 ChanId);
+BPLib_Status_t Test_BPA_ADUP_AddApplication_Success(uint8 ChanId);
+BPLib_Status_t Test_BPA_ADUP_AddApplication_ChanErr(uint8 ChanId);
+BPLib_Status_t Test_BPA_ADUP_AddApplication_StateErr(uint8 ChanId);
+
+BPLib_Status_t Test_BPA_ADUP_StartApplication_Success(uint8 ChanId);
+BPLib_Status_t Test_BPA_ADUP_StartApplication_ChanErr(uint8 ChanId);
+BPLib_Status_t Test_BPA_ADUP_StartApplication_StateErr(uint8 ChanId);
+BPLib_Status_t Test_BPA_ADUP_StartApplication_SubErr(uint8 ChanId);
+
+BPLib_Status_t Test_BPA_ADUP_StopApplication_Success(uint8 ChanId);
+BPLib_Status_t Test_BPA_ADUP_StopApplication_ChanErr(uint8 ChanId);
+BPLib_Status_t Test_BPA_ADUP_StopApplication_StateErr(uint8 ChanId);
+BPLib_Status_t Test_BPA_ADUP_StopApplication_UnsubErr(uint8 ChanId);
 
 void BPLib_NC_Test_Setup(void);
 void BPLib_NC_Test_Teardown(void);
