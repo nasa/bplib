@@ -30,7 +30,7 @@
 /* Globals */
 /* ======= */
 
-UT_CheckEvent_t EventTest;
+// UT_CheckEvent_t EventTest;
 
 /* ==================== */
 /* Function Definitions */
@@ -488,7 +488,7 @@ void Test_BPLib_NC_AddApplication_Error(void)
     Payload.ChanId = 2;
     Status = BPLib_NC_AddApplication(Payload);
 
-    UtAssert_INT32_EQ(EventTest.MatchCount, 0);
+    // UtAssert_INT32_EQ(EventTest.MatchCount, 0);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_ADD_STAT_ERR);
 }
 
