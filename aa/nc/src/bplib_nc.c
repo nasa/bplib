@@ -1160,7 +1160,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void)
     /*
     else
     {
-        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CFG_ERR_EID, BPLib_EM_EventType_ERROR,
+        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CFG_HK_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Send node mib config hk directive not implemented");
     }
     */
@@ -1184,7 +1184,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void)
     /*
     else
     {
-        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CFG_ERR_EID, BPLib_EM_EventType_ERROR,
+        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CFG_HK_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Send per-source mib config hk directive not implemented");
     }
     */
@@ -1241,7 +1241,7 @@ BPLib_Status_t BPLib_NC_SendStorageHk(void)
     /*
     else
     {
-        BPLib_EM_SendEvent(BPLIB_SEND_STOR_ERR_EID, BPLib_EM_EventType_ERROR,
+        BPLib_EM_SendEvent(BPLIB_SEND_STOR_HK_ERR_EID, BPLib_EM_EventType_ERROR,
                             "Send storage hk directive not implemented");
     } */
 
