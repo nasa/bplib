@@ -29,7 +29,7 @@
 
 #include "bplib_time.h"
 
-#include "bplib_mem_rbtree.h"
+#include "bplib_rbt.h"
 
 /*
  * Minimum size of a generic data block

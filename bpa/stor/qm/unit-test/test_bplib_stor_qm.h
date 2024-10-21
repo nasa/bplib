@@ -26,7 +26,7 @@
 #include "bplib_api_types.h"
 
 #include "bplib_mem.h"
-#include "bplib_mem_rbtree.h"
+#include "bplib_rbt.h"
 
 #include "bplib_stor_cache.h"
 

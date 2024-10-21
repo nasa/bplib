@@ -23,7 +23,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_mem.h"
-#include "bplib_mem_rbtree.h"
+#include "bplib_rbt.h"
 
 #include "bplib_time.h"
 
@@ -42,7 +42,7 @@ typedef struct BPLib_STOR_CACHE_ClaStats
 typedef struct BPLib_STOR_QM_ServiceintfInfo
 {
     BPLib_Ipn_t          node_number;
-    BPLib_MEM_RBT_Root_t  service_index;
+    BPLib_RBT_Root_t  service_index;
     BPLib_STOR_CACHE_Ref_t storage_service;
 
 } BPLib_STOR_QM_ServiceintfInfo_t;

@@ -63,7 +63,7 @@ BPLib_STOR_CACHE_State_t *BPLib_STOR_CACHE_GetState(BPLib_STOR_CACHE_Block_t *in
     return state;
 }
 
-int BPLib_STOR_CACHE_EntryTreeInsertUnsorted(const BPLib_MEM_RBT_Link_t *node, void *arg)
+int BPLib_STOR_CACHE_EntryTreeInsertUnsorted(const BPLib_RBT_Link_t *node, void *arg)
 {
     /* For the time/dest indices, it only searches by key (dtn time) and it does not matter
      * what order nodes with the same key appear in.  So this always returns 1.  Note
@@ -180,25 +180,25 @@ void BPLib_STOR_CACHE_FlushPending(BPLib_STOR_CACHE_State_t *state)
 
 int BPLib_STOR_CACHE_DoPoll(BPLib_STOR_CACHE_State_t *state)
 {
-    BPLib_MEM_RBT_Iter_t     rbt_it;
+    BPLib_RBT_Iter_t     rbt_it;
     BPLib_STOR_CACHE_Entry_t *store_entry;
     BPLib_Val_t             ref_val;
     int                  rbt_status;
 
     ref_val = BPLIB_TIME_TO_INT(BPLib_STOR_CACHE_GetMonotonicTime());
-    rbt_status = BPLib_MEM_RBT_IterGotoMax(ref_val, &state->time_index, &rbt_it);
+    rbt_status = BPLib_RBT_IterGotoMax(ref_val, &state->time_index, &rbt_it);
     while (rbt_status == BPLIB_SUCCESS)
     {
         store_entry = BPLib_STOR_CACHE_EntryFromLink(rbt_it.position, time_rbt_link);
 
         /* preemptively move the iterator - the current entry will be removed,
          * and if that was done first, it would invalidate the iterator */
-        rbt_status = BPLib_MEM_RBT_IterPrev(&rbt_it);
+        rbt_status = BPLib_RBT_IterPrev(&rbt_it);
 
         BPLib_STOR_CACHE_EntryMakePending(store_entry, 0, 0);
 
         /* done with this entry in the time index (will be re-added when pending_list is processed) */
-        BPLib_MEM_RBT_ExtractNode(&state->time_index, &store_entry->time_rbt_link);
+        BPLib_RBT_ExtractNode(&state->time_index, &store_entry->time_rbt_link);
     }
 
     return BPLIB_SUCCESS;
@@ -207,22 +207,22 @@ int BPLib_STOR_CACHE_DoPoll(BPLib_STOR_CACHE_State_t *state)
 #ifdef UNUSED_ENTRIES_MAKE_PENDING
 int BPLib_STOR_CACHE_EntriesMakePending(BPLib_STOR_CACHE_State_t *state, BPLib_Ipn_t dest, BPLib_Ipn_t mask)
 {
-    BPLib_MEM_RBT_Iter_t      rbt_it;
+    BPLib_RBT_Iter_t      rbt_it;
     BPLib_STOR_CACHE_Entry_t *store_entry;
     int                       rbt_status;
     BPLib_Ipn_t                  curr_ipn;
 
-    rbt_status = BPLib_MEM_RBT_IterGotoMin(dest, &state->dest_eid_index, &rbt_it);
+    rbt_status = BPLib_RBT_IterGotoMin(dest, &state->dest_eid_index, &rbt_it);
     while (rbt_status == BPLIB_SUCCESS)
     {
-        curr_ipn = BPLib_MEM_RBT_GetKeyValue(rbt_it.position);
+        curr_ipn = BPLib_RBT_GetKeyValue(rbt_it.position);
         if ((curr_ipn & mask) != dest)
         {
             /* no longer a queue match, all done */
             break;
         }
 
-        rbt_status  = BPLib_MEM_RBT_IterNext(&rbt_it);
+        rbt_status  = BPLib_RBT_IterNext(&rbt_it);
         store_entry = BPLib_STOR_CACHE_EntryFromLink(rbt_it.position, time_rbt_link);
         BPLib_STOR_CACHE_EntryMakePending(store_entry, 0, 0);
     }
@@ -311,10 +311,10 @@ int BPLib_STOR_CACHE_ConstructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
     BPLib_STOR_CACHE_InitListHead(sblk, &state->pending_list);
     BPLib_STOR_CACHE_InitListHead(sblk, &state->idle_list);
 
-    BPLib_MEM_RBT_InitRoot(&state->bundle_index);
-    BPLib_MEM_RBT_InitRoot(&state->dacs_index);
-    BPLib_MEM_RBT_InitRoot(&state->dest_eid_index);
-    BPLib_MEM_RBT_InitRoot(&state->time_index);
+    BPLib_RBT_InitRoot(&state->bundle_index);
+    BPLib_RBT_InitRoot(&state->dacs_index);
+    BPLib_RBT_InitRoot(&state->dest_eid_index);
+    BPLib_RBT_InitRoot(&state->time_index);
 
     #endif // QM
 
@@ -335,10 +335,10 @@ int BPLib_STOR_CACHE_DestructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
      * should have made this so before attempting to delete the intf.
      * If not so, they cannot be cleaned up now, because the state object is no longer valid,
      * the desctructors for these objects will not work correctly */
-    assert(BPLib_MEM_RBT_TreeIsEmpty(&state->time_index));
-    assert(BPLib_MEM_RBT_TreeIsEmpty(&state->dest_eid_index));
-    assert(BPLib_MEM_RBT_TreeIsEmpty(&state->bundle_index));
-    assert(BPLib_MEM_RBT_TreeIsEmpty(&state->dacs_index));
+    assert(BPLib_RBT_TreeIsEmpty(&state->time_index));
+    assert(BPLib_RBT_TreeIsEmpty(&state->dest_eid_index));
+    assert(BPLib_RBT_TreeIsEmpty(&state->bundle_index));
+    assert(BPLib_RBT_TreeIsEmpty(&state->dacs_index));
     assert(BPLib_STOR_CACHE_IsLinkUnattached(&state->idle_list));
     assert(BPLib_STOR_CACHE_IsLinkUnattached(&state->pending_list));
 
@@ -374,25 +374,25 @@ int BPLib_STOR_CACHE_DestructEntry(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
     state = store_entry->parent;
 
     /* need to make sure this is removed from all index trees */
-    if (BPLib_MEM_RBT_NodeIsMember(&state->dacs_index, &store_entry->hash_rbt_link))
+    if (BPLib_RBT_NodeIsMember(&state->dacs_index, &store_entry->hash_rbt_link))
     {
-        BPLib_MEM_RBT_ExtractNode(&state->dacs_index, &store_entry->hash_rbt_link);
+        BPLib_RBT_ExtractNode(&state->dacs_index, &store_entry->hash_rbt_link);
     }
-    if (BPLib_MEM_RBT_NodeIsMember(&state->bundle_index, &store_entry->hash_rbt_link))
+    if (BPLib_RBT_NodeIsMember(&state->bundle_index, &store_entry->hash_rbt_link))
     {
-        BPLib_MEM_RBT_ExtractNode(&state->bundle_index, &store_entry->hash_rbt_link);
+        BPLib_RBT_ExtractNode(&state->bundle_index, &store_entry->hash_rbt_link);
     }
 
     /* for the time index, 0 is an invalid key value and means it was never added.
-     * This is a faster/easier way to check than BPLib_MEM_RBT_NodeIsMember(), but can
+     * This is a faster/easier way to check than BPLib_RBT_NodeIsMember(), but can
      * only be used if it the link is only associated with a single tree */
-    if (BPLib_MEM_RBT_GetKeyValue(&store_entry->time_rbt_link) != 0)
+    if (BPLib_RBT_GetKeyValue(&store_entry->time_rbt_link) != 0)
     {
-        BPLib_MEM_RBT_ExtractNode(&state->time_index, &store_entry->time_rbt_link);
+        BPLib_RBT_ExtractNode(&state->time_index, &store_entry->time_rbt_link);
     }
-    if (BPLib_MEM_RBT_GetKeyValue(&store_entry->dest_eid_rbt_link) != 0)
+    if (BPLib_RBT_GetKeyValue(&store_entry->dest_eid_rbt_link) != 0)
     {
-        BPLib_MEM_RBT_ExtractNode(&state->dest_eid_index, &store_entry->dest_eid_rbt_link);
+        BPLib_RBT_ExtractNode(&state->dest_eid_index, &store_entry->dest_eid_rbt_link);
     }
 
     /* release the refptr */

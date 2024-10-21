@@ -22,26 +22,25 @@
 ** Include
 */
 
-#include "../test_bplib_mem.h"
-#include "bplib_mem_test_utils.h"
+#include "../test_bplib_rbt.h"
+#include "bplib_rbt_test_utils.h"
 
 /*
 ** Function Definitions
 */
 
-void BPLib_MEM_Test_Setup(void)
+void BPLib_RBT_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 }
 
-void BPLib_MEM_Test_Teardown(void)
+void BPLib_RBT_Test_Teardown(void)
 {
     /* Clean up test environment */
 }
 
 void UtTest_Setup(void)
 {
-    Test_BPLib_MEM_Register();
-    Test_BPLib_MEM_Subqs_Register();
+    Test_BPLib_RBT_Register();
 }

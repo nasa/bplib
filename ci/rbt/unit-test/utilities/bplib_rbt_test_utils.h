@@ -18,30 +18,34 @@
  *
  */
 
+#ifndef BPLIB_RBT_TEST_UTILS_H
+#define BPLIB_RBT_TEST_UTILS_H
+
 /*
 ** Include
 */
 
-#include "../test_bplib_mem.h"
-#include "bplib_mem_test_utils.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
+
+#include "bplib.h"
+#include "bplib_rbt.h"
+
+/*
+** Macro Definitions
+*/
+
+
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_RBT_Test_Setup, BPLib_RBT_Test_Teardown, #test)
 
 /*
 ** Function Definitions
 */
 
-void BPLib_MEM_Test_Setup(void)
-{
-    /* Initialize test environment to default state for every test */
-    UT_ResetState(0);
-}
+void BPLib_RBT_Test_Setup(void);
+void BPLib_RBT_Test_Teardown(void);
 
-void BPLib_MEM_Test_Teardown(void)
-{
-    /* Clean up test environment */
-}
 
-void UtTest_Setup(void)
-{
-    Test_BPLib_MEM_Register();
-    Test_BPLib_MEM_Subqs_Register();
-}
+#endif /* BPLIB_RBT_TEST_UTILS_H */

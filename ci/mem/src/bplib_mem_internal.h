@@ -29,7 +29,7 @@
 #include "bplib_time.h"
 
 #include "bplib_mem.h"
-#include "bplib_mem_rbtree.h"
+#include "bplib_rbt.h"
 
 #include "osapi.h"
 
@@ -106,7 +106,7 @@ typedef struct BPLib_MEM_BlocktypeApi
  */
 typedef struct BPLib_MEM_ApiContent
 {
-    BPLib_MEM_RBT_Link_t     rbt_link;
+    BPLib_RBT_Link_t     rbt_link;
     BPLib_MEM_BlocktypeApi_t api;
     size_t                   user_content_size;
     BPLib_MEM_AlignedData_t  user_data_start;
@@ -134,7 +134,7 @@ typedef struct BPLib_MEM_BlockAdminContent
     uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
     uint32_t max_alloc_watermark;
 
-    BPLib_MEM_RBT_Root_t   blocktype_registry; /**< registry of block signature values */
+    BPLib_RBT_Root_t   blocktype_registry; /**< registry of block signature values */
     BPLib_MEM_ApiContent_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
     BPLib_MEM_ApiContent_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
 
@@ -932,14 +932,14 @@ typedef struct BPLib_MEM_State
      */
     BPLib_MEM_Block_t idle_list;
 
-    BPLib_MEM_RBT_Root_t bundle_index;
-    BPLib_MEM_RBT_Root_t dacs_index;
+    BPLib_RBT_Root_t bundle_index;
+    BPLib_RBT_Root_t dacs_index;
     #ifdef jphfix
-    BPLib_MEM_RBT_Root_t dest_eid_jphfix_index;
-    BPLib_MEM_RBT_Root_t time_jphfix_index;
+    BPLib_RBT_Root_t dest_eid_jphfix_index;
+    BPLib_RBT_Root_t time_jphfix_index;
     #else // jphfix
-    BPLib_MEM_RBT_Root_t dest_eid_index;
-    BPLib_MEM_RBT_Root_t time_index;
+    BPLib_RBT_Root_t dest_eid_index;
+    BPLib_RBT_Root_t time_index;
     #endif // jphfix
 
     // TODO const BPLib_STOR_PS_OffloadApi_t *offload_api;

@@ -123,7 +123,7 @@ void test_setup_allocation(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *db,
 
     admin = BPLib_MEM_GetAdmin(pool);
     BPLib_MEM_SubqPushSingle(&admin->free_blocks, &db->header.base_link);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, api_content);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, api_content);
 }
 
 // UtTest_Setup is in bplib_mem_test_utils.c

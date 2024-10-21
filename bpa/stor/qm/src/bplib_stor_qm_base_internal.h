@@ -24,11 +24,11 @@
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_block.h"
 
-#include "bplib_mem_rbtree.h"
+#include "bplib_rbt.h"
 
 struct BPLib_STOR_QM_ModuleApiContent
 {
-    BPLib_MEM_RBT_Link_t                rbt_link;
+    BPLib_RBT_Link_t                rbt_link;
     BPLib_STOR_CACHE_BlocktypeApi_t     api;
     size_t                              user_content_size;
     BPLib_MEM_AlignedData_t             user_data_start;
@@ -44,7 +44,7 @@ struct BPLib_STOR_QM_ModuleApiContent
 typedef struct BPLib_STOR_CACHE_RouteServiceintfInfo
 {
     BPLib_Ipn_t          node_number;
-    BPLib_MEM_RBT_Root_t  service_index;
+    BPLib_RBT_Root_t  service_index;
     BPLib_STOR_CACHE_Ref_t storage_service;
 
 } BPLib_STOR_CACHE_RouteServiceintfInfo_t;
@@ -53,7 +53,7 @@ typedef struct BPLib_STOR_CACHE_ServiceEndpt BPLib_STOR_CACHE_ServiceEndpt_t;
 
 struct BPLib_STOR_CACHE_ServiceEndpt
 {
-    BPLib_MEM_RBT_Link_t      rbt_link; /* for storage in RB tree, must be first */
+    BPLib_RBT_Link_t      rbt_link; /* for storage in RB tree, must be first */
     BPLib_MEM_Block_t        *self_ptr;
     BPLib_STOR_CACHE_Ref_t    subflow_ref;
 };

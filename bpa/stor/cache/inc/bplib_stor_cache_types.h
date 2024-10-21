@@ -29,7 +29,7 @@
 #include "bplib_api_types.h"
 #include "bplib_crc.h"
 #include "bplib_mem.h"
-#include "bplib_mem_rbtree.h"
+#include "bplib_rbt.h"
 
 // TODO Verify ifdef __cplusplus is on all public header files.
 #ifdef __cplusplus

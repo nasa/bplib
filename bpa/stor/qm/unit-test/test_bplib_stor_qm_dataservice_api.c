@@ -112,7 +112,7 @@ void Test_BPLib_STOR_CACHE_DataserviceDetach(void)
     BPLib_STOR_QM_QueueTbl_t    rtbl;
     BPLib_IpnAddr_t       ipn;
     BPLib_STOR_CACHE_Ref_t   duct_ref;
-    BPLib_MEM_RBT_Link_t    rbt_link;
+    BPLib_RBT_Link_t    rbt_link;
     BPLib_STOR_CACHE_Block_t temp_block;
 
     memset(&rtbl, 0, sizeof(BPLib_STOR_QM_QueueTbl_t));
@@ -120,14 +120,14 @@ void Test_BPLib_STOR_CACHE_DataserviceDetach(void)
     ipn.service_number = 100;
     memset(&ipn, 0, sizeof(BPLib_IpnAddr_t));
     memset(&duct_ref, 0, sizeof(BPLib_STOR_CACHE_Ref_t));
-    memset(&rbt_link, 0, sizeof(BPLib_MEM_RBT_Link_t));
+    memset(&rbt_link, 0, sizeof(BPLib_RBT_Link_t));
     memset(&temp_block, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
     UtAssert_NULL BPLib_STOR_CACHE_DataserviceDetach(&rtbl, &ipn));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &duct_ref);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_lib_AltHandler_PointerReturn, &rbt_link);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_lib_AltHandler_PointerReturn, &rbt_link);
     UtAssert_NULL BPLib_STOR_CACHE_DataserviceDetach(&rtbl, &ipn));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, &duct_ref);
@@ -135,7 +135,7 @@ void Test_BPLib_STOR_CACHE_DataserviceDetach(void)
     UtAssert_NULL BPLib_STOR_CACHE_DataserviceDetach(&rtbl, &ipn));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_lib_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_lib_AltHandler_PointerReturn, NULL);
     #endif // QM_MODULE_API
@@ -246,7 +246,7 @@ void Test_BPLib_STOR_CACHE_BindSocket(void)
     source_ipn.node_number            = 1;
     UtAssert_UINT32_NEQ(BPLib_STOR_CACHE_BindSocket(&desc, &source_ipn), 0);
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_ExtractNode), BPLIB_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_RBT_ExtractNode), BPLIB_SUCCESS);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefCreate), UT_lib_AltHandler_PointerReturn, &sblk);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_QM_DuctCast), UT_lib_AltHandler_PointerReturn, &sblk);
@@ -287,7 +287,7 @@ void Test_BPLib_STOR_CACHE_CloseSocket(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CloseSocket(&desc));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, &sock);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_ExtractNode), BPLIB_SUCCESS);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_RBT_ExtractNode), BPLIB_SUCCESS);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CloseSocket(&desc));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_lib_AltHandler_PointerReturn, NULL);

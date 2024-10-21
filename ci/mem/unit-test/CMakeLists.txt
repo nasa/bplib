@@ -10,7 +10,6 @@
 # Create stubs (for external use)
 add_library(bplib_mem_stubs STATIC
     stubs/bplib_mem_stubs.c
-    stubs/bplib_mem_rbtree_stubs.c
 )
 
 target_include_directories(bplib_mem_stubs PUBLIC
@@ -27,7 +26,6 @@ target_link_libraries(
 # Create unit test object
 add_library(utobj_bplib_mem OBJECT
     ../src/bplib_mem.c
-    ../src/bplib_mem_rbtree.c
     ../src/bplib_mem_internal.c
 )
 
@@ -51,7 +49,6 @@ target_include_directories(utobj_bplib_mem PRIVATE
 add_executable(coverage-bplib_mem-testrunner
     utilities/bplib_mem_test_utils.c
     test_bplib_mem.c
-    test_bplib_mem_rbtree.c
     test_bplib_mem_setup.c
     test_bplib_mem_subqs.c
     $<TARGET_OBJECTS:utobj_bplib_mem>
@@ -70,6 +67,7 @@ target_link_libraries(coverage-bplib_mem-testrunner PUBLIC
     bplib_time
     bplib_fwp_stubs
     bplib_mem_stubs
+    bplib_rbt_stubs
     bplib_stor_qm_stubs
 )
 

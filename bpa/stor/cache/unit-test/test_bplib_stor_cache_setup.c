@@ -264,7 +264,7 @@ void test_setup_cpool_allocation(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE
 
     admin = BPLib_STOR_CACHE_GetAdmin(pool);
     BPLib_STOR_CACHE_SubqPushSingle(&admin->free_blocks, &db->header.base_link);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, api_content);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, api_content);
 }
 
 void Test_BplibStorCache_Register(void)

@@ -252,7 +252,7 @@ void BPLib_STOR_CACHE_FsmReschedule(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_
     /*
      * determine the batch/bucket that this should go into
      */
-    prev_key = BPLib_MEM_RBT_GetKeyValue(&store_entry->time_rbt_link);
+    prev_key = BPLib_RBT_GetKeyValue(&store_entry->time_rbt_link);
     if (BPLIB_TIME_TO_INT(ref_time) != prev_key)
     {
         /*
@@ -261,9 +261,9 @@ void BPLib_STOR_CACHE_FsmReschedule(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_
          */
         if (prev_key != 0)
         {
-            BPLib_MEM_RBT_ExtractNode(&state->time_index, &store_entry->time_rbt_link);
+            BPLib_RBT_ExtractNode(&state->time_index, &store_entry->time_rbt_link);
         }
-        BPLib_MEM_RBT_InsertValueGeneric(BPLIB_TIME_TO_INT(ref_time), &state->time_index, &store_entry->time_rbt_link,
+        BPLib_RBT_InsertValueGeneric(BPLIB_TIME_TO_INT(ref_time), &state->time_index, &store_entry->time_rbt_link,
                                        BPLib_STOR_CACHE_EntryTreeInsertUnsorted, NULL);
     }
 }

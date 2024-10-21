@@ -136,7 +136,7 @@ void Test_BPLib_STOR_CACHE_FsmExecute(void)
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmExecute(&sblk));
 
     store_entry.expire_time = UT_MONOTIME_1;
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_GetKeyValue), UT_cache_sizet_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_GetKeyValue), UT_cache_sizet_Handler, NULL);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmExecute(&sblk));
 
     store_entry.state = BPLib_STOR_CACHE_EntryStateIdle;
@@ -228,8 +228,8 @@ void Test_BPLib_STOR_CACHE_FsmReschedule(void)
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_RBT_GetKeyValue), 1);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_GetKeyValue), UT_cache_uint64_Handler, NULL);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_RBT_GetKeyValue), 1);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_GetKeyValue), UT_cache_uint64_Handler, NULL);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmReschedule(&state, &store_entry));
 
     store_entry.flags = 4;
@@ -260,7 +260,7 @@ void Test_BPLib_STOR_CACHE_FsmStateGenerateDacsExit(void)
 
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_NodeIsMember), UT_cache_bool_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_NodeIsMember), UT_cache_bool_Handler, NULL);
 
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_FsmStateGenerateDacsExit(&store_entry));
 }

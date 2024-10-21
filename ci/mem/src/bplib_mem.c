@@ -904,7 +904,7 @@ uint32_t BPLib_MEM_CollectBlocks(BPLib_MEM_Pool_t *pool, uint32_t limit)
         assert(content->header.refcount == 0);
 
         /* figure out how to de-initialize the user content by looking up the content type */
-        api_block = (BPLib_MEM_ApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content->header.content_type_signature,
+        api_block = (BPLib_MEM_ApiContent_t *)(void *)BPLib_RBT_SearchUnique(content->header.content_type_signature,
                                                                                  &admin->blocktype_registry);
 
         if (api_block != NULL)
@@ -1020,7 +1020,7 @@ BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
     BPLib_MEM_SubqInit(&pool->admin_block.header.base_link, &admin->free_blocks);
     BPLib_MEM_SubqInit(&pool->admin_block.header.base_link, &admin->recycle_blocks);
     BPLib_MEM_InitListHead(&pool->admin_block.header.base_link, &admin->active_list);
-    BPLib_MEM_RBT_InitRoot(&admin->blocktype_registry);
+    BPLib_RBT_InitRoot(&admin->blocktype_registry);
 
     /* start at the _next_ buffer, which is the first usable buffer (first is the admin block) */
     pchunk = &pool->admin_block + 1;
@@ -1028,7 +1028,7 @@ BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
 
     /* register the first API type, which is 0.
      * Notably this prevents other modules from actually registering something at 0. */
-    BPLib_MEM_RBT_InsertValueUnique(BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
+    BPLib_RBT_InsertValueUnique(BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
                                   &admin->blocktype_cbor.rbt_link);
 
     while (remain >= sizeof(BPLib_MEM_BlockContent_t))
@@ -1068,7 +1068,7 @@ int BPLib_MEM_RegisterBlocktypeInternal(BPLib_MEM_Pool_t *pool, uint32_t magic_n
 
     /* before doing anything, check if this is a duplicate.  If so, ignore it.
      * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
-    if (BPLib_MEM_RBT_SearchUnique(magic_number, &admin->blocktype_registry) != NULL)
+    if (BPLib_RBT_SearchUnique(magic_number, &admin->blocktype_registry) != NULL)
     {
         return BPLIB_RBT_DUPLICATE;
     }
@@ -1087,7 +1087,7 @@ int BPLib_MEM_RegisterBlocktypeInternal(BPLib_MEM_Pool_t *pool, uint32_t magic_n
     }
     api_block->user_content_size = user_content_size;
 
-    status = BPLib_MEM_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, &api_block->rbt_link);
+    status = BPLib_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, &api_block->rbt_link);
 
     /* due to the pre-check above this should always have been successful, but just in case, return the block if error
      */

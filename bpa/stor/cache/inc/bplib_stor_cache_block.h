@@ -76,7 +76,7 @@ struct BPLib_STOR_CACHE_SubqBase
 
 typedef struct BPLib_STOR_CACHE_ModuleApiContent
 {
-    BPLib_MEM_RBT_Link_t                rbt_link;
+    BPLib_RBT_Link_t                rbt_link;
     BPLib_STOR_CACHE_BlocktypeApi_t     api;
     size_t                              user_content_size;
     BPLib_MEM_AlignedData_t             user_data_start;
@@ -91,7 +91,7 @@ typedef struct BPLib_STOR_CACHE_BlockAdminContent
     uint32_t internal_alloc_threshold; /**< threshold at which internal blocks will no longer be allocatable */
     uint32_t max_alloc_watermark;
 
-    BPLib_MEM_RBT_Root_t                blocktype_registry;    /**< registry of block signature values */
+    BPLib_RBT_Root_t                blocktype_registry;    /**< registry of block signature values */
     BPLib_STOR_CACHE_ModuleApiContent_t blocktype_basic;    /**< a fixed entity in the registry for type 0 */
     BPLib_STOR_CACHE_ModuleApiContent_t blocktype_cbor;     /**< a fixed entity in the registry for CBOR blocks */
 

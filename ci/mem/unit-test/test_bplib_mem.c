@@ -207,7 +207,7 @@ void Test_BPLib_MEM_AllocBlockInternal(void)
     admin                 = BPLib_MEM_GetAdmin(&buf.pool);
     admin->num_bufs_total = 3;
     /**
-     *  When using RBT stubs, the functionUT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric),
+     *  When using RBT stubs, the functionUT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric),
      *  UT_AltHandler_PointerReturn, api_content); provides a value for the API content.
      *  If the api_content is null, the test assumes the stubs are not being used and provides a dummy value.
      */
@@ -294,7 +294,7 @@ void Test_BPLib_MEM_Maintain(void)
 
     admin = BPLib_MEM_GetAdmin(&buf.pool);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
     BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, &buf.blk[0].header.base_link);
 
@@ -337,7 +337,7 @@ void Test_BPLib_MEM_CollectBlocks(void)
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeApi, 0);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, &buf.blk[0].u);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, &buf.blk[0].u);
     buf.blk[0].u.api.api.destruct = Test_BPLib_MEM_CallbackStub;
 
     admin = BPLib_MEM_GetAdmin(&buf.pool);
@@ -353,7 +353,7 @@ void Test_BPLib_MEM_CollectBlocks(void)
     UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 0);  // TODO Passes, but may be invalid check value.
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
     BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, &buf.blk[0].header.base_link);
 

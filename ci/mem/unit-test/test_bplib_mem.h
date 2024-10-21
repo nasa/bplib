@@ -26,7 +26,6 @@
 #include "../src/bplib_mem_internal.h"
 
 #include "bplib_mem.h"
-#include "test_bplib_mem_rbtree.h"
 
 typedef struct
 {

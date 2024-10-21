@@ -39,7 +39,7 @@ void Test_BPLib_STOR_CACHE_CustodyFinalizeDacs(void)
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_NodeIsMember), UT_cache_bool_Handler, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_NodeIsMember), UT_cache_bool_Handler, NULL);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyFinalizeDacs(&state, &store_entry));
 }
 
@@ -52,14 +52,14 @@ void Test_BPLib_STOR_CACHE_CustodyCheckDacs(void)
     BPLib_STOR_CACHE_Block_t            qblk;
     BPLib_STOR_CACHE_BblockPrimary_t   pri_block;
     BPLib_STOR_CACHE_BblockCanonical_t c_block;
-    BPLib_MEM_RBT_Link_t               custody_rbt_link;
+    BPLib_RBT_Link_t               custody_rbt_link;
     BPLib_STOR_CACHE_Block_t            blk;
 
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
     memset(&qblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&pri_block, 0, sizeof(BPLib_STOR_CACHE_BblockPrimary_t));
     memset(&c_block, 0, sizeof(BPLib_STOR_CACHE_BblockCanonical_t));
-    memset(&custody_rbt_link, 0, sizeof(BPLib_MEM_RBT_Link_t));
+    memset(&custody_rbt_link, 0, sizeof(BPLib_RBT_Link_t));
     memset(&blk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_sizet_Handler, NULL);
@@ -67,14 +67,14 @@ void Test_BPLib_STOR_CACHE_CustodyCheckDacs(void)
     pri_block.data.logical.controlFlags.isAdminRecord = true;
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, &pri_block);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, &c_block);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, &custody_rbt_link);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, &custody_rbt_link);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &blk);
     c_block.canonical_logical_data.data.custody_accept_payload_block.num_entries = 1;
     UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_CustodyCheckDacs(&state, &qblk));
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockCanonicalCast), UT_cache_AltHandler_PointerReturn, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
@@ -87,7 +87,7 @@ void Test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
     BPLib_STOR_CACHE_Block_t            qblk;
     BPLib_STOR_CACHE_Block_t            qblk1;
     BPLib_STOR_CACHE_BblockPrimary_t   pri_block;
-    BPLib_MEM_RBT_Link_t               custody_rbt_link;
+    BPLib_RBT_Link_t               custody_rbt_link;
     BPLib_STOR_CACHE_Entry_t            store_entry;
     BPLib_STOR_CACHE_BblockCanonical_t custody_block;
     BPLib_STOR_PS_OffloadApi_t      offload_api;
@@ -97,7 +97,7 @@ void Test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
     memset(&qblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&qblk1, 0, sizeof(BPLib_STOR_CACHE_Block_t));
     memset(&pri_block, 0, sizeof(BPLib_STOR_CACHE_BblockPrimary_t));
-    memset(&custody_rbt_link, 0, sizeof(BPLib_MEM_RBT_Link_t));
+    memset(&custody_rbt_link, 0, sizeof(BPLib_RBT_Link_t));
     memset(&store_entry, 0, sizeof(BPLib_STOR_CACHE_Entry_t));
     memset(&custody_block, 0, sizeof(BPLib_STOR_CACHE_BblockCanonical_t));
     memset(&offload_api, 0, sizeof(BPLib_STOR_PS_OffloadApi_t));
@@ -111,12 +111,12 @@ void Test_BPLib_STOR_CACHE_CustodyStoreBundle(void)
 
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_RefFromBlock), UT_cache_sizet_Handler, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_BblockPrimaryCast), UT_cache_AltHandler_PointerReturn, &pri_block);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, &custody_rbt_link);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, &custody_rbt_link);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyStoreBundle(&state, &qblk));
 
     pri_block.data.delivery.committed_storage_id = 1;
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, &store_entry);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GetBlockFromLink), UT_cache_AltHandler_PointerReturn, &qblk1);
     UT_SetHandlerFunction(UT_KEY(BPLib_STOR_CACHE_GenericDataAlloc), UT_cache_AltHandler_PointerReturn, &sblk);
@@ -165,7 +165,7 @@ void Test_BPLib_STOR_CACHE_CustodyInsertTrackingBlock(void)
 void Test_BPLib_STOR_CACHE_CustodyFindDacsMatch(void)
 {
     /* Test function for:
-     * int BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_MEM_RBT_Link_t *node, void *arg)
+     * int BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_RBT_Link_t *node, void *arg)
      */
     BPLib_STOR_CACHE_CustodianInfo_t custody_info;
     BPLib_STOR_CACHE_Entry_t          store_entry;
@@ -185,16 +185,16 @@ void Test_BPLib_STOR_CACHE_CustodyFindPendingDacs(void)
      */
     BPLib_STOR_CACHE_State_t          state;
     BPLib_STOR_CACHE_CustodianInfo_t dacs_info;
-    BPLib_MEM_RBT_Link_t             custody_rbt_link;
+    BPLib_RBT_Link_t             custody_rbt_link;
 
     memset(&state, 0, sizeof(BPLib_STOR_CACHE_State_t));
     memset(&dacs_info, 0, sizeof(BPLib_STOR_CACHE_CustodianInfo_t));
-    memset(&custody_rbt_link, 0, sizeof(BPLib_MEM_RBT_Link_t));
+    memset(&custody_rbt_link, 0, sizeof(BPLib_RBT_Link_t));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, &custody_rbt_link);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, &custody_rbt_link);
     UtAssert_VOIDCALL(BPLib_STOR_CACHE_CustodyFindPendingDacs(&state, &dacs_info));
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_cache_AltHandler_PointerReturn, NULL);
 }
 
 void Test_BPLib_STOR_CACHE_CustodyCreateDacs(void)
@@ -336,7 +336,7 @@ void Test_BPLib_STOR_CACHE_CustodyUpdateTrackingBlock(void)
 void Test_BPLib_STOR_CACHE_CustodyFindBundleMatch(void)
 {
     /* Test function for:
-     * int BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_MEM_RBT_Link_t *node, void *arg)
+     * int BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_RBT_Link_t *node, void *arg)
      */
     BPLib_STOR_CACHE_CustodianInfo_t custody_info;
     BPLib_STOR_CACHE_Entry_t          store_entry;

@@ -27,7 +27,7 @@
 #include "bplib_time.h"
 
 #include "bplib_mem.h"
-#include "bplib_mem_rbtree.h"
+#include "bplib_rbt.h"
 
 #include "bplib_stor_cache_types.h"
 #include "bplib_stor_cache_internal.h"
@@ -280,7 +280,7 @@ int BPLib_STOR_CACHE_ServiceductForwardIngress(void *arg, BPLib_STOR_CACHE_Block
 int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
 {
     BPLib_STOR_QM_ServiceintfInfo_t  *base_intf;
-    BPLib_MEM_RBT_Link_t             *tgt_subintf;
+    BPLib_RBT_Link_t             *tgt_subintf;
     BPLib_STOR_QM_Duct_t          *curr_duct;
     BPLib_STOR_QM_Duct_t          *next_duct;
     BPLib_STOR_CACHE_Ref_t            next_duct_ref;
@@ -333,7 +333,7 @@ int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_
                 BPLib_STOR_QM_GetEid(&bundle_dest, &BPLib_STOR_CACHE_BblockPrimaryGetLogical(pri_block)->destinationEID);
 
                 /* Find a dataservice that matches this src/dest combo */
-                tgt_subintf = BPLib_MEM_RBT_SearchUnique(bundle_dest.service_number, &base_intf->service_index);
+                tgt_subintf = BPLib_RBT_SearchUnique(bundle_dest.service_number, &base_intf->service_index);
                 if (tgt_subintf != NULL)
                 {
                     /* borrows the ref */
@@ -393,7 +393,7 @@ int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_bl
         endpoint_intf->self_ptr = temp_block;
 
         /* This can fail in the event the service number is duplicated */
-        status = BPLib_MEM_RBT_InsertValueUnique(svc_num, &base_intf->service_index, &endpoint_intf->rbt_link);
+        status = BPLib_RBT_InsertValueUnique(svc_num, &base_intf->service_index, &endpoint_intf->rbt_link);
         if (status == BPLIB_SUCCESS)
         {
             /* success */
@@ -431,7 +431,7 @@ int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_bl
 BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_ServiceductRemoveFromBase(BPLib_STOR_CACHE_Block_t *base_intf_blk, BPLib_Val_t svc_num)
 {
     BPLib_STOR_QM_ServiceintfInfo_t *base_intf;
-    BPLib_MEM_RBT_Link_t            *rbt_link;
+    BPLib_RBT_Link_t            *rbt_link;
    BPLib_STOR_CACHE_ServiceEndpt_t  *endpoint_intf;
     BPLib_STOR_CACHE_Ref_t           endpoint_intf_ref;
     int                              status;
@@ -441,14 +441,14 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_ServiceductRemoveFromBase(BPLib_STOR_CAC
     if (base_intf != NULL)
     {
         /* This can fail in the event the service number is duplicated */
-        rbt_link = BPLib_MEM_RBT_SearchUnique(svc_num, &base_intf->service_index);
+        rbt_link = BPLib_RBT_SearchUnique(svc_num, &base_intf->service_index);
         if (rbt_link == NULL)
         {
             status = BPLIB_ERROR;
         }
         else
         {
-            status = BPLib_MEM_RBT_ExtractNode(&base_intf->service_index, rbt_link);
+            status = BPLib_RBT_ExtractNode(&base_intf->service_index, rbt_link);
         }
         if (status == BPLIB_SUCCESS)
         {
@@ -524,7 +524,7 @@ int BPLib_STOR_CACHE_DataserviceBaseConstruct(void *arg, BPLib_STOR_CACHE_Block_
         return BPLIB_ERROR;
     }
 
-    BPLib_MEM_RBT_InitRoot(&base_intf->service_index);
+    BPLib_RBT_InitRoot(&base_intf->service_index);
     return BPLIB_SUCCESS;
 }
 

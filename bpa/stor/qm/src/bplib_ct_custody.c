@@ -24,7 +24,7 @@
 #include "bplib_crc.h"
 
 #include "bplib_mem.h"
-#include "bplib_mem_rbtree.h"
+#include "bplib_rbt.h"
 
 #include "bplib_stor_cache.h"
 #include "bplib_stor_cache_internal.h"
@@ -74,7 +74,7 @@ void BPLib_STOR_CACHE_CustodyInsertTrackingBlock(BPLib_STOR_CACHE_State_t *state
     }
 }
 
-int BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_MEM_RBT_Link_t *node, void *arg)
+int BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_RBT_Link_t *node, void *arg)
 {
     BPLib_STOR_CACHE_Entry_t          *store_entry;
     BPLib_STOR_CACHE_DacsPending_t   *dacs_pending;
@@ -105,7 +105,7 @@ int BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_MEM_RBT_Link_t *node, void
 
 bool BPLib_STOR_CACHE_CustodyFindPendingDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *dacs_info)
 {
-    BPLib_MEM_RBT_Link_t *custody_rbt_link;
+    BPLib_RBT_Link_t *custody_rbt_link;
     BPLib_CRC_Val_t       hash;
 
     /* use a CRC as a hash function */
@@ -118,7 +118,7 @@ bool BPLib_STOR_CACHE_CustodyFindPendingDacs(BPLib_STOR_CACHE_State_t *state, BP
                             sizeof(BPLIB_CACHE_CUSTODY_HASH_SALT_DACS));
     dacs_info->eid_hash = BPLib_CRC_Finalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
 
-    custody_rbt_link = BPLib_MEM_RBT_SearchGeneric(dacs_info->eid_hash, &state->dacs_index,
+    custody_rbt_link = BPLib_RBT_SearchGeneric(dacs_info->eid_hash, &state->dacs_index,
                                                 BPLib_STOR_CACHE_CustodyFindDacsMatch, dacs_info);
     if (custody_rbt_link != NULL)
     {
@@ -291,7 +291,7 @@ void BPLib_STOR_CACHE_CustodyOpenDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STO
         dacs_pending->payload_ref = ack_content;
         BPLib_STOR_QM_GetEid(&dacs_pending->prev_custodian_id, &pri_block->data.logical.destinationEID);
 
-        BPLib_MEM_RBT_InsertValueGeneric(custody_info->eid_hash, &state->dacs_index, &store_entry->hash_rbt_link,
+        BPLib_RBT_InsertValueGeneric(custody_info->eid_hash, &state->dacs_index, &store_entry->hash_rbt_link,
                                        BPLib_STOR_CACHE_CustodyFindDacsMatch, custody_info);
         BPLib_STOR_CACHE_EntryMakePending(
             store_entry, BPLIB_STORE_FLAG_ACTIVITY | BPLIB_STORE_FLAG_LOCAL_CUSTODY | BPLIB_STORE_FLAG_ACTION_TIME_WAIT,
@@ -418,7 +418,7 @@ void BPLib_STOR_CACHE_CustodyProcessBundle(BPLib_STOR_CACHE_State_t *state, BPLi
     }
 }
 
-int BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_MEM_RBT_Link_t *node, void *arg)
+int BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_RBT_Link_t *node, void *arg)
 {
     BPLib_STOR_CACHE_Entry_t          *store_entry;
     BPLib_STOR_CACHE_CustodianInfo_t *custody_info;
@@ -439,7 +439,7 @@ int BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_MEM_RBT_Link_t *node, vo
 
 bool BPLib_STOR_CACHE_CustodyFindExistingBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *custody_info)
 {
-    BPLib_MEM_RBT_Link_t *custody_rbt_link;
+    BPLib_RBT_Link_t *custody_rbt_link;
     BPLib_CRC_Val_t       hash;
 
     /* use a CRC as a hash function */
@@ -453,7 +453,7 @@ bool BPLib_STOR_CACHE_CustodyFindExistingBundle(BPLib_STOR_CACHE_State_t *state,
                             sizeof(BPLIB_CACHE_CUSTODY_HASH_SALT_BUNDLE));
     custody_info->eid_hash = BPLib_CRC_Finalize(BPLIB_CACHE_CUSTODY_HASH_ALGORITHM, hash);
 
-    custody_rbt_link = BPLib_MEM_RBT_SearchGeneric(custody_info->eid_hash, &state->bundle_index,
+    custody_rbt_link = BPLib_RBT_SearchGeneric(custody_info->eid_hash, &state->bundle_index,
                                                 BPLib_STOR_CACHE_CustodyFindBundleMatch, custody_info);
     if (custody_rbt_link != NULL)
     {
@@ -496,9 +496,9 @@ void BPLib_STOR_CACHE_CustodyFinalizeDacs(BPLib_STOR_CACHE_State_t *state, BPLib
 {
     /* after this point, the entry becomes a normal bundle, it is removed from EID hash
      * so future appends are also prevented */
-    if (BPLib_MEM_RBT_NodeIsMember(&state->dacs_index, &store_entry->hash_rbt_link))
+    if (BPLib_RBT_NodeIsMember(&state->dacs_index, &store_entry->hash_rbt_link))
     {
-        BPLib_MEM_RBT_ExtractNode(&state->dacs_index, &store_entry->hash_rbt_link);
+        BPLib_RBT_ExtractNode(&state->dacs_index, &store_entry->hash_rbt_link);
     }
 }
 
@@ -564,13 +564,13 @@ void BPLib_STOR_CACHE_CustodyStoreBundle(BPLib_STOR_CACHE_State_t *state, BPLib_
         /* this keeps a copy of the ref here, after qblk is recycled */
         custody_info.store_entry->refptr = BPLib_STOR_CACHE_RefFromBlock(qblk);
 
-        BPLib_MEM_RBT_InsertValueGeneric(custody_info.final_dest_node, &state->dest_eid_index,
+        BPLib_RBT_InsertValueGeneric(custody_info.final_dest_node, &state->dest_eid_index,
                                        &custody_info.store_entry->dest_eid_rbt_link,
                                        BPLib_STOR_CACHE_EntryTreeInsertUnsorted, NULL);
 
         /* when the custody ACK for this block comes in, this block needs to be found again,
          * so make an entry in the hash index for it */
-        BPLib_MEM_RBT_InsertValueGeneric(custody_info.eid_hash, &state->bundle_index,
+        BPLib_RBT_InsertValueGeneric(custody_info.eid_hash, &state->bundle_index,
                                        &custody_info.store_entry->hash_rbt_link, BPLib_STOR_CACHE_CustodyFindBundleMatch,
                                        &custody_info);
 

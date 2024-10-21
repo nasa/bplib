@@ -96,14 +96,14 @@ typedef struct BPLib_STOR_CACHE_State
      */
     BPLib_STOR_CACHE_Block_t idle_list;
 
-    BPLib_MEM_RBT_Root_t bundle_index;
-    BPLib_MEM_RBT_Root_t dacs_index;
+    BPLib_RBT_Root_t bundle_index;
+    BPLib_RBT_Root_t dacs_index;
     #ifdef jphfix
-    BPLib_MEM_RBT_Root_t dest_eid_jphfix_index;
-    BPLib_MEM_RBT_Root_t time_jphfix_index;
+    BPLib_RBT_Root_t dest_eid_jphfix_index;
+    BPLib_RBT_Root_t time_jphfix_index;
     #else // jphfix
-    BPLib_MEM_RBT_Root_t dest_eid_index;
-    BPLib_MEM_RBT_Root_t time_index;
+    BPLib_RBT_Root_t dest_eid_index;
+    BPLib_RBT_Root_t time_index;
     #endif // jphfix
 
     // TODO const BPLib_STOR_PS_OffloadApi_t *offload_api;
@@ -141,9 +141,9 @@ struct BPLib_STOR_CACHE_Entry
     BPLib_STOR_CACHE_Sid_t                      offload_sid;
     BPLib_TIME_MonotonicTime_t    action_time; /**< DTN time when entity is due to have some action (e.g. transmit) */
     BPLib_TIME_MonotonicTime_t    expire_time; /**< DTN time when entity is due to have some action (e.g. transmit) */
-    BPLib_MEM_RBT_Link_t          hash_rbt_link;
-    BPLib_MEM_RBT_Link_t          time_rbt_link;
-    BPLib_MEM_RBT_Link_t          dest_eid_rbt_link;
+    BPLib_RBT_Link_t          hash_rbt_link;
+    BPLib_RBT_Link_t          time_rbt_link;
+    BPLib_RBT_Link_t          dest_eid_rbt_link;
     BPLib_STOR_CACHE_EntryData_t  data;
 };
 
@@ -198,7 +198,7 @@ static inline BPLib_STOR_QM_Duct_t *BPLib_STOR_CACHE_GetDuct(BPLib_STOR_CACHE_St
 #define BPLib_STOR_CACHE_EntryFromLink(ptr, member) \
     BPLib_STOR_CACHE_EntryGetContainer(ptr, offsetof(BPLib_STOR_CACHE_Entry_t, member))
 
-static inline BPLib_STOR_CACHE_Entry_t *BPLib_STOR_CACHE_EntryGetContainer(const BPLib_MEM_RBT_Link_t *link, size_t offset)
+static inline BPLib_STOR_CACHE_Entry_t *BPLib_STOR_CACHE_EntryGetContainer(const BPLib_RBT_Link_t *link, size_t offset)
 {
     return (BPLib_STOR_CACHE_Entry_t *)(void *)((uint8_t *)link - offset);
 }
@@ -223,7 +223,7 @@ bool BPLib_STOR_CACHE_CustodyCheckDacs(BPLib_STOR_CACHE_State_t *state, BPLib_ST
 
 void BPLib_STOR_CACHE_FsmExecute(BPLib_STOR_CACHE_Block_t *sblk);
 
-int BPLib_STOR_CACHE_EntryTreeInsertUnsorted(const BPLib_MEM_RBT_Link_t *node, void *arg);
+int BPLib_STOR_CACHE_EntryTreeInsertUnsorted(const BPLib_RBT_Link_t *node, void *arg);
 
 void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, uint32_t set_flags, uint32_t clear_flags);
 
@@ -245,7 +245,7 @@ int  BPLib_STOR_CACHE_ConstructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk);
 
 void BPLib_STOR_CACHE_CustodyInsertTrackingBlock(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
                                                BPLib_STOR_CACHE_CustodianInfo_t *custody_info);
-int  BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_MEM_RBT_Link_t *node, void *arg);
+int  BPLib_STOR_CACHE_CustodyFindDacsMatch(const BPLib_RBT_Link_t *node, void *arg);
 bool BPLib_STOR_CACHE_CustodyFindPendingDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *dacs_info);
 BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_CustodyCreateDacs(BPLib_STOR_CACHE_State_t                *state,
                                                   BPLib_STOR_CACHE_BblockPrimary_t      **pri_block_out,
@@ -253,7 +253,7 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_CustodyCreateDacs(BPLib_STOR_CACHE_State
 void              BPLib_STOR_CACHE_CustodyOpenDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *custody_info);
 void BPLib_STOR_CACHE_CustodyAppendDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *custody_info);
 void BPLib_STOR_CACHE_CustodyUpdateTrackingBlock(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_CustodianInfo_t *custody_info);
-int  BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_MEM_RBT_Link_t *node, void *arg);
+int  BPLib_STOR_CACHE_CustodyFindBundleMatch(const BPLib_RBT_Link_t *node, void *arg);
 void BPLib_STOR_CACHE_CustodyProcessBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,
                                         BPLib_STOR_CACHE_CustodianInfo_t *custody_info);
 void BPLib_STOR_CACHE_CustodyProcessRemoteDacsBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_BblockPrimary_t *pri_block,

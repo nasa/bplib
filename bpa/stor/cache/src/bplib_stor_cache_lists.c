@@ -527,7 +527,7 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
 
     #ifdef QM_MODULE_API
     /* Determine how to initialize this block by looking up the content type */
-    api_block = (BPLib_STOR_QM_ModuleApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
+    api_block = (BPLib_STOR_QM_ModuleApiContent_t *)(void *)BPLib_RBT_SearchUnique(content_type_signature,
                                                                                          &admin->blocktype_registry);
     if (api_block == NULL)
     {
@@ -860,7 +860,7 @@ int BPLib_STOR_CACHE_RegisterBlocktypeInternal(BPLib_STOR_CACHE_Pool_t *pool, ui
 
     /* before doing anything, check if this is a duplicate.  If so, ignore it.
      * This permits "lazy binding" of apis where the blocktype is registered at the time of first use */
-    if (BPLib_MEM_RBT_SearchUnique(magic_number, &admin->blocktype_registry) != NULL)
+    if (BPLib_RBT_SearchUnique(magic_number, &admin->blocktype_registry) != NULL)
     {
         return BPLIB_RBT_DUPLICATE;
     }
@@ -881,9 +881,9 @@ int BPLib_STOR_CACHE_RegisterBlocktypeInternal(BPLib_STOR_CACHE_Pool_t *pool, ui
     }
     api_block->user_content_size = user_content_size;
 
-    status = BPLib_MEM_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, &api_block->rbt_link);
+    status = BPLib_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, &api_block->rbt_link);
     #else // QM_MODULE_API
-    status = BPLib_MEM_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, (BPLib_MEM_RBT_Link_t *)NULL);
+    status = BPLib_RBT_InsertValueUnique(magic_number, &admin->blocktype_registry, (BPLib_RBT_Link_t *)NULL);
     #endif // QM_MODULE_API
 
     /* due to the pre-check above this should always have been successful, but just in case, return the block if error
@@ -951,7 +951,7 @@ uint32_t BPLib_STOR_CACHE_CollectBlocks(BPLib_STOR_CACHE_Pool_t *pool, uint32_t 
         #ifdef QM_MODULE_API
         /* figure out how to de-initialize the user content by looking up the content type */
         api_block = (BPLib_STOR_QM_ModuleApiContent_t *)
-                        (void *)BPLib_MEM_RBT_SearchUnique(
+                        (void *)BPLib_RBT_SearchUnique(
                             content->header.content_type_signature,
                             &admin->blocktype_registry);
 
@@ -1223,7 +1223,7 @@ BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_Create(void *pool_mem, size_t pool_siz
     BPLib_STOR_CACHE_SubqInit(&pool->admin_block.header.base_link, &admin->free_blocks);
     BPLib_STOR_CACHE_SubqInit(&pool->admin_block.header.base_link, &admin->recycle_blocks);
     BPLib_STOR_CACHE_InitListHead(&pool->admin_block.header.base_link, &admin->active_list);
-    BPLib_MEM_RBT_InitRoot(&admin->blocktype_registry);
+    BPLib_RBT_InitRoot(&admin->blocktype_registry);
 
     /* start at the _next_ buffer, which is the first usable buffer (first is the admin block) */
     pchunk = &pool->admin_block + 1;
@@ -1232,8 +1232,8 @@ BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_Create(void *pool_mem, size_t pool_siz
     #ifdef QM_MODULE_API
     /* register the first API type, which is 0.
      * Notably this prevents other modules from actually registering something at 0. */
-    BPLib_MEM_RBT_InsertValueUnique(0, &admin->blocktype_registry, &admin->blocktype_basic.rbt_link);
-    BPLib_MEM_RBT_InsertValueUnique(BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
+    BPLib_RBT_InsertValueUnique(0, &admin->blocktype_registry, &admin->blocktype_basic.rbt_link);
+    BPLib_RBT_InsertValueUnique(BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE, &admin->blocktype_registry,
                                   &admin->blocktype_cbor.rbt_link);
     #endif // QM_MODULE_API
 

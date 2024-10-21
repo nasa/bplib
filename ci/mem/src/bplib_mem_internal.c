@@ -236,7 +236,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
     #endif // USE_THRESHOLD
 
     /* Determine how to initialize this block by looking up the content type */
-    api_block = (BPLib_MEM_ApiContent_t *)(void *)BPLib_MEM_RBT_SearchUnique(content_type_signature,
+    api_block = (BPLib_MEM_ApiContent_t *)(void *)BPLib_RBT_SearchUnique(content_type_signature,
                                                                              &admin->blocktype_registry);
     if (api_block == NULL)
     {
