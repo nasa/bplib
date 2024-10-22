@@ -22,7 +22,6 @@
 #define BPLIB_MEM_INTERNAL_H
 
 #include "bplib_api_types.h"
-#include "bplib.h"
 
 #include "bplib_stor_cache.h"
 
