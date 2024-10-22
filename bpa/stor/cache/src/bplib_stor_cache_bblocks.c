@@ -35,6 +35,7 @@
 
 #include "bplib_stor_cache.h"
 #include "bplib_stor_cache_block.h"
+#include "bplib_stor_cache_internal.h"
 
 #include "bplib_stor_qm_encode.h"
 #include "bplib_stor_qm_decode.h"

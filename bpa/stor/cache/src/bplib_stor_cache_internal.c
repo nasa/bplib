@@ -30,23 +30,81 @@
 
 #include "bplib_stor_cache_internal.h"
 
-// Placeholder for CACHE internal functions
-
-// TODO Delete Print Trace and move CACHE internal files here.
-void BPLib_STOR_CACHE_PrintTrace(void)
+void BPLib_STOR_CACHE_SubqWorkitemInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_SubqWorkitem_t *wblk)
 {
-    void *array[10];
-    size_t size;
-    char **strings;
-    size_t i;
+    BPLib_STOR_CACHE_JobInit(base_block, &wblk->job_header);
+    BPLib_STOR_CACHE_SubqInit(base_block, &wblk->base_subq);
+    wblk->current_depth_limit = 0;
+}
 
-    size = backtrace(array, 15);
-    strings = backtrace_symbols(array, size);
+static BPLib_Status_t BPLib_STOR_CACHE_DuctEventHandler(void *arg, BPLib_STOR_CACHE_Block_t *jblk)
+{
+    BPLib_STOR_CACHE_Block_t                *fblk;
+    BPLib_STOR_CACHE_Duct_t            *duct;
+    uint32_t                          changed_flags;
+    BPLib_STOR_CACHE_DuctGenericEvent_t event;
+    bool                              was_running;
+    bool                              is_running;
 
-    printf("Obtained %zd stack frames.\n", size);
+    fblk = BPLib_STOR_CACHE_GetBlockFromLink(jblk);
+    duct = BPLib_STOR_CACHE_DuctCast(fblk);
+    if (duct == NULL)
+    {
+        return BPLIB_ERROR;
+    }
 
-    for (i = 0; i < size; i++)
-        printf("%s\n", strings[i]);
+    was_running   = BPLib_STOR_CACHE_DuctIsUp(duct);
+    changed_flags = duct->pending_state_flags ^ duct->current_state_flags;
+    duct->current_state_flags ^= changed_flags;
+    is_running = BPLib_STOR_CACHE_DuctIsUp(duct);
 
-    free(strings);
+    /* detect changes from up->down or vice versa */
+    /* this is the combination of several flags, so its not simply checking changed_flags */
+    if (was_running != is_running)
+    {
+        if (is_running)
+        {
+            event.intf_state.event_type = BPLib_STOR_CACHE_DuctEventUp;
+        }
+        else
+        {
+            event.intf_state.event_type = BPLib_STOR_CACHE_DuctEventDown;
+        }
+
+        event.intf_state.intf_id = BPLib_STOR_CACHE_GetExternalId(fblk);
+        duct->statechange_job.event_handler(&event, fblk);
+    }
+
+    if (changed_flags & BPLIB_CACHE_STATE_FLAG_POLL)
+    {
+        event.event_type = BPLib_STOR_CACHE_DuctEventPoll;
+        duct->statechange_job.event_handler(&event, fblk);
+    }
+
+    return BPLIB_SUCCESS;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_STOR_CACHE_DuctInit
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_STOR_CACHE_DuctInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Duct_t *fblk)
+{
+    /* now init the link structs */
+    BPLib_STOR_CACHE_JobInit(base_block, &fblk->statechange_job.base_job);
+    fblk->statechange_job.base_job.handler = BPLib_STOR_CACHE_DuctEventHandler;
+
+    BPLib_STOR_CACHE_SubqWorkitemInit(base_block, &fblk->ingress);
+    BPLib_STOR_CACHE_SubqWorkitemInit(base_block, &fblk->egress);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_STOR_CACHE_JobInit
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_STOR_CACHE_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Job_t *jblk)
+{
+    BPLib_STOR_CACHE_InitSecondaryLink(base_block, &jblk->link, BPLib_STOR_CACHE_BlocktypeJob);
 }

@@ -56,7 +56,6 @@ BPLib_STOR_CACHE_State_t *BPLib_STOR_CACHE_GetState(BPLib_STOR_CACHE_Block_t *in
     state = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)intf_block, BPLIB_STORE_SIGNATURE_STATE);
     if (state == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): storage_block incorrect for BPLib_STOR_CACHE_State_t\n", __func__);
         return NULL;
     }
 

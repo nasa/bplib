@@ -57,6 +57,12 @@ extern "C" {
 
 // TODO Belongs in bplib.h
 
+#define BPLIB_CACHE_STATE_FLAG_ADMIN_UP 0x01
+#define BPLIB_CACHE_STATE_FLAG_OPER_UP  0x02
+#define BPLIB_CACHE_STATE_FLAG_STORAGE  0x04
+#define BPLIB_CACHE_STATE_FLAG_ENDPOINT 0x08
+#define BPLIB_CACHE_STATE_FLAG_POLL     0x10
+
 /* Event Flags */
 #define BPLIB_FLAG_DIAGNOSTIC              0x00000000
 #define BPLIB_FLAG_NONCOMPLIANT            0x00000001 /* valid bundle but agent not able to comply with standard */
@@ -180,6 +186,7 @@ typedef enum BPLib_STOR_CACHE_Blocktype
     BPLib_STOR_CACHE_BlocktypeBpsecBcb                    = 12,
     BPLib_STOR_CACHE_BlocktypeCustodyTrackingBlock        = 73,
     BPLib_STOR_CACHE_BlocktypeMax,
+
     /*
      * These are internal block types - they exist only locally in this implementation
      * and the CBOR/RFC9171-compliant encoding uses a different type (possibly as 1 for
@@ -200,6 +207,8 @@ typedef enum BPLib_STOR_CACHE_Blocktype
     BPLib_STOR_CACHE_BlocktypeCanonical                 = 108,
     BPLib_STOR_CACHE_BlocktypeAdmin                     = 109,
     BPLib_STOR_CACHE_BlocktypeApi                       = 110,
+    BPLib_STOR_CACHE_BlocktypeDuct                      = 111,
+    BPLib_STOR_CACHE_BlocktypeJob                       = 112,
     BPLib_STOR_CACHE_BlocktypeSpecialBlocksMax
 } BPLib_STOR_CACHE_Blocktype_t;
 
@@ -473,12 +482,16 @@ typedef struct BPLib_STOR_CACHE_GenericDataContent
     BPLib_MEM_AlignedData_t             user_data_start;
 } BPLib_STOR_CACHE_GenericDataContent_t;
 
+typedef struct BPLib_STOR_CACHE_Duct BPLib_STOR_CACHE_Duct_t;
+typedef struct BPLib_STOR_CACHE_DuctContent BPLib_STOR_CACHE_DuctContent_t;
+
 void BPLib_STOR_CACHE_DebugScanPool(BPLib_STOR_CACHE_Pool_t *pool);
 void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, BPLib_Handle_t intf_id);
 void BPLib_STOR_CACHE_DebugPrintListStats(BPLib_STOR_CACHE_Block_t *list, const char *label);
 
 void BPLib_STOR_CACHE_BblockPrimaryInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_BblockPrimary_t *pblk);
 void BPLib_STOR_CACHE_BblockCanonicalInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_BblockCanonical_t *cblk);
+void BPLib_STOR_CACHE_DuctInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Duct_t *cblk);
 void BPLib_STOR_CACHE_SubqInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_SubqBase_t *qblk);
 
 // TODO Reconcile heritage time functions with bplib_time.h TIME module.

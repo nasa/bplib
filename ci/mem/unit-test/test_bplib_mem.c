@@ -202,6 +202,7 @@ void Test_BPLib_MEM_AllocBlockInternal(void)
 
     /* Nominal (need to do each blocktype that has a different init) */
     test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+
     admin                 = BPLib_MEM_GetAdmin(&buf.pool);
     admin->num_bufs_total = 3;
     /**
@@ -407,21 +408,19 @@ void Test_BPLib_MEM_GetParentPoolFromLink(void)
      */
 
     UT_BPLib_MEM_Buf_t buf;
-    BPLib_MEM_BlockAdminContent_t   *admin;
 
     memset(&buf, 0, sizeof(buf));
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
-    admin = BPLib_MEM_GetAdmin(&buf.pool);
 
     UtAssert_NULL(BPLib_MEM_GetParentPoolFromLink(NULL));
 
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeAdmin, 0);
-    BPLib_MEM_InsertAfter(&admin->active_list, &buf.blk[0].header.base_link);
+    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
+    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypePrimary, 0);
+    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_MEM_BlocktypePrimary, 0);
 
-    // TODO Broken test in get parent pool.
-    // UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].header.base_link),
-    //                    &admin->active_list);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].header.base_link), &buf.pool);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].u.primary.pblock.cblock_list), &buf.pool);
 }
 
 void Test_BPLib_MEM_InitBaseObject(void)

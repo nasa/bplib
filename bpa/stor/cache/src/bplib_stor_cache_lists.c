@@ -230,6 +230,24 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_
     return NULL;
 }
 
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_STOR_CACHE_DuctCast
+ *
+ *-----------------------------------------------------------------*/
+BPLib_STOR_CACHE_Duct_t *BPLib_STOR_CACHE_DuctCast(BPLib_STOR_CACHE_Block_t *cb)
+{
+    BPLib_STOR_CACHE_BlockContent_t *content;
+
+    content = BPLib_STOR_CACHE_BlockDereferenceContent(cb);
+    if (content != NULL && content->header.base_link.type == BPLib_STOR_CACHE_BlocktypeDuct)
+    {
+        return &content->u.duct.dblock;
+    }
+
+    return NULL;
+}
+
 #define BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(m) (offsetof(BPLib_STOR_CACHE_BlockBuffer_t, m.user_data_start))
 
 #define BPLIB_STOR_CACHE_GET_BLOCK_USER_CAPACITY(m) (sizeof(BPLib_STOR_CACHE_BlockBuffer_t) - MPOOL_GET_BUFFER_USER_START_OFFSET(m))
@@ -244,15 +262,11 @@ size_t BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(BPLib_STOR_CACHE_Blocktype_
 {
     static const size_t USER_DATA_START_OFFSET[BPLib_STOR_CACHE_BlocktypeSpecialBlocksMax] = {
         [BPLib_STOR_CACHE_BlocktypeUndefined] = SIZE_MAX,
-        #ifdef QM_MODULE_API
         [BPLib_STOR_CACHE_BlocktypeApi]       = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(api),
-        #endif // QM_MODULE_API
         [BPLib_STOR_CACHE_BlocktypeGeneric]   = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(generic_data),
         [BPLib_STOR_CACHE_BlocktypePrimary]   = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(primary),
         [BPLib_STOR_CACHE_BlocktypeCanonical] = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(canonical),
-        #ifdef QM_DUCT
         [BPLib_STOR_CACHE_BlocktypeDuct]      = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(duct),
-        #endif // QM_DUCT
         [BPLib_STOR_CACHE_BlocktypeRef]       = BPLIB_STOR_CACHE_GET_BUFFER_USER_START_OFFSET(ref)};
 
     if (bt >= BPLib_STOR_CACHE_BlocktypeSpecialBlocksMax)
@@ -478,18 +492,12 @@ void BPLib_STOR_CACHE_InitBaseObject(BPLib_STOR_CACHE_BlockHeader_t *block_hdr, 
 BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_CACHE_Pool_t *pool,
     BPLib_STOR_CACHE_Blocktype_t blocktype, uint32_t content_type_signature, void *init_arg, uint8_t priority)
 {
-    BPLib_STOR_CACHE_Block_t              *node;
-    BPLib_STOR_CACHE_BlockContent_t       *block;
-    #ifdef QM_MODULE_API
-    BPLib_STOR_QM_ModuleApiContent_t      *api_block;
-    #endif // QM_MODULE_API
-    size_t                                 data_offset;
-    #ifdef ALLOC_THRESHOLD
-    uint32_t                               alloc_threshold;
-    #endif // ALLOC_THRESHOLD
-    #ifdef QM_SUBQ
-    uint32_t                               block_count;
-    #endif // QM_SUBQ
+    BPLib_STOR_CACHE_Block_t                 *node;
+    BPLib_STOR_CACHE_BlockContent_t          *block;
+    BPLib_STOR_CACHE_ModuleApiContent_t *api_block;
+    size_t                                    data_offset;
+    uint32_t                                  alloc_threshold;
+    uint32_t                                  block_count;
 
     BPLib_STOR_CACHE_BlockAdminContent_t *admin;
 
@@ -497,16 +505,14 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
 
     /* Only real blocks are allocated here - not secondary links nor head nodes,
      * as those are embedded within the blocks themselves. */
-    if (blocktype == BPLib_STOR_CACHE_BlocktypeUndefined || blocktype >= BPLib_STOR_CACHE_BlocktypeMax)
+    if ((blocktype == BPLib_STOR_CACHE_BlocktypeUndefined) ||
+        (blocktype >= BPLib_STOR_CACHE_BlocktypeSpecialBlocksMax))
     {
         return NULL;
     }
 
-    #ifdef QM_SUBQ
     block_count = BPLib_STOR_CACHE_SubqGetDepth(&admin->free_blocks);
-    #endif // QM_SUBQ
 
-    #ifdef ALLOC_THRESHOLD
     /*
      * Check free block threshold: Note that it may take additional pool blocks (refs, cbor, etc)
      * in order to forward stored bundles along when the time comes.
@@ -523,12 +529,10 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         /* no free blocks available for the requested type */
         return NULL;
     }
-    #endif // ALLOC_THRESHOLD
 
-    #ifdef QM_MODULE_API
     /* Determine how to initialize this block by looking up the content type */
-    api_block = (BPLib_STOR_QM_ModuleApiContent_t *)(void *)BPLib_RBT_SearchUnique(content_type_signature,
-                                                                                         &admin->blocktype_registry);
+    api_block = (BPLib_STOR_CACHE_ModuleApiContent_t *)(void *)BPLib_RBT_SearchUnique(content_type_signature,
+                                                                                      &admin->blocktype_registry);
     if (api_block == NULL)
     {
         /* no constructor, cannot create the block! */
@@ -543,10 +547,6 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         /* User content will not fit in the block - cannot create an instance of this type combo */
         return NULL;
     }
-    #else // QM_MODULE_API
-    data_offset = BPLib_STOR_CACHE_GetUserDataOffsetByBlocktype(blocktype);
-
-    #endif // QM_MODULE_API
 
     /* get a block */
     node = BPLib_STOR_CACHE_SubqPullSingle(&admin->free_blocks);
@@ -562,13 +562,13 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
      * BPLib_STOR_CACHE_SubqGetDepth() on the free list now will return 1 fewer than it
      * did earlier in this function).
      */
-    #ifdef QM_DUCT
+
     block_count = 1 + admin->num_bufs_total - block_count;
     if (block_count > admin->max_alloc_watermark)
     {
         admin->max_alloc_watermark = block_count;
     }
-    #endif // QM_DUCT
+
     node->type = blocktype;
     block      = BPLib_STOR_CACHE_GetBlockContent(node);
 
@@ -576,14 +576,9 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
      * zero fill the content part first, this ensures that this is always done,
      * and avoids the need for the module to supply a dedicated constructor just to zero it
      */
-    #ifdef QM_MODULE_API
     memset(&block->u, 0, data_offset + api_block->user_content_size);
 
     BPLib_STOR_CACHE_InitBaseObject(&block->header, api_block->user_content_size, content_type_signature);
-    #else // QM_MODULE_API
-    memset(&block->u, 0, data_offset);
-    BPLib_STOR_CACHE_InitBaseObject(&block->header, 0, content_type_signature);
-    #endif // QM_MODULE_API
 
     switch (blocktype)
     {
@@ -593,29 +588,24 @@ BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_
         case BPLib_STOR_CACHE_BlocktypeCanonical:
             BPLib_STOR_CACHE_BblockCanonicalInit(node, &block->u.canonical.cblock);
             break;
-        #ifdef QM_DUCT
         case BPLib_STOR_CACHE_BlocktypeDuct:
-            BPLib_STOR_QM_DuctInit(node, &block->u.duct.dblock);
+            BPLib_STOR_CACHE_DuctInit(node, &block->u.duct.dblock);
             break;
-        #endif // QM_DUCT
         default:
             /* nothing more for this node type (this catches cbor_data)  */
             break;
     }
 
-    #ifdef QM_MODULE_API
     /* If the module did supply a constructor, invoke it now */
     if (api_block->api.construct != NULL)
     {
         /* A constructor really should never fail nominally, if it does there is probably a bug */
         if (api_block->api.construct(init_arg, node) != BPLIB_SUCCESS)
         {
-            // TODO Use bplog?
-            // bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Constructor failed for block type %d, signature %lx\n", blocktype,
-            //      (unsigned long)content_type_signature);
+            return NULL;
         }
     }
-    #endif // QM_MODULE_API
+
     return block;
 }
 

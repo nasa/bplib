@@ -27,7 +27,11 @@
 
 #include "bplib_api_types.h"
 
+#include "bplib_rbt.h"
+
+#ifdef QM_DUCT
 #include "../../qm/inc/bplib_stor_qm_ducts.h"
+#endif // QM_DUCT
 
 #include "test_bplib_stor_cache.h"
 #include "utilities/bplib_stor_cache_utils.h"
@@ -270,6 +274,7 @@ void test_setup_cpool_allocation(BPLib_STOR_CACHE_Pool_t *pool, BPLib_STOR_CACHE
 void Test_BplibStorCache_Register(void)
 {
     ADD_TEST(Test_BPLib_STOR_CACHE_Create);
+    ADD_TEST(Test_BPLib_STOR_CACHE_GetState);
     ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryAlloc);
     ADD_TEST(Test_BPLib_STOR_CACHE_EntryMakePending);
     // QM ADD_TEST(Test_BPLib_STOR_CACHE_DebugScanQueue);

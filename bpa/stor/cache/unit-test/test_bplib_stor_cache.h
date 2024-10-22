@@ -62,6 +62,7 @@ void UT_cache_GetTime_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_Stu
 void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
 void Test_BPLib_STOR_CACHE_Create(void);
+void Test_BPLib_STOR_CACHE_GetState(void);
 void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void);
 void Test_BPLib_STOR_CACHE_EntryMakePending(void);
 void Test_BPLib_STOR_QM_Attach(void);

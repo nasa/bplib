@@ -186,8 +186,6 @@ typedef struct BPLib_STOR_CACHE_SubqWorkitem
     unsigned int                 current_depth_limit;
 } BPLib_STOR_CACHE_SubqWorkitem_t;
 
-// The abstract type definitions are ready to be split between header files, if needed.
-typedef struct BPLib_STOR_CACHE_Duct BPLib_STOR_CACHE_Duct_t;
 struct BPLib_STOR_CACHE_Duct
 {
     uint32_t pending_state_flags;
@@ -200,7 +198,6 @@ struct BPLib_STOR_CACHE_Duct
     BPLib_STOR_CACHE_SubqWorkitem_t egress;
 };
 
-typedef struct BPLib_STOR_CACHE_DuctContent BPLib_STOR_CACHE_DuctContent_t;
 struct BPLib_STOR_CACHE_DuctContent
 {
     BPLib_STOR_CACHE_Duct_t                dblock;
@@ -600,7 +597,7 @@ static inline bool BPLib_STOR_CACHE_IsIndirectBlock(const BPLib_STOR_CACHE_Block
  */
 static inline bool BPLib_STOR_CACHE_IsAnyContentNode(const BPLib_STOR_CACHE_Block_t *cb)
 {
-    return (cb->type > BPLib_STOR_CACHE_BlocktypeUndefined && cb->type < BPLib_STOR_CACHE_BlocktypeMax);
+    return (cb->type > BPLib_STOR_CACHE_BlocktypeUndefined && cb->type < BPLib_STOR_CACHE_BlocktypeSpecialBlocksMax);
 }
 
 /**

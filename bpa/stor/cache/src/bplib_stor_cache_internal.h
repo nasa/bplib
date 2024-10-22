@@ -98,13 +98,8 @@ typedef struct BPLib_STOR_CACHE_State
 
     BPLib_RBT_Root_t bundle_index;
     BPLib_RBT_Root_t dacs_index;
-    #ifdef jphfix
-    BPLib_RBT_Root_t dest_eid_jphfix_index;
-    BPLib_RBT_Root_t time_jphfix_index;
-    #else // jphfix
     BPLib_RBT_Root_t dest_eid_index;
     BPLib_RBT_Root_t time_index;
-    #endif // jphfix
 
     // TODO const BPLib_STOR_PS_OffloadApi_t *offload_api;
     BPLib_STOR_CACHE_Block_t         *offload_blk;
@@ -165,6 +160,8 @@ typedef struct BPLib_STOR_CACHE_CustodianInfo
     BPLib_STOR_CACHE_Entry_t *store_entry;
 } BPLib_STOR_CACHE_CustodianInfo_t;
 
+BPLib_STOR_CACHE_State_t *BPLib_STOR_CACHE_GetState(BPLib_STOR_CACHE_Block_t *intf_block);
+
 /* Allows reconstitution of the base block from a cache state pointer */
 static inline BPLib_STOR_CACHE_Block_t *BPLib_STOR_CACHE_StateSeldblock(BPLib_STOR_CACHE_State_t *state)
 {
@@ -177,22 +174,6 @@ static inline BPLib_STOR_CACHE_Pool_t *BPLib_STOR_CACHE_ParentPool(BPLib_STOR_CA
 {
     return BPLib_STOR_CACHE_GetParentPoolFromLink(BPLib_STOR_CACHE_StateSeldblock(state));
 }
-
-#ifdef QM_DUCT
-/**
- * @brief Cast a block to a duct type
- *
- * @param cb
- * @return BPLib_STOR_QM_Duct_t*
- */
-BPLib_STOR_QM_Duct_t *BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Block_t *cb);
-
-/* Allows reconstitution of the duct object from a cache state pointer */
-static inline BPLib_STOR_QM_Duct_t *BPLib_STOR_CACHE_GetDuct(BPLib_STOR_CACHE_State_t *state)
-{
-    return BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_StateSeldblock(state));
-}
-#endif // QM_DUCT
 
 /* Allows reconstitution of the queue struct from an RBT link pointer */
 #define BPLib_STOR_CACHE_EntryFromLink(ptr, member) \
@@ -216,6 +197,35 @@ static inline BPLib_STOR_CACHE_BlockAdminContent_t *BPLib_STOR_CACHE_GetAdmin(BP
     /* this just confirms that the passed-in pointer looks OK */
     return &pool->admin_block.u.admin;
 }
+
+/**
+ * @brief Get the current depth of a given subq
+ *
+ * @note If this is called outside of a lock, the results may be indeterminate because
+ * the state may change by the time the result is returned.  However, since 32-bit reads
+ * are generally atomic on most CPUs, it should be sufficiently safe to call while unlocked
+ * if the caller ensures that the calling task is the only thread currently during
+ * pushes or pulls - thereby ensuring that at least one of the values will be stable
+ * between the check and the actual push/pull.  In the event that the value changes
+ * between the time of check and time of use, it will only be "better" (that is, if the
+ * caller is pulling, the depth can only go up if another thread pushes, and if the
+ * caller is pushing, the depth can only go down if another thread pulls).
+ *
+ * @param subq
+ * @returns Current depth of queue
+ */
+static inline uint32_t BPLib_STOR_CACHE_SubqGetDepth(const BPLib_STOR_CACHE_SubqBase_t *subq)
+{
+    return (subq->push_count - subq->pull_count);
+}
+
+/**
+ * @brief Cast a block to a duct type
+ *
+ * @param cb
+ * @return BPLib_STOR_CACHE_Duct_t*
+ */
+BPLib_STOR_CACHE_Duct_t *BPLib_STOR_CACHE_DuctCast(BPLib_STOR_CACHE_Block_t *cb);
 
 void BPLib_STOR_CACHE_CustodyFinalizeDacs(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_Entry_t *store_entry);
 void BPLib_STOR_CACHE_CustodyStoreBundle(BPLib_STOR_CACHE_State_t *state, BPLib_STOR_CACHE_Block_t *qblk);
@@ -278,7 +288,12 @@ BPLib_STOR_CACHE_EntryState_t BPLib_STOR_CACHE_FsmGetNextState(BPLib_STOR_CACHE_
 void BPLib_STOR_CACHE_InitBaseObject(BPLib_STOR_CACHE_BlockHeader_t *block_hdr, uint16_t user_content_length,
                                   uint32_t content_type_signature);
 
+void BPLib_STOR_CACHE_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Job_t *jblk);
 
+static inline bool BPLib_STOR_CACHE_DuctIsUp(const BPLib_STOR_CACHE_Duct_t *duct)
+{
+    return (duct->current_state_flags & (BPLIB_CACHE_STATE_FLAG_ADMIN_UP | BPLIB_CACHE_STATE_FLAG_OPER_UP)) == 0;
+}
 
 /**
  * @brief Append a single bundle to the given sub-queue
@@ -361,5 +376,39 @@ const BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_GetBlockContentConst(con
 BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_BlockDereferenceContent(BPLib_STOR_CACHE_Block_t *cb);
 BPLib_STOR_CACHE_BlockContent_t *BPLib_STOR_CACHE_AllocBlockInternal(BPLib_STOR_CACHE_Pool_t *pool,
     BPLib_STOR_CACHE_Blocktype_t blocktype, uint32_t content_type_signature, void *init_arg, uint8_t priority);
+
+/*
+ * Enumeration that defines the various possible queueing table events.  This enum
+ * must always appear first in the structure that is the argument to the event handler,
+ * and indicates the actual event that has occurred
+ */
+typedef enum
+{
+    BPLib_STOR_CACHE_DuctEventUndefined,
+    BPLib_STOR_CACHE_DuctEventPoll,
+    BPLib_STOR_CACHE_DuctEventUp,
+    BPLib_STOR_CACHE_DuctEventDown,
+    BPLib_STOR_CACHE_DuctEventMax
+
+} BPLib_STOR_CACHE_DuctEvent_t;
+
+typedef struct BPLib_STOR_CACHE_StateEvent
+{
+    BPLib_STOR_CACHE_DuctEvent_t event_type; /* must be first */
+    BPLib_Ipn_t                 dest;
+    BPLib_Ipn_t                 mask;
+} BPLib_STOR_CACHE_StateEvent_t;
+
+typedef struct BPLib_STOR_CACHE_DuctStatechangeEvent
+{
+    BPLib_STOR_CACHE_DuctEvent_t event_type; /* must be first */
+    BPLib_Handle_t              intf_id;
+} BPLib_STOR_CACHE_DuctStatechangeEvent_t;
+
+typedef union BPLib_STOR_CACHE_DuctGenericEvent
+{
+    BPLib_STOR_CACHE_DuctEvent_t             event_type;
+    BPLib_STOR_CACHE_DuctStatechangeEvent_t intf_state;
+} BPLib_STOR_CACHE_DuctGenericEvent_t;
 
 #endif /* BPLIB_STOR_CACHE_INTERNAL_H */

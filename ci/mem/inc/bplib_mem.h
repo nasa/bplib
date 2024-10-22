@@ -115,14 +115,32 @@ typedef enum BPLib_MEM_Blocktype
 
 typedef struct BPLib_MEM_Block BPLib_MEM_Block_t;
 
-// TODO Add briefs for BPLib_MEM_OS_Lock and Unlock.
-void BPLib_MEM_OS_Lock(BPLib_Handle_t h);
-void BPLib_MEM_OS_Unlock(BPLib_Handle_t h);
-
-/*--------------------------------------------------------------------------------------
- * BPLib_MEM_OS_CreateLock -
- *-------------------------------------------------------------------------------------*/
+/**
+ * @brief Create a condition variable for an underlying mutex.
+ *
+ * Creates a condition variable for use with BPLib_MEM_OS_Lock and
+ * BPLib_MEM_OS_Unlock
+ *
+ * @return BPLib_Handle_t The handle of the condition variable.
+ */
 BPLib_Handle_t BPLib_MEM_OS_CreateLock(void);
+
+/**
+ * @brief Locks/Acquires the underlying mutex associated with a condition variable
+ *
+ * The mutex should always be locked by a task before reading or modifying the
+ * data object associated with a condition variable.
+ *
+ * @param h The handle of the condition variable.
+ */
+void BPLib_MEM_OS_Lock(BPLib_Handle_t h);
+
+/**
+ * @brief Release the underlying mutex associated with a condition variable
+ *
+ * @param h The handle of the condition variable.
+ */
+void BPLib_MEM_OS_Unlock(BPLib_Handle_t h);
 
 /**
  * @brief Acquires a given lock
@@ -150,7 +168,10 @@ static inline void BPLib_MEM_LockAcquire(BPLib_MEM_Lock_t *lock)
  */
 static inline void BPLib_MEM_LockRelease(BPLib_MEM_Lock_t *lock)
 {
-    BPLib_MEM_OS_Unlock(lock->lock_id);
+    if (lock != NULL)
+    {
+        BPLib_MEM_OS_Unlock(lock->lock_id);
+    }
 }
 
 /**
@@ -251,11 +272,35 @@ void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic);
 BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t parent_bt,
                                                uint32_t required_magic);
 
+/**
+ * @brief Get the parent memory block from a link to a memory block that may be a child
+ *
+ * Gets the pointer to a memory block that is the top-level parent block.
+ * Traverses to the parent block via the parent offset, if the block is a not
+ * the top-level parent.
+ *
+ * @param lblk pointer to BPLib_MEM_Block_t
+ * @return pointer to BPLib_MEM_Block_t Top-level parent block
+ */
 BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk);
 
-// TODO add briefs for BPLib_MEM_GetGenericDataCapacity and BPLib_MEM_Maintain
+/**
+ * @brief Get the generic data capacity for a memory block
+ *
+ * Gets the size of the user content space for a block, based on the
+ * size of BPLib_MEM_BlockBuffer_t less the data offset for the block's
+ * blocktype.
+ *
+ * @param cb pointer to BPLib_MEM_Block_t
+ * @return size_t
+ */
 size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb);
 
+/**
+ * @brief Perform garbage collection for a given pool of memory blocks
+ *
+ * @param pool pointer to BPLib_MEM_Pool_t
+ */
 void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool);
 
 /**

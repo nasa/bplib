@@ -32,12 +32,6 @@
  DEFINES
  ******************************************************************************/
 
-#define BPLIB_CACHE_STATE_FLAG_ADMIN_UP 0x01
-#define BPLIB_CACHE_STATE_FLAG_OPER_UP  0x02
-#define BPLIB_CACHE_STATE_FLAG_STORAGE  0x04
-#define BPLIB_CACHE_STATE_FLAG_ENDPOINT 0x08
-#define BPLIB_CACHE_STATE_FLAG_POLL     0x10
-
 /**
  * @brief Upper limit to how deep a single queue may ever be
  *

@@ -544,6 +544,7 @@ struct BPLib_MEM_Pool
 
 // TODO MEM-local Time helpers, also in the cache code separately. Should be in bplib_api_types.h or TIME.
 // TODO Reconcile heritage time functions with bplib_time.h TIME module.
+uint64_t BPLib_MEM_OS_GetDtnTimeMs(void);
 
 static inline uint64_t BPLib_MEM_GetDtnTime(void)
 {
@@ -866,12 +867,30 @@ static inline BPLib_MEM_BlockAdminContent_t *BPLib_MEM_GetAdmin(BPLib_MEM_Pool_t
     return &pool->admin_block.u.admin;
 }
 
-// TODO Add brief for SubqInit and BPLib_MEM_InsertBefore.
+/**
+ * @brief Initialize a memory block sub-queue (subq)
+ *
+ * Memory block subqs are internal block lists such as the free blocks,
+ * recycle blocks, and active blocks lists.
+ *
+ * @param base_block a pointer to a block intended to be the administrative block
+ * @param qblk a pointer to the first block of the subq.
+ * @returns void
+ */
 void BPLib_MEM_SubqInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_SubqBase_t *qblk);
 
+/**
+ * @brief Insert a memory block befor a block in a list of blocks
+ *
+ * Assuming all next and prev pointers are not NULL, assigns
+ * the appropriate pointer values to insert the node before the list
+ * element.
+ *
+ * @param list a pointer to a block intended to follow the inserted node
+ * @param node a pointer to the block to be inserted.
+ * @returns void
+ */
 void BPLib_MEM_InsertBefore(BPLib_MEM_Block_t *list, BPLib_MEM_Block_t *node);
-
-uint64_t BPLib_MEM_OS_GetDtnTimeMs(void);
 
 /**
  * @brief Get the current depth of a given subq
@@ -908,10 +927,6 @@ typedef struct BPLib_MEM_State
 
     BPLib_IpnAddr_t self_addr;
 
-    #ifdef QM_JOB
-    BPLib_STOR_QM_Job_t pending_job;
-    #endif // QM_JOB
-
     /*
      * pending_list holds bundle refs that are currently actionable in some way,
      * such as one of its timers getting reached, or the state flags changed.
@@ -934,13 +949,8 @@ typedef struct BPLib_MEM_State
 
     BPLib_RBT_Root_t bundle_index;
     BPLib_RBT_Root_t dacs_index;
-    #ifdef jphfix
-    BPLib_RBT_Root_t dest_eid_jphfix_index;
-    BPLib_RBT_Root_t time_jphfix_index;
-    #else // jphfix
     BPLib_RBT_Root_t dest_eid_index;
     BPLib_RBT_Root_t time_index;
-    #endif // jphfix
 
     // TODO const BPLib_STOR_PS_OffloadApi_t *offload_api;
     BPLib_MEM_Block_t         *offload_blk;

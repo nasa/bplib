@@ -49,7 +49,20 @@ void Test_BPLib_STOR_CACHE_Create(void)
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_Create(&buf, sizeof(buf)), &buf);
 }
 
+void Test_BPLib_STOR_CACHE_GetState(void)
+{
+    BPLib_STOR_CACHE_Block_t          sblk;
+    BPLib_STOR_CACHE_BlockContent_t   my_block;
+    BPLib_STOR_CACHE_Block_t         *cb = &my_block.header.base_link;
 
+    memset(&sblk, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+    UtAssert_NULL(BPLib_STOR_CACHE_GetState(&sblk));
+
+    memset(&my_block, 0, sizeof(my_block));
+    test_setup_cpool_block(NULL, &my_block, BPLib_STOR_CACHE_BlocktypePrimary, 0);
+    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_AltHandler_PointerReturn, &my_block);
+    UtAssert_NOT_NULL(BPLib_STOR_CACHE_GetState(cb));
+}
 
 void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
 {
@@ -58,19 +71,19 @@ void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
      * uint8_t priority, uint64_t timeout);
      */
     UT_BPLib_STOR_CACHE_Buf_t buf;
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
     memset(&buf, 0, sizeof(buf));
 
-    #ifdef PRIMARY_ALLOC
     BPLib_TIME_MonotonicTime_t time_zero;
     time_zero.Time = 0;
     UtAssert_NULL(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero));
 
-           (uint64_t)&buf.pool, (uint64_t)&buf.blk[0], (uint64_t)&buf.blk[1]);
-
     test_setup_cpool_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
 
+    admin                 = BPLib_STOR_CACHE_GetAdmin(&buf.pool);
+    admin->num_bufs_total = 3;
+
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero), &buf.blk[0]);
-    #endif // PRIMARY_ALLOC
 }
 
 void Test_BPLib_STOR_CACHE_EntryMakePending(void)
@@ -325,7 +338,6 @@ void Test_BPLib_STOR_CACHE_DestructBlockref(void)
     UtAssert_UINT32_NEQ(BPLib_STOR_CACHE_DestructBlockref(NULL, &sblk), 0);
 
     // TODO BPLib_MEM_GenericDataCast fails in Test_BPLib_STOR_CACHE_DestructBlockref.
-    #ifdef GENERIC_DATA_CAST
     blockref.storage_entry = &store_entry;
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, &blockref);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, &sblk1);
@@ -334,7 +346,6 @@ void Test_BPLib_STOR_CACHE_DestructBlockref(void)
 
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataCast), UT_cache_AltHandler_PointerReturn, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_MEM_GenericDataUncast), UT_cache_AltHandler_PointerReturn, NULL);
-    #endif // GENERIC_DATA_CAST
 }
 
 void Test_BPLib_STOR_CACHE_ConstructState(void)

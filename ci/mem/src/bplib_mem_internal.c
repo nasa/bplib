@@ -196,6 +196,8 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
 
     BPLib_MEM_BlockAdminContent_t *admin;
 
+    admin = BPLib_MEM_GetAdmin(pool);
+
     /* Only real blocks are allocated here - not secondary links nor head nodes,
      * as those are embedded within the blocks themselves. */
     if (blocktype == BPLib_MEM_BlocktypeUndefined || blocktype >= BPLib_MEM_BlocktypeMax)
@@ -203,7 +205,7 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
         return NULL;
     }
 
-    admin = BPLib_MEM_GetAdmin(pool);
+    block_count = BPLib_MEM_SubqGetDepth(&admin->free_blocks);
 
     /*
      * Check free block threshold: Note that it may take additional pool blocks (refs, cbor, etc)
@@ -215,8 +217,6 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
      * This soft limit only applies for actual bundle blocks, not for refs.
      */
     alloc_threshold = (admin->bblock_alloc_threshold * priority) / 255;
-
-    block_count = BPLib_MEM_SubqGetDepth(&admin->free_blocks);
 
     if (block_count <= (admin->bblock_alloc_threshold - alloc_threshold))
     {
@@ -235,7 +235,6 @@ BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool,
 
     /* sanity check that the user content will fit in the block */
     data_offset = BPLib_MEM_GetUserDataOffsetByBlocktype(blocktype);
-
     if (data_offset > sizeof(BPLib_MEM_BlockBuffer_t) ||
         (data_offset + api_block->user_content_size) > sizeof(BPLib_MEM_BlockBuffer_t))
     {
@@ -333,8 +332,8 @@ BPLib_MEM_Block_t *BPLib_MEM_BblockPrimaryAlloc(BPLib_MEM_Pool_t *pool, uint32_t
                                                 void *init_arg, uint8_t priority, BPLib_TIME_MonotonicTime_t timeout)
 {
     BPLib_MEM_BlockContent_t *result;
-    BPLib_MEM_Lock_t                *lock;
-    bool                             within_timeout;
+    BPLib_MEM_Lock_t         *lock;
+    bool                      within_timeout;
 
     lock           = BPLib_MEM_LockResource(pool);
     within_timeout = true;
@@ -361,7 +360,7 @@ BPLib_MEM_Block_t *BPLib_MEM_BblockPrimaryAlloc(BPLib_MEM_Pool_t *pool, uint32_t
 BPLib_MEM_Block_t *BPLib_MEM_BblockCanonicalAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg)
 {
     BPLib_MEM_BlockContent_t *result;
-    BPLib_MEM_Lock_t          *lock;
+    BPLib_MEM_Lock_t         *lock;
 
     lock   = BPLib_MEM_LockResource(pool);
     result = BPLib_MEM_AllocBlockInternal(pool, BPLib_MEM_BlocktypeCanonical, magic_number, init_arg,
@@ -374,9 +373,9 @@ BPLib_MEM_Block_t *BPLib_MEM_BblockCanonicalAlloc(BPLib_MEM_Pool_t *pool, uint32
 static BPLib_Status_t BPLib_MEM_DuctEventHandler(void *arg, BPLib_MEM_Block_t *jblk)
 {
     BPLib_MEM_Block_t                *fblk;
-    BPLib_MEM_Duct_t            *duct;
+    BPLib_MEM_Duct_t                 *duct;
     uint32_t                          changed_flags;
-    BPLib_MEM_DuctGenericEvent_t event;
+    BPLib_MEM_DuctGenericEvent_t      event;
     bool                              was_running;
     bool                              is_running;
 
@@ -449,4 +448,3 @@ void BPLib_MEM_JobInit(BPLib_MEM_Block_t *base_block, BPLib_MEM_Job_t *jblk)
 {
     BPLib_MEM_InitSecondaryLink(base_block, &jblk->link, BPLib_MEM_BlocktypeJob);
 }
-
