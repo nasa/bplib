@@ -736,7 +736,7 @@ void BPLib_MEM_RecycleBlock(BPLib_MEM_Block_t *blk)
  * Function: BPLib_MEM_ListIterGotoFirst
  *
  *-----------------------------------------------------------------*/
-int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
+BPLib_Status_t BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
 {
     if (!BPLib_MEM_IsListHead(list))
     {
@@ -753,7 +753,7 @@ int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIte
  * Function: BPLib_MEM_ListIterGotoLast
  *
  *-----------------------------------------------------------------*/
-int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
+BPLib_Status_t BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
 {
     if (!BPLib_MEM_IsListHead(list))
     {
@@ -770,7 +770,7 @@ int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter
  * Function: BPLib_MEM_ListIterForward
  *
  *-----------------------------------------------------------------*/
-int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter)
+BPLib_Status_t BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter)
 {
     if (iter->pending_entry == NULL || BPLib_MEM_IsListHead(iter->pending_entry))
     {
@@ -788,7 +788,7 @@ int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter)
  * Function: BPLib_MEM_ListIterReverse
  *
  *-----------------------------------------------------------------*/
-int BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter)
+BPLib_Status_t BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter)
 {
     if (iter->pending_entry == NULL || BPLib_MEM_IsListHead(iter->pending_entry))
     if (iter->pending_entry == NULL || BPLib_MEM_IsListHead(iter->pending_entry))
