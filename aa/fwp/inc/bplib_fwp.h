@@ -26,10 +26,10 @@
 */
 
 #include "bplib.h"
-#include "bplib_api_types.h"
-#include "bplib_ndc.h"
 #include "bplib_as.h"
+#include "bplib_nc_payloads.h"
 #include "bplib_stor.h"
+
 /*
 ** Type Definitions
 */
@@ -61,17 +61,20 @@ typedef struct
     BPLib_Status_t (*BPA_TLMP_SendChannelContactPkt)(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload);
     BPLib_Status_t (*BPA_TLMP_SendStoragePkt)(BPLib_StorageHkTlm_Payload_t* StorTlmPayload);    
 
+    /* ADU Proxy function callbacks */
+    BPLib_Status_t (*BPA_ADUP_AddApplication)(uint8_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_StartApplication)(uint8_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_StopApplication)(uint8_t ChanId);
+
     /* Add other proxies' function callbacks here: TODO */
 
 } BPLib_FWP_ProxyCallbacks_t;
-
 
 /*
 ** Global Data
 */
 
 extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
-
 
 /*
 ** Exported Functions

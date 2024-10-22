@@ -32,10 +32,7 @@
  * \brief Node MIB counters housekeeping payload
  */
 
-typedef struct BPLib_NodeMibCountersHkTlm_Payload BPLib_NodeMibCountersHkTlm_Payload_t;
-typedef struct BPLib_SourceMibCountersHkTlm_Payload BPLib_SourceMibCountersHkTlm_Payload_t;
-
-struct BPLib_NodeMibCountersHkTlm_Payload
+typedef struct
 {
     uint32_t BundleCountGeneratedAnonymous;         /**< \brief Bundle count generated anonymous */
     uint32_t SystemNodeUpTime;                      /**< \brief System node up time */
@@ -67,12 +64,12 @@ struct BPLib_NodeMibCountersHkTlm_Payload
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */    
-};
+} BPLib_NodeMibCountersHkTlm_Payload_t;
 
 /**
  * \brief Source MIB counters housekeeping payload
  */
-typedef struct BPLib_SourceMibCountersSet
+typedef struct
 {    
     char SourceEID[BPLIB_MAX_EID_LENGTH];       /**< \brief Source EID this telemetry corresponds to */
     uint32_t BundleCountGeneratedAccepted;      /**< \brief Number of accepted bundle transmission requests */
@@ -137,9 +134,9 @@ typedef struct BPLib_SourceMibCountersSet
     uint32_t BundleCountReceivedCrsDeleted;     /**< \brief Number of deleted bundle reports included in each received CRS since the last counter reset. */
     uint32_t BundleCountReceivedAdminRecord;    /**< \brief Number of admin record bundles received for this DTN Node. */
     uint32_t Spare1;
-}BPLib_SourceMibCountersSet_t;
+} BPLib_SourceMibCountersSet_t;
 
-struct BPLib_SourceMibCountersHkTlm_Payload
+typedef struct
 {
     BPLib_SourceMibCountersSet_t SourceCounters[BPLIB_MAX_NUM_SOURCE_EID]; /**< \brief Counters for each source */
     
@@ -147,7 +144,7 @@ struct BPLib_SourceMibCountersHkTlm_Payload
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
-};
+} BPLib_SourceMibCountersHkTlm_Payload_t;
 
 /*
 ** Exported Functions

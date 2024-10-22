@@ -18,57 +18,193 @@
  *
  */
 
-#ifndef BPLIB_NDC_H
-#define BPLIB_NDC_H
+#ifndef BPLIB_NC_PAYLOADS_H
+#define BPLIB_NC_PAYLOADS_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 
+/* =========== */
+/* Definitions */
+/* =========== */
+
+
+
+/* =================== */
+/* Payload Definitions */
+/* =================== */
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_ResetCounter_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_ResetSourceCounters_Payload_t;
+
+typedef struct
+{
+    uint8_t ChanId;         /**< \brief Channel ID */
+    uint8_t Spare[3];       /**< \brief Spare bytes */
+} BPLib_AddApplication_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_RemoveApplication_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_SetRegistrationState_Payload_t;
+
+typedef struct
+{
+    uint8_t ChanId;         /**< \brief Channel ID */
+    uint8_t Spare[3];       /**< \brief Spare bytes */
+} BPLib_StartApplication_Payload_t;
+
+typedef struct
+{
+    uint8_t ChanId;         /**< \brief Channel ID */
+    uint8_t Spare[3];       /**< \brief Spare bytes */
+} BPLib_StopApplication_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_AddAuthSources_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_RemoveAuthSources_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_AddAuthCustodySources_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_RemoveAuthCustodySources_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_AddAuthCustodians_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_RemoveAuthCustodians_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_AddAuthReportToEid_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_RemoveAuthReportToEid_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_AddLatency_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_RemoveLatency_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_ContactSetup_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_ContactStart_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_ContactStop_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_ContactTeardown_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_AddMibArrayKey_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_RemoveMibArrayKey_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_SetMibItem_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_AddStorageAllocation_Payload_t;
+
+typedef struct
+{
+    uint32_t ExampleParameter;
+} BPLib_RemoveStorageAllocation_Payload_t;
 
 /**
  * \brief Channel/contact status housekeeping payload
  */
-
-typedef struct BPLib_ChannelContactStatHkTlm_Payload BPLib_ChannelContactStatHkTlm_Payload_t;
-typedef struct BPLib_NodeMibConfigHkTlm_Payload BPLib_NodeMibConfigHkTlm_Payload_t;
-typedef struct BPLib_SourceMibConfigHkTlm_Payload BPLib_SourceMibConfigHkTlm_Payload_t;
-
-typedef struct BPLib_ChannelHkTlmPayloadSet
+typedef struct
 {
     uint32_t    LocalServiceNum;    /**< \brief Service number for application sending/receiving ADUs on this channel */
     uint32_t    Status;             /**< \brief Configured, Running, or Off */
     uint32_t    RegistrationState;  /**< \brief Active, PassiveDefered or PassiveAbandon */
     uint32_t    OutputQueueID;      /**< \brief Output queue ID */
-}BPLib_ChannelHkTlmPayloadSet_t;
+} BPLib_ChannelHkTlmPayloadSet_t;
 
-typedef struct BPLib_ContactHkTlmPayloadSet
+typedef struct
 {
     uint32_t    ContactID;                              /**< \brief Unique ID for this contact */
     uint32_t    Status;                                 /**< \brief Configured, Running, or Off */
     char        EIDs[BPLIB_MAX_EID_LENGTH];             /**< \brief List of EIDs */
     uint32_t    OutputQueueID;                          /**< \brief Output queue ID */
     uint32_t    Spare1;
-}BPLib_ContactHkTlmPayloadSet_t;
+} BPLib_ContactHkTlmPayloadSet_t;
 
-struct BPLib_ChannelContactStatHkTlm_Payload
+typedef struct
 {
     BPLib_ChannelHkTlmPayloadSet_t ChannelStatus[BPLIB_MAX_NUM_CHANNELS]; /**< \brief Status for each channel */
     BPLib_ContactHkTlmPayloadSet_t ContactStatus[BPLIB_MAX_NUM_CONTACTS]; /**< \brief Status for each contact */
-    
     uint32_t Spare2;
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
-};
+} BPLib_ChannelContactStatHkTlm_Payload_t;
 
 /**
  * \brief Node MIB configuration housekeeping payload
  */
-struct BPLib_NodeMibConfigHkTlm_Payload
+typedef struct
 {
     char SystemNodeName[BPLIB_MAX_NUM_STRING];                  /**< \brief Textual name of a DTN Node entity */
     char SystemNodeOwner[BPLIB_MAX_NUM_STRING];                 /**< \brief Textual identifier of the node manager */
@@ -78,7 +214,7 @@ struct BPLib_NodeMibConfigHkTlm_Payload
     char BundleAgentOperationalState[BPLIB_MAX_NUM_STRING];     /**< \brief Indication of the Node operational state */
     char BundleAgentConfiguration[BPLIB_MAX_NUM_STRING];        /**< \brief Indication of the current Node configuration */
     uint32_t BundleAgentNodeNumber;                             /**< \brief Node Number */
-    uint32_t BundleAgentAvailableStorage;                       /**< \brief Amount of memory initially allocated for bundle storage */                               
+    uint32_t BundleAgentAvailableStorage;                       /**< \brief Amount of memory initially allocated for bundle storage */
     uint32_t BundleAgentCtdbSize;                               /**< \brief Storage allocatted to Custody Transfer Database (CTDB) use */
     uint32_t ParamSetMaxSequenceNum;                            /**< \brief Maximum bundle sequence number */
     uint32_t ParamSetMaxPayloadLength;                          /**< \brief Maximum payload length for fragmentation */
@@ -96,17 +232,15 @@ struct BPLib_NodeMibConfigHkTlm_Payload
     bool ParamSetBehaviorWrapResponse;                          /**< \brief Indication of whether the oldest or newest bundle will be dropped when CTDB buffer is full */
     uint8_t Spare1;
     uint32_t BundleSizeFragment;                                /**< \brief Maximum size of bundles that can traverse DTN without additional bundle layer fragmentation */
-    
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
-};
+} BPLib_NodeMibConfigHkTlm_Payload_t;
 
 /**
  * \brief Source MIB configuration housekeeping payload
  */
-
-typedef struct SourceMibConfigSet
+typedef struct
 {
     char SourceEID[BPLIB_MAX_NUM_STRING];       /**< \brief Source EID to which this telemetry corresponds */
     bool BundleSetBehaviorReceivedBSRGenerate;  /**< \brief Flag indicating that Bundle Status Report (BSR) should be generated for bundles received */
@@ -123,33 +257,15 @@ typedef struct SourceMibConfigSet
     uint32_t ParamSetMaxLifetime;               /**< \brief Maximum bundle lifetime */
     uint32_t ParamSetMaxBSRGenerationRate;      /**< \brief Maximum number of BSRs per minute that a node can generate overall and on behalf of each source */
     uint32_t ParamSetMaxCBRGenerationRate;      /**< \brief Maximum number of CBRs per minute that a node can generate overall and on behalf of each source */
-}SourceMibConfigSet_t;
+} BPLib_SourceMibConfigSet_t;
 
-struct BPLib_SourceMibConfigHkTlm_Payload
+typedef struct
 {
-    SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_SOURCE_EID];
+    BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_SOURCE_EID];
     uint32_t Spare2;
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */        
-};
+    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
+} BPLib_SourceMibConfigHkTlm_Payload_t;
 
-/*
-** Exported Functions
-*/
-
-/**
- * \brief Node Configuration initialization
- *
- *  \par Description
- *       NDC initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-int BPLib_NDC_Init(void);
-
-#endif /* BPLIB_NDC_H */
+#endif // BPLIB_NC_PAYLOADS_H
