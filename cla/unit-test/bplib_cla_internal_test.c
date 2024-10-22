@@ -30,21 +30,40 @@
 */
 void Test_BPLib_CLA_IsAControlMsgNominal(void)
 {
-    void *Bundle = NULL;
-    UtAssert_BOOL_TRUE(BPLib_CLA_IsAControlMsg(Bundle));
+    BPLib_CLA_CtrlMsg_t CtrlMsg;
+    strcpy(CtrlMsg.CtrlMsgTag, "BPNMSG");
+    UtAssert_BOOL_TRUE(BPLib_CLA_IsAControlMsg(&CtrlMsg));
 }
-
 
 void Test_BPLib_CLA_ProcessControlMessageNominal(void)
 {
-    UtAssert_INT32_EQ(BPLib_CLA_ProcessControlMessage(), BPLIB_SUCCESS);
+    BPLib_CLA_CtrlMsg_t CtrlMsg;
+    strcpy(CtrlMsg.CtrlMsgTag, "BPNMSG");
+    UtAssert_INT32_EQ(BPLib_CLA_ProcessControlMessage(&CtrlMsg), BPLIB_SUCCESS);
 }
 
+void Test_BPLib_CLA_ProcessControlMessageSentIt(void)
+{
+    BPLib_CLA_CtrlMsg_t CtrlMsg;
+    strcpy(CtrlMsg.CtrlMsgTag, "BPNMSG");
+    CtrlMsg.MsgTypes = 0;
+    UtAssert_INT32_EQ(BPLib_CLA_ProcessControlMessage(&CtrlMsg), BPLIB_SUCCESS);
+}
+
+void Test_BPLib_CLA_ProcessControlMessageComplete(void)
+{
+    BPLib_CLA_CtrlMsg_t CtrlMsg;
+    strcpy(CtrlMsg.CtrlMsgTag, "BPNMSG");
+    CtrlMsg.MsgTypes = 1;
+    UtAssert_INT32_EQ(BPLib_CLA_ProcessControlMessage(&CtrlMsg), BPLIB_SUCCESS);
+}
 
 void TestBplibClaInternal_Register(void)
 {
     UtTest_Add(Test_BPLib_CLA_IsAControlMsgNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_IsAControlMsgNominal");
     UtTest_Add(Test_BPLib_CLA_ProcessControlMessageNominal, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ProcessControlMessageNominal");
+    UtTest_Add(Test_BPLib_CLA_ProcessControlMessageSentIt, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ProcessControlMessageSentIt");
+    UtTest_Add(Test_BPLib_CLA_ProcessControlMessageComplete, BPLib_CLA_Test_Setup, BPLib_CLA_Test_Teardown, "Test_BPLib_CLA_ProcessControlMessageComplete");
 }
 
 

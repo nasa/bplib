@@ -24,19 +24,21 @@
 
 #include "bplib_cla.h"
 #include "bplib_cla_internal.h"
+#include "bplib_bi.h"
 
 
 /*
 ** Function Definitions
 */
 
-int BPLib_CLA_Init(void) {
+BPLib_Status_t BPLib_CLA_Init(void) {
     return BPLIB_SUCCESS;
 }
 
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
-int BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
 {
+    BPLib_Status_t Status = BPLIB_SUCCESS;
     const uint8_t *InBundle = Bundle;
     if (Bundle != NULL)
     {
@@ -47,31 +49,39 @@ int BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t 
             if (BPLib_CLA_IsAControlMsg(InBundle))
             {
                 /* Processes the control message and pass to BI*/
-                BPLib_CLA_ProcessControlMessage();
+                BPLib_CLA_ProcessControlMessage((BPLib_CLA_CtrlMsg_t*)Bundle);
                 
-                /*For now just count the message and drop here*/
             }
         }
         else
         {
             /* Receive a RFC 9171 bundle and pass it to BI*/
-            
-            /*For now drop the bundles here and count them */
+            Status = BPLib_BI_RecvFullBundleIn(Bundle, Size);
+            if (Status != BPLIB_SUCCESS)
+            {
+                
+            }
         }
         
     }
     
-    return BPLIB_SUCCESS;    
+    return Status;    
 }
 
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
-int BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout)
 {
+    BPLib_Status_t Status = BPLIB_SUCCESS;
     const uint8_t *InBundle = Bundle;
     if (InBundle != NULL)
     {
-        /* Receive a RFC9171 bundle from BI */
+        /* Receive a RFC9171 deserialized bundle from BI and send it to CL */
+        Status = BPLib_BI_SendFullBundleOut(Bundle, Size);
+        if (Status != BPLIB_SUCCESS)
+        {
+
+        }
     }
-    return BPLIB_SUCCESS;    
+    return Status;    
 }
 
