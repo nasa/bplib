@@ -27,9 +27,8 @@
 
 #include "bplib.h"
 
-
-#define BPLIB_MAX_EID_LENGTH    256
-#define BPLIB_MAX_NUM_CONTACTS  1
+//#define BPLIB_MAX_EID_LENGTH    256
+//#define BPLIB_MAX_NUM_CONTACTS  1
 
 
 /* There are 4 types of control message types, received from CL*/

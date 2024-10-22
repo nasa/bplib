@@ -34,14 +34,26 @@ extern "C" {
  * \brief Maximum length of EID strings
  */
 
-#define BPLIB_MAX_EID_LENGTH                256
-
+#define BPLIB_MAX_EID_LENGTH                256 /* Maximum EID string length */
+#define BPLIB_MAX_NUM_BUNDLE_QUEUES         16  /* Maximum number of queuses */
+#define BPLIB_MAX_NUM_SOURCE_EID            16  /* Maximum number of allowed source EIDs */
+#define BPLIB_MAX_NUM_STRING                24  /* Maximum string length */
+    
+/** 
+ * \brief Maximum number of contacts that can be running at once
+ *          This drives the number of entries in the CLA configuration
+ *          tables, as well as the number of CLA In/Out tasks in BPNode
+ */
+#define BPLIB_MAX_NUM_CONTACTS              1
+    
 /** 
  * \brief Maximum number of channels that can be running at once
  *          This drives the number of entries in the channel and ADU proxy configuration
  *          tables, as well as the number of ADU In/Out tasks in BPNode
  */
 #define BPLIB_MAX_NUM_CHANNELS              2
+
+#define BPLIB_MAX_NUM_CONTACTS              1
 
 /** 
  * \brief Maximum number of canonical blocks per bundle
