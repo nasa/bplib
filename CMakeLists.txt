@@ -90,7 +90,7 @@ add_subdirectory(cla)
 add_subdirectory(aa/arp)
 add_subdirectory(aa/as)
 add_subdirectory(aa/fwp)
-add_subdirectory(aa/ndc)
+add_subdirectory(aa/nc)
 add_subdirectory(bpa/bi)
 add_subdirectory(bpa/ct)
 add_subdirectory(bpa/ebp)
@@ -108,7 +108,7 @@ add_subdirectory(ci/rbt)
 
 list(APPEND BPLIB_COMPONENTS
   bplib_version
-  bplib_cla bplib_arp bplib_as bplib_fwp bplib_ndc
+  bplib_cla bplib_arp bplib_as bplib_fwp bplib_nc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
   bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time bplib_crc bplib_rbt
 )
