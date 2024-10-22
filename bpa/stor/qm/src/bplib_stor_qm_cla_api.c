@@ -100,7 +100,7 @@ int BPLib_STOR_CACHE_GenericBundleIngress(BPLib_STOR_CACHE_Ref_t duct_ref, const
     duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Dereference(duct_ref));
     if (duct == NULL)
     {
-        status = bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "intf_block invalid\n");
+        status = BPLIB_ERROR;
     }
     else
     {
@@ -163,7 +163,6 @@ int BPLib_STOR_CACHE_GenericBundleIngress(BPLib_STOR_CACHE_Ref_t duct_ref, const
         }
         else
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_INCOMPLETE, "Bundle did not decode correctly\n");
             status = BPLIB_ERROR;
         }
 
@@ -202,7 +201,7 @@ int BPLib_STOR_CACHE_GenericBundleEgress(BPLib_STOR_CACHE_Ref_t duct_ref, void *
     duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Dereference(duct_ref));
     if (duct == NULL)
     {
-        status = bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "intf_block invalid\n");
+        status = BPLIB_ERROR;
     }
     else
     {
@@ -285,7 +284,6 @@ BPLib_Handle_t BPLib_STOR_CACHE_CreateClaIntf(BPLib_STOR_QM_QueueTbl_t *rtbl)
     sblk = BPLib_STOR_QM_DuctAlloc(pool, BPLIB_BLOCKTYPE_CLA_INTF, NULL);
     if (sblk == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to allocate intf block\n");
         return BPLIB_INVALID_HANDLE;
     }
 
@@ -321,14 +319,12 @@ int BPLib_STOR_CACHE_ClaEgress(BPLib_STOR_QM_QueueTbl_t *rtbl, BPLib_Handle_t in
     duct_ref = BPLib_STOR_QM_GetIntfControlblock(rtbl, intf_id);
     if (duct_ref == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Intf ID invalid\n");
         return BPLIB_ERROR;
     }
 
     stats = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(duct_ref), BPLIB_BLOCKTYPE_CLA_INTF);
     if (stats == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Intf ID is not a CLA\n");
         status = BPLIB_ERROR;
     }
     else
@@ -355,14 +351,12 @@ int BPLib_STOR_CACHE_ClaIngress(BPLib_STOR_QM_QueueTbl_t *rtbl, BPLib_Handle_t i
     duct_ref = BPLib_STOR_QM_GetIntfControlblock(rtbl, intf_id);
     if (duct_ref == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Intf ID invalid\n");
         return BPLIB_ERROR;
     }
 
     stats = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(duct_ref), BPLIB_BLOCKTYPE_CLA_INTF);
     if (stats == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Intf ID is not a CLA\n");
         status = BPLIB_ERROR;
     }
     else

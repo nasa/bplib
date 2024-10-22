@@ -34,21 +34,6 @@
 #include "bplib_stor_cache_ref.h"
 #include "bplib_stor_cache_block.h"
 
-// TODO Remove OSAL #define bplog(flags, evt, ...) BPLIB_MEM_OS_Log(__FILE__, __LINE__, flags, evt, __VA_ARGS__)
-#ifdef KEEP_BPLOG
-int bplog(uint32_t *flags, uint32_t event, ...)
-{
-    if (event > 0)
-    {
-        return BPLIB_ERROR;
-    }
-    else
-    {
-        return BPLIB_SUCCESS;
-    }
-}
-#endif // KEEP_BPLOG
-
 BPLib_STOR_CACHE_State_t *BPLib_STOR_CACHE_GetState(BPLib_STOR_CACHE_Block_t *intf_block)
 {
     BPLib_STOR_CACHE_State_t *state;
@@ -486,7 +471,6 @@ BPLib_Handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_I
     #endif // QM
     if (sblk == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "%s(): Insufficient memory to create file storage\n", __func__);
         return BPLIB_INVALID_HANDLE;
     }
 
@@ -502,7 +486,6 @@ BPLib_Handle_t BPLib_STOR_QM_Attach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_I
 
     if (!BPLib_HandleIsValid(storage_intf_id))
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot attach - service addr invalid?\n", __func__);
         BPLib_STOR_CACHE_RefRelease(duct_block_ref);
     }
     else
@@ -545,7 +528,6 @@ int BPLib_STOR_QM_Detach(BPLib_STOR_QM_QueueTbl_t *tbl, const BPLib_IpnAddr_t *s
 
     if (state == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot detach - service addr invalid?\n", __func__);
         status = BPLIB_ERROR;
     }
     else
@@ -651,14 +633,12 @@ void BPLib_STOR_CACHE_DebugScanQueue(void *tbl, BPLib_Handle_t intf_id)
     intf_block_ref = BPLib_STOR_QM_GetIntfControlblock(tbl, intf_id);
     if (intf_block_ref == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): Parent intf invalid\n", __func__);
         return;
     }
 
     state = BPLib_STOR_CACHE_GetState(BPLib_STOR_CACHE_Dereference(intf_block_ref));
     if (state == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): Parent intf is not a storage cache\n", __func__);
         return;
     }
 

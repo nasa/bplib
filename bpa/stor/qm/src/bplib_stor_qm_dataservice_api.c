@@ -70,7 +70,6 @@ int BPLib_STOR_CACHE_ServiceductBundleizePayload (
         pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(pblk);
         if (pri_block == NULL)
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to allocate primary block\n");
             break;
         }
 
@@ -99,7 +98,6 @@ int BPLib_STOR_CACHE_ServiceductBundleizePayload (
         /* Pre-Encode Primary Block */
         if (block_encode_pri(pri_block) < 0)
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed encoding pri block\n");
             break;
         }
 
@@ -108,7 +106,6 @@ int BPLib_STOR_CACHE_ServiceductBundleizePayload (
         ccb_pay = BPLib_STOR_CACHE_BblockCanonicalCast(cblk);
         if (ccb_pay == NULL)
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to allocate payload block\n");
             break;
         }
 
@@ -121,7 +118,6 @@ int BPLib_STOR_CACHE_ServiceductBundleizePayload (
         /* Encode Payload Block */
         if (block_encode_pay(ccb_pay, content, size) < 0)
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed encoding pay block\n");
             break;
         }
 
@@ -159,7 +155,6 @@ int BPLib_STOR_CACHE_ServiceductUnbundleizePayload(
         if (pri == NULL)
         {
             /* not a pri block, cannot be unbundled */
-            // TODO remove bplog(NULL, BPLIB_FLAG_INCOMPLETE, "%s(): Not a primary block\n", __func__);
             break;
         }
 
@@ -169,7 +164,6 @@ int BPLib_STOR_CACHE_ServiceductUnbundleizePayload(
         if (ccb_pay == NULL)
         {
             /* no payload, cannot be unbundled */
-            // TODO remove bplog(NULL, BPLIB_FLAG_INCOMPLETE, "%s(): No payload\n", __func__);
             break;
         }
 
@@ -184,7 +178,6 @@ int BPLib_STOR_CACHE_ServiceductUnbundleizePayload(
         if (content_offset == 0 || content_size > *size)
         {
             /* No payload */
-            // TODO remove bplog(NULL, BPLIB_FLAG_INCOMPLETE, "%s(): Incorrectly sized bundle\n", __func__);
             break;
         }
 
@@ -194,7 +187,6 @@ int BPLib_STOR_CACHE_ServiceductUnbundleizePayload(
         /* This should always match, some sort of bug if it does not */
         if (temp_size != content_size)
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_INCOMPLETE, "%s(): Failed to copy complete payload\n", __func__);
             break;
         }
 
@@ -223,7 +215,7 @@ int BPLib_STOR_CACHE_ServiceductForwardIngress(void *arg, BPLib_STOR_CACHE_Block
     base_intf  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "intf_block invalid\n");
+        return BPLIB_ERROR;
     }
 
     curr_duct = BPLib_STOR_QM_DuctCast(intf_block);
@@ -295,7 +287,7 @@ int BPLib_STOR_CACHE_ServiceductForwardEgress(void *arg, BPLib_STOR_CACHE_Block_
     base_intf  = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)intf_block, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "intf_block invalid\n");
+        return BPLIB_ERROR;
     }
 
     curr_duct = BPLib_STOR_QM_DuctCast(intf_block);
@@ -385,7 +377,6 @@ int BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Block_t *base_intf_bl
                                                     BPLIB_BLOCKTYPE_SERVICE_ENDPOINT, NULL);
         if (temp_block == NULL)
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): out of memory when binding socket\n", __func__);
             return BPLIB_ERROR;
         }
 
@@ -571,14 +562,12 @@ BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAddBaseIntf(BPLib_STOR_QM_QueueTbl_t 
     sblk = BPLib_STOR_QM_DuctAlloc(pool, BPLIB_BLOCKTYPE_SERVICE_BASE, NULL);
     if (sblk == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to allocate intf block\n");
         return BPLIB_INVALID_HANDLE;
     }
 
     base_intf = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_BLOCKTYPE_SERVICE_BASE);
     if (base_intf == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to convert sblk to ref\n");
         self_intf_id = BPLIB_INVALID_HANDLE;
     }
     else
@@ -615,7 +604,6 @@ BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAttach(
     duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Dereference(blkref));
     if (duct == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
         return BPLIB_INVALID_HANDLE;
     }
 
@@ -624,8 +612,6 @@ BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAttach(
     parent_block_ref   = BPLib_STOR_QM_GetIntfControlblock(tbl, parent_intf_id);
     if (parent_block_ref == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): no parent intf for node %lu\n", __func__,
-        //      (unsigned long)ipn->node_number);
         return BPLIB_INVALID_HANDLE;
     }
 
@@ -633,8 +619,7 @@ BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAttach(
        BPLib_STOR_CACHE_ServiceductAddToBase(BPLib_STOR_CACHE_Dereference(parent_block_ref), ipn->service_number, type, blkref);
     if (status != BPLIB_SUCCESS)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot add service %lu to node %lu - duplicate?\n", __func__,
-        //      (unsigned long)ipn->node_number, (unsigned long)ipn->node_number);
+        return BPLIB_ERROR;
     }
     else
     {
@@ -642,8 +627,7 @@ BPLib_Handle_t BPLib_STOR_CACHE_DataserviceAttach(
         if (!BPLib_HandleIsValid(self_intf_id))
         {
            BPLib_STOR_CACHE_ServiceductRemoveFromBase(BPLib_STOR_CACHE_Dereference(parent_block_ref), ipn->service_number);
-            // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): could not register service %lu\n", __func__,
-            //      (unsigned long)ipn->node_number);
+           return BPLIB_ERROR;
         }
         else if (type == BPLib_STOR_CACHE_DataserviceTypeStorage)
         {
@@ -669,7 +653,6 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_DataserviceDetach(BPLib_STOR_QM_QueueTbl
     parent_block_ref   = BPLib_STOR_QM_GetIntfControlblock(tbl, parent_intf_id);
     if (parent_block_ref == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): no parent intf for node %lu\n", __func__,
         //      (unsigned long)ipn->node_number);
         return NULL;
     }
@@ -724,7 +707,6 @@ BPLib_STOR_QM_Socket_t *BPLib_STOR_CACHE_CreateSocket(BPLib_STOR_QM_QueueTbl_t *
     }
     else
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Cannot open socket: not enough memory\n");
         sock_ref = NULL;
     }
 
@@ -744,19 +726,16 @@ int BPLib_STOR_CACHE_BindSocket(BPLib_STOR_QM_Socket_t *desc, const BPLib_IpnAdd
     sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
         return BPLIB_ERROR;
     }
 
     if (sock->params.local_ipn.node_number != 0)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): socket already connected\n", __func__);
         return BPLIB_ERROR;
     }
 
     if (source_ipn->node_number == 0)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): invalid source node number\n", __func__);
         return BPLIB_ERROR;
     }
 
@@ -789,26 +768,22 @@ BPLib_Status_t BPLib_STOR_CACHE_ConnectSocket(BPLib_STOR_QM_Socket_t *desc, cons
     sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
         return BPLIB_ERROR;
     }
 
     if (!BPLib_HandleIsValid(sock->socket_intf_id))
     {
         /* not yet bound */
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): socket not bound\n", __func__);
         return BPLIB_ERROR;
     }
 
     if (sock->params.remote_ipn.node_number != 0)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): socket already connected\n", __func__);
         return BPLIB_ERROR;
     }
 
     if (destination_ipn->node_number == 0)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): invalid destination node number\n", __func__);
         return BPLIB_ERROR;
     }
 
@@ -831,7 +806,6 @@ void BPLib_STOR_CACHE_CloseSocket(BPLib_STOR_QM_Socket_t *desc)
     sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
         return;
     }
 
@@ -872,14 +846,12 @@ int BPLib_STOR_CACHE_Send(BPLib_STOR_QM_Socket_t *desc, const void *payload, siz
     sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
         return BPLIB_ERROR;
     }
 
     duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Dereference(sock_ref));
     if (duct == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad duct ref - is socket connected?\n", __func__);
         return BPLIB_ERROR;
     }
 
@@ -888,14 +860,12 @@ int BPLib_STOR_CACHE_Send(BPLib_STOR_QM_Socket_t *desc, const void *payload, siz
                                             ingress_limit);
     if (pblk == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): unable to alloc pri block\n", __func__);
         return BPLIB_TIMEOUT;
     }
 
     status =BPLib_STOR_CACHE_ServiceductBundleizePayload(sock, pblk, payload, size);
     if (status != BPLIB_SUCCESS)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): cannot bundleize payload, out of memory?\n", __func__);
         return status;
     }
 
@@ -905,7 +875,6 @@ int BPLib_STOR_CACHE_Send(BPLib_STOR_QM_Socket_t *desc, const void *payload, siz
     {
         /* not expected... */
         BPLib_STOR_CACHE_RecycleBlock(pblk);
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Cannot convert payload to ref\n");
         return BPLIB_ERROR;
     }
     pblk = NULL; /* only the ref should be used from here */
@@ -932,7 +901,6 @@ int BPLib_STOR_CACHE_Send(BPLib_STOR_QM_Socket_t *desc, const void *payload, siz
     }
     else
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): failed to create block ref, out of memory?\n", __func__);
         status = BPLIB_ERROR;
     }
 
@@ -964,14 +932,12 @@ int BPLib_STOR_CACHE_Recv(BPLib_STOR_QM_Socket_t *desc, void *payload, size_t *s
     sock = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)BPLib_STOR_CACHE_Dereference(sock_ref), BPLIB_BLOCKTYPE_SERVICE_SOCKET);
     if (sock == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad descriptor\n", __func__);
         return BPLIB_ERROR;
     }
 
     duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Dereference(sock_ref));
     if (duct == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): bad duct_ref\n", __func__);
         return BPLIB_ERROR;
     }
 
@@ -1000,7 +966,6 @@ int BPLib_STOR_CACHE_Recv(BPLib_STOR_QM_Socket_t *desc, void *payload, size_t *s
         }
         else
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "%s(): unable to create ref from pblk\n", __func__);
             status = BPLIB_ERROR;
         }
 

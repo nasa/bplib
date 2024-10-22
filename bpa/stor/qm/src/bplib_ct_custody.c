@@ -185,7 +185,6 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_CustodyCreateDacs(BPLib_STOR_CACHE_State
         pri_block = BPLib_STOR_CACHE_BblockPrimaryCast(pblk);
         if (pri_block == NULL)
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to allocate primary block\n");
             break;
         }
 
@@ -212,7 +211,6 @@ BPLib_STOR_CACHE_Ref_t BPLib_STOR_CACHE_CustodyCreateDacs(BPLib_STOR_CACHE_State
         c_block = BPLib_STOR_CACHE_BblockCanonicalCast(cblk);
         if (c_block == NULL)
         {
-            // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to allocate payload block\n");
             break;
         }
 

@@ -94,14 +94,12 @@ int BPLib_STOR_QM_QueueIngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq
     curr_duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_GetBlockFromLink(subq_src));
     if (curr_duct == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to cast duct block\n");
         return -1; // The return value is -1 for failure to ingress, otherwise the queue depth after ingress.
     }
 
     next_duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_Dereference(curr_duct->parent));
     if (next_duct == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to cast duct parent block\n");
         return -1; // The return value is -1 for failure to ingress, otherwise the queue depth after ingress.
     }
 
@@ -172,7 +170,6 @@ int BPLib_STOR_QM_IngressBaseintfForwarder(void *arg, BPLib_STOR_CACHE_Block_t *
     duct = BPLib_STOR_QM_DuctCast(BPLib_STOR_CACHE_GetBlockFromLink(subq_src));
     if (duct == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Failed to cast duct block\n");
         return -1; // The return value is -1 for failure to ingress, otherwise the bundle count after ingress.
     }
 
@@ -281,7 +278,6 @@ BPLib_Handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, 
     duct   = BPLib_STOR_QM_DuctCast(duct_block);
     if (duct == NULL)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "Failed to cast duct block\n");
         return result;
     }
 
@@ -290,7 +286,7 @@ BPLib_Handle_t BPLib_STOR_QM_RegisterGenericIntf(BPLib_STOR_QM_QueueTbl_t *tbl, 
     if (fref == NULL && BPLib_HandleIsValid(parent_intf_id))
     {
         /* this is an error */
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Parent intf not valid\n");
+        return result;
     }
     else
     {

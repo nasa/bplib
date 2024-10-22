@@ -184,23 +184,23 @@ int BPLib_STOR_CACHE_Eid2ipn(const char *eid, size_t len, BPLib_Ipn_t *node, BPL
     /* Sanity Check EID Pointer */
     if (eid == NULL)
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID is null\n");
+        return BPLIB_ERROR;
     }
 
     /* Sanity Check Length of EID */
     if (len < 7)
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID must be at least 7 characters, act: %d\n", len);
+        return BPLIB_ERROR;
     }
     else if (len > BPLIB_MAX_EID_STRING)
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID cannot exceed %d bytes in length, act: %d\n", BPLIB_MAX_EID_STRING, len);
+        return BPLIB_ERROR;
     }
 
     /* Check IPN Scheme */
     if (eid[0] != 'i' || eid[1] != 'p' || eid[2] != 'n' || eid[3] != ':')
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID (%s) must start with 'ipn:'\n", eid);
+        return BPLIB_ERROR;
     }
 
     /* Copy EID to Temporary Buffer and Set Pointers */
@@ -216,7 +216,7 @@ int BPLib_STOR_CACHE_Eid2ipn(const char *eid, size_t len, BPLib_Ipn_t *node, BPL
     }
     else
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "Unable to find dotted notation in EID (%s)\n", eid);
+        return BPLIB_ERROR;
     }
 
     /* Parse Node Number */
@@ -224,7 +224,7 @@ int BPLib_STOR_CACHE_Eid2ipn(const char *eid, size_t len, BPLib_Ipn_t *node, BPL
     node_result = strtoul(node_ptr, &endptr, 10); /* assume IPN node and service numbers always written in base 10 */
     if ((endptr == node_ptr) || ((node_result == ULONG_MAX || node_result == 0) && errno == ERANGE))
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "Unable to parse EID (%s) node number\n", eid);
+        return BPLIB_ERROR;
     }
 
     /* Parse Service Number */
@@ -233,7 +233,7 @@ int BPLib_STOR_CACHE_Eid2ipn(const char *eid, size_t len, BPLib_Ipn_t *node, BPL
         strtoul(service_ptr, &endptr, 10); /* assume IPN node and service numbers always written in base 10 */
     if ((endptr == service_ptr) || ((service_result == ULONG_MAX || service_result == 0) && errno == ERANGE))
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "Unable to parse EID (%s) service number\n", eid);
+        return BPLIB_ERROR;
     }
 
     /* Set Outputs */
@@ -256,18 +256,17 @@ int BPLib_STOR_CACHE_Ipn2eid(char *eid, size_t len, BPLib_Ipn_t node, BPLib_Ipn_
     /* Sanity Check EID Buffer Pointer */
     if (eid == NULL)
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID buffer is null\n");
+        return BPLIB_ERROR;
     }
 
     /* Sanity Check Length of EID Buffer */
     if (len < 7)
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID buffer must be at least 7 characters, act: %d\n", len);
+        return BPLIB_ERROR;
     }
     else if (len > BPLIB_MAX_EID_STRING)
     {
-        return BPLIB_ERROR;  // TODO remove bplog(NULL, BPLIB_FLAG_API_ERROR, "EID buffer cannot exceed %d bytes in length, act: %d\n",
-                    //  BPLIB_MAX_EID_STRING, len);
+        return BPLIB_ERROR;
     }
 
     /* Write EID */

@@ -198,7 +198,6 @@ static void BPLib_STOR_PS_FileOffloadSidToName(BPLib_STOR_PS_FileOffloadState_t 
             result = mkdir(name_buf, 0755);
             if (result != 0)
             {
-                bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "mkdir(%s): %s\n", name_buf, strerror(errno));
             }
             *pd2 = '/';
         }
@@ -208,7 +207,6 @@ static void BPLib_STOR_PS_FileOffloadSidToName(BPLib_STOR_PS_FileOffloadState_t 
             result = mkdir(name_buf, 0755);
             if (result != 0)
             {
-                bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "mkdir(%s): %s\n", name_buf, strerror(errno));
             }
             *pd1 = '/';
         }
@@ -235,7 +233,6 @@ static int BPLib_STOR_PS_FileOffloadWrite_block_content(int fd, BPLib_STOR_PS_Fi
     }
     else
     {
-        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "write(): %s\n", strerror(errno));
         status = BPLIB_ERROR;
     }
 
@@ -267,7 +264,6 @@ static int BPLib_STOR_PS_FileOffloadRead_block_content(int fd, BPLib_STOR_PS_Fil
     }
     else
     {
-        bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "write(): %s\n", strerror(errno));
         status = BPLIB_ERROR;
     }
 
@@ -510,7 +506,7 @@ static int BPLib_STOR_PS_FileOffloadOffload(BPLib_STOR_CACHE_Block_t *svc, BPLib
     state = BPLib_STOR_CACHE_MpoolGenericDataCast(svc, BPLIB_FILE_OFFLOAD_MAGIC);
     if (state == NULL)
     {
-        return bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Not a valid offload state object\n");
+        return BPLIB_ERROR;
     }
 
     result = BPLIB_ERROR;
@@ -529,7 +525,6 @@ static int BPLib_STOR_PS_FileOffloadOffload(BPLib_STOR_CACHE_Block_t *svc, BPLib
         off = lseek(fd, sizeof(rec), SEEK_SET);
         if (off != sizeof(rec))
         {
-            bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "lseek(): %s\n", strerror(errno));
         }
 
         result = BPLib_STOR_PS_FileOffloadWriteBlocks(fd, &rec, pblk);
@@ -565,7 +560,7 @@ static int BPLib_STOR_PS_FileOffloadRestore(BPLib_STOR_CACHE_Block_t *svc, BPLib
     state = BPLib_STOR_CACHE_MpoolGenericDataCast(svc, BPLIB_FILE_OFFLOAD_MAGIC);
     if (state == NULL)
     {
-        return bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "Not a valid offload state object\n");
+        return BPLIB_ERROR;
     }
 
     pool = BPLib_STOR_CACHE_MpoolGetParentPoolFromLink(svc);
@@ -601,7 +596,7 @@ static int BPLib_STOR_PS_FileOffloadRestore(BPLib_STOR_CACHE_Block_t *svc, BPLib
             }
             else
             {
-                bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "CRC mismatch during bundle restore\n");
+                return BPLIB_ERROR;
             }
         }
     }
@@ -672,13 +667,11 @@ BPLib_Handle_t BPLib_STOR_CACHE_CreateNodeIntf(BPLib_STOR_CACHE_Block_t *rtbl, B
     intf_id = BPLib_STOR_CACHE_DataserviceAddBaseIntf(rtbl, node_num);
     if (!BPLib_HandleIsValid(intf_id))
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_OUT_OF_MEMORY, "BPLib_STOR_CACHE_AddIntf failed\n");
         return BPLIB_INVALID_HANDLE;
     }
 
     if (BPLib_STOR_CACHE_Add(rtbl, node_num, ~(BPLib_Ipn_t)0, intf_id) < 0)
     {
-        // TODO remove bplog(NULL, BPLIB_FLAG_DIAGNOSTIC, "BPLib_STOR_CACHE_Add failed\n");
         return BPLIB_INVALID_HANDLE;
     }
 
