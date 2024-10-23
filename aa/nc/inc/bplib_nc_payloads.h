@@ -268,4 +268,68 @@ typedef struct
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_SourceMibConfigHkTlm_Payload_t;
 
+
+/*
+** MIB Config Per Node Policy Table
+*/
+typedef struct
+{
+    char        SysNodeName[BPLIB_MAX_EID_LENGTH];
+    char        SysNodeOwner[BPLIB_MAX_EID_LENGTH];
+    char        SysSoftExec[BPLIB_MAX_EID_LENGTH];
+    char        SysSoftExecVer[BPLIB_MAX_EID_LENGTH];
+    uint32_t    BundleAgentNum;
+    char        BundleAgentVer[BPLIB_MAX_EID_LENGTH];
+    char        BundleAgentOpState[BPLIB_MAX_EID_LENGTH];
+    char        BundleAgentConfig[BPLIB_MAX_EID_LENGTH];
+    uint32_t    BundleAgentAvailStorage;
+    uint32_t    BundleAgentCtdbSize;
+    uint32_t    BundleSizeNoFrag;
+    uint32_t    ParamSetMaxSeqenceNum;
+    uint32_t    ParamSetMaxPayloadLength;
+    uint32_t    ParamSetMaxBundleLength;
+    uint32_t    ParamSetMaxTransmissionID;
+    uint32_t    ParamSetMaxForwardingRetries;
+    uint32_t    ParamSetMaxSimultaneousContacts;
+    uint32_t    ParamSetBehaviorEventReporting;
+    bool        ParamSetBehaviorReturnToSender;
+    bool        ParamSetBehaviorTransIDReuse;
+    bool        ParamSetBehaviorTransIDRollover;
+    bool        ParamSetBehaviorWrapResponse;
+    bool        ParamSupportBIBE;
+    bool        ParamSupportCustody;
+    bool        ParamSupportConfidentiality;
+    bool        Spare;
+
+} BPLib_NC_MIBConfigPNTable_t;
+
+
+/*
+** MIB Config Per Source Policy Table
+*/
+typedef struct
+{
+    char        SrcEID[BPLIB_MAX_EID_LENGTH];
+    char        EIDPattern[BPLIB_MAX_EID_LENGTH];
+    uint32_t    ParamSetMaxLifetime;
+    uint32_t    ParamSetMaxBSRGenerationRate;
+    uint32_t    ParamSetMaxCBRGenerationRate;
+    uint8_t     BundleSetBehaviorReceivedBSRGenerate;
+    uint8_t     BundleSetBehaviorAcceptedBSRGenerate;
+    uint8_t     BundleSetBehaviorForwardedBSRGenerate;
+    uint8_t     BundleSetBehaviorDeliveredBSRGenerate;
+    uint8_t     BundleSetBehaviorDeletedBSRGenerate;
+    uint8_t     BundleSetBehaviorReceivedCBRGenerate;
+    uint8_t     BundleSetBehaviorAcceptedCBRGenerate;
+    uint8_t     BundleSetBehaviorForwardedCBRGenerate;
+    uint8_t     BundleSetBehaviorDeliveredCBRGenerate;
+    uint8_t     BundleSetBehaviorDeletedCBRGenerate;  
+    uint16_t    Spare;
+} BPLib_NC_MIBConfigPSSet_t;
+
+typedef struct
+{
+    BPLib_NC_MIBConfigPSSet_t MIB_PS_Set[BPLIB_MAX_NUM_MIB_PS];
+} BPLib_NC_MIBConfigPSTable_t;
+
 #endif // BPLIB_NC_PAYLOADS_H

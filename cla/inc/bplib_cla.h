@@ -53,7 +53,7 @@ typedef struct
     uint32_t    CSSizeTrigger;
 } BPLib_ContactsSet_t;
 
-struct BPLib_ContactsTable
+struct BPLib_CLA_ContactsTable
 {
     BPLib_ContactsSet_t ContactSet[BPLIB_MAX_NUM_CONTACTS];
 };
@@ -61,7 +61,7 @@ struct BPLib_ContactsTable
 /*
 ** Table Type def
 */
- typedef struct BPLib_ContactsTable BPLib_ContactsTable_t;  
+ typedef struct BPLib_CLA_ContactsTable BPLib_CLA_ContactsTable_t;  
 
 /*
 ** Exported Functions

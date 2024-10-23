@@ -25,8 +25,63 @@
 ** Include
 */
 
-#include "bplib.h"
+#include "bplib_api_types.h"
+#include "bplib_cfg.h"
 
+
+/*
+** Authorized Source EID Table
+*/
+typedef struct
+{
+    char AuthSrcEIDs[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+} BPLib_PD_SrcAuthTable_t;
+
+/*
+** Custodian Authorization Policy Table
+*/
+typedef struct
+{
+    char AuthCustodians[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+} BPLib_PD_CustodianTable_t;
+
+/*
+** Custody Authorization Policy Table
+*/
+typedef struct
+{
+    char AuthCustodySrc[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+} BPLib_PD_CustodyTable_t;
+
+/*
+** Report-To Authorization EID Table
+*/
+typedef struct
+{
+    char AuthReportToEIDs[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+} BPLib_PD_ReportToTable_t;
+
+/*
+** Source Latency Table
+*/
+typedef enum
+{
+    Low,
+    Med,
+    High,
+} SrcLatency;
+
+typedef struct
+{
+    char        SrcEID[BPLIB_MAX_EID_LENGTH];
+    uint32_t    Latency;
+    uint32_t    Spare;    
+}BPLib_PD_SrcLatencySet_t;
+
+typedef struct
+{
+    BPLib_PD_SrcLatencySet_t LatencySet[BPLIB_MAX_NUM_LATENCY_SRC];
+} BPLib_PD_SrcLatencyTable_t;
 
 /*
 ** Exported Functions

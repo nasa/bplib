@@ -25,8 +25,23 @@
 ** Includes
 */
 
-#include "bplib.h"
+#include "bplib_api_types.h"
+#include "bplib_cfg.h"
 
+/*
+** CRS Table
+*/
+typedef struct
+{
+    char        DestEID[BPLIB_MAX_EID_LENGTH];
+    uint32_t    TimeTrigger;
+    uint32_t    SizeTrigger;
+} BPLib_CRSSet_t;
+
+typedef struct
+{
+    BPLib_CRSSet_t CRS_Set[BPLIB_MAX_MUN_CRS];
+} BPLib_ARP_CRSTable_t;
 
 /*
 ** Exported Functions

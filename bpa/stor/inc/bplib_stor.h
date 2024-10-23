@@ -53,6 +53,20 @@ struct BPLib_StorageHkTlm_Payload
 };
 
 /*
+** Storage Policy Table
+*/
+typedef struct
+{
+    char        SrcEID[BPLIB_MAX_EID_LENGTH];
+    uint32_t    StorageSize;
+} BPLib_STOR_StorageSet_t;
+
+typedef struct
+{
+    BPLib_STOR_StorageSet_t StorageSet[BPLIB_MAX_NUM_STORE_SET];
+} BPLib_STOR_StorageTable_t;
+
+/*
 ** Exported Functions
 */
 
