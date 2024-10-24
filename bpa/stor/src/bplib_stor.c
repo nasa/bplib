@@ -32,3 +32,11 @@
 int BPLib_STOR_Init(void) {
     return BPLIB_SUCCESS;
 }
+
+/* Validate Storage table data */
+BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
+{
+    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
+
+    return ReturnCode;
+}

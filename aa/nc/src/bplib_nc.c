@@ -1256,3 +1256,35 @@ BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void)
 
     return Status;
 }
+
+/* Validate MIB Config PN table data */
+BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData)
+{
+    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
+    BPLib_NC_MIBConfigPNTable_t *TblDataPtr = (BPLib_NC_MIBConfigPNTable_t *)TblData;
+
+    /* Validate data values are within allowed range */
+    if (TblDataPtr->BundleAgentNum <= 0)
+    {
+        /* element is out of range, return an appropriate error code */
+        ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;
+    }
+
+    return ReturnCode;
+}
+
+/* Validate MIB Config PS table data */
+BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
+{
+    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
+    BPLib_NC_MIBConfigPSTable_t *TblDataPtr = (BPLib_NC_MIBConfigPSTable_t *)TblData;
+
+    /* Validate data values are within allowed range */
+    if (TblDataPtr[0].MIB_PS_Set->ParamSetMaxLifetime <= 0)
+    {
+        /* element is out of range, return an appropriate error code */
+        ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;
+    }
+
+    return ReturnCode;
+}

@@ -95,6 +95,9 @@ typedef int32_t BPLib_Status_t;
 /* Payload Interface Errors */
 #define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -29u)
 
+/* Table validation error code */
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -30u)    
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

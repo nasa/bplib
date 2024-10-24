@@ -101,4 +101,94 @@ typedef struct
  */
 int BPLib_PDB_Init(void);
 
+/**
+ * \brief Validate Custodian Auth Table configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new channel table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ */BPLib_Status_t BPLib_PD_CustodianAuthTblValidateFunc(void *TblData);
+
+
+/**
+ * \brief Validate Custody Auth Table configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new channel table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ */BPLib_Status_t BPLib_PD_CustodyAuthTblValidateFunc(void *TblData);
+
+
+/**
+ * \brief Validate ReportTo Auth Table configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new channel table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ */BPLib_Status_t BPLib_PD_ReportToAuthTblValidateFunc(void *TblData);
+
+
+/**
+ * \brief Validate Source Auth Table configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new channel table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ */BPLib_Status_t BPLib_PD_SrcAuthTblValidateFunc(void *TblData);
+
+
+/**
+ * \brief Validate configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new channel table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ */BPLib_Status_t BPLib_PD_SrcLatencyTblValidateFunc(void *TblData);
+
+
 #endif /* BPLIB_PDB_H */

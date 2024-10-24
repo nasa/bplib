@@ -36,11 +36,11 @@ typedef struct
     char        DestEID[BPLIB_MAX_EID_LENGTH];
     uint32_t    TimeTrigger;
     uint32_t    SizeTrigger;
-} BPLib_CRSSet_t;
+} BPLib_ARP_CRSSet_t;
 
 typedef struct
 {
-    BPLib_CRSSet_t CRS_Set[BPLIB_MAX_MUN_CRS];
+    BPLib_ARP_CRSSet_t CRS_Set[BPLIB_MAX_MUN_CRS];
 } BPLib_ARP_CRSTable_t;
 
 /*
@@ -60,5 +60,23 @@ typedef struct
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
 int BPLib_ARP_Init(void);
+
+/**
+ * \brief Validate CRS Table Table configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new channel table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ */
+BPLib_Status_t BPLib_ARP_CRSTblValidateFunc(void *TblData);
 
 #endif /* BPLIB_ARP_H */

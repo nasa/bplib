@@ -40,3 +40,21 @@ int BPLib_ARP_Init(void)
 
     return UT_GenStub_GetReturnValue(BPLib_ARP_Init, int);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_ARP_CRSTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_ARP_CRSTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_ARP_CRSTblValidateFunc,
+                               BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_ARP_CRSTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_ARP_CRSTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_ARP_CRSTblValidateFunc,
+                                   BPLib_Status_t);
+}

@@ -40,3 +40,21 @@ int BPLib_STOR_Init(void)
 
     return UT_GenStub_GetReturnValue(BPLib_STOR_Init, int);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_STOR_StorageTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_STOR_StorageTblValidateFunc,
+                               BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_STOR_StorageTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_STOR_StorageTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_STOR_StorageTblValidateFunc,
+                                   BPLib_Status_t);
+}

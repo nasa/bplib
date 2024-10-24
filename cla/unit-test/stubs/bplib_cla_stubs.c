@@ -80,3 +80,21 @@ int BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size,
 
   return UT_GenStub_GetReturnValue(BPLib_CLA_Ingress, int);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_CLA_ContactsTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_CLA_ContactsTblValidateFunc,
+                               BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_CLA_ContactsTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_CLA_ContactsTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_CLA_ContactsTblValidateFunc,
+                                   BPLib_Status_t);
+}
