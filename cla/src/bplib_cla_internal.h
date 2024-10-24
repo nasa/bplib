@@ -74,7 +74,7 @@ bool BPLib_CLA_IsAControlMsg(const void *Bundle);
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] CtrlMsgPtr Poiter for the control message
+ *  \param[in] CtrlMsgPtr Pointer for the control message
  * 
  *
  *  \return Execution status
