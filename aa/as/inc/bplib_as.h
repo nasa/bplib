@@ -162,6 +162,9 @@ typedef struct
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-int BPLib_AS_Init(void);
+BPLib_Status_t BPLib_AS_Init(void);
+
+BPLib_Status_t BPLib_AS_RequestInterpreter();
+BPLib_Status_t BPLib_AS_StatisticsDatabase();
 
 #endif /* BPLIB_AS_H */
