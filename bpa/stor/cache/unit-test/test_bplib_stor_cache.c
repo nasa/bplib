@@ -29,7 +29,7 @@
 
 #include "bplib_time.h"
 
-#include "bplib_stor_qm_ducts.h"
+#include "bplib_stor_cache_types.h"
 
 #include "utilities/bplib_stor_cache_utils.h"
 #include "test_bplib_stor_cache.h"
@@ -84,6 +84,99 @@ void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void)
     admin->num_bufs_total = 3;
 
     UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_BblockPrimaryAlloc(&buf.pool, 1234, NULL, 0, time_zero), &buf.blk[0]);
+}
+
+void Test_BPLib_STOR_CACHE_BblockPrimaryGetEncodedChunks(void)
+{
+    #ifdef FIXIT
+    BPLib_STOR_CACHE_BblockPrimary_t blk1;
+    BPLib_STOR_CACHE_Block_t blk2;
+
+    // TODO Fix blk1.chunk_list = &blk2;
+    BPLib_STOR_CACHE_BblockPrimaryGetEncodedChunks
+    #endif // FIXIT
+}
+
+void Test_BPLib_STOR_CACHE_GetNextBlock(void)
+{
+    BPLib_STOR_CACHE_Block_t blk1;
+    BPLib_STOR_CACHE_Block_t blk2;
+
+    blk1.next = &blk2;
+    UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_GetNextBlock(&blk1), &blk2);
+}
+
+void Test_BPLib_STOR_CACHE_GetPrevBlock(void)
+{
+    BPLib_STOR_CACHE_Block_t blk1;
+    BPLib_STOR_CACHE_Block_t blk2;
+
+    blk1.prev = &blk2;
+    UtAssert_ADDRESS_EQ(BPLib_STOR_CACHE_GetPrevBlock(&blk1), &blk2);
+}
+
+void Test_BPLib_STOR_CACHE_IsLinkAttached(void)
+{
+    BPLib_STOR_CACHE_Block_t blk1;
+    BPLib_STOR_CACHE_Block_t blk2;
+
+    blk1.next = &blk1;
+    UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_IsLinkAttached(&blk1));
+
+    blk1.next = &blk2;
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsLinkAttached(&blk1));
+}
+
+void Test_BPLib_STOR_CACHE_IsNonemptyListHead(void)
+{
+    BPLib_STOR_CACHE_Block_t blk1;
+    BPLib_STOR_CACHE_Block_t blk2;
+
+    blk1.type = BPLib_STOR_CACHE_BlocktypeListHead;
+    blk1.next = &blk1;
+    UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_IsNonemptyListHead(&blk1));
+
+    blk1.next = &blk2;
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsNonemptyListHead(&blk1));
+}
+
+void Test_BPLib_STOR_CACHE_IsAnyContentNode(void)
+{
+    BPLib_STOR_CACHE_Block_t blk1;
+
+    blk1.type = BPLib_STOR_CACHE_BlocktypeUndefined;
+    UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_IsAnyContentNode(&blk1));
+
+    blk1.type = BPLib_STOR_CACHE_BlocktypePayloadBlock;
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsAnyContentNode(&blk1));
+}
+
+void Test_BPLib_STOR_CACHE_IsSecondaryIndexNode(void)
+{
+    BPLib_STOR_CACHE_Block_t blk1;
+
+    blk1.type = BPLib_STOR_CACHE_BlocktypeUndefined;
+    UtAssert_BOOL_FALSE(BPLib_STOR_CACHE_IsSecondaryIndexNode(&blk1));
+
+    blk1.type = BPLib_STOR_CACHE_BlocktypeRef;
+    UtAssert_BOOL_TRUE(BPLib_STOR_CACHE_IsSecondaryIndexNode(&blk1));
+}
+
+void Test_BPLib_STOR_CACHE_GetExternalId(void)
+{
+    BPLib_STOR_CACHE_Block_t blk1;
+    uint32_t test_offset;
+    BPLib_Handle_t result_handle;
+
+    memset(&blk1, 0, sizeof(BPLib_STOR_CACHE_Block_t));
+
+    result_handle = BPLib_STOR_CACHE_GetExternalId(&blk1);
+    UtAssert_LTEQ(uint32_t, result_handle.hdl, BPLIB_HANDLE_MPOOL_BASE.hdl);
+
+    test_offset = (uint32_t)sizeof(BPLib_STOR_CACHE_Block_t);
+    blk1.parent_offset = BPLIB_HANDLE_MPOOL_BASE.hdl + test_offset;
+    result_handle = BPLib_STOR_CACHE_GetExternalId(&blk1);
+    UtAssert_GT(uint32_t, result_handle.hdl, BPLIB_HANDLE_MPOOL_BASE.hdl);
 }
 
 void Test_BPLib_STOR_CACHE_EntryMakePending(void)

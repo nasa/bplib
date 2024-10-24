@@ -176,7 +176,7 @@ void BPLib_MEM_InitListHead(BPLib_MEM_Block_t *base_block, BPLib_MEM_Block_t *li
  *
  * @param pool_mem  Pointer to pool memory
  * @param pool_size Size of pool memory
- * @return bplib_mpool_t*
+ * @return BPLib_MEM_Pool_t*
  */
 BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size);
 

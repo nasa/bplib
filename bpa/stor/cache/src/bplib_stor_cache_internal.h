@@ -23,6 +23,8 @@
 
 #include <stdarg.h>
 
+#include "bplib_stor_cache_types.h"
+
 #include "bplib_time.h"
 
 #include "bplib_mem.h"
@@ -72,9 +74,7 @@ typedef struct BPLib_STOR_CACHE_State
 
     BPLib_IpnAddr_t self_addr;
 
-    #ifdef QM_JOB
-    BPLib_STOR_QM_Job_t pending_job;
-    #endif // QM_JOB
+    BPLib_STOR_CACHE_Job_t pending_job;
 
     /*
      * pending_list holds bundle refs that are currently actionable in some way,
@@ -289,6 +289,61 @@ void BPLib_STOR_CACHE_InitBaseObject(BPLib_STOR_CACHE_BlockHeader_t *block_hdr, 
                                   uint32_t content_type_signature);
 
 void BPLib_STOR_CACHE_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_CACHE_Job_t *jblk);
+
+void BPLib_STOR_CACHE_JobMarkActiveInternal(BPLib_STOR_CACHE_Block_t *active_list, BPLib_STOR_CACHE_Job_t *job);
+
+/**
+ * @brief Mark a given job as runnable
+ *
+ * This marks it so it will be processed during the next call to forward data
+ *
+ * @note This is handled automatically by functions which append to a duct subq, such
+ * as BPLib_STOR_CACHE_DuctTryPush() and BPLib_STOR_CACHE_DuctTryMoveAll().
+ * Applictions only need to explicitly call this API to mark it as active if there is
+ * some other factor that requires it to be processed again.
+ *
+ * @param job Job that is ready to run
+ */
+void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job);
+
+/**
+ * @brief Cast a block to a job type
+ *
+ * @param cb
+ * @return BPLib_STOR_CACHE_Job_t*
+ */
+BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobCast(BPLib_STOR_CACHE_Block_t *cb);
+
+void BPLib_STOR_CACHE_JobCancelInternal(BPLib_STOR_CACHE_Job_t *job);
+
+/**
+ * @brief Get the next active duct in the pool
+ *
+ * The given callback function will be invoked for all ducts which are
+ * currently marked as active
+ *
+ * @param pool
+ * @return BPLib_STOR_CACHE_Job_t *
+ */
+BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobGetNextActive(BPLib_STOR_CACHE_Pool_t *pool);
+
+void BPLib_STOR_CACHE_JobRunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg);
+
+/**
+ * @brief Indicate state change of the resource held by the lock
+ *
+ * Signals to other threads that state of the resource has changed
+ *
+ * Other threads waiting on the same lock are unblocked and should all re-check the condition
+ * they are waiting on.
+ *
+ * @param lock
+ */
+static inline void BPLib_MEM_LockBroadCastSignal(BPLib_MEM_Lock_t *lock)
+{
+    // TODO Move to MEM and generate stub.
+    // bplib_os_broadcast_signal(lock->lock_id);
+}
 
 static inline bool BPLib_STOR_CACHE_DuctIsUp(const BPLib_STOR_CACHE_Duct_t *duct)
 {

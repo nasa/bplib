@@ -18,6 +18,7 @@
  *
  */
 
+#include <assert.h>
 #include <execinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -108,3 +109,126 @@ void BPLib_STOR_CACHE_JobInit(BPLib_STOR_CACHE_Block_t *base_block, BPLib_STOR_C
 {
     BPLib_STOR_CACHE_InitSecondaryLink(base_block, &jblk->link, BPLib_STOR_CACHE_BlocktypeJob);
 }
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_job_cast
+ *
+ *-----------------------------------------------------------------*/
+BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobCast(BPLib_STOR_CACHE_Block_t *cb)
+{
+    if (cb != NULL && cb->type == BPLib_STOR_CACHE_BlocktypeJob)
+    {
+        return (BPLib_STOR_CACHE_Job_t *)cb;
+    }
+
+    return NULL;
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_job_cancel_internal
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_STOR_CACHE_JobCancelInternal(BPLib_STOR_CACHE_Job_t *job)
+{
+    assert(job->link.type == BPLib_STOR_CACHE_BlocktypeJob);
+    BPLib_STOR_CACHE_ExtractNode(&job->link);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: bplib_mpool_job_mark_active_internal
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_STOR_CACHE_JobMarkActiveInternal(BPLib_STOR_CACHE_Block_t *active_list, BPLib_STOR_CACHE_Job_t *job)
+{
+    /* first cancel the job it if it was already active */
+    /* this permits it to be marked as active multiple times, it will still only be in the runnable list once */
+    BPLib_STOR_CACHE_JobCancelInternal(job);
+    if (job->handler)
+    {
+        BPLib_STOR_CACHE_InsertBefore(active_list, &job->link);
+    }
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_STOR_CACHE_JobMarkActive
+ *
+ *-----------------------------------------------------------------*/
+void BPLib_STOR_CACHE_JobMarkActive(BPLib_STOR_CACHE_Job_t *job)
+{
+    BPLib_MEM_Lock_t                     *lock;
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+    BPLib_STOR_CACHE_Pool_t              *pool;
+
+    pool  = BPLib_STOR_CACHE_GetParentPoolFromLink(&job->link);
+    admin = BPLib_STOR_CACHE_GetAdmin(pool);
+
+    lock = BPLib_MEM_LockResource(pool);
+    BPLib_STOR_CACHE_JobMarkActiveInternal(&admin->active_list, job);
+    BPLib_MEM_LockBroadCastSignal(lock);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Function: BPLib_STOR_CACHE_JobGetNextActive
+ *
+ *-----------------------------------------------------------------*/
+BPLib_STOR_CACHE_Job_t *BPLib_STOR_CACHE_JobGetNextActive(BPLib_STOR_CACHE_Pool_t *pool)
+{
+    BPLib_STOR_CACHE_Job_t               *job;
+    BPLib_MEM_Lock_t                     *lock;
+    BPLib_STOR_CACHE_Block_t             *jblk;
+    BPLib_STOR_CACHE_BlockAdminContent_t *admin;
+
+    admin = BPLib_STOR_CACHE_GetAdmin(pool);
+
+    do
+    {
+        lock = BPLib_MEM_LockResource(pool);
+
+        /* if the head is reached here, then the list is empty */
+        jblk = BPLib_STOR_CACHE_GetNextBlock(&admin->active_list);
+        if (BPLib_STOR_CACHE_IsListHead(jblk))
+        {
+            jblk = NULL;
+        }
+        else
+        {
+            BPLib_STOR_CACHE_ExtractNode(jblk);
+        }
+        BPLib_MEM_LockRelease(lock);
+
+        job = BPLib_STOR_CACHE_JobCast(jblk);
+    }
+    while (job == NULL && jblk != NULL);
+
+    return job;
+}
+
+void BPLib_STOR_CACHE_JobRunAll(BPLib_STOR_CACHE_Pool_t *pool, void *arg)
+{
+    BPLib_STOR_CACHE_Job_t *job;
+
+    /* forward any bundles between interfaces, based on active flow list */
+    while (true)
+    {
+        job = BPLib_STOR_CACHE_JobGetNextActive(pool);
+        if (job == NULL)
+        {
+            break;
+        }
+
+        /* note it may not be necessary to call this _every_ cycle, this could be
+         * deferred to a lower priority task if necessary, but this will be sure to get it done */
+        BPLib_STOR_CACHE_Maintain(pool);
+
+        if (job->handler != NULL)
+        {
+            job->handler(arg, &job->link);
+        }
+    }
+}
+

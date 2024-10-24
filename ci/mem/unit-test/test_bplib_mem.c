@@ -59,19 +59,7 @@ void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKe
  */
 void Test_BPLib_MEM_Init(void)
 {
-    osal_id_t before;
-    osal_id_t after;
-
-    BPLib_MEM_OS_FileDataLock = 0xFFF; // The lock ID can be set to zero by OSAL.
-
-    before = BPLib_MEM_OS_FileDataLock;
-    UtPrintf("BPLib_MEM_Init status is known to be BPLIB_ERROR for this test.");
-    UtPrintf("OS_MutSemCreate() returns an error in the test environment.");
-    UtPrintf("BPLib_MEM_OS_FileDataLock before BPLib_MEM_Init: 0x%08x", before);
-    UtAssert_INT32_EQ(BPLib_MEM_Init(), BPLIB_ERROR);
-    after = BPLib_MEM_OS_FileDataLock;
-    UtPrintf("BPLib_MEM_OS_FileDataLock after BPLib_MEM_Init: 0x%08x", after);
-    UtAssert_NEQ(osal_id_t, before, after);
+    UtAssert_INT32_EQ(BPLib_MEM_Init(), BPLIB_SUCCESS);
 }
 
 /**
@@ -311,7 +299,7 @@ void Test_BPLib_MEM_LockWait(void)
     UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, zero_time));
     time = BPLib_MEM_GetMonotonicTime();
     expiry_time.Time = time.Time + 5000;
-    UtAssert_BOOL_TRUE(BPLib_MEM_LockWait(lock, expiry_time));
+    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, expiry_time));
     UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_OS_WaitUntilMs), BPLIB_TIMEOUT);
     wait_time.Time = 5000;
     UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, wait_time));

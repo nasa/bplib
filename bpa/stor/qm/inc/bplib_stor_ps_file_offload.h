@@ -47,11 +47,11 @@ extern "C" {
 /**
  * The Heritage CACHE API is in bplib_stor_cache_module_api.h.
  * Heritage File Offload API
- * int bplib_file_offload_construct_block(void *arg, bplib_mpool_block_t *blk)
- * int bplib_file_offload_configure(bplib_mpool_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void *val)
- * int bplib_file_offload_query(bplib_mpool_block_t *svc, int key, bplib_cache_module_valtype_t vt, const void **val)
- * int bplib_file_offload_start(bplib_mpool_block_t *svc)
- * int bplib_file_offload_stop(bplib_mpool_block_t *svc)
+ * int bplib_file_offload_construct_block(void *arg, BPLib_MEM_Block_t *blk)
+ * int bplib_file_offload_configure(BPLib_MEM_Block_t *svc, int key, bplib_cache_module_valtype_t vt, const void *val)
+ * int bplib_file_offload_query(BPLib_MEM_Block_t *svc, int key, bplib_cache_module_valtype_t vt, const void **val)
+ * int bplib_file_offload_start(BPLib_MEM_Block_t *svc)
+ * int bplib_file_offload_stop(BPLib_MEM_Block_t *svc)
  */
 
 #ifdef QM_MODULE_API

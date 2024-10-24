@@ -61,10 +61,60 @@ void UT_cache_bool_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubCo
 void UT_cache_GetTime_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_cache_int8_Handler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
+// test_bplib_stor_cache.c
 void Test_BPLib_STOR_CACHE_Create(void);
 void Test_BPLib_STOR_CACHE_GetState(void);
 void Test_BPLib_STOR_CACHE_BblockPrimaryAlloc(void);
+void Test_BPLib_STOR_CACHE_BblockPrimaryGetEncodedChunks(void);
+void Test_BPLib_STOR_CACHE_GetNextBlock(void);
+void Test_BPLib_STOR_CACHE_GetPrevBlock(void);
+void Test_BPLib_STOR_CACHE_IsLinkAttached(void);
+void Test_BPLib_STOR_CACHE_IsNonemptyListHead(void);
+void Test_BPLib_STOR_CACHE_IsAnyContentNode(void);
+void Test_BPLib_STOR_CACHE_IsSecondaryIndexNode(void);
+void Test_BPLib_STOR_CACHE_GetExternalId(void);
+void Test_BPLib_STOR_CACHE_DoPoll(void);
 void Test_BPLib_STOR_CACHE_EntryMakePending(void);
+void Test_BPLib_STOR_CACHE_DoIntfStatechange(void);
+void Test_BPLib_STOR_CACHE_EventImpl(void);
+void Test_BPLib_STOR_CACHE_FlushPending(void);
+void Test_BPLib_STOR_CACHE_ProcessPending(void);
+void Test_BPLib_STOR_CACHE_DestructState(void);
+void Test_BPLib_STOR_CACHE_ConstructEntry(void);
+void Test_BPLib_STOR_CACHE_DestructEntry(void);
+void Test_BPLib_STOR_CACHE_ConstructBlockref(void);
+void Test_BPLib_STOR_CACHE_DestructBlockref(void);
+void Test_BPLib_STOR_CACHE_ConstructState(void);
+void Test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted(void);
+    // test_bplib_stor_cache_bblocks.c
+void Test_BPLib_STOR_CACHE_BblockPrimaryCast(void);
+void Test_BPLib_STOR_CACHE_BblockCanonicalCast(void);
+void Test_BPLib_STOR_CACHE_BblockCborCast(void);
+void Test_BPLib_STOR_CACHE_BblockCborSetSize(void);
+void Test_BPLib_STOR_CACHE_BblockCanonicalAlloc(void);
+void Test_BPLib_STOR_CACHE_BblockCborAlloc(void);
+void Test_BPLib_STOR_CACHE_BblockCborAppend(void);
+void Test_BPLib_STOR_CACHE_BblockPrimaryAppend(void);
+void Test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical(void);
+void Test_BPLib_STOR_CACHE_BblockPrimaryDropEncode(void);
+void Test_BPLib_STOR_CACHE_BblockCanonicalDropEncode(void);
+void Test_BPLib_STOR_CACHE_BblockCborExport(void);
+    // test_bplib_stor_cache_fsm.c
+void Test_BPLib_STOR_CACHE_FsmStateIdleEval(void);
+void Test_BPLib_STOR_CACHE_FsmStateQueueEval(void);
+void Test_BPLib_STOR_CACHE_FsmStateQueueEnter(void);
+void Test_BPLib_STOR_CACHE_FsmExecute(void);
+void Test_BPLib_STOR_CACHE_FsmStateQueueExit(void);
+void Test_BPLib_STOR_CACHE_FsmStateDeleteEval(void);
+void Test_BPLib_STOR_CACHE_FsmStateDeleteEnter(void);
+void Test_BPLib_STOR_CACHE_FsmReschedule(void);
+void Test_BPLib_STOR_CACHE_FsmStateGenerateDacsEval(void);
+void Test_BPLib_STOR_CACHE_FsmStateGenerateDacsExit(void);
+void Test_BPLib_STOR_CACHE_FsmTransitionState(void);
+void Test_BPLib_STOR_CACHE_FsmGetNextState(void);
+void Test_BplibStorCacheFsm_Register(void);
+
+#ifdef QM
 void Test_BPLib_STOR_QM_Attach(void);
 void Test_BPLib_STOR_QM_Detach(void);
 void Test_BPLib_STOR_QM_RegisterModuleService(void);
@@ -74,21 +124,7 @@ void Test_BPLib_STOR_QM_Start(void);
 void Test_BPLib_STOR_QM_Stop(void);
 void Test_BPLib_STOR_CACHE_DebugScanQueue(void);
 void Test_BPLib_STOR_CACHE_EgressImpl(void);
-void Test_BPLib_STOR_CACHE_FlushPending(void);
-void Test_BPLib_STOR_CACHE_DoPoll(void);
-#ifdef UNUSED_ENTRIES_MAKE_PENDING
-void Test_BPLib_STOR_CACHE_EntriesMakePending(void);
-#endif // UNUSED_ENTRIES_MAKE_PENDING
-void Test_BPLib_STOR_CACHE_DoIntfStatechange(void);
-void Test_BPLib_STOR_CACHE_EventImpl(void);
-void Test_BPLib_STOR_CACHE_ProcessPending(void);
-void Test_BPLib_STOR_CACHE_DestructState(void);
-void Test_BPLib_STOR_CACHE_ConstructEntry(void);
-void Test_BPLib_STOR_CACHE_DestructEntry(void);
-void Test_BPLib_STOR_CACHE_ConstructBlockref(void);
-void Test_BPLib_STOR_CACHE_DestructBlockref(void);
-void Test_BPLib_STOR_CACHE_ConstructState(void);
-void Test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted(void);
+#endif // QM
 
 void UT_lib_ingress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 void UT_lib_egress_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);

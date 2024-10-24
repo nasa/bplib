@@ -105,7 +105,7 @@ int BPLib_MEM_ForeachItemInList(BPLib_MEM_Block_t *list, bool always_remove,
  * @param list The list to search
  * @param match_fn A function that should return 0 if a match is found, nonzero otherwise
  * @param match_arg An opaque argument passed to the match_fn, typically the match reference object
- * @return bplib_mpool_block_t* The matching list entry
+ * @return BPLib_MEM_Block_t* The matching list entry
  * @retval NULL if no match was found
  */
 BPLib_MEM_Block_t *BPLib_MEM_SearchList(const BPLib_MEM_Block_t *list,

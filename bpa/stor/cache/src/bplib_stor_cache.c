@@ -71,9 +71,7 @@ void BPLib_STOR_CACHE_EntryMakePending(BPLib_STOR_CACHE_Entry_t *store_entry, ui
     if (store_entry->parent != NULL)
     {
         BPLib_STOR_CACHE_InsertBefore(&store_entry->parent->pending_list, sblk);
-        #ifdef QM_JOB
-        BPLib_STOR_QM_JobMarkActive(&store_entry->parent->pending_job);
-        #endif // QM_JOB
+        BPLib_STOR_CACHE_JobMarkActive(&store_entry->parent->pending_job);
     }
 }
 
@@ -279,7 +277,6 @@ int BPLib_STOR_CACHE_ProcessPending(void *arg, BPLib_STOR_CACHE_Block_t *job)
 
 int BPLib_STOR_CACHE_ConstructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
 {
-    #ifdef QM
     BPLib_STOR_CACHE_State_t *state;
 
     state = BPLib_MEM_GenericDataCast((BPLib_MEM_Block_t *)sblk, BPLIB_STORE_SIGNATURE_STATE);
@@ -288,7 +285,7 @@ int BPLib_STOR_CACHE_ConstructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
         return BPLIB_ERROR;
     }
 
-    BPLib_STOR_QM_JobInit(sblk, &state->pending_job);
+    BPLib_STOR_CACHE_JobInit(sblk, &state->pending_job);
 
     state->pending_job.handler = BPLib_STOR_CACHE_ProcessPending;
 
@@ -299,8 +296,6 @@ int BPLib_STOR_CACHE_ConstructState(void *arg, BPLib_STOR_CACHE_Block_t *sblk)
     BPLib_RBT_InitRoot(&state->dacs_index);
     BPLib_RBT_InitRoot(&state->dest_eid_index);
     BPLib_RBT_InitRoot(&state->time_index);
-
-    #endif // QM
 
     return BPLIB_SUCCESS;
 }
