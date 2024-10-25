@@ -25,11 +25,19 @@
 ** Include
 */
 
-#include "bplib.h"
+#include "bplib_api_types.h"
+#include "bplib_cfg.h"
 
-/*
-** Contacts Table
-*/
+
+/* There are 4 types of control message types, received from CL*/
+typedef enum 
+{
+    SentIt              = 0, /* LTP Only, CL sends out */
+    SessionComplete     = 1, /*For LTP, Other end received*/
+    SessionCancelled    = 2, /* Session is cancelled, do nothing*/
+    SessionStarted      = 3 /* Session started, do nothing*/
+}BPLib_CLA_CtrlMsgTypes_t;
+
 typedef enum 
 {
     UDPType = 0x00000000,
@@ -37,6 +45,19 @@ typedef enum
     EPPType = 0x00000002,
     LTPType = 0x00000003,
 }CLAType_t;
+
+typedef struct
+{
+    char        CtrlMsgTag[8]; /* "BPNMSG" */
+    uint32_t    SeesionID;
+    uint32_t    BundleID;
+    CLAType_t   ClaType;
+    uint8_t     MsgTypes;
+} BPLib_CLA_CtrlMsg_t;
+
+/*
+** Contacts Table
+*/
 
 typedef struct
 {
@@ -79,7 +100,7 @@ struct BPLib_CLA_ContactsTable
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-int BPLib_CLA_Init(void);
+BPLib_Status_t BPLib_CLA_Init(void);
 
 /* CLA I/O (bundle data units) */
 
@@ -99,7 +120,7 @@ int BPLib_CLA_Init(void);
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Ingress was successful
  */
-int BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout);
+BPLib_Status_t BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout);
 
 /**
  * \brief CLA Egress function
@@ -117,7 +138,7 @@ int BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t 
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
-int BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout);
+BPLib_Status_t BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout);
 
 /**
  * \brief Validate Contact Table configurations

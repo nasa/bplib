@@ -36,7 +36,7 @@ void Test_BPLib_CLA_Init(void)
 void Test_BPLib_CLA_Ingress_Nominal(void)
 {
     uint32_t ContId = 0;
-    uint8_t Bundle[5]= {159, 0, 0, 0, 0};
+    uint8_t Bundle[5]= {0x9F, 0x0, 0x0, 0x0, 0x0};
     size_t Size = 10;
     uint32_t Timeout = 0;
     
@@ -46,7 +46,7 @@ void Test_BPLib_CLA_Ingress_Nominal(void)
 void Test_BPLib_CLA_Egress_Nominal(void)
 {
     uint32_t ContId = 0;
-    uint8_t Bundle[]= {159, 0, 0, 0, 0};
+    uint8_t Bundle[]= {0x9F, 0x0, 0x0, 0x0, 0x0};
     size_t Size;
     uint32_t Timeout = 0;
     UtAssert_INT32_EQ(BPLib_CLA_Egress(ContId, Bundle, &Size, Timeout), BPLIB_SUCCESS);
@@ -55,11 +55,9 @@ void Test_BPLib_CLA_Egress_Nominal(void)
 void Test_BPLib_CLA_Ingress_MsgData(void)
 {
     uint32_t ContId = 0;
-    uint8_t Bundle[5]= {1, 0, 0, 0, 0};
+    char Bundle[8]= {"BPNMSG"};
     size_t Size = 10;
     uint32_t Timeout = 0;
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_IsAControlMsg), 1);
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_CLA_ProcessControlMessage), BPLIB_SUCCESS);    
     UtAssert_INT32_EQ(BPLib_CLA_Ingress(ContId, Bundle, Size, Timeout), BPLIB_SUCCESS);
 }
 
