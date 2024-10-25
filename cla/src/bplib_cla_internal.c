@@ -36,7 +36,8 @@
 bool BPLib_CLA_IsAControlMsg(const void *MsgPtr)
 {
     BPLib_CLA_CtrlMsg_t* InCtrlMsgPtr = (BPLib_CLA_CtrlMsg_t*) MsgPtr;
-    if (strcmp(InCtrlMsgPtr->CtrlMsgTag, "BPNMSG") == 0)
+    char TagStr[] = "BPNMSG";
+    if (strncmp(InCtrlMsgPtr->CtrlMsgTag, TagStr, strlen(TagStr)) == 0)
         return true;
     else
         return false;

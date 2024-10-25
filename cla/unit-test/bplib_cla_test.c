@@ -24,21 +24,6 @@
 
 #include "bplib_cla_test_utils.h"
 
-BPLib_Status_t BPLib_BI_RecvFullBundleIn(const void *BundleInPtr, size_t Size) 
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPLib_BI_SendFullBundleOut(void *BundleOutPtr, size_t *Size) 
-{
-    return BPLIB_SUCCESS;
-}
-
-BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* MsgPtr)
-{
-    return BPLIB_SUCCESS;
-}
-
 /*
 ** Test function for
 ** int BPLib_CLA_Init()
