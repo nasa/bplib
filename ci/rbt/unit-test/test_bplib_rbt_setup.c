@@ -16,16 +16,36 @@
  * limitations under the License.
  ************************************************************************/
 
-#ifndef TEST_BPLIB_MEM_RBTREE_H
-#define TEST_BPLIB_MEM_RBTREE_H
+/**
+ * Include
+ */
 
-void Test_BPLib_MEM_RBT_Setup(void);
-void Test_BPLib_MEM_RBT_Basics(void);
-void Test_BPLib_MEM_RBT_Register(void);
-void Test_BPLib_MEM_RBT_LeafNodeInsertDelete(void);
-void Test_BPLib_MEM_RBT_NonLeafDelete(void);
-void Test_BPLib_MEM_RBT_Unique(void);
-void Test_BPLib_MEM_RBT_NonUnique(void);
-void Test_BPLib_MEM_RBT_Iterator(void);
+#include "bplib_api_types.h"
+#include "test_bplib_mem.h"
 
-#endif // TEST_BPLIB_MEM_RBTREE_H
+#include "bplib_mem.h"
+#include "bplib_mem_internal.h"
+
+
+/**
+ * Global Data
+ */
+
+/**
+ * Macro Definitions
+ */
+
+/**
+ * Functions
+ */
+
+void Test_Bplib_RBT_ResetTestEnvironment(void)
+{
+    UT_ResetState(0);
+}
+
+void UT_AltHandler_PointerReturn(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    UT_Stub_SetReturnValue(FuncKey, UserObj);
+}
+

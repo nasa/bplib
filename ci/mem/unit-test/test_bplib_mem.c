@@ -22,11 +22,11 @@
  * Include
  */
 
-#include <string.h>
-
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
+
+#include "bplib_api_types.h"
 
 #include "bplib_mem_test_utils.h"
 
@@ -42,7 +42,7 @@ void *BPLib_MEM_TestPoolPtr;
 
 void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    bp_val_t RefSig = UT_Hook_GetArgValueByName(Context, "search_key_value", bp_val_t);
+    BPLib_Val_t RefSig = UT_Hook_GetArgValueByName(Context, "search_key_value", BPLib_Val_t);
 
     if (RefSig == UT_TESTBLOCKTYPE_SIG)
     {
@@ -50,18 +50,6 @@ void UT_AltHandler_PointerReturnForSignature(void *UserObj, UT_EntryKey_t FuncKe
     }
 
     UT_Stub_SetReturnValue(FuncKey, UserObj);
-}
-
-void *TestUtil_BPLib_OS_Calloc(size_t size)
-{
-    /* Allocate Memory Block */
-    return calloc(size, 1);
-}
-
-void TestUtil_BPLib_OS_Free(void *ptr)
-{
-    /* Free Memory Block */
-    free(ptr);
 }
 
 // Memory Allocator Tests
@@ -79,9 +67,16 @@ void Test_BPLib_MEM_Init(void)
  */
 void Test_BPLib_MEM_PoolCreate(void)
 {
-    BPLib_MEM_TestPoolPtr = TestUtil_BPLib_OS_Calloc(TEST_BPLIB_MEM_POOL_SIZE);
-    UtAssert_NOT_NULL(BPLib_MEM_TestPoolPtr);
-    UtAssert_NOT_NULL(BPLib_MEM_PoolCreate(BPLib_MEM_TestPoolPtr, TEST_BPLIB_MEM_POOL_SIZE));
+    /* Test function for:
+     * BPLib_MEM_Pool_t *BPLib_MEM_PoolCreate(void *pool_mem, size_t pool_size)
+     */
+    UT_BPLib_MEM_Buf_t buf;
+
+    memset(&buf, 0, sizeof(buf));
+
+    UtAssert_NULL(BPLib_MEM_PoolCreate(NULL, sizeof(buf)));
+    UtAssert_NULL(BPLib_MEM_PoolCreate(&buf, 1));
+    UtAssert_ADDRESS_EQ(BPLib_MEM_PoolCreate(&buf, sizeof(buf)), &buf);
 }
 
 void Test_BPLib_MEM_InitListHead(void)
@@ -108,29 +103,144 @@ void Test_BPLib_MEM_SubqInit(void)
 void Test_BPLib_MEM_BlockFromExternalId(void)
 {
     /* Test function for:
-     * BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(bplib_mpool_t *pool, bp_handle_t handle)
+     * BPLib_MEM_Block_t *BPLib_MEM_BlockFromExternalId(BPLib_MEM_Pool_t_t *pool, BPLib_Handle_t handle)
      */
-    UT_BPLib_MEM_Buf_t   buf;
-    bp_handle_t          id1;
-    bp_handle_t          id2;
+    UT_BPLib_MEM_Buf_t      buf;
+    BPLib_Handle_t          id1;
+    BPLib_Handle_t          id2;
 
     memset(&buf, 0, sizeof(buf));
 
-    UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, BP_INVALID_HANDLE));
+    UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, BPLIB_INVALID_HANDLE));
 
     
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
     test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_MEM_BlocktypeGeneric, 0);
     
-    UtAssert_BOOL_TRUE(bp_handle_is_valid(id1 = BPLib_MEM_GetExternalId(&buf.blk[0].header.base_link)));
-    UtAssert_BOOL_TRUE(bp_handle_is_valid(id2 = BPLib_MEM_GetExternalId(&buf.blk[1].header.base_link)));
+    UtAssert_BOOL_TRUE(BPLib_HandleIsValid(id1 = BPLib_MEM_GetExternalId(&buf.blk[0].header.base_link)));
+    UtAssert_BOOL_TRUE(BPLib_HandleIsValid(id2 = BPLib_MEM_GetExternalId(&buf.blk[1].header.base_link)));
     UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, id1));
     UtAssert_NULL(BPLib_MEM_BlockFromExternalId(&buf.pool, id2));
 
     buf.pool.admin_block.u.admin.num_bufs_total = 3;
     UtAssert_ADDRESS_EQ(BPLib_MEM_BlockFromExternalId(&buf.pool, id1), &buf.blk[0].header.base_link);
     UtAssert_ADDRESS_EQ(BPLib_MEM_BlockFromExternalId(&buf.pool, id2), &buf.blk[1].header.base_link);
+}
+
+void Test_BPLib_MEM_GenericDataCast(void)
+{
+    /* Test function for:
+     * void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic)
+     * BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t parent_bt, uint32_t
+     * required_magic)
+     *
+     * These two functions are inverse ops so they are paired together
+     */
+    static const uint32         UT_SIG = 0x4953ab26;
+    BPLib_MEM_BlockContent_t my_block;
+    BPLib_MEM_BlockContent_t my_ref;
+
+    UtAssert_NULL(BPLib_MEM_GenericDataCast(NULL, 0));
+
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeAdmin, 0);
+    UtAssert_NULL(BPLib_MEM_GenericDataCast(&my_block.header.base_link, 0));
+    UtAssert_NULL(BPLib_MEM_GenericDataUncast(&my_block.u, BPLib_MEM_BlocktypeAdmin, 0));
+
+    test_setup_mpblock(NULL, &my_block, BPLib_MEM_BlocktypeGeneric, UT_SIG);
+
+    UtAssert_ADDRESS_EQ(BPLib_MEM_GenericDataCast(&my_block.header.base_link, UT_SIG), &my_block.u);
+    UtAssert_NULL(BPLib_MEM_GenericDataCast(&my_block.header.base_link, ~UT_SIG));
+
+    UtAssert_ADDRESS_EQ(BPLib_MEM_GenericDataUncast(&my_block.u, BPLib_MEM_BlocktypeGeneric, UT_SIG), &my_block);
+    UtAssert_NULL(BPLib_MEM_GenericDataUncast(&my_block.u, BPLib_MEM_BlocktypeGeneric, ~UT_SIG));
+    UtAssert_NULL(BPLib_MEM_GenericDataUncast(&my_block.u, BPLib_MEM_BlocktypeGeneric, ~UT_SIG));
+    UtAssert_NULL(BPLib_MEM_GenericDataUncast(&my_block.u, BPLib_MEM_BlocktypeDuct, UT_SIG));
+
+    test_setup_mpblock(NULL, &my_ref, BPLib_MEM_BlocktypeRef, 0);
+    // TODO Should refs be brought back to MEM from CACHE?
+    // my_ref.u.ref.pref_target = &my_block;
+    // UtAssert_ADDRESS_EQ(BPLib_MEM_GenericDataCast(&my_ref.header.base_link, UT_SIG), &my_block.u);
+}
+
+int BPLib_MEM_ConstructState(void *arg, BPLib_MEM_Block_t *sblk)
+{
+    return 0;
+}
+
+int BPLib_MEM_DestructState(void *arg, BPLib_MEM_Block_t *sblk)
+{
+    return 0;
+}
+
+void Test_BPLib_MEM_AllocBlockInternal(void)
+{
+    /* Test function for:
+     * BPLib_MEM_BlockContent_t *BPLib_MEM_AllocBlockInternal(BPLib_MEM_Pool_t *pool, BPLib_MEM_Blocktype_t
+     * blocktype, uint32_t content_type_signature, void *init_arg, uint8_t priority)
+     */
+
+    UT_BPLib_MEM_Buf_t               buf;
+    BPLib_MEM_BlockAdminContent_t   *admin;
+    memset(&buf, 0, sizeof(buf));
+
+    UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeUndefined, 0, NULL, 0));
+    UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeMax, 0, NULL, 0));
+    UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeGeneric, 0, NULL, 0));
+
+    /* Nominal (need to do each blocktype that has a different init) */
+    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+
+    admin                 = BPLib_MEM_GetAdmin(&buf.pool);
+    admin->num_bufs_total = 3;
+    /**
+     *  When using RBT stubs, the functionUT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric),
+     *  UT_AltHandler_PointerReturn, api_content); provides a value for the API content.
+     *  If the api_content is null, the test assumes the stubs are not being used and provides a dummy value.
+     */
+
+    UtAssert_ADDRESS_EQ(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeGeneric, 0, NULL, 0), &buf.blk[0]);
+    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypePrimary, 0, NULL, 0), &buf.blk[0]);
+    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeCanonical, 0, NULL, 0), &buf.blk[0]);
+    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypeDuct, 0, NULL, 0), &buf.blk[0]);
+
+    /* free_blocks list empty (just repeat w/o resetting the state) */
+    UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypePrimary, 0, NULL, 0));
+
+    /* Too Big */
+    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    buf.blk[1].u.api.user_content_size = 16 + sizeof(BPLib_MEM_BlockBuffer_t);
+    UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypePrimary, 0, NULL, 0));
+
+    /* No API */
+    test_setup_allocation(&buf.pool, &buf.blk[0], NULL);
+    UtAssert_NULL(BPLib_MEM_AllocBlockInternal(&buf.pool, BPLib_MEM_BlocktypePrimary, 0, NULL, 0));
+}
+
+void Test_BPLib_MEM_GenericDataAlloc(void)
+{
+    /* Test function for:
+     * BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg)
+     */
+
+    UT_BPLib_MEM_Buf_t buf;
+    uint8_t              my_constructor_val;
+
+    memset(&buf, 0, sizeof(buf));
+
+    /* Nominal (this is just a wrapper around BPLib_MEM_AllocBlockInternal) */
+    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    buf.blk[1].u.api.api.construct = Test_BPLib_MEM_CallbackStub;
+    UtAssert_ADDRESS_EQ(BPLib_MEM_GenericDataAlloc(&buf.pool, 0, &my_constructor_val), &buf.blk[0]);
+
+    /* Failure of constructor still returns the block */
+    test_setup_allocation(&buf.pool, &buf.blk[0], &buf.blk[1]);
+    UT_SetDefaultReturnValue(UT_KEY(Test_BPLib_MEM_CallbackStub), BPLIB_ERROR);
+    buf.blk[1].u.api.api.construct = Test_BPLib_MEM_CallbackStub;
+    UtAssert_ADDRESS_EQ(BPLib_MEM_GenericDataAlloc(&buf.pool, 0, &my_constructor_val), &buf.blk[0]);
 }
 
 void Test_BPLib_MEM_GetGenericDataCapacity(void)
@@ -164,7 +274,7 @@ void Test_BPLib_MEM_Maintain(void)
 
     admin = BPLib_MEM_GetAdmin(&buf.pool);
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
     BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, &buf.blk[0].header.base_link);
 
@@ -174,32 +284,40 @@ void Test_BPLib_MEM_Maintain(void)
 void Test_BPLib_MEM_LockWait(void)
 {
     /* Test function for:
-     * bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, uint64_t until_dtntime)
+     * bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, BPLib_TIME_MonotonicTime_t until_time)
      */
 
-    uint64_t time;
+    BPLib_TIME_MonotonicTime_t zero_time;
+    BPLib_TIME_MonotonicTime_t time;
+    BPLib_TIME_MonotonicTime_t expiry_time;
+    BPLib_TIME_MonotonicTime_t wait_time;
+
+    zero_time.Time = 0;
+
     BPLib_MEM_Lock_t *lock = BPLib_MEM_LockPrepare(NULL);
 
-    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, 0));
-    time = BPLib_MEM_OS_GetDtnTimeMs();
-    UtAssert_BOOL_TRUE(BPLib_MEM_LockWait(lock, time + 5000));
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_OS_WaitUntilMs), BPLIB_MEM_TIMEOUT);
-    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, 5000));
+    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, zero_time));
+    time = BPLib_MEM_GetMonotonicTime();
+    expiry_time.Time = time.Time + 5000;
+    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, expiry_time));
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_MEM_OS_WaitUntilMs), BPLIB_TIMEOUT);
+    wait_time.Time = 5000;
+    UtAssert_BOOL_FALSE(BPLib_MEM_LockWait(lock, wait_time));
 }
 
 void Test_BPLib_MEM_CollectBlocks(void)
 {
-    /* Test function for:
+    /* Test BPLIB_RBT_DUPLICATEfunction for:
      * uint32_t Test_BPLib_MEM_CollectBlocks(BPLib_MEM_Pool_t *pool, uint32_t limit)
      */
-    UT_BPLib_MEM_Buf_t               buf;
+    UT_BPLib_MEM_Buf_t buf;
     BPLib_MEM_BlockAdminContent_t *admin;
 
     memset(&buf, 0, sizeof(buf));
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeApi, 0);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, &buf.blk[0].u);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, &buf.blk[0].u);
     buf.blk[0].u.api.api.destruct = Test_BPLib_MEM_CallbackStub;
 
     admin = BPLib_MEM_GetAdmin(&buf.pool);
@@ -210,12 +328,12 @@ void Test_BPLib_MEM_CollectBlocks(void)
     BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, &buf.blk[2].header.base_link);
 
     UtAssert_UINT32_EQ(BPLib_MEM_CollectBlocks(&buf.pool, 1), 1);
-    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 0);  // TODO Passes, but may be invalid check value.
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 1);
     UtAssert_UINT32_EQ(BPLib_MEM_CollectBlocks(&buf.pool, 1), 1);
-    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 0);  // TODO Passes, but may be invalid check value.
+    UtAssert_STUB_COUNT(Test_BPLib_MEM_CallbackStub, 2);
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, NULL);
     test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeGeneric, 0);
     BPLib_MEM_SubqPushSingle(&admin->recycle_blocks, &buf.blk[0].header.base_link);
 
@@ -249,7 +367,7 @@ void Test_BPLib_MEM_RecycleBlock(void)
 void Test_BPLib_MEM_RecycleAllBlocksInList(void)
 {
     /* Test function for:
-     * void BPLib_MEM_Recycle_allBlocksInList9R0(bplib_mpool_t *pool, BPLib_MEM_Block_t *list)
+     * void BPLib_MEM_RecycleAllBlocksInList(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t *list)
      */
     UT_BPLib_MEM_Buf_t               buf;
     BPLib_MEM_BlockAdminContent_t   *admin;
@@ -274,24 +392,23 @@ void Test_BPLib_MEM_RecycleAllBlocksInList(void)
 void Test_BPLib_MEM_GetParentPoolFromLink(void)
 {
     /* Test function for:
-     * bplib_mpool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb)
+     * BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb)
      */
 
     UT_BPLib_MEM_Buf_t buf;
-    BPLib_MEM_BlockAdminContent_t   *admin;
 
     memset(&buf, 0, sizeof(buf));
 
     test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
-    admin = BPLib_MEM_GetAdmin(&buf.pool);
 
     UtAssert_NULL(BPLib_MEM_GetParentPoolFromLink(NULL));
 
-    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypeAdmin, 0);
-    BPLib_MEM_InsertAfter(&admin->active_list, &buf.blk[0].header.base_link);
+    test_setup_mpblock(&buf.pool, &buf.pool.admin_block, BPLib_MEM_BlocktypeAdmin, 0);
+    test_setup_mpblock(&buf.pool, &buf.blk[0], BPLib_MEM_BlocktypePrimary, 0);
+    test_setup_mpblock(&buf.pool, &buf.blk[1], BPLib_MEM_BlocktypePrimary, 0);
 
-    // UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].header.base_link),
-    //                    &admin->active_list);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].header.base_link), &buf.pool);
+    UtAssert_ADDRESS_EQ(BPLib_MEM_GetParentPoolFromLink(&buf.blk[0].u.primary.pblock.cblock_list), &buf.pool);
 }
 
 void Test_BPLib_MEM_InitBaseObject(void)
@@ -332,7 +449,7 @@ void Test_BPLib_MEM_QueryMemCurrentUse(void)
 void Test_BPLib_MEM_QueryMemMaxUse(void)
 {
     /* Test function for:
-     * size_t BPLib_MEM_QueryMemMaxUse(bplib_mpool_t *pool)
+     * size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_Pool_t *pool)
      */
     BPLib_MEM_Pool_t pool;
 
@@ -375,7 +492,7 @@ void Test_BPLib_MEM_GetUserContentSize(void)
 void Test_BPLib_MEM_ReadRefCount(void)
 {
     /* Test function for:
-     * size_t bplib_mpool_read_refcount(const bplib_mpool_block_t *cb)
+     * size_t BPLib_STOR_CACHE_ReadRefcount(const BPLib_MEM_Block_t *cb)
      */
     BPLib_MEM_BlockContent_t my_block;
 
@@ -395,6 +512,9 @@ void Test_BPLib_MEM_Register(void)
     ADD_TEST(Test_BPLib_MEM_Init);
     ADD_TEST(Test_BPLib_MEM_PoolCreate);
     ADD_TEST(Test_BPLib_MEM_BlockFromExternalId);
+    ADD_TEST(Test_BPLib_MEM_GenericDataCast);
+    ADD_TEST(Test_BPLib_MEM_AllocBlockInternal);
+    // TODO Move to CACHE. Uses MEM stubs.  ADD_TEST(Test_BPLib_MEM_GenericDataAlloc);
     ADD_TEST(Test_BPLib_MEM_InitListHead);
     ADD_TEST(Test_BPLib_MEM_SubqInit);
     ADD_TEST(Test_BPLib_MEM_GetGenericDataCapacity);

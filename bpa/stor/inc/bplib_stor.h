@@ -28,6 +28,8 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 
+// TODO BPLIB_FLAG_DIAGNOSTIC (from BPLIB_FLAG_DIAGNOSTIC) should b in bplib.h
+#define BPLIB_FLAG_DIAGNOSTIC              0x00000000
 
 
 /**
