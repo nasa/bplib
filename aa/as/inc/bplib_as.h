@@ -21,17 +21,20 @@
 #ifndef BPLIB_AS_H
 #define BPLIB_AS_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 
+/* ======= */
+/* Typdefs */
+/* ======= */
+
 /**
  * \brief Node MIB counters housekeeping payload
  */
-
 typedef struct
 {
     uint32_t BundleCountGeneratedAnonymous;         /**< \brief Bundle count generated anonymous */
@@ -146,9 +149,15 @@ typedef struct
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_SourceMibCountersHkTlm_Payload_t;
 
-/*
-** Exported Functions
-*/
+typedef enum
+{
+    NODE_COUNTER   = 1,
+    SOURCE_COUNTER = 2, // Comma here doesn't hurt and makes it quick to add things
+} BPLib_AS_CounterRequest_t;
+
+/* =================== */
+/* Function Prototypes */
+/* =================== */
 
 /**
  * \brief Admin Statistics initialization
@@ -164,7 +173,13 @@ typedef struct
  */
 BPLib_Status_t BPLib_AS_Init(void);
 
-BPLib_Status_t BPLib_AS_RequestInterpreter();
-BPLib_Status_t BPLib_AS_StatisticsDatabase();
+BPLib_Status_t BPLib_AS_Get();
+BPLib_Status_t BPLib_AS_Set();
+BPLib_Status_t BPLib_AS_Increment();  // BPLib_AS_Set(val, val + 1)
+BPLib_Status_t BPLib_AS_Decrement();  // BPLib_AS_Set(val, val - 1)
+BPLib_Status_t BPLib_AS_SetZero();    // BPLib_AS_Set(val, 0)
+BPLib_Status_t BPLib_AS_SetAllZero(); // Call BPLib_AS_Set() on all vals in packet
+BPLib_Status_t BPLib_AS_Write();
+BPLib_Status_t BPLib_AS_Restore();
 
 #endif /* BPLIB_AS_H */

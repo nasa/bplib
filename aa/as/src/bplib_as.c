@@ -37,18 +37,93 @@ BPLib_Status_t BPLib_AS_Init(void)
     return Status;
 }
 
+BPLib_Status_t BPLib_AS_Get()
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_Set()
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_Increment()
+{
+    // BPLib_AS_Set(val, val + 1)
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_Decrement()
+{
+    // BPLib_AS_Set(val, val - 1)
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_SetZero()
+{
+    // BPLib_AS_Set(val, 0)
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_SetAllZero()
+{
+    // Call BPLib_AS_Set() on all vals in packet
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_Write()
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_Restore()
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+/*
 BPLib_Status_t BPLib_AS_RequestInterpreter()
 {
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     * Receives requests to increment counters or set statistics
-    * etermines whether request is valid
+    * determines whether request is valid
     * Generates and sends status messages with current telemetry to TLMP
     * Maintains set of source EID patterns
-    */
 
     return Status;
 }
@@ -59,10 +134,9 @@ BPLib_Status_t BPLib_AS_StatisticsDatabase()
 
     Status = BPLIB_SUCCESS;
 
-    /*
     * Maintains current values of statistics
     * Maintains map of MIB elements accessed by source EID pattern to counter values
-    */
 
     return Status;
 }
+*/
