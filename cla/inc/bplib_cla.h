@@ -25,7 +25,8 @@
 ** Include
 */
 
-#include "bplib.h"
+#include "bplib_api_types.h"
+#include "bplib_cfg.h"
 
 
 /* There are 4 types of control message types, received from CL*/
