@@ -520,7 +520,8 @@ BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void);
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Validation was successful
- */
+ *  \retval    BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
+*/
 BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
 
 
@@ -539,6 +540,7 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Validation was successful
+ * \retval    BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
  */
 BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData);
 

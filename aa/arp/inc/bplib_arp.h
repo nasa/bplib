@@ -76,6 +76,7 @@ int BPLib_ARP_Init(void);
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Validation was successful
+ * \retval    BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
  */
 BPLib_Status_t BPLib_ARP_CRSTblValidateFunc(void *TblData);
 
