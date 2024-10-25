@@ -447,61 +447,67 @@ BPLib_Status_t BPLib_NC_PerformSelfTest(void);
   * \brief     Send Per Node MIB Configuration telemetry packet
   * \details   Node Configuration Send Node MIB Configuration Housekeeping Packet command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] void No arguments accepted
+  * \param[in] NodeMIBConfigTlmPayload BPLib_NodeMibConfigHkTlm_Payload_t* type payload for telemetering
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
+  * \retval    Platform specific transmit message return values
   */
-BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void);
+BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload);
 
 /**
   * \brief     Send Per Source MIB Configuration telemetry packet
   * \details   Node Configuration Send Source MIB Configuration Housekeeping Packet command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] void No arguments accepted
+  * \param[in] SrcMIBConfigTlmPayload BPLib_SourceMibConfigHkTlm_Payload_t* type payload to be telemetered
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
+  * \retval    Platform specific transmit message return values
   */
-BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void);
+BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload);
 
 /**
   * \brief     Send Per Node MIB Counter telemetry packet
   * \details   Node Configuration Send Node MIB Counters Housekeeping Packet command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] void No arguments accepted
+  * \param[in] NodeMIBCounterTlmPayload BPLib_NodeMibCountersHkTlm_Payload_t* type payload to be telemetered
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
+  * \retval    Platform specific transmit message return values
   */
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void);
+BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload);
 
 /**
   * \brief     Send Per Source MIB Counter telemetry packet
   * \details   Node Configuration Send Source MIB Counters Housekeeping Packet command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] void No arguments accepted
+  * \param[in] SrcMIBCounterTlmPayload BPLib_SourceMibCountersHkTlm_Payload_t* type payload to be telemetered
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
+  * \retval    Platform specific transmit message return values
   */
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void);
+BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(BPLib_SourceMibCountersHkTlm_Payload_t* SrcMIBCounterTlmPayload);
 
 /**
   * \brief     Send Storage housekeeping telemetry packet
   * \details   Node Configuration Send Storage Housekeeping Packet command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] void No arguments accepted
+  * \param[in] StorTlmPayload BPLib_StorageHkTlm_Payload_t* type payload to be telemetered
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
+  * \retval    Platform specific transmit message return values
   */
-BPLib_Status_t BPLib_NC_SendStorageHk(void);
+BPLib_Status_t BPLib_NC_SendStorageHk(BPLib_StorageHkTlm_Payload_t* StorTlmPayload);
 
 /**
   * \brief     Send Storage housekeeping telemetry packet
   * \details   Node Configuration Send Storage Housekeeping Packet command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \note      Command is primarily handled by BPA_DP_SendChannelContactStatHk() found in fwp_dp.h
-  * \param[in] void No arguments accepted
+  * \param[in] ChannelContactTlmPayload BPLib_ChannelContactStatHkTlm_Payload_t* type payload to be telemetered
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
+  * \retval    Platform specific transmit message return values
   */
-BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void);
+BPLib_Status_t BPLib_NC_SendChannelContactStatHk(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload);
 
 #endif /* BPLIB_NC_H */

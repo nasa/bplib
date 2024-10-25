@@ -1144,115 +1144,56 @@ BPLib_Status_t BPLib_NC_PerformSelfTest(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void)
+BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    /*
-    if (Status == BPLIB_SUCCESS)
-    */
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CFG_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send node mib config hk directive not implemented");
-    }
-    /*
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_NODE_MIB_CFG_HK_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send node mib config hk directive not implemented");
-    }
-    */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt(NodeMIBConfigTlmPayload);
 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void)
+BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    /*
-    if (Status == BPLIB_SUCCESS)
-    */
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CFG_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send per-source mib config hk directive not implemented");
-    }
-    /*
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CFG_HK_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send per-source mib config hk directive not implemented");
-    }
-    */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt(SrcMIBConfigTlmPayload);
 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void)
+BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(NodeMIBCounterTlmPayload);
 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void)
+BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(BPLib_SourceMibCountersHkTlm_Payload_t* SrcMIBCounterTlmPayload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    /*
-    if (Status == BPLIB_SUCCESS)
-    */
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CTRS_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send per-source mib counter hk directive not implemented");
-    }
-    /*
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send per-source mib counter hk directive not implemented");
-    }
-    */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(SrcMIBCounterTlmPayload);
 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendStorageHk(void)
+BPLib_Status_t BPLib_NC_SendStorageHk(BPLib_StorageHkTlm_Payload_t* StorTlmPayload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    /*
-    if (Status == BPLIB_SUCCESS)
-    */
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_STOR_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send storage hk directive not implemented");
-    }
-    /*
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_SEND_STOR_HK_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Send storage hk directive not implemented");
-    } */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt(StorTlmPayload);
 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void)
+BPLib_Status_t BPLib_NC_SendChannelContactStatHk(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(ChannelContactTlmPayload);
 
     return Status;
 }
