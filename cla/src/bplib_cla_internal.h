@@ -74,13 +74,13 @@ bool BPLib_CLA_IsAControlMsg(const void *Bundle);
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] none for now
+ *  \param[in] CtrlMsgPtr Pointer for the control message
  * 
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-int BPLib_CLA_ProcessControlMessage(void);
+BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t* CtrlMsgPtr);
 
 
 #endif /* BPLIB_CLA_INTERNAL_H */

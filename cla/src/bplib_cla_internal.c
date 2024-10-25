@@ -27,20 +27,44 @@
 /*
 ** Include
 */
-
+#include <string.h>
 #include "bplib_cla.h"
 #include "bplib_cla_internal.h"
+#include "bplib_bi.h"
 
 
-bool BPLib_CLA_IsAControlMsg(const void *Bundle)
+bool BPLib_CLA_IsAControlMsg(const void *MsgPtr)
 {
-    return true;
+    BPLib_CLA_CtrlMsg_t* InCtrlMsgPtr = (BPLib_CLA_CtrlMsg_t*) MsgPtr;
+    char TagStr[] = "BPNMSG";
+    if (strncmp(InCtrlMsgPtr->CtrlMsgTag, TagStr, strlen(TagStr)) == 0)
+        return true;
+    else
+        return false;
 }
 
 
 /* BPLib_CLA_ProcessControlMessage*/
-int BPLib_CLA_ProcessControlMessage(void)
+BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t* CtrlMsgPtr)
 {
-    return BPLIB_SUCCESS;
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    /* There are 4 types of control messages*/
+    
+    switch (CtrlMsgPtr->MsgTypes)
+    {
+        case SentIt:
+            /* LTP Only, Add session ID and and Bundle ID to Sent It Map */
+            break;
+        case SessionComplete:
+            BPLib_BI_RecvCtrlMsg(CtrlMsgPtr);
+            break;
+        case SessionCancelled:
+        case SessionStarted:
+        default:
+            /* Do Nothing*/
+            break;
+    }
+        
+    return Status;
 }
 

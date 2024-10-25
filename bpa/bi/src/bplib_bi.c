@@ -32,3 +32,64 @@
 int BPLib_BI_Init(void) {
     return BPLIB_SUCCESS;
 }
+
+/* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(const void *BundleIn, size_t Size)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    /* 
+     * CBOR Decode the bundle and return the deserialized bundle pointer 
+    */
+    
+    /* Validate the deserialized bundle*/
+    Status = BPLib_BI_ValidateBundle();
+    
+    /* 
+     * Pass the deserialized bundle into EBP In Queue 
+    */
+    return Status;
+}
+
+/* Pull deserialized bundle from BI Out Queue, CBOR encode it, then send it to CLA */
+BPLib_Status_t BPLib_BI_SendFullBundleOut(void *BundleOut, size_t* Size)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+    
+    /* 
+     * Pull the deserialized bundle from BI Out Queue 
+     */
+    
+    /* 
+     * CBOR encode the deserialized bundle if needed, return the bundle pointer 
+     */
+    
+    /* 
+     * Pass the bundle out to CLA 
+     */
+    
+    return Status;
+}
+
+/* Receive Control Messages from CLA, pass them to CT*/
+BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* MsgPtr)
+{
+    BPLib_Status_t Status = BPLIB_SUCCESS;
+
+    /* Pass the control message to CT */
+    /* Call a CT function here */
+    /* BPLib_CT_RecvCtrlMsg() */
+    
+    return Status;
+}
+
+/* Validate deserialized bundle after CBOR decoding*/
+BPLib_Status_t BPLib_BI_ValidateBundle(void)
+{
+    /* Check bundle version = 7 */
+    
+    /* Check against Policy Database for authorized source EID */
+    
+    /* Check for block number, duplicate extension block, like Age, Hop Count, Previous Node */
+    
+    return BPLIB_SUCCESS;
+}
