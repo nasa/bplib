@@ -34,7 +34,7 @@ int BPLib_PDB_Init(void) {
 }
 
 /* Validate Custodian Auth table data */
-BPLib_Status_t BPLib_PD_CustodianAuthTblValidateFunc(void *TblData)
+BPLib_Status_t BPLib_PDB_CustodianAuthTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
 
@@ -44,7 +44,7 @@ BPLib_Status_t BPLib_PD_CustodianAuthTblValidateFunc(void *TblData)
 }
 
 /* Validate Custody Auth table data */
-BPLib_Status_t BPLib_PD_CustodyAuthTblValidateFunc(void *TblData)
+BPLib_Status_t BPLib_PDB_CustodyAuthTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
 
@@ -54,7 +54,7 @@ BPLib_Status_t BPLib_PD_CustodyAuthTblValidateFunc(void *TblData)
 }
 
 /* Validate Report-To Auth table data */
-BPLib_Status_t BPLib_PD_ReportToAuthTblValidateFunc(void *TblData)
+BPLib_Status_t BPLib_PDB_ReportToAuthTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
 
@@ -62,7 +62,7 @@ BPLib_Status_t BPLib_PD_ReportToAuthTblValidateFunc(void *TblData)
 }
 
 /* Validate Source Auth table data */
-BPLib_Status_t BPLib_PD_SrcAuthTblValidateFunc(void *TblData)
+BPLib_Status_t BPLib_PDB_SrcAuthTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
 
@@ -70,7 +70,7 @@ BPLib_Status_t BPLib_PD_SrcAuthTblValidateFunc(void *TblData)
 }
 
 /* Validate Source Latency table data */
-BPLib_Status_t BPLib_PD_SrcLatencyTblValidateFunc(void *TblData)
+BPLib_Status_t BPLib_PDB_SrcLatencyTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
 

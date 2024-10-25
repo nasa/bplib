@@ -35,7 +35,7 @@
 typedef struct
 {
     char AuthSrcEIDs[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
-} BPLib_PD_SrcAuthTable_t;
+} BPLib_PDB_SrcAuthTable_t;
 
 /*
 ** Custodian Authorization Policy Table
@@ -43,7 +43,7 @@ typedef struct
 typedef struct
 {
     char AuthCustodians[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
-} BPLib_PD_CustodianTable_t;
+} BPLib_PDB_CustodianTable_t;
 
 /*
 ** Custody Authorization Policy Table
@@ -51,7 +51,7 @@ typedef struct
 typedef struct
 {
     char AuthCustodySrc[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
-} BPLib_PD_CustodyTable_t;
+} BPLib_PDB_CustodyTable_t;
 
 /*
 ** Report-To Authorization EID Table
@@ -59,29 +59,29 @@ typedef struct
 typedef struct
 {
     char AuthReportToEIDs[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
-} BPLib_PD_ReportToTable_t;
+} BPLib_PDB_ReportToTable_t;
 
 /*
 ** Source Latency Table
 */
 typedef enum
 {
-    Low,
-    Med,
-    High,
-} SrcLatency;
+    Low =  0,
+    Med =  1,
+    High = 2,
+} BPLib_PDB_SrcLatency;
 
 typedef struct
 {
     char        SrcEID[BPLIB_MAX_EID_LENGTH];
     uint32_t    Latency;
     uint32_t    Spare;    
-}BPLib_PD_SrcLatencySet_t;
+}BPLib_PDB_SrcLatencySet_t;
 
 typedef struct
 {
-    BPLib_PD_SrcLatencySet_t LatencySet[BPLIB_MAX_NUM_LATENCY_SRC];
-} BPLib_PD_SrcLatencyTable_t;
+    BPLib_PDB_SrcLatencySet_t LatencySet[BPLIB_MAX_NUM_LATENCY_SRC];
+} BPLib_PDB_SrcLatencyTable_t;
 
 /*
 ** Exported Functions
@@ -109,14 +109,14 @@ int BPLib_PDB_Init(void);
  *
  *  \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management. 
- *         Every time a new channel table is loaded, this function should be called to
+ *         Every time a new Custodian Authorized table is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Validation was successful
- */BPLib_Status_t BPLib_PD_CustodianAuthTblValidateFunc(void *TblData);
+ */BPLib_Status_t BPLib_PDB_CustodianAuthTblValidateFunc(void *TblData);
 
 
 /**
@@ -127,14 +127,14 @@ int BPLib_PDB_Init(void);
  *
  *  \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management. 
- *         Every time a new channel table is loaded, this function should be called to
+ *         Every time a new Custody Authorized table is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Validation was successful
- */BPLib_Status_t BPLib_PD_CustodyAuthTblValidateFunc(void *TblData);
+ */BPLib_Status_t BPLib_PDB_CustodyAuthTblValidateFunc(void *TblData);
 
 
 /**
@@ -145,14 +145,14 @@ int BPLib_PDB_Init(void);
  *
  *  \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management. 
- *         Every time a new channel table is loaded, this function should be called to
+ *         Every time a new Report-To table is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Validation was successful
- */BPLib_Status_t BPLib_PD_ReportToAuthTblValidateFunc(void *TblData);
+ */BPLib_Status_t BPLib_PDB_ReportToAuthTblValidateFunc(void *TblData);
 
 
 /**
@@ -163,14 +163,14 @@ int BPLib_PDB_Init(void);
  *
  *  \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management. 
- *         Every time a new channel table is loaded, this function should be called to
+ *         Every time a new Authorized Source table is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Validation was successful
- */BPLib_Status_t BPLib_PD_SrcAuthTblValidateFunc(void *TblData);
+ */BPLib_Status_t BPLib_PDB_SrcAuthTblValidateFunc(void *TblData);
 
 
 /**
@@ -181,14 +181,14 @@ int BPLib_PDB_Init(void);
  *
  *  \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management. 
- *         Every time a new channel table is loaded, this function should be called to
+ *         Every time a new Source Latency table is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Validation was successful
- */BPLib_Status_t BPLib_PD_SrcLatencyTblValidateFunc(void *TblData);
+ */BPLib_Status_t BPLib_PDB_SrcLatencyTblValidateFunc(void *TblData);
 
 
 #endif /* BPLIB_PDB_H */

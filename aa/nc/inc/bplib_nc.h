@@ -513,7 +513,7 @@ BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void);
  *
  *  \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management. 
- *         Every time a new channel table is loaded, this function should be called to
+ *         Every time a new MIB Configuration Per Node table is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
@@ -532,7 +532,7 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
  *
  *  \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management. 
- *         Every time a new channel table is loaded, this function should be called to
+ *         Every time a new MIB Configuration Per Source table is loaded, this function should be called to
  *         validate its parameters.
  *
  *  \param[in] TblData Pointer to the config table
