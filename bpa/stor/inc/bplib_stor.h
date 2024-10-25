@@ -55,6 +55,20 @@ struct BPLib_StorageHkTlm_Payload
 };
 
 /*
+** Storage Policy Table
+*/
+typedef struct
+{
+    char        SrcEID[BPLIB_MAX_EID_LENGTH];
+    uint32_t    StorageSize;
+} BPLib_STOR_StorageSet_t;
+
+typedef struct
+{
+    BPLib_STOR_StorageSet_t StorageSet[BPLIB_MAX_NUM_STORE_SET];
+} BPLib_STOR_StorageTable_t;
+
+/*
 ** Exported Functions
 */
 
@@ -71,5 +85,23 @@ struct BPLib_StorageHkTlm_Payload
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
 int BPLib_STOR_Init(void);
+
+/**
+ * \brief Validate Storage Table configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new Storage table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ */
+BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
 
 #endif /* BPLIB_STOR_H */

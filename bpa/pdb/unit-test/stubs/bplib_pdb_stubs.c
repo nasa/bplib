@@ -40,3 +40,92 @@ int BPLib_PDB_Init(void)
 
     return UT_GenStub_GetReturnValue(BPLib_PDB_Init, int);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PDB_CustodianAuthTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PDB_CustodianAuthTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_PDB_CustodianAuthTblValidateFunc,
+                               BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_PDB_CustodianAuthTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_PDB_CustodianAuthTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_PDB_CustodianAuthTblValidateFunc,
+                                   BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PDB_CustodyAuthTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PDB_CustodyAuthTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_PDB_CustodyAuthTblValidateFunc,
+                               BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_PDB_CustodyAuthTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_PDB_CustodyAuthTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_PDB_CustodyAuthTblValidateFunc,
+                                   BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PDB_ReportToAuthTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PDB_ReportToAuthTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_PDB_ReportToAuthTblValidateFunc,
+                               BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_PDB_ReportToAuthTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_PDB_ReportToAuthTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_PDB_ReportToAuthTblValidateFunc,
+                                   BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PDB_SrcAuthTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PDB_SrcAuthTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_PDB_SrcAuthTblValidateFunc, BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_PDB_SrcAuthTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_PDB_SrcAuthTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_PDB_SrcAuthTblValidateFunc,
+                                   BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_PDB_SrcLatencyTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_PDB_SrcLatencyTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_PDB_SrcLatencyTblValidateFunc,
+                               BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_PDB_SrcLatencyTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_PDB_SrcLatencyTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_PDB_SrcLatencyTblValidateFunc,
+                                   BPLib_Status_t);
+}

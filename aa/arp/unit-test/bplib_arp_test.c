@@ -33,8 +33,29 @@ void Test_BPLib_ARP_Init(void)
     UtAssert_INT32_EQ(BPLib_ARP_Init(), BPLIB_SUCCESS);
 }
 
+void Test_BPLib_ARP_CRSTblValidateFunc_Nominal(void)
+{
+    BPLib_ARP_CRSTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    TestTblData.CRS_Set[0].SizeTrigger = 10;
+    UtAssert_INT32_EQ((int32) BPLib_ARP_CRSTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+}
+
+void Test_BPLib_ARP_CRSTblValidateFunc_Invalid(void)
+{
+    BPLib_ARP_CRSTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    /* Error case should return BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE */
+    TestTblData.CRS_Set[0].SizeTrigger = 0;
+
+    UtAssert_INT32_EQ(BPLib_ARP_CRSTblValidateFunc(&TestTblData), 
+                                                BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
+}
 
 void TestBplibArp_Register(void)
 {
     UtTest_Add(Test_BPLib_ARP_Init, BPLib_ARP_Test_Setup, BPLib_ARP_Test_Teardown, "Test_BPLib_ARP_Init");
+    UtTest_Add(Test_BPLib_ARP_CRSTblValidateFunc_Nominal, BPLib_ARP_Test_Setup, BPLib_ARP_Test_Teardown, "Test_BPLib_ARP_CRSTblValidateFunc_Nominal");
+    UtTest_Add(Test_BPLib_ARP_CRSTblValidateFunc_Invalid, BPLib_ARP_Test_Setup, BPLib_ARP_Test_Teardown, "Test_BPLib_ARP_CRSTblValidateFunc_Invalid");
 }

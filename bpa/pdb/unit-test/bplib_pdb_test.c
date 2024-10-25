@@ -33,8 +33,47 @@ void Test_BPLib_PDB_Init(void)
     UtAssert_INT32_EQ(BPLib_PDB_Init(), BPLIB_SUCCESS);
 }
 
+void Test_BPLib_PDB_CustodianAuthTblValidateFunc_Nominal(void)
+{
+    BPLib_PDB_CustodianTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    UtAssert_INT32_EQ((int32) BPLib_PDB_CustodianAuthTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+}
+
+void Test_BPLib_PDB_CustodyAuthTblValidateFunc_Nominal(void)
+{
+    BPLib_PDB_CustodyTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    UtAssert_INT32_EQ((int32) BPLib_PDB_CustodyAuthTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+}
+
+void Test_BPLib_PDB_ReportToAuthTblValidateFunc_Nominal(void)
+{
+    BPLib_PDB_ReportToTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    UtAssert_INT32_EQ((int32) BPLib_PDB_ReportToAuthTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+}
+
+void Test_BPLib_PDB_SrcAuthTblValidateFunc_Nominal(void)
+{
+    BPLib_PDB_SrcAuthTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    UtAssert_INT32_EQ((int32) BPLib_PDB_SrcAuthTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+}
+
+void Test_BPLib_PDB_SrcLatencyTblValidateFunc_Nominal(void)
+{
+    BPLib_PDB_SrcLatencyTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    UtAssert_INT32_EQ((int32) BPLib_PDB_SrcLatencyTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+}
 
 void TestBplibPdb_Register(void)
 {
-    UtTest_Add(Test_BPLib_PDB_Init, BPLib_PDB_Test_Setup, BPLib_PDB_Test_Teardown, "Test_BPLib_PDB_Init");
+    UtTest_Add(Test_BPLib_PDB_Init, BPLib_PDB_Test_Setup, BPLib_PDB_Test_Teardown, "Test_BPLib_PDB_Init");    
+    UtTest_Add(Test_BPLib_PDB_CustodianAuthTblValidateFunc_Nominal, BPLib_PDB_Test_Setup, BPLib_PDB_Test_Teardown, "Test_BPLib_PDB_CustodianAuthTblValidateFunc_Nominal");
+    UtTest_Add(Test_BPLib_PDB_CustodyAuthTblValidateFunc_Nominal, BPLib_PDB_Test_Setup, BPLib_PDB_Test_Teardown, "Test_BPLib_PDB_CustodyAuthTblValidateFunc_Nominal");   
+    UtTest_Add(Test_BPLib_PDB_ReportToAuthTblValidateFunc_Nominal, BPLib_PDB_Test_Setup, BPLib_PDB_Test_Teardown, "Test_BPLib_PDB_ReportToAuthTblValidateFunc_Nominal");
+    UtTest_Add(Test_BPLib_PDB_SrcAuthTblValidateFunc_Nominal, BPLib_PDB_Test_Setup, BPLib_PDB_Test_Teardown, "Test_BPLib_PDB_SrcAuthTblValidateFunc_Nominal");
+    UtTest_Add(Test_BPLib_PDB_SrcLatencyTblValidateFunc_Nominal, BPLib_PDB_Test_Setup, BPLib_PDB_Test_Teardown, "Test_BPLib_PDB_SrcLatencyTblValidateFunc_Nominal");    
 }

@@ -120,10 +120,13 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -29u)
 
 //BPLIB_TIMEOUT was -5 in the prototype.
-#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -20u)
+#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -30u)
 
 // BPLib Red-Black Tree (RBT) Duplicate Search Result
-#define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -21u)
+#define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -31u)
+
+/* Table validation error code */
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -32u)    
 
 // BPLib_Handle_t - Multi-purpose handle for locks, APIs, and other allocated resources
 #define BPLIB_HANDLE_MAX_SERIAL 0xffffff

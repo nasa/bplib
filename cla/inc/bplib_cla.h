@@ -72,17 +72,17 @@ typedef struct
     uint32_t    RetransmitTimeout;
     uint32_t    CSTimeTrigger;
     uint32_t    CSSizeTrigger;
-} BPLib_ContactsSet_t;
+} BPLib_CLA_ContactsSet_t;
 
-struct BPLib_ContactsTable
+struct BPLib_CLA_ContactsTable
 {
-    BPLib_ContactsSet_t ContactSet[BPLIB_MAX_NUM_CONTACTS];
+    BPLib_CLA_ContactsSet_t ContactSet[BPLIB_MAX_NUM_CONTACTS];
 };
 
 /*
 ** Table Type def
 */
- typedef struct BPLib_ContactsTable BPLib_ContactsTable_t;  
+ typedef struct BPLib_CLA_ContactsTable BPLib_CLA_ContactsTable_t;  
 
 /*
 ** Exported Functions
@@ -139,5 +139,23 @@ BPLib_Status_t BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
 BPLib_Status_t BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout);
+
+/**
+ * \brief Validate Contact Table configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new Contact table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ */
+BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData);
 
 #endif /* BPLIB_CLA_H */

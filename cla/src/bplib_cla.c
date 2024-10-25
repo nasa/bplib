@@ -85,3 +85,19 @@ BPLib_Status_t BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint
     return Status;    
 }
 
+/* Validate Contacts table data */
+BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData)
+{
+    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
+    BPLib_CLA_ContactsTable_t *TblDataPtr = (BPLib_CLA_ContactsTable_t *)TblData;
+
+    /* Validate data values are within allowed range */
+    if (TblDataPtr[0].ContactSet->PortNum <= 0)
+    {
+        /* element is out of range, return an appropriate error code */
+        ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;
+    }
+
+    return ReturnCode;
+}
+
