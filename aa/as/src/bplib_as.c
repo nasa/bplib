@@ -275,6 +275,10 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS
 {
     BPLib_Status_t Status;
 
+    /*
+    if (CounterType == NODE_COUNTER)
+    {
+    */
     if (CounterIndex == TIME_MONOTONIC_CNT || CounterIndex == TIME_CF)
     {
         uint32_t* SetVal  = (uint32_t*) BPLib_AS_Get(CounterType, CounterIndex);
@@ -289,6 +293,46 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS
 
         Status = BPLib_AS_Set(CounterType, CounterIndex, (void*) IncremVal);
     }
+    /*
+    }
+    else
+    {
+
+    }
+    */
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex)
+{
+    BPLib_Status_t Status;
+
+    /*
+    if (CounterType == NODE_COUNTER)
+    {
+    */
+    if (CounterIndex == TIME_MONOTONIC_CNT || CounterIndex == TIME_CF)
+    {
+        uint32_t* SetVal  = (uint32_t*) BPLib_AS_Get(CounterType, CounterIndex);
+        uint32_t  DecremVal = *SetVal--;
+
+        Status = BPLib_AS_Set(CounterType, CounterIndex, (void*) DecremVal);
+    }
+    else
+    {
+        int64_t* SetVal    = (int64_t*) BPLib_AS_Get(CounterType, CounterIndex);
+        int64_t  DecremVal = *SetVal--;
+
+        Status = BPLib_AS_Set(CounterType, CounterIndex, (void*) DecremVal);
+    }
+    /*
+    }
+    else
+    {
+
+    }
+    */
 
     return Status;
 }
