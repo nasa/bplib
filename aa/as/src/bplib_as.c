@@ -133,7 +133,7 @@ BPLib_Status_t BPLib_AS_Set(BPLib_AS_NodeCounter_t CounterIndex, int64_t Desired
             BPLib_AS_NodeCountersPayload.CorrelationFactor = (int64_t) DesiredValue;
             break;
         default:
-            Status = BPLIB_INVALID_SET_INDEX;
+            Status = BPLIB_INVALID_NODE_CNTR_INDEX;
             break;
     }
 
@@ -230,7 +230,7 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_NodeCounter_t CounterIndex)
             BPLib_AS_NodeCountersPayload.CorrelationFactor++;
             break;
         default:
-            Status = BPLIB_INVALID_SET_INDEX;
+            Status = BPLIB_INVALID_NODE_CNTR_INDEX;
             break;
     }
 
