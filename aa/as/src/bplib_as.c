@@ -53,7 +53,7 @@ void* BPLib_AS_Get(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t 
 
     /* if (CounterType == NODE_COUNTER)
     {
-        // Node packet counter access
+        // Node packet
     */
     switch (CounterIndex)
     {
@@ -141,11 +141,13 @@ void* BPLib_AS_Get(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t 
         default:
             break;
     }
-    /* else
+    /*
+    }
+    else
     {
         switch (CounterIndex)
         {
-            // Source packet counter access
+            // Source packet
         }
     }
     */
@@ -160,7 +162,7 @@ BPLib_Status_t BPLib_AS_Set(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeC
 
     /* if (CounterType == NODE_COUNTER)
     {
-        // Node packet counter modification
+        // Node packet
     */
     switch (CounterIndex)
     {
@@ -236,6 +238,9 @@ BPLib_Status_t BPLib_AS_Set(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeC
         case ADU_COUNT_RECEIVED:
             BPLib_AS_NodeCountersPayload.AduCountReceived = *((uint32_t*) DesiredValuePtr);
             break;
+        case SPARE:
+            /* This value is only used for alignment and is only here to avoid errors while looping */
+            break;
         case TIME_BOOT_ERA:
             BPLib_AS_NodeCountersPayload.TimeBootEra = *((uint32_t*) DesiredValuePtr);
             break;
@@ -249,11 +254,13 @@ BPLib_Status_t BPLib_AS_Set(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeC
             Status = BPLIB_INVALID_NODE_CNTR_INDEX;
             break;
     }
-    /* else
+    /*
+    }
+    else
     {
         switch (CounterIndex)
         {
-            // Source packet counter modification
+            // Source packet
         }
     }
     */
@@ -283,12 +290,23 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_SetAllZero()
+BPLib_Status_t BPLib_AS_SetAllZero(BPLib_AS_CounterPacket_t CounterType)
 {
-    // Call BPLib_AS_Set() on all vals in packet
     BPLib_Status_t Status;
-
     Status = BPLIB_SUCCESS;
+
+    /*
+    if(CounterType == NODE_COUNTER)
+    {
+    */
+    memset((void*) &BPLib_AS_NodeCountersPayload, 0, sizeof(BPLib_AS_NodeCountersPayload));
+    /*
+    }
+    else
+    {
+        memset((void*) &BPLib_AS_SourceCountersPayload, 0, sizeof(BPLib_AS_SourceCountersPayload));
+    }
+    */
 
     return Status;
 }
