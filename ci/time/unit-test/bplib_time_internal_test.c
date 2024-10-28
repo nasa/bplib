@@ -482,6 +482,26 @@ void Test_BPLib_TIME_GetEpochOffset_HostGthDtn(void)
     UtAssert_EQ(int64_t, ExpEpochOffset, BPLib_TIME_GetEpochOffset());
 }
 
+/* Test that the right offset is returned when the host epoch is the year 1900 */
+void Test_BPLib_TIME_GetEpochOffset_HostLthDtn(void)
+{
+    int64_t ExpEpochOffset;
+
+    /* Set test epoch data */
+    TestHostEpochYear = 1900;
+    TestHostEpochDay = 1;
+
+    /* Calculate expected epoch offset */
+    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestHostEpochYear;
+    ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
+
+    /* Leap years: Multiples of 4 from 1904-1996 (inclusive). 1900 was not a leap year */
+    ExpEpochOffset += (24 * BPLIB_TIME_DAY_IN_MSEC);
+    ExpEpochOffset *= -1;
+
+    UtAssert_EQ(int64_t, ExpEpochOffset, BPLib_TIME_GetEpochOffset());
+}
+
 
 /* Test that the right offset is returned when the host epoch equals the DTN epoch */
 void Test_BPLib_TIME_GetEpochOffset_EqualEpochs(void)
@@ -539,5 +559,6 @@ void TestBplibTimeInternal_Register(void)
 
     ADD_TEST(Test_BPLib_TIME_GetEpochOffset_Nominal);
     ADD_TEST(Test_BPLib_TIME_GetEpochOffset_HostGthDtn);
+    ADD_TEST(Test_BPLib_TIME_GetEpochOffset_HostLthDtn);
     ADD_TEST(Test_BPLib_TIME_GetEpochOffset_EqualEpochs);
 }
