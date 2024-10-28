@@ -268,24 +268,33 @@ BPLib_Status_t BPLib_NC_ResetAllCounters(void)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    Status = BPLib_AS_SetAllZero(NODE_COUNTER);
 
-    /* Status = BPLib_AS_ResetAllCounters(); */
-
-    /*
     if (Status == BPLIB_SUCCESS)
-    */
     {
-        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION, 
+        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_NODE_SUCCESS_EID, BPLib_EM_EventType_INFORMATION, 
                             "Reset all counters directive not implemented");
+
+        /*
+        Status = BPLib_AS_SetAllZero(SOURCE_COUNTER);
+
+        if (Status == BPLIB_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SRC_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Reset all counters directive not implemented");
+        }
+        else
+        {
+            BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SRC_ERR_EID, BPLib_EM_EventType_INFORMATION,
+                            "Reset all counters directive not implemented");
+        }
+        */
     }
-    /*
     else
     {
-        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_ERR_EID, BPLib_EM_EventType_INFORMATION, 
+        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_NODE_ERR_EID, BPLib_EM_EventType_INFORMATION,
                             "Reset all counters directive not implemented");
     }
-    */
 
     return Status;
 }
@@ -1162,11 +1171,15 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(BPLib_SourceMibConfigHkTlm_Payload
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload)
+BPLib_Status_t BPLib_NC_SendNodeMibCountersHk()
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(NodeMIBCounterTlmPayload);
+    //TODO: Lock node counters data here
+
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
+
+    //TODO: Unlock node counters data here
 
     return Status;
 }
@@ -1189,11 +1202,16 @@ BPLib_Status_t BPLib_NC_SendStorageHk(BPLib_StorageHkTlm_Payload_t* StorTlmPaylo
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendChannelContactStatHk(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload)
+BPLib_Status_t BPLib_NC_SendChannelContactStatHk()
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(ChannelContactTlmPayload);
+    // Lock data
+
+    // Get channel contact stat payload from AS
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(BPLib_AS.ChannelContactPayload);
+
+    // Unlock data
 
     return Status;
 }

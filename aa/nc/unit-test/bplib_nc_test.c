@@ -304,7 +304,7 @@ void Test_BPLib_NC_ResetAllCounters_Nominal(void)
 {
     BPLib_Status_t Status;
 
-    // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_RESET_ALL_CTRS_SUCCESS_EID,
+    // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_RESET_ALL_CTRS_NODE_SUCCESS_EID,
     //                     "Reset all counters command not implemented");
 
     Status = BPLib_NC_ResetAllCounters();
