@@ -27,6 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
+#include <string.h>
 
 /* ======= */
 /* Typdefs */
@@ -62,18 +63,18 @@ typedef struct
 
     uint32_t AduCountDelivered;                     /**< \brief ADU Delivered Count */
     uint32_t AduCountReceived;                      /**< \brief ADU Received Count */
-    
-    uint32_t Spare1;        
-    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */    
+
+    uint32_t Spare1;
+    uint32_t TimeBootEra;                           /**< \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;                         /**< \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;                     /**< \brief Time Correlation Factor */
 } BPLib_NodeMibCountersHkTlm_Payload_t;
 
 /**
  * \brief Source MIB counters housekeeping payload
  */
 typedef struct
-{    
+{
     char SourceEID[BPLIB_MAX_EID_LENGTH];       /**< \brief Source EID this telemetry corresponds to */
     uint32_t BundleCountGeneratedAccepted;      /**< \brief Number of accepted bundle transmission requests */
     uint32_t BundleCountGeneratedRejected;      /**< \brief Number of rejected bundle transmission requests */
@@ -84,7 +85,7 @@ typedef struct
     uint32_t BundleCountUnprocessedBlocks;      /**< \brief Number of unprocessed blocks removed from received bundles. */
     uint32_t BundleCountForwarded;              /**< \brief Number of bundles forwarded to another DTN node. */
     uint32_t BundleCountReturned;               /**< \brief Number of bundles returned to sender. */
-    uint32_t BundleCountFragmented;             /**< \brief Number of bundles that needed to be fragmented. */   
+    uint32_t BundleCountFragmented;             /**< \brief Number of bundles that needed to be fragmented. */
     uint32_t BundleCountReassembled;            /**< \brief Number of bundles reassembled from fragments. */
     uint32_t BundleCountFragmentError;          /**< \brief Number of fragments discarded due to bad offset or ADU length. */
     uint32_t BundleCountDelivered;              /**< \brief Number of bundles destined for this node. */
@@ -142,12 +143,46 @@ typedef struct
 typedef struct
 {
     BPLib_SourceMibCountersSet_t SourceCounters[BPLIB_MAX_NUM_SOURCE_EID]; /**< \brief Counters for each source */
-    
+
     uint32_t Spare2;
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_SourceMibCountersHkTlm_Payload_t;
+
+extern BPLib_NodeMibCountersHkTlm_Payload_t BPLib_AS_NodeCountersPayload;
+
+typedef enum
+{
+    BUNDLE_CNT_GEN_ANONYMOUS    = 0,  /* Bundle count generated anonymous */
+    SYSTEM_NODE_UP_TIME         = 1,  /* System node up time */
+    ACCEPTED_DIRECTIVE_CNT      = 2,  /* Bundle Agent Accepted Directive Count */
+    REJECTED_DIRECTIVE_CNT      = 3,  /* Bundle Agent Rejected Directive Count */
+    BUNDLE_CNT_GEN_CUSTODY      = 4,  /* Bundle Number of custody signal generated */
+    BUNDLE_CNT_GEN_BSR_RECV     = 5,  /* Bundle Received BSR Counts */
+    BUNDLE_CNT_GEN_BSR_ACCPT    = 6,  /* Bundle Accepted BSR Counts */
+    BUNDLE_CNT_GEN_BSR_FORW     = 7,  /* Bundle Forwarded BSR Counts */
+    BUNDLE_CNT_GEN_BSR_DELVR    = 8,  /* Bundle Delivered BSR Counts */
+    BUNDLE_CNT_GEN_BSR_DEL      = 9,  /* Bundle Deleted BSR Counts */
+    BUNDLE_CNT_INVAL_PRI_BLK    = 10, /* Bundle unprocessed due to Invalid primary block Counts */
+    BUNDLE_CNT_CS_RECV          = 11, /* Received custody signal Bundle Counts */
+    BUNDLE_CNT_DEL_UNAUTH_SRC   = 12, /* Deleted bundle Counts for unauthorized Src EID */
+    BUNDLE_CNT_GEN_CRS_RECV     = 13, /* Bundle Received CRS Counts */
+    BUNDLE_CNT_GEN_CRS_ACCPT    = 14, /* Bundle Accepted CRS Counts */
+    BUNDLE_CNT_GEN_CRS_FORW     = 15, /* Bundle Forwarded CRS Counts */
+    BUNDLE_CNT_GEN_CRS_DELVR    = 16, /* Bundle Delivered CRS Counts */
+    BUNDLE_CNT_GEN_CRS_DEL      = 17, /* Bundle Deleted CRS Counts */
+    BUNDLE_CNT_MAX_CRS_RATE_EXC = 18, /* Number of CRS bundles not sent to avoid exceeding max rate */
+    NODE_STARTUP_COUNTER        = 19, /* Number of times the node has been started up */
+    BUNDLE_CNT_GEN_CRS          = 20, /* Number of CRSs generated */
+    BUNDLE_CNT_RECV_CRS         = 21, /* Number of CRSs received */
+    ADU_COUNT_DELIVERED         = 22, /* ADU Delivered Count */
+    ADU_COUNT_RECEIVED          = 23, /* ADU Received Count */
+    /* SPARE                    = 24,    Spare for alignment skipped since not relevant */
+    TIME_BOOT_ERA               = 25, /* Boot Era for Monotonic Time */
+    TIME_MONOTONIC_CNT          = 26, /* Monotonic Time Counter */
+    TIME_CF                     = 27, /* Time Correlation Factor */
+} BPLib_AS_NodeCounter_t;
 
 typedef enum
 {
@@ -173,10 +208,8 @@ typedef enum
  */
 BPLib_Status_t BPLib_AS_Init(void);
 
-BPLib_Status_t BPLib_AS_Get();
-BPLib_Status_t BPLib_AS_Set();
+BPLib_Status_t BPLib_AS_Set(BPLib_AS_NodeCounter_t CounterIndex, int64_t DesiredValue);
 BPLib_Status_t BPLib_AS_Increment();  // BPLib_AS_Set(val, val + 1)
-BPLib_Status_t BPLib_AS_Decrement();  // BPLib_AS_Set(val, val - 1)
 BPLib_Status_t BPLib_AS_SetZero();    // BPLib_AS_Set(val, 0)
 BPLib_Status_t BPLib_AS_SetAllZero(); // Call BPLib_AS_Set() on all vals in packet
 BPLib_Status_t BPLib_AS_Write();
