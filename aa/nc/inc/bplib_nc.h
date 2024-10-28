@@ -469,12 +469,12 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(BPLib_SourceMibConfigHkTlm_Payload
   * \brief     Send Per Node MIB Counter telemetry packet
   * \details   Node Configuration Send Node MIB Counters Housekeeping Packet command.
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] NodeMIBCounterTlmPayload BPLib_NodeMibCountersHkTlm_Payload_t* type payload to be telemetered
+  * \param[in] void No arguments accepted
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   * \retval    Platform specific transmit message return values
   */
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload);
+BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void);
 
 /**
   * \brief     Send Per Source MIB Counter telemetry packet

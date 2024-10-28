@@ -272,28 +272,25 @@ BPLib_Status_t BPLib_NC_ResetAllCounters(void)
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_NODE_SUCCESS_EID, BPLib_EM_EventType_INFORMATION, 
-                            "Reset all counters directive not implemented");
-
         /*
         Status = BPLib_AS_SetAllZero(SOURCE_COUNTER);
 
         if (Status == BPLIB_SUCCESS)
         {
-            BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SRC_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset all counters directive not implemented");
+            BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                               "Successful reset-all-counters directive");
         }
         else
         {
-            BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SRC_ERR_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset all counters directive not implemented");
+            BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SRC_ERR_EID, BPLib_EM_EventType_ERROR,
+                               "Error with reset-all-counters directive while attempting tp reset source counters");
         }
         */
     }
     else
     {
-        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_NODE_ERR_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset all counters directive not implemented");
+        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_NODE_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Error with reset-all-counters directive while attempting to reset node counters");
     }
 
     return Status;
@@ -1202,14 +1199,14 @@ BPLib_Status_t BPLib_NC_SendStorageHk(BPLib_StorageHkTlm_Payload_t* StorTlmPaylo
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendChannelContactStatHk()
+BPLib_Status_t BPLib_NC_SendChannelContactStatHk(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload)
 {
     BPLib_Status_t Status;
 
     // Lock data
 
     // Get channel contact stat payload from AS
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(BPLib_AS.ChannelContactPayload);
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(ChannelContactTlmPayload);
 
     // Unlock data
 
