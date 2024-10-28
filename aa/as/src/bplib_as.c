@@ -129,6 +129,9 @@ void* BPLib_AS_Get(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t 
         case ADU_COUNT_RECEIVED:
             ReturnVal = (void*) &BPLib_AS_NodeCountersPayload.AduCountReceived;
             break;
+        case SPARE:
+            /* This value is only used for alignment and is only here to avoid errors while looping */
+            break;
         case TIME_BOOT_ERA:
             ReturnVal = (void*) &BPLib_AS_NodeCountersPayload.TimeBootEra;
             break;
@@ -316,6 +319,8 @@ BPLib_Status_t BPLib_AS_Write()
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
+
+    /* Status = BPLib_STOR_Write(); */
 
     return Status;
 }

@@ -29,6 +29,12 @@
 #include "bplib_cfg.h"
 #include <string.h>
 
+/* ====== */
+/* Macros */
+/* ====== */
+
+#define NODE_COUNTERS_PKT_SIZE 28
+
 /* ======= */
 /* Typdefs */
 /* ======= */
@@ -178,7 +184,7 @@ typedef enum
     BUNDLE_CNT_RECV_CRS         = 21, /* Number of CRSs received */
     ADU_COUNT_DELIVERED         = 22, /* ADU Delivered Count */
     ADU_COUNT_RECEIVED          = 23, /* ADU Received Count */
-    /* SPARE                    = 24,    Spare for alignment skipped since not relevant */
+    SPARE                       = 24, /* Irrelevant spare value for alignment */
     TIME_BOOT_ERA               = 25, /* Boot Era for Monotonic Time */
     TIME_MONOTONIC_CNT          = 26, /* Monotonic Time Counter */
     TIME_CF                     = 27, /* Time Correlation Factor */
