@@ -32,10 +32,16 @@
 #include "bplib.h"
 #include "bplib_as.h"
 
+/* ====== */
+/* Macros */
+/* ====== */
 
-/*
-** Function Definitions
-*/
+// Add a test case
+#define ADD_TEST(test) UtTest_Add(test, BPLib_AS_Test_Setup, BPLib_AS_Test_Teardown, #test)
+
+/* =================== */
+/* Function Prototypes */
+/* =================== */
 
 void BPLib_AS_Test_Setup(void);
 void BPLib_AS_Test_Teardown(void);

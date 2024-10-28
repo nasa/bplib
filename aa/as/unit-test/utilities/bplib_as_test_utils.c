@@ -18,15 +18,15 @@
  *
  */
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_as_test_utils.h"
 
-/*
-** Function Definitions
-*/
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
 
 void BPLib_AS_Test_Setup(void)
 {

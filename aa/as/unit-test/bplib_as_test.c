@@ -33,8 +33,67 @@ void Test_BPLib_AS_Init(void)
     UtAssert_INT32_EQ(BPLib_AS_Init(), BPLIB_SUCCESS);
 }
 
+void Test_BPLib_AS_Get_Nominal()
+{
+
+}
+
+void Test_BPLib_AS_Get_Error()
+{
+
+}
+
+void Test_BPLib_AS_Set_Nominal()
+{
+
+}
+
+void Test_BPLib_AS_Set_Error()
+{
+
+}
+
+void Test_BPLib_AS_Increment_Nominal()
+{
+
+}
+
+void Test_BPLib_AS_Increment_Error()
+{
+
+}
+
+void Test_BPLib_AS_Decrement_Nominal()
+{
+
+}
+
+void Test_BPLib_AS_Decrement_Error()
+{
+
+}
+
+void Test_BPLib_AS_SetAllZero_Nominal()
+{
+
+}
+
+void Test_BPLib_AS_SetAllZero_Error()
+{
+
+}
 
 void TestBplibAs_Register(void)
 {
-    UtTest_Add(Test_BPLib_AS_Init, BPLib_AS_Test_Setup, BPLib_AS_Test_Teardown, "Test_BPLib_AS_Init");
+    ADD_TEST(Test_BPLib_AS_Init);
+    ADD_TEST(Test_BPLib_AS_Get_Nominal);
+    ADD_TEST(Test_BPLib_AS_Get_Error);
+    ADD_TEST(Test_BPLib_AS_Set_Nominal);
+    ADD_TEST(Test_BPLib_AS_Set_Error);
+    ADD_TEST(Test_BPLib_AS_Increment_Nominal);
+    ADD_TEST(Test_BPLib_AS_Increment_Error);
+    ADD_TEST(Test_BPLib_AS_Decrement_Nominal);
+    ADD_TEST(Test_BPLib_AS_Decrement_Error);
+    ADD_TEST(Test_BPLib_AS_SetAllZero_Nominal);
+    ADD_TEST(Test_BPLib_AS_SetAllZero_Error);
 }
