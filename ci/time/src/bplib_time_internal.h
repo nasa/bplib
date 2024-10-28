@@ -53,7 +53,6 @@
 #define BPLIB_TIME_MINUTE_IN_MSEC   ((int64_t) 60000)       /**< \brief Msecs in a minute */
 #define BPLIB_TIME_SECOND_IN_MSEC   ((int64_t) 1000)        /**< \brief Msecs in a second */
 
-#define BPLIB_TIME_FEB_29_DOY       (60)    /**< \brief Day of the year for Feb 29 */
 /**
 **  \brief Invalid boot era, indicates that the associated time is an absolute DTN time
 */
