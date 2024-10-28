@@ -52,60 +52,88 @@ BPLib_Status_t BPLib_AS_Set(BPLib_AS_NodeCounter_t CounterIndex, int64_t Desired
     switch (CounterIndex)
     {
         case BUNDLE_CNT_GEN_ANONYMOUS:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedAnonymous = (uint32_t) DesiredValue;
             break;
         case SYSTEM_NODE_UP_TIME:
+            BPLib_AS_NodeCountersPayload.SystemNodeUpTime = (uint32_t) DesiredValue;
             break;
         case ACCEPTED_DIRECTIVE_CNT:
+            BPLib_AS_NodeCountersPayload.AcceptedDirectiveCount = (uint32_t) DesiredValue;
             break;
         case REJECTED_DIRECTIVE_CNT:
+            BPLib_AS_NodeCountersPayload.RejectedDirectiveCount = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_CUSTODY:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_BSR_RECV:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_BSR_ACCPT:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_BSR_FORW:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_BSR_DELVR:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_BSR_DEL:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_INVAL_PRI_BLK:
+            BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_CS_RECV:
+            BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_DEL_UNAUTH_SRC:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorizedSrc = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_CRS_RECV:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_CRS_ACCPT:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_CRS_FORW:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_CRS_DELVR:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_CRS_DEL:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_MAX_CRS_RATE_EXC:
+            BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded = (uint32_t) DesiredValue;
             break;
         case NODE_STARTUP_COUNTER:
+            BPLib_AS_NodeCountersPayload.NodeStartupCounter = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_GEN_CRS:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs = (uint32_t) DesiredValue;
             break;
         case BUNDLE_CNT_RECV_CRS:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs = (uint32_t) DesiredValue;
             break;
         case ADU_COUNT_DELIVERED:
+            BPLib_AS_NodeCountersPayload.AduCountDelivered = (uint32_t) DesiredValue;
             break;
         case ADU_COUNT_RECEIVED:
+            BPLib_AS_NodeCountersPayload.AduCountReceived = (uint32_t) DesiredValue;
             break;
         case TIME_BOOT_ERA:
+            BPLib_AS_NodeCountersPayload.TimeBootEra = (uint32_t) DesiredValue;
             break;
         case TIME_MONOTONIC_CNT:
+            BPLib_AS_NodeCountersPayload.MonotonicTime = (int64_t) DesiredValue;
             break;
         case TIME_CF:
+            BPLib_AS_NodeCountersPayload.CorrelationFactor = (int64_t) DesiredValue;
             break;
         default:
+            Status = BPLIB_INVALID_SET_INDEX;
             break;
     }
 
@@ -116,7 +144,6 @@ BPLib_Status_t BPLib_AS_Increment(int32_t index)
 {
     // BPLib_AS_Set(val, val + 1)
     BPLib_Status_t Status;
-
     Status = BPLIB_SUCCESS;
 
     return Status;

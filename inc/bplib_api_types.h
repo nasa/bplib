@@ -95,6 +95,9 @@ typedef int32_t BPLib_Status_t;
 /* Payload Interface Errors */
 #define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -29u)
 
+/* Admin Statistics Errors */
+#define BPLIB_INVALID_SET_INDEX             ((BPLib_Status_t) -30u)
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
