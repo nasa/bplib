@@ -188,7 +188,7 @@ typedef enum
 {
     NODE_COUNTER   = 1,
     SOURCE_COUNTER = 2, // Comma here doesn't hurt and makes it quick to add things
-} BPLib_AS_CounterRequest_t;
+} BPLib_AS_CounterPacket_t;
 
 /* =================== */
 /* Function Prototypes */
@@ -207,9 +207,9 @@ typedef enum
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
 BPLib_Status_t BPLib_AS_Init(void);
-
-BPLib_Status_t BPLib_AS_Set(BPLib_AS_NodeCounter_t CounterIndex, int64_t DesiredValue);
-BPLib_Status_t BPLib_AS_Increment();  // BPLib_AS_Set(val, val + 1)
+void* BPLib_AS_Get(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex);
+BPLib_Status_t BPLib_AS_Set(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex, void* DesiredValuePtr);
+BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex);
 BPLib_Status_t BPLib_AS_SetZero();    // BPLib_AS_Set(val, 0)
 BPLib_Status_t BPLib_AS_SetAllZero(); // Call BPLib_AS_Set() on all vals in packet
 BPLib_Status_t BPLib_AS_Write();
