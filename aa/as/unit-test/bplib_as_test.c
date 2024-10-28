@@ -18,9 +18,9 @@
  *
  */
 
-/*
- * Include
- */
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "bplib_as_test_utils.h"
 
@@ -33,12 +33,34 @@ void Test_BPLib_AS_Init(void)
     UtAssert_INT32_EQ(BPLib_AS_Init(), BPLIB_SUCCESS);
 }
 
-void Test_BPLib_AS_Get_Nominal()
+void Test_BPLib_AS_Get_Node_Nominal()
+{
+    uint32_t* ValuePtr;
+
+    /* Get the default values of the bundle number of custody signals generated */
+    ValuePtr = (uint32_t*) BPLib_AS_Get(NODE_COUNTER, BUNDLE_CNT_GEN_CUSTODY);
+
+    UtAssert_EQ(uint32_t, *ValuePtr, 0);
+
+    /* Set a value and verify that it was received */
+    BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = 5;
+
+    ValuePtr = (uint32_t*) BPLib_AS_Get(NODE_COUNTER, BUNDLE_CNT_GEN_CUSTODY);
+
+    UtAssert_EQ(uint32_t, *ValuePtr, 5);
+}
+
+void Test_BPLib_AS_Get_Node_Error()
 {
 
 }
 
-void Test_BPLib_AS_Get_Error()
+void Test_BPLib_AS_Get_Source_Nominal()
+{
+
+}
+
+void Test_BPLib_AS_Get_Source_Error()
 {
 
 }
@@ -86,8 +108,8 @@ void Test_BPLib_AS_SetAllZero_Error()
 void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init);
-    ADD_TEST(Test_BPLib_AS_Get_Nominal);
-    ADD_TEST(Test_BPLib_AS_Get_Error);
+    ADD_TEST(Test_BPLib_AS_Get_Node_Nominal);
+    ADD_TEST(Test_BPLib_AS_Get_Node_Error);
     ADD_TEST(Test_BPLib_AS_Set_Nominal);
     ADD_TEST(Test_BPLib_AS_Set_Error);
     ADD_TEST(Test_BPLib_AS_Increment_Nominal);
