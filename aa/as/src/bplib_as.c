@@ -283,16 +283,6 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_SetZero()
-{
-    // BPLib_AS_Set(val, 0)
-    BPLib_Status_t Status;
-
-    Status = BPLIB_SUCCESS;
-
-    return Status;
-}
-
 BPLib_Status_t BPLib_AS_SetAllZero()
 {
     // Call BPLib_AS_Set() on all vals in packet
