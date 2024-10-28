@@ -53,6 +53,7 @@
 #define BPLIB_TIME_MINUTE_IN_MSEC   ((int64_t) 60000)       /**< \brief Msecs in a minute */
 #define BPLIB_TIME_SECOND_IN_MSEC   ((int64_t) 1000)        /**< \brief Msecs in a second */
 
+#define BPLIB_TIME_FEB_29_DOY       (60)    /**< \brief Day of the year for Feb 29 */
 /**
 **  \brief Invalid boot era, indicates that the associated time is an absolute DTN time
 */
@@ -241,5 +242,19 @@ uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime
  *  \return Offset in milliseconds
  */
 int64_t BPLib_TIME_SafeOffset(int64_t HostEpoch, int64_t DtnEpoch, int64_t Multiplier);
+
+/**
+ * \brief Get Epoch Offset
+ *
+ *  \par Description
+ *       Gets the offset between the host epoch and the DTN epoch in units of milliseconds. 
+ *       This includes leap days but not leap seconds.
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Offset in milliseconds
+ */
+int64_t BPLib_TIME_GetEpochOffset(void);
 
 #endif /* BPLIB_TIME_INTERNAL_H */

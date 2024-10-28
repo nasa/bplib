@@ -269,3 +269,72 @@ int64_t BPLib_TIME_SafeOffset(int64_t HostEpoch, int64_t DtnEpoch, int64_t Multi
 
     return Offset;
 }
+
+/* Get epoch offset (Host Epoch - DTN Epoch) */
+int64_t BPLib_TIME_GetEpochOffset(void)
+{
+    BPLib_TIME_Epoch_t HostEpoch;
+    int64_t  EpochOffset = 0;
+    uint32_t NumLeapDays = 0;
+    uint32_t StartYear, EndYear;
+    uint16_t Year;
+
+    /* Get host epoch */
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch(&HostEpoch);
+
+    /* Get offsets in milliseconds and add them to the epoch offset */
+    EpochOffset += BPLib_TIME_SafeOffset(HostEpoch.Year, BPLIB_TIME_EPOCH_YEAR, 
+                                                            BPLIB_TIME_YEAR_IN_MSEC);
+    EpochOffset += BPLib_TIME_SafeOffset(HostEpoch.Day, BPLIB_TIME_EPOCH_DAY, 
+                                                            BPLIB_TIME_DAY_IN_MSEC);
+    EpochOffset += BPLib_TIME_SafeOffset(HostEpoch.Hour, BPLIB_TIME_EPOCH_HOUR, 
+                                                            BPLIB_TIME_HOUR_IN_MSEC);
+    EpochOffset += BPLib_TIME_SafeOffset(HostEpoch.Minute, BPLIB_TIME_EPOCH_MINUTE, 
+                                                            BPLIB_TIME_MINUTE_IN_MSEC);
+    EpochOffset += BPLib_TIME_SafeOffset(HostEpoch.Second, BPLIB_TIME_EPOCH_SECOND, 
+                                                            BPLIB_TIME_SECOND_IN_MSEC);
+    EpochOffset += BPLib_TIME_SafeOffset(HostEpoch.Msec, BPLIB_TIME_EPOCH_MSEC, 1);
+
+    /*
+    ** Get any missing leap days
+    */
+
+    /* If the host epoch comes before the DTN epoch */   
+    if (HostEpoch.Year < BPLIB_TIME_EPOCH_YEAR)
+    {
+        StartYear = HostEpoch.Year;
+        EndYear = BPLIB_TIME_EPOCH_YEAR;
+    }
+    /* If the host epoch is on or after the DTN epoch */   
+    else
+    {
+        StartYear = BPLIB_TIME_EPOCH_YEAR;
+        EndYear = HostEpoch.Year;
+    }
+
+    /* Get all leap years in this range */
+    for (Year = StartYear; Year < EndYear; Year++)
+    {
+        /* 
+        ** Leap years occur on years divisible by 4, but not on years divisible by 100
+        ** except for years divisible by 400. For instance, the year 2000 is a leap year
+        ** but the year 1900 is not.
+        */
+        if ((Year % 4 == 0) && (Year % 100 != 0 || Year % 400 == 0))
+        {
+            NumLeapDays++;
+        }
+    }
+
+    /* Add or subtract leap days from offset, depending on if offset should be pos/neg */
+    if (HostEpoch.Year < BPLIB_TIME_EPOCH_YEAR)
+    {
+        EpochOffset -= (NumLeapDays * BPLIB_TIME_DAY_IN_MSEC);
+    }
+    else
+    {
+        EpochOffset += (NumLeapDays * BPLIB_TIME_DAY_IN_MSEC);
+    }
+
+    return EpochOffset;
+}
