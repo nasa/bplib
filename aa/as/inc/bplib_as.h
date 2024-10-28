@@ -216,7 +216,7 @@ BPLib_Status_t BPLib_AS_Init(void);
 void* BPLib_AS_Get(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex);
 BPLib_Status_t BPLib_AS_Set(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex, void* DesiredValuePtr);
 BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex);
-BPLib_Status_t BPLib_AS_SetAllZero(); // Call BPLib_AS_Set() on all vals in packet
+BPLib_Status_t BPLib_AS_SetAllZero(BPLib_AS_CounterPacket_t CounterType); // Call BPLib_AS_Set() on all vals in packet
 BPLib_Status_t BPLib_AS_Write();
 BPLib_Status_t BPLib_AS_Restore();
 
