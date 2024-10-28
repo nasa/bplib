@@ -103,12 +103,14 @@ add_subdirectory(ci/job)
 add_subdirectory(ci/mem)
 add_subdirectory(ci/pl)
 add_subdirectory(ci/time)
+add_subdirectory(ci/crc)
+add_subdirectory(ci/rbt)
 
 list(APPEND BPLIB_COMPONENTS
   bplib_version
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_nc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
-  bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time
+  bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time bplib_crc bplib_rbt
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENTS})

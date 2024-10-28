@@ -32,8 +32,15 @@ void Test_BPLib_STOR_Init(void)
     UtAssert_INT32_EQ(BPLib_STOR_Init(), BPLIB_SUCCESS);
 }
 
+void Test_BPLib_STOR_StorageTblValidateFunc_Nominal(void)
+{
+    BPLib_STOR_StorageTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    UtAssert_INT32_EQ((int32) BPLib_STOR_StorageTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+}
 
 void TestBplibStor_Register(void)
 {
     UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init");
+    UtTest_Add(Test_BPLib_STOR_StorageTblValidateFunc_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StorageTblValidateFunc_Nominal");
 }

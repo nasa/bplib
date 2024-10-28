@@ -44,6 +44,71 @@
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-int BPLib_BI_Init(void);
+BPLib_Status_t BPLib_BI_Init(void);
+
+/**
+ * \brief Function for Receiving Bundle from CLA
+ *
+ *  \par Description
+ *       Receive candidate bundle from CLA, CBOR decode it, then place the deserialized bundle to EBP In Queue
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \param[in] BundleInPtr Pointer to the bundle
+ *  \param[in] Size Bundle size
+ * 
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Initialization was successful
+ */
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(const void *BundleInPtr, size_t Size);
+
+
+/**
+ * \brief Function for Sending Bundle to CLA
+ *
+ *  \par Description
+ *       Pull deserialized bundle from BI Out Queue, CBOR encode it, then send the bundle to CLA
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ * 
+ *  \param[in] BundleOutPtr Pointer to the bundle
+ *  \param[in] Size Bundle size
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Initialization was successful
+ */
+BPLib_Status_t BPLib_BI_SendFullBundleOut(void *BundleOutPtr, size_t* Size);
+
+/**
+ * \brief Function for receiving control message from CLA
+ *
+ *  \par Description
+ *       Receive Control Messages from CLA, pass them to CT
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ * 
+ *  \param[in] CtrlMsg Control Message
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Initialization was successful
+ */
+BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t* CtrlMsg);
+
+/**
+ * \brief Function for validating the deserialized bundle
+ *
+ *  \par Description
+ *       Validate deserialized bundle after CBOR decoding
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Initialization was successful
+ */
+BPLib_Status_t BPLib_BI_ValidateBundle(void);
 
 #endif /* BPLIB_BI_H */

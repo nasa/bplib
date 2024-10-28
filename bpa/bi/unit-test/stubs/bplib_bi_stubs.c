@@ -32,11 +32,75 @@
  * Generated stub function for BPLib_BI_Init()
  * ----------------------------------------------------
  */
-int BPLib_BI_Init(void)
+BPLib_Status_t BPLib_BI_Init(void) 
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_BI_Init, int);
+  UT_GenStub_SetupReturnBuffer(BPLib_BI_Init, BPLib_Status_t);
 
-    UT_GenStub_Execute(BPLib_BI_Init, Basic, NULL);
+  UT_GenStub_Execute(BPLib_BI_Init, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_BI_Init, int);
+  return UT_GenStub_GetReturnValue(BPLib_BI_Init, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_BI_RecvCtrlMsg()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_BI_RecvCtrlMsg(BPLib_CLA_CtrlMsg_t *CtrlMsg) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_BI_RecvCtrlMsg, BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_BI_RecvCtrlMsg, BPLib_CLA_CtrlMsg_t *, CtrlMsg);
+
+  UT_GenStub_Execute(BPLib_BI_RecvCtrlMsg, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_BI_RecvCtrlMsg, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_BI_RecvFullBundleIn()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(const void *BundleInPtr, size_t Size) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_BI_RecvFullBundleIn, BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_BI_RecvFullBundleIn, const void *, BundleInPtr);
+  UT_GenStub_AddParam(BPLib_BI_RecvFullBundleIn, size_t, Size);
+
+  UT_GenStub_Execute(BPLib_BI_RecvFullBundleIn, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_BI_RecvFullBundleIn, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_BI_SendFullBundleOut()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_BI_SendFullBundleOut(void *BundleOutPtr, size_t *Size) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_BI_SendFullBundleOut, BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_BI_SendFullBundleOut, void *, BundleOutPtr);
+  UT_GenStub_AddParam(BPLib_BI_SendFullBundleOut, size_t *, Size);
+
+  UT_GenStub_Execute(BPLib_BI_SendFullBundleOut, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_BI_SendFullBundleOut, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_BI_ValidateBundle()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_BI_ValidateBundle(void) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_BI_ValidateBundle, BPLib_Status_t);
+
+  UT_GenStub_Execute(BPLib_BI_ValidateBundle, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_BI_ValidateBundle, BPLib_Status_t);
 }

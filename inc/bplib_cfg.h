@@ -38,6 +38,15 @@ extern "C" {
 #define BPLIB_MAX_NUM_BUNDLE_QUEUES         16  /* Maximum number of queuses */
 #define BPLIB_MAX_NUM_SOURCE_EID            16  /* Maximum number of allowed source EIDs */
 #define BPLIB_MAX_NUM_STRING                24  /* Maximum string length */
+#define BPLIB_MAX_NUM_STORE_SET             10  /* Maximum number of storage policy sets. pre source EID */
+#define BPLIB_MAX_MUN_CRS                   10  /* Maximum number of Compressed Reporting CRS Entries */
+#define BPLIB_MAX_AUTH_SOURCES              10  /* Maximum number of authorized sources */
+#define BPLIB_MAX_NUM_LATENCY_SRC           10  /* Maximum number of sources for latency policy */
+#define BPLIB_MAX_NUM_MIB_PS                10  /* Maximum number of sources for MIB Config per source */
+
+
+    
+    
     
 /** 
  * \brief Maximum number of contacts that can be running at once
