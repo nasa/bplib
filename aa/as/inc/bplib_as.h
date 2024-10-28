@@ -156,8 +156,6 @@ typedef struct
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_SourceMibCountersHkTlm_Payload_t;
 
-extern BPLib_NodeMibCountersHkTlm_Payload_t BPLib_AS_NodeCountersPayload;
-
 typedef enum
 {
     BUNDLE_CNT_GEN_ANONYMOUS    = 0,  /* Bundle count generated anonymous */
@@ -195,6 +193,12 @@ typedef enum
     NODE_COUNTER   = 1,
     SOURCE_COUNTER = 2, // Comma here doesn't hurt and makes it quick to add things
 } BPLib_AS_CounterPacket_t;
+
+/* ======= */
+/* Externs */
+/* ======= */
+
+extern BPLib_NodeMibCountersHkTlm_Payload_t BPLib_AS_NodeCountersPayload;
 
 /* =================== */
 /* Function Prototypes */

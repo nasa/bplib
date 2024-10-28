@@ -299,7 +299,7 @@ BPLib_Status_t BPLib_AS_SetAllZero(BPLib_AS_CounterPacket_t CounterType)
     Status = BPLIB_SUCCESS;
 
     /*
-    if(CounterType == NODE_COUNTER)
+    if (CounterType == NODE_COUNTER)
     {
     */
     memset((void*) &BPLib_AS_NodeCountersPayload, 0, sizeof(BPLib_AS_NodeCountersPayload));
