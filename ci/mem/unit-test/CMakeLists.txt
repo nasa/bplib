@@ -17,11 +17,7 @@ target_include_directories(bplib_mem_stubs PUBLIC
     ../src
 )
 
-target_link_libraries(
-    bplib_mem_stubs
-    ut_assert
-    ut_core_api_stubs
-)
+target_link_libraries(bplib_mem_stubs PUBLIC ut_assert)
 
 # Create unit test object
 add_library(utobj_bplib_mem OBJECT
@@ -68,6 +64,7 @@ target_link_libraries(coverage-bplib_mem-testrunner PUBLIC
     bplib_fwp_stubs
     bplib_rbt_stubs
     bplib_stor_qm_stubs
+    ut_osapi_stubs
 )
 
 add_test(coverage-bplib_mem-testrunner coverage-bplib_mem-testrunner)

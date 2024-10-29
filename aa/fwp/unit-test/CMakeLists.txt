@@ -16,7 +16,7 @@ target_include_directories(bplib_fwp_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(bplib_fwp_stubs ut_assert ut_core_api_stubs)
+target_link_libraries(bplib_fwp_stubs PUBLIC ut_assert)
 
 # Create unit test object
 add_library(utobj_bplib_fwp OBJECT

@@ -165,6 +165,8 @@ else()
     DESTINATION include/bplib
   )
 
+  message(STATUS "installed")
+
   # Set API/ABI version info if building a shared library
   if(BUILD_SHARED_LIBS)
 

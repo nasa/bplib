@@ -17,6 +17,4 @@ target_include_directories(bplib_stor_cache_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_stor_cache,INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(bplib_stor_cache_stubs PUBLIC
-  ut_assert
-)
+target_link_libraries(bplib_stor_cache_stubs PUBLIC ut_assert)

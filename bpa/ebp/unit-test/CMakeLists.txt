@@ -16,7 +16,7 @@ target_include_directories(bplib_ebp_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_ebp,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(bplib_ebp_stubs ut_assert ut_core_api_stubs)
+target_link_libraries(bplib_ebp_stubs PUBLIC ut_assert)
 
 # Create unit test object
 add_library(utobj_bplib_ebp OBJECT
