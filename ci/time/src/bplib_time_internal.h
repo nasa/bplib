@@ -242,4 +242,18 @@ uint64_t BPLib_TIME_GetEstimatedDtnTime(BPLib_TIME_MonotonicTime_t MonotonicTime
  */
 int64_t BPLib_TIME_SafeOffset(int64_t HostEpoch, int64_t DtnEpoch, int64_t Multiplier);
 
+/**
+ * \brief Get Epoch Offset
+ *
+ *  \par Description
+ *       Gets the offset between the host epoch and the DTN epoch in units of milliseconds. 
+ *       This includes leap days but not leap seconds.
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       None
+ *
+ *  \return Offset in milliseconds
+ */
+int64_t BPLib_TIME_GetEpochOffset(void);
+
 #endif /* BPLIB_TIME_INTERNAL_H */

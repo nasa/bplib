@@ -49,8 +49,6 @@ BPLib_TIME_GlobalData_t BPLib_TIME_GlobalData;
 /* Time Management initialization */
 BPLib_Status_t BPLib_TIME_Init(void) {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-    BPLib_TIME_Epoch_t HostEpoch;
-    int64_t YearOffset, DayOffset, HourOffset, MinOffset, SecOffset, MsecOffset;
 
     /* Clear memory */
     memset(&BPLib_TIME_GlobalData, 0, sizeof(BPLib_TIME_GlobalData_t));
@@ -66,30 +64,8 @@ BPLib_Status_t BPLib_TIME_Init(void) {
         return BPLIB_TIME_UNINIT_ERROR;
     }
 
-    /* Get epoch offset (Host Epoch - DTN Epoch) */
-    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch(&HostEpoch);
-
-    /* Get offsets in milliseconds */
-    YearOffset = BPLib_TIME_SafeOffset(HostEpoch.Year, BPLIB_TIME_EPOCH_YEAR, 
-                                                            BPLIB_TIME_YEAR_IN_MSEC);
-    DayOffset = BPLib_TIME_SafeOffset(HostEpoch.Day, BPLIB_TIME_EPOCH_DAY, 
-                                                            BPLIB_TIME_DAY_IN_MSEC);
-    HourOffset = BPLib_TIME_SafeOffset(HostEpoch.Hour, BPLIB_TIME_EPOCH_HOUR, 
-                                                            BPLIB_TIME_HOUR_IN_MSEC);
-    MinOffset = BPLib_TIME_SafeOffset(HostEpoch.Minute, BPLIB_TIME_EPOCH_MINUTE, 
-                                                            BPLIB_TIME_MINUTE_IN_MSEC);
-    SecOffset = BPLib_TIME_SafeOffset(HostEpoch.Second, BPLIB_TIME_EPOCH_SECOND, 
-                                                            BPLIB_TIME_SECOND_IN_MSEC);
-    MsecOffset = BPLib_TIME_SafeOffset(HostEpoch.Msec, BPLIB_TIME_EPOCH_MSEC, 1);
-
-    BPLib_TIME_GlobalData.EpochOffset += YearOffset;
-    BPLib_TIME_GlobalData.EpochOffset += DayOffset;
-    BPLib_TIME_GlobalData.EpochOffset += HourOffset;
-    BPLib_TIME_GlobalData.EpochOffset += MinOffset;
-    BPLib_TIME_GlobalData.EpochOffset += SecOffset;
-    BPLib_TIME_GlobalData.EpochOffset += MsecOffset;
-
-    /* TODO add missing leap days........... */
+    /* Get the offset between the host epoch and the DTN epoch */
+    BPLib_TIME_GlobalData.EpochOffset = BPLib_TIME_GetEpochOffset();
 
     /* Read in initial time data from file */
     Status = BPLib_TIME_ReadTimeDataFromFile();
