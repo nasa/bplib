@@ -126,9 +126,9 @@ typedef struct
     uint32_t BundleCountReceivedAdminRecord;        /** \brief Number of admin record bundles received for this DTN Node. */
 
     uint32_t Spare1;
-    uint32_t TimeBootEra;                           /**< \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;                         /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;                     /**< \brief Time Correlation Factor */
+    uint32_t TimeBootEra;                           /** \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;                         /** \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;                     /** \brief Time Correlation Factor */
 } BPLib_NodeMibCountersHkTlm_Payload_t;
 
 /*
