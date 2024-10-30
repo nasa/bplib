@@ -22,13 +22,12 @@
 
 variables:
   CI_JOB_INFO_LOG: ci_job_info.log
-  CMAKE_OSAL_RELEASE_DEFS: "-DCMAKE_INSTALL_PREFIX=/usr/local -DOSAL_SYSTEM_BSPTYPE=generic-linux -DCMAKE_BUILD_TYPE=Release -DOSAL_OMIT_DEPRECATED=TRUE -DENABLE_UNIT_TESTS=TRUE -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON"
+  CMAKE_OSAL_DEFS: "-DCMAKE_INSTALL_PREFIX=/usr/local -DOSAL_SYSTEM_BSPTYPE=generic-linux -DCMAKE_BUILD_TYPE=Release -DOSAL_OMIT_DEPRECATED=TRUE -DENABLE_UNIT_TESTS=TRUE -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON"
+  NasaOsal_DIR: osal-staging/usr/local/lib/cmake
   CMAKE_BPLIB_RELEASE_DEFS: "-DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBPLIB_OS_LAYER=OSAL -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
   BPLIB_RELEASE_BUILD: bplib-build-matrix-Release-OSAL/
-  CMAKE_OSAL_DEBUG: "-DCMAKE_INSTALL_PREFIX=/usr/local -DOSAL_SYSTEM_BSPTYPE=generic-linux -DCMAKE_BUILD_TYPE=Debug -DOSAL_OMIT_DEPRECATED=TRUE -DENABLE_UNIT_TESTS=TRUE -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON"
   CMAKE_BPLIB_DEBUG_DEFS: "-DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DBPLIB_OS_LAYER=OSAL -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
   BPLIB_DEBUG_BUILD: bplib-build-matrix-Debug-OSAL/
-  NasaOsal_DIR: osal-staging/usr/local/lib/cmake
 
 stages:          # List of stages for jobs, and their order of execution
   - build-release
@@ -67,7 +66,7 @@ build-release-job:
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
    - cd osal/
-   - cmake $CMAKE_OSAL_RELEASE_DEFS -B ../osal-build
+   - cmake $CMAKE_OSAL_DEFS -B ../osal-build
    - cd ../osal-build
    - make DESTDIR=../osal-staging install
    # Build bplib with osal
@@ -95,7 +94,7 @@ build-debug-job:
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
    - cd osal/
-   - cmake $CMAKE_OSAL_DEBUG_DEFS -B ../osal-build
+   - cmake $CMAKE_OSAL_DEFS -B ../osal-build
    - cd ../osal-build
    - make DESTDIR=../osal-staging install
    # Build bplib with osal
