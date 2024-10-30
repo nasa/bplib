@@ -348,19 +348,47 @@ BPLib_Status_t BPLib_AS_Set(BPLib_AS_Counter_t Counter, void* DesiredValuePtr);
 BPLib_Status_t BPLib_AS_Increment(BPLib_AS_Counter_t Counter);
 
 /**
- * \brief     Subtract 1 to the counter specified by the counter type and counter index
+ * \brief     Subtract 1 from the counter specified by the counter type and counter index
  * \details   Decrementing function for counters used by Admin Statistics
  * \note      Casts void* to the appropriate data type so it's possible some data could be truncated.
  *            void* is used since the data type of the value in the packet can vary
- * \param[in] Counter         BPLib_AS_Counter_t that indicates which counter to mutate
- * \param[in] DesiredValuePtr void* that holds the value that the caller wishes to set the counter represented by Counter
+ * \param[in] Counter BPLib_AS_Counter_t that indicates which counter to mutate
  * \return    Execution status
+ * \retval    Status is determined by BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
 BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_Counter_t Counter);
+
+/**
+ * \brief     Set every counter value in the source and node counter packets to zero
+ * \details   Zeroing out function used by Admin Statistics
+ * \note      memset can't be used due to char arrays and things like time inside
+ *            the counter packets
+ * \param[in] void No arguments accepted
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: All counters were set to zero
+ */
 BPLib_Status_t BPLib_AS_SetAllZero();
+
+/**
+ * \brief     ---
+ * \details   ---
+ * \note      ---
+ * \param[in] void No arguments accepted
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Operation was successful
+ */
 BPLib_Status_t BPLib_AS_Write(void);
+
+/**
+ * \brief     ---
+ * \details   ---
+ * \note      ---
+ * \param[in] void No arguments accepted
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Operation was successful
+ */
 BPLib_Status_t BPLib_AS_Restore(void);
 
 #endif /* BPLIB_AS_H */
