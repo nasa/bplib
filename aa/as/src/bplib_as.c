@@ -593,7 +593,7 @@ BPLib_Status_t BPLib_AS_SetAllZero()
 
     Zero = 0;
 
-    for (CounterLoopCtrl = 0; CounterLoopCtrl < NUM_COUNTERS; CounterLoopCtrl++)
+    for (CounterLoopCtrl = 0; CounterLoopCtrl < BPLIB_AS_NUM_COUNTERS; CounterLoopCtrl++)
     {
         Status = BPLib_AS_Set(CounterLoopCtrl, (void*) &Zero);
 
