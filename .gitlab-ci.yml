@@ -33,9 +33,8 @@ stages:          # List of stages for jobs, and their order of execution
   - build-release
   - build-debug
 
-build-release-job:
-  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
-  stage: build-release
+# Defaults for every job (unless overridden)
+default:
   before_script:
     - mkdir -p $HOME/.ssh && chmod 0700 $HOME/.ssh
     - ssh-keyscan github.com >> $HOME/.ssh/known_hosts
@@ -60,7 +59,15 @@ build-release-job:
     - cmake --version | tee -a ${CI_JOB_INFO_LOG}
     - echo "git version=" | tee -a ${CI_JOB_INFO_LOG}
     - git --version | tee -a ${CI_JOB_INFO_LOG}
+  artifacts:
+    paths:
+      - ${CI_JOB_INFO_LOG}
+    expire_in: 1 day
 
+# Build bplib release version
+build-release-job:
+  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
+  stage: build-release
   script:
    - git status
    # Clone and build osal as a standalone
@@ -80,17 +87,10 @@ build-release-job:
   artifacts:
     paths:
       - ${BPLIB_RELEASE_BUILD}
-      - ${CI_JOB_INFO_LOG}
-    expire_in: 1 day
 
 build-debug-job:
   image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
   stage: build-debug
-  before_script:
-    - mkdir -p $HOME/.ssh && chmod 0700 $HOME/.ssh
-    - ssh-keyscan github.com >> $HOME/.ssh/known_hosts
-    - cat $HOME/.ssh/known_hosts
-
   script:
    - git status
    # Clone and build osal as a standalone
@@ -110,4 +110,3 @@ build-debug-job:
   artifacts:
     paths:
       - ${BPLIB_DEBUG_BUILD}
-    expire_in: 1 day
