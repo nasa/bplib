@@ -60,8 +60,6 @@ default:
     - echo "git version=" | tee -a ${CI_JOB_INFO_LOG}
     - git --version | tee -a ${CI_JOB_INFO_LOG}
   artifacts:
-    paths:
-      - ${CI_JOB_INFO_LOG}
     expire_in: 1 day
 
 # Build bplib release version
@@ -86,6 +84,7 @@ build-release-job:
 
   artifacts:
     paths:
+      - ${CI_JOB_INFO_LOG}
       - ${BPLIB_RELEASE_BUILD}
 
 build-debug-job:
@@ -109,4 +108,5 @@ build-debug-job:
 
   artifacts:
     paths:
+      - ${CI_JOB_INFO_LOG}
       - ${BPLIB_DEBUG_BUILD}
