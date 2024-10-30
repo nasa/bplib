@@ -585,7 +585,7 @@ BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_Counter_t Counter)
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_SetAllZero()
+BPLib_Status_t BPLib_AS_ResetAllCounters()
 {
     BPLib_Status_t Status;
     uint16_t       CounterLoopCtrl;

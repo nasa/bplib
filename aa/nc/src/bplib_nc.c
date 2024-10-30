@@ -268,7 +268,7 @@ BPLib_Status_t BPLib_NC_ResetAllCounters(void)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_SetAllZero();
+    Status = BPLib_AS_ResetAllCounters();
 
     if (Status == BPLIB_SUCCESS)
     {

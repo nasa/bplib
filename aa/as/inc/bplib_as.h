@@ -366,7 +366,7 @@ BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_Counter_t Counter);
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: All counters were set to zero
  */
-BPLib_Status_t BPLib_AS_SetAllZero();
+BPLib_Status_t BPLib_AS_ResetAllCounters();
 
 /**
  * \brief     ---
