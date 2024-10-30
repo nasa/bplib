@@ -136,7 +136,7 @@ typedef struct
  */
 typedef struct
 {
-    char SourceEID[BPLIB_MAX_EID_LENGTH];       /**< \brief Source EID this telemetry corresponds to */
+    char SourceEID[BPLIB_MAX_EID_LENGTH];         /**< \brief Source EID this telemetry corresponds to */
     uint32_t BundleCountGeneratedAccepted;        /** \brief Number of Accepted Bundle Transmission Requests */
     uint32_t BundleCountGeneratedRejected;        /** \brief Number of Rejected Bundle Transmission Requests */
     uint32_t BundleCountMaxBsrRateExceeded;       /** \brief Number of BSR bundles not sent because sending would exceed a maximum rate. */
@@ -209,39 +209,87 @@ typedef struct
 } BPLib_SourceMibCountersHkTlm_Payload_t;
 
 /*
- * \brief Used to access counters in the BPLib_NodeMibCountersHkTlm_Payload_t struct
+ * \brief Used to access counters in the node and source payload structs
  */
 typedef enum
 {
-    BUNDLE_CNT_GEN_ANONYMOUS    = 0,  /* Bundle count generated anonymous */
-    SYSTEM_NODE_UP_TIME         = 1,  /* System node up time */
-    ACCEPTED_DIRECTIVE_CNT      = 2,  /* Bundle Agent Accepted Directive Count */
-    REJECTED_DIRECTIVE_CNT      = 3,  /* Bundle Agent Rejected Directive Count */
-    BUNDLE_CNT_GEN_CUSTODY      = 4,  /* Bundle Number of custody signal generated */
-    BUNDLE_CNT_GEN_BSR_RECV     = 5,  /* Bundle Received BSR Counts */
-    BUNDLE_CNT_GEN_BSR_ACCPT    = 6,  /* Bundle Accepted BSR Counts */
-    BUNDLE_CNT_GEN_BSR_FORW     = 7,  /* Bundle Forwarded BSR Counts */
-    BUNDLE_CNT_GEN_BSR_DELVR    = 8,  /* Bundle Delivered BSR Counts */
-    BUNDLE_CNT_GEN_BSR_DEL      = 9,  /* Bundle Deleted BSR Counts */
-    BUNDLE_CNT_INVAL_PRI_BLK    = 10, /* Bundle unprocessed due to Invalid primary block Counts */
-    BUNDLE_CNT_CS_RECV          = 11, /* Received custody signal Bundle Counts */
-    BUNDLE_CNT_DEL_UNAUTH_SRC   = 12, /* Deleted bundle Counts for unauthorized Src EID */
-    BUNDLE_CNT_GEN_CRS_RECV     = 13, /* Bundle Received CRS Counts */
-    BUNDLE_CNT_GEN_CRS_ACCPT    = 14, /* Bundle Accepted CRS Counts */
-    BUNDLE_CNT_GEN_CRS_FORW     = 15, /* Bundle Forwarded CRS Counts */
-    BUNDLE_CNT_GEN_CRS_DELVR    = 16, /* Bundle Delivered CRS Counts */
-    BUNDLE_CNT_GEN_CRS_DEL      = 17, /* Bundle Deleted CRS Counts */
-    BUNDLE_CNT_MAX_CRS_RATE_EXC = 18, /* Number of CRS bundles not sent to avoid exceeding max rate */
-    NODE_STARTUP_COUNTER        = 19, /* Number of times the node has been started up */
-    BUNDLE_CNT_GEN_CRS          = 20, /* Number of CRSs generated */
-    BUNDLE_CNT_RECV_CRS         = 21, /* Number of CRSs received */
-    ADU_COUNT_DELIVERED         = 22, /* ADU Delivered Count */
-    ADU_COUNT_RECEIVED          = 23, /* ADU Received Count */
-    SPARE                       = 24, /* Irrelevant spare value for alignment */
-    TIME_BOOT_ERA               = 25, /* Boot Era for Monotonic Time */
-    TIME_MONOTONIC_CNT          = 26, /* Monotonic Time Counter */
-    TIME_CF                     = 27, /* Time Correlation Factor */
-} BPLib_AS_NodeCounter_t;
+    BUNDLE_AGT_ACCPT_CNT         =  0, /** \brief Number of control directives received from the Monitor and Control interface that have been accepted */
+    BUNDLE_AGT_REJ_CNT           =  1, /** \brief Number of control directives received from the Monitor and Control interface that have been rejected as being invalid */
+    BUNDLE_CNT_GEN_ACCPT         =  2, /** \brief Number of Accepted Bundle Transmission Requests  */
+    BUNDLE_CNT_GEN_REJ           =  3, /** \brief Number of Rejected Bundle Transmission Requests */
+    BUNDLE_CNT_GEN_CUSTODY       =  4, /** \brief Number of Custody Signal Bundles generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_RECV      =  5, /** \brief Number of Bundle Reception Status Report generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_ACCPT     =  6, /** \brief Number of Bundle Custody Accepted Status Report generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_FORW      =  7, /** \brief Number of Bundle Forwarded Status Report generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_DELVR     =  8, /** \brief Number of Bundle Delivered Status Report generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_DEL       =  9, /** \brief Number of Bundle Deleted Status Report generated since the last counter reset */
+    BUNDLE_CNT_MAX_BSR_RATE_EXCD = 10, /** \brief Number of BSR bundles not sent because sending would exceed a maximum rate. */
+    BUNDLE_CNT_GEN_ANON          = 11, /** \brief Number of Anonomous Bundles Created */
+    BUNDLE_CNT_GEN_FRAG          = 12, /** \brief Number of Bundle Fragments that were Generated */
+    BUNDLE_CNT_RECV              = 13, /** \brief Number of Bundles Received from another DTN Node */
+    BUNDLE_CNT_RECV_FRAG         = 14, /** \brief Number of Bundles Received that were Marked as Fragments */
+    BUNDLE_CNT_UNPROC_BLKS       = 15, /** \brief Number of Unprocessed Blocks Removed from Received Bundles */
+    BUNDLE_CNT_INVAL_PRI_BLK     = 16, /** \brief Number of Unprocessed Bundles received with Invalid Primary Blocks */
+    BUNDLE_CNT_CS_RECV           = 17, /** \brief Number of Custody Signal Bundles received */
+    BUNDLE_CNT_FORW              = 18, /** \brief Number of Bundles Forwarded to another DTN Node */
+    BUNDLE_CNT_RET               = 19, /** \brief Number of Bundles Returned to Sender */
+    BUNDLE_CNT_FRAG              = 20, /** \brief Number of Bundles that needed to be Fragmented  */
+    BUNDLE_CNT_REASSEMBLED       = 21, /** \brief Total number of Bundles delivered that were fragments and needed to be reassembled */
+    BUNDLE_CNT_FRAG_ERR          = 22, /** \brief Number of Fragments discarded due to bad offset or ADU length */
+    BUNDLE_CNT_DELVR             = 23, /** \brief Total number of Bundles Delivered to this node, including fragments */
+    BUNDLE_CNT_ABAND             = 24, /** \brief Number of Abandoned Bundle Payloads */
+    ADU_CNT_DELVR                = 25, /** \brief Number of ADUs Delivered to the application */
+    BUNDLE_CNT_DEL               = 26, /** \brief Total Number of Bundle Deletions */
+    BUNDLE_CNT_DEL_EXP           = 27, /** \brief Number of Bundles Deletions due to Lifetime Expired Condition */
+    BUNDLE_CNT_DEL_HOP_EXCD      = 28, /** \brief Number of Bundles Deletions due to Hop Limit Exceeded Condition */
+    BUNDLE_CNT_DEL_INVAL_PAY     = 29, /** \brief Number of Bundle Deletions due having a Corrupted Payload Block */
+    BUNDLE_CNT_DEL_FORW_FAILED   = 30, /** \brief Number of Bundles Deletions due to Forwarding Failed Condition */
+    BUNDLE_CNT_DEL_TRAF_PARED    = 31, /** \brief Number of Bundles Deletions due to Traffic Pared Condition */
+    BUNDLE_CNT_DEL_UNINTEL       = 32, /** \brief Number of Bundles Deletions due to Block Unintelligible Condition */
+    BUNDLE_CNT_DEL_UNSUPPORT_BLK = 33, /** \brief Number of Bundles Deletions due to Unsupported Block Condition */
+    BUNDLE_CNT_DEL_CANCELLED     = 34, /** \brief Number of Bundles Deletions due to Transmission Cancelled Condition */
+    BUNDLE_CNT_DISCARDED         = 35, /** \brief Number of Bundles Discarded */
+    BUNDLE_CNT_DEL_NO_STOR       = 36, /** \brief Number of Bundles deleted due to insufficient storage */
+    BUNDLE_CNT_DEL_BAD_EID       = 37, /** \brief Number of Bundles deleted due to having a unrecognized destination EID */
+    BUNDLE_CNT_DEL_UNAUTH        = 38, /** \brief Number of Bundles deleted due to having a unrecognized source EID. Incremented if the bundle is not in the set of authorized source EIDs configured for the node. */
+    BUNDLE_CNT_DEL_TOO_LONG      = 39, /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
+    BUNDLE_CNT_CUSTODY_TRANS     = 40, /** \brief Number of successful Custody Transfers from the Local node to the next neighboring Custodian Node */
+    BUNDLE_CNT_CUSTODY_REJ       = 41, /** \brief Number of unsuccessful Custody Transfers from the Local node to the next neighboring Custodian Node */
+    BUNDLE_CNT_CUSTODY_REQ       = 42, /** \brief Number of bundles received that are requesting Custody Transfer */
+    BUNDLE_CNT_CUSTODY_RE_FORW   = 43, /** \brief Number of Bundles reforward due to custody timeout */
+    BUNDLE_CNT_NO_FURTHER_INFO   = 44, /** \brief Number of bundles for which successful Custody Signals generated with No Further Information */
+    BUNDLE_CNT_RED               = 45, /** \brief Number of bundles for which successful Custody Signals generated for Duplicate Bundle reception */
+    BUNDLE_CNT_DEPLETED          = 46, /** \brief Number of bundles for which rejected Custody Signals generated indicating rejection due to depleted storage */
+    BUNDLE_CNT_UNINTEL_EID       = 47, /** \brief Number of bundles for which rejected Custody Signals generated indicating the any EID in the Primary Header is unknown */
+    BUNDLE_CNT_NO_ROUTE          = 48, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable */
+    BUNDLE_CNT_NO_CONTACT        = 49, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable before the Bundle expires */
+    BUNDLE_CNT_UNINTEL_BLK       = 50, /** \brief Number of bundles for which Custody Signals indicating the Bundle contained an unknown block type */
+    BUNDLE_CNT_RECV_CS           = 51, /** \brief Number of bundles for which Custody Signals Received */
+    BUNDLE_CNT_GEN_CS            = 52, /** \brief Number of bundles for which Custody Signals Generated */
+    BUNDLE_CNT_REJ_CUSTODY       = 53, /** \brief Number of Bundles where this node rejected custody. */
+    BUNDLE_CNT_GEN_CRS_RECV      = 54, /** \brief Number of received bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_GEN_CRS_ACCPT     = 55, /** \brief Number of accepted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_GEN_CRS_FORW      = 56, /** \brief Number of forwarded bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_GEN_CRS_DELVR     = 57, /** \brief Number of delivered bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_GEN_CRS_DEL       = 58, /** \brief Number of deleted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_MAX_CRS_RATE_EXCD = 59, /** \brief Number of CRS bundles not sent because sending would exceed a maximum rate. */
+    ADU_CNT_RECV                 = 60, /** \brief Number of ADUs Received from the application */
+    NODE_STARTUP_CNTR            = 61, /** \brief Number of times a node is started up. */
+    BUNDLE_CNT_GEN_CRS           = 62, /** \brief Number of Compressed Reporting Signal (CRS) generated since last counter reset. */
+    BUNDLE_CNT_FORW_FAILED       = 63, /** \brief Number of Bundles where forwarding to another DTN Node failed */
+    BUNDLE_CNT_RECV_BSR_RECV     = 64, /** \brief Number of Bundle Reception Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_BSR_ACCPT    = 65, /** \brief Number of Bundle Custody Accepted Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_BSR_FORW     = 66, /** \brief Number of Bundle Forwarded Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_BSR_DELVR    = 67, /** \brief Number of Bundle Delivered Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_BSR_DEL      = 68, /** \brief Number of Bundle Deleted Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_CRS          = 69, /** \brief Number of Compressed Reporting Signals (CRSs) received since last counter reset. */
+    BUNDLE_CNT_RECV_CRS_RECV     = 70, /** \brief Number of received bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of received bundles per source node ID. */
+    BUNDLE_CNT_RECV_CRS_ACCPT    = 71, /** \brief Number of accepted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of accepted bundles per source node ID. */
+    BUNDLE_CNT_RECV_CRS_FORW     = 72, /** \brief Number of forwarded bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of forwarded bundles per source node ID. */
+    BUNDLE_CNT_RECV_CRS_DELVR    = 73, /** \brief Number of delivered bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of delivered bundles per source node ID. */
+    BUNDLE_CNT_RECV_CRS_DEL      = 74, /** \brief Number of deleted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of deleted bundles per source node ID. */
+    BUNDLE_CNT_RECV_ADMIN_REC    = 75, /** \brief Number of admin record bundles received for this DTN Node. */
+} BPLib_AS_Counter_t;
 
 /*
  * \brief Determines whether the intended operation is for a node or source counter
@@ -279,10 +327,10 @@ BPLib_Status_t BPLib_AS_Init(void);
   * \details   Accessor function for counters used by Admin Statistics
   * \note      Return type is void* since the data type of the values in the packets can vary
   * \param[in] CounterType  BPLib_AS_CounterPacket_t that indicates whether the caller is requesting a node counter or source counter
-  * \param[in] CounterIndex BPLib_AS_NodeCounter_t that indicates which counter to access
+  * \param[in] CounterIndex BPLib_AS_Counter_t that indicates which counter to access
   * \return    Counter value as a void*
   */
-void* BPLib_AS_Get(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex);
+void* BPLib_AS_Get(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t CounterIndex);
 
 /**
  * \brief     Modify the counter specified by the counter type and counter index to the desired value
@@ -290,26 +338,26 @@ void* BPLib_AS_Get(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t 
  * \note      Casts void* to the appropriate data type so it's possible some data could be truncated.
  *            void* is used since the data type of the value in the packet can vary
  * \param[in] CounterType     BPLib_AS_CounterPacket_t that indicates whether the caller is requesting a node counter or source counter
- * \param[in] CounterIndex    BPLib_AS_NodeCounter_t that indicates which counter to mutate
+ * \param[in] CounterIndex    BPLib_AS_Counter_t that indicates which counter to mutate
  * \param[in] DesiredValuePtr void* that holds the value that the caller wishes to set the counter represented by CounterType and CounterIndex
  * \return    Execution status
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Set(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex, void* DesiredValuePtr);
+BPLib_Status_t BPLib_AS_Set(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t CounterIndex, void* DesiredValuePtr);
 
 /**
  * \brief     Add 1 to the counter specified by the counter type and counter index
  * \details   Incrementing function for counters used by Admin Statistics
  * \note      Casting to the appropriate data type is used since the data type of the value in the packet can vary
  * \param[in] CounterType  BPLib_AS_CounterPacket_t that indicates whether the caller is requesting a node counter or source counter
- * \param[in] CounterIndex BPLib_AS_NodeCounter_t that indicates which counter to increment
+ * \param[in] CounterIndex BPLib_AS_Counter_t that indicates which counter to increment
  * \return    Execution status
  * \retval    Status is determined by BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex);
+BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t CounterIndex);
 
 /**
  * \brief     Subtract 1 to the counter specified by the counter type and counter index
@@ -317,13 +365,13 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS
  * \note      Casts void* to the appropriate data type so it's possible some data could be truncated.
  *            void* is used since the data type of the value in the packet can vary
  * \param[in] CounterType     BPLib_AS_CounterPacket_t that indicates whether the caller is requesting a node counter or source counter
- * \param[in] CounterIndex    BPLib_AS_NodeCounter_t that indicates which counter to mutate
+ * \param[in] CounterIndex    BPLib_AS_Counter_t that indicates which counter to mutate
  * \param[in] DesiredValuePtr void* that holds the value that the caller wishes to set the counter represented by CounterType and CounterIndex
  * \return    Execution status
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_NodeCounter_t CounterIndex);
+BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t CounterIndex);
 BPLib_Status_t BPLib_AS_SetAllZero(BPLib_AS_CounterPacket_t CounterType);
 BPLib_Status_t BPLib_AS_Write(void);
 BPLib_Status_t BPLib_AS_Restore(void);
