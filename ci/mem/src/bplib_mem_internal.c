@@ -71,7 +71,7 @@ BPLib_Status_t BPLib_MEM_OS_Init(void)
 {
     int32 status;
 
-    BPLib_MEM_OS_FileDataLock = 0xFF; // The lock ID fro OSAL can be zero.
+    BPLib_MEM_OS_FileDataLock = (osal_id_t) 0xFF; // The lock ID from OSAL can be zero.
 
     status = OS_MutSemCreate(&BPLib_MEM_OS_FileDataLock, "bplib_mem_osal", 0);
     /**
