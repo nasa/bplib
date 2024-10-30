@@ -59,8 +59,6 @@ default:
     - cmake --version | tee -a ${CI_JOB_INFO_LOG}
     - echo "git version=" | tee -a ${CI_JOB_INFO_LOG}
     - git --version | tee -a ${CI_JOB_INFO_LOG}
-  artifacts:
-    expire_in: 1 day
 
 # Build bplib release version
 build-release-job:
@@ -86,6 +84,7 @@ build-release-job:
     paths:
       - ${CI_JOB_INFO_LOG}
       - ${BPLIB_RELEASE_BUILD}
+    expire_in: 1 day
 
 build-debug-job:
   image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
@@ -110,3 +109,4 @@ build-debug-job:
     paths:
       - ${CI_JOB_INFO_LOG}
       - ${BPLIB_DEBUG_BUILD}
+    expire_in: 1 day
