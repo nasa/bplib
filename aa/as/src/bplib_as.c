@@ -556,13 +556,13 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_Counter_t Counter)
 
     /* Obtain the value of the node counter */
     Status = BPLib_AS_Get(1, Counter, (void*) SetVal);
-    
+
     if (Status == BPLIB_SUCCESS)
     {
         /* Set the incremented node counter and associated source counter(s) */
         Status = BPLib_AS_Set(Counter, (void*) *SetVal++);
     }
-    
+
     return Status;
 }
 
@@ -575,13 +575,13 @@ BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_Counter_t Counter)
 
     /* Obtain the value of the node counter */
     Status = BPLib_AS_Get(1, Counter, (void*) SetVal);
-    
+
     if (Status == BPLIB_SUCCESS)
     {
         /* Set the decremented node counter and associated source counter(s) */
         Status = BPLib_AS_Set(Counter, (void*) *SetVal--);
     }
-    
+
     return Status;
 }
 
