@@ -84,7 +84,7 @@ typedef struct
     uint32_t BundleCountDeletedNoStorage;           /** \brief Number of Bundles deleted due to insufficient storage */
     uint32_t BundleCountDeletedBadEid;              /** \brief Number of Bundles deleted due to having a unrecognized destination EID */
     uint32_t BundleCountDeletedUnauthorized;        /** \brief Number of Bundles deleted due to having a unrecognized source EID. Incremented if the bundle is not in the set of authorized source EIDs configured for the node. */
-    uint32_t BundleCountDeletedtooLong;             /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
+    uint32_t BundleCountDeletedTooLong;             /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
     uint32_t BundleCountCustodyTransferred;         /** \brief Number of successful Custody Transfers from the Local node to the next neighboring Custodian Node */
     uint32_t BundleCountCustodyRejected;            /** \brief Number of unsuccessful Custody Transfers from the Local node to the next neighboring Custodian Node */
     uint32_t BundleCountCustodyRequest;             /** \brief Number of bundles received that are requesting Custody Transfer */
@@ -161,7 +161,7 @@ typedef struct
     uint32_t BundleCountDiscarded;                /** \brief Number of Bundles Discarded */
     uint32_t BundleCountDeletedNoStorage;         /** \brief Number of Bundles deleted due to insufficient storage */
     uint32_t BundleCountDeletedBadEid;            /** \brief Number of Bundles deleted due to having a unrecognized destination EID */
-    uint32_t BundleCountDeletedtooLong;           /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
+    uint32_t BundleCountDeletedTooLong;           /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
     uint32_t BundleCountCustodyTransferred;       /** \brief Number of successful Custody Transfers from the Local node to the next neighboring Custodian Node */
     uint32_t BundleCountCustodyRejected;          /** \brief Number of unsuccessful Custody Transfers from the Local node to the next neighboring Custodian Node */
     uint32_t BundleCountCustodyRequest;           /** \brief Number of bundles received that are requesting Custody Transfer */
@@ -293,7 +293,8 @@ typedef enum
 /* ======= */
 
 /* Global node counter packet manipulated by AS */
-extern BPLib_NodeMibCountersHkTlm_Payload_t BPLib_AS_NodeCountersPayload;
+extern BPLib_NodeMibCountersHkTlm_Payload_t   BPLib_AS_NodeCountersPayload;
+extern BPLib_SourceMibCountersHkTlm_Payload_t BPLib_AS_SourceCountersPayload;
 
 /* =================== */
 /* Function Prototypes */
@@ -330,7 +331,7 @@ BPLib_Status_t BPLib_AS_Get(uint8_t CounterType, BPLib_AS_Counter_t Counter, voi
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Set(BPLib_AS_Counter_t Counter, void* DesiredValuePtr);
+BPLib_Status_t BPLib_AS_Set(uint16_t SourceEid, BPLib_AS_Counter_t Counter, void* DesiredValuePtr);
 
 /**
  * \brief     Add 1 to the counter specified by the counter type and counter index
@@ -342,7 +343,7 @@ BPLib_Status_t BPLib_AS_Set(BPLib_AS_Counter_t Counter, void* DesiredValuePtr);
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Increment(BPLib_AS_Counter_t Counter);
+BPLib_Status_t BPLib_AS_Increment(uint16_t SourceEid, BPLib_AS_Counter_t Counter);
 
 /**
  * \brief     Subtract 1 from the counter specified by the counter type and counter index
@@ -355,7 +356,7 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_Counter_t Counter);
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_Counter_t Counter);
+BPLib_Status_t BPLib_AS_Decrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter);
 
 /**
  * \brief     Set every counter value in the source and node counter packets to zero
