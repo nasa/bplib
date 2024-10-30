@@ -96,7 +96,7 @@ typedef int32_t BPLib_Status_t;
 #define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -29u)
 
 /* Admin Statistics Errors */
-#define BPLIB_INVALID_NODE_CNTR_INDEX       ((BPLib_Status_t) -30u)
+#define BPLIB_AS_INVALID_CNTR               ((BPLib_Status_t) -30u)
 
 #ifdef __cplusplus
 } // extern "C"

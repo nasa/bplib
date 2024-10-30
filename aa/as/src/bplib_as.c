@@ -283,6 +283,7 @@ BPLib_Status_t BPLib_AS_Get(uint8_t CounterType, BPLib_AS_Counter_t Counter, voi
             ReturnPtr = (void*) BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord;
             break;
         default:
+            Status = BPLIB_AS_INVALID_CNTR;
             break;
     }
     /*
@@ -303,115 +304,245 @@ BPLib_Status_t BPLib_AS_Get(uint8_t CounterType, BPLib_AS_Counter_t Counter, voi
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_Set(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t Counter, void* DesiredValuePtr)
+BPLib_Status_t BPLib_AS_Set(BPLib_AS_Counter_t Counter, void* DesiredValuePtr)
 {
     BPLib_Status_t Status;
     Status = BPLIB_SUCCESS;
 
-    /* if (CounterType == NODE_COUNTER)
-    {
-        // Node packet
-    */
     switch (Counter)
     {
-        case BUNDLE_CNT_GEN_ANONYMOUS:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedAnonymous = *((uint32_t*) DesiredValuePtr);
+        case BUNDLE_AGT_ACCPT_CNT:
+            BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount = (uint32_t*) DesiredValuePtr;
             break;
-        case SYSTEM_NODE_UP_TIME:
-            BPLib_AS_NodeCountersPayload.SystemNodeUpTime = *((uint32_t*) DesiredValuePtr);
+        case BUNDLE_AGT_REJ_CNT:
+            BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount = (uint32_t*) DesiredValuePtr;
             break;
-        case ACCEPTED_DIRECTIVE_CNT:
-            BPLib_AS_NodeCountersPayload.AcceptedDirectiveCount = *((uint32_t*) DesiredValuePtr);
+        case BUNDLE_CNT_GEN_ACCPT:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted = (uint32_t*) DesiredValuePtr;
             break;
-        case REJECTED_DIRECTIVE_CNT:
-            BPLib_AS_NodeCountersPayload.RejectedDirectiveCount = *((uint32_t*) DesiredValuePtr);
+        case BUNDLE_CNT_GEN_REJ:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_CUSTODY:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_BSR_RECV:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_BSR_ACCPT:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_BSR_FORW:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_BSR_DELVR:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_BSR_DEL:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_MAX_BSR_RATE_EXCD:
+            BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_GEN_ANON:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedAnonymous = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_GEN_FRAG:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RECV:
+            BPLib_AS_NodeCountersPayload.BundleCountReceived = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RECV_FRAG:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_UNPROC_BLKS:
+            BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_INVAL_PRI_BLK:
-            BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_CS_RECV:
-            BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = (uint32_t*) DesiredValuePtr;
             break;
-        case BUNDLE_CNT_DEL_UNAUTH_SRC:
-            BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorizedSrc = *((uint32_t*) DesiredValuePtr);
+        case BUNDLE_CNT_FORW:
+            BPLib_AS_NodeCountersPayload.BundleCountForwarded = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RET:
+            BPLib_AS_NodeCountersPayload.BundleCountReturned = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_FRAG:
+            BPLib_AS_NodeCountersPayload.BundleCountFragmented = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_REASSEMBLED:
+            BPLib_AS_NodeCountersPayload.BundleCountReassembled = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_FRAG_ERR:
+            BPLib_AS_NodeCountersPayload.BundleCountFragmentError = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DELVR:
+            BPLib_AS_NodeCountersPayload.BundleCountDelivered = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_ABAND:
+            BPLib_AS_NodeCountersPayload.BundleCountAbandoned = (uint32_t*) DesiredValuePtr;
+            break;
+        case ADU_CNT_DELVR:
+            BPLib_AS_NodeCountersPayload.AduCountDelivered = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL:
+            BPLib_AS_NodeCountersPayload.BundleCountDeleted = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_EXP:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_HOP_EXCD:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_INVAL_PAY:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_FORW_FAILED:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedForwardFailed = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_TRAF_PARED:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_UNINTEL:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_UNSUPPORT_BLK:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_CANCELLED:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DISCARDED:
+            BPLib_AS_NodeCountersPayload.BundleCountDiscarded = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_NO_STOR:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_BAD_EID:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_UNAUTH:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEL_TOO_LONG:
+            BPLib_AS_NodeCountersPayload.BundleCountDeletedtooLong = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_CUSTODY_TRANS:
+            BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_CUSTODY_REJ:
+            BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_CUSTODY_REQ:
+            BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_CUSTODY_RE_FORW:
+            BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_NO_FURTHER_INFO:
+            BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RED:
+            BPLib_AS_NodeCountersPayload.BundleCountRedundant = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_DEPLETED:
+            BPLib_AS_NodeCountersPayload.BundleCountDepleted = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_UNINTEL_EID:
+            BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_NO_ROUTE:
+            BPLib_AS_NodeCountersPayload.BundleCountNoRoute = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_NO_CONTACT:
+            BPLib_AS_NodeCountersPayload.BundleCountNoContact = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_UNINTEL_BLK:
+            BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RECV_CS:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_GEN_CS:
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_REJ_CUSTODY:
+            BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_CRS_RECV:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_CRS_ACCPT:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_CRS_FORW:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_CRS_DELVR:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_CRS_DEL:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted = (uint32_t*) DesiredValuePtr;
             break;
-        case BUNDLE_CNT_MAX_CRS_RATE_EXC:
-            BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded = *((uint32_t*) DesiredValuePtr);
+        case BUNDLE_CNT_MAX_CRS_RATE_EXCD:
+            BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded = (uint32_t*) DesiredValuePtr;
             break;
-        case NODE_STARTUP_COUNTER:
-            BPLib_AS_NodeCountersPayload.NodeStartupCounter = *((uint32_t*) DesiredValuePtr);
+        case ADU_CNT_RECV:
+            BPLib_AS_NodeCountersPayload.AduCountReceived = (uint32_t*) DesiredValuePtr;
+            break;
+        case NODE_STARTUP_CNTR:
+            BPLib_AS_NodeCountersPayload.NodeStartupCounter = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_GEN_CRS:
-            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_FORW_FAILED:
+            BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RECV_BSR_RECV:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RECV_BSR_ACCPT:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RECV_BSR_FORW:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RECV_BSR_DELVR:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered = (uint32_t*) DesiredValuePtr;
+            break;
+        case BUNDLE_CNT_RECV_BSR_DEL:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted = (uint32_t*) DesiredValuePtr;
             break;
         case BUNDLE_CNT_RECV_CRS:
-            BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs = *((uint32_t*) DesiredValuePtr);
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs = (uint32_t*) DesiredValuePtr;
             break;
-        case ADU_COUNT_DELIVERED:
-            BPLib_AS_NodeCountersPayload.AduCountDelivered = *((uint32_t*) DesiredValuePtr);
+        case BUNDLE_CNT_RECV_CRS_RECV:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived = (uint32_t*) DesiredValuePtr;
             break;
-        case ADU_COUNT_RECEIVED:
-            BPLib_AS_NodeCountersPayload.AduCountReceived = *((uint32_t*) DesiredValuePtr);
+        case BUNDLE_CNT_RECV_CRS_ACCPT:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted = (uint32_t*) DesiredValuePtr;
             break;
-        case SPARE:
-            /* This value is only used for alignment and is only here to avoid errors while looping */
+        case BUNDLE_CNT_RECV_CRS_FORW:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded = (uint32_t*) DesiredValuePtr;
             break;
-        case TIME_BOOT_ERA:
-            BPLib_AS_NodeCountersPayload.TimeBootEra = *((uint32_t*) DesiredValuePtr);
+        case BUNDLE_CNT_RECV_CRS_DELVR:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered = (uint32_t*) DesiredValuePtr;
             break;
-        case TIME_MONOTONIC_CNT:
-            BPLib_AS_NodeCountersPayload.MonotonicTime = *((int64_t*) DesiredValuePtr);
+        case BUNDLE_CNT_RECV_CRS_DEL:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted = (uint32_t*) DesiredValuePtr;
             break;
-        case TIME_CF:
-            BPLib_AS_NodeCountersPayload.CorrelationFactor = *((int64_t*) DesiredValuePtr);
+        case BUNDLE_CNT_RECV_ADMIN_REC:
+            BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord = (uint32_t*) DesiredValuePtr;
             break;
         default:
-            Status = BPLIB_INVALID_NODE_CNTR_INDEX;
+            Status = BPLIB_AS_INVALID_CNTR;
             break;
     }
-    /*
-    }
-    else
-    {
-        switch (Counter)
-        {
-            // Source packet
-        }
-    }
-    */
 
     return Status;
 }
