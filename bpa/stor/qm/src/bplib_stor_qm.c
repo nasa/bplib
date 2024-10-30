@@ -81,6 +81,12 @@ static inline const BPLib_STOR_QM_Duct_t *bplip_queue_lookup_intf_const(const BP
  EXPORTED FUNCTIONS
  ******************************************************************************/
 
+// Adding to resolve symbol errors TODO (might be the same as below?)
+int  BPLib_STOR_QM_IngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
+{
+    return 0;
+}
+
 int BPLib_STOR_QM_QueueIngressToParent(void *arg, BPLib_STOR_CACHE_Block_t *subq_src)
 {
     #ifdef QM
@@ -199,12 +205,18 @@ int BPLib_STOR_QM_IngressBaseintfForwarder(void *arg, BPLib_STOR_CACHE_Block_t *
      * Should return >0 if some work was done */
     return forward_count;
 }
+#endif
 
 BPLib_STOR_CACHE_Pool_t *BPLib_STOR_QM_GetQtblPool(const BPLib_STOR_QM_QueueTbl_t *tbl)
 {
+    #ifdef QM
     return tbl->pool;
+    #else
+    return NULL;
+    #endif
 }
 
+#ifdef QM
 BPLib_STOR_QM_QueueTbl_t *BPLib_STOR_QM_AllocTable(uint32_t max_queues, size_t cache_mem_size)
 {
     size_t                    complete_size;
@@ -342,21 +354,31 @@ BPLib_Status_t BPLib_STOR_QM_RegisterHandlerImpl(BPLib_STOR_QM_QueueTbl_t *tbl, 
     subq->job_header.handler = new_func;
     return BPLIB_SUCCESS;
 }
+#endif
 
 int BPLib_STOR_QM_RegisterForwardIngressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
                                                  BPLib_STOR_CACHE_CallbackFunc_t ingress)
 {
+    #ifdef QM
     return BPLib_STOR_QM_RegisterHandlerImpl(tbl, intf_id, offsetof(BPLib_STOR_QM_Duct_t, ingress), ingress);
+    #else
+    return 0;
+    #endif
 }
 
 int BPLib_STOR_QM_RegisterForwardEgressHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id,
                                                 BPLib_STOR_CACHE_CallbackFunc_t egress)
 {
+    #ifdef QM
     return BPLib_STOR_QM_RegisterHandlerImpl(tbl, intf_id, offsetof(BPLib_STOR_QM_Duct_t, egress), egress);
+    #else
+    return 0;
+    #endif
 }
 
 BPLib_Status_t BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id, BPLib_STOR_CACHE_CallbackFunc_t event)
 {
+    #ifdef QM
     BPLib_STOR_QM_Duct_t *ifp;
 
     ifp = bplip_queue_lookup_intf(tbl, intf_id);
@@ -380,9 +402,11 @@ BPLib_Status_t BPLib_STOR_QM_RegisterEventHandler(BPLib_STOR_QM_QueueTbl_t *tbl,
 
     /* OK, now set it to the new value */
     ifp->statechange_job.event_handler = event;
+    #endif
     return BPLIB_SUCCESS;
 }
 
+#ifdef QM
 BPLib_Status_t BPLib_STOR_QM_DelIntf(BPLib_STOR_QM_QueueTbl_t *tbl, BPLib_Handle_t intf_id)
 {
     uint32_t            pos;
