@@ -268,29 +268,12 @@ BPLib_Status_t BPLib_NC_ResetAllCounters(void)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_SetAllZero(NODE_COUNTER);
+    Status = BPLib_AS_SetAllZero();
 
     if (Status == BPLIB_SUCCESS)
     {
-        /*
-        Status = BPLib_AS_SetAllZero(SOURCE_COUNTER);
-
-        if (Status == BPLIB_SUCCESS)
-        {
-            BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                               "Successful reset-all-counters directive");
-        }
-        else
-        {
-            BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SRC_ERR_EID, BPLib_EM_EventType_ERROR,
-                               "Error with reset-all-counters directive while attempting tp reset source counters");
-        }
-        */
-    }
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_NODE_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Error with reset-all-counters directive while attempting to reset node counters");
+        BPLib_EM_SendEvent(BPLIB_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                            "Successful reset-all-counters directive");
     }
 
     return Status;
