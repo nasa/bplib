@@ -317,53 +317,49 @@ BPLib_Status_t BPLib_AS_Init(void);
   *            This is necessary to simplify the code and avoid walls of switch-case statements
   * \details   Accessor function for counters used by Admin Statistics
   * \note      Return type is void* since the data type of the values in the packets can vary
-  * \param[in] CounterType  BPLib_AS_CounterPacket_t that indicates whether the caller is requesting a node counter or source counter
-  * \param[in] CounterIndex BPLib_AS_Counter_t that indicates which counter to access
+  * \param[in] Counter BPLib_AS_Counter_t that indicates which counter to access
   * \return    Counter value as a void*
   */
-void* BPLib_AS_Get(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t CounterIndex);
+void* BPLib_AS_Get(BPLib_AS_Counter_t Counter);
 
 /**
  * \brief     Modify the counter specified by the counter type and counter index to the desired value
  * \details   Mutator function for counters used by Admin Statistics
  * \note      Casts void* to the appropriate data type so it's possible some data could be truncated.
  *            void* is used since the data type of the value in the packet can vary
- * \param[in] CounterType     BPLib_AS_CounterPacket_t that indicates whether the caller is requesting a node counter or source counter
- * \param[in] CounterIndex    BPLib_AS_Counter_t that indicates which counter to mutate
- * \param[in] DesiredValuePtr void* that holds the value that the caller wishes to set the counter represented by CounterType and CounterIndex
+ * \param[in] Counter         BPLib_AS_Counter_t that indicates which counter to mutate
+ * \param[in] DesiredValuePtr void* that holds the value that the caller wishes to set the counter represented by Counter
  * \return    Execution status
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Set(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t CounterIndex, void* DesiredValuePtr);
+BPLib_Status_t BPLib_AS_Set(BPLib_AS_Counter_t Counter, void* DesiredValuePtr);
 
 /**
  * \brief     Add 1 to the counter specified by the counter type and counter index
  * \details   Incrementing function for counters used by Admin Statistics
  * \note      Casting to the appropriate data type is used since the data type of the value in the packet can vary
- * \param[in] CounterType  BPLib_AS_CounterPacket_t that indicates whether the caller is requesting a node counter or source counter
- * \param[in] CounterIndex BPLib_AS_Counter_t that indicates which counter to increment
+ * \param[in] Counter BPLib_AS_Counter_t that indicates which counter to increment
  * \return    Execution status
  * \retval    Status is determined by BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Increment(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t CounterIndex);
+BPLib_Status_t BPLib_AS_Increment(BPLib_AS_Counter_t Counter);
 
 /**
  * \brief     Subtract 1 to the counter specified by the counter type and counter index
  * \details   Decrementing function for counters used by Admin Statistics
  * \note      Casts void* to the appropriate data type so it's possible some data could be truncated.
  *            void* is used since the data type of the value in the packet can vary
- * \param[in] CounterType     BPLib_AS_CounterPacket_t that indicates whether the caller is requesting a node counter or source counter
- * \param[in] CounterIndex    BPLib_AS_Counter_t that indicates which counter to mutate
- * \param[in] DesiredValuePtr void* that holds the value that the caller wishes to set the counter represented by CounterType and CounterIndex
+ * \param[in] Counter         BPLib_AS_Counter_t that indicates which counter to mutate
+ * \param[in] DesiredValuePtr void* that holds the value that the caller wishes to set the counter represented by Counter
  * \return    Execution status
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t CounterIndex);
-BPLib_Status_t BPLib_AS_SetAllZero(BPLib_AS_CounterPacket_t CounterType);
+BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_Counter_t Counter);
+BPLib_Status_t BPLib_AS_SetAllZero();
 BPLib_Status_t BPLib_AS_Write(void);
 BPLib_Status_t BPLib_AS_Restore(void);
 
