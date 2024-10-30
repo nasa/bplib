@@ -30,8 +30,8 @@
 #include "uttest.h"
 
 #include "bplib_api_types.h"
-#include "bplib.h"
 #include "bplib_em.h"
+#include "bplib_fwp.h"
 
 /* ================ */
 /* Type Definitions */

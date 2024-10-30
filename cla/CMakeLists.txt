@@ -14,6 +14,7 @@ add_library(bplib_cla OBJECT
 target_include_directories(bplib_cla PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_bi,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests

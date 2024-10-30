@@ -97,6 +97,8 @@ add_subdirectory(bpa/ebp)
 add_subdirectory(bpa/pdb)
 add_subdirectory(bpa/pi)
 add_subdirectory(bpa/stor)
+add_subdirectory(bpa/stor/qm)
+add_subdirectory(bpa/stor/cache)
 add_subdirectory(ci/cbor)
 add_subdirectory(ci/em)
 add_subdirectory(ci/job)
@@ -107,10 +109,11 @@ add_subdirectory(ci/crc)
 add_subdirectory(ci/rbt)
 
 list(APPEND BPLIB_COMPONENTS
-  bplib_version
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_nc
-  bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
-  bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time bplib_crc bplib_rbt
+  bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi 
+  bplib_stor bplib_stor_cache bplib_stor_qm
+  bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time
+  bplib_crc bplib_rbt bplib_version
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENTS})
@@ -165,8 +168,6 @@ else()
     DESTINATION include/bplib
   )
 
-  message(STATUS "installed")
-
   # Set API/ABI version info if building a shared library
   if(BUILD_SHARED_LIBS)
 
@@ -205,7 +206,7 @@ target_compile_features(bplib PRIVATE c_std_99)
 target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
 # Internal header files exist within the implementation directories
-target_include_directories(bplib INTERFACE ${BPLIB_COMPONENT_INCLUDE_DIRS})
+target_include_directories(bplib PRIVATE ${BPLIB_COMPONENT_INCLUDE_DIRS})
 
 # The API to this library (which may be invoked/referenced from other apps)
 # is stored in fsw/public_inc.  Using "target_include_directories" is the
