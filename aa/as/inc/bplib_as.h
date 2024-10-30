@@ -33,11 +33,8 @@
 /* Macros */
 /* ====== */
 
-/*
-** Number of members in the BPLib_NodeMibCountersHkTlm_Payload_t struct,
-** used for looping over members in a get/set function
-*/
-#define NODE_COUNTERS_PKT_SIZE 28
+/** \brief Number of MIB counters used for looping */
+#define NUM_COUNTERS 28
 
 /* ======= */
 /* Typdefs */

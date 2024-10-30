@@ -552,6 +552,8 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_Counter_t Counter)
     BPLib_Status_t Status;
     uint32_t* SetVal;
 
+    memset((void*) SetVal, 0, sizeof(SetVal));
+
     /* Obtain the value of the node counter */
     Status = BPLib_AS_Get(1, Counter, (void*) SetVal);
     
@@ -569,6 +571,8 @@ BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_Counter_t Counter)
     BPLib_Status_t Status;
     uint32_t* SetVal;
 
+    memset((void*) SetVal, 0, sizeof(SetVal));
+
     /* Obtain the value of the node counter */
     Status = BPLib_AS_Get(1, Counter, (void*) SetVal);
     
@@ -581,23 +585,23 @@ BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_Counter_t Counter)
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_SetAllZero(BPLib_AS_CounterPacket_t CounterType)
+BPLib_Status_t BPLib_AS_SetAllZero()
 {
     BPLib_Status_t Status;
-    Status = BPLIB_SUCCESS;
+    uint16_t       CounterLoopCtrl;
+    uint8_t        Zero;
 
-    /*
-    if (CounterType == NODE_COUNTER)
+    Zero = 0;
+
+    for (CounterLoopCtrl = 0; CounterLoopCtrl < NUM_COUNTERS; CounterLoopCtrl++)
     {
-    */
-    memset((void*) &BPLib_AS_NodeCountersPayload, 0, sizeof(BPLib_AS_NodeCountersPayload));
-    /*
+        Status = BPLib_AS_Set(CounterLoopCtrl, (void*) &Zero);
+
+        if (Status != BPLIB_SUCCESS)
+        {
+            break;
+        }
     }
-    else
-    {
-        memset((void*) &BPLib_AS_SourceCountersPayload, 0, sizeof(BPLib_AS_SourceCountersPayload));
-    }
-    */
 
     return Status;
 }
