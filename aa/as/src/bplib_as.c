@@ -557,43 +557,27 @@ BPLib_Status_t BPLib_AS_Increment(BPLib_AS_Counter_t Counter)
     
     if (Status == BPLIB_SUCCESS)
     {
-        /* Set the incremented node counter and associated source counters */
+        /* Set the incremented node counter and associated source counter(s) */
         Status = BPLib_AS_Set(Counter, (void*) *SetVal++);
     }
     
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_CounterPacket_t CounterType, BPLib_AS_Counter_t Counter)
+BPLib_Status_t BPLib_AS_Decrement(BPLib_AS_Counter_t Counter)
 {
     BPLib_Status_t Status;
+    uint32_t* SetVal;
 
-    /*
-    if (CounterType == NODE_COUNTER)
+    /* Obtain the value of the node counter */
+    Status = BPLib_AS_Get(1, Counter, (void*) SetVal);
+    
+    if (Status == BPLIB_SUCCESS)
     {
-    */
-    if (Counter == TIME_MONOTONIC_CNT || Counter == TIME_CF)
-    {
-        uint32_t* SetVal  = (uint32_t*) BPLib_AS_Get(CounterType, Counter);
-        uint32_t  DecremVal = *SetVal--;
-
-        Status = BPLib_AS_Set(CounterType, Counter, (void*) DecremVal);
+        /* Set the decremented node counter and associated source counter(s) */
+        Status = BPLib_AS_Set(Counter, (void*) *SetVal--);
     }
-    else
-    {
-        int64_t* SetVal    = (int64_t*) BPLib_AS_Get(CounterType, Counter);
-        int64_t  DecremVal = *SetVal--;
-
-        Status = BPLib_AS_Set(CounterType, Counter, (void*) DecremVal);
-    }
-    /*
-    }
-    else
-    {
-
-    }
-    */
-
+    
     return Status;
 }
 

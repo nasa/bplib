@@ -320,7 +320,7 @@ BPLib_Status_t BPLib_AS_Init(void);
   * \param[in] Counter BPLib_AS_Counter_t that indicates which counter to access
   * \return    Counter value as a void*
   */
-BPLib_Status_t BPLib_AS_Get(uint8_t CounterType, BPLib_AS_Counter_t Counter, void* ReturnPtr)
+BPLib_Status_t BPLib_AS_Get(uint8_t CounterType, BPLib_AS_Counter_t Counter, void* ReturnPtr);
 
 /**
  * \brief     Modify the counter specified by the counter type and counter index to the desired value
