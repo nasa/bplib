@@ -291,15 +291,6 @@ typedef enum
     BUNDLE_CNT_RECV_ADMIN_REC    = 75, /** \brief Number of admin record bundles received for this DTN Node. */
 } BPLib_AS_Counter_t;
 
-/*
- * \brief Determines whether the intended operation is for a node or source counter
- */
-typedef enum
-{
-    NODE_COUNTER   = 1, /* Intent is for a counter in the BPLib_SourceMibCountersHkTlm_Payload_t struct */
-    SOURCE_COUNTER = 2, /* Intent is for a counter in the BPLib_SourceMibCountersSet_t struct */
-} BPLib_AS_CounterPacket_t;
-
 /* ======= */
 /* Externs */
 /* ======= */
