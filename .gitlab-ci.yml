@@ -67,9 +67,9 @@ build-release-job:
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
    - cd osal/
-   - cmake $CMAKE_OSAL_RELEASE_DEFS -B ../osal-release-build
-   - cd ../osal-release-build
-   - make DESTDIR=../osal-release-staging install
+   - cmake $CMAKE_OSAL_RELEASE_DEFS -B ../osal-build
+   - cd ../osal-build
+   - make DESTDIR=../osal-staging install
    # Build bplib with osal
    - cd ..
    - cmake $CMAKE_BPLIB_RELEASE_DEFS -B "${BPLIB_RELEASE_BUILD}"
@@ -95,9 +95,9 @@ build-debug-job:
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
    - cd osal/
-   - cmake $CMAKE_OSAL_DEBUG_DEFS -B ../osal-debug-build
-   - cd ../osal-debug-build
-   - make DESTDIR=../osal-debug-staging install
+   - cmake $CMAKE_OSAL_DEBUG_DEFS -B ../osal-build
+   - cd ../osal-build
+   - make DESTDIR=../osal-staging install
    # Build bplib with osal
    - cd ..
    - cmake $CMAKE_BPLIB_DEBUG_DEFS -B "${BPLIB_DEBUG_BUILD}"
