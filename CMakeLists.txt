@@ -206,7 +206,7 @@ target_compile_features(bplib PRIVATE c_std_99)
 target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
 # Internal header files exist within the implementation directories
-target_include_directories(bplib PRIVATE ${BPLIB_COMPONENT_INCLUDE_DIRS})
+target_include_directories(bplib PUBLIC ${BPLIB_COMPONENT_INCLUDE_DIRS})
 
 # The API to this library (which may be invoked/referenced from other apps)
 # is stored in fsw/public_inc.  Using "target_include_directories" is the
