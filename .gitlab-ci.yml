@@ -32,7 +32,6 @@ variables:
 stages:          # List of stages for jobs, and their order of execution
   - build-release
   - build-debug
-  - unit-test
 
 build-release-job:
   image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
@@ -75,6 +74,8 @@ build-release-job:
    - cmake $CMAKE_BPLIB_RELEASE_DEFS -B "${BPLIB_RELEASE_BUILD}"
    - cd "${BPLIB_RELEASE_BUILD}"
    - make all
+   # Run unit tests
+   - ctest --output-on-failure 2>&1 | tee ctest.log
 
   artifacts:
     paths:
@@ -103,33 +104,10 @@ build-debug-job:
    - cmake $CMAKE_BPLIB_DEBUG_DEFS -B "${BPLIB_DEBUG_BUILD}"
    - cd "${BPLIB_DEBUG_BUILD}"
    - make all
-
-  artifacts:
-    paths:
-      - ${BPLIB_DEBUG_BUILD}
-    expire_in: 1 day
-
-unit-test-job:
-  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
-  stage: unit-test
-
-  script:
-   - git status
-   # Clone and build osal as a standalone
-   - git clone https://github.com/nasa/osal.git
-   - cd osal/
-   - cmake $CMAKE_OSAL_DEFS -B ../osal-build
-   - cd ../osal-build
-   - make DESTDIR=../osal-staging install
-   # Build bplib with osal
-   - cd ..
-   - cmake $CMAKE_BPLIB_RELEASE_DEFS -B "${BPLIB_RELEASE_BUILD}"
-   - cd "${BPLIB_RELEASE_BUILD}"
-   - make all
    # Run unit tests
    - ctest --output-on-failure 2>&1 | tee ctest.log
 
   artifacts:
     paths:
-      - ${BPLIB_RELEASE_BUILD}/ctest.log
+      - ${BPLIB_DEBUG_BUILD}
     expire_in: 1 day
