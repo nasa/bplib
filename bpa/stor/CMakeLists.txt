@@ -15,10 +15,6 @@ target_include_directories(bplib_stor PUBLIC
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# TODO Does the order of adding subdirectories matter? Seems like qm has to be first.
-add_subdirectory(qm)
-add_subdirectory(cache)
-
 # Add unit tests
 if(BPLIB_ENABLE_UNIT_TESTS)
   add_subdirectory(unit-test)

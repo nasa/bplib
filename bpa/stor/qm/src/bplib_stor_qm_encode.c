@@ -18,28 +18,26 @@
  *
  */
 
-#ifndef BPLIB_FWP_TEST_UTILS_H
-#define BPLIB_FWP_TEST_UTILS_H
+/**
+ * @file
+ *
+ * @brief Temporary file to define function stubs TODO
+ *
+ */
 
-/*
-** Include
-*/
+#include "bplib_stor_qm_encode.h"
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
+int block_encode_pri(BPLib_STOR_CACHE_BblockPrimary_t *cpb)
+{
+    return 0;
+}
 
-#include "bplib_api_types.h"
-#include "bplib_fwp.h"
+int block_encode_pay(BPLib_STOR_CACHE_BblockCanonical_t *ccb, const void *data_ptr, size_t data_size)
+{
+    return 0;
+}
 
-
-/*
-** Function Definitions
-*/
-
-void BPLib_FWP_Test_Setup(void);
-void BPLib_FWP_Test_Teardown(void);
-
-void TestBplibFwp_Register(void);
-
-#endif /* BPLIB_FWP_TEST_UTILS_H */
+int block_encode_canonical(BPLib_STOR_CACHE_BblockCanonical_t *ccb)
+{
+    return 0;
+}

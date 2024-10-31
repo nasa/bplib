@@ -85,32 +85,22 @@ if (BPLIB_ENABLE_UNIT_TESTS AND BPLIB_STANDALONE_BUILD_MODE AND NOT CMAKE_CROSSC
    enable_testing()
 endif()
 
-add_subdirectory(version)
-add_subdirectory(cla)
-add_subdirectory(aa/arp)
-add_subdirectory(aa/as)
-add_subdirectory(aa/fwp)
-add_subdirectory(aa/nc)
-add_subdirectory(bpa/bi)
-add_subdirectory(bpa/ct)
-add_subdirectory(bpa/ebp)
-add_subdirectory(bpa/pdb)
-add_subdirectory(bpa/pi)
-add_subdirectory(bpa/stor)
-add_subdirectory(ci/cbor)
-add_subdirectory(ci/em)
-add_subdirectory(ci/job)
-add_subdirectory(ci/mem)
-add_subdirectory(ci/pl)
-add_subdirectory(ci/time)
-add_subdirectory(ci/crc)
-add_subdirectory(ci/rbt)
+list (APPEND BPLIB_COMPONENT_DIRS
+  version cla aa/arp aa/as aa/fwp aa/nc bpa/bi bpa/ct
+  bpa/ebp bpa/pdb bpa/pi bpa/stor bpa/stor/qm bpa/stor/cache
+  ci/cbor ci/em ci/job ci/mem ci/pl ci/time ci/crc ci/rbt
+)
+
+foreach(COMPONENT ${BPLIB_COMPONENT_DIRS})
+  add_subdirectory(${COMPONENT})
+endforeach()
 
 list(APPEND BPLIB_COMPONENTS
-  bplib_version
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_nc
-  bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_stor
-  bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time bplib_crc bplib_rbt
+  bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi 
+  bplib_stor bplib_stor_cache bplib_stor_qm
+  bplib_cbor bplib_em bplib_job bplib_mem bplib_pl bplib_time
+  bplib_crc bplib_rbt bplib_version
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENTS})
@@ -202,9 +192,6 @@ endforeach()
 target_compile_features(bplib PRIVATE c_std_99)
 target_compile_options(bplib PRIVATE ${BPLIB_COMMON_COMPILE_OPTIONS})
 
-# Internal header files exist within the implementation directories
-target_include_directories(bplib INTERFACE ${BPLIB_COMPONENT_INCLUDE_DIRS})
-
 # The API to this library (which may be invoked/referenced from other apps)
 # is stored in fsw/public_inc.  Using "target_include_directories" is the
 # preferred method of indicating this (vs. directory-scope "include_directories").
@@ -212,6 +199,15 @@ target_include_directories(bplib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
   $<INSTALL_INTERFACE:include/bplib>
 )
+
+# This makes the public header files for each component accessible to external apps
+foreach(COMPONENT ${BPLIB_COMPONENT_DIRS})
+  target_include_directories(bplib PUBLIC 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${COMPONENT}/inc>
+    $<INSTALL_INTERFACE:${COMPONENT}/inc>
+  )
+
+endforeach()
 
 # BPLib Sanity checks are only for standalone builds, sanity checks
 # for CFE/CFS builds should be part of the BP app, as opposed to BPLib

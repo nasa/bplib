@@ -29,7 +29,7 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "bplib.h"
+#include "bplib_api_types.h"
 #include "bplib_ebp.h"
 
 

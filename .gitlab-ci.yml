@@ -1,0 +1,112 @@
+# This file is a template, and might need editing before it works on your project.
+# This is a sample GitLab CI/CD configuration file that should run without any modifications.
+# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
+# it uses echo commands to simulate the pipeline execution.
+#
+# A pipeline is composed of independent jobs that run scripts, grouped into stages.
+# Stages run in sequential order, but jobs within stages run in parallel.
+#
+# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
+#
+# You can copy and paste this template into a new `.gitlab-ci.yml` file.
+# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
+#
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# This specific template is located at:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+
+.login-prebuild-steps: &login-prebuild-steps
+  - /usr/sbin/update-ca-certificates
+  - echo "${CI_REGISTRY_PASSWORD}" | docker login -u "${CI_REGISTRY_USER}" --password-stdin  "${CI_REGISTRY}"
+
+variables:
+  CI_JOB_INFO_LOG: ci_job_info.log
+  CMAKE_OSAL_DEFS: "-DCMAKE_INSTALL_PREFIX=/usr/local -DOSAL_SYSTEM_BSPTYPE=generic-linux -DCMAKE_BUILD_TYPE=Release -DOSAL_OMIT_DEPRECATED=TRUE -DENABLE_UNIT_TESTS=TRUE -DOSAL_CONFIG_DEBUG_PERMISSIVE_MODE=ON"
+  NasaOsal_DIR: osal-staging/usr/local/lib/cmake
+  CMAKE_BPLIB_RELEASE_DEFS: "-DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DBPLIB_OS_LAYER=OSAL -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
+  BPLIB_RELEASE_BUILD: bplib-build-matrix-Release-OSAL/
+  CMAKE_BPLIB_DEBUG_DEFS: "-DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DBPLIB_OS_LAYER=OSAL -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
+  BPLIB_DEBUG_BUILD: bplib-build-matrix-Debug-OSAL/
+
+stages:          # List of stages for jobs, and their order of execution
+  - build-release
+  - build-debug
+
+# Defaults for every job (unless overridden)
+default:
+  before_script:
+    - mkdir -p $HOME/.ssh && chmod 0700 $HOME/.ssh
+    - ssh-keyscan github.com >> $HOME/.ssh/known_hosts
+    - cat $HOME/.ssh/known_hosts
+    # Log version and context information
+    - touch ${CI_JOB_INFO_LOG}
+    - echo "CI_PIPELINE_CREATED_AT=${CI_PIPELINE_CREATED_AT}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "CI_PIPELINE_SOURCE=${CI_PIPELINE_SOURCE}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "CI_PIPELINE_ID=${CI_PIPELINE_ID}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "CI_PIPELINE_IID=${CI_PIPELINE_IID}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "CI_JOB_STARTED_AT=${CI_JOB_STARTED_AT}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "CI_JOB_ID=${CI_JOB_ID}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "CI_JOB_STAGE=${CI_JOB_STAGE}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "CI_JOB_NAME=${CI_JOB_NAME}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "CI_COMMIT_REF_NAME=${CI_COMMIT_REF_NAME}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "CI_COMMIT_SHA=${CI_COMMIT_SHA}" | tee -a ${CI_JOB_INFO_LOG}
+    - echo "gcc version=" | tee -a ${CI_JOB_INFO_LOG}
+    - gcc --version | tee -a ${CI_JOB_INFO_LOG}
+    - echo "ld version=" | tee -a ${CI_JOB_INFO_LOG}
+    - ld --version | tee -a ${CI_JOB_INFO_LOG}
+    - echo "cmake version=" | tee -a ${CI_JOB_INFO_LOG}
+    - cmake --version | tee -a ${CI_JOB_INFO_LOG}
+    - echo "git version=" | tee -a ${CI_JOB_INFO_LOG}
+    - git --version | tee -a ${CI_JOB_INFO_LOG}
+
+# Build bplib release version
+build-release-job:
+  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
+  stage: build-release
+  script:
+   - git status
+   # Clone and build osal as a standalone
+   - git clone https://github.com/nasa/osal.git
+   - cd osal/
+   - cmake $CMAKE_OSAL_DEFS -B ../osal-build
+   - cd ../osal-build
+   - make DESTDIR=../osal-staging install
+   # Build bplib with osal
+   - cd ..
+   - cmake $CMAKE_BPLIB_RELEASE_DEFS -B "${BPLIB_RELEASE_BUILD}"
+   - cd "${BPLIB_RELEASE_BUILD}"
+   - make all
+   # Run unit tests
+   - ctest --output-on-failure 2>&1 | tee ctest.log
+
+  artifacts:
+    paths:
+      - ${CI_JOB_INFO_LOG}
+      - ${BPLIB_RELEASE_BUILD}
+    expire_in: 1 day
+
+build-debug-job:
+  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
+  stage: build-debug
+  script:
+   - git status
+   # Clone and build osal as a standalone
+   - git clone https://github.com/nasa/osal.git
+   - cd osal/
+   - cmake $CMAKE_OSAL_DEFS -B ../osal-build
+   - cd ../osal-build
+   - make DESTDIR=../osal-staging install
+   # Build bplib with osal
+   - cd ..
+   - cmake $CMAKE_BPLIB_DEBUG_DEFS -B "${BPLIB_DEBUG_BUILD}"
+   - cd "${BPLIB_DEBUG_BUILD}"
+   - make all
+   # Run unit tests
+   - ctest --output-on-failure 2>&1 | tee ctest.log
+
+  artifacts:
+    paths:
+      - ${CI_JOB_INFO_LOG}
+      - ${BPLIB_DEBUG_BUILD}
+    expire_in: 1 day

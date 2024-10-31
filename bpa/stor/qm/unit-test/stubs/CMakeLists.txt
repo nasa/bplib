@@ -23,10 +23,4 @@ target_include_directories(bplib_stor_qm_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_stor_cache,INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(bplib_stor_qm_stubs PUBLIC
-    ut_coverage_link
-    bplib_mem_stubs
-    bplib_stor_cache_stubs
-    coverage-bplib-stubs
-    ut_assert
-)
+target_link_libraries(bplib_stor_qm_stubs PUBLIC ut_assert)

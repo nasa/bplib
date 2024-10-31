@@ -18,11 +18,7 @@ target_include_directories(bplib_rbt_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_rbt,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(
-    bplib_rbt_stubs
-    ut_assert
-    ut_core_api_stubs
-)
+target_link_libraries(bplib_rbt_stubs PUBLIC ut_assert)
 
 # Create unit test object
 add_library(utobj_bplib_rbt OBJECT

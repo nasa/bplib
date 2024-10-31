@@ -16,6 +16,7 @@ target_link_libraries(bplib_time osal)
 target_include_directories(bplib_time PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests

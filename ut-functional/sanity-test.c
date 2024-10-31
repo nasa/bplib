@@ -22,12 +22,6 @@
 ** Include
 */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <stdarg.h>
 
 #include <osapi.h>
 
@@ -35,7 +29,7 @@
 #include <utstubs.h>
 #include <uttest.h>
 
-#include "bplib.h"
+#include "bplib_api_types.h"
 
 void BPLib_Test(void)
 {
