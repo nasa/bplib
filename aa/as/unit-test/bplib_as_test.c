@@ -38,7 +38,7 @@ void Test_BPLib_AS_Init_Error(void)
     // UtAssert_INT32_EQ(BPLib_AS_Init(), SOME_ERROR);
 }
 
-void Test_BPLib_AS_Get_Nominal()
+void Test_BPLib_AS_Get_Nominal(void)
 {
     BPLib_Status_t Status;
     uint32_t* ValuePtr;
@@ -60,7 +60,7 @@ void Test_BPLib_AS_Get_Nominal()
     /* TODO */
 }
 
-void Test_BPLib_AS_Get_Error()
+void Test_BPLib_AS_Get_Error(void)
 {
     BPLib_Status_t Status;
     uint32_t* ValuePtr;
@@ -80,7 +80,7 @@ void Test_BPLib_AS_Get_Error()
     /* TODO */
 }
 
-void Test_BPLib_AS_Set_Nominal()
+void Test_BPLib_AS_Set_Nominal(void)
 {
     BPLib_Status_t Status;
     uint32_t* ValueToSet;
@@ -118,7 +118,7 @@ void Test_BPLib_AS_Set_Nominal()
     UtAssert_EQ(uint32_t, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyReForwarded, 7);
 }
 
-void Test_BPLib_AS_Set_Error()
+void Test_BPLib_AS_Set_Error(void)
 {
     BPLib_Status_t Status;
     uint32_t* ValueToSet;
@@ -145,7 +145,7 @@ void Test_BPLib_AS_Set_Error()
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_CNTR, Status);
 }
 
-void Test_BPLib_AS_Increment_Nominal()
+void Test_BPLib_AS_Increment_Nominal(void)
 {
     BPLib_Status_t Status;
     int16_t SourceEid;
@@ -181,7 +181,7 @@ void Test_BPLib_AS_Increment_Nominal()
     UtAssert_EQ(uint32_t, 16, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted);
 }
 
-void Test_BPLib_AS_Increment_Error()
+void Test_BPLib_AS_Increment_Error(void)
 {
     BPLib_Status_t Status;
     int16_t SourceEid;
@@ -207,7 +207,7 @@ void Test_BPLib_AS_Increment_Error()
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_CNTR, Status);
 }
 
-void Test_BPLib_AS_Decrement_Nominal()
+void Test_BPLib_AS_Decrement_Nominal(void)
 {
     BPLib_Status_t Status;
     int16_t SourceEid;
@@ -243,7 +243,7 @@ void Test_BPLib_AS_Decrement_Nominal()
     UtAssert_EQ(uint32_t, 41, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted);
 }
 
-void Test_BPLib_AS_Decrement_Error()
+void Test_BPLib_AS_Decrement_Error(void)
 {
     BPLib_Status_t Status;
     int16_t SourceEid;
@@ -269,7 +269,7 @@ void Test_BPLib_AS_Decrement_Error()
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_CNTR, Status);
 }
 
-void Test_BPLib_AS_ResetAllCounters_Nominal()
+void Test_BPLib_AS_ResetAllCounters_Nominal(void)
 {
     BPLib_Status_t Status;
     int16_t SourceEid = 5;
@@ -287,7 +287,7 @@ void Test_BPLib_AS_ResetAllCounters_Nominal()
     UtAssert_EQ(uint32_t, 0, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRejectedCustody);
 }
 
-void Test_BPLib_AS_ResetAllCounters_Error()
+void Test_BPLib_AS_ResetAllCounters_Error(void)
 {
     // None
 }
