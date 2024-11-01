@@ -36,6 +36,9 @@
 /** \brief Number of MIB counters used for looping */
 #define BPLIB_AS_NUM_COUNTERS 28
 
+/** \brief Node counter EID designator */
+#define BPLIB_AS_NODE_EID -1
+
 /* ======= */
 /* Typdefs */
 /* ======= */
@@ -318,7 +321,7 @@ BPLib_Status_t BPLib_AS_Init(void);
   * \param[in] Counter BPLib_AS_Counter_t that indicates which counter to access
   * \return    Counter value as a void*
   */
-BPLib_Status_t BPLib_AS_Get(uint8_t CounterType, BPLib_AS_Counter_t Counter, void* ReturnPtr);
+BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, void* ReturnPtr);
 
 /**
  * \brief     Modify the counter specified by the counter type and counter index to the desired value
@@ -331,7 +334,7 @@ BPLib_Status_t BPLib_AS_Get(uint8_t CounterType, BPLib_AS_Counter_t Counter, voi
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Set(uint16_t SourceEid, BPLib_AS_Counter_t Counter, void* DesiredValuePtr);
+BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, void* DesiredValuePtr);
 
 /**
  * \brief     Add 1 to the counter specified by the counter type and counter index
@@ -343,7 +346,7 @@ BPLib_Status_t BPLib_AS_Set(uint16_t SourceEid, BPLib_AS_Counter_t Counter, void
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Increment(uint16_t SourceEid, BPLib_AS_Counter_t Counter);
+BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter);
 
 /**
  * \brief     Subtract 1 from the counter specified by the counter type and counter index
@@ -356,7 +359,7 @@ BPLib_Status_t BPLib_AS_Increment(uint16_t SourceEid, BPLib_AS_Counter_t Counter
  * \retval    BPLIB_SUCCESS:                 Mutation was successful
  * \retval    BPLIB_INVALID_NODE_CNTR_INDEX: Index into node counter packet is out of range
  */
-BPLib_Status_t BPLib_AS_Decrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter);
+BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter);
 
 /**
  * \brief     Set every counter value in the source and node counter packets to zero
