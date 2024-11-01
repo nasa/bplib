@@ -782,7 +782,7 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
     memset((void*) CounterValuePtr, 0, sizeof(CounterValuePtr));
 
     /* Obtain the value of the node counter */
-    Status = BPLib_AS_Get(1, Counter, (void*) CounterValuePtr);
+    Status = BPLib_AS_Get(BPLIB_AS_NODE_EID, Counter, (void*) CounterValuePtr);
 
     if (Status == BPLIB_SUCCESS)
     {
@@ -806,7 +806,7 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
     memset((void*) CounterValuePtr, 0, sizeof(CounterValuePtr));
 
     /* Obtain the value of the node counter */
-    Status = BPLib_AS_Get(1, Counter, (void*) CounterValuePtr);
+    Status = BPLib_AS_Get(BPLIB_AS_NODE_EID, Counter, (void*) CounterValuePtr);
 
     if (Status == BPLIB_SUCCESS)
     {
