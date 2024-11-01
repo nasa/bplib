@@ -848,6 +848,29 @@ BPLib_Status_t BPLib_AS_ResetAllCounters()
 
             if (Status != BPLIB_SUCCESS)
             {
+                switch (Status)
+                {
+                    case BPLIB_AS_INVALID_CNTR:
+                        // This error is unlikely to occur but this event is here in case it does
+                        BPLib_EM_SendEvent(BPLIB_AS_INVAL_CNTR_ERR_EID, BPLib_EM_EventType_ERROR,
+                                            "Invalid counter while resetting all counters, given: %d, expected: [0, %d]",
+                                            CounterCtrl,
+                                            BPLIB_AS_NUM_COUNTERS - 1);
+                        break;
+                    case BPLIB_AS_SOURCE_EID_MISSING:
+                        BPLib_EM_SendEvent(BPLIB_AS_SOURCE_EID_MISSING_ERR_EID, BPLib_EM_EventType_ERROR,
+                                            "Attempted to modify source counter without source EID");
+                        break;
+                    case BPLIB_AS_UNKNOWN_CNTR:
+                        BPLib_EM_SendEvent(BPLIB_AS_UNKNOWN_CNTR_ERR_EID, BPLib_EM_EventType_ERROR,
+                                            "Counter requested is within range [0, %d], but not accounted for in mutator function",
+                                            BPLIB_AS_NUM_COUNTERS - 1);
+                        break;
+                    default:
+                        // BPLIB_SUCCESS, continue
+                        break;
+                }
+
                 break;
             }
         }

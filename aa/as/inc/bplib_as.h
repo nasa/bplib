@@ -27,6 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
+#include "bplib.h"
 #include <string.h>
 
 /* ====== */
