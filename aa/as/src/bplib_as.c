@@ -792,7 +792,7 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
     uint32_t*      CounterValuePtr;
     uint32_t       CounterValue;
 
-    memset((void*) CounterValuePtr, 0, sizeof(CounterValuePtr));
+    CounterValuePtr = NULL;
 
     /* Obtain the value of the node counter */
     Status = BPLib_AS_Get(BPLIB_AS_NODE_EID, Counter, (void*) CounterValuePtr);
@@ -816,7 +816,7 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
     uint32_t*      CounterValuePtr;
     uint32_t       CounterValue;
 
-    memset((void*) CounterValuePtr, 0, sizeof(CounterValuePtr));
+    CounterValuePtr = NULL;
 
     /* Obtain the value of the node counter */
     Status = BPLib_AS_Get(BPLIB_AS_NODE_EID, Counter, (void*) CounterValuePtr);
@@ -828,7 +828,7 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
         CounterValue++;
 
         /* Set the decremented node counter and associated source counter(s) */
-        Status = BPLib_AS_Set(SourceEid, Counter, (void*) *CounterValuePtr--);
+        Status = BPLib_AS_Set(SourceEid, Counter, (void*) &CounterValue);
     }
 
     return Status;
