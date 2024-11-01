@@ -46,7 +46,7 @@ void Test_BPLib_AS_Get_Nominal(void)
     /* === Node counter test === */
 
     /* Set values to test against */
-    memset((void*) ValuePtr, 0, sizeof(ValuePtr));
+    ValuePtr = NULL;
     BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = 5;
 
     /* Run function under test */
@@ -65,7 +65,7 @@ void Test_BPLib_AS_Get_Error(void)
     BPLib_Status_t Status;
     uint32_t* ValuePtr;
 
-    memset((void*) ValuePtr, 0, sizeof(ValuePtr));
+    ValuePtr = NULL;
 
     /* === Node counter test === */
 
@@ -91,7 +91,7 @@ void Test_BPLib_AS_Set_Nominal(void)
     SourceEid = BPLIB_AS_NODE_EID; // This is mutating a node counter only
 
     /* Set values to test against*/
-    memset((void*) ValueToSet, 24, sizeof(ValueToSet));
+    ValueToSet = NULL;
     BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted = 5;
 
     /* Run function under test */
@@ -123,6 +123,8 @@ void Test_BPLib_AS_Set_Error(void)
     BPLib_Status_t Status;
     uint32_t* ValueToSet;
     int32_t SourceEid;
+
+    ValueToSet = NULL;
 
     /* === Node counter test === */
 
