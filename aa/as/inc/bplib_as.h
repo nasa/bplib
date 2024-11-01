@@ -34,7 +34,7 @@
 /* ====== */
 
 /** \brief Number of MIB counters used for looping */
-#define BPLIB_AS_NUM_COUNTERS 28
+#define BPLIB_AS_NUM_COUNTERS 76
 
 /** \brief Node counter EID designator */
 #define BPLIB_AS_NODE_EID -1

@@ -284,7 +284,7 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, void*
                 ReturnPtr = (void*) &BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord;
                 break;
             default:
-                Status = BPLIB_AS_INVALID_CNTR;
+                Status = BPLIB_AS_SOURCE_EID_MISSING;
                 break;
         }
     }
