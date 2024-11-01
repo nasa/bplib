@@ -30,6 +30,12 @@
 
 void BPLib_AS_Test_Setup(void)
 {
+    /* Initialize the node counter payload to 0s */
+    memset((void*) &BPLib_AS_NodeCountersPayload, 0, sizeof(BPLib_AS_NodeCountersPayload));
+
+    /* Initialize the source counter payload to 0s */
+    memset((void*) &BPLib_AS_SourceCountersPayload, 0, sizeof(BPLib_AS_SourceCountersPayload));
+
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 }

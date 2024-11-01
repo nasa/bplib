@@ -97,7 +97,8 @@ typedef int32_t BPLib_Status_t;
 
 /* Admin Statistics Errors */
 #define BPLIB_AS_INVALID_CNTR               ((BPLib_Status_t) -30u)
-#define BPLIB_AS_SOURCE_EID_MISSING         ((BPLib_Status_t) -31u)
+#define BPLIB_AS_UNKNOWN_CNTR               ((BPLib_Status_t) -31u)
+#define BPLIB_AS_SOURCE_EID_MISSING         ((BPLib_Status_t) -32u)
 
 #ifdef __cplusplus
 } // extern "C"
