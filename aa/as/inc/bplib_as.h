@@ -343,14 +343,14 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
   *                           array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
   *                           whose value is to be returned.
  * \param[in] Counter         (BPLib_AS_Counter_t) Counter to mutate
- * \param[in] DesiredValuePtr (uint32_t) Value that the caller wishes to set the counter represented by Counter and SourceEid
+ * \param[in] DesiredValue    (uint32_t) Value that the caller wishes to set the counter represented by Counter and SourceEid
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_CNTR: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
  * \retval    BPLIB_AS_SOURCE_EID_MISSING: Source EID was -1 but the counter requested isn't a node-only counter
  * \retval    BPLIB_AS_UNKNOWN_CNTR: The requested counter isn't a counter tracked by sources
  * \retval    BPLIB_SUCCESS: Successful execution
  */
-BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t DesiredValuePtr);
+BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t DesiredValue);
 
 /**
  * \brief     Add 1 to the counter specified by the source EID and counter
