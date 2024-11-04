@@ -28,6 +28,7 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib.h"
+#include "bplib_nc_payloads.h"
 #include <string.h>
 
 /* ====== */
@@ -297,8 +298,9 @@ typedef enum
 /* ======= */
 
 /* Global node counter packet manipulated by AS */
-extern BPLib_NodeMibCountersHkTlm_Payload_t   BPLib_AS_NodeCountersPayload;
-extern BPLib_SourceMibCountersHkTlm_Payload_t BPLib_AS_SourceCountersPayload;
+extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
+extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
+extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
 
 /* =================== */
 /* Function Prototypes */

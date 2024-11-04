@@ -24,8 +24,13 @@
 
 #include "bplib_as.h"
 
-BPLib_NodeMibCountersHkTlm_Payload_t   BPLib_AS_NodeCountersPayload;
-BPLib_SourceMibCountersHkTlm_Payload_t BPLib_AS_SourceCountersPayload;
+/* ======= */
+/* Globals */
+/* ======= */
+
+BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
+BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
+BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
 
 /* ==================== */
 /* Function Definitions */
