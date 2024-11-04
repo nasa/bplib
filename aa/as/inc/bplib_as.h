@@ -321,42 +321,41 @@ BPLib_Status_t BPLib_AS_Init(void);
   * \brief     Allows the caller to get access to certain values in counter packets specified by the parameters.
   *            This is necessary to simplify the code and avoid walls of switch-case statements
   * \details   Accessor function for counters used by Admin Statistics
-  * \note      ReturnPtr is void* since the data type of the values in the packets can vary
+  * \note      This function assumes all modifiable counter types are uint32_t
   * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
   *                      array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
   *                      whose value is to be returned.
-  * \param[in] Counter (BPLib_AS_Counter_t) Counter to access
-  * \param[in] ReturnPtr (void*) What the counter value requested is store in
+  * \param[in] Counter   (BPLib_AS_Counter_t) Counter to access
+  * \param[in] ReturnPtr (uint32_t*) What the counter value requested is stored in
   * \return    Execution status
   * \retval    BPLIB_AS_INVALID_CNTR: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
   * \retval    BPLIB_AS_SOURCE_EID_MISSING: Source EID was -1 but the counter requested isn't a node-only counter
   * \retval    BPLIB_AS_UNKNOWN_CNTR: The requested counter isn't a counter tracked by sources
   * \retval    BPLIB_SUCCESS: Successful execution
   */
-BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, void* ReturnPtr);
+BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t* ReturnPtr);
 
 /**
  * \brief     Modify the counter specified by the source EID and counter to the desired value
  * \details   Mutator function for counters used by Admin Statistics
- * \note      Casts void* to the appropriate data type so it's possible some data could be truncated.
- *            void* is used since the data type of the value in the packet can vary
+ * \note      This function assumes all modifiable counters are of type uint32_t
  * \param[in] SourceEid       (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
   *                           array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
   *                           whose value is to be returned.
  * \param[in] Counter         (BPLib_AS_Counter_t) Counter to mutate
- * \param[in] DesiredValuePtr (void*) Value that the caller wishes to set the counter represented by Counter and optionally SourceEid
+ * \param[in] DesiredValuePtr (uint32_t) Value that the caller wishes to set the counter represented by Counter and SourceEid
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_CNTR: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
  * \retval    BPLIB_AS_SOURCE_EID_MISSING: Source EID was -1 but the counter requested isn't a node-only counter
  * \retval    BPLIB_AS_UNKNOWN_CNTR: The requested counter isn't a counter tracked by sources
  * \retval    BPLIB_SUCCESS: Successful execution
  */
-BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, void* DesiredValuePtr);
+BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t DesiredValuePtr);
 
 /**
  * \brief     Add 1 to the counter specified by the source EID and counter
  * \details   Incrementing function for counters used by Admin Statistics
- * \note      Uses void* to get and set values so some information could be lost
+ * \note      Internal uint32_t value is passed by reference when using BPLib_AS_Get()
  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  *                      SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter whose value
  *                      is to be returned.
