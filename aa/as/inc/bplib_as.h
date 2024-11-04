@@ -25,11 +25,13 @@
 /* Includes */
 /* ======== */
 
+#include <string.h>
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
-#include "bplib.h"
+#include "bplib_eventids.h"
 #include "bplib_nc_payloads.h"
-#include <string.h>
+
+#include "bplib_em.h"
 
 /* ====== */
 /* Macros */
