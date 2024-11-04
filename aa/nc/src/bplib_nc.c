@@ -1144,7 +1144,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHk()
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt(&BPLib_NC_SourceMibConfigPayload);
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt(&BPLib_NC_NodeMibConfigPayload);
 
     return Status;
 }
@@ -1196,7 +1196,6 @@ BPLib_Status_t BPLib_NC_SendChannelContactStatHk()
 
     // Lock data
 
-    // Get channel contact stat payload from AS
     Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
 
     // Unlock data
