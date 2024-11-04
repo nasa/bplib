@@ -57,11 +57,11 @@ typedef struct
     
     /* Telemetry Proxy function callbacks */
     BPLib_Status_t (*BPA_TLMP_SendNodeMibConfigPkt)(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload);
-    BPLib_Status_t (*BPA_TLMP_SendPerSourceMibConfigPkt)(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload);    
+    BPLib_Status_t (*BPA_TLMP_SendPerSourceMibConfigPkt)(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload);
     BPLib_Status_t (*BPA_TLMP_SendNodeMibCounterPkt)(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload);
-    BPLib_Status_t (*BPA_TLMP_SendPerSourceMibCounterPkt)(BPLib_SourceMibCountersHkTlm_Payload_t* SrcMIBCounterTlmPayload);    
+    BPLib_Status_t (*BPA_TLMP_SendPerSourceMibCounterPkt)(BPLib_SourceMibCountersHkTlm_Payload_t* SrcMIBCounterTlmPayload);
     BPLib_Status_t (*BPA_TLMP_SendChannelContactPkt)(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload);
-    BPLib_Status_t (*BPA_TLMP_SendStoragePkt)(BPLib_StorageHkTlm_Payload_t* StorTlmPayload);    
+    BPLib_Status_t (*BPA_TLMP_SendStoragePkt)(BPLib_StorageHkTlm_Payload_t* StorTlmPayload);
 
     /* ADU Proxy function callbacks */
     BPLib_Status_t (*BPA_ADUP_AddApplication)(uint8_t ChanId);

@@ -24,6 +24,13 @@
 
 #include "bplib_nc.h"
 
+/* ======= */
+/* Globals */
+/* ======= */
+
+BPLib_SourceMibConfigHkTlm_Payload_t BPLib_NC_SourceMibConfigPayload;
+BPLib_NodeMibConfigHkTlm_Payload_t   BPLib_NC_NodeMibConfigPayload;
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -1133,20 +1140,20 @@ BPLib_Status_t BPLib_NC_PerformSelfTest(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload)
+BPLib_Status_t BPLib_NC_SendNodeMibConfigHk()
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt(NodeMIBConfigTlmPayload);
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt(&BPLib_NC_SourceMibConfigPayload);
 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload)
+BPLib_Status_t BPLib_NC_SendSourceMibConfigHk()
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt(SrcMIBConfigTlmPayload);
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt(&BPLib_NC_SourceMibConfigPayload);
 
     return Status;
 }
@@ -1164,32 +1171,33 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHk()
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(BPLib_SourceMibCountersHkTlm_Payload_t* SrcMIBCounterTlmPayload)
+BPLib_Status_t BPLib_NC_SendSourceMibCountersHk()
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(SrcMIBCounterTlmPayload);
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendStorageHk(BPLib_StorageHkTlm_Payload_t* StorTlmPayload)
+BPLib_Status_t BPLib_NC_SendStorageHk()
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt(StorTlmPayload);
+    Status = BPLIB_SUCCESS;
+    // Status = BPLib_STOR_ReportTlm();
 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendChannelContactStatHk(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload)
+BPLib_Status_t BPLib_NC_SendChannelContactStatHk()
 {
     BPLib_Status_t Status;
 
     // Lock data
 
     // Get channel contact stat payload from AS
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(ChannelContactTlmPayload);
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
 
     // Unlock data
 

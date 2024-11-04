@@ -69,6 +69,12 @@ typedef struct
 } BPLib_STOR_StorageTable_t;
 
 /*
+** Externs
+*/
+
+extern BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
+
+/*
 ** Exported Functions
 */
 
