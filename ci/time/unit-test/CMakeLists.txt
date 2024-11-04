@@ -18,7 +18,7 @@ target_include_directories(bplib_time_stubs PUBLIC
     ../src
 )
 
-target_link_libraries(bplib_time_stubs ut_assert ut_core_api_stubs)
+target_link_libraries(bplib_time_stubs PUBLIC ut_assert)
 
 # Create unit test object
 add_library(utobj_bplib_time OBJECT
@@ -60,6 +60,7 @@ target_link_libraries(coverage-bplib_time-testrunner PUBLIC
     ut_coverage_link
     ut_assert
     bplib_fwp_stubs
+    ut_osapi_stubs
 )
 
 add_test(coverage-bplib_time-testrunner coverage-bplib_time-testrunner)

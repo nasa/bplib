@@ -20,10 +20,10 @@
  * Include
  */
 
-#include <string.h>
-
+#include "bplib_api_types.h"
 #include "test_bplib_mem.h"
 
+#include "bplib_rbt.h"
 #include "bplib_mem.h"
 #include "bplib_mem_internal.h"
 
@@ -85,10 +85,20 @@ void test_setup_mpblock(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *b, BPL
     memset(&b->u, 0, sizeof(b->u));
     switch (blktype)
     {
+        case BPLib_MEM_BlocktypePrimary:
+            BPLib_MEM_BblockPrimaryInit(&b->header.base_link, &b->u.primary.pblock);
+            break;
+        case BPLib_MEM_BlocktypeCanonical:
+            BPLib_MEM_BblockCanonicalInit(&b->header.base_link, &b->u.canonical.cblock);
+            break;
         case BPLib_MEM_BlocktypeAdmin:
             BPLib_MEM_SubqInit(&b->header.base_link, &b->u.admin.free_blocks);
             BPLib_MEM_SubqInit(&b->header.base_link, &b->u.admin.recycle_blocks);
             BPLib_MEM_InitListHead(&b->header.base_link, &b->u.admin.active_list);
+            break;
+        case BPLib_MEM_BlocktypeDuct:
+            BPLib_MEM_DuctInit(&b->header.base_link, &b->u.duct.dblock);
+            break;
 
         default:
             break;
@@ -114,7 +124,7 @@ void test_setup_allocation(BPLib_MEM_Pool_t *pool, BPLib_MEM_BlockContent_t *db,
 
     admin = BPLib_MEM_GetAdmin(pool);
     BPLib_MEM_SubqPushSingle(&admin->free_blocks, &db->header.base_link);
-    UT_SetHandlerFunction(UT_KEY(BPLib_MEM_RBT_SearchGeneric), UT_AltHandler_PointerReturn, api_content);
+    UT_SetHandlerFunction(UT_KEY(BPLib_RBT_SearchGeneric), UT_AltHandler_PointerReturn, api_content);
 }
 
 // UtTest_Setup is in bplib_mem_test_utils.c

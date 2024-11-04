@@ -49,11 +49,15 @@ bool BPLib_CLA_IsAControlMsg(const void *Bundle)
  * Generated stub function for BPLib_CLA_ProcessControlMessage()
  * ----------------------------------------------------
  */
-int BPLib_CLA_ProcessControlMessage(void) 
+BPLib_Status_t BPLib_CLA_ProcessControlMessage(BPLib_CLA_CtrlMsg_t *CtrlMsg) 
 {
-  UT_GenStub_SetupReturnBuffer(BPLib_CLA_ProcessControlMessage, int);
+  UT_GenStub_SetupReturnBuffer(BPLib_CLA_ProcessControlMessage, BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_CLA_ProcessControlMessage, BPLib_CLA_CtrlMsg_t *,
+                      CtrlMsg);
 
   UT_GenStub_Execute(BPLib_CLA_ProcessControlMessage, Basic, NULL);
 
-  return UT_GenStub_GetReturnValue(BPLib_CLA_ProcessControlMessage, int);
+  return UT_GenStub_GetReturnValue(BPLib_CLA_ProcessControlMessage,
+                                   BPLib_Status_t);
 }

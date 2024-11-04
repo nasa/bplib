@@ -1489,6 +1489,46 @@ void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
     */
 }
 
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
+{
+    BPLib_NC_MIBConfigPNTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    TestTblData.BundleAgentNum = 10;
+    UtAssert_INT32_EQ((int32) BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+}
+
+void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid(void)
+{
+    BPLib_NC_MIBConfigPNTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    /* Error case should return BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE */
+    TestTblData.BundleAgentNum = 0;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPNTblValidateFunc(&TestTblData), 
+                                                BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
+}
+
+void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal(void)
+{
+    BPLib_NC_MIBConfigPSTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+    TestTblData.MIB_PS_Set[0].ParamSetMaxLifetime = 10;
+    UtAssert_INT32_EQ((int32) BPLib_NC_MIBConfigPSTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
+}
+
+void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid(void)
+{
+    BPLib_NC_MIBConfigPSTable_t TestTblData;
+    memset(&TestTblData, 0, sizeof(TestTblData));
+
+    /* Error case should return BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE */
+    TestTblData.MIB_PS_Set[0].ParamSetMaxLifetime = 0;
+
+    UtAssert_INT32_EQ(BPLib_NC_MIBConfigPSTblValidateFunc(&TestTblData), 
+                                                BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
+}
+
 void TestBplibNc_Register(void)
 {
     ADD_TEST(Test_BPLib_NC_AddAllApplications_Error);
@@ -1583,4 +1623,8 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_VerifyBundleMetadata_Nominal);
     ADD_TEST(Test_BPLib_NC_VerifyBundleStorage_Error);
     ADD_TEST(Test_BPLib_NC_VerifyBundleStorage_Nominal);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal);
+    ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid);
 }

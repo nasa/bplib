@@ -40,12 +40,13 @@ void Test_BPLib_TIME_Init_Nominal(void)
     int64_t ExpEpochOffset;
 
     /* Set test epoch data */
-    TestHostEpochYear = 1980;
+    TestHostEpochYear = 1970;
     TestHostEpochDay = 1;
 
     /* Calculate expected epoch offset */
     ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestHostEpochYear;
     ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
+    ExpEpochOffset += (7 * BPLIB_TIME_DAY_IN_MSEC);
     ExpEpochOffset *= -1;
 
     /* Set to uninitialized */
@@ -53,6 +54,8 @@ void Test_BPLib_TIME_Init_Nominal(void)
 
     /* Ensure write operation succeeds */
     UT_SetDefaultReturnValue(UT_KEY(OS_write), sizeof(BPLib_TIME_FileData_t));
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_TIME_GetEpochOffset), ExpEpochOffset);
 
     UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_SUCCESS);
 
@@ -105,16 +108,19 @@ void Test_BPLib_TIME_Init_FailedRead(void)
     int64_t ExpEpochOffset;
 
     /* Set test epoch data */
-    TestHostEpochYear = 1980;
+    TestHostEpochYear = 1970;
     TestHostEpochDay = 1;
 
     /* Calculate expected epoch offset */
     ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestHostEpochYear;
     ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
+    ExpEpochOffset += (7 * BPLIB_TIME_DAY_IN_MSEC);
     ExpEpochOffset *= -1;
 
     /* Set to uninitialized */
     BPLib_TIME_GlobalData.InitState = BPLIB_TIME_UNINIT;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_TIME_GetEpochOffset), ExpEpochOffset);
 
     /* Ensure BPLib_TIME_ReadTimeDataFromFile fails */
     UT_SetDefaultReturnValue(UT_KEY(OS_OpenCreate), OS_ERROR);

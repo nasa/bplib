@@ -149,7 +149,7 @@ void Test_BPLib_MEM_SubqPullSingle(void)
 void Test_BPLib_MEM_ListIterGotoFirst(void)
 {
     /* Test function for:
-     * int BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
+     * BPLib_Status_t BPLib_MEM_ListIterGotoFirst(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
      */
     BPLib_MEM_Block_t     list;
     BPLib_MEM_ListIter_t it;
@@ -164,7 +164,7 @@ void Test_BPLib_MEM_ListIterGotoFirst(void)
 void Test_BPLib_MEM_ListIterGotoLast(void)
 {
     /* Test function for:
-     * int BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
+     * BPLib_Status_t BPLib_MEM_ListIterGotoLast(const BPLib_MEM_Block_t *list, BPLib_MEM_ListIter_t *iter)
      */
 
     BPLib_MEM_Block_t     list;
@@ -180,7 +180,7 @@ void Test_BPLib_MEM_ListIterGotoLast(void)
 void Test_BPLib_MEM_ListIterForward(void)
 {
     /* Test function for:
-     * int BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter)
+     * BPLib_Status_t BPLib_MEM_ListIterForward(BPLib_MEM_ListIter_t *iter)
      */
     BPLib_MEM_ListIter_t     it;
     BPLib_MEM_Block_t        list;
@@ -206,7 +206,7 @@ void Test_BPLib_MEM_ListIterForward(void)
 void Test_BPLib_MEM_ListIterReverse(void)
 {
     /* Test function for:
-     * int BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter)
+     * BPLib_Status_t BPLib_MEM_ListIterReverse(BPLib_MEM_ListIter_t *iter)
      */
     BPLib_MEM_ListIter_t     it;
     BPLib_MEM_Block_t         list;

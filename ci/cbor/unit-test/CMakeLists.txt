@@ -16,7 +16,7 @@ target_include_directories(bplib_cbor_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_cbor,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(bplib_cbor_stubs ut_assert ut_core_api_stubs)
+target_link_libraries(bplib_cbor_stubs PUBLIC ut_assert)
 
 # Create unit test object
 add_library(utobj_bplib_cbor OBJECT

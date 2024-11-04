@@ -26,7 +26,7 @@
 /*************************************************************************
 ** Includes
 *************************************************************************/
-#include "bplib.h"
+#include "bplib_api_types.h"
 #include "bplib_version.h"
 #include "osapi.h" /* for OS_Printf() */
 #include <stdio.h> /* for "snprintf()" */

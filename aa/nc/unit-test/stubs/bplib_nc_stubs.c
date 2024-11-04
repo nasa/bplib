@@ -723,3 +723,39 @@ BPLib_Status_t BPLib_NC_VerifyBundleStorage(void)
 
     return UT_GenStub_GetReturnValue(BPLib_NC_VerifyBundleStorage, BPLib_Status_t);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_NC_MIBConfigPNTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_NC_MIBConfigPNTblValidateFunc,
+                               BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_NC_MIBConfigPNTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_NC_MIBConfigPNTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_NC_MIBConfigPNTblValidateFunc,
+                                   BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_NC_MIBConfigPSTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData) 
+{
+  UT_GenStub_SetupReturnBuffer(BPLib_NC_MIBConfigPSTblValidateFunc,
+                               BPLib_Status_t);
+
+  UT_GenStub_AddParam(BPLib_NC_MIBConfigPSTblValidateFunc, void *, TblData);
+
+  UT_GenStub_Execute(BPLib_NC_MIBConfigPSTblValidateFunc, Basic, NULL);
+
+  return UT_GenStub_GetReturnValue(BPLib_NC_MIBConfigPSTblValidateFunc,
+                                   BPLib_Status_t);
+}

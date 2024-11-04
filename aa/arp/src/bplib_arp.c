@@ -32,3 +32,19 @@
 int BPLib_ARP_Init(void) {
     return BPLIB_SUCCESS;
 }
+
+/* Validate CRS table data */
+BPLib_Status_t BPLib_ARP_CRSTblValidateFunc(void *TblData)
+{
+    BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
+    BPLib_ARP_CRSTable_t *TblDataPtr = (BPLib_ARP_CRSTable_t *)TblData;
+
+    /* Validate data values are within allowed range */
+    if (TblDataPtr[0].CRS_Set->SizeTrigger <= 0)
+    {
+        /* element is out of range, return an appropriate error code */
+        ReturnCode = BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE;
+    }
+
+    return ReturnCode;
+}

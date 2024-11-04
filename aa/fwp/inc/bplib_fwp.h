@@ -25,10 +25,12 @@
 ** Include
 */
 
-#include "bplib.h"
+#include "bplib_api_types.h"
 #include "bplib_as.h"
 #include "bplib_nc_payloads.h"
 #include "bplib_stor.h"
+#include "bplib_time.h"
+#include "bplib_em.h"
 
 /*
 ** Type Definitions

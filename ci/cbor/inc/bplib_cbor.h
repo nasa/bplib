@@ -25,7 +25,7 @@
 ** Include
 */
 
-#include "bplib.h"
+#include "bplib_api_types.h"
 
 /*
 ** Exported Functions

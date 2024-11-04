@@ -512,4 +512,45 @@ BPLib_Status_t BPLib_NC_SendStorageHk(BPLib_StorageHkTlm_Payload_t* StorTlmPaylo
   */
 BPLib_Status_t BPLib_NC_SendChannelContactStatHk(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload);
 
+
+/**
+ * \brief Validate MIB Per Node Configuration Table configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new MIB Configuration Per Node table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ *  \retval    BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
+*/
+BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
+
+
+/**
+ * \brief Validate MIB Per Source Table configurations
+ *
+ *  \par Description
+ *       Validate configuration table parameters
+ *
+ *  \par Assumptions, External Events, and Notes:
+ *       - This function is called by whatever external task handles table management. 
+ *         Every time a new MIB Configuration Per Source table is loaded, this function should be called to
+ *         validate its parameters.
+ *
+ *  \param[in] TblData Pointer to the config table
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Validation was successful
+ * \retval    BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
+ */
+BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData);
+
+
 #endif /* BPLIB_NC_H */

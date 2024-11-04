@@ -16,7 +16,7 @@ target_include_directories(bplib_version_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_version,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(bplib_version_stubs ut_assert ut_core_api_stubs ut_osapi_stubs)
+target_link_libraries(bplib_version_stubs PUBLIC ut_assert ut_osapi_stubs)
 
 # Create unit test object
 add_library(utobj_bplib_version OBJECT

@@ -18,7 +18,7 @@ target_include_directories(bplib_cla_stubs PUBLIC
     ../src
 )
 
-target_link_libraries(bplib_cla_stubs ut_assert ut_core_api_stubs)
+target_link_libraries(bplib_cla_stubs PUBLIC ut_assert)
 
 # Create unit test object
 add_library(utobj_bplib_cla OBJECT
@@ -59,6 +59,7 @@ target_include_directories(coverage-bplib_cla-testrunner PRIVATE
 target_link_libraries(coverage-bplib_cla-testrunner PUBLIC
     ut_coverage_link
     ut_assert
+    bplib_bi_stubs
 )
 
 add_test(coverage-bplib_cla-testrunner coverage-bplib_cla-testrunner)
