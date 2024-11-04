@@ -57,6 +57,7 @@ target_link_libraries(coverage-bplib_nc-testrunner PUBLIC
     ut_assert
     bplib_fwp_stubs
     bplib_em_stubs
+    bplib_as_stubs
 )
 
 add_test(coverage-bplib_nc-testrunner coverage-bplib_nc-testrunner)

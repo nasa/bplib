@@ -299,7 +299,6 @@ typedef enum
 /* Externs */
 /* ======= */
 
-/* Global node counter packet manipulated by AS */
 extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
 extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
 extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
