@@ -328,9 +328,9 @@ BPLib_Status_t BPLib_AS_Init(void);
   * \param[in] Counter   (BPLib_AS_Counter_t) Counter to access
   * \param[in] ReturnPtr (uint32_t*) What the counter value requested is stored in
   * \return    Execution status
-  * \retval    BPLIB_AS_INVALID_CNTR: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
-  * \retval    BPLIB_AS_SOURCE_EID_MISSING: Source EID was -1 but the counter requested isn't a node-only counter
-  * \retval    BPLIB_AS_UNKNOWN_CNTR: The requested counter isn't a counter tracked by sources
+  * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
+  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
   * \retval    BPLIB_SUCCESS: Successful execution
   */
 BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t* ReturnPtr);
@@ -340,14 +340,14 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
  * \details   Mutator function for counters used by Admin Statistics
  * \note      This function assumes all modifiable counters are of type uint32_t
  * \param[in] SourceEid       (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
-  *                           array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
-  *                           whose value is to be returned.
+ *                            array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
+ *                            whose value is to be returned.
  * \param[in] Counter         (BPLib_AS_Counter_t) Counter to mutate
  * \param[in] DesiredValue    (uint32_t) Value that the caller wishes to set the counter represented by Counter and SourceEid
  * \return    Execution status
- * \retval    BPLIB_AS_INVALID_CNTR: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
- * \retval    BPLIB_AS_SOURCE_EID_MISSING: Source EID was -1 but the counter requested isn't a node-only counter
- * \retval    BPLIB_AS_UNKNOWN_CNTR: The requested counter isn't a counter tracked by sources
+ * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+ * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
+ * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
  */
 BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t DesiredValue);
@@ -362,9 +362,9 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
  * \return    Execution status
  * \retval    Status is determined by BPLib_AS_Get() and BPLib_AS_Set()
- * \retval    BPLIB_AS_INVALID_CNTR: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
- * \retval    BPLIB_AS_SOURCE_EID_MISSING: Source EID was -1 but the counter requested isn't a node-only counter
- * \retval    BPLIB_AS_UNKNOWN_CNTR: The requested counter isn't a counter tracked by sources
+ * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+ * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
+ * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
  */
 BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter);
@@ -379,9 +379,9 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
  * \return    Execution status
  * \retval    Status is determined by BPLib_AS_Get() and BPLib_AS_Set()
- * \retval    BPLIB_AS_INVALID_CNTR: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
- * \retval    BPLIB_AS_SOURCE_EID_MISSING: Source EID was -1 but the counter requested isn't a node-only counter
- * \retval    BPLIB_AS_UNKNOWN_CNTR: The requested counter isn't a counter tracked by sources
+ * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+ * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
+ * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
  */
 BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter);
@@ -393,9 +393,9 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
  * \param[in] void No arguments accepted
  * \return    Execution status
  * \retval    Status is determined by BPLib_AS_Set()
- * \retval    BPLIB_AS_INVALID_CNTR: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
- * \retval    BPLIB_AS_SOURCE_EID_MISSING: Source EID was -1 but the counter requested isn't a node-only counter
- * \retval    BPLIB_AS_UNKNOWN_CNTR: The requested counter isn't a counter tracked by sources
+ * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+ * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
+ * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
  */
 BPLib_Status_t BPLib_AS_ResetAllCounters(void);

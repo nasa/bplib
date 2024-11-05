@@ -58,13 +58,12 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
 
     if (SourceEid <= -2 || SourceEid >= BPLIB_MAX_NUM_SOURCE_EID)
     {
-        Status = BPLIB_AS_INVALID_CNTR;
+        Status = BPLIB_AS_INVALID_EID;
     }
     else
     {
         if (SourceEid == BPLIB_AS_NODE_EID)
-        {
-            // Node packet
+        { /* Node packet */
             switch (Counter)
             {
                 case BUNDLE_AGT_ACCPT_CNT:
@@ -296,13 +295,12 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
                     ReturnPtr = &BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord;
                     break;
                 default:
-                    Status = BPLIB_AS_SOURCE_EID_MISSING;
+                    Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
                     break;
             }
         }
         else
-        {
-            // Source packet        
+        { /* Source packet */
             switch (Counter)
             {
                 case BUNDLE_CNT_GEN_ACCPT:
@@ -468,7 +466,7 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
                     ReturnPtr = &BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedAdminRecord;
                     break;
                 default:
-                    Status = BPLIB_AS_UNKNOWN_CNTR;
+                    Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
                     break;
             }
         }
@@ -483,13 +481,13 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
     Status = BPLIB_SUCCESS;
 
     if (SourceEid <= -2 || SourceEid >= BPLIB_MAX_NUM_SOURCE_EID)
-    {
-        Status = BPLIB_AS_INVALID_CNTR;
+    { /* Provided source EID does not match an expected pattern */
+        Status = BPLIB_AS_INVALID_EID;
     }
     else
     {
         if (SourceEid == BPLIB_AS_NODE_EID)
-        {
+        { /* Node counter */
             switch(Counter)
             {
                 case BUNDLE_AGT_ACCPT_CNT:
@@ -559,12 +557,12 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
                     BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs = DesiredValue;
                     break;
                 default:
-                    Status = BPLIB_AS_SOURCE_EID_MISSING;
+                    Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
                     break;
             }
         }
         else
-        {
+        { /* Source counter */
             switch (Counter)
             {
                 case BUNDLE_CNT_GEN_ACCPT:
@@ -784,7 +782,7 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
                     BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedAdminRecord = DesiredValue;
                     break;
                 default:
-                    Status = BPLIB_AS_UNKNOWN_CNTR;
+                    Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
                     break;
             }
         }
@@ -798,16 +796,78 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
     BPLib_Status_t Status;
     uint32_t       CounterValue;
 
-    /* Obtain the value of the node counter */
+    /* Obtain the value of the counter */
     Status = BPLib_AS_Get(SourceEid, Counter, &CounterValue);
 
-    if (Status == BPLIB_SUCCESS)
-    {
-        /* Increment the node counter */
+    if (Status != BPLIB_SUCCESS)
+    { /* An error occured in BPLib_AS_Get() */
+        switch (Status)
+        {
+            case BPLIB_AS_INVALID_EID:
+                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_INVAL_EID_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not get counter %d to increment due to a source EID (%d) with unexpected pattern",
+                                    Counter,
+                                    SourceEid);
+
+                break;
+            case BPLIB_AS_UNKNOWN_NODE_CNTR:
+                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not get unrecognized node counter, %d, to increment",
+                                    Counter);
+
+                break;
+            case BPLIB_AS_UNKNOWN_SRC_CNTR:
+                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not get unrecognized source counter, %d, to increment",
+                                    Counter);
+
+                break;
+        }
+    }
+    else
+    { /* BPLib_AS_Get() was successful */
+        /* Increment the counter */
         CounterValue++;
 
         /* Set the incremented node counter and associated source counter(s) */
         Status = BPLib_AS_Set(SourceEid, Counter, CounterValue);
+
+        switch (Status)
+        {
+            case BPLIB_AS_INVALID_EID:
+                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_INVAL_EID_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not increment counter %d due to a source EID (%d) with unexpected pattern",
+                                    Counter,
+                                    SourceEid);
+
+                break;
+            case BPLIB_AS_UNKNOWN_NODE_CNTR:
+                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not increment unrecognized node counter %d",
+                                    Counter);
+
+                break;
+            case BPLIB_AS_UNKNOWN_SRC_CNTR:
+                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not increment unrecognized source counter %d",
+                                    Counter);
+        }
+    }
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_SUCCESS_EID,
+                            BPLib_EM_EventType_INFORMATION,
+                            "Successfully incremented counter %d, for source with EID %d to %d",
+                            Counter,
+                            SourceEid,
+                            CounterValue);
     }
 
     return Status;
@@ -821,13 +881,77 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
     /* Obtain the value of the node counter */
     Status = BPLib_AS_Get(SourceEid, Counter, &CounterValue);
 
-    if (Status == BPLIB_SUCCESS)
+    if (Status != BPLIB_SUCCESS)
+    { /* An error occured in BPLib_AS_Get() */
+        switch (Status)
+        {
+            case BPLIB_AS_INVALID_EID:
+                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_INVAL_EID_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not get counter %d to decrement due to a source EID (%d) with unexpected pattern",
+                                    Counter,
+                                    SourceEid);
+
+                break;
+            case BPLIB_AS_UNKNOWN_NODE_CNTR:
+                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not get unrecognized node counter, %d, to decrement",
+                                    Counter);
+
+                break;
+            case BPLIB_AS_UNKNOWN_SRC_CNTR:
+                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not get unrecognized source counter, %d, to decrement",
+                                    Counter);
+
+                break;
+        }
+    }
+    else
     {
         /* Decrement the node counter */
         CounterValue--;
 
         /* Set the decremented node counter and associated source counter(s) */
         Status = BPLib_AS_Set(SourceEid, Counter, CounterValue);
+
+        switch (Status)
+        {
+            case BPLIB_AS_INVALID_EID:
+                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_INVAL_EID_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not get counter %d to decrement due to a source EID (%d) with unexpected pattern",
+                                    Counter,
+                                    SourceEid);
+
+                break;
+            case BPLIB_AS_UNKNOWN_NODE_CNTR:
+                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not get unrecognized node counter, %d, to decrement",
+                                    Counter);
+
+                break;
+            case BPLIB_AS_UNKNOWN_SRC_CNTR:
+                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not get unrecognized source counter, %d, to decrement",
+                                    Counter);
+
+                break;
+        }
+    }
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_SUCCESS_EID,
+                            BPLib_EM_EventType_INFORMATION,
+                            "Successfully decremented counter %d, for source with EID %d to %d",
+                            Counter,
+                            SourceEid,
+                            CounterValue);
     }
 
     return Status;
@@ -836,43 +960,62 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
 BPLib_Status_t BPLib_AS_ResetAllCounters()
 {
     BPLib_Status_t Status;
+    BPLib_Status_t AS_Get_Status;
     uint16_t       CounterCtrl;
     int16_t        SourceCtrl;
+
+    Status = BPLIB_SUCCESS;
 
     for (SourceCtrl = 0; SourceCtrl < BPLIB_MAX_NUM_SOURCE_EID; SourceCtrl++)
     {
         for (CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_COUNTERS; CounterCtrl++)
         {
-            Status = BPLib_AS_Set(SourceCtrl, CounterCtrl, 0);
+            AS_Get_Status = BPLib_AS_Set(SourceCtrl, CounterCtrl, 0);
 
-            if (Status != BPLIB_SUCCESS)
+            switch (AS_Get_Status)
             {
-                switch (Status)
-                {
-                    case BPLIB_AS_INVALID_CNTR:
-                        // This error is unlikely to occur but this event is here in case it does
-                        BPLib_EM_SendEvent(BPLIB_AS_INVAL_CNTR_ERR_EID, BPLib_EM_EventType_ERROR,
-                                            "Invalid counter while resetting all counters, given: %d, expected: [0, %d]",
-                                            CounterCtrl,
-                                            BPLIB_AS_NUM_COUNTERS - 1);
-                        break;
-                    case BPLIB_AS_SOURCE_EID_MISSING:
-                        BPLib_EM_SendEvent(BPLIB_AS_SOURCE_EID_MISSING_ERR_EID, BPLib_EM_EventType_ERROR,
-                                            "Attempted to modify source counter without source EID");
-                        break;
-                    case BPLIB_AS_UNKNOWN_CNTR:
-                        BPLib_EM_SendEvent(BPLIB_AS_UNKNOWN_CNTR_ERR_EID, BPLib_EM_EventType_ERROR,
-                                            "Counter requested is within range [0, %d], but not accounted for in mutator function",
-                                            BPLIB_AS_NUM_COUNTERS - 1);
-                        break;
-                    default:
-                        // BPLIB_SUCCESS, continue
-                        break;
-                }
+                case BPLIB_AS_INVALID_EID:
+                    Status = BPLIB_AS_INVALID_EID;
 
-                break;
+                    BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_INVAL_EID_ERR_EID,
+                                        BPLib_EM_EventType_ERROR,
+                                        "Could not set counter %d to zero due to a source EID (%d) with unexpected pattern",
+                                        CounterCtrl,
+                                        SourceCtrl);
+
+                    break;
+                case BPLIB_AS_UNKNOWN_NODE_CNTR:
+                    Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
+
+                    BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_UNKNOWN_NODE_CNTR_ERR_EID,
+                                        BPLib_EM_EventType_ERROR,
+                                        "Could not set unrecognized node counter, %d, to zero",
+                                        CounterCtrl);
+
+                    break;
+                case BPLIB_AS_UNKNOWN_SRC_CNTR:
+                    Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
+
+                    BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_UNKNOWN_SRC_CNTR_ERR_EID,
+                                        BPLib_EM_EventType_ERROR,
+                                        "Could not set unrecognized source counter, %d, to zero",
+                                        CounterCtrl);
+
+                    break;
             }
+
+            /* 
+            ** This loop will continue even if an error occurs just so that 
+            ** all possible counters will be reset to 0
+            */
         }
+    }
+
+    if (Status == BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_SUCCESS_EID,
+                            BPLib_EM_EventType_INFORMATION,
+                            "Successfully set the counters for node and every source to 0");
     }
 
     return Status;

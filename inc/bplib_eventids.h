@@ -29,9 +29,9 @@
 
 #define BPLIB_RESERVED_EID                              (500u)
 
-/* ========================= */
-/* === Success event IDs === */
-/* ========================= */
+/* ============ */
+/* NC Event IDs */
+/* ============ */
 
 /* NC success event IDs */
 #define BPLIB_NC_ADD_ALL_APPS_SUCCESS_EID               (501u)
@@ -73,17 +73,6 @@
 #define BPLIB_NC_RM_STOR_ALLOC_SUCCESS_EID              (537u)
 #define BPLIB_NC_PERFORM_SELF_TEST_SUCCESS_EID          (538u)
 
-/* AS success event IDs */
-#define BPLIB_AS_INIT_SUCCESS_EID                       (539u)
-#define BPLIB_AS_GET_SUCCESS_EID                        (540u)
-#define BPLIB_AS_SET_SUCCESS_EID                        (541u)
-#define BPLIB_AS_INCREMENT_SUCCESS_EID                  (542u)
-#define BPLIB_AS_DECREMENT_SUCCESS_EID                  (543u)
-
-/* ======================= */
-/* === Error event IDs === */
-/* ======================= */
-
 /* NC error event IDs */
 #define BPLIB_NC_ADD_ALL_APPS_ERR_EID                   (539u)
 #define BPLIB_NC_START_ALL_APPS_ERR_EID                 (540u)
@@ -123,10 +112,25 @@
 #define BPLIB_NC_RM_STOR_ALLOC_ERR_EID                  (574u)
 #define BPLIB_NC_PERFORM_SELF_TEST_ERR_EID              (575u)
 
-/* AS error event IDs */
-#define BPLIB_AS_INVAL_CNTR_ERR_EID                     (576u)
-#define BPLIB_AS_SOURCE_EID_MISSING_ERR_EID             (577u)
-#define BPLIB_AS_UNKNOWN_CNTR_ERR_EID                   (578u)
+/* ============ */
+/* AS event IDs */
+/* ============ */
 
+/* AS success event IDs */
+#define BPLIB_AS_INIT_SUCCESS_EID                       (576u)
+#define BPLIB_AS_INCREMENT_SUCCESS_EID                  (577u)
+#define BPLIB_AS_DECREMENT_SUCCESS_EID                  (578u)
+#define BPLIB_AS_RESET_ALL_SUCCESS_EID                  (579u)
+
+/* AS error event IDs */
+#define BPLIB_AS_INCREMENT_INVAL_EID_ERR_EID            (580u)
+#define BPLIB_AS_INCREMENT_UNKNOWN_NODE_CNTR_ERR_EID    (581u)
+#define BPLIB_AS_INCREMENT_UNKNOWN_SRC_CNTR_ERR_EID     (582u)
+#define BPLIB_AS_DECREMENT_INVAL_EID_ERR_EID            (583u)
+#define BPLIB_AS_DECREMENT_UNKNOWN_NODE_CNTR_ERR_EID    (584u)
+#define BPLIB_AS_DECREMENT_UNKNOWN_SRC_CNTR_ERR_EID     (585u)
+#define BPLIB_AS_RESET_ALL_INVAL_EID_ERR_EID            (586u)
+#define BPLIB_AS_RESET_ALL_UNKNOWN_NODE_CNTR_ERR_EID    (587u)
+#define BPLIB_AS_RESET_ALL_UNKNOWN_SRC_CNTR_ERR_EID     (588u)
 
 #endif /* BPLIB_EVENTIDS_H */
