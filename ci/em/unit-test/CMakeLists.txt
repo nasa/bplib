@@ -50,12 +50,14 @@ target_include_directories(coverage-bplib_em-testrunner PRIVATE
     utilities/
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bpa_fwp_stubs,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_em-testrunner PUBLIC
     ut_coverage_link
     ut_assert
     bplib_fwp_stubs
+    bpa_fwp_stubs
 )
 
 add_test(coverage-bplib_em-testrunner coverage-bplib_em-testrunner)
