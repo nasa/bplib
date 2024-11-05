@@ -799,7 +799,7 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
     uint32_t       CounterValue;
 
     /* Obtain the value of the node counter */
-    Status = BPLib_AS_Get(BPLIB_AS_NODE_EID, Counter, &CounterValue);
+    Status = BPLib_AS_Get(SourceEid, Counter, &CounterValue);
 
     if (Status == BPLIB_SUCCESS)
     {
@@ -819,12 +819,12 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
     uint32_t       CounterValue;
 
     /* Obtain the value of the node counter */
-    Status = BPLib_AS_Get(BPLIB_AS_NODE_EID, Counter, &CounterValue);
+    Status = BPLib_AS_Get(SourceEid, Counter, &CounterValue);
 
     if (Status == BPLIB_SUCCESS)
     {
         /* Decrement the node counter */
-        CounterValue++;
+        CounterValue--;
 
         /* Set the decremented node counter and associated source counter(s) */
         Status = BPLib_AS_Set(SourceEid, Counter, CounterValue);
