@@ -456,8 +456,6 @@ void Test_BPLib_NC_AddApplication_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_ADD_APP_SUCCESS_EID,
     //                     "Successful add-application directive for ChanId=%d");
 
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication = Test_BPA_ADUP_AddApplication_Success;
-
     Payload.ChanId = 1;
     Status = BPLib_NC_AddApplication(Payload);
 
@@ -474,7 +472,7 @@ void Test_BPLib_NC_AddApplication_Error(void)
     //                     "Successful add-application directive for ChanId=%d");
 
     /* Check channel error return code */
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication = Test_BPA_ADUP_AddApplication_ChanErr;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ADU_ADD_CHAN_ERR);
 
     Payload.ChanId = 2;
     Status = BPLib_NC_AddApplication(Payload);
@@ -483,7 +481,7 @@ void Test_BPLib_NC_AddApplication_Error(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_ADD_CHAN_ERR);
     
     /* Check state error return code */
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication = Test_BPA_ADUP_AddApplication_StateErr;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ADU_ADD_STAT_ERR);
     
     Payload.ChanId = 2;
     Status = BPLib_NC_AddApplication(Payload);
@@ -564,8 +562,6 @@ void Test_BPLib_NC_StartApplication_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_START_APP_SUCCESS_EID,
     //                     "Successful start-application directive for ChanId=1");
 
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication = Test_BPA_ADUP_StartApplication_Success;
-
     Payload.ChanId = 1;
     Status = BPLib_NC_StartApplication(Payload);
 
@@ -582,7 +578,7 @@ void Test_BPLib_NC_StartApplication_Error(void)
     //                     "Successful start-application directive for ChanId=1");
 
     /* Channel error return code check */
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication = Test_BPA_ADUP_StartApplication_ChanErr;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ADU_START_CHAN_ERR);
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StartApplication(Payload);
@@ -591,7 +587,7 @@ void Test_BPLib_NC_StartApplication_Error(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_START_CHAN_ERR);
 
     /* State error return code check */
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication = Test_BPA_ADUP_StartApplication_StateErr;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ADU_START_STAT_ERR);
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StartApplication(Payload);
@@ -600,7 +596,7 @@ void Test_BPLib_NC_StartApplication_Error(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_START_STAT_ERR);
 
     /* Subscribe error return code check */
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication = Test_BPA_ADUP_StartApplication_SubErr;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ADU_START_SUB_ERR);
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StartApplication(Payload);
@@ -616,8 +612,6 @@ void Test_BPLib_NC_StopApplication_Nominal(void)
 
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_STOP_APP_SUCCESS_EID,
     //                     "Successful stop-application directive for ChanId=5");
-
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication = Test_BPA_ADUP_StopApplication_Success;
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StopApplication(Payload);
@@ -635,7 +629,7 @@ void Test_BPLib_NC_StopApplication_Error(void)
     //                     "Successful stop-application directive for ChanId=5");
 
     /* Invalid channel return code test */
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication = Test_BPA_ADUP_StopApplication_ChanErr;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ADU_STOP_CHAN_ERR);
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StopApplication(Payload);
@@ -644,7 +638,7 @@ void Test_BPLib_NC_StopApplication_Error(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_STOP_CHAN_ERR);
 
     /* Invalid state return code test */
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication = Test_BPA_ADUP_StopApplication_StateErr;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ADU_STOP_STAT_ERR);
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StopApplication(Payload);
@@ -653,7 +647,7 @@ void Test_BPLib_NC_StopApplication_Error(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_STOP_STAT_ERR);
 
     /* Unsubscribe error return code test */
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication = Test_BPA_ADUP_StopApplication_UnsubErr;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ADU_STOP_UNSUB_ERR);
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StopApplication(Payload);

@@ -30,6 +30,7 @@
 #include "uttest.h"
 
 #include "bplib_nc.h"
+#include "bpa_fwp_stubs.h" /* For ADUP stubs */
 
 /* ====== */
 /* Macros */
