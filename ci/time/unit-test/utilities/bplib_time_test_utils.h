@@ -39,6 +39,12 @@
 ** Macro Definitions
 */
 
+extern uint16_t TestEpochYear;
+
+/*
+** Macro Definitions
+*/
+
 /* Macro to add test case */
 #define ADD_TEST(test) UtTest_Add(test, BPLib_TIME_Test_Setup, BPLib_TIME_Test_Teardown, #test)
 

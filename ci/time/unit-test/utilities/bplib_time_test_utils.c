@@ -24,10 +24,30 @@
 
 #include "bplib_time_test_utils.h"
 
+/*
+** Global Data
+*/
+
+uint16_t TestEpochYear;
+
 
 /*
 ** Function Definitions
 */
+
+
+/* */
+void UT_BPA_TIMEP_GetHostEpoch_Handler(void *UserObj, UT_EntryKey_t FuncKey, 
+                                              const UT_StubContext_t *Context)
+{
+    BPLib_TIME_Epoch_t *Epoch = (BPLib_TIME_Epoch_t *) UT_Hook_GetArgValueByName(Context, 
+                                                            "Epoch", BPLib_TIME_Epoch_t *);
+
+    memset(Epoch, 0, sizeof(BPLib_TIME_Epoch_t));
+    
+    Epoch->Year = TestEpochYear;
+    Epoch->Day = 1;
+}
 
 void BPLib_TIME_Test_Setup(void)
 {
@@ -45,6 +65,13 @@ void BPLib_TIME_Test_Setup(void)
     BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch = BPA_TIMEP_GetHostEpoch;
     BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime;
     BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime;
+
+    /* Default host epoch is 1970 */
+    TestEpochYear = 1970;
+
+    UT_SetHandlerFunction(UT_KEY(BPA_TIMEP_GetHostEpoch), 
+                                UT_BPA_TIMEP_GetHostEpoch_Handler, NULL);
+
 }
 
 void BPLib_TIME_Test_Teardown(void)

@@ -282,8 +282,6 @@ int64_t BPLib_TIME_GetEpochOffset(void)
     /* Get host epoch */
     BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch(&HostEpoch);
 
-    printf("Host epoch year is %d\n", HostEpoch.Year);
-
     /* Get offsets in milliseconds and add them to the epoch offset */
     EpochOffset += BPLib_TIME_SafeOffset(HostEpoch.Year, BPLIB_TIME_EPOCH_YEAR, 
                                                             BPLIB_TIME_YEAR_IN_MSEC);

@@ -38,18 +38,9 @@
 void Test_BPLib_TIME_Init_Nominal(void)
 {
     int64_t ExpEpochOffset;
-    BPLib_TIME_Epoch_t TestEpoch;
-
-    /* Set test epoch data */
-    memset(&TestEpoch, 0, sizeof(BPLib_TIME_Epoch_t));
-
-    TestEpoch.Year = 1970;
-    TestEpoch.Day = 1;
-
-    UT_SetDataBuffer(UT_KEY(BPA_TIMEP_GetHostEpoch), &TestEpoch, sizeof(TestEpoch), false);
 
     /* Calculate expected epoch offset */
-    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestEpoch.Year;
+    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestEpochYear;
     ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
     ExpEpochOffset += (7 * BPLIB_TIME_DAY_IN_MSEC);
     ExpEpochOffset *= -1;
@@ -109,18 +100,9 @@ void Test_BPLib_TIME_Init_ProxyNull4(void)
 void Test_BPLib_TIME_Init_FailedRead(void)
 {
     int64_t ExpEpochOffset;
-    BPLib_TIME_Epoch_t TestEpoch;
-
-    /* Set test epoch data */
-    memset(&TestEpoch, 0, sizeof(BPLib_TIME_Epoch_t));
-
-    TestEpoch.Year = 1970;
-    TestEpoch.Day = 1;
-
-    UT_SetDataBuffer(UT_KEY(BPA_TIMEP_GetHostEpoch), &TestEpoch, sizeof(TestEpoch), false);
 
     /* Calculate expected epoch offset */
-    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestEpoch.Year;
+    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestEpochYear;
     ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
     ExpEpochOffset += (7 * BPLIB_TIME_DAY_IN_MSEC);
     ExpEpochOffset *= -1;
