@@ -37,11 +37,19 @@
 /* Macros */
 /* ====== */
 
-/** \brief Number of MIB counters used for looping */
-#define BPLIB_AS_NUM_COUNTERS 76
+#define BPLIB_AS_NUM_COUNTERS (76u) /** \brief Total number of MIB counters */
 
-/** \brief Enum for start of counters only present in node packets */
-#define BPLIB_AS_NODE_ONLY_CNTRS_START 54
+/* Macros used to indicate where the source-related counters are in the BPLib_AS_Counters_t enum */
+#define BPLIB_AS_SRC_CNTRS_START 0       /** \brief Enum value of first source-related counter */
+#define BPLIB_AS_SRC_CNTRS_END   (54u)   /** \brief Enum value of last source-related counter */
+
+/* Macros used to indicate where the node-related counters are in the BPLib_AS_Counters_t enum */
+#define BPLIB_AS_NODE_ONLY_CNTRS_START (BPLIB_AS_SRC_CNTRS_END + 1) /** \brief Enum value of first node only counter */
+#define BPLIB_AS_NODE_ONLY_CNTRS_END   (BPLIB_AS_NUM_COUNTERS)      /** \brief Enum value of last node only counter */
+
+/* Macros used to indicate where the bundle-related counters are in the BPLib_AS_Counters_t enum */
+#define BPLIB_AS_BUNDLE_CNTRS_START (7u)    /** \brief Enum value of first bundle-related counter */
+#define BPLIB_AS_BUNDLE_CNTRS_START (70u)   /** \brief Enum value of last bundle-related counter */
 
 /** \brief Node counter EID designator */
 #define BPLIB_AS_NODE_EID -1
@@ -221,84 +229,84 @@ typedef struct
 typedef enum
 {
     /* Counters in node and source packets */
-    BUNDLE_CNT_GEN_ACCPT         = 0 , /** \brief Number of Accepted Bundle Transmission Requests  */
-    BUNDLE_CNT_GEN_REJ           = 1 , /** \brief Number of Rejected Bundle Transmission Requests */
-    BUNDLE_CNT_GEN_FRAG          = 2 , /** \brief Number of Bundle Fragments that were Generated */
-    BUNDLE_CNT_RECV              = 3 , /** \brief Number of Bundles Received from another DTN Node */
-    BUNDLE_CNT_RECV_FRAG         = 4 , /** \brief Number of Bundles Received that were Marked as Fragments */
-    BUNDLE_CNT_UNPROC_BLKS       = 5 , /** \brief Number of Unprocessed Blocks Removed from Received Bundles */
-    BUNDLE_CNT_FORW              = 6 , /** \brief Number of Bundles Forwarded to another DTN Node */
-    BUNDLE_CNT_RET               = 7 , /** \brief Number of Bundles Returned to Sender */
-    BUNDLE_CNT_FRAG              = 8 , /** \brief Number of Bundles that needed to be Fragmented  */
-    BUNDLE_CNT_REASSEMBLED       = 9 , /** \brief Total number of Bundles delivered that were fragments and needed to be reassembled */
-    BUNDLE_CNT_FRAG_ERR          = 10, /** \brief Number of Fragments discarded due to bad offset or ADU length */
-    BUNDLE_CNT_DELVR             = 11, /** \brief Total number of Bundles Delivered to this node, including fragments */
-    BUNDLE_CNT_ABAND             = 12, /** \brief Number of Abandoned Bundle Payloads */
-    ADU_CNT_DELVR                = 13, /** \brief Number of ADUs Delivered to the application */
-    BUNDLE_CNT_DEL               = 14, /** \brief Total Number of Bundle Deletions */
-    BUNDLE_CNT_DEL_EXP           = 15, /** \brief Number of Bundles Deletions due to Lifetime Expired Condition */
-    BUNDLE_CNT_DEL_HOP_EXCD      = 16, /** \brief Number of Bundles Deletions due to Hop Limit Exceeded Condition */
-    BUNDLE_CNT_DEL_INVAL_PAY     = 17, /** \brief Number of Bundle Deletions due having a Corrupted Payload Block */
-    BUNDLE_CNT_DEL_FORW_FAILED   = 18, /** \brief Number of Bundles Deletions due to Forwarding Failed Condition */
-    BUNDLE_CNT_DEL_TRAF_PARED    = 19, /** \brief Number of Bundles Deletions due to Traffic Pared Condition */
-    BUNDLE_CNT_DEL_UNINTEL       = 20, /** \brief Number of Bundles Deletions due to Block Unintelligible Condition */
-    BUNDLE_CNT_DEL_UNSUPPORT_BLK = 21, /** \brief Number of Bundles Deletions due to Unsupported Block Condition */
-    BUNDLE_CNT_DEL_CANCELLED     = 22, /** \brief Number of Bundles Deletions due to Transmission Cancelled Condition */
-    BUNDLE_CNT_DISCARDED         = 23, /** \brief Number of Bundles Discarded */
-    BUNDLE_CNT_DEL_NO_STOR       = 24, /** \brief Number of Bundles deleted due to insufficient storage */
-    BUNDLE_CNT_DEL_BAD_EID       = 25, /** \brief Number of Bundles deleted due to having a unrecognized destination EID */
-    BUNDLE_CNT_DEL_TOO_LONG      = 26, /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
-    BUNDLE_CNT_CUSTODY_TRANS     = 27, /** \brief Number of successful Custody Transfers from the Local node to the next neighboring Custodian Node */
-    BUNDLE_CNT_CUSTODY_REJ       = 28, /** \brief Number of unsuccessful Custody Transfers from the Local node to the next neighboring Custodian Node */
-    BUNDLE_CNT_CUSTODY_REQ       = 29, /** \brief Number of bundles received that are requesting Custody Transfer */
-    BUNDLE_CNT_CUSTODY_RE_FORW   = 30, /** \brief Number of Bundles reforward due to custody timeout */
-    BUNDLE_CNT_NO_FURTHER_INFO   = 31, /** \brief Number of bundles for which successful Custody Signals generated with No Further Information */
-    BUNDLE_CNT_RED               = 32, /** \brief Number of bundles for which successful Custody Signals generated for Duplicate Bundle reception */
-    BUNDLE_CNT_DEPLETED          = 33, /** \brief Number of bundles for which rejected Custody Signals generated indicating rejection due to depleted storage */
-    BUNDLE_CNT_UNINTEL_EID       = 34, /** \brief Number of bundles for which rejected Custody Signals generated indicating the any EID in the Primary Header is unknown */
-    BUNDLE_CNT_NO_ROUTE          = 35, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable */
-    BUNDLE_CNT_NO_CONTACT        = 36, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable before the Bundle expires */
-    BUNDLE_CNT_UNINTEL_BLK       = 37, /** \brief Number of bundles for which Custody Signals indicating the Bundle contained an unknown block type */
-    BUNDLE_CNT_RECV_CS           = 38, /** \brief Number of bundles for which Custody Signals Received */
-    BUNDLE_CNT_GEN_CS            = 39, /** \brief Number of bundles for which Custody Signals Generated */
-    BUNDLE_CNT_REJ_CUSTODY       = 40, /** \brief Number of Bundles where this node rejected custody. */
-    ADU_CNT_RECV                 = 41, /** \brief Number of ADUs Received from the application */
-    BUNDLE_CNT_FORW_FAILED       = 42, /** \brief Number of Bundles where forwarding to another DTN Node failed */
-    BUNDLE_CNT_RECV_BSR_RECV     = 43, /** \brief Number of Bundle Reception Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_BSR_ACCPT    = 44, /** \brief Number of Bundle Custody Accepted Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_BSR_FORW     = 45, /** \brief Number of Bundle Forwarded Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_BSR_DELVR    = 46, /** \brief Number of Bundle Delivered Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_BSR_DEL      = 47, /** \brief Number of Bundle Deleted Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_CRS_RECV     = 48, /** \brief Number of received bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of received bundles per source node ID. */
-    BUNDLE_CNT_RECV_CRS_ACCPT    = 49, /** \brief Number of accepted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of accepted bundles per source node ID. */
-    BUNDLE_CNT_RECV_CRS_FORW     = 50, /** \brief Number of forwarded bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of forwarded bundles per source node ID. */
-    BUNDLE_CNT_RECV_CRS_DELVR    = 51, /** \brief Number of delivered bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of delivered bundles per source node ID. */
-    BUNDLE_CNT_RECV_CRS_DEL      = 52, /** \brief Number of deleted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of deleted bundles per source node ID. */
-    BUNDLE_CNT_RECV_ADMIN_REC    = 53, /** \brief Number of admin record bundles received for this DTN Node. */
+    BUNDLE_CNT_RECV_ADMIN_REC    =  0, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedAdminRecord     | BPLib_SourceMibCountersSet_t::BundleCountReceivedAdminRecord */
+    BUNDLE_CNT_RET               =  1, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReturned                | BPLib_SourceMibCountersSet_t::BundleCountReturned */
+    BUNDLE_CNT_DEL_FORW_FAILED   =  2, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedForwardFailed    | BPLib_SourceMibCountersSet_t::BundleCountDeletedForwardFailed */
+    BUNDLE_CNT_DEL_CANCELLED     =  3, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedCancelled        | BPLib_SourceMibCountersSet_t::BundleCountDeletedCancelled */
+    BUNDLE_CNT_DEL_BAD_EID       =  4, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedBadEid           | BPLib_SourceMibCountersSet_t::BundleCountDeletedBadEid */
+    BUNDLE_CNT_NO_ROUTE          =  5, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountNoRoute                 | BPLib_SourceMibCountersSet_t::BundleCountNoRoute */
+    BUNDLE_CNT_NO_CONTACT        =  6, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountNoContact               | BPLib_SourceMibCountersSet_t::BundleCountNoContact */
+    ADU_CNT_DELVR                =  7, /* BPLib_NodeMibCountersHkTlm_Payload_t::AduCountDelivered                  | BPLib_SourceMibCountersSet_t::AduCountDelivered */
+    ADU_CNT_RECV                 =  8, /* BPLib_NodeMibCountersHkTlm_Payload_t::AduCountReceived                   | BPLib_SourceMibCountersSet_t::AduCountReceived */
+    BUNDLE_CNT_GEN_ACCPT         =  9, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedAccepted       | BPLib_SourceMibCountersSet_t::BundleCountGeneratedAccepted */
+    BUNDLE_CNT_GEN_REJ           = 10, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedRejected       | BPLib_SourceMibCountersSet_t::BundleCountGeneratedRejected */
+    BUNDLE_CNT_GEN_FRAG          = 11, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedFragment       | BPLib_SourceMibCountersSet_t::BundleCountGeneratedFragment */
+    BUNDLE_CNT_RECV              = 12, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceived                | BPLib_SourceMibCountersSet_t::BundleCountReceived */
+    BUNDLE_CNT_RECV_FRAG         = 13, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedFragment        | BPLib_SourceMibCountersSet_t::BundleCountReceivedFragment */
+    BUNDLE_CNT_UNPROC_BLKS       = 14, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountUnprocessedBlocks       | BPLib_SourceMibCountersSet_t::BundleCountUnprocessedBlocks */
+    BUNDLE_CNT_FORW              = 15, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountForwarded               | BPLib_SourceMibCountersSet_t::BundleCountForwarded */
+    BUNDLE_CNT_FRAG              = 16, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountFragmented              | BPLib_SourceMibCountersSet_t::BundleCountFragmented */
+    BUNDLE_CNT_REASSEMBLED       = 17, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReassembled             | BPLib_SourceMibCountersSet_t::BundleCountReassembled */
+    BUNDLE_CNT_FRAG_ERR          = 18, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountFragmentError           | BPLib_SourceMibCountersSet_t::BundleCountFragmentError */
+    BUNDLE_CNT_DELVR             = 19, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDelivered               | BPLib_SourceMibCountersSet_t::BundleCountDelivered */
+    BUNDLE_CNT_ABAND             = 20, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountAbandoned               | BPLib_SourceMibCountersSet_t::BundleCountAbandoned */
+    BUNDLE_CNT_DEL               = 21, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeleted                 | BPLib_SourceMibCountersSet_t::BundleCountDeleted */
+    BUNDLE_CNT_DEL_EXP           = 22, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedExpired          | BPLib_SourceMibCountersSet_t::BundleCountDeletedExpired */
+    BUNDLE_CNT_DEL_HOP_EXCD      = 23, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedHopExceeded      | BPLib_SourceMibCountersSet_t::BundleCountDeletedHopExceeded */
+    BUNDLE_CNT_DEL_INVAL_PAY     = 24, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedInvalidPayload   | BPLib_SourceMibCountersSet_t::BundleCountDeletedInvalidPayload */
+    BUNDLE_CNT_DEL_TRAF_PARED    = 25, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedTrafficPared     | BPLib_SourceMibCountersSet_t::BundleCountDeletedTrafficPared */
+    BUNDLE_CNT_DEL_UNINTEL       = 26, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedUnintelligible   | BPLib_SourceMibCountersSet_t::BundleCountDeletedUnintelligible */
+    BUNDLE_CNT_DEL_UNSUPPORT_BLK = 27, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedUnsupportedBlock | BPLib_SourceMibCountersSet_t::BundleCountDeletedUnsupportedBlock */
+    BUNDLE_CNT_DISCARDED         = 28, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDiscarded               | BPLib_SourceMibCountersSet_t::BundleCountDiscarded */
+    BUNDLE_CNT_DEL_NO_STOR       = 29, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedNoStorage        | BPLib_SourceMibCountersSet_t::BundleCountDeletedNoStorage */
+    BUNDLE_CNT_DEL_TOO_LONG      = 30, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedTooLong          | BPLib_SourceMibCountersSet_t::BundleCountDeletedTooLong */
+    BUNDLE_CNT_CUSTODY_TRANS     = 31, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountCustodyTransferred      | BPLib_SourceMibCountersSet_t::BundleCountCustodyTransferred */
+    BUNDLE_CNT_CUSTODY_REJ       = 32, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountCustodyRejected         | BPLib_SourceMibCountersSet_t::BundleCountCustodyRejected */
+    BUNDLE_CNT_CUSTODY_REQ       = 33, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountCustodyRequest          | BPLib_SourceMibCountersSet_t::BundleCountCustodyRequest */
+    BUNDLE_CNT_CUSTODY_RE_FORW   = 34, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountCustodyReForwarded      | BPLib_SourceMibCountersSet_t::BundleCountCustodyReForwarded */
+    BUNDLE_CNT_NO_FURTHER_INFO   = 35, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountNoFurtherInfo           | BPLib_SourceMibCountersSet_t::BundleCountNoFurtherInfo */
+    BUNDLE_CNT_RED               = 36, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountRedundant               | BPLib_SourceMibCountersSet_t::BundleCountRedundant */
+    BUNDLE_CNT_DEPLETED          = 37, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDepleted                | BPLib_SourceMibCountersSet_t::BundleCountDepleted */
+    BUNDLE_CNT_UNINTEL_EID       = 38, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountUnintelligibleEid       | BPLib_SourceMibCountersSet_t::BundleCountUnintelligibleEid */
+    BUNDLE_CNT_UNINTEL_BLK       = 39, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountUnintelligibleBlock     | BPLib_SourceMibCountersSet_t::BundleCountUnintelligibleBlock */
+    BUNDLE_CNT_RECV_CS           = 40, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedCustodySignal   | BPLib_SourceMibCountersSet_t::BundleCountReceivedCustodySignal */
+    BUNDLE_CNT_GEN_CS            = 41, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedCustodySignal  | BPLib_SourceMibCountersSet_t::BundleCountGeneratedCustodySignal */
+    BUNDLE_CNT_REJ_CUSTODY       = 42, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountRejectedCustody         | BPLib_SourceMibCountersSet_t::BundleCountRejectedCustody */
+    BUNDLE_CNT_FORW_FAILED       = 43, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountForwardedFailed         | BPLib_SourceMibCountersSet_t::BundleCountForwardedFailed */
+    BUNDLE_CNT_RECV_BSR_RECV     = 44, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedBsrReceived     | BPLib_SourceMibCountersSet_t::BundleCountReceivedBsrReceived */
+    BUNDLE_CNT_RECV_BSR_ACCPT    = 45, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedBsrAccepted     | BPLib_SourceMibCountersSet_t::BundleCountReceivedBsrAccepted */
+    BUNDLE_CNT_RECV_BSR_FORW     = 46, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedBsrForwarded    | BPLib_SourceMibCountersSet_t::BundleCountReceivedBsrForwarded */
+    BUNDLE_CNT_RECV_BSR_DELVR    = 47, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedBsrDelivered    | BPLib_SourceMibCountersSet_t::BundleCountReceivedBsrDelivered */
+    BUNDLE_CNT_RECV_BSR_DEL      = 48, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedBsrDeleted      | BPLib_SourceMibCountersSet_t::BundleCountReceivedBsrDeleted */
+    BUNDLE_CNT_RECV_CRS_RECV     = 49, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedCrsReceived     | BPLib_SourceMibCountersSet_t::BundleCountReceivedCrsReceived */
+    BUNDLE_CNT_RECV_CRS_ACCPT    = 50, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedCrsAccepted     | BPLib_SourceMibCountersSet_t::BundleCountReceivedCrsAccepted */
+    BUNDLE_CNT_RECV_CRS_FORW     = 51, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedCrsForwarded    | BPLib_SourceMibCountersSet_t::BundleCountReceivedCrsForwarded */
+    BUNDLE_CNT_RECV_CRS_DELVR    = 52, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedCrsDelivered    | BPLib_SourceMibCountersSet_t::BundleCountReceivedCrsDelivered */
+    BUNDLE_CNT_RECV_CRS_DEL      = 53, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedCrsDeleted      | BPLib_SourceMibCountersSet_t::BundleCountReceivedCrsDeleted */
+    BUNDLE_CNT_MAX_BSR_RATE_EXCD = 54, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountMaxBsrRateExceeded      | BPLib_SourceMibCountersSet_t::BundleCountMaxBsrRateExceeded */
 
     /* Counters only in node packets */
-    BUNDLE_AGT_ACCPT_CNT         = 54, /** \brief Number of control directives received from the Monitor and Control interface that have been accepted */
-    BUNDLE_AGT_REJ_CNT           = 55, /** \brief Number of control directives received from the Monitor and Control interface that have been rejected as being invalid */
-    BUNDLE_CNT_GEN_CUSTODY       = 56, /** \brief Number of Custody Signal Bundles generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_RECV      = 57, /** \brief Number of Bundle Reception Status Report generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_ACCPT     = 58, /** \brief Number of Bundle Custody Accepted Status Report generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_FORW      = 59, /** \brief Number of Bundle Forwarded Status Report generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_DELVR     = 60, /** \brief Number of Bundle Delivered Status Report generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_DEL       = 61, /** \brief Number of Bundle Deleted Status Report generated since the last counter reset */
-    BUNDLE_CNT_MAX_BSR_RATE_EXCD = 62, /** \brief Number of BSR bundles not sent because sending would exceed a maximum rate. */
-    BUNDLE_CNT_GEN_ANON          = 63, /** \brief Number of Anonomous Bundles Created */
-    BUNDLE_CNT_INVAL_PRI_BLK     = 64, /** \brief Number of Unprocessed Bundles received with Invalid Primary Blocks */
-    BUNDLE_CNT_CS_RECV           = 65, /** \brief Number of Custody Signal Bundles received */
-    BUNDLE_CNT_DEL_UNAUTH        = 66, /** \brief Number of Bundles deleted due to having a unrecognized source EID. Incremented if the bundle is not in the set of authorized source EIDs configured for the node. */
-    BUNDLE_CNT_GEN_CRS_RECV      = 67, /** \brief Number of received bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_GEN_CRS_ACCPT     = 68, /** \brief Number of accepted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_GEN_CRS_FORW      = 69, /** \brief Number of forwarded bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_GEN_CRS_DELVR     = 70, /** \brief Number of delivered bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_GEN_CRS_DEL       = 71, /** \brief Number of deleted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_MAX_CRS_RATE_EXCD = 72, /** \brief Number of CRS bundles not sent because sending would exceed a maximum rate. */
-    NODE_STARTUP_CNTR            = 73, /** \brief Number of times a node is started up. */
-    BUNDLE_CNT_GEN_CRS           = 74, /** \brief Number of Compressed Reporting Signal (CRS) generated since last counter reset. */
-    BUNDLE_CNT_RECV_CRS          = 75, /** \brief Number of Compressed Reporting Signals (CRSs) received since last counter reset. */
+    BUNDLE_CNT_GEN_CUSTODY       = 55, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedCustody */
+    BUNDLE_CNT_GEN_BSR_RECV      = 56, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedBsrReceived */
+    BUNDLE_CNT_GEN_BSR_ACCPT     = 57, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedBsrAccepted */
+    BUNDLE_CNT_GEN_BSR_FORW      = 58, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedBsrForwarded */
+    BUNDLE_CNT_GEN_BSR_DELVR     = 59, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedBsrDelivered */
+    BUNDLE_CNT_GEN_BSR_DEL       = 60, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedBsrDeleted */
+    BUNDLE_CNT_INVAL_PRI_BLK     = 61, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountInvalidPrimaryBlock */
+    BUNDLE_CNT_CS_RECV           = 62, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountCustodySignalReceived */
+    BUNDLE_CNT_GEN_CRS_RECV      = 63, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedCrsReceived */
+    BUNDLE_CNT_GEN_CRS_ACCPT     = 64, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedCrsAccepted */
+    BUNDLE_CNT_GEN_CRS_FORW      = 65, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedCrsForwarded */
+    BUNDLE_CNT_GEN_CRS_DELVR     = 66, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedCrsDelivered */
+    BUNDLE_CNT_GEN_CRS_DEL       = 67, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedCrsDeleted */
+    BUNDLE_CNT_MAX_CRS_RATE_EXCD = 68, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountMaxCrsRateExceeded */
+    BUNDLE_CNT_GEN_CRS           = 69, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedCrs */
+    BUNDLE_CNT_RECV_CRS          = 70, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountReceivedCrs */
+    BUNDLE_CNT_DEL_UNAUTH        = 71, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountDeletedUnauthorized */
+    BUNDLE_CNT_GEN_ANON          = 72, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleCountGeneratedAnonymous */
+    NODE_STARTUP_CNTR            = 73, /* BPLib_NodeMibCountersHkTlm_Payload_t::NodeStartupCounter */
+    BUNDLE_AGT_ACCPT_CNT         = 74, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleAgentAcceptedDirectiveCount */
+    BUNDLE_AGT_REJ_CNT           = 75, /* BPLib_NodeMibCountersHkTlm_Payload_t::BundleAgentRejectedDirectiveCount */
 } BPLib_AS_Counter_t;
 
 /* ======= */
