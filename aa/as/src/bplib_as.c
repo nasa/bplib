@@ -1065,7 +1065,7 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_ResetAllCounters()
+BPLib_Status_t BPLib_AS_ResetAllCounters(void)
 {
     BPLib_Status_t Status;
     BPLib_Status_t AS_Get_Status;
@@ -1125,6 +1125,33 @@ BPLib_Status_t BPLib_AS_ResetAllCounters()
                             BPLib_EM_EventType_INFORMATION,
                             "Successfully set the counters for node and every source to 0");
     }
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_ResetErrorCounters(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
 
     return Status;
 }
