@@ -1076,7 +1076,7 @@ BPLib_Status_t BPLib_AS_ResetAllCounters(void)
 
     for (SourceCtrl = -1; SourceCtrl < BPLIB_MAX_NUM_SOURCE_EID; SourceCtrl++)
     {
-        for (CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_COUNTERS; CounterCtrl++)
+        for (CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_CNTRS; CounterCtrl++)
         {
             AS_Get_Status = BPLib_AS_Set(SourceCtrl, CounterCtrl, 0);
 

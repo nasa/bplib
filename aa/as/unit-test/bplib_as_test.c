@@ -104,7 +104,7 @@ void Test_BPLib_AS_Get_Error(void)
     SourceEid = BPLIB_AS_NODE_EID; /* Indicates that a node counter is desired */
 
     /* Run the function under test */
-    Status = BPLib_AS_Get(SourceEid, BPLIB_AS_NUM_COUNTERS, &TestValue);
+    Status = BPLib_AS_Get(SourceEid, BPLIB_AS_NUM_CNTRS, &TestValue);
 
     /* Assert that TestValue wasn't updated and BPLib_AS_Get() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
@@ -117,7 +117,7 @@ void Test_BPLib_AS_Get_Error(void)
     SourceEid = 2;
 
     /* Run the function under test */
-    Status = BPLib_AS_Get(SourceEid, BPLIB_AS_NUM_COUNTERS, &TestValue);
+    Status = BPLib_AS_Get(SourceEid, BPLIB_AS_NUM_CNTRS, &TestValue);
 
     /* Assert that TestValue wasn't updated and BPLib_AS_Get() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
@@ -189,7 +189,7 @@ void Test_BPLib_AS_Set_Error(void)
     SourceEid = BPLIB_AS_NODE_EID; /* Indicates that a node counter is desired */
 
     /* Run the function under test */
-    Status = BPLib_AS_Set(SourceEid, BPLIB_AS_NUM_COUNTERS, TestValue);
+    Status = BPLib_AS_Set(SourceEid, BPLIB_AS_NUM_CNTRS, TestValue);
 
     /* Assert that BPLib_AS_Set() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
@@ -200,7 +200,7 @@ void Test_BPLib_AS_Set_Error(void)
     SourceEid = 2;
 
     /* Run the function under test */
-    Status = BPLib_AS_Set(SourceEid, BPLIB_AS_NUM_COUNTERS, TestValue);
+    Status = BPLib_AS_Set(SourceEid, BPLIB_AS_NUM_CNTRS, TestValue);
 
     /* Assert that BPLib_AS_Set() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
@@ -266,7 +266,7 @@ void Test_BPLib_AS_Increment_Error(void)
     SourceEid = BPLIB_AS_NODE_EID; /* Indicates that a node counter is desired */
 
     /* Run the function under test */
-    Status = BPLib_AS_Increment(SourceEid, BPLIB_AS_NUM_COUNTERS);
+    Status = BPLib_AS_Increment(SourceEid, BPLIB_AS_NUM_CNTRS);
 
     /* Assert that BPLib_AS_Increment() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
@@ -277,7 +277,7 @@ void Test_BPLib_AS_Increment_Error(void)
     SourceEid = 2;
 
     /* Run the function under test */
-    Status = BPLib_AS_Increment(SourceEid, BPLIB_AS_NUM_COUNTERS);
+    Status = BPLib_AS_Increment(SourceEid, BPLIB_AS_NUM_CNTRS);
 
     /* Assert that BPLib_AS_Increment() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
@@ -343,7 +343,7 @@ void Test_BPLib_AS_Decrement_Error(void)
     SourceEid = BPLIB_AS_NODE_EID; /* Indicates that a node counter is desired */
 
     /* Run the function under test */
-    Status = BPLib_AS_Decrement(SourceEid, BPLIB_AS_NUM_COUNTERS);
+    Status = BPLib_AS_Decrement(SourceEid, BPLIB_AS_NUM_CNTRS);
 
     /* Assert that BPLib_AS_Decrement() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
@@ -354,7 +354,7 @@ void Test_BPLib_AS_Decrement_Error(void)
     SourceEid = 2;
 
     /* Run the function under test */
-    Status = BPLib_AS_Decrement(SourceEid, BPLIB_AS_NUM_COUNTERS);
+    Status = BPLib_AS_Decrement(SourceEid, BPLIB_AS_NUM_CNTRS);
 
     /* Assert that BPLib_AS_Decrement() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
