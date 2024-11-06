@@ -40,6 +40,9 @@
 /** \brief Number of MIB counters used for looping */
 #define BPLIB_AS_NUM_COUNTERS 76
 
+/** \brief Enum for start of counters only present in node packets */
+#define BPLIB_AS_NODE_ONLY_CNTRS_START 54
+
 /** \brief Node counter EID designator */
 #define BPLIB_AS_NODE_EID -1
 
@@ -217,82 +220,85 @@ typedef struct
  */
 typedef enum
 {
-    BUNDLE_AGT_ACCPT_CNT         =  0, /** \brief Number of control directives received from the Monitor and Control interface that have been accepted */
-    BUNDLE_AGT_REJ_CNT           =  1, /** \brief Number of control directives received from the Monitor and Control interface that have been rejected as being invalid */
-    BUNDLE_CNT_GEN_ACCPT         =  2, /** \brief Number of Accepted Bundle Transmission Requests  */
-    BUNDLE_CNT_GEN_REJ           =  3, /** \brief Number of Rejected Bundle Transmission Requests */
-    BUNDLE_CNT_GEN_CUSTODY       =  4, /** \brief Number of Custody Signal Bundles generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_RECV      =  5, /** \brief Number of Bundle Reception Status Report generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_ACCPT     =  6, /** \brief Number of Bundle Custody Accepted Status Report generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_FORW      =  7, /** \brief Number of Bundle Forwarded Status Report generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_DELVR     =  8, /** \brief Number of Bundle Delivered Status Report generated since the last counter reset */
-    BUNDLE_CNT_GEN_BSR_DEL       =  9, /** \brief Number of Bundle Deleted Status Report generated since the last counter reset */
-    BUNDLE_CNT_MAX_BSR_RATE_EXCD = 10, /** \brief Number of BSR bundles not sent because sending would exceed a maximum rate. */
-    BUNDLE_CNT_GEN_ANON          = 11, /** \brief Number of Anonomous Bundles Created */
-    BUNDLE_CNT_GEN_FRAG          = 12, /** \brief Number of Bundle Fragments that were Generated */
-    BUNDLE_CNT_RECV              = 13, /** \brief Number of Bundles Received from another DTN Node */
-    BUNDLE_CNT_RECV_FRAG         = 14, /** \brief Number of Bundles Received that were Marked as Fragments */
-    BUNDLE_CNT_UNPROC_BLKS       = 15, /** \brief Number of Unprocessed Blocks Removed from Received Bundles */
-    BUNDLE_CNT_INVAL_PRI_BLK     = 16, /** \brief Number of Unprocessed Bundles received with Invalid Primary Blocks */
-    BUNDLE_CNT_CS_RECV           = 17, /** \brief Number of Custody Signal Bundles received */
-    BUNDLE_CNT_FORW              = 18, /** \brief Number of Bundles Forwarded to another DTN Node */
-    BUNDLE_CNT_RET               = 19, /** \brief Number of Bundles Returned to Sender */
-    BUNDLE_CNT_FRAG              = 20, /** \brief Number of Bundles that needed to be Fragmented  */
-    BUNDLE_CNT_REASSEMBLED       = 21, /** \brief Total number of Bundles delivered that were fragments and needed to be reassembled */
-    BUNDLE_CNT_FRAG_ERR          = 22, /** \brief Number of Fragments discarded due to bad offset or ADU length */
-    BUNDLE_CNT_DELVR             = 23, /** \brief Total number of Bundles Delivered to this node, including fragments */
-    BUNDLE_CNT_ABAND             = 24, /** \brief Number of Abandoned Bundle Payloads */
-    ADU_CNT_DELVR                = 25, /** \brief Number of ADUs Delivered to the application */
-    BUNDLE_CNT_DEL               = 26, /** \brief Total Number of Bundle Deletions */
-    BUNDLE_CNT_DEL_EXP           = 27, /** \brief Number of Bundles Deletions due to Lifetime Expired Condition */
-    BUNDLE_CNT_DEL_HOP_EXCD      = 28, /** \brief Number of Bundles Deletions due to Hop Limit Exceeded Condition */
-    BUNDLE_CNT_DEL_INVAL_PAY     = 29, /** \brief Number of Bundle Deletions due having a Corrupted Payload Block */
-    BUNDLE_CNT_DEL_FORW_FAILED   = 30, /** \brief Number of Bundles Deletions due to Forwarding Failed Condition */
-    BUNDLE_CNT_DEL_TRAF_PARED    = 31, /** \brief Number of Bundles Deletions due to Traffic Pared Condition */
-    BUNDLE_CNT_DEL_UNINTEL       = 32, /** \brief Number of Bundles Deletions due to Block Unintelligible Condition */
-    BUNDLE_CNT_DEL_UNSUPPORT_BLK = 33, /** \brief Number of Bundles Deletions due to Unsupported Block Condition */
-    BUNDLE_CNT_DEL_CANCELLED     = 34, /** \brief Number of Bundles Deletions due to Transmission Cancelled Condition */
-    BUNDLE_CNT_DISCARDED         = 35, /** \brief Number of Bundles Discarded */
-    BUNDLE_CNT_DEL_NO_STOR       = 36, /** \brief Number of Bundles deleted due to insufficient storage */
-    BUNDLE_CNT_DEL_BAD_EID       = 37, /** \brief Number of Bundles deleted due to having a unrecognized destination EID */
-    BUNDLE_CNT_DEL_UNAUTH        = 38, /** \brief Number of Bundles deleted due to having a unrecognized source EID. Incremented if the bundle is not in the set of authorized source EIDs configured for the node. */
-    BUNDLE_CNT_DEL_TOO_LONG      = 39, /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
-    BUNDLE_CNT_CUSTODY_TRANS     = 40, /** \brief Number of successful Custody Transfers from the Local node to the next neighboring Custodian Node */
-    BUNDLE_CNT_CUSTODY_REJ       = 41, /** \brief Number of unsuccessful Custody Transfers from the Local node to the next neighboring Custodian Node */
-    BUNDLE_CNT_CUSTODY_REQ       = 42, /** \brief Number of bundles received that are requesting Custody Transfer */
-    BUNDLE_CNT_CUSTODY_RE_FORW   = 43, /** \brief Number of Bundles reforward due to custody timeout */
-    BUNDLE_CNT_NO_FURTHER_INFO   = 44, /** \brief Number of bundles for which successful Custody Signals generated with No Further Information */
-    BUNDLE_CNT_RED               = 45, /** \brief Number of bundles for which successful Custody Signals generated for Duplicate Bundle reception */
-    BUNDLE_CNT_DEPLETED          = 46, /** \brief Number of bundles for which rejected Custody Signals generated indicating rejection due to depleted storage */
-    BUNDLE_CNT_UNINTEL_EID       = 47, /** \brief Number of bundles for which rejected Custody Signals generated indicating the any EID in the Primary Header is unknown */
-    BUNDLE_CNT_NO_ROUTE          = 48, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable */
-    BUNDLE_CNT_NO_CONTACT        = 49, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable before the Bundle expires */
-    BUNDLE_CNT_UNINTEL_BLK       = 50, /** \brief Number of bundles for which Custody Signals indicating the Bundle contained an unknown block type */
-    BUNDLE_CNT_RECV_CS           = 51, /** \brief Number of bundles for which Custody Signals Received */
-    BUNDLE_CNT_GEN_CS            = 52, /** \brief Number of bundles for which Custody Signals Generated */
-    BUNDLE_CNT_REJ_CUSTODY       = 53, /** \brief Number of Bundles where this node rejected custody. */
-    BUNDLE_CNT_GEN_CRS_RECV      = 54, /** \brief Number of received bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_GEN_CRS_ACCPT     = 55, /** \brief Number of accepted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_GEN_CRS_FORW      = 56, /** \brief Number of forwarded bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_GEN_CRS_DELVR     = 57, /** \brief Number of delivered bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_GEN_CRS_DEL       = 58, /** \brief Number of deleted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
-    BUNDLE_CNT_MAX_CRS_RATE_EXCD = 59, /** \brief Number of CRS bundles not sent because sending would exceed a maximum rate. */
-    ADU_CNT_RECV                 = 60, /** \brief Number of ADUs Received from the application */
-    NODE_STARTUP_CNTR            = 61, /** \brief Number of times a node is started up. */
-    BUNDLE_CNT_GEN_CRS           = 62, /** \brief Number of Compressed Reporting Signal (CRS) generated since last counter reset. */
-    BUNDLE_CNT_FORW_FAILED       = 63, /** \brief Number of Bundles where forwarding to another DTN Node failed */
-    BUNDLE_CNT_RECV_BSR_RECV     = 64, /** \brief Number of Bundle Reception Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_BSR_ACCPT    = 65, /** \brief Number of Bundle Custody Accepted Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_BSR_FORW     = 66, /** \brief Number of Bundle Forwarded Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_BSR_DELVR    = 67, /** \brief Number of Bundle Delivered Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_BSR_DEL      = 68, /** \brief Number of Bundle Deleted Status Report received since the last counter reset */
-    BUNDLE_CNT_RECV_CRS          = 69, /** \brief Number of Compressed Reporting Signals (CRSs) received since last counter reset. */
-    BUNDLE_CNT_RECV_CRS_RECV     = 70, /** \brief Number of received bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of received bundles per source node ID. */
-    BUNDLE_CNT_RECV_CRS_ACCPT    = 71, /** \brief Number of accepted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of accepted bundles per source node ID. */
-    BUNDLE_CNT_RECV_CRS_FORW     = 72, /** \brief Number of forwarded bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of forwarded bundles per source node ID. */
-    BUNDLE_CNT_RECV_CRS_DELVR    = 73, /** \brief Number of delivered bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of delivered bundles per source node ID. */
-    BUNDLE_CNT_RECV_CRS_DEL      = 74, /** \brief Number of deleted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of deleted bundles per source node ID. */
-    BUNDLE_CNT_RECV_ADMIN_REC    = 75, /** \brief Number of admin record bundles received for this DTN Node. */
+    /* Counters in node and source packets */
+    BUNDLE_CNT_GEN_ACCPT         = 0 , /** \brief Number of Accepted Bundle Transmission Requests  */
+    BUNDLE_CNT_GEN_REJ           = 1 , /** \brief Number of Rejected Bundle Transmission Requests */
+    BUNDLE_CNT_GEN_FRAG          = 2 , /** \brief Number of Bundle Fragments that were Generated */
+    BUNDLE_CNT_RECV              = 3 , /** \brief Number of Bundles Received from another DTN Node */
+    BUNDLE_CNT_RECV_FRAG         = 4 , /** \brief Number of Bundles Received that were Marked as Fragments */
+    BUNDLE_CNT_UNPROC_BLKS       = 5 , /** \brief Number of Unprocessed Blocks Removed from Received Bundles */
+    BUNDLE_CNT_FORW              = 6 , /** \brief Number of Bundles Forwarded to another DTN Node */
+    BUNDLE_CNT_RET               = 7 , /** \brief Number of Bundles Returned to Sender */
+    BUNDLE_CNT_FRAG              = 8 , /** \brief Number of Bundles that needed to be Fragmented  */
+    BUNDLE_CNT_REASSEMBLED       = 9 , /** \brief Total number of Bundles delivered that were fragments and needed to be reassembled */
+    BUNDLE_CNT_FRAG_ERR          = 10, /** \brief Number of Fragments discarded due to bad offset or ADU length */
+    BUNDLE_CNT_DELVR             = 11, /** \brief Total number of Bundles Delivered to this node, including fragments */
+    BUNDLE_CNT_ABAND             = 12, /** \brief Number of Abandoned Bundle Payloads */
+    ADU_CNT_DELVR                = 13, /** \brief Number of ADUs Delivered to the application */
+    BUNDLE_CNT_DEL               = 14, /** \brief Total Number of Bundle Deletions */
+    BUNDLE_CNT_DEL_EXP           = 15, /** \brief Number of Bundles Deletions due to Lifetime Expired Condition */
+    BUNDLE_CNT_DEL_HOP_EXCD      = 16, /** \brief Number of Bundles Deletions due to Hop Limit Exceeded Condition */
+    BUNDLE_CNT_DEL_INVAL_PAY     = 17, /** \brief Number of Bundle Deletions due having a Corrupted Payload Block */
+    BUNDLE_CNT_DEL_FORW_FAILED   = 18, /** \brief Number of Bundles Deletions due to Forwarding Failed Condition */
+    BUNDLE_CNT_DEL_TRAF_PARED    = 19, /** \brief Number of Bundles Deletions due to Traffic Pared Condition */
+    BUNDLE_CNT_DEL_UNINTEL       = 20, /** \brief Number of Bundles Deletions due to Block Unintelligible Condition */
+    BUNDLE_CNT_DEL_UNSUPPORT_BLK = 21, /** \brief Number of Bundles Deletions due to Unsupported Block Condition */
+    BUNDLE_CNT_DEL_CANCELLED     = 22, /** \brief Number of Bundles Deletions due to Transmission Cancelled Condition */
+    BUNDLE_CNT_DISCARDED         = 23, /** \brief Number of Bundles Discarded */
+    BUNDLE_CNT_DEL_NO_STOR       = 24, /** \brief Number of Bundles deleted due to insufficient storage */
+    BUNDLE_CNT_DEL_BAD_EID       = 25, /** \brief Number of Bundles deleted due to having a unrecognized destination EID */
+    BUNDLE_CNT_DEL_TOO_LONG      = 26, /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
+    BUNDLE_CNT_CUSTODY_TRANS     = 27, /** \brief Number of successful Custody Transfers from the Local node to the next neighboring Custodian Node */
+    BUNDLE_CNT_CUSTODY_REJ       = 28, /** \brief Number of unsuccessful Custody Transfers from the Local node to the next neighboring Custodian Node */
+    BUNDLE_CNT_CUSTODY_REQ       = 29, /** \brief Number of bundles received that are requesting Custody Transfer */
+    BUNDLE_CNT_CUSTODY_RE_FORW   = 30, /** \brief Number of Bundles reforward due to custody timeout */
+    BUNDLE_CNT_NO_FURTHER_INFO   = 31, /** \brief Number of bundles for which successful Custody Signals generated with No Further Information */
+    BUNDLE_CNT_RED               = 32, /** \brief Number of bundles for which successful Custody Signals generated for Duplicate Bundle reception */
+    BUNDLE_CNT_DEPLETED          = 33, /** \brief Number of bundles for which rejected Custody Signals generated indicating rejection due to depleted storage */
+    BUNDLE_CNT_UNINTEL_EID       = 34, /** \brief Number of bundles for which rejected Custody Signals generated indicating the any EID in the Primary Header is unknown */
+    BUNDLE_CNT_NO_ROUTE          = 35, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable */
+    BUNDLE_CNT_NO_CONTACT        = 36, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable before the Bundle expires */
+    BUNDLE_CNT_UNINTEL_BLK       = 37, /** \brief Number of bundles for which Custody Signals indicating the Bundle contained an unknown block type */
+    BUNDLE_CNT_RECV_CS           = 38, /** \brief Number of bundles for which Custody Signals Received */
+    BUNDLE_CNT_GEN_CS            = 39, /** \brief Number of bundles for which Custody Signals Generated */
+    BUNDLE_CNT_REJ_CUSTODY       = 40, /** \brief Number of Bundles where this node rejected custody. */
+    ADU_CNT_RECV                 = 41, /** \brief Number of ADUs Received from the application */
+    BUNDLE_CNT_FORW_FAILED       = 42, /** \brief Number of Bundles where forwarding to another DTN Node failed */
+    BUNDLE_CNT_RECV_BSR_RECV     = 43, /** \brief Number of Bundle Reception Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_BSR_ACCPT    = 44, /** \brief Number of Bundle Custody Accepted Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_BSR_FORW     = 45, /** \brief Number of Bundle Forwarded Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_BSR_DELVR    = 46, /** \brief Number of Bundle Delivered Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_BSR_DEL      = 47, /** \brief Number of Bundle Deleted Status Report received since the last counter reset */
+    BUNDLE_CNT_RECV_CRS_RECV     = 48, /** \brief Number of received bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of received bundles per source node ID. */
+    BUNDLE_CNT_RECV_CRS_ACCPT    = 49, /** \brief Number of accepted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of accepted bundles per source node ID. */
+    BUNDLE_CNT_RECV_CRS_FORW     = 50, /** \brief Number of forwarded bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of forwarded bundles per source node ID. */
+    BUNDLE_CNT_RECV_CRS_DELVR    = 51, /** \brief Number of delivered bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of delivered bundles per source node ID. */
+    BUNDLE_CNT_RECV_CRS_DEL      = 52, /** \brief Number of deleted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of deleted bundles per source node ID. */
+    BUNDLE_CNT_RECV_ADMIN_REC    = 53, /** \brief Number of admin record bundles received for this DTN Node. */
+
+    /* Counters only in node packets */
+    BUNDLE_AGT_ACCPT_CNT         = 54, /** \brief Number of control directives received from the Monitor and Control interface that have been accepted */
+    BUNDLE_AGT_REJ_CNT           = 55, /** \brief Number of control directives received from the Monitor and Control interface that have been rejected as being invalid */
+    BUNDLE_CNT_GEN_CUSTODY       = 56, /** \brief Number of Custody Signal Bundles generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_RECV      = 57, /** \brief Number of Bundle Reception Status Report generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_ACCPT     = 58, /** \brief Number of Bundle Custody Accepted Status Report generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_FORW      = 59, /** \brief Number of Bundle Forwarded Status Report generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_DELVR     = 60, /** \brief Number of Bundle Delivered Status Report generated since the last counter reset */
+    BUNDLE_CNT_GEN_BSR_DEL       = 61, /** \brief Number of Bundle Deleted Status Report generated since the last counter reset */
+    BUNDLE_CNT_MAX_BSR_RATE_EXCD = 62, /** \brief Number of BSR bundles not sent because sending would exceed a maximum rate. */
+    BUNDLE_CNT_GEN_ANON          = 63, /** \brief Number of Anonomous Bundles Created */
+    BUNDLE_CNT_INVAL_PRI_BLK     = 64, /** \brief Number of Unprocessed Bundles received with Invalid Primary Blocks */
+    BUNDLE_CNT_CS_RECV           = 65, /** \brief Number of Custody Signal Bundles received */
+    BUNDLE_CNT_DEL_UNAUTH        = 66, /** \brief Number of Bundles deleted due to having a unrecognized source EID. Incremented if the bundle is not in the set of authorized source EIDs configured for the node. */
+    BUNDLE_CNT_GEN_CRS_RECV      = 67, /** \brief Number of received bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_GEN_CRS_ACCPT     = 68, /** \brief Number of accepted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_GEN_CRS_FORW      = 69, /** \brief Number of forwarded bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_GEN_CRS_DELVR     = 70, /** \brief Number of delivered bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_GEN_CRS_DEL       = 71, /** \brief Number of deleted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_CNT_MAX_CRS_RATE_EXCD = 72, /** \brief Number of CRS bundles not sent because sending would exceed a maximum rate. */
+    NODE_STARTUP_CNTR            = 73, /** \brief Number of times a node is started up. */
+    BUNDLE_CNT_GEN_CRS           = 74, /** \brief Number of Compressed Reporting Signal (CRS) generated since last counter reset. */
+    BUNDLE_CNT_RECV_CRS          = 75, /** \brief Number of Compressed Reporting Signals (CRSs) received since last counter reset. */
 } BPLib_AS_Counter_t;
 
 /* ======= */
