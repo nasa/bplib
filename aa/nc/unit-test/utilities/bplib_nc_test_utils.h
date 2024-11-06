@@ -31,6 +31,7 @@
 
 #include "bplib_nc.h"
 #include "bpa_fwp_stubs.h" /* For ADUP stubs */
+#include "bplib_em_handlers.h"  /* For BPLib_EM_SendEvent handler */
 
 /* ====== */
 /* Macros */

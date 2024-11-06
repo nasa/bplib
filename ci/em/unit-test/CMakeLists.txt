@@ -10,10 +10,12 @@
 # Create stubs (for external use)
 add_library(bplib_em_stubs STATIC
     stubs/bplib_em_stubs.c
+    stubs/bplib_em_handlers.c
 )
 
 target_include_directories(bplib_em_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
+    stubs/
 )
 
 target_link_libraries(bplib_em_stubs PUBLIC ut_assert)
