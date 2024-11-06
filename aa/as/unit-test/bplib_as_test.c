@@ -54,7 +54,7 @@ void Test_BPLib_AS_Get_Nominal(void)
     TestValue = 0;
 
     /* Run function under test */
-    Status = BPLib_AS_Get(SourceEid, BUNDLE_CNT_GEN_CUSTODY, &TestValue);
+    Status = BPLib_AS_Get(SourceEid, BUNDLE_CNT_CS_RECV, &TestValue);
 
     /* Assert that TestValue was updated and BPLib_AS_Get() was run successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
@@ -140,7 +140,7 @@ void Test_BPLib_AS_Set_Nominal(void)
     TestValue = 10;
 
     /* Run function under test */
-    Status = BPLib_AS_Set(SourceEid, BUNDLE_CNT_GEN_CUSTODY, TestValue);
+    Status = BPLib_AS_Set(SourceEid, BUNDLE_CNT_CS_RECV, TestValue);
 
     /* Assert that the counter was updated and BPLib_AS_Set() was run successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
