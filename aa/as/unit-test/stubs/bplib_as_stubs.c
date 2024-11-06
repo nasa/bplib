@@ -27,6 +27,10 @@
 #include "bplib_as.h"
 #include "utgenstub.h"
 
+BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
+BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
+BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
+
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_AS_Decrement()
