@@ -143,9 +143,6 @@ void Test_BPLib_NC_InitBundleStorage_Nominal(void)
 {
     BPLib_Status_t Status;
 
-    // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_INIT_BNDL_STOR_SUCCESS_EID,
-    //                     "Initialize bundle storage command not implemented");
-
     Status = BPLib_NC_InitBundleStorage();
 
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_INIT_BNDL_STOR_SUCCESS_EID);
@@ -214,9 +211,6 @@ void Test_BPLib_NC_RebuildBundleMetadata_Error(void)
 void Test_BPLib_NC_ClearVolatile_Nominal(void)
 {
     BPLib_Status_t Status;
-
-    // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_CLR_VOLATILE_SUCCESS_EID,
-    //                     "Clear volatile command not implemented");
 
     Status = BPLib_NC_ClearVolatile();
 
