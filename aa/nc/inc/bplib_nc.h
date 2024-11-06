@@ -149,7 +149,11 @@ BPLib_Status_t BPLib_NC_ReloadSavedData(void);
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] void No arguments accepted
   * \return    Execution status
-  * \retval    BPLIB_SUCCESS: Command was successful
+  * \retval    Status is determined by BPLib_AS_ResetAllCounters() which is determined by BPLib_AS_Set() in bplib_as.h
+  * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
+  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
+  * \retval    BPLIB_SUCCESS: Successful execution
   */
 BPLib_Status_t BPLib_NC_ResetAllCounters(void);
 
@@ -458,8 +462,7 @@ BPLib_Status_t BPLib_NC_PerformSelfTest(void);
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] void No arguments accepted
   * \return    Execution status
-  * \retval    BPLIB_SUCCESS: Command was successful
-  * \retval    Platform specific transmit message return values
+  * \retval    Status is determined by BPA_TLMP_SendNodeMibConfigPkt() in fwp_tlmp.h
   */
 BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void);
 
@@ -469,8 +472,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void);
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] void No arguments accepted
   * \return    Execution status
-  * \retval    BPLIB_SUCCESS: Command was successful
-  * \retval    Platform specific transmit message return values
+  * \retval    Status is determined by BPA_TLMP_SendPerSourceMibConfigPkt() in fwp_tlmp.h
   */
 BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void);
 
@@ -480,8 +482,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void);
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] void No arguments accepted
   * \return    Execution status
-  * \retval    BPLIB_SUCCESS: Command was successful
-  * \retval    Platform specific transmit message return values
+  * \retval    Status is determined by BPA_TLMP_SendNodeMibCounterPkt() in fwp_tlmp.h
   */
 BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void);
 
@@ -491,8 +492,7 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void);
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] void No arguments accepted
   * \return    Execution status
-  * \retval    BPLIB_SUCCESS: Command was successful
-  * \retval    Platform specific transmit message return values
+  * \retval    Status is determined by BPA_TLMP_SendPerSourceMibCounterPkt() in fwp_tlmp.h
   */
 BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void);
 
@@ -502,8 +502,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void);
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] void No arguments accepted
   * \return    Execution status
-  * \retval    BPLIB_SUCCESS: Command was successful
-  * \retval    Platform specific transmit message return values
+  * \retval    Status is determined by BPA_TLMP_SendStoragePkt() in fwp_tlmp.h
   */
 BPLib_Status_t BPLib_NC_SendStorageHk(void);
 
@@ -514,8 +513,7 @@ BPLib_Status_t BPLib_NC_SendStorageHk(void);
   * \note      Command is primarily handled by BPA_DP_SendChannelContactStatHk() found in fwp_dp.h
   * \param[in] void No arguments accepted
   * \return    Execution status
-  * \retval    BPLIB_SUCCESS: Command was successful
-  * \retval    Platform specific transmit message return values
+  * \retval    Status is determined by BPA_TLMP_SendChannelContactPkt() in fwp_tlmp.h
   */
 BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void);
 
