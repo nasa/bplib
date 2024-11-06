@@ -1159,7 +1159,7 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 
                     BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID,
                                         BPLib_EM_EventType_ERROR,
-                                        "Could not set counter %d to zero due to a source EID (%d) with unexpected pattern",
+                                        "Could not set source counter %d to zero due to a source EID (%d) with unexpected pattern",
                                         CounterCtrl,
                                         SourceEid);
 
@@ -1188,18 +1188,84 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
+    BPLib_Status_t SetStatus;
+    int16_t CounterCtrl;
 
     Status = BPLIB_SUCCESS;
 
+    for(CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_BNDL_CNTRS; CounterCtrl++)
+    {
+        SetStatus = BPLib_AS_Set(SourceEid, BundleCounters[CounterCtrl], 0);
+
+        switch (SetStatus)
+        {
+            case BPLIB_AS_INVALID_EID:
+                Status = BPLIB_AS_INVALID_EID;
+
+                BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not set bundle counter %d to zero due to a source EID (%d) with unexpected pattern",
+                                    CounterCtrl,
+                                    SourceEid);
+
+                break;
+            case BPLIB_AS_UNKNOWN_NODE_CNTR:
+                Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
+
+                BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_UNKNOWN_NODE_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not set unrecognized bundle node counter, %d, to zero",
+                                    CounterCtrl);
+
+                break;
+            case BPLIB_AS_UNKNOWN_SRC_CNTR:
+                Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
+
+                BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_UNKNOWN_SRC_CNTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not set unrecognized bundle source counter, %d, to zero",
+                                    CounterCtrl);
+
+                break;
+        }
+
+        /* 
+        ** This loop will continue even if an error occurs just so that 
+        ** all possible counters will be reset to 0
+        */
+    }
+    
     return Status;
 }
 
 BPLib_Status_t BPLib_AS_ResetErrorCounters(void)
 {
     BPLib_Status_t Status;
+    BPLib_Status_t SetStatus;
+    int16_t CounterCtrl;
 
     Status = BPLIB_SUCCESS;
 
+    for(CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_ERR_CNTRS; CounterCtrl++)
+    {
+        SetStatus = BPLib_AS_Set(BPLIB_AS_NODE_EID, ErrorCounters[CounterCtrl], 0);
+
+        if (SetStatus == BPLIB_AS_UNKNOWN_NODE_CNTR)
+        {
+            Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
+
+            BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_UNKNOWN_NODE_CNTR_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Could not set unrecognized bundle node counter, %d, to zero",
+                                CounterCtrl);
+        }
+
+        /* 
+        ** This loop will continue even if an error occurs just so that 
+        ** all possible counters will be reset to 0
+        */
+    }
+    
     return Status;
 }
 
