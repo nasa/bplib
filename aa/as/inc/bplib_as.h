@@ -193,6 +193,7 @@ typedef struct
     uint32_t BundleCountReceivedBsrForwarded;     /** \brief Number of Bundle Forwarded Status Report received since the last counter reset */
     uint32_t BundleCountReceivedBsrDelivered;     /** \brief Number of Bundle Delivered Status Report received since the last counter reset */
     uint32_t BundleCountReceivedBsrDeleted;       /** \brief Number of Bundle Deleted Status Report received since the last counter reset */
+    uint32_t BundleCountReceivedCrs;              /** \brief Number of received bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of received bundles per source node ID.*/
     uint32_t BundleCountReceivedCrsReceived;      /** \brief Number of received bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of received bundles per source node ID. */
     uint32_t BundleCountReceivedCrsAccepted;      /** \brief Number of accepted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of accepted bundles per source node ID. */
     uint32_t BundleCountReceivedCrsForwarded;     /** \brief Number of forwarded bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of forwarded bundles per source node ID. */
