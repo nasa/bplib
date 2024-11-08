@@ -39,7 +39,7 @@
 
 #define BPLIB_AS_NUM_CNTRS      (76u)   /** \brief Total number of MIB counters */
 #define BPLIB_AS_NUM_NODE_CNTRS (69u)   /** \brief Number of resettable node MIB counters */
-#define BPLIB_AS_NUM_SRC_CNTRS  (50u)   /** \brief Number of resettable source MIB counters */
+#define BPLIB_AS_NUM_SRC_CNTRS  (49u)   /** \brief Number of resettable source MIB counters */
 #define BPLIB_AS_NUM_BNDL_CNTRS (64u)   /** \brief Number of bundle-related MIB counters */
 #define BPLIB_AS_NUM_ERR_CNTRS  (15u)   /** \brief Number of error-related MIB counters */
 
@@ -193,7 +193,6 @@ typedef struct
     uint32_t BundleCountReceivedBsrForwarded;     /** \brief Number of Bundle Forwarded Status Report received since the last counter reset */
     uint32_t BundleCountReceivedBsrDelivered;     /** \brief Number of Bundle Delivered Status Report received since the last counter reset */
     uint32_t BundleCountReceivedBsrDeleted;       /** \brief Number of Bundle Deleted Status Report received since the last counter reset */
-    uint32_t BundleCountReceivedCrs;              /** \brief Number of received bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of received bundles per source node ID.*/
     uint32_t BundleCountReceivedCrsReceived;      /** \brief Number of received bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of received bundles per source node ID. */
     uint32_t BundleCountReceivedCrsAccepted;      /** \brief Number of accepted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of accepted bundles per source node ID. */
     uint32_t BundleCountReceivedCrsForwarded;     /** \brief Number of forwarded bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of forwarded bundles per source node ID. */
@@ -332,7 +331,7 @@ BPLib_AS_Counter_t ResettableNodeCounters[BPLIB_AS_NUM_NODE_CNTRS] = {BUNDLE_AGT
 BPLib_AS_Counter_t ResettableSourceCounters[BPLIB_AS_NUM_SRC_CNTRS] = {BUNDLE_CNT_GEN_ACCPT, BUNDLE_CNT_GEN_REJ,
                     BUNDLE_CNT_RECV_BSR_RECV, BUNDLE_CNT_RECV_BSR_ACCPT, BUNDLE_CNT_RECV_BSR_FORW,
                     BUNDLE_CNT_RECV_BSR_DELVR, BUNDLE_CNT_RECV_BSR_DEL, BUNDLE_CNT_MAX_BSR_RATE_EXCD,
-                    BUNDLE_CNT_RECV_CRS, BUNDLE_CNT_RECV_CRS_RECV, BUNDLE_CNT_RECV_CRS_ACCPT, BUNDLE_CNT_RECV_CRS_FORW,
+                    BUNDLE_CNT_RECV_CRS_RECV, BUNDLE_CNT_RECV_CRS_ACCPT, BUNDLE_CNT_RECV_CRS_FORW,
                     BUNDLE_CNT_RECV_CRS_DELVR, BUNDLE_CNT_RECV_CRS_DEL, BUNDLE_CNT_GEN_FRAG, BUNDLE_CNT_RECV,
                     BUNDLE_CNT_RECV_FRAG, BUNDLE_CNT_UNPROC_BLKS, BUNDLE_CNT_FORW, BUNDLE_CNT_FORW_FAILED,
                     BUNDLE_CNT_FRAG, BUNDLE_CNT_REASSEMBLED, BUNDLE_CNT_FRAG_ERR, BUNDLE_CNT_DELVR, BUNDLE_CNT_ABAND,
