@@ -508,7 +508,7 @@ BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Pa
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_START_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_STOP_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Successful stop-application directive for ChanId=%d",
                             Payload.ChanId);
     }
@@ -1212,7 +1212,7 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void)
     */
     {
         BPLib_EM_SendEvent(BPLIB_SEND_SRC_MIB_CTRS_HK_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Send per-source mib counter hk directive not implemented");
+                            "Send per-source mib counters hk directive not implemented");
     }
     /*
     else

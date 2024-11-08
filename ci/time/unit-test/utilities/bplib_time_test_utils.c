@@ -24,54 +24,29 @@
 
 #include "bplib_time_test_utils.h"
 
-
 /*
 ** Global Data
 */
 
-uint32_t TestHostEpochYear;
-uint32_t TestHostEpochDay;
-int64_t  TestHostTime;
-int64_t  TestMonotonicTime;
+uint16_t TestEpochYear;
 
 
 /*
 ** Function Definitions
 */
 
-/*
-** Stub function definitions for Time Proxy
-*/
 
-int64_t Test_BPA_TIMEP_GetMonotonicTime(void)
+/* */
+void UT_BPA_TIMEP_GetHostEpoch_Handler(void *UserObj, UT_EntryKey_t FuncKey, 
+                                              const UT_StubContext_t *Context)
 {
-    return TestMonotonicTime;
-}
+    BPLib_TIME_Epoch_t *Epoch = (BPLib_TIME_Epoch_t *) UT_Hook_GetArgValueByName(Context, 
+                                                            "Epoch", BPLib_TIME_Epoch_t *);
 
-void Test_BPA_TIMEP_GetHostEpoch(BPLib_TIME_Epoch_t *Epoch)
-{
     memset(Epoch, 0, sizeof(BPLib_TIME_Epoch_t));
-
-    Epoch->Year = TestHostEpochYear;
-    Epoch->Day = TestHostEpochDay;
-
-    return;
-}
-
-BPLib_TIME_ClockState_t Test_BPA_TIMEP_GetHostClockState_Valid(void)
-{
-    return BPLIB_TIME_CLOCK_VALID;
-}
-
-BPLib_TIME_ClockState_t Test_BPA_TIMEP_GetHostClockState_Invalid(void)
-{
-    return BPLIB_TIME_CLOCK_INVALID;
-}
-
-
-int64_t Test_BPA_TIMEP_GetHostTime(void)
-{
-    return TestHostTime;
+    
+    Epoch->Year = TestEpochYear;
+    Epoch->Day = 1;
 }
 
 void BPLib_TIME_Test_Setup(void)
@@ -86,10 +61,17 @@ void BPLib_TIME_Test_Setup(void)
     BPLib_TIME_GlobalData.InitState = BPLIB_TIME_INIT;
 
     /* Set up proxy callback functions */
-    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = Test_BPA_TIMEP_GetHostClockState_Valid;
-    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch = Test_BPA_TIMEP_GetHostEpoch;
-    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = Test_BPA_TIMEP_GetHostTime;
-    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime = Test_BPA_TIMEP_GetMonotonicTime;
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = BPA_TIMEP_GetHostClockState;
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch = BPA_TIMEP_GetHostEpoch;
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = BPA_TIMEP_GetHostTime;
+    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime = BPA_TIMEP_GetMonotonicTime;
+
+    /* Default host epoch is 1970 */
+    TestEpochYear = 1970;
+
+    UT_SetHandlerFunction(UT_KEY(BPA_TIMEP_GetHostEpoch), 
+                                UT_BPA_TIMEP_GetHostEpoch_Handler, NULL);
+
 }
 
 void BPLib_TIME_Test_Teardown(void)
