@@ -39,12 +39,8 @@ void Test_BPLib_TIME_Init_Nominal(void)
 {
     int64_t ExpEpochOffset;
 
-    /* Set test epoch data */
-    TestHostEpochYear = 1970;
-    TestHostEpochDay = 1;
-
     /* Calculate expected epoch offset */
-    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestHostEpochYear;
+    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestEpochYear;
     ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
     ExpEpochOffset += (7 * BPLIB_TIME_DAY_IN_MSEC);
     ExpEpochOffset *= -1;
@@ -54,8 +50,6 @@ void Test_BPLib_TIME_Init_Nominal(void)
 
     /* Ensure write operation succeeds */
     UT_SetDefaultReturnValue(UT_KEY(OS_write), sizeof(BPLib_TIME_FileData_t));
-
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_TIME_GetEpochOffset), ExpEpochOffset);
 
     UtAssert_INT32_EQ(BPLib_TIME_Init(), BPLIB_SUCCESS);
 
@@ -107,12 +101,8 @@ void Test_BPLib_TIME_Init_FailedRead(void)
 {
     int64_t ExpEpochOffset;
 
-    /* Set test epoch data */
-    TestHostEpochYear = 1970;
-    TestHostEpochDay = 1;
-
     /* Calculate expected epoch offset */
-    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestHostEpochYear;
+    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestEpochYear;
     ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
     ExpEpochOffset += (7 * BPLIB_TIME_DAY_IN_MSEC);
     ExpEpochOffset *= -1;
@@ -138,15 +128,16 @@ void Test_BPLib_TIME_GetMonotonicTime_Nominal(void)
 {
     BPLib_TIME_MonotonicTime_t MonotonicTime;
     int32_t ExpBootEra = 1;
-    int64_t ExpMonotonicTime = 1234;
+    int64_t TestMonotonicTime = 1234;
 
     /* Set test data */
     BPLib_TIME_GlobalData.TimeData.CurrBootEra = ExpBootEra;
-    TestMonotonicTime = ExpMonotonicTime;
+    
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetMonotonicTime), TestMonotonicTime);
 
     BPLib_TIME_GetMonotonicTime(&MonotonicTime);
 
-    UtAssert_EQ(int64_t, MonotonicTime.Time, ExpMonotonicTime);
+    UtAssert_EQ(int64_t, MonotonicTime.Time, TestMonotonicTime);
     UtAssert_INT32_EQ(MonotonicTime.BootEra, ExpBootEra);
 }
 
@@ -180,12 +171,16 @@ void Test_BPLib_TIME_GetMonotonicTime_Uninit(void)
 void Test_BPLib_TIME_CalculateCorrelationFactor_NominalPos(void)
 {
     int64_t ExpCf;
+    int64_t  TestMonotonicTime = 1234;
+    int64_t  TestHostTime = 5678;
 
     /* Set test data */
-    TestHostTime = 5678;
-    TestMonotonicTime = 1234;
     BPLib_TIME_GlobalData.EpochOffset = 5;
     ExpCf = TestHostTime - TestMonotonicTime + BPLib_TIME_GlobalData.EpochOffset;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetHostTime), TestHostTime);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetMonotonicTime), TestMonotonicTime);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetHostClockState), BPLIB_TIME_CLOCK_VALID);
 
     UtAssert_EQ(int64_t, BPLib_TIME_CalculateCorrelationFactor(), ExpCf);
 }
@@ -194,12 +189,16 @@ void Test_BPLib_TIME_CalculateCorrelationFactor_NominalPos(void)
 void Test_BPLib_TIME_CalculateCorrelationFactor_NominalNeg(void)
 {
     int64_t ExpCf;
+    int64_t  TestMonotonicTime = 1234;
+    int64_t  TestHostTime = 5678;
 
     /* Set test data */
-    TestHostTime = 5678;
-    TestMonotonicTime = 1234;
     BPLib_TIME_GlobalData.EpochOffset = -90000;
     ExpCf = TestHostTime - TestMonotonicTime + BPLib_TIME_GlobalData.EpochOffset;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetHostTime), TestHostTime);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetMonotonicTime), TestMonotonicTime);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetHostClockState), BPLIB_TIME_CLOCK_VALID);
 
     UtAssert_EQ(int64_t, BPLib_TIME_CalculateCorrelationFactor(), ExpCf);
 }
@@ -210,7 +209,7 @@ void Test_BPLib_TIME_CalculateCorrelationFactor_InvalidClock(void)
     int64_t ExpCf = 0;
 
     /* Make sure host clock state returns invalid */
-    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = Test_BPA_TIMEP_GetHostClockState_Invalid;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetHostClockState), BPLIB_TIME_CLOCK_INVALID);
 
     UtAssert_EQ(int64_t, BPLib_TIME_CalculateCorrelationFactor(), ExpCf);
 }
@@ -442,7 +441,7 @@ void Test_BPLib_TIME_MaintenanceActivities_ZeroCf(void)
     BPLib_TIME_GlobalData.TimeData.CfRingBuff[1 % BPLIB_TIME_MAX_BUFFER_LEN] = ExpBuffCf;
 
     /* Make sure host clock state returns invalid */
-    BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = Test_BPA_TIMEP_GetHostClockState_Invalid;
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetHostClockState), BPLIB_TIME_CLOCK_INVALID);
 
     UtAssert_INT32_EQ(BPLib_TIME_MaintenanceActivities(), BPLIB_SUCCESS);
     UtAssert_EQ(int64_t, BPLib_TIME_GlobalData.CurrentCf, ExpCurrCf);
@@ -454,22 +453,28 @@ void Test_BPLib_TIME_MaintenanceActivities_ZeroCf(void)
 /* Test that the CF is updated when a new one is calculated */
 void Test_BPLib_TIME_MaintenanceActivities_NewCf(void)
 {
-    int64_t ExpCurrCf;
-    int64_t ExpBuffCf;
+    int64_t  ExpCurrCf;
+    int64_t  ExpBuffCf;
     uint64_t ExpDtnTime;
     uint32_t BootEra = 1;
+    int64_t  TestHostTime = 5678;
+    int64_t  TestMonotonicTime = 1234;
 
     /* Set global data */
     BPLib_TIME_GlobalData.CurrentCf = 1234;
     BPLib_TIME_GlobalData.TimeData.CurrBootEra = BootEra;
 
     /* Set test data */
-    TestHostTime = 5678;
-    TestMonotonicTime = 1234;
     BPLib_TIME_GlobalData.EpochOffset = 5;
     ExpCurrCf = TestHostTime - TestMonotonicTime + BPLib_TIME_GlobalData.EpochOffset;
     ExpBuffCf = ExpCurrCf;
     ExpDtnTime = TestMonotonicTime + ExpCurrCf;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetHostTime), TestHostTime);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetMonotonicTime), TestMonotonicTime);
+
+    /* Make sure host clock state returns valid */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TIMEP_GetHostClockState), BPLIB_TIME_CLOCK_VALID);
 
     UtAssert_INT32_EQ(BPLib_TIME_MaintenanceActivities(), BPLIB_SUCCESS);
     UtAssert_EQ(int64_t, BPLib_TIME_GlobalData.CurrentCf, ExpCurrCf);

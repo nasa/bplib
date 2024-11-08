@@ -7,7 +7,7 @@
 #
 ##################################################################
 
-# Create stubs (for external use)
+# Create FWP stubs (for external use)
 add_library(bplib_fwp_stubs STATIC
     stubs/bplib_fwp_stubs.c
 )
@@ -17,6 +17,18 @@ target_include_directories(bplib_fwp_stubs PUBLIC
 )
 
 target_link_libraries(bplib_fwp_stubs PUBLIC ut_assert)
+
+# Create BPA FWP stubs for function callbacks
+add_library(bpa_fwp_stubs STATIC
+    app-stubs/bpa_fwp_stubs.c
+)
+
+target_include_directories(bpa_fwp_stubs PUBLIC
+    app-stubs/
+    $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
+)
+
+target_link_libraries(bpa_fwp_stubs PUBLIC ut_assert)
 
 # Create unit test object
 add_library(utobj_bplib_fwp OBJECT
@@ -50,11 +62,13 @@ target_include_directories(coverage-bplib_fwp-testrunner PRIVATE
     utilities/
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bpa_fwp_stubs,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_fwp-testrunner PUBLIC
     ut_coverage_link
     ut_assert
+    bpa_fwp_stubs
 )
 
 add_test(coverage-bplib_fwp-testrunner coverage-bplib_fwp-testrunner)

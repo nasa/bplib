@@ -24,18 +24,19 @@
 
 #include "bplib_em_test_utils.h"
 
-/* ========================= */
-/* Stub Function Definitions */
-/* ========================= */
+BPA_EVP_SendEvent_context_t context_BPA_EVP_SendEvent;
 
-BPLib_Status_t Test_BPA_EVP_Init(void)
+void UT_Handler_BPA_EVP_SendEvent(void *UserObj, UT_EntryKey_t FuncKey, 
+                                                        const UT_StubContext_t *Context)
 {
-    return BPLIB_SUCCESS;
-}
+    context_BPA_EVP_SendEvent.EventID   = UT_Hook_GetArgValueByName(Context, 
+                                                                    "EventID", uint16_t);
+    context_BPA_EVP_SendEvent.EventType = UT_Hook_GetArgValueByName(Context, 
+                                                    "EventType", BPLib_EM_EventType_t);
 
-BPLib_Status_t Test_BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText)
-{
-    return BPLIB_SUCCESS;
+    strncpy(context_BPA_EVP_SendEvent.Spec, UT_Hook_GetArgValueByName(Context, 
+                                "EventText", char const *), BPLIB_EM_EXPANDED_EVENT_SIZE);
+    context_BPA_EVP_SendEvent.Spec[BPLIB_EM_EXPANDED_EVENT_SIZE - 1] = '\0';
 }
 
 void BPLib_EM_Test_Setup(void)
@@ -44,8 +45,10 @@ void BPLib_EM_Test_Setup(void)
     UT_ResetState(0);
 
     /* Set up proxy callback functions */
-    BPLib_FWP_ProxyCallbacks.BPA_EVP_Init = Test_BPA_EVP_Init;
-    BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent = Test_BPA_EVP_SendEvent;
+    BPLib_FWP_ProxyCallbacks.BPA_EVP_Init = BPA_EVP_Init;
+    BPLib_FWP_ProxyCallbacks.BPA_EVP_SendEvent = BPA_EVP_SendEvent;
+
+    UT_SetHandlerFunction(UT_KEY(BPA_EVP_SendEvent), UT_Handler_BPA_EVP_SendEvent, NULL);
 }
 
 void BPLib_EM_Test_Teardown(void)

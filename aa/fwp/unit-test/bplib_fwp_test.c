@@ -31,59 +31,12 @@
 #include "bplib_time.h"
 #include "bplib_em.h"
 #include "bplib_nc_payloads.h"
+#include "bpa_fwp_stubs.h"  /* For stub definitions of callbacks */
 
 
 /*
 ** Function Definitions
 */
-
-
-/* 
-** Stub functions for callback testing
-*/
-
-int64_t BPA_TIMEP_GetMonotonicTime(void) { return 0; }
-void BPA_TIMEP_GetHostEpoch(BPLib_TIME_Epoch_t *Epoch) { return; }
-BPLib_TIME_ClockState_t BPA_TIMEP_GetHostClockState(void) { return BPLIB_TIME_CLOCK_VALID; }
-int64_t BPA_TIMEP_GetHostTime(void) { return 0; }
-BPLib_Status_t BPA_EVP_Init(void) { return 0; }
-BPLib_Status_t BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText) { return 0; }
-int32_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle) { return 0; }
-void BPA_PERFLOGP_Entry(uint32 PerfLogID) { return; }
-void BPA_PERFLOGP_Exit(uint32 PerfLogID) { return; }
-BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId) { return BPLIB_SUCCESS; }
-BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId) { return BPLIB_SUCCESS; }
-BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId) { return BPLIB_SUCCESS; }
-
-BPLib_Status_t BPA_TLMP_SendNodeMibConfigPkt(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload)
-{
-    return BPLIB_SUCCESS;    
-}
-
-BPLib_Status_t BPA_TLMP_SendPerSourceMibConfigPkt(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload)
-{
-    return BPLIB_SUCCESS;        
-}
-
-BPLib_Status_t BPA_TLMP_SendNodeMibCounterPkt(BPLib_NodeMibCountersHkTlm_Payload_t* NodeMIBCounterTlmPayload)
-{
-    return BPLIB_SUCCESS;          
-}
-
-BPLib_Status_t BPA_TLMP_SendPerSourceMibCounterPkt(BPLib_SourceMibCountersHkTlm_Payload_t* SrcMIBCounterTlmPayload)
-{
-    return BPLIB_SUCCESS;              
-}
-
-BPLib_Status_t BPA_TLMP_SendChannelContactPkt(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload)
-{
-    return BPLIB_SUCCESS;                  
-}
-
-BPLib_Status_t BPA_TLMP_SendStoragePkt(BPLib_StorageHkTlm_Payload_t* StorTlmPayload)
-{
-    return BPLIB_SUCCESS;     
-}
 
 /* Test nominal FWP initialization */
 void Test_BPLib_FWP_Init_Nominal(void)

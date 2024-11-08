@@ -18,34 +18,51 @@
  *
  */
 
+#ifndef BPLIB_EM_HANDLERS_H
+#define BPLIB_EM_HANDLERS_H
+
 /* ======== */
 /* Includes */
 /* ======== */
 
-#include "bplib_nc_test_utils.h"
+#include "utassert.h"
+#include "utstubs.h"
+#include "uttest.h"
+
+#include "bplib_em.h"
+
+
+/* ================= */
+/* Macro Definitions */
+/* ================= */
+
+#define UT_MAX_SENDEVENT_DEPTH 4
+
+
+/* ================ */
+/* Type Definitions */
+/* ================ */
+
+/* Unit test check event hook information */
+typedef struct
+{
+    uint16_t EventID;
+    BPLib_EM_EventType_t EventType;
+    char     Spec[BPLIB_EM_EXPANDED_EVENT_SIZE];
+} BPLib_EM_SendEvent_context_t;
+
+
+/* =========== */
+/* Global Data */
+/* =========== */
+
+extern BPLib_EM_SendEvent_context_t context_BPLib_EM_SendEvent[];
+
 
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
 
-void BPLib_NC_Test_Setup(void)
-{
-    /* Initialize test environment to default state for every test */
-    UT_ResetState(0);
+void UT_Handler_BPLib_EM_SendEvent(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication = BPA_ADUP_AddApplication;
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication = BPA_ADUP_StartApplication;
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication = BPA_ADUP_StopApplication;
-
-    UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
-}
-
-void BPLib_NC_Test_Teardown(void)
-{
-    /* Clean up test environment */
-}
-
-void UtTest_Setup(void)
-{
-    TestBplibNc_Register();
-}
+#endif /* BPLIB_EM_HANDLERS_H */
