@@ -1126,34 +1126,63 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
 
     Status = BPLIB_SUCCESS;
 
-    for(CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_BNDL_CNTRS; CounterCtrl++)
+    if (SourceEid < -2 || SourceEid >= BPLIB_MAX_NUM_SOURCE_EID)
     {
-        SetStatus = BPLib_AS_Set(SourceEid, BundleCounters[CounterCtrl], 0);
+        Status = BPLIB_AS_INVALID_EID;
 
-        /*
-        ** Applicable error codes would be BPLIB_AS_INVALID_EID, BPLIB_AS_UNKNOWN_NODE_CNTR,
-        ** and BPLIB_AS_UNKNOWN_SRC_CNTR. Since an invalid EID would be caught above a check for BPLIB_AS_INVALID_EID
-        ** is not needed. Since the BundleCounters array is verified to have all the valid bundle counters and the
-        ** counter loop control variable is the size of the array upon instantiation, there shouldn't be a way to
-        ** create an error without having changed the BundleCounters array into something invalid, which is a code
-        ** issue, not user issue. Thus, a generic check for a non-BPLIB_SUCCESS return code should be sufficient.
-        */
-
-        if (SetStatus != BPLIB_SUCCESS)
+        BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not reset source bundle counter due to expected source EID (%d)",
+                            SourceEid);
+    }
+    else 
+    {
+        for(CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_BNDL_CNTRS; CounterCtrl++)
         {
-            Status = BPLIB_AS_RESET_BNDL_ERR;
+            /* Every member in the BundleCoutners array is a node counter */
+            SetStatus = BPLib_AS_Set(BPLIB_AS_NODE_EID, BundleCounters[CounterCtrl], 0);
 
-            BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_ERR_EID,
-                                BPLib_EM_EventType_ERROR,
-                                "Error while resetting bundle counter %d, RC = %d",
-                                CounterCtrl,
-                                SetStatus);
+            /*
+            ** Applicable error codes would be BPLIB_AS_INVALID_EID, BPLIB_AS_UNKNOWN_NODE_CNTR,
+            ** and BPLIB_AS_UNKNOWN_SRC_CNTR. Since an invalid EID would be caught above a check for BPLIB_AS_INVALID_EID
+            ** is not needed. Since the BundleCounters array is verified to have all the valid bundle counters and the
+            ** counter loop control variable is the size of the array upon instantiation, there shouldn't be a way to
+            ** create an error without having changed the BundleCounters array into something invalid, which is a code
+            ** issue, not user issue. Thus, a generic check for a non-BPLIB_SUCCESS return code should be sufficient.
+            */
+
+            if (SetStatus != BPLIB_SUCCESS)
+            {
+                Status = BPLIB_AS_RESET_BNDL_ERR;
+
+                BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_NODE_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Error while resetting node bundle counter %d, RC = %d",
+                                    CounterCtrl,
+                                    SetStatus);
+            }
+
+            if (CounterCtrl >= BPLIB_AS_BNDL_SRC_START)
+            { /* CounterCtrl represents a number that equates to an enum that indicates a node + source counter */
+                SetStatus = BPLib_AS_Set(SourceEid, BundleCounters[CounterCtrl], 0);
+
+                if (SetStatus != BPLIB_SUCCESS)
+                {
+                    Status = BPLIB_AS_RESET_BNDL_ERR;
+
+                    BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_SRC_ERR_EID,
+                                        BPLib_EM_EventType_ERROR,
+                                        "Error while resetting source bundle counter %d, RC = %d",
+                                        CounterCtrl,
+                                        SetStatus);
+                }
+            }
+
+            /* 
+            ** This loop will continue even if an error occurs just so that 
+            ** all possible counters will be reset to 0
+            */
         }
-
-        /* 
-        ** This loop will continue even if an error occurs just so that 
-        ** all possible counters will be reset to 0
-        */
     }
     
     return Status;
