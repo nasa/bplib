@@ -1,0 +1,37 @@
+/**
+  \mainpage BPLib API Guide Contents
+
+  <UL>
+    <LI> \subpage bplibIntro
+    <LI> BPLib
+    <UL>
+      <LI> APIs
+        <UL>
+          <LI> Core Infrastructure (CI)
+          <UL>
+            <LI> \subpage bplib/ci/mem/inc/bplib_mem.h "Memory Allocator (MEM)"
+          </UL>
+          <LI> Storage (STOR)
+          <UL>
+            <LI> \subpage bplib/bpa/stor/cache/inc/bplib_stor_cache.h "Bundle Cache (CACHE)"
+            <LI> \subpage bplib/bpa/stor/qm/inc/bplib_stor_qm.h "Queue Manager (QM)"
+          </UL>
+        </UL>
+      <LI> \ref BPLib_ReturnCodes
+      <LI> \ref BPLib_Events
+      <LI> \subpage bplib.h "BPLib Reference"
+      <LI> \subpage bplib_api_types.h "API Types Reference"
+    </UL>
+  </UL>
+**/
+
+/**
+ \page bplibIntro BPLib Description
+
+ BPLib provides Bundle Protocol processing functions according to the
+ RFC 9171 Bundle Protocol standard.
+ 
+ **/
+
+
+
