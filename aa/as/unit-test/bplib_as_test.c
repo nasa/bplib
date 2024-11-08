@@ -360,6 +360,60 @@ void Test_BPLib_AS_Decrement_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
 }
 
+void Test_BPLib_AS_ResetSourceCounters_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_UNKNOWN;
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+}
+
+void Test_BPLib_AS_ResetSourceCounters_Error(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_UNKNOWN;
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+}
+
+void Test_BPLib_AS_ResetBundleCounters_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_UNKNOWN;
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+}
+
+void Test_BPLib_AS_ResetBundleCounters_Error(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_UNKNOWN;
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+}
+
+void Test_BPLib_AS_ResetErrorCounters_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_UNKNOWN;
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+}
+
+void Test_BPLib_AS_ResetErrorCounters_Error(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_UNKNOWN;
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+}
+
 void Test_BPLib_AS_ResetAllCounters_Nominal(void)
 {
     BPLib_Status_t Status;
