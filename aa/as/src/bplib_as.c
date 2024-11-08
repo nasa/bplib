@@ -1088,27 +1088,24 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
         {
             SetStatus = BPLib_AS_Set(SourceEid, ResettableSourceCounters[CounterCtrl], 0);
 
-            switch (SetStatus)
+            /*
+            ** Applicable error codes would be BPLIB_AS_INVALID_EID and BPLIB_AS_UNKNOWN_SRC_CNTR.
+            ** Since an invalid EID would be caught above and the source counter is controlled
+            ** by the ResettableSourceCounters array of size BPLIB_AS_NUM_SRC_CNTRS we can safely
+            ** assume that the counter enums passed into BPLib_AS_Set() are valid. If they aren't
+            ** the array is invalid and needs to be fixed, that's not a BPLib_AS_Set() issue though.
+            ** Thus, a general check for a non-BPLIB_SUCCESS return code can be done.
+            */
+
+            if (SetStatus != BPLIB_SUCCESS)
             {
-                case BPLIB_AS_INVALID_EID:
-                    Status = BPLIB_AS_INVALID_EID;
+                Status = BPLIB_AS_RESET_SRC_ERR;
 
-                    BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID,
-                                        BPLib_EM_EventType_ERROR,
-                                        "Could not set source counter %d to zero due to a source EID (%d) with unexpected pattern",
-                                        CounterCtrl,
-                                        SourceEid);
-
-                    break;
-                case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                    Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
-
-                    BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_UNKNOWN_SRC_CNTR_ERR_EID,
-                                        BPLib_EM_EventType_ERROR,
-                                        "Could not set unrecognized source counter, %d, to zero",
-                                        CounterCtrl);
-
-                    break;
+                BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Error while resetting source counter %d, RC = %d",
+                                    CounterCtrl,
+                                    SetStatus);
             }
 
             /* 
@@ -1133,36 +1130,24 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
     {
         SetStatus = BPLib_AS_Set(SourceEid, BundleCounters[CounterCtrl], 0);
 
-        switch (SetStatus)
+        /*
+        ** Applicable error codes would be BPLIB_AS_INVALID_EID, BPLIB_AS_UNKNOWN_NODE_CNTR,
+        ** and BPLIB_AS_UNKNOWN_SRC_CNTR. Since an invalid EID would be caught above a check for BPLIB_AS_INVALID_EID
+        ** is not needed. Since the BundleCounters array is verified to have all the valid bundle counters and the
+        ** counter loop control variable is the size of the array upon instantiation, there shouldn't be a way to
+        ** create an error without having changed the BundleCounters array into something invalid, which is a code
+        ** issue, not user issue. Thus, a generic check for a non-BPLIB_SUCCESS return code should be sufficient.
+        */
+
+        if (SetStatus != BPLIB_SUCCESS)
         {
-            case BPLIB_AS_INVALID_EID:
-                Status = BPLIB_AS_INVALID_EID;
+            Status = BPLIB_AS_RESET_BNDL_ERR;
 
-                BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not set bundle counter %d to zero due to a source EID (%d) with unexpected pattern",
-                                    CounterCtrl,
-                                    SourceEid);
-
-                break;
-            case BPLIB_AS_UNKNOWN_NODE_CNTR:
-                Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
-
-                BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_UNKNOWN_NODE_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not set unrecognized bundle node counter, %d, to zero",
-                                    CounterCtrl);
-
-                break;
-            case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
-
-                BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_UNKNOWN_SRC_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not set unrecognized bundle source counter, %d, to zero",
-                                    CounterCtrl);
-
-                break;
+            BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Error while resetting bundle counter %d, RC = %d",
+                                CounterCtrl,
+                                SetStatus);
         }
 
         /* 
@@ -1186,14 +1171,23 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(void)
     {
         SetStatus = BPLib_AS_Set(BPLIB_AS_NODE_EID, ErrorCounters[CounterCtrl], 0);
 
-        if (SetStatus == BPLIB_AS_UNKNOWN_NODE_CNTR)
-        {
-            Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
+        /*
+        ** Applicable error code would be BPLIB_AS_UNKNOWN_NODE_CNTR. Since the ErrorCounters array is verified
+        ** to have all the valid error counters and the counter loop control variable is the size of the array upon
+        ** instantiation, there shouldn't be a way to create an error without having changed the ErrorCounters array
+        ** into something invalid, which is a code issue, not user issue. Thus, a generic check for a non-BPLIB_SUCCESS
+        ** return code should be sufficient.
+        */
 
-            BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_UNKNOWN_NODE_CNTR_ERR_EID,
+        if (SetStatus != BPLIB_SUCCESS)
+        {
+            Status = BPLIB_AS_RESET_ERR_ERR;
+
+            BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Could not set unrecognized bundle node counter, %d, to zero",
-                                CounterCtrl);
+                                "Error while resetting error counter %d, RC = %d",
+                                CounterCtrl,
+                                SetStatus);
         }
 
         /* 
@@ -1218,15 +1212,29 @@ BPLib_Status_t BPLib_AS_ResetAllCounters(void)
     {
         SetStatus = BPLib_AS_Set(BPLIB_AS_NODE_EID, ResettableNodeCounters[CounterCtrl], 0);
 
-        if (SetStatus == BPLIB_AS_UNKNOWN_NODE_CNTR)
-        {
-            Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
+        /*
+        ** Applicable error code would be BPLIB_AS_UNKNOWN_NODE_CNTR. Since the ResettableNodeCounters array is
+        ** verified to have all the valid node counters and the counter loop control variable is the size of the array
+        ** upon instantiation, there shouldn't be a way to create an error without having changed the
+        ** ResettableNodeCounters array into something invalid, which is a code issue, not user issue. Thus, a generic
+        ** check for a non-BPLIB_SUCCESS return code should be sufficient.
+        */
 
-            BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_UNKNOWN_NODE_CNTR_ERR_EID,
+        if (SetStatus != BPLIB_SUCCESS)
+        {
+            Status = BPLIB_AS_RESET_ALL_ERR;
+
+            BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_NODE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Could not set unrecognized node counter, %d, to zero",
-                                CounterCtrl);
+                                "Error while resetting node counter %d, RC = %d",
+                                CounterCtrl,
+                                SetStatus);
         }
+
+        /* 
+        ** This loop will continue even if an error occurs just so that 
+        ** all possible counters will be reset to 0
+        */
     }
 
     for (SourceCtrl = 0; SourceCtrl < BPLIB_MAX_NUM_SOURCE_EID; SourceCtrl++)
@@ -1235,36 +1243,26 @@ BPLib_Status_t BPLib_AS_ResetAllCounters(void)
         {
             SetStatus = BPLib_AS_Set(SourceCtrl, ResettableSourceCounters[CounterCtrl], 0);
 
-            switch (SetStatus)
+            /*
+            ** Applicable error codes would be BPLIB_AS_INVALID_EID and BPLIB_AS_UNKNOWN_SRC_CNTR. Since an invalid
+            ** EID can't be passed in, a check for BPLIB_AS_INVALID_EID is not needed. Since the ResettableSourceCounters
+            ** array is verified to have all the valid source counters and the counter loop control variable is the size
+            ** of the array upon instantiation, there shouldn't be a way to create an error without having changed the
+            ** ResetttableSourceCounters array into something invalid, which is a code issue, not user issue. Thus, a
+            ** generic check for a non-BPLIB_SUCCESS return code should be sufficient.
+            */
+
+            if (SetStatus != BPLIB_SUCCESS)
             {
-                case BPLIB_AS_INVALID_EID:
-                    Status = BPLIB_AS_INVALID_EID;
+                Status = BPLIB_AS_RESET_ALL_ERR;
 
-                    BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_INVAL_EID_ERR_EID,
-                                        BPLib_EM_EventType_ERROR,
-                                        "Could not set counter %d to zero due to a source EID (%d) with unexpected pattern",
-                                        CounterCtrl,
-                                        SourceCtrl);
-
-                    break;
-                case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                    Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
-
-                    BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_UNKNOWN_SRC_CNTR_ERR_EID,
-                                        BPLib_EM_EventType_ERROR,
-                                        "Could not set unrecognized source counter, %d, to zero",
-                                        CounterCtrl);
-
-                    break;
+                BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_SRC_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Error while resetting source counter, RC = %d",
+                                    CounterCtrl,
+                                    SetStatus);
             }
         }
-    }
-
-    if (Status == BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_SUCCESS_EID,
-                            BPLib_EM_EventType_INFORMATION,
-                            "Successfully set the counters for every node and every source to 0");
     }
 
     return Status;
