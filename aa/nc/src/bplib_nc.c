@@ -333,8 +333,6 @@ BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payl
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
     Status = BPLib_AS_ResetSourceCounters(Payload.SourceEid);
 
     if (Status == BPLIB_SUCCESS)
