@@ -66,6 +66,7 @@ build-release-job:
   stage: build-release
   script:
    # Install doxygen
+   - apt-get update -y
    - apt-get install -y --no-install-recommends software-properties-common  # Install apt-add-repository and others
    - apt-get update -y
    - apt-add-repository universe  # Add the repo that has doxygen
