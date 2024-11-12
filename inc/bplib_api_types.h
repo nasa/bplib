@@ -70,13 +70,23 @@ typedef struct BPLib_IpnAddr
 ** Macros
 */
 
+/** @defgroup BPLib_ReturnCodes BPLib Return Codes
+ * @{
+ */
 /* General Return Codes */
 
-#define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)
-#define BPLIB_ERROR                         ((BPLib_Status_t) -1)
-#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)
-#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)
+#define BPLIB_SUCCESS                       ((BPLib_Status_t)  0) ///< Successful execution
 
+#define BPLIB_ERROR                         ((BPLib_Status_t) -1) ///< Failed execution
+#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2) ///< Unimplemented function
+#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3) ///< Unknown return status
+/** @defgroup BPLib_ReturnCodes BPLib Return Codes
+ * @}
+ */
+
+/** @defgroup BPLib_ErrorCodes BPLib Error Code Defines
+ * @{
+ */
 /* Framework Proxy Errors */
 #define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -4)
 
@@ -119,14 +129,17 @@ typedef struct BPLib_IpnAddr
 /* Payload Interface Errors */
 #define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -29u)
 
-//BPLIB_TIMEOUT was -5 in the prototype.
+// BPLIB_TIMEOUT was -5 in the prototype.
 #define BPLIB_TIMEOUT                       ((BPLib_Status_t) -30u)
 
 // BPLib Red-Black Tree (RBT) Duplicate Search Result
 #define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -31u)
 
 /* Table validation error code */
-#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -32u)    
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -32u)
+/** @defgroup BPLib_ErrorCodes BPLib Error Code Defines
+ * @}
+ */
 
 // BPLib_Handle_t - Multi-purpose handle for locks, APIs, and other allocated resources
 #define BPLIB_HANDLE_MAX_SERIAL 0xffffff

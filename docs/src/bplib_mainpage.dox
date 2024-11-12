@@ -50,6 +50,7 @@
 
   <UL>
     <LI> \ref BPLib_ReturnCodes "BPLib Return Codes"
+    <LI> \ref BPLib_ErrorCodes "BPLib Error Codes"
     <LI> \subpage bplib/inc/bplib_eventids.h "BPLib Events"
     <LI> \subpage bplib.h "BPLib Reference"
     <LI> \subpage bplib_api_types.h "API Types Reference"
