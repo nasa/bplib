@@ -66,6 +66,8 @@ build-release-job:
   stage: build-release
   script:
    # Install doxygen
+   - apt-add-repository universe
+   - apt-get update -y
    - apt-get install -y --no-install-recommends doxygen
    - git status
    # Clone and build osal as a standalone
