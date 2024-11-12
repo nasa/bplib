@@ -43,6 +43,18 @@
 /* Function Prototypes */
 /* =================== */
 
+/* Set error counter values without using another function under test, BPLib_AS_Set() */
+void Test_BPLib_AS_SetSourceCounterValues(int32_t SourceEid, uint32_t SetValue);
+void Test_BPLib_AS_SourceCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
+
+/* Set error counter values without using another function under test, BPLib_AS_Set() */
+void Test_BPLib_AS_SetBundleCounterValues(int32_t SourceEid, uint32_t SetValue);
+void Test_BPLib_AS_BundleCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
+
+/* Set counter values without using another function under test, BPLib_AS_Set() */
+void Test_BPLib_AS_SetErrorCounterValues(int32_t SourceEid, uint32_t SetValue);
+void Test_BPLib_AS_ErrorCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
+
 void BPLib_AS_Test_Setup(void);
 void BPLib_AS_Test_Teardown(void);
 

@@ -61,7 +61,7 @@ void Test_BPLib_AS_Get_Nominal(void)
     UtAssert_EQ(uint32_t, TestValue, 5);
 
     /* === Source counter test === */
-    
+
     /* Indicate that the desired counter is source-specific */
     SourceEid = 2;
 
@@ -147,7 +147,7 @@ void Test_BPLib_AS_Set_Nominal(void)
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived);
 
     /* === Source counter test === */
-    
+
     /* Indicate that the desired counter is source-specific */
     SourceEid = 2;
 
@@ -363,73 +363,348 @@ void Test_BPLib_AS_Decrement_Error(void)
 void Test_BPLib_AS_ResetSourceCounters_Nominal(void)
 {
     BPLib_Status_t Status;
+    int32_t SourceEid;
+    uint32_t TestValue;
 
-    Status = BPLIB_UNKNOWN;
+    SourceEid = 1;
+    TestValue = 42;
 
+    /* Set all source counters to a non-zero value */
+    Test_BPLib_AS_SetSourceCounterValues(SourceEid, TestValue);
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetSourceCounters(SourceEid);
+
+    /* Check that BPLib_AS_ResetSourceCounters() ran successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+
+    /* Check that source counters are set to 0 */
+    Test_BPLib_AS_SourceCountersValueTest(SourceEid, 0);
+
+    /* TODO: Event checking */
 }
 
 void Test_BPLib_AS_ResetSourceCounters_Error(void)
 {
     BPLib_Status_t Status;
+    int32_t SourceEid;
+    uint32_t TestValue;
+    uint32_t PrevVal;
 
-    Status = BPLIB_UNKNOWN;
+    SourceEid = -10;
+    TestValue = 24;
 
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+    /* Set all source counters to a non-zero value */
+    Test_BPLib_AS_SetSourceCounterValues(SourceEid, TestValue);
+
+    /* ================ */
+    /* Invalid EID test */
+    /* ================ */
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetSourceCounters(SourceEid);
+
+    /* Check that BPLib_AS_ResetSourceCounters() ran successfully */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_SRC_ERR, Status);
+
+    /* Check that source counters haven't been reset */
+    Test_BPLib_AS_SourceCountersValueTest(SourceEid, TestValue);
+
+    /* TODO: Event checking */
+
+    /* ================================ */
+    /* Invalid BPLib_AS_Set() operation */
+    /* ================================ */
+
+    /* 
+    ** Assign an invalid counter indicator to an entry in the array that holds all
+    ** the resettable source counters to force BPLib_AS_Set() to output an error
+    */
+
+    PrevVal = ResettableSourceCounters[0];
+    ResettableSourceCounters[0] = -15;
+
+    /* Make the source EID a valid value */
+    SourceEid = 1;
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetSourceCounters(SourceEid);
+
+    /* Assert that BPLib_AS_ResetSourceCounters() failed */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_SRC_ERR, Status);
+
+    /* Verify that the source counters were unchanged */
+    Test_BPLib_AS_SourceCountersValueTest(SourceEid, TestValue);
+
+    /* TODO: Event checking */
+
+    /* Set the array that holds all the source counters back to its original state for future tests */
+    ResettableSourceCounters[0] = PrevVal;
 }
 
 void Test_BPLib_AS_ResetBundleCounters_Nominal(void)
 {
     BPLib_Status_t Status;
+    int32_t SourceEid;
+    uint32_t TestValue;
 
-    Status = BPLIB_UNKNOWN;
+    SourceEid = 2;
+    TestValue = 144;
 
+    /* Set the values to be tested */
+    Test_BPLib_AS_SetBundleCounterValues(SourceEid, TestValue);
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetBundleCounters(SourceEid);
+
+    /* Assert that BPLib_AS_ResetBundleCounters() ran successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+
+    /* Assert that each modified bundle counter was reset */
+    Test_BPLib_AS_BundleCountersValueTest(SourceEid, 0);
+
+    /* TODO: Event checking */
 }
 
 void Test_BPLib_AS_ResetBundleCounters_Error(void)
 {
     BPLib_Status_t Status;
+    int32_t SourceEid;
+    uint32_t TestValue;
+    uint32_t PrevVal;
 
-    Status = BPLIB_UNKNOWN;
+    SourceEid = -15;
+    TestValue = 55;
 
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+    /* Set bundle counters to a non-zero value */
+    Test_BPLib_AS_SetBundleCounterValues(SourceEid, TestValue);
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetBundleCounters(SourceEid);
+
+    /* Assert that BPLib_AS_ResetBundleCounters() failed due to an invalid source EID */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
+
+    /* Verify that bundle counters were reset to 0 */
+    Test_BPLib_AS_BundleCountersValueTest(SourceEid, TestValue);
+
+    /* TODO: Event checking */
+
+    /* ================================ */
+    /* Invalid BPLib_AS_Set() operation */
+    /* ================================ */
+
+    /* 
+    ** Assign an invalid counter indicator to an entry in the array that holds all
+    ** the bundle counters to force BPLib_AS_Set() to output an error
+    */
+
+    PrevVal = BundleCounters[0];
+    BundleCounters[0] = -20;
+
+    /* Set source EID to a valid value */
+    SourceEid = 2;
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetBundleCounters(SourceEid);
+
+    /* Assert that BPLib_AS_ResetBundleCounters() failed */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_BNDL_ERR, Status);
+
+    /* Verify that the bundle counters were unchanged */
+    Test_BPLib_AS_BundleCountersValueTest(SourceEid, TestValue);
+
+    /* TODO: Evnet checking */
+
+    /* Set the array that holds all the bundle counters back to its original state for future tests */
+    BundleCounters[0] = PrevVal;
 }
 
 void Test_BPLib_AS_ResetErrorCounters_Nominal(void)
 {
     BPLib_Status_t Status;
+    int32_t SourceEid;
+    uint32_t TestValue;
 
-    Status = BPLIB_UNKNOWN;
+    SourceEid = 3;
+    TestValue = 5;
 
+    /* Set the values to be tested */
+    Test_BPLib_AS_SetErrorCounterValues(SourceEid, TestValue);
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetErrorCounters();
+
+    /* Assert that BPLib_AS_ResetErrorCounters() ran successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+
+    /* Assert that each modified error counter was reset */
+    Test_BPLib_AS_ErrorCountersValueTest(SourceEid, 0);
+
+    /* TODO: Event checking */
 }
 
 void Test_BPLib_AS_ResetErrorCounters_Error(void)
 {
     BPLib_Status_t Status;
+    int32_t SourceEid;
+    uint32_t TestValue;
+    uint32_t PrevVal;
 
-    Status = BPLIB_UNKNOWN;
+    /* ================================ */
+    /* Invalid BPLib_AS_Set() operation */
+    /* ================================ */
 
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+    /* 
+    ** Assign an invalid counter indicator to an entry in the array that holds all
+    ** the error counters to force BPLib_AS_Set() to output an error
+    */
+
+    PrevVal = ErrorCounters[0];
+    ErrorCounters[0] = -20;
+
+    /* Set source EID to a valid value */
+    SourceEid = 3;
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetErrorCounters();
+
+    /* Assert that BPLib_AS_ResetErrorCounters() failed */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_ERR_ERR, Status);
+
+    /* Verify that the error counters were unchanged */
+    Test_BPLib_AS_ErrorCountersValueTest(SourceEid, TestValue);
+
+    /* TODO: Evnet checking */
+
+    /* Set the array that holds all the error counters back to its original state for future tests */
+    ErrorCounters[0] = PrevVal;
 }
 
 void Test_BPLib_AS_ResetAllCounters_Nominal(void)
 {
     BPLib_Status_t Status;
-    int16_t SourceEid = 5;
+    int32_t SourceEids[3];
+    uint32_t TestValue;
 
-    /* Set the values to test against */
-    BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount = 15;
-    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRejectedCustody = 17;
+    /* Modify counter values for the first source EID */
+    SourceEids[0] = 6;
+    TestValue = 1000;
+
+    /* Set all counters to a non-zero value */
+    Test_BPLib_AS_SetSourceCounterValues(SourceEids[0], TestValue);
+    Test_BPLib_AS_SetBundleCounterValues(SourceEids[0], TestValue);
+    Test_BPLib_AS_SetErrorCounterValues(SourceEids[0], TestValue);
+
+    /* Modify counter values for a second source EID */
+    SourceEids[1] = 1;
+    TestValue = 500;
+
+    /* Set all counters to a non-zero value */
+    Test_BPLib_AS_SetSourceCounterValues(SourceEids[1], TestValue);
+    Test_BPLib_AS_SetBundleCounterValues(SourceEids[1], TestValue);
+    Test_BPLib_AS_SetErrorCounterValues(SourceEids[1], TestValue);
+
+    /* Modify counter values for a third source EID */
+    SourceEids[2] = 2;
+    TestValue = 250;
+
+    /* Set all counters to a non-zero value */
+    Test_BPLib_AS_SetSourceCounterValues(SourceEids[2], TestValue);
+    Test_BPLib_AS_SetBundleCounterValues(SourceEids[2], TestValue);
+    Test_BPLib_AS_SetErrorCounterValues(SourceEids[2], TestValue);
 
     /* Run the function under test */
     Status = BPLib_AS_ResetAllCounters();
 
-    /* Verify that modify counters were reset and that the reset all counters function was successful */
+    /* Check that BPLib_AS_ResetAllCounters() ran successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
-    UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount);
-    UtAssert_EQ(uint32_t, 0, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRejectedCustody);
+
+    /* Check that all counters are set to 0 */
+    Test_BPLib_AS_SourceCountersValueTest(SourceEids[0], 0);
+    Test_BPLib_AS_BundleCountersValueTest(SourceEids[0], 0);
+    Test_BPLib_AS_ErrorCountersValueTest(SourceEids[0], 0);
+
+    Test_BPLib_AS_SourceCountersValueTest(SourceEids[1], 0);
+    Test_BPLib_AS_BundleCountersValueTest(SourceEids[1], 0);
+    Test_BPLib_AS_ErrorCountersValueTest(SourceEids[1], 0);
+
+    Test_BPLib_AS_SourceCountersValueTest(SourceEids[2], 0);
+    Test_BPLib_AS_BundleCountersValueTest(SourceEids[2], 0);
+    Test_BPLib_AS_ErrorCountersValueTest(SourceEids[2], 0);
+
+    /* TODO: Event checking */
+}
+
+void Test_BPLib_AS_ResetAllCounters_Error(void)
+{
+    BPLib_Status_t Status;
+    int32_t SourceEids[3];
+    uint32_t TestValues[3];
+    uint32_t PrevVal;
+
+    /* Modify counter values for the first source EID */
+    SourceEids[0] = 1;
+    TestValues[0] = 10;
+
+    /* Set all counters to a non-zero value */
+    Test_BPLib_AS_SetSourceCounterValues(SourceEids[0], TestValues[0]);
+    Test_BPLib_AS_SetBundleCounterValues(SourceEids[0], TestValues[0]);
+    Test_BPLib_AS_SetErrorCounterValues(SourceEids[0], TestValues[0]);
+
+    /* Modify counter values for a second source EID */
+    SourceEids[1] = 5;
+    TestValues[1] = 5;
+
+    /* Set all counters to a non-zero value */
+    Test_BPLib_AS_SetSourceCounterValues(SourceEids[1], TestValues[1]);
+    Test_BPLib_AS_SetBundleCounterValues(SourceEids[1], TestValues[1]);
+    Test_BPLib_AS_SetErrorCounterValues(SourceEids[1], TestValues[1]);
+
+    /* Modify counter values for a third source EID */
+    SourceEids[2] = 0;
+    TestValues[2] = 25;
+
+    /* Set all counters to a non-zero value */
+    Test_BPLib_AS_SetSourceCounterValues(SourceEids[2], TestValues[2]);
+    Test_BPLib_AS_SetBundleCounterValues(SourceEids[2], TestValues[2]);
+    Test_BPLib_AS_SetErrorCounterValues(SourceEids[2], TestValues[2]);
+
+    /* ================================ */
+    /* Invalid BPLib_AS_Set() operation */
+    /* ================================ */
+
+    /* 
+    ** Assign an invalid counter indicator to an entry in the array that holds all
+    ** the resettable node counters to force BPLib_AS_Set() to output an error
+    */
+
+    PrevVal = ResettableNodeCounters[0];
+    ResettableNodeCounters[0] = -20;
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetAllCounters();
+
+    /* Assert that BPLib_AS_ResetAllCounters() failed */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_ALL_ERR, Status);
+
+    /* Verify that the all counters were unchanged */
+    Test_BPLib_AS_SourceCountersValueTest(SourceEids[0], TestValues[0]);
+    Test_BPLib_AS_BundleCountersValueTest(SourceEids[0], TestValues[0]);
+    Test_BPLib_AS_ErrorCountersValueTest(SourceEids[0], TestValues[0]);
+
+    Test_BPLib_AS_SourceCountersValueTest(SourceEids[1], TestValues[1]);
+    Test_BPLib_AS_BundleCountersValueTest(SourceEids[1], TestValues[1]);
+    Test_BPLib_AS_ErrorCountersValueTest(SourceEids[1], TestValues[1]);
+
+    Test_BPLib_AS_SourceCountersValueTest(SourceEids[2], TestValues[2]);
+    Test_BPLib_AS_BundleCountersValueTest(SourceEids[2], TestValues[2]);
+    Test_BPLib_AS_ErrorCountersValueTest(SourceEids[2], TestValues[2]);
+
+    /* TODO: Evnet checking */
+
+    /* Set the array that holds all the error counters back to its original state for future tests */
+    ResettableNodeCounters[0] = PrevVal;
 }
 
 void TestBplibAs_Register(void)
@@ -445,4 +720,5 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_Decrement_Nominal);
     ADD_TEST(Test_BPLib_AS_Decrement_Error);
     ADD_TEST(Test_BPLib_AS_ResetAllCounters_Nominal);
+    ADD_TEST(Test_BPLib_AS_ResetAllCounters_Error);
 }
