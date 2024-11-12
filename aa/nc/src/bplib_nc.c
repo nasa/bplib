@@ -295,36 +295,9 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset counter %d for source EID %d",
+                            "Successfully reset counter %d for source EID %d",
                             Payload.Counter,
                             Payload.SourceEid);
-    }
-    else
-    {
-        switch (Status)
-        {
-            case BPLIB_AS_INVALID_EID:
-                // Source EID doesn't match an expected pattern
-                BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_SRC_EID_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Source EID, %d, is an unrecognized pattern",
-                                    Payload.SourceEid);
-
-                break;
-            case BPLIB_AS_UNKNOWN_NODE_CNTR:
-                // The node-specific counter did not match a recognized value
-                BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_UNK_SRC_CNTR_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Node-specific counter to reset, %d, is not recognized",
-                                    Payload.Counter);
-
-                break;
-            case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                // The source counter did not match a recognized value
-                BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_UNK_SRC_CNTR_ERR_EID, BPLib_EM_EventType_ERROR,
-                                    "Source counter to reset, %d, is not recognized",
-                                    Payload.Counter);
-
-                break;
-        }
     }
 
     return Status;
@@ -336,54 +309,29 @@ BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payl
 
     Status = BPLIB_SUCCESS;
 
-    /*
-    Status = BPLib_AS_ResetSourceCounters();
-    */
+    Status = BPLib_AS_ResetSourceCounters(Payload.SourceEid);
 
-    /*
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_EM_SendEvent(BPLIB_NC_RESET_SRC_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset source counters directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successfully reset source counters for source EID %d",
+                            Payload.SourceEid);
     }
-    /*
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_NC_RESET_SRC_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reset source counters directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
-    }
-    */
 
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ResetBundleCounters(void)
+BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    Status = BPLib_AS_ResetBundleCounters(Payload.SourceEid);
 
-    /*
-    Status = BPLib_AS_ResetBundleCounters();
-    */
-
-    /*
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_EM_SendEvent(BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Reset bundle counters directive not implemented");
     }
-    /*
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_NC_RESET_BNDL_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reset bundle counters directive not implemented");
-    }
-    */
 
     return Status;
 }
@@ -392,26 +340,13 @@ BPLib_Status_t BPLib_NC_ResetErrorCounters(void)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    /*
     Status = BPLib_AS_ResetErrorCounters();
-    */
 
-    /*
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_EM_SendEvent(BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Reset error counters directive not implemented");
     }
-    /*
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_NC_RESET_ERR_CTRS_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reset error counters directive not implemented");
-    }
-    */
 
     return Status;
 }

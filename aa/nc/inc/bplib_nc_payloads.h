@@ -46,8 +46,13 @@ typedef struct
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    int16_t SourceEid;
 } BPLib_ResetSourceCounters_Payload_t;
+
+typedef struct
+{
+    int16_t SourceEid;
+} BPLib_ResetBundleCounters_Payload_t;
 
 typedef struct
 {

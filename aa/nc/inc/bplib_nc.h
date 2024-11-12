@@ -181,11 +181,11 @@ BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payl
   * \brief     Set all bundle-related counters to zero
   * \details   Node Configuration Reset Bundle Counters command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] void No arguments accepted
+  * \param[in] Payload (BPLib_ResetBundleCounters_Payload_t) Payload found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ResetBundleCounters(void);
+BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload);
 
 /**
   * \brief     Set all error counters to zero
