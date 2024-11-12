@@ -11,14 +11,14 @@
           <UL>
             <LI> \subpage bplib/aa/arp/inc/bplib_arp.h "Admin Records Processor (ARP)"
             <LI> \subpage bplib/aa/as/inc/bplib_as.h "Admin Statistics (AS)"
-            <LI> \subpage bplib/aa/fwp/inc/bplib_fwp.h "Framewo rk Proxy (WP)"
+            <LI> \subpage bplib/aa/fwp/inc/bplib_fwp.h "Framework Proxy (FWP)"
             <LI> \subpage bplib/aa/nc/inc/bplib_nc.h "Node Configuration (NC)"
           </UL>
           <LI> Bundle Protocol Agent (BPA)
           <UL>
             <LI> \subpage bplib/bpa/bi/inc/bplib_bi.h "Bundle Interface (BI)"
             <LI> \subpage bplib/bpa/ct/inc/bplib_ct.h "Custody Transfer (CT)"
-            <LI> \subpage bplib/bpa/ebp/inc/bplib_ebp.h "Extension Block Processor"
+            <LI> \subpage bplib/bpa/ebp/inc/bplib_ebp.h "Extension Block Processor (EBP)"
             <LI> \subpage bplib/bpa/pdb/inc/bplib_pdb.h "Policy Database (PDB)"
             <LI> \subpage bplib/bpa/pi/inc/bplib_pi.h "Payload Interface (PI)"
             <LI> Storage (STOR)
