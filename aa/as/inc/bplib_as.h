@@ -451,18 +451,18 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
  * \brief     Modify the counter specified by the source EID and counter to the desired value
  * \details   Mutator function for counters used by Admin Statistics
  * \note      This function assumes all modifiable counters are of type uint32_t
- * \param[in] SourceEid       (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
- *                            array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
- *                            whose value is to be returned.
- * \param[in] Counter         (BPLib_AS_Counter_t) Counter to mutate
- * \param[in] DesiredValue    (uint32_t) Value that the caller wishes to set the counter represented by Counter and SourceEid
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
+ *                      array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
+ *                      whose value is to be returned.
+ * \param[in] Counter   (BPLib_AS_Counter_t) Counter to mutate
+ * \param[in] Value     (uint32_t) Value that the caller wishes to set the counter represented by Counter and SourceEid
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
  */
-BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t DesiredValue);
+BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value);
 
 /**
  * \brief     Add 1 to the counter specified by the source EID and counter
