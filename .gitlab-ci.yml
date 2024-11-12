@@ -65,6 +65,8 @@ build-release-job:
   image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
   stage: build-release
   script:
+   # Install doxygen
+   - apt-get install -y --no-install-recommends doxygen
    - git status
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
