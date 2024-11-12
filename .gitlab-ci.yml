@@ -102,8 +102,12 @@ build-debug-job:
    - cmake $CMAKE_BPLIB_DEBUG_DEFS -B "${BPLIB_DEBUG_BUILD}"
    - cd "${BPLIB_DEBUG_BUILD}"
    - make all
+   # Build the BPLib API Guide
+   - make bplib-apiguide
    # Run unit tests
    - ctest --output-on-failure 2>&1 | tee ctest.log
+   # Run the BPLib API Guide build again to show the URL of index.html
+   - make bplib-apiguide
 
   artifacts:
     paths:
