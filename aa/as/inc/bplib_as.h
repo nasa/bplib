@@ -531,7 +531,6 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
  * \note      Cycles through error counters and uses BPLib_AS_Set() to reset them to 0
  * \param[in] void No arguments accepted
  * \return    Execution status
- * \retval    Status is determined by BPLib_AS_Set()
  * \retval    BPLIB_AS_RESET_ERR_ERR: Something went wrong while running BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS: Successful execution
  */
