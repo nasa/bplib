@@ -290,24 +290,42 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    Status = BPLib_AS_Set(Payload.SourceEid, Payload.Counter, 0);
 
-    /*
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset counter directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Reset counter %d for source EID %d",
+                            Payload.Counter,
+                            Payload.SourceEid);
     }
-    /*
     else
     {
-        BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_ERR_EID, BPLib_EM_EventType_ERROR,
-                            "Reset counter directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+        switch (Status)
+        {
+            case BPLIB_AS_INVALID_EID:
+                // Source EID doesn't match an expected pattern
+                BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_SRC_EID_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Source EID, %d, is an unrecognized pattern",
+                                    Payload.SourceEid);
+
+                break;
+            case BPLIB_AS_UNKNOWN_NODE_CNTR:
+                // The node-specific counter did not match a recognized value
+                BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_UNK_SRC_CNTR_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Node-specific counter to reset, %d, is not recognized",
+                                    Payload.Counter);
+
+                break;
+            case BPLIB_AS_UNKNOWN_SRC_CNTR:
+                // The source counter did not match a recognized value
+                BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_UNK_SRC_CNTR_ERR_EID, BPLib_EM_EventType_ERROR,
+                                    "Source counter to reset, %d, is not recognized",
+                                    Payload.Counter);
+
+                break;
+        }
     }
-    */
 
     return Status;
 }
