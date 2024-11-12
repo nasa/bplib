@@ -149,10 +149,8 @@ BPLib_Status_t BPLib_NC_ReloadSavedData(void);
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] void No arguments accepted
   * \return    Execution status
-  * \retval    Status is determined by BPLib_AS_ResetAllCounters() which is determined by BPLib_AS_Set() in bplib_as.h
-  * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
-  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
-  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
+  * \retval    Status is determined by BPLib_AS_ResetAllCounters() in bplib_as.h
+  * \retval    BPLIB_AS_RESET_ALL_ERR: Something went wrong while running BPLib_AS_Set()
   * \retval    BPLIB_SUCCESS: Successful execution
   */
 BPLib_Status_t BPLib_NC_ResetAllCounters(void);
@@ -163,6 +161,10 @@ BPLib_Status_t BPLib_NC_ResetAllCounters(void);
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] Payload BPLib_ResetCounter_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
+  * \return    Status is determined by BPLib_AS_Set() in bplib_as.h
+  * \return    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+  * \return    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
+  * \return    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
   * \retval    BPLIB_SUCCESS: Command was successful
   */
 BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload);
@@ -173,6 +175,9 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] Payload BPLib_ResetSourceCounters_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
+  * \return    Status is determined by BPLib_AS_ResetSourceCounters() in bplib_as.h
+  * \return    BPLIB_AS_INVALID_EID: Source EID is <= -1 or >= BPLIB_MAX_NUM_SOURCE_EID
+  * \return    BPLIB_AS_RESET_SRC_ERR: Something went wrong while running BPLib_AS_Set()
   * \retval    BPLIB_SUCCESS: Command was successful
   */
 BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payload);
@@ -183,6 +188,9 @@ BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payl
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] Payload (BPLib_ResetBundleCounters_Payload_t) Payload found in bplib_nc_payloads.h
   * \return    Execution status
+  * \retval    Status is determined by BPLib_AS_ResetBundleCounters() in bplib_as.h
+  * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+  * \retval    BPLIB_AS_RESET_BNDL_ERR: Something went wrong while running BPLib_AS_Set()
   * \retval    BPLIB_SUCCESS: Command was successful
   */
 BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload);
@@ -193,6 +201,8 @@ BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payl
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
   * \param[in] void No arguments accepted
   * \return    Execution status
+  * \retval    Status is determined by BPLib_AS_ResetErrorCounters() in bplib_as.h
+  * \retval    BPLIB_AS_RESET_ERR_ERR: Something went wrong while running BPLib_AS_Set()
   * \retval    BPLIB_SUCCESS: Command was successful
   */
 BPLib_Status_t BPLib_NC_ResetErrorCounters(void);
