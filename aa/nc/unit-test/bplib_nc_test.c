@@ -336,7 +336,7 @@ void Test_BPLib_NC_ResetCounter_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_RESET_CTR_SUCCESS_EID,
     //                     "Reset counter command not implemented, received 42 in payload");
 
-    Payload.ExampleParameter = 42;
+    Payload.SourceEid = 4;
     Status = BPLib_NC_ResetCounter(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -368,7 +368,7 @@ void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_RESET_SRC_CTRS_SUCCESS_EID,
     //                     "Reset source counters command not implemented, received 19 in payload");
 
-    Payload.ExampleParameter = 19;
+    Payload.SourceEid = 2;
     Status = BPLib_NC_ResetSourceCounters(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
@@ -395,11 +395,14 @@ void Test_BPLib_NC_ResetSourceCounters_Error(void)
 void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
 {
     BPLib_Status_t Status;
+    BPLib_ResetBundleCounters_Payload_t Payload;
+
+    Payload.SourceEid = 2;
 
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_RESET_BNDL_CTRS_SUCCESS_EID,
     //                     "Reset bundle counters command not implemented");
 
-    Status = BPLib_NC_ResetBundleCounters();
+    Status = BPLib_NC_ResetBundleCounters(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);

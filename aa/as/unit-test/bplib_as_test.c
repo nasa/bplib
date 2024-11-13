@@ -230,7 +230,6 @@ void Test_BPLib_AS_Increment_Nominal(void)
     SourceEid = 2;
 
     /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted = 15;
     BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted = 15;
 
     /* Run function under test */
@@ -238,8 +237,18 @@ void Test_BPLib_AS_Increment_Nominal(void)
 
     /* Verify that the node and source counters were incremented */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
-    UtAssert_EQ(uint32_t, 16, BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted);
     UtAssert_EQ(uint32_t, 16, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted);
+
+    /* === Node counter test === */
+
+    SourceEid = BPLIB_AS_NODE_EID;
+    
+    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted = 15;
+
+    Status = BPLib_AS_Increment(SourceEid, BUNDLE_CNT_GEN_ACCPT);
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+    UtAssert_EQ(uint32_t, 16, BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted);
 }
 
 void Test_BPLib_AS_Increment_Error(void)
@@ -307,7 +316,6 @@ void Test_BPLib_AS_Decrement_Nominal(void)
     SourceEid = 2;
 
     /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted = 15;
     BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted = 15;
 
     /* Run function under test */
@@ -315,7 +323,6 @@ void Test_BPLib_AS_Decrement_Nominal(void)
 
     /* Verify that the node and source counters were decremented */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
-    UtAssert_EQ(uint32_t, 14, BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted);
     UtAssert_EQ(uint32_t, 14, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted);
 }
 
@@ -565,6 +572,7 @@ void Test_BPLib_AS_ResetErrorCounters_Error(void)
 
     /* Set source EID to a valid value */
     SourceEid = 3;
+    TestValue = 80;
 
     /* Run the function under test */
     Status = BPLib_AS_ResetErrorCounters();
@@ -719,6 +727,12 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_Increment_Error);
     ADD_TEST(Test_BPLib_AS_Decrement_Nominal);
     ADD_TEST(Test_BPLib_AS_Decrement_Error);
+    ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Nominal);
+    ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Error);
+    ADD_TEST(Test_BPLib_AS_ResetBundleCounters_Nominal);
+    ADD_TEST(Test_BPLib_AS_ResetBundleCounters_Error);
+    ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Nominal);
+    ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Error);
     ADD_TEST(Test_BPLib_AS_ResetAllCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetAllCounters_Error);
 }
