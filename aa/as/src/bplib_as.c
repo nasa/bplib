@@ -32,207 +32,6 @@ BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
 BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
 BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
 
-BPLib_AS_Counter_t ResettableNodeCounters[BPLIB_AS_NUM_NODE_CNTRS] = {BUNDLE_AGT_ACCPT_CNT,
-                                                                      BUNDLE_AGT_REJ_CNT,
-                                                                      BUNDLE_CNT_GEN_ACCPT,
-                                                                      BUNDLE_CNT_GEN_REJ,
-                                                                      BUNDLE_CNT_GEN_CUSTODY,
-                                                                      BUNDLE_CNT_GEN_BSR_RECV,
-                                                                      BUNDLE_CNT_GEN_BSR_ACCPT,
-                                                                      BUNDLE_CNT_GEN_BSR_FORW,
-                                                                      BUNDLE_CNT_GEN_BSR_DELVR,
-                                                                      BUNDLE_CNT_GEN_BSR_DEL,
-                                                                      BUNDLE_CNT_RECV_BSR_RECV,
-                                                                      BUNDLE_CNT_RECV_BSR_ACCPT,
-                                                                      BUNDLE_CNT_RECV_BSR_FORW,
-                                                                      BUNDLE_CNT_RECV_BSR_DELVR,
-                                                                      BUNDLE_CNT_RECV_BSR_DEL,
-                                                                      BUNDLE_CNT_MAX_BSR_RATE_EXCD,
-                                                                      BUNDLE_CNT_GEN_CRS,
-                                                                      BUNDLE_CNT_GEN_CRS_RECV,
-                                                                      BUNDLE_CNT_GEN_CRS_ACCPT,
-                                                                      BUNDLE_CNT_GEN_CRS_FORW,
-                                                                      BUNDLE_CNT_GEN_CRS_DELVR,
-                                                                      BUNDLE_CNT_GEN_CRS_DEL,
-                                                                      BUNDLE_CNT_MAX_CRS_RATE_EXCD,
-                                                                      BUNDLE_CNT_RECV_CRS,
-                                                                      BUNDLE_CNT_RECV_CRS_RECV,
-                                                                      BUNDLE_CNT_RECV_CRS_ACCPT,
-                                                                      BUNDLE_CNT_RECV_CRS_FORW,
-                                                                      BUNDLE_CNT_RECV_CRS_DELVR,
-                                                                      BUNDLE_CNT_RECV_CRS_DEL,
-                                                                      BUNDLE_CNT_GEN_FRAG,
-                                                                      BUNDLE_CNT_RECV,
-                                                                      BUNDLE_CNT_RECV_FRAG,
-                                                                      BUNDLE_CNT_UNPROC_BLKS,
-                                                                      BUNDLE_CNT_INVAL_PRI_BLK,
-                                                                      BUNDLE_CNT_CS_RECV,
-                                                                      BUNDLE_CNT_FORW,
-                                                                      BUNDLE_CNT_FORW_FAILED,
-                                                                      BUNDLE_CNT_FRAG,
-                                                                      BUNDLE_CNT_REASSEMBLED,
-                                                                      BUNDLE_CNT_FRAG_ERR,
-                                                                      BUNDLE_CNT_DELVR,
-                                                                      BUNDLE_CNT_ABAND,
-                                                                      ADU_CNT_DELVR,
-                                                                      ADU_CNT_RECV,
-                                                                      BUNDLE_CNT_DEL,
-                                                                      BUNDLE_CNT_DEL_EXP,
-                                                                      BUNDLE_CNT_DEL_HOP_EXCD,
-                                                                      BUNDLE_CNT_DEL_INVAL_PAY,
-                                                                      BUNDLE_CNT_DEL_TRAF_PARED,
-                                                                      BUNDLE_CNT_DEL_UNINTEL,
-                                                                      BUNDLE_CNT_DEL_UNSUPPORT_BLK,
-                                                                      BUNDLE_CNT_DISCARDED,
-                                                                      BUNDLE_CNT_DEL_NO_STOR,
-                                                                      BUNDLE_CNT_DEL_BAD_EID,
-                                                                      BUNDLE_CNT_DEL_UNAUTH,
-                                                                      BUNDLE_CNT_DEL_TOO_LONG,
-                                                                      BUNDLE_CNT_CUSTODY_TRANS,
-                                                                      BUNDLE_CNT_CUSTODY_REJ,
-                                                                      BUNDLE_CNT_CUSTODY_REQ,
-                                                                      BUNDLE_CNT_CUSTODY_RE_FORW,
-                                                                      BUNDLE_CNT_NO_FURTHER_INFO,
-                                                                      BUNDLE_CNT_RED,
-                                                                      BUNDLE_CNT_DEPLETED,
-                                                                      BUNDLE_CNT_UNINTEL_EID,
-                                                                      BUNDLE_CNT_UNINTEL_BLK,
-                                                                      BUNDLE_CNT_RECV_CS,
-                                                                      BUNDLE_CNT_GEN_CS,
-                                                                      BUNDLE_CNT_REJ_CUSTODY,
-                                                                      NODE_STARTUP_CNTR};
-
-BPLib_AS_Counter_t ResettableSourceCounters[BPLIB_AS_NUM_SRC_CNTRS] = {BUNDLE_CNT_GEN_ACCPT,
-                                                                       BUNDLE_CNT_GEN_REJ,
-                                                                       BUNDLE_CNT_RECV_BSR_RECV,
-                                                                       BUNDLE_CNT_RECV_BSR_ACCPT,
-                                                                       BUNDLE_CNT_RECV_BSR_FORW,
-                                                                       BUNDLE_CNT_RECV_BSR_DELVR,
-                                                                       BUNDLE_CNT_RECV_BSR_DEL,
-                                                                       BUNDLE_CNT_MAX_BSR_RATE_EXCD,
-                                                                       BUNDLE_CNT_RECV_CRS_RECV,
-                                                                       BUNDLE_CNT_RECV_CRS_ACCPT,
-                                                                       BUNDLE_CNT_RECV_CRS_FORW,
-                                                                       BUNDLE_CNT_RECV_CRS_DELVR,
-                                                                       BUNDLE_CNT_RECV_CRS_DEL,
-                                                                       BUNDLE_CNT_GEN_FRAG,
-                                                                       BUNDLE_CNT_RECV,
-                                                                       BUNDLE_CNT_RECV_FRAG,
-                                                                       BUNDLE_CNT_UNPROC_BLKS,
-                                                                       BUNDLE_CNT_FORW,
-                                                                       BUNDLE_CNT_FORW_FAILED,
-                                                                       BUNDLE_CNT_FRAG,
-                                                                       BUNDLE_CNT_REASSEMBLED,
-                                                                       BUNDLE_CNT_FRAG_ERR,
-                                                                       BUNDLE_CNT_DELVR,
-                                                                       BUNDLE_CNT_ABAND,
-                                                                       ADU_CNT_DELVR,
-                                                                       ADU_CNT_RECV,
-                                                                       BUNDLE_CNT_DEL,
-                                                                       BUNDLE_CNT_DEL_EXP,
-                                                                       BUNDLE_CNT_DEL_HOP_EXCD,
-                                                                       BUNDLE_CNT_DEL_INVAL_PAY,
-                                                                       BUNDLE_CNT_DEL_TRAF_PARED,
-                                                                       BUNDLE_CNT_DEL_UNINTEL,
-                                                                       BUNDLE_CNT_DEL_UNSUPPORT_BLK,
-                                                                       BUNDLE_CNT_DISCARDED,
-                                                                       BUNDLE_CNT_DEL_NO_STOR,
-                                                                       BUNDLE_CNT_DEL_BAD_EID,
-                                                                       BUNDLE_CNT_DEL_TOO_LONG,
-                                                                       BUNDLE_CNT_CUSTODY_TRANS,
-                                                                       BUNDLE_CNT_CUSTODY_REJ,
-                                                                       BUNDLE_CNT_CUSTODY_REQ,
-                                                                       BUNDLE_CNT_CUSTODY_RE_FORW,
-                                                                       BUNDLE_CNT_NO_FURTHER_INFO,
-                                                                       BUNDLE_CNT_RED,
-                                                                       BUNDLE_CNT_DEPLETED,
-                                                                       BUNDLE_CNT_UNINTEL_EID,
-                                                                       BUNDLE_CNT_UNINTEL_BLK,
-                                                                       BUNDLE_CNT_RECV_CS,
-                                                                       BUNDLE_CNT_GEN_CS,
-                                                                       BUNDLE_CNT_REJ_CUSTODY};
-
-BPLib_AS_Counter_t BundleCounters[BPLIB_AS_NUM_BNDL_CNTRS] = {ADU_CNT_DELVR,
-                                                              ADU_CNT_RECV,
-                                                              BUNDLE_CNT_ABAND,
-                                                              BUNDLE_CNT_CUSTODY_RE_FORW,
-                                                              BUNDLE_CNT_CUSTODY_REJ,
-                                                              BUNDLE_CNT_CUSTODY_REQ,
-                                                              BUNDLE_CNT_CS_RECV,
-                                                              BUNDLE_CNT_CUSTODY_TRANS,
-                                                              BUNDLE_CNT_DEL,
-                                                              BUNDLE_CNT_DEL_EXP,
-                                                              BUNDLE_CNT_DEL_HOP_EXCD,
-                                                              BUNDLE_CNT_DEL_INVAL_PAY,
-                                                              BUNDLE_CNT_DEL_NO_STOR,
-                                                              BUNDLE_CNT_DEL_TRAF_PARED,
-                                                              BUNDLE_CNT_DEL_UNINTEL,
-                                                              BUNDLE_CNT_DEL_UNSUPPORT_BLK,
-                                                              BUNDLE_CNT_DEL_TOO_LONG,
-                                                              BUNDLE_CNT_DELVR,
-                                                              BUNDLE_CNT_DEPLETED,
-                                                              BUNDLE_CNT_DISCARDED,
-                                                              BUNDLE_CNT_FORW,
-                                                              BUNDLE_CNT_FORW_FAILED,
-                                                              BUNDLE_CNT_FRAG_ERR,
-                                                              BUNDLE_CNT_FRAG,
-                                                              BUNDLE_CNT_GEN_ACCPT,
-                                                              BUNDLE_CNT_GEN_CS,
-                                                              BUNDLE_CNT_GEN_FRAG,
-                                                              BUNDLE_CNT_GEN_REJ,
-                                                              BUNDLE_CNT_INVAL_PRI_BLK,
-                                                              BUNDLE_CNT_MAX_BSR_RATE_EXCD,
-                                                              BUNDLE_CNT_NO_FURTHER_INFO,
-                                                              BUNDLE_CNT_REASSEMBLED,
-                                                              BUNDLE_CNT_RECV,
-                                                              BUNDLE_CNT_RECV_BSR_ACCPT,
-                                                              BUNDLE_CNT_RECV_BSR_DEL,
-                                                              BUNDLE_CNT_RECV_BSR_DELVR,
-                                                              BUNDLE_CNT_RECV_BSR_FORW,
-                                                              BUNDLE_CNT_RECV_BSR_RECV,
-                                                              BUNDLE_CNT_RECV_CRS,
-                                                              BUNDLE_CNT_RECV_CRS_ACCPT,
-                                                              BUNDLE_CNT_RECV_CRS_DEL,
-                                                              BUNDLE_CNT_RECV_CRS_DELVR,
-                                                              BUNDLE_CNT_RECV_CRS_FORW,
-                                                              BUNDLE_CNT_RECV_CRS_RECV,
-                                                              BUNDLE_CNT_RECV_CS,
-                                                              BUNDLE_CNT_RECV_FRAG,
-                                                              BUNDLE_CNT_RED,
-                                                              BUNDLE_CNT_REJ_CUSTODY,
-                                                              BUNDLE_CNT_UNINTEL_BLK,
-                                                              BUNDLE_CNT_UNINTEL_EID,
-                                                              BUNDLE_CNT_UNPROC_BLKS,
-                                                              BUNDLE_CNT_GEN_BSR_ACCPT, /* Start of source + node bundle counters */
-                                                              BUNDLE_CNT_GEN_BSR_DEL,
-                                                              BUNDLE_CNT_GEN_BSR_DELVR,
-                                                              BUNDLE_CNT_GEN_BSR_FORW,
-                                                              BUNDLE_CNT_GEN_BSR_RECV,
-                                                              BUNDLE_CNT_GEN_CRS,
-                                                              BUNDLE_CNT_GEN_CRS_ACCPT,
-                                                              BUNDLE_CNT_GEN_CRS_DEL,
-                                                              BUNDLE_CNT_GEN_CRS_DELVR,
-                                                              BUNDLE_CNT_GEN_CRS_FORW,
-                                                              BUNDLE_CNT_GEN_CRS_RECV,
-                                                              BUNDLE_CNT_GEN_CUSTODY,
-                                                              BUNDLE_CNT_MAX_CRS_RATE_EXCD};
-
-BPLib_AS_Counter_t ErrorCounters[BPLIB_AS_NUM_ERR_CNTRS] = {BUNDLE_AGT_REJ_CNT,
-                                                            BUNDLE_CNT_GEN_REJ,
-                                                            BUNDLE_CNT_UNPROC_BLKS,
-                                                            BUNDLE_CNT_INVAL_PRI_BLK,
-                                                            BUNDLE_CNT_FRAG_ERR,
-                                                            BUNDLE_CNT_ABAND,
-                                                            BUNDLE_CNT_DEL_INVAL_PAY,
-                                                            BUNDLE_CNT_DEL_UNINTEL,
-                                                            BUNDLE_CNT_DEL_UNSUPPORT_BLK,
-                                                            BUNDLE_CNT_DEL_NO_STOR,
-                                                            BUNDLE_CNT_DEL_BAD_EID,
-                                                            BUNDLE_CNT_DEL_UNAUTH,
-                                                            BUNDLE_CNT_DEL_TOO_LONG,
-                                                            BUNDLE_CNT_CUSTODY_REJ,
-                                                            BUNDLE_CNT_REJ_CUSTODY};
-
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -1341,6 +1140,13 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
     }
     else if (Status != BPLIB_SUCCESS)
     {
+        /*
+        ** The only applicable errors remaining are unknown counter error code but the enum values being passed in
+        ** are known counters, they in fact are what the AS_Set() function uses to set those values, so it's highly
+        ** unlikely that an error is caused unless the enum and this list are out of sync. In that case, the user
+        ** should be notified, hit to code coverage be darned
+        */
+
         BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Could not reset source counters with source EID %d, RC = %d",
@@ -1431,6 +1237,13 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
     }
     else if (Status != BPLIB_SUCCESS)
     {
+        /*
+        ** The only applicable errors remaining are unknown counter error code but the enum values being passed in
+        ** are known counters, they in fact are what the AS_Set() function uses to set those values, so it's highly
+        ** unlikely that an error is caused unless the enum and this list are out of sync. In that case, the user
+        ** should be notified, hit to code coverage be darned
+        */
+
         BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_SRC_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Error while resetting bundle counters with source EID %d, RC = %d",
@@ -1465,6 +1278,13 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
 
     if (Status != BPLIB_SUCCESS)
     {
+        /*
+        ** The only applicable errors remaining are unknown counter error code but the enum values being passed in
+        ** are known counters, they in fact are what the AS_Set() function uses to set those values, so it's highly
+        ** unlikely that an error is caused unless the enum and this list are out of sync. In that case, the user
+        ** should be notified, hit to code coverage be darned
+        */
+
         BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Error while resetting error counters with source EID %d, RC = %d",
@@ -1563,6 +1383,15 @@ BPLib_Status_t BPLib_AS_ResetAllCounters(void)
 
         if (Status != BPLIB_SUCCESS)
         {
+            /*
+            ** The invalid EID error returned by AS_Set() shouldn't apply here since the range of the EIDs is controlled.
+            ** If an EID is invalid outside of the control of this loop then the user needs to be alerted of this
+            ** discrepancy in code and expectations. The remaining error code are for unknown counters but all passed
+            ** counters are known counters, they in fact are what the AS_Set() function uses to set those values, so
+            ** it's highly unlikely that an error is caused unless the enum and this list are out of sync. In that case,
+            ** the user should be notified, hit to code coverage be darned
+            */
+
             BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_SRC_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Error while resetting all counters with source EID %d, RC = %d",

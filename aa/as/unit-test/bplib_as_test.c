@@ -365,7 +365,6 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
     BPLib_Status_t Status;
     int32_t SourceEid;
     uint32_t TestValue;
-    uint32_t PrevVal;
 
     SourceEid = -10;
     TestValue = 24;
@@ -387,35 +386,6 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
     Test_BPLib_AS_SourceCountersValueTest(SourceEid, TestValue);
 
     /* TODO: Event checking */
-
-    /* ================================ */
-    /* Invalid BPLib_AS_Set() operation */
-    /* ================================ */
-
-    /* 
-    ** Assign an invalid counter indicator to an entry in the array that holds all
-    ** the resettable source counters to force BPLib_AS_Set() to output an error
-    */
-
-    PrevVal = ResettableSourceCounters[0];
-    ResettableSourceCounters[0] = -15;
-
-    /* Make the source EID a valid value */
-    SourceEid = 1;
-
-    /* Run the function under test */
-    Status = BPLib_AS_ResetSourceCounters(SourceEid);
-
-    /* Assert that BPLib_AS_ResetSourceCounters() failed */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_SRC_ERR, Status);
-
-    /* Verify that the source counters were unchanged */
-    Test_BPLib_AS_SourceCountersValueTest(SourceEid, TestValue);
-
-    /* TODO: Event checking */
-
-    /* Set the array that holds all the source counters back to its original state for future tests */
-    ResettableSourceCounters[0] = PrevVal;
 }
 
 void Test_BPLib_AS_ResetBundleCounters_Nominal(void)
@@ -447,7 +417,6 @@ void Test_BPLib_AS_ResetBundleCounters_Error(void)
     BPLib_Status_t Status;
     int32_t SourceEid;
     uint32_t TestValue;
-    uint32_t PrevVal;
 
     SourceEid = -15;
     TestValue = 55;
@@ -465,35 +434,6 @@ void Test_BPLib_AS_ResetBundleCounters_Error(void)
     Test_BPLib_AS_BundleCountersValueTest(SourceEid, TestValue);
 
     /* TODO: Event checking */
-
-    /* ================================ */
-    /* Invalid BPLib_AS_Set() operation */
-    /* ================================ */
-
-    /* 
-    ** Assign an invalid counter indicator to an entry in the array that holds all
-    ** the bundle counters to force BPLib_AS_Set() to output an error
-    */
-
-    PrevVal = BundleCounters[0];
-    BundleCounters[0] = -20;
-
-    /* Set source EID to a valid value */
-    SourceEid = 2;
-
-    /* Run the function under test */
-    Status = BPLib_AS_ResetBundleCounters(SourceEid);
-
-    /* Assert that BPLib_AS_ResetBundleCounters() failed */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_BNDL_ERR, Status);
-
-    /* Verify that the bundle counters were unchanged */
-    Test_BPLib_AS_BundleCountersValueTest(SourceEid, TestValue);
-
-    /* TODO: Evnet checking */
-
-    /* Set the array that holds all the bundle counters back to its original state for future tests */
-    BundleCounters[0] = PrevVal;
 }
 
 void Test_BPLib_AS_ResetErrorCounters_Nominal(void)
@@ -525,37 +465,23 @@ void Test_BPLib_AS_ResetErrorCounters_Error(void)
     BPLib_Status_t Status;
     int32_t SourceEid;
     uint32_t TestValue;
-    uint32_t PrevVal;
 
-    /* ================================ */
-    /* Invalid BPLib_AS_Set() operation */
-    /* ================================ */
+    SourceEid = -15;
+    TestValue = 55;
 
-    /* 
-    ** Assign an invalid counter indicator to an entry in the array that holds all
-    ** the error counters to force BPLib_AS_Set() to output an error
-    */
-
-    PrevVal = ErrorCounters[0];
-    ErrorCounters[0] = -20;
-
-    /* Set source EID to a valid value */
-    SourceEid = 3;
-    TestValue = 80;
+    /* Set error counters to a non-zero value */
+    Test_BPLib_AS_SetErrorCounterValues(SourceEid, TestValue);
 
     /* Run the function under test */
     Status = BPLib_AS_ResetErrorCounters(SourceEid);
 
-    /* Assert that BPLib_AS_ResetErrorCounters() failed */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_ERR_ERR, Status);
+    /* Assert that BPLib_AS_ResetErrorCounters() failed due to an invalid source EID */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
 
-    /* Verify that the error counters were unchanged */
+    /* Verify that error counters were reset to 0 */
     Test_BPLib_AS_ErrorCountersValueTest(SourceEid, TestValue);
 
-    /* TODO: Evnet checking */
-
-    /* Set the array that holds all the error counters back to its original state for future tests */
-    ErrorCounters[0] = PrevVal;
+    /* TODO: Event checking */
 }
 
 void Test_BPLib_AS_ResetAllCounters_Nominal(void)
@@ -618,7 +544,6 @@ void Test_BPLib_AS_ResetAllCounters_Error(void)
     BPLib_Status_t Status;
     int32_t SourceEids[3];
     uint32_t TestValues[3];
-    uint32_t PrevVal;
 
     /* Modify counter values for the first source EID */
     SourceEids[0] = 1;
@@ -651,14 +576,6 @@ void Test_BPLib_AS_ResetAllCounters_Error(void)
     /* Invalid BPLib_AS_Set() operation */
     /* ================================ */
 
-    /* 
-    ** Assign an invalid counter indicator to an entry in the array that holds all
-    ** the resettable node counters to force BPLib_AS_Set() to output an error
-    */
-
-    PrevVal = ResettableNodeCounters[0];
-    ResettableNodeCounters[0] = -20;
-
     /* Run the function under test */
     Status = BPLib_AS_ResetAllCounters();
 
@@ -679,9 +596,6 @@ void Test_BPLib_AS_ResetAllCounters_Error(void)
     Test_BPLib_AS_ErrorCountersValueTest(SourceEids[2], TestValues[2]);
 
     /* TODO: Evnet checking */
-
-    /* Set the array that holds all the error counters back to its original state for future tests */
-    ResettableNodeCounters[0] = PrevVal;
 }
 
 void TestBplibAs_Register(void)

@@ -307,11 +307,6 @@ extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
 extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
 extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
 
-extern BPLib_AS_Counter_t ResettableNodeCounters[BPLIB_AS_NUM_NODE_CNTRS];
-extern BPLib_AS_Counter_t ResettableSourceCounters[BPLIB_AS_NUM_SRC_CNTRS];
-extern BPLib_AS_Counter_t BundleCounters[BPLIB_AS_NUM_BNDL_CNTRS];
-extern BPLib_AS_Counter_t ErrorCounters[BPLIB_AS_NUM_ERR_CNTRS];
-
 /* =================== */
 /* Function Prototypes */
 /* =================== */
@@ -411,7 +406,7 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
 
 /**
  * \brief     Set to zero all resettable MIB counters associated with the given source EID pattern
- * \details   See header file to see which counters are considered source counters (ResettableSourceCounters array)
+ * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
  * \note      Cycles through source counters and uses BPLib_AS_Set() to reset them to 0
  * \param[in] SourceEid (int16_t) Indentifier used to determine the index into the
  *                      BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
