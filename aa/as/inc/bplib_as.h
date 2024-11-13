@@ -339,12 +339,11 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid);
   * \details    Accessor function for counters used by Admin Statistics
   * \note       This function assumes all modifiable counter types are uint32_t
   * \param[in]  SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
-  *                       array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
-  *                       whose value is to be returned.
+  *                       array.
   * \param[in]  Counter   (BPLib_AS_Counter_t) Counter to access
   * \param[out] ReturnPtr (uint32_t*) What the counter value requested is stored in
   * \return     Execution status
-  * \retval     BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+  * \retval     BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
   * \retval     BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
   * \retval     BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
   * \retval     BPLIB_SUCCESS: Successful execution
@@ -355,14 +354,12 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
  * \brief     Modify the counter specified by the source EID and counter to the desired value
  * \details   Mutator function for counters used by Admin Statistics
  * \note      This function assumes all modifiable counters are of type uint32_t
- * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
- *                      array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
- *                      whose value is to be returned.
- * \param[in] Value     (uint32_t) Value that the caller wishes to set the counter represented by Counter and SourceEid
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
+ * \param[in] Value     (uint32_t) Value that the caller wishes to set the counter represented by Remainder and SourceEid
  * \param[in] NumToSet  (uint16_t) Number of counters being passed in that the user wishes to modify
  * \param[in] Remainder A comma separated list of BPLib_AS_Counter_t types
  * \return    Execution status
- * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
@@ -374,12 +371,10 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, uint32_t Value, uint16_t NumToSet
  * \details   Incrementing function for counters used by Admin Statistics
  * \note      Internal uint32_t value is passed by reference when using BPLib_AS_Get()
  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
- *                      SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter whose value
- *                      is to be returned.
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
  * \return    Execution status
  * \retval    Status is determined by BPLib_AS_Get() and BPLib_AS_Set()
- * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
@@ -389,15 +384,12 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
 /**
  * \brief     Subtract 1 from the counter specified by the source EID and counter
  * \details   Decrementing function for counters used by Admin Statistics
- * \note      Uses void* to get and set values so some information could be lost
- * \param[in] SourceEid (int16_t) Indentifier used to determine the index into the
- *                      BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array. SourceEid of -1
- *                      (BPLIB_AS_NODE_EID) indicates that the node counter is the counter whose value
- *                      is to be returned.
+ * \note      Internal uint32_t values is passed by reference when using BPLib_AS_Get()
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
  * \return    Execution status
  * \retval    Status is determined by BPLib_AS_Get() and BPLib_AS_Set()
- * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
@@ -408,10 +400,9 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
  * \brief     Set to zero all resettable MIB counters associated with the given source EID pattern
  * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
  * \note      Cycles through source counters and uses BPLib_AS_Set() to reset them to 0
- * \param[in] SourceEid (int16_t) Indentifier used to determine the index into the
- *                      BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \return    Execution status
- * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -1 or >= BPLIB_MAX_NUM_SOURCE_EID
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_AS_RESET_SRC_ERR: Something went wrong while running BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS: Successful execution
  */
@@ -419,12 +410,11 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
 
 /**
  * \brief     Set to zero all resettable MIB counters associated with bundles
- * \details   See macros to see which counters are considered bundle counters
+ * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
  * \note      Cycles through bundle-related source and node counters and uses BPLib_AS_Set() to reset them to 0
- * \param[in] SourceEid (int16_t) Indentifier used to determine the index into the
- *                      BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \return    Execution status
- * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_AS_RESET_BNDL_ERR: Something went wrong while running BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS: Successful execution
  */
@@ -432,11 +422,11 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
 
 /**
  * \brief     Set to zero all resettable MIB error counters
- * \details   See macros to see which counters are considered error counters
+ * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
  * \note      Cycles through error counters and uses BPLib_AS_Set() to reset them to 0
- * \param[in] SourceEid (int16_t) Indentifier used to determine the index into the
- *                      BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \return    Execution status
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_AS_RESET_ERR_ERR: Something went wrong while running BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS: Successful execution
  */
