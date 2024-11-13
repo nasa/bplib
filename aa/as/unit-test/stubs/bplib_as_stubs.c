@@ -136,9 +136,11 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
  * Generated stub function for BPLib_AS_ResetErrorCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_ResetErrorCounters(void)
+BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_AS_ResetErrorCounters, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_AS_ResetErrorCounters, int16_t, SourceEid);
 
     UT_GenStub_Execute(BPLib_AS_ResetErrorCounters, Basic, NULL);
 

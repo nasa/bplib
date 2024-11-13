@@ -44,9 +44,6 @@
 #define BPLIB_AS_BNDL_SRC_START (51u)   /** \brief Index 51 is the start of bundle-related source counters */
 #define BPLIB_AS_NUM_ERR_CNTRS  (15u)   /** \brief Number of error-related MIB counters */
 
-/** \brief Node counter EID designator */
-#define BPLIB_AS_NODE_EID -1
-
 /* ======= */
 /* Typdefs */
 /* ======= */
@@ -441,12 +438,13 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
  * \brief     Set to zero all resettable MIB error counters
  * \details   See macros to see which counters are considered error counters
  * \note      Cycles through error counters and uses BPLib_AS_Set() to reset them to 0
- * \param[in] void No arguments accepted
+ * \param[in] SourceEid (int16_t) Indentifier used to determine the index into the
+ *                      BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \return    Execution status
  * \retval    BPLIB_AS_RESET_ERR_ERR: Something went wrong while running BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS: Successful execution
  */
-BPLib_Status_t BPLib_AS_ResetErrorCounters(void);
+BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid);
 
 /**
  * \brief     Set every counter value in the source and node counter packets to zero

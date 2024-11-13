@@ -1328,7 +1328,7 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
     for(CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_BNDL_CNTRS; CounterCtrl++)
     {
         /* Every member in the BundleCoutners array is a node counter */
-        SetStatus = BPLib_AS_Set(BPLIB_AS_NODE_EID, BundleCounters[CounterCtrl], 0);
+        SetStatus = BPLib_AS_Set(SourceEid, BundleCounters[CounterCtrl], 0);
 
         /*
         ** Applicable error codes would be BPLIB_AS_INVALID_EID, BPLIB_AS_UNKNOWN_NODE_CNTR,
@@ -1339,40 +1339,25 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
         ** issue, not user issue. Thus, a generic check for a non-BPLIB_SUCCESS return code should be sufficient.
         */
 
-        if (SetStatus != BPLIB_SUCCESS)
+        if (SetStatus == BPLIB_AS_INVALID_EID)
+        {
+            Status = BPLIB_AS_INVALID_EID;
+
+            BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Could not reset bundle counter due to invalid source EID (%d)",
+                                SourceEid);
+        }
+        else if (SetStatus != BPLIB_SUCCESS)
         {
             Status = BPLIB_AS_RESET_BNDL_ERR;
 
-            BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_NODE_ERR_EID,
+            BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_SRC_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
-                                "Error while resetting node bundle counter %d, RC = %d",
+                                "Error while resetting bundle counter %d with source EID %d, RC = %d",
                                 CounterCtrl,
+                                SourceEid,
                                 SetStatus);
-        }
-
-        if (CounterCtrl >= BPLIB_AS_BNDL_SRC_START)
-        { /* CounterCtrl represents a number that equates to an enum that indicates a node + source counter */
-            SetStatus = BPLib_AS_Set(SourceEid, BundleCounters[CounterCtrl], 0);
-
-            if (SetStatus == BPLIB_AS_INVALID_EID)
-            {
-                Status = BPLIB_AS_INVALID_EID;
-
-                BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not reset source bundle counter due to expected source EID (%d)",
-                                    SourceEid);
-            }
-            else if (SetStatus != BPLIB_SUCCESS)
-            {
-                Status = BPLIB_AS_RESET_BNDL_ERR;
-
-                BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_SRC_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Error while resetting source bundle counter %d, RC = %d",
-                                    CounterCtrl,
-                                    SetStatus);
-            }
         }
 
         /* 
@@ -1384,7 +1369,7 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_ResetErrorCounters(void)
+BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
     BPLib_Status_t SetStatus;
@@ -1394,7 +1379,7 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(void)
 
     for(CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_ERR_CNTRS; CounterCtrl++)
     {
-        SetStatus = BPLib_AS_Set(BPLIB_AS_NODE_EID, ErrorCounters[CounterCtrl], 0);
+        SetStatus = BPLib_AS_Set(SourceEid, ErrorCounters[CounterCtrl], 0);
 
         /*
         ** Applicable error code would be BPLIB_AS_UNKNOWN_NODE_CNTR. Since the ErrorCounters array is verified
@@ -1432,35 +1417,6 @@ BPLib_Status_t BPLib_AS_ResetAllCounters(void)
     int16_t        SourceCtrl;
 
     Status = BPLIB_SUCCESS;
-
-    for (CounterCtrl = 0; CounterCtrl < BPLIB_AS_NUM_NODE_CNTRS; CounterCtrl++)
-    {
-        SetStatus = BPLib_AS_Set(BPLIB_AS_NODE_EID, ResettableNodeCounters[CounterCtrl], 0);
-
-        /*
-        ** Applicable error code would be BPLIB_AS_UNKNOWN_NODE_CNTR. Since the ResettableNodeCounters array is
-        ** verified to have all the valid node counters and the counter loop control variable is the size of the array
-        ** upon instantiation, there shouldn't be a way to create an error without having changed the
-        ** ResettableNodeCounters array into something invalid, which is a code issue, not user issue. Thus, a generic
-        ** check for a non-BPLIB_SUCCESS return code should be sufficient.
-        */
-
-        if (SetStatus != BPLIB_SUCCESS)
-        {
-            Status = BPLIB_AS_RESET_ALL_ERR;
-
-            BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_NODE_ERR_EID,
-                                BPLib_EM_EventType_ERROR,
-                                "Error while resetting node counter %d, RC = %d",
-                                CounterCtrl,
-                                SetStatus);
-        }
-
-        /* 
-        ** This loop will continue even if an error occurs just so that 
-        ** all possible counters will be reset to 0
-        */
-    }
 
     for (SourceCtrl = 0; SourceCtrl < BPLIB_MAX_NUM_SOURCE_EID; SourceCtrl++)
     {
