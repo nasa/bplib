@@ -1244,7 +1244,7 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
         ** should be notified, hit to code coverage be darned
         */
 
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_SRC_ERR_EID,
+        BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Error while resetting bundle counters with source EID %d, RC = %d",
                             SourceEid,
@@ -1276,7 +1276,14 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
                                                                 BUNDLE_CNT_CUSTODY_REJ,
                                                                 BUNDLE_CNT_REJ_CUSTODY);
 
-    if (Status != BPLIB_SUCCESS)
+    if (Status == BPLIB_AS_INVALID_EID)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not reset bundle counter due to invalid source EID (%d)",
+                            SourceEid);
+    }
+    else if (Status != BPLIB_SUCCESS)
     {
         /*
         ** The only applicable errors remaining are unknown counter error code but the enum values being passed in
@@ -1392,7 +1399,7 @@ BPLib_Status_t BPLib_AS_ResetAllCounters(void)
             ** the user should be notified, hit to code coverage be darned
             */
 
-            BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_SRC_ERR_EID,
+            BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Error while resetting all counters with source EID %d, RC = %d",
                                 SourceCtrl,

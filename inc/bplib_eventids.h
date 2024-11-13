@@ -131,11 +131,9 @@
 #define BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID            (585u)
 #define BPLIB_AS_RESET_SRC_ERR_EID                      (586u)
 #define BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID           (587u)
-#define BPLIB_AS_RESET_BNDL_NODE_ERR_EID                (588u)
-#define BPLIB_AS_RESET_BNDL_SRC_ERR_EID                 (589u)
+#define BPLIB_AS_RESET_BNDL_ERR_EID                     (588u)
+#define BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID            (589u)
 #define BPLIB_AS_RESET_ERR_ERR_EID                      (590u)
-#define BPLIB_AS_RESET_ALL_INVAL_EID_ERR_EID            (591u)
-#define BPLIB_AS_RESET_ALL_NODE_ERR_EID                 (592u)
-#define BPLIB_AS_RESET_ALL_SRC_ERR_EID                  (593u)
+#define BPLIB_AS_RESET_ALL_ERR_EID                      (591u)
 
 #endif /* BPLIB_EVENTIDS_H */
