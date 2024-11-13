@@ -56,6 +56,11 @@ typedef struct
 
 typedef struct
 {
+    int16_t SourceEid;
+} BPLib_ResetErrorCounters_Payload_t;
+
+typedef struct
+{
     uint8_t ChanId;         /**< \brief Channel ID */
     uint8_t Spare[3];       /**< \brief Spare bytes */
 } BPLib_AddApplication_Payload_t;

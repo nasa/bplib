@@ -199,13 +199,13 @@ BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payl
   * \brief     Set all error counters to zero
   * \details   Node Configuration Reset Error Counters command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \param[in] void No arguments accepted
+  * \param[in] Payload (BPLib_ResetErrorCounters_Payload_t) Payload found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    Status is determined by BPLib_AS_ResetErrorCounters() in bplib_as.h
   * \retval    BPLIB_AS_RESET_ERR_ERR: Something went wrong while running BPLib_AS_Set()
   * \retval    BPLIB_SUCCESS: Command was successful
   */
-BPLib_Status_t BPLib_NC_ResetErrorCounters(void);
+BPLib_Status_t BPLib_NC_ResetErrorCounters(BPLib_ResetErrorCounters_Payload_t Payload);
 
 /**
   * \brief     Adds new application configurations from ADU Proxy and Channel Config Tables

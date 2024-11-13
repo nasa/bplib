@@ -426,11 +426,14 @@ void Test_BPLib_NC_ResetBundleCounters_Error(void)
 void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
 {
     BPLib_Status_t Status;
+    BPLib_ResetErrorCounters_Payload_t Payload;
+
+    Payload.SourceEid = 2;
 
     // UT_CHECKEVENT_SETUP(&EventTest, BPLIB_RESET_ERR_CTRS_SUCCESS_EID,
     //                     "Reset error counters command not implemented");
 
-    Status = BPLib_NC_ResetErrorCounters();
+    Status = BPLib_NC_ResetErrorCounters(Payload);
 
     // UtAssert_INT32_EQ(EventTest.MatchCount, 1);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);

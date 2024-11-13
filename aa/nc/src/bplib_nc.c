@@ -360,11 +360,11 @@ BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payl
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ResetErrorCounters(void)
+BPLib_Status_t BPLib_NC_ResetErrorCounters(const BPLib_ResetErrorCounters_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_ResetErrorCounters();
+    Status = BPLib_AS_ResetErrorCounters(Payload.SourceEid);
 
     if (Status == BPLIB_SUCCESS)
     {
