@@ -330,20 +330,32 @@ extern BPLib_AS_Counter_t ErrorCounters[BPLIB_AS_NUM_ERR_CNTRS];
 BPLib_Status_t BPLib_AS_Init(void);
 
 /**
-  * \brief     Allows the caller to get access to certain values in counter packets specified by the parameters.
-  *            This is necessary to simplify the code and avoid walls of switch-case statements
-  * \details   Accessor function for counters used by Admin Statistics
-  * \note      This function assumes all modifiable counter types are uint32_t
-  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
-  *                      array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
-  *                      whose value is to be returned.
-  * \param[in] Counter   (BPLib_AS_Counter_t) Counter to access
-  * \param[in] ReturnPtr (uint32_t*) What the counter value requested is stored in
-  * \return    Execution status
-  * \retval    BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
-  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
-  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
-  * \retval    BPLIB_SUCCESS: Successful execution
+ * \brief     Checks if the source EID matches an expected, valid pattern
+ * \details   Eventually some more advanced checks will occur with something like regex.
+ * \note      The source EID is not expected to be int16_t typed data but it is for now, as a placeholder
+ * \param[in] SourceEid (int16_t) Indicator of which source in the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
+ *                      array should be modified
+ * \return    Source EID validity
+ * \retval    true: The source EID matches the criteria required to be valid <enter criteria here>
+ * \retval    false: The source EID is invalid in some way
+ */
+bool BPLib_AS_EidIsValid(int16_t SourceEid);
+
+/**
+  * \brief      Allows the caller to get access to certain values in counter packets specified by the parameters.
+  *             This is necessary to simplify the code and avoid walls of switch-case statements
+  * \details    Accessor function for counters used by Admin Statistics
+  * \note       This function assumes all modifiable counter types are uint32_t
+  * \param[in]  SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
+  *                       array. SourceEid of -1 (BPLIB_AS_NODE_EID) indicates that the node counter is the counter
+  *                       whose value is to be returned.
+  * \param[in]  Counter   (BPLib_AS_Counter_t) Counter to access
+  * \param[out] ReturnPtr (uint32_t*) What the counter value requested is stored in
+  * \return     Execution status
+  * \retval     BPLIB_AS_INVALID_EID: Source EID is <= -2 or >= BPLIB_MAX_NUM_SOURCE_EID
+  * \retval     BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
+  * \retval     BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
+  * \retval     BPLIB_SUCCESS: Successful execution
   */
 BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t* ReturnPtr);
 
