@@ -511,9 +511,11 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
  * Generated stub function for BPLib_NC_ResetErrorCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ResetErrorCounters(void)
+BPLib_Status_t BPLib_NC_ResetErrorCounters(const BPLib_ResetErrorCounters_Payload_t Payload)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_NC_ResetErrorCounters, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_NC_ResetCounter, const BPLib_ResetErrorCounters_Payload_t, Payload);
 
     UT_GenStub_Execute(BPLib_NC_ResetErrorCounters, Basic, NULL);
 
