@@ -38,6 +38,19 @@ void Test_BPLib_AS_Init_Error(void)
     // UtAssert_INT32_EQ(BPLib_AS_Init(), SOME_ERROR);
 }
 
+void Test_BPLib_AS_EidIsValid_Nominal(void)
+{
+    UtAssert_BOOL_TRUE(BPLib_AS_EidIsValid(0));
+    UtAssert_BOOL_TRUE(BPLib_AS_EidIsValid(5));
+    UtAssert_BOOL_TRUE(BPLib_AS_EidIsValid(BPLIB_MAX_NUM_SOURCE_EID - 1));
+}
+
+void Test_BPLib_AS_EidIsValid_Error(void)
+{
+    UtAssert_BOOL_FALSE(BPLib_AS_EidIsValid(-1));
+    UtAssert_BOOL_FALSE(BPLib_AS_EidIsValid(BPLIB_MAX_NUM_SOURCE_EID));
+}
+
 void Test_BPLib_AS_Get_Nominal(void)
 {
     BPLib_Status_t Status;
@@ -226,9 +239,9 @@ void Test_BPLib_AS_Increment_Nominal(void)
     int16_t SourceEid;
 
     /* Set values to test against */
+    SourceEid = 2;
     BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted = 15;
     BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted = 15;
-    SourceEid = 2;
 
     /* Run function under test */
     Status = BPLib_AS_Increment(SourceEid, BUNDLE_CNT_GEN_ACCPT);
@@ -675,6 +688,8 @@ void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
     ADD_TEST(Test_BPLib_AS_Init_Error);
+    ADD_TEST(Test_BPLib_AS_EidIsValid_Nominal);
+    ADD_TEST(Test_BPLib_AS_EidIsValid_Error);
     ADD_TEST(Test_BPLib_AS_Get_Nominal);
     ADD_TEST(Test_BPLib_AS_Get_Error);
     ADD_TEST(Test_BPLib_AS_Set_Nominal);
