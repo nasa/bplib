@@ -290,7 +290,7 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_Set(Payload.SourceEid, Payload.Counter, 0);
+    Status = BPLib_AS_Set(Payload.SourceEid, 0, 1, Payload.Counter);
 
     if (Status == BPLIB_SUCCESS)
     {
@@ -354,7 +354,8 @@ BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payl
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset bundle counters directive not implemented");
+                            "Successfully reset bundle counters for source EID %d",
+                            Payload.SourceEid);
     }
 
     return Status;
@@ -369,7 +370,8 @@ BPLib_Status_t BPLib_NC_ResetErrorCounters(const BPLib_ResetErrorCounters_Payloa
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_EM_SendEvent(BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Reset error counters directive not implemented");
+                            "Successfully reset error counters for source EID %d",
+                            Payload.SourceEid);
     }
 
     return Status;
