@@ -355,16 +355,15 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
  * \details   Mutator function for counters used by Admin Statistics
  * \note      This function assumes all modifiable counters are of type uint32_t
  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
- * \param[in] Value     (uint32_t) Value that the caller wishes to set the counter represented by Remainder and SourceEid
- * \param[in] NumToSet  (uint16_t) Number of counters being passed in that the user wishes to modify
- * \param[in] Remainder A comma separated list of BPLib_AS_Counter_t types
+ * \param[in] Counter   (BPLib_AS_Counter_t) Counter to set
+ * \param[in] Value     (uint32_t) Value that the caller wishes to set the counter represented by Counter and SourceEid
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
  */
-BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, uint32_t Value, uint16_t NumToSet, ...);
+BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value);
 
 /**
  * \brief     Add 1 to the counter specified by the source EID and counter
