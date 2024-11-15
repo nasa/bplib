@@ -70,233 +70,242 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
         /* Node packet */
         switch (Counter)
         {
-            case BUNDLE_AGT_ACCPT_CNT:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount;
-                break;
-            case BUNDLE_AGT_REJ_CNT:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount;
-                break;
-            case BUNDLE_CNT_GEN_ACCPT:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted;
-                break;
-            case BUNDLE_CNT_GEN_REJ:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected;
-                break;
-            case BUNDLE_CNT_GEN_CUSTODY:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody;
-                break;
-            case BUNDLE_CNT_GEN_BSR_RECV:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived;
-                break;
-            case BUNDLE_CNT_GEN_BSR_ACCPT:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted;
-                break;
-            case BUNDLE_CNT_GEN_BSR_FORW:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded;
-                break;
-            case BUNDLE_CNT_GEN_BSR_DELVR:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered;
-                break;
-            case BUNDLE_CNT_GEN_BSR_DEL:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted;
-                break;
-            case BUNDLE_CNT_MAX_BSR_RATE_EXCD:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded;
-                break;
-            case BUNDLE_CNT_GEN_ANON:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedAnonymous;
-                break;
-            case BUNDLE_CNT_GEN_FRAG:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment;
-                break;
-            case BUNDLE_CNT_RECV:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceived;
-                break;
-            case BUNDLE_CNT_RECV_FRAG:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment;
-                break;
-            case BUNDLE_CNT_UNPROC_BLKS:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks;
-                break;
-            case BUNDLE_CNT_INVAL_PRI_BLK:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock;
-                break;
-            case BUNDLE_CNT_CS_RECV:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived;
-                break;
-            case BUNDLE_CNT_FORW:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountForwarded;
-                break;
-            case BUNDLE_CNT_RET:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReturned;
-                break;
-            case BUNDLE_CNT_FRAG:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountFragmented;
-                break;
-            case BUNDLE_CNT_REASSEMBLED:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReassembled;
-                break;
-            case BUNDLE_CNT_FRAG_ERR:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountFragmentError;
-                break;
-            case BUNDLE_CNT_DELVR:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDelivered;
-                break;
-            case BUNDLE_CNT_ABAND:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountAbandoned;
-                break;
-            case ADU_CNT_DELVR:
+            case ADU_COUNT_DELIVERED:
                 *ReturnPtr = BPLib_AS_NodeCountersPayload.AduCountDelivered;
                 break;
-            case BUNDLE_CNT_DEL:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeleted;
-                break;
-            case BUNDLE_CNT_DEL_EXP:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired;
-                break;
-            case BUNDLE_CNT_DEL_HOP_EXCD:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded;
-                break;
-            case BUNDLE_CNT_DEL_INVAL_PAY:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload;
-                break;
-            case BUNDLE_CNT_DEL_FORW_FAILED:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedForwardFailed;
-                break;
-            case BUNDLE_CNT_DEL_TRAF_PARED:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared;
-                break;
-            case BUNDLE_CNT_DEL_UNINTEL:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible;
-                break;
-            case BUNDLE_CNT_DEL_UNSUPPORT_BLK:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock;
-                break;
-            case BUNDLE_CNT_DEL_CANCELLED:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled;
-                break;
-            case BUNDLE_CNT_DISCARDED:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDiscarded;
-                break;
-            case BUNDLE_CNT_DEL_NO_STOR:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage;
-                break;
-            case BUNDLE_CNT_DEL_BAD_EID:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid;
-                break;
-            case BUNDLE_CNT_DEL_UNAUTH:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized;
-                break;
-            case BUNDLE_CNT_DEL_TOO_LONG:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong;
-                break;
-            case BUNDLE_CNT_CUSTODY_TRANS:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred;
-                break;
-            case BUNDLE_CNT_CUSTODY_REJ:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected;
-                break;
-            case BUNDLE_CNT_CUSTODY_REQ:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest;
-                break;
-            case BUNDLE_CNT_CUSTODY_RE_FORW:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded;
-                break;
-            case BUNDLE_CNT_NO_FURTHER_INFO:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo;
-                break;
-            case BUNDLE_CNT_RED:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountRedundant;
-                break;
-            case BUNDLE_CNT_DEPLETED:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDepleted;
-                break;
-            case BUNDLE_CNT_UNINTEL_EID:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid;
-                break;
-            case BUNDLE_CNT_NO_ROUTE:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountNoRoute;
-                break;
-            case BUNDLE_CNT_NO_CONTACT:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountNoContact;
-                break;
-            case BUNDLE_CNT_UNINTEL_BLK:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock;
-                break;
-            case BUNDLE_CNT_RECV_CS:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal;
-                break;
-            case BUNDLE_CNT_GEN_CS:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal;
-                break;
-            case BUNDLE_CNT_REJ_CUSTODY:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody;
-                break;
-            case BUNDLE_CNT_GEN_CRS_RECV:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived;
-                break;
-            case BUNDLE_CNT_GEN_CRS_ACCPT:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted;
-                break;
-            case BUNDLE_CNT_GEN_CRS_FORW:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded;
-                break;
-            case BUNDLE_CNT_GEN_CRS_DELVR:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered;
-                break;
-            case BUNDLE_CNT_GEN_CRS_DEL:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted;
-                break;
-            case BUNDLE_CNT_MAX_CRS_RATE_EXCD:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded;
-                break;
-            case ADU_CNT_RECV:
+            case ADU_COUNT_RECEIVED:
                 *ReturnPtr = BPLib_AS_NodeCountersPayload.AduCountReceived;
                 break;
-            case NODE_STARTUP_CNTR:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.NodeStartupCounter;
+            case BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount;
                 break;
-            case BUNDLE_CNT_GEN_CRS:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs;
+            case BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount;
                 break;
-            case BUNDLE_CNT_FORW_FAILED:
+            case BUNDLE_COUNT_ABANDONED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountAbandoned;
+                break;
+            case BUNDLE_COUNT_CUSTODY_RE_FORWARDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded;
+                break;
+            case BUNDLE_COUNT_CUSTODY_REJECTED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected;
+                break;
+            case BUNDLE_COUNT_CUSTODY_REQUEST:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest;
+                break;
+            case BUNDLE_COUNT_CUSTODY_SIGNAL_RECEIVED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived;
+                break;
+            case BUNDLE_COUNT_CUSTODY_TRANSFERRED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred;
+                break;
+            case BUNDLE_COUNT_DELETED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeleted;
+                break;
+            case BUNDLE_COUNT_DELETED_BAD_EID:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid;
+                break;
+            case BUNDLE_COUNT_DELETED_CANCELLED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled;
+                break;
+            case BUNDLE_COUNT_DELETED_EXPIRED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired;
+                break;
+            case BUNDLE_COUNT_DELETED_FORWARD_FAILED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedForwardFailed;
+                break;
+            case BUNDLE_COUNT_DELETED_HOP_EXCEEDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded;
+                break;
+            case BUNDLE_COUNT_DELETED_INVALID_PAYLOAD:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload;
+                break;
+            case BUNDLE_COUNT_DELETED_NO_STORAGE:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage;
+                break;
+            case BUNDLE_COUNT_DELETED_TOO_LONG:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong;
+                break;
+            case BUNDLE_COUNT_DELETED_TRAFFIC_PARED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared;
+                break;
+            case BUNDLE_COUNT_DELETED_UNAUTHORIZED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized;
+                break;
+            case BUNDLE_COUNT_DELETED_UNINTELLIGIBLE:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible;
+                break;
+            case BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock;
+                break;
+            case BUNDLE_COUNT_DELIVERED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDelivered;
+                break;
+            case BUNDLE_COUNT_DEPLETED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDepleted;
+                break;
+            case BUNDLE_COUNT_DISCARDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountDiscarded;
+                break;
+            case BUNDLE_COUNT_FORWARDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountForwarded;
+                break;
+            case BUNDLE_COUNT_FORWARDED_FAILED:
                 *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed;
                 break;
-            case BUNDLE_CNT_RECV_BSR_RECV:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived;
+            case BUNDLE_COUNT_FRAGMENT_ERROR:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountFragmentError;
                 break;
-            case BUNDLE_CNT_RECV_BSR_ACCPT:
+            case BUNDLE_COUNT_FRAGMENTED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountFragmented;
+                break;
+            case BUNDLE_COUNT_GENERATED_ACCEPTED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted;
+                break;
+            case BUNDLE_COUNT_GENERATED_ANONYMOUS:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedAnonymous;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_ACCEPTED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_DELETED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_DELIVERED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_FORWARDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_RECEIVED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_ACCEPTED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_DELETED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_DELIVERED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_FORWARDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_RECEIVED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived;
+                break;
+            case BUNDLE_COUNT_GENERATED_CUSTODY:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody;
+                break;
+            case BUNDLE_COUNT_GENERATED_CUSTODY_SIGNAL:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal;
+                break;
+            case BUNDLE_COUNT_GENERATED_FRAGMENT:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment;
+                break;
+            case BUNDLE_COUNT_GENERATED_REJECTED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected;
+                break;
+            case BUNDLE_COUNT_IN_CUSTODY:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountInCustody;
+                break;
+            case BUNDLE_COUNT_INVALID_PRIMARY_BLOCK:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock;
+                break;
+            case BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded;
+                break;
+            case BUNDLE_COUNT_MAX_CRS_RATE_EXCEEDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded;
+                break;
+            case BUNDLE_COUNT_NO_CONTACT:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountNoContact;
+                break;
+            case BUNDLE_COUNT_NO_FURTHER_INFO:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo;
+                break;
+            case BUNDLE_COUNT_NO_ROUTE:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountNoRoute;
+                break;
+            case BUNDLE_COUNT_REASSEMBLED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReassembled;
+                break;
+            case BUNDLE_COUNT_RECEIVED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceived;
+                break;
+            case BUNDLE_COUNT_RECEIVED_ADMIN_RECORD:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord;
+                break;
+            case BUNDLE_COUNT_RECEIVED_BSR_ACCEPTED:
                 *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted;
                 break;
-            case BUNDLE_CNT_RECV_BSR_FORW:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded;
-                break;
-            case BUNDLE_CNT_RECV_BSR_DELVR:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered;
-                break;
-            case BUNDLE_CNT_RECV_BSR_DEL:
+            case BUNDLE_COUNT_RECEIVED_BSR_DELETED:
                 *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted;
                 break;
-            case BUNDLE_CNT_RECV_CRS:
+            case BUNDLE_COUNT_RECEIVED_BSR_DELIVERED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered;
+                break;
+            case BUNDLE_COUNT_RECEIVED_BSR_FORWARDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded;
+                break;
+            case BUNDLE_COUNT_RECEIVED_BSR_RECEIVED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CRS:
                 *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs;
                 break;
-            case BUNDLE_CNT_RECV_CRS_RECV:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived;
-                break;
-            case BUNDLE_CNT_RECV_CRS_ACCPT:
+            case BUNDLE_COUNT_RECEIVED_CRS_ACCEPTED:
                 *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted;
                 break;
-            case BUNDLE_CNT_RECV_CRS_FORW:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded;
-                break;
-            case BUNDLE_CNT_RECV_CRS_DELVR:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered;
-                break;
-            case BUNDLE_CNT_RECV_CRS_DEL:
+            case BUNDLE_COUNT_RECEIVED_CRS_DELETED:
                 *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted;
                 break;
-            case BUNDLE_CNT_RECV_ADMIN_REC:
-                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord;
+            case BUNDLE_COUNT_RECEIVED_CRS_DELIVERED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CRS_FORWARDED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CRS_RECEIVED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CUSTODY_SIGNAL:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal;
+                break;
+            case BUNDLE_COUNT_RECEIVED_FRAGMENT:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment;
+                break;
+            case BUNDLE_COUNT_REDUNDANT:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountRedundant;
+                break;
+            case BUNDLE_COUNT_REJECTED_CUSTODY:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody;
+                break;
+            case BUNDLE_COUNT_RETURNED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountReturned;
+                break;
+            case BUNDLE_COUNT_STORAGE_AVAILABLE:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountStorageAvailable;
+                break;
+            case BUNDLE_COUNT_STORED:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountStored;
+                break;
+            case BUNDLE_COUNT_UNINTELLIGIBLE_BLOCK:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock;
+                break;
+            case BUNDLE_COUNT_UNINTELLIGIBLE_EID:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid;
+                break;
+            case BUNDLE_COUNT_UNPROCESSED_BLOCKS:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks;
+                break;
+            case NODE_STARTUP_COUNTER:
+                *ReturnPtr = BPLib_AS_NodeCountersPayload.NodeStartupCounter;
                 break;
             default:
                 Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
@@ -478,11 +487,9 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, uint32_t Value, uint16_t NumToSet, ...)
+BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value)
 {
     BPLib_Status_t Status;
-    va_list Counters;
-    int8_t CounterCtrl;
 
     Status = BPLIB_SUCCESS;
 
@@ -492,419 +499,421 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, uint32_t Value, uint16_t NumToSet
     }
     else
     {
-        va_start(Counters, NumToSet);
-
-        for (CounterCtrl = 0; CounterCtrl < NumToSet; CounterCtrl++)
+        /* Node counter */
+        switch(Counter)
         {
-            /* Node counter */
-            switch(va_arg(Counters, int))
-            {
-                case BUNDLE_AGT_ACCPT_CNT:
-                    BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount = Value;
-                    break;
-                case BUNDLE_AGT_REJ_CNT:
-                    BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount = Value;
-                    break;
-                case BUNDLE_CNT_GEN_ACCPT:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted = Value;
-                    break;
-                case BUNDLE_CNT_GEN_REJ:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected = Value;
-                    break;
-                case BUNDLE_CNT_GEN_CUSTODY:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody = Value;
-                    break;
-                case BUNDLE_CNT_GEN_BSR_RECV:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived = Value;
-                    break;
-                case BUNDLE_CNT_GEN_BSR_ACCPT:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted = Value;
-                    break;
-                case BUNDLE_CNT_GEN_BSR_FORW:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded = Value;
-                    break;
-                case BUNDLE_CNT_GEN_BSR_DELVR:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered = Value;
-                    break;
-                case BUNDLE_CNT_GEN_BSR_DEL:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted = Value;
-                    break;
-                case BUNDLE_CNT_MAX_BSR_RATE_EXCD:
-                    BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded = Value;
-                    break;
-                case BUNDLE_CNT_GEN_ANON:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAnonymous = Value;
-                    break;
-                case BUNDLE_CNT_GEN_FRAG:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment = Value;
-                    break;
-                case BUNDLE_CNT_RECV:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceived = Value;
-                    break;
-                case BUNDLE_CNT_RECV_FRAG:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment = Value;
-                    break;
-                case BUNDLE_CNT_UNPROC_BLKS:
-                    BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks = Value;
-                    break;
-                case BUNDLE_CNT_INVAL_PRI_BLK:
-                    BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock = Value;
-                    break;
-                case BUNDLE_CNT_CS_RECV:
-                    BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = Value;
-                    break;
-                case BUNDLE_CNT_FORW:
-                    BPLib_AS_NodeCountersPayload.BundleCountForwarded = Value;
-                    break;
-                case BUNDLE_CNT_RET:
-                    BPLib_AS_NodeCountersPayload.BundleCountReturned = Value;
-                    break;
-                case BUNDLE_CNT_FRAG:
-                    BPLib_AS_NodeCountersPayload.BundleCountFragmented = Value;
-                    break;
-                case BUNDLE_CNT_REASSEMBLED:
-                    BPLib_AS_NodeCountersPayload.BundleCountReassembled = Value;
-                    break;
-                case BUNDLE_CNT_FRAG_ERR:
-                    BPLib_AS_NodeCountersPayload.BundleCountFragmentError = Value;
-                    break;
-                case BUNDLE_CNT_DELVR:
-                    BPLib_AS_NodeCountersPayload.BundleCountDelivered = Value;
-                    break;
-                case BUNDLE_CNT_ABAND:
-                    BPLib_AS_NodeCountersPayload.BundleCountAbandoned = Value;
-                    break;
-                case ADU_CNT_DELVR:
-                    BPLib_AS_NodeCountersPayload.AduCountDelivered = Value;
-                    break;
-                case BUNDLE_CNT_DEL:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeleted = Value;
-                    break;
-                case BUNDLE_CNT_DEL_EXP:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired = Value;
-                    break;
-                case BUNDLE_CNT_DEL_HOP_EXCD:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded = Value;
-                    break;
-                case BUNDLE_CNT_DEL_INVAL_PAY:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload = Value;
-                    break;
-                case BUNDLE_CNT_DEL_FORW_FAILED:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedForwardFailed = Value;
-                    break;
-                case BUNDLE_CNT_DEL_TRAF_PARED:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared = Value;
-                    break;
-                case BUNDLE_CNT_DEL_UNINTEL:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible = Value;
-                    break;
-                case BUNDLE_CNT_DEL_UNSUPPORT_BLK:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock = Value;
-                    break;
-                case BUNDLE_CNT_DEL_CANCELLED:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled = Value;
-                    break;
-                case BUNDLE_CNT_DISCARDED:
-                    BPLib_AS_NodeCountersPayload.BundleCountDiscarded = Value;
-                    break;
-                case BUNDLE_CNT_DEL_NO_STOR:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage = Value;
-                    break;
-                case BUNDLE_CNT_DEL_BAD_EID:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid = Value;
-                    break;
-                case BUNDLE_CNT_DEL_UNAUTH:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized = Value;
-                    break;
-                case BUNDLE_CNT_DEL_TOO_LONG:
-                    BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong = Value;
-                    break;
-                case BUNDLE_CNT_CUSTODY_TRANS:
-                    BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred = Value;
-                    break;
-                case BUNDLE_CNT_CUSTODY_REJ:
-                    BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected = Value;
-                    break;
-                case BUNDLE_CNT_CUSTODY_REQ:
-                    BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest = Value;
-                    break;
-                case BUNDLE_CNT_CUSTODY_RE_FORW:
-                    BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded = Value;
-                    break;
-                case BUNDLE_CNT_NO_FURTHER_INFO:
-                    BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo = Value;
-                    break;
-                case BUNDLE_CNT_RED:
-                    BPLib_AS_NodeCountersPayload.BundleCountRedundant = Value;
-                    break;
-                case BUNDLE_CNT_DEPLETED:
-                    BPLib_AS_NodeCountersPayload.BundleCountDepleted = Value;
-                    break;
-                case BUNDLE_CNT_UNINTEL_EID:
-                    BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid = Value;
-                    break;
-                case BUNDLE_CNT_NO_ROUTE:
-                    BPLib_AS_NodeCountersPayload.BundleCountNoRoute = Value;
-                    break;
-                case BUNDLE_CNT_NO_CONTACT:
-                    BPLib_AS_NodeCountersPayload.BundleCountNoContact = Value;
-                    break;
-                case BUNDLE_CNT_UNINTEL_BLK:
-                    BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CS:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal = Value;
-                    break;
-                case BUNDLE_CNT_GEN_CS:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal = Value;
-                    break;
-                case BUNDLE_CNT_REJ_CUSTODY:
-                    BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody = Value;
-                    break;
-                case BUNDLE_CNT_GEN_CRS_RECV:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived = Value;
-                    break;
-                case BUNDLE_CNT_GEN_CRS_ACCPT:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted = Value;
-                    break;
-                case BUNDLE_CNT_GEN_CRS_FORW:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded = Value;
-                    break;
-                case BUNDLE_CNT_GEN_CRS_DELVR:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered = Value;
-                    break;
-                case BUNDLE_CNT_GEN_CRS_DEL:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted = Value;
-                    break;
-                case BUNDLE_CNT_MAX_CRS_RATE_EXCD:
-                    BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded = Value;
-                    break;
-                case ADU_CNT_RECV:
-                    BPLib_AS_NodeCountersPayload.AduCountReceived = Value;
-                    break;
-                case NODE_STARTUP_CNTR:
-                    BPLib_AS_NodeCountersPayload.NodeStartupCounter = Value;
-                    break;
-                case BUNDLE_CNT_GEN_CRS:
-                    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs = Value;
-                    break;
-                case BUNDLE_CNT_FORW_FAILED:
-                    BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_RECV:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_ACCPT:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_FORW:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_DELVR:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_DEL:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_RECV:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_ACCPT:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_FORW:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_DELVR:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_DEL:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted = Value;
-                    break;
-                case BUNDLE_CNT_RECV_ADMIN_REC:
-                    BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord = Value;
-                    break;
-                default:
-                    Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
-                    break;
-            }
-
-            /* Source counter
-            switch (Counter)
-            {
-                case BUNDLE_CNT_GEN_ACCPT:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted = Value;
-                    break;
-                case BUNDLE_CNT_GEN_REJ:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedRejected = Value;
-                    break;
-                case BUNDLE_CNT_GEN_FRAG:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedFragment = Value;
-                    break;
-                case BUNDLE_CNT_RECV:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceived = Value;
-                    break;
-                case BUNDLE_CNT_RECV_FRAG:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedFragment = Value;
-                    break;
-                case BUNDLE_CNT_UNPROC_BLKS:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnprocessedBlocks = Value;
-                    break;
-                case BUNDLE_CNT_FORW:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwarded = Value;
-                    break;
-                case BUNDLE_CNT_RET:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReturned = Value;
-                    break;
-                case BUNDLE_CNT_FRAG:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmented = Value;
-                    break;
-                case BUNDLE_CNT_REASSEMBLED:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReassembled = Value;
-                    break;
-                case BUNDLE_CNT_FRAG_ERR:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmentError = Value;
-                    break;
-                case BUNDLE_CNT_DELVR:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDelivered = Value;
-                    break;
-                case BUNDLE_CNT_ABAND:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned = Value;
-                    break;
-                case ADU_CNT_DELVR:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountDelivered = Value;
-                    break;
-                case BUNDLE_CNT_DEL:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeleted = Value;
-                    break;
-                case BUNDLE_CNT_DEL_EXP:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedExpired = Value;
-                    break;
-                case BUNDLE_CNT_DEL_HOP_EXCD:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedHopExceeded = Value;
-                    break;
-                case BUNDLE_CNT_DEL_INVAL_PAY:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedInvalidPayload = Value;
-                    break;
-                case BUNDLE_CNT_DEL_FORW_FAILED:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedForwardFailed = Value;
-                    break;
-                case BUNDLE_CNT_DEL_TRAF_PARED:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTrafficPared = Value;
-                    break;
-                case BUNDLE_CNT_DEL_UNINTEL:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnintelligible = Value;
-                    break;
-                case BUNDLE_CNT_DEL_UNSUPPORT_BLK:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnsupportedBlock = Value;
-                    break;
-                case BUNDLE_CNT_DEL_CANCELLED:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedCancelled = Value;
-                    break;
-                case BUNDLE_CNT_DISCARDED:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDiscarded = Value;
-                    break;
-                case BUNDLE_CNT_DEL_NO_STOR:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedNoStorage = Value;
-                    break;
-                case BUNDLE_CNT_DEL_BAD_EID:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedBadEid = Value;
-                    break;
-                case BUNDLE_CNT_DEL_TOO_LONG:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTooLong = Value;
-                    break;
-                case BUNDLE_CNT_CUSTODY_TRANS:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred = Value;
-                    break;
-                case BUNDLE_CNT_CUSTODY_REJ:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected = Value;
-                    break;
-                case BUNDLE_CNT_CUSTODY_REQ:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRequest = Value;
-                    break;
-                case BUNDLE_CNT_CUSTODY_RE_FORW:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyReForwarded = Value;
-                    break;
-                case BUNDLE_CNT_NO_FURTHER_INFO:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountNoFurtherInfo = Value;
-                    break;
-                case BUNDLE_CNT_RED:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRedundant = Value;
-                    break;
-                case BUNDLE_CNT_DEPLETED:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDepleted = Value;
-                    break;
-                case BUNDLE_CNT_UNINTEL_EID:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnintelligibleEid = Value;
-                    break;
-                case BUNDLE_CNT_NO_ROUTE:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountNoRoute = Value;
-                    break;
-                case BUNDLE_CNT_NO_CONTACT:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountNoContact = Value;
-                    break;
-                case BUNDLE_CNT_UNINTEL_BLK:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnintelligibleBlock = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CS:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCustodySignal = Value;
-                    break;
-                case BUNDLE_CNT_GEN_CS:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedCustodySignal = Value;
-                    break;
-                case BUNDLE_CNT_REJ_CUSTODY:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRejectedCustody = Value;
-                    break;
-                case ADU_CNT_RECV:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountReceived = Value;
-                    break;
-                case BUNDLE_CNT_FORW_FAILED:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwardedFailed = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_RECV:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrReceived = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_ACCPT:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrAccepted = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_FORW:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrForwarded = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_DELVR:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrDelivered = Value;
-                    break;
-                case BUNDLE_CNT_RECV_BSR_DEL:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrDeleted = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_RECV:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsReceived = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_ACCPT:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsAccepted = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_FORW:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsForwarded = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_DELVR:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsDelivered = Value;
-                    break;
-                case BUNDLE_CNT_RECV_CRS_DEL:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsDeleted = Value;
-                    break;
-                case BUNDLE_CNT_RECV_ADMIN_REC:
-                    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedAdminRecord = Value;
-                    break;
-                default:
-                    Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
-                    break;
-            }
-            */
+            case ADU_COUNT_DELIVERED:
+                BPLib_AS_NodeCountersPayload.AduCountDelivered = Value;
+                break;
+            case ADU_COUNT_RECEIVED:
+                BPLib_AS_NodeCountersPayload.AduCountReceived = Value;
+                break;
+            case BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT:
+                BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount = Value;
+                break;
+            case BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT:
+                BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount = Value;
+                break;
+            case BUNDLE_COUNT_ABANDONED:
+                BPLib_AS_NodeCountersPayload.BundleCountAbandoned = Value;
+                break;
+            case BUNDLE_COUNT_CUSTODY_RE_FORWARDED:
+                BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded = Value;
+                break;
+            case BUNDLE_COUNT_CUSTODY_REJECTED:
+                BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected = Value;
+                break;
+            case BUNDLE_COUNT_CUSTODY_REQUEST:
+                BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest = Value;
+                break;
+            case BUNDLE_COUNT_CUSTODY_SIGNAL_RECEIVED:
+                BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = Value;
+                break;
+            case BUNDLE_COUNT_CUSTODY_TRANSFERRED:
+                BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred = Value;
+                break;
+            case BUNDLE_COUNT_DELETED:
+                BPLib_AS_NodeCountersPayload.BundleCountDeleted = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_BAD_EID:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_CANCELLED:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_EXPIRED:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_FORWARD_FAILED:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedForwardFailed = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_HOP_EXCEEDED:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_INVALID_PAYLOAD:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_NO_STORAGE:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_TOO_LONG:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_TRAFFIC_PARED:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_UNAUTHORIZED:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_UNINTELLIGIBLE:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible = Value;
+                break;
+            case BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK:
+                BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock = Value;
+                break;
+            case BUNDLE_COUNT_DELIVERED:
+                BPLib_AS_NodeCountersPayload.BundleCountDelivered = Value;
+                break;
+            case BUNDLE_COUNT_DEPLETED:
+                BPLib_AS_NodeCountersPayload.BundleCountDepleted = Value;
+                break;
+            case BUNDLE_COUNT_DISCARDED:
+                BPLib_AS_NodeCountersPayload.BundleCountDiscarded = Value;
+                break;
+            case BUNDLE_COUNT_FORWARDED:
+                BPLib_AS_NodeCountersPayload.BundleCountForwarded = Value;
+                break;
+            case BUNDLE_COUNT_FORWARDED_FAILED:
+                BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed = Value;
+                break;
+            case BUNDLE_COUNT_FRAGMENT_ERROR:
+                BPLib_AS_NodeCountersPayload.BundleCountFragmentError = Value;
+                break;
+            case BUNDLE_COUNT_FRAGMENTED:
+                BPLib_AS_NodeCountersPayload.BundleCountFragmented = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_ACCEPTED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_ANONYMOUS:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedAnonymous = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_ACCEPTED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_DELETED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_DELIVERED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_FORWARDED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_BSR_RECEIVED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_ACCEPTED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_DELETED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_DELIVERED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_FORWARDED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_CRS_RECEIVED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_CUSTODY:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_CUSTODY_SIGNAL:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_FRAGMENT:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment = Value;
+                break;
+            case BUNDLE_COUNT_GENERATED_REJECTED:
+                BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected = Value;
+                break;
+            case BUNDLE_COUNT_IN_CUSTODY:
+                BPLib_AS_NodeCountersPayload.BundleCountInCustody = Value;
+                break;
+            case BUNDLE_COUNT_INVALID_PRIMARY_BLOCK:
+                BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock = Value;
+                break;
+            case BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED:
+                BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded = Value;
+                break;
+            case BUNDLE_COUNT_MAX_CRS_RATE_EXCEEDED:
+                BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded = Value;
+                break;
+            case BUNDLE_COUNT_NO_CONTACT:
+                BPLib_AS_NodeCountersPayload.BundleCountNoContact = Value;
+                break;
+            case BUNDLE_COUNT_NO_FURTHER_INFO:
+                BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo = Value;
+                break;
+            case BUNDLE_COUNT_NO_ROUTE:
+                BPLib_AS_NodeCountersPayload.BundleCountNoRoute = Value;
+                break;
+            case BUNDLE_COUNT_REASSEMBLED:
+                BPLib_AS_NodeCountersPayload.BundleCountReassembled = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceived = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_ADMIN_RECORD:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_BSR_ACCEPTED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_BSR_DELETED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_BSR_DELIVERED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_BSR_FORWARDED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_BSR_RECEIVED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CRS:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CRS_ACCEPTED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CRS_DELETED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CRS_DELIVERED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CRS_FORWARDED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CRS_RECEIVED:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_CUSTODY_SIGNAL:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal = Value;
+                break;
+            case BUNDLE_COUNT_RECEIVED_FRAGMENT:
+                BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment = Value;
+                break;
+            case BUNDLE_COUNT_REDUNDANT:
+                BPLib_AS_NodeCountersPayload.BundleCountRedundant = Value;
+                break;
+            case BUNDLE_COUNT_REJECTED_CUSTODY:
+                BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody = Value;
+                break;
+            case BUNDLE_COUNT_RETURNED:
+                BPLib_AS_NodeCountersPayload.BundleCountReturned = Value;
+                break;
+            case BUNDLE_COUNT_STORAGE_AVAILABLE:
+                BPLib_AS_NodeCountersPayload.BundleCountStorageAvailable = Value;
+                break;
+            case BUNDLE_COUNT_STORED:
+                BPLib_AS_NodeCountersPayload.BundleCountStored = Value;
+                break;
+            case BUNDLE_COUNT_UNINTELLIGIBLE_BLOCK:
+                BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock = Value;
+                break;
+            case BUNDLE_COUNT_UNINTELLIGIBLE_EID:
+                BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid = Value;
+                break;
+            case BUNDLE_COUNT_UNPROCESSED_BLOCKS:
+                BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks = Value;
+                break;
+            case NODE_STARTUP_COUNTER:
+                BPLib_AS_NodeCountersPayload.NodeStartupCounter = Value;
+                break;
+            default:
+                Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
+                break;
         }
 
-        va_end(Counters);
+        /* Source counter
+        switch (Counter)
+        {
+            case BUNDLE_CNT_GEN_ACCPT:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted = Value;
+                break;
+            case BUNDLE_CNT_GEN_REJ:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedRejected = Value;
+                break;
+            case BUNDLE_CNT_GEN_FRAG:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedFragment = Value;
+                break;
+            case BUNDLE_CNT_RECV:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceived = Value;
+                break;
+            case BUNDLE_CNT_RECV_FRAG:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedFragment = Value;
+                break;
+            case BUNDLE_CNT_UNPROC_BLKS:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnprocessedBlocks = Value;
+                break;
+            case BUNDLE_CNT_FORW:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwarded = Value;
+                break;
+            case BUNDLE_CNT_RET:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReturned = Value;
+                break;
+            case BUNDLE_CNT_FRAG:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmented = Value;
+                break;
+            case BUNDLE_CNT_REASSEMBLED:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReassembled = Value;
+                break;
+            case BUNDLE_CNT_FRAG_ERR:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmentError = Value;
+                break;
+            case BUNDLE_CNT_DELVR:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDelivered = Value;
+                break;
+            case BUNDLE_CNT_ABAND:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned = Value;
+                break;
+            case ADU_CNT_DELVR:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountDelivered = Value;
+                break;
+            case BUNDLE_CNT_DEL:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeleted = Value;
+                break;
+            case BUNDLE_CNT_DEL_EXP:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedExpired = Value;
+                break;
+            case BUNDLE_CNT_DEL_HOP_EXCD:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedHopExceeded = Value;
+                break;
+            case BUNDLE_CNT_DEL_INVAL_PAY:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedInvalidPayload = Value;
+                break;
+            case BUNDLE_CNT_DEL_FORW_FAILED:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedForwardFailed = Value;
+                break;
+            case BUNDLE_CNT_DEL_TRAF_PARED:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTrafficPared = Value;
+                break;
+            case BUNDLE_CNT_DEL_UNINTEL:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnintelligible = Value;
+                break;
+            case BUNDLE_CNT_DEL_UNSUPPORT_BLK:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnsupportedBlock = Value;
+                break;
+            case BUNDLE_CNT_DEL_CANCELLED:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedCancelled = Value;
+                break;
+            case BUNDLE_CNT_DISCARDED:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDiscarded = Value;
+                break;
+            case BUNDLE_CNT_DEL_NO_STOR:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedNoStorage = Value;
+                break;
+            case BUNDLE_CNT_DEL_BAD_EID:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedBadEid = Value;
+                break;
+            case BUNDLE_CNT_DEL_TOO_LONG:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTooLong = Value;
+                break;
+            case BUNDLE_CNT_CUSTODY_TRANS:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred = Value;
+                break;
+            case BUNDLE_CNT_CUSTODY_REJ:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected = Value;
+                break;
+            case BUNDLE_CNT_CUSTODY_REQ:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRequest = Value;
+                break;
+            case BUNDLE_CNT_CUSTODY_RE_FORW:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyReForwarded = Value;
+                break;
+            case BUNDLE_CNT_NO_FURTHER_INFO:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountNoFurtherInfo = Value;
+                break;
+            case BUNDLE_CNT_RED:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRedundant = Value;
+                break;
+            case BUNDLE_CNT_DEPLETED:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDepleted = Value;
+                break;
+            case BUNDLE_CNT_UNINTEL_EID:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnintelligibleEid = Value;
+                break;
+            case BUNDLE_CNT_NO_ROUTE:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountNoRoute = Value;
+                break;
+            case BUNDLE_CNT_NO_CONTACT:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountNoContact = Value;
+                break;
+            case BUNDLE_CNT_UNINTEL_BLK:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnintelligibleBlock = Value;
+                break;
+            case BUNDLE_CNT_RECV_CS:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCustodySignal = Value;
+                break;
+            case BUNDLE_CNT_GEN_CS:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedCustodySignal = Value;
+                break;
+            case BUNDLE_CNT_REJ_CUSTODY:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRejectedCustody = Value;
+                break;
+            case ADU_CNT_RECV:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountReceived = Value;
+                break;
+            case BUNDLE_CNT_FORW_FAILED:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwardedFailed = Value;
+                break;
+            case BUNDLE_CNT_RECV_BSR_RECV:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrReceived = Value;
+                break;
+            case BUNDLE_CNT_RECV_BSR_ACCPT:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrAccepted = Value;
+                break;
+            case BUNDLE_CNT_RECV_BSR_FORW:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrForwarded = Value;
+                break;
+            case BUNDLE_CNT_RECV_BSR_DELVR:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrDelivered = Value;
+                break;
+            case BUNDLE_CNT_RECV_BSR_DEL:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrDeleted = Value;
+                break;
+            case BUNDLE_CNT_RECV_CRS_RECV:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsReceived = Value;
+                break;
+            case BUNDLE_CNT_RECV_CRS_ACCPT:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsAccepted = Value;
+                break;
+            case BUNDLE_CNT_RECV_CRS_FORW:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsForwarded = Value;
+                break;
+            case BUNDLE_CNT_RECV_CRS_DELVR:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsDelivered = Value;
+                break;
+            case BUNDLE_CNT_RECV_CRS_DEL:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsDeleted = Value;
+                break;
+            case BUNDLE_CNT_RECV_ADMIN_REC:
+                BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedAdminRecord = Value;
+                break;
+            default:
+                Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
+                break;
+        }
+        */
     }
 
     return Status;
@@ -1080,80 +1089,71 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_Set(SourceEid, 0, BPLIB_AS_NUM_SRC_CNTRS, ADU_CNT_DELVR,
-                                                                ADU_CNT_RECV,
-                                                                BUNDLE_CNT_ABAND,
-                                                                BUNDLE_CNT_CUSTODY_RE_FORW,
-                                                                BUNDLE_CNT_CUSTODY_REJ,
-                                                                BUNDLE_CNT_CUSTODY_REQ,
-                                                                BUNDLE_CNT_CUSTODY_TRANS,
-                                                                BUNDLE_CNT_DEL,
-                                                                BUNDLE_CNT_DEL_BAD_EID,
-                                                                BUNDLE_CNT_DEL_EXP,
-                                                                BUNDLE_CNT_DEL_HOP_EXCD,
-                                                                BUNDLE_CNT_DEL_INVAL_PAY,
-                                                                BUNDLE_CNT_DEL_NO_STOR,
-                                                                BUNDLE_CNT_DEL_TRAF_PARED,
-                                                                BUNDLE_CNT_DEL_UNINTEL,
-                                                                BUNDLE_CNT_DEL_UNSUPPORT_BLK,
-                                                                BUNDLE_CNT_DEL_TOO_LONG,
-                                                                BUNDLE_CNT_DELVR,
-                                                                BUNDLE_CNT_DEPLETED,
-                                                                BUNDLE_CNT_DISCARDED,
-                                                                BUNDLE_CNT_FORW,
-                                                                BUNDLE_CNT_FORW_FAILED,
-                                                                BUNDLE_CNT_FRAG_ERR,
-                                                                BUNDLE_CNT_FRAG,
-                                                                BUNDLE_CNT_GEN_ACCPT,
-                                                                BUNDLE_CNT_GEN_CS,
-                                                                BUNDLE_CNT_GEN_FRAG,
-                                                                BUNDLE_CNT_GEN_REJ,
-                                                                BUNDLE_CNT_MAX_BSR_RATE_EXCD,
-                                                                BUNDLE_CNT_NO_FURTHER_INFO,
-                                                                BUNDLE_CNT_REASSEMBLED,
-                                                                BUNDLE_CNT_RECV,
-                                                                BUNDLE_CNT_RECV_BSR_ACCPT,
-                                                                BUNDLE_CNT_RECV_BSR_DEL,
-                                                                BUNDLE_CNT_RECV_BSR_DELVR,
-                                                                BUNDLE_CNT_RECV_BSR_FORW,
-                                                                BUNDLE_CNT_RECV_BSR_RECV,
-                                                                BUNDLE_CNT_RECV_CRS,
-                                                                BUNDLE_CNT_RECV_CRS_ACCPT,
-                                                                BUNDLE_CNT_RECV_CRS_DEL,
-                                                                BUNDLE_CNT_RECV_CRS_DELVR,
-                                                                BUNDLE_CNT_RECV_CRS_FORW,
-                                                                BUNDLE_CNT_RECV_CRS_RECV,
-                                                                BUNDLE_CNT_RECV_CS,
-                                                                BUNDLE_CNT_RECV_FRAG,
-                                                                BUNDLE_CNT_RED,
-                                                                BUNDLE_CNT_REJ_CUSTODY,
-                                                                BUNDLE_CNT_UNINTEL_BLK,
-                                                                BUNDLE_CNT_UNINTEL_EID,
-                                                                BUNDLE_CNT_UNPROC_BLKS);
+    Status = BPLIB_SUCCESS;
 
-    if (Status == BPLIB_AS_INVALID_EID)
+    if (!BPLib_AS_EidIsValid(SourceEid))
     {
         BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Could not reset source counters due to an invalid source EID (%d)",
                             SourceEid);
-    }
-    else if (Status != BPLIB_SUCCESS)
-    {
-        /*
-        ** The only applicable errors remaining are unknown counter error code but the enum values being passed in
-        ** are known counters, they in fact are what the AS_Set() function uses to set those values, so it's highly
-        ** unlikely that an error is caused unless the enum and this list are out of sync. In that case, the user
-        ** should be notified, hit to code coverage be darned
-        */
 
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset source counters with source EID %d, RC = %d",
-                            SourceEid,
-                            Status);
-        
-        Status = BPLIB_AS_RESET_SRC_ERR;
+        Status = BPLIB_AS_INVALID_EID;
+    }
+    else
+    {
+        BPLib_AS_NodeCountersPayload.AduCountDelivered                  = 0;
+        BPLib_AS_NodeCountersPayload.AduCountReceived                   = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountAbandoned               = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded      = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected         = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest          = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred      = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeleted                 = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid           = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired          = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded      = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload   = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage        = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared     = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible   = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong          = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDelivered               = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDepleted                = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountDiscarded               = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountForwarded               = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed         = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountFragmentError           = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountFragmented              = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted       = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal  = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment       = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected       = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded      = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo           = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReassembled             = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceived                = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted     = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted      = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered    = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded    = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived     = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted     = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted      = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered    = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded    = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived     = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal   = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment        = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountRedundant               = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody         = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock     = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid       = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks       = 0;
+
+        memset((void*) &BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid], 0,
+                sizeof(BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid]));
     }
 
     return Status;
@@ -1163,94 +1163,179 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_Set(SourceEid, 0, BPLIB_AS_NUM_BNDL_CNTRS, BUNDLE_CNT_GEN_BSR_ACCPT,
-                                                                 BUNDLE_CNT_GEN_BSR_DEL,
-                                                                 BUNDLE_CNT_GEN_BSR_DELVR,
-                                                                 BUNDLE_CNT_GEN_BSR_FORW,
-                                                                 BUNDLE_CNT_GEN_BSR_RECV,
-                                                                 BUNDLE_CNT_GEN_CRS,
-                                                                 BUNDLE_CNT_GEN_CRS_ACCPT,
-                                                                 BUNDLE_CNT_GEN_CRS_DEL,
-                                                                 BUNDLE_CNT_GEN_CRS_DELVR,
-                                                                 BUNDLE_CNT_GEN_CRS_FORW,
-                                                                 BUNDLE_CNT_GEN_CRS_RECV,
-                                                                 BUNDLE_CNT_GEN_CUSTODY,
-                                                                 BUNDLE_CNT_MAX_CRS_RATE_EXCD,
-                                                                 ADU_CNT_DELVR,
-                                                                 ADU_CNT_RECV,
-                                                                 BUNDLE_CNT_ABAND,
-                                                                 BUNDLE_CNT_CUSTODY_RE_FORW,
-                                                                 BUNDLE_CNT_CUSTODY_REJ,
-                                                                 BUNDLE_CNT_CUSTODY_REQ,
-                                                                 BUNDLE_CNT_CS_RECV,
-                                                                 BUNDLE_CNT_CUSTODY_TRANS,
-                                                                 BUNDLE_CNT_DEL,
-                                                                 BUNDLE_CNT_DEL_EXP,
-                                                                 BUNDLE_CNT_DEL_HOP_EXCD,
-                                                                 BUNDLE_CNT_DEL_INVAL_PAY,
-                                                                 BUNDLE_CNT_DEL_NO_STOR,
-                                                                 BUNDLE_CNT_DEL_TRAF_PARED,
-                                                                 BUNDLE_CNT_DEL_UNINTEL,
-                                                                 BUNDLE_CNT_DEL_UNSUPPORT_BLK,
-                                                                 BUNDLE_CNT_DEL_TOO_LONG,
-                                                                 BUNDLE_CNT_DELVR,
-                                                                 BUNDLE_CNT_DEPLETED,
-                                                                 BUNDLE_CNT_DISCARDED,
-                                                                 BUNDLE_CNT_FORW,
-                                                                 BUNDLE_CNT_FORW_FAILED,
-                                                                 BUNDLE_CNT_FRAG_ERR,
-                                                                 BUNDLE_CNT_FRAG,
-                                                                 BUNDLE_CNT_GEN_ACCPT,
-                                                                 BUNDLE_CNT_GEN_CS,
-                                                                 BUNDLE_CNT_GEN_FRAG,
-                                                                 BUNDLE_CNT_GEN_REJ,
-                                                                 BUNDLE_CNT_INVAL_PRI_BLK,
-                                                                 BUNDLE_CNT_MAX_BSR_RATE_EXCD,
-                                                                 BUNDLE_CNT_NO_FURTHER_INFO,
-                                                                 BUNDLE_CNT_REASSEMBLED,
-                                                                 BUNDLE_CNT_RECV,
-                                                                 BUNDLE_CNT_RECV_BSR_ACCPT,
-                                                                 BUNDLE_CNT_RECV_BSR_DEL,
-                                                                 BUNDLE_CNT_RECV_BSR_DELVR,
-                                                                 BUNDLE_CNT_RECV_BSR_FORW,
-                                                                 BUNDLE_CNT_RECV_BSR_RECV,
-                                                                 BUNDLE_CNT_RECV_CRS,
-                                                                 BUNDLE_CNT_RECV_CRS_ACCPT,
-                                                                 BUNDLE_CNT_RECV_CRS_DEL,
-                                                                 BUNDLE_CNT_RECV_CRS_DELVR,
-                                                                 BUNDLE_CNT_RECV_CRS_FORW,
-                                                                 BUNDLE_CNT_RECV_CRS_RECV,
-                                                                 BUNDLE_CNT_RECV_CS,
-                                                                 BUNDLE_CNT_RECV_FRAG,
-                                                                 BUNDLE_CNT_RED,
-                                                                 BUNDLE_CNT_REJ_CUSTODY,
-                                                                 BUNDLE_CNT_UNINTEL_BLK,
-                                                                 BUNDLE_CNT_UNINTEL_EID,
-                                                                 BUNDLE_CNT_UNPROC_BLKS);
+    Status = BPLIB_SUCCESS;
 
-    if (Status == BPLIB_AS_INVALID_EID)
+    if (!BPLib_AS_EidIsValid(SourceEid))
     {
         BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Could not reset bundle counter due to invalid source EID (%d)",
                             SourceEid);
-    }
-    else if (Status != BPLIB_SUCCESS)
-    {
-        /*
-        ** The only applicable errors remaining are unknown counter error code but the enum values being passed in
-        ** are known counters, they in fact are what the AS_Set() function uses to set those values, so it's highly
-        ** unlikely that an error is caused unless the enum and this list are out of sync. In that case, the user
-        ** should be notified, hit to code coverage be darned
-        */
-
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Error while resetting bundle counters with source EID %d, RC = %d",
-                            SourceEid,
-                            Status);
         
-        Status = BPLIB_AS_RESET_BNDL_ERR;
+        Status = BPLIB_AS_INVALID_EID;
+    }
+    else
+    {
+        BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted  = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted   = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived  = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs          = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted  = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted   = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived  = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody      = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock   = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded    = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs           = 0;
+
+        BPLib_AS_NodeCountersPayload.AduCountDelivered                                              = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountDelivered                  = 0;
+
+        BPLib_AS_NodeCountersPayload.AduCountReceived                                               = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountReceived                   = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountAbandoned                                           = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned               = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded                                  = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyReForwarded      = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected                                     = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected         = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest                                      = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRequest          = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred                                  = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred      = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeleted                                             = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeleted                 = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired                                      = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedExpired          = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded                                  = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedHopExceeded      = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload                               = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedInvalidPayload   = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage                                    = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedNoStorage        = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong                                      = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTooLong          = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared                                 = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTrafficPared     = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible                               = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnintelligible   = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock                             = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnsupportedBlock = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDelivered                                           = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDelivered               = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDepleted                                            = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDepleted                = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDiscarded                                           = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDiscarded               = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountForwarded                                           = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwarded               = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed                                     = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwardedFailed         = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountFragmentError                                       = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmentError           = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountFragmented                                          = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmented              = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted                                   = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted       = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal                              = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedCustodySignal  = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment                                   = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedFragment       = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected                                   = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedRejected       = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded                                  = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountMaxBsrRateExceeded      = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo                                       = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountNoFurtherInfo           = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReassembled                                         = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReassembled             = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceived                                            = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceived                = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted                                 = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrAccepted     = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted                                  = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrDeleted      = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered                                = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrDelivered    = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded                                = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrForwarded    = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived                                 = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrReceived     = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted                                 = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsAccepted     = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted                                  = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsDeleted      = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered                                = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsDelivered    = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded                                = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsForwarded    = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived                                 = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsReceived     = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal                               = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCustodySignal   = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment                                    = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedFragment        = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountRedundant                                           = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRedundant               = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody                                     = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRejectedCustody         = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock                                 = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnintelligibleBlock     = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid                                   = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnintelligibleEid       = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks                                   = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnprocessedBlocks       = 0;
     }
 
     return Status;
@@ -1260,45 +1345,58 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_Set(SourceEid, 0, BPLIB_AS_NUM_ERR_CNTRS, BUNDLE_AGT_REJ_CNT,
-                                                                BUNDLE_CNT_GEN_REJ,
-                                                                BUNDLE_CNT_UNPROC_BLKS,
-                                                                BUNDLE_CNT_INVAL_PRI_BLK,
-                                                                BUNDLE_CNT_FRAG_ERR,
-                                                                BUNDLE_CNT_ABAND,
-                                                                BUNDLE_CNT_DEL_INVAL_PAY,
-                                                                BUNDLE_CNT_DEL_UNINTEL,
-                                                                BUNDLE_CNT_DEL_UNSUPPORT_BLK,
-                                                                BUNDLE_CNT_DEL_NO_STOR,
-                                                                BUNDLE_CNT_DEL_BAD_EID,
-                                                                BUNDLE_CNT_DEL_UNAUTH,
-                                                                BUNDLE_CNT_DEL_TOO_LONG,
-                                                                BUNDLE_CNT_CUSTODY_REJ,
-                                                                BUNDLE_CNT_REJ_CUSTODY);
-
-    if (Status == BPLIB_AS_INVALID_EID)
+    if (!BPLib_AS_EidIsValid(SourceEid))
     {
         BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Could not reset bundle counter due to invalid source EID (%d)",
                             SourceEid);
-    }
-    else if (Status != BPLIB_SUCCESS)
-    {
-        /*
-        ** The only applicable errors remaining are unknown counter error code but the enum values being passed in
-        ** are known counters, they in fact are what the AS_Set() function uses to set those values, so it's highly
-        ** unlikely that an error is caused unless the enum and this list are out of sync. In that case, the user
-        ** should be notified, hit to code coverage be darned
-        */
 
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Error while resetting error counters with source EID %d, RC = %d",
-                            SourceEid,
-                            Status);
-        
-        Status = BPLIB_AS_RESET_ERR_ERR;
+        Status = BPLIB_AS_INVALID_EID;
+    }
+    else
+    {
+        BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount = 0;
+        BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock    = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountAbandoned                                           = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned               = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected                                     = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected         = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid                                       = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedBadEid           = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload                               = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedInvalidPayload   = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage                                    = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedNoStorage        = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong                                      = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTooLong          = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized                                 = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnauthorized     = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible                               = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnintelligible   = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock                             = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnsupportedBlock = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountFragmentError                                       = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmentError           = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected                                   = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedRejected       = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody                                     = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRejectedCustody         = 0;
+
+        BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks                                   = 0;
+        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnprocessedBlocks       = 0;
     }
 
     return Status;
@@ -1309,104 +1407,14 @@ BPLib_Status_t BPLib_AS_ResetAllCounters(void)
     BPLib_Status_t Status;
     int16_t        SourceCtrl;
 
+    Status = BPLIB_SUCCESS;
+
+    memset((void*) &BPLib_AS_NodeCountersPayload, 0, sizeof(BPLib_AS_NodeCountersPayload));
+
     for (SourceCtrl = 0; SourceCtrl < BPLIB_MAX_NUM_SOURCE_EID; SourceCtrl++)
     {
-        Status = BPLib_AS_Set(SourceCtrl, 0, BPLIB_AS_NUM_CNTRS, BUNDLE_CNT_RECV_ADMIN_REC,
-                                                                 BUNDLE_CNT_RET,
-                                                                 BUNDLE_CNT_DEL_FORW_FAILED,
-                                                                 BUNDLE_CNT_DEL_CANCELLED,
-                                                                 BUNDLE_CNT_DEL_BAD_EID,
-                                                                 BUNDLE_CNT_NO_ROUTE,
-                                                                 BUNDLE_CNT_NO_CONTACT,
-                                                                 ADU_CNT_DELVR,
-                                                                 ADU_CNT_RECV,
-                                                                 BUNDLE_CNT_GEN_ACCPT,
-                                                                 BUNDLE_CNT_GEN_REJ,
-                                                                 BUNDLE_CNT_GEN_FRAG,
-                                                                 BUNDLE_CNT_RECV,
-                                                                 BUNDLE_CNT_RECV_FRAG,
-                                                                 BUNDLE_CNT_UNPROC_BLKS,
-                                                                 BUNDLE_CNT_FORW,
-                                                                 BUNDLE_CNT_FRAG,
-                                                                 BUNDLE_CNT_REASSEMBLED,
-                                                                 BUNDLE_CNT_FRAG_ERR,
-                                                                 BUNDLE_CNT_DELVR,
-                                                                 BUNDLE_CNT_ABAND,
-                                                                 BUNDLE_CNT_DEL,
-                                                                 BUNDLE_CNT_DEL_EXP,
-                                                                 BUNDLE_CNT_DEL_HOP_EXCD,
-                                                                 BUNDLE_CNT_DEL_INVAL_PAY,
-                                                                 BUNDLE_CNT_DEL_TRAF_PARED,
-                                                                 BUNDLE_CNT_DEL_UNINTEL,
-                                                                 BUNDLE_CNT_DEL_UNSUPPORT_BLK,
-                                                                 BUNDLE_CNT_DISCARDED,
-                                                                 BUNDLE_CNT_DEL_NO_STOR,
-                                                                 BUNDLE_CNT_DEL_TOO_LONG,
-                                                                 BUNDLE_CNT_CUSTODY_TRANS,
-                                                                 BUNDLE_CNT_CUSTODY_REJ,
-                                                                 BUNDLE_CNT_CUSTODY_REQ,
-                                                                 BUNDLE_CNT_CUSTODY_RE_FORW,
-                                                                 BUNDLE_CNT_NO_FURTHER_INFO,
-                                                                 BUNDLE_CNT_RED,
-                                                                 BUNDLE_CNT_DEPLETED,
-                                                                 BUNDLE_CNT_UNINTEL_EID,
-                                                                 BUNDLE_CNT_UNINTEL_BLK,
-                                                                 BUNDLE_CNT_RECV_CS,
-                                                                 BUNDLE_CNT_GEN_CS,
-                                                                 BUNDLE_CNT_REJ_CUSTODY,
-                                                                 BUNDLE_CNT_FORW_FAILED,
-                                                                 BUNDLE_CNT_RECV_BSR_RECV,
-                                                                 BUNDLE_CNT_RECV_BSR_ACCPT,
-                                                                 BUNDLE_CNT_RECV_BSR_FORW,
-                                                                 BUNDLE_CNT_RECV_BSR_DELVR,
-                                                                 BUNDLE_CNT_RECV_BSR_DEL,
-                                                                 BUNDLE_CNT_RECV_CRS_RECV,
-                                                                 BUNDLE_CNT_RECV_CRS_ACCPT,
-                                                                 BUNDLE_CNT_RECV_CRS_FORW,
-                                                                 BUNDLE_CNT_RECV_CRS_DELVR,
-                                                                 BUNDLE_CNT_RECV_CRS_DEL,
-                                                                 BUNDLE_CNT_MAX_BSR_RATE_EXCD,
-                                                                 BUNDLE_CNT_GEN_CUSTODY,
-                                                                 BUNDLE_CNT_GEN_BSR_RECV,
-                                                                 BUNDLE_CNT_GEN_BSR_ACCPT,
-                                                                 BUNDLE_CNT_GEN_BSR_FORW,
-                                                                 BUNDLE_CNT_GEN_BSR_DELVR,
-                                                                 BUNDLE_CNT_GEN_BSR_DEL,
-                                                                 BUNDLE_CNT_INVAL_PRI_BLK,
-                                                                 BUNDLE_CNT_CS_RECV,
-                                                                 BUNDLE_CNT_GEN_CRS_RECV,
-                                                                 BUNDLE_CNT_GEN_CRS_ACCPT,
-                                                                 BUNDLE_CNT_GEN_CRS_FORW,
-                                                                 BUNDLE_CNT_GEN_CRS_DELVR,
-                                                                 BUNDLE_CNT_GEN_CRS_DEL,
-                                                                 BUNDLE_CNT_MAX_CRS_RATE_EXCD,
-                                                                 BUNDLE_CNT_GEN_CRS,
-                                                                 BUNDLE_CNT_RECV_CRS,
-                                                                 BUNDLE_CNT_DEL_UNAUTH,
-                                                                 BUNDLE_CNT_GEN_ANON,
-                                                                 NODE_STARTUP_CNTR,
-                                                                 BUNDLE_AGT_ACCPT_CNT,
-                                                                 BUNDLE_AGT_REJ_CNT);
-
-        if (Status != BPLIB_SUCCESS)
-        {
-            /*
-            ** The invalid EID error returned by AS_Set() shouldn't apply here since the range of the EIDs is controlled.
-            ** If an EID is invalid outside of the control of this loop then the user needs to be alerted of this
-            ** discrepancy in code and expectations. The remaining error code are for unknown counters but all passed
-            ** counters are known counters, they in fact are what the AS_Set() function uses to set those values, so
-            ** it's highly unlikely that an error is caused unless the enum and this list are out of sync. In that case,
-            ** the user should be notified, hit to code coverage be darned
-            */
-
-            BPLib_EM_SendEvent(BPLIB_AS_RESET_ALL_ERR_EID,
-                                BPLib_EM_EventType_ERROR,
-                                "Error while resetting all counters with source EID %d, RC = %d",
-                                SourceCtrl,
-                                Status);
-
-            Status = BPLIB_AS_RESET_ALL_ERR;
-        }
+        memset((void*) &BPLib_AS_SourceCountersPayload.SourceCounters[SourceCtrl], 0,
+                sizeof(BPLib_AS_SourceCountersPayload.SourceCounters[SourceCtrl]));
     }
 
     return Status;
