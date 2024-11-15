@@ -260,10 +260,10 @@ void Test_BPLib_NC_ResetAllCounters_Nominal(void)
 
     Status = BPLib_NC_ResetAllCounters();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Reset all counters directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID);
+    UtAssert_STRINGBUF_EQ("Successful reset-all-counters directive", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
 void Test_BPLib_NC_ResetAllCounters_Error(void)
@@ -289,11 +289,11 @@ void Test_BPLib_NC_ResetCounter_Nominal(void)
 
     Status = BPLib_NC_ResetCounter(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Reset counter directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
     UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_SUCCESS_EID);
+    UtAssert_STRINGBUF_EQ("Successfully reset counter %d for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
 void Test_BPLib_NC_ResetCounter_Error(void)
@@ -314,11 +314,12 @@ void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
     BPLib_Status_t Status;
     BPLib_ResetSourceCounters_Payload_t Payload;
 
-    // Payload.ExampleParameter = 19;
+    Payload.SourceEid = 2;
+    
     Status = BPLib_NC_ResetSourceCounters(Payload);
 
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_SRC_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Reset source counters directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+    UtAssert_STRINGBUF_EQ("Successfully reset source counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
@@ -345,10 +346,10 @@ void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
 
     Status = BPLib_NC_ResetBundleCounters(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Reset bundle counters directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID);
+    UtAssert_STRINGBUF_EQ("Successfully reset bundle counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
 void Test_BPLib_NC_ResetBundleCounters_Error(void)
@@ -371,10 +372,10 @@ void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
 
     Status = BPLib_NC_ResetErrorCounters(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Reset error counters directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID);
+    UtAssert_STRINGBUF_EQ("Successfully reset error counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
 void Test_BPLib_NC_ResetErrorCounters_Error(void)
@@ -1216,9 +1217,6 @@ void Test_BPLib_NC_SendStorageHk_Nominal(void)
 
     Status = BPLib_NC_SendStorageHk();
 
-    // UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_SEND_STOR_HK_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Send storage hk directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
@@ -1297,98 +1295,98 @@ void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid(void)
 
 void TestBplibNc_Register(void)
 {
-    ADD_TEST(Test_BPLib_NC_AddAllApplications_Error);
-    ADD_TEST(Test_BPLib_NC_AddAllApplications_Nominal);
-    ADD_TEST(Test_BPLib_NC_AddApplication_Error);
-    ADD_TEST(Test_BPLib_NC_AddApplication_Nominal);
-    ADD_TEST(Test_BPLib_NC_AddAuthCustodians_Error);
-    ADD_TEST(Test_BPLib_NC_AddAuthCustodians_Nominal);
-    ADD_TEST(Test_BPLib_NC_AddAuthCustodySources_Error);
-    ADD_TEST(Test_BPLib_NC_AddAuthCustodySources_Nominal);
-    ADD_TEST(Test_BPLib_NC_AddAuthReportToEid_Error);
-    ADD_TEST(Test_BPLib_NC_AddAuthReportToEid_Nominal);
-    ADD_TEST(Test_BPLib_NC_AddAuthSources_Error);
-    ADD_TEST(Test_BPLib_NC_AddAuthSources_Nominal);
-    ADD_TEST(Test_BPLib_NC_AddLatency_Error);
-    ADD_TEST(Test_BPLib_NC_AddLatency_Nominal);
-    ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Error);
-    ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Nominal);
-    ADD_TEST(Test_BPLib_NC_AddStorageAllocation_Error);
-    ADD_TEST(Test_BPLib_NC_AddStorageAllocation_Nominal);
-    ADD_TEST(Test_BPLib_NC_ClearVolatile_Error);
-    ADD_TEST(Test_BPLib_NC_ClearVolatile_Nominal);
-    ADD_TEST(Test_BPLib_NC_ContactSetup_Error);
-    ADD_TEST(Test_BPLib_NC_ContactSetup_Nominal);
-    ADD_TEST(Test_BPLib_NC_ContactStart_Error);
-    ADD_TEST(Test_BPLib_NC_ContactStart_Nominal);
-    ADD_TEST(Test_BPLib_NC_ContactStop_Error);
-    ADD_TEST(Test_BPLib_NC_ContactStop_Nominal);
-    ADD_TEST(Test_BPLib_NC_ContactTeardown_Error);
-    ADD_TEST(Test_BPLib_NC_ContactTeardown_Nominal);
-    ADD_TEST(Test_BPLib_NC_InitBundleStorage_Error);
-    ADD_TEST(Test_BPLib_NC_InitBundleStorage_Nominal);
-    ADD_TEST(Test_BPLib_NC_Init_Error);
     ADD_TEST(Test_BPLib_NC_Init_Nominal);
-    ADD_TEST(Test_BPLib_NC_Noop_Error);
+    ADD_TEST(Test_BPLib_NC_Init_Error);
     ADD_TEST(Test_BPLib_NC_Noop_Nominal);
-    ADD_TEST(Test_BPLib_NC_PerformSelfTest_Error);
-    ADD_TEST(Test_BPLib_NC_PerformSelfTest_Nominal);
-    ADD_TEST(Test_BPLib_NC_RebuildBundleMetadata_Error);
-    ADD_TEST(Test_BPLib_NC_RebuildBundleMetadata_Nominal);
-    ADD_TEST(Test_BPLib_NC_ReloadSavedData_Error);
-    ADD_TEST(Test_BPLib_NC_ReloadSavedData_Nominal);
-    ADD_TEST(Test_BPLib_NC_RemoveApplication_Error);
-    ADD_TEST(Test_BPLib_NC_RemoveApplication_Nominal);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodians_Error);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodians_Nominal);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodySources_Error);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodySources_Nominal);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthReportToEid_Error);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthReportToEid_Nominal);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthSources_Error);
-    ADD_TEST(Test_BPLib_NC_RemoveAuthSources_Nominal);
-    ADD_TEST(Test_BPLib_NC_RemoveLatency_Error);
-    ADD_TEST(Test_BPLib_NC_RemoveLatency_Nominal);
-    ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Error);
-    ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Nominal);
-    ADD_TEST(Test_BPLib_NC_RemoveStorageAllocation_Error);
-    ADD_TEST(Test_BPLib_NC_RemoveStorageAllocation_Nominal);
-    ADD_TEST(Test_BPLib_NC_ResetAllCounters_Error);
-    ADD_TEST(Test_BPLib_NC_ResetAllCounters_Nominal);
-    ADD_TEST(Test_BPLib_NC_ResetBundleCounters_Error);
-    ADD_TEST(Test_BPLib_NC_ResetBundleCounters_Nominal);
-    ADD_TEST(Test_BPLib_NC_ResetCounter_Error);
-    ADD_TEST(Test_BPLib_NC_ResetCounter_Nominal);
-    ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Error);
-    ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Nominal);
-    ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Error);
-    ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Error);
-    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Error);
-    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Error);
-    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Error);
-    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Error);
-    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendStorageHk_Error);
-    ADD_TEST(Test_BPLib_NC_SendStorageHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SetMibItem_Error);
-    ADD_TEST(Test_BPLib_NC_SetMibItem_Nominal);
-    ADD_TEST(Test_BPLib_NC_SetRegistrationState_Error);
-    ADD_TEST(Test_BPLib_NC_SetRegistrationState_Nominal);
-    ADD_TEST(Test_BPLib_NC_StartAllApplications_Error);
+    ADD_TEST(Test_BPLib_NC_Noop_Error);
+    ADD_TEST(Test_BPLib_NC_AddAllApplications_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAllApplications_Error);
     ADD_TEST(Test_BPLib_NC_StartAllApplications_Nominal);
-    ADD_TEST(Test_BPLib_NC_StartApplication_Error);
-    ADD_TEST(Test_BPLib_NC_StartApplication_Nominal);
-    ADD_TEST(Test_BPLib_NC_StopApplication_Error);
-    ADD_TEST(Test_BPLib_NC_StopApplication_Nominal);
-    ADD_TEST(Test_BPLib_NC_VerifyBundleMetadata_Error);
-    ADD_TEST(Test_BPLib_NC_VerifyBundleMetadata_Nominal);
-    ADD_TEST(Test_BPLib_NC_VerifyBundleStorage_Error);
+    ADD_TEST(Test_BPLib_NC_StartAllApplications_Error);
     ADD_TEST(Test_BPLib_NC_VerifyBundleStorage_Nominal);
+    ADD_TEST(Test_BPLib_NC_VerifyBundleStorage_Error);
+    ADD_TEST(Test_BPLib_NC_InitBundleStorage_Nominal);
+    ADD_TEST(Test_BPLib_NC_InitBundleStorage_Error);
+    ADD_TEST(Test_BPLib_NC_VerifyBundleMetadata_Nominal);
+    ADD_TEST(Test_BPLib_NC_VerifyBundleMetadata_Error);
+    ADD_TEST(Test_BPLib_NC_RebuildBundleMetadata_Nominal);
+    ADD_TEST(Test_BPLib_NC_RebuildBundleMetadata_Error);
+    ADD_TEST(Test_BPLib_NC_ClearVolatile_Nominal);
+    ADD_TEST(Test_BPLib_NC_ClearVolatile_Error);
+    ADD_TEST(Test_BPLib_NC_ReloadSavedData_Nominal);
+    ADD_TEST(Test_BPLib_NC_ReloadSavedData_Error);
+    ADD_TEST(Test_BPLib_NC_ResetAllCounters_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetAllCounters_Error);
+    ADD_TEST(Test_BPLib_NC_ResetCounter_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetCounter_Error);
+    ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Error);
+    ADD_TEST(Test_BPLib_NC_ResetBundleCounters_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetBundleCounters_Error);
+    ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Nominal);
+    ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Error);
+    ADD_TEST(Test_BPLib_NC_AddApplication_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddApplication_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveApplication_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveApplication_Error);
+    ADD_TEST(Test_BPLib_NC_SetRegistrationState_Nominal);
+    ADD_TEST(Test_BPLib_NC_SetRegistrationState_Error);
+    ADD_TEST(Test_BPLib_NC_StartApplication_Nominal);
+    ADD_TEST(Test_BPLib_NC_StartApplication_Error);
+    ADD_TEST(Test_BPLib_NC_StopApplication_Nominal);
+    ADD_TEST(Test_BPLib_NC_StopApplication_Error);
+    ADD_TEST(Test_BPLib_NC_AddAuthSources_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthSources_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthSources_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthSources_Error);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodySources_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodySources_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodySources_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodySources_Error);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodians_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthCustodians_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodians_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthCustodians_Error);
+    ADD_TEST(Test_BPLib_NC_AddAuthReportToEid_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddAuthReportToEid_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthReportToEid_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveAuthReportToEid_Error);
+    ADD_TEST(Test_BPLib_NC_AddLatency_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddLatency_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveLatency_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveLatency_Error);
+    ADD_TEST(Test_BPLib_NC_ContactSetup_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactSetup_Error);
+    ADD_TEST(Test_BPLib_NC_ContactStart_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactStart_Error);
+    ADD_TEST(Test_BPLib_NC_ContactStop_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactStop_Error);
+    ADD_TEST(Test_BPLib_NC_ContactTeardown_Nominal);
+    ADD_TEST(Test_BPLib_NC_ContactTeardown_Error);
+    ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Error);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_Nominal);
+    ADD_TEST(Test_BPLib_NC_SetMibItem_Error);
+    ADD_TEST(Test_BPLib_NC_AddStorageAllocation_Nominal);
+    ADD_TEST(Test_BPLib_NC_AddStorageAllocation_Error);
+    ADD_TEST(Test_BPLib_NC_RemoveStorageAllocation_Nominal);
+    ADD_TEST(Test_BPLib_NC_RemoveStorageAllocation_Error);
+    ADD_TEST(Test_BPLib_NC_PerformSelfTest_Nominal);
+    ADD_TEST(Test_BPLib_NC_PerformSelfTest_Error);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendStorageHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendStorageHk_Error);
+    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Error);
     ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal);
     ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid);
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal);
