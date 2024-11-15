@@ -27,6 +27,12 @@
 #include "bplib_stor.h"
 #include "utgenstub.h"
 
+/* ======= */
+/* Globals */
+/* ======= */
+
+BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
+
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_STOR_Init()
