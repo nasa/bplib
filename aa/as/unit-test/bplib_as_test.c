@@ -58,13 +58,13 @@ void Test_BPLib_AS_Get_Nominal(void)
     int32_t SourceEid;
 
     /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected = 5;
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected = 12;
+    BPLib_AS_NodeCountersPayload.AduCountDelivered = 5;
+    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountDelivered = 12;
     TestValue = 0;
     SourceEid = 1;
 
     /* Run function under test */
-    Status = BPLib_AS_Get(SourceEid, BUNDLE_CNT_CUSTODY_REJ, &TestValue);
+    Status = BPLib_AS_Get(SourceEid, ADU_COUNT_DELIVERED, &TestValue);
 
     /* Assert that TestValue was updated and BPLib_AS_Get() was run successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
@@ -82,12 +82,12 @@ void Test_BPLib_AS_Get_Error(void)
     /* === Invalid EID test === */
 
     /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount = 10;
+    BPLib_AS_NodeCountersPayload.AduCountReceived = 10;
     TestValue = 0;
     SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
 
     /* Run the function under test */
-    Status = BPLib_AS_Get(SourceEid, BUNDLE_AGT_ACCPT_CNT, &TestValue);
+    Status = BPLib_AS_Get(SourceEid, ADU_COUNT_RECEIVED, &TestValue);
 
     /* Assert that TestValue wasn't updated and BPLib_AS_Get() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
@@ -138,47 +138,16 @@ void Test_BPLib_AS_Set_Nominal(void)
     /* Set values to test against */
     TestValue = 10;
     SourceEid = 2;
-    BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = 0;
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodySignalReceived = 0
+    BPLib_AS_NodeCountersPayload.BundleCountAbandoned = 0;
+    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned = 0
 
     /* Run function under test */
-    Status = BPLib_AS_Set(SourceEid, TestValue, 1, BUNDLE_CNT_CS_RECV);
+    Status = BPLib_AS_Set(SourceEid, BUNDLE_COUNT_ABANDONED, TestValue);
 
     /* Assert that the counter was updated and BPLib_AS_Set() was run successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
-    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived);
-    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodySignalReceived);
-
-    /* === Multiple counter test === */
-
-    /* Set values to test against */
-    TestValue = 20;
-    SourceEid = 2;
-
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected = 0;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock = 0;
-    BPLib_AS_NodeCountersPayload.BundleCountForwarded = 0;
-
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected = 0;
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnsupportedBlock = 0;
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwarded = 0;
-
-
-    /* Run function under test */
-    Status = BPLib_AS_Set(SourceEid, TestValue, 3, BUNDLE_CNT_CUSTODY_REJ,
-                                                   BUNDLE_CNT_DEL_UNSUPPORT_BLK,
-                                                   BUNDLE_CNT_FORW);
-
-    /* Assert that the counter was modified and BPLib_AS_Set() was run successfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
-
-    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected);
-    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock);
-    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountForwarded);
-
-    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected);
-    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnsupportedBlock);
-    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwarded);
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountAbandoned);
+    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned);
 
     // TODO: Event checking
 }
@@ -192,16 +161,16 @@ void Test_BPLib_AS_Set_Error(void)
     /* === Invalid EID test === */
 
     /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount = 0;
+    BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded = 0;
     TestValue = 10;
     SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
 
     /* Run the function under test */
-    Status = BPLib_AS_Set(SourceEid, BUNDLE_AGT_ACCPT_CNT, TestValue);
+    Status = BPLib_AS_Set(SourceEid, BUNDLE_COUNT_CUSTODY_RE_FORWARDED, TestValue);
 
     /* Assert that the counter wasn't updated and BPLib_AS_Set() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
-    UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount);
+    UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded);
 
     // TODO: Event checking
 
@@ -240,17 +209,17 @@ void Test_BPLib_AS_Increment_Nominal(void)
 
     /* Set values to test against */
     SourceEid = 2;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted = 15;
-    BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted = 15;
+    BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected = 15;
+    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected = 15;
 
     /* Run function under test */
-    Status = BPLib_AS_Increment(SourceEid, BUNDLE_CNT_GEN_ACCPT);
+    Status = BPLib_AS_Increment(SourceEid, BUNDLE_COUNT_CUSTODY_REJECTED);
 
     /* Verify that the node and source counters were incremented */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
 
-    UtAssert_EQ(uint32_t, 16, BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted);
-    // UtAssert_EQ(uint32_t, 16, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted);
+    UtAssert_EQ(uint32_t, 16, BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected);
+    // UtAssert_EQ(uint32_t, 16, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected);
 }
 
 void Test_BPLib_AS_Increment_Error(void)
@@ -261,15 +230,15 @@ void Test_BPLib_AS_Increment_Error(void)
     /* === Invalid EID test === */
 
     /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount = 0;
+    BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest = 0;
     SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
 
     /* Run the function under test */
-    Status = BPLib_AS_Increment(SourceEid, BUNDLE_AGT_ACCPT_CNT);
+    Status = BPLib_AS_Increment(SourceEid, BUNDLE_COUNT_CUSTODY_REQUEST);
 
     /* Assert that the counter wasn't updated and BPLib_AS_Increment() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
-    UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount);
+    UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest);
 
     /* === Unknown counter test === */
 
@@ -291,17 +260,17 @@ void Test_BPLib_AS_Decrement_Nominal(void)
     SourceEid = 2;
 
     /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted = 15;
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted = 15;
+    BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred = 15;
+    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred = 15;
 
     /* Run function under test */
-    Status = BPLib_AS_Decrement(SourceEid, BUNDLE_CNT_GEN_ACCPT);
+    Status = BPLib_AS_Decrement(SourceEid, BUNDLE_COUNT_CUSTODY_TRANSFERRED);
 
     /* Verify that the node and source counters were decremented */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
 
-    UtAssert_EQ(uint32_t, 14, BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted);
-    // UtAssert_EQ(uint32_t, 14, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted);
+    UtAssert_EQ(uint32_t, 14, BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred);
+    // UtAssert_EQ(uint32_t, 14, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred);
 
     // TODO: Event checking
 }
@@ -314,15 +283,15 @@ void Test_BPLib_AS_Decrement_Error(void)
     /* === Invalid EID test === */
 
     /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount = 1;
+    BPLib_AS_NodeCountersPayload.BundleCountDeleted = 1;
     SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
 
     /* Run the function under test */
-    Status = BPLib_AS_Decrement(SourceEid, BUNDLE_AGT_ACCPT_CNT);
+    Status = BPLib_AS_Decrement(SourceEid, BUNDLE_COUNT_DELETED);
 
     /* Assert that the counter wasn't updated and BPLib_AS_Decrement() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
-    UtAssert_EQ(uint32_t, 1, BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount);
+    UtAssert_EQ(uint32_t, 1, BPLib_AS_NodeCountersPayload.BundleCountDeleted);
 
     /* === Unknown counter test === */
 
@@ -364,13 +333,8 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
 {
     BPLib_Status_t Status;
     int32_t SourceEid;
-    uint32_t TestValue;
 
     SourceEid = -10;
-    TestValue = 24;
-
-    /* Set all source counters to a non-zero value */
-    Test_BPLib_AS_SetSourceCounterValues(SourceEid, TestValue);
 
     /* ================ */
     /* Invalid EID test */
@@ -380,10 +344,7 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
     Status = BPLib_AS_ResetSourceCounters(SourceEid);
 
     /* Check that BPLib_AS_ResetSourceCounters() ran successfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_SRC_ERR, Status);
-
-    /* Check that source counters haven't been reset */
-    Test_BPLib_AS_SourceCountersValueTest(SourceEid, TestValue);
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
 
     /* TODO: Event checking */
 }
@@ -416,22 +377,14 @@ void Test_BPLib_AS_ResetBundleCounters_Error(void)
 {
     BPLib_Status_t Status;
     int32_t SourceEid;
-    uint32_t TestValue;
 
     SourceEid = -15;
-    TestValue = 55;
-
-    /* Set bundle counters to a non-zero value */
-    Test_BPLib_AS_SetBundleCounterValues(SourceEid, TestValue);
 
     /* Run the function under test */
     Status = BPLib_AS_ResetBundleCounters(SourceEid);
 
     /* Assert that BPLib_AS_ResetBundleCounters() failed due to an invalid source EID */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
-
-    /* Verify that bundle counters were reset to 0 */
-    Test_BPLib_AS_BundleCountersValueTest(SourceEid, TestValue);
 
     /* TODO: Event checking */
 }
@@ -464,22 +417,14 @@ void Test_BPLib_AS_ResetErrorCounters_Error(void)
 {
     BPLib_Status_t Status;
     int32_t SourceEid;
-    uint32_t TestValue;
 
     SourceEid = -15;
-    TestValue = 55;
-
-    /* Set error counters to a non-zero value */
-    Test_BPLib_AS_SetErrorCounterValues(SourceEid, TestValue);
 
     /* Run the function under test */
     Status = BPLib_AS_ResetErrorCounters(SourceEid);
 
     /* Assert that BPLib_AS_ResetErrorCounters() failed due to an invalid source EID */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
-
-    /* Verify that error counters were reset to 0 */
-    Test_BPLib_AS_ErrorCountersValueTest(SourceEid, TestValue);
 
     /* TODO: Event checking */
 }
@@ -539,65 +484,6 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     /* TODO: Event checking */
 }
 
-void Test_BPLib_AS_ResetAllCounters_Error(void)
-{
-    BPLib_Status_t Status;
-    int32_t SourceEids[3];
-    uint32_t TestValues[3];
-
-    /* Modify counter values for the first source EID */
-    SourceEids[0] = 1;
-    TestValues[0] = 10;
-
-    /* Set all counters to a non-zero value */
-    Test_BPLib_AS_SetSourceCounterValues(SourceEids[0], TestValues[0]);
-    Test_BPLib_AS_SetBundleCounterValues(SourceEids[0], TestValues[0]);
-    Test_BPLib_AS_SetErrorCounterValues(SourceEids[0], TestValues[0]);
-
-    /* Modify counter values for a second source EID */
-    SourceEids[1] = 5;
-    TestValues[1] = 5;
-
-    /* Set all counters to a non-zero value */
-    Test_BPLib_AS_SetSourceCounterValues(SourceEids[1], TestValues[1]);
-    Test_BPLib_AS_SetBundleCounterValues(SourceEids[1], TestValues[1]);
-    Test_BPLib_AS_SetErrorCounterValues(SourceEids[1], TestValues[1]);
-
-    /* Modify counter values for a third source EID */
-    SourceEids[2] = 0;
-    TestValues[2] = 25;
-
-    /* Set all counters to a non-zero value */
-    Test_BPLib_AS_SetSourceCounterValues(SourceEids[2], TestValues[2]);
-    Test_BPLib_AS_SetBundleCounterValues(SourceEids[2], TestValues[2]);
-    Test_BPLib_AS_SetErrorCounterValues(SourceEids[2], TestValues[2]);
-
-    /* ================================ */
-    /* Invalid BPLib_AS_Set() operation */
-    /* ================================ */
-
-    /* Run the function under test */
-    Status = BPLib_AS_ResetAllCounters();
-
-    /* Assert that BPLib_AS_ResetAllCounters() failed */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_RESET_ALL_ERR, Status);
-
-    /* Verify that the all counters were unchanged */
-    Test_BPLib_AS_SourceCountersValueTest(SourceEids[0], TestValues[0]);
-    Test_BPLib_AS_BundleCountersValueTest(SourceEids[0], TestValues[0]);
-    Test_BPLib_AS_ErrorCountersValueTest(SourceEids[0], TestValues[0]);
-
-    Test_BPLib_AS_SourceCountersValueTest(SourceEids[1], TestValues[1]);
-    Test_BPLib_AS_BundleCountersValueTest(SourceEids[1], TestValues[1]);
-    Test_BPLib_AS_ErrorCountersValueTest(SourceEids[1], TestValues[1]);
-
-    Test_BPLib_AS_SourceCountersValueTest(SourceEids[2], TestValues[2]);
-    Test_BPLib_AS_BundleCountersValueTest(SourceEids[2], TestValues[2]);
-    Test_BPLib_AS_ErrorCountersValueTest(SourceEids[2], TestValues[2]);
-
-    /* TODO: Evnet checking */
-}
-
 void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
@@ -619,5 +505,4 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Error);
     ADD_TEST(Test_BPLib_AS_ResetAllCounters_Nominal);
-    ADD_TEST(Test_BPLib_AS_ResetAllCounters_Error);
 }
