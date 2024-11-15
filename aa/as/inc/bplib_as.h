@@ -162,6 +162,7 @@ typedef struct
     uint32_t BundleCountDeletedNoStorage;        /** \brief Number of Bundles deleted due to insufficient storage */
     uint32_t BundleCountDeletedTooLong;          /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
     uint32_t BundleCountDeletedTrafficPared;     /** \brief Number of Bundles Deletions due to Traffic Pared Condition */
+    uint32_t BundleCountDeletedUnauthorized;     /** \brief Number of Bundles deleted due to having a unrecognized source EID. Incremented if the bundle is not in the set of authorized source EIDs configured for the node. */
     uint32_t BundleCountDeletedUnintelligible;   /** \brief Number of Bundles Deletions due to Block Unintelligible Condition */
     uint32_t BundleCountDeletedUnsupportedBlock; /** \brief Number of Bundles Deletions due to Unsupported Block Condition */
     uint32_t BundleCountDelivered;               /** \brief Total number of Bundles Delivered to this node, including fragments */
