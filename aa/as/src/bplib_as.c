@@ -1345,6 +1345,8 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
 
+    Status = BPLIB_SUCCESS;
+
     if (!BPLib_AS_EidIsValid(SourceEid))
     {
         BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID,
