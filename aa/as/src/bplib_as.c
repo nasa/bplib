@@ -46,6 +46,8 @@ BPLib_Status_t BPLib_AS_Init(void)
     memset((void*) &BPLib_AS_SourceCountersPayload,      0, sizeof(BPLib_AS_SourceCountersPayload));
     memset((void*) &BPLib_AS_ChannelContactStatsPayload, 0, sizeof(BPLib_AS_ChannelContactStatsPayload));
 
+    BPLib_AS_ResetAllCounters();
+
     Status = BPLIB_SUCCESS;
 
     return Status;

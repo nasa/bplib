@@ -193,13 +193,13 @@ BPLib_Status_t BPLib_AS_Restore(void)
  * Generated stub function for BPLib_AS_Set()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, uint32_t Value, uint16_t NumToSet, ...)
+BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_AS_Set, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_AS_Set, int16_t, SourceEid);
+    UT_GenStub_AddParam(BPLib_AS_Set, BPLib_AS_Counter_t, Counter);
     UT_GenStub_AddParam(BPLib_AS_Set, uint32_t, Value);
-    UT_GenStub_AddParam(BPLib_AS_Set, uint16_t, NumToSet);
 
     UT_GenStub_Execute(BPLib_AS_Set, Basic, NULL);
 

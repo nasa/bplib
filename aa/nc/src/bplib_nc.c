@@ -290,7 +290,7 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_Set(Payload.SourceEid, 0, 1, Payload.Counter);
+    Status = BPLib_AS_Set(Payload.SourceEid, Payload.Counter, 0);
 
     if (Status == BPLIB_SUCCESS)
     {
