@@ -262,7 +262,7 @@ void Test_BPLib_NC_ResetAllCounters_Nominal(void)
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successful reset-all-counters directive", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+    UtAssert_STRINGBUF_EQ("Successful reset-all-counters directive", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
@@ -292,7 +292,7 @@ void Test_BPLib_NC_ResetCounter_Nominal(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
     UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successfully reset counter %d for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+    UtAssert_STRINGBUF_EQ("Successfully reset counter %d for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
@@ -315,11 +315,11 @@ void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
     BPLib_ResetSourceCounters_Payload_t Payload;
 
     Payload.SourceEid = 2;
-    
+
     Status = BPLib_NC_ResetSourceCounters(Payload);
 
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_SRC_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successfully reset source counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+    UtAssert_STRINGBUF_EQ("Successfully reset source counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
@@ -348,7 +348,7 @@ void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successfully reset bundle counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+    UtAssert_STRINGBUF_EQ("Successfully reset bundle counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
@@ -374,7 +374,7 @@ void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successfully reset error counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+    UtAssert_STRINGBUF_EQ("Successfully reset error counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
