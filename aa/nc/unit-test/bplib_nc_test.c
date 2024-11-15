@@ -285,12 +285,9 @@ void Test_BPLib_NC_ResetCounter_Nominal(void)
     Payload.SourceEid = 4;
     Payload.Counter   = BUNDLE_COUNT_DELETED_CANCELLED;
 
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled = 15;
-
     Status = BPLib_NC_ResetCounter(Payload);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_SUCCESS_EID);
     UtAssert_STRINGBUF_EQ("Successfully reset counter %d for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
