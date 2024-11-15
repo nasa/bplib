@@ -1163,8 +1163,7 @@ BPLib_Status_t BPLib_NC_SendStorageHk()
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-    // Status = BPLib_STOR_ReportTlm();
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt(&BPLib_STOR_StoragePayload);
 
     return Status;
 }
