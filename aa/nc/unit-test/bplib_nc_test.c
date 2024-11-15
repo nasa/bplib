@@ -1126,11 +1126,10 @@ void Test_BPLib_NC_SendNodeMibConfigHk_Nominal(void)
 {
     BPLib_Status_t Status;
 
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendNodeMibConfigPkt), BPLIB_SUCCESS);
+
     Status = BPLib_NC_SendNodeMibConfigHk();
 
-    // UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_SEND_NODE_MIB_CFG_HK_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Send node mib config hk directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
@@ -1149,11 +1148,10 @@ void Test_BPLib_NC_SendSourceMibConfigHk_Nominal(void)
 {
     BPLib_Status_t Status;
 
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendPerSourceMibConfigPkt), BPLIB_SUCCESS);
+
     Status = BPLib_NC_SendSourceMibConfigHk();
 
-    // UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_SEND_SRC_MIB_CFG_HK_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Send per-source mib config hk directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
@@ -1171,6 +1169,8 @@ void Test_BPLib_NC_SendSourceMibConfigHk_Error(void)
 void Test_BPLib_NC_SendNodeMibCountersHk_Nominal(void)
 {
     BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendNodeMibCounterPkt), BPLIB_SUCCESS);
 
     Status = BPLib_NC_SendNodeMibCountersHk();
 
@@ -1192,23 +1192,22 @@ void Test_BPLib_NC_SendSourceMibCountersHk_Nominal(void)
 {
     BPLib_Status_t Status;
 
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendPerSourceMibCounterPkt), BPLIB_SUCCESS);
+
     Status = BPLib_NC_SendSourceMibCountersHk();
 
-    // UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_SEND_SRC_MIB_CTRS_HK_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Send per-source mib counters hk directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_SendSourceMibCountersHk_Error(void)
 {
-    /*
     BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendPerSourceMibCounterPkt), BPLIB_UNKNOWN);
 
     Status = BPLib_NC_SendSourceMibCountersHk();
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_UNKNOWN);
 }
 
 void Test_BPLib_NC_SendStorageHk_Nominal(void)
