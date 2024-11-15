@@ -33,9 +33,14 @@ void BPLib_NC_Test_Setup(void)
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication = BPA_ADUP_AddApplication;
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication = BPA_ADUP_StartApplication;
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication = BPA_ADUP_StopApplication;
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication             = BPA_ADUP_AddApplication;
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication           = BPA_ADUP_StartApplication;
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication            = BPA_ADUP_StopApplication;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt       = BPA_TLMP_SendNodeMibConfigPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt  = BPA_TLMP_SendPerSourceMibConfigPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
 }
