@@ -483,7 +483,7 @@ BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Pa
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_EM_SendEvent(BPLIB_NC_START_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+        BPLib_EM_SendEvent(BPLIB_NC_STOP_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Successful stop-application directive for ChanId=%d",
                             Payload.ChanId);
     }

@@ -448,12 +448,8 @@ void Test_BPLib_TIME_GetEpochOffset_Nominal(void)
 {
     int64_t ExpEpochOffset;
 
-    /* Set test epoch data */
-    TestHostEpochYear = 1970;
-    TestHostEpochDay = 1;
-
     /* Calculate expected epoch offset */
-    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestHostEpochYear;
+    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestEpochYear;
     ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
 
     /* Leap years: 1972, 1976, 1980, 1984, 1988, 1992, 1996 */
@@ -468,12 +464,10 @@ void Test_BPLib_TIME_GetEpochOffset_HostGthDtn(void)
 {
     int64_t ExpEpochOffset;
 
-    /* Set test epoch data */
-    TestHostEpochYear = 2020;
-    TestHostEpochDay = 1;
+    TestEpochYear = 2020;
 
     /* Calculate expected epoch offset */
-    ExpEpochOffset = TestHostEpochYear - BPLIB_TIME_EPOCH_YEAR;
+    ExpEpochOffset = TestEpochYear - BPLIB_TIME_EPOCH_YEAR;
     ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
 
     /* Leap years: 2000, 2004, 2008, 2012, 2016 */
@@ -487,12 +481,10 @@ void Test_BPLib_TIME_GetEpochOffset_HostLthDtn(void)
 {
     int64_t ExpEpochOffset;
 
-    /* Set test epoch data */
-    TestHostEpochYear = 1900;
-    TestHostEpochDay = 1;
+    TestEpochYear = 1900;
 
     /* Calculate expected epoch offset */
-    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestHostEpochYear;
+    ExpEpochOffset = BPLIB_TIME_EPOCH_YEAR - TestEpochYear;
     ExpEpochOffset *= BPLIB_TIME_YEAR_IN_MSEC;
 
     /* Leap years: Multiples of 4 from 1904-1996 (inclusive). 1900 was not a leap year */
@@ -508,9 +500,7 @@ void Test_BPLib_TIME_GetEpochOffset_EqualEpochs(void)
 {
     int64_t ExpEpochOffset;
 
-    /* Set test epoch data */
-    TestHostEpochYear = 2000;
-    TestHostEpochDay = 1;
+    TestEpochYear = 2000;
 
     /* Calculate expected epoch offset */
     ExpEpochOffset = 0;

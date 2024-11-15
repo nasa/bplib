@@ -32,6 +32,7 @@
 #include "bplib_api_types.h"
 #include "bplib_em.h"
 #include "bplib_fwp.h"
+#include "bpa_fwp_stubs.h"  /* For EVP callback stubs */
 
 /* ================ */
 /* Type Definitions */
@@ -40,10 +41,12 @@
 /* Unit test check event hook information */
 typedef struct
 {
-    uint16      ExpectedEvent;
-    uint32      MatchCount;
-    const char *ExpectedFormat;
-} UT_CheckEvent_t;
+    uint16_t EventID;
+    uint16_t EventType;
+    char     Spec[BPLIB_EM_EXPANDED_EVENT_SIZE];
+} BPA_EVP_SendEvent_context_t;
+
+extern BPA_EVP_SendEvent_context_t context_BPA_EVP_SendEvent;
 
 extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 
@@ -57,13 +60,6 @@ extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
-
-void UT_CheckEvent_Setup_Impl(UT_CheckEvent_t *Evt, uint16 ExpectedEvent, const char *EventName,
-                              const char *ExpectedFormat);
-
-/* ========================= */
-/* Stub Function Definitions */
-/* ========================= */
 
 void BPLib_EM_Test_Setup(void);
 void BPLib_EM_Test_Teardown(void);

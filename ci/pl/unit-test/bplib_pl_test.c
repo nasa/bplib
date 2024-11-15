@@ -24,18 +24,9 @@
 
 #include "bplib_pl_test_utils.h"
 #include "bplib_pl.h"
+#include "bpa_fwp_stubs.h"
 
 BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
-
-void BPA_PERFLOGP_Entry(uint32 PerfLogID)
-{
-    return;
-}
-
-void BPA_PERFLOGP_Exit(uint32 PerfLogID)
-{
-    return;
-}
 
 /*
 ** Test function for
