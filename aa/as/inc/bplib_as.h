@@ -342,6 +342,7 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid);
   *             This is necessary to simplify the code and avoid walls of switch-case statements
   * \details    Accessor function for counters used by Admin Statistics
   * \note       This function assumes all modifiable counter types are uint32_t
+  * \note      This function does not handle error events since it's entirely internal
   * \param[in]  SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
   *                       array.
   * \param[in]  Counter   (BPLib_AS_Counter_t) Counter to access
@@ -358,6 +359,7 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
  * \brief     Modify the counter specified by the source EID and counter to the desired value
  * \details   Mutator function for counters used by Admin Statistics
  * \note      This function assumes all modifiable counters are of type uint32_t
+ * \note      This function does not handle error events since it's partially internal
  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \param[in] Counter   (BPLib_AS_Counter_t) Counter to set
  * \param[in] Value     (uint32_t) Value that the caller wishes to set the counter represented by Counter and SourceEid

@@ -258,6 +258,7 @@ void Test_BPLib_NC_ResetAllCounters_Nominal(void)
 {
     BPLib_NC_ResetAllCounters();
 
+    UtAssert_STUB_COUNT(BPLib_AS_ResetAllCounters, 1);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID);
     UtAssert_STRINGBUF_EQ("Successful reset-all-counters directive", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
@@ -265,7 +266,7 @@ void Test_BPLib_NC_ResetAllCounters_Nominal(void)
 
 void Test_BPLib_NC_ResetAllCounters_Error(void)
 {
-    BPLib_NC_ResetAllCounters();
+    /* Not applicable as of right now */
 }
 
 void Test_BPLib_NC_ResetCounter_Nominal(void)
@@ -286,15 +287,44 @@ void Test_BPLib_NC_ResetCounter_Nominal(void)
 
 void Test_BPLib_NC_ResetCounter_Error(void)
 {
-    /*
     BPLib_Status_t Status;
     BPLib_ResetCounter_Payload_t Payload;
 
-    Payload.ExampleParameter = 42;
+    /* Put dummy values into the payload */
+    Payload.Counter   = 0;
+    Payload.SourceEid = 0;
+
+    /* === BPLIB_AS_INVALID_EID returned === */
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Set), BPLIB_AS_INVALID_EID);
+
+    /* Run the function under test */
     Status = BPLib_NC_ResetCounter(Payload);
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
+    UtAssert_STUB_COUNT(BPLib_AS_Set, 1);
+
+    // TODO: Event checking
+
+    /* === BPLIB_AS_UNKNOWN_NODE_CNTR returned === */
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Set), BPLIB_AS_UNKNOWN_NODE_CNTR);
+
+    /* Run the function under test */
+    Status = BPLib_NC_ResetCounter(Payload);
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
+    UtAssert_STUB_COUNT(BPLib_AS_Set, 2);
+
+    /* === BPLIB_AS_UNKNOWN_SRC_CNTR returned === */
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Set), BPLIB_AS_UNKNOWN_SRC_CNTR);
+
+    /* Run the function under test */
+    Status = BPLib_NC_ResetCounter(Payload);
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
+    UtAssert_STUB_COUNT(BPLib_AS_Set, 3);
 }
 
 void Test_BPLib_NC_ResetSourceCounters_Nominal(void)

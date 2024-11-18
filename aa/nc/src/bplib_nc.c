@@ -278,6 +278,9 @@ BPLib_Status_t BPLib_NC_ReloadSavedData(void)
 void BPLib_NC_ResetAllCounters(void)
 {
     BPLib_AS_ResetAllCounters();
+
+    BPLib_EM_SendEvent(BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                        "Successful reset-all-counters directive");
 }
 
 BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
