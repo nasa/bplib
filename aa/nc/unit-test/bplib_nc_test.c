@@ -304,7 +304,9 @@ void Test_BPLib_NC_ResetCounter_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_STUB_COUNT(BPLib_AS_Set, 1);
 
-    // TODO: Event checking
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_SRC_EID_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Could not reset counter %d due to a source EID (%d) with unexpected pattern", BPLIB_EM_EXPANDED_EVENT_SIZE,
+                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 
     /* === BPLIB_AS_UNKNOWN_NODE_CNTR returned === */
 
@@ -316,7 +318,9 @@ void Test_BPLib_NC_ResetCounter_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
     UtAssert_STUB_COUNT(BPLib_AS_Set, 2);
 
-    // TODO: Event checking
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[1].EventID, BPLIB_NC_RESET_CTR_UNK_SRC_CNTR_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Could reset unrecognized node counter %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
+                            context_BPLib_EM_SendEvent[1].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 
     /* === BPLIB_AS_UNKNOWN_SRC_CNTR returned === */
 
@@ -328,7 +332,9 @@ void Test_BPLib_NC_ResetCounter_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
     UtAssert_STUB_COUNT(BPLib_AS_Set, 3);
 
-    // TODO: Event checking
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[2].EventID, BPLIB_NC_RESET_CTR_UNK_NODE_CNTR_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Could not reset unrecognized source counter %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
+                            context_BPLib_EM_SendEvent[2].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
 void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
@@ -358,8 +364,6 @@ void Test_BPLib_NC_ResetSourceCounters_Error(void)
 
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_STUB_COUNT(BPLib_AS_ResetSourceCounters, 1);
-
-    // TODO: Event checking
 }
 
 void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
@@ -389,8 +393,6 @@ void Test_BPLib_NC_ResetBundleCounters_Error(void)
 
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_STUB_COUNT(BPLib_AS_ResetBundleCounters, 1);
-
-    // TODO: Event checking
 }
 
 void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
@@ -420,8 +422,6 @@ void Test_BPLib_NC_ResetErrorCounters_Error(void)
 
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_STUB_COUNT(BPLib_AS_ResetErrorCounters, 1);
-
-    // TODO: Event checking
 }
 
 void Test_BPLib_NC_AddApplication_Nominal(void)
