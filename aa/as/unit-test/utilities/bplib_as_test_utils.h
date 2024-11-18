@@ -31,6 +31,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_as.h"
+#include "bplib_em_handlers.h"
 
 /* ====== */
 /* Macros */
@@ -58,6 +59,8 @@ void Test_BPLib_AS_BundleCountersValueTest(int32_t SourceEid, uint32_t ActualVal
 /* Set error counter values */
 void Test_BPLib_AS_SetErrorCounterValues(int32_t SourceEid, uint32_t SetValue);
 void Test_BPLib_AS_ErrorCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
+
+void BPLib_AS_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText);
 
 void BPLib_AS_Test_Setup(void);
 void BPLib_AS_Test_Teardown(void);

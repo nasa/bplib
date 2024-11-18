@@ -673,6 +673,13 @@ void Test_BPLib_AS_ErrorCountersValueTest(int32_t SourceEid, uint32_t ActualValu
     UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnprocessedBlocks);
 }
 
+void BPLib_AS_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
+{
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[EventNum].EventID, EventID);
+    UtAssert_STRINGBUF_EQ(EventText, BPLIB_EM_EXPANDED_EVENT_SIZE,
+                            context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
 void BPLib_AS_Test_Setup(void)
 {
     /* Initialize the node counter payload to 0s */
@@ -683,6 +690,8 @@ void BPLib_AS_Test_Setup(void)
 
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
+
+    UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
 }
 
 void BPLib_AS_Test_Teardown(void)

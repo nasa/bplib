@@ -1125,7 +1125,7 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
     {
         BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Could not reset bundle counter due to invalid source EID (%d)",
+                            "Could not reset bundle counters due to invalid source EID (%d)",
                             SourceEid);
         
         Status = BPLIB_AS_INVALID_EID;
@@ -1307,7 +1307,7 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
     {
         BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Could not reset bundle counter due to invalid source EID (%d)",
+                            "Could not reset error counters due to invalid source EID (%d)",
                             SourceEid);
 
         Status = BPLIB_AS_INVALID_EID;

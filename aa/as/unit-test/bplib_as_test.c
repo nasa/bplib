@@ -110,8 +110,6 @@ void Test_BPLib_AS_Get_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_EQ(uint32_t, TestValue, 0);
 
-    // TODO: Event checking
-
     /* === Unknown node counter test === */
 
     /* Set values to test against */
@@ -171,8 +169,6 @@ void Test_BPLib_AS_Set_Error(void)
     /* Assert that BPLib_AS_Set() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
 
-    // TODO: Event checking
-
     /* === Unknown source counter test ===
 
     // Set values to test against
@@ -204,6 +200,10 @@ void Test_BPLib_AS_Increment_Nominal(void)
 
     UtAssert_EQ(uint32_t, 16, BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected);
     // UtAssert_EQ(uint32_t, 16, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected);
+
+    /* Verify expected event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_INCREMENT_SUCCESS_EID,
+                                "Successfully incremented counter %d, for source with EID %d to %d");
 }
 
 void Test_BPLib_AS_Increment_Error(void)
@@ -224,6 +224,10 @@ void Test_BPLib_AS_Increment_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest);
 
+    /* Verify expected event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_INCREMENT_INVAL_EID_ERR_EID,
+                                "Could not get counter %d to increment due to a source EID (%d) with unexpected pattern");
+
     /* === Unknown counter test === */
 
     /* Set values to test against */
@@ -234,6 +238,10 @@ void Test_BPLib_AS_Increment_Error(void)
 
     /* Assert that BPLib_AS_Increment() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
+
+    /* Verify expected event was issued */
+    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_INCREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
+                                "Could not get unrecognized node counter, %d, to increment");
 }
 
 void Test_BPLib_AS_Decrement_Nominal(void)
@@ -256,7 +264,9 @@ void Test_BPLib_AS_Decrement_Nominal(void)
     UtAssert_EQ(uint32_t, 14, BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred);
     // UtAssert_EQ(uint32_t, 14, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred);
 
-    // TODO: Event checking
+    /* Verify expected event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_DECREMENT_SUCCESS_EID,
+                                "Successfully decremented counter %d, for source with EID %d to %d");
 }
 
 void Test_BPLib_AS_Decrement_Error(void)
@@ -277,6 +287,10 @@ void Test_BPLib_AS_Decrement_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_EQ(uint32_t, 1, BPLib_AS_NodeCountersPayload.BundleCountDeleted);
 
+    /* Verify expected event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_DECREMENT_INVAL_EID_ERR_EID,
+                                "Could not get counter %d to decrement due to a source EID (%d) with unexpected pattern");
+
     /* === Unknown counter test === */
 
     /* Set values to test against */
@@ -287,6 +301,10 @@ void Test_BPLib_AS_Decrement_Error(void)
 
     /* Assert that BPLib_AS_Decrement() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
+
+    /* Verify expected event was issued */
+    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_DECREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
+                                "Could not get unrecognized node counter, %d, to decrement");
 }
 
 void Test_BPLib_AS_ResetSourceCounters_Nominal(void)
@@ -309,8 +327,6 @@ void Test_BPLib_AS_ResetSourceCounters_Nominal(void)
 
     /* Check that source counters are set to 0 */
     Test_BPLib_AS_SourceCountersValueTest(SourceEid, 0);
-
-    /* TODO: Event checking */
 }
 
 void Test_BPLib_AS_ResetSourceCounters_Error(void)
@@ -330,7 +346,9 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
     /* Check that BPLib_AS_ResetSourceCounters() ran successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
 
-    /* TODO: Event checking */
+    /* Verify expected event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID,
+                                "Could not reset source counters due to an invalid source EID (%d)");
 }
 
 void Test_BPLib_AS_ResetBundleCounters_Nominal(void)
@@ -353,8 +371,6 @@ void Test_BPLib_AS_ResetBundleCounters_Nominal(void)
 
     /* Assert that each modified bundle counter was reset */
     Test_BPLib_AS_BundleCountersValueTest(SourceEid, 0);
-
-    /* TODO: Event checking */
 }
 
 void Test_BPLib_AS_ResetBundleCounters_Error(void)
@@ -370,7 +386,9 @@ void Test_BPLib_AS_ResetBundleCounters_Error(void)
     /* Assert that BPLib_AS_ResetBundleCounters() failed due to an invalid source EID */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
 
-    /* TODO: Event checking */
+    /* Verify expected event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
+                                "Could not reset bundle counters due to invalid source EID (%d)");
 }
 
 void Test_BPLib_AS_ResetErrorCounters_Nominal(void)
@@ -393,8 +411,6 @@ void Test_BPLib_AS_ResetErrorCounters_Nominal(void)
 
     /* Assert that each modified error counter was reset */
     Test_BPLib_AS_ErrorCountersValueTest(SourceEid, 0);
-
-    /* TODO: Event checking */
 }
 
 void Test_BPLib_AS_ResetErrorCounters_Error(void)
@@ -410,7 +426,9 @@ void Test_BPLib_AS_ResetErrorCounters_Error(void)
     /* Assert that BPLib_AS_ResetErrorCounters() failed due to an invalid source EID */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
 
-    /* TODO: Event checking */
+    /* Verify expected event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID,
+                                "Could not reset error counters due to invalid source EID (%d)");
 }
 
 void Test_BPLib_AS_ResetAllCounters_Nominal(void)
