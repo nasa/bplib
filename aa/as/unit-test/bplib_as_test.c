@@ -51,26 +51,43 @@ void Test_BPLib_AS_EidIsValid_Error(void)
     UtAssert_BOOL_FALSE(BPLib_AS_EidIsValid(BPLIB_MAX_NUM_SOURCE_EID));
 }
 
-void Test_BPLib_AS_Get_Nominal(void)
+void Test_BPLib_AS_SetGet_Nominal(void)
 {
     BPLib_Status_t Status;
     uint32_t TestValue;
+    uint32_t GetValue;
+    uint32_t CounterToTest;
     int32_t SourceEid;
 
-    /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.AduCountDelivered = 5;
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountDelivered = 12;
-    TestValue = 0;
     SourceEid = 1;
 
-    /* Run function under test */
-    Status = BPLib_AS_Get(SourceEid, ADU_COUNT_DELIVERED, &TestValue);
+    for(CounterToTest = 0; CounterToTest < BPLIB_AS_NUM_CNTRS; CounterToTest++)
+    {
+        /*
+        ** Modify the value assigned to the counters just to verify that values are held over 
+        ** from a previous iteration of the test
+        */
+        TestValue = CounterToTest + 3;
 
-    /* Assert that TestValue was updated and BPLib_AS_Get() was run successfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
-    UtAssert_EQ(uint32_t, TestValue, 5);
+        /* Set node values to test against */
+        Test_BPLib_AS_SetNodeCounterValues(0);
 
-    /* TODO: Event checking */
+        /* Set source counter values */
+        // Test_BPLib_AS_SetSourceCounterValues(SourceEid, 0);
+        
+        /* Run function under test */
+        Status = BPLib_AS_Set(SourceEid, (BPLib_AS_Counter_t) CounterToTest, TestValue);
+        
+        /* Assert that AS_Set() ran successfully */
+        UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+
+        /* Run function under test */
+        Status = BPLib_AS_Get(SourceEid, (BPLib_AS_Counter_t) CounterToTest, &GetValue);
+
+        /* Assert that TestValue was updated and BPLib_AS_Get() was run successfully */
+        UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+        UtAssert_EQ(uint32_t, TestValue, GetValue);
+    }
 }
 
 void Test_BPLib_AS_Get_Error(void)
@@ -108,8 +125,6 @@ void Test_BPLib_AS_Get_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
     UtAssert_EQ(uint32_t, TestValue, 56);
 
-    // TODO: Event checking
-
     /* === Unknown source counter test ===
 
     // Set values to test against
@@ -122,34 +137,7 @@ void Test_BPLib_AS_Get_Error(void)
     // Assert that TestValue wasn't updated and BPLib_AS_Get() was run unsuccessfully
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
     UtAssert_EQ(uint32_t, TestValue, 20);
-
-    // TODO: Event checking
     */
-}
-
-void Test_BPLib_AS_Set_Nominal(void)
-{
-    BPLib_Status_t Status;
-    uint32_t TestValue;
-    int32_t SourceEid;
-
-    /* === Single counter test === */
-
-    /* Set values to test against */
-    TestValue = 10;
-    SourceEid = 2;
-    BPLib_AS_NodeCountersPayload.BundleCountAbandoned = 0;
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned = 0
-
-    /* Run function under test */
-    Status = BPLib_AS_Set(SourceEid, BUNDLE_COUNT_ABANDONED, TestValue);
-
-    /* Assert that the counter was updated and BPLib_AS_Set() was run successfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
-    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountAbandoned);
-    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned);
-
-    // TODO: Event checking
 }
 
 void Test_BPLib_AS_Set_Error(void)
@@ -171,8 +159,6 @@ void Test_BPLib_AS_Set_Error(void)
     /* Assert that the counter wasn't updated and BPLib_AS_Set() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded);
-
-    // TODO: Event checking
 
     /* === Unknown node counter test === */
 
@@ -197,8 +183,6 @@ void Test_BPLib_AS_Set_Error(void)
 
     // Assert that BPLib_AS_Set() was run unsuccessfully
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
-
-    // TODO: Event checking
     */
 }
 
@@ -490,9 +474,8 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_Init_Error);
     ADD_TEST(Test_BPLib_AS_EidIsValid_Nominal);
     ADD_TEST(Test_BPLib_AS_EidIsValid_Error);
-    ADD_TEST(Test_BPLib_AS_Get_Nominal);
+    ADD_TEST(Test_BPLib_AS_SetGet_Nominal);
     ADD_TEST(Test_BPLib_AS_Get_Error);
-    ADD_TEST(Test_BPLib_AS_Set_Nominal);
     ADD_TEST(Test_BPLib_AS_Set_Error);
     ADD_TEST(Test_BPLib_AS_Increment_Nominal);
     ADD_TEST(Test_BPLib_AS_Increment_Error);
