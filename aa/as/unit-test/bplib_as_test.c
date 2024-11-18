@@ -468,7 +468,7 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     /* TODO: Event checking */
 }
 
-void Test_BPLib_AS_Write_Nominal()
+void Test_BPLib_AS_Write_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -477,12 +477,12 @@ void Test_BPLib_AS_Write_Nominal()
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
 }
 
-void Test_BPLib_AS_Write_Error()
+void Test_BPLib_AS_Write_Error(void)
 {
     // TODO
 }
 
-void Test_BPLib_AS_Restore_Nominal()
+void Test_BPLib_AS_Restore_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -491,7 +491,7 @@ void Test_BPLib_AS_Restore_Nominal()
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
 }
 
-void Test_BPLib_AS_Restore_Error()
+void Test_BPLib_AS_Restore_Error(void)
 {
     // TODO
 }
