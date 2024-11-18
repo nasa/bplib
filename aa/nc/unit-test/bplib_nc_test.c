@@ -344,15 +344,16 @@ void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
 
 void Test_BPLib_NC_ResetSourceCounters_Error(void)
 {
-    /*
     BPLib_Status_t Status;
     BPLib_ResetSourceCounters_Payload_t Payload;
 
-    Payload.ExampleParameter = 19;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetSourceCounters), BPLIB_AS_INVALID_EID);
+
+    Payload.SourceEid = 19;
     Status = BPLib_NC_ResetSourceCounters(Payload);
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
+    UtAssert_STUB_COUNT(BPLib_AS_ResetSourceCounters, 1);
 }
 
 void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
