@@ -408,7 +408,6 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
- * \retval    BPLIB_AS_RESET_SRC_ERR: Something went wrong while running BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS: Successful execution
  */
 BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
@@ -420,7 +419,6 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
- * \retval    BPLIB_AS_RESET_BNDL_ERR: Something went wrong while running BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS: Successful execution
  */
 BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
@@ -432,7 +430,6 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
- * \retval    BPLIB_AS_RESET_ERR_ERR: Something went wrong while running BPLib_AS_Set()
  * \retval    BPLIB_SUCCESS: Successful execution
  */
 BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid);
