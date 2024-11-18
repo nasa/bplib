@@ -948,6 +948,7 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
                                     Counter);
 
                 break;
+            /*
             case BPLIB_AS_UNKNOWN_SRC_CNTR:
                 BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
                                     BPLib_EM_EventType_ERROR,
@@ -955,6 +956,7 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
                                     Counter);
 
                 break;
+            */
         }
     }
     else
@@ -964,30 +966,6 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
 
         /* Set the incremented node counter and associated source counter(s) */
         Status = BPLib_AS_Set(SourceEid, Counter, CounterValue);
-
-        switch (Status)
-        {
-            case BPLIB_AS_INVALID_EID:
-                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_INVAL_EID_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not increment counter %d due to a source EID (%d) with unexpected pattern",
-                                    Counter,
-                                    SourceEid);
-
-                break;
-            case BPLIB_AS_UNKNOWN_NODE_CNTR:
-                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not increment unrecognized node counter %d",
-                                    Counter);
-
-                break;
-            case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not increment unrecognized source counter %d",
-                                    Counter);
-        }
     }
 
     if (Status == BPLIB_SUCCESS)
@@ -1030,6 +1008,7 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
                                     Counter);
 
                 break;
+            /*
             case BPLIB_AS_UNKNOWN_SRC_CNTR:
                 BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
                                     BPLib_EM_EventType_ERROR,
@@ -1037,6 +1016,7 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
                                     Counter);
 
                 break;
+            */
         }
     }
     else
@@ -1046,32 +1026,6 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
 
         /* Set the decremented node counter and associated source counter(s) */
         Status = BPLib_AS_Set(SourceEid, Counter, CounterValue);
-
-        switch (Status)
-        {
-            case BPLIB_AS_INVALID_EID:
-                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_INVAL_EID_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not get counter %d to decrement due to a source EID (%d) with unexpected pattern",
-                                    Counter,
-                                    SourceEid);
-
-                break;
-            case BPLIB_AS_UNKNOWN_NODE_CNTR:
-                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not get unrecognized node counter, %d, to decrement",
-                                    Counter);
-
-                break;
-            case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not get unrecognized source counter, %d, to decrement",
-                                    Counter);
-
-                break;
-        }
     }
 
     if (Status == BPLIB_SUCCESS)
