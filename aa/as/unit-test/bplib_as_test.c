@@ -478,8 +478,6 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     Test_BPLib_AS_SourceCountersValueTest(SourceEids[2], 0);
     Test_BPLib_AS_BundleCountersValueTest(SourceEids[2], 0);
     Test_BPLib_AS_ErrorCountersValueTest(SourceEids[2], 0);
-
-    /* TODO: Event checking */
 }
 
 void Test_BPLib_AS_Write_Nominal(void)
