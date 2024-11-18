@@ -316,6 +316,8 @@ void Test_BPLib_NC_ResetCounter_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
     UtAssert_STUB_COUNT(BPLib_AS_Set, 2);
 
+    // TODO: Event checking
+
     /* === BPLIB_AS_UNKNOWN_SRC_CNTR returned === */
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Set), BPLIB_AS_UNKNOWN_SRC_CNTR);
@@ -325,6 +327,8 @@ void Test_BPLib_NC_ResetCounter_Error(void)
 
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
     UtAssert_STUB_COUNT(BPLib_AS_Set, 3);
+
+    // TODO: Event checking
 }
 
 void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
@@ -354,6 +358,8 @@ void Test_BPLib_NC_ResetSourceCounters_Error(void)
 
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_STUB_COUNT(BPLib_AS_ResetSourceCounters, 1);
+
+    // TODO: Event checking
 }
 
 void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
@@ -373,13 +379,18 @@ void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
 
 void Test_BPLib_NC_ResetBundleCounters_Error(void)
 {
-    /*
     BPLib_Status_t Status;
+    BPLib_ResetBundleCounters_Payload_t Payload;
 
-    Status = BPLib_NC_ResetBundleCounters();
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetBundleCounters), BPLIB_AS_INVALID_EID);
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    Payload.SourceEid = 19;
+    Status = BPLib_NC_ResetBundleCounters(Payload);
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
+    UtAssert_STUB_COUNT(BPLib_AS_ResetBundleCounters, 1);
+
+    // TODO: Event checking
 }
 
 void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
@@ -399,13 +410,18 @@ void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
 
 void Test_BPLib_NC_ResetErrorCounters_Error(void)
 {
-    /*
     BPLib_Status_t Status;
+    BPLib_ResetErrorCounters_Payload_t Payload;
 
-    Status = BPLib_NC_ResetErrorCounters();
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetErrorCounters), BPLIB_AS_INVALID_EID);
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    Payload.SourceEid = 19;
+    Status = BPLib_NC_ResetErrorCounters(Payload);
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
+    UtAssert_STUB_COUNT(BPLib_AS_ResetErrorCounters, 1);
+
+    // TODO: Event checking
 }
 
 void Test_BPLib_NC_AddApplication_Nominal(void)

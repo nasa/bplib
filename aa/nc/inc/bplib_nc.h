@@ -173,8 +173,8 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
   *            BPLib_AS_ResetSourceCounters() returns BPLIB_SUCCESS
   * \param[in] Payload BPLib_ResetSourceCounters_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
-  * \return    Status is determined by BPLib_AS_ResetSourceCounters() and BPLib_AS_EidIsValid() in bplib_as.h
-  * \return    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
+  * \retval    Status is determined by BPLib_AS_ResetSourceCounters() and BPLib_AS_EidIsValid() in bplib_as.h
+  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
   * \retval    BPLIB_SUCCESS: Command was successful
   */
 BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payload);
@@ -187,8 +187,8 @@ BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payl
   *            BPLib_AS_ResetBundleCounters() returns BPLIB_SUCCESS
   * \param[in] Payload (BPLib_ResetBundleCounters_Payload_t) Payload found in bplib_nc_payloads.h
   * \return    Execution status
-  * \return    Status is determined by BPLib_AS_ResetBundleCounters() and BPLib_AS_EidIsValid() in bplib_as.h
-  * \return    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
+  * \retval    Status is determined by BPLib_AS_ResetBundleCounters() and BPLib_AS_EidIsValid() in bplib_as.h
+  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
   * \retval    BPLIB_SUCCESS: Command was successful
   */
 BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload);
@@ -201,8 +201,8 @@ BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payl
   *            BPLib_AS_ResetErrorCounters() returns BPLIB_SUCCESS
   * \param[in] Payload (BPLib_ResetErrorCounters_Payload_t) Payload found in bplib_nc_payloads.h
   * \return    Execution status
-  * \return    Status is determined by BPLib_AS_ResetErrorCounters() and BPLib_AS_EidIsValid() in bplib_as.h
-  * \return    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
+  * \retval    Status is determined by BPLib_AS_ResetErrorCounters() and BPLib_AS_EidIsValid() in bplib_as.h
+  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
   * \retval    BPLIB_SUCCESS: Command was successful
   */
 BPLib_Status_t BPLib_NC_ResetErrorCounters(BPLib_ResetErrorCounters_Payload_t Payload);
