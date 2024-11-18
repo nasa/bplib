@@ -415,7 +415,6 @@ void Test_BPLib_AS_ResetErrorCounters_Error(void)
 
 void Test_BPLib_AS_ResetAllCounters_Nominal(void)
 {
-    BPLib_Status_t Status;
     int32_t SourceEids[3];
     uint32_t TestValue;
 
@@ -447,10 +446,7 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     Test_BPLib_AS_SetErrorCounterValues(SourceEids[2], TestValue);
 
     /* Run the function under test */
-    Status = BPLib_AS_ResetAllCounters();
-
-    /* Check that BPLib_AS_ResetAllCounters() ran successfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+    BPLib_AS_ResetAllCounters();
 
     /* Check that all counters are set to 0 */
     Test_BPLib_AS_SourceCountersValueTest(SourceEids[0], 0);

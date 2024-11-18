@@ -440,11 +440,9 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid);
  * \details   Zeroing out function used by Admin Statistics
  * \note      Cycles through each possible source EID and possible counter then sets counters to 0 with BPLib_AS_Set()
  * \param[in] void No arguments accepted
- * \return    Execution status
- * \retval    BPLIB_AS_RESET_ALL_ERR: Something went wrong while running BPLib_AS_Set()
- * \retval    BPLIB_SUCCESS: Successful execution
+ * \return    void
  */
-BPLib_Status_t BPLib_AS_ResetAllCounters(void);
+void BPLib_AS_ResetAllCounters(void);
 
 /**
  * \brief     ---

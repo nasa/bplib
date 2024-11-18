@@ -40,6 +40,8 @@ BPLib_Status_t BPLib_AS_Init(void)
 {
     BPLib_Status_t Status;
 
+    Status = BPLIB_SUCCESS;
+
     // Instantiate mutex to protect counter memory space
 
     memset((void*) &BPLib_AS_NodeCountersPayload,        0, sizeof(BPLib_AS_NodeCountersPayload));
@@ -47,8 +49,6 @@ BPLib_Status_t BPLib_AS_Init(void)
     memset((void*) &BPLib_AS_ChannelContactStatsPayload, 0, sizeof(BPLib_AS_ChannelContactStatsPayload));
 
     BPLib_AS_ResetAllCounters();
-
-    Status = BPLIB_SUCCESS;
 
     return Status;
 }
@@ -1360,12 +1360,9 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_ResetAllCounters(void)
+void BPLib_AS_ResetAllCounters(void)
 {
-    BPLib_Status_t Status;
-    int16_t        SourceCtrl;
-
-    Status = BPLIB_SUCCESS;
+    int16_t SourceCtrl;
 
     memset((void*) &BPLib_AS_NodeCountersPayload, 0, sizeof(BPLib_AS_NodeCountersPayload));
 
@@ -1374,8 +1371,6 @@ BPLib_Status_t BPLib_AS_ResetAllCounters(void)
         memset((void*) &BPLib_AS_SourceCountersPayload.SourceCounters[SourceCtrl], 0,
                 sizeof(BPLib_AS_SourceCountersPayload.SourceCounters[SourceCtrl]));
     }
-
-    return Status;
 }
 
 BPLib_Status_t BPLib_AS_Write()

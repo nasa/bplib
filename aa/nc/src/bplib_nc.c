@@ -37,7 +37,11 @@ BPLib_NodeMibConfigHkTlm_Payload_t   BPLib_NC_NodeMibConfigPayload;
 
 BPLib_Status_t BPLib_NC_Init(void)
 {
-    return BPLIB_SUCCESS;
+    BPLib_Status_t Status;
+
+    Status = BPLib_AS_Init();
+
+    return Status;
 }
 
 BPLib_Status_t BPLib_NC_Noop(void)
@@ -271,19 +275,9 @@ BPLib_Status_t BPLib_NC_ReloadSavedData(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_ResetAllCounters(void)
+void BPLib_NC_ResetAllCounters(void)
 {
-    BPLib_Status_t Status;
-
-    Status = BPLib_AS_ResetAllCounters();
-
-    if (Status == BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Successful reset-all-counters directive");
-    }
-
-    return Status;
+    BPLib_AS_ResetAllCounters();
 }
 
 BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)

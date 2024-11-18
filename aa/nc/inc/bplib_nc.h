@@ -146,14 +146,11 @@ BPLib_Status_t BPLib_NC_ReloadSavedData(void);
 /**
   * \brief     Reload saved node configuration, bundle metadata from persistent storage, and saved MIB counters
   * \details   Node Configuration Reload Saved Data command
-  * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
+  * \note      This command calls BPLib_AS_ResetAllCounters
   * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \retval    Status is determined by BPLib_AS_ResetAllCounters() in bplib_as.h
-  * \retval    BPLIB_AS_RESET_ALL_ERR: Something went wrong while running BPLib_AS_Set()
-  * \retval    BPLIB_SUCCESS: Successful execution
+  * \return    void
   */
-BPLib_Status_t BPLib_NC_ResetAllCounters(void);
+void BPLib_NC_ResetAllCounters(void);
 
 /**
   * \brief     Set given MIB counter to zero. If targeted counter is node-only, source EID is unused.

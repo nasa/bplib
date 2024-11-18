@@ -117,13 +117,9 @@ BPLib_Status_t BPLib_AS_Init(void)
  * Generated stub function for BPLib_AS_ResetAllCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_ResetAllCounters(void)
+void BPLib_AS_ResetAllCounters(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_ResetAllCounters, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_AS_ResetAllCounters, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_ResetAllCounters, BPLib_Status_t);
 }
 
 /*

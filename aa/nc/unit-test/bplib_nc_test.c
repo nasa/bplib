@@ -256,11 +256,8 @@ void Test_BPLib_NC_ReloadSavedData_Error(void)
 
 void Test_BPLib_NC_ResetAllCounters_Nominal(void)
 {
-    BPLib_Status_t Status;
+    BPLib_NC_ResetAllCounters();
 
-    Status = BPLib_NC_ResetAllCounters();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID);
     UtAssert_STRINGBUF_EQ("Successful reset-all-counters directive", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
@@ -268,13 +265,7 @@ void Test_BPLib_NC_ResetAllCounters_Nominal(void)
 
 void Test_BPLib_NC_ResetAllCounters_Error(void)
 {
-    /*
-    BPLib_Status_t Status;
-
-    Status = BPLib_NC_ResetAllCounters();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    BPLib_NC_ResetAllCounters();
 }
 
 void Test_BPLib_NC_ResetCounter_Nominal(void)
