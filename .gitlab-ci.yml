@@ -28,6 +28,7 @@ variables:
   BPLIB_RELEASE_BUILD: bplib-build-matrix-Release-OSAL/
   CMAKE_BPLIB_DEBUG_DEFS: "-DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DBPLIB_OS_LAYER=OSAL -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
   BPLIB_DEBUG_BUILD: bplib-build-matrix-Debug-OSAL/
+  BPLIB_DOC_BUILD: bplib-build-matrix-Doc/
 
 stages:          # List of stages for jobs, and their order of execution
   - build-release
@@ -36,9 +37,6 @@ stages:          # List of stages for jobs, and their order of execution
 # Defaults for every job (unless overridden)
 default:
   before_script:
-    - mkdir -p $HOME/.ssh && chmod 0700 $HOME/.ssh
-    - ssh-keyscan github.com >> $HOME/.ssh/known_hosts
-    - cat $HOME/.ssh/known_hosts
     # Log version and context information
     - touch ${CI_JOB_INFO_LOG}
     - echo "CI_PIPELINE_CREATED_AT=${CI_PIPELINE_CREATED_AT}" | tee -a ${CI_JOB_INFO_LOG}
@@ -62,7 +60,8 @@ default:
 
 # Build bplib release version
 build-release-job:
-  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
+  tags:
+  - dtn-aws-plumbed-dev
   stage: build-release
   script:
    - git status
@@ -87,21 +86,10 @@ build-release-job:
     expire_in: 1 day
 
 build-debug-job:
-  # Reverted the attempt to use dtn-aws-plumbed-dev - failed
-  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
-  # tags:
-  # - dtn-aws-plumbed-dev
+  tags:
+  - dtn-aws-plumbed-dev
   stage: build-debug
   script:
-   # Install doxygen
-   # The doxygen installation is large. It should be done in the image build for devtools-ubuntu22.
-      # - apt-get update -y
-      # - apt-get install -y --no-install-recommends software-properties-common  # Install apt-add-repository and others
-      # - apt-get update -y
-      # - apt-add-repository universe  # Add the repo that has doxygen
-      # - apt-get update -y
-      # - apt-get install -y --no-install-recommends doxygen
-   # End of doxygen installation
    - git status
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
@@ -114,15 +102,28 @@ build-debug-job:
    - cmake $CMAKE_BPLIB_DEBUG_DEFS -B "${BPLIB_DEBUG_BUILD}"
    - cd "${BPLIB_DEBUG_BUILD}"
    - make all
-   # Build the BPLib API Guide
-   # - make bplib-apiguide
    # Run unit tests
    - ctest --output-on-failure 2>&1 | tee ctest.log
-   # Run the BPLib API Guide build again to show the URL of index.html
-   # - make bplib-apiguide
 
   artifacts:
     paths:
       - ${CI_JOB_INFO_LOG}
       - ${BPLIB_DEBUG_BUILD}
     expire_in: 1 day
+
+build-docs-job:
+  tags:
+  - dtn-aws-plumbed-dev
+  stage: build-debug
+  script:
+   # Build the BPLib API Guide
+   - mkdir build
+   - cmake $CMAKE_BPLIB_DEBUG_DEFS -B build
+   - cd build
+   - make bplib-apiguide
+
+  artifacts:
+    paths:
+      - ${BPLIB_DOC_BUILD}/docs/src/html/
+    expire_in: 1 day
+
