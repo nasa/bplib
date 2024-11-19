@@ -87,9 +87,10 @@ build-release-job:
     expire_in: 1 day
 
 build-debug-job:
-  # image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
-  tags:
-  - dtn-aws-plumbed-dev
+  # Reverted the attempt to use dtn-aws-plumbed-dev - failed
+  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
+  # tags:
+  # - dtn-aws-plumbed-dev
   stage: build-debug
   script:
    # Install doxygen
@@ -114,11 +115,11 @@ build-debug-job:
    - cd "${BPLIB_DEBUG_BUILD}"
    - make all
    # Build the BPLib API Guide
-   - make bplib-apiguide
+   # - make bplib-apiguide
    # Run unit tests
    - ctest --output-on-failure 2>&1 | tee ctest.log
    # Run the BPLib API Guide build again to show the URL of index.html
-   - make bplib-apiguide
+   # - make bplib-apiguide
 
   artifacts:
     paths:
