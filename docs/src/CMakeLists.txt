@@ -35,6 +35,7 @@ project(BPLIB_DOCS NONE)
 # note that order is relevant here, doxygen processes in the order listed.
 set(BPLIB_DOCFILE_LIST
     ${CMAKE_CURRENT_SOURCE_DIR}/bplib_mainpage.dox
+    ${CMAKE_CURRENT_SOURCE_DIR}/bplib_walkthroughs.dox
 )
 
 # For the generated Doxyfiles, the various paths should be in native form

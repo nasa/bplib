@@ -49,6 +49,7 @@
   </table>
 
   <UL>
+    <LI> \ref bplib_walkthroughs "BPLib Code Walkthroughs"
     <LI> \ref BPLib_ReturnCodes "BPLib Return Codes"
     <LI> \ref BPLib_ErrorCodes "BPLib Error Codes"
     <LI> \subpage bplib/inc/bplib_eventids.h "BPLib Events"

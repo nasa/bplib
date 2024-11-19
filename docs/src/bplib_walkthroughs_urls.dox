@@ -1,0 +1,78 @@
+/**
+ \page bplib_walkthroughs BPLib Code Walkthroughs
+
+### BPLib STOR QM Walkthroughs
+
+#### Walkthrough 1
+ 
+ BPLib provides Bundle Protocol processing functions according to the
+ RFC 9171 Bundle Protocol standard.
+ 
+- Walkthrough 2
+
+ text for 2
+
+
+
+#### Walkthrough 1 - Forward Bundles
+
+Client calls [BPLib_STOR_QM_AllocQueueTable](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L41) to init queue_tbl
+and cache
+
+Client calls [BPLib_STOR_QM_CreateRamStorage](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L160) with cache pool from queue_tbl
+
+Which calls:  
+  - [BPLib_STOR_QM_Attach](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L169)  
+  - [BPLib_STOR_CACHE_Init](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/cache/src/bplib_stor_cache.c?ref_type=heads#L478) 
+to fully initialize cache
+
+Client calls BPLib_STOR_QM_ClaIngress  - which calls:
+  - [BPLib_STOR_QM_GetIntfControlblock](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L108)    - Duct interface  
+  - [BPLib_STOR_QM_GenericBundleIngress](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm_cla_api.c?ref_type=heads#L75)  
+  - [BPLib_STOR_QM_ReleaseIntfControlblock](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L116)  
+  - [BPLib_STOR_QM_SetMaintenanceRequest](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L769)  
+
+Cache state machine drives bundle and job queues
+
+Cache state machine calls [BPLib_STOR_QM_ClaEgress](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm_cla_api.c?ref_type=heads#L290)  - which calls:
+  - [BPLib_STOR_QM_SetMaintenanceRequest](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L769)   - last chance for egress  
+  - [BPLib_STOR_QM_GetIntfControlblock](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L108)    - Duct interface  
+  - [BPLib_STOR_QM_GenericBundleEgress](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm_cla_api.c?ref_type=heads#L178)  
+  - [BPLib_STOR_QM_ReleaseIntfControlblock](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L116)  
+
+
+#### Walkthrough 2 - QM Alloc and Init
+
+Client calls [BPLib_STOR_QM_AllocQueueTable](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L41) to init queue_tbl
+and cache - which calls:
+  - [calloc](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L77)  - memory alloc currently done in QM so it isn't stubbed.  
+  - [BPLib_STOR_CACHE_CreatePool](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L84)  uses MEM for calloc when calloc not in QM.  
+  - [BPLib_STOR_CACHE_InitListHead](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/qm/src/bplib_stor_qm.c?ref_type=heads#L99)  - init duct_list (also called duct table or duct subqs)  
+
+#### Walkthrough 3 - Cache Finite State Machine (FSM)
+
+States: Undefined, Idle, Queue, Delete  - for now
+
+QM calls [BPLib_STOR_CACHE_SubqWorkitemInit](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/cache/src/bplib_stor_cache_internal.c?ref_type=heads#L38)
+
+initial state is Idle
+
+FSM enqueues bundle and changes state to Queue by conditions
+  - [BPLib_STOR_CACHE_FsmStateIdleEval](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/cache/src/bplib_stor_cache_fsm.c?ref_type=heads#L34) sets state  
+    - [BPLib_STOR_CACHE_FsmStateQueueEnter](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/cache/src/bplib_stor_cache_fsm.c?ref_type=heads#L85)  
+      - [BPLib_STOR_CACHE_RefMakeBlock](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/cache/src/bplib_stor_cache_fsm.c?ref_type=heads#L92)  
+      - [BPLib_STOR_CACHE_GetDuct](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/cache/src/bplib_stor_cache_fsm.c?ref_type=heads#L95)  
+      - [BPLib_STOR_QM_DuctTryPush](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/cache/src/bplib_stor_cache_fsm.c?ref_type=heads#L106)  
+      - (conditionally) [BPLib_STOR_CACHE_RecycleBlock](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/cache/src/bplib_stor_cache_fsm.c?ref_type=heads#L106)  
+Job scheduler dequeues bundle and calls action function  
+  - [BPLib_STOR_CACHE_ActionFunc_t](https://aetd-git.gsfc.nasa.gov/gsfc-dtn/forks/bp/bplib/-/blob/DTNN-389-qm-creation/bpa/stor/cache/inc/bplib_stor_cache.h?ref_type=heads#L788)
+
+FSM evaluates bundle state periodically  
+  - Ref counts, state conditions  
+  - Stay in Queue state or transition to Idle or Delete  
+  - Delete is the only state that transitions to Undefined
+
+ **/
+
+
+
