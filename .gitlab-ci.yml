@@ -89,7 +89,7 @@ build-release-job:
 build-debug-job:
   # image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
   tags:
-  - dtn-aws-plumbed
+  - dtn-aws-plumbed-dev
   stage: build-debug
   script:
    # Install doxygen
