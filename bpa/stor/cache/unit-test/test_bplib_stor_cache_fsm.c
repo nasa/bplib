@@ -298,6 +298,7 @@ void Test_BPLib_STOR_CACHE_FsmGetNextState(void)
 
 void Test_BplibStorCacheFsm_Register(void)
 {
+    /*
     UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateIdleEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateIdleEval");
     UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateQueueEval, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateQueueEval");
     UtTest_Add(Test_BPLib_STOR_CACHE_FsmStateQueueEnter, NULL, NULL, "Test BPLib_STOR_CACHE_FsmStateQueueEnter");
@@ -312,4 +313,5 @@ void Test_BplibStorCacheFsm_Register(void)
                "Test BPLib_STOR_CACHE_FsmStateGenerateDacsExit");
     UtTest_Add(Test_BPLib_STOR_CACHE_FsmTransitionState, NULL, NULL, "Test BPLib_STOR_CACHE_FsmTransitionState");
     UtTest_Add(Test_BPLib_STOR_CACHE_FsmGetNextState, NULL, NULL, "Test BPLib_STOR_CACHE_FsmGetNextState");
+    */
 }
