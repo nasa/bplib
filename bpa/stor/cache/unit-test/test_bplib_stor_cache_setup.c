@@ -313,6 +313,8 @@ void Test_BplibStorCache_Register(void)
     ADD_TEST(Test_BPLib_STOR_CACHE_BblockCborExport);
 
     // test_bplib_stor_cache_fsm.c
+    // TODO Do not use this file. It is old.
+    /* Remove all FSM - fixed in latest QM branch
     ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateIdleEval);
     ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateQueueEval);
     ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateQueueEnter);
@@ -326,4 +328,5 @@ void Test_BplibStorCache_Register(void)
     ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateGenerateDacsExit);
     ADD_TEST(Test_BPLib_STOR_CACHE_FsmTransitionState);
     ADD_TEST(Test_BPLib_STOR_CACHE_FsmGetNextState);
+    */
 }
