@@ -29,6 +29,7 @@ variables:
   CMAKE_BPLIB_DEBUG_DEFS: "-DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DBPLIB_OS_LAYER=OSAL -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
   BPLIB_DEBUG_BUILD: bplib-build-matrix-Debug-OSAL/
   BPLIB_DOC_BUILD: bplib-build-matrix-Doc/
+  CMAKE_BPLIB_DOC_DEFS: "-DCMAKE_BUILD_TYPE=Debug -DBPLIB_OS_LAYER=NONE"
 
 stages:          # List of stages for jobs, and their order of execution
   - build-release
@@ -118,7 +119,7 @@ build-docs-job:
   script:
    # Build the BPLib API Guide
    - mkdir ${BPLIB_DOC_BUILD}
-   - cmake $CMAKE_BPLIB_DEBUG_DEFS -B ${BPLIB_DOC_BUILD}
+   - cmake $CMAKE_BPLIB_DOC_DEFS -B ${BPLIB_DOC_BUILD}
    - cd ${BPLIB_DOC_BUILD}
    - make bplib-apiguide
 
