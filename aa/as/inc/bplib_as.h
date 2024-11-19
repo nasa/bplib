@@ -133,7 +133,6 @@ typedef struct
     uint32_t BundleCountUnprocessedBlocks;       /** \brief Number of Unprocessed Blocks Removed from Received Bundles */
     uint32_t NodeStartupCounter;                 /** \brief Number of times a node is started up. */
 
-    uint32_t Spare1;
     uint32_t TimeBootEra;                           /** \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                         /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;                     /** \brief Time Correlation Factor */
