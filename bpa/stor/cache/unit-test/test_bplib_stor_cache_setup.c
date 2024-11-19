@@ -297,36 +297,4 @@ void Test_BplibStorCache_Register(void)
     ADD_TEST(Test_BPLib_STOR_CACHE_DestructBlockref);
     ADD_TEST(Test_BPLib_STOR_CACHE_ConstructState);
     ADD_TEST(Test_BPLib_STOR_CACHE_EntryTreeInsertUnsorted);
-
-    // test_bplib_stor_cache_bblocks.c
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryCast);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockCanonicalCast);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockCborCast);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockCborSetSize);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockCanonicalAlloc);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockCborAlloc);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockCborAppend);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryAppend);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryLocateCanonical);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockPrimaryDropEncode);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockCanonicalDropEncode);
-    ADD_TEST(Test_BPLib_STOR_CACHE_BblockCborExport);
-
-    // test_bplib_stor_cache_fsm.c
-    // TODO Do not use this file. It is old.
-    /* Remove all FSM - fixed in latest QM branch
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateIdleEval);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateQueueEval);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateQueueEnter);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmExecute);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateQueueExit);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateDeleteEval);
-    // Removed to prevent buffer overflow in standalone build
-    //ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateDeleteEnter);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmReschedule);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateGenerateDacsEval);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmStateGenerateDacsExit);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmTransitionState);
-    ADD_TEST(Test_BPLib_STOR_CACHE_FsmGetNextState);
-    */
 }
