@@ -440,6 +440,9 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     SourceEids[0] = 6;
     TestValue = 1000;
 
+    /* Set node counters to a non-zero value */
+    Test_BPLib_AS_SetNodeCounterValues(TestValue);
+
     /* Set all counters to a non-zero value */
     Test_BPLib_AS_SetSourceCounterValues(SourceEids[0], TestValue);
     Test_BPLib_AS_SetBundleCounterValues(SourceEids[0], TestValue);
@@ -467,6 +470,8 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     BPLib_AS_ResetAllCounters();
 
     /* Check that all counters are set to 0 */
+    Test_BPLib_AS_NodeCountersValueTest(0);
+
     Test_BPLib_AS_SourceCountersValueTest(SourceEids[0], 0);
     Test_BPLib_AS_BundleCountersValueTest(SourceEids[0], 0);
     Test_BPLib_AS_ErrorCountersValueTest(SourceEids[0], 0);
