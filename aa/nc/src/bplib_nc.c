@@ -320,6 +320,8 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
                                     BPLib_EM_EventType_ERROR,
                                     "Could not reset unrecognized source counter %d",
                                     Payload.Counter);
+            default:
+                break;
         }
     }
 

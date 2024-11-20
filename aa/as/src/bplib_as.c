@@ -957,6 +957,8 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
 
                 break;
             */
+            default:
+                break;
         }
     }
     else
@@ -1017,6 +1019,8 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
 
                 break;
             */
+            default:
+                break;
         }
     }
     else
