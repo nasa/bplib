@@ -228,7 +228,6 @@ void Test_BPLib_AS_Set_Error(void)
 
 void Test_BPLib_AS_Increment_Nominal(void)
 {
-    BPLib_Status_t Status;
     int16_t        SourceEid;
     uint32_t       TestValue;
 
@@ -254,7 +253,6 @@ void Test_BPLib_AS_Increment_Nominal(void)
 
 void Test_BPLib_AS_Increment_Error(void)
 {
-    BPLib_Status_t Status;
     int16_t SourceEid;
 
     /* === Invalid EID test === */
@@ -277,7 +275,7 @@ void Test_BPLib_AS_Increment_Error(void)
 
     /* Set values to test against */
     BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest = 0;
-    SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
+    SourceEid = 2;
 
     /* Run the function under test */
     BPLib_AS_Increment(SourceEid, BPLIB_AS_NUM_CNTRS, 5);
@@ -289,9 +287,8 @@ void Test_BPLib_AS_Increment_Error(void)
 
 void Test_BPLib_AS_Decrement_Nominal(void)
 {
-    BPLib_Status_t Status;
-    int16_t        SourceEid;
-    uint32_t       TestValue;
+    int16_t  SourceEid;
+    uint32_t TestValue;
 
     SourceEid = 2;
     TestValue = 6;
@@ -315,7 +312,6 @@ void Test_BPLib_AS_Decrement_Nominal(void)
 
 void Test_BPLib_AS_Decrement_Error(void)
 {
-    BPLib_Status_t Status;
     int16_t SourceEid;
 
     /* === Invalid EID test === */
