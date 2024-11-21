@@ -49,7 +49,8 @@
 /* ======= */
 
 /**
- * \brief Node MIB counters housekeeping payload
+ * \brief  Node MIB counters housekeeping payload
+ * \anchor BPLib_NodeMibCountersHkTlm_Payload_t
  */
 typedef struct
 {
@@ -138,9 +139,10 @@ typedef struct
     int64_t  CorrelationFactor;                     /** \brief Time Correlation Factor */
 } BPLib_NodeMibCountersHkTlm_Payload_t;
 
-/*
- * \brief Source MIB counters housekeeping payload
- */
+/**
+  * \brief  Source MIB counters housekeeping payload
+  * \anchor BPLib_SourceMibCountersSet_t
+  */
 typedef struct
 {
     char SourceEID[BPLIB_MAX_EID_LENGTH];        /** \brief Source EID this telemetry corresponds to */
@@ -202,9 +204,10 @@ typedef struct
     uint32_t BundleCountUnprocessedBlocks;       /** \brief Number of Unprocessed Blocks Removed from Received Bundles */
 } BPLib_SourceMibCountersSet_t;
 
-/*
- * \brief Packet for all source counters accessed via an index into SourceCounters
- */
+/**
+  * \brief  Packet for all source counters accessed via an index into SourceCounters
+  * \anchor BPLib_SourceMibCountersHkTlm_Payload_t
+  */
 typedef struct
 {
     BPLib_SourceMibCountersSet_t SourceCounters[BPLIB_MAX_NUM_SOURCE_EID]; /**< \brief Counters for each source */
@@ -215,9 +218,10 @@ typedef struct
     int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
 } BPLib_SourceMibCountersHkTlm_Payload_t;
 
-/*
- * \brief Used to access counters in the node and source payload structs
- */
+/**
+  * \brief  Used to access counters in the node and source payload structs
+  * \anchor BPLib_AS_Counter_t
+  */
 typedef enum
 {
     /* Counters in node and source packets */
@@ -321,6 +325,7 @@ extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPaylo
  * \param[in] void No arguments accepted
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Initialization was successful
+ * \anchor    BPLib_AS_Init
  */
 BPLib_Status_t BPLib_AS_Init(void);
 
@@ -333,6 +338,10 @@ BPLib_Status_t BPLib_AS_Init(void);
  * \return    Source EID validity
  * \retval    true: The source EID matches the criteria required to be valid <enter criteria here>
  * \retval    false: The source EID is invalid in some way
+ * \secreflist
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \endsecreflist
+ * \anchor    BPLib_AS_EidIsValid
  */
 bool BPLib_AS_EidIsValid(int16_t SourceEid);
 
@@ -341,7 +350,7 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid);
   *             This is necessary to simplify the code and avoid walls of switch-case statements
   * \details    Accessor function for counters used by Admin Statistics
   * \note       This function assumes all modifiable counter types are uint32_t
-  * \note      This function does not handle error events since it's entirely internal
+  * \note       This function does not handle error events since it's entirely internal
   * \param[in]  SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters
   *                       array.
   * \param[in]  Counter   (BPLib_AS_Counter_t) Counter to access
@@ -351,6 +360,12 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid);
   * \retval     BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
   * \retval     BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
   * \retval     BPLIB_SUCCESS: Successful execution
+  * \secreflist
+  * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+  * \refitem   BPLib_AS_Counter_t
+  * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+  * \endsecreflist
+  * \anchor     BPLib_AS_Get
   */
 BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t* ReturnPtr);
 
@@ -367,6 +382,12 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
+ * \secreflist
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_Set
  */
 BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value);
 
@@ -382,6 +403,14 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
+ * \secreflist
+ * \refitem   BPLib_AS_Get [BPLib_AS_Get()]
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_AS_Set [BPLib_AS_Set()]
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_Increment
  */
 BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter);
 
@@ -397,6 +426,14 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
  * \retval    BPLIB_SUCCESS: Successful execution
+ * \secreflist
+ * \refitem   BPLib_AS_Get [BPLib_AS_Get()]
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_AS_Set [BPLib_AS_Set()]
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_Decrement
  */
 BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter);
 
@@ -408,6 +445,13 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter)
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_SUCCESS: Successful execution
+ * \secreflist
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_AS_Set [BPLib_AS_Set()]
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_ResetSourceCounters
  */
 BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
 
@@ -419,6 +463,13 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_SUCCESS: Successful execution
+ * \secreflist
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_AS_Set [BPLib_AS_Set()]
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_ResetBundleCounters
  */
 BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
 
@@ -430,6 +481,13 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_SUCCESS: Successful execution
+ * \secreflist
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_AS_Set [BPLib_AS_Set()]
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_ResetErrorCounters
  */
 BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid);
 
@@ -439,6 +497,8 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid);
  * \note      Cycles through each possible source EID and possible counter then sets counters to 0 with BPLib_AS_Set()
  * \param[in] void No arguments accepted
  * \return    void
+ * \ref       BPLib_AS_Set [BPLib_AS_Set()]
+ * \anchor    BPLib_AS_ResetAllCounters
  */
 void BPLib_AS_ResetAllCounters(void);
 
@@ -449,6 +509,7 @@ void BPLib_AS_ResetAllCounters(void);
  * \param[in] void No arguments accepted
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Operation was successful
+ * \anchor    BPLib_AS_Write
  */
 BPLib_Status_t BPLib_AS_Write(void);
 
@@ -459,6 +520,7 @@ BPLib_Status_t BPLib_AS_Write(void);
  * \param[in] void No arguments accepted
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Operation was successful
+ * \anchor    BPLib_AS_Restore
  */
 BPLib_Status_t BPLib_AS_Restore(void);
 
