@@ -228,4 +228,4 @@ endif (BPLIB_ENABLE_UNIT_TESTS)
 
 # Prepare the BPLib Doxygen build.
 set(BPLIB_API_INCLUDE_DIRECTORIES ${BPLIB_COMPONENT_INCLUDE_DIRS})
-add_subdirectory(docs/src)
+add_subdirectory(docs/doc-src)

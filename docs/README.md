@@ -2,9 +2,9 @@
 
 BPLib docs - The BPLib API Guide build folder
 
-The BPLib Doxygen Build folder `bplib/docs` contains Doxygen template files and an API Guide source folder `docs/src`.
+The BPLib Doxygen Build folder `bplib/docs/doc-src` contains the Doxygen source files for the API Guide.
 
-The `bplib/CMakeLists.txt` file includes `docs/src` as a subdirectory to prepare the build folder for the `bplibguide` make target.
+The `bplib/CMakeLists.txt` file includes `docs/doc-src` as a subdirectory to prepare the build folder for the `bplibguide` make target.
 
 ### Usage
 
@@ -30,7 +30,7 @@ Patching output file 167/168
 Patching output file 168/168
 lookup cache used 4435/65536 hits=19708 misses=4546
 finished...
-BPLib API Guide: file:///home/gskenned/repos/gsfc-dtn/dtn-cfs/build/native/default/apps/bplib/docs/src/html/index.html
+BPLib API Guide: file:///home/gskenned/repos/gsfc-dtn/dtn-cfs/build/native/default/apps/bplib/docs/doc-src/html/index.html
 Built target bplib-apiguide
 ```
 
