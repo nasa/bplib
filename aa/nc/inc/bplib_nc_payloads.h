@@ -40,23 +40,27 @@
 
 typedef struct
 {
-    int16_t SourceEid;
-    uint32_t Counter;
+    int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
+    uint32_t Counter;  /** \brief Counter to reset */
+    uint16_t Spare;    /** \brief Spare for 32-bit alignment */
 } BPLib_ResetCounter_Payload_t;
 
 typedef struct
 {
-    int16_t SourceEid;
+    int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
+    uint16_t Spare;    /** \brief Spare for 32-bit alignment */
 } BPLib_ResetSourceCounters_Payload_t;
 
 typedef struct
 {
-    int16_t SourceEid;
+    int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
+    uint16_t Spare;    /** \brief Spare for 32-bit alignment */
 } BPLib_ResetBundleCounters_Payload_t;
 
 typedef struct
 {
-    int16_t SourceEid;
+    int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
+    uint16_t Spare;    /** \brief Spare for 32-bit alignment */
 } BPLib_ResetErrorCounters_Payload_t;
 
 typedef struct
