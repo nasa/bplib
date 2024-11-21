@@ -125,6 +125,6 @@ build-docs-job:
 
   artifacts:
     paths:
-      - ${BPLIB_DOC_BUILD}/docs/src/html/
+      - ${BPLIB_DOC_BUILD}/docs/doc-src/html/
     expire_in: 1 day
 
