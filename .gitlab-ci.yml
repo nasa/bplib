@@ -115,10 +115,10 @@ build-debug-job:
 build-docs-job:
   tags:
   - dtn-aws-plumbed-dev
-  stage: build-debug
+  stage: build-docs
   script:
    # Build the BPLib API Guide
-   - mkdir ${BPLIB_DOC_BUILD}
+   - make distclean
    - cmake $CMAKE_BPLIB_DOC_DEFS -B ${BPLIB_DOC_BUILD}
    - cd ${BPLIB_DOC_BUILD}
    - make bplib-apiguide
