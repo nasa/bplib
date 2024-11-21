@@ -34,6 +34,7 @@ variables:
 stages:          # List of stages for jobs, and their order of execution
   - build-release
   - build-debug
+  - build-docs-job
 
 # Defaults for every job (unless overridden)
 default:
