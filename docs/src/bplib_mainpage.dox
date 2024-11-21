@@ -28,6 +28,8 @@
               <LI> \subpage bplib/bpa/stor/qm/inc/bplib_stor_qm.h "Queue Manager (QM)"
             </UL>
           </UL>
+          <LI> \subpage bplib/cla/inc/bplib_cla.h "Convergence Layer Adapter (CLA)"
+          <LI> \subpage bplib/version/inc/bplib_version.h "Version"
         </UL>
       </td>
       <td>
