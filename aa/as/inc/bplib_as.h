@@ -392,17 +392,14 @@ BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
 BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value);
 
 /**
- * \brief     Add 1 to the counter specified by the source EID and counter
+ * \brief     Add an amount to the counter specified by the source EID and counter
  * \details   Incrementing function for counters used by Admin Statistics
  * \note      Internal uint32_t value is passed by reference when using BPLib_AS_Get()
+ * \note      Amount must be positive
  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
- * \return    Execution status
- * \retval    Status is determined by BPLib_AS_Get() and BPLib_AS_Set()
- * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
- * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
- * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
- * \retval    BPLIB_SUCCESS: Successful execution
+ * \param[in] Amount (uint32_t) Amount to increment Counter by
+ * \return    void
  * \secreflist
  * \refitem   BPLib_AS_Get [BPLib_AS_Get()]
  * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
@@ -412,20 +409,17 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
  * \endsecreflist
  * \anchor    BPLib_AS_Increment
  */
-BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter);
+void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
 /**
- * \brief     Subtract 1 from the counter specified by the source EID and counter
+ * \brief     Subtract an amount from the counter specified by the source EID and counter
  * \details   Decrementing function for counters used by Admin Statistics
  * \note      Internal uint32_t values is passed by reference when using BPLib_AS_Get()
+ * \note      Amount must be positive
  * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
- * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
- * \return    Execution status
- * \retval    Status is determined by BPLib_AS_Get() and BPLib_AS_Set()
- * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
- * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: The node-specific counter did not match a recognized value
- * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: The source-specific counter did not match a recognized value
- * \retval    BPLIB_SUCCESS: Successful execution
+ * \param[in] Counter (BPLib_AS_Counter_t) Counter to decrement
+ * \param[in] Amount (uint32_t) Amount to decrement by
+ * \return    void
  * \secreflist
  * \refitem   BPLib_AS_Get [BPLib_AS_Get()]
  * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
@@ -435,7 +429,7 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter)
  * \endsecreflist
  * \anchor    BPLib_AS_Decrement
  */
-BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter);
+void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
 /**
  * \brief     Set to zero all resettable MIB counters associated with the given source EID pattern
