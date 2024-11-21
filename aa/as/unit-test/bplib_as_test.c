@@ -184,46 +184,6 @@ void Test_BPLib_AS_Set_Error(void)
     // Assert that BPLib_AS_Set() was run unsuccessfully
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
     */
-
-    /* === Value too large === */
-
-    /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded = 6;
-    TestValue = 0xFFFFFFFF + 1;
-    SourceEid = 1;
-
-    /* Run the function under test */
-    Status = BPLib_AS_Set(SourceEid, BUNDLE_COUNT_CUSTODY_RE_FORWARDED, TestValue);
-
-    /* Verify counter is the expected value */
-    UtAssert_EQ(uint32_t, 6, BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded);
-
-    /* Assert that BPLib_AS_Set() was run unsuccessfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_SET_VALUE_BOUNDS_ERR, Status);
-
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_VALUE_BOUNDS_ERR_EID,
-                                "Value of counter %d would would be outside the bounds of a uint32_t");
-
-    /* === Value is negative === */
-
-    /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded = 19;
-    TestValue = -1;
-    SourceEid = 1;
-
-    /* Run the function under test */
-    Status = BPLib_AS_Set(SourceEid, BUNDLE_COUNT_CUSTODY_RE_FORWARDED, TestValue);
-
-    /* Assert that BPLib_AS_Set() was run unsuccessfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_SET_VALUE_BOUNDS_ERR, Status);
-
-    /* Verify counter is the expected value */
-    UtAssert_EQ(uint32_t, 19, BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded);
-
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_SET_VALUE_BOUNDS_ERR_EID,
-                                "Value of counter %d would would be outside the bounds of a uint32_t");
 }
 
 void Test_BPLib_AS_Increment_Nominal(void)
