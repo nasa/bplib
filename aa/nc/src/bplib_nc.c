@@ -289,40 +289,39 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
 
     Status = BPLib_AS_Set(Payload.SourceEid, Payload.Counter, 0);
 
-    if (Status == BPLIB_SUCCESS)
+    switch (Status)
     {
-        BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Successfully reset counter %d for source EID %d",
-                            Payload.Counter,
-                            Payload.SourceEid);
-    }
-    else
-    {
-        switch (Status)
-        {
-            case BPLIB_AS_INVALID_EID:
-                BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_SRC_EID_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not reset counter %d due to a source EID (%d) with unexpected pattern",
-                                    Payload.Counter,
-                                    Payload.SourceEid);
+        case BPLIB_SUCCESS:
+            BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                        "Successfully reset counter %d for source EID %d",
+                        Payload.Counter,
+                        Payload.SourceEid);
 
-                break;
-            case BPLIB_AS_UNKNOWN_NODE_CNTR:
-                BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_UNK_SRC_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could reset unrecognized node counter %d",
-                                    Payload.Counter);
+            break;
+        case BPLIB_AS_INVALID_EID:
+            BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_SRC_EID_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Could not reset counter %d due to a source EID (%d) with unexpected pattern",
+                                Payload.Counter,
+                                Payload.SourceEid);
 
-                break;
-            case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_UNK_NODE_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not reset unrecognized source counter %d",
-                                    Payload.Counter);
-            default:
-                break;
-        }
+            break;
+        case BPLIB_AS_UNKNOWN_NODE_CNTR:
+            BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_UNK_SRC_CNTR_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Could reset unrecognized node counter %d",
+                                Payload.Counter);
+
+            break;
+        case BPLIB_AS_UNKNOWN_SRC_CNTR:
+            BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_UNK_NODE_CNTR_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Could not reset unrecognized source counter %d",
+                                Payload.Counter);
+
+            break;
+        default:
+            break;
     }
 
     return Status;
