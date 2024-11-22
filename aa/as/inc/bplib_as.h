@@ -496,26 +496,4 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid);
  */
 void BPLib_AS_ResetAllCounters(void);
 
-/**
- * \brief     ---
- * \details   ---
- * \note      ---
- * \param[in] void No arguments accepted
- * \return    Execution status
- * \retval    BPLIB_SUCCESS: Operation was successful
- * \anchor    BPLib_AS_Write
- */
-BPLib_Status_t BPLib_AS_Write(void);
-
-/**
- * \brief     ---
- * \details   ---
- * \note      ---
- * \param[in] void No arguments accepted
- * \return    Execution status
- * \retval    BPLIB_SUCCESS: Operation was successful
- * \anchor    BPLib_AS_Restore
- */
-BPLib_Status_t BPLib_AS_Restore(void);
-
 #endif /* BPLIB_AS_H */

@@ -1405,23 +1405,3 @@ void BPLib_AS_ResetAllCounters(void)
                 sizeof(BPLib_AS_SourceCountersPayload.SourceCounters[SourceCtrl]));
     }
 }
-
-BPLib_Status_t BPLib_AS_Write()
-{
-    BPLib_Status_t Status;
-
-    Status = BPLIB_SUCCESS;
-
-    /* Status = BPLib_STOR_Write(); */
-
-    return Status;
-}
-
-BPLib_Status_t BPLib_AS_Restore()
-{
-    BPLib_Status_t Status;
-
-    Status = BPLIB_SUCCESS;
-
-    return Status;
-}
