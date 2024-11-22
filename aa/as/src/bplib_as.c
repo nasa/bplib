@@ -929,78 +929,27 @@ void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
     /* Obtain the value of the counter */
     Status = BPLib_AS_Get(SourceEid, Counter, &CounterValue);
 
-    if (Status != BPLIB_SUCCESS)
-    { /* An error occured in BPLib_AS_Get() */
-        switch (Status)
-        {
-            case BPLIB_AS_INVALID_EID:
-                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_INVAL_EID_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not get counter %d to increment due to a source EID (%d) with unexpected pattern",
-                                    Counter,
-                                    SourceEid);
-
-                break;
-            case BPLIB_AS_UNKNOWN_NODE_CNTR:
-                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not get unrecognized node counter, %d, to increment",
-                                    Counter);
-
-                break;
-            /*
-            case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not get unrecognized source counter, %d, to increment",
-                                    Counter);
-
-                break;
-            */
-            default:
-                break;
-        }
-    }
-    else
-    { /* BPLib_AS_Get() was successful */
+    if (Status == BPLIB_SUCCESS)
+    {
         /* Increment the counter */
         CounterValue += Amount;
 
-        /* Set the incremented node counter and associated source counter(s) */
-        Status = BPLib_AS_Set(SourceEid, Counter, CounterValue);
-
-        if (Status != BPLIB_SUCCESS)
-        { /* An error occured in BPLib_AS_Set() */
-            switch (Status)
-            {
-                case BPLIB_AS_INVALID_EID:
-                    BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_INVAL_EID_ERR_EID,
-                                        BPLib_EM_EventType_ERROR,
-                                        "Could not set counter %d to increment due to a source EID (%d) with unexpected pattern",
-                                        Counter,
-                                        SourceEid);
-
-                    break;
-                case BPLIB_AS_UNKNOWN_NODE_CNTR:
-                    BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
-                                        BPLib_EM_EventType_ERROR,
-                                        "Could not set unrecognized node counter, %d, to increment",
-                                        Counter);
-
-                    break;
-                /*
-                case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                    BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
-                                        BPLib_EM_EventType_ERROR,
-                                        "Could not set unrecognized source counter, %d, to increment",
-                                        Counter);
-
-                    break;
-                */
-                default:
-                    break;
-            }
-        }
+        /*
+        ** The errors that could occur in BPLib_AS_Set() are the exact same as errors that are checked for in
+        ** BPLib_AS_Get(). Since BPLib_AS_Get() is a prerequisite to getting to this call, the return status for
+        ** this BPLib_AS_Set() call is ignored.
+        */
+        BPLib_AS_Set(SourceEid, Counter, CounterValue);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not get counter %d with source EID %d to increment by %d, RC = %d",
+                            Counter,
+                            SourceEid,
+                            Amount,
+                            Status);
     }
 }
 
@@ -1012,45 +961,27 @@ void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
     /* Obtain the value of the node counter */
     Status = BPLib_AS_Get(SourceEid, Counter, &CounterValue);
 
-    if (Status != BPLIB_SUCCESS)
-    { /* An error occured in BPLib_AS_Get() */
-        switch (Status)
-        {
-            case BPLIB_AS_INVALID_EID:
-                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_INVAL_EID_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not get counter %d to decrement due to a source EID (%d) with unexpected pattern",
-                                    Counter,
-                                    SourceEid);
-
-                break;
-            case BPLIB_AS_UNKNOWN_NODE_CNTR:
-                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not get unrecognized node counter, %d, to decrement",
-                                    Counter);
-
-                break;
-            /*
-            case BPLIB_AS_UNKNOWN_SRC_CNTR:
-                BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_UNKNOWN_SRC_CNTR_ERR_EID,
-                                    BPLib_EM_EventType_ERROR,
-                                    "Could not get unrecognized source counter, %d, to decrement",
-                                    Counter);
-
-                break;
-            */
-            default:
-                break;
-        }
-    }
-    else
+    if (Status == BPLIB_SUCCESS)
     {
         /* Decrement the node counter */
         CounterValue -= Amount;
 
-        /* Set the decremented node counter and associated source counter(s) */
-        Status = BPLib_AS_Set(SourceEid, Counter, CounterValue);
+        /*
+        ** The errors that could occur in BPLib_AS_Set() are the exact same as errors that are checked for in
+        ** BPLib_AS_Get(). Since BPLib_AS_Get() is a prerequisite to getting to this call, the return status for
+        ** this BPLib_AS_Set() call is ignored.
+        */
+        BPLib_AS_Set(SourceEid, Counter, CounterValue);
+    }
+    else
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not get counter %d with source EID %d to decrement by %d, RC = %d",
+                            Counter,
+                            SourceEid,
+                            Amount,
+                            Status);
     }
 }
 

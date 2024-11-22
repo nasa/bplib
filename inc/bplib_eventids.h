@@ -122,18 +122,14 @@
 #define BPLIB_AS_RESET_ALL_SUCCESS_EID                  (578u)
 
 /* AS error event IDs */
-#define BPLIB_AS_INCREMENT_INVAL_EID_ERR_EID            (579u)
-#define BPLIB_AS_INCREMENT_UNKNOWN_NODE_CNTR_ERR_EID    (580u)
-#define BPLIB_AS_INCREMENT_UNKNOWN_SRC_CNTR_ERR_EID     (581u)
-#define BPLIB_AS_DECREMENT_INVAL_EID_ERR_EID            (582u)
-#define BPLIB_AS_DECREMENT_UNKNOWN_NODE_CNTR_ERR_EID    (583u)
-#define BPLIB_AS_DECREMENT_UNKNOWN_SRC_CNTR_ERR_EID     (584u)
-#define BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID            (585u)
-#define BPLIB_AS_RESET_SRC_ERR_EID                      (586u)
-#define BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID           (587u)
-#define BPLIB_AS_RESET_BNDL_ERR_EID                     (588u)
-#define BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID            (589u)
-#define BPLIB_AS_RESET_ERR_ERR_EID                      (590u)
-#define BPLIB_AS_RESET_ALL_ERR_EID                      (591u)
+#define BPLIB_AS_INCREMENT_ERR_EID                      (579u)
+#define BPLIB_AS_DECREMENT_ERR_EID                      (580u)
+#define BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID            (581u)
+#define BPLIB_AS_RESET_SRC_ERR_EID                      (582u)
+#define BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID           (583u)
+#define BPLIB_AS_RESET_BNDL_ERR_EID                     (584u)
+#define BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID            (585u)
+#define BPLIB_AS_RESET_ERR_ERR_EID                      (586u)
+#define BPLIB_AS_RESET_ALL_ERR_EID                      (587u)
 
 #endif /* BPLIB_EVENTIDS_H */
