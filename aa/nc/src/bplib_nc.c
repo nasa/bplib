@@ -320,8 +320,6 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
                                 Payload.Counter);
 
             break;
-        default:
-            break;
     }
 
     return Status;
