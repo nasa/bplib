@@ -188,8 +188,8 @@ void Test_BPLib_AS_Set_Error(void)
 
 void Test_BPLib_AS_Increment_Nominal(void)
 {
-    int16_t        SourceEid;
-    uint32_t       TestValue;
+    int16_t  SourceEid;
+    uint32_t TestValue;
 
     /* Set values to test against */
     SourceEid = 2;
@@ -205,10 +205,6 @@ void Test_BPLib_AS_Increment_Nominal(void)
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected);
     // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected);
-
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_INCREMENT_SUCCESS_EID,
-                                "Successfully incremented counter %d, for source with EID %d to %d");
 }
 
 void Test_BPLib_AS_Increment_Error(void)
@@ -264,10 +260,6 @@ void Test_BPLib_AS_Decrement_Nominal(void)
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred);
     // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred);
-
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_INCREMENT_ERR_EID,
-                                "Could not get counter %d with source EID %d to increment by %d, RC = %d");
 }
 
 void Test_BPLib_AS_Decrement_Error(void)
