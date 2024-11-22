@@ -1002,16 +1002,6 @@ void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
             }
         }
     }
-
-    if (Status == BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_SUCCESS_EID,
-                            BPLib_EM_EventType_DEBUG,
-                            "Successfully incremented counter %d, for source with EID %d to %d",
-                            Counter,
-                            SourceEid,
-                            CounterValue);
-    }
 }
 
 void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
@@ -1061,16 +1051,6 @@ void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
 
         /* Set the decremented node counter and associated source counter(s) */
         Status = BPLib_AS_Set(SourceEid, Counter, CounterValue);
-    }
-
-    if (Status == BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_SUCCESS_EID,
-                            BPLib_EM_EventType_DEBUG,
-                            "Successfully decremented counter %d, for source with EID %d to %d",
-                            Counter,
-                            SourceEid,
-                            CounterValue);
     }
 }
 
