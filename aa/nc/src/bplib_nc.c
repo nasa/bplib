@@ -300,9 +300,10 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
     {
         BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Could not reset counter %d with source EID %d",
+                            "Could not reset counter %d with source EID %d, RC = %d",
                             Payload.Counter,
-                            Payload.SourceEid);
+                            Payload.SourceEid,
+                            Status);
     }
 
     return Status;
