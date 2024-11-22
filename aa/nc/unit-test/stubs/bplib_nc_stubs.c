@@ -539,13 +539,9 @@ BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payl
  * Generated stub function for BPLib_NC_SendChannelContactStatHk()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void)
+void BPLib_NC_SendChannelContactStatHk(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_SendChannelContactStatHk, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_SendChannelContactStatHk, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_SendChannelContactStatHk, BPLib_Status_t);
 }
 
 /*
@@ -553,13 +549,9 @@ BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void)
  * Generated stub function for BPLib_NC_SendNodeMibConfigHk()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void)
+void BPLib_NC_SendNodeMibConfigHk(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_SendNodeMibConfigHk, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_SendNodeMibConfigHk, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_SendNodeMibConfigHk, BPLib_Status_t);
 }
 
 /*
@@ -567,13 +559,9 @@ BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void)
  * Generated stub function for BPLib_NC_SendNodeMibCountersHk()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void)
+void BPLib_NC_SendNodeMibCountersHk(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_SendNodeMibCountersHk, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_SendNodeMibCountersHk, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_SendNodeMibCountersHk, BPLib_Status_t);
 }
 
 /*
@@ -581,13 +569,9 @@ BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void)
  * Generated stub function for BPLib_NC_SendSourceMibConfigHk()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void)
+void BPLib_NC_SendSourceMibConfigHk(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_SendSourceMibConfigHk, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_SendSourceMibConfigHk, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_SendSourceMibConfigHk, BPLib_Status_t);
 }
 
 /*
@@ -595,13 +579,9 @@ BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void)
  * Generated stub function for BPLib_NC_SendSourceMibCountersHk()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void)
+void BPLib_NC_SendSourceMibCountersHk(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_SendSourceMibCountersHk, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_SendSourceMibCountersHk, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_SendSourceMibCountersHk, BPLib_Status_t);
 }
 
 /*
@@ -609,13 +589,9 @@ BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void)
  * Generated stub function for BPLib_NC_SendStorageHk()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_SendStorageHk(void)
+void BPLib_NC_SendStorageHk(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_SendStorageHk, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_SendStorageHk, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_SendStorageHk, BPLib_Status_t);
 }
 
 /*

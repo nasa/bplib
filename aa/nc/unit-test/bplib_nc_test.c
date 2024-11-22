@@ -1160,132 +1160,45 @@ void Test_BPLib_NC_PerformSelfTest_Error(void)
 
 void Test_BPLib_NC_SendNodeMibConfigHk_Nominal(void)
 {
-    BPLib_Status_t Status;
+    BPLib_NC_SendNodeMibConfigHk();
 
-    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendNodeMibConfigPkt), BPLIB_SUCCESS);
-
-    Status = BPLib_NC_SendNodeMibConfigHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-}
-
-void Test_BPLib_NC_SendNodeMibConfigHk_Error(void)
-{
-    /*
-    BPLib_Status_t Status;
-
-    Status = BPLib_NC_SendNodeMibConfigHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    UtAssert_STUB_COUNT(BPA_TLMP_SendNodeMibConfigPkt, 1);
 }
 
 void Test_BPLib_NC_SendSourceMibConfigHk_Nominal(void)
 {
-    BPLib_Status_t Status;
+    BPLib_NC_SendSourceMibConfigHk();
 
-    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendPerSourceMibConfigPkt), BPLIB_SUCCESS);
-
-    Status = BPLib_NC_SendSourceMibConfigHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-}
-
-void Test_BPLib_NC_SendSourceMibConfigHk_Error(void)
-{
-    /*
-    BPLib_Status_t Status;
-
-    Status = BPLib_NC_SendSourceMibConfigHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    UtAssert_STUB_COUNT(BPA_TLMP_SendPerSourceMibConfigPkt, 1);
 }
 
 void Test_BPLib_NC_SendNodeMibCountersHk_Nominal(void)
 {
-    BPLib_Status_t Status;
+    BPLib_NC_SendNodeMibCountersHk();
 
-    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendNodeMibCounterPkt), BPLIB_SUCCESS);
-
-    Status = BPLib_NC_SendNodeMibCountersHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPA_TLMP_SendNodeMibCounterPkt, 1);
 }
 
-void Test_BPLib_NC_SendNodeMibCountersHk_Error(void)
-{
-    /*
-    BPLib_Status_t Status;
-
-    Status = BPLib_NC_SendNodeMibCountersHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
-}
 
 void Test_BPLib_NC_SendSourceMibCountersHk_Nominal(void)
 {
-    BPLib_Status_t Status;
+    BPLib_NC_SendSourceMibCountersHk();
 
-    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendPerSourceMibCounterPkt), BPLIB_SUCCESS);
-
-    Status = BPLib_NC_SendSourceMibCountersHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-}
-
-void Test_BPLib_NC_SendSourceMibCountersHk_Error(void)
-{
-    BPLib_Status_t Status;
-
-    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendPerSourceMibCounterPkt), BPLIB_UNKNOWN);
-
-    Status = BPLib_NC_SendSourceMibCountersHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_UNKNOWN);
+    UtAssert_STUB_COUNT(BPA_TLMP_SendPerSourceMibCounterPkt, 1);
 }
 
 void Test_BPLib_NC_SendStorageHk_Nominal(void)
 {
-    BPLib_Status_t Status;
+    BPLib_NC_SendStorageHk();
 
-    Status = BPLib_NC_SendStorageHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-}
-
-void Test_BPLib_NC_SendStorageHk_Error(void)
-{
-    /*
-    BPLib_Status_t Status;
-
-    Status = BPLib_NC_SendStorageHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    UtAssert_STUB_COUNT(BPA_TLMP_SendStoragePkt, 1);
 }
 
 void Test_BPLib_NC_SendChannelContactStatHk_Nominal(void)
 {
-    BPLib_Status_t Status;
+    BPLib_NC_SendChannelContactStatHk();
 
-    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendChannelContactPkt), BPLIB_SUCCESS);
-
-    Status = BPLib_NC_SendChannelContactStatHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-}
-
-void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
-{
-    /*
-    BPLib_Status_t Status;
-
-    Status = BPLib_NC_SendChannelContactStatHk();
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    UtAssert_STUB_COUNT(BPA_TLMP_SendChannelContactPkt, 1);
 }
 
 void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
