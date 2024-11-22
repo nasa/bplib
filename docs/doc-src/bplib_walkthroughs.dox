@@ -1,0 +1,67 @@
+/**
+ \page bplib_walkthroughs BPLib Code Walkthroughs
+
+### BPLib STOR QM Walkthroughs
+
+#### Walkthrough 1 - Forward Bundles
+
+Client calls \ref BPLib_STOR_QM_AllocQueueTable to init queue_tbl
+and cache
+
+Client calls \ref BPLib_STOR_QM_CreateRamStorage with cache pool from queue_tbl
+
+Which calls:  
+  - \ref BPLib_STOR_QM_Attach  
+  - \ref BPLib_STOR_CACHE_Init 
+to fully initialize cache
+
+Client calls BPLib_STOR_QM_ClaIngress  - which calls:
+  - \ref BPLib_STOR_QM_GetIntfControlblock    - Duct interface  
+  - \ref BPLib_STOR_QM_GenericBundleIngress  
+  - \ref BPLib_STOR_QM_ReleaseIntfControlblock  
+  - \ref BPLib_STOR_QM_SetMaintenanceRequest  
+
+Cache state machine drives bundle and job queues
+
+Cache state machine calls \ref BPLib_STOR_QM_ClaEgress  - which calls:
+  - \ref BPLib_STOR_QM_SetMaintenanceRequest   - last chance for egress  
+  - \ref BPLib_STOR_QM_GetIntfControlblock    - Duct interface  
+  - \ref BPLib_STOR_QM_GenericBundleEgress  
+  - \ref BPLib_STOR_QM_ReleaseIntfControlblock  
+
+
+#### Walkthrough 2 - QM Alloc and Init
+
+Client calls \ref BPLib_STOR_QM_AllocQueueTable to init queue_tbl
+and cache - which calls:
+  - \ref calloc  - memory alloc currently done in QM so it isn't stubbed.  
+  - \ref BPLib_STOR_CACHE_CreatePool  uses MEM for calloc when calloc not in QM.  
+  - \ref BPLib_STOR_CACHE_InitListHead  
+
+#### Walkthrough 3 - Cache Finite State Machine (FSM)
+
+States: Undefined, Idle, Queue, Delete  - for now
+
+QM calls \ref BPLib_STOR_CACHE_SubqWorkitemInit
+
+initial state is Idle
+
+FSM enqueues bundle and changes state to Queue by conditions
+  - \ref BPLib_STOR_CACHE_FsmStateIdleEval sets state  
+    - \ref BPLib_STOR_CACHE_FsmStateQueueEnter  
+      - \ref BPLib_STOR_CACHE_RefMakeBlock  
+      - \ref BPLib_STOR_CACHE_GetDuct  
+      - \ref BPLib_STOR_QM_DuctTryPush  
+      - (conditionally) \ref BPLib_STOR_CACHE_RecycleBlock  
+Job scheduler dequeues bundle and calls action function  
+  - \ref BPLib_STOR_CACHE_ActionFunc_t
+
+FSM evaluates bundle state periodically  
+  - Ref counts, state conditions  
+  - Stay in Queue state or transition to Idle or Delete  
+  - Delete is the only state that transitions to Undefined
+
+ **/
+
+
+

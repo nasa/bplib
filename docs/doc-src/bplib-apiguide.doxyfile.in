@@ -1,0 +1,9 @@
+#---------------------------------------------------------------------------
+# Doxygen Configuration options to generate the "BPLib API Guide"
+#---------------------------------------------------------------------------
+
+# Common definitions, can be overridden here
+@INCLUDE               = @BPLIB_NATIVE_COMMON_CFGFILE@
+
+PROJECT_NAME           = "BPLib API Guide"
+WARN_LOGFILE           = @BPLIB_NATIVE_LOGFILE@

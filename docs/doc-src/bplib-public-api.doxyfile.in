@@ -1,0 +1,9 @@
+#---------------------------------------------------------------------------
+# BPLib API Documentation Input List (generated from build system)
+#---------------------------------------------------------------------------
+
+# List of compile definitions from bplib_public_api
+PREDEFINED += @BPLIBDOC_PREDEFINED@
+
+# List of header files from bplib_public_api
+INPUT      += @BPLIB_NATIVE_APIGUIDE_SOURCEFILES@

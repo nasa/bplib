@@ -1,0 +1,11 @@
+#---------------------------------------------------------------------------
+# Doxygen Configuration options for mission detailed documentation
+#---------------------------------------------------------------------------
+
+# Common files
+@INCLUDE  = @MISSION_BINARY_DIR@/docs/bplib-common.doxyfile
+
+# All of the BPLib FSW code relevant for a detail design document is under
+# bplib.
+# Note this will include ALL BPLib layers.
+INPUT    += @bplib_MISSION_DIR@
