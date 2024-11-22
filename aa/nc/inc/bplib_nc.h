@@ -469,63 +469,56 @@ BPLib_Status_t BPLib_NC_PerformSelfTest(void);
 /**
   * \brief     Send Per Node MIB Configuration telemetry packet
   * \details   Node Configuration Send Node MIB Configuration Housekeeping Packet command.
-  * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
+  * \note      This command is just a call to BPA_TLMP_SendNodeMibConfigPkt()
   * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \retval    Status is determined by BPA_TLMP_SendNodeMibConfigPkt() in fwp_tlmp.h
+  * \return    void
   */
-BPLib_Status_t BPLib_NC_SendNodeMibConfigHk(void);
+void BPLib_NC_SendNodeMibConfigHk(void);
 
 /**
   * \brief     Send Per Source MIB Configuration telemetry packet
   * \details   Node Configuration Send Source MIB Configuration Housekeeping Packet command.
-  * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
+  * \note      This command is just a call to BPA_TLMP_SendPerSourceMibConfigPkt()
   * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \retval    Status is determined by BPA_TLMP_SendPerSourceMibConfigPkt() in fwp_tlmp.h
+  * \return    void
   */
-BPLib_Status_t BPLib_NC_SendSourceMibConfigHk(void);
+void BPLib_NC_SendSourceMibConfigHk(void);
 
 /**
   * \brief     Send Per Node MIB Counter telemetry packet
   * \details   Node Configuration Send Node MIB Counters Housekeeping Packet command.
-  * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
+  * \note      This command is just a call to BPA_TLMP_SendNodeMibCounterPkt()
   * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \retval    Status is determined by BPA_TLMP_SendNodeMibCounterPkt() in fwp_tlmp.h
+  * \return    void
   */
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHk(void);
+void BPLib_NC_SendNodeMibCountersHk(void);
 
 /**
   * \brief     Send Per Source MIB Counter telemetry packet
   * \details   Node Configuration Send Source MIB Counters Housekeeping Packet command.
-  * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
+  * \note      This command is just a call to BPA_TLMP_SendPerSourceMibCounterPkt()
   * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \retval    Status is determined by BPA_TLMP_SendPerSourceMibCounterPkt() in fwp_tlmp.h
+  * \return    void
   */
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHk(void);
+void BPLib_NC_SendSourceMibCountersHk(void);
 
 /**
   * \brief     Send Storage housekeeping telemetry packet
   * \details   Node Configuration Send Storage Housekeeping Packet command.
-  * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
+  * \note      This command is just a call to BPA_TLMP_SendStoragePkt()
   * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \retval    Status is determined by BPA_TLMP_SendStoragePkt() in fwp_tlmp.h
+  * \return    void
   */
-BPLib_Status_t BPLib_NC_SendStorageHk(void);
+void BPLib_NC_SendStorageHk(void);
 
 /**
   * \brief     Send Storage housekeeping telemetry packet
   * \details   Node Configuration Send Storage Housekeeping Packet command.
-  * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
-  * \note      Command is primarily handled by BPA_DP_SendChannelContactStatHk() found in fwp_dp.h
+  * \note      This command is just a call to BPA_TLMP_SendChannelContactPkt()
   * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \retval    Status is determined by BPA_TLMP_SendChannelContactPkt() in fwp_tlmp.h
+  * \return    void
   */
-BPLib_Status_t BPLib_NC_SendChannelContactStatHk(void);
+void BPLib_NC_SendChannelContactStatHk(void);
 
 
 /**

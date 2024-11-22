@@ -1118,66 +1118,46 @@ BPLib_Status_t BPLib_NC_PerformSelfTest(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibConfigHk()
+void BPLib_NC_SendNodeMibConfigHk()
 {
-    BPLib_Status_t Status;
-
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt(&BPLib_NC_NodeMibConfigPayload);
-
-    return Status;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt(&BPLib_NC_NodeMibConfigPayload);
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibConfigHk()
+void BPLib_NC_SendSourceMibConfigHk()
 {
-    BPLib_Status_t Status;
-
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt(&BPLib_NC_SourceMibConfigPayload);
-
-    return Status;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt(&BPLib_NC_SourceMibConfigPayload);
 }
 
-BPLib_Status_t BPLib_NC_SendNodeMibCountersHk()
+void BPLib_NC_SendNodeMibCountersHk()
 {
-    BPLib_Status_t Status;
+    //TODO: Lock counters
 
-    //TODO: Lock node counters data here
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
-
-    //TODO: Unlock node counters data here
-
-    return Status;
+    //TODO: Unlock counters
 }
 
-BPLib_Status_t BPLib_NC_SendSourceMibCountersHk()
+void BPLib_NC_SendSourceMibCountersHk()
 {
-    BPLib_Status_t Status;
+    //TODO: Lock counters
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
 
-    return Status;
+    //TODO: Unlock counters
 }
 
-BPLib_Status_t BPLib_NC_SendStorageHk()
+void BPLib_NC_SendStorageHk()
 {
-    BPLib_Status_t Status;
-
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt(&BPLib_STOR_StoragePayload);
-
-    return Status;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt(&BPLib_STOR_StoragePayload);
 }
 
-BPLib_Status_t BPLib_NC_SendChannelContactStatHk()
+void BPLib_NC_SendChannelContactStatHk()
 {
-    BPLib_Status_t Status;
-
     // Lock data
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
 
     // Unlock data
-
-    return Status;
 }
 
 /* Validate MIB Config PN table data */
