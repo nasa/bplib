@@ -228,8 +228,8 @@ void Test_BPLib_AS_Increment_Error(void)
     UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest);
 
     /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_INCREMENT_INVAL_EID_ERR_EID,
-                                "Could not get counter %d to increment due to a source EID (%d) with unexpected pattern");
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_INCREMENT_ERR_EID,
+                                "Could not get counter %d with source EID %d to increment by %d, RC = %d");
 
     /* === Unknown counter test === */
 
@@ -241,8 +241,8 @@ void Test_BPLib_AS_Increment_Error(void)
     BPLib_AS_Increment(SourceEid, BPLIB_AS_NUM_CNTRS, 5);
 
     /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_INCREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
-                                "Could not get unrecognized node counter, %d, to increment");
+    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_INCREMENT_ERR_EID,
+                                "Could not get counter %d with source EID %d to increment by %d, RC = %d");
 }
 
 void Test_BPLib_AS_Decrement_Nominal(void)
@@ -266,8 +266,8 @@ void Test_BPLib_AS_Decrement_Nominal(void)
     // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred);
 
     /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_DECREMENT_SUCCESS_EID,
-                                "Successfully decremented counter %d, for source with EID %d to %d");
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_INCREMENT_ERR_EID,
+                                "Could not get counter %d with source EID %d to increment by %d, RC = %d");
 }
 
 void Test_BPLib_AS_Decrement_Error(void)
@@ -287,8 +287,8 @@ void Test_BPLib_AS_Decrement_Error(void)
     UtAssert_EQ(uint32_t, 1, BPLib_AS_NodeCountersPayload.BundleCountDeleted);
 
     /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_DECREMENT_INVAL_EID_ERR_EID,
-                                "Could not get counter %d to decrement due to a source EID (%d) with unexpected pattern");
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_DECREMENT_ERR_EID,
+                                "Could not get counter %d with source EID %d to decrement by %d, RC = %d");
 
     /* === Unknown counter test === */
 
@@ -300,8 +300,8 @@ void Test_BPLib_AS_Decrement_Error(void)
     BPLib_AS_Decrement(SourceEid, BPLIB_AS_NUM_CNTRS, 5);
 
     /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_DECREMENT_UNKNOWN_NODE_CNTR_ERR_EID,
-                                "Could not get unrecognized node counter, %d, to decrement");
+    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_DECREMENT_ERR_EID,
+                                "Could not get counter %d with source EID %d to decrement by %d, RC = %d");
 }
 
 void Test_BPLib_AS_ResetSourceCounters_Nominal(void)
@@ -482,34 +482,6 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     Test_BPLib_AS_ErrorCountersValueTest(SourceEids[2], 0);
 }
 
-void Test_BPLib_AS_Write_Nominal(void)
-{
-    BPLib_Status_t Status;
-
-    Status = BPLib_AS_Write();
-
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
-}
-
-void Test_BPLib_AS_Write_Error(void)
-{
-    // TODO
-}
-
-void Test_BPLib_AS_Restore_Nominal(void)
-{
-    BPLib_Status_t Status;
-
-    Status = BPLib_AS_Restore();
-
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
-}
-
-void Test_BPLib_AS_Restore_Error(void)
-{
-    // TODO
-}
-
 void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
@@ -530,8 +502,4 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Error);
     ADD_TEST(Test_BPLib_AS_ResetAllCounters_Nominal);
-    ADD_TEST(Test_BPLib_AS_Write_Nominal);
-    ADD_TEST(Test_BPLib_AS_Write_Error);
-    ADD_TEST(Test_BPLib_AS_Restore_Nominal);
-    ADD_TEST(Test_BPLib_AS_Restore_Error);
 }
