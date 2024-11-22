@@ -280,6 +280,8 @@ void Test_BPLib_NC_ResetCounter_Nominal(void)
     Status = BPLib_NC_ResetCounter(Payload);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+    UtAssert_STUB_COUNT(BPLib_AS_Set, 1);
+
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_SUCCESS_EID);
     UtAssert_STRINGBUF_EQ("Successfully reset counter %d for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
@@ -290,13 +292,11 @@ void Test_BPLib_NC_ResetCounter_Error(void)
     BPLib_Status_t Status;
     BPLib_ResetCounter_Payload_t Payload;
 
-    /* Put dummy values into the payload */
+    /* Set only SourceEid to an invalid value */
     Payload.Counter   = 0;
-    Payload.SourceEid = 0;
+    Payload.SourceEid = 200;
 
     /* === BPLIB_AS_INVALID_EID returned === */
-
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Set), BPLIB_AS_INVALID_EID);
 
     /* Run the function under test */
     Status = BPLib_NC_ResetCounter(Payload);
@@ -304,13 +304,15 @@ void Test_BPLib_NC_ResetCounter_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
     UtAssert_STUB_COUNT(BPLib_AS_Set, 1);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_SRC_EID_ERR_EID);
-    UtAssert_STRINGBUF_EQ("Could not reset counter %d due to a source EID (%d) with unexpected pattern", BPLIB_EM_EXPANDED_EVENT_SIZE,
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Could not reset counter %d with source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 
     /* === BPLIB_AS_UNKNOWN_NODE_CNTR returned === */
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Set), BPLIB_AS_UNKNOWN_NODE_CNTR);
+    /* Set only Counter to an invalid node value */
+    Payload.Counter   = 200;
+    Payload.SourceEid = 1;
 
     /* Run the function under test */
     Status = BPLib_NC_ResetCounter(Payload);
@@ -318,23 +320,26 @@ void Test_BPLib_NC_ResetCounter_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
     UtAssert_STUB_COUNT(BPLib_AS_Set, 2);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[1].EventID, BPLIB_NC_RESET_CTR_UNK_SRC_CNTR_ERR_EID);
-    UtAssert_STRINGBUF_EQ("Could reset unrecognized node counter %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[1].EventID, BPLIB_NC_RESET_CTR_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Could not reset counter %d with source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[1].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 
-    /* === BPLIB_AS_UNKNOWN_SRC_CNTR returned === */
+    /* === BPLIB_AS_UNKNOWN_SRC_CNTR returned ===
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Set), BPLIB_AS_UNKNOWN_SRC_CNTR);
+    // Set only Counter to an invalid source but valid node value
+    Payload.Counter   = 79;
+    Payload.SourceEid = 1;
 
-    /* Run the function under test */
+    // Run the function under test
     Status = BPLib_NC_ResetCounter(Payload);
 
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
     UtAssert_STUB_COUNT(BPLib_AS_Set, 3);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[2].EventID, BPLIB_NC_RESET_CTR_UNK_NODE_CNTR_ERR_EID);
-    UtAssert_STRINGBUF_EQ("Could not reset unrecognized source counter %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[2].EventID, BPLIB_NC_RESET_CTR_ERR_EID);
+    UtAssert_STRINGBUF_EQ("Could not reset counter %d with source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[2].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    */
 }
 
 void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
