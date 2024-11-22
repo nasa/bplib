@@ -27,25 +27,6 @@
 #include "bplib_as.h"
 #include "utgenstub.h"
 
-/* ======= */
-/* Globals */
-/* ======= */
-
-BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
-BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
-BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
-
-bool BPLib_AS_EidIsValid(int16_t SourceEid)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_EidIsValid, bool);
-
-    UT_GenStub_AddParam(BPLib_AS_EidIsValid, int16_t, SourceEid);
-
-    UT_GenStub_Execute(BPLib_AS_EidIsValid, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_EidIsValid, bool);
-}
-
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_AS_Decrement()
@@ -58,6 +39,22 @@ void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
     UT_GenStub_AddParam(BPLib_AS_Decrement, uint32_t, Amount);
 
     UT_GenStub_Execute(BPLib_AS_Decrement, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_EidIsValid()
+ * ----------------------------------------------------
+ */
+bool BPLib_AS_EidIsValid(int16_t SourceEid)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_EidIsValid, bool);
+
+    UT_GenStub_AddParam(BPLib_AS_EidIsValid, int16_t, SourceEid);
+
+    UT_GenStub_Execute(BPLib_AS_EidIsValid, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_AS_EidIsValid, bool);
 }
 
 /*
@@ -113,6 +110,7 @@ BPLib_Status_t BPLib_AS_Init(void)
  */
 void BPLib_AS_ResetAllCounters(void)
 {
+
     UT_GenStub_Execute(BPLib_AS_ResetAllCounters, Basic, NULL);
 }
 
@@ -166,20 +164,6 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_AS_Restore()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_AS_Restore(void)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_Restore, BPLib_Status_t);
-
-    UT_GenStub_Execute(BPLib_AS_Restore, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_Restore, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_AS_Set()
  * ----------------------------------------------------
  */
@@ -194,18 +178,4 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
     UT_GenStub_Execute(BPLib_AS_Set, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_AS_Set, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_AS_Write()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_AS_Write(void)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_Write, BPLib_Status_t);
-
-    UT_GenStub_Execute(BPLib_AS_Write, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_Write, BPLib_Status_t);
 }
