@@ -77,7 +77,7 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)
 #define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4u) /* Table validation error code */
 #define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5u) // BPLib Red-Black Tree (RBT) Duplicate Search Result
-#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6u) //BPLIB_TIMEOUT was -5 in the prototype.
+#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6u)
 
 /* Framework Proxy Errors */
 #define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -7u)
