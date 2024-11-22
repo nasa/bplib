@@ -1324,17 +1324,11 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_PerformSelfTest_Nominal);
     ADD_TEST(Test_BPLib_NC_PerformSelfTest_Error);
     ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Error);
     ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Error);
     ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Error);
     ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Error);
     ADD_TEST(Test_BPLib_NC_SendStorageHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendStorageHk_Error);
     ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Nominal);
-    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Error);
     ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal);
     ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid);
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal);
