@@ -15,6 +15,7 @@ add_library(bplib_as_stubs STATIC
 
 target_include_directories(bplib_as_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>
+    ../src
 )
 
 target_link_libraries(bplib_as_stubs PUBLIC ut_assert)

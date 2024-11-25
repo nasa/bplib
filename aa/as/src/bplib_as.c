@@ -23,6 +23,7 @@
 /* ======== */
 
 #include "bplib_as.h"
+#include "bplib_as_internal.h"
 
 /* ======= */
 /* Globals */
