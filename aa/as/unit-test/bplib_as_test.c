@@ -48,7 +48,7 @@ void Test_BPLib_AS_Increment_Nominal(void)
     TestValue = 15;
 
     BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected = TestValue;
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected = TestValue;
+    // BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected = TestValue;
 
     /* Run function under test */
     BPLib_AS_Increment(SourceEid, BUNDLE_COUNT_CUSTODY_REJECTED, 1);
@@ -56,7 +56,7 @@ void Test_BPLib_AS_Increment_Nominal(void)
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected);
-    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected);
+    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected);
 }
 
 void Test_BPLib_AS_Increment_Error(void)
@@ -103,7 +103,7 @@ void Test_BPLib_AS_Decrement_Nominal(void)
 
     /* Set values to test against */
     BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred = TestValue;
-    // BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred = TestValue;
+    // BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyTransferred = TestValue;
 
     /* Run function under test */
     BPLib_AS_Decrement(SourceEid, BUNDLE_COUNT_CUSTODY_TRANSFERRED, 4);
@@ -111,7 +111,7 @@ void Test_BPLib_AS_Decrement_Nominal(void)
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred);
-    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred);
+    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyTransferred);
 }
 
 void Test_BPLib_AS_Decrement_Error(void)

@@ -185,8 +185,8 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
         BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks       = 0;
 
         /* Set all source counters to 0 */
-        memset((void*) &BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid], 0,
-                sizeof(BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid]));
+        memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceEid], 0,
+                sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceEid]));
     }
 
     return Status;
@@ -230,148 +230,148 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
 
         /* Reset bundle counters associated with nodes AND sources */
         BPLib_AS_NodeCountersPayload.AduCountDelivered                                              = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountDelivered                  = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountDelivered                  = 0;
 
         BPLib_AS_NodeCountersPayload.AduCountReceived                                               = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountReceived                   = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountReceived                   = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountAbandoned                                           = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned               = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned               = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded                                  = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyReForwarded      = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyReForwarded      = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected                                     = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected         = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected         = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest                                      = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRequest          = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRequest          = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred                                  = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyTransferred      = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyTransferred      = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeleted                                             = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeleted                 = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeleted                 = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired                                      = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedExpired          = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedExpired          = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded                                  = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedHopExceeded      = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedHopExceeded      = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload                               = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedInvalidPayload   = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload   = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage                                    = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedNoStorage        = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage        = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong                                      = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTooLong          = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong          = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared                                 = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTrafficPared     = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTrafficPared     = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible                               = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnintelligible   = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible   = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock                             = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnsupportedBlock = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDelivered                                           = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDelivered               = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDelivered               = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDepleted                                            = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDepleted                = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDepleted                = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDiscarded                                           = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDiscarded               = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDiscarded               = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountForwarded                                           = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwarded               = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwarded               = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed                                     = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountForwardedFailed         = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwardedFailed         = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountFragmentError                                       = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmentError           = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError           = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountFragmented                                          = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmented              = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmented              = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted                                   = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedAccepted       = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedAccepted       = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal                              = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedCustodySignal  = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedCustodySignal  = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment                                   = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedFragment       = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedFragment       = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected                                   = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedRejected       = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected       = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded                                  = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountMaxBsrRateExceeded      = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountMaxBsrRateExceeded      = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo                                       = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountNoFurtherInfo           = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoFurtherInfo           = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReassembled                                         = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReassembled             = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReassembled             = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceived                                            = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceived                = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceived                = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted                                 = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrAccepted     = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrAccepted     = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted                                  = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrDeleted      = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDeleted      = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered                                = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrDelivered    = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDelivered    = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded                                = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrForwarded    = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrForwarded    = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived                                 = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedBsrReceived     = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrReceived     = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted                                 = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsAccepted     = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsAccepted     = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted                                  = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsDeleted      = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDeleted      = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered                                = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsDelivered    = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDelivered    = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded                                = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsForwarded    = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsForwarded    = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived                                 = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCrsReceived     = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsReceived     = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal                               = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedCustodySignal   = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCustodySignal   = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment                                    = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountReceivedFragment        = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedFragment        = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountRedundant                                           = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRedundant               = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRedundant               = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody                                     = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRejectedCustody         = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody         = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock                                 = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnintelligibleBlock     = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleBlock     = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid                                   = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnintelligibleEid       = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleEid       = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks                                   = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnprocessedBlocks       = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks       = 0;
     }
 
     return Status;
@@ -401,43 +401,43 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
 
         /* Reset all node error counters with corresponding source error counters */
         BPLib_AS_NodeCountersPayload.BundleCountAbandoned                                           = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned               = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned               = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected                                     = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountCustodyRejected         = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected         = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid                                       = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedBadEid           = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedBadEid           = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload                               = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedInvalidPayload   = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload   = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage                                    = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedNoStorage        = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage        = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong                                      = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedTooLong          = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong          = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized                                 = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnauthorized     = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnauthorized     = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible                               = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnintelligible   = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible   = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock                             = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountDeletedUnsupportedBlock = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountFragmentError                                       = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountFragmentError           = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError           = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected                                   = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountGeneratedRejected       = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected       = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody                                     = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountRejectedCustody         = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody         = 0;
 
         BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks                                   = 0;
-        BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountUnprocessedBlocks       = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks       = 0;
     }
 
     return Status;
@@ -451,7 +451,7 @@ void BPLib_AS_ResetAllCounters(void)
 
     for (SourceCtrl = 0; SourceCtrl < BPLIB_MAX_NUM_SOURCE_EID; SourceCtrl++)
     {
-        memset((void*) &BPLib_AS_SourceCountersPayload.SourceCounters[SourceCtrl], 0,
-                sizeof(BPLib_AS_SourceCountersPayload.SourceCounters[SourceCtrl]));
+        memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl], 0,
+                sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl]));
     }
 }

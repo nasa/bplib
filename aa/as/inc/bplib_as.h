@@ -137,7 +137,7 @@ typedef struct
 
 /**
   * \brief  Source MIB counters housekeeping payload
-  * \anchor BPLib_SourceMibCountersSet_t
+  * \anchor BPLib_SourceMibCounters_t
   */
 typedef struct
 {
@@ -198,15 +198,15 @@ typedef struct
     uint32_t BundleCountUnintelligibleBlock;     /** \brief Number of bundles for which Custody Signals indicating the Bundle contained an unknown block type */
     uint32_t BundleCountUnintelligibleEid;       /** \brief Number of bundles for which rejected Custody Signals generated indicating the any EID in the Primary Header is unknown */
     uint32_t BundleCountUnprocessedBlocks;       /** \brief Number of Unprocessed Blocks Removed from Received Bundles */
-} BPLib_SourceMibCountersSet_t;
+} BPLib_SourceMibCounters_t;
 
 /**
-  * \brief  Packet for all source counters accessed via an index into SourceCounters
+  * \brief  Packet for all source counters accessed via an index into MibArray
   * \anchor BPLib_SourceMibCountersHkTlm_Payload_t
   */
 typedef struct
 {
-    BPLib_SourceMibCountersSet_t SourceCounters[BPLIB_MAX_NUM_SOURCE_EID]; /** \brief Counters for each source */
+    BPLib_SourceMibCounters_t MibArray[BPLIB_MAX_NUM_SOURCE_EID]; /** \brief Counters for each source */
 
     uint32_t Spare2;
     uint32_t TimeBootEra;                   /** \brief Boot Era for Monotonic Time */
@@ -242,7 +242,7 @@ BPLib_Status_t BPLib_AS_Init(void);
  * \details   Incrementing function for counters used by Admin Statistics
  * \note      Internal uint32_t value is passed by reference when using BPLib_AS_Get()
  * \note      Amount must be positive
- * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::MibArray array.
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
  * \param[in] Amount (uint32_t) Amount to increment Counter by
  * \return    void
@@ -262,7 +262,7 @@ void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
  * \details   Decrementing function for counters used by Admin Statistics
  * \note      Internal uint32_t values is passed by reference when using BPLib_AS_Get()
  * \note      Amount must be positive
- * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::MibArray array.
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to decrement
  * \param[in] Amount (uint32_t) Amount to decrement by
  * \return    void
@@ -281,7 +281,7 @@ void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
  * \brief     Set to zero all resettable MIB counters associated with the given source EID pattern
  * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
  * \note      Cycles through source counters and uses BPLib_AS_Set() to reset them to 0
- * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::MibArray array.
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_SUCCESS: Successful execution
@@ -299,7 +299,7 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
  * \brief     Set to zero all resettable MIB counters associated with bundles
  * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
  * \note      Cycles through bundle-related source and node counters and uses BPLib_AS_Set() to reset them to 0
- * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::MibArray array.
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_SUCCESS: Successful execution
@@ -317,7 +317,7 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
  * \brief     Set to zero all resettable MIB error counters
  * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
  * \note      Cycles through error counters and uses BPLib_AS_Set() to reset them to 0
- * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::SourceCounters array.
+ * \param[in] SourceEid (int16_t) Index into the BPLib_SourceMibCountersHkTlm_Payload_t::MibArray array.
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
  * \retval    BPLIB_SUCCESS: Successful execution
