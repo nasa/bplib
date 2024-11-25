@@ -8,6 +8,7 @@
 
 add_library(bplib_as OBJECT
     src/bplib_as.c
+    src/bplib_as_internal.c
 )
 
 target_include_directories(bplib_as PUBLIC

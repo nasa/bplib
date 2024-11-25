@@ -702,4 +702,5 @@ void BPLib_AS_Test_Teardown(void)
 void UtTest_Setup(void)
 {
     TestBplibAs_Register();
+    TestBplibAsInternal_Register();
 }
