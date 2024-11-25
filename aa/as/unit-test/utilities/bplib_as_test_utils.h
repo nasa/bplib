@@ -33,6 +33,27 @@
 #include "bplib_as.h"
 #include "bplib_em_handlers.h"
 
+#include "bplib_fwp.h"
+#include "bpa_fwp_stubs.h"  /* For EVP callback stubs */
+
+/* ================ */
+/* Type Definitions */
+/* ================ */
+
+/* Unit test increment/decrement hook information */
+typedef struct
+{
+    int16_t SourceEid;
+    BPLib_AS_Counter_t Counter;
+    uint32_t Amount;
+} BPLib_AS_IncrementDecrementContext_t;
+
+/* =========== */
+/* Global Data */
+/* =========== */
+
+extern BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_IncrementDecrement;
+
 /* ====== */
 /* Macros */
 /* ====== */
