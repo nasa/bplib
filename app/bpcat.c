@@ -51,7 +51,8 @@
  * the data mover threads.  This is time limited so the "app_running" flag is checked periodically.
  * Normally it should be fairly short so that the program responds to CTRL+C in a fairly timely
  * manner.  But when debugging, it is sometimes helpful to use a very long timeout. */
-//#define BPCAT_MAX_WAIT_MSEC         1800000
+
+/* #define BPCAT_MAX_WAIT_MSEC         1800000 */
 #define BPCAT_MAX_WAIT_MSEC 250
 
 #define BPCAT_BUNDLE_BUFFER_SIZE  16384
@@ -1027,7 +1028,7 @@ int main(int argc, char *argv[])
     {
         bplib_route_maintenance_request_wait(rtbl);
 
-        // fprintf(stderr, "@%lu: Maintenance running...\n", (unsigned long)bplib_os_get_dtntime_ms());
+        /* fprintf(stderr, "@%lu: Maintenance running...\n", (unsigned long)bplib_os_get_dtntime_ms()); */
 
         /* do maintenance regardless of what the "request" returned, as that
          * currently only reflects actual requests, not time-based poll actions */

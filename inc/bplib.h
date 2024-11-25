@@ -296,7 +296,7 @@ int bplib_query_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_varia
 int bplib_config_integer(bplib_routetbl_t *rtbl, bp_handle_t intf_id, bplib_variable_t var_id, bp_sval_t value);
 
 #ifdef __cplusplus
-} // extern "C"
+} /* extern "C" */
 #endif
 
 #endif /* BPLIB_H */

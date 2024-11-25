@@ -33,9 +33,7 @@
 #include "bplib_os.h"
 #include "v7_mpool_internal.h"
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_subq_init
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_subq_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_base_t *qblk)
@@ -46,6 +44,9 @@ void bplib_mpool_subq_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_bas
     qblk->push_count = 0;
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 void bplib_mpool_subq_workitem_init(bplib_mpool_block_t *base_block, bplib_mpool_subq_workitem_t *wblk)
 {
     bplib_mpool_job_init(base_block, &wblk->job_header);
@@ -53,6 +54,9 @@ void bplib_mpool_subq_workitem_init(bplib_mpool_block_t *base_block, bplib_mpool
     wblk->current_depth_limit = 0;
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 static int bplib_mpool_flow_event_handler(void *arg, bplib_mpool_block_t *jblk)
 {
     bplib_mpool_block_t             *fblk;
@@ -100,9 +104,7 @@ static int bplib_mpool_flow_event_handler(void *arg, bplib_mpool_block_t *jblk)
     return 0;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_flow_init
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_flow_init(bplib_mpool_block_t *base_block, bplib_mpool_flow_t *fblk)
@@ -114,9 +116,7 @@ void bplib_mpool_flow_init(bplib_mpool_block_t *base_block, bplib_mpool_flow_t *
     bplib_mpool_subq_workitem_init(base_block, &fblk->egress);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_subq_push_single
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_subq_push_single(bplib_mpool_subq_base_t *subq, bplib_mpool_block_t *cpb)
@@ -125,9 +125,7 @@ void bplib_mpool_subq_push_single(bplib_mpool_subq_base_t *subq, bplib_mpool_blo
     ++subq->push_count;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_list_count_blocks
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 uint32_t bplib_mpool_list_count_blocks(bplib_mpool_block_t *list)
@@ -146,9 +144,7 @@ uint32_t bplib_mpool_list_count_blocks(bplib_mpool_block_t *list)
     return count;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_subq_merge_list
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 uint32_t bplib_mpool_subq_merge_list(bplib_mpool_subq_base_t *subq_dst, bplib_mpool_block_t *list)
@@ -165,9 +161,7 @@ uint32_t bplib_mpool_subq_merge_list(bplib_mpool_subq_base_t *subq_dst, bplib_mp
     return block_count;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_subq_move_all
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 uint32_t bplib_mpool_subq_move_all(bplib_mpool_subq_base_t *subq_dst, bplib_mpool_subq_base_t *subq_src)
@@ -186,9 +180,7 @@ uint32_t bplib_mpool_subq_move_all(bplib_mpool_subq_base_t *subq_dst, bplib_mpoo
     return queue_depth;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_subq_drop_all
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 uint32_t bplib_mpool_subq_drop_all(bplib_mpool_t *pool, bplib_mpool_subq_base_t *subq)
@@ -205,9 +197,7 @@ uint32_t bplib_mpool_subq_drop_all(bplib_mpool_t *pool, bplib_mpool_subq_base_t 
     return queue_depth;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_subq_pull_single
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_subq_pull_single(bplib_mpool_subq_base_t *subq)
@@ -227,9 +217,7 @@ bplib_mpool_block_t *bplib_mpool_subq_pull_single(bplib_mpool_subq_base_t *subq)
     return node;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_flow_cast
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb)
@@ -246,8 +234,6 @@ bplib_mpool_flow_t *bplib_mpool_flow_cast(bplib_mpool_block_t *cb)
 }
 
 /*----------------------------------------------------------------
- *
- * Function: bplib_mpool_subq_workitem_wait_for_space
  *
  * Internal function, lock must be held when invoked
  *
@@ -273,8 +259,6 @@ bool bplib_mpool_subq_workitem_wait_for_space(bplib_mpool_lock_t *lock, bplib_mp
 
 /*----------------------------------------------------------------
  *
- * Function: bplib_mpool_subq_workitem_wait_for_fill
- *
  * Internal function, lock must be held when invoked
  *
  *-----------------------------------------------------------------*/
@@ -295,9 +279,7 @@ bool bplib_mpool_subq_workitem_wait_for_fill(bplib_mpool_lock_t *lock, bplib_mpo
     return (curr_depth >= quantity);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_flow_try_push
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bool bplib_mpool_flow_try_push(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_block_t *qblk, uint64_t abs_timeout)
@@ -329,6 +311,9 @@ bool bplib_mpool_flow_try_push(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpoo
     return got_space;
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_flow_try_pull(bplib_mpool_subq_workitem_t *subq_src, uint64_t abs_timeout)
 {
     bplib_mpool_lock_t  *lock;
@@ -354,6 +339,9 @@ bplib_mpool_block_t *bplib_mpool_flow_try_pull(bplib_mpool_subq_workitem_t *subq
     return qblk;
 }
 
+/*-----------------------------------------------------------------
+ *
+ *-----------------------------------------------------------------*/
 uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bplib_mpool_subq_workitem_t *subq_src,
                                        uint64_t abs_timeout)
 {
@@ -403,9 +391,7 @@ uint32_t bplib_mpool_flow_try_move_all(bplib_mpool_subq_workitem_t *subq_dst, bp
     return quantity;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_flow_disable
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq)
@@ -428,9 +414,7 @@ uint32_t bplib_mpool_flow_disable(bplib_mpool_subq_workitem_t *subq)
     return quantity_dropped;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_flow_enable
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 void bplib_mpool_flow_enable(bplib_mpool_subq_workitem_t *subq, uint32_t depth_limit)
@@ -447,9 +431,7 @@ void bplib_mpool_flow_enable(bplib_mpool_subq_workitem_t *subq, uint32_t depth_l
     bplib_mpool_lock_release(lock);
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_flow_alloc
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_number, void *init_arg)
@@ -464,9 +446,7 @@ bplib_mpool_block_t *bplib_mpool_flow_alloc(bplib_mpool_t *pool, uint32_t magic_
     return (bplib_mpool_block_t *)result;
 }
 
-/*----------------------------------------------------------------
- *
- * Function: bplib_mpool_flow_modify_flags
+/*-----------------------------------------------------------------
  *
  *-----------------------------------------------------------------*/
 bool bplib_mpool_flow_modify_flags(bplib_mpool_block_t *cb, uint32_t set_bits, uint32_t clear_bits)
