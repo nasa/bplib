@@ -39,11 +39,6 @@
 /* ====== */
 
 #define BPLIB_AS_NUM_CNTRS      (79u)   /** \brief Total number of MIB counters */
-#define BPLIB_AS_NUM_NODE_CNTRS (69u)   /** \brief Number of resettable node MIB counters */
-#define BPLIB_AS_NUM_SRC_CNTRS  (49u)   /** \brief Number of resettable source MIB counters */
-#define BPLIB_AS_NUM_BNDL_CNTRS (64u)   /** \brief Number of bundle-related MIB counters */
-#define BPLIB_AS_BNDL_SRC_START (51u)   /** \brief Index 51 is the start of bundle-related source counters */
-#define BPLIB_AS_NUM_ERR_CNTRS  (15u)   /** \brief Number of error-related MIB counters */
 
 /* ======= */
 /* Typdefs */
@@ -211,21 +206,21 @@ typedef struct
   */
 typedef struct
 {
-    BPLib_SourceMibCountersSet_t SourceCounters[BPLIB_MAX_NUM_SOURCE_EID]; /**< \brief Counters for each source */
+    BPLib_SourceMibCountersSet_t SourceCounters[BPLIB_MAX_NUM_SOURCE_EID]; /** \brief Counters for each source */
 
     uint32_t Spare2;
-    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
+    uint32_t TimeBootEra;                   /** \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;                 /** \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;             /** \brief Time Correlation Factor */
 } BPLib_SourceMibCountersHkTlm_Payload_t;
 
 /* ======= */
 /* Globals */
 /* ======= */
 
-extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
-extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
-extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
+extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
+extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
+extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
 
 /* =================== */
 /* Function Prototypes */

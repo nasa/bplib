@@ -44,11 +44,9 @@ BPLib_Status_t BPLib_AS_Init(void)
 
     // Instantiate mutex to protect counter memory space
 
-    memset((void*) &BPLib_AS_NodeCountersPayload,        0, sizeof(BPLib_AS_NodeCountersPayload));
-    memset((void*) &BPLib_AS_SourceCountersPayload,      0, sizeof(BPLib_AS_SourceCountersPayload));
-    memset((void*) &BPLib_AS_ChannelContactStatsPayload, 0, sizeof(BPLib_AS_ChannelContactStatsPayload));
-
+    /* Instantiate all payloads under the stewardship of AS */
     BPLib_AS_ResetAllCounters();
+    memset((void*) &BPLib_AS_ChannelContactStatsPayload, 0, sizeof(BPLib_AS_ChannelContactStatsPayload));
 
     return Status;
 }
@@ -95,7 +93,7 @@ void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
 
     if (Status == BPLIB_SUCCESS)
     {
-        /* Decrement the node counter */
+        /* Decrement the counter */
         CounterValue -= Amount;
 
         /*
@@ -121,10 +119,11 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
 
+    /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;
 
     if (!BPLib_AS_EidIsValid(SourceEid))
-    {
+    { /* Invalid source EID */
         BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Could not reset source counters due to an invalid source EID (%d)",
@@ -133,7 +132,8 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
         Status = BPLIB_AS_INVALID_EID;
     }
     else
-    {
+    { /* Valid source EID */
+        /* Reset all node counters that overlap with source counters */
         BPLib_AS_NodeCountersPayload.AduCountDelivered                  = 0;
         BPLib_AS_NodeCountersPayload.AduCountReceived                   = 0;
         BPLib_AS_NodeCountersPayload.BundleCountAbandoned               = 0;
@@ -184,6 +184,7 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
         BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid       = 0;
         BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks       = 0;
 
+        /* Set all source counters to 0 */
         memset((void*) &BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid], 0,
                 sizeof(BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid]));
     }
@@ -195,10 +196,11 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
 
+    /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;
 
     if (!BPLib_AS_EidIsValid(SourceEid))
-    {
+    { /* Invalid source EID*/
         BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Could not reset bundle counters due to invalid source EID (%d)",
@@ -207,7 +209,8 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
         Status = BPLIB_AS_INVALID_EID;
     }
     else
-    {
+    { /* Valid source EID */
+        /* Reset the bundle counters associated with nodes only */
         BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = 0;
         BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted  = 0;
         BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted   = 0;
@@ -225,6 +228,7 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
         BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded    = 0;
         BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs           = 0;
 
+        /* Reset bundle counters associated with nodes AND sources */
         BPLib_AS_NodeCountersPayload.AduCountDelivered                                              = 0;
         BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].AduCountDelivered                  = 0;
 
@@ -377,10 +381,11 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
 
+    /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;
 
     if (!BPLib_AS_EidIsValid(SourceEid))
-    {
+    { /* Invalid source EID */
         BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID,
                             BPLib_EM_EventType_ERROR,
                             "Could not reset error counters due to invalid source EID (%d)",
@@ -389,10 +394,12 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
         Status = BPLIB_AS_INVALID_EID;
     }
     else
-    {
+    { /* Valid source EID */
+        /* Reset node-only error counters */
         BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount = 0;
         BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock    = 0;
 
+        /* Reset all node error counters with corresponding source error counters */
         BPLib_AS_NodeCountersPayload.BundleCountAbandoned                                           = 0;
         BPLib_AS_SourceCountersPayload.SourceCounters[SourceEid].BundleCountAbandoned               = 0;
 

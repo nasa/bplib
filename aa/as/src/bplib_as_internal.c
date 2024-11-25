@@ -37,14 +37,16 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid)
 BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t* ReturnPtr)
 {
     BPLib_Status_t Status;
+
+    /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;
 
     if (!BPLib_AS_EidIsValid(SourceEid))
-    {
+    { /* Invalid source EID */
         Status = BPLIB_AS_INVALID_EID;
     }
     else
-    {
+    { /* Valid source EID */
         /* Node packet */
         switch (Counter)
         {
@@ -469,6 +471,7 @@ BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint3
 {
     BPLib_Status_t Status;
 
+    /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;
 
     if (!BPLib_AS_EidIsValid(SourceEid))
