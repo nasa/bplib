@@ -70,15 +70,21 @@ typedef struct BPLib_IpnAddr
 ** Macros
 */
 
+/** @defgroup BPLib_ReturnCodes BPLib Return Codes
+ * @{
+ */
 /* General Return Codes */
-#define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)
-#define BPLIB_ERROR                         ((BPLib_Status_t) -1)
-#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)
-#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)
-#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4u) /* Table validation error code */
-#define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5u) // BPLib Red-Black Tree (RBT) Duplicate Search Result
-#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6u)
+#define BPLIB_SUCCESS                       ((BPLib_Status_t)  0) ///< Successful execution
+#define BPLIB_ERROR                         ((BPLib_Status_t) -1) ///< Failed execution
+#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2) ///< Unimplemented function
+#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3) ///< Unknown return status
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4) /* Table validation error code */
+#define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5) // BPLib Red-Black Tree (RBT) Duplicate Search Result
+#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6)
 
+/** @defgroup BPLib_ErrorCodes BPLib Error Code Defines
+ * @{
+ */
 /* Framework Proxy Errors */
 #define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -7u)
 

@@ -28,17 +28,17 @@ variables:
   BPLIB_RELEASE_BUILD: bplib-build-matrix-Release-OSAL/
   CMAKE_BPLIB_DEBUG_DEFS: "-DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DBPLIB_OS_LAYER=OSAL -DCMAKE_PREFIX_PATH=/usr/local/lib/cmake"
   BPLIB_DEBUG_BUILD: bplib-build-matrix-Debug-OSAL/
+  BPLIB_DOC_BUILD: bplib-build-matrix-Doc/
+  CMAKE_BPLIB_DOC_DEFS: "-DCMAKE_BUILD_TYPE=Debug -DBPLIB_OS_LAYER=NONE"
 
 stages:          # List of stages for jobs, and their order of execution
   - build-release
   - build-debug
+  - build-docs
 
 # Defaults for every job (unless overridden)
 default:
   before_script:
-    - mkdir -p $HOME/.ssh && chmod 0700 $HOME/.ssh
-    - ssh-keyscan github.com >> $HOME/.ssh/known_hosts
-    - cat $HOME/.ssh/known_hosts
     # Log version and context information
     - touch ${CI_JOB_INFO_LOG}
     - echo "CI_PIPELINE_CREATED_AT=${CI_PIPELINE_CREATED_AT}" | tee -a ${CI_JOB_INFO_LOG}
@@ -62,7 +62,8 @@ default:
 
 # Build bplib release version
 build-release-job:
-  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
+  tags:
+  - dtn-aws-plumbed-dev
   stage: build-release
   script:
    - git status
@@ -87,7 +88,8 @@ build-release-job:
     expire_in: 1 day
 
 build-debug-job:
-  image: aetd-dockerlab.gsfc.nasa.gov/gsfc-dtn/cloud-infrastructure/wg-overlay/devtools-ubuntu22
+  tags:
+  - dtn-aws-plumbed-dev
   stage: build-debug
   script:
    - git status
@@ -110,3 +112,19 @@ build-debug-job:
       - ${CI_JOB_INFO_LOG}
       - ${BPLIB_DEBUG_BUILD}
     expire_in: 1 day
+
+build-docs-job:
+  tags:
+  - dtn-aws-plumbed-dev
+  stage: build-docs
+  script:
+   # Build the BPLib API Guide
+   - cmake $CMAKE_BPLIB_DOC_DEFS -B ${BPLIB_DOC_BUILD}
+   - cd ${BPLIB_DOC_BUILD}
+   - make bplib-apiguide
+
+  artifacts:
+    paths:
+      - ${BPLIB_DOC_BUILD}/docs/doc-src/html/
+    expire_in: 1 day
+
