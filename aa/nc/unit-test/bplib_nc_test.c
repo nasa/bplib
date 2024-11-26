@@ -268,7 +268,7 @@ void Test_BPLib_NC_ResetSourceCounters_Error(void)
     UtAssert_STUB_COUNT(BPLib_AS_ResetSourceCounters, 1);
 
     /* Verify event */
-    BPLib_NC_Test_Verify_Event(0, BPLIB_AS_RESET_SRC_ERR_EID, "Could not reset source counters with source EID %d");
+    BPLib_NC_Test_Verify_Event(0, BPLIB_AS_RESET_SRC_ERR_EID, "Could not reset source counters with source EID %d, RC = %d");
 }
 
 void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
@@ -298,7 +298,7 @@ void Test_BPLib_NC_ResetBundleCounters_Error(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_AS_RESET_BNDL_ERR_EID,
-                                "Could not reset bundle counters with source EID %d");
+                                "Could not reset bundle counters with source EID %d, RC = %d");
 }
 
 void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
@@ -328,7 +328,7 @@ void Test_BPLib_NC_ResetErrorCounters_Error(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_AS_RESET_ERR_ERR_EID,
-                                "Could not reset error counters with source EID %d");
+                                "Could not reset error counters with source EID %d, RC = %d");
 }
 
 void Test_BPLib_NC_AddApplication_Nominal(void)
