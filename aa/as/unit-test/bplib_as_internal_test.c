@@ -37,8 +37,64 @@ void Test_BPLib_AS_EidIsValid_Error(void)
     UtAssert_BOOL_FALSE(BPLib_AS_EidIsValid(BPLIB_MAX_NUM_SOURCE_EID));
 }
 
+void Test_BPLib_AS_SetCounter_Nominal(void)
+{
+    int16_t  SourceEid;
+    uint32_t TestValue;
+
+    SourceEid = 2;
+    TestValue = 6;
+
+    /* Set values to test against */
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue - 2;
+    // BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue - 2;
+
+    /* Run function under test */
+    BPLib_AS_SetCounter(SourceEid, BUNDLE_COUNT_CUSTODY_TRANSFERRED, TestValue);
+
+    /* Verify that counter is the expected value */
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
+    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
+}
+
+void Test_BPLib_AS_SetCounter_Error(void)
+{
+    int16_t  SourceEid;
+    uint32_t TestValue;
+
+    /* === Invalid EID test === */
+
+    /* Set values to test against */
+    SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
+    TestValue = 1;
+
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED] = TestValue;
+
+    /* Run the function under test */
+    BPLib_AS_SetCounter(SourceEid, BUNDLE_COUNT_DELETED, TestValue + 10);
+
+    /* Verify that counter is the expected value */
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
+
+    /* === Unknown node counter test === */
+
+    /* Set values to test against */
+    SourceEid = 2;
+    TestValue = 3;
+
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED] = TestValue;
+
+    /* Run the function under test */
+    BPLib_AS_SetCounter(SourceEid, BPLIB_AS_NUM_NODE_CNTRS, TestValue + 2);
+
+    /* Verify that counter is the expected value */
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
+}
+
 void TestBplibAsInternal_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_EidIsValid_Nominal);
     ADD_TEST(Test_BPLib_AS_EidIsValid_Error);
+    ADD_TEST(Test_BPLib_AS_SetCounter_Nominal);
+    ADD_TEST(Test_BPLib_AS_SetCounter_Error);
 }

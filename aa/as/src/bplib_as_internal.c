@@ -33,3 +33,39 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid)
 {
     return (SourceEid >= 0 && SourceEid < BPLIB_MAX_NUM_SOURCE_EID);
 }
+
+BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLIB_SUCCESS;
+
+    if (BPLib_AS_EidIsValid(SourceEid))
+    {
+        if (Counter > -1 && Counter < BPLIB_AS_NUM_NODE_CNTRS)
+        { // Counter is within range
+            BPLib_AS_NodeCountersPayload.NodeCounters[Counter] = Value;
+
+            /*
+            if (Counter > -1 && Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
+            { // Counter is within range
+                BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[Counter] = Value;
+            }
+            else
+            { // Counter is out of valid range
+                Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
+            }
+            */
+        }
+        else
+        { // Counter is out of valid range
+            Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
+        }
+    }
+    else
+    {
+        Status = BPLIB_AS_INVALID_EID;
+    }
+
+    return Status;
+}
