@@ -112,7 +112,6 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
 {
     BPLib_Status_t Status;
-    int16_t        CounterLoop;
 
     /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;

@@ -23,7 +23,6 @@
 /* ======== */
 
 #include "bplib_nc.h"
-#include "bplib_as_internal.h"
 
 /* ======= */
 /* Globals */
@@ -47,22 +46,18 @@ BPLib_Status_t BPLib_NC_Init(void)
 
 void BPLib_NC_AddAllApplications(void)
 {
-    BPLib_Status_t Status;
-    // uint8_t AppIdx;
-    // ??? AppList[???];
-    // BPLib_AddApplication_Payload_t AddAllAppsPayload;
-
-    Status = BPLIB_SUCCESS;
-
     /*
+    BPLib_Status_t Status;
+    uint8_t AppIdx;
+    ??? AppList[???];
+    BPLib_AddApplication_Payload_t AddAllAppsPayload;
+
     for (AppIdx = 0; AppIdx < <num apps>; AppIdx++)
     {
         AddAllAppsPayload.ChanId = AppList[AppIdx]
         Status &= BPLib_NC_AddApplication(AddAllAppsPayload);
     }
-    */
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -82,22 +77,20 @@ void BPLib_NC_AddAllApplications(void)
 
 void BPLib_NC_StartAllApplications(void)
 {
+    /*
     BPLib_Status_t Status;
-    // BPLib_StartApplication_Payload_t StartAllAppsPayload;
-    // uint8_t AppIdx;
-    // ??? AppList[???];
+    BPLib_StartApplication_Payload_t StartAllAppsPayload;
+    uint8_t AppIdx;
+    ??? AppList[???];
 
     Status = BPLIB_SUCCESS;
 
-    /*
     for (AppIdx = 0; AppIdx < <num apps>; AppIdx++)
     {
         StartAllAppsPayload.ChanId = AppList[AppIdx];
         Status &= BPLib_NC_StartApplication(StartAllAppsPayload);
     }
-    */
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -117,11 +110,11 @@ void BPLib_NC_StartAllApplications(void)
 
 void BPLib_NC_VerifyBundleStorage(void)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -141,11 +134,11 @@ void BPLib_NC_VerifyBundleStorage(void)
 
 void BPLib_NC_InitBundleStorage(void)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -165,11 +158,11 @@ void BPLib_NC_InitBundleStorage(void)
 
 void BPLib_NC_VerifyBundleMetadata(void)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -189,15 +182,11 @@ void BPLib_NC_VerifyBundleMetadata(void)
 
 void BPLib_NC_RebuildBundleMetadata(void)
 {
+    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    /*
     Status = BPLib_STOR_RebuildBundleMetadata();
-    */
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -217,15 +206,11 @@ void BPLib_NC_RebuildBundleMetadata(void)
 
 void BPLib_NC_ClearVolatile(void)
 {
+    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    /*
     Status = BPLib_STOR_ClearVolatile();
-    */
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -245,11 +230,11 @@ void BPLib_NC_ClearVolatile(void)
 
 void BPLib_NC_ReloadSavedData(void)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -384,11 +369,11 @@ void BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payload)
 
 void BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -410,20 +395,18 @@ void BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload)
 
 void BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationState_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     Node Configuration calls Storage to set application state in-channel parameters to
     * Active
     * Passive, with action entry:
         * Defer
         * Abandon
             * Node Configuration sends Storage request to delete any bundles already queued for the channel and future bundles for that channel
-    */
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -485,11 +468,11 @@ void BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Payload)
 
 void BPLib_NC_AddAuthSources(const BPLib_AddAuthSources_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -511,11 +494,11 @@ void BPLib_NC_AddAuthSources(const BPLib_AddAuthSources_Payload_t Payload)
 
 void BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSources_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -537,11 +520,11 @@ void BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSources_Payload_t Payload)
 
 void BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -563,11 +546,11 @@ void BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_Payload_t 
 
 void BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySources_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -589,11 +572,11 @@ void BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySources_Payl
 
 void BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodians_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -615,11 +598,11 @@ void BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodians_Payload_t Payload)
 
 void BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodians_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -641,11 +624,11 @@ void BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodians_Payload_t Pa
 
 void BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEid_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -667,11 +650,11 @@ void BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEid_Payload_t Payloa
 
 void BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEid_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -693,11 +676,11 @@ void BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEid_Payload_t 
 
 void BPLib_NC_AddLatency(const BPLib_AddLatency_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -719,11 +702,11 @@ void BPLib_NC_AddLatency(const BPLib_AddLatency_Payload_t Payload)
 
 void BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -745,19 +728,17 @@ void BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payload)
 
 void BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
-    Verify that table was validated via cFS table upload.    
-    Checks if path is available for assignment
-    Assigns an instance of BI and CLA
-    Configures assigned instances of BI, CT, EBP, CLA based on configuration
-    Registers CLA with Storage given the table configuration (Path ID, EID map)
-    */
+    1) Verify that table was validated via cFS table upload.    
+    2) Checks if path is available for assignment
+    3) Assigns an instance of BI and CLA
+    4) Configures assigned instances of BI, CT, EBP, CLA based on configuration
+    5) Registers CLA with Storage given the table configuration (Path ID, EID map)
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -779,16 +760,14 @@ void BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
 
 void BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
-    identify contact
+    - Identify contact
     Status = BPLib_CLA_ContactStart();
-    */
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -810,19 +789,16 @@ void BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
 
 void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
-    identify contact to be stopped
-
+    - Identify contact to be stopped
     Status = BPLib_CLA_ContactStop();
 
-    Node Configuration requests Storage clear all queues associated with the CLA. Storage clears the queues    
-    */
+    - Node Configuration requests Storage clear all queues associated with the CLA. Storage clears the queues    
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -844,16 +820,14 @@ void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
 
 void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
-    If contact has been stopped, Node Configuration deconfigures the CLA
-    Node Configuration requests BI/CT/EBP/CLA instances to remove configuration
-    */
+    - If contact has been stopped, Node Configuration deconfigures the CLA
+    - Node Configuration requests BI/CT/EBP/CLA instances to remove configuration
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -875,19 +849,17 @@ void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
 
 void BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
-    NC verifies that specified EID (source) is valid (EID schema, table size, and duplicate checking)
-    If valid, NC adds entry to table and synchronously begins using updated table
-    NC sends notification to Framework Proxy that MIB configuration has been updated
-    Framework Proxy notifies cFS Table Services of MIB table update
-    NC calls AS to set the MIB array key
-    */
+    - NC verifies that specified EID (source) is valid (EID schema, table size, and duplicate checking)
+    - If valid, NC adds entry to table and synchronously begins using updated table
+    - NC sends notification to Framework Proxy that MIB configuration has been updated
+    - Framework Proxy notifies cFS Table Services of MIB table update
+    - NC calls AS to set the MIB array key
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -909,11 +881,11 @@ void BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)
 
 void BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -935,19 +907,17 @@ void BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_t Payload)
 
 void BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     // NC verifies that specified MIB item is valid index into the list of MIB items
     if (Payload.Index > MAX_MIB_ARR_SIZE || Payload.Index < 0)
     {
         return BPLIB_INVALID_MIB_ITEM_INDEX;
     }
-    */
 
-    /*
     // NC verifies that value provided is a valid value for the MIB item
     if (Payload.Value > MAX_MIB_VALUE || Payload.Value < MIN_MIB_VALUE)
     {
@@ -960,14 +930,10 @@ void BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
 
         // NC synchronously begins using updated table
     }
-    */
 
-    /*
     // Framework Proxy notifies cFS Table Services of MIB table update
     Status = (BPLib_Status_t) BPA_TABLEP_TableUpdate();
-    */
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -1009,21 +975,14 @@ void BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
 
 void BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    /*
     Status = BPLib_STOR_AddStorageAllocation(Payload.EID, Payload.AllocSize);
 
     if (Status == BPLIB_SUCCESS)
     {
         Status = (BPLib_Status_t) BPA_TABLEP_TableUpdate();
-    }
-    */
-
-    /*
-    if (Status == BPLIB_SUCCESS)
     */
     {
         BPLib_AS_Increment(0, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
@@ -1058,16 +1017,14 @@ void BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Payload_t Pa
 
 void BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocation_Payload_t Payload)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
-    Node Configuration notifies Storage to remove an allocation with a given EID pattern and allocation size
-    If storage update is successful, NC calls FWP to sync table updates with host
-    */
+    - Node Configuration notifies Storage to remove an allocation with a given EID pattern and allocation size
+    - If storage update is successful, NC calls FWP to sync table updates with host
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
@@ -1089,11 +1046,11 @@ void BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocation_Payloa
 
 void BPLib_NC_PerformSelfTest(void)
 {
+    /*
     BPLib_Status_t Status;
 
     Status = BPLIB_SUCCESS;
 
-    /*
     if (Status == BPLIB_SUCCESS)
     */
     {
