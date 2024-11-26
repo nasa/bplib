@@ -28,6 +28,13 @@
 /* Function Definitions */
 /* ==================== */
 
+void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
+{
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[EventNum].EventID, EventID);
+    UtAssert_STRINGBUF_EQ(EventText, BPLIB_EM_EXPANDED_EVENT_SIZE,
+                            context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
 void BPLib_NC_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */

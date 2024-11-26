@@ -54,9 +54,9 @@ void Test_BPLib_NC_AddAllApplications_Nominal(void)
 {
     BPLib_NC_AddAllApplications();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_ADD_ALL_APPS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Add all applications directive is unimplemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_ALL_APPS_SUCCESS_EID,
+                                "Add all applications directive is unimplemented");
 }
 
 void Test_BPLib_NC_AddAllApplications_Error(void)
@@ -68,9 +68,9 @@ void Test_BPLib_NC_StartAllApplications_Nominal(void)
 {
     BPLib_NC_StartAllApplications();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_START_ALL_APPS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Start all applications directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0,BPLIB_NC_START_ALL_APPS_SUCCESS_EID,
+                                "Start all applications directive not implemented");
 }
 
 void Test_BPLib_NC_StartAllApplications_Error(void)
@@ -82,9 +82,9 @@ void Test_BPLib_NC_VerifyBundleStorage_Nominal(void)
 {
     BPLib_NC_VerifyBundleStorage();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_VERIF_BNDL_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Verify bundle storage directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_VERIF_BNDL_SUCCESS_EID,
+                                "Verify bundle storage directive not implemented");
 }
 
 void Test_BPLib_NC_VerifyBundleStorage_Error(void)
@@ -96,9 +96,9 @@ void Test_BPLib_NC_InitBundleStorage_Nominal(void)
 {
     BPLib_NC_InitBundleStorage();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_INIT_BNDL_STOR_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Initialize bundle storage directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_INIT_BNDL_STOR_SUCCESS_EID,
+                                "Initialize bundle storage directive not implemented");
 }
 
 void Test_BPLib_NC_InitBundleStorage_Error(void)
@@ -110,9 +110,9 @@ void Test_BPLib_NC_VerifyBundleMetadata_Nominal(void)
 {
     BPLib_NC_VerifyBundleMetadata();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_VERIF_BNDL_META_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Verify bundle metadata (7.2) directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_VERIF_BNDL_META_SUCCESS_EID,
+                                "Verify bundle metadata (7.2) directive not implemented");
 }
 
 void Test_BPLib_NC_VerifyBundleMetadata_Error(void)
@@ -124,9 +124,9 @@ void Test_BPLib_NC_RebuildBundleMetadata_Nominal(void)
 {
     BPLib_NC_RebuildBundleMetadata();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_REBUILD_BNDL_META_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Rebuild bundle metadata directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_REBUILD_BNDL_META_SUCCESS_EID,
+                                "Rebuild bundle metadata directive not implemented");
 }
 
 void Test_BPLib_NC_RebuildBundleMetadata_Error(void)
@@ -138,9 +138,9 @@ void Test_BPLib_NC_ClearVolatile_Nominal(void)
 {
     BPLib_NC_ClearVolatile();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_CLR_VOLATILE_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Clear volatile directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CLR_VOLATILE_SUCCESS_EID,
+                                "Clear volatile directive not implemented");
 }
 
 void Test_BPLib_NC_ClearVolatile_Error(void)
@@ -152,9 +152,9 @@ void Test_BPLib_NC_ReloadSavedData_Nominal(void)
 {
     BPLib_NC_ReloadSavedData();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RELOAD_SVD_DATA_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Reload saved data (7.2) directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RELOAD_SVD_DATA_SUCCESS_EID,
+                                "Reload saved data (7.2) directive not implemented");
 }
 
 void Test_BPLib_NC_ReloadSavedData_Error(void)
@@ -166,10 +166,11 @@ void Test_BPLib_NC_ResetAllCounters_Nominal(void)
 {
     BPLib_NC_ResetAllCounters();
 
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID,
+                                "Successful reset-all-counters directive");
+
     UtAssert_STUB_COUNT(BPLib_AS_ResetAllCounters, 1);
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successful reset-all-counters directive", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
 void Test_BPLib_NC_ResetAllCounters_Error(void)
@@ -187,9 +188,9 @@ void Test_BPLib_NC_ResetCounter_Nominal(void)
 
     BPLib_NC_ResetCounter(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successfully reset counter %d for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_CTR_SUCCESS_EID,
+                                "Successfully reset counter %d for source EID %d");
 }
 
 void Test_BPLib_NC_ResetCounter_Error(void)
@@ -210,9 +211,9 @@ void Test_BPLib_NC_ResetCounter_Error(void)
 
     UtAssert_STUB_COUNT(BPLib_AS_ResetCounter, 1);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_CTR_ERR_EID);
-    UtAssert_STRINGBUF_EQ("Could not reset counter %d with source EID %d, RC = %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_CTR_ERR_EID,
+                                "Could not reset counter %d with source EID %d, RC = %d");
 
     /* === BPLIB_AS_UNKNOWN_NODE_CNTR returned === */
 
@@ -223,9 +224,9 @@ void Test_BPLib_NC_ResetCounter_Error(void)
 
     UtAssert_STUB_COUNT(BPLib_AS_ResetCounter, 2);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[1].EventID, BPLIB_NC_RESET_CTR_ERR_EID);
-    UtAssert_STRINGBUF_EQ("Could not reset counter %d with source EID %d, RC = %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[1].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(1, BPLIB_NC_RESET_CTR_ERR_EID,
+                                "Could not reset counter %d with source EID %d, RC = %d");
 
     /* === BPLIB_AS_UNKNOWN_SRC_CNTR returned === */
 
@@ -236,9 +237,9 @@ void Test_BPLib_NC_ResetCounter_Error(void)
 
     UtAssert_STUB_COUNT(BPLib_AS_ResetCounter, 3);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[2].EventID, BPLIB_NC_RESET_CTR_ERR_EID);
-    UtAssert_STRINGBUF_EQ("Could not reset counter %d with source EID %d, RC = %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[2].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(2, BPLIB_NC_RESET_CTR_ERR_EID,
+                                "Could not reset counter %d with source EID %d, RC = %d");
 }
 
 void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
@@ -249,9 +250,9 @@ void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
     Payload.SourceEid = 2;
     BPLib_NC_ResetSourceCounters(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_SRC_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successfully reset source counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_SRC_CTRS_SUCCESS_EID,
+                                "Successfully reset source counters for source EID %d");
 }
 
 void Test_BPLib_NC_ResetSourceCounters_Error(void)
@@ -265,6 +266,9 @@ void Test_BPLib_NC_ResetSourceCounters_Error(void)
     BPLib_NC_ResetSourceCounters(Payload);
 
     UtAssert_STUB_COUNT(BPLib_AS_ResetSourceCounters, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_AS_RESET_SRC_ERR_EID, "Could not reset source counters with source EID %d");
 }
 
 void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
@@ -275,9 +279,9 @@ void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
     Payload.SourceEid = 2;
     BPLib_NC_ResetBundleCounters(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successfully reset bundle counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID,
+                                "Successfully reset bundle counters for source EID %d");
 }
 
 void Test_BPLib_NC_ResetBundleCounters_Error(void)
@@ -291,6 +295,10 @@ void Test_BPLib_NC_ResetBundleCounters_Error(void)
     BPLib_NC_ResetBundleCounters(Payload);
 
     UtAssert_STUB_COUNT(BPLib_AS_ResetBundleCounters, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_AS_RESET_BNDL_ERR_EID,
+                                "Could not reset bundle counters with source EID %d");
 }
 
 void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
@@ -301,9 +309,9 @@ void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
     Payload.SourceEid = 2;
     BPLib_NC_ResetErrorCounters(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successfully reset error counters for source EID %d", BPLIB_EM_EXPANDED_EVENT_SIZE,
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID,
+                                "Successfully reset error counters for source EID %d");
 }
 
 void Test_BPLib_NC_ResetErrorCounters_Error(void)
@@ -317,6 +325,10 @@ void Test_BPLib_NC_ResetErrorCounters_Error(void)
     BPLib_NC_ResetErrorCounters(Payload);
 
     UtAssert_STUB_COUNT(BPLib_AS_ResetErrorCounters, 1);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_AS_RESET_ERR_ERR_EID,
+                                "Could not reset error counters with source EID %d");
 }
 
 void Test_BPLib_NC_AddApplication_Nominal(void)
@@ -326,9 +338,9 @@ void Test_BPLib_NC_AddApplication_Nominal(void)
     Payload.ChanId = 1;
     BPLib_NC_AddApplication(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_ADD_APP_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successful add-application directive for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_APP_SUCCESS_EID,
+                                "Successful add-application directive for ChanId=%d");
 }
 
 void Test_BPLib_NC_AddApplication_Error(void)
@@ -355,9 +367,9 @@ void Test_BPLib_NC_RemoveApplication_Nominal(void)
     Payload.ExampleParameter = 2;
     BPLib_NC_RemoveApplication(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RM_APP_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Remove application directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_APP_SUCCESS_EID,
+                                "Remove application directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_RemoveApplication_Error(void)
@@ -377,9 +389,9 @@ void Test_BPLib_NC_SetRegistrationState_Nominal(void)
     Payload.ExampleParameter = 3;
     BPLib_NC_SetRegistrationState(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_SET_REGI_STAT_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Set registration state directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_REGI_STAT_SUCCESS_EID,
+                                "Set registration state directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_SetRegistrationState_Error(void)
@@ -399,9 +411,9 @@ void Test_BPLib_NC_StartApplication_Nominal(void)
     Payload.ChanId = 1;
     BPLib_NC_StartApplication(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_START_APP_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successful start-application directive for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_START_APP_SUCCESS_EID,
+                                "Successful start-application directive for ChanId=%d");
 }
 
 void Test_BPLib_NC_StartApplication_Error(void)
@@ -434,9 +446,9 @@ void Test_BPLib_NC_StopApplication_Nominal(void)
     Payload.ChanId = 1;
     BPLib_NC_StopApplication(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_STOP_APP_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Successful stop-application directive for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_STOP_APP_SUCCESS_EID,
+                                "Successful stop-application directive for ChanId=%d");
 }
 
 void Test_BPLib_NC_StopApplication_Error(void)
@@ -469,9 +481,9 @@ void Test_BPLib_NC_AddAuthSources_Nominal(void)
     Payload.ExampleParameter = 6;
     BPLib_NC_AddAuthSources(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_ADD_AUTH_SRCS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Add authorized sources directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_AUTH_SRCS_SUCCESS_EID,
+                                "Add authorized sources directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_AddAuthSources_Error(void)
@@ -491,9 +503,9 @@ void Test_BPLib_NC_RemoveAuthSources_Nominal(void)
     Payload.ExampleParameter = 7;
     BPLib_NC_RemoveAuthSources(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RM_AUTH_SRCS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Remove authorized sources directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_AUTH_SRCS_SUCCESS_EID,
+                                "Remove authorized sources directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_RemoveAuthSources_Error(void)
@@ -513,9 +525,9 @@ void Test_BPLib_NC_AddAuthCustodySources_Nominal(void)
     Payload.ExampleParameter = 8;
     BPLib_NC_AddAuthCustodySources(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_ADD_AUTH_CUST_SRCS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Add authorized custody sources directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_AUTH_CUST_SRCS_SUCCESS_EID,
+                                "Add authorized custody sources directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_AddAuthCustodySources_Error(void)
@@ -535,9 +547,9 @@ void Test_BPLib_NC_RemoveAuthCustodySources_Nominal(void)
     Payload.ExampleParameter = 9;
     BPLib_NC_RemoveAuthCustodySources(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RM_AUTH_CUST_SRCS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Remove authorized custody sources directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_AUTH_CUST_SRCS_SUCCESS_EID,
+                                "Remove authorized custody sources directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_RemoveAuthCustodySources_Error(void)
@@ -557,9 +569,9 @@ void Test_BPLib_NC_AddAuthCustodians_Nominal(void)
     Payload.ExampleParameter = 10;
     BPLib_NC_AddAuthCustodians(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_ADD_AUTH_CUSTODIANS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Add authorized custodians directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_AUTH_CUSTODIANS_SUCCESS_EID,
+                                "Add authorized custodians directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_AddAuthCustodians_Error(void)
@@ -579,9 +591,9 @@ void Test_BPLib_NC_RemoveAuthCustodians_Nominal(void)
     Payload.ExampleParameter = 11;
     BPLib_NC_RemoveAuthCustodians(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RM_AUTH_CUSTODIANS_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Remove authorized custodians directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_AUTH_CUSTODIANS_SUCCESS_EID,
+                                "Remove authorized custodians directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_RemoveAuthCustodians_Error(void)
@@ -601,9 +613,9 @@ void Test_BPLib_NC_AddAuthReportToEid_Nominal(void)
     Payload.ExampleParameter = 12;
     BPLib_NC_AddAuthReportToEid(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_ADD_AUTH_RPT_EID_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Add authorized report-to eid directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_AUTH_RPT_EID_SUCCESS_EID,
+                                "Add authorized report-to eid directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_AddAuthReportToEid_Error(void)
@@ -623,9 +635,9 @@ void Test_BPLib_NC_RemoveAuthReportToEid_Nominal(void)
     Payload.ExampleParameter = 13;
     BPLib_NC_RemoveAuthReportToEid(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RM_AUTH_RPT_EID_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Remove authorized report-to eid directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_AUTH_RPT_EID_SUCCESS_EID,
+                                "Remove authorized report-to eid directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_RemoveAuthReportToEid_Error(void)
@@ -645,9 +657,9 @@ void Test_BPLib_NC_AddLatency_Nominal(void)
     Payload.ExampleParameter = 14;
     BPLib_NC_AddLatency(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_ADD_LATENCY_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Add latency directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_LATENCY_SUCCESS_EID,
+                                "Add latency directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_AddLatency_Error(void)
@@ -667,9 +679,9 @@ void Test_BPLib_NC_RemoveLatency_Nominal(void)
     Payload.ExampleParameter = 15;
     BPLib_NC_RemoveLatency(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RM_LATENCY_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Remove latency directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_LATENCY_SUCCESS_EID,
+                                "Remove latency directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_RemoveLatency_Error(void)
@@ -689,9 +701,9 @@ void Test_BPLib_NC_ContactSetup_Nominal(void)
     Payload.ExampleParameter = 16;
     BPLib_NC_ContactSetup(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_CONTACT_SETUP_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Contact setup directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_SETUP_SUCCESS_EID,
+                                "Contact setup directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_ContactSetup_Error(void)
@@ -711,9 +723,9 @@ void Test_BPLib_NC_ContactStart_Nominal(void)
     Payload.ExampleParameter = 17;
     BPLib_NC_ContactStart(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_CONTACT_START_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Contact start directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_START_SUCCESS_EID,
+                                "Contact start directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_ContactStart_Error(void)
@@ -733,9 +745,9 @@ void Test_BPLib_NC_ContactStop_Nominal(void)
     Payload.ExampleParameter = 18;
     BPLib_NC_ContactStop(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_CONTACT_STOP_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Contact stop directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_STOP_SUCCESS_EID,
+                                "Contact stop directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_ContactStop_Error(void)
@@ -755,9 +767,9 @@ void Test_BPLib_NC_ContactTeardown_Nominal(void)
     Payload.ExampleParameter = 19;
     BPLib_NC_ContactTeardown(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_CONTACT_TEARDOWN_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Contact teardown directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_CONTACT_TEARDOWN_SUCCESS_EID,
+                                "Contact teardown directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_ContactTeardown_Error(void)
@@ -777,9 +789,9 @@ void Test_BPLib_NC_AddMibArrayKey_Nominal(void)
     Payload.ExampleParameter = 20;
     BPLib_NC_AddMibArrayKey(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_ADD_MIB_ARR_KEY_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Add mib array key directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_MIB_ARR_KEY_SUCCESS_EID,
+                                "Add mib array key directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_AddMibArrayKey_Error(void)
@@ -799,9 +811,9 @@ void Test_BPLib_NC_RemoveMibArrayKey_Nominal(void)
     Payload.ExampleParameter = 21;
     BPLib_NC_RemoveMibArrayKey(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RM_MIB_ARR_KEY_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Remove mib array key directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_MIB_ARR_KEY_SUCCESS_EID,
+                                "Remove mib array key directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_RemoveMibArrayKey_Error(void)
@@ -821,9 +833,9 @@ void Test_BPLib_NC_SetMibItem_Nominal(void)
     Payload.ExampleParameter = 22;
     BPLib_NC_SetMibItem(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_SET_MIB_ITEM_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Set mib item directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SET_MIB_ITEM_SUCCESS_EID,
+                                "Set mib item directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_SetMibItem_Error(void)
@@ -852,9 +864,9 @@ void Test_BPLib_NC_AddStorageAllocation_Nominal(void)
     Payload.ExampleParameter = 23;
     BPLib_NC_AddStorageAllocation(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_ADD_STOR_ALLOC_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Add storage allocation directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_STOR_ALLOC_SUCCESS_EID,
+                                "Add storage allocation directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_AddStorageAllocation_Error(void)
@@ -879,9 +891,9 @@ void Test_BPLib_NC_RemoveStorageAllocation_Nominal(void)
     Payload.ExampleParameter = 24;
     BPLib_NC_RemoveStorageAllocation(Payload);
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_RM_STOR_ALLOC_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Remove storage allocation directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_STOR_ALLOC_SUCCESS_EID,
+                                "Remove storage allocation directive not implemented, received %d in payload");
 }
 
 void Test_BPLib_NC_RemoveStorageAllocation_Error(void)
@@ -898,9 +910,9 @@ void Test_BPLib_NC_PerformSelfTest_Nominal(void)
 {
     BPLib_NC_PerformSelfTest();
 
-    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_NC_PERFORM_SELF_TEST_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Perform self test (7.2) directive not implemented", BPLIB_EM_EXPANDED_EVENT_SIZE, 
-                            context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_PERFORM_SELF_TEST_SUCCESS_EID,
+                                "Perform self test (7.2) directive not implemented");
 }
 
 void Test_BPLib_NC_PerformSelfTest_Error(void)
