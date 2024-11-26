@@ -47,7 +47,7 @@ void Test_BPLib_AS_SetGet_Nominal(void)
 
     SourceEid = 1;
 
-    for(CounterToTest = 0; CounterToTest < BPLIB_AS_NUM_CNTRS; CounterToTest++)
+    for(CounterToTest = 0; CounterToTest < BPLIB_AS_NUM_NODE_CNTRS; CounterToTest++)
     {
         /*
         ** Modify the value assigned to the counters just to verify that values are held over 
@@ -103,7 +103,7 @@ void Test_BPLib_AS_Get_Error(void)
     SourceEid = 1;
 
     /* Run the function under test */
-    Status = BPLib_AS_Get(SourceEid, BPLIB_AS_NUM_CNTRS, &TestValue);
+    Status = BPLib_AS_Get(SourceEid, BPLIB_AS_NUM_NODE_CNTRS, &TestValue);
 
     /* Assert that TestValue wasn't updated and BPLib_AS_Get() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
@@ -116,7 +116,7 @@ void Test_BPLib_AS_Get_Error(void)
     SourceEid = 2;
 
     // Run the function under test
-    Status = BPLib_AS_Get(SourceEid, BPLIB_AS_NUM_CNTRS, &TestValue);
+    Status = BPLib_AS_Get(SourceEid, BPLIB_AS_NUM_NODE_CNTRS, &TestValue);
 
     // Assert that TestValue wasn't updated and BPLib_AS_Get() was run unsuccessfully
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);
@@ -152,7 +152,7 @@ void Test_BPLib_AS_Set_Error(void)
     SourceEid = 1;
 
     /* Run the function under test */
-    Status = BPLib_AS_Set(SourceEid, BPLIB_AS_NUM_CNTRS, (uint32_t) TestValue);
+    Status = BPLib_AS_Set(SourceEid, BPLIB_AS_NUM_NODE_CNTRS, (uint32_t) TestValue);
 
     /* Assert that BPLib_AS_Set() was run unsuccessfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_NODE_CNTR, Status);
@@ -165,7 +165,7 @@ void Test_BPLib_AS_Set_Error(void)
     SourceEid = 2;
 
     // Run the function under test
-    Status = BPLib_AS_Set(SourceEid, BPLIB_AS_NUM_CNTRS, TestValue);
+    Status = BPLib_AS_Set(SourceEid, BPLIB_AS_NUM_NODE_CNTRS, TestValue);
 
     // Assert that BPLib_AS_Set() was run unsuccessfully
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_UNKNOWN_SRC_CNTR, Status);

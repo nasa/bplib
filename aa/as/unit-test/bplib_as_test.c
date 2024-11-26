@@ -86,7 +86,7 @@ void Test_BPLib_AS_Increment_Error(void)
     SourceEid = 2;
 
     /* Run the function under test */
-    BPLib_AS_Increment(SourceEid, BPLIB_AS_NUM_CNTRS, 5);
+    BPLib_AS_Increment(SourceEid, BPLIB_AS_NUM_NODE_CNTRS, 5);
 
     /* Verify expected event was issued */
     BPLib_AS_Test_Verify_Event(1, BPLIB_AS_INCREMENT_ERR_EID,
@@ -141,7 +141,7 @@ void Test_BPLib_AS_Decrement_Error(void)
     SourceEid = 2;
 
     /* Run the function under test */
-    BPLib_AS_Decrement(SourceEid, BPLIB_AS_NUM_CNTRS, 5);
+    BPLib_AS_Decrement(SourceEid, BPLIB_AS_NUM_NODE_CNTRS, 5);
 
     /* Verify expected event was issued */
     BPLib_AS_Test_Verify_Event(1, BPLIB_AS_DECREMENT_ERR_EID,
