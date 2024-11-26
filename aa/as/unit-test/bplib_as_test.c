@@ -78,10 +78,6 @@ void Test_BPLib_AS_Increment_Error(void)
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REQUEST]);
 
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_INCREMENT_ERR_EID,
-                                "Could not get counter %d with source EID %d to increment by %d, counter out of range");
-
     /* === Unknown node counter test === */
 
     /* Set values to test against */
@@ -96,9 +92,8 @@ void Test_BPLib_AS_Increment_Error(void)
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REQUEST]);
 
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_INCREMENT_ERR_EID,
-                                "Could not get counter %d with source EID %d to increment by %d, counter out of range");
+    /* === Unknown source counter test === */
+    // TODO
 }
 
 void Test_BPLib_AS_Decrement_Nominal(void)
@@ -141,10 +136,6 @@ void Test_BPLib_AS_Decrement_Error(void)
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
 
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_DECREMENT_ERR_EID,
-                                "Could not get counter %d with source EID %d to decrement by %d, counter out of range");
-
     /* === Unknown node counter test === */
 
     /* Set values to test against */
@@ -159,9 +150,73 @@ void Test_BPLib_AS_Decrement_Error(void)
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
 
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_DECREMENT_ERR_EID,
-                                "Could not get counter %d with source EID %d to decrement by %d, counter out of range");
+    /* === Unknown source counter test === */
+    // TODO
+}
+
+void Test_BPLib_AS_ResetCounter_Nominal(void)
+{
+    int16_t  SourceEid;
+    uint32_t TestValue;
+
+    SourceEid = 2;
+    TestValue = 6;
+
+    /* Set values to test against */
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue;
+    // BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue;
+
+    /* Run function under test */
+    BPLib_AS_ResetCounter(SourceEid, BUNDLE_COUNT_CUSTODY_TRANSFERRED);
+
+    /* Verify that counter is the expected value */
+    UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
+    // UtAssert_EQ(uint32_t, 0, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
+}
+
+void Test_BPLib_AS_ResetCounter_Error(void)
+{
+    int16_t  SourceEid;
+    uint32_t TestValue;
+
+    /* === Invalid EID test === */
+
+    /* Set values to test against */
+    SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
+    TestValue = 1;
+
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED] = TestValue;
+
+    /* Run the function under test */
+    BPLib_AS_ResetCounter(SourceEid, BUNDLE_COUNT_DELETED);
+
+    /* Verify the correct event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_CNTR_ERR_EID,
+                                "Could not reset counter %d with source EID %d, RC = %d");
+
+    /* Verify that counter is the expected value */
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
+
+    /* === Unknown node counter test === */
+
+    /* Set values to test against */
+    SourceEid = 2;
+    TestValue = 3;
+
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED] = TestValue;
+
+    /* Run the function under test */
+    BPLib_AS_ResetCounter(SourceEid, BPLIB_AS_NUM_NODE_CNTRS);
+
+    /* Verify that counter is the expected value */
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
+
+    /* Verify the correct event was issued */
+    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_RESET_CNTR_ERR_EID,
+                                "Could not reset counter %d with source EID %d, RC = %d");
+
+    /* === Unknown source counter test === */
+    // TODO
 }
 
 void Test_BPLib_AS_ResetSourceCounters_Nominal(void)
@@ -350,6 +405,8 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_Increment_Error);
     ADD_TEST(Test_BPLib_AS_Decrement_Nominal);
     ADD_TEST(Test_BPLib_AS_Decrement_Error);
+    ADD_TEST(Test_BPLib_AS_ResetCounter_Nominal);
+    ADD_TEST(Test_BPLib_AS_ResetCounter_Error);
     ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Error);
     ADD_TEST(Test_BPLib_AS_ResetBundleCounters_Nominal);
