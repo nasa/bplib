@@ -204,7 +204,7 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
 
     /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID,
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_SRC_ERR_EID,
                                 "Could not reset source counters due to an invalid source EID (%d)");
 }
 
@@ -244,7 +244,7 @@ void Test_BPLib_AS_ResetBundleCounters_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
 
     /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_BNDL_ERR_EID,
                                 "Could not reset bundle counters due to invalid source EID (%d)");
 }
 
@@ -284,7 +284,7 @@ void Test_BPLib_AS_ResetErrorCounters_Error(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
 
     /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID,
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_ERR_ERR_EID,
                                 "Could not reset error counters due to invalid source EID (%d)");
 }
 

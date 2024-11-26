@@ -122,11 +122,9 @@
 /* AS error event IDs */
 #define BPLIB_AS_INCREMENT_ERR_EID                      (579u)
 #define BPLIB_AS_DECREMENT_ERR_EID                      (580u)
-#define BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID            (581u)
+#define BPLIB_AS_RESET_CNTR_ERR_EID                     (582u)
 #define BPLIB_AS_RESET_SRC_ERR_EID                      (582u)
-#define BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID           (583u)
 #define BPLIB_AS_RESET_BNDL_ERR_EID                     (584u)
-#define BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID            (585u)
 #define BPLIB_AS_RESET_ERR_ERR_EID                      (586u)
 #define BPLIB_AS_RESET_ALL_ERR_EID                      (587u)
 
