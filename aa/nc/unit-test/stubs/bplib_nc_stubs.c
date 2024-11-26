@@ -32,13 +32,9 @@
  * Generated stub function for BPLib_NC_AddAllApplications()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_AddAllApplications(void)
+void BPLib_NC_AddAllApplications(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_AddAllApplications, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_AddAllApplications, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_AddAllApplications, BPLib_Status_t);
 }
 
 /*
@@ -46,15 +42,10 @@ BPLib_Status_t BPLib_NC_AddAllApplications(void)
  * Generated stub function for BPLib_NC_AddApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payload)
+void BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_AddApplication, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_AddApplication, const BPLib_AddApplication_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_AddApplication, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_AddApplication, BPLib_Status_t);
 }
 
 /*
@@ -62,15 +53,10 @@ BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payl
  * Generated stub function for BPLib_NC_AddAuthCustodians()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodians_Payload_t Payload)
+void BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodians_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_AddAuthCustodians, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_AddAuthCustodians, const BPLib_AddAuthCustodians_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_AddAuthCustodians, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_AddAuthCustodians, BPLib_Status_t);
 }
 
 /*
@@ -78,15 +64,10 @@ BPLib_Status_t BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodians_Payload_
  * Generated stub function for BPLib_NC_AddAuthCustodySources()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_Payload_t Payload)
+void BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_AddAuthCustodySources, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_AddAuthCustodySources, const BPLib_AddAuthCustodySources_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_AddAuthCustodySources, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_AddAuthCustodySources, BPLib_Status_t);
 }
 
 /*
@@ -94,15 +75,10 @@ BPLib_Status_t BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_
  * Generated stub function for BPLib_NC_AddAuthReportToEid()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEid_Payload_t Payload)
+void BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEid_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_AddAuthReportToEid, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_AddAuthReportToEid, const BPLib_AddAuthReportToEid_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_AddAuthReportToEid, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_AddAuthReportToEid, BPLib_Status_t);
 }
 
 /*
@@ -110,15 +86,10 @@ BPLib_Status_t BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEid_Payloa
  * Generated stub function for BPLib_NC_AddAuthSources()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_AddAuthSources(const BPLib_AddAuthSources_Payload_t Payload)
+void BPLib_NC_AddAuthSources(const BPLib_AddAuthSources_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_AddAuthSources, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_AddAuthSources, const BPLib_AddAuthSources_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_AddAuthSources, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_AddAuthSources, BPLib_Status_t);
 }
 
 /*
@@ -126,15 +97,10 @@ BPLib_Status_t BPLib_NC_AddAuthSources(const BPLib_AddAuthSources_Payload_t Payl
  * Generated stub function for BPLib_NC_AddLatency()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_AddLatency(const BPLib_AddLatency_Payload_t Payload)
+void BPLib_NC_AddLatency(const BPLib_AddLatency_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_AddLatency, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_AddLatency, const BPLib_AddLatency_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_AddLatency, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_AddLatency, BPLib_Status_t);
 }
 
 /*
@@ -142,15 +108,10 @@ BPLib_Status_t BPLib_NC_AddLatency(const BPLib_AddLatency_Payload_t Payload)
  * Generated stub function for BPLib_NC_AddMibArrayKey()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)
+void BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_AddMibArrayKey, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_AddMibArrayKey, const BPLib_AddMibArrayKey_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_AddMibArrayKey, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_AddMibArrayKey, BPLib_Status_t);
 }
 
 /*
@@ -158,15 +119,10 @@ BPLib_Status_t BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payl
  * Generated stub function for BPLib_NC_AddStorageAllocation()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Payload_t Payload)
+void BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_AddStorageAllocation, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_AddStorageAllocation, const BPLib_AddStorageAllocation_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_AddStorageAllocation, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_AddStorageAllocation, BPLib_Status_t);
 }
 
 /*
@@ -174,13 +130,9 @@ BPLib_Status_t BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Pa
  * Generated stub function for BPLib_NC_ClearVolatile()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ClearVolatile(void)
+void BPLib_NC_ClearVolatile(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ClearVolatile, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_ClearVolatile, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ClearVolatile, BPLib_Status_t);
 }
 
 /*
@@ -188,15 +140,10 @@ BPLib_Status_t BPLib_NC_ClearVolatile(void)
  * Generated stub function for BPLib_NC_ContactSetup()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
+void BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ContactSetup, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_ContactSetup, const BPLib_ContactSetup_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_ContactSetup, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ContactSetup, BPLib_Status_t);
 }
 
 /*
@@ -204,15 +151,10 @@ BPLib_Status_t BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
  * Generated stub function for BPLib_NC_ContactStart()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
+void BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ContactStart, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_ContactStart, const BPLib_ContactStart_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_ContactStart, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ContactStart, BPLib_Status_t);
 }
 
 /*
@@ -220,15 +162,10 @@ BPLib_Status_t BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
  * Generated stub function for BPLib_NC_ContactStop()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
+void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ContactStop, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_ContactStop, const BPLib_ContactStop_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_ContactStop, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ContactStop, BPLib_Status_t);
 }
 
 /*
@@ -236,15 +173,10 @@ BPLib_Status_t BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
  * Generated stub function for BPLib_NC_ContactTeardown()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
+void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ContactTeardown, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_ContactTeardown, const BPLib_ContactTeardown_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_ContactTeardown, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ContactTeardown, BPLib_Status_t);
 }
 
 /*
@@ -255,9 +187,7 @@ BPLib_Status_t BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Pa
 BPLib_Status_t BPLib_NC_Init(void)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_NC_Init, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_Init, Basic, NULL);
-
     return UT_GenStub_GetReturnValue(BPLib_NC_Init, BPLib_Status_t);
 }
 
@@ -266,27 +196,35 @@ BPLib_Status_t BPLib_NC_Init(void)
  * Generated stub function for BPLib_NC_InitBundleStorage()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_InitBundleStorage(void)
+void BPLib_NC_InitBundleStorage(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_InitBundleStorage, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_InitBundleStorage, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_InitBundleStorage, BPLib_Status_t);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_NC_Noop()
+ * Generated stub function for BPLib_NC_MIBConfigPNTblValidateFunc()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_Noop(void)
+BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_Noop, BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_NC_MIBConfigPNTblValidateFunc, BPLib_Status_t);
+    UT_GenStub_AddParam(BPLib_NC_MIBConfigPNTblValidateFunc, void *, TblData);
+    UT_GenStub_Execute(BPLib_NC_MIBConfigPNTblValidateFunc, Basic, NULL);
+    return UT_GenStub_GetReturnValue(BPLib_NC_MIBConfigPNTblValidateFunc, BPLib_Status_t);
+}
 
-    UT_GenStub_Execute(BPLib_NC_Noop, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_Noop, BPLib_Status_t);
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_NC_MIBConfigPSTblValidateFunc()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_NC_MIBConfigPSTblValidateFunc, BPLib_Status_t);
+    UT_GenStub_AddParam(BPLib_NC_MIBConfigPSTblValidateFunc, void *, TblData);
+    UT_GenStub_Execute(BPLib_NC_MIBConfigPSTblValidateFunc, Basic, NULL);
+    return UT_GenStub_GetReturnValue(BPLib_NC_MIBConfigPSTblValidateFunc, BPLib_Status_t);
 }
 
 /*
@@ -294,13 +232,9 @@ BPLib_Status_t BPLib_NC_Noop(void)
  * Generated stub function for BPLib_NC_PerformSelfTest()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_PerformSelfTest(void)
+void BPLib_NC_PerformSelfTest(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_PerformSelfTest, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_PerformSelfTest, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_PerformSelfTest, BPLib_Status_t);
 }
 
 /*
@@ -308,13 +242,9 @@ BPLib_Status_t BPLib_NC_PerformSelfTest(void)
  * Generated stub function for BPLib_NC_RebuildBundleMetadata()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_RebuildBundleMetadata(void)
+void BPLib_NC_RebuildBundleMetadata(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_RebuildBundleMetadata, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_RebuildBundleMetadata, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_RebuildBundleMetadata, BPLib_Status_t);
 }
 
 /*
@@ -322,13 +252,9 @@ BPLib_Status_t BPLib_NC_RebuildBundleMetadata(void)
  * Generated stub function for BPLib_NC_ReloadSavedData()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ReloadSavedData(void)
+void BPLib_NC_ReloadSavedData(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ReloadSavedData, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_ReloadSavedData, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ReloadSavedData, BPLib_Status_t);
 }
 
 /*
@@ -336,15 +262,10 @@ BPLib_Status_t BPLib_NC_ReloadSavedData(void)
  * Generated stub function for BPLib_NC_RemoveApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload)
+void BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_RemoveApplication, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_RemoveApplication, const BPLib_RemoveApplication_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_RemoveApplication, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_RemoveApplication, BPLib_Status_t);
 }
 
 /*
@@ -352,15 +273,10 @@ BPLib_Status_t BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_
  * Generated stub function for BPLib_NC_RemoveAuthCustodians()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodians_Payload_t Payload)
+void BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodians_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_RemoveAuthCustodians, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_RemoveAuthCustodians, const BPLib_RemoveAuthCustodians_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_RemoveAuthCustodians, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_RemoveAuthCustodians, BPLib_Status_t);
 }
 
 /*
@@ -368,16 +284,10 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodians_Pa
  * Generated stub function for BPLib_NC_RemoveAuthCustodySources()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySources_Payload_t Payload)
+void BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySources_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_RemoveAuthCustodySources, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_NC_RemoveAuthCustodySources, const BPLib_RemoveAuthCustodySources_Payload_t,
-                        Payload);
-
+    UT_GenStub_AddParam(BPLib_NC_RemoveAuthCustodySources, const BPLib_RemoveAuthCustodySources_Payload_t, Payload);
     UT_GenStub_Execute(BPLib_NC_RemoveAuthCustodySources, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_RemoveAuthCustodySources, BPLib_Status_t);
 }
 
 /*
@@ -385,15 +295,10 @@ BPLib_Status_t BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySo
  * Generated stub function for BPLib_NC_RemoveAuthReportToEid()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEid_Payload_t Payload)
+void BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEid_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_RemoveAuthReportToEid, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_RemoveAuthReportToEid, const BPLib_RemoveAuthReportToEid_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_RemoveAuthReportToEid, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_RemoveAuthReportToEid, BPLib_Status_t);
 }
 
 /*
@@ -401,15 +306,10 @@ BPLib_Status_t BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEid_
  * Generated stub function for BPLib_NC_RemoveAuthSources()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSources_Payload_t Payload)
+void BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSources_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_RemoveAuthSources, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_RemoveAuthSources, const BPLib_RemoveAuthSources_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_RemoveAuthSources, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_RemoveAuthSources, BPLib_Status_t);
 }
 
 /*
@@ -417,15 +317,10 @@ BPLib_Status_t BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSources_Payload_
  * Generated stub function for BPLib_NC_RemoveLatency()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payload)
+void BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_RemoveLatency, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_RemoveLatency, const BPLib_RemoveLatency_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_RemoveLatency, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_RemoveLatency, BPLib_Status_t);
 }
 
 /*
@@ -433,15 +328,10 @@ BPLib_Status_t BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payloa
  * Generated stub function for BPLib_NC_RemoveMibArrayKey()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_t Payload)
+void BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_RemoveMibArrayKey, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_RemoveMibArrayKey, const BPLib_RemoveMibArrayKey_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_RemoveMibArrayKey, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_RemoveMibArrayKey, BPLib_Status_t);
 }
 
 /*
@@ -449,15 +339,10 @@ BPLib_Status_t BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_
  * Generated stub function for BPLib_NC_RemoveStorageAllocation()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocation_Payload_t Payload)
+void BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocation_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_RemoveStorageAllocation, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_RemoveStorageAllocation, const BPLib_RemoveStorageAllocation_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_RemoveStorageAllocation, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_RemoveStorageAllocation, BPLib_Status_t);
 }
 
 /*
@@ -475,15 +360,10 @@ void BPLib_NC_ResetAllCounters(void)
  * Generated stub function for BPLib_NC_ResetBundleCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload)
+void BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ResetBundleCounters, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_NC_ResetCounter, const BPLib_ResetBundleCounters_Payload_t, Payload);
-
+    UT_GenStub_AddParam(BPLib_NC_ResetBundleCounters, const BPLib_ResetBundleCounters_Payload_t, Payload);
     UT_GenStub_Execute(BPLib_NC_ResetBundleCounters, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ResetBundleCounters, BPLib_Status_t);
 }
 
 /*
@@ -491,15 +371,10 @@ BPLib_Status_t BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payl
  * Generated stub function for BPLib_NC_ResetCounter()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
+void BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ResetCounter, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_ResetCounter, const BPLib_ResetCounter_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_ResetCounter, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ResetCounter, BPLib_Status_t);
 }
 
 /*
@@ -507,15 +382,10 @@ BPLib_Status_t BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
  * Generated stub function for BPLib_NC_ResetErrorCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ResetErrorCounters(const BPLib_ResetErrorCounters_Payload_t Payload)
+void BPLib_NC_ResetErrorCounters(BPLib_ResetErrorCounters_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ResetErrorCounters, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_NC_ResetCounter, const BPLib_ResetErrorCounters_Payload_t, Payload);
-
+    UT_GenStub_AddParam(BPLib_NC_ResetErrorCounters, BPLib_ResetErrorCounters_Payload_t, Payload);
     UT_GenStub_Execute(BPLib_NC_ResetErrorCounters, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ResetErrorCounters, BPLib_Status_t);
 }
 
 /*
@@ -523,15 +393,10 @@ BPLib_Status_t BPLib_NC_ResetErrorCounters(const BPLib_ResetErrorCounters_Payloa
  * Generated stub function for BPLib_NC_ResetSourceCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payload)
+void BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_ResetSourceCounters, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_ResetSourceCounters, const BPLib_ResetSourceCounters_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_ResetSourceCounters, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_ResetSourceCounters, BPLib_Status_t);
 }
 
 /*
@@ -599,15 +464,10 @@ void BPLib_NC_SendStorageHk(void)
  * Generated stub function for BPLib_NC_SetMibItem()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
+void BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_SetMibItem, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_SetMibItem, const BPLib_SetMibItem_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_SetMibItem, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_SetMibItem, BPLib_Status_t);
 }
 
 /*
@@ -615,15 +475,10 @@ BPLib_Status_t BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
  * Generated stub function for BPLib_NC_SetRegistrationState()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationState_Payload_t Payload)
+void BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationState_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_SetRegistrationState, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_SetRegistrationState, const BPLib_SetRegistrationState_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_SetRegistrationState, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_SetRegistrationState, BPLib_Status_t);
 }
 
 /*
@@ -631,13 +486,9 @@ BPLib_Status_t BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationState_Pa
  * Generated stub function for BPLib_NC_StartAllApplications()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_StartAllApplications(void)
+void BPLib_NC_StartAllApplications(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_StartAllApplications, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_StartAllApplications, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_StartAllApplications, BPLib_Status_t);
 }
 
 /*
@@ -645,15 +496,10 @@ BPLib_Status_t BPLib_NC_StartAllApplications(void)
  * Generated stub function for BPLib_NC_StartApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_StartApplication(const BPLib_StartApplication_Payload_t Payload)
+void BPLib_NC_StartApplication(const BPLib_StartApplication_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_StartApplication, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_StartApplication, const BPLib_StartApplication_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_StartApplication, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_StartApplication, BPLib_Status_t);
 }
 
 /*
@@ -661,15 +507,10 @@ BPLib_Status_t BPLib_NC_StartApplication(const BPLib_StartApplication_Payload_t 
  * Generated stub function for BPLib_NC_StopApplication()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Payload)
+void BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Payload)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_StopApplication, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_NC_StopApplication, const BPLib_StopApplication_Payload_t, Payload);
-
     UT_GenStub_Execute(BPLib_NC_StopApplication, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_StopApplication, BPLib_Status_t);
 }
 
 /*
@@ -677,13 +518,9 @@ BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Pa
  * Generated stub function for BPLib_NC_VerifyBundleMetadata()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_VerifyBundleMetadata(void)
+void BPLib_NC_VerifyBundleMetadata(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_VerifyBundleMetadata, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_VerifyBundleMetadata, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_VerifyBundleMetadata, BPLib_Status_t);
 }
 
 /*
@@ -691,47 +528,7 @@ BPLib_Status_t BPLib_NC_VerifyBundleMetadata(void)
  * Generated stub function for BPLib_NC_VerifyBundleStorage()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_VerifyBundleStorage(void)
+void BPLib_NC_VerifyBundleStorage(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_NC_VerifyBundleStorage, BPLib_Status_t);
-
     UT_GenStub_Execute(BPLib_NC_VerifyBundleStorage, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_NC_VerifyBundleStorage, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_NC_MIBConfigPNTblValidateFunc()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData) 
-{
-  UT_GenStub_SetupReturnBuffer(BPLib_NC_MIBConfigPNTblValidateFunc,
-                               BPLib_Status_t);
-
-  UT_GenStub_AddParam(BPLib_NC_MIBConfigPNTblValidateFunc, void *, TblData);
-
-  UT_GenStub_Execute(BPLib_NC_MIBConfigPNTblValidateFunc, Basic, NULL);
-
-  return UT_GenStub_GetReturnValue(BPLib_NC_MIBConfigPNTblValidateFunc,
-                                   BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_NC_MIBConfigPSTblValidateFunc()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData) 
-{
-  UT_GenStub_SetupReturnBuffer(BPLib_NC_MIBConfigPSTblValidateFunc,
-                               BPLib_Status_t);
-
-  UT_GenStub_AddParam(BPLib_NC_MIBConfigPSTblValidateFunc, void *, TblData);
-
-  UT_GenStub_Execute(BPLib_NC_MIBConfigPSTblValidateFunc, Basic, NULL);
-
-  return UT_GenStub_GetReturnValue(BPLib_NC_MIBConfigPSTblValidateFunc,
-                                   BPLib_Status_t);
 }
