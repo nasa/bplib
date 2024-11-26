@@ -54,24 +54,66 @@ BPLib_Status_t BPLib_AS_Init(void)
 
 void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
-    BPLib_AS_NodeCountersPayload.NodeCounters[Counter] += Amount;
+    if (Counter > -1 && Counter < BPLIB_AS_NUM_NODE_CNTRS)
+    { // Counter is within range
+        BPLib_AS_NodeCountersPayload.NodeCounters[Counter] += Amount;
+    }
+    else
+    { // Counter is out of valid range
+        BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not get counter %d with source EID %d to increment by %d, counter out of range",
+                            Counter,
+                            SourceEid,
+                            Amount);
+    }
 
     /*
-    if (Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
-    {
+    if (Counter > -1 && Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
+    { // Counter is within range
         BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[Counter] += Amount;
+    }
+    else
+    { // Counter is out of valid range
+       BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not get counter %d with source EID %d to increment by %d, counter out of range",
+                            Counter,
+                            SourceEid,
+                            Amount);
     }
     */
 }
 
 void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
-    BPLib_AS_NodeCountersPayload.NodeCounters[Counter] -= Amount;
+    if (Counter > -1 && Counter < BPLIB_AS_NUM_NODE_CNTRS)
+    { // Counter is within range
+        BPLib_AS_NodeCountersPayload.NodeCounters[Counter] -= Amount;
+    }
+    else
+    { // Counter is out of valid range
+        BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not get counter %d with source EID %d to decrement by %d, counter out of range",
+                            Counter,
+                            SourceEid,
+                            Amount);
+    }
 
     /*
-    if (Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
-    {
+    if (Counter > -1 && Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
+    { // Counter is within range
         BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[Counter] -= Amount;
+    }
+    else
+    { // Counter is out of valid range
+        BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not get counter %d with source EID %d to decrement by %d, counter out of range",
+                            Counter,
+                            SourceEid,
+                            Amount);
     }
     */
 }
