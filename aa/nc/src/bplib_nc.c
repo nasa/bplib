@@ -23,6 +23,7 @@
 /* ======== */
 
 #include "bplib_nc.h"
+#include "bplib_as_internal.h"
 
 /* ======= */
 /* Globals */
@@ -35,13 +36,13 @@ BPLib_NodeMibConfigHkTlm_Payload_t   BPLib_NC_NodeMibConfigPayload;
 /* Function Definitions */
 /* ==================== */
 
-void BPLib_NC_Init(void)
+BPLib_Status_t BPLib_NC_Init(void)
 {
     BPLib_Status_t Status;
 
     Status = BPLib_AS_Init();
 
-    return Status;    
+    return Status;
 }
 
 void BPLib_NC_AddAllApplications(void)
@@ -240,8 +241,6 @@ void BPLib_NC_ClearVolatile(void)
                             "Clear volatile directive not implemented");
     }
     */
-
-    
 }
 
 void BPLib_NC_ReloadSavedData(void)
@@ -266,8 +265,6 @@ void BPLib_NC_ReloadSavedData(void)
                             "Reload saved data (7.2) directive not implemented");
     }
     */
-
-    
 }
 
 void BPLib_NC_ResetAllCounters(void)
@@ -284,11 +281,15 @@ void BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_Set(Payload.SourceEid, Payload.Counter, 0);
+    Status = BPLib_AS_ResetCounter(Payload.SourceEid, Payload.Counter);
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
+        if (Payload.Counter != BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT)
+        {
+            BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
+        }
+
         BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Successfully reset counter %d for source EID %d",
                             Payload.Counter,
@@ -296,13 +297,8 @@ void BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
     }
     else
     {
+        /* Error event handling in BPLib_AS_ResetCounter() */
         BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
-        BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset counter %d with source EID %d, RC = %d",
-                            Payload.Counter,
-                            Payload.SourceEid,
-                            Status);
     }
 }
 
@@ -511,8 +507,6 @@ void BPLib_NC_AddAuthSources(const BPLib_AddAuthSources_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSources_Payload_t Payload)
@@ -539,8 +533,6 @@ void BPLib_NC_RemoveAuthSources(const BPLib_RemoveAuthSources_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_Payload_t Payload)
@@ -567,8 +559,6 @@ void BPLib_NC_AddAuthCustodySources(const BPLib_AddAuthCustodySources_Payload_t 
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySources_Payload_t Payload)
@@ -595,8 +585,6 @@ void BPLib_NC_RemoveAuthCustodySources(const BPLib_RemoveAuthCustodySources_Payl
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodians_Payload_t Payload)
@@ -623,8 +611,6 @@ void BPLib_NC_AddAuthCustodians(const BPLib_AddAuthCustodians_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodians_Payload_t Payload)
@@ -651,8 +637,6 @@ void BPLib_NC_RemoveAuthCustodians(const BPLib_RemoveAuthCustodians_Payload_t Pa
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEid_Payload_t Payload)
@@ -679,8 +663,6 @@ void BPLib_NC_AddAuthReportToEid(const BPLib_AddAuthReportToEid_Payload_t Payloa
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEid_Payload_t Payload)
@@ -707,8 +689,6 @@ void BPLib_NC_RemoveAuthReportToEid(const BPLib_RemoveAuthReportToEid_Payload_t 
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_AddLatency(const BPLib_AddLatency_Payload_t Payload)
@@ -735,8 +715,6 @@ void BPLib_NC_AddLatency(const BPLib_AddLatency_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payload)
@@ -763,8 +741,6 @@ void BPLib_NC_RemoveLatency(const BPLib_RemoveLatency_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
@@ -799,8 +775,6 @@ void BPLib_NC_ContactSetup(const BPLib_ContactSetup_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
@@ -832,8 +806,6 @@ void BPLib_NC_ContactStart(const BPLib_ContactStart_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
@@ -868,8 +840,6 @@ void BPLib_NC_ContactStop(const BPLib_ContactStop_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
@@ -901,8 +871,6 @@ void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)
@@ -937,8 +905,6 @@ void BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_t Payload)
@@ -965,8 +931,6 @@ void BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_t Payload)
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
@@ -1041,8 +1005,6 @@ void BPLib_NC_SetMibItem(const BPLib_SetMibItem_Payload_t Payload)
         }
     }
     */
-
-    
 }
 
 void BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Payload_t Payload)
@@ -1092,8 +1054,6 @@ void BPLib_NC_AddStorageAllocation(const BPLib_AddStorageAllocation_Payload_t Pa
         }
     }
     */
-
-    
 }
 
 void BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocation_Payload_t Payload)
@@ -1125,8 +1085,6 @@ void BPLib_NC_RemoveStorageAllocation(const BPLib_RemoveStorageAllocation_Payloa
                             Payload.ExampleParameter);
     }
     */
-
-    
 }
 
 void BPLib_NC_PerformSelfTest(void)
@@ -1151,8 +1109,6 @@ void BPLib_NC_PerformSelfTest(void)
                             "Perform self test (7.2) directive not implemented");
     }
     */
-
-    
 }
 
 void BPLib_NC_SendNodeMibConfigHk()
@@ -1198,7 +1154,7 @@ void BPLib_NC_SendChannelContactStatHk()
 }
 
 /* Validate MIB Config PN table data */
-void BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData)
+BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
     BPLib_NC_MIBConfigPNTable_t *TblDataPtr = (BPLib_NC_MIBConfigPNTable_t *)TblData;
@@ -1214,7 +1170,7 @@ void BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData)
 }
 
 /* Validate MIB Config PS table data */
-void BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
+BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData)
 {
     BPLib_Status_t           ReturnCode = BPLIB_SUCCESS;
     BPLib_NC_MIBConfigPSTable_t *TblDataPtr = (BPLib_NC_MIBConfigPSTable_t *)TblData;
