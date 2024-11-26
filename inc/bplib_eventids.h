@@ -120,8 +120,6 @@
 #define BPLIB_AS_RESET_ALL_SUCCESS_EID                  (578u)
 
 /* AS error event IDs */
-#define BPLIB_AS_INCREMENT_ERR_EID                      (579u)
-#define BPLIB_AS_DECREMENT_ERR_EID                      (580u)
 #define BPLIB_AS_RESET_CNTR_ERR_EID                     (582u)
 #define BPLIB_AS_RESET_SRC_ERR_EID                      (582u)
 #define BPLIB_AS_RESET_BNDL_ERR_EID                     (584u)
