@@ -56,7 +56,8 @@ typedef struct
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    uint8_t ChanId;         /**< \brief Channel ID */
+    uint8_t Spare[3];       /**< \brief Spare bytes */
 } BPLib_RemoveApplication_Payload_t;
 
 typedef struct
