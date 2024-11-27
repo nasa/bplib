@@ -27,14 +27,6 @@
 #include "bplib_as.h"
 #include "utgenstub.h"
 
-/* ======= */
-/* Globals */
-/* ======= */
-
-BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
-BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
-BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
-
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_AS_Decrement()
@@ -151,4 +143,37 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
     UT_GenStub_Execute(BPLib_AS_ResetSourceCounters, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_AS_ResetSourceCounters, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_SendChannelContactStatHk()
+ * ----------------------------------------------------
+ */
+void BPLib_AS_SendChannelContactStatHk(void)
+{
+
+    UT_GenStub_Execute(BPLib_AS_SendChannelContactStatHk, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_SendNodeMibCountersHk()
+ * ----------------------------------------------------
+ */
+void BPLib_AS_SendNodeMibCountersHk(void)
+{
+
+    UT_GenStub_Execute(BPLib_AS_SendNodeMibCountersHk, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_SendSourceMibCountersHk()
+ * ----------------------------------------------------
+ */
+void BPLib_AS_SendSourceMibCountersHk(void)
+{
+
+    UT_GenStub_Execute(BPLib_AS_SendSourceMibCountersHk, Basic, NULL);
 }

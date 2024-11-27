@@ -23,15 +23,8 @@
 /* ======== */
 
 #include "bplib_as.h"
+#include "bplib_fwp.h"
 #include "bplib_as_internal.h"
-
-/* ======= */
-/* Globals */
-/* ======= */
-
-BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
-BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
-BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
 
 /* ==================== */
 /* Function Definitions */
@@ -383,4 +376,31 @@ void BPLib_AS_ResetAllCounters(void)
         memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl], 0,
                 sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl]));
     }
+}
+
+void BPLib_AS_SendNodeMibCountersHk()
+{
+    //TODO: Lock counters
+
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
+
+    //TODO: Unlock counters
+}
+
+void BPLib_AS_SendSourceMibCountersHk()
+{
+    //TODO: Lock counters
+
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
+
+    //TODO: Unlock counters
+}
+
+void BPLib_AS_SendChannelContactStatHk()
+{
+    // Lock data
+
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
+
+    // Unlock data
 }

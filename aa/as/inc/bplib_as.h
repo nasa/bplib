@@ -182,14 +182,6 @@ typedef struct
     int64_t  CorrelationFactor;             /** \brief Time Correlation Factor */
 } BPLib_SourceMibCountersHkTlm_Payload_t;
 
-/* ======= */
-/* Globals */
-/* ======= */
-
-extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
-extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
-extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
-
 /* =================== */
 /* Function Prototypes */
 /* =================== */
@@ -323,5 +315,32 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid);
  * \anchor    BPLib_AS_ResetAllCounters
  */
 void BPLib_AS_ResetAllCounters(void);
+
+/**
+  * \brief     Send Per Node MIB Counter telemetry packet
+  * \details   Node Configuration Send Node MIB Counters Housekeeping Packet command.
+  * \note      This command is just a call to BPA_TLMP_SendNodeMibCounterPkt()
+  * \param[in] void No arguments accepted
+  * \return    void
+  */
+void BPLib_AS_SendNodeMibCountersHk(void);
+
+/**
+  * \brief     Send Per Source MIB Counter telemetry packet
+  * \details   Node Configuration Send Source MIB Counters Housekeeping Packet command.
+  * \note      This command is just a call to BPA_TLMP_SendPerSourceMibCounterPkt()
+  * \param[in] void No arguments accepted
+  * \return    void
+  */
+void BPLib_AS_SendSourceMibCountersHk(void);
+
+/**
+  * \brief     Send Storage housekeeping telemetry packet
+  * \details   Node Configuration Send Storage Housekeeping Packet command.
+  * \note      This command is just a call to BPA_TLMP_SendChannelContactPkt()
+  * \param[in] void No arguments accepted
+  * \return    void
+  */
+void BPLib_AS_SendChannelContactStatHk(void);
 
 #endif /* BPLIB_AS_H */
