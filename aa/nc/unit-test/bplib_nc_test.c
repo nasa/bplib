@@ -397,20 +397,12 @@ void Test_BPLib_NC_AddApplication_Error(void)
     BPLib_AddApplication_Payload_t Payload;
 
     /* Check channel error return code */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ADU_ADD_CHAN_ERR);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ERROR);
 
     Payload.ChanId = 2;
     Status = BPLib_NC_AddApplication(Payload);
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_ADD_CHAN_ERR);
-    
-    /* Check state error return code */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ADU_ADD_STAT_ERR);
-    
-    Payload.ChanId = 2;
-    Status = BPLib_NC_AddApplication(Payload);
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_ADD_STAT_ERR);
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);
 }
 
 void Test_BPLib_NC_RemoveApplication_Nominal(void)
@@ -418,26 +410,27 @@ void Test_BPLib_NC_RemoveApplication_Nominal(void)
     BPLib_Status_t Status;
     BPLib_RemoveApplication_Payload_t Payload;
 
-    Payload.ExampleParameter = 2;
+    Payload.ChanId = 2;
     Status = BPLib_NC_RemoveApplication(Payload);
 
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[0].EventID, BPLIB_RM_APP_SUCCESS_EID);
-    UtAssert_STRINGBUF_EQ("Remove application directive not implemented, received %d in payload", BPLIB_EM_EXPANDED_EVENT_SIZE, 
+    UtAssert_STRINGBUF_EQ("Successful remove-application directive for ChanId=%d", BPLIB_EM_EXPANDED_EVENT_SIZE, 
                             context_BPLib_EM_SendEvent[0].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 }
 
 void Test_BPLib_NC_RemoveApplication_Error(void)
 {
-    /*
     BPLib_Status_t Status;
     BPLib_RemoveApplication_Payload_t Payload;
 
-    Payload.ExampleParameter = 2;
+    /* Check channel error return code */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_RemoveApplication), BPLIB_ERROR);
+
+    Payload.ChanId = 2;
     Status = BPLib_NC_RemoveApplication(Payload);
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
-    */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);
 }
 
 void Test_BPLib_NC_SetRegistrationState_Nominal(void)
@@ -486,29 +479,13 @@ void Test_BPLib_NC_StartApplication_Error(void)
     BPLib_Status_t Status;
     BPLib_StartApplication_Payload_t Payload;
 
-    /* Channel error return code check */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ADU_START_CHAN_ERR);
+    /* Error return code check */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ERROR);
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StartApplication(Payload);
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_START_CHAN_ERR);
-
-    /* State error return code check */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ADU_START_STAT_ERR);
-
-    Payload.ChanId = 1;
-    Status = BPLib_NC_StartApplication(Payload);
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_START_STAT_ERR);
-
-    /* Subscribe error return code check */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ADU_START_SUB_ERR);
-
-    Payload.ChanId = 1;
-    Status = BPLib_NC_StartApplication(Payload);
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_START_SUB_ERR);
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);
 }
 
 void Test_BPLib_NC_StopApplication_Nominal(void)
@@ -530,29 +507,13 @@ void Test_BPLib_NC_StopApplication_Error(void)
     BPLib_Status_t Status;
     BPLib_StopApplication_Payload_t Payload;
 
-    /* Invalid channel return code test */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ADU_STOP_CHAN_ERR);
+    /* Error return code check */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ERROR);
 
     Payload.ChanId = 1;
     Status = BPLib_NC_StopApplication(Payload);
 
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_STOP_CHAN_ERR);
-
-    /* Invalid state return code test */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ADU_STOP_STAT_ERR);
-
-    Payload.ChanId = 1;
-    Status = BPLib_NC_StopApplication(Payload);
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_STOP_STAT_ERR);
-
-    /* Unsubscribe error return code test */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ADU_STOP_UNSUB_ERR);
-
-    Payload.ChanId = 1;
-    Status = BPLib_NC_StopApplication(Payload);
-
-    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ADU_STOP_UNSUB_ERR);
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);
 }
 
 void Test_BPLib_NC_AddAuthSources_Nominal(void)

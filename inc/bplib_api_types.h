@@ -109,16 +109,6 @@ typedef struct BPLib_IpnAddr
 /* PerfLog Proxy Errors*/
 #define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -17u)
 
-/* ADU Proxy Errors */
-#define BPLIB_ADU_ADD_CHAN_ERR              ((BPLib_Status_t) -18u)
-#define BPLIB_ADU_ADD_STAT_ERR              ((BPLib_Status_t) -19u)
-#define BPLIB_ADU_START_CHAN_ERR            ((BPLib_Status_t) -20u)
-#define BPLIB_ADU_START_STAT_ERR            ((BPLib_Status_t) -21u)
-#define BPLIB_ADU_START_SUB_ERR             ((BPLib_Status_t) -22u)
-#define BPLIB_ADU_STOP_CHAN_ERR             ((BPLib_Status_t) -23u)
-#define BPLIB_ADU_STOP_STAT_ERR             ((BPLib_Status_t) -24u)
-#define BPLIB_ADU_STOP_UNSUB_ERR            ((BPLib_Status_t) -25u)
-
 /* Node Configuration (NC) errors */
 #define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -26u)
 #define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -27u)

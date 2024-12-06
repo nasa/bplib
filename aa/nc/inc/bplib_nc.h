@@ -191,8 +191,9 @@ BPLib_Status_t BPLib_NC_ResetErrorCounters(void);
   * \param[in] Payload BPLib_AddApplication_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
-  * \retval    BPLIB_ADU_ADD_CHAN_ERR: Payload.ChanId is out of bounds
-  * \retval    BPLIB_ADU_ADD_STAT_ERR: State of desired app is STARTED
+  * \retval    BPLIB_ERROR: Command was not successful. More detailed error reporting
+  *                         can be found in an event message implemented by the
+  *                         host-specific ADU Proxy
   */
 BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payload);
 
@@ -203,6 +204,9 @@ BPLib_Status_t BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payl
   * \param[in] Payload BPLib_RemoveApplication_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
+  * \retval    BPLIB_ERROR: Command was not successful. More detailed error reporting
+  *                         can be found in an event message implemented by the
+  *                         host-specific ADU Proxy
   */
 BPLib_Status_t BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload);
 
@@ -223,9 +227,9 @@ BPLib_Status_t BPLib_NC_SetRegistrationState(const BPLib_SetRegistrationState_Pa
   * \param[in] Payload BPLib_StartApplication_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
-  * \retval    BPLIB_ADU_START_CHAN_ERR: Payload.ChanId is out of bounds
-  * \retval    BPLIB_ADU_START_STAT_ERR: State of desired application is not ADDED
-  * \retval    BPLIB_ADU_START_SUB_ERR: Error in platform-dependent software bus subscription
+  * \retval    BPLIB_ERROR: Command was not successful. More detailed error reporting
+  *                         can be found in an event message implemented by the
+  *                         host-specific ADU Proxy
   */
 BPLib_Status_t BPLib_NC_StartApplication(const BPLib_StartApplication_Payload_t Payload);
 
@@ -236,9 +240,9 @@ BPLib_Status_t BPLib_NC_StartApplication(const BPLib_StartApplication_Payload_t 
   * \param[in] Payload BPLib_StopApplication_Payload_t type found in bplib_nc_payloads.h
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Command was successful
-  * \retval    BPLIB_ADU_STOP_CHAN_ERR: Payload.ChanId is out of bounds
-  * \retval    BPLIB_ADU_STOP_STAT_ERR: State of desired application is not STARTED
-  * \retval    BPLIB_ADU_STOP_UNSUB_ERR: Error in platform-dependent software bus un-subscription
+  * \retval    BPLIB_ERROR: Command was not successful. More detailed error reporting
+  *                         can be found in an event message implemented by the
+  *                         host-specific ADU Proxy
   */
 BPLib_Status_t BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Payload);
 

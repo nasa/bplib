@@ -60,6 +60,8 @@ BPLib_Status_t BPA_ADUP_StartApplication(uint8_t ChanId);
 
 BPLib_Status_t BPA_ADUP_StopApplication(uint8_t ChanId);
 
+BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId);
+
 BPLib_Status_t BPA_TLMP_SendNodeMibConfigPkt(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload);
 
 BPLib_Status_t BPA_TLMP_SendPerSourceMibConfigPkt(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload);
