@@ -425,7 +425,7 @@ void BPLib_NC_SendSourceMibConfigHk(void);
 /**
   * \brief     Send Per Node MIB Counter telemetry packet
   * \details   Node Configuration Send Node MIB Counters Housekeeping Packet command.
-  * \note      This command is just a call to BPA_TLMP_SendNodeMibCounterPkt()
+  * \note      This command is just a call to BPLib_AS_SendNodeMibCountersHk()
   * \param[in] void No arguments accepted
   * \return    void
   */
@@ -434,7 +434,7 @@ void BPLib_NC_SendNodeMibCountersHk(void);
 /**
   * \brief     Send Per Source MIB Counter telemetry packet
   * \details   Node Configuration Send Source MIB Counters Housekeeping Packet command.
-  * \note      This command is just a call to BPA_TLMP_SendPerSourceMibCounterPkt()
+  * \note      This command is just a call to BPLib_AS_SendSourceMibCountersHk()
   * \param[in] void No arguments accepted
   * \return    void
   */
@@ -452,12 +452,11 @@ void BPLib_NC_SendStorageHk(void);
 /**
   * \brief     Send Storage housekeeping telemetry packet
   * \details   Node Configuration Send Storage Housekeeping Packet command.
-  * \note      This command is just a call to BPA_TLMP_SendChannelContactPkt()
+  * \note      This command is just a call to BPLib_AS_SendChannelContactStatHk()
   * \param[in] void No arguments accepted
   * \return    void
   */
 void BPLib_NC_SendChannelContactStatHk(void);
-
 
 /**
  * \brief Validate MIB Per Node Configuration Table configurations

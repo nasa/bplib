@@ -1080,20 +1080,12 @@ void BPLib_NC_SendSourceMibConfigHk()
 
 void BPLib_NC_SendNodeMibCountersHk()
 {
-    //TODO: Lock counters
-
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
-
-    //TODO: Unlock counters
+    BPLib_AS_SendNodeMibCountersHk();
 }
 
 void BPLib_NC_SendSourceMibCountersHk()
 {
-    //TODO: Lock counters
-
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
-
-    //TODO: Unlock counters
+    BPLib_AS_SendSourceMibCountersHk();
 }
 
 void BPLib_NC_SendStorageHk()
@@ -1103,11 +1095,7 @@ void BPLib_NC_SendStorageHk()
 
 void BPLib_NC_SendChannelContactStatHk()
 {
-    // Lock data
-
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
-
-    // Unlock data
+    BPLib_AS_SendChannelContactStatHk();
 }
 
 /* Validate MIB Config PN table data */
