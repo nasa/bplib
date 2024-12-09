@@ -23,8 +23,8 @@
 /* ======== */
 
 #include "bplib_as.h"
-#include "bplib_fwp.h"
 #include "bplib_as_internal.h"
+#include "bplib_fwp.h"
 
 /* ==================== */
 /* Function Definitions */

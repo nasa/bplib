@@ -28,14 +28,6 @@
 #include "bplib_api_types.h"
 #include "bplib_as.h"
 
-/* ======= */
-/* Globals */
-/* ======= */
-
-extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
-extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
-extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
-
 /* =================== */
 /* Function Prototypes */
 /* =================== */
