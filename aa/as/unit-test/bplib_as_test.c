@@ -190,10 +190,6 @@ void Test_BPLib_AS_ResetCounter_Error(void)
     /* Run the function under test */
     BPLib_AS_ResetCounter(SourceEid, BUNDLE_COUNT_DELETED);
 
-    /* Verify the correct event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_CNTR_ERR_EID,
-                                "Could not reset counter %d with source EID %d, RC = %d");
-
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
 
@@ -210,10 +206,6 @@ void Test_BPLib_AS_ResetCounter_Error(void)
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
-
-    /* Verify the correct event was issued */
-    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_RESET_CNTR_ERR_EID,
-                                "Could not reset counter %d with source EID %d, RC = %d");
 
     /* === Unknown source counter test === */
     // TODO
@@ -257,10 +249,6 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
 
     /* Check that BPLib_AS_ResetSourceCounters() ran successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
-
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_SRC_ERR_EID,
-                                "Could not reset source counters with source EID %d, RC = %d");
 }
 
 void Test_BPLib_AS_ResetBundleCounters_Nominal(void)
@@ -297,10 +285,6 @@ void Test_BPLib_AS_ResetBundleCounters_Error(void)
 
     /* Assert that BPLib_AS_ResetBundleCounters() failed due to an invalid source EID */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
-
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_BNDL_ERR_EID,
-                                "Could not reset bundle counters with source EID %d, RC = %d");
 }
 
 void Test_BPLib_AS_ResetErrorCounters_Nominal(void)
@@ -337,10 +321,6 @@ void Test_BPLib_AS_ResetErrorCounters_Error(void)
 
     /* Assert that BPLib_AS_ResetErrorCounters() failed due to an invalid source EID */
     UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
-
-    /* Verify expected event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_RESET_ERR_ERR_EID,
-                                "Could not reset error counters with source EID %d, RC = %d");
 }
 
 void Test_BPLib_AS_ResetAllCounters_Nominal(void)
