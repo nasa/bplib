@@ -1228,7 +1228,7 @@ void Test_BPLib_NC_SendNodeMibCountersHk_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
 
     /* Verify downstream function was called */
-    UtAssert_STUB_COUNT(BPA_TLMP_SendNodeMibCounterPkt, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_SendNodeMibCountersHk, 1);
 }
 
 
@@ -1240,7 +1240,7 @@ void Test_BPLib_NC_SendSourceMibCountersHk_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
 
     /* Verify downstream function was called */
-    UtAssert_STUB_COUNT(BPA_TLMP_SendPerSourceMibCounterPkt, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_SendSourceMibCountersHk, 1);
 }
 
 void Test_BPLib_NC_SendStorageHk_Nominal(void)
@@ -1262,7 +1262,7 @@ void Test_BPLib_NC_SendChannelContactStatHk_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
 
     /* Verify downstream function was called */
-    UtAssert_STUB_COUNT(BPA_TLMP_SendChannelContactPkt, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_SendChannelContactStatHk, 1);
 }
 
 void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)

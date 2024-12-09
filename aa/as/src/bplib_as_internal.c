@@ -50,7 +50,7 @@ BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter
 
     if (BPLib_AS_EidIsValid(SourceEid))
     {
-        if (Counter > -1 && Counter < BPLIB_AS_NUM_NODE_CNTRS)
+        if ((int8_t) Counter > -1 && (int8_t) Counter < 79)
         { // Counter is within range
             BPLib_AS_NodeCountersPayload.NodeCounters[Counter] = Value;
 
