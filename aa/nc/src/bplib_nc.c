@@ -282,8 +282,13 @@ void BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
     }
     else
     {
-        /* Error event handling in BPLib_AS_ResetCounter() */
         BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+
+        BPLib_EM_SendEvent(BPLIB_NC_RESET_CTR_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Could not reset counter %d with source EID %d, RC = %d",
+                            Payload.Counter,
+                            Payload.SourceEid,
+                            Status);
     }
 }
 
@@ -296,14 +301,20 @@ void BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payl
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
+
         BPLib_EM_SendEvent(BPLIB_NC_RESET_SRC_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Successfully reset source counters for source EID %d",
                             Payload.SourceEid);
     }
     else
     {
-        /* Error events handled in BPLib_AS_ResetSourceCounters() */
         BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+
+        BPLib_EM_SendEvent(BPLIB_NC_RESET_SRC_CTRS_ERR_EID,
+                            BPLib_EM_EventType_DEBUG,
+                            "Could not reset source counters with source EID %d, RC = %d",
+                            Payload.SourceEid,
+                            Status);
     }
 }
 
@@ -316,14 +327,20 @@ void BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payl
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
+
         BPLib_EM_SendEvent(BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Successfully reset bundle counters for source EID %d",
                             Payload.SourceEid);
     }
     else
     {
-        /* Error event handling is done in BPLib_AS_ResetBundleCounters() */
         BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+
+        BPLib_EM_SendEvent(BPLIB_NC_RESET_BNDL_CTRS_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not reset bundle counters with source EID %d, RC = %d",
+                            Payload.SourceEid,
+                            Status);
     }
 }
 
@@ -336,14 +353,20 @@ void BPLib_NC_ResetErrorCounters(const BPLib_ResetErrorCounters_Payload_t Payloa
     if (Status == BPLIB_SUCCESS)
     {
         BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
+
         BPLib_EM_SendEvent(BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
                             "Successfully reset error counters for source EID %d",
                             Payload.SourceEid);
     }
     else
     {
-        /* Error event handling is done in BPLib_AS_ResetErrorCounters() */
         BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+
+        BPLib_EM_SendEvent(BPLIB_NC_RESET_ERR_CTRS_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not reset error counters with source EID %d, RC = %d",
+                            Payload.SourceEid,
+                            Status);
     }
 }
 

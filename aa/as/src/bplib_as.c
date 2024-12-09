@@ -63,16 +63,6 @@ BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Count
 
     Status = BPLib_AS_SetCounter(SourceEid, Counter, 0);
 
-    if (Status != BPLIB_SUCCESS)
-    {
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_CNTR_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset counter %d with source EID %d, RC = %d",
-                            Counter,
-                            SourceEid,
-                            Status);
-    }
-
     return Status;
 }
 
@@ -86,11 +76,6 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
     if (!BPLib_AS_EidIsValid(SourceEid))
     { /* Invalid source EID */
         Status = BPLIB_AS_INVALID_EID;
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset source counters with source EID %d, RC = %d",
-                            SourceEid,
-                            Status);
     }
     else
     { /* Valid source EID */
@@ -112,11 +97,6 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
     if (!BPLib_AS_EidIsValid(SourceEid))
     { /* Invalid source EID*/
         Status = BPLIB_AS_INVALID_EID;
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset bundle counters with source EID %d, RC = %d",
-                            SourceEid,
-                            Status);
     }
     else
     { /* Valid source EID */
@@ -309,11 +289,6 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
     if (!BPLib_AS_EidIsValid(SourceEid))
     { /* Invalid source EID */
         Status = BPLIB_AS_INVALID_EID;
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset error counters with source EID %d, RC = %d",
-                            SourceEid,
-                            Status);
     }
     else
     { /* Valid source EID */

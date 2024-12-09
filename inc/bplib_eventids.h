@@ -93,37 +93,31 @@
 #define BPLIB_NC_REBUILD_BNDL_META_ERR_EID              (555u)
 #define BPLIB_NC_RELOAD_SVD_DATA_ERR_EID                (556u)
 #define BPLIB_NC_RESET_CTR_ERR_EID                      (557u)
-#define BPLIB_NC_RM_APP_ERR_EID                         (558u)
-#define BPLIB_NC_RM_AUTH_CUSTODIANS_ERR_EID             (559u)
-#define BPLIB_NC_RM_AUTH_CUST_SRCS_ERR_EID              (560u)
-#define BPLIB_NC_RM_AUTH_RPT_EID_ERR_EID                (561u)
-#define BPLIB_NC_RM_AUTH_SRCS_ERR_EID                   (562u)
-#define BPLIB_NC_RM_LATENCY_ERR_EID                     (563u)
-#define BPLIB_NC_RM_MIB_ARR_KEY_ERR_EID                 (564u)
-#define BPLIB_NC_RM_STOR_ALLOC_ERR_EID                  (565u)
-#define BPLIB_NC_SET_MIB_ITEM_ERR_EID                   (566u)
-#define BPLIB_NC_SET_REGI_STAT_ERR_EID                  (567u)
-#define BPLIB_NC_START_ALL_APPS_ERR_EID                 (568u)
-#define BPLIB_NC_START_APP_ERR_EID                      (569u)
-#define BPLIB_NC_STOP_APP_ERR_EID                       (570u)
-#define BPLIB_NC_VERIF_BNDL_ERR_EID                     (571u)
-#define BPLIB_NC_VERIF_BNDL_META_ERR_EID                (572u)
+#define BPLIB_NC_RESET_SRC_CTRS_ERR_EID                 (558u)
+#define BPLIB_NC_RESET_BNDL_CTRS_ERR_EID                (559u)
+#define BPLIB_NC_RESET_ERR_CTRS_ERR_EID                 (560u)
+#define BPLIB_NC_RM_APP_ERR_EID                         (561u)
+#define BPLIB_NC_RM_AUTH_CUSTODIANS_ERR_EID             (562u)
+#define BPLIB_NC_RM_AUTH_CUST_SRCS_ERR_EID              (563u)
+#define BPLIB_NC_RM_AUTH_RPT_EID_ERR_EID                (564u)
+#define BPLIB_NC_RM_AUTH_SRCS_ERR_EID                   (565u)
+#define BPLIB_NC_RM_LATENCY_ERR_EID                     (566u)
+#define BPLIB_NC_RM_MIB_ARR_KEY_ERR_EID                 (567u)
+#define BPLIB_NC_RM_STOR_ALLOC_ERR_EID                  (568u)
+#define BPLIB_NC_SET_MIB_ITEM_ERR_EID                   (569u)
+#define BPLIB_NC_SET_REGI_STAT_ERR_EID                  (570u)
+#define BPLIB_NC_START_ALL_APPS_ERR_EID                 (571u)
+#define BPLIB_NC_START_APP_ERR_EID                      (572u)
+#define BPLIB_NC_STOP_APP_ERR_EID                       (573u)
+#define BPLIB_NC_VERIF_BNDL_ERR_EID                     (574u)
+#define BPLIB_NC_VERIF_BNDL_META_ERR_EID                (575u)
 
 /* ============ */
 /* AS event IDs */
 /* ============ */
 
 /* AS success event IDs */
-#define BPLIB_AS_INIT_SUCCESS_EID                       (575u)
-#define BPLIB_AS_INCREMENT_SUCCESS_EID                  (576u)
-#define BPLIB_AS_DECREMENT_SUCCESS_EID                  (577u)
-#define BPLIB_AS_RESET_ALL_SUCCESS_EID                  (578u)
 
 /* AS error event IDs */
-#define BPLIB_AS_RESET_CNTR_ERR_EID                     (582u)
-#define BPLIB_AS_RESET_SRC_ERR_EID                      (582u)
-#define BPLIB_AS_RESET_BNDL_ERR_EID                     (584u)
-#define BPLIB_AS_RESET_ERR_ERR_EID                      (586u)
-#define BPLIB_AS_RESET_ALL_ERR_EID                      (587u)
 
 #endif /* BPLIB_EVENTIDS_H */
