@@ -25,6 +25,14 @@
 #include "bplib_as_internal.h"
 #include "bplib_as.h"
 
+/* ================= */
+/* Telemetry Packets */
+/* ================= */
+
+BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
+BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
+BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
