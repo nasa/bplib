@@ -27,7 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
-#include "bplib_as_internal.h"
+#include "bplib_as.h"
 
 /*
 ** Type Definitions
