@@ -27,14 +27,6 @@
 #include "bplib_as.h"
 #include "utgenstub.h"
 
-/* ======= */
-/* Globals */
-/* ======= */
-
-BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
-BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
-BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
-
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_AS_Decrement()
@@ -47,40 +39,6 @@ void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
     UT_GenStub_AddParam(BPLib_AS_Decrement, uint32_t, Amount);
 
     UT_GenStub_Execute(BPLib_AS_Decrement, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_AS_EidIsValid()
- * ----------------------------------------------------
- */
-bool BPLib_AS_EidIsValid(int16_t SourceEid)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_EidIsValid, bool);
-
-    UT_GenStub_AddParam(BPLib_AS_EidIsValid, int16_t, SourceEid);
-
-    UT_GenStub_Execute(BPLib_AS_EidIsValid, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_EidIsValid, bool);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_AS_Get()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_AS_Get(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t *ReturnPtr)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_Get, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_AS_Get, int16_t, SourceEid);
-    UT_GenStub_AddParam(BPLib_AS_Get, BPLib_AS_Counter_t, Counter);
-    UT_GenStub_AddParam(BPLib_AS_Get, uint32_t *, ReturnPtr);
-
-    UT_GenStub_Execute(BPLib_AS_Get, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_Get, BPLib_Status_t);
 }
 
 /*
@@ -140,6 +98,23 @@ BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_ResetCounter()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_ResetCounter, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_AS_ResetCounter, int16_t, SourceEid);
+    UT_GenStub_AddParam(BPLib_AS_ResetCounter, BPLib_AS_Counter_t, Counter);
+
+    UT_GenStub_Execute(BPLib_AS_ResetCounter, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_AS_ResetCounter, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_AS_ResetErrorCounters()
  * ----------------------------------------------------
  */
@@ -172,18 +147,42 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_AS_Set()
+ * Generated stub function for BPLib_AS_SendChannelContactStatHk()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_Set(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value)
+BPLib_Status_t BPLib_AS_SendChannelContactStatHk(void)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_Set, BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_SendChannelContactStatHk, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_AS_Set, int16_t, SourceEid);
-    UT_GenStub_AddParam(BPLib_AS_Set, BPLib_AS_Counter_t, Counter);
-    UT_GenStub_AddParam(BPLib_AS_Set, uint32_t, Value);
+    UT_GenStub_Execute(BPLib_AS_SendChannelContactStatHk, Basic, NULL);
 
-    UT_GenStub_Execute(BPLib_AS_Set, Basic, NULL);
+    return UT_GenStub_GetReturnValue(BPLib_AS_SendChannelContactStatHk, BPLib_Status_t);
+}
 
-    return UT_GenStub_GetReturnValue(BPLib_AS_Set, BPLib_Status_t);
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_SendNodeMibCountersHk()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_SendNodeMibCountersHk, BPLib_Status_t);
+
+    UT_GenStub_Execute(BPLib_AS_SendNodeMibCountersHk, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_AS_SendNodeMibCountersHk, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_SendSourceMibCountersHk()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_SendSourceMibCountersHk, BPLib_Status_t);
+
+    UT_GenStub_Execute(BPLib_AS_SendSourceMibCountersHk, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_AS_SendSourceMibCountersHk, BPLib_Status_t);
 }
