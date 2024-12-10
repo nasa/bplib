@@ -1233,6 +1233,9 @@ void Test_BPLib_NC_SendNodeMibCountersHk_Nominal(void)
 
 void Test_BPLib_NC_SendNodeMibCountersHk_Error(void)
 {
+    // Cause BPLib_NC_SendNodeMibCountersHk() to fail
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendNodeMibCountersHk), BPLIB_UNKNOWN);
+
     BPLib_NC_SendNodeMibCountersHk();
     
     // Verify downstream function was called
@@ -1259,6 +1262,9 @@ void Test_BPLib_NC_SendSourceMibCountersHk_Nominal(void)
 
 void Test_BPLib_NC_SendSourceMibCountersHk_Error(void)
 {
+    // Cause BPLib_NC_SendSourceMibCountersHk() to fail
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendSourceMibCountersHk), BPLIB_UNKNOWN);
+
     BPLib_NC_SendSourceMibCountersHk();
     
     // Verify downstream function was called
@@ -1296,6 +1302,9 @@ void Test_BPLib_NC_SendChannelContactStatHk_Nominal(void)
 
 void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
 {
+    // Cause BPLib_NC_SendChannelContactStatHk() to fail
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendChannelContactStatHk), BPLIB_UNKNOWN);
+
     BPLib_NC_SendChannelContactStatHk();
     
     // Verify downstream function was called
