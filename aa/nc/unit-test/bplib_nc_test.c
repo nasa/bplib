@@ -22,7 +22,7 @@
 /* Includes */
 /* ======== */
 
-#include "bplib_nc.h"
+#include "bplib_nc_directives.h"
 #include "bplib_nc_test_utils.h"
 #include "bplib_eventids.h"
 

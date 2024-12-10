@@ -40,7 +40,6 @@ BPLib_Status_t BPLib_AS_Init(void)
 
     /* Instantiate all payloads under the stewardship of AS */
     BPLib_AS_ResetAllCounters();
-    memset((void*) &BPLib_AS_ChannelContactStatsPayload, 0, sizeof(BPLib_AS_ChannelContactStatsPayload));
 
     return Status;
 }
@@ -375,19 +374,6 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
     Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
 
     //TODO: Unlock counters
-
-    return Status;
-}
-
-BPLib_Status_t BPLib_AS_SendChannelContactStatHk()
-{
-    BPLib_Status_t Status;
-
-    // Lock data
-
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
-
-    // Unlock data
 
     return Status;
 }

@@ -24,7 +24,7 @@
  * Auto-Generated stub implementations for functions defined in bplib_nc header
  */
 
-#include "bplib_nc.h"
+#include "bplib_nc_directives.h"
 #include "utgenstub.h"
 
 /*
