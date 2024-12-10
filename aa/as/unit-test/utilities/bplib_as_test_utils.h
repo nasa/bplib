@@ -21,15 +21,18 @@
 #ifndef BPLIB_AS_TEST_UTILS_H
 #define BPLIB_AS_TEST_UTILS_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
 
 #include "bplib_api_types.h"
+#include "bpa_fwp_stubs.h" /* For TLMP stubs */
+#include "bplib_fwp.h"     /* For BPLib_FWP_ProxyCallbacks */
+
 #include "bplib_as.h"
 #include "bplib_as_internal.h"
 #include "bplib_em_handlers.h"

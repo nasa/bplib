@@ -537,6 +537,10 @@ void BPLib_AS_Test_Setup(void)
     UT_ResetState(0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
+
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
 }
 
 void BPLib_AS_Test_Teardown(void)

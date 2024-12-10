@@ -353,29 +353,41 @@ void BPLib_AS_ResetAllCounters(void)
     }
 }
 
-void BPLib_AS_SendNodeMibCountersHk()
+BPLib_Status_t BPLib_AS_SendNodeMibCountersHk()
 {
+    BPLib_Status_t Status;
+
     //TODO: Lock counters
 
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
 
     //TODO: Unlock counters
+
+    return Status;
 }
 
-void BPLib_AS_SendSourceMibCountersHk()
+BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
 {
+    BPLib_Status_t Status;
+
     //TODO: Lock counters
 
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
 
     //TODO: Unlock counters
+
+    return Status;
 }
 
-void BPLib_AS_SendChannelContactStatHk()
+BPLib_Status_t BPLib_AS_SendChannelContactStatHk()
 {
+    BPLib_Status_t Status;
+
     // Lock data
 
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
 
     // Unlock data
+
+    return Status;
 }

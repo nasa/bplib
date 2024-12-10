@@ -328,26 +328,29 @@ void BPLib_AS_ResetAllCounters(void);
   * \details   Node Configuration Send Node MIB Counters Housekeeping Packet command.
   * \note      This command is just a call to BPA_TLMP_SendNodeMibCounterPkt()
   * \param[in] void No arguments accepted
-  * \return    void
+  * \return    Execution status
+  * \return    Return codes from BPA_TLMP_SendNodeMibCounterPkt() in fwp_tlmp.h
   */
-void BPLib_AS_SendNodeMibCountersHk(void);
+BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
 
 /**
   * \brief     Send Per Source MIB Counter telemetry packet
   * \details   Node Configuration Send Source MIB Counters Housekeeping Packet command.
   * \note      This command is just a call to BPA_TLMP_SendPerSourceMibCounterPkt()
   * \param[in] void No arguments accepted
-  * \return    void
+  * \return    Execution status
+  * \return    Return codes from BPA_TLMP_SendPerSourceMibCounterPkt() in fwp_tlmp.h
   */
-void BPLib_AS_SendSourceMibCountersHk(void);
+BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
 
 /**
   * \brief     Send Storage housekeeping telemetry packet
   * \details   Node Configuration Send Storage Housekeeping Packet command.
   * \note      This command is just a call to BPA_TLMP_SendChannelContactPkt()
   * \param[in] void No arguments accepted
-  * \return    void
+  * \return    Execution status
+  * \return    Return codes from BPA_TLMP_SendChannelContactPkt() in fwp_tlmp.h
   */
-void BPLib_AS_SendChannelContactStatHk(void);
+BPLib_Status_t BPLib_AS_SendChannelContactStatHk(void);
 
 #endif /* BPLIB_AS_H */

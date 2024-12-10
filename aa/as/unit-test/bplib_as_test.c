@@ -377,6 +377,33 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     Test_BPLib_AS_ErrorCountersValueTest(SourceEids[2], 0);
 }
 
+void Test_BPLib_AS_SendNodeMibCountersHk_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLib_AS_SendNodeMibCountersHk();
+
+    UtAssert_EQ(BPLib_Status_t, 0, Status);
+}
+
+void Test_BPLib_AS_SendSourceMibCountersHk_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLib_AS_SendSourceMibCountersHk();
+
+    UtAssert_EQ(BPLib_Status_t, 0, Status);
+}
+
+void Test_BPLib_AS_SendChannelContactStatHk_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    Status = BPLib_AS_SendChannelContactStatHk();
+
+    UtAssert_EQ(BPLib_Status_t, 0, Status);
+}
+
 void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
@@ -394,4 +421,7 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Error);
     ADD_TEST(Test_BPLib_AS_ResetAllCounters_Nominal);
+    ADD_TEST(Test_BPLib_AS_SendNodeMibCountersHk_Nominal);
+    ADD_TEST(Test_BPLib_AS_SendSourceMibCountersHk_Nominal);
+    ADD_TEST(Test_BPLib_AS_SendChannelContactStatHk_Nominal);
 }
