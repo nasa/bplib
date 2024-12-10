@@ -111,6 +111,9 @@
 #define BPLIB_NC_STOP_APP_ERR_EID                       (573u)
 #define BPLIB_NC_VERIF_BNDL_ERR_EID                     (574u)
 #define BPLIB_NC_VERIF_BNDL_META_ERR_EID                (575u)
+#define BPLIB_NC_SEND_NODE_CNTRS_ERR_EID                (576u)
+#define BPLIB_NC_SEND_SRC_CNTRS_ERR_EID                 (577u)
+#define BPLIB_NC_SEND_CONTACTS_ERR_EID                  (578u)
 
 /* ============ */
 /* AS event IDs */

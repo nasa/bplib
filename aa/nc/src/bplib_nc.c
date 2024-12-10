@@ -1103,12 +1103,34 @@ void BPLib_NC_SendSourceMibConfigHk()
 
 void BPLib_NC_SendNodeMibCountersHk()
 {
-    BPLib_AS_SendNodeMibCountersHk();
+    BPLib_Status_t Status;
+
+    Status = BPLib_AS_SendNodeMibCountersHk();
+
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_AS_Increment(0, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+
+        BPLib_EM_SendEvent(BPLIB_NC_SEND_NODE_CNTRS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Could not send node MIB counters packet, RC = %d",
+                            Status);
+    }
 }
 
 void BPLib_NC_SendSourceMibCountersHk()
 {
-    BPLib_AS_SendSourceMibCountersHk();
+    BPLib_Status_t Status;
+
+    Status = BPLib_AS_SendSourceMibCountersHk();
+
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_AS_Increment(0, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+
+        BPLib_EM_SendEvent(BPLIB_NC_SEND_SRC_CNTRS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Could not send source MIB counters packet, RC = %d",
+                            Status);
+    }
 }
 
 void BPLib_NC_SendStorageHk()
@@ -1118,7 +1140,18 @@ void BPLib_NC_SendStorageHk()
 
 void BPLib_NC_SendChannelContactStatHk()
 {
-    BPLib_AS_SendChannelContactStatHk();
+    BPLib_Status_t Status;
+
+    Status = BPLib_AS_SendChannelContactStatHk();
+
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_AS_Increment(0, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+
+        BPLib_EM_SendEvent(BPLIB_NC_SEND_CONTACTS_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "Could not send channel contact statistics packet, RC = %d",
+                            Status);
+    }
 }
 
 /* Validate MIB Config PN table data */

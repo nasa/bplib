@@ -1231,6 +1231,20 @@ void Test_BPLib_NC_SendNodeMibCountersHk_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_AS_SendNodeMibCountersHk, 1);
 }
 
+void Test_BPLib_NC_SendNodeMibCountersHk_Error(void)
+{
+    BPLib_NC_SendNodeMibCountersHk();
+    
+    // Verify downstream function was called
+    UtAssert_STUB_COUNT(BPLib_AS_SendNodeMibCountersHk, 1);
+
+    // Verify rejected directive counter was incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+
+    // Verify the error event was issued
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_NODE_CNTRS_ERR_EID,
+                                "Could not send node MIB counters packet, RC = %d");
+}
 
 void Test_BPLib_NC_SendSourceMibCountersHk_Nominal(void)
 {
@@ -1239,8 +1253,23 @@ void Test_BPLib_NC_SendSourceMibCountersHk_Nominal(void)
     // Verify directive counter was not incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
 
-    /* Verify downstream function was called */
+    // Verify downstream function was called
     UtAssert_STUB_COUNT(BPLib_AS_SendSourceMibCountersHk, 1);
+}
+
+void Test_BPLib_NC_SendSourceMibCountersHk_Error(void)
+{
+    BPLib_NC_SendSourceMibCountersHk();
+    
+    // Verify downstream function was called
+    UtAssert_STUB_COUNT(BPLib_AS_SendSourceMibCountersHk, 1);
+
+    // Verify rejected directive counter was incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+
+    // Verify error event was issued
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_SRC_CNTRS_ERR_EID,
+                                "Could not send source MIB counters packet, RC = %d");
 }
 
 void Test_BPLib_NC_SendStorageHk_Nominal(void)
@@ -1261,8 +1290,23 @@ void Test_BPLib_NC_SendChannelContactStatHk_Nominal(void)
     // Verify directive counter was not incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
 
-    /* Verify downstream function was called */
+    // Verify downstream function was called
     UtAssert_STUB_COUNT(BPLib_AS_SendChannelContactStatHk, 1);
+}
+
+void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
+{
+    BPLib_NC_SendChannelContactStatHk();
+    
+    // Verify downstream function was called
+    UtAssert_STUB_COUNT(BPLib_AS_SendChannelContactStatHk, 1);
+
+    // Verify rejected directive counter was incremented
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+
+    // Verify error event was issued
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_CONTACTS_ERR_EID,
+                                "Could not send channel contact statistics packet, RC = %d");
 }
 
 void Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal(void)
@@ -1388,9 +1432,12 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Nominal);
     ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Nominal);
     ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Error);
     ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Error);
     ADD_TEST(Test_BPLib_NC_SendStorageHk_Nominal);
     ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Error);
     ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal);
     ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid);
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal);
