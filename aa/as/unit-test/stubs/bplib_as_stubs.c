@@ -78,7 +78,6 @@ BPLib_Status_t BPLib_AS_Init(void)
  */
 void BPLib_AS_ResetAllCounters(void)
 {
-
     UT_GenStub_Execute(BPLib_AS_ResetAllCounters, Basic, NULL);
 }
 
@@ -87,15 +86,9 @@ void BPLib_AS_ResetAllCounters(void)
  * Generated stub function for BPLib_AS_ResetBundleCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
+void BPLib_AS_ResetBundleCounters()
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_ResetBundleCounters, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_AS_ResetBundleCounters, int16_t, SourceEid);
-
     UT_GenStub_Execute(BPLib_AS_ResetBundleCounters, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_ResetBundleCounters, BPLib_Status_t);
 }
 
 /*

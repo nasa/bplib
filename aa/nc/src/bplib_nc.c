@@ -325,7 +325,7 @@ void BPLib_NC_ResetBundleCounters()
     BPLib_AS_Increment(0, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
 
     BPLib_EM_SendEvent(BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                        "Successfully reset bundle counters");
+                        "Successful reset-bundle-counters command");
 }
 
 void BPLib_NC_ResetErrorCounters(const BPLib_ResetErrorCounters_Payload_t Payload)

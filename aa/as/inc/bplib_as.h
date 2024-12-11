@@ -304,7 +304,7 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
  * \endsecreflist
  * \anchor    BPLib_AS_ResetBundleCounters
  */
-void BPLib_AS_ResetBundleCounters();
+void BPLib_AS_ResetBundleCounters(void);
 
 /**
  * \brief     Set to zero all resettable MIB error counters

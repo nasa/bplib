@@ -164,7 +164,7 @@ void BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payl
   *            return value
   * \return    void
   */
-void BPLib_NC_ResetBundleCounters();
+void BPLib_NC_ResetBundleCounters(void);
 
 /**
   * \brief     Set all error counters to zero

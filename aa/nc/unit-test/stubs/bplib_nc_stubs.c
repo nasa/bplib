@@ -360,9 +360,8 @@ void BPLib_NC_ResetAllCounters(void)
  * Generated stub function for BPLib_NC_ResetBundleCounters()
  * ----------------------------------------------------
  */
-void BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload)
+void BPLib_NC_ResetBundleCounters()
 {
-    UT_GenStub_AddParam(BPLib_NC_ResetBundleCounters, const BPLib_ResetBundleCounters_Payload_t, Payload);
     UT_GenStub_Execute(BPLib_NC_ResetBundleCounters, Basic, NULL);
 }
 

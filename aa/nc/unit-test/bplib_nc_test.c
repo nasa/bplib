@@ -355,11 +355,7 @@ void Test_BPLib_NC_ResetSourceCounters_Error(void)
 
 void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
 {
-    BPLib_ResetBundleCounters_Payload_t Payload;
-
-    Payload.Spare     = 0;
-    Payload.SourceEid = 2;
-    BPLib_NC_ResetBundleCounters(Payload);
+    BPLib_NC_ResetBundleCounters();
     
     // Verify directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
@@ -369,28 +365,7 @@ void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID,
-                                "Successfully reset bundle counters for source EID %d");
-}
-
-void Test_BPLib_NC_ResetBundleCounters_Error(void)
-{
-    BPLib_ResetBundleCounters_Payload_t Payload;
-
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetBundleCounters), BPLIB_AS_INVALID_EID);
-
-    Payload.Spare     = 0;
-    Payload.SourceEid = 19;
-    BPLib_NC_ResetBundleCounters(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
-
-    /* Verify downstream function was called */
-    UtAssert_STUB_COUNT(BPLib_AS_ResetBundleCounters, 1);
-
-    /* Verify event */
-    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_BNDL_CTRS_ERR_EID,
-                                "Could not reset bundle counters with source EID %d, RC = %d");
+                                "Successful reset-bundle-counters command");
 }
 
 void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
@@ -1385,7 +1360,6 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Nominal);
     ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Error);
     ADD_TEST(Test_BPLib_NC_ResetBundleCounters_Nominal);
-    ADD_TEST(Test_BPLib_NC_ResetBundleCounters_Error);
     ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Nominal);
     ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Error);
     ADD_TEST(Test_BPLib_NC_AddApplication_Nominal);
