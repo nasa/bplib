@@ -404,6 +404,27 @@ void Test_BPLib_AS_SendChannelContactStatHk_Nominal(void)
     UtAssert_EQ(BPLib_Status_t, 0, Status);
 }
 
+void Test_BPLib_AS_GetSetAppState_Nominal(void)
+{
+    int8_t ChanId;
+    BPLib_AS_ApplicationState_t State;
+
+    ChanId = 1;
+    State  = BPLIB_AS_APP_STATE_ADDED;
+
+    BPLib_AS_ChannelContactStatsPayload.ChannelStatus[ChanId].State = State;
+
+    State = BPLIB_AS_APP_STATE_STARTED;
+    BPLib_AS_SetAppState(ChanId, State);
+
+    UtAssert_EQ(BPLib_AS_ApplicationState_t, State, BPLib_AS_ChannelContactStatsPayload.ChannelStatus[ChanId].State);
+
+    /* Verify that the state has changed without modifying the payload's value before calling this function */
+    State = BPLib_AS_GetAppState(ChanId);
+
+    UtAssert_EQ(BPLib_AS_ApplicationState_t, BPLIB_AS_APP_STATE_STARTED, State);
+}
+
 void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
@@ -424,4 +445,5 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_SendNodeMibCountersHk_Nominal);
     ADD_TEST(Test_BPLib_AS_SendSourceMibCountersHk_Nominal);
     ADD_TEST(Test_BPLib_AS_SendChannelContactStatHk_Nominal);
+    ADD_TEST(Test_BPLib_AS_GetSetAppState_Nominal);
 }
