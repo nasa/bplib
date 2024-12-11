@@ -318,30 +318,14 @@ void BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payl
     }
 }
 
-void BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload)
+void BPLib_NC_ResetBundleCounters()
 {
-    BPLib_Status_t Status;
+    BPLib_AS_ResetBundleCounters();
 
-    Status = BPLib_AS_ResetBundleCounters(Payload.SourceEid);
+    BPLib_AS_Increment(0, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
 
-    if (Status == BPLIB_SUCCESS)
-    {
-        BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
-
-        BPLib_EM_SendEvent(BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Successfully reset bundle counters for source EID %d",
-                            Payload.SourceEid);
-    }
-    else
-    {
-        BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
-
-        BPLib_EM_SendEvent(BPLIB_NC_RESET_BNDL_CTRS_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset bundle counters with source EID %d, RC = %d",
-                            Payload.SourceEid,
-                            Status);
-    }
+    BPLib_EM_SendEvent(BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                        "Successfully reset bundle counters");
 }
 
 void BPLib_NC_ResetErrorCounters(const BPLib_ResetErrorCounters_Payload_t Payload)

@@ -294,21 +294,17 @@ BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Count
 BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
 
 /**
- * \brief     Set to zero all resettable MIB counters associated with bundles
+ * \brief     Set to zero all resettable node MIB counters associated with bundles
  * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
- * \note      Diretcly sets bundle counters in payloads to 0
- * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
- * \return    Execution status
- * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
- * \retval    BPLIB_SUCCESS: Successful execution
+ * \note      Diretcly sets node bundle counters in payloads to 0
+ * \return    void
  * \secreflist
  * \refitem   BPLib_AS_Counter_t
- * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
- * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \refitem   BPLib_NodeMibCountersHkTlm_Payload_t
  * \endsecreflist
  * \anchor    BPLib_AS_ResetBundleCounters
  */
-BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
+void BPLib_AS_ResetBundleCounters();
 
 /**
  * \brief     Set to zero all resettable MIB error counters

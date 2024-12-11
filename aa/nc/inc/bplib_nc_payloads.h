@@ -55,12 +55,6 @@ typedef struct
 {
     int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
     uint16_t Spare;    /** \brief Spare for 32-bit alignment */
-} BPLib_ResetBundleCounters_Payload_t;
-
-typedef struct
-{
-    int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
-    uint16_t Spare;    /** \brief Spare for 32-bit alignment */
 } BPLib_ResetErrorCounters_Payload_t;
 
 typedef struct

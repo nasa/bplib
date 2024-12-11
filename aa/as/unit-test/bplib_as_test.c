@@ -253,38 +253,18 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
 
 void Test_BPLib_AS_ResetBundleCounters_Nominal(void)
 {
-    BPLib_Status_t Status;
-    int32_t SourceEid;
     uint32_t TestValue;
 
-    SourceEid = 2;
     TestValue = 144;
 
     /* Set the values to be tested */
-    Test_BPLib_AS_SetBundleCounterValues(SourceEid, TestValue);
+    Test_BPLib_AS_SetBundleCounterValues(TestValue);
 
     /* Run the function under test */
-    Status = BPLib_AS_ResetBundleCounters(SourceEid);
-
-    /* Assert that BPLib_AS_ResetBundleCounters() ran successfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+    BPLib_AS_ResetBundleCounters();
 
     /* Assert that each modified bundle counter was reset */
-    Test_BPLib_AS_BundleCountersValueTest(SourceEid, 0);
-}
-
-void Test_BPLib_AS_ResetBundleCounters_Error(void)
-{
-    BPLib_Status_t Status;
-    int32_t SourceEid;
-
-    SourceEid = -15;
-
-    /* Run the function under test */
-    Status = BPLib_AS_ResetBundleCounters(SourceEid);
-
-    /* Assert that BPLib_AS_ResetBundleCounters() failed due to an invalid source EID */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
+    Test_BPLib_AS_BundleCountersValueTest(0);
 }
 
 void Test_BPLib_AS_ResetErrorCounters_Nominal(void)
@@ -335,9 +315,11 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     /* Set node counters to a non-zero value */
     Test_BPLib_AS_SetNodeCounterValues(TestValue);
 
+    /* Set bundle counters to a non-zero value*/
+    Test_BPLib_AS_SetBundleCounterValues(TestValue);
+
     /* Set all counters to a non-zero value */
     Test_BPLib_AS_SetSourceCounterValues(SourceEids[0], TestValue);
-    Test_BPLib_AS_SetBundleCounterValues(SourceEids[0], TestValue);
     Test_BPLib_AS_SetErrorCounterValues(SourceEids[0], TestValue);
 
     /* Modify counter values for a second source EID */
@@ -346,7 +328,6 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
 
     /* Set all counters to a non-zero value */
     Test_BPLib_AS_SetSourceCounterValues(SourceEids[1], TestValue);
-    Test_BPLib_AS_SetBundleCounterValues(SourceEids[1], TestValue);
     Test_BPLib_AS_SetErrorCounterValues(SourceEids[1], TestValue);
 
     /* Modify counter values for a third source EID */
@@ -355,7 +336,6 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
 
     /* Set all counters to a non-zero value */
     Test_BPLib_AS_SetSourceCounterValues(SourceEids[2], TestValue);
-    Test_BPLib_AS_SetBundleCounterValues(SourceEids[2], TestValue);
     Test_BPLib_AS_SetErrorCounterValues(SourceEids[2], TestValue);
 
     /* Run the function under test */
@@ -364,16 +344,15 @@ void Test_BPLib_AS_ResetAllCounters_Nominal(void)
     /* Check that all counters are set to 0 */
     Test_BPLib_AS_NodeCountersValueTest(0);
 
+    Test_BPLib_AS_BundleCountersValueTest(0);
+
     Test_BPLib_AS_SourceCountersValueTest(SourceEids[0], 0);
-    Test_BPLib_AS_BundleCountersValueTest(SourceEids[0], 0);
     Test_BPLib_AS_ErrorCountersValueTest(SourceEids[0], 0);
 
     Test_BPLib_AS_SourceCountersValueTest(SourceEids[1], 0);
-    Test_BPLib_AS_BundleCountersValueTest(SourceEids[1], 0);
     Test_BPLib_AS_ErrorCountersValueTest(SourceEids[1], 0);
 
     Test_BPLib_AS_SourceCountersValueTest(SourceEids[2], 0);
-    Test_BPLib_AS_BundleCountersValueTest(SourceEids[2], 0);
     Test_BPLib_AS_ErrorCountersValueTest(SourceEids[2], 0);
 }
 
@@ -438,7 +417,6 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Error);
     ADD_TEST(Test_BPLib_AS_ResetBundleCounters_Nominal);
-    ADD_TEST(Test_BPLib_AS_ResetBundleCounters_Error);
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetErrorCounters_Error);
     ADD_TEST(Test_BPLib_AS_ResetAllCounters_Nominal);
