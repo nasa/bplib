@@ -25,10 +25,10 @@
 /* Typedefs */
 /* ======== */
 
-/** 
+/**
   * \brief Channel application state
   */
-typedef enum 
+typedef enum
 {
     BPLIB_AS_APP_STATE_STOPPED = 0,
     BPLIB_AS_APP_STATE_ADDED   = 1,
