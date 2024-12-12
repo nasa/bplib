@@ -67,6 +67,7 @@ typedef struct
     BPLib_Status_t (*BPA_ADUP_AddApplication)(uint8_t ChanId);
     BPLib_Status_t (*BPA_ADUP_StartApplication)(uint8_t ChanId);
     BPLib_Status_t (*BPA_ADUP_StopApplication)(uint8_t ChanId);
+    BPLib_Status_t (*BPA_ADUP_RemoveApplication)(uint8_t ChanId);
 
     /* Add other proxies' function callbacks here: TODO */
 

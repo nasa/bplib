@@ -386,18 +386,17 @@ void BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payload)
 
 void BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    /* Remove application configurations */
+    Status = BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication(Payload.ChanId);
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_AS_Increment(0, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_RM_APP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
-                            "Remove application directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful remove-application directive for ChanId=%d",
+                            Payload.ChanId);
     }
     /*
     else

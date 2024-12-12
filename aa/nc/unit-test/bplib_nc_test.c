@@ -437,7 +437,7 @@ void Test_BPLib_NC_AddApplication_Error(void)
     BPLib_AddApplication_Payload_t Payload;
 
     /* Check channel error return code */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ADU_ADD_CHAN_ERR);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ERROR);
 
     Payload.ChanId = 2;
     BPLib_NC_AddApplication(Payload);
@@ -459,7 +459,7 @@ void Test_BPLib_NC_RemoveApplication_Nominal(void)
 {
     BPLib_RemoveApplication_Payload_t Payload;
 
-    Payload.ExampleParameter = 2;
+    Payload.ChanId = 2;
     BPLib_NC_RemoveApplication(Payload);
     
     // Verify directive counter was incremented
@@ -467,20 +467,21 @@ void Test_BPLib_NC_RemoveApplication_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_APP_SUCCESS_EID,
-                                "Remove application directive not implemented, received %d in payload");
+                                "Successful remove-application directive for ChanId=%d");
 }
 
 void Test_BPLib_NC_RemoveApplication_Error(void)
 {
-    /*
     BPLib_RemoveApplication_Payload_t Payload;
 
-    Payload.ExampleParameter = 2;
+    /* Check channel error return code */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_RemoveApplication), BPLIB_ERROR);
+
+    Payload.ChanId = 2;
     BPLib_NC_RemoveApplication(Payload);
-    
+
     // Verify directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
-    */
 }
 
 void Test_BPLib_NC_SetRegistrationState_Nominal(void)

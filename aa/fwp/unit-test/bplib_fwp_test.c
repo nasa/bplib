@@ -57,6 +57,7 @@ void Test_BPLib_FWP_Init_Nominal(void)
     Callbacks.BPA_ADUP_AddApplication             = BPA_ADUP_AddApplication;
     Callbacks.BPA_ADUP_StartApplication           = BPA_ADUP_StartApplication;
     Callbacks.BPA_ADUP_StopApplication            = BPA_ADUP_StopApplication;
+    Callbacks.BPA_ADUP_RemoveApplication          = BPA_ADUP_RemoveApplication;
     Callbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
     Callbacks.BPA_TLMP_SendNodeMibConfigPkt       = BPA_TLMP_SendNodeMibConfigPkt;
     Callbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
@@ -94,6 +95,8 @@ void Test_BPLib_FWP_Init_Nominal(void)
                     "Same BPA_ADUP_StartApplication functions");
     UtAssert_True(Callbacks.BPA_ADUP_StopApplication == BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication,
                     "Same BPA_ADUP_StopApplication functions");
+    UtAssert_True(Callbacks.BPA_ADUP_RemoveApplication == BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication,
+                    "Same BPA_ADUP_RemoveApplication functions");
     UtAssert_True(Callbacks.BPA_TLMP_SendChannelContactPkt == BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt, 
                     "Same BPA_TLMP_SendChannelContactPkt functions");
     UtAssert_True(Callbacks.BPA_TLMP_SendNodeMibConfigPkt == BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt, 
@@ -224,6 +227,15 @@ void Test_BPLib_FWP_Init_ADUP_StopApplicationNull(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
+void Test_BPLib_FWP_Init_ADUP_RemoveApplicationNull(void)
+{
+    BPLib_FWP_ProxyCallbacks_t Callbacks;
+
+    memset(&Callbacks, 1, sizeof(BPLib_FWP_ProxyCallbacks_t));
+    Callbacks.BPA_ADUP_RemoveApplication = NULL;
+    UtAssert_INT32_EQ(BPLib_FWP_Init(Callbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_SendChannelContactPktNull(void)
 {
@@ -299,6 +311,7 @@ void TestBplibFwp_Register(void)
     UtTest_Add(Test_BPLib_FWP_Init_ADUP_AddApplicationNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_AddApplicationNull");
     UtTest_Add(Test_BPLib_FWP_Init_ADUP_StartApplicationNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_StartApplicationNull");
     UtTest_Add(Test_BPLib_FWP_Init_ADUP_StopApplicationNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_StopApplicationNull");
+    UtTest_Add(Test_BPLib_FWP_Init_ADUP_RemoveApplicationNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ADUP_RemoveApplicationNull");
     UtTest_Add(Test_BPLib_FWP_Init_SendChannelContactPktNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendChannelContactPktNull");
     UtTest_Add(Test_BPLib_FWP_Init_SendNodeMibConfigPktNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendNodeMibConfigPktNull");
     UtTest_Add(Test_BPLib_FWP_Init_SendNodeMibCounterPktNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendNodeMibCounterPktNull");
