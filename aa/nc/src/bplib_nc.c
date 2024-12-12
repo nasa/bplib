@@ -402,8 +402,9 @@ void BPLib_NC_AddApplication(const BPLib_AddApplication_Payload_t Payload)
         BPLib_AS_Increment(0, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_ADD_APP_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Could not add application with channel ID %d",
-                            Payload.ChanId);
+                            "Could not add application with channel ID %d, RC = %d",
+                            Payload.ChanId,
+                            Status);
     }
 }
 
@@ -427,8 +428,9 @@ void BPLib_NC_RemoveApplication(const BPLib_RemoveApplication_Payload_t Payload)
         BPLib_AS_Increment(0, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_RM_APP_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Could not remove application with channel ID %d",
-                            Payload.ChanId);
+                            "Could not remove application with channel ID %d, RC = %d",
+                            Payload.ChanId,
+                            Status);
     }
 }
 
@@ -485,6 +487,11 @@ void BPLib_NC_StartApplication(const BPLib_StartApplication_Payload_t Payload)
     else
     {
         BPLib_AS_Increment(0, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+        BPLib_EM_SendEvent(BPLIB_NC_START_APP_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not start application with channel ID %d, RC = %d",
+                            Payload.ChanId,
+                            Status);
     }
 }
 
@@ -506,6 +513,11 @@ void BPLib_NC_StopApplication(const BPLib_StopApplication_Payload_t Payload)
     else
     {
         BPLib_AS_Increment(0, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+        BPLib_EM_SendEvent(BPLIB_NC_STOP_APP_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not stop application with channel ID %d, RC = %d",
+                            Payload.ChanId,
+                            Status);
     }
 }
 

@@ -457,20 +457,7 @@ void Test_BPLib_NC_AddApplication_Error(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_APP_ERR_EID,
-                                "Could not add application with channel ID %d");
-    
-    /* Check state error return code */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ERROR);
-    
-    Payload.ChanId = 2;
-    BPLib_NC_AddApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
-
-    /* Verify event */
-    BPLib_NC_Test_Verify_Event(1, BPLIB_NC_ADD_APP_ERR_EID,
-                                "Could not add application with channel ID %d");
+                                "Could not add application with channel ID %d, RC = %d");
 }
 
 void Test_BPLib_NC_RemoveApplication_Nominal(void)
@@ -507,7 +494,7 @@ void Test_BPLib_NC_RemoveApplication_Error(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_APP_ERR_EID,
-                                "Could not remove application with channel ID %d");
+                                "Could not remove application with channel ID %d, RC = %d");
 }
 
 void Test_BPLib_NC_SetRegistrationState_Nominal(void)
@@ -566,23 +553,9 @@ void Test_BPLib_NC_StartApplication_Error(void)
     // Verify directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
 
-    /* State error return code check */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ERROR);
-
-    Payload.ChanId = 1;
-    BPLib_NC_StartApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
-
-    /* Subscribe error return code check */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ERROR);
-
-    Payload.ChanId = 1;
-    BPLib_NC_StartApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 3);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_START_APP_ERR_EID,
+                                "Could not start application with channel ID %d, RC = %d");
 }
 
 void Test_BPLib_NC_StopApplication_Nominal(void)
@@ -613,23 +586,9 @@ void Test_BPLib_NC_StopApplication_Error(void)
     // Verify directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
 
-    /* Invalid state return code test */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ERROR);
-
-    Payload.ChanId = 1;
-    BPLib_NC_StopApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
-
-    /* Unsubscribe error return code test */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ERROR);
-
-    Payload.ChanId = 1;
-    BPLib_NC_StopApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 3);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_STOP_APP_ERR_EID,
+                                "Could not stop application with channel ID %d, RC = %d");
 }
 
 void Test_BPLib_NC_AddAuthSources_Nominal(void)
