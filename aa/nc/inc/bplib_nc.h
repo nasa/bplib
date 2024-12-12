@@ -31,6 +31,7 @@
 #include "bplib_eventids.h"
 #include "bplib_as.h"
 #include "bplib_stor.h"
+#include "bplib_version.h"
 
 /* ======= */
 /* Externs */
@@ -52,6 +53,15 @@ extern BPLib_NodeMibConfigHkTlm_Payload_t   BPLib_NC_NodeMibConfigPayload;
   * \retval    BPLIB_SUCCESS: Command was successful
   */
 BPLib_Status_t BPLib_NC_Init(void);
+
+/**
+  * \brief     Send a no-op that sends an event containing the version number of BPLib
+  * \details   Node Configuration no-operation command
+  * \note      This command strictly issues an event
+  * \param[in] void No arguments accepted
+  * \return    void
+  */
+void BPLib_NC_Noop(void);
 
 /**
   * \brief     Run add-application for all applications configured to start at startup

@@ -44,6 +44,16 @@ BPLib_Status_t BPLib_NC_Init(void)
     return Status;
 }
 
+void BPLib_NC_Noop(void)
+{
+    BPLib_EM_SendEvent(BPLIB_NC_NOOP_SUCCESS_EID, BPLib_EM_EventType_INFORMATION,
+                        "BPLib Version: v%u.%u.%u-sprint-%u", 
+                        BPLIB_MAJOR_VERSION,
+                        BPLIB_MINOR_VERSION,
+                        BPLIB_REVISION,
+                        BPLIB_BUILD_NUMBER);
+}
+
 void BPLib_NC_AddAllApplications(void)
 {
     /*

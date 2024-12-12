@@ -50,6 +50,15 @@ void Test_BPLib_NC_Init_Error(void)
     */
 }
 
+void Test_BPLib_NC_Noop_Nominal(void)
+{
+    BPLib_NC_Noop();
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_NOOP_SUCCESS_EID,
+                                "BPLib Version: v%u.%u.%u-sprint-%u");
+}
+
 void Test_BPLib_NC_AddAllApplications_Nominal(void)
 {
     BPLib_NC_AddAllApplications();

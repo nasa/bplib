@@ -30,6 +30,10 @@
 
 void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
 {
+    /* Confirm the issuing function was called */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, EventNum + 1);
+
+    /* Check the string */
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[EventNum].EventID, EventID);
     UtAssert_STRINGBUF_EQ(EventText, BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
