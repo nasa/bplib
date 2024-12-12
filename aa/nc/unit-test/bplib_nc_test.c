@@ -1346,6 +1346,7 @@ void TestBplibNc_Register(void)
 {
     ADD_TEST(Test_BPLib_NC_Init_Nominal);
     ADD_TEST(Test_BPLib_NC_Init_Error);
+    ADD_TEST(Test_BPLib_NC_Noop_Nominal);
     ADD_TEST(Test_BPLib_NC_AddAllApplications_Nominal);
     ADD_TEST(Test_BPLib_NC_AddAllApplications_Error);
     ADD_TEST(Test_BPLib_NC_StartAllApplications_Nominal);
