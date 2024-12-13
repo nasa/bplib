@@ -286,8 +286,6 @@ void BPLib_NC_ResetAllCounters(void)
     BPLib_EM_SendEvent(BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
                         "Successful reset-all-counters directive");
-
-    BPLib_AS_Increment(0, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
 }
 
 void BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload)
