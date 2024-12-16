@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_EM_HANDLERS_H
-#define BPLIB_EM_HANDLERS_H
+#ifndef BPLIB_AS_HANDLERS_H
+#define BPLIB_AS_HANDLERS_H
 
 /* ======== */
 /* Includes */
@@ -29,7 +29,7 @@
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "bplib_as_internal.h"
+#include "bplib_as.h"
 
 /* ================ */
 /* Type Definitions */
@@ -38,9 +38,9 @@
 /* Unit test increment/decrement hook information */
 typedef struct
 {
-    int16_t SourceEid;
+    int16_t            SourceEid;
     BPLib_AS_Counter_t Counter;
-    uint32_t Amount;
+    uint32_t           Amount;
 } BPLib_AS_IncrementDecrementContext_t;
 
 /* =========== */
@@ -60,4 +60,4 @@ void Test_BPLib_AS_VerifyIncrementDecrementCounter(BPLib_AS_Counter_t Counter);
 void Test_BPLib_AS_VerifyIncrementDecrementAmount(uint32_t Amount);
 void Test_BPLib_AS_VerifyIncrementDecrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
-#endif /* BPLIB_EM_HANDLERS_H */
+#endif /* BPLIB_AS_HANDLERS_H */

@@ -24,22 +24,9 @@
 
 #include "bplib_as_test_utils.h"
 
-/* ======= */
-/* Globals */
-/* ======= */
-
-BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_IncrementDecrement;
-
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
-
-void UT_Handler_BPLib_AS_IncrementDecrement(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
-{
-    Context_BPLib_AS_IncrementDecrement.SourceEid = UT_Hook_GetArgValueByName(Context, "SourceEid", uint16_t);
-    Context_BPLib_AS_IncrementDecrement.Counter   = UT_Hook_GetArgValueByName(Context, "Counter", BPLib_AS_Counter_t);
-    Context_BPLib_AS_IncrementDecrement.Amount    = UT_Hook_GetArgValueByName(Context, "Amount", uint32_t);
-}
 
 void Test_BPLib_AS_VerifyIncrementDecrementSourceEid(uint16_t SourceEid)
 {
@@ -374,6 +361,8 @@ void BPLib_AS_Test_Setup(void)
     UT_ResetState(0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement), UT_Handler_BPLib_AS_IncrementDecrement, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_IncrementDecrement, NULL);
 
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
