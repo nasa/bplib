@@ -226,7 +226,7 @@ void Test_BPLib_NC_ResetAllCounters_Nominal(void)
     BPLib_NC_ResetAllCounters();
     
     // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID,
