@@ -28,6 +28,18 @@
 /* Function Definitions */
 /* ==================== */
 
+void BPLib_NC_Noop(void)
+{
+    BPLib_AS_Increment(0, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
+    BPLib_EM_SendEvent(BPLIB_NC_NOOP_SUCCESS_EID,
+                        BPLib_EM_EventType_INFORMATION,
+                        "BPLib Version: v%u.%u.%u-sprint-%u",
+                        BPLIB_MAJOR_VERSION,
+                        BPLIB_MINOR_VERSION,
+                        BPLIB_REVISION,
+                        BPLIB_BUILD_NUMBER);
+}
+
 void BPLib_NC_AddAllApplications(void)
 {
     /*
@@ -302,11 +314,11 @@ void BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payl
     }
 }
 
-void BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload)
+void BPLib_NC_ResetBundleCounters()
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_ResetBundleCounters(Payload.SourceEid);
+    BPLib_AS_ResetBundleCounters();
 
     if (Status == BPLIB_SUCCESS)
     {

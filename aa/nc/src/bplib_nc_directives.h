@@ -39,6 +39,16 @@
 /* =================== */
 
 /**
+  * \brief     Send a no-op that sends an event containing the version number of BPLib
+  * \details   Node Configuration no-operation command
+  * \note      This command strictly issues an event and increments the diretive
+  *            accepted counter
+  * \param[in] void No arguments accepted
+  * \return    void
+  */
+void BPLib_NC_Noop(void);
+
+/**
   * \brief     Run add-application for all applications configured to start at startup
   * \details   Node Configuration Add All Applications command
   * \note      This command is currently unimplemented and only returns BLPIB_SUCCESS
@@ -122,9 +132,9 @@ void BPLib_NC_ResetAllCounters(void);
 /**
   * \brief     Set given MIB counter, for given source EID, to zero.
   * \details   Node Configuration Reset Counter command
-  * \note      This command relies on BPLib_AS_ResetCounter() in bplib_as.h for functionality
-  *            and error event issuing. This command will issue a success event if
-  *            BPLib_AS_ResetCounter() return BPLIB_SUCCESS
+  * \note      This command relies on BPLib_AS_ResetCounter() in bplib_as.h for functionality.
+  *            This command will issue a success event since BPLib_AS_ResetCounter() has no
+  *            return value
   * \param[in] Payload BPLib_ResetCounter_Payload_t type found in bplib_nc_payloads.h
   * \return    void
   */
@@ -133,9 +143,9 @@ void BPLib_NC_ResetCounter(const BPLib_ResetCounter_Payload_t Payload);
 /**
   * \brief     Set all resettable MIB counters associated with given source EID pattern to zero
   * \details   Node Configuration Reset Source Counters command
-  * \note      This command relies on BPLib_AS_ResetSourceCounters() in bplib_as.h for functionality
-  *            and error event issuing. This command will issue a success event if
-  *            BPLib_AS_ResetSourceCounters() returns BPLIB_SUCCESS
+  * \note      This command relies on BPLib_AS_ResetSourceCounters() in bplib_as.h for functionality.
+  *            This command will issue a success event since BPLib_AS_ResetSourceCounters() has no
+  *            return value
   * \param[in] Payload BPLib_ResetSourceCounters_Payload_t type found in bplib_nc_payloads.h
   * \return    void
   */
@@ -144,20 +154,19 @@ void BPLib_NC_ResetSourceCounters(const BPLib_ResetSourceCounters_Payload_t Payl
 /**
   * \brief     Set all bundle-related counters to zero
   * \details   Node Configuration Reset Bundle Counters command
-  * \note      This command relies on BPLib_AS_ResetBundleCounters() in bplib_as.h for functionality
-  *            and error event issuing. This command will issue a success event if
-  *            BPLib_AS_ResetBundleCounters() returns BPLIB_SUCCESS
-  * \param[in] Payload (BPLib_ResetBundleCounters_Payload_t) Payload found in bplib_nc_payloads.h
+  * \note      This command relies on BPLib_AS_ResetBundleCounters() in bplib_as.h for functionality.
+  *            This command will issue a success event since BPLib_AS_ResetBundleCounters() has no
+  *            return value
   * \return    void
   */
-void BPLib_NC_ResetBundleCounters(const BPLib_ResetBundleCounters_Payload_t Payload);
+void BPLib_NC_ResetBundleCounters(void);
 
 /**
   * \brief     Set all error counters to zero
   * \details   Node Configuration Reset Error Counters command
-  * \note      This command relies on BPLib_AS_ResetErrorCounters() in bplib_as.h for functionality
-  *            and error event issuing. This command will issue a success event if
-  *            BPLib_AS_ResetErrorCounters() returns BPLIB_SUCCESS
+  * \note      This command relies on BPLib_AS_ResetErrorCounters() in bplib_as.h for functionality.
+  *            This command will issue a success event since BPLib_AS_ResetErrorCounters() has no
+  *            no return value
   * \param[in] Payload (BPLib_ResetErrorCounters_Payload_t) Payload found in bplib_nc_payloads.h
   * \return    void
   */
