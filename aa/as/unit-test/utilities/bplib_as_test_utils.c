@@ -65,647 +65,294 @@ void Test_BPLib_AS_VerifyIncrementDecrement(uint16_t SourceEid, BPLib_AS_Counter
 
 void Test_BPLib_AS_SetNodeCounterValues(uint32 SetValue)
 {
-    BPLib_AS_NodeCountersPayload.AduCountDelivered                  = SetValue;
-    BPLib_AS_NodeCountersPayload.AduCountReceived                   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount  = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount  = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountAbandoned               = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded      = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected         = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest          = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred      = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeleted                 = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid           = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled        = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired          = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedForwardFailed    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded      = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage        = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong          = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDelivered               = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDepleted                = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountDiscarded               = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountForwarded               = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed         = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountFragmentError           = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountFragmented              = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted       = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAnonymous      = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs            = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody        = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal  = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment       = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected       = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountInCustody               = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded      = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded      = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountNoContact               = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo           = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountNoRoute                 = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReassembled             = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceived                = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted      = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs             = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted      = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment        = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountRedundant               = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody         = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReturned                = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountStorageAvailable        = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountStored                  = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock     = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid       = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks       = SetValue;
-    BPLib_AS_NodeCountersPayload.NodeStartupCounter                 = SetValue;
+    uint8_t NodeCounterLoop;
+
+    for(NodeCounterLoop = 0; NodeCounterLoop < BPLIB_AS_NUM_NODE_CNTRS; NodeCounterLoop++)
+    {
+        BPLib_AS_NodeCountersPayload.NodeCounters[NodeCounterLoop] = SetValue;
+    }
 }
 
 void Test_BPLib_AS_NodeCountersValueTest(uint32 ActualValue)
 {
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.AduCountDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.AduCountReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleAgentAcceptedDirectiveCount);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountAbandoned);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedCancelled);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedForwardFailed);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDepleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDiscarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountFragmentError);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountFragmented);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedAnonymous);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountInCustody);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountNoContact);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountNoRoute);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReassembled);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedAdminRecord);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountRedundant);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReturned);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountStorageAvailable);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountStored);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeStartupCounter);
+    uint8_t NodeCounterLoop;
+
+    for(NodeCounterLoop = 0; NodeCounterLoop < BPLIB_AS_NUM_NODE_CNTRS; NodeCounterLoop++)
+    {
+        UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[NodeCounterLoop]);
+    }
 }
 
 void Test_BPLib_AS_SetSourceCounterValues(int32_t SourceEid, uint32_t SetValue)
 {
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountDelivered                  = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountReceived                   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyReForwarded      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected         = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRequest          = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyTransferred      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeleted                 = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedBadEid           = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedCancelled        = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedExpired          = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedForwardFailed    = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedHopExceeded      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage        = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong          = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTrafficPared     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnauthorized     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDelivered               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDepleted                = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDiscarded               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwarded               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwardedFailed         = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError           = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmented              = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedAccepted       = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedCustodySignal  = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedFragment       = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected       = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountMaxBsrRateExceeded      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoContact               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoFurtherInfo           = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoRoute                 = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReassembled             = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceived                = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedAdminRecord     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrAccepted     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDeleted      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDelivered    = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrForwarded    = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrReceived     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsAccepted     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDeleted      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDelivered    = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsForwarded    = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsReceived     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCustodySignal   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedFragment        = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRedundant               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody         = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReturned                = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleBlock     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleEid       = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks       = SetValue;
+    uint8_t SourceCounterLoop;
 
+    for(SourceCounterLoop = 0; SourceCounterLoop < BPLIB_AS_NUM_SOURCE_CNTRS; SourceCounterLoop++)
+    {
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[SourceCounterLoop] = SetValue;
+    }
 }
 
 void Test_BPLib_AS_SourceCountersValueTest(int32_t SourceEid, uint32_t ActualValue)
 {
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyReForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRequest);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyTransferred);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedBadEid);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedCancelled);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedExpired);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedForwardFailed);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedHopExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTrafficPared);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnauthorized);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDepleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDiscarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwardedFailed);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmented);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedCustodySignal);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedFragment);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountMaxBsrRateExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoContact);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoFurtherInfo);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoRoute);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReassembled);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedAdminRecord);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCustodySignal);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedFragment);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRedundant);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReturned);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleEid);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks);
+    uint8_t SourceCounterLoop;
+
+    for(SourceCounterLoop = 0; SourceCounterLoop < BPLIB_AS_NUM_SOURCE_CNTRS; SourceCounterLoop++)
+    {
+        UtAssert_EQ(uint32_t, ActualValue,
+                    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[SourceCounterLoop]);
+    }
 }
 
-void Test_BPLib_AS_SetBundleCounterValues(int32_t SourceEid, uint32_t SetValue)
+void Test_BPLib_AS_SetBundleCounterValues(uint32_t SetValue)
 {
-    BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted  = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived  = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs          = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted  = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived  = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody      = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock   = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded    = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs           = SetValue;
-
-    BPLib_AS_NodeCountersPayload.AduCountDelivered                                              = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountDelivered                  = SetValue;
-
-    BPLib_AS_NodeCountersPayload.AduCountReceived                                               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountReceived                   = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountAbandoned                                           = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned               = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded                                  = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyReForwarded      = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected                                     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected         = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest                                      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRequest          = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred                                  = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyTransferred      = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDeleted                                             = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeleted                 = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired                                      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedExpired          = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded                                  = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedHopExceeded      = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload                               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload   = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage                                    = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage        = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong                                      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong          = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared                                 = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTrafficPared     = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible                               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible   = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock                             = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDelivered                                           = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDelivered               = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDepleted                                            = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDepleted                = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountDiscarded                                           = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDiscarded               = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountForwarded                                           = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwarded               = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed                                     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwardedFailed         = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountFragmentError                                       = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError           = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountFragmented                                          = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmented              = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted                                   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedAccepted       = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal                              = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedCustodySignal  = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment                                   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedFragment       = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected                                   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected       = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded                                  = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountMaxBsrRateExceeded      = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo                                       = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoFurtherInfo           = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReassembled                                         = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReassembled             = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceived                                            = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceived                = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted                                 = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrAccepted     = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted                                  = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDeleted      = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered                                = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDelivered    = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded                                = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrForwarded    = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived                                 = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrReceived     = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted                                 = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsAccepted     = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted                                  = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDeleted      = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered                                = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDelivered    = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded                                = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsForwarded    = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived                                 = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsReceived     = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal                               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCustodySignal   = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment                                    = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedFragment        = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountRedundant                                           = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRedundant               = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody                                     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody         = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock                                 = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleBlock     = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid                                   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleEid       = SetValue;
-
-    BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks                                   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks       = SetValue;
+    /* Set the bundle counters that are node + source */
+    BPLib_AS_NodeCountersPayload.NodeCounters[ADU_COUNT_DELIVERED]                    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[ADU_COUNT_RECEIVED]                     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_ABANDONED]                 = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_RE_FORWARDED]      = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REJECTED]          = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REQUEST]           = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]       = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]                   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_EXPIRED]           = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_HOP_EXCEEDED]      = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_INVALID_PAYLOAD]   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_NO_STORAGE]        = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_TOO_LONG]          = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_TRAFFIC_PARED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNAUTHORIZED]      = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNINTELLIGIBLE]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK] = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELIVERED]                 = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DEPLETED]                  = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DISCARDED]                 = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FORWARDED]                 = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FORWARDED_FAILED]          = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENT_ERROR]            = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENTED]                = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_ACCEPTED]        = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CUSTODY_SIGNAL]  = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_FRAGMENT]        = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_REJECTED]        = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_NO_FURTHER_INFO]           = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REASSEMBLED]               = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED]                  = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_ACCEPTED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELETED]      = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELIVERED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_FORWARDED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_RECEIVED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_ACCEPTED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_DELETED]      = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_DELIVERED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_FORWARDED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_RECEIVED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CUSTODY_SIGNAL]   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_FRAGMENT]         = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REDUNDANT]                 = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REJECTED_CUSTODY]          = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNINTELLIGIBLE_BLOCK]      = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNINTELLIGIBLE_EID]        = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNPROCESSED_BLOCKS]        = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_SIGNAL_RECEIVED]   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_ACCEPTED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_DELETED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_DELIVERED]   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_FORWARDED]   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_RECEIVED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS]             = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_ACCEPTED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_DELETED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_DELIVERED]   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_FORWARDED]   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_RECEIVED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CUSTODY]         = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_INVALID_PRIMARY_BLOCK]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_MAX_CRS_RATE_EXCEEDED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_NO_FURTHER_INFO]           = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REASSEMBLED]               = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED]                  = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_ACCEPTED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELETED]      = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELIVERED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_FORWARDED]    = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_RECEIVED]     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS]              = SetValue;
 }
 
-void Test_BPLib_AS_BundleCountersValueTest(int32_t SourceEid, uint32_t ActualValue)
+void Test_BPLib_AS_BundleCountersValueTest(uint32_t ActualValue)
 {
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.AduCountDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.AduCountReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountAbandoned);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyReForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRequest);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyTransferred);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedExpired);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedHopExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTrafficPared);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDepleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDepleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDiscarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDiscarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwardedFailed);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountFragmentError);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountFragmented);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmented);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedCustodySignal);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedFragment);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountMaxBsrRateExceeded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoFurtherInfo);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReassembled);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReassembled);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsAccepted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDeleted);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDelivered);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsForwarded);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsReceived);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCustodySignal);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedFragment);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountRedundant);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRedundant);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleEid);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[ADU_COUNT_DELIVERED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[ADU_COUNT_RECEIVED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_ABANDONED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_RE_FORWARDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REJECTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REQUEST]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_EXPIRED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_HOP_EXCEEDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_INVALID_PAYLOAD]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_NO_STORAGE]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_TOO_LONG]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_TRAFFIC_PARED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNAUTHORIZED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNINTELLIGIBLE]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELIVERED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DEPLETED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DISCARDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FORWARDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FORWARDED_FAILED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENT_ERROR]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_ACCEPTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CUSTODY_SIGNAL]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_FRAGMENT]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_REJECTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_NO_FURTHER_INFO]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REASSEMBLED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_ACCEPTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELETED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELIVERED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_FORWARDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_RECEIVED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_ACCEPTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_DELETED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_DELIVERED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_FORWARDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_RECEIVED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CUSTODY_SIGNAL]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_FRAGMENT]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REDUNDANT]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REJECTED_CUSTODY]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNINTELLIGIBLE_BLOCK]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNINTELLIGIBLE_EID]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNPROCESSED_BLOCKS]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_SIGNAL_RECEIVED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_ACCEPTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_DELETED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_DELIVERED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_FORWARDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_RECEIVED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_ACCEPTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_DELETED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_DELIVERED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_FORWARDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_RECEIVED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CUSTODY]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_INVALID_PRIMARY_BLOCK]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_MAX_CRS_RATE_EXCEEDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_NO_FURTHER_INFO]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REASSEMBLED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_ACCEPTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELETED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELIVERED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_FORWARDED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_RECEIVED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS]);
 }
 
 void Test_BPLib_AS_SetErrorCounterValues(int32_t SourceEid, uint32_t SetValue)
 {
-    BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount = SetValue;
-    BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock    = SetValue;
+    /* Set the error counters associated with nodes and sources */
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_ABANDONED]                                         = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_ABANDONED]                 = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountAbandoned                                           = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned               = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REJECTED]                                  = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_REJECTED]          = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected                                     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected         = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_BAD_EID]                                   = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_BAD_EID]           = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid                                       = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedBadEid           = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_INVALID_PAYLOAD]                           = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_INVALID_PAYLOAD]   = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload                               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_NO_STORAGE]                                = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_NO_STORAGE]        = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage                                    = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage        = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_TOO_LONG]                                  = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_TOO_LONG]          = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong                                      = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong          = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNAUTHORIZED]                              = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_UNAUTHORIZED]      = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized                                 = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnauthorized     = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNINTELLIGIBLE]                            = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_UNINTELLIGIBLE]    = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible                               = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible   = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK]                         = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK] = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock                             = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENT_ERROR]                                    = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_FRAGMENT_ERROR]            = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountFragmentError                                       = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError           = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_REJECTED]                                = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_GENERATED_REJECTED]        = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected                                   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected       = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REJECTED_CUSTODY]                                  = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_REJECTED_CUSTODY]          = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody                                     = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody         = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNPROCESSED_BLOCKS]                                = SetValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_UNPROCESSED_BLOCKS]        = SetValue;
 
-    BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks                                   = SetValue;
-    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks       = SetValue;
+    /* Set the error counters that are node-only */
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT]                          = SetValue;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_INVALID_PRIMARY_BLOCK]                             = SetValue;
 }
 
 void Test_BPLib_AS_ErrorCountersValueTest(int32_t SourceEid, uint32_t ActualValue)
 {
-    /* Assert that node error counter are the actual value */
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountAbandoned);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedBadEid);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnauthorized);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountFragmentError);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks);
-    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks);
+    /* Evaluate the error counters associated with nodes and sources */
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_ABANDONED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_ABANDONED]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REJECTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_REJECTED]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_BAD_EID]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_BAD_EID]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_INVALID_PAYLOAD]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_INVALID_PAYLOAD]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_NO_STORAGE]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_NO_STORAGE]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_TOO_LONG]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_TOO_LONG]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNAUTHORIZED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_UNAUTHORIZED]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNINTELLIGIBLE]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_UNINTELLIGIBLE]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENT_ERROR]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_FRAGMENT_ERROR]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_REJECTED]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_GENERATED_REJECTED]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REJECTED_CUSTODY]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_REJECTED_CUSTODY]);
+
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNPROCESSED_BLOCKS]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_UNPROCESSED_BLOCKS]);
+
+    /* Evaluate the error counters that are node-only */
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT]);
+    UtAssert_EQ(uint32_t, ActualValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_INVALID_PRIMARY_BLOCK]);
 }
 
 void BPLib_AS_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
@@ -727,6 +374,10 @@ void BPLib_AS_Test_Setup(void)
     UT_ResetState(0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
+
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
 }
 
 void BPLib_AS_Test_Teardown(void)

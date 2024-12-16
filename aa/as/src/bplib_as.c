@@ -23,14 +23,8 @@
 /* ======== */
 
 #include "bplib_as.h"
-
-/* ======= */
-/* Globals */
-/* ======= */
-
-BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;
-BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;
-BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload;
+#include "bplib_as_internal.h"
+#include "bplib_fwp.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -53,66 +47,23 @@ BPLib_Status_t BPLib_AS_Init(void)
 
 void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
-    BPLib_Status_t Status;
-    uint32_t       CounterValue;
-
-    /* Obtain the value of the counter */
-    Status = BPLib_AS_Get(SourceEid, Counter, &CounterValue);
-
-    if (Status == BPLIB_SUCCESS)
-    {
-        /* Increment the counter */
-        CounterValue += Amount;
-
-        /*
-        ** The errors that could occur in BPLib_AS_Set() are the exact same as errors that are checked for in
-        ** BPLib_AS_Get(). Since BPLib_AS_Get() is a prerequisite to getting to this call, the return status for
-        ** this BPLib_AS_Set() call is ignored.
-        */
-        BPLib_AS_Set(SourceEid, Counter, CounterValue);
-    }
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_AS_INCREMENT_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not get counter %d with source EID %d to increment by %d, RC = %d",
-                            Counter,
-                            SourceEid,
-                            Amount,
-                            Status);
-    }
+    /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
+    BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount);
 }
 
 void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
+    /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
+    BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount);
+}
+
+BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter)
+{
     BPLib_Status_t Status;
-    uint32_t       CounterValue;
 
-    /* Obtain the value of the node counter */
-    Status = BPLib_AS_Get(SourceEid, Counter, &CounterValue);
+    Status = BPLib_AS_SetCounter(SourceEid, Counter, 0);
 
-    if (Status == BPLIB_SUCCESS)
-    {
-        /* Decrement the counter */
-        CounterValue -= Amount;
-
-        /*
-        ** The errors that could occur in BPLib_AS_Set() are the exact same as errors that are checked for in
-        ** BPLib_AS_Get(). Since BPLib_AS_Get() is a prerequisite to getting to this call, the return status for
-        ** this BPLib_AS_Set() call is ignored.
-        */
-        BPLib_AS_Set(SourceEid, Counter, CounterValue);
-    }
-    else
-    {
-        BPLib_EM_SendEvent(BPLIB_AS_DECREMENT_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not get counter %d with source EID %d to decrement by %d, RC = %d",
-                            Counter,
-                            SourceEid,
-                            Amount,
-                            Status);
-    }
+    return Status;
 }
 
 BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
@@ -124,257 +75,95 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 
     if (!BPLib_AS_EidIsValid(SourceEid))
     { /* Invalid source EID */
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_SRC_INVAL_EID_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset source counters due to an invalid source EID (%d)",
-                            SourceEid);
-
         Status = BPLIB_AS_INVALID_EID;
     }
     else
     { /* Valid source EID */
-        /* Reset all node counters that overlap with source counters */
-        BPLib_AS_NodeCountersPayload.AduCountDelivered                  = 0;
-        BPLib_AS_NodeCountersPayload.AduCountReceived                   = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountAbandoned               = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded      = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected         = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest          = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred      = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeleted                 = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid           = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired          = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded      = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload   = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage        = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared     = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible   = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong          = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDelivered               = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDepleted                = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountDiscarded               = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountForwarded               = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed         = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountFragmentError           = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountFragmented              = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted       = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal  = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment       = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected       = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded      = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo           = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReassembled             = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceived                = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted     = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted      = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered    = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded    = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived     = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted     = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted      = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered    = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded    = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived     = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal   = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment        = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountRedundant               = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody         = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock     = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid       = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks       = 0;
 
-        /* Set all source counters to 0 */
-        memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceEid], 0,
-                sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceEid]));
+        memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters, 
+                0, sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters));
     }
 
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
+void BPLib_AS_ResetBundleCounters()
 {
-    BPLib_Status_t Status;
-
-    /* Default to BPLIB_SUCCESS */
-    Status = BPLIB_SUCCESS;
-
-    if (!BPLib_AS_EidIsValid(SourceEid))
-    { /* Invalid source EID*/
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_BNDL_INVAL_EID_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset bundle counters due to invalid source EID (%d)",
-                            SourceEid);
-        
-        Status = BPLIB_AS_INVALID_EID;
-    }
-    else
-    { /* Valid source EID */
-        /* Reset the bundle counters associated with nodes only */
-        BPLib_AS_NodeCountersPayload.BundleCountCustodySignalReceived = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrAccepted  = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDeleted   = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrDelivered = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrForwarded = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedBsrReceived  = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrs          = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsAccepted  = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDeleted   = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsDelivered = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsForwarded = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCrsReceived  = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustody      = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock   = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountMaxCrsRateExceeded    = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrs           = 0;
-
-        /* Reset bundle counters associated with nodes AND sources */
-        BPLib_AS_NodeCountersPayload.AduCountDelivered                                              = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountDelivered                  = 0;
-
-        BPLib_AS_NodeCountersPayload.AduCountReceived                                               = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].AduCountReceived                   = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountAbandoned                                           = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned               = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountCustodyReForwarded                                  = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyReForwarded      = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected                                     = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected         = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountCustodyRequest                                      = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRequest          = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountCustodyTransferred                                  = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyTransferred      = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDeleted                                             = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeleted                 = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedExpired                                      = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedExpired          = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedHopExceeded                                  = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedHopExceeded      = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload                               = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload   = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage                                    = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage        = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong                                      = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong          = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedTrafficPared                                 = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTrafficPared     = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible                               = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible   = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock                             = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDelivered                                           = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDelivered               = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDepleted                                            = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDepleted                = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountDiscarded                                           = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDiscarded               = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountForwarded                                           = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwarded               = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountForwardedFailed                                     = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountForwardedFailed         = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountFragmentError                                       = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError           = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountFragmented                                          = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmented              = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedAccepted                                   = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedAccepted       = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedCustodySignal                              = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedCustodySignal  = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedFragment                                   = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedFragment       = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected                                   = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected       = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountMaxBsrRateExceeded                                  = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountMaxBsrRateExceeded      = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountNoFurtherInfo                                       = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountNoFurtherInfo           = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReassembled                                         = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReassembled             = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceived                                            = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceived                = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrAccepted                                 = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrAccepted     = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDeleted                                  = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDeleted      = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrDelivered                                = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrDelivered    = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrForwarded                                = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrForwarded    = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedBsrReceived                                 = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedBsrReceived     = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsAccepted                                 = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsAccepted     = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDeleted                                  = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDeleted      = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsDelivered                                = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsDelivered    = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsForwarded                                = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsForwarded    = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCrsReceived                                 = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCrsReceived     = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedCustodySignal                               = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedCustodySignal   = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountReceivedFragment                                    = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountReceivedFragment        = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountRedundant                                           = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRedundant               = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody                                     = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody         = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleBlock                                 = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleBlock     = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountUnintelligibleEid                                   = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnintelligibleEid       = 0;
-
-        BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks                                   = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks       = 0;
-    }
-
-    return Status;
+    /* Only reset bundle-related node counters */
+    BPLib_AS_NodeCountersPayload.NodeCounters[ADU_COUNT_DELIVERED]                    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[ADU_COUNT_RECEIVED]                     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_ABANDONED]                 = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_RE_FORWARDED]      = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REJECTED]          = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REQUEST]           = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]       = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]                   = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_EXPIRED]           = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_HOP_EXCEEDED]      = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_INVALID_PAYLOAD]   = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_NO_STORAGE]        = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_TOO_LONG]          = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_TRAFFIC_PARED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNAUTHORIZED]      = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNINTELLIGIBLE]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK] = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELIVERED]                 = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DEPLETED]                  = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DISCARDED]                 = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FORWARDED]                 = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FORWARDED_FAILED]          = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENT_ERROR]            = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENTED]                = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_ACCEPTED]        = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CUSTODY_SIGNAL]  = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_FRAGMENT]        = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_REJECTED]        = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_NO_FURTHER_INFO]           = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REASSEMBLED]               = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED]                  = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_ACCEPTED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELETED]      = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELIVERED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_FORWARDED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_RECEIVED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_ACCEPTED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_DELETED]      = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_DELIVERED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_FORWARDED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS_RECEIVED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CUSTODY_SIGNAL]   = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_FRAGMENT]         = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REDUNDANT]                 = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REJECTED_CUSTODY]          = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNINTELLIGIBLE_BLOCK]      = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNINTELLIGIBLE_EID]        = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNPROCESSED_BLOCKS]        = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_SIGNAL_RECEIVED]   = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_ACCEPTED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_DELETED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_DELIVERED]   = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_FORWARDED]   = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_BSR_RECEIVED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS]             = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_ACCEPTED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_DELETED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_DELIVERED]   = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_FORWARDED]   = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CRS_RECEIVED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_CUSTODY]         = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_INVALID_PRIMARY_BLOCK]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_MAX_CRS_RATE_EXCEEDED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_NO_FURTHER_INFO]           = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REASSEMBLED]               = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED]                  = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_ACCEPTED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELETED]      = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_DELIVERED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_FORWARDED]    = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_RECEIVED]     = 0;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS]              = 0;
 }
 
 BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
@@ -386,58 +175,53 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
 
     if (!BPLib_AS_EidIsValid(SourceEid))
     { /* Invalid source EID */
-        BPLib_EM_SendEvent(BPLIB_AS_RESET_ERR_INVAL_EID_ERR_EID,
-                            BPLib_EM_EventType_ERROR,
-                            "Could not reset error counters due to invalid source EID (%d)",
-                            SourceEid);
-
         Status = BPLIB_AS_INVALID_EID;
     }
     else
     { /* Valid source EID */
-        /* Reset node-only error counters */
-        BPLib_AS_NodeCountersPayload.BundleAgentRejectedDirectiveCount = 0;
-        BPLib_AS_NodeCountersPayload.BundleCountInvalidPrimaryBlock    = 0;
+        /* Reset the error counters associated with nodes and sources */
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_ABANDONED]                                         = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_ABANDONED]                 = 0;
 
-        /* Reset all node error counters with corresponding source error counters */
-        BPLib_AS_NodeCountersPayload.BundleCountAbandoned                                           = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountAbandoned               = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REJECTED]                                  = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_REJECTED]          = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountCustodyRejected                                     = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected         = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_BAD_EID]                                   = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_BAD_EID]           = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedBadEid                                       = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedBadEid           = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_INVALID_PAYLOAD]                           = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_INVALID_PAYLOAD]   = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedInvalidPayload                               = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedInvalidPayload   = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_NO_STORAGE]                                = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_NO_STORAGE]        = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedNoStorage                                    = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedNoStorage        = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_TOO_LONG]                                  = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_TOO_LONG]          = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedTooLong                                      = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedTooLong          = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNAUTHORIZED]                              = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_UNAUTHORIZED]      = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnauthorized                                 = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnauthorized     = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNINTELLIGIBLE]                            = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_UNINTELLIGIBLE]    = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnintelligible                               = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnintelligible   = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK]                         = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK] = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountDeletedUnsupportedBlock                             = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountDeletedUnsupportedBlock = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENT_ERROR]                                    = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_FRAGMENT_ERROR]            = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountFragmentError                                       = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountFragmentError           = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_GENERATED_REJECTED]                                = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_GENERATED_REJECTED]        = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountGeneratedRejected                                   = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountGeneratedRejected       = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_REJECTED_CUSTODY]                                  = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_REJECTED_CUSTODY]          = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountRejectedCustody                                     = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountRejectedCustody         = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_UNPROCESSED_BLOCKS]                                = 0;
+        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_UNPROCESSED_BLOCKS]        = 0;
 
-        BPLib_AS_NodeCountersPayload.BundleCountUnprocessedBlocks                                   = 0;
-        BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountUnprocessedBlocks       = 0;
+        /* Reset the error counters that are node-only */
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT]                          = 0;
+        BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_INVALID_PRIMARY_BLOCK]                             = 0;
     }
 
     return Status;
@@ -454,4 +238,53 @@ void BPLib_AS_ResetAllCounters(void)
         memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl], 0,
                 sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl]));
     }
+}
+
+BPLib_Status_t BPLib_AS_SendNodeMibCountersHk()
+{
+    BPLib_Status_t Status;
+
+    //TODO: Lock counters
+
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
+
+    //TODO: Unlock counters
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
+{
+    BPLib_Status_t Status;
+
+    //TODO: Lock counters
+
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
+
+    //TODO: Unlock counters
+
+    return Status;
+}
+
+BPLib_Status_t BPLib_AS_SendChannelContactStatHk()
+{
+    BPLib_Status_t Status;
+
+    // Lock data
+
+    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
+
+    // Unlock data
+
+    return Status;
+}
+
+void BPLib_AS_SetAppState(uint8_t ChanId, BPLib_AS_ApplicationState_t State)
+{
+    BPLib_AS_ChannelContactStatsPayload.ChannelStatus[ChanId].State = State;
+}
+
+BPLib_AS_ApplicationState_t BPLib_AS_GetAppState(uint8_t ChanId)
+{
+    return BPLib_AS_ChannelContactStatsPayload.ChannelStatus[ChanId].State;
 }

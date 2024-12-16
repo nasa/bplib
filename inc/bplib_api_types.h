@@ -107,30 +107,20 @@ typedef struct BPLib_IpnAddr
 /* PerfLog Proxy Errors*/
 #define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -20u)
 
-/* ADU Proxy Errors */
-#define BPLIB_ADU_ADD_CHAN_ERR              ((BPLib_Status_t) -21u)
-#define BPLIB_ADU_ADD_STAT_ERR              ((BPLib_Status_t) -22u)
-#define BPLIB_ADU_START_CHAN_ERR            ((BPLib_Status_t) -23u)
-#define BPLIB_ADU_START_STAT_ERR            ((BPLib_Status_t) -24u)
-#define BPLIB_ADU_START_SUB_ERR             ((BPLib_Status_t) -25u)
-#define BPLIB_ADU_STOP_CHAN_ERR             ((BPLib_Status_t) -26u)
-#define BPLIB_ADU_STOP_STAT_ERR             ((BPLib_Status_t) -27u)
-#define BPLIB_ADU_STOP_UNSUB_ERR            ((BPLib_Status_t) -28u)
-
 /* Node Configuration (NC) errors */
-#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -29u)
-#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -30u)
+#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -21u)
+#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -22u)
 
 /* CLA Errors*/
-#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -31u)
+#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -23u)
 
 /* Payload Interface Errors */
-#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -32u)
+#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -24u)
 
-/* Admin Statistics Errors */
-#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -33u)
-#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -34u)
-#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -35u)
+/* Admin Statistics (AS) Errors */
+#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -25u)
+#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -26u)
+#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -27u)
 
 // BPLib_Handle_t - Multi-purpose handle for locks, APIs, and other allocated resources
 #define BPLIB_HANDLE_MAX_SERIAL 0xffffff

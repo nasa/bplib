@@ -21,16 +21,20 @@
 #ifndef BPLIB_AS_TEST_UTILS_H
 #define BPLIB_AS_TEST_UTILS_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
 
 #include "bplib_api_types.h"
+#include "bpa_fwp_stubs.h" /* For TLMP stubs */
+#include "bplib_fwp.h"     /* For BPLib_FWP_ProxyCallbacks */
+
 #include "bplib_as.h"
+#include "bplib_as_internal.h"
 #include "bplib_em_handlers.h"
 
 #include "bplib_fwp.h"
@@ -74,8 +78,8 @@ void Test_BPLib_AS_SetSourceCounterValues(int32_t SourceEid, uint32_t SetValue);
 void Test_BPLib_AS_SourceCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
 
 /* Set bundle counter values */
-void Test_BPLib_AS_SetBundleCounterValues(int32_t SourceEid, uint32_t SetValue);
-void Test_BPLib_AS_BundleCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
+void Test_BPLib_AS_SetBundleCounterValues(uint32_t SetValue);
+void Test_BPLib_AS_BundleCountersValueTest(uint32_t ActualValue);
 
 /* Set error counter values */
 void Test_BPLib_AS_SetErrorCounterValues(int32_t SourceEid, uint32_t SetValue);

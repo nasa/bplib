@@ -55,12 +55,6 @@ typedef struct
 {
     int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
     uint16_t Spare;    /** \brief Spare for 32-bit alignment */
-} BPLib_ResetBundleCounters_Payload_t;
-
-typedef struct
-{
-    int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
-    uint16_t Spare;    /** \brief Spare for 32-bit alignment */
 } BPLib_ResetErrorCounters_Payload_t;
 
 typedef struct
@@ -71,7 +65,8 @@ typedef struct
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    uint8_t ChanId;         /**< \brief Channel ID */
+    uint8_t Spare[3];       /**< \brief Spare bytes */
 } BPLib_RemoveApplication_Payload_t;
 
 typedef struct
@@ -192,7 +187,7 @@ typedef struct
 typedef struct
 {
     uint32_t    LocalServiceNum;    /**< \brief Service number for application sending/receiving ADUs on this channel */
-    uint32_t    Status;             /**< \brief Configured, Running, or Off */
+    uint32_t    State;              /**< \brief Configured, Running, or Off */
     uint32_t    RegistrationState;  /**< \brief Active, PassiveDefered or PassiveAbandon */
     uint32_t    OutputQueueID;      /**< \brief Output queue ID */
 } BPLib_ChannelHkTlmPayloadSet_t;
@@ -200,7 +195,7 @@ typedef struct
 typedef struct
 {
     uint32_t    ContactID;                              /**< \brief Unique ID for this contact */
-    uint32_t    Status;                                 /**< \brief Configured, Running, or Off */
+    uint32_t    State;                                  /**< \brief Configured, Running, or Off */
     char        EIDs[BPLIB_MAX_EID_LENGTH];             /**< \brief List of EIDs */
     uint32_t    OutputQueueID;                          /**< \brief Output queue ID */
     uint32_t    Spare1;

@@ -28,19 +28,28 @@
 /* Function Definitions */
 /* ==================== */
 
+void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
+{
+    /* Confirm the issuing function was called */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, EventNum + 1);
+
+    /* Check the string */
+    UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[EventNum].EventID, EventID);
+    UtAssert_STRINGBUF_EQ(EventText, BPLIB_EM_EXPANDED_EVENT_SIZE,
+                            context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
+}
+
 void BPLib_NC_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication             = BPA_ADUP_AddApplication;
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication          = BPA_ADUP_RemoveApplication;
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication           = BPA_ADUP_StartApplication;
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication            = BPA_ADUP_StopApplication;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt       = BPA_TLMP_SendNodeMibConfigPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt  = BPA_TLMP_SendPerSourceMibConfigPkt;
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt             = BPA_TLMP_SendStoragePkt;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
