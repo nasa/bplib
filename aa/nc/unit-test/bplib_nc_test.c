@@ -50,6 +50,15 @@ void Test_BPLib_NC_Init_Error(void)
     */
 }
 
+void Test_BPLib_NC_Noop_Nominal(void)
+{
+    BPLib_NC_Noop();
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_NOOP_SUCCESS_EID,
+                                "BPLib Version: v%u.%u.%u-sprint-%u");
+}
+
 void Test_BPLib_NC_AddAllApplications_Nominal(void)
 {
     BPLib_NC_AddAllApplications();
@@ -217,7 +226,7 @@ void Test_BPLib_NC_ResetAllCounters_Nominal(void)
     BPLib_NC_ResetAllCounters();
     
     // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID,
@@ -235,9 +244,10 @@ void Test_BPLib_NC_ResetCounter_Nominal(void)
 {
     BPLib_ResetCounter_Payload_t Payload;
 
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetCounter_Payload_t));
+
     Payload.SourceEid = 4;
     Payload.Counter   = BUNDLE_COUNT_DELETED_CANCELLED;
-    Payload.Spare     = 0;
 
     BPLib_NC_ResetCounter(Payload);
     
@@ -256,10 +266,11 @@ void Test_BPLib_NC_ResetCounter_Error(void)
 {
     BPLib_ResetCounter_Payload_t Payload;
 
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetCounter_Payload_t));
+
     /* Put dummy values into the payload */
     Payload.Counter   = 0;
     Payload.SourceEid = 0;
-    Payload.Spare     = 0;
 
     /* === BPLIB_AS_INVALID_EID returned === */
 
@@ -317,7 +328,8 @@ void Test_BPLib_NC_ResetSourceCounters_Nominal(void)
 {
     BPLib_ResetSourceCounters_Payload_t Payload;
 
-    Payload.Spare     = 0;
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetSourceCounters_Payload_t));
+
     Payload.SourceEid = 2;
     BPLib_NC_ResetSourceCounters(Payload);
     
@@ -336,9 +348,10 @@ void Test_BPLib_NC_ResetSourceCounters_Error(void)
 {
     BPLib_ResetSourceCounters_Payload_t Payload;
 
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetSourceCounters_Payload_t));
+
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetSourceCounters), BPLIB_AS_INVALID_EID);
 
-    Payload.Spare     = 0;
     Payload.SourceEid = 19;
     BPLib_NC_ResetSourceCounters(Payload);
     
@@ -355,11 +368,7 @@ void Test_BPLib_NC_ResetSourceCounters_Error(void)
 
 void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
 {
-    BPLib_ResetBundleCounters_Payload_t Payload;
-
-    Payload.Spare     = 0;
-    Payload.SourceEid = 2;
-    BPLib_NC_ResetBundleCounters(Payload);
+    BPLib_NC_ResetBundleCounters();
     
     // Verify directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
@@ -369,35 +378,15 @@ void Test_BPLib_NC_ResetBundleCounters_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_BNDL_CTRS_SUCCESS_EID,
-                                "Successfully reset bundle counters for source EID %d");
-}
-
-void Test_BPLib_NC_ResetBundleCounters_Error(void)
-{
-    BPLib_ResetBundleCounters_Payload_t Payload;
-
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetBundleCounters), BPLIB_AS_INVALID_EID);
-
-    Payload.Spare     = 0;
-    Payload.SourceEid = 19;
-    BPLib_NC_ResetBundleCounters(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
-
-    /* Verify downstream function was called */
-    UtAssert_STUB_COUNT(BPLib_AS_ResetBundleCounters, 1);
-
-    /* Verify event */
-    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_BNDL_CTRS_ERR_EID,
-                                "Could not reset bundle counters with source EID %d, RC = %d");
+                                "Successful reset-bundle-counters command");
 }
 
 void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
 {
     BPLib_ResetErrorCounters_Payload_t Payload;
 
-    Payload.Spare     = 0;
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetErrorCounters_Payload_t));
+
     Payload.SourceEid = 2;
     BPLib_NC_ResetErrorCounters(Payload);
     
@@ -416,9 +405,10 @@ void Test_BPLib_NC_ResetErrorCounters_Error(void)
 {
     BPLib_ResetErrorCounters_Payload_t Payload;
 
+    memset((void*) &Payload, 0, sizeof(BPLib_ResetErrorCounters_Payload_t));
+
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetErrorCounters), BPLIB_AS_INVALID_EID);
 
-    Payload.Spare     = 0;
     Payload.SourceEid = 19;
     BPLib_NC_ResetErrorCounters(Payload);
     
@@ -437,6 +427,8 @@ void Test_BPLib_NC_AddApplication_Nominal(void)
 {
     BPLib_AddApplication_Payload_t Payload;
 
+    memset((void*) &Payload, 0, sizeof(BPLib_AddApplication_Payload_t));
+
     Payload.ChanId = 1;
     BPLib_NC_AddApplication(Payload);
     
@@ -452,30 +444,29 @@ void Test_BPLib_NC_AddApplication_Error(void)
 {
     BPLib_AddApplication_Payload_t Payload;
 
+    memset((void*) &Payload, 0, sizeof(BPLib_AddApplication_Payload_t));
+
     /* Check channel error return code */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ADU_ADD_CHAN_ERR);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ERROR);
 
     Payload.ChanId = 2;
     BPLib_NC_AddApplication(Payload);
     
     // Verify directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
-    
-    /* Check state error return code */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_AddApplication), BPLIB_ADU_ADD_STAT_ERR);
-    
-    Payload.ChanId = 2;
-    BPLib_NC_AddApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_APP_ERR_EID,
+                                "Could not add application with channel ID %d, RC = %d");
 }
 
 void Test_BPLib_NC_RemoveApplication_Nominal(void)
 {
     BPLib_RemoveApplication_Payload_t Payload;
 
-    Payload.ExampleParameter = 2;
+    memset((void*) &Payload, 0, sizeof(BPLib_RemoveApplication_Payload_t));
+
+    Payload.ChanId = 2;
     BPLib_NC_RemoveApplication(Payload);
     
     // Verify directive counter was incremented
@@ -483,20 +474,27 @@ void Test_BPLib_NC_RemoveApplication_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_APP_SUCCESS_EID,
-                                "Remove application directive not implemented, received %d in payload");
+                                "Successful remove-application directive for ChanId=%d");
 }
 
 void Test_BPLib_NC_RemoveApplication_Error(void)
 {
-    /*
     BPLib_RemoveApplication_Payload_t Payload;
 
-    Payload.ExampleParameter = 2;
+    memset((void*) &Payload, 0, sizeof(BPLib_RemoveApplication_Payload_t));
+
+    /* Check channel error return code */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_RemoveApplication), BPLIB_ERROR);
+
+    Payload.ChanId = 2;
     BPLib_NC_RemoveApplication(Payload);
-    
+
     // Verify directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
-    */
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RM_APP_ERR_EID,
+                                "Could not remove application with channel ID %d, RC = %d");
 }
 
 void Test_BPLib_NC_SetRegistrationState_Nominal(void)
@@ -547,7 +545,7 @@ void Test_BPLib_NC_StartApplication_Error(void)
     BPLib_StartApplication_Payload_t Payload;
 
     /* Channel error return code check */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ADU_START_CHAN_ERR);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ERROR);
 
     Payload.ChanId = 1;
     BPLib_NC_StartApplication(Payload);
@@ -555,23 +553,9 @@ void Test_BPLib_NC_StartApplication_Error(void)
     // Verify directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
 
-    /* State error return code check */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ADU_START_STAT_ERR);
-
-    Payload.ChanId = 1;
-    BPLib_NC_StartApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
-
-    /* Subscribe error return code check */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StartApplication), BPLIB_ADU_START_SUB_ERR);
-
-    Payload.ChanId = 1;
-    BPLib_NC_StartApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 3);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_START_APP_ERR_EID,
+                                "Could not start application with channel ID %d, RC = %d");
 }
 
 void Test_BPLib_NC_StopApplication_Nominal(void)
@@ -594,7 +578,7 @@ void Test_BPLib_NC_StopApplication_Error(void)
     BPLib_StopApplication_Payload_t Payload;
 
     /* Invalid channel return code test */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ADU_STOP_CHAN_ERR);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ERROR);
 
     Payload.ChanId = 1;
     BPLib_NC_StopApplication(Payload);
@@ -602,23 +586,9 @@ void Test_BPLib_NC_StopApplication_Error(void)
     // Verify directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
 
-    /* Invalid state return code test */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ADU_STOP_STAT_ERR);
-
-    Payload.ChanId = 1;
-    BPLib_NC_StopApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 2);
-
-    /* Unsubscribe error return code test */
-    UT_SetDefaultReturnValue(UT_KEY(BPA_ADUP_StopApplication), BPLIB_ADU_STOP_UNSUB_ERR);
-
-    Payload.ChanId = 1;
-    BPLib_NC_StopApplication(Payload);
-    
-    // Verify directive counter was incremented
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 3);
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_STOP_APP_ERR_EID,
+                                "Could not stop application with channel ID %d, RC = %d");
 }
 
 void Test_BPLib_NC_AddAuthSources_Nominal(void)
@@ -1362,6 +1332,7 @@ void TestBplibNc_Register(void)
 {
     ADD_TEST(Test_BPLib_NC_Init_Nominal);
     ADD_TEST(Test_BPLib_NC_Init_Error);
+    ADD_TEST(Test_BPLib_NC_Noop_Nominal);
     ADD_TEST(Test_BPLib_NC_AddAllApplications_Nominal);
     ADD_TEST(Test_BPLib_NC_AddAllApplications_Error);
     ADD_TEST(Test_BPLib_NC_StartAllApplications_Nominal);
@@ -1385,7 +1356,6 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Nominal);
     ADD_TEST(Test_BPLib_NC_ResetSourceCounters_Error);
     ADD_TEST(Test_BPLib_NC_ResetBundleCounters_Nominal);
-    ADD_TEST(Test_BPLib_NC_ResetBundleCounters_Error);
     ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Nominal);
     ADD_TEST(Test_BPLib_NC_ResetErrorCounters_Error);
     ADD_TEST(Test_BPLib_NC_AddApplication_Nominal);

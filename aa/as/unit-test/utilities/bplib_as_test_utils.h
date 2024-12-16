@@ -57,8 +57,8 @@ void Test_BPLib_AS_SetSourceCounterValues(int32_t SourceEid, uint32_t SetValue);
 void Test_BPLib_AS_SourceCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
 
 /* Set bundle counter values */
-void Test_BPLib_AS_SetBundleCounterValues(int32_t SourceEid, uint32_t SetValue);
-void Test_BPLib_AS_BundleCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
+void Test_BPLib_AS_SetBundleCounterValues(uint32_t SetValue);
+void Test_BPLib_AS_BundleCountersValueTest(uint32_t ActualValue);
 
 /* Set error counter values */
 void Test_BPLib_AS_SetErrorCounterValues(int32_t SourceEid, uint32_t SetValue);

@@ -27,6 +27,9 @@
 #include "bplib_as.h"
 #include "utgenstub.h"
 
+BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
+BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
+
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_AS_Decrement()
@@ -76,7 +79,6 @@ BPLib_Status_t BPLib_AS_Init(void)
  */
 void BPLib_AS_ResetAllCounters(void)
 {
-
     UT_GenStub_Execute(BPLib_AS_ResetAllCounters, Basic, NULL);
 }
 
@@ -85,15 +87,9 @@ void BPLib_AS_ResetAllCounters(void)
  * Generated stub function for BPLib_AS_ResetBundleCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid)
+void BPLib_AS_ResetBundleCounters()
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_ResetBundleCounters, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_AS_ResetBundleCounters, int16_t, SourceEid);
-
     UT_GenStub_Execute(BPLib_AS_ResetBundleCounters, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_ResetBundleCounters, BPLib_Status_t);
 }
 
 /*

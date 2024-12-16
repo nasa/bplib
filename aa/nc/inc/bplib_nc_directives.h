@@ -32,6 +32,7 @@
 #include "bplib_eventids.h"
 #include "bplib_as.h"
 #include "bplib_stor.h"
+#include "bplib_version.h"
 
 /* =================== */
 /* Function Prototypes */

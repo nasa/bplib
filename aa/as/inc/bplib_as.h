@@ -22,6 +22,20 @@
 #define BPLIB_AS_H
 
 /* ======== */
+/* Typedefs */
+/* ======== */
+
+/**
+  * \brief Channel application state
+  */
+typedef enum
+{
+    BPLIB_AS_APP_STATE_STOPPED = 0,
+    BPLIB_AS_APP_STATE_ADDED   = 1,
+    BPLIB_AS_APP_STATE_STARTED = 2
+} BPLib_AS_ApplicationState_t;
+
+/* ======== */
 /* Includes */
 /* ======== */
 
@@ -29,7 +43,6 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_nc_payloads.h"
-
 #include "bplib_em.h"
 
 /* ====== */
@@ -279,21 +292,17 @@ BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Count
 BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
 
 /**
- * \brief     Set to zero all resettable MIB counters associated with bundles
+ * \brief     Set to zero all resettable node MIB counters associated with bundles
  * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
- * \note      Diretcly sets bundle counters in payloads to 0
- * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
- * \return    Execution status
- * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
- * \retval    BPLIB_SUCCESS: Successful execution
+ * \note      Diretcly sets node bundle counters in payloads to 0
+ * \return    void
  * \secreflist
  * \refitem   BPLib_AS_Counter_t
- * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
- * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \refitem   BPLib_NodeMibCountersHkTlm_Payload_t
  * \endsecreflist
  * \anchor    BPLib_AS_ResetBundleCounters
  */
-BPLib_Status_t BPLib_AS_ResetBundleCounters(int16_t SourceEid);
+void BPLib_AS_ResetBundleCounters(void);
 
 /**
  * \brief     Set to zero all resettable MIB error counters
@@ -351,5 +360,9 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
   * \return    Return codes from BPA_TLMP_SendChannelContactPkt() in fwp_tlmp.h
   */
 BPLib_Status_t BPLib_AS_SendChannelContactStatHk(void);
+
+void BPLib_AS_SetAppState(uint8_t ChanId, BPLib_AS_ApplicationState_t State);
+
+BPLib_AS_ApplicationState_t BPLib_AS_GetAppState(uint8_t ChanId);
 
 #endif /* BPLIB_AS_H */

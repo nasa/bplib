@@ -45,6 +45,22 @@ BPLib_Status_t BPA_ADUP_AddApplication(uint8_t ChanId)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPA_ADUP_RemoveApplication()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPA_ADUP_RemoveApplication(uint8_t ChanId)
+{
+    UT_GenStub_SetupReturnBuffer(BPA_ADUP_RemoveApplication, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPA_ADUP_RemoveApplication, uint8_t, ChanId);
+
+    UT_GenStub_Execute(BPA_ADUP_RemoveApplication, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPA_ADUP_RemoveApplication, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPA_ADUP_StartApplication()
  * ----------------------------------------------------
  */
