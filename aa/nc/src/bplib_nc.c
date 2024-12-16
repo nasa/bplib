@@ -46,6 +46,7 @@ BPLib_Status_t BPLib_NC_Init(void)
 
 void BPLib_NC_Noop(void)
 {
+    BPLib_AS_Increment(0, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
     BPLib_EM_SendEvent(BPLIB_NC_NOOP_SUCCESS_EID,
                         BPLib_EM_EventType_INFORMATION,
                         "BPLib Version: v%u.%u.%u-sprint-%u", 
