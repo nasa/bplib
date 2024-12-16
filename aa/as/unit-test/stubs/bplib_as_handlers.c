@@ -46,25 +46,3 @@ void UT_Handler_BPLib_AS_IncrementDecrement(void *UserObj, UT_EntryKey_t FuncKey
     Context_BPLib_AS_IncrementDecrement.Counter   = UT_Hook_GetArgValueByName(Context, "Counter", BPLib_AS_Counter_t);
     Context_BPLib_AS_IncrementDecrement.Amount    = UT_Hook_GetArgValueByName(Context, "Amount", uint32_t);
 }
-
-void Test_BPLib_AS_VerifyIncrementDecrementSourceEid(uint16_t SourceEid)
-{
-    UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_IncrementDecrement.SourceEid);
-}
-
-void Test_BPLib_AS_VerifyIncrementDecrementCounter(BPLib_AS_Counter_t Counter)
-{
-    UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_IncrementDecrement.Counter);
-}
-
-void Test_BPLib_AS_VerifyIncrementDecrementAmount(uint32_t Amount)
-{
-    UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_IncrementDecrement.Amount);
-}
-
-void Test_BPLib_AS_VerifyIncrementDecrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
-{
-    Test_BPLib_AS_VerifyIncrementDecrementSourceEid(SourceEid);
-    Test_BPLib_AS_VerifyIncrementDecrementCounter(Counter);
-    Test_BPLib_AS_VerifyIncrementDecrementAmount(Amount);
-}

@@ -55,9 +55,4 @@ extern BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_IncrementDecrement;
 
 void UT_Handler_BPLib_AS_IncrementDecrement(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
-void Test_BPLib_AS_VerifyIncrementDecrementSourceEid(uint16_t SourceEid);
-void Test_BPLib_AS_VerifyIncrementDecrementCounter(BPLib_AS_Counter_t Counter);
-void Test_BPLib_AS_VerifyIncrementDecrementAmount(uint32_t Amount);
-void Test_BPLib_AS_VerifyIncrementDecrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
-
 #endif /* BPLIB_AS_HANDLERS_H */

@@ -28,28 +28,6 @@
 /* Function Definitions */
 /* ==================== */
 
-void Test_BPLib_AS_VerifyIncrementDecrementSourceEid(uint16_t SourceEid)
-{
-    UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_IncrementDecrement.SourceEid);
-}
-
-void Test_BPLib_AS_VerifyIncrementDecrementCounter(BPLib_AS_Counter_t Counter)
-{
-    UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_IncrementDecrement.Counter);
-}
-
-void Test_BPLib_AS_VerifyIncrementDecrementAmount(uint32_t Amount)
-{
-    UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_IncrementDecrement.Amount);
-}
-
-void Test_BPLib_AS_VerifyIncrementDecrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
-{
-    Test_BPLib_AS_VerifyIncrementDecrementSourceEid(SourceEid);
-    Test_BPLib_AS_VerifyIncrementDecrementCounter(Counter);
-    Test_BPLib_AS_VerifyIncrementDecrementAmount(Amount);
-}
-
 void Test_BPLib_AS_SetNodeCounterValues(uint32 SetValue)
 {
     uint8_t NodeCounterLoop;
@@ -361,8 +339,6 @@ void BPLib_AS_Test_Setup(void)
     UT_ResetState(0);
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement), UT_Handler_BPLib_AS_IncrementDecrement, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_IncrementDecrement, NULL);
 
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
