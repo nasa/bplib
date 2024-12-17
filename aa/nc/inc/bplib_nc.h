@@ -40,7 +40,8 @@ typedef enum
 {
     BPLIB_NC_APP_STATE_STOPPED = 0,
     BPLIB_NC_APP_STATE_ADDED   = 1,
-    BPLIB_NC_APP_STATE_STARTED = 2
+    BPLIB_NC_APP_STATE_STARTED = 2,
+    BPLIB_NC_APP_STATE_REMOVED = 3,
 } BPLib_NC_ApplicationState_t;
 
 /* ======= */
