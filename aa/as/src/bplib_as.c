@@ -264,26 +264,3 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
 
     return Status;
 }
-
-BPLib_Status_t BPLib_AS_SendChannelContactStatHk()
-{
-    BPLib_Status_t Status;
-
-    // Lock data
-
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt(&BPLib_AS_ChannelContactStatsPayload);
-
-    // Unlock data
-
-    return Status;
-}
-
-void BPLib_AS_SetAppState(uint8_t ChanId, BPLib_AS_ApplicationState_t State)
-{
-    BPLib_AS_ChannelContactStatsPayload.ChannelStatus[ChanId].State = State;
-}
-
-BPLib_AS_ApplicationState_t BPLib_AS_GetAppState(uint8_t ChanId)
-{
-    return BPLib_AS_ChannelContactStatsPayload.ChannelStatus[ChanId].State;
-}

@@ -1204,7 +1204,7 @@ void Test_BPLib_NC_SendNodeMibCountersHk_Nominal(void)
 void Test_BPLib_NC_SendNodeMibCountersHk_Error(void)
 {
     // Cause BPLib_NC_SendNodeMibCountersHk() to fail
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendNodeMibCountersHk), BPLIB_UNKNOWN);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendNodeMibCountersHk), BPLIB_ERROR);
 
     BPLib_NC_SendNodeMibCountersHk();
     
@@ -1233,7 +1233,7 @@ void Test_BPLib_NC_SendSourceMibCountersHk_Nominal(void)
 void Test_BPLib_NC_SendSourceMibCountersHk_Error(void)
 {
     // Cause BPLib_NC_SendSourceMibCountersHk() to fail
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendSourceMibCountersHk), BPLIB_UNKNOWN);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendSourceMibCountersHk), BPLIB_ERROR);
 
     BPLib_NC_SendSourceMibCountersHk();
     
@@ -1273,7 +1273,7 @@ void Test_BPLib_NC_SendChannelContactStatHk_Nominal(void)
 void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
 {
     // Cause BPLib_NC_SendChannelContactStatHk() to fail
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendChannelContactStatHk), BPLIB_UNKNOWN);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendChannelContactStatHk), BPLIB_ERROR);
 
     BPLib_NC_SendChannelContactStatHk();
     
@@ -1326,6 +1326,27 @@ void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid(void)
 
     UtAssert_INT32_EQ(BPLib_NC_MIBConfigPSTblValidateFunc(&TestTblData), 
                                                 BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE);
+}
+
+void Test_BPLib_NC_GetSetAppState_Nominal(void)
+{
+    int8_t ChanId;
+    BPLib_NC_ApplicationState_t State;
+
+    ChanId = 1;
+    State  = BPLIB_NC_APP_STATE_ADDED;
+
+    BPLib_NC_ChannelContactStatsPayload.ChannelStatus[ChanId].State = State;
+
+    State = BPLIB_NC_APP_STATE_STARTED;
+    BPLib_NC_SetAppState(ChanId, State);
+
+    UtAssert_EQ(BPLib_NC_ApplicationState_t, State, BPLib_NC_ChannelContactStatsPayload.ChannelStatus[ChanId].State);
+
+    /* Verify that the state has changed without modifying the payload's value before calling this function */
+    State = BPLib_NC_GetAppState(ChanId);
+
+    UtAssert_EQ(BPLib_NC_ApplicationState_t, BPLIB_NC_APP_STATE_STARTED, State);
 }
 
 void TestBplibNc_Register(void)
@@ -1421,4 +1442,5 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Invalid);
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal);
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid);
+    ADD_TEST(Test_BPLib_NC_GetSetAppState_Nominal);
 }
