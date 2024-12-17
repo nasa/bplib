@@ -170,14 +170,14 @@ typedef struct
   */
 typedef struct
 {
+    char SourceEID[BPLIB_MAX_EID_LENGTH]; /** \brief Source EID this telemetry corresponds to */
+
     /**
       * \brief Array of all source counters
       * \note  See BPLib_AS_Counter_t for counter details
       * \ref   BPLib_AS_Counter_t
       */
     uint32_t SourceCounters[BPLIB_AS_NUM_SOURCE_CNTRS];
-
-    char SourceEID[BPLIB_MAX_EID_LENGTH]; /** \brief Source EID this telemetry corresponds to */
 } BPLib_SourceMibCounters_t;
 
 /**
