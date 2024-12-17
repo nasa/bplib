@@ -33,10 +33,23 @@
 BPLib_Status_t BPLib_AS_Init(void)
 {
     BPLib_Status_t Status;
+    uint32 OS_Status;
 
-    Status = BPLIB_SUCCESS;
+    MutexId = 0;
+    strcpy(MutexName, "AS_CounterMutex");
 
-    // Instantiate mutex to protect counter memory space
+    /* Instantiate a mutex for AS counters */
+    OS_Status = OS_MutSemCreate(MutexId, MutexName, 0);
+
+    /* Translate mutex status into BPLib_Status_t */
+    if (OS_Status == OS_SUCCESS)
+    {
+        Status = BPLIB_SUCCESS;
+    }
+    else
+    {
+        Status = BPLIB_AS_INIT_MUTEX_ERR;
+    }
 
     /* Instantiate all payloads under the stewardship of AS */
     BPLib_AS_ResetAllCounters();
@@ -243,12 +256,26 @@ void BPLib_AS_ResetAllCounters(void)
 BPLib_Status_t BPLib_AS_SendNodeMibCountersHk()
 {
     BPLib_Status_t Status;
+    uint32 OS_Status;
 
-    //TODO: Lock counters
+    /* Default to success so Status only needs to be changed when an error occurs */
+    Status = BPLIB_SUCCESS;
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
+    OS_Status = OS_MutSemTake(MutexId);
+    if (OS_Status != OS_SUCCESS)
+    {
+        Status = BLPIB_AS_TAKE_MUTEX_ERR;
+    }
+    else
+    {
+        Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
 
-    //TODO: Unlock counters
+        OS_Status = OS_MutSemGive(MutexId);
+        if (OS_Status != OS_SUCCESS)
+        {
+            Status = BPLIB_AS_GIVE_MUTEX_ERR;
+        }
+    }
 
     return Status;
 }
@@ -256,12 +283,26 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk()
 BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
 {
     BPLib_Status_t Status;
+    uint32 OS_Status;
 
-    //TODO: Lock counters
+    /* Default to success so Status only needs to be changed when an error occurs */
+    Status = BPLIB_SUCCESS;
 
-    Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
+    OS_Status = OS_MutSemTake(MutexId);
+    if (OS_Status != OS_SUCCESS)
+    {
+        Status = BLPIB_AS_TAKE_MUTEX_ERR;
+    }
+    else
+    {
+        Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
 
-    //TODO: Unlock counters
+        OS_Status = OS_MutSemGive(MutexId);
+        if (OS_Status != OS_SUCCESS)
+        {
+            Status = BPLIB_AS_GIVE_MUTEX_ERR;
+        }
+    }
 
     return Status;
 }

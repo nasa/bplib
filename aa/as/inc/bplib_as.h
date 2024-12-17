@@ -49,8 +49,15 @@ typedef enum
 /* Macros */
 /* ====== */
 
-#define BPLIB_AS_NUM_NODE_CNTRS   (79u) /** \brief Number of node counters (also total number of counters) */
-#define BPLIB_AS_NUM_SOURCE_CNTRS (56u) /** \brief Number of source counters */
+#define BPLIB_AS_NUM_NODE_CNTRS      (79u) /** \brief Number of node counters (also total number of counters) */
+#define BPLIB_AS_NUM_SOURCE_CNTRS    (56u) /** \brief Number of source counters */
+#define BPLIB_AS_MAX_MUTEX_NAME_SIZE (20u) /** \brief Max allowed length for AS counter mutex name */
+
+/* =============== */
+/* Mutex Variables */
+/* =============== */
+osal_id_t* MutexId;
+const char MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 
 /* ======= */
 /* Typdefs */

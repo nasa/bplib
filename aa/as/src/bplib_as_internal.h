@@ -27,6 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_as.h"
+#include "osapi.h"
 
 /* ======= */
 /* Externs */
