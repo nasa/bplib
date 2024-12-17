@@ -31,6 +31,12 @@
 
 #include "bplib_as.h"
 
+/* ====== */
+/* Macros */
+/* ====== */
+
+#define UT_MAX_INCDEC_DEPTH 4
+
 /* ================ */
 /* Type Definitions */
 /* ================ */
@@ -47,12 +53,14 @@ typedef struct
 /* Global Data */
 /* =========== */
 
-extern BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_IncrementDecrement;
+extern BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_IncrementDecrement[];
 
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
 
-void UT_Handler_BPLib_AS_IncrementDecrement(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+void UT_Handler_BPLib_AS_Increment(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
+
+void UT_Handler_BPLib_AS_Decrement(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
 
 #endif /* BPLIB_AS_HANDLERS_H */

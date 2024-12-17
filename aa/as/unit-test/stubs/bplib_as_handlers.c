@@ -34,15 +34,54 @@
 /* Globals */
 /* ======= */
 
-BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_IncrementDecrement;
+BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_IncrementDecrement[UT_MAX_INCDEC_DEPTH];
 
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
 
-void UT_Handler_BPLib_AS_IncrementDecrement(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+void UT_Handler_BPLib_AS_Increment(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
 {
-    Context_BPLib_AS_IncrementDecrement.SourceEid = UT_Hook_GetArgValueByName(Context, "SourceEid", uint16_t);
-    Context_BPLib_AS_IncrementDecrement.Counter   = UT_Hook_GetArgValueByName(Context, "Counter", BPLib_AS_Counter_t);
-    Context_BPLib_AS_IncrementDecrement.Amount    = UT_Hook_GetArgValueByName(Context, "Amount", uint32_t);
+    uint16 CallCount;
+    uint16 CallNum;
+
+    CallCount = UT_GetStubCount(UT_KEY(BPLib_AS_Increment));
+
+    if (CallCount > UT_MAX_INCDEC_DEPTH)
+    {
+        UtAssert_Failed("BPLib_AS_Increment call history depth exceeded. Called: %u, Max: %u",
+                        CallCount,
+                        UT_MAX_INCDEC_DEPTH);
+    }
+    else
+    {
+        CallNum = CallCount - 1;
+
+        Context_BPLib_AS_IncrementDecrement[CallNum].SourceEid = UT_Hook_GetArgValueByName(Context, "SourceEid", uint16_t);
+        Context_BPLib_AS_IncrementDecrement[CallNum].Counter   = UT_Hook_GetArgValueByName(Context, "Counter",   BPLib_AS_Counter_t);
+        Context_BPLib_AS_IncrementDecrement[CallNum].Amount    = UT_Hook_GetArgValueByName(Context, "Amount",    uint32_t);
+    }
+}
+
+void UT_Handler_BPLib_AS_Decrement(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    uint16 CallCount;
+    uint16 CallNum;
+
+    CallCount = UT_GetStubCount(UT_KEY(BPLib_AS_Decrement));
+
+    if (CallCount > UT_MAX_INCDEC_DEPTH)
+    {
+        UtAssert_Failed("BPLib_AS_Decrement call history depth exceeded. Called: %u, Max: %u",
+                        CallCount,
+                        UT_MAX_INCDEC_DEPTH);
+    }
+    else
+    {
+        CallNum = CallCount - 1;
+
+        Context_BPLib_AS_IncrementDecrement[CallNum].SourceEid = UT_Hook_GetArgValueByName(Context, "SourceEid", uint16_t);
+        Context_BPLib_AS_IncrementDecrement[CallNum].Counter   = UT_Hook_GetArgValueByName(Context, "Counter",   BPLib_AS_Counter_t);
+        Context_BPLib_AS_IncrementDecrement[CallNum].Amount    = UT_Hook_GetArgValueByName(Context, "Amount",    uint32_t);
+    }
 }

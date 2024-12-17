@@ -48,10 +48,11 @@
 /* Event verification */
 void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText);
 
-/* AS increment/decrement verification */
-void Test_BPLib_AS_VerifyIncrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t NumCalls);
+/* AS increment argument verification */
+void Test_BPLib_NC_VerifyIncrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum);
 
-void Test_BPLib_AS_VerifyDecrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t NumCalls);
+/* AS decrement argument verification */
+void Test_BPLib_NC_VerifyDecrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum);
 
 void BPLib_NC_Test_Setup(void);
 void BPLib_NC_Test_Teardown(void);

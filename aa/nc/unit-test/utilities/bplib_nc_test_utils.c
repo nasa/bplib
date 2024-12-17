@@ -39,22 +39,44 @@ void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* 
                             context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
-void Test_BPLib_AS_VerifyIncrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t NumCalls)
+void Test_BPLib_NC_VerifyIncrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum)
 {
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, NumCalls);
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, CallNum);
 
-    UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_IncrementDecrement.SourceEid);
-    UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_IncrementDecrement.Counter);
-    UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_IncrementDecrement.Amount);
+    if (SourceEid != -1)
+    {
+        UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_IncrementDecrement[CallNum - 1].SourceEid);
+    }
+
+    if (Counter != -1)
+    {
+        UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_IncrementDecrement[CallNum - 1].Counter);
+    }
+
+    if (Amount != -1)
+    {
+        UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_IncrementDecrement[CallNum - 1].Amount);
+    }
 }
 
-void Test_BPLib_AS_VerifyDecrement(uint16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t NumCalls)
+void Test_BPLib_NC_VerifyDecrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum)
 {
-    UtAssert_STUB_COUNT(BPLib_AS_Decrement, NumCalls);
+    UtAssert_STUB_COUNT(BPLib_AS_Decrement, CallNum);
 
-    UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_IncrementDecrement.SourceEid);
-    UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_IncrementDecrement.Counter);
-    UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_IncrementDecrement.Amount);
+    if (SourceEid != -1)
+    {
+        UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_IncrementDecrement[CallNum - 1].SourceEid);
+    }
+
+    if (Counter != -1)
+    {
+        UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_IncrementDecrement[CallNum - 1].Counter);
+    }
+
+    if (Amount != -1)
+    {
+        UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_IncrementDecrement[CallNum - 1].Amount);
+    }
 }
 
 void BPLib_NC_Test_Setup(void)
@@ -71,8 +93,8 @@ void BPLib_NC_Test_Setup(void)
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt             = BPA_TLMP_SendStoragePkt;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement), UT_Handler_BPLib_AS_IncrementDecrement, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_IncrementDecrement, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_Increment, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement), UT_Handler_BPLib_AS_Decrement, NULL);
 }
 
 void BPLib_NC_Test_Teardown(void)
