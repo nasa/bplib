@@ -21,46 +21,42 @@
 /**
  * @file
  *
- * Auto-Generated stub implementations for functions defined in bplib_stor header
+ * Auto-Generated stub implementations for functions defined in bplib_as_internal header
  */
 
-#include "bplib_stor.h"
+#include "bplib_as_internal.h"
 #include "utgenstub.h"
-
-/* ======= */
-/* Globals */
-/* ======= */
-
-BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_Init()
+ * Generated stub function for BPLib_AS_EidIsValid()
  * ----------------------------------------------------
  */
-int BPLib_STOR_Init(void)
+bool BPLib_AS_EidIsValid(int16_t SourceEid)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_STOR_Init, int);
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_EidIsValid, bool);
 
-    UT_GenStub_Execute(BPLib_STOR_Init, Basic, NULL);
+    UT_GenStub_AddParam(BPLib_AS_EidIsValid, int16_t, SourceEid);
 
-    return UT_GenStub_GetReturnValue(BPLib_STOR_Init, int);
+    UT_GenStub_Execute(BPLib_AS_EidIsValid, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_AS_EidIsValid, bool);
 }
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_STOR_StorageTblValidateFunc()
+ * Generated stub function for BPLib_AS_SetCounter()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData) 
+BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value)
 {
-  UT_GenStub_SetupReturnBuffer(BPLib_STOR_StorageTblValidateFunc,
-                               BPLib_Status_t);
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_SetCounter, BPLib_Status_t);
 
-  UT_GenStub_AddParam(BPLib_STOR_StorageTblValidateFunc, void *, TblData);
+    UT_GenStub_AddParam(BPLib_AS_SetCounter, int16_t, SourceEid);
+    UT_GenStub_AddParam(BPLib_AS_SetCounter, BPLib_AS_Counter_t, Counter);
+    UT_GenStub_AddParam(BPLib_AS_SetCounter, uint32_t, Value);
 
-  UT_GenStub_Execute(BPLib_STOR_StorageTblValidateFunc, Basic, NULL);
+    UT_GenStub_Execute(BPLib_AS_SetCounter, Basic, NULL);
 
-  return UT_GenStub_GetReturnValue(BPLib_STOR_StorageTblValidateFunc,
-                                   BPLib_Status_t);
+    return UT_GenStub_GetReturnValue(BPLib_AS_SetCounter, BPLib_Status_t);
 }

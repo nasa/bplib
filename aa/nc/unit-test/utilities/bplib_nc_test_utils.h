@@ -44,6 +44,9 @@
 /* Function Prototypes */
 /* =================== */
 
+/* Event verification */
+void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText);
+
 /* Proxy Fakes */
 BPLib_Status_t Test_BPA_ADUP_AddApplication_Success(uint8 ChanId);
 BPLib_Status_t Test_BPA_ADUP_AddApplication_ChanErr(uint8 ChanId);

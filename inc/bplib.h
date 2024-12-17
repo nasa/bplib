@@ -41,6 +41,7 @@ extern "C" {
 #include "bplib_as.h"
 #include "bplib_pi.h"
 #include "bplib_stor.h"
+#include "bplib_as.h"
 #include "bplib_arp.h"
 #include "bplib_pdb.h"
 

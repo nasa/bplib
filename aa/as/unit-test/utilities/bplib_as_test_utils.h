@@ -21,25 +21,55 @@
 #ifndef BPLIB_AS_TEST_UTILS_H
 #define BPLIB_AS_TEST_UTILS_H
 
-/*
-** Include
-*/
+/* ======== */
+/* Includes */
+/* ======== */
 
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
 
 #include "bplib_api_types.h"
+#include "bpa_fwp_stubs.h" /* For TLMP stubs */
+#include "bplib_fwp.h"     /* For BPLib_FWP_ProxyCallbacks */
+
 #include "bplib_as.h"
+#include "bplib_as_internal.h"
+#include "bplib_em_handlers.h"
 
+/* ====== */
+/* Macros */
+/* ====== */
 
-/*
-** Function Definitions
-*/
+// Add a test case
+#define ADD_TEST(test) UtTest_Add(test, BPLib_AS_Test_Setup, BPLib_AS_Test_Teardown, #test)
+
+/* =================== */
+/* Function Prototypes */
+/* =================== */
+
+/* Set and check node counter values */
+void Test_BPLib_AS_SetNodeCounterValues(uint32 SetValue);
+void Test_BPLib_AS_NodeCountersValueTest(uint32 ActualValue);
+
+/* Set and check source counter values */
+void Test_BPLib_AS_SetSourceCounterValues(int32_t SourceEid, uint32_t SetValue);
+void Test_BPLib_AS_SourceCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
+
+/* Set bundle counter values */
+void Test_BPLib_AS_SetBundleCounterValues(uint32_t SetValue);
+void Test_BPLib_AS_BundleCountersValueTest(uint32_t ActualValue);
+
+/* Set error counter values */
+void Test_BPLib_AS_SetErrorCounterValues(int32_t SourceEid, uint32_t SetValue);
+void Test_BPLib_AS_ErrorCountersValueTest(int32_t SourceEid, uint32_t ActualValue);
+
+void BPLib_AS_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText);
 
 void BPLib_AS_Test_Setup(void);
 void BPLib_AS_Test_Teardown(void);
 
 void TestBplibAs_Register(void);
+void TestBplibAsInternal_Register(void);
 
 #endif /* BPLIB_AS_TEST_UTILS_H */

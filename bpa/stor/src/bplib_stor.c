@@ -24,6 +24,11 @@
 
 #include "bplib_stor.h"
 
+/* 
+** Globals
+*/
+
+BPLib_StorageHkTlm_Payload_t BPLib_STOR_StoragePayload;
 
 /*
 ** Function Definitions

@@ -8,11 +8,15 @@
 
 add_library(bplib_as OBJECT
     src/bplib_as.c
+    src/bplib_as_internal.c
 )
 
 target_include_directories(bplib_as PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_nc,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests

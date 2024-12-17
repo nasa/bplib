@@ -21,147 +21,347 @@
 #ifndef BPLIB_AS_H
 #define BPLIB_AS_H
 
-/*
-** Include
-*/
-
-#include "bplib_api_types.h"
-#include "bplib_cfg.h"
+/* ======== */
+/* Typedefs */
+/* ======== */
 
 /**
- * \brief Node MIB counters housekeeping payload
- */
+  * \brief Channel application state
+  */
+typedef enum
+{
+    BPLIB_AS_APP_STATE_STOPPED = 0,
+    BPLIB_AS_APP_STATE_ADDED   = 1,
+    BPLIB_AS_APP_STATE_STARTED = 2
+} BPLib_AS_ApplicationState_t;
 
+/* ======== */
+/* Includes */
+/* ======== */
+
+#include <string.h>
+#include "bplib_api_types.h"
+#include "bplib_cfg.h"
+#include "bplib_nc_payloads.h"
+#include "bplib_em.h"
+
+/* ====== */
+/* Macros */
+/* ====== */
+
+#define BPLIB_AS_NUM_NODE_CNTRS   (79u) /** \brief Number of node counters (also total number of counters) */
+#define BPLIB_AS_NUM_SOURCE_CNTRS (56u) /** \brief Number of source counters */
+
+/* ======= */
+/* Typdefs */
+/* ======= */
+
+/**
+  * \brief  Used to as indices into the counter arrays in the node and source payloads
+  * \anchor BPLib_AS_Counter_t
+  */
+typedef enum
+{
+    /* Common (node and source shared) counters */
+    ADU_COUNT_DELIVERED                    = 0,  /** \brief Number of ADUs Delivered to the application */
+    ADU_COUNT_RECEIVED                     = 1,  /** \brief Number of ADUs Received from the application */
+    BUNDLE_COUNT_ABANDONED                 = 2,  /** \brief Number of Abandoned Bundle Payloads */
+    BUNDLE_COUNT_CUSTODY_REJECTED          = 3,  /** \brief Number of unsuccessful Custody Transfers from the Local node to the next neighboring Custodian Node */
+    BUNDLE_COUNT_CUSTODY_REQUEST           = 4,  /** \brief Number of bundles received that are requesting Custody Transfer */
+    BUNDLE_COUNT_CUSTODY_RE_FORWARDED      = 5,  /** \brief Number of Bundles reforward due to custody timeout */
+    BUNDLE_COUNT_CUSTODY_TRANSFERRED       = 6,  /** \brief Number of successful Custody Transfers from the Local node to the next neighboring Custodian Node */
+    BUNDLE_COUNT_DELETED                   = 7,  /** \brief Total Number of Bundle Deletions */
+    BUNDLE_COUNT_DELETED_BAD_EID           = 8,  /** \brief Number of Bundles deleted due to having a unrecognized destination EID */
+    BUNDLE_COUNT_DELETED_CANCELLED         = 9,  /** \brief Number of Bundles Deletions due to Transmission Cancelled Condition */
+    BUNDLE_COUNT_DELETED_EXPIRED           = 10, /** \brief Number of Bundles Deletions due to Lifetime Expired Condition */
+    BUNDLE_COUNT_DELETED_FORWARD_FAILED    = 11, /** \brief Number of Bundles Deletions due to Forwarding Failed Condition */
+    BUNDLE_COUNT_DELETED_HOP_EXCEEDED      = 12, /** \brief Number of Bundles Deletions due to Hop Limit Exceeded Condition */
+    BUNDLE_COUNT_DELETED_INVALID_PAYLOAD   = 13, /** \brief Number of Bundle Deletions due having a Corrupted Payload Block */
+    BUNDLE_COUNT_DELETED_NO_STORAGE        = 14, /** \brief Number of Bundles deleted due to insufficient storage */
+    BUNDLE_COUNT_DELETED_TOO_LONG          = 15, /** \brief Number of Bundles deleted due to being longer than paramSetMaxBundleLength */
+    BUNDLE_COUNT_DELETED_TRAFFIC_PARED     = 16, /** \brief Number of Bundles Deletions due to Traffic Pared Condition */
+    BUNDLE_COUNT_DELETED_UNAUTHORIZED      = 17, /** \brief Number of Bundles deleted due to having a unrecognized source EID. Incremented if the bundle is not in the set of authorized source EIDs configured for the node. */
+    BUNDLE_COUNT_DELETED_UNINTELLIGIBLE    = 18, /** \brief Number of Bundles Deletions due to Block Unintelligible Condition */
+    BUNDLE_COUNT_DELETED_UNSUPPORTED_BLOCK = 19, /** \brief Number of Bundles Deletions due to Unsupported Block Condition */
+    BUNDLE_COUNT_DELIVERED                 = 20, /** \brief Total number of Bundles Delivered to this node, including fragments */
+    BUNDLE_COUNT_DEPLETED                  = 21, /** \brief Number of bundles for which rejected Custody Signals generated indicating rejection due to depleted storage */
+    BUNDLE_COUNT_DISCARDED                 = 22, /** \brief Number of Bundles Discarded */
+    BUNDLE_COUNT_FORWARDED                 = 23, /** \brief Number of Bundles Forwarded to another DTN Node */
+    BUNDLE_COUNT_FORWARDED_FAILED          = 24, /** \brief Number of Bundles where forwarding to another DTN Node failed */
+    BUNDLE_COUNT_FRAGMENTED                = 25, /** \brief Number of Bundles that needed to be Fragmented  */
+    BUNDLE_COUNT_FRAGMENT_ERROR            = 26, /** \brief Number of Fragments discarded due to bad offset or ADU length */
+    BUNDLE_COUNT_GENERATED_ACCEPTED        = 27, /** \brief Number of Accepted Bundle Transmission Requests  */
+    BUNDLE_COUNT_GENERATED_CUSTODY_SIGNAL  = 28, /** \brief Number of bundles for which Custody Signals Generated */
+    BUNDLE_COUNT_GENERATED_FRAGMENT        = 29, /** \brief Number of Bundle Fragments that were Generated */
+    BUNDLE_COUNT_GENERATED_REJECTED        = 30, /** \brief Number of Rejected Bundle Transmission Requests */
+    BUNDLE_COUNT_MAX_BSR_RATE_EXCEEDED     = 31, /** \brief Number of BSR bundles not sent because sending would exceed a maximum rate. */
+    BUNDLE_COUNT_NO_CONTACT                = 32, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable before the Bundle expires */
+    BUNDLE_COUNT_NO_FURTHER_INFO           = 33, /** \brief Number of bundles for which successful Custody Signals generated with No Further Information */
+    BUNDLE_COUNT_NO_ROUTE                  = 34, /** \brief Number of bundles for which rejected Custody Signals generated indicating the Destination is not reachable */
+    BUNDLE_COUNT_REASSEMBLED               = 35, /** \brief Total number of Bundles delivered that were fragments and needed to be reassembled */
+    BUNDLE_COUNT_RECEIVED                  = 36, /** \brief Number of Bundles Received from another DTN Node */
+    BUNDLE_COUNT_RECEIVED_ADMIN_RECORD     = 37, /** \brief Number of admin record bundles received for this DTN Node. */
+    BUNDLE_COUNT_RECEIVED_BSR_ACCEPTED     = 38, /** \brief Number of Bundle Custody Accepted Status Report received since the last counter reset */
+    BUNDLE_COUNT_RECEIVED_BSR_DELETED      = 39, /** \brief Number of Bundle Deleted Status Report received since the last counter reset */
+    BUNDLE_COUNT_RECEIVED_BSR_DELIVERED    = 40, /** \brief Number of Bundle Delivered Status Report received since the last counter reset */
+    BUNDLE_COUNT_RECEIVED_BSR_FORWARDED    = 41, /** \brief Number of Bundle Forwarded Status Report received since the last counter reset */
+    BUNDLE_COUNT_RECEIVED_BSR_RECEIVED     = 42, /** \brief Number of Bundle Reception Status Report received since the last counter reset */
+    BUNDLE_COUNT_RECEIVED_CRS_ACCEPTED     = 43, /** \brief Number of accepted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of accepted bundles per source node ID. */
+    BUNDLE_COUNT_RECEIVED_CRS_DELETED      = 44, /** \brief Number of deleted bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of deleted bundles per source node ID. */
+    BUNDLE_COUNT_RECEIVED_CRS_DELIVERED    = 45, /** \brief Number of delivered bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of delivered bundles per source node ID. */
+    BUNDLE_COUNT_RECEIVED_CRS_FORWARDED    = 46, /** \brief Number of forwarded bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of forwarded bundles per source node ID. */
+    BUNDLE_COUNT_RECEIVED_CRS_RECEIVED     = 47, /** \brief Number of received bundle reports included in received Compressed Reporting Signals (CRSs) since the last counter reset. Also includes total number of received bundles per source node ID. */
+    BUNDLE_COUNT_RECEIVED_CUSTODY_SIGNAL   = 48, /** \brief Number of bundles for which Custody Signals Received */
+    BUNDLE_COUNT_RECEIVED_FRAGMENT         = 49, /** \brief Number of Bundles Received that were Marked as Fragments */
+    BUNDLE_COUNT_REDUNDANT                 = 50, /** \brief Number of bundles for which successful Custody Signals generated for Duplicate Bundle reception */
+    BUNDLE_COUNT_REJECTED_CUSTODY          = 51, /** \brief Number of Bundles where this node rejected custody. */
+    BUNDLE_COUNT_RETURNED                  = 52, /** \brief Number of Bundles Returned to Sender */
+    BUNDLE_COUNT_UNINTELLIGIBLE_BLOCK      = 53, /** \brief Number of bundles for which Custody Signals indicating the Bundle contained an unknown block type */
+    BUNDLE_COUNT_UNINTELLIGIBLE_EID        = 54, /** \brief Number of bundles for which rejected Custody Signals generated indicating the any EID in the Primary Header is unknown */
+    BUNDLE_COUNT_UNPROCESSED_BLOCKS        = 55, /** \brief Number of Unprocessed Blocks Removed from Received Bundles */
+
+    /* Node-only counters */
+    BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT  = 56, /** \brief Number of control directives received from the Monitor and Control interface that have been accepted */
+    BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT  = 57, /** \brief Number of control directives received from the Monitor and Control interface that have been rejected as being invalid */
+    BUNDLE_COUNT_CUSTODY_SIGNAL_RECEIVED   = 58, /** \brief Number of Custody Signal Bundles received */
+    BUNDLE_COUNT_GENERATED_ANONYMOUS       = 59, /** \brief Number of Anonomous Bundles Created */
+    BUNDLE_COUNT_GENERATED_BSR_ACCEPTED    = 60, /** \brief Number of Bundle Custody Accepted Status Report generated since the last counter reset */
+    BUNDLE_COUNT_GENERATED_BSR_DELETED     = 61, /** \brief Number of Bundle Deleted Status Report generated since the last counter reset */
+    BUNDLE_COUNT_GENERATED_BSR_DELIVERED   = 62, /** \brief Number of Bundle Delivered Status Report generated since the last counter reset */
+    BUNDLE_COUNT_GENERATED_BSR_FORWARDED   = 63, /** \brief Number of Bundle Forwarded Status Report generated since the last counter reset */
+    BUNDLE_COUNT_GENERATED_BSR_RECEIVED    = 64, /** \brief Number of Bundle Reception Status Report generated since the last counter reset */
+    BUNDLE_COUNT_GENERATED_CRS             = 65, /** \brief Number of Compressed Reporting Signal (CRS) generated since last counter reset. */
+    BUNDLE_COUNT_GENERATED_CRS_ACCEPTED    = 66, /** \brief Number of accepted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_COUNT_GENERATED_CRS_DELETED     = 67, /** \brief Number of deleted bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_COUNT_GENERATED_CRS_DELIVERED   = 68, /** \brief Number of delivered bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_COUNT_GENERATED_CRS_FORWARDED   = 69, /** \brief Number of forwarded bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_COUNT_GENERATED_CRS_RECEIVED    = 70, /** \brief Number of received bundle reports included in each generated Compressed Reporting Signal (CRS) since the last counter reset */
+    BUNDLE_COUNT_GENERATED_CUSTODY         = 71, /** \brief Number of Custody Signal Bundles generated since the last counter reset */
+    BUNDLE_COUNT_INVALID_PRIMARY_BLOCK     = 72, /** \brief Number of Unprocessed Bundles received with Invalid Primary Blocks */
+    BUNDLE_COUNT_IN_CUSTODY                = 73, /** \brief  */
+    BUNDLE_COUNT_MAX_CRS_RATE_EXCEEDED     = 74, /** \brief Number of CRS bundles not sent because sending would exceed a maximum rate. */
+    BUNDLE_COUNT_RECEIVED_CRS              = 75, /** \brief Number of Compressed Reporting Signals (CRSs) received since last counter reset. */
+    BUNDLE_COUNT_STORAGE_AVAILABLE         = 76, /** \brief  */
+    BUNDLE_COUNT_STORED                    = 77, /** \brief  */
+    NODE_STARTUP_COUNTER                   = 78, /** \brief Number of times a node is started up. */
+} BPLib_AS_Counter_t;
+
+/**
+ * \brief  Node MIB counters housekeeping payload
+ * \anchor BPLib_NodeMibCountersHkTlm_Payload_t
+ */
 typedef struct
 {
-    uint32_t BundleCountGeneratedAnonymous;         /**< \brief Bundle count generated anonymous */
-    uint32_t SystemNodeUpTime;                      /**< \brief System node up time */
-    uint32_t AcceptedDirectiveCount;                /**< \brief Bundle Agent Accepted Directive Count */
-    uint32_t RejectedDirectiveCount;                /**< \brief Bundle Agent Rejected Directive Count */
-    uint32_t BundleCountGeneratedCustody;           /**< \brief Bundle Number of custody signal generated */
-    uint32_t BundleCountGeneratedBsrReceived;       /**< \brief Bundle Received BSR Counts */
-    uint32_t BundleCountGeneratedBsrAccepted;       /**< \brief Bundle Accepted BSR Counts */
-    uint32_t BundleCountGeneratedBsrForwarded;      /**< \brief Bundle Forwarded BSR Counts */
-    uint32_t BundleCountGeneratedBsrDelivered;      /**< \brief Bundle Delivered BSR Counts */
-    uint32_t BundleCountGeneratedBsrDeleted;        /**< \brief Bundle Deleted BSR Counts */
-    uint32_t BundleCountInvalidPrimaryBlock;        /**< \brief Bundle unprocessed due to Invalid primary block Counts */
-    uint32_t BundleCountCustodySignalReceived;      /**< \brief Received custody signal Bundle Counts */
-    uint32_t BundleCountDeletedUnauthorizedSrc;     /**< \brief Deleted bundle Counts for unauthorized Src EID*/
-    uint32_t BundleCountGeneratedCrsReceived;       /**< \brief Bundle Received CRS Counts */
-    uint32_t BundleCountGeneratedCrsAccepted;       /**< \brief Bundle Accepted CRS Counts */
-    uint32_t BundleCountGeneratedCrsForwarded;      /**< \brief Bundle Forwarded CRS Counts */
-    uint32_t BundleCountGeneratedCrsDelivered;      /**< \brief Bundle Delivered CRS Counts */
-    uint32_t BundleCountGeneratedCrsDeleted;        /**< \brief Bundle Deleted CRS Counts */
-    uint32_t BundleCountMaxCrsRateExceeded;         /**< \brief Number of CRS bundles not sent to avoid exceeding max rate */
-    uint32_t NodeStartupCounter;                    /**< \brief Number of times the node has been started up */
-    uint32_t BundleCountGeneratedCrs;               /**< \brief Number of CRSs generated */
-    uint32_t BundleCountReceivedCrs;                /**< \brief Number of CRSs received */
+    /** 
+      * \brief Array of all node counters
+      * \note  See BPLib_AS_Counter_t for counter details
+      * \ref   BPLib_AS_Counter_t
+      */
+    uint32_t NodeCounters[BPLIB_AS_NUM_NODE_CNTRS];
 
-    uint32_t AduCountDelivered;                     /**< \brief ADU Delivered Count */
-    uint32_t AduCountReceived;                      /**< \brief ADU Received Count */
-    
-    uint32_t Spare1;        
-    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */    
+    uint32_t TimeBootEra;       /** \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;     /** \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor; /** \brief Time Correlation Factor */
 } BPLib_NodeMibCountersHkTlm_Payload_t;
 
 /**
- * \brief Source MIB counters housekeeping payload
- */
-typedef struct
-{    
-    char SourceEID[BPLIB_MAX_EID_LENGTH];       /**< \brief Source EID this telemetry corresponds to */
-    uint32_t BundleCountGeneratedAccepted;      /**< \brief Number of accepted bundle transmission requests */
-    uint32_t BundleCountGeneratedRejected;      /**< \brief Number of rejected bundle transmission requests */
-    uint32_t BundleCountMaxBsrRateExceeded;     /**< \brief Number of BSR bundles not sent because sending would exceed a maximum rate */
-    uint32_t BundleCountGeneratedFragment;      /**< \brief Number of generated bundle fragments */
-    uint32_t BundleCountReceived;               /**< \brief Number of bundles received from another node */
-    uint32_t BundleCountReceivedFragment;       /**< \brief Number of bundles received that were marked as fragments. */
-    uint32_t BundleCountUnprocessedBlocks;      /**< \brief Number of unprocessed blocks removed from received bundles. */
-    uint32_t BundleCountForwarded;              /**< \brief Number of bundles forwarded to another DTN node. */
-    uint32_t BundleCountReturned;               /**< \brief Number of bundles returned to sender. */
-    uint32_t BundleCountFragmented;             /**< \brief Number of bundles that needed to be fragmented. */   
-    uint32_t BundleCountReassembled;            /**< \brief Number of bundles reassembled from fragments. */
-    uint32_t BundleCountFragmentError;          /**< \brief Number of fragments discarded due to bad offset or ADU length. */
-    uint32_t BundleCountDelivered;              /**< \brief Number of bundles destined for this node. */
-    uint32_t BundleCountAbandoned;              /**< \brief Number of abandoned bundle payloads. */
-    uint32_t AduCountDelivered;                 /**< \brief Number of ADUs delivered to the application. */
-    uint32_t BundleCountStored;                 /**< \brief Number of bundles currently in storage. */
-    uint32_t KbytesCountStorageAvailable;       /**< \brief Kilobytes of free space left to store additional bundles. */
-    uint32_t BundleCountDeleted;                /**< \brief Total number of bundle deletions. */
-    uint32_t BundleCountDeletedExpired;         /**< \brief Number of bundle deletions due to expired lifetime condition. */
-    uint32_t BundleCountDeletedHopExceeded;     /**< \brief Number of bundle deletions due to exceeded hop limit condition. */
-    uint32_t BundleCountDeletedInvalidPayload;  /**< \brief Number of bundle deletions due to having a corrupted payload block. */
-    uint32_t BundleCountDeletedForwardFailed;   /**< \brief Number of bundle deletions due to Forwarding Failed condition. */
-    uint32_t BundleCountDeletedTrafficPared;    /**< \brief Number of bundle deletions due to Traffic Pared Condition. */
-    uint32_t BundleCountDeletedCancelled;       /**< \brief Number of bundle deletions due to Transmission Cancelled Condition. */
-    uint32_t BundleCountDeletedUnintelligible;  /**< \brief Number of bundle deletions due to Block Unintelligible Condition. */
-    uint32_t BundleCountDeletedUnsupportedBlock;/**< \brief Number of bundle deletions due to Unsupported Block Condition. */
-    uint32_t BundleCountDiscarded;              /**< \brief Number of discarded bundles. */
-    uint32_t BundleCountDeletedNoStorage;       /**< \brief Number of bundles deleted due to insufficient storage. */
-    uint32_t BundleCountDeletedBadEid;          /**< \brief Number of bundles deleted due to an unrecognized destination EID. */
-    uint32_t BundleCountDeletedtooLong;         /**< \brief Number of bundles deleted due to being longer than paramSetMaxBundleLength. */
-    uint32_t BundleCountCustodyTransferred;     /**< \brief Number of successful Custody Transfers from the local node to the next neighboring custodian node. */
-    uint32_t BundleCountCustodyRejected;        /**< \brief Number of unsuccessful Custody Transfers from the local node to the next neighboring custodian node. */
-    uint32_t BundleCountCustodyRequest;         /**< \brief Number of bundles received that are requesting Custody Transfer. */
-    uint32_t BundleCountInCustody;              /**< \brief Number of bundles currently in custody at this node. */
-    uint32_t BundleCountCustodyReForwarded;     /**< \brief Number of bundles reforward due to custody timeout. */
-    uint32_t BundleCountNoFurtherInfo;          /**< \brief Number of bundles for which successful Custody Signals generated with No Further Information. */
-    uint32_t BundleCountRedundant;              /**< \brief Number of bundles for which successful Custody Signals were generated for duplicate bundle reception. */
-    uint32_t BundleCountDepleted;               /**< \brief Number of bundles for which rejected Custody Signals were generated indicating rejection due to depleted storage. */
-    uint32_t BundleCountUnintelligibleEid;      /**< \brief Number of bundles for which rejected Custody Signals were generated indicating the any EID in the Primary Header is unknown. */
-    uint32_t BundleCountNoRoute;                /**< \brief Number of bundles for which rejected Custody Signals were generated indicating the Destination is not reachable. */
-    uint32_t BundleCountNoContact;              /**< \brief Number of bundles for which rejected Custody Signals were generated indicating the Destination is not reachable before the bundle expires. */
-    uint32_t BundleCountUnintelligibleBlock;    /**< \brief Number of bundles for which Custody Signals indicated that the bundle contained an unknown block type. */
-    uint32_t BundleCountReceivedCustodySignal;  /**< \brief Number of bundles for which Custody Signals were received. */
-    uint32_t BundleCountRejectedCustody;        /**< \brief Number of bundles where this node rejected custody. */
-    uint32_t AduCountReceived;                  /**< \brief Number of ADUs received from the application. */
-    uint32_t BundleIngressRateBytesPerSec;      /**< \brief Rate of bundle ingress in bytes per second. */
-    uint32_t BundleIngressRateBundlesPerSec;    /**< \brief Rate of bundle ingress in bundles per second. */
-    uint32_t BundleEgressRateBytesPerSec;       /**< \brief Rate of bundle egress in bytes per second. */
-    uint32_t BundleEgressRateBundlesPerSec;     /**< \brief Rate of bundle egress in bundles per second. */
-    uint32_t BundleCountForwardedFailed;        /**< \brief Number of bundles where forwarding to another DTN node failed. */
-    uint32_t BundleCountReceivedBsrReceived;    /**< \brief Number of Bundle Reception Status Reports received since the last counter reset. */
-    uint32_t BundleCountReceivedBsrAccepted;    /**< \brief Number of Bundle Custody Accepted Status Reports received since the last counter reset. */
-    uint32_t BundleCountReceivedBsrForwarded;   /**< \brief Number of Bundle Forwarded Status Reports received since the last counter reset. */
-    uint32_t BundleCountReceivedBsrDelivered;   /**< \brief Number of Bundle Delivered Status Reports received since the last counter reset. */
-    uint32_t BundleCountReceivedBsrDeleted;     /**< \brief Number of Bundle Deleted Status Reports received since the last counter reset. */
-    uint32_t BundleCountReceivedCrsReceived;    /**< \brief Number of received bundle reports included in each received CRS since the last counter reset. */
-    uint32_t BundleCountReceivedCrsAccepted;    /**< \brief Number of accepted bundle reports included in each received CRS since the last counter reset. */
-    uint32_t BundleCountReceivedCrsForwarded;   /**< \brief Number of forwarded bundle reports included in each received CRS since the last counter reset. */
-    uint32_t BundleCountReceivedCrsDelivered;   /**< \brief Number of delivered bundle reports included in each received CRS since the last counter reset. */
-    uint32_t BundleCountReceivedCrsDeleted;     /**< \brief Number of deleted bundle reports included in each received CRS since the last counter reset. */
-    uint32_t BundleCountReceivedAdminRecord;    /**< \brief Number of admin record bundles received for this DTN Node. */
-    uint32_t Spare1;
-} BPLib_SourceMibCountersSet_t;
-
+  * \brief  Source MIB counters housekeeping payload
+  * \anchor BPLib_SourceMibCounters_t
+  */
 typedef struct
 {
-    BPLib_SourceMibCountersSet_t SourceCounters[BPLIB_MAX_NUM_SOURCE_EID]; /**< \brief Counters for each source */
-    
-    uint32_t Spare2;
-    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
-} BPLib_SourceMibCountersHkTlm_Payload_t;
+    char SourceEID[BPLIB_MAX_EID_LENGTH]; /** \brief Source EID this telemetry corresponds to */
 
-/*
-** Exported Functions
-*/
+    /**
+      * \brief Array of all source counters
+      * \note  See BPLib_AS_Counter_t for counter details
+      * \ref   BPLib_AS_Counter_t
+      */
+    uint32_t SourceCounters[BPLIB_AS_NUM_SOURCE_CNTRS];
+} BPLib_SourceMibCounters_t;
 
 /**
- * \brief Admin Statistics initialization
- *
- *  \par Description
- *       AS initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
+  * \brief  Packet for all source counters accessed via an index into MibArray
+  * \anchor BPLib_SourceMibCountersHkTlm_Payload_t
+  */
+typedef struct
+{
+    BPLib_SourceMibCounters_t MibArray[BPLIB_MAX_NUM_SOURCE_EID]; /** \brief Counters for each source */
+
+    uint32_t Spare2;
+    uint32_t TimeBootEra;                   /** \brief Boot Era for Monotonic Time */
+    int64_t  MonotonicTime;                 /** \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;             /** \brief Time Correlation Factor */
+} BPLib_SourceMibCountersHkTlm_Payload_t;
+
+/* ======= */
+/* Globals */
+/* ======= */
+
+extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
+
+/* =================== */
+/* Function Prototypes */
+/* =================== */
+
+/**
+ * \brief     Instantiate a mutex to guard access to counters and initialize counter payloads
+ * \details   Admin Statistics initialization
+ * \note      Only returns BPLIB_SUCCESS for now
+ * \param[in] void No arguments accepted
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Initialization was successful
+ * \anchor    BPLib_AS_Init
  */
-int BPLib_AS_Init(void);
+BPLib_Status_t BPLib_AS_Init(void);
+
+/**
+ * \brief     Add an amount to the counter specified by the source EID and counter
+ * \details   Incrementing function for counters used by Admin Statistics
+ * \note      Amount must be positive
+ * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
+ * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
+ * \param[in] Amount (uint32_t) Amount to increment Counter by
+ * \return    void
+ * \secreflist
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_AS_SetCounter [BPLib_AS_SetCounter()]
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_Increment
+ */
+void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
+
+/**
+ * \brief     Subtract an amount from the counter specified by the source EID and counter
+ * \details   Decrementing function for counters used by Admin Statistics
+ * \note      Amount must be positive
+ * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
+ * \param[in] Counter (BPLib_AS_Counter_t) Counter to decrement
+ * \param[in] Amount (uint32_t) Amount to decrement by
+ * \return    void
+ * \secreflist
+ * \refitem   BPLib_AS_Get [BPLib_AS_Get()]
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_AS_SetCounter [BPLib_AS_SetCounter()]
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_Decrement
+ */
+void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
+
+/**
+ * \brief     Set to zero to counter associated with the given source EID pattern
+ * \details   Reference the BPLib_AS_Counter_t struct to see what each counter represents
+ * \note      Directly sets counter in counter payloads to 0
+ * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
+ * \param[in] Counter   (BPLib_AS_Counter_t) Counter to reset
+ * \return    Execution status
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
+ * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: Counter is outside node counters' range
+ * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: Counter is outside source counters' range
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \secreflist
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_NodeMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_ResetCounter
+ */
+BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter);
+
+/**
+ * \brief     Set to zero all resettable MIB counters associated with the given source EID pattern
+ * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
+ * \note      Directly sets source counters in payloads to 0
+ * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
+ * \return    Execution status
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \secreflist
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_ResetSourceCounters
+ */
+BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
+
+/**
+ * \brief     Set to zero all resettable node MIB counters associated with bundles
+ * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
+ * \note      Diretcly sets node bundle counters in payloads to 0
+ * \return    void
+ * \secreflist
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_NodeMibCountersHkTlm_Payload_t
+ * \endsecreflist
+ * \anchor    BPLib_AS_ResetBundleCounters
+ */
+void BPLib_AS_ResetBundleCounters(void);
+
+/**
+ * \brief     Set to zero all resettable MIB error counters
+ * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
+ * \note      Directly sets error counters in payloads to 0
+ * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
+ * \return    Execution status
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \secreflist
+ * \refitem   BPLib_AS_Counter_t
+ * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
+ * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
+ * \endsecreflist
+ * \anchor    BPLib_AS_ResetErrorCounters
+ */
+BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid);
+
+/**
+ * \brief     Set every counter value in the source and node counter packets to zero
+ * \details   Zeroing out function used by Admin Statistics
+ * \note      Directly sets all counters in payloads to 0
+ * \param[in] void No arguments accepted
+ * \return    void
+ * \anchor    BPLib_AS_ResetAllCounters
+ */
+void BPLib_AS_ResetAllCounters(void);
+
+/**
+  * \brief     Send Per Node MIB Counter telemetry packet
+  * \details   Node Configuration Send Node MIB Counters Housekeeping Packet command.
+  * \note      This command is just a call to BPA_TLMP_SendNodeMibCounterPkt()
+  * \param[in] void No arguments accepted
+  * \return    Execution status
+  * \return    Return codes from BPA_TLMP_SendNodeMibCounterPkt() in fwp_tlmp.h
+  */
+BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
+
+/**
+  * \brief     Send Per Source MIB Counter telemetry packet
+  * \details   Node Configuration Send Source MIB Counters Housekeeping Packet command.
+  * \note      This command is just a call to BPA_TLMP_SendPerSourceMibCounterPkt()
+  * \param[in] void No arguments accepted
+  * \return    Execution status
+  * \return    Return codes from BPA_TLMP_SendPerSourceMibCounterPkt() in fwp_tlmp.h
+  */
+BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
+
+/**
+  * \brief     Send Storage housekeeping telemetry packet
+  * \details   Node Configuration Send Storage Housekeeping Packet command.
+  * \note      This command is just a call to BPA_TLMP_SendChannelContactPkt()
+  * \param[in] void No arguments accepted
+  * \return    Execution status
+  * \return    Return codes from BPA_TLMP_SendChannelContactPkt() in fwp_tlmp.h
+  */
+BPLib_Status_t BPLib_AS_SendChannelContactStatHk(void);
+
+void BPLib_AS_SetAppState(uint8_t ChanId, BPLib_AS_ApplicationState_t State);
+
+BPLib_AS_ApplicationState_t BPLib_AS_GetAppState(uint8_t ChanId);
 
 #endif /* BPLIB_AS_H */
