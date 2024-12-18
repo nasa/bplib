@@ -58,16 +58,71 @@ BPLib_Status_t BPLib_AS_Init(void)
     return Status;
 }
 
-void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
+BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
-    /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
-    BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount);
+    uint32 OS_Status;
+    BPLib_Status_t Status;
+
+    /* Default to success so Status only needs to be changed when an error occurs */
+    Status = BPLIB_SUCCESS;
+
+    /* Lock access to the counters before using a counter as a reference to increment said counter */
+    OS_Status = OS_MutSemTake(MutexId);
+    if (OS_Status != OS_SUCCESS)
+    {
+        Status = BLPIB_AS_TAKE_MUTEX_ERR;
+    }
+    else
+    {
+        /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
+        Status = BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount);
+
+        /* Unlock the counters */
+        OS_Status = OS_MutSemGive(MutexId);
+        if (OS_Status != OS_SUCCESS)
+        {
+            /* 
+            ** This will override the return status from BPLib_AS_SetCounter() 
+            ** but failing to give the mutex is a higher precedent
+            */
+            Status = BPLIB_AS_GIVE_MUTEX_ERR;
+        }
+    }
+
+    return Status;
 }
 
-void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
+BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
-    /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
-    BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount);
+    uint32 OS_Status;
+    BPLib_Status_t Status;
+
+    /* Default to success so Status only needs to be changed when an error occurs */
+    Status = BPLIB_SUCCESS;
+
+    /* Lock access to the counters before using a counter as a reference to increment said counter */
+    OS_Status = OS_MutSemTake(MutexId);
+    if (OS_Status != OS_SUCCESS)
+    {
+        Status = BLPIB_AS_TAKE_MUTEX_ERR;
+    }
+    else
+    {
+        /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
+        Status = BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount);
+
+        OS_Status = OS_MutSemGive(MutexId);
+        if (OS_Status != OS_SUCCESS)
+        {
+            /* 
+            ** This will override the return status from BPLib_AS_SetCounter() 
+            ** but failing to give the mutex is a higher precedent
+            */
+            Status = BPLIB_AS_GIVE_MUTEX_ERR;
+        }
+    }
+
+    return Status;
 }
 
 BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter)
@@ -273,6 +328,10 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk()
         OS_Status = OS_MutSemGive(MutexId);
         if (OS_Status != OS_SUCCESS)
         {
+            /* 
+            ** This will override the return status from BPA_TLMP_SendNodeMibCounterPkt() 
+            ** but failing to give the mutex is a higher precedent
+            */
             Status = BPLIB_AS_GIVE_MUTEX_ERR;
         }
     }
@@ -300,6 +359,10 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
         OS_Status = OS_MutSemGive(MutexId);
         if (OS_Status != OS_SUCCESS)
         {
+            /* 
+            ** This will override the return status from BPA_TLMP_SendPerSourceMibCounterPkt() 
+            ** but failing to give the mutex is a higher precedent
+            */
             Status = BPLIB_AS_GIVE_MUTEX_ERR;
         }
     }

@@ -229,7 +229,10 @@ BPLib_Status_t BPLib_AS_Init(void);
  * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
  * \param[in] Amount (uint32_t) Amount to increment Counter by
- * \return    void
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BLPIB_AS_TAKE_MUTEX_ERR: Failed to lock out counters
+ * \retval    BLPIB_AS_GIVE_MUTEX_ERR: Failed to unlock counters
  * \secreflist
  * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
  * \refitem   BPLib_AS_Counter_t
@@ -238,7 +241,7 @@ BPLib_Status_t BPLib_AS_Init(void);
  * \endsecreflist
  * \anchor    BPLib_AS_Increment
  */
-void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
+BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
 /**
  * \brief     Subtract an amount from the counter specified by the source EID and counter
@@ -247,7 +250,10 @@ void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
  * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to decrement
  * \param[in] Amount (uint32_t) Amount to decrement by
- * \return    void
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BLPIB_AS_TAKE_MUTEX_ERR: Failed to lock out counters
+ * \retval    BLPIB_AS_GIVE_MUTEX_ERR: Failed to unlock counters
  * \secreflist
  * \refitem   BPLib_AS_Get [BPLib_AS_Get()]
  * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
@@ -257,7 +263,7 @@ void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
  * \endsecreflist
  * \anchor    BPLib_AS_Decrement
  */
-void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
+BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
 /**
  * \brief     Set to zero to counter associated with the given source EID pattern
