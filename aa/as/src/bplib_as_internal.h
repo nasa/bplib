@@ -92,6 +92,17 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid);
 BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value);
 
 /**
+ * \brief     Initialize the mutex that guards the node and source MIB counters
+ * \details   Uses OS_MutSemCreate() with the internal MutexId and MutexName
+ * \note      This function does not handle errors, it only returns the error status
+ * \return    Execution status
+ * \retval    BPLIB_AS_INIT_MUTEX_ERR: An error ocurred while creating the mutex
+ * \retval    BPLIB_SUCCESS: Mutex successfully created
+ * \anchor    BPLib_AS_InitMutex [BPLib_AS_InitMutex()]
+ */
+BPLib_Status_t BPLib_AS_InitMutex(void);
+
+/**
  * \brief     Take from the mutex guarding the node and source MIB counters
  * \details   Uses OS_MutSemTake() with the internal MutexId and handles errors
  * \note      Specific errors aren't handled, just a general non-success case

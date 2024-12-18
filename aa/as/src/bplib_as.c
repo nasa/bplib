@@ -33,23 +33,8 @@
 BPLib_Status_t BPLib_AS_Init(void)
 {
     BPLib_Status_t Status;
-    uint32 OS_Status;
 
-    MutexId = 0;
-    strncpy(MutexName, "AS_CounterMutex", BPLIB_AS_MAX_MUTEX_NAME_SIZE);
-
-    /* Instantiate a mutex for AS counters */
-    OS_Status = OS_MutSemCreate(&MutexId, MutexName, 0);
-
-    /* Translate mutex status into BPLib_Status_t */
-    if (OS_Status == OS_SUCCESS)
-    {
-        Status = BPLIB_SUCCESS;
-    }
-    else
-    {
-        Status = BPLIB_AS_INIT_MUTEX_ERR;
-    }
+    Status = BPLib_AS_InitMutex();
 
     /* Instantiate all payloads under the stewardship of AS */
     BPLib_AS_ResetAllCounters();

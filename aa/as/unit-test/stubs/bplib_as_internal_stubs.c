@@ -45,6 +45,20 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_InitMutex()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_AS_InitMutex(void)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_InitMutex, BPLib_Status_t);
+
+    UT_GenStub_Execute(BPLib_AS_InitMutex, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_AS_InitMutex, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_AS_LockCounters()
  * ----------------------------------------------------
  */
