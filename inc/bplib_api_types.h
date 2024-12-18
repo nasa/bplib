@@ -119,11 +119,9 @@ typedef struct BPLib_IpnAddr
 
 /* Admin Statistics (AS) Errors */
 #define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -25)
-#define BLPIB_AS_TAKE_MUTEX_ERR             ((BPLib_Status_t) -26)
-#define BPLIB_AS_GIVE_MUTEX_ERR             ((BPLib_Status_t) -27)
-#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -28)
-#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -29)
-#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -30)
+#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -26)
+#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -27)
+#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -28)
 
 // BPLib_Handle_t - Multi-purpose handle for locks, APIs, and other allocated resources
 #define BPLIB_HANDLE_MAX_SERIAL 0xffffff
