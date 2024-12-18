@@ -27,6 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_as.h"
+#include "bplib_eventids.h"
 #include "osapi.h"
 
 /* ======= */
@@ -36,6 +37,17 @@
 extern BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
 extern BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
 extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
+
+/* ====== */
+/* Macros */
+/* ====== */
+#define BPLIB_AS_MAX_MUTEX_NAME_SIZE (20u) /** \brief Max allowed length for AS counter mutex name */
+
+/* =============== */
+/* Mutex Variables */
+/* =============== */
+osal_id_t MutexId;
+char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 
 /* =================== */
 /* Function Prototypes */
@@ -78,5 +90,23 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid);
  * \anchor    BPLib_AS_SetCounter
  */
 BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value);
+
+/**
+ * \brief     Take from the mutex guarding the node and source MIB counters
+ * \details   Uses OS_MutSemTake() with the internal MutexId and handles errors
+ * \note      Specific errors aren't handled, just a general non-success case
+ * \return    void
+ * \anchor    BPLib_AS_LockCounters [BPLib_AS_LockCounters()]
+ */
+void BPLib_AS_LockCounters(void);
+
+/**
+ * \brief     Give to the mutex guarding the node and source MIB counters
+ * \details   Uses OS_MutSemGive() with the internal MutexId and handles errors
+ * \note      Specific errors aren't handled, just a general non-success case
+ * \return    void
+ * \anchor    BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
+ */
+void BPLib_AS_UnlockCounters(void);
 
 #endif // BPLIB_AS_INTERNAL_H

@@ -77,3 +77,31 @@ BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter
 
     return Status;
 }
+
+void BPLib_AS_LockCounters(void)
+{
+    uint32 OS_Status;
+
+    OS_Status = OS_MutSemTake(MutexId);
+    if (OS_Status != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_TAKE_MUTEX_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to take from the counter mutex, RC = %d",
+                            OS_Status);
+    }
+}
+
+void BPLib_AS_UnlockCounters(void)
+{
+    uint32 OS_Status;
+
+    OS_Status = OS_MutSemGive(MutexId);
+    if (OS_Status != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_GIVE_MUTEX_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to give to the counter mutex, RC = %d",
+                            OS_Status);
+    }
+}

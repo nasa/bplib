@@ -45,6 +45,17 @@ bool BPLib_AS_EidIsValid(int16_t SourceEid)
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_LockCounters()
+ * ----------------------------------------------------
+ */
+void BPLib_AS_LockCounters(void)
+{
+
+    UT_GenStub_Execute(BPLib_AS_LockCounters, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_AS_SetCounter()
  * ----------------------------------------------------
  */
@@ -59,4 +70,15 @@ BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter
     UT_GenStub_Execute(BPLib_AS_SetCounter, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_AS_SetCounter, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_AS_UnlockCounters()
+ * ----------------------------------------------------
+ */
+void BPLib_AS_UnlockCounters(void)
+{
+
+    UT_GenStub_Execute(BPLib_AS_UnlockCounters, Basic, NULL);
 }
