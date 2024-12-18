@@ -43,6 +43,7 @@ typedef enum
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_nc_payloads.h"
+#include "bplib_eventids.h"
 #include "bplib_em.h"
 
 /* ====== */
@@ -229,10 +230,7 @@ BPLib_Status_t BPLib_AS_Init(void);
  * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
  * \param[in] Amount (uint32_t) Amount to increment Counter by
- * \return    Execution status
- * \retval    BPLIB_SUCCESS: Successful execution
- * \retval    BLPIB_AS_TAKE_MUTEX_ERR: Failed to lock out counters
- * \retval    BLPIB_AS_GIVE_MUTEX_ERR: Failed to unlock counters
+ * \return    void
  * \secreflist
  * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
  * \refitem   BPLib_AS_Counter_t
@@ -241,7 +239,7 @@ BPLib_Status_t BPLib_AS_Init(void);
  * \endsecreflist
  * \anchor    BPLib_AS_Increment
  */
-BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
+void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
 /**
  * \brief     Subtract an amount from the counter specified by the source EID and counter
@@ -250,10 +248,7 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter,
  * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to decrement
  * \param[in] Amount (uint32_t) Amount to decrement by
- * \return    Execution status
- * \retval    BPLIB_SUCCESS: Successful execution
- * \retval    BLPIB_AS_TAKE_MUTEX_ERR: Failed to lock out counters
- * \retval    BLPIB_AS_GIVE_MUTEX_ERR: Failed to unlock counters
+ * \return    void
  * \secreflist
  * \refitem   BPLib_AS_Get [BPLib_AS_Get()]
  * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
@@ -263,7 +258,7 @@ BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter,
  * \endsecreflist
  * \anchor    BPLib_AS_Decrement
  */
-BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
+void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
 /**
  * \brief     Set to zero to counter associated with the given source EID pattern

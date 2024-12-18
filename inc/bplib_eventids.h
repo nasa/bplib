@@ -123,5 +123,8 @@
 /* AS success event IDs */
 
 /* AS error event IDs */
+#define BPLIB_AS_TAKE_MUTEX_ERR_EID                     (580u)
+#define BPLIB_AS_GIVE_MUTEX_ERR_EID                     (581u)
+#define BPLIB_AS_SET_CTR_ERR_EID                        (582u)
 
 #endif /* BPLIB_EVENTIDS_H */

@@ -32,17 +32,13 @@
  * Generated stub function for BPLib_AS_Decrement()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
+void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_Decrement, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_AS_Decrement, int16_t, SourceEid);
     UT_GenStub_AddParam(BPLib_AS_Decrement, BPLib_AS_Counter_t, Counter);
     UT_GenStub_AddParam(BPLib_AS_Decrement, uint32_t, Amount);
 
     UT_GenStub_Execute(BPLib_AS_Decrement, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_Decrement, BPLib_Status_t);
 }
 
 /*
@@ -66,17 +62,13 @@ BPLib_AS_ApplicationState_t BPLib_AS_GetAppState(uint8_t ChanId)
  * Generated stub function for BPLib_AS_Increment()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
+void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_Increment, BPLib_Status_t);
-
     UT_GenStub_AddParam(BPLib_AS_Increment, int16_t, SourceEid);
     UT_GenStub_AddParam(BPLib_AS_Increment, BPLib_AS_Counter_t, Counter);
     UT_GenStub_AddParam(BPLib_AS_Increment, uint32_t, Amount);
 
     UT_GenStub_Execute(BPLib_AS_Increment, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_Increment, BPLib_Status_t);
 }
 
 /*

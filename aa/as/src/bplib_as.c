@@ -58,41 +58,50 @@ BPLib_Status_t BPLib_AS_Init(void)
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
+void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
     uint32 OS_Status;
     BPLib_Status_t Status;
-
-    /* Default to success so Status only needs to be changed when an error occurs */
-    Status = BPLIB_SUCCESS;
 
     /* Lock access to the counters before using a counter as a reference to increment said counter */
     OS_Status = OS_MutSemTake(MutexId);
     if (OS_Status != OS_SUCCESS)
     {
-        Status = BLPIB_AS_TAKE_MUTEX_ERR;
+        BPLib_EM_SendEvent(BPLIB_AS_TAKE_MUTEX_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to take from the counter mutex while incrementing counter %d, RC = %d",
+                            Counter,
+                            OS_Status);
     }
     else
     {
         /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
         Status = BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount);
+        if (Status != BPLIB_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPLIB_AS_SET_CTR_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Could not set counter %d with source EID %d to %d, RC = %d",
+                                Counter,
+                                SourceEid,
+                                BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount,
+                                Status);
+        }
 
         /* Unlock the counters */
         OS_Status = OS_MutSemGive(MutexId);
         if (OS_Status != OS_SUCCESS)
         {
-            /* 
-            ** This will override the return status from BPLib_AS_SetCounter() 
-            ** but failing to give the mutex is a higher precedent
-            */
-            Status = BPLIB_AS_GIVE_MUTEX_ERR;
+            BPLib_EM_SendEvent(BPLIB_AS_GIVE_MUTEX_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Failed to give to the counter mutex while incrementing counter %d, RC = %d",
+                                Counter,
+                                OS_Status);
         }
     }
-
-    return Status;
 }
 
-BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
+void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
     uint32 OS_Status;
     BPLib_Status_t Status;
@@ -104,25 +113,37 @@ BPLib_Status_t BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter,
     OS_Status = OS_MutSemTake(MutexId);
     if (OS_Status != OS_SUCCESS)
     {
-        Status = BLPIB_AS_TAKE_MUTEX_ERR;
+        BPLib_EM_SendEvent(BPLIB_AS_TAKE_MUTEX_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to take from the counter mutex while decrementing counter %d, RC = %d",
+                            Counter,
+                            OS_Status);
     }
     else
     {
         /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
         Status = BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount);
+        if (Status != BPLIB_SUCCESS)
+        {
+            BPLib_EM_SendEvent(BPLIB_AS_SET_CTR_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Could not set counter %d with source EID %d to %d, RC = %d",
+                                Counter,
+                                SourceEid,
+                                BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount,
+                                Status);
+        }
 
         OS_Status = OS_MutSemGive(MutexId);
         if (OS_Status != OS_SUCCESS)
         {
-            /* 
-            ** This will override the return status from BPLib_AS_SetCounter() 
-            ** but failing to give the mutex is a higher precedent
-            */
-            Status = BPLIB_AS_GIVE_MUTEX_ERR;
+            BPLib_EM_SendEvent(BPLIB_AS_GIVE_MUTEX_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Failed to give to the counter mutex while decrementing counter %d, RC = %d",
+                                Counter,
+                                OS_Status);
         }
     }
-
-    return Status;
 }
 
 BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter)
@@ -313,13 +334,13 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk()
     BPLib_Status_t Status;
     uint32 OS_Status;
 
-    /* Default to success so Status only needs to be changed when an error occurs */
-    Status = BPLIB_SUCCESS;
-
     OS_Status = OS_MutSemTake(MutexId);
     if (OS_Status != OS_SUCCESS)
     {
-        Status = BLPIB_AS_TAKE_MUTEX_ERR;
+        BPLib_EM_SendEvent(BPLIB_AS_TAKE_MUTEX_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to take from the counter mutex while sending node MIB counter HK, RC = %d",
+                            OS_Status);
     }
     else
     {
@@ -328,11 +349,10 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk()
         OS_Status = OS_MutSemGive(MutexId);
         if (OS_Status != OS_SUCCESS)
         {
-            /* 
-            ** This will override the return status from BPA_TLMP_SendNodeMibCounterPkt() 
-            ** but failing to give the mutex is a higher precedent
-            */
-            Status = BPLIB_AS_GIVE_MUTEX_ERR;
+            BPLib_EM_SendEvent(BPLIB_AS_GIVE_MUTEX_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Failed to give to the counter mutex while sending node MIB counter HK, RC = %d",
+                                OS_Status);
         }
     }
 
@@ -344,13 +364,13 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
     BPLib_Status_t Status;
     uint32 OS_Status;
 
-    /* Default to success so Status only needs to be changed when an error occurs */
-    Status = BPLIB_SUCCESS;
-
     OS_Status = OS_MutSemTake(MutexId);
     if (OS_Status != OS_SUCCESS)
     {
-        Status = BLPIB_AS_TAKE_MUTEX_ERR;
+        BPLib_EM_SendEvent(BPLIB_AS_TAKE_MUTEX_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to take from the counter mutex while sending source MIB counter HK, RC = %d",
+                            OS_Status);
     }
     else
     {
@@ -359,11 +379,10 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
         OS_Status = OS_MutSemGive(MutexId);
         if (OS_Status != OS_SUCCESS)
         {
-            /* 
-            ** This will override the return status from BPA_TLMP_SendPerSourceMibCounterPkt() 
-            ** but failing to give the mutex is a higher precedent
-            */
-            Status = BPLIB_AS_GIVE_MUTEX_ERR;
+            BPLib_EM_SendEvent(BPLIB_AS_GIVE_MUTEX_ERR_EID,
+                                BPLib_EM_EventType_ERROR,
+                                "Failed to give to the counter mutex while sending node MIB counter HK, RC = %d",
+                                OS_Status);
         }
     }
 
