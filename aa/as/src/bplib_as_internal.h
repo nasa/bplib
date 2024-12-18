@@ -46,8 +46,8 @@ extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPaylo
 /* =============== */
 /* Mutex Variables */
 /* =============== */
-osal_id_t MutexId;
-char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
+extern osal_id_t MutexId;
+extern char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 
 /* =================== */
 /* Function Prototypes */

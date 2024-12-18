@@ -33,6 +33,12 @@ BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /**
 BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
 BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
 
+/* =============== */
+/* Mutex Variables */
+/* =============== */
+osal_id_t MutexId;
+char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
