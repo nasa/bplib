@@ -322,6 +322,8 @@ void Test_BPLib_AS_ErrorCountersValueTest(int32_t SourceEid, uint32_t ActualValu
 
 void BPLib_AS_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
 {
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, EventNum + 1);
+
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[EventNum].EventID, EventID);
     UtAssert_STRINGBUF_EQ(EventText, BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
