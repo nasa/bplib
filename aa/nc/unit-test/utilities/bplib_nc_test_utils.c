@@ -45,7 +45,7 @@ void Test_BPLib_NC_VerifyIncrement(int16_t SourceEid, BPLib_AS_Counter_t Counter
 
     if (SourceEid != -1)
     {
-        UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_IncrementDecrement[CallNum - 1].SourceEid);
+        UtAssert_EQ(int16_t, SourceEid, Context_BPLib_AS_IncrementDecrement[CallNum - 1].SourceEid);
     }
 
     if (Counter != -1)
