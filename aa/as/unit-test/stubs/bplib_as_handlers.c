@@ -34,7 +34,8 @@
 /* Globals */
 /* ======= */
 
-BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_IncrementDecrement[UT_MAX_INCDEC_DEPTH];
+BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_Increment[UT_MAX_INCDEC_DEPTH];
+BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_Decrement[UT_MAX_INCDEC_DEPTH];
 
 /* ==================== */
 /* Function Definitions */
@@ -57,9 +58,9 @@ void UT_Handler_BPLib_AS_Increment(void *UserObj, UT_EntryKey_t FuncKey, const U
     {
         CallNum = CallCount - 1;
 
-        Context_BPLib_AS_IncrementDecrement[CallNum].SourceEid = UT_Hook_GetArgValueByName(Context, "SourceEid", uint16_t);
-        Context_BPLib_AS_IncrementDecrement[CallNum].Counter   = UT_Hook_GetArgValueByName(Context, "Counter",   BPLib_AS_Counter_t);
-        Context_BPLib_AS_IncrementDecrement[CallNum].Amount    = UT_Hook_GetArgValueByName(Context, "Amount",    uint32_t);
+        Context_BPLib_AS_Increment[CallNum].SourceEid = UT_Hook_GetArgValueByName(Context, "SourceEid", uint16_t);
+        Context_BPLib_AS_Increment[CallNum].Counter   = UT_Hook_GetArgValueByName(Context, "Counter",   BPLib_AS_Counter_t);
+        Context_BPLib_AS_Increment[CallNum].Amount    = UT_Hook_GetArgValueByName(Context, "Amount",    uint32_t);
     }
 }
 
@@ -80,8 +81,8 @@ void UT_Handler_BPLib_AS_Decrement(void *UserObj, UT_EntryKey_t FuncKey, const U
     {
         CallNum = CallCount - 1;
 
-        Context_BPLib_AS_IncrementDecrement[CallNum].SourceEid = UT_Hook_GetArgValueByName(Context, "SourceEid", uint16_t);
-        Context_BPLib_AS_IncrementDecrement[CallNum].Counter   = UT_Hook_GetArgValueByName(Context, "Counter",   BPLib_AS_Counter_t);
-        Context_BPLib_AS_IncrementDecrement[CallNum].Amount    = UT_Hook_GetArgValueByName(Context, "Amount",    uint32_t);
+        Context_BPLib_AS_Decrement[CallNum].SourceEid = UT_Hook_GetArgValueByName(Context, "SourceEid", uint16_t);
+        Context_BPLib_AS_Decrement[CallNum].Counter   = UT_Hook_GetArgValueByName(Context, "Counter",   BPLib_AS_Counter_t);
+        Context_BPLib_AS_Decrement[CallNum].Amount    = UT_Hook_GetArgValueByName(Context, "Amount",    uint32_t);
     }
 }

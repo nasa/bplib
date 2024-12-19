@@ -45,17 +45,17 @@ void Test_BPLib_NC_VerifyIncrement(int16_t SourceEid, BPLib_AS_Counter_t Counter
 
     if (SourceEid != -1)
     {
-        UtAssert_EQ(int16_t, SourceEid, Context_BPLib_AS_IncrementDecrement[CallNum - 1].SourceEid);
+        UtAssert_EQ(int16_t, SourceEid, Context_BPLib_AS_Increment[CallNum - 1].SourceEid);
     }
 
     if (Counter != -1)
     {
-        UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_IncrementDecrement[CallNum - 1].Counter);
+        UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_Increment[CallNum - 1].Counter);
     }
 
     if (Amount != -1)
     {
-        UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_IncrementDecrement[CallNum - 1].Amount);
+        UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_Increment[CallNum - 1].Amount);
     }
 }
 
@@ -65,17 +65,17 @@ void Test_BPLib_NC_VerifyDecrement(int16_t SourceEid, BPLib_AS_Counter_t Counter
 
     if (SourceEid != -1)
     {
-        UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_IncrementDecrement[CallNum - 1].SourceEid);
+        UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_Decrement[CallNum - 1].SourceEid);
     }
 
     if (Counter != -1)
     {
-        UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_IncrementDecrement[CallNum - 1].Counter);
+        UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_Decrement[CallNum - 1].Counter);
     }
 
     if (Amount != -1)
     {
-        UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_IncrementDecrement[CallNum - 1].Amount);
+        UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_Decrement[CallNum - 1].Amount);
     }
 }
 

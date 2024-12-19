@@ -53,7 +53,8 @@ typedef struct
 /* Global Data */
 /* =========== */
 
-extern BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_IncrementDecrement[];
+extern BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_Increment[];
+extern BPLib_AS_IncrementDecrementContext_t Context_BPLib_AS_Decrement[];
 
 /* ==================== */
 /* Function Definitions */
