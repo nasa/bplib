@@ -64,6 +64,7 @@ target_link_libraries(coverage-bplib_as-testrunner PUBLIC
     bplib_fwp_stubs
     bplib_em_stubs
     bpa_fwp_stubs
+    ut_osapi_stubs
 )
 
 add_test(coverage-bplib_as-testrunner coverage-bplib_as-testrunner)
