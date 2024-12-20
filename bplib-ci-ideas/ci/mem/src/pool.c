@@ -1,4 +1,5 @@
 #include "pool.h"
+#include "stdalloc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +7,12 @@
 
 #include <assert.h>
 
-static bool BPLib_MEM_PoolIsValid(BPLib_MEM_Pool_t* pool)
+/*******************************************************************************
+* Exported Functions
+*/
+
+// TODO: Everything here needs to be wrapped in a semaphore
+bool BPLib_MEM_PoolIsValid(BPLib_MEM_Pool_t* pool)
 {
     if (pool == NULL)
     {
@@ -71,13 +77,13 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool)
         return NULL;
     }
 
+    /* Implementation-specifc memory allocation goes here */
     /* Ensure there's enough space for a full new block */
     if ((pool->size - pool->state.bytes_used) < pool->state.alloc_size)
     {
         return NULL;
     }
 
-    /* Implementation-specifc memory allocation goes here */
     block_mem = calloc(1, pool->state.alloc_size);
     if (block_mem == NULL)
     {
@@ -100,7 +106,7 @@ void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block)
         return;
     }
 
-    /* Implementation-specific memory deallocation goes here */
+    /* Implementation-specific memory de-allocation goes here */
     free(block);
     pool->state.bytes_used -= pool->state.alloc_size;
 }
@@ -142,7 +148,6 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_
         {
             curr_tail->next = new_block;
             curr_tail = new_block;
-            assert(new_block->next == NULL);
         }
     } while (bytes_alloc < byte_len);
 

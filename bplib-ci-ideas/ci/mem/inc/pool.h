@@ -1,5 +1,5 @@
-#ifndef __GSFC_BPLIB_MEM_H__
-#define __GSFC_BPLIB_MEM_H__
+#ifndef __GSFC_BPLIB_MEM_POOL_H__
+#define __GSFC_BPLIB_MEM_POOL_H__
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -41,4 +41,4 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_
 
 void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head);
 
-#endif /* __GSFC_BPLIB_MEM_H__ */
+#endif /* __GSFC_BPLIB_MEM_POOL_H__ */
