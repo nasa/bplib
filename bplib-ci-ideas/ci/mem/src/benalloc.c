@@ -2,7 +2,6 @@
 ** Implementation of Ben Kenwright's "Fast Efficient Fixed-Size Memory Pool"
 ** https://arxiv.org/pdf/2210.16471
 ** 
-** This blew my mind and is absolutley nasty.
 */
 #include "benalloc.h"
 
@@ -19,16 +18,16 @@ static uint32_t index_from_addr(BPLib_MEM_PoolImpl_t* pool, const uint8_t* p)
     return  (((uint32_t)(p - pool->mem_start)) / pool->block_size);
 }
 
-void BPLib_MEM_PoolImpl_Init(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
+bool BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
     size_t mem_len, uint32_t block_size)
 {
     if (pool == NULL)
     {
-        printf("Pool pointer NULL...ya dodo\n");
+        return false;
     }
     if (init_mem == NULL)
     {
-        printf("init_mem NULL...ya dodo\n");
+        return false;
     }
 
     memset(pool, 0, sizeof(BPLib_MEM_PoolImpl_t));
@@ -37,9 +36,11 @@ void BPLib_MEM_PoolImpl_Init(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
     pool->num_blocks = mem_len / block_size;
     pool->mem_next = pool->mem_start;
     pool->num_free = pool->num_blocks;
+
+    return true;
 }
 
-void BPLib_MEM_PoolImpl_Destroy(BPLib_MEM_PoolImpl_t* pool)
+void BPLib_MEM_PoolImplDestroy(BPLib_MEM_PoolImpl_t* pool)
 {
     if (pool == NULL)
     {
@@ -48,8 +49,7 @@ void BPLib_MEM_PoolImpl_Destroy(BPLib_MEM_PoolImpl_t* pool)
     memset(pool, 0, sizeof(BPLib_MEM_PoolImpl_t));
 }
 
-
-void* BPLib_MEM_PoolImpl_Alloc(BPLib_MEM_PoolImpl_t* pool)
+void* BPLib_MEM_PoolImplAlloc(BPLib_MEM_PoolImpl_t* pool)
 {
     uint32_t* p;
     void* ret;
@@ -84,7 +84,7 @@ void* BPLib_MEM_PoolImpl_Alloc(BPLib_MEM_PoolImpl_t* pool)
     return ret;
 }
 
-void BPLib_MEM_PoolImpl_Free(BPLib_MEM_PoolImpl_t* pool, void* to_free)
+void BPLib_MEM_PoolImplFree(BPLib_MEM_PoolImpl_t* pool, void* to_free)
 {
     if (pool == NULL)
     {

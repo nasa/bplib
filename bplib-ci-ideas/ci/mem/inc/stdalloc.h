@@ -1,5 +1,5 @@
-#ifndef __GSFC_BPLIB_MEM_BENALLOC_H__
-#define __GSFC_BPLIB_MEM_BENALLOC_H__
+#ifndef __GSFC_BPLIB_MEM_STDALLOC_H__
+#define __GSFC_BPLIB_MEM_STDALLOC_H__
 
 #include <stddef.h>
 #include <stdint.h>
@@ -7,12 +7,9 @@
 
 typedef struct BPLib_MEM_PoolImpl
 {
-    uint8_t* mem_start;
-    uint8_t* mem_next;
-    uint32_t num_blocks;
+    void* mem;
+    size_t size;
     uint32_t block_size;
-    uint32_t num_free;
-    uint32_t num_init;
 } BPLib_MEM_PoolImpl_t;
 
 bool BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
@@ -24,4 +21,4 @@ void* BPLib_MEM_PoolImplAlloc(BPLib_MEM_PoolImpl_t* pool);
 
 void BPLib_MEM_PoolImplFree(BPLib_MEM_PoolImpl_t* pool, void* to_free);
 
-#endif /* __GSFC_BPLIB_MEM_BENALLOC_H__ */
+#endif /* __GSFC_BPLIB_MEM_STDALLOC_H__ */

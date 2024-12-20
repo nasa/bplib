@@ -1,5 +1,4 @@
 #include "pool.h"
-#include "stdalloc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,41 +6,36 @@
 
 #include <assert.h>
 
+
+/*******************************************************************************
+* Static Functions
+*/
+static void BPLib_MEM_PoolLock()
+{
+    // Either CV or Mutex
+    return;
+}
+
+static void BPLib_MEM_PoolUnlock()
+{
+    // Either CV or Mutex
+    return;
+}
+
 /*******************************************************************************
 * Exported Functions
 */
-
-// TODO: Everything here needs to be wrapped in a semaphore
-bool BPLib_MEM_PoolIsValid(BPLib_MEM_Pool_t* pool)
+bool BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size)
 {
     if (pool == NULL)
     {
         return false;
-    }
-    if (pool->mem == NULL)
-    {
-        return false;
-    }
-    if (pool->size == 0)
-    {
-        return false;
-    }
-
-    return true;
-}
-
-void BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size)
-{
-    if (pool == NULL)
-    {
-        return;
     }
 
     memset(pool, 0, sizeof(BPLib_MEM_Pool_t));
-    pool->mem = init_mem;
-    pool->size = init_size;
-    pool->state.bytes_used = 0;
-    pool->state.alloc_size = sizeof(BPLib_MEM_Block_t);
+    return BPLib_MEM_PoolImplInit(&pool->impl, init_mem, init_size,
+        sizeof(BPLib_MEM_Block_t));
+
 }
 
 void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool)
@@ -51,64 +45,42 @@ void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool)
         return;
     }
 
+    // MEM LOCK
     memset(pool, 0, sizeof(BPLib_MEM_Pool_t));
-    pool->mem = NULL;
-    pool->size = 0;
-}
-
-size_t BPLib_MEM_GetBlockSize(BPLib_MEM_Pool_t* pool)
-{
-    if (!BPLib_MEM_PoolIsValid(pool))
-    {
-        return 0;
-    }
-
-    return (size_t)(BPLIB_MEM_CHUNKSIZE);
+    BPLib_MEM_PoolImplDestroy(&pool->impl);
+    // MEM UNLOCK
 }
 
 BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool)
 {
     size_t alloc_len;
     void* block_mem;
-    BPLib_MEM_Block_t* new_block;
+    BPLib_MEM_Block_t* block;
 
-    if (!BPLib_MEM_PoolIsValid(pool))
+    if (pool == NULL)
     {
         return NULL;
     }
 
-    /* Implementation-specifc memory allocation goes here */
-    /* Ensure there's enough space for a full new block */
-    if ((pool->size - pool->state.bytes_used) < pool->state.alloc_size)
-    {
-        return NULL;
-    }
+    // MEM LOCK
+    block = (BPLib_MEM_Block_t*)(BPLib_MEM_PoolImplAlloc(&pool->impl));
+    // MEM UNLOCK
+    block->chunk_len = BPLIB_MEM_CHUNKSIZE;
+    block->next = NULL;
 
-    block_mem = calloc(1, pool->state.alloc_size);
-    if (block_mem == NULL)
-    {
-        return NULL;
-    }
-    new_block = (BPLib_MEM_Block_t*)(block_mem);
-    new_block->next = NULL;
-    new_block->chunk_len = (size_t)(BPLIB_MEM_CHUNKSIZE);
-
-    /* Update pool state to reflect new allocation */
-    pool->state.bytes_used += pool->state.alloc_size;
-
-    return new_block;
+    return block;
 }
 
 void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block)
 {
-    if (!BPLib_MEM_PoolIsValid(pool))
+    if (pool == NULL || block == NULL)
     {
         return;
     }
 
-    /* Implementation-specific memory de-allocation goes here */
-    free(block);
-    pool->state.bytes_used -= pool->state.alloc_size;
+    // MEM LOCK
+    BPLib_MEM_PoolImplFree(&pool->impl, (void*)block->chunk);
+    // MEM UNLOCK
 }
 
 BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len)
@@ -118,11 +90,7 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_
     BPLib_MEM_Block_t* curr_tail;
     BPLib_MEM_Block_t* new_block;
 
-    if (!BPLib_MEM_PoolIsValid(pool))
-    {
-        return NULL;
-    }
-    if (byte_len == 0)
+    if (pool == NULL || byte_len == 0)
     {
         return NULL;
     }
@@ -137,7 +105,7 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_
             BPLib_MEM_BlockListFree(pool, head);
             return NULL;
         }
-        bytes_alloc += pool->state.alloc_size;
+        bytes_alloc += new_block->chunk_len;
 
         if (head == NULL)
         {
@@ -159,7 +127,7 @@ void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head)
     BPLib_MEM_Block_t* to_free;
     BPLib_MEM_Block_t* curr;
 
-    if (!BPLib_MEM_PoolIsValid(pool))
+    if (pool == NULL || head == NULL)
     {
         return;
     }
