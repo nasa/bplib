@@ -38,7 +38,7 @@ struct BPLib_QueueTable
 {
     BPLib_BundleQueue_t job_queue;
     BPLib_Contact_t contact_list[QM_MAX_CONTACTS];
-    BPLib_Contact_t channel_list[QM_MAX_CHAN];
+    BPLib_Channel_t channel_list[QM_MAX_CHAN];
 } BPLib_QueueTable_t;
 
 /* Define all the job callbacks */
