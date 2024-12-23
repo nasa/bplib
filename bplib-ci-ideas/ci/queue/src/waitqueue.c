@@ -49,7 +49,7 @@ bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout)
 
     // LOCK
     q->rear = (q->rear  + 1) % q->capacity;
-    memcpy((void*)(((char *)q->storage) + q->rear), item, q->el_size);
+    memcpy((void*)(((char *)q->storage) + q->rear*q->el_size), item, q->el_size);
     q->size++;
     // UNLOCK
 
@@ -69,7 +69,7 @@ bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout
     }
 
     // LOCK
-    memcpy(ret_item, (void*)(((char *)q->storage) + q->front), q->el_size);
+    memcpy(ret_item, (void*)(((char *)q->storage) + q->front*q->el_size), q->el_size);
     q->size--;
     q->front = (q->front + 1) % (q->capacity); 
     // UNLOCK
