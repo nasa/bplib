@@ -32,6 +32,7 @@ bool BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size
     }
 
     memset(pool, 0, sizeof(BPLib_MEM_Pool_t));
+    pthread_mutex_init(&pool->lock, NULL);
     return BPLib_MEM_PoolImplInit(&pool->impl, init_mem, init_size,
         sizeof(BPLib_MEM_Block_t));
 
@@ -44,10 +45,9 @@ void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool)
         return;
     }
 
-    // MEM LOCK
     memset(pool, 0, sizeof(BPLib_MEM_Pool_t));
+    pthread_mutex_destroy(&pool->lock);
     BPLib_MEM_PoolImplDestroy(&pool->impl);
-    // MEM UNLOCK
 }
 
 BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool)
@@ -61,9 +61,9 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool)
         return NULL;
     }
 
-    // MEM LOCK
+    pthread_mutex_lock(&pool->lock);
     block = (BPLib_MEM_Block_t*)(BPLib_MEM_PoolImplAlloc(&pool->impl));
-    // MEM UNLOCK
+    pthread_mutex_unlock(&pool->lock);
     block->chunk_len = BPLIB_MEM_CHUNKSIZE;
     block->next = NULL;
 
@@ -77,9 +77,9 @@ void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block)
         return;
     }
 
-    // MEM LOCK
+    pthread_mutex_lock(&pool->lock);
     BPLib_MEM_PoolImplFree(&pool->impl, (void*)block->chunk);
-    // MEM UNLOCK
+    pthread_mutex_unlock(&pool->lock);
 }
 
 BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len)

@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <pthread.h>
+
 #define BPLIB_MEM_CHUNKSIZE 512U
 
 typedef struct BPLib_MEM_Block
@@ -20,8 +22,8 @@ typedef struct BPLib_MEM_Block
 // This is leftover from before creating a PoolImpl_t
 typedef struct BPLib_MEM_Pool
 {
-    // Mutex goes here.
     BPLib_MEM_PoolImpl_t impl;
+    pthread_mutex_t lock;
 } BPLib_MEM_Pool_t;
 
 bool BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size);
