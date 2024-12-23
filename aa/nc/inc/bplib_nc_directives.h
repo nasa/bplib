@@ -451,9 +451,9 @@ void BPLib_NC_SendSourceMibCountersHk(void);
 void BPLib_NC_SendStorageHk(void);
 
 /**
-  * \brief     Send Storage housekeeping telemetry packet
-  * \details   Node Configuration Send Storage Housekeeping Packet command.
-  * \note      This command is just a call to BPLib_AS_SendChannelContactStatHk()
+  * \brief     Send channel/contact status telemetry packet
+  * \details   Node Configuration Send Channel/Contact Status Housekeeping Packet command.
+  * \note      This command is just a call to BPA_TLMP_SendChannelContactPkt()
   * \param[in] void No arguments accepted
   * \return    void
   */
