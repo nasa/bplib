@@ -50,16 +50,22 @@ bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout)
         return false;
     }
 
+    pthread_mutex_lock(&q->lock);
+
+    /* Wait for queue to be non-full */
     while (q->size == q->capacity)
     {
         pthread_cond_wait(&q->cv_push, &q->lock);
     }
 
-    pthread_mutex_lock(&q->lock);
+    /* Push an item */
     q->rear = (q->rear  + 1) % q->capacity;
     memcpy((void*)(((char *)q->storage) + (q->rear*q->el_size)), item, q->el_size);
     q->size++;
+
+    /* Notify other pulling threads that an item can be pulled. */
     pthread_cond_signal(&q->cv_pull);
+
     pthread_mutex_unlock(&q->lock);
 
     return true;
@@ -72,16 +78,22 @@ bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout
         return false;
     }
 
+    pthread_mutex_lock(&q->lock);
+
+    /* Wait for queue to be non-empty */
     while (q->size == 0)
     {
         pthread_cond_wait(&q->cv_pull, &q->lock);
     }
 
-    pthread_mutex_lock(&q->lock);
+    /* Pull an item */
     memcpy(ret_item, (void*)(((char *)q->storage) + (q->front*q->el_size)), q->el_size);
     q->size--;
     q->front = (q->front + 1) % (q->capacity); 
+
+    /* Notify other pushing threads that an item can be pushed */
     pthread_cond_signal(&q->cv_push);
+
     pthread_mutex_unlock(&q->lock);
 
     return true;

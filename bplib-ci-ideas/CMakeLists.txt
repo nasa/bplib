@@ -10,3 +10,4 @@ add_executable(driver
 )
 target_include_directories(driver PUBLIC $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>)
 target_include_directories(driver PUBLIC $<TARGET_PROPERTY:bplib_queue,INTERFACE_INCLUDE_DIRECTORIES>)
+target_link_libraries(driver -lpthread)

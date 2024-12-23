@@ -3,12 +3,69 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <pthread.h>
+#include <signal.h>
+#include <unistd.h>
+
+typedef struct thread_run_state
+{
+    bool* should_run;
+    BPLib_WaitQueue_t* q;
+} thread_run_state_t;
+
+volatile sig_atomic_t run = 1;
+
+void handle_sigint(int sig)
+{
+    run = 0;
+}
+
+void* producer_func(void* arg)
+{
+    thread_run_state_t* state = (thread_run_state_t*)(arg);
+    BPLib_WaitQueue_t* q  = (state->q);
+
+    int val = 0;
+
+    while (*state->should_run)
+    {
+        BPLib_CI_WaitQueueTryPush(q, &val, -1);
+        printf("Thread-%lu pushed %d\n", pthread_self(), val);
+        val++;
+        usleep(500e3);
+    }
+
+    return NULL;
+}
+
+void* consumer_func(void* arg)
+{
+    thread_run_state_t* state = (thread_run_state_t*)(arg);
+    BPLib_WaitQueue_t* q  = (state->q);
+
+    int ret_val;
+
+    while (*state->should_run)
+    {
+        BPLib_CI_WaitQueueTryPull(q, &ret_val, -1);
+        printf("Thread-%lu got %d\n", pthread_self(), ret_val);
+    }
+
+    return NULL;
+}
+
 int main(int argc, char** argv)
 {
-    BPLib_WaitQueue_t q;
     int storage[5];
+    BPLib_WaitQueue_t q;
+    bool should_run;
+    thread_run_state_t state;
+    pthread_t consumers[10];
+    pthread_t producers[10];
+    int num_consumers;
+    int num_producers;
 
-    int val, ret;
+    signal(SIGINT, handle_sigint);
 
     if (!BPLib_CI_WaitQueueInit(&q, (void*)(storage), sizeof(int), 5))
     {
@@ -16,19 +73,43 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    val = 1;
-    if (!BPLib_CI_WaitQueueTryPush(&q, &val, 0))
+    /* Create threads */
+    state.q = &q;
+    state.should_run = &should_run;
+    num_consumers = 10;
+    num_producers = 10;
+    should_run = true;
+    for (int i = 0; i < num_consumers; i++)
     {
-        printf("Bad push\n");
+        pthread_create(&consumers[i], NULL, consumer_func, (void*)(&state));
+    }
+    for (int i = 0; i < num_producers; i++)
+    {
+        pthread_create(&producers[i], NULL, producer_func, (void*)(&state));
     }
 
-    if (!BPLib_CI_WaitQueueTryPull(&q, &ret, 0))
+    /* Main task goes here */
+    while (run)
     {
-        printf("Bad push\n");
+        usleep(250e3);
     }
-    printf("Pulled %d\n", ret);
+
+    /* Join threads */
+    should_run = false;
+    // TEMPORARILY use pthread_cancel because there's no working timeout in the queue
+    for (int i = 0; i < num_consumers; i++)
+    {
+        //pthread_join(consumers[i], NULL);
+        pthread_cancel(consumers[i]);
+    }
+    for (int i = 0; i < num_producers; i++)
+    {
+        //pthread_join(producers[i], NULL);
+        pthread_cancel(producers[i]);
+    }
 
     BPLib_CI_WaitQueueDestroy(&q);
 
     return 0;
+
 }

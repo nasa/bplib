@@ -23,10 +23,11 @@
 */
 typedef struct BPLib_WaitQueue
 {
+    // init state
     void* storage;
     size_t el_size;
     size_t capacity;
-    // queue_state
+    // internal state
     int front;
     int rear;
     size_t size;
