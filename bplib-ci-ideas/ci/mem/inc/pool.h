@@ -16,8 +16,11 @@ typedef struct BPLib_MEM_Block
     struct BPLib_MEM_Block* next;
 } BPLib_MEM_Block_t;
 
+// TODO: There are better ways to use an opaque pointer to a pool.
+// This is leftover from before creating a PoolImpl_t
 typedef struct BPLib_MEM_Pool
 {
+    // Mutex goes here.
     BPLib_MEM_PoolImpl_t impl;
 } BPLib_MEM_Pool_t;
 

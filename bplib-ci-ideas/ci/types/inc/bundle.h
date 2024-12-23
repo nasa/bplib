@@ -5,8 +5,9 @@
 
 typedef struct BPLib_Bundle_Metadata
 {
-    int some_data;
-    // CACHE STATE ?
+    void (*job_func)();
+    // We may need a dummy field for FPGA-specific meta
+    // We may need a field for cache
 } BPLib_Bundle_Metadata_t;
 
 typedef struct BPLib_PrimaryBlock

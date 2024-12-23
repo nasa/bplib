@@ -29,6 +29,14 @@ bool BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
     {
         return false;
     }
+    if (block_size < sizeof(uint32_t))
+    {
+        return false;
+    }
+    if (mem_len == 0)
+    {
+        return false;
+    }
 
     memset(pool, 0, sizeof(BPLib_MEM_PoolImpl_t));
     pool->mem_start = (uint8_t*)(init_mem);

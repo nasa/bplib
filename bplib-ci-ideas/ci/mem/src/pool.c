@@ -10,15 +10,14 @@
 /*******************************************************************************
 * Static Functions
 */
-static void BPLib_MEM_PoolLock()
+static void BPLib_MEM_PoolLock(BPLib_MEM_Pool_t* pool)
 {
-    // Either CV or Mutex
+    // Here a mutex seems an OK choice. CV probably overkill
     return;
 }
 
-static void BPLib_MEM_PoolUnlock()
+static void BPLib_MEM_PoolUnlock(BPLib_MEM_Pool_t* pool)
 {
-    // Either CV or Mutex
     return;
 }
 
