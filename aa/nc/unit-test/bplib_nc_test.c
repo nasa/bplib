@@ -22,7 +22,7 @@
 /* Includes */
 /* ======== */
 
-#include "bplib_nc_directives.h"
+#include "bplib_nc.h"
 #include "bplib_nc_test_utils.h"
 #include "bplib_eventids.h"
 
@@ -1333,7 +1333,7 @@ void Test_BPLib_NC_GetSetAppState_Nominal(void)
     int8_t ChanId;
     BPLib_NC_ApplicationState_t State;
 
-    ChanId = 1;
+    ChanId = BPLIB_MAX_NUM_CHANNELS - 1;
     State  = BPLIB_NC_APP_STATE_ADDED;
 
     BPLib_NC_ChannelContactStatsPayload.ChannelStatus[ChanId].State = State;
