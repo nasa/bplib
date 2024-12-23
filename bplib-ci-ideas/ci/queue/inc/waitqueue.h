@@ -23,7 +23,6 @@
 */
 typedef struct BPLib_WaitQueue
 {
-    pthread_mutex_t lock;
     void* storage;
     size_t el_size;
     size_t capacity;
@@ -31,6 +30,10 @@ typedef struct BPLib_WaitQueue
     int front;
     int rear;
     size_t size;
+    // Locks/CV
+    pthread_mutex_t lock;
+    pthread_cond_t cv_pull;
+    pthread_cond_t cv_push;
 } BPLib_WaitQueue_t;
 
 bool BPLib_CI_WaitQueueInit(BPLib_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity);
