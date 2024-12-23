@@ -27,12 +27,19 @@
 
 #include "bplib_em.h"
 #include "bplib_nc_payloads.h"
-#include "bplib_nc.h"
 #include "bplib_fwp.h"
 #include "bplib_eventids.h"
 #include "bplib_as.h"
 #include "bplib_stor.h"
 #include "bplib_version.h"
+
+/* ======= */
+/* Externs */
+/* ======= */
+
+extern BPLib_SourceMibConfigHkTlm_Payload_t    BPLib_NC_SourceMibConfigPayload;
+extern BPLib_NodeMibConfigHkTlm_Payload_t      BPLib_NC_NodeMibConfigPayload;
+extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_NC_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
 
 /* =================== */
 /* Function Prototypes */

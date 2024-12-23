@@ -27,6 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_nc_payloads.h"
+#include "bplib_nc_directives.h"
 #include "bplib_as.h"
 
 /* ======== */
@@ -43,14 +44,6 @@ typedef enum
     BPLIB_NC_APP_STATE_STARTED = 2,
     BPLIB_NC_APP_STATE_REMOVED = 3,
 } BPLib_NC_ApplicationState_t;
-
-/* ======= */
-/* Externs */
-/* ======= */
-
-extern BPLib_SourceMibConfigHkTlm_Payload_t    BPLib_NC_SourceMibConfigPayload;
-extern BPLib_NodeMibConfigHkTlm_Payload_t      BPLib_NC_NodeMibConfigPayload;
-extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_NC_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
 
 /* =================== */
 /* Function Prototypes */
