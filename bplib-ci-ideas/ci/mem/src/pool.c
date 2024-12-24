@@ -6,21 +6,6 @@
 
 #include <assert.h>
 
-
-/*******************************************************************************
-* Static Functions
-*/
-static void BPLib_MEM_PoolLock(BPLib_MEM_Pool_t* pool)
-{
-    // Here a mutex seems an OK choice. CV probably overkill
-    return;
-}
-
-static void BPLib_MEM_PoolUnlock(BPLib_MEM_Pool_t* pool)
-{
-    return;
-}
-
 /*******************************************************************************
 * Exported Functions
 */

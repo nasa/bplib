@@ -1,7 +1,28 @@
 #include "waitqueue.h"
 
 #include <string.h>
+#include <time.h>
 
+#include <errno.h>
+#include <stdio.h>
+
+static void ms_to_abstimeout(uint32_t ms, struct timespec *ts)
+{
+    if (ts == NULL)
+    {
+        return;
+    }
+
+    clock_gettime(CLOCK_REALTIME, ts);
+    ts->tv_sec += ms / 1000;
+    ts->tv_nsec += (ms % 1000 * 1000000);
+    ts->tv_sec += ts->tv_nsec / 1000000000;
+    ts->tv_nsec %= 1000000000;
+}
+
+/*******************************************************************************
+* Exported Functions
+*/
 bool BPLib_CI_WaitQueueInit(BPLib_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity)
 {
     if ((q == NULL) || (storage == NULL) || (el_size == 0) || (capacity < 2))
@@ -43,8 +64,11 @@ void BPLib_CI_WaitQueueDestroy(BPLib_WaitQueue_t* q)
     pthread_cond_destroy(&q->cv_pull);
 }
 
-bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout)
+bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms)
 {
+    struct timespec deadline;
+    int rc;
+
     if ((q == NULL) || (item == NULL))
     {
         return false;
@@ -53,9 +77,19 @@ bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout)
     pthread_mutex_lock(&q->lock);
 
     /* Wait for queue to be non-full */
+    ms_to_abstimeout((uint32_t)(timeout_ms), &deadline);
     while (q->size == q->capacity)
     {
-        pthread_cond_wait(&q->cv_push, &q->lock);
+        rc = pthread_cond_timedwait(&q->cv_push, &q->lock, &deadline);
+        if (rc != 0)
+        {
+            if (rc != ETIMEDOUT)
+            {
+                printf(" BPLib_CI_WaitQueueTryPush NON-TIMEOUT ERROR: %s\n", strerror(rc));
+            }
+            pthread_mutex_unlock(&q->lock);
+            return false;
+        }
     }
 
     /* Push an item */
@@ -71,8 +105,11 @@ bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout)
     return true;
 }
 
-bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout)
+bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout_ms)
 {
+    struct timespec deadline;
+    int rc;
+
     if ((q == NULL) || (ret_item == NULL))
     {
         return false;
@@ -81,9 +118,19 @@ bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout
     pthread_mutex_lock(&q->lock);
 
     /* Wait for queue to be non-empty */
+    ms_to_abstimeout((uint32_t)(timeout_ms), &deadline);
     while (q->size == 0)
     {
-        pthread_cond_wait(&q->cv_pull, &q->lock);
+        rc = pthread_cond_timedwait(&q->cv_pull, &q->lock, &deadline);
+        if (rc != 0)
+        {
+            if (rc != ETIMEDOUT)
+            {
+                printf(" BPLib_CI_WaitQueueTryPull NON-TIMEOUT ERROR: %s\n", strerror(rc));
+            }
+            pthread_mutex_unlock(&q->lock);
+            return false;
+        }
     }
 
     /* Pull an item */

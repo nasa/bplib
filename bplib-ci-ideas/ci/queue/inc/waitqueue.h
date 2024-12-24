@@ -41,8 +41,8 @@ bool BPLib_CI_WaitQueueInit(BPLib_WaitQueue_t* q, void* storage, size_t el_size,
 
 void BPLib_CI_WaitQueueDestroy(BPLib_WaitQueue_t* q);
 
-bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout);
+bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms);
 
-bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout);
+bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout_ms);
 
 #endif /* __GSFC_BPLIB_WAITQUEUE_H__ */

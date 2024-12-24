@@ -29,10 +29,12 @@ void* producer_func(void* arg)
 
     while (*state->should_run)
     {
-        BPLib_CI_WaitQueueTryPush(q, &val, -1);
-        printf("Thread-%lu pushed %d\n", pthread_self(), val);
-        val++;
-        usleep(500e3);
+        if (BPLib_CI_WaitQueueTryPush(q, &val, 100))
+        {
+            printf("Thread-%lu pushed %d\n", pthread_self(), val);
+            val++;
+            usleep(250e3);
+        }
     }
 
     return NULL;
@@ -47,8 +49,10 @@ void* consumer_func(void* arg)
 
     while (*state->should_run)
     {
-        BPLib_CI_WaitQueueTryPull(q, &ret_val, -1);
-        printf("Thread-%lu got %d\n", pthread_self(), ret_val);
+        if (BPLib_CI_WaitQueueTryPull(q, &ret_val, 100))
+        {
+            printf("Thread-%lu got %d\n", pthread_self(), ret_val);
+        }
     }
 
     return NULL;
@@ -76,8 +80,8 @@ int main(int argc, char** argv)
     /* Create threads */
     state.q = &q;
     state.should_run = &should_run;
-    num_consumers = 10;
-    num_producers = 10;
+    num_consumers = 2;
+    num_producers = 1;
     should_run = true;
     for (int i = 0; i < num_consumers; i++)
     {
@@ -96,16 +100,13 @@ int main(int argc, char** argv)
 
     /* Join threads */
     should_run = false;
-    // TEMPORARILY use pthread_cancel because there's no working timeout in the queue
     for (int i = 0; i < num_consumers; i++)
     {
-        //pthread_join(consumers[i], NULL);
-        pthread_cancel(consumers[i]);
+        pthread_join(consumers[i], NULL);
     }
     for (int i = 0; i < num_producers; i++)
     {
-        //pthread_join(producers[i], NULL);
-        pthread_cancel(producers[i]);
+        pthread_join(producers[i], NULL);
     }
 
     BPLib_CI_WaitQueueDestroy(&q);
