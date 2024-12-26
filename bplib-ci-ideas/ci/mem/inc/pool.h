@@ -18,8 +18,7 @@ typedef struct BPLib_MEM_Block
     struct BPLib_MEM_Block* next;
 } BPLib_MEM_Block_t;
 
-// TODO: There are better ways to use an opaque pointer to a pool.
-// This is leftover from before creating a PoolImpl_t
+// TODO: Make implementation private if desired
 typedef struct BPLib_MEM_Pool
 {
     BPLib_MEM_PoolImpl_t impl;
@@ -34,6 +33,7 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool);
 
 void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block);
 
+// Consider returning size_t with number of blocks and returning first block through parameter
 BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len);
 
 void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head);

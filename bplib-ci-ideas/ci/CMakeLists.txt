@@ -1,2 +1,2 @@
 add_subdirectory(mem)
-add_subdirectory(queue)
+add_subdirectory(types)

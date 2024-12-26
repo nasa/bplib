@@ -1,4 +1,4 @@
-#include "waitqueue.h"
+#include "qm.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,52 +7,25 @@
 #include <signal.h>
 #include <unistd.h>
 
-typedef struct thread_run_state
-{
-    bool* should_run;
-    BPLib_WaitQueue_t* q;
-} thread_run_state_t;
+#define NUM_WORKERS 4
+#define MAX_JOBS 1024
 
 volatile sig_atomic_t run = 1;
 
 void handle_sigint(int sig)
 {
-    run = 0;
-}
-
-void* producer_func(void* arg)
-{
-    thread_run_state_t* state = (thread_run_state_t*)(arg);
-    BPLib_WaitQueue_t* q  = (state->q);
-
-    int val = 0;
-
-    while (*state->should_run)
+    if ((sig == SIGINT))
     {
-        if (BPLib_CI_WaitQueueTryPush(q, &val, 100))
-        {
-            printf("Thread-%lu pushed %d\n", pthread_self(), val);
-            val++;
-            usleep(250e3);
-        }
+        run = 0;
     }
-
-    return NULL;
 }
 
-void* consumer_func(void* arg)
+void* generic_worker(void* arg)
 {
-    thread_run_state_t* state = (thread_run_state_t*)(arg);
-    BPLib_WaitQueue_t* q  = (state->q);
-
-    int ret_val;
-
-    while (*state->should_run)
+    BPLib_QM_QueueTable_t* tbl;
+    while (run)
     {
-        if (BPLib_CI_WaitQueueTryPull(q, &ret_val, 100))
-        {
-            printf("Thread-%lu got %d\n", pthread_self(), ret_val);
-        }
+        usleep(100e3);
     }
 
     return NULL;
@@ -60,56 +33,34 @@ void* consumer_func(void* arg)
 
 int main(int argc, char** argv)
 {
-    int storage[5];
-    BPLib_WaitQueue_t q;
-    bool should_run;
-    thread_run_state_t state;
-    pthread_t consumers[10];
-    pthread_t producers[10];
-    int num_consumers;
-    int num_producers;
+    pthread_t generic_workers[NUM_WORKERS];
+    BPLib_QM_QueueTable_t tbl;
 
     signal(SIGINT, handle_sigint);
 
-    if (!BPLib_CI_WaitQueueInit(&q, (void*)(storage), sizeof(int), 5))
+    if (!BPLib_QM_QueueTableInit(&tbl, MAX_JOBS))
     {
-        printf("Queue didn't init\n");
+        printf("QM Failed to init\n");
         return -1;
     }
 
-    /* Create threads */
-    state.q = &q;
-    state.should_run = &should_run;
-    num_consumers = 2;
-    num_producers = 1;
-    should_run = true;
-    for (int i = 0; i < num_consumers; i++)
+    /* Create Generic Workers */
+    for (int i = 0; i < NUM_WORKERS; i++)
     {
-        pthread_create(&consumers[i], NULL, consumer_func, (void*)(&state));
-    }
-    for (int i = 0; i < num_producers; i++)
-    {
-        pthread_create(&producers[i], NULL, producer_func, (void*)(&state));
+        pthread_create(&generic_workers[i], NULL, generic_worker, (void*)(&tbl));
     }
 
     /* Main task goes here */
-    while (run)
-    {
-        usleep(250e3);
-    }
+    BPLib_QM_EventLoop(&tbl, (bool*)(&run));
 
     /* Join threads */
-    should_run = false;
-    for (int i = 0; i < num_consumers; i++)
+    for (int i = 0; i < NUM_WORKERS; i++)
     {
-        pthread_join(consumers[i], NULL);
-    }
-    for (int i = 0; i < num_producers; i++)
-    {
-        pthread_join(producers[i], NULL);
+        pthread_join(generic_workers[i], NULL);
     }
 
-    BPLib_CI_WaitQueueDestroy(&q);
+    /* Cleanup */
+    BPLib_QM_QueueTableDestroy(&tbl);
 
     return 0;
 

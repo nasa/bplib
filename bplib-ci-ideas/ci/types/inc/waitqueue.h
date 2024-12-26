@@ -1,5 +1,5 @@
-#ifndef __GSFC_BPLIB_WAITQUEUE_H__
-#define __GSFC_BPLIB_WAITQUEUE_H__
+#ifndef __GSFC_BPLIB_CI_WAITQUEUE_H__
+#define __GSFC_BPLIB_CI_WAITQUEUE_H__
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -45,4 +45,4 @@ bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms)
 
 bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout_ms);
 
-#endif /* __GSFC_BPLIB_WAITQUEUE_H__ */
+#endif /* __GSFC_BPLIB_CI_WAITQUEUE_H__ */

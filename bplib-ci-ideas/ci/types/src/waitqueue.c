@@ -74,12 +74,11 @@ bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms)
         return false;
     }
 
+    ms_to_abstimeout((uint32_t)(timeout_ms), &deadline);
     pthread_mutex_lock(&q->lock);
-
-    /**** Critical Section Begin  ****/
+    /**** Critical Section Begin ****/
 
     /* Wait for queue to be non-full */
-    ms_to_abstimeout((uint32_t)(timeout_ms), &deadline);
     while (q->size == q->capacity)
     {
         rc = pthread_cond_timedwait(&q->cv_push, &q->lock, &deadline);
@@ -102,8 +101,7 @@ bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms)
     /* Notify other pulling threads that an item can be pulled. */
     pthread_cond_signal(&q->cv_pull);
 
-    /**** Critical Section End  ****/
-
+    /**** Critical Section End ****/
     pthread_mutex_unlock(&q->lock);
 
     return true;
@@ -119,12 +117,11 @@ bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout
         return false;
     }
 
-    pthread_mutex_lock(&q->lock);
-
-     /**** Critical Section Begin  ****/
-
-    /* Wait for queue to be non-empty */
     ms_to_abstimeout((uint32_t)(timeout_ms), &deadline);
+    pthread_mutex_lock(&q->lock);
+    /**** Critical Section Begin ****/
+ 
+    /* Wait for queue to be non-empty */
     while (q->size == 0)
     {
         rc = pthread_cond_timedwait(&q->cv_pull, &q->lock, &deadline);
@@ -147,8 +144,7 @@ bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout
     /* Notify other pushing threads that an item can be pushed */
     pthread_cond_signal(&q->cv_push);
 
-     /**** Critical Section End  ****/
-
+    /**** Critical Section End ****/
     pthread_mutex_unlock(&q->lock);
 
     return true;
