@@ -19,8 +19,7 @@ typedef enum BPLib_JobState
     STATE_CT_TO_EBP,
     STATE_EBP_TO_BI,
     STATE_BI_TO_CLA,
-    /* Must be last */
-    NUM_JOB_STATES
+    NUM_JOB_STATES /* Must be last */
 } BPLib_QM_JobState_t;
 
 typedef enum BPLib_QM_Priority

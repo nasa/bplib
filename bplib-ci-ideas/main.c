@@ -8,7 +8,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-#define NUM_WORKERS 1
+#define NUM_WORKERS 10
 #define MAX_JOBS 1024
 #define QUEUE_TIMEOUT_MS 100
 
@@ -40,10 +40,9 @@ int main(int argc, char** argv)
     pthread_t generic_workers[NUM_WORKERS];
     BPLib_QM_QueueTable_t tbl;
     BPLib_Bundle_t* bundle;
+    int i;
 
     signal(SIGINT, handle_sigint);
-
-    /* There should be a BPLib_Init() here. */
 
     /* Setup the queue table. */
     if (!BPLib_QM_QueueTableInit(&tbl, MAX_JOBS))
@@ -53,20 +52,23 @@ int main(int argc, char** argv)
     }
 
     /* Create Generic Workers */
-    for (int i = 0; i < NUM_WORKERS; i++)
+    for (i = 0; i < NUM_WORKERS; i++)
     {
         pthread_create(&generic_workers[i], NULL, generic_worker, (void*)(&tbl));
     }
 
     /* Create a single event to kick off the system, this would be done from the network */
     bundle = NULL; // TODO use a MEM alloc
-    BPLib_QM_PostEvent(&tbl, bundle, STATE_CLA_TO_BI, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    for (i = 0; i < NUM_WORKERS; i++)
+    {
+        BPLib_QM_PostEvent(&tbl, bundle, STATE_CLA_TO_BI, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    }
 
     /* Run the event loop until someone presses CTRL-C */
     BPLib_QM_EventLoop(&tbl, (bool*)(&run));
 
     /* Join threads */
-    for (int i = 0; i < NUM_WORKERS; i++)
+    for (i = 0; i < NUM_WORKERS; i++)
     {
         pthread_join(generic_workers[i], NULL);
     }
