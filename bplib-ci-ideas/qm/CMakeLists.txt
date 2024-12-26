@@ -1,5 +1,6 @@
 add_library(bplib_qm OBJECT
     ${CMAKE_CURRENT_SOURCE_DIR}/src/qm.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/qm_jobs.c
 )
 
 target_include_directories(bplib_qm PUBLIC

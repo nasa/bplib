@@ -1,14 +1,16 @@
 #include "qm.h"
+#include "qm_jobs.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
-bool all_kinds_of_jobs(BPLib_Bundle_t* bundle)
+typedef struct BPLib_QM_Event
 {
-    printf("Sure I'm good at all kinds of jobs\n");
-
-    // Post Event.
-}
+    BPLib_Bundle_t* bundle;
+    BPLib_QM_JobState_t next_state;
+    BPLib_QM_Priority_t priority;
+} BPLib_QM_Event_t;
 
 bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
 {
@@ -18,6 +20,9 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
     {
         return false;
     }
+
+    /* Belongs in BPLib_Init(), but this demo doesn't have that function */
+    BPLib_QM_JobTableInit();
 
     /* This is one-time allocation when BPLib is initialized
     ** Note:
@@ -71,6 +76,16 @@ void BPLib_QM_QueueTableDestroy(BPLib_QM_QueueTable_t* tbl)
     free(tbl->event_mem);
 }
 
+bool BPLib_QM_PostEvent(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle,
+    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
+{
+    BPLib_QM_Event_t event;
+    event.bundle = bundle;
+    event.next_state = state;
+    event.priority = priority;
+    BPLib_CI_WaitQueueTryPush(&(tbl->events), &event, WAITQUEUE_BLOCK_FOREVER);
+}
+
 void* BPLib_QM_EventLoop(BPLib_QM_QueueTable_t* tbl, bool* exit_flag)
 {
     int queue_timeout_ms;
@@ -86,26 +101,42 @@ void* BPLib_QM_EventLoop(BPLib_QM_QueueTable_t* tbl, bool* exit_flag)
     */
     while ((*exit_flag) != false)
     {
-        printf("Waiting for an event to be posted\n");
         if (BPLib_CI_WaitQueueTryPull(&(tbl->events), &curr_event, queue_timeout_ms))
         {
             /* Construct a new job for this event:
-            ** Herein, lies the beauty of separate event and job queues: You can
+            ** Herein, lies the beauty of separate event and job queues. You can
             ** 'manage' events that were posted from a single observer.  This allows
-            ** for future implementation of QOS or other random system-engineery 
-            ** features we can't possibly account for.
+            ** for future implementation of QOS, load balancing, NON-generic tasks,
+            ** BPAccel, etc.
             */
             curr_job.bundle = curr_event.bundle;
+            curr_job.state = curr_event.next_state;
+            curr_job.job_func = job_funcs[curr_event.next_state];
+            assert(curr_job.job_func != NULL);
             curr_job.priority = curr_event.priority;
-            curr_job.job_func = all_kinds_of_jobs;
 
-            /* Note this blocks forever, this is unlikely to be the right solution
-            ** long term.
-            */
+            /* Add the job to the job queue so a worker can discover it */
             BPLib_CI_WaitQueueTryPush(&(tbl->jobs), &curr_job, WAITQUEUE_BLOCK_FOREVER);
         }
     }
 
     printf("Exiting event loop\n");
     return NULL;
+}
+
+void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
+{
+    BPLib_QM_Job_t curr_job;
+    BPLib_QM_Event_t new_event;
+    BPLib_QM_JobState_t next_state;
+
+    if (BPLib_CI_WaitQueueTryPull(&(tbl->jobs), &curr_job, timeout_ms))
+    {
+        /* Run the job and get back the next state */
+        next_state = curr_job.job_func(tbl, curr_job.bundle);
+
+        /* Create a new event with the next state and post it to the event loop */
+        BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL,
+            WAITQUEUE_BLOCK_FOREVER);
+    }
 }
