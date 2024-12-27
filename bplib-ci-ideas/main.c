@@ -1,4 +1,5 @@
 #include "bundle.h"
+#include "pool.h"
 #include "qm.h"
 
 #include <stdio.h>
@@ -7,10 +8,12 @@
 #include <pthread.h>
 #include <signal.h>
 #include <unistd.h>
+#include <assert.h>
 
-#define NUM_WORKERS 10
-#define MAX_JOBS 1024
-#define QUEUE_TIMEOUT_MS 100
+#define NUM_WORKERS       10U
+#define MAX_JOBS          1024U
+#define QUEUE_TIMEOUT_MS  100
+#define POOL_SIZE         16384U
 
 volatile sig_atomic_t run = 1;
 
@@ -39,10 +42,25 @@ int main(int argc, char** argv)
 {
     pthread_t generic_workers[NUM_WORKERS];
     BPLib_QM_QueueTable_t tbl;
-    BPLib_Bundle_t* bundle;
+    BPLib_Bundle_t bundle;
+
+    BPLib_MEM_Pool_t pool;
+    BPLib_MEM_Block_t* block_list;
+    void* pool_mem;
+
     int i;
 
     signal(SIGINT, handle_sigint);
+
+    /* Init memory allocator - May belong in QM, or somewhere else 
+    ** In this demo, no-one else creates bundles so I put it here.
+    */
+    pool_mem = calloc(POOL_SIZE, 1);
+    if (!BPLib_MEM_PoolInit(&pool, pool_mem, POOL_SIZE))
+    {
+        fprintf(stderr, "BPLib_MEM_PoolInit()\n");
+        return -1;
+    }
 
     /* Setup the queue table. */
     if (!BPLib_QM_QueueTableInit(&tbl, MAX_JOBS))
@@ -57,11 +75,13 @@ int main(int argc, char** argv)
         pthread_create(&generic_workers[i], NULL, generic_worker, (void*)(&tbl));
     }
 
-    /* Create a single event to kick off the system, this would be done from the network */
-    bundle = NULL; // TODO use a MEM alloc
+    /* Allocate a "bundle" and make it look like it came from the CLA */
     for (i = 0; i < NUM_WORKERS; i++)
     {
-        BPLib_QM_PostEvent(&tbl, bundle, STATE_CLA_TO_BI, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+        bundle.bblocks = BPLib_MEM_BlockAlloc(&pool);
+        bundle.bblocks->chunk[0] = (uint8_t)(i + 1); // an ID for my printfs
+        bundle.blob = NULL; // BlockListAlloc a bunch of rando data
+        BPLib_QM_PostEvent(&tbl, &bundle, STATE_CLA_TO_BI, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     }
 
     /* Run the event loop until someone presses CTRL-C */
@@ -75,6 +95,8 @@ int main(int argc, char** argv)
 
     /* Cleanup */
     BPLib_QM_QueueTableDestroy(&tbl);
+    BPLib_MEM_PoolDestroy(&pool);
+    free(pool_mem);
 
     return 0;
 

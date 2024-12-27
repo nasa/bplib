@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <assert.h>
-
 /*******************************************************************************
 * Exported Functions
 */
@@ -67,27 +65,30 @@ void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block)
     pthread_mutex_unlock(&pool->lock);
 }
 
-BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len)
+size_t BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len, BPLib_MEM_Block_t **ret_head)
 {
-    size_t bytes_alloc;
+    size_t bytes_alloc, blocks_alloc;
     BPLib_MEM_Block_t* head;
     BPLib_MEM_Block_t* curr_tail;
     BPLib_MEM_Block_t* new_block;
 
-    if (pool == NULL || byte_len == 0)
+    if (pool == NULL || byte_len == 0 || head == NULL)
     {
-        return NULL;
+        return 0;
     }
 
     head = NULL;
     bytes_alloc = 0;
+    blocks_alloc = 0;
     do
     {
         new_block = BPLib_MEM_BlockAlloc(pool);
+        blocks_alloc++;
         if (new_block == NULL)
         {
             BPLib_MEM_BlockListFree(pool, head);
-            return NULL;
+            *ret_head = NULL;
+            return 0;
         }
         bytes_alloc += new_block->chunk_len;
 
@@ -103,7 +104,8 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_
         }
     } while (bytes_alloc < byte_len);
 
-    return head;
+    *ret_head = head;
+    return blocks_alloc;
 }
 
 void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head)

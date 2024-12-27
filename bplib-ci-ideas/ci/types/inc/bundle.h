@@ -7,7 +7,7 @@
 typedef struct BPLib_Bundle
 {
     BPLib_MEM_Block_t* bblocks; // "Everything we care about"
-    BPLib_MEM_Block_t* blob_start; // "Everything we dont care about"
+    BPLib_MEM_Block_t* blob; // "Everything we dont care about"
 } BPLib_Bundle_t;
 
 #endif /* __GSFC_BPLIB_TYPES_BUNDLE_H__ */

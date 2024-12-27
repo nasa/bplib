@@ -57,7 +57,7 @@ BPLib_QM_JobState_t BPLib_Job_EBP_TO_BI(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle
 
 BPLib_QM_JobState_t BPLib_Job_BI_TO_CLA(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
-    printf("BI TO CLA\n");
+    printf("BI TO CLA %u\n", (uint8_t)bundle->bblocks->chunk[0]);
     sleep(1);
     return STATE_CLA_TO_BI;
 }
