@@ -116,7 +116,7 @@ void* BPLib_QM_EventLoop(BPLib_QM_QueueTable_t* tbl, bool* exit_flag)
             curr_job.priority = curr_event.priority;
 
             /* Add the job to the job queue so a worker can discover it */
-            BPLib_CI_WaitQueueTryPush(&(tbl->jobs), &curr_job, WAITQUEUE_BLOCK_FOREVER);
+            BPLib_CI_WaitQueueTryPush(&(tbl->jobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
         }
     }
 
@@ -148,7 +148,7 @@ void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
         **  I think it could be a good idea to make the event queue larger than the jobs queue so that this
         **  case is infrequent.
         */
-        if (BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_NOWAIT) == false)
+        if (BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER) == false)
         {
             /* Send an event message at the least */
             printf("System clogged\n");

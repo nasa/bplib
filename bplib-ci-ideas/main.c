@@ -69,12 +69,6 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    /* Create Generic Workers */
-    for (i = 0; i < NUM_WORKERS; i++)
-    {
-        pthread_create(&generic_workers[i], NULL, generic_worker, (void*)(&tbl));
-    }
-
     /* Make one faux-bundle per worker */
     for (i = 0; i < NUM_WORKERS; i++)
     {
@@ -82,6 +76,12 @@ int main(int argc, char** argv)
         bundle = (BPLib_Bundle_t*)(BPLib_MEM_BlockAlloc(&pool));
         bundle->blocks.pri_blk.src_eid.node_number = i + 1;
         BPLib_QM_PostEvent(&tbl, bundle, STATE_CLA_TO_BI, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    }
+
+    /* Create Generic Workers */
+    for (i = 0; i < NUM_WORKERS; i++)
+    {
+        pthread_create(&generic_workers[i], NULL, generic_worker, (void*)(&tbl));
     }
 
     /* Run the event loop until someone presses CTRL-C */

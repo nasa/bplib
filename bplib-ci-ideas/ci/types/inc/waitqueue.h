@@ -8,8 +8,8 @@
 // Use bplib_os
 #include <pthread.h>
 
-#define WAITQUEUE_NONBLOCK 0
-#define WAITQUEUE_BLOCK_FOREVER -1
+#define WAITQUEUE_NON_WAIT      0L
+#define WAITQUEUE_WAIT_FOREVER -1L
 
 /*
 ** The idea here is that the user passes in the underlying queue storage.
