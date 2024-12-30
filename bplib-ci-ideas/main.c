@@ -75,9 +75,10 @@ int main(int argc, char** argv)
         pthread_create(&generic_workers[i], NULL, generic_worker, (void*)(&tbl));
     }
 
-    /* Allocate a "bundle" and make it look like it came from the CLA */
+    /* Make one faux-bundle per worker */
     for (i = 0; i < NUM_WORKERS; i++)
     {
+        /* Allocate a "bundle" with a unique node number to simulate CLA traffic */
         bundle = (BPLib_Bundle_t*)(BPLib_MEM_BlockAlloc(&pool));
         bundle->blocks.pri_blk.src_eid.node_number = i + 1;
         BPLib_QM_PostEvent(&tbl, bundle, STATE_CLA_TO_BI, QM_PRI_NORMAL, QM_WAIT_FOREVER);
@@ -98,5 +99,4 @@ int main(int argc, char** argv)
     free(pool_mem);
 
     return 0;
-
 }

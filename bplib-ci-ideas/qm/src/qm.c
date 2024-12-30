@@ -138,8 +138,15 @@ void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
         /* Create a new event with the next state and post it to the event loop 
         ** Important note here:
         **  Should a worker fail to post an event back to the event queue, this
-        **  may foreshadow a system that's over-tasked.  You 
-        **    
+        **  may indicate a system that's over-tasked. There are several ways to define what 
+        **  our node's behavior should be here:
+        **      1) we could post these event to an overflow queue, then notify the event loop that the system degraded.
+        **      2) we could selectively drop "less important" events based on their next_state or priority.
+        **         This means bundles would be dropped, which I'm guessing we dont want
+        **      3) we could block and wait until this event can be pushed.
+        **
+        **  I think it could be a good idea to make the event queue larger than the jobs queue so that this
+        **  case is infrequent.
         */
         if (BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_NOWAIT) == false)
         {
