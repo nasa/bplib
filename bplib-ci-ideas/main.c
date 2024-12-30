@@ -11,7 +11,7 @@
 #include <assert.h>
 
 #define NUM_WORKERS       10U
-#define MAX_JOBS          1024U
+#define MAX_JOBS          256U
 #define QUEUE_TIMEOUT_MS  100
 #define POOL_SIZE         16384U
 
@@ -42,18 +42,18 @@ int main(int argc, char** argv)
 {
     pthread_t generic_workers[NUM_WORKERS];
     BPLib_QM_QueueTable_t tbl;
-    BPLib_Bundle_t bundle;
 
     BPLib_MEM_Pool_t pool;
     BPLib_MEM_Block_t* block_list;
     void* pool_mem;
+    BPLib_Bundle_t* bundle;
 
     int i;
 
     signal(SIGINT, handle_sigint);
 
-    /* Init memory allocator - May belong in QM, or somewhere else 
-    ** In this demo, no-one else creates bundles so I put it here.
+    /* Init memory allocator - Maybe this belongs in QM or somewhere else... 
+    ** In this demo, nothing else creates bundles so I put it here.
     */
     pool_mem = calloc(POOL_SIZE, 1);
     if (!BPLib_MEM_PoolInit(&pool, pool_mem, POOL_SIZE))
@@ -78,10 +78,9 @@ int main(int argc, char** argv)
     /* Allocate a "bundle" and make it look like it came from the CLA */
     for (i = 0; i < NUM_WORKERS; i++)
     {
-        bundle.bblocks = BPLib_MEM_BlockAlloc(&pool);
-        bundle.bblocks->chunk[0] = (uint8_t)(i + 1); // an ID for my printfs
-        bundle.blob = NULL; // BlockListAlloc a bunch of rando data
-        BPLib_QM_PostEvent(&tbl, &bundle, STATE_CLA_TO_BI, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+        bundle = (BPLib_Bundle_t*)(BPLib_MEM_BlockAlloc(&pool));
+        bundle->blocks.pri_blk.src_eid.node_number = i + 1;
+        BPLib_QM_PostEvent(&tbl, bundle, STATE_CLA_TO_BI, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     }
 
     /* Run the event loop until someone presses CTRL-C */

@@ -28,7 +28,7 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
     ** Note:
     **   Because the underlying waitqueues accept a void* for underlying storage,
     **   this function can be modified to allow the caller to pass in queue storage
-    **   incase this one-time calloc() call is undesirable. calloc could also be moved
+    **   if this one-time calloc() call is undesirable. calloc() could also be moved
     **   within the waitqueue init function (my preference).
     */
     tbl->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
@@ -83,7 +83,7 @@ bool BPLib_QM_PostEvent(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle,
     event.bundle = bundle;
     event.next_state = state;
     event.priority = priority;
-    BPLib_CI_WaitQueueTryPush(&(tbl->events), &event, WAITQUEUE_BLOCK_FOREVER);
+    return BPLib_CI_WaitQueueTryPush(&(tbl->events), &event, timeout_ms);
 }
 
 void* BPLib_QM_EventLoop(BPLib_QM_QueueTable_t* tbl, bool* exit_flag)
@@ -99,14 +99,14 @@ void* BPLib_QM_EventLoop(BPLib_QM_QueueTable_t* tbl, bool* exit_flag)
     ** this logic should be refactored to represent that.  This simplification
     ** was done for demo purposes.
     */
-    while ((*exit_flag) != false)
+    while ((*exit_flag) == true)
     {
         if (BPLib_CI_WaitQueueTryPull(&(tbl->events), &curr_event, queue_timeout_ms))
         {
             /* Construct a new job for this event:
             ** Herein, lies the beauty of separate event and job queues. You can
             ** 'manage' events that were posted from a single observer.  This allows
-            ** for future implementation of QOS, load balancing, NON-generic tasks,
+            ** for future implementation of QOS, backpresure, load balancing, NON-generic tasks,
             ** BPAccel, etc.
             */
             curr_job.bundle = curr_event.bundle;
@@ -135,8 +135,16 @@ void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
         /* Run the job and get back the next state */
         next_state = curr_job.job_func(tbl, curr_job.bundle);
 
-        /* Create a new event with the next state and post it to the event loop */
-        BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL,
-            WAITQUEUE_BLOCK_FOREVER);
+        /* Create a new event with the next state and post it to the event loop 
+        ** Important note here:
+        **  Should a worker fail to post an event back to the event queue, this
+        **  may foreshadow a system that's over-tasked.  You 
+        **    
+        */
+        if (BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_NOWAIT) == false)
+        {
+            /* Send an event message at the least */
+            printf("System clogged\n");
+        }
     }
 }
