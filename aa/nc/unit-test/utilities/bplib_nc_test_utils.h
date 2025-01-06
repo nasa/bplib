@@ -30,8 +30,9 @@
 #include "uttest.h"
 
 #include "bplib_nc.h"
-#include "bpa_fwp_stubs.h" /* For ADUP stubs */
-#include "bplib_em_handlers.h"  /* For BPLib_EM_SendEvent handler */
+#include "bpa_fwp_stubs.h"       /* For ADUP stubs */
+#include "bplib_em_handlers.h"   /* For BPLib_EM_SendEvent handler */
+#include "bplib_as_handlers.h" /* For BPLib_AS_Increment and BPLib_AS_Decrement handler */
 
 /* ====== */
 /* Macros */
@@ -47,20 +48,11 @@
 /* Event verification */
 void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText);
 
-/* Proxy Fakes */
-BPLib_Status_t Test_BPA_ADUP_AddApplication_Success(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_AddApplication_ChanErr(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_AddApplication_StateErr(uint8 ChanId);
+/* AS increment argument verification */
+void Test_BPLib_NC_VerifyIncrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum);
 
-BPLib_Status_t Test_BPA_ADUP_StartApplication_Success(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_StartApplication_ChanErr(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_StartApplication_StateErr(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_StartApplication_SubErr(uint8 ChanId);
-
-BPLib_Status_t Test_BPA_ADUP_StopApplication_Success(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_StopApplication_ChanErr(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_StopApplication_StateErr(uint8 ChanId);
-BPLib_Status_t Test_BPA_ADUP_StopApplication_UnsubErr(uint8 ChanId);
+/* AS decrement argument verification */
+void Test_BPLib_NC_VerifyDecrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum);
 
 void BPLib_NC_Test_Setup(void);
 void BPLib_NC_Test_Teardown(void);
