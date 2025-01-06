@@ -1331,7 +1331,7 @@ void Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid(void)
 
 void Test_BPLib_NC_GetSetAppState_Nominal(void)
 {
-    int8_t ChanId;
+    uint8_t ChanId;
     BPLib_NC_ApplicationState_t State;
 
     ChanId = BPLIB_MAX_NUM_CHANNELS - 1;
