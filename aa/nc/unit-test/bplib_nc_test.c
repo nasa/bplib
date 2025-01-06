@@ -1268,18 +1268,18 @@ void Test_BPLib_NC_SendChannelContactStatHk_Nominal(void)
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
 
     // Verify downstream function was called
-    UtAssert_STUB_COUNT(BPLib_AS_SendChannelContactStatHk, 1);
+    UtAssert_STUB_COUNT(BPLib_NC_SendChannelContactStatHk, 1);
 }
 
 void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
 {
     // Cause BPLib_NC_SendChannelContactStatHk() to fail
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_SendChannelContactStatHk), BPLIB_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_SendChannelContactStatHk), BPLIB_ERROR);
 
     BPLib_NC_SendChannelContactStatHk();
     
     // Verify downstream function was called
-    UtAssert_STUB_COUNT(BPLib_AS_SendChannelContactStatHk, 1);
+    UtAssert_STUB_COUNT(BPLib_NC_SendChannelContactStatHk, 1);
 
     // Verify rejected directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
