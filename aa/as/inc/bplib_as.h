@@ -330,14 +330,4 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
   */
 BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
 
-/**
-  * \brief     Send Storage housekeeping telemetry packet
-  * \details   Node Configuration Send Storage Housekeeping Packet command.
-  * \note      This command is just a call to BPA_TLMP_SendChannelContactPkt()
-  * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \return    Return codes from BPA_TLMP_SendChannelContactPkt() in fwp_tlmp.h
-  */
-BPLib_Status_t BPLib_AS_SendChannelContactStatHk(void);
-
 #endif /* BPLIB_AS_H */
