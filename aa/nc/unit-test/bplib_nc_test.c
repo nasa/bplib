@@ -1171,13 +1171,24 @@ void Test_BPLib_NC_PerformSelfTest_Error(void)
 
 void Test_BPLib_NC_SendNodeMibConfigHk_Nominal(void)
 {
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendNodeMibConfigPkt), BPLIB_SUCCESS);
+
     BPLib_NC_SendNodeMibConfigHk();
     
     // Verify directive counter was not incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+}
 
-    /* Verify downstream function was called */
-    UtAssert_STUB_COUNT(BPA_TLMP_SendNodeMibConfigPkt, 1);
+void Test_BPLib_NC_SendNodeMibConfigHk_Error(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendNodeMibConfigPkt), BPLIB_ERROR);
+
+    BPLib_NC_SendNodeMibConfigHk();
+
+    // Verify that the error was reported
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_NODE_CONFIG_ERR_EID,
+                                "Could not send node MIB configuration packet, RC = %d");
 }
 
 void Test_BPLib_NC_SendSourceMibConfigHk_Nominal(void)
@@ -1186,9 +1197,18 @@ void Test_BPLib_NC_SendSourceMibConfigHk_Nominal(void)
     
     // Verify directive counter was not incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+}
 
-    /* Verify downstream function was called */
-    UtAssert_STUB_COUNT(BPA_TLMP_SendPerSourceMibConfigPkt, 1);
+void Test_BPLib_NC_SendSourceMibConfigHk_Error(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendPerSourceMibConfigPkt), BPLIB_ERROR);
+
+    BPLib_NC_SendSourceMibConfigHk();
+
+    // Verify that the error was reported
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_SRC_CONFIG_ERR_EID,
+                                "Could not send source MIB configuration packet, RC = %d");
 }
 
 void Test_BPLib_NC_SendNodeMibCountersHk_Nominal(void)
@@ -1251,35 +1271,41 @@ void Test_BPLib_NC_SendSourceMibCountersHk_Error(void)
 
 void Test_BPLib_NC_SendStorageHk_Nominal(void)
 {
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendStoragePkt), BPLIB_SUCCESS);
+
     BPLib_NC_SendStorageHk();
     
     // Verify directive counter was not incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
+}
 
-    /* Verify downstream function was called */
-    UtAssert_STUB_COUNT(BPA_TLMP_SendStoragePkt, 1);
+void Test_BPLib_NC_SendStorageHk_Error(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendStoragePkt), BPLIB_ERROR);
+
+    BPLib_NC_SendStorageHk();
+    
+    // Verify error was reported
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_STORAGE_ERR_EID,
+                                "Could not send storage packet, RC = %d");
 }
 
 void Test_BPLib_NC_SendChannelContactStatHk_Nominal(void)
 {
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendChannelContactPkt), BPLIB_SUCCESS);
+
     BPLib_NC_SendChannelContactStatHk();
     
     // Verify directive counter was not incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 0);
-
-    // Verify downstream function was called
-    UtAssert_STUB_COUNT(BPLib_NC_SendChannelContactStatHk, 1);
 }
 
 void Test_BPLib_NC_SendChannelContactStatHk_Error(void)
 {
-    // Cause BPLib_NC_SendChannelContactStatHk() to fail
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_NC_SendChannelContactStatHk), BPLIB_ERROR);
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TLMP_SendChannelContactPkt), BPLIB_ERROR);
 
     BPLib_NC_SendChannelContactStatHk();
-    
-    // Verify downstream function was called
-    UtAssert_STUB_COUNT(BPLib_NC_SendChannelContactStatHk, 1);
 
     // Verify rejected directive counter was incremented
     UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
@@ -1431,12 +1457,15 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_PerformSelfTest_Nominal);
     ADD_TEST(Test_BPLib_NC_PerformSelfTest_Error);
     ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendNodeMibConfigHk_Error);
     ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendSourceMibConfigHk_Error);
     ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Nominal);
     ADD_TEST(Test_BPLib_NC_SendNodeMibCountersHk_Error);
     ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Nominal);
     ADD_TEST(Test_BPLib_NC_SendSourceMibCountersHk_Error);
     ADD_TEST(Test_BPLib_NC_SendStorageHk_Nominal);
+    ADD_TEST(Test_BPLib_NC_SendStorageHk_Error);
     ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Nominal);
     ADD_TEST(Test_BPLib_NC_SendChannelContactStatHk_Error);
     ADD_TEST(Test_BPLib_NC_MIBConfigPNTblValidateFunc_Nominal);

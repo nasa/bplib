@@ -50,6 +50,7 @@ void BPLib_NC_Test_Setup(void)
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication            = BPA_ADUP_StopApplication;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt       = BPA_TLMP_SendNodeMibConfigPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt  = BPA_TLMP_SendPerSourceMibConfigPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt             = BPA_TLMP_SendStoragePkt;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
@@ -58,6 +59,14 @@ void BPLib_NC_Test_Setup(void)
 void BPLib_NC_Test_Teardown(void)
 {
     /* Clean up test environment */
+    int8_t ContextNum;
+
+    for (ContextNum = 0; ContextNum < UT_MAX_SENDEVENT_DEPTH; ContextNum++)
+    {
+        context_BPLib_EM_SendEvent[ContextNum].EventID   = 0;
+        context_BPLib_EM_SendEvent[ContextNum].EventType = BPLib_EM_EventType_UNKNOWN;
+        memset(&context_BPLib_EM_SendEvent[ContextNum].Spec, 0, sizeof(context_BPLib_EM_SendEvent[ContextNum].Spec));
+    }
 }
 
 void UtTest_Setup(void)
