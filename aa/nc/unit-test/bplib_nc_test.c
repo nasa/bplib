@@ -1186,7 +1186,7 @@ void Test_BPLib_NC_SendNodeMibConfigHk_Error(void)
     BPLib_NC_SendNodeMibConfigHk();
 
     // Verify that the error was reported
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+    Test_BPLib_NC_VerifyIncrement(-1, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_NODE_CONFIG_ERR_EID,
                                 "Could not send node MIB configuration packet, RC = %d");
 }
@@ -1206,7 +1206,7 @@ void Test_BPLib_NC_SendSourceMibConfigHk_Error(void)
     BPLib_NC_SendSourceMibConfigHk();
 
     // Verify that the error was reported
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+    Test_BPLib_NC_VerifyIncrement(-1, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_SRC_CONFIG_ERR_EID,
                                 "Could not send source MIB configuration packet, RC = %d");
 }
@@ -1286,7 +1286,7 @@ void Test_BPLib_NC_SendStorageHk_Error(void)
     BPLib_NC_SendStorageHk();
     
     // Verify error was reported
-    UtAssert_STUB_COUNT(BPLib_AS_Increment, 1);
+    Test_BPLib_NC_VerifyIncrement(-1, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_SEND_STORAGE_ERR_EID,
                                 "Could not send storage packet, RC = %d");
 }
