@@ -8,6 +8,7 @@
 
 add_library(bplib_nc OBJECT
     src/bplib_nc.c
+    src/bplib_nc_directives.c
 )
 
 target_include_directories(bplib_nc PUBLIC

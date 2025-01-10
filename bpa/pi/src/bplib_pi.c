@@ -30,7 +30,6 @@
 
 #include "bplib_pi.h"
 
-
 /*
 ** Function Definitions
 */
@@ -64,6 +63,13 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 /* Ingress an ADU */
 BPLib_Status_t BPLib_PI_Ingress(uint8_t ChanId, void *AduPtr, size_t AduSize)
 {
+    /*
+    if (Bundle creation error)
+    {
+        BPLib_AS_Increment(SourceEid, BUNDLE_COUNT_GENERATED_REJECTED, 1);
+    }
+    */
+
     return BPLIB_SUCCESS;
 }
 
