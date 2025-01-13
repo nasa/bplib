@@ -56,9 +56,6 @@ BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter
     {
         if ((int8_t) Counter > -1 && (int8_t) Counter < BPLIB_AS_NUM_NODE_CNTRS)
         { // Counter is within range
-            /* Prevent modification of counters while modifying them */
-            BPLib_AS_LockCounters();
-
             BPLib_AS_NodeCountersPayload.NodeCounters[Counter] = Value;
 
             /*
@@ -71,9 +68,6 @@ BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter
                 Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
             }
             */
-
-            /* Allow counters to be modified after operation has finished */
-            BPLib_AS_UnlockCounters();
         }
         else
         { // Counter is out of valid range

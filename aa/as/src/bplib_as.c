@@ -70,7 +70,10 @@ void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
 {
     BPLib_Status_t Status;
 
-    /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges, as well as lock and unlock counters */
+    /* Prevent modification of counters while outputting */
+    BPLib_AS_LockCounters();
+
+    /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
     Status = BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount);
     if (Status != BPLIB_SUCCESS)
     {
@@ -82,14 +85,22 @@ void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
                             BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount,
                             Status);
     }
+
+    /* Allow counters to be modified again */
+    BPLib_AS_UnlockCounters();
 }
 
 BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter)
 {
     BPLib_Status_t Status;
 
-    /* Counters are locked and unlocked inside BPLib_AS_SetCounter() */
+    /* Prevent modification of counters while outputting */
+    BPLib_AS_LockCounters();
+
     Status = BPLib_AS_SetCounter(SourceEid, Counter, 0);
+
+    /* Allow counters to be modified again */
+    BPLib_AS_UnlockCounters();
 
     return Status;
 }
