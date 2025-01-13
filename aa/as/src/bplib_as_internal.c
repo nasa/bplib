@@ -89,7 +89,7 @@ BPLib_Status_t BPLib_AS_InitMutex(void)
     char MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 
     MutexId = (osal_id_t) 0;
-    strncpy(MutexName, "BPLib_AS_CounterMutex", BPLIB_AS_MAX_MUTEX_NAME_SIZE);
+    strncpy(MutexName, "BPLib_AS_CounterMut", BPLIB_AS_MAX_MUTEX_NAME_SIZE);
 
     /* Instantiate a mutex for AS counters */
     OS_Status = OS_MutSemCreate(&MutexId, MutexName, 0);
