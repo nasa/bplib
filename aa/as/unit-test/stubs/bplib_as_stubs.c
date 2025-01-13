@@ -27,6 +27,9 @@
 #include "bplib_as.h"
 #include "utgenstub.h"
 
+BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
+BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
+
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_AS_Decrement()
@@ -39,22 +42,6 @@ void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t 
     UT_GenStub_AddParam(BPLib_AS_Decrement, uint32_t, Amount);
 
     UT_GenStub_Execute(BPLib_AS_Decrement, Basic, NULL);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_AS_GetAppState()
- * ----------------------------------------------------
- */
-BPLib_AS_ApplicationState_t BPLib_AS_GetAppState(uint8_t ChanId)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_GetAppState, BPLib_AS_ApplicationState_t);
-
-    UT_GenStub_AddParam(BPLib_AS_GetAppState, uint8_t, ChanId);
-
-    UT_GenStub_Execute(BPLib_AS_GetAppState, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_GetAppState, BPLib_AS_ApplicationState_t);
 }
 
 /*
@@ -92,7 +79,6 @@ BPLib_Status_t BPLib_AS_Init(void)
  */
 void BPLib_AS_ResetAllCounters(void)
 {
-
     UT_GenStub_Execute(BPLib_AS_ResetAllCounters, Basic, NULL);
 }
 
@@ -101,9 +87,8 @@ void BPLib_AS_ResetAllCounters(void)
  * Generated stub function for BPLib_AS_ResetBundleCounters()
  * ----------------------------------------------------
  */
-void BPLib_AS_ResetBundleCounters(void)
+void BPLib_AS_ResetBundleCounters()
 {
-
     UT_GenStub_Execute(BPLib_AS_ResetBundleCounters, Basic, NULL);
 }
 
@@ -182,17 +167,4 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void)
     UT_GenStub_Execute(BPLib_AS_SendSourceMibCountersHk, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_AS_SendSourceMibCountersHk, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_AS_SetAppState()
- * ----------------------------------------------------
- */
-void BPLib_AS_SetAppState(uint8_t ChanId, BPLib_AS_ApplicationState_t State)
-{
-    UT_GenStub_AddParam(BPLib_AS_SetAppState, uint8_t, ChanId);
-    UT_GenStub_AddParam(BPLib_AS_SetAppState, BPLib_AS_ApplicationState_t, State);
-
-    UT_GenStub_Execute(BPLib_AS_SetAppState, Basic, NULL);
 }
