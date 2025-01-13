@@ -36,7 +36,6 @@ BPLib_SourceMibCountersHkTlm_Payload_t BPLib_AS_SourceCountersPayload; /** \brie
 /* Mutex Variables */
 /* =============== */
 osal_id_t MutexId;
-char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 
 /* ==================== */
 /* Function Definitions */
@@ -87,9 +86,10 @@ BPLib_Status_t BPLib_AS_InitMutex(void)
 {
     uint32 OS_Status;
     BPLib_Status_t Status;
+    char MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 
     MutexId = 0;
-    strncpy(MutexName, "AS_CounterMutex", BPLIB_AS_MAX_MUTEX_NAME_SIZE);
+    strncpy(MutexName, "BPLib_AS_CounterMutex", BPLIB_AS_MAX_MUTEX_NAME_SIZE);
 
     /* Instantiate a mutex for AS counters */
     OS_Status = OS_MutSemCreate(&MutexId, MutexName, 0);
