@@ -158,20 +158,6 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_AS_SendChannelContactStatHk()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_AS_SendChannelContactStatHk(void)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_SendChannelContactStatHk, BPLib_Status_t);
-
-    UT_GenStub_Execute(BPLib_AS_SendChannelContactStatHk, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_SendChannelContactStatHk, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_AS_SendNodeMibCountersHk()
  * ----------------------------------------------------
  */

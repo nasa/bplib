@@ -35,7 +35,11 @@
 
 #include "bplib_as.h"
 #include "bplib_as_internal.h"
+
 #include "bplib_em_handlers.h"
+
+#include "bplib_fwp.h"
+#include "bpa_fwp_stubs.h"  /* For EVP callback stubs */
 
 /* ====== */
 /* Macros */
