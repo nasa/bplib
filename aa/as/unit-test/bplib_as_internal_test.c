@@ -154,8 +154,8 @@ void TestBplibAsInternal_Register(void)
     ADD_TEST(Test_BPLib_AS_EidIsValid_Error);
     ADD_TEST(Test_BPLib_AS_SetCounter_Nominal);
     ADD_TEST(Test_BPLib_AS_SetCounter_Error);
-    ADD_TEST(BPLib_AS_InitMutex_Nominal);
-    ADD_TEST(BPLib_AS_InitMutex_Error);
+    ADD_TEST(Test_BPLib_AS_InitMutex_Nominal);
+    ADD_TEST(Test_BPLib_AS_InitMutex_Error);
     ADD_TEST(Test_BPLib_AS_LockUnlockCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_LockCounters_Error);
     ADD_TEST(Test_BPLib_AS_UnlockCounters_Error);
