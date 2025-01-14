@@ -91,7 +91,7 @@ void Test_BPLib_AS_SetCounter_Error(void)
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
 }
 
-void BPLib_AS_InitMutex_Nominal(void)
+void Test_BPLib_AS_InitMutex_Nominal(void)
 {
     BPLib_Status_t Status;
 
@@ -102,7 +102,7 @@ void BPLib_AS_InitMutex_Nominal(void)
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
 }
 
-void BPLib_AS_InitMutex_Error(void)
+void Test_BPLib_AS_InitMutex_Error(void)
 {
     BPLib_Status_t Status;
 
