@@ -29,14 +29,15 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_nc_payloads.h"
+#include "bplib_eventids.h"
 #include "bplib_em.h"
 
 /* ====== */
 /* Macros */
 /* ====== */
 
-#define BPLIB_AS_NUM_NODE_CNTRS   (79u) /** \brief Number of node counters (also total number of counters) */
-#define BPLIB_AS_NUM_SOURCE_CNTRS (56u) /** \brief Number of source counters */
+#define BPLIB_AS_NUM_NODE_CNTRS      (79u) /** \brief Number of node counters (also total number of counters) */
+#define BPLIB_AS_NUM_SOURCE_CNTRS    (56u) /** \brief Number of source counters */
 
 /* ======= */
 /* Typdefs */

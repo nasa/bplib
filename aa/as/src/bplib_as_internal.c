@@ -32,6 +32,11 @@
 BPLib_NodeMibCountersHkTlm_Payload_t   BPLib_AS_NodeCountersPayload;   /** \brief Global node MIB counter payload */
 BPLib_SourceMibCountersHkTlm_Payload_t BPLib_AS_SourceCountersPayload; /** \brief Global source MID counter payload */
 
+/* =============== */
+/* Mutex Variables */
+/* =============== */
+osal_id_t MutexId;
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -75,4 +80,57 @@ BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter
     }
 
     return Status;
+}
+
+BPLib_Status_t BPLib_AS_InitMutex(void)
+{
+    uint32 OS_Status;
+    BPLib_Status_t Status;
+    char MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
+
+    MutexId = OS_OBJECT_ID_UNDEFINED;
+    strncpy(MutexName, "BPLib_AS_CounterMut", BPLIB_AS_MAX_MUTEX_NAME_SIZE);
+
+    /* Instantiate a mutex for AS counters */
+    OS_Status = OS_MutSemCreate(&MutexId, MutexName, 0);
+
+    /* Translate mutex status into BPLib_Status_t */
+    if (OS_Status == OS_SUCCESS)
+    {
+        Status = BPLIB_SUCCESS;
+    }
+    else
+    {
+        Status = BPLIB_AS_INIT_MUTEX_ERR;
+    }
+
+    return Status;
+}
+
+void BPLib_AS_LockCounters(void)
+{
+    uint32 OS_Status;
+
+    OS_Status = OS_MutSemTake(MutexId);
+    if (OS_Status != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_TAKE_MUTEX_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to take from the counter mutex, RC = %d",
+                            OS_Status);
+    }
+}
+
+void BPLib_AS_UnlockCounters(void)
+{
+    uint32 OS_Status;
+
+    OS_Status = OS_MutSemGive(MutexId);
+    if (OS_Status != OS_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_GIVE_MUTEX_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Failed to give to the counter mutex, RC = %d",
+                            OS_Status);
+    }
 }
