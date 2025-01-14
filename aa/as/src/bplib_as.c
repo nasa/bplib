@@ -34,9 +34,7 @@ BPLib_Status_t BPLib_AS_Init(void)
 {
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
-
-    // Instantiate mutex to protect counter memory space
+    Status = BPLib_AS_InitMutex();
 
     /* Instantiate all payloads under the stewardship of AS */
     BPLib_AS_ResetAllCounters();
@@ -46,21 +44,63 @@ BPLib_Status_t BPLib_AS_Init(void)
 
 void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
+    BPLib_Status_t Status;
+
+    /* Prevent modification of counters from other tasks while modifying them */
+    BPLib_AS_LockCounters();
+
     /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
-    BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount);
+    Status = BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_SET_CTR_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not set counter %d with source EID %d to %d, RC = %d",
+                            Counter,
+                            SourceEid,
+                            BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount,
+                            Status);
+    }
+
+    /* Allow counters to be modified by other tasks after operation has finished */
+    BPLib_AS_UnlockCounters();
 }
 
 void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
+    BPLib_Status_t Status;
+
+    /* Prevent modification of counters while outputting */
+    BPLib_AS_LockCounters();
+
     /* Use BPLib_AS_SetCounter to evaluate EID and counter ranges */
-    BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount);
+    Status = BPLib_AS_SetCounter(SourceEid, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount);
+    if (Status != BPLIB_SUCCESS)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_SET_CTR_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not set counter %d with source EID %d to %d, RC = %d",
+                            Counter,
+                            SourceEid,
+                            BPLib_AS_NodeCountersPayload.NodeCounters[Counter] - Amount,
+                            Status);
+    }
+
+    /* Allow counters to be modified again */
+    BPLib_AS_UnlockCounters();
 }
 
 BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter)
 {
     BPLib_Status_t Status;
 
+    /* Prevent modification of counters while outputting */
+    BPLib_AS_LockCounters();
+
     Status = BPLib_AS_SetCounter(SourceEid, Counter, 0);
+
+    /* Allow counters to be modified again */
+    BPLib_AS_UnlockCounters();
 
     return Status;
 }
@@ -78,9 +118,14 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
     }
     else
     { /* Valid source EID */
-
+        /* Prevent modification of counters from other tasks while modifying them */
+        BPLib_AS_LockCounters();
+        
         memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters, 
                 0, sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters));
+
+        /* Allow counters to be modified by other tasks after operation has finished */
+        BPLib_AS_UnlockCounters();
     }
 
     return Status;
@@ -88,6 +133,9 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
 
 void BPLib_AS_ResetBundleCounters()
 {
+    /* Prevent modification of counters from other tasks while modifying them */
+    BPLib_AS_LockCounters();
+
     /* Only reset bundle-related node counters */
     BPLib_AS_NodeCountersPayload.NodeCounters[ADU_COUNT_DELIVERED]                    = 0;
     BPLib_AS_NodeCountersPayload.NodeCounters[ADU_COUNT_RECEIVED]                     = 0;
@@ -163,6 +211,9 @@ void BPLib_AS_ResetBundleCounters()
     BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_FORWARDED]    = 0;
     BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_BSR_RECEIVED]     = 0;
     BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_RECEIVED_CRS]              = 0;
+
+    /* Allow counters to be modified by other tasks after operation has finished */
+    BPLib_AS_UnlockCounters();
 }
 
 BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
@@ -178,6 +229,9 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
     }
     else
     { /* Valid source EID */
+        /* Prevent modification of counters from other tasks while modifying them */
+        BPLib_AS_LockCounters();
+
         /* Reset the error counters associated with nodes and sources */
         BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_ABANDONED]                                         = 0;
         BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_ABANDONED]                 = 0;
@@ -221,6 +275,9 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
         /* Reset the error counters that are node-only */
         BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT]                          = 0;
         BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_INVALID_PRIMARY_BLOCK]                             = 0;
+
+        /* Allow counters to be modified by other tasks after operation has finished */
+        BPLib_AS_UnlockCounters();
     }
 
     return Status;
@@ -230,6 +287,9 @@ void BPLib_AS_ResetAllCounters(void)
 {
     int16_t SourceCtrl;
 
+    /* Prevent modification of counters from other tasks while modifying them */
+    BPLib_AS_LockCounters();
+
     memset((void*) &BPLib_AS_NodeCountersPayload, 0, sizeof(BPLib_AS_NodeCountersPayload));
 
     for (SourceCtrl = 0; SourceCtrl < BPLIB_MAX_NUM_SOURCE_EID; SourceCtrl++)
@@ -237,17 +297,22 @@ void BPLib_AS_ResetAllCounters(void)
         memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl], 0,
                 sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl]));
     }
+
+    /* Allow counters to be modified by other tasks after operation has finished */
+    BPLib_AS_UnlockCounters();
 }
 
 BPLib_Status_t BPLib_AS_SendNodeMibCountersHk()
 {
     BPLib_Status_t Status;
 
-    //TODO: Lock counters
+    /* Prevent modification of counters from other tasks while modifying them */
+    BPLib_AS_LockCounters();
 
     Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt(&BPLib_AS_NodeCountersPayload);
 
-    //TODO: Unlock counters
+    /* Allow counters to be modified by other tasks after operation has finished */
+    BPLib_AS_UnlockCounters();
 
     return Status;
 }
@@ -255,12 +320,14 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk()
 BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
 {
     BPLib_Status_t Status;
-
-    //TODO: Lock counters
+    
+    /* Prevent modification of counters from other tasks while modifying them */
+    BPLib_AS_LockCounters();
 
     Status = BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt(&BPLib_AS_SourceCountersPayload);
 
-    //TODO: Unlock counters
+    /* Allow counters to be modified by other tasks after operation has finished */
+    BPLib_AS_UnlockCounters();
 
     return Status;
 }

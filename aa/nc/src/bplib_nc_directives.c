@@ -269,7 +269,7 @@ void BPLib_NC_ResetAllCounters(void)
     BPLib_AS_ResetAllCounters();
 
     BPLib_EM_SendEvent(BPLIB_NC_RESET_ALL_CTRS_SUCCESS_EID,
-                            BPLib_EM_EventType_INFORMATION,
+                        BPLib_EM_EventType_INFORMATION,
                         "Successful reset-all-counters directive");
 }
 
