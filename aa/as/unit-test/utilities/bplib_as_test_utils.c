@@ -322,6 +322,8 @@ void Test_BPLib_AS_ErrorCountersValueTest(int32_t SourceEid, uint32_t ActualValu
 
 void BPLib_AS_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText)
 {
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, EventNum + 1);
+
     UtAssert_INT32_EQ(context_BPLib_EM_SendEvent[EventNum].EventID, EventID);
     UtAssert_STRINGBUF_EQ(EventText, BPLIB_EM_EXPANDED_EVENT_SIZE,
                             context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
@@ -342,7 +344,6 @@ void BPLib_AS_Test_Setup(void)
 
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = BPA_TLMP_SendNodeMibCounterPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = BPA_TLMP_SendPerSourceMibCounterPkt;
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
 }
 
 void BPLib_AS_Test_Teardown(void)

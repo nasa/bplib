@@ -39,6 +39,46 @@ void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* 
                             context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
+void Test_BPLib_NC_VerifyIncrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum)
+{
+    UtAssert_STUB_COUNT(BPLib_AS_Increment, CallNum);
+
+    if (SourceEid != -1)
+    {
+        UtAssert_EQ(int16_t, SourceEid, Context_BPLib_AS_Increment[CallNum - 1].SourceEid);
+    }
+
+    if (Counter != -1)
+    {
+        UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_Increment[CallNum - 1].Counter);
+    }
+
+    if (Amount != 0xFFFFFFFF)
+    {
+        UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_Increment[CallNum - 1].Amount);
+    }
+}
+
+void Test_BPLib_NC_VerifyDecrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum)
+{
+    UtAssert_STUB_COUNT(BPLib_AS_Decrement, CallNum);
+
+    if (SourceEid != -1)
+    {
+        UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_Decrement[CallNum - 1].SourceEid);
+    }
+
+    if (Counter != -1)
+    {
+        UtAssert_EQ(BPLib_AS_Counter_t, Counter, Context_BPLib_AS_Decrement[CallNum - 1].Counter);
+    }
+
+    if (Amount != 0xFFFFFFFF)
+    {
+        UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_Decrement[CallNum - 1].Amount);
+    }
+}
+
 void BPLib_NC_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
@@ -50,14 +90,25 @@ void BPLib_NC_Test_Setup(void)
     BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication            = BPA_ADUP_StopApplication;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt       = BPA_TLMP_SendNodeMibConfigPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt  = BPA_TLMP_SendPerSourceMibConfigPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt             = BPA_TLMP_SendStoragePkt;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_Increment, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement), UT_Handler_BPLib_AS_Decrement, NULL);
 }
 
 void BPLib_NC_Test_Teardown(void)
 {
     /* Clean up test environment */
+    int8_t ContextNum;
+
+    for (ContextNum = 0; ContextNum < UT_MAX_SENDEVENT_DEPTH; ContextNum++)
+    {
+        context_BPLib_EM_SendEvent[ContextNum].EventID   = 0;
+        context_BPLib_EM_SendEvent[ContextNum].EventType = BPLib_EM_EventType_UNKNOWN;
+        memset(&context_BPLib_EM_SendEvent[ContextNum].Spec, 0, sizeof(context_BPLib_EM_SendEvent[ContextNum].Spec));
+    }
 }
 
 void UtTest_Setup(void)

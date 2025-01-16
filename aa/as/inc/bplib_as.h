@@ -22,20 +22,6 @@
 #define BPLIB_AS_H
 
 /* ======== */
-/* Typedefs */
-/* ======== */
-
-/**
-  * \brief Channel application state
-  */
-typedef enum
-{
-    BPLIB_AS_APP_STATE_STOPPED = 0,
-    BPLIB_AS_APP_STATE_ADDED   = 1,
-    BPLIB_AS_APP_STATE_STARTED = 2
-} BPLib_AS_ApplicationState_t;
-
-/* ======== */
 /* Includes */
 /* ======== */
 
@@ -43,14 +29,15 @@ typedef enum
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_nc_payloads.h"
+#include "bplib_eventids.h"
 #include "bplib_em.h"
 
 /* ====== */
 /* Macros */
 /* ====== */
 
-#define BPLIB_AS_NUM_NODE_CNTRS   (79u) /** \brief Number of node counters (also total number of counters) */
-#define BPLIB_AS_NUM_SOURCE_CNTRS (56u) /** \brief Number of source counters */
+#define BPLIB_AS_NUM_NODE_CNTRS      (79u) /** \brief Number of node counters (also total number of counters) */
+#define BPLIB_AS_NUM_SOURCE_CNTRS    (56u) /** \brief Number of source counters */
 
 /* ======= */
 /* Typdefs */
@@ -193,12 +180,6 @@ typedef struct
     int64_t  MonotonicTime;                 /** \brief Monotonic Time Counter */
     int64_t  CorrelationFactor;             /** \brief Time Correlation Factor */
 } BPLib_SourceMibCountersHkTlm_Payload_t;
-
-/* ======= */
-/* Globals */
-/* ======= */
-
-extern BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
 
 /* =================== */
 /* Function Prototypes */
@@ -349,19 +330,5 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
   * \return    Return codes from BPA_TLMP_SendPerSourceMibCounterPkt() in fwp_tlmp.h
   */
 BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
-
-/**
-  * \brief     Send Storage housekeeping telemetry packet
-  * \details   Node Configuration Send Storage Housekeeping Packet command.
-  * \note      This command is just a call to BPA_TLMP_SendChannelContactPkt()
-  * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \return    Return codes from BPA_TLMP_SendChannelContactPkt() in fwp_tlmp.h
-  */
-BPLib_Status_t BPLib_AS_SendChannelContactStatHk(void);
-
-void BPLib_AS_SetAppState(uint8_t ChanId, BPLib_AS_ApplicationState_t State);
-
-BPLib_AS_ApplicationState_t BPLib_AS_GetAppState(uint8_t ChanId);
 
 #endif /* BPLIB_AS_H */

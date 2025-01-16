@@ -11,11 +11,13 @@
 add_library(bplib_as_stubs STATIC
     stubs/bplib_as_stubs.c
     stubs/bplib_as_internal_stubs.c
+    stubs/bplib_as_handlers.c
 )
 
 target_include_directories(bplib_as_stubs PUBLIC
     $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>
     ../src
+    stubs
 )
 
 target_link_libraries(bplib_as_stubs PUBLIC ut_assert)
@@ -64,6 +66,7 @@ target_link_libraries(coverage-bplib_as-testrunner PUBLIC
     bplib_fwp_stubs
     bplib_em_stubs
     bpa_fwp_stubs
+    ut_osapi_stubs
 )
 
 add_test(coverage-bplib_as-testrunner coverage-bplib_as-testrunner)

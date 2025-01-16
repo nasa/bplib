@@ -28,12 +28,6 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 
-/* =========== */
-/* Definitions */
-/* =========== */
-
-
-
 /* =================== */
 /* Payload Definitions */
 /* =================== */
@@ -186,10 +180,10 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t    LocalServiceNum;    /**< \brief Service number for application sending/receiving ADUs on this channel */
-    uint32_t    State;              /**< \brief Configured, Running, or Off */
-    uint32_t    RegistrationState;  /**< \brief Active, PassiveDefered or PassiveAbandon */
-    uint32_t    OutputQueueID;      /**< \brief Output queue ID */
+    uint32_t LocalServiceNum;   /**< \brief Service number for application sending/receiving ADUs on this channel */
+    uint32_t State;             /**< \brief Configured, Running, or Off */
+    uint32_t RegistrationState; /**< \brief Active, PassiveDefered or PassiveAbandon */
+    uint32_t OutputQueueID;     /**< \brief Output queue ID */
 } BPLib_ChannelHkTlmPayloadSet_t;
 
 typedef struct

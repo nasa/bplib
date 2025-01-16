@@ -10,6 +10,7 @@
 # Create stubs (for external use)
 add_library(bplib_nc_stubs STATIC
     stubs/bplib_nc_stubs.c
+    stubs/bplib_nc_directives_stubs.c
 )
 
 target_include_directories(bplib_nc_stubs PUBLIC
@@ -21,6 +22,7 @@ target_link_libraries(bplib_nc_stubs PUBLIC ut_assert)
 # Create unit test object
 add_library(utobj_bplib_nc OBJECT
     ../src/bplib_nc.c
+    ../src/bplib_nc_directives.c
 )
 
 target_compile_definitions(utobj_bplib_nc PRIVATE

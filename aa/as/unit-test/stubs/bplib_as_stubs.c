@@ -29,7 +29,6 @@
 
 BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
 BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
-BPLib_ChannelContactStatHkTlm_Payload_t BPLib_AS_ChannelContactStatsPayload; /** \brief Global channel contact statistics payload */
 
 /*
  * ----------------------------------------------------
@@ -140,20 +139,6 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
     UT_GenStub_Execute(BPLib_AS_ResetSourceCounters, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_AS_ResetSourceCounters, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_AS_SendChannelContactStatHk()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_AS_SendChannelContactStatHk(void)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_SendChannelContactStatHk, BPLib_Status_t);
-
-    UT_GenStub_Execute(BPLib_AS_SendChannelContactStatHk, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_SendChannelContactStatHk, BPLib_Status_t);
 }
 
 /*

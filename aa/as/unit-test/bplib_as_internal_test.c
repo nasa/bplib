@@ -91,10 +91,72 @@ void Test_BPLib_AS_SetCounter_Error(void)
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
 }
 
+void Test_BPLib_AS_InitMutex_Nominal(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(OS_MutSemCreate), OS_SUCCESS);
+
+    Status = BPLib_AS_InitMutex();
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
+}
+
+void Test_BPLib_AS_InitMutex_Error(void)
+{
+    BPLib_Status_t Status;
+
+    UT_SetDefaultReturnValue(UT_KEY(OS_MutSemCreate), OS_INVALID_POINTER);
+
+    Status = BPLib_AS_InitMutex();
+
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INIT_MUTEX_ERR, Status);
+}
+
+void Test_BPLib_AS_LockUnlockCounters_Nominal(void)
+{
+    /* TODO: Add tasks and verify that the counters can't be modified */
+
+    UT_SetDefaultReturnValue(UT_KEY(OS_MutSemTake), OS_SUCCESS);
+
+    /* === Lock counters test === */
+    BPLib_AS_LockCounters();
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* === Unlock counters test === */
+    BPLib_AS_UnlockCounters();
+
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPLib_AS_LockCounters_Error(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(OS_MutSemTake), OS_ERR_INVALID_ID);
+
+    BPLib_AS_LockCounters();
+
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_TAKE_MUTEX_ERR_EID, "Failed to take from the counter mutex, RC = %d");
+}
+
+void Test_BPLib_AS_UnlockCounters_Error(void)
+{
+    UT_SetDefaultReturnValue(UT_KEY(OS_MutSemGive), OS_ERR_INVALID_ID);
+
+    BPLib_AS_UnlockCounters();
+
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_GIVE_MUTEX_ERR_EID, "Failed to give to the counter mutex, RC = %d");
+}
+
 void TestBplibAsInternal_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_EidIsValid_Nominal);
     ADD_TEST(Test_BPLib_AS_EidIsValid_Error);
     ADD_TEST(Test_BPLib_AS_SetCounter_Nominal);
     ADD_TEST(Test_BPLib_AS_SetCounter_Error);
+    ADD_TEST(Test_BPLib_AS_InitMutex_Nominal);
+    ADD_TEST(Test_BPLib_AS_InitMutex_Error);
+    ADD_TEST(Test_BPLib_AS_LockUnlockCounters_Nominal);
+    ADD_TEST(Test_BPLib_AS_LockCounters_Error);
+    ADD_TEST(Test_BPLib_AS_UnlockCounters_Error);
 }
