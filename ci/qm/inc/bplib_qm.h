@@ -1,8 +1,8 @@
 #ifndef __GSFC_BPLIB_QM_H__
 #define __GSFC_BPLIB_QM_H__
 
-#include "bundle.h"
-#include "waitqueue.h"
+#include "bplib_bundle.h"
+#include "bplib_qm_waitqueue.h"
 
 #define QM_NO_WAIT       WAITQUEUE_NO_WAIT
 #define QM_WAIT_FOREVER  WAITQUEUE_WAIT_FOREVER

@@ -1,7 +1,7 @@
 #ifndef __GSFC_BPLIB_QM_JOBS_H__
 #define __GSFC_BPLIB_QM_JOBS_H__
 
-#include "qm.h"
+#include "bplib_qm.h"
 
 BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
 

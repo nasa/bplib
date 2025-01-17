@@ -3,7 +3,7 @@
 ** https://arxiv.org/pdf/2210.16471
 ** 
 */
-#include "benalloc.h"
+#include "bplib_ben_allocator.h"
 
 #include <stdio.h>
 #include <string.h>

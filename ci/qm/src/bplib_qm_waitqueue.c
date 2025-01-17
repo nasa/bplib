@@ -1,4 +1,4 @@
-#include "waitqueue.h"
+#include "bplib_qm_waitqueue.h"
 
 #include <string.h>
 #include <time.h>

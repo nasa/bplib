@@ -1,7 +1,7 @@
 #ifndef __GSFC_BPLIB_TYPES_BUNDLE_H__
 #define __GSFC_BPLIB_TYPES_BUNDLE_H__
 
-#include "pool.h"
+#include "bplib_mem.h"
 
 #include <stdint.h>
 
@@ -61,5 +61,7 @@ typedef struct BPLib_Bundle
     // Here we eventually need to define a "channel" and a "contact".
     BPLib_MEM_Block_t* blob; // "Everything else"
 } BPLib_Bundle_t;
+
+void bplib_bundle_create();
 
 #endif /* __GSFC_BPLIB_TYPES_BUNDLE_H__ */

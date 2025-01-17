@@ -1,5 +1,5 @@
-#include "qm.h"
-#include "qm_jobs.h"
+#include "bplib_qm.h"
+#include "bplib_qm_job.h"
 
 #include <stdio.h>
 #include <stdlib.h>

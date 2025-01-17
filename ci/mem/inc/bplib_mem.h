@@ -1,7 +1,7 @@
 #ifndef __GSFC_BPLIB_MEM_POOL_H__
 #define __GSFC_BPLIB_MEM_POOL_H__
 
-#include "benalloc.h"
+#include "bplib_ben_allocator.h"
 
 #include <stddef.h>
 #include <stdbool.h>

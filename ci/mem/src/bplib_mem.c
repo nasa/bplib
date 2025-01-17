@@ -1,4 +1,4 @@
-#include "pool.h"
+#include "bplib_mem.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,8 +35,6 @@ void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool)
 
 BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool)
 {
-    size_t alloc_len;
-    void* block_mem;
     BPLib_MEM_Block_t* block;
 
     if (pool == NULL)
@@ -72,7 +70,7 @@ size_t BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len, BPLib_M
     BPLib_MEM_Block_t* curr_tail;
     BPLib_MEM_Block_t* new_block;
 
-    if (pool == NULL || byte_len == 0 || head == NULL)
+    if (pool == NULL || byte_len == 0 || ret_head == NULL)
     {
         return 0;
     }
