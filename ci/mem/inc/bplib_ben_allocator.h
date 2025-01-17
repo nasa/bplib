@@ -7,8 +7,8 @@
 
 typedef struct BPLib_MEM_PoolImpl
 {
-    uint8_t* mem_start;
-    uint8_t* mem_next;
+    void* mem_start;
+    void* mem_next;
     uint32_t num_blocks;
     uint32_t block_size;
     uint32_t num_free;

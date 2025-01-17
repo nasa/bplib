@@ -9,7 +9,7 @@
 add_library(bplib_mem OBJECT
     src/bplib_mem.c
     src/bplib_ben_allocator.c
-    src/bplib_std_allocator.c
+    #src/bplib_std_allocator.c
 )
 
 target_include_directories(bplib_mem PUBLIC

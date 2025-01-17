@@ -127,7 +127,6 @@ void* BPLib_QM_EventLoop(BPLib_QM_QueueTable_t* tbl, bool* exit_flag)
 void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
 {
     BPLib_QM_Job_t curr_job;
-    BPLib_QM_Event_t new_event;
     BPLib_QM_JobState_t next_state;
 
     if (BPLib_CI_WaitQueueTryPull(&(tbl->jobs), &curr_job, timeout_ms))

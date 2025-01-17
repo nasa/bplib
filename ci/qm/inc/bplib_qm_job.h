@@ -5,6 +5,6 @@
 
 BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
 
-void BPLib_QM_JobTableInit();
+void BPLib_QM_JobTableInit(void);
 
 #endif /* __GSFC_BPLIB_QM_JOBS_H__ */

@@ -8,14 +8,14 @@
 #include <stdio.h>
 #include <string.h>
 
-static const uint8_t* addr_from_index(BPLib_MEM_PoolImpl_t* pool, uint32_t ind)
+static const void* addr_from_index(BPLib_MEM_PoolImpl_t* pool, uint32_t ind)
 {
-    return pool->mem_start + (ind * pool->block_size);
+    return (uint8_t*)pool->mem_start + (ind * pool->block_size);
 }
 
-static uint32_t index_from_addr(BPLib_MEM_PoolImpl_t* pool, const uint8_t* p)
+static uint32_t index_from_addr(BPLib_MEM_PoolImpl_t* pool, const void* p)
 {
-    return  (((uint32_t)(p - pool->mem_start)) / pool->block_size);
+    return  (((uint32_t)((uint8_t*)p - (uint8_t*)pool->mem_start)) / pool->block_size);
 }
 
 bool BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
@@ -81,7 +81,7 @@ void* BPLib_MEM_PoolImplAlloc(BPLib_MEM_PoolImpl_t* pool)
         pool->num_free--;
         if (pool->num_free != 0)
         {
-            pool->mem_next = (uint8_t*) addr_from_index(pool, *((uint32_t*)pool->mem_next));
+            pool->mem_next = (void*) addr_from_index(pool, *((uint32_t*)pool->mem_next));
         }
         else
         {
@@ -102,12 +102,12 @@ void BPLib_MEM_PoolImplFree(BPLib_MEM_PoolImpl_t* pool, void* to_free)
     if (pool->mem_next != NULL)
     {
         (*(uint32_t*)to_free) = index_from_addr(pool, pool->mem_next);
-        pool->mem_next = (uint8_t*)(to_free);
+        pool->mem_next = (void*)(to_free);
     }
     else
     {
         (*(uint32_t*)to_free) = pool->num_blocks;
-        pool->mem_next = (uint8_t*)(to_free);
+        pool->mem_next = (void*)(to_free);
     }
     pool->num_free++;
 }
