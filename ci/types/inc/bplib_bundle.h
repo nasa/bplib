@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-#define MAX_EXT_BLOCKS 5
+#define MAX_EXT_BLOCKS 5 // Ask greg
 
 /* This is the current FPGA bundle definition. 
 ** We don't have to use this for software-only, but it's a good way to show a

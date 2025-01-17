@@ -1,34 +1,87 @@
-/*
- * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
- * System Application (BP) v6.5”
- *
- * Copyright © 2020 United States Government as represented by the Administrator of
- * the National Aeronautics and Space Administration. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+#include "qm_jobs.h"
 
-/*
-** Include
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+
+static bool jobs_table_init_done = false;
+
+/* 
+** Job Functions - These are the entry points to jobs being run in QM.
 */
+BPLib_QM_JobState_t BPLib_Job_BI_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    printf("CLA TO BI\n");
+    sleep(1);
+    return STATE_BI_TO_EBP;
+}
 
-#include "bplib_job.h"
+BPLib_QM_JobState_t BPLib_Job_EBP_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    printf("BI TO EBP\n");
+    sleep(1);
+    return STATE_EBP_TO_CT;
+}
 
+BPLib_QM_JobState_t BPLib_Job_CT_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    printf("EBP TO CT\n");
+    sleep(1);
+    return STATE_CT_TO_CACHE;
+}
 
-/*
-** Function Definitions
-*/
+BPLib_QM_JobState_t BPLib_Job_CACHE_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    printf("CT TO CACHE\n");
+    sleep(1);
+    return STATE_CACHE_TO_CT;
+}
 
-int BPLib_JOB_Init(void) {
-    return BPLIB_SUCCESS;
+BPLib_QM_JobState_t BPLib_Job_CACHE_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    printf("CACHE TO CT\n");
+    sleep(1);
+    return STATE_CT_TO_EBP;
+}
+
+BPLib_QM_JobState_t BPLib_Job_CT_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    printf("CT TO EBP\n");
+    sleep(1);
+    return STATE_EBP_TO_BI;
+}
+
+BPLib_QM_JobState_t BPLib_Job_EBP_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    printf("EBP TO BI\n");
+    sleep(1);
+    return STATE_BI_TO_CLA;
+}
+
+BPLib_QM_JobState_t BPLib_Job_BI_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    printf("BI TO CLA %lu\n", bundle->blocks.pri_blk.src_eid.node_number);
+    sleep(1);
+    return STATE_CLA_TO_BI;
+}
+
+void BPLib_QM_JobTableInit()
+{
+    if (jobs_table_init_done)
+    {
+        return;
+    }
+
+    memset(job_funcs, 0, sizeof(job_funcs));
+    job_funcs[STATE_CLA_TO_BI] = BPLib_Job_BI_Ingress;
+    job_funcs[STATE_BI_TO_EBP] = BPLib_Job_EBP_Ingress;
+    job_funcs[STATE_EBP_TO_CT] = BPLib_Job_CT_Ingress;
+    job_funcs[STATE_CT_TO_CACHE] = BPLib_Job_CACHE_Ingress;
+    job_funcs[STATE_CACHE_TO_CT] = BPLib_Job_CACHE_Egress;
+    job_funcs[STATE_CT_TO_EBP] = BPLib_Job_CT_Egress;
+    job_funcs[STATE_EBP_TO_BI] = BPLib_Job_EBP_Egress;
+    job_funcs[STATE_BI_TO_CLA] = BPLib_Job_BI_Egress;
+
+    /* In a codebase with BPLib_Init(), we would just call JobTableInit() */
+    jobs_table_init_done = true;
 }
