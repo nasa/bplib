@@ -34,19 +34,14 @@ bool BPLib_EID_IsValid(uint64_t Authority, uint64_t Node, uint64_t Service)
 
     IsValid = false;
 
-    if (Authority == DTN_AUTH)
-    {
-        if (Node == 0)
-        {
-            /* dtn:none */
-        }
-        else
-        {
-            /* 2-digit IPN */
-        }
+    if (Authority == DTN_AUTH && Node == 0)
+    { /* dtn:none */
+
     }
     else
-    {
-        /* 3-digit IPN */
+    { /* any other authority, node, and service */
+
     }
+
+    BPLib_EID_RequestService(Service);
 }

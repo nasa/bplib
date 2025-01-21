@@ -31,6 +31,9 @@
 /* Macros */
 /* ====== */
 
+/* Wildcard designator in EIDs, max value for uint64_t */
+#define BPLIB_EID_WILDCARD 0xFFFFFFFF
+
 /* ======== */
 /* Typedefs */
 /* ======== */
@@ -56,6 +59,42 @@ typedef enum
     IPN_AUTH = 1,
 } BPLib_EID_Authorities_t;
 
+typedef enum
+{
+    // EMERGENCY                 = 0,
+    // LATENCY                   = 1,
+    // PAYLOAD_SIZING            = 2,
+    // ROUTING                   = 3,
+    // CONFIGURATION             = 4,
+    // RENTENTION_ASSURANCE      = 5,
+    // COMMENCE_REGISTRATION     = 6,
+    // TERMINATE_REGISTRATION    = 7,
+    // SWITCH_REGISTRATION_STATE = 8,
+    // TRANSMIT                  = 9,
+    // CANCEL_TRANSMIT           = 10,
+    // POLL                      = 11,
+    // DELIVER                   = 12,
+    // STORE                     = 13,
+    // SECURITY                  = 14,
+    // STORAGE_MANAGEMENT        = 15,
+    // TRANSPORT_MANAGEMENT      = 16,
+    // USER_DATA_ACCOUNTING      = 17,
+    // USER_DEFINED_EXT_BLOCKS   = 18,
+
+    DELIVER                 = 0,
+    TRANSFER                = 1,
+    SERVICE_POLICY          = 2,
+    PRIORITY                = 3,
+    STORE                   = 4,
+    FRAGMENTATION_CONTROL   = 5,
+    DATA_ACCOUTNING         = 6,
+    CONFIDENTIALITY         = 7,
+    AUTHENTICATION          = 8,
+    EXTENSION_BLOCK_SUPPORT = 9,
+    BUNDLE_STATUS           = 10,
+    EMERGENCY               = 11,
+} BPLib_EID_Services_t;
+
 /* ================== */
 /* Exported Functions */
 /* ================== */
@@ -76,5 +115,8 @@ typedef enum
  * \anchor    BPLib_EID_IsValid
  */
 bool BPLib_EID_IsValid(uint64_t Authority, uint64_t Node, uint64_t Service);
+
+/* TODO: Documentation */
+void BPLib_EID_RequestService(uint64_t Service);
 
 #endif /* BPLIB_EID_H */
