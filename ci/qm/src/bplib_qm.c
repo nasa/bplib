@@ -1,6 +1,8 @@
 #include "bplib_qm.h"
 #include "bplib_qm_job.h"
 
+#include "osapi.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -28,11 +30,8 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
     BPLib_QM_JobTableInit();
 
     /* This is one-time allocation when BPLib is initialized
-    ** Note:
-    **   Because the underlying waitqueues accept a void* for underlying storage,
-    **   this function can be modified to allow the caller to pass in queue storage
-    **   if this one-time calloc() call is undesirable. calloc() could also be moved
-    **   within the waitqueue init function (my preference).
+    ** Note: We have decided to modify this so that job_mem and event_mem are passed
+    **       in as parameters this function. This will be done in a future ticket.
     */
     tbl->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
     if (tbl->job_mem == NULL)
@@ -95,8 +94,9 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
     BPLib_QM_Job_t curr_job;
     BPLib_QM_Event_t curr_event;
 
+    OS_printf("ENTER EventLoopAdvance\n");
+
     jobs_scheduled = 0;
-    printf("ENTER EventLoopAdvance\n");
     while (jobs_scheduled < num_jobs)
     {
         if (BPLib_CI_WaitQueueTryPull(&(tbl->events), &curr_event, BPLIB_QM_EVT_TIMEOUT_MAX_MS))
@@ -119,12 +119,11 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
         }
         else
         {
-            /* The system is IDLE, stop attempting to run jobs. */
             break;
         }
     }
 
-    printf("EXIT EventLoopAdvance\n");
+    OS_printf("EXIT EventLoopAdvance\n");
     return;
 }
 
@@ -153,10 +152,6 @@ void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
         **  I think it could be a good idea to make the event queue larger than the jobs queue so that this
         **  case is infrequent.
         */
-        if (BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER) == false)
-        {
-            /* Send an event message at the least */
-            printf("System clogged\n");
-        }
+        BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     }
 }

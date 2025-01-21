@@ -3,7 +3,7 @@
 
 #include "bplib_qm.h"
 
-BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
+extern BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
 
 void BPLib_QM_JobTableInit(void);
 

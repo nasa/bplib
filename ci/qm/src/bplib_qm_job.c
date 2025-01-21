@@ -5,6 +5,7 @@
 #include <string.h>
 
 static bool jobs_table_init_done = false;
+BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
 
 /* 
 ** Job Functions - These are the entry points to jobs being run in QM.

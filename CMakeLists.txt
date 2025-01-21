@@ -99,7 +99,7 @@ list(APPEND BPLIB_COMPONENTS
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_nc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi bplib_ci_types
   bplib_stor bplib_cbor bplib_em bplib_mem bplib_pl bplib_time
-  bplib_crc bplib_version
+  bplib_crc bplib_version bplib_ci_qm
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENTS})
