@@ -28,7 +28,21 @@
 /* Function Definitions */
 /* ==================== */
 
+void Test_BPLib_EID_IsValid_Nominal(void)
+{
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(0));
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(5));
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(BPLIB_MAX_NUM_SOURCE_EID - 1));
+}
+
+void Test_BPLib_EID_IsValid_Error(void)
+{
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(-1));
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(BPLIB_MAX_NUM_SOURCE_EID));
+}
+
 void TestBplibEid_Register(void)
 {
-    /* TODO: ADD_TEST(); here*/
+    ADD_TEST(Test_BPLib_EID_IsValid_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_Nominal);
 }

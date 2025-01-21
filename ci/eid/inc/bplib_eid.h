@@ -37,33 +37,36 @@
 /* Typedefs */
 /* ======== */
 
-/* EID schema (Authority.Node.Service) */
+/**
+ * \brief EID schema (Authority.Node.Service)
+ * \anchor BPLib_EID_t
+*/
 typedef struct
 {
     uint64_t Authority; /* Defines a set of syntactic and semantic rules that fully explain how to parse and interpret the scheme-specific part (SSP) */
     uint64_t Node;      /* System implementing a set of DTN communications protocol services identified by a unique node ID */
     uint64_t Service;   /* DTN communication protocol service */
-} BPLib_EID_t
+} BPLib_EID_t;
 
 /* ================== */
 /* Exported Functions */
 /* ================== */
 
-/** TODO:
- * \brief     
- * \details   
- * \note      
- * \param[in] 
- * \param[in] 
- * \param[in] 
- * \return    
+/**
+ * \brief     Checks if the EID matches an expected, valid pattern
+ * \details   TODO
+ * \note      TODO
+ * \param[in] Authority (uint64_t) The endpoints authority
+ * \param[in] Node (uint64_t) System that implements DTN services
+ * \param[in] Service (uint64_t) Communication protocol service
+ * \return    EID validity
+ * \retval    true: The EID matches the criteria required to be valid
+ * \retval    false: The EID is invalid in some way
  * \secreflist
- * \refitem   
- * \refitem   
- * \refitem   
- * \refitem   
+ * \refitem   BPLib_EID_t
  * \endsecreflist
- * \anchor    
+ * \anchor    BPLib_EID_IsValid
  */
+bool BPLib_EID_IsValid(uint64_t Authority, uint64_t Node, uint64_t Service);
 
 #endif /* BPLIB_EID_H */

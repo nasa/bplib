@@ -30,6 +30,7 @@
 #include "uttest.h"
 
 #include "bplib_eid.h"
+#include "bplib_cfg.h"
 
 /* ================ */
 /* Type Definitions */
