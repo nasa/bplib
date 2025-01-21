@@ -81,13 +81,13 @@ size_t BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len, BPLib_M
     do
     {
         new_block = BPLib_MEM_BlockAlloc(pool);
-        blocks_alloc++;
         if (new_block == NULL)
         {
             BPLib_MEM_BlockListFree(pool, head);
             *ret_head = NULL;
             return 0;
         }
+        blocks_alloc++;
         bytes_alloc += new_block->chunk_len;
 
         if (head == NULL)

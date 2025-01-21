@@ -48,7 +48,7 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs);
 
 void BPLib_QM_QueueTableDestroy(BPLib_QM_QueueTable_t* tbl);
 
-void* BPLib_QM_EventLoop(BPLib_QM_QueueTable_t* tbl, bool* exit_flag);
+void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs);
 
 void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms);
 

@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define BPLIB_QM_RUNJOB_PERF_ID 0x7F
+#define BPLIB_QM_EVT_TIMEOUT_MAX_MS 1L
+
 typedef struct BPLib_QM_Event
 {
     BPLib_Bundle_t* bundle;
@@ -86,42 +89,43 @@ bool BPLib_QM_PostEvent(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle,
     return BPLib_CI_WaitQueueTryPush(&(tbl->events), &event, timeout_ms);
 }
 
-void* BPLib_QM_EventLoop(BPLib_QM_QueueTable_t* tbl, bool* exit_flag)
+void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
 {
-    int queue_timeout_ms;
+    size_t jobs_scheduled;
     BPLib_QM_Job_t curr_job;
     BPLib_QM_Event_t curr_event;
 
-    queue_timeout_ms = 100;
-
-    /* Right now this loop makes the assumption that if an event can be pulled, 
-    ** then the job queue has open space.  That may not be true in practice and
-    ** this logic should be refactored to represent that.  This simplification
-    ** was done for demo purposes.
-    */
-    while ((*exit_flag) == true)
+    jobs_scheduled = 0;
+    printf("ENTER EventLoopAdvance\n");
+    while (jobs_scheduled < num_jobs)
     {
-        if (BPLib_CI_WaitQueueTryPull(&(tbl->events), &curr_event, queue_timeout_ms))
+        if (BPLib_CI_WaitQueueTryPull(&(tbl->events), &curr_event, BPLIB_QM_EVT_TIMEOUT_MAX_MS))
         {
-            /* Construct a new job for this event:
-            ** Herein, lies the beauty of separate event and job queues. You can
-            ** 'manage' events that were posted from a single observer.  This allows
-            ** for future implementation of QOS, backpresure, load balancing, NON-generic tasks,
-            ** BPAccel, etc.
-            */
+            /* Construct a new job for this event */
             curr_job.bundle = curr_event.bundle;
             curr_job.state = curr_event.next_state;
             curr_job.job_func = job_funcs[curr_event.next_state];
             assert(curr_job.job_func != NULL);
             curr_job.priority = curr_event.priority;
 
-            /* Add the job to the job queue so a worker can discover it */
+            /* Add the job to the job queue so a worker can discover it 
+            ** Note: There is no backpressuring logic right now so this can block indefintely.
+            **  This will only do so if the system is clogged or misconfigured. 
+            **  We will have to remove the 'WAITQUEUE_WAIT_FOREVER` and replace it 
+            **  with a backpressuring strategy, but it should be done in a future ticket.
+            */
             BPLib_CI_WaitQueueTryPush(&(tbl->jobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
+            jobs_scheduled++;
+        }
+        else
+        {
+            /* The system is IDLE, stop attempting to run jobs. */
+            break;
         }
     }
 
-    printf("Exiting event loop\n");
-    return NULL;
+    printf("EXIT EventLoopAdvance\n");
+    return;
 }
 
 void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
@@ -132,7 +136,9 @@ void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
     if (BPLib_CI_WaitQueueTryPull(&(tbl->jobs), &curr_job, timeout_ms))
     {
         /* Run the job and get back the next state */
+        // PERF ENTRY
         next_state = curr_job.job_func(tbl, curr_job.bundle);
+        // PERF EXIT
 
         /* Create a new event with the next state and post it to the event loop 
         ** Important note here:
