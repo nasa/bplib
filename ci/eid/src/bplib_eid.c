@@ -30,5 +30,23 @@
 
 bool BPLib_EID_IsValid(uint64_t Authority, uint64_t Node, uint64_t Service)
 {
-    /* TODO: Implement */
+    bool IsValid;
+
+    IsValid = false;
+
+    if (Authority == DTN_AUTH)
+    {
+        if (Node == 0)
+        {
+            /* dtn:none */
+        }
+        else
+        {
+            /* 2-digit IPN */
+        }
+    }
+    else
+    {
+        /* 3-digit IPN */
+    }
 }

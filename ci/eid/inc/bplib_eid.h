@@ -31,8 +31,6 @@
 /* Macros */
 /* ====== */
 
-/* ATTN: Macros here */
-
 /* ======== */
 /* Typedefs */
 /* ======== */
@@ -47,6 +45,16 @@ typedef struct
     uint64_t Node;      /* System implementing a set of DTN communications protocol services identified by a unique node ID */
     uint64_t Service;   /* DTN communication protocol service */
 } BPLib_EID_t;
+
+/**
+ * \brief Known, valid authorities
+ * \anchor BPLib_EID_Authorities_t
+ */
+typedef enum
+{
+    DTN_AUTH = 0,
+    IPN_AUTH = 1,
+} BPLib_EID_Authorities_t;
 
 /* ================== */
 /* Exported Functions */
