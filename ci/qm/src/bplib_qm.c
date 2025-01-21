@@ -31,7 +31,7 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
 
     /* This is one-time allocation when BPLib is initialized
     ** Note: We have decided to modify this so that job_mem and event_mem are passed
-    **       in as parameters this function. This will be done in a future ticket.
+    **  in as parameters this function. This will be done in a future ticket.
     */
     tbl->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
     if (tbl->job_mem == NULL)
@@ -94,8 +94,6 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
     BPLib_QM_Job_t curr_job;
     BPLib_QM_Event_t curr_event;
 
-    OS_printf("ENTER EventLoopAdvance\n");
-
     jobs_scheduled = 0;
     while (jobs_scheduled < num_jobs)
     {
@@ -123,7 +121,6 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
         }
     }
 
-    OS_printf("EXIT EventLoopAdvance\n");
     return;
 }
 

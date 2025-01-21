@@ -1,6 +1,5 @@
 #include "bplib_qm_job.h"
 
-#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -13,56 +12,48 @@ BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
 BPLib_QM_JobState_t BPLib_Job_BI_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
     printf("CLA TO BI\n");
-    sleep(1);
     return STATE_BI_TO_EBP;
 }
 
 BPLib_QM_JobState_t BPLib_Job_EBP_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
     printf("BI TO EBP\n");
-    sleep(1);
     return STATE_EBP_TO_CT;
 }
 
 BPLib_QM_JobState_t BPLib_Job_CT_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
     printf("EBP TO CT\n");
-    sleep(1);
     return STATE_CT_TO_CACHE;
 }
 
 BPLib_QM_JobState_t BPLib_Job_CACHE_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
     printf("CT TO CACHE\n");
-    sleep(1);
     return STATE_CACHE_TO_CT;
 }
 
 BPLib_QM_JobState_t BPLib_Job_CACHE_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
     printf("CACHE TO CT\n");
-    sleep(1);
     return STATE_CT_TO_EBP;
 }
 
 BPLib_QM_JobState_t BPLib_Job_CT_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
-    printf("CT TO EBP\n");
-    sleep(1);
+    printf("CT TO EBP\n");;
     return STATE_EBP_TO_BI;
 }
 
 BPLib_QM_JobState_t BPLib_Job_EBP_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
     printf("EBP TO BI\n");
-    sleep(1);
     return STATE_BI_TO_CLA;
 }
 
 BPLib_QM_JobState_t BPLib_Job_BI_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
     printf("BI TO CLA %lu\n", bundle->blocks.pri_blk.src_eid.node_number);
-    sleep(1);
     return STATE_CLA_TO_BI;
 }
 
