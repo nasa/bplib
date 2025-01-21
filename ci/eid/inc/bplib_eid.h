@@ -37,7 +37,13 @@
 /* Typedefs */
 /* ======== */
 
-/* ATTN: Typedefs here */
+/* EID schema (Authority.Node.Service) */
+typedef struct
+{
+    uint64_t Authority; /* Defines a set of syntactic and semantic rules that fully explain how to parse and interpret the scheme-specific part (SSP) */
+    uint64_t Node;      /* System implementing a set of DTN communications protocol services identified by a unique node ID */
+    uint64_t Service;   /* DTN communication protocol service */
+} BPLib_EID_t
 
 /* ================== */
 /* Exported Functions */
