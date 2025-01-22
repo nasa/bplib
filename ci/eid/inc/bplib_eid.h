@@ -39,48 +39,26 @@
 /* ======== */
 
 /**
- * \brief EID schema (Authority.Node.Service)
+ * \brief EID schema (Scheme Authority.Node.Service)
  * \anchor BPLib_EID_t
 */
 typedef struct
 {
+    uint8_t  Scheme;    /* The form the EID takes */
     uint64_t Authority; /* Defines a set of syntactic and semantic rules that fully explain how to parse and interpret the scheme-specific part (SSP) */
     uint64_t Node;      /* System implementing a set of DTN communications protocol services identified by a unique node ID */
     uint64_t Service;   /* DTN communication protocol service */
 } BPLib_EID_t;
-
-/**
- * \brief Known, valid authorities
- * \anchor BPLib_EID_Authorities_t
- */
-typedef enum
-{
-    DTN_AUTH = 0,
-    IPN_AUTH = 1,
-} BPLib_EID_Authorities_t;
-
-typedef enum
-{
-    DATA_ACCOUTNING = 0,    // Per IANA
-    FILE_DELIVERY   = 1,    // Per IANA
-    RESERVED        = 2,    // Per IANA
-    // 3 - 63 are unassigned services
-    CFDP_SENDER     = 64,
-    CFDP_RECEIVER   = 65,
-    // 66 - 1023 are unassigned services reserved for SANA
-    // 1024 - 65535 are unassigned services
-    // >= 65535 are unassigned services reserved for private or experimental use
-} BPLib_EID_Services_t;
 
 /* ================== */
 /* Exported Functions */
 /* ================== */
 
 /**
- * \brief     Checks if the EID matches an expected, valid pattern
+ * \brief     Checks if the EID consists of valid parts
  * \details   TODO
  * \note      TODO
- * \param[in] EID (BPLib_EID_t) EID struct consisting of an Authority, Node, and Service number
+ * \param[in] EID (BPLib_EID_t) EID struct whose validity is in question
  * \return    EID validity
  * \retval    true: The EID matches the criteria required to be valid
  * \retval    false: The EID is invalid in some way

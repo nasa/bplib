@@ -34,20 +34,27 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
 
     IsValid = true;
 
-    if (EID.Authority == 0)
+    if (EID.Scheme == 1 || EID.Scheme == 2)
     {
-        if (EID.Node == 0)
-        { /* dtn:none */
+        if (EID.Authority == 0)
+        {
+            if (EID.Node == 0)
+            { /* dtn:none */
 
+            }
+            else
+            { /* 2-digit IPN */
+
+            }
         }
         else
-        { /* 2-digit IPN */
+        { /* 3-digit IPN */
 
         }
     }
     else
-    { /* 3-digit IPN */
-
+    {
+        IsValid = false;
     }
 
     return IsValid;
