@@ -24,9 +24,20 @@
 
 #include "bplib_eid_test_utils.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+BPLib_EID_t EID_A;
+BPLib_EID_t EID_B;
+
 void BPLib_EID_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
+
+    memset(&EID_A, 0, sizeof(BPLib_EID_t));
+    memset(&EID_B, 0, sizeof(BPLib_EID_t));
+
     UT_ResetState(0);
 }
 

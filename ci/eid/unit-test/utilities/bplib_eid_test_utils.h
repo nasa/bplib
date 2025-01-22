@@ -32,11 +32,12 @@
 #include "bplib_eid.h"
 #include "bplib_cfg.h"
 
-/* ================ */
-/* Type Definitions */
-/* ================ */
+/* =========== */
+/* Global Data */
+/* =========== */
 
-/* ATTN: Type definitions here */
+extern BPLib_EID_t EID_A;
+extern BPLib_EID_t EID_B;
 
 /* ====== */
 /* Macros */

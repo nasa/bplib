@@ -29,16 +29,31 @@
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_EID_IsMatch()
+ * ----------------------------------------------------
+ */
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_EID_IsMatch, bool);
+
+    UT_GenStub_AddParam(BPLib_EID_IsMatch, BPLib_EID_t, EID_Actual);
+    UT_GenStub_AddParam(BPLib_EID_IsMatch, BPLib_EID_t, EID_Reference);
+
+    UT_GenStub_Execute(BPLib_EID_IsMatch, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_EID_IsMatch, bool);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_EID_IsValid()
  * ----------------------------------------------------
  */
-bool BPLib_EID_IsValid(uint64_t Authority, uint64_t Node, uint64_t Service)
+bool BPLib_EID_IsValid(BPLib_EID_t EID)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_EID_IsValid, bool);
 
-    UT_GenStub_AddParam(BPLib_EID_IsValid, uint64_t, Authority);
-    UT_GenStub_AddParam(BPLib_EID_IsValid, uint64_t, Node);
-    UT_GenStub_AddParam(BPLib_EID_IsValid, uint64_t, Service);
+    UT_GenStub_AddParam(BPLib_EID_IsValid, BPLib_EID_t, EID);
 
     UT_GenStub_Execute(BPLib_EID_IsValid, Basic, NULL);
 
