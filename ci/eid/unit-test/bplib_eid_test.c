@@ -32,11 +32,41 @@ void Test_BPLib_EID_IsValid_Nominal(void)
 {
     bool IsValid;
 
-    // EID = 1, 1.2.*
-    EID_A.Scheme    = 1;
+    // EID = 2, 1.2.*
+    EID_A.Scheme    = 2;
     EID_A.Authority = 1;
     EID_A.Node      = 2;
     EID_A.Service   = BPLIB_EID_WILDCARD;
+
+    IsValid = BPLib_EID_IsValid(EID_A);
+
+    UtAssert_BOOL_TRUE(IsValid);
+}
+
+void Test_BPLib_EID_IsValid_DTN_None_Nominal(void)
+{
+    bool IsValid;
+
+    // EID = 1, 0.0.*
+    EID_A.Scheme    = 1;
+    EID_A.Authority = 0;
+    EID_A.Node      = 0;
+    EID_A.Service   = BPLIB_EID_WILDCARD;
+
+    IsValid = BPLib_EID_IsValid(EID_A);
+
+    UtAssert_BOOL_TRUE(IsValid);
+}
+
+void Test_BPLib_EID_IsValid_2DigitIPN_Nominal(void)
+{
+    bool IsValid;
+
+    // EID = 1, 0.*.2
+    EID_A.Scheme    = 1;
+    EID_A.Authority = 0;
+    EID_A.Node      = BPLIB_EID_WILDCARD;
+    EID_A.Service   = 2;
 
     IsValid = BPLib_EID_IsValid(EID_A);
 
@@ -230,6 +260,8 @@ void TestBplibEid_Register(void)
 {
     ADD_TEST(Test_BPLib_EID_IsValid_Nominal);
     ADD_TEST(Test_BPLib_EID_IsValid_InvalidScheme_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_DTN_None_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_2DigitIPN_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_AuthorityWildcard_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_NodeWildcard_Nominal);

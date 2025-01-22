@@ -32,24 +32,22 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
 {
     bool IsValid;
 
-    IsValid = true;
-
     if (EID.Scheme == 1 || EID.Scheme == 2)
     {
         if (EID.Authority == 0)
         {
             if (EID.Node == 0)
             { /* dtn:none */
-
+                IsValid = true;
             }
             else
             { /* 2-digit IPN */
-
+                IsValid = true;
             }
         }
         else
         { /* 3-digit IPN */
-
+            IsValid = true;
         }
     }
     else
