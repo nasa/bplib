@@ -66,13 +66,16 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
 
     IsMatch = false;
 
-    if (EID_Actual.Authority == EID_Reference.Authority || EID_Reference.Authority == BPLIB_EID_WILDCARD)
-    { /* Authority in EIDs match or the reference authority is a wildcard */
-        if (EID_Actual.Node == EID_Reference.Node || EID_Reference.Node == BPLIB_EID_WILDCARD)
-        { /* Node in EIDs match or the reference node is a wildcard */
-            if (EID_Actual.Service == EID_Reference.Service || EID_Reference.Service == BPLIB_EID_WILDCARD)
-            { /* Services in EIDs match or the reference service is a wildcard */
-                IsMatch = true;
+    if (EID_Actual.Scheme == EID_Reference.Scheme)
+    { /* The EID schemes are compatible for comparison */
+        if (EID_Actual.Authority == EID_Reference.Authority || EID_Reference.Authority == BPLIB_EID_WILDCARD)
+        { /* Authority in EIDs match or the reference authority is a wildcard */
+            if (EID_Actual.Node == EID_Reference.Node || EID_Reference.Node == BPLIB_EID_WILDCARD)
+            { /* Node in EIDs match or the reference node is a wildcard */
+                if (EID_Actual.Service == EID_Reference.Service || EID_Reference.Service == BPLIB_EID_WILDCARD)
+                { /* Services in EIDs match or the reference service is a wildcard */
+                    IsMatch = true;
+                }
             }
         }
     }
