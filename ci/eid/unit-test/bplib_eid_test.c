@@ -30,19 +30,42 @@
 
 void Test_BPLib_EID_IsValid_Nominal(void)
 {
-    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(0));
-    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(5));
-    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(BPLIB_MAX_NUM_SOURCE_EID - 1));
+    BPLib_EID_t EID;
+    bool IsValid;
+
+    memset(&EID, 0, sizeof(BPLib_EID_t));
+
+    // EID = 1, 1.2.*
+    EID.Scheme    = 1;
+    EID.Authority = 1;
+    EID.Node      = 2;
+    EID.Service   = BPLIB_EID_WILDCARD;
+
+    IsValid = BPLib_EID_IsValid(EID);
+
+    UtAssert_BOOL_TRUE(IsValid);
 }
 
-void Test_BPLib_EID_IsValid_Error(void)
+void Test_BPLib_EID_IsValid_InvalidScheme_Error(void)
 {
-    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(-1));
-    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(BPLIB_MAX_NUM_SOURCE_EID));
+    BPLib_EID_t EID;
+    bool IsValid;
+
+    memset(&EID, 0, sizeof(BPLib_EID_t));
+
+    // EID = 3, *.2.3
+    EID.Scheme    = 3;
+    EID.Authority = BPLIB_EID_WILDCARD;
+    EID.Node      = 2;
+    EID.Service   = 3;
+
+    IsValid = BPLib_EID_IsValid(EID);
+
+    UtAssert_BOOL_FALSE(IsValid);
 }
 
 void TestBplibEid_Register(void)
 {
-    ADD_TEST(Test_BPLib_EID_IsValid_Error);
     ADD_TEST(Test_BPLib_EID_IsValid_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_InvalidScheme_Error);
 }
