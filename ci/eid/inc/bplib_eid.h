@@ -61,38 +61,15 @@ typedef enum
 
 typedef enum
 {
-    // EMERGENCY                 = 0,
-    // LATENCY                   = 1,
-    // PAYLOAD_SIZING            = 2,
-    // ROUTING                   = 3,
-    // CONFIGURATION             = 4,
-    // RENTENTION_ASSURANCE      = 5,
-    // COMMENCE_REGISTRATION     = 6,
-    // TERMINATE_REGISTRATION    = 7,
-    // SWITCH_REGISTRATION_STATE = 8,
-    // TRANSMIT                  = 9,
-    // CANCEL_TRANSMIT           = 10,
-    // POLL                      = 11,
-    // DELIVER                   = 12,
-    // STORE                     = 13,
-    // SECURITY                  = 14,
-    // STORAGE_MANAGEMENT        = 15,
-    // TRANSPORT_MANAGEMENT      = 16,
-    // USER_DATA_ACCOUNTING      = 17,
-    // USER_DEFINED_EXT_BLOCKS   = 18,
-
-    DELIVER                 = 0,
-    TRANSFER                = 1,
-    SERVICE_POLICY          = 2,
-    PRIORITY                = 3,
-    STORE                   = 4,
-    FRAGMENTATION_CONTROL   = 5,
-    DATA_ACCOUTNING         = 6,
-    CONFIDENTIALITY         = 7,
-    AUTHENTICATION          = 8,
-    EXTENSION_BLOCK_SUPPORT = 9,
-    BUNDLE_STATUS           = 10,
-    EMERGENCY               = 11,
+    DATA_ACCOUTNING = 0,    // Per IANA
+    FILE_DELIVERY   = 1,    // Per IANA
+    RESERVED        = 2,    // Per IANA
+    // 3 - 63 are unassigned services
+    CFDP_SENDER     = 64,
+    CFDP_RECEIVER   = 65,
+    // 66 - 1023 are unassigned services reserved for SANA
+    // 1024 - 65535 are unassigned services
+    // >= 65535 are unassigned services reserved for private or experimental use
 } BPLib_EID_Services_t;
 
 /* ================== */
@@ -103,9 +80,7 @@ typedef enum
  * \brief     Checks if the EID matches an expected, valid pattern
  * \details   TODO
  * \note      TODO
- * \param[in] Authority (uint64_t) The endpoints authority
- * \param[in] Node (uint64_t) System that implements DTN services
- * \param[in] Service (uint64_t) Communication protocol service
+ * \param[in] EID (BPLib_EID_t) EID struct consisting of an Authority, Node, and Service number
  * \return    EID validity
  * \retval    true: The EID matches the criteria required to be valid
  * \retval    false: The EID is invalid in some way
@@ -114,9 +89,6 @@ typedef enum
  * \endsecreflist
  * \anchor    BPLib_EID_IsValid
  */
-bool BPLib_EID_IsValid(uint64_t Authority, uint64_t Node, uint64_t Service);
-
-/* TODO: Documentation */
-void BPLib_EID_RequestService(uint64_t Service);
+bool BPLib_EID_IsValid(BPLib_EID_t EID);
 
 #endif /* BPLIB_EID_H */
