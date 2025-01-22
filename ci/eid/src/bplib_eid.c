@@ -28,20 +28,27 @@
 /* Function Definitions */
 /* ==================== */
 
-bool BPLib_EID_IsValid(uint64_t Authority, uint64_t Node, uint64_t Service)
+bool BPLib_EID_IsValid(BPLib_EID_t EID)
 {
     bool IsValid;
 
-    IsValid = false;
+    IsValid = true;
 
-    if (Authority == DTN_AUTH && Node == 0)
-    { /* dtn:none */
+    if (EID.Authority == 0)
+    {
+        if (EID.Node == 0)
+        { /* dtn:none */
 
+        }
+        else
+        { /* 2-digit IPN */
+
+        }
     }
     else
-    { /* any other authority, node, and service */
+    { /* 3-digit IPN */
 
     }
 
-    BPLib_EID_RequestService(Service);
+    return IsValid;
 }
