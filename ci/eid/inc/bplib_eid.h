@@ -91,4 +91,21 @@ typedef enum
  */
 bool BPLib_EID_IsValid(BPLib_EID_t EID);
 
+/**
+ * \brief     Checks if the one EID matches another EID
+ * \details   The various members of each EID are compared for equivalence
+ *            or whether the reference is a wildcard
+ * \note      Wildcards are represented as BPLIB_EID_WILDCARD
+ * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
+ * \param[in] EID_Reference (BPLib_EID_t) EID that is to be matched
+ * \return    EID match
+ * \retval    true: The actual EID does match the reference EID
+ * \retval    false: The actual EID does not match the reference EID
+ * \secreflist
+ * \refitem   BPLib_EID_t
+ * \endsecreflist
+ * \anchor    BPLib_EID_IsMatch
+ */
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
+
 #endif /* BPLIB_EID_H */
