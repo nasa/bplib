@@ -3,21 +3,29 @@
 
 #include "bplib_bundle.h"
 #include "bplib_qm_waitqueue.h"
+#include "bplib_mem.h"
 
 #define QM_NO_WAIT       WAITQUEUE_NO_WAIT
 #define QM_WAIT_FOREVER  WAITQUEUE_WAIT_FOREVER
 
 typedef enum BPLib_JobState
 {
-    STATE_CLA_TO_BI = 0,
-    STATE_BI_TO_EBP,
-    STATE_EBP_TO_CT,
-    STATE_CT_TO_CACHE,
-    STATE_CACHE_TO_CT,
-    STATE_CT_TO_EBP,
-    STATE_EBP_TO_BI,
-    STATE_BI_TO_CLA,
-    NUM_JOB_STATES /* Must be last */
+    /* Ingress States */
+    STATE_BI_IN,
+    STATE_EBP_IN,
+    STATE_CT_IN,
+    STATE_CACHE_IN,
+    STATE_PI_IN,
+    /* Egress States */
+    STATE_CLA_OUT,
+    STATE_BI_OUT,
+    STATE_EBP_OUT,
+    STATE_CT_OUT,
+    STATE_CACHE_OUT,
+    STATE_PI_OUT,
+    STATE_ADU_OUT,
+    /* Must be last */
+    NUM_JOB_STATES
 } BPLib_QM_JobState_t;
 
 typedef enum BPLib_QM_Priority
@@ -27,9 +35,9 @@ typedef enum BPLib_QM_Priority
 
 typedef struct BPLib_QM_QueueTable
 {
+    BPLib_MEM_Pool_t pool;
     BPLib_WaitQueue_t jobs;
     BPLib_WaitQueue_t events;
-    /* Can be made private, stored within waitqueue, etc */
     void* event_mem;
     void* job_mem;
 } BPLib_QM_QueueTable_t;
@@ -43,6 +51,13 @@ typedef struct BPLib_QM_Job
     BPLib_QM_JobFunc_t job_func;
     BPLib_QM_Priority_t priority;
 } BPLib_QM_Job_t;
+
+typedef struct BPLib_QM_Event
+{
+    BPLib_Bundle_t* bundle;
+    BPLib_QM_JobState_t next_state;
+    BPLib_QM_Priority_t priority;
+} BPLib_QM_Event_t;
 
 bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs);
 

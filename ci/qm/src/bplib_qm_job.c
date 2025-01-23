@@ -11,50 +11,53 @@ BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
 */
 BPLib_QM_JobState_t BPLib_Job_BI_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
-    printf("CLA TO BI\n");
-    return STATE_BI_TO_EBP;
+    return STATE_EBP_IN;
 }
 
 BPLib_QM_JobState_t BPLib_Job_EBP_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
-    printf("BI TO EBP\n");
-    return STATE_EBP_TO_CT;
+    return STATE_CT_IN;
 }
 
 BPLib_QM_JobState_t BPLib_Job_CT_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
-    printf("EBP TO CT\n");
-    return STATE_CT_TO_CACHE;
+    return STATE_CACHE_IN;
 }
 
 BPLib_QM_JobState_t BPLib_Job_CACHE_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
-    printf("CT TO CACHE\n");
-    return STATE_CACHE_TO_CT;
+    return STATE_PI_OUT;
 }
 
-BPLib_QM_JobState_t BPLib_Job_CACHE_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+BPLib_QM_JobState_t BPLib_Job_PI_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
-    printf("CACHE TO CT\n");
-    return STATE_CT_TO_EBP;
-}
-
-BPLib_QM_JobState_t BPLib_Job_CT_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
-{
-    printf("CT TO EBP\n");;
-    return STATE_EBP_TO_BI;
-}
-
-BPLib_QM_JobState_t BPLib_Job_EBP_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
-{
-    printf("EBP TO BI\n");
-    return STATE_BI_TO_CLA;
+    return STATE_CACHE_IN;
 }
 
 BPLib_QM_JobState_t BPLib_Job_BI_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
-    printf("BI TO CLA %lu\n", bundle->blocks.pri_blk.src_eid.node_number);
-    return STATE_CLA_TO_BI;
+    return STATE_CLA_OUT;
+}
+
+BPLib_QM_JobState_t BPLib_Job_EBP_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    return STATE_BI_OUT;
+}
+
+BPLib_QM_JobState_t BPLib_Job_CT_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    return STATE_EBP_OUT;
+}
+
+BPLib_QM_JobState_t BPLib_Job_CACHE_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    return STATE_CT_OUT;
+}
+
+BPLib_QM_JobState_t BPLib_Job_PI_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
+{
+    printf("PI EGRESS REACHED\n");
+    return STATE_ADU_OUT;
 }
 
 void BPLib_QM_JobTableInit()
@@ -65,14 +68,16 @@ void BPLib_QM_JobTableInit()
     }
 
     memset(job_funcs, 0, sizeof(job_funcs));
-    job_funcs[STATE_CLA_TO_BI] = BPLib_Job_BI_Ingress;
-    job_funcs[STATE_BI_TO_EBP] = BPLib_Job_EBP_Ingress;
-    job_funcs[STATE_EBP_TO_CT] = BPLib_Job_CT_Ingress;
-    job_funcs[STATE_CT_TO_CACHE] = BPLib_Job_CACHE_Ingress;
-    job_funcs[STATE_CACHE_TO_CT] = BPLib_Job_CACHE_Egress;
-    job_funcs[STATE_CT_TO_EBP] = BPLib_Job_CT_Egress;
-    job_funcs[STATE_EBP_TO_BI] = BPLib_Job_EBP_Egress;
-    job_funcs[STATE_BI_TO_CLA] = BPLib_Job_BI_Egress;
+    job_funcs[STATE_BI_IN] = BPLib_Job_BI_Ingress;
+    job_funcs[STATE_EBP_IN] = BPLib_Job_EBP_Ingress;
+    job_funcs[STATE_CT_IN] = BPLib_Job_CT_Ingress;
+    job_funcs[STATE_CACHE_IN] = BPLib_Job_CACHE_Ingress;
+    job_funcs[STATE_PI_IN] = BPLib_Job_PI_Ingress;
+    job_funcs[STATE_BI_OUT] = BPLib_Job_BI_Egress;
+    job_funcs[STATE_EBP_OUT] = BPLib_Job_EBP_Egress;
+    job_funcs[STATE_CT_OUT] = BPLib_Job_CT_Egress;
+    job_funcs[STATE_CACHE_OUT] = BPLib_Job_CACHE_Egress;
+    job_funcs[STATE_PI_OUT] = BPLib_Job_PI_Egress;
 
     /* In a codebase with BPLib_Init(), we would just call JobTableInit() */
     jobs_table_init_done = true;

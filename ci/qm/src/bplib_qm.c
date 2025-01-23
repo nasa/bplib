@@ -1,5 +1,6 @@
 #include "bplib_qm.h"
 #include "bplib_qm_job.h"
+#include "bplib_pl.h"
 
 #include "osapi.h"
 
@@ -10,13 +11,6 @@
 #define BPLIB_QM_RUNJOB_PERF_ID 0x7F
 #define BPLIB_QM_EVT_TIMEOUT_MAX_MS 1L
 
-typedef struct BPLib_QM_Event
-{
-    BPLib_Bundle_t* bundle;
-    BPLib_QM_JobState_t next_state;
-    BPLib_QM_Priority_t priority;
-} BPLib_QM_Event_t;
-
 bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
 {
     bool queue_init;
@@ -26,10 +20,10 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
         return false;
     }
 
-    /* Belongs in BPLib_Init(), but this demo doesn't have that function */
+    /* Belongs in BPLib_Init(), but we don't have that function. */
     BPLib_QM_JobTableInit();
 
-    /* This is one-time allocation when BPLib is initialized
+    /* This is a one-time allocation when BPLib is initialized
     ** Note: We have decided to modify this so that job_mem and event_mem are passed
     **  in as parameters this function. This will be done in a future ticket.
     */
@@ -88,42 +82,6 @@ bool BPLib_QM_PostEvent(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle,
     return BPLib_CI_WaitQueueTryPush(&(tbl->events), &event, timeout_ms);
 }
 
-void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
-{
-    size_t jobs_scheduled;
-    BPLib_QM_Job_t curr_job;
-    BPLib_QM_Event_t curr_event;
-
-    jobs_scheduled = 0;
-    while (jobs_scheduled < num_jobs)
-    {
-        if (BPLib_CI_WaitQueueTryPull(&(tbl->events), &curr_event, BPLIB_QM_EVT_TIMEOUT_MAX_MS))
-        {
-            /* Construct a new job for this event */
-            curr_job.bundle = curr_event.bundle;
-            curr_job.state = curr_event.next_state;
-            curr_job.job_func = job_funcs[curr_event.next_state];
-            assert(curr_job.job_func != NULL);
-            curr_job.priority = curr_event.priority;
-
-            /* Add the job to the job queue so a worker can discover it 
-            ** Note: There is no backpressuring logic right now so this can block indefintely.
-            **  This will only do so if the system is clogged or misconfigured. 
-            **  We will have to remove the 'WAITQUEUE_WAIT_FOREVER` and replace it 
-            **  with a backpressuring strategy, but it should be done in a future ticket.
-            */
-            BPLib_CI_WaitQueueTryPush(&(tbl->jobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
-            jobs_scheduled++;
-        }
-        else
-        {
-            break;
-        }
-    }
-
-    return;
-}
-
 void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
 {
     BPLib_QM_Job_t curr_job;
@@ -132,9 +90,9 @@ void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
     if (BPLib_CI_WaitQueueTryPull(&(tbl->jobs), &curr_job, timeout_ms))
     {
         /* Run the job and get back the next state */
-        // PERF ENTRY
+        BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
         next_state = curr_job.job_func(tbl, curr_job.bundle);
-        // PERF EXIT
+        BPLib_PL_PerfLogExit(BPLIB_QM_RUNJOB_PERF_ID);
 
         /* Create a new event with the next state and post it to the event loop 
         ** Important note here:
@@ -151,4 +109,52 @@ void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
         */
         BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     }
+}
+
+
+void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
+{
+    size_t jobs_scheduled;
+    BPLib_QM_Job_t curr_job;
+    BPLib_QM_Event_t curr_event;
+
+    jobs_scheduled = 0;
+    while (jobs_scheduled < num_jobs)
+    {
+        if (BPLib_CI_WaitQueueTryPull(&(tbl->events), &curr_event, BPLIB_QM_EVT_TIMEOUT_MAX_MS))
+        {
+            if (curr_event.next_state == STATE_ADU_OUT)
+            {
+                printf("Push to ADU Thr\n");
+            }
+            else if (curr_event.next_state == STATE_CLA_OUT)
+            {
+                printf("Push to CLA Thr\n");
+            }
+            else
+            {
+                /* Construct a new job for this event */
+                curr_job.bundle = curr_event.bundle;
+                curr_job.state = curr_event.next_state;
+                curr_job.job_func = job_funcs[curr_event.next_state];
+                assert(curr_job.job_func != NULL);
+                curr_job.priority = curr_event.priority;
+
+                /* Add the job to the job queue so a worker can discover it 
+                ** Note: There is no backpressuring logic right now so this can block indefintely.
+                **  This will only do so if the system is clogged or misconfigured. 
+                **  We will have to remove the 'WAITQUEUE_WAIT_FOREVER` and replace it 
+                **  with a backpressuring strategy, but it should be done in a future ticket.
+                */
+                BPLib_CI_WaitQueueTryPush(&(tbl->jobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
+                jobs_scheduled++;
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return;
 }

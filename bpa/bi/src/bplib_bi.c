@@ -23,7 +23,8 @@
 */
 
 #include "bplib_bi.h"
-
+#include "bplib_qm.h"
+#include "osapi.h"
 
 /*
 ** Function Definitions
@@ -34,27 +35,78 @@ int BPLib_BI_Init(void) {
 }
 
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
-BPLib_Status_t BPLib_BI_RecvFullBundleIn(const void *BundleIn, size_t Size)
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void *BundleIn, size_t Size)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
+    BPLib_MEM_Block_t* curr_block;
+    size_t num_blob_blocks;
+    BPLib_Bundle_t* bundle;
+    int i;
+
+    if (tbl == NULL)
+    {
+        return BPLIB_ERROR;
+    }
+
     /* 
      * CBOR Decode the bundle and return the deserialized bundle pointer 
     */
-    
+
     /* Validate the deserialized bundle*/
     Status = BPLib_BI_ValidateBundle();
     
     /* 
      * Pass the deserialized bundle into EBP In Queue 
     */
+
+    /* Presently, there is no bundle deserialization. We're just going to create a faux bundle and attach BundleIn
+    ** as the Blob
+    */
+    /* Bundle Header */
+    curr_block = BPLib_MEM_BlockAlloc(&tbl->pool);
+    if (curr_block == NULL)
+    {
+        return BPLIB_ERROR;
+    }
+    bundle = (BPLib_Bundle_t*)(curr_block);
+    /* This data is arbitary. I should fill out that test_init function */
+    bundle->blocks.pri_blk.version = 7;
+    bundle->blocks.pri_blk.src_eid.node_number = 0x42;
+
+    /* Blob */
+    num_blob_blocks = BPLib_MEM_BlockListAlloc(&tbl->pool, Size, &curr_block);
+    if (num_blob_blocks == 0)
+    {
+        BPLib_MEM_BlockFree(&tbl->pool, (BPLib_MEM_Block_t*)bundle);
+        return BPLIB_ERROR;
+    }
+    bundle->blob = curr_block;
+    for (i = 0; i < num_blob_blocks; i++)
+    {
+        OS_printf("Copy chunk %d\n", i);
+        /* Note: all blocks are guaranteed to have the same chunk_len */
+        memcpy(curr_block->chunk, (uint8*)(BundleIn) + (i * curr_block->chunk_len), curr_block->chunk_len);
+        curr_block = curr_block->next;
+    }
+    /* At this point curr_block should be NULL. */
+    #include <assert.h>
+    assert(curr_block == NULL);
+
+    //BPLib_QM_EventPost(tbl, bundle);
+    BPLib_QM_PostEvent(tbl, bundle, STATE_BI_IN, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
 }
 
 /* Pull deserialized bundle from BI Out Queue, CBOR encode it, then send it to CLA */
-BPLib_Status_t BPLib_BI_SendFullBundleOut(void *BundleOut, size_t* Size)
+BPLib_Status_t BPLib_BI_SendFullBundleOut(BPLib_QM_QueueTable_t* tbl, void *BundleOut, size_t* Size)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-    
+
+    if (tbl == NULL)
+    {
+        return BPLIB_ERROR;
+    }
+
     /* 
      * Pull the deserialized bundle from BI Out Queue 
      */

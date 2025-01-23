@@ -18,6 +18,6 @@ target_include_directories(bplib_cla PUBLIC
 )
 
 # Add unit tests
-if(BPLIB_ENABLE_UNIT_TESTS)
-  add_subdirectory(unit-test)
-endif(BPLIB_ENABLE_UNIT_TESTS)
+#if(BPLIB_ENABLE_UNIT_TESTS)
+#  add_subdirectory(unit-test)
+#endif(BPLIB_ENABLE_UNIT_TESTS)

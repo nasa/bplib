@@ -36,47 +36,54 @@ BPLib_Status_t BPLib_CLA_Init(void) {
 }
 
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
-BPLib_Status_t BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     const uint8_t *InBundle = Bundle;
+
+    if (tbl == NULL)
+    {
+        return BPLIB_ERROR;
+    }
+
     if (Bundle != NULL)
     {
-        /* Count candidate bundles received from CL*/
-        if (*InBundle != 0x9F) /*Check CBOR indefinite-length array*/
+        /* Not a RFC 9171 bundle. Can be a control message or junk*/
+        if (BPLib_CLA_IsAControlMsg(InBundle))
         {
-            /* Not a RFC 9171 bundle. Can be a control message or junk*/
-            if (BPLib_CLA_IsAControlMsg(InBundle))
-            {
-                /* Processes the control message and pass to BI*/
-                BPLib_CLA_ProcessControlMessage((BPLib_CLA_CtrlMsg_t*)Bundle);
-                
-            }
+            /* Processes the control message and pass to BI*/
+            BPLib_CLA_ProcessControlMessage((BPLib_CLA_CtrlMsg_t*)Bundle);
+            
         }
         else
         {
             /* Receive a RFC 9171 bundle and pass it to BI*/
-            Status = BPLib_BI_RecvFullBundleIn(Bundle, Size);
+            Status = BPLib_BI_RecvFullBundleIn(tbl, Bundle, Size);
             if (Status != BPLIB_SUCCESS)
             {
                 
             }
         }
-        
     }
     
     return Status;    
 }
 
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
-BPLib_Status_t BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Egress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     const uint8_t *InBundle = Bundle;
+
+    if (tbl == NULL)
+    {
+        return BPLIB_ERROR;
+    }
+
     if (InBundle != NULL)
     {
         /* Receive a RFC9171 deserialized bundle from BI and send it to CL */
-        Status = BPLib_BI_SendFullBundleOut(Bundle, Size);
+        Status = BPLib_BI_SendFullBundleOut(tbl, Bundle, Size);
         if (Status != BPLIB_SUCCESS)
         {
 
