@@ -26,7 +26,8 @@ BPLib_QM_JobState_t BPLib_Job_CT_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundl
 
 BPLib_QM_JobState_t BPLib_Job_CACHE_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)
 {
-    return STATE_PI_OUT;
+    //return STATE_PI_OUT; // Go back to CLA here
+    return STATE_EBP_OUT;
 }
 
 BPLib_QM_JobState_t BPLib_Job_PI_Ingress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle)

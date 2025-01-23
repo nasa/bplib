@@ -123,13 +123,15 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
     {
         if (BPLib_CI_WaitQueueTryPull(&(tbl->events), &curr_event, BPLIB_QM_EVT_TIMEOUT_MAX_MS))
         {
-            if (curr_event.next_state == STATE_ADU_OUT)
-            {
-                printf("Push to ADU Thr\n");
-            }
-            else if (curr_event.next_state == STATE_CLA_OUT)
+            if (curr_event.next_state == STATE_CLA_OUT)
             {
                 printf("Push to CLA Thr\n");
+                BPLib_MEM_BlockListFree(&tbl->pool, curr_event.bundle->blob);
+                BPLib_MEM_BlockFree(&tbl->pool, (BPLib_MEM_Block_t*)curr_event.bundle);
+            }
+            else if (curr_event.next_state == STATE_ADU_OUT)
+            {
+                printf("Got to ADU Out\n");
             }
             else
             {

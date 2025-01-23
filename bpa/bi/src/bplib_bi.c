@@ -21,10 +21,9 @@
 /*
 ** Include
 */
-
+#include <stdio.h>
 #include "bplib_bi.h"
 #include "bplib_qm.h"
-#include "osapi.h"
 
 /*
 ** Function Definitions
@@ -39,7 +38,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_MEM_Block_t* curr_block;
-    size_t num_blob_blocks;
+    size_t num_blob_blocks, n_copy, bytes_copied;
     BPLib_Bundle_t* bundle;
     int i;
 
@@ -74,7 +73,9 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
     bundle->blocks.pri_blk.src_eid.node_number = 0x42;
 
     /* Blob */
+    printf("\nAllocate Bundle Metadata for new packet\n");
     num_blob_blocks = BPLib_MEM_BlockListAlloc(&tbl->pool, Size, &curr_block);
+    bytes_copied = 0;
     if (num_blob_blocks == 0)
     {
         BPLib_MEM_BlockFree(&tbl->pool, (BPLib_MEM_Block_t*)bundle);
@@ -83,16 +84,24 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
     bundle->blob = curr_block;
     for (i = 0; i < num_blob_blocks; i++)
     {
-        OS_printf("Copy chunk %d\n", i);
+
         /* Note: all blocks are guaranteed to have the same chunk_len */
-        memcpy(curr_block->chunk, (uint8*)(BundleIn) + (i * curr_block->chunk_len), curr_block->chunk_len);
+        n_copy = curr_block->chunk_len - 1;
+        if (Size - bytes_copied < curr_block->chunk_len)
+        {
+            n_copy = Size - bytes_copied;
+        }
+        printf("Copy CLA payload chunk %d / %lu, Copy Size: %lu Chunk Size: %lu\n",
+            i+1, num_blob_blocks, n_copy, curr_block->chunk_len);
+        memset(curr_block->chunk, 0, curr_block->chunk_len);
+        memcpy(curr_block->chunk, (uint8_t*)(BundleIn) + (i * curr_block->chunk_len), n_copy);
+        printf("Payload string: %s\n", (char*) curr_block->chunk);
+
+        /* Go to the next block */
+        bytes_copied += n_copy;
         curr_block = curr_block->next;
     }
-    /* At this point curr_block should be NULL. */
-    #include <assert.h>
-    assert(curr_block == NULL);
 
-    //BPLib_QM_EventPost(tbl, bundle);
     BPLib_QM_PostEvent(tbl, bundle, STATE_BI_IN, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
 }
