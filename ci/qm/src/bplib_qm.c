@@ -28,14 +28,13 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
     **  in as parameters this function. This will be done in a future ticket.
     */
     tbl->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
-    if (tbl->job_mem == NULL)
-    {
-        return false;
-    }
     tbl->event_mem = calloc(max_jobs, sizeof(BPLib_QM_Event_t));
+    tbl->cla_out_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
     if (tbl->event_mem == NULL)
     {
         free(tbl->job_mem);
+        free(tbl->event_mem);
+        free(tbl->cla_out_mem);
         return false;
     }
 
@@ -49,10 +48,15 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
     {
         queue_init = false;
     }
+    if (!BPLib_CI_WaitQueueInit(&(tbl->cla_out), tbl->cla_out_mem, sizeof(BPLib_Bundle_t*), max_jobs))
+    {
+        queue_init = false;
+    }
     if (!queue_init)
     {
         free(tbl->job_mem);
         free(tbl->event_mem);
+        free(tbl->cla_out_mem);
         return false;
     }
 
@@ -68,8 +72,10 @@ void BPLib_QM_QueueTableDestroy(BPLib_QM_QueueTable_t* tbl)
 
     BPLib_CI_WaitQueueDestroy(&(tbl->jobs));
     BPLib_CI_WaitQueueDestroy(&(tbl->events));
+    BPLib_CI_WaitQueueDestroy(&(tbl->cla_out));
     free(tbl->job_mem);
     free(tbl->event_mem);
+    free(tbl->cla_out_mem);
 }
 
 bool BPLib_QM_PostEvent(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle,
@@ -125,13 +131,11 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
         {
             if (curr_event.next_state == STATE_CLA_OUT)
             {
-                printf("Push to CLA Thr\n");
-                BPLib_MEM_BlockListFree(&tbl->pool, curr_event.bundle->blob);
-                BPLib_MEM_BlockFree(&tbl->pool, (BPLib_MEM_Block_t*)curr_event.bundle);
+                BPLib_CI_WaitQueueTryPush(&(tbl->cla_out), &curr_event.bundle, WAITQUEUE_WAIT_FOREVER);
             }
             else if (curr_event.next_state == STATE_ADU_OUT)
             {
-                printf("Got to ADU Out\n");
+                /* Implement something similar to CLA Out State */
             }
             else
             {

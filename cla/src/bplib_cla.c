@@ -21,10 +21,12 @@
 /*
 ** Include
 */
+#include <stdio.h>
 
 #include "bplib_cla.h"
 #include "bplib_cla_internal.h"
 #include "bplib_bi.h"
+#include "bplib_qm.h"
 
 
 /*
@@ -57,12 +59,8 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, con
         }
         else
         {
-            /* Receive a RFC 9171 bundle and pass it to BI*/
+            /* Receive a RFC 9171 bundle and pass it to BI */
             Status = BPLib_BI_RecvFullBundleIn(tbl, Bundle, Size);
-            if (Status != BPLIB_SUCCESS)
-            {
-                
-            }
         }
     }
     
@@ -72,24 +70,31 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, con
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
 BPLib_Status_t BPLib_CLA_Egress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout)
 {
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-    const uint8_t *InBundle = Bundle;
+    BPLib_Bundle_t* bundle;
+    size_t bytes_copied;
+    BPLib_MEM_Block_t* curr_block;
 
     if (tbl == NULL)
     {
         return BPLIB_ERROR;
     }
 
-    if (InBundle != NULL)
+    if (BPLib_CI_WaitQueueTryPull(&tbl->cla_out, &bundle, Timeout))
     {
-        /* Receive a RFC9171 deserialized bundle from BI and send it to CL */
-        Status = BPLib_BI_SendFullBundleOut(tbl, Bundle, Size);
-        if (Status != BPLIB_SUCCESS)
+        bytes_copied = 0;
+        curr_block = bundle->blob;
+        while (curr_block != NULL)
         {
-
+            memcpy((uint8_t*)Bundle + bytes_copied, curr_block->chunk, curr_block->chunk_len);
+            bytes_copied += curr_block->chunk_len;
+            curr_block = curr_block->next;
         }
+        BPLib_MEM_BlockListFree(&tbl->pool, bundle->blob);
+        BPLib_MEM_BlockFree(&tbl->pool, (BPLib_MEM_Block_t*)bundle);
+        *Size = bytes_copied;
+        return BPLIB_SUCCESS;
     }
-    return Status;    
+    return BPLIB_CLA_TIMEOUT;
 }
 
 /* Validate Contacts table data */

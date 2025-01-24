@@ -36,10 +36,12 @@ typedef enum BPLib_QM_Priority
 typedef struct BPLib_QM_QueueTable
 {
     BPLib_MEM_Pool_t pool;
-    BPLib_WaitQueue_t jobs;
-    BPLib_WaitQueue_t events;
-    void* event_mem;
     void* job_mem;
+    BPLib_WaitQueue_t jobs;
+    void* event_mem;
+    BPLib_WaitQueue_t events;
+    void* cla_out_mem;
+    BPLib_WaitQueue_t cla_out;
 } BPLib_QM_QueueTable_t;
 
 typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle);
