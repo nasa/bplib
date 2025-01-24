@@ -33,8 +33,7 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool);
 
 void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block);
 
-size_t BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len,
-    BPLib_MEM_Block_t **ret_head);
+BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len);
 
 void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head);
 

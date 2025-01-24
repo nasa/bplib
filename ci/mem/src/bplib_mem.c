@@ -63,14 +63,14 @@ void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block)
     pthread_mutex_unlock(&pool->lock);
 }
 
-size_t BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len, BPLib_MEM_Block_t **ret_head)
+BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len)
 {
     size_t bytes_alloc, blocks_alloc;
     BPLib_MEM_Block_t* head;
     BPLib_MEM_Block_t* curr_tail;
     BPLib_MEM_Block_t* new_block;
 
-    if (pool == NULL || byte_len == 0 || ret_head == NULL)
+    if (pool == NULL || byte_len == 0)
     {
         return 0;
     }
@@ -84,8 +84,7 @@ size_t BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len, BPLib_M
         if (new_block == NULL)
         {
             BPLib_MEM_BlockListFree(pool, head);
-            *ret_head = NULL;
-            return 0;
+            return NULL;
         }
         blocks_alloc++;
         bytes_alloc += BPLIB_MEM_CHUNKSIZE;
@@ -102,8 +101,7 @@ size_t BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len, BPLib_M
         }
     } while (bytes_alloc < byte_len);
 
-    *ret_head = head;
-    return blocks_alloc;
+    return head;
 }
 
 void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head)

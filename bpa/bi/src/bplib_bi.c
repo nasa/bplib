@@ -38,9 +38,8 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_MEM_Block_t* curr_block;
-    size_t num_blob_blocks, n_copy, bytes_copied;
+    size_t n_copy, bytes_copied;
     BPLib_Bundle_t* bundle;
-    int i;
 
     if (tbl == NULL)
     {
@@ -68,21 +67,20 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
         return BPLIB_ERROR;
     }
     bundle = (BPLib_Bundle_t*)(curr_block);
-    /* This data is arbitary. I should fill out that test_init function */
     bundle->blocks.pri_blk.version = 7;
     bundle->blocks.pri_blk.src_eid.node_number = 0x42;
 
     /* Blob */
-    printf("\nAllocate Bundle Metadata for new packet\n");
-    num_blob_blocks = BPLib_MEM_BlockListAlloc(&tbl->pool, Size, &curr_block);
-    bytes_copied = 0;
-    if (num_blob_blocks == 0)
+    curr_block = BPLib_MEM_BlockListAlloc(&tbl->pool, Size);
+    if (curr_block == NULL)
     {
         BPLib_MEM_BlockFree(&tbl->pool, (BPLib_MEM_Block_t*)bundle);
         return BPLIB_ERROR;
     }
+
+    bytes_copied = 0;
     bundle->blob = curr_block;
-    for (i = 0; i < num_blob_blocks; i++)
+    while (curr_block != NULL)
     {
         n_copy = BPLIB_MEM_CHUNKSIZE;
         if (Size - bytes_copied < n_copy)
@@ -91,13 +89,12 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
         }
         memcpy(curr_block->chunk, (uint8_t*)(BundleIn) + bytes_copied, n_copy);
         curr_block->chunk_len = n_copy;
-        printf("Copy CLA payload chunk %d / %lu, Copy Size: %lu Chunk Size: %lu\n",
-            i+1, num_blob_blocks, n_copy, curr_block->chunk_len);
 
         /* Go to the next block */
         bytes_copied += n_copy;
         curr_block = curr_block->next;
     }
+    printf("Ingressing packet of %lu bytes from CLA\n", n_copy);
 
     BPLib_QM_PostEvent(tbl, bundle, STATE_BI_IN, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
