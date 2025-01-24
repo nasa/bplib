@@ -92,6 +92,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, void
         BPLib_MEM_BlockListFree(&tbl->pool, bundle->blob);
         BPLib_MEM_BlockFree(&tbl->pool, (BPLib_MEM_Block_t*)bundle);
         *Size = bytes_copied;
+        printf("Egressing packet of %lu bytes to CLA\n", *Size);
         return BPLIB_SUCCESS;
     }
     return BPLIB_CLA_TIMEOUT;

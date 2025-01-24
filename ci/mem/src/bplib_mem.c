@@ -45,7 +45,7 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool)
     pthread_mutex_lock(&pool->lock);
     block = (BPLib_MEM_Block_t*)(BPLib_MEM_PoolImplAlloc(&pool->impl));
     pthread_mutex_unlock(&pool->lock);
-    block->chunk_len = BPLIB_MEM_CHUNKSIZE;
+    block->chunk_len = 0;
     block->next = NULL;
 
     return block;
@@ -88,7 +88,7 @@ size_t BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len, BPLib_M
             return 0;
         }
         blocks_alloc++;
-        bytes_alloc += new_block->chunk_len;
+        bytes_alloc += BPLIB_MEM_CHUNKSIZE;
 
         if (head == NULL)
         {

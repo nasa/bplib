@@ -84,17 +84,15 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
     bundle->blob = curr_block;
     for (i = 0; i < num_blob_blocks; i++)
     {
-
-        /* Note: all blocks are guaranteed to have the same chunk_len */
-        n_copy = curr_block->chunk_len;
-        if (Size - bytes_copied < curr_block->chunk_len)
+        n_copy = BPLIB_MEM_CHUNKSIZE;
+        if (Size - bytes_copied < n_copy)
         {
             n_copy = Size - bytes_copied;
         }
+        memcpy(curr_block->chunk, (uint8_t*)(BundleIn) + bytes_copied, n_copy);
+        curr_block->chunk_len = n_copy;
         printf("Copy CLA payload chunk %d / %lu, Copy Size: %lu Chunk Size: %lu\n",
             i+1, num_blob_blocks, n_copy, curr_block->chunk_len);
-        //memset(curr_block->chunk, 0, curr_block->chunk_len);
-        memcpy(curr_block->chunk, (uint8_t*)(BundleIn) + bytes_copied, n_copy);
 
         /* Go to the next block */
         bytes_copied += n_copy;
