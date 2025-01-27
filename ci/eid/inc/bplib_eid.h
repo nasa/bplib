@@ -60,20 +60,6 @@ typedef struct
 } BPLib_EID_IPN3_t;
 
 /**
- * \brief Allows flexibility on whether the EID uses a 2- or 3-digit IPN
- * \secreflist
- * \refitem BPLib_EID_IPN2_t
- * \refitem BPLib_EID_IPN3_t
- * \endsecreflist
- * \anchor BPLib_EID_IPN_t
- */
-typedef union
-{
-    BPLib_EID_IPN2_t IPN2;
-    BPLib_EID_IPN3_t IPN3;
-} BPLib_EID_IPN_t;
-
-/**
  * \brief Provides discrete values for the scheme of the EID
  * \anchor BPLib_EID_Scheme_t
  */
@@ -95,7 +81,12 @@ typedef enum
 typedef struct
 {
     BPLib_EID_Scheme_t Scheme; /* The form the EID takes */
-    BPLib_EID_IPN_t    IPN;    /* 2- or 3-digit IPN */
+
+    union
+    {
+        BPLib_EID_IPN2_t IPN2;
+        BPLib_EID_IPN3_t IPN3;
+    } IPN;
 } BPLib_EID_t;
 
 /* ================== */

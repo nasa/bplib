@@ -32,12 +32,12 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
 {
     bool IsValid;
 
-    if (EID.Scheme == BPLIB_EID_SCHEME_INT || EID.Scheme == BPLIB_EID_SCHEME_STR)
+    if (EID.Scheme == BPLIB_EID_SCHEME_INT || EID.Scheme == BPLIB_EID_SCHEME_STRING)
     {
         /* NOTE: 2-digit IPNs will have a default Authority of 0 */
-        if (EID.Authority == 0)
+        if (EID.IPN.IPN3.Authority == 0)
         {
-            if (EID.Node == 0)
+            if (EID.IPN.IPN2.Node == 0)
             { /* dtn:none */
                 IsValid = true;
             }
@@ -67,11 +67,17 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
 
     if (EID_Actual.Scheme == EID_Reference.Scheme)
     { /* The EID schemes are compatible for comparison */
-        if (EID_Actual.Authority == EID_Reference.Authority || EID_Actual.Authority == BPLIB_EID_WILDCARD || EID_Reference.Authority == BPLIB_EID_WILDCARD)
+        if (EID_Actual.IPN.IPN3.Authority    == EID_Reference.IPN.IPN3.Authority ||
+            EID_Actual.IPN.IPN3.Authority    == BPLIB_EID_WILDCARD               ||
+            EID_Reference.IPN.IPN3.Authority == BPLIB_EID_WILDCARD)
         { /* Authority in EIDs match or the either EID's authority is a wildcard */
-            if (EID_Actual.Node == EID_Reference.Node || EID_Actual.Node == BPLIB_EID_WILDCARD || EID_Reference.Node == BPLIB_EID_WILDCARD)
+            if (EID_Actual.IPN.IPN3.Node    == EID_Reference.IPN.IPN3.Node ||
+                EID_Actual.IPN.IPN3.Node    == BPLIB_EID_WILDCARD          ||
+                EID_Reference.IPN.IPN3.Node == BPLIB_EID_WILDCARD)
             { /* Node in EIDs match or either EID's node is a wildcard */
-                if (EID_Actual.Service == EID_Reference.Service || EID_Actual.Service == BPLIB_EID_WILDCARD || EID_Reference.Service == BPLIB_EID_WILDCARD)
+                if (EID_Actual.IPN.IPN3.Service    == EID_Reference.IPN.IPN3.Service ||
+                    EID_Actual.IPN.IPN3.Service    == BPLIB_EID_WILDCARD             ||
+                    EID_Reference.IPN.IPN3.Service == BPLIB_EID_WILDCARD)
                 { /* Services in EIDs match or either EID's service is a wildcard */
                     IsMatch = true;
                 }
