@@ -39,7 +39,7 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
     }
 
     /* Belongs in BPLib_Init(), but we don't have that function. */
-    BPLib_QM_JobTableInit();
+    BPLib_QM_Job_TableInit();
 
     /* This is a one-time allocation when BPLib is initialized
     ** Note: We have decided to modify this so that job_mem and event_mem are passed
@@ -160,7 +160,7 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
                 /* Construct a new job for this event */
                 curr_job.bundle = curr_event.bundle;
                 curr_job.state = curr_event.next_state;
-                curr_job.job_func = job_funcs[curr_event.next_state];
+                curr_job.job_func = BPLib_QM_Job_Lookup(curr_event.next_state);
                 assert(curr_job.job_func != NULL);
                 curr_job.priority = curr_event.priority;
 

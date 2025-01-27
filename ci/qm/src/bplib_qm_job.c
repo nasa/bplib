@@ -24,7 +24,7 @@
 #include <string.h>
 
 static bool jobs_table_init_done = false;
-BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
+static BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
 
 /* 
 ** Job Functions - These are the entry points to jobs being run in QM.
@@ -81,7 +81,7 @@ BPLib_QM_JobState_t BPLib_Job_PI_Egress(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle
     return STATE_ADU_OUT;
 }
 
-void BPLib_QM_JobTableInit()
+void BPLib_QM_Job_TableInit()
 {
     if (jobs_table_init_done)
     {
@@ -102,4 +102,13 @@ void BPLib_QM_JobTableInit()
 
     /* In a codebase with BPLib_Init(), we would just call JobTableInit() */
     jobs_table_init_done = true;
+}
+
+BPLib_QM_JobFunc_t BPLib_QM_Job_Lookup(BPLib_QM_JobState_t job_state)
+{
+    if ((job_state >= 0) && (job_state < NUM_JOB_STATES))
+    {
+        return job_funcs[job_state];
+    }
+    return NULL;
 }
