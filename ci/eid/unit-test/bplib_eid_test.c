@@ -28,300 +28,266 @@
 /* Function Definitions */
 /* ==================== */
 
-void Test_BPLib_EID_IsValid_Nominal(void)
+void Test_BPLib_EID_IsValid_DTN_Nominal(void)
 {
-    bool IsValid;
+    EID_Test.Scheme  = BPLIB_EID_SCHEME_DTN;
+    EID_Test.Node    = 0;
+    EID_Test.Service = 0;
 
-    // EID (3-digit IPN) = 2, 1.2.*
-    EID_A.Scheme             = BPLIB_EID_SCHEME_STRING;
-    EID_A.IPN.IPN3.Authority = 1;
-    EID_A.IPN.IPN3.Node      = 2;
-    EID_A.IPN.IPN3.Service   = BPLIB_EID_WILDCARD;
-
-    IsValid = BPLib_EID_IsValid(EID_A);
-
-    UtAssert_BOOL_TRUE(IsValid);
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
 }
 
-void Test_BPLib_EID_IsValid_DTN_None_Nominal(void)
+void Test_BPLib_EID_IsValid_IPN_Nominal(void)
 {
-    bool IsValid;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnFormat = 3;
+    EID_Test.Authority = 1;
+    EID_Test.Node      = BPLIB_EID_WILDCARD;
+    EID_Test.Service   = 2;
 
-    // EID (2-digit IPN) = 1, 0.*
-    EID_A.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN2.Node    = 0;
-    EID_A.IPN.IPN2.Service = BPLIB_EID_WILDCARD;
-
-    IsValid = BPLib_EID_IsValid(EID_A);
-
-    UtAssert_BOOL_TRUE(IsValid);
-}
-
-void Test_BPLib_EID_IsValid_2DigitIPN_Nominal(void)
-{
-    bool IsValid;
-
-    // EID (2-digit IPN) = 1, *.2
-    EID_A.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN2.Node    = BPLIB_EID_WILDCARD;
-    EID_A.IPN.IPN2.Service = 2;
-
-    IsValid = BPLib_EID_IsValid(EID_A);
-
-    UtAssert_BOOL_TRUE(IsValid);
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
 }
 
 void Test_BPLib_EID_IsValid_InvalidScheme_Error(void)
 {
-    bool IsValid;
+    EID_Test.Scheme = 3;
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
 
-    // EID (3-digit IPN) = 3, *.2.3
-    EID_A.Scheme             = 3;
-    EID_A.IPN.IPN3.Authority = BPLIB_EID_WILDCARD;
-    EID_A.IPN.IPN3.Node      = 2;
-    EID_A.IPN.IPN3.Service   = 3;
+void Test_BPLib_EID_IsValid_InvalidDTNNode_Error(void)
+{
+    EID_Test.Scheme = BPLIB_EID_SCHEME_DTN;
+    EID_Test.Node   = 1;
 
-    IsValid = BPLib_EID_IsValid(EID_A);
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
 
-    UtAssert_BOOL_FALSE(IsValid);
+void Test_BPLib_EID_IsValid_InvalidDTNService_Error(void)
+{
+    EID_Test.Scheme  = BPLIB_EID_SCHEME_DTN;
+    EID_Test.Node    = 0;
+    EID_Test.Service = 1;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_InvalidIPN_Error(void)
+{
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnFormat = 2;
+    EID_Test.Authority = 1;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
 }
 
 void Test_BPLib_EID_IsMatch_Nominal(void)
 {
-    bool IsMatch;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnFormat = 3;
+    EID_Test.Authority = 10;
+    EID_Test.Node      = 11;
+    EID_Test.Service   = 12;
 
-    // Actual EID (2-digit IPN) = 1, 3.4
-    EID_A.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN2.Node    = 3;
-    EID_A.IPN.IPN2.Service = 4;
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnFormat    = 3;
+    EID_Pattern.MaxAuthority = 20;
+    EID_Pattern.MinAuthority = 0;
+    EID_Pattern.MaxNode      = 30;
+    EID_Pattern.MinNode      = 5;
+    EID_Pattern.MaxService   = 40;
+    EID_Pattern.MinService   = 10;
 
-    // Reference EID (3-digit IPN) = 1, 0.3.4
-    EID_B.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN3.Authority = 0;
-    EID_B.IPN.IPN3.Node      = 3;
-    EID_B.IPN.IPN3.Service   = 4;
-
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
-
-    UtAssert_BOOL_TRUE(IsMatch);
+    UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
-void Test_BPLib_EID_IsMatch_ActualAuthorityWildcard_Nominal(void)
+void Test_BPLib_EID_IsMatch_AuthorityWildcard_Nominal(void)
 {
-    bool IsMatch;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnFormat = 3;
+    EID_Test.Authority = BPLIB_EID_WILDCARD;
+    EID_Test.Node      = 6;
+    EID_Test.Service   = 7;
 
-    // Actual EID = 1, *.6.7
-    EID_A.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN3.Authority = BPLIB_EID_WILDCARD;
-    EID_A.IPN.IPN3.Node      = 6;
-    EID_A.IPN.IPN3.Service   = 7;
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnFormat    = 3;
+    EID_Pattern.MaxAuthority = 100;
+    EID_Pattern.MinAuthority = 0;
+    EID_Pattern.MaxNode      = 100;
+    EID_Pattern.MinNode      = 0;
+    EID_Pattern.MaxService   = 100;
+    EID_Pattern.MinService   = 0;
 
-    // Reference EID = 1, 5.6.7
-    EID_B.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN3.Authority = 5;
-    EID_B.IPN.IPN3.Node      = 6;
-    EID_B.IPN.IPN3.Service   = 7;
-
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
-
-    UtAssert_BOOL_TRUE(IsMatch);
+    UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
-void Test_BPLib_EID_IsMatch_RefAuthorityWildcard_Nominal(void)
+void Test_BPLib_EID_IsMatch_NodeWildcard_Nominal(void)
 {
-    bool IsMatch;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnFormat = 2;
+    EID_Test.Node      = BPLIB_EID_WILDCARD;
+    EID_Test.Service   = 10;
 
-    // Actual EID = 1, 5.6.7
-    EID_A.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN3.Authority = 5;
-    EID_A.IPN.IPN3.Node      = 6;
-    EID_A.IPN.IPN3.Service   = 7;
+    EID_Pattern.Scheme     = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnFormat  = 2;
+    EID_Pattern.MaxNode    = 100;
+    EID_Pattern.MinNode    = 90;
+    EID_Pattern.MaxService = 100;
+    EID_Pattern.MinService = 0;
 
-    // Reference EID = 1, *.6.7
-    EID_B.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN3.Authority = BPLIB_EID_WILDCARD;
-    EID_B.IPN.IPN3.Node      = 6;
-    EID_B.IPN.IPN3.Service   = 7;
-
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
-
-    UtAssert_BOOL_TRUE(IsMatch);
+    UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
-void Test_BPLib_EID_IsMatch_ActualNodeWildcard_Nominal(void)
+void Test_BPLib_EID_IsMatch_ServiceWildcard_Nominal(void)
 {
-    bool IsMatch;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnFormat = 2;
+    EID_Test.Node      = 12;
+    EID_Test.Service   = BPLIB_EID_WILDCARD;
 
-    // Actual EID = 1, *.10
-    EID_A.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN2.Node    = BPLIB_EID_WILDCARD;
-    EID_A.IPN.IPN2.Service = 10;
+    EID_Pattern.Scheme     = BPLIB_EID_SCHEME_IPN;
+    EID_Pattern.IpnFormat  = 2;
+    EID_Pattern.MaxNode    = 100;
+    EID_Pattern.MinNode    = 0;
+    EID_Pattern.MaxService = 1;
+    EID_Pattern.MinService = 0;
 
-    // Reference EID = 1, 9.10
-    EID_B.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN2.Node    = 9;
-    EID_B.IPN.IPN2.Service = 10;
-
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
-
-    UtAssert_BOOL_TRUE(IsMatch);
-}
-
-void Test_BPLib_EID_IsMatch_RefNodeWildcard_Nominal(void)
-{
-    bool IsMatch;
-
-    // Actual EID = 1, 9.10
-    EID_A.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN2.Node    = 9;
-    EID_A.IPN.IPN2.Service = 10;
-
-    // Reference EID = 1, *.10
-    EID_B.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN2.Node    = BPLIB_EID_WILDCARD;
-    EID_B.IPN.IPN2.Service = 10;
-
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
-
-    UtAssert_BOOL_TRUE(IsMatch);
-}
-
-void Test_BPLib_EID_IsMatch_ActualServiceWildcard_Nominal(void)
-{
-    bool IsMatch;
-
-    // Actual EID = 1, 12.*
-    EID_A.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN2.Node    = 12;
-    EID_A.IPN.IPN2.Service = BPLIB_EID_WILDCARD;
-
-    // Reference EID = 1, 12.13
-    EID_B.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN2.Node    = 12;
-    EID_B.IPN.IPN2.Service = 13;
-
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
-
-    UtAssert_BOOL_TRUE(IsMatch);
-}
-
-void Test_BPLib_EID_IsMatch_RefServiceWildcard_Nominal(void)
-{
-    bool IsMatch;
-
-    // Actual EID = 1, 12.13
-    EID_A.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN2.Node    = 12;
-    EID_A.IPN.IPN2.Service = 13;
-
-    // Reference EID = 1, 12.*
-    EID_B.Scheme           = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN2.Node    = 12;
-    EID_B.IPN.IPN2.Service = BPLIB_EID_WILDCARD;
-
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
-
-    UtAssert_BOOL_TRUE(IsMatch);
+    UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
 void Test_BPLib_EID_IsMatch_SchemeMismatch_Error(void)
 {
-    bool IsMatch;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_IPN;
+    EID_Pattern.Scheme = BPLIB_EID_SCHEME_DTN;
 
-    // Actual EID = 2, 14.15.16
-    EID_A.Scheme             = BPLIB_EID_SCHEME_STRING;
-    EID_A.IPN.IPN3.Authority = 14;
-    EID_A.IPN.IPN3.Node      = 15;
-    EID_A.IPN.IPN3.Service   = 16;
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
 
-    // Reference EID = 1, 14.15.16
-    EID_B.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN3.Authority = 14;
-    EID_B.IPN.IPN3.Node      = 15;
-    EID_B.IPN.IPN3.Service   = 16;
+void Test_BPLib_EID_IsMatch_IpnMismatch_Error(void)
+{
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnFormat = 2;
 
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
+    EID_Pattern.Scheme    = BPLIB_EID_SCHEME_IPN;
+    EID_Pattern.IpnFormat = 3;
 
-    UtAssert_BOOL_FALSE(IsMatch);
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
 void Test_BPLib_EID_IsMatch_AuthorityMismatch_Error(void)
 {
-    bool IsMatch;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnFormat = 3;
 
-    // Actual EID = 1, 18.19
-    EID_A.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN2.Node      = 18;
-    EID_A.IPN.IPN2.Service   = 19;
+    EID_Pattern.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnFormat = 3;
 
-    // Reference EID = 1, 17.18.19
-    EID_B.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN3.Authority = 17;
-    EID_B.IPN.IPN3.Node      = 18;
-    EID_B.IPN.IPN3.Service   = 19;
+    /* === Authority > Max Authority === */
+    EID_Test.Authority = 17;
 
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
+    EID_Pattern.MaxAuthority = 2;
+    EID_Pattern.MinAuthority = 1;
 
-    UtAssert_BOOL_FALSE(IsMatch);
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+
+    /* === Authority < Min Authority === */
+    EID_Test.Authority = 1;
+
+    EID_Pattern.MaxAuthority = 10;
+    EID_Pattern.MinAuthority = 9;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
 void Test_BPLib_EID_IsMatch_NodeMismatch_Error(void)
 {
-    bool IsMatch;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnFormat = 2;
 
-    // Actual EID = 1, 20.22.22
-    EID_A.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN3.Authority = 20;
-    EID_A.IPN.IPN3.Node      = 22;
-    EID_A.IPN.IPN3.Service   = 22;
+    EID_Pattern.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnFormat = 2;
 
-    // Reference EID = 1, 20.21.22
-    EID_B.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN3.Authority = 20;
-    EID_B.IPN.IPN3.Node      = 21;
-    EID_B.IPN.IPN3.Service   = 22;
+    /* === Node > Max Node === */
+    EID_Test.Node = 22;
+    
+    EID_Pattern.MaxNode    = 20;
+    EID_Pattern.MinService = 0;
 
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 
-    UtAssert_BOOL_FALSE(IsMatch);
+    /* === Node < Min Node === */
+    EID_Test.Node = 0;
+    
+    EID_Pattern.MaxNode    = 20;
+    EID_Pattern.MinService = 5;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
 void Test_BPLib_EID_IsMatch_ServiceMismatch_Error(void)
 {
-    bool IsMatch;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnFormat = 2;
+    EID_Test.Node      = 24;
 
-    // Actual EID = 1, 23.24.26
-    EID_A.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN3.Authority = 23;
-    EID_A.IPN.IPN3.Node      = 24;
-    EID_A.IPN.IPN3.Service   = 26;
+    EID_Pattern.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnFormat = 2;
+    EID_Pattern.MaxNode   = 30;
+    EID_Pattern.MinNode   = 0;
+    
+    /* === Service > Max Service === */
+    EID_Test.Service = 20;
 
-    // Reference EID = 1, 23.24.25
-    EID_B.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_B.IPN.IPN3.Authority = 23;
-    EID_B.IPN.IPN3.Node      = 24;
-    EID_B.IPN.IPN3.Service   = 25;
+    EID_Pattern.MaxService = 10;
+    EID_Pattern.MinService = 0;
 
-    IsMatch = BPLib_EID_IsMatch(EID_A, EID_B);
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 
-    UtAssert_BOOL_FALSE(IsMatch);
+    /* === Service < Min Service === */
+    EID_Test.Service = 0;
+
+    EID_Pattern.MaxService = 10;
+    EID_Pattern.MinService = 5;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_InvalidRanges_Error(void)
+{
+    /* === Invalid Authority pattern range === */
+    EID_Pattern.MaxAuthority = 0;
+    EID_Pattern.MinAuthority = 100;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+
+    /* === Invalid Node pattern range === */
+    EID_Pattern.MaxNode = 0;
+    EID_Pattern.MinNode = 100;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+
+    /* === Invalid Service pattern range === */
+    EID_Pattern.MaxService = 0;
+    EID_Pattern.MinService = 100;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
 void TestBplibEid_Register(void)
 {
-    ADD_TEST(Test_BPLib_EID_IsValid_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_DTN_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN_Nominal);
     ADD_TEST(Test_BPLib_EID_IsValid_InvalidScheme_Error);
-    ADD_TEST(Test_BPLib_EID_IsValid_DTN_None_Nominal);
-    ADD_TEST(Test_BPLib_EID_IsValid_2DigitIPN_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_InvalidDTNNode_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_InvalidDTNService_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_InvalidIPN_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_Nominal);
-    ADD_TEST(Test_BPLib_EID_IsMatch_ActualAuthorityWildcard_Nominal);
-    ADD_TEST(Test_BPLib_EID_IsMatch_RefAuthorityWildcard_Nominal);
-    ADD_TEST(Test_BPLib_EID_IsMatch_ActualNodeWildcard_Nominal);
-    ADD_TEST(Test_BPLib_EID_IsMatch_RefNodeWildcard_Nominal);
-    ADD_TEST(Test_BPLib_EID_IsMatch_ActualServiceWildcard_Nominal);
-    ADD_TEST(Test_BPLib_EID_IsMatch_RefServiceWildcard_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsMatch_AuthorityWildcard_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsMatch_NodeWildcard_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsMatch_ServiceWildcard_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_SchemeMismatch_Error);
+    ADD_TEST(Test_BPLib_EID_IsMatch_IpnMismatch_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_AuthorityMismatch_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_NodeMismatch_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_ServiceMismatch_Error);
+    ADD_TEST(Test_BPLib_EID_IsMatch_InvalidRanges_Error);
 }
