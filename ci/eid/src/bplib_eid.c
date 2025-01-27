@@ -32,7 +32,7 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
 {
     bool IsValid;
 
-    if (EID.Scheme == BPLIB_EID_SCHEME_INT || EID.Scheme == BPLIB_EID_SCHEME_STRING)
+    if (EID.Scheme == BPLIB_EID_SCHEME_INT)
     {
         /* NOTE: 2-digit IPNs will have a default Authority of 0 */
         if (EID.IPN.IPN3.Authority == 0)
