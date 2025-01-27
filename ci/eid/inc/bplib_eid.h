@@ -44,8 +44,8 @@
  */
 typedef struct
 {
-    uint64_t Node;    /* System that implements DTN communications protocol services identified by unique node ID */
     uint64_t Service; /* DTN communication protocol service */
+    uint64_t Node;    /* System that implements DTN communications protocol services identified by unique node ID */
 } BPLib_EID_IPN2_t;
 
 /**
@@ -54,9 +54,9 @@ typedef struct
  */
 typedef struct
 {
-    uint64_t Authority; /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
-    uint64_t Node;      /* System that implements DTN communications protocol services identified by unique node ID */
     uint64_t Service;   /* DTN communication protocol service */
+    uint64_t Node;      /* System that implements DTN communications protocol services identified by unique node ID */
+    uint64_t Authority; /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
 } BPLib_EID_IPN3_t;
 
 /**
