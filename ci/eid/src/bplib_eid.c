@@ -48,9 +48,9 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
     {
         if (EID.IpnFormat == 2)
         {
-            if (EID.Authority != 0)
+            if (EID.Authority == 0)
             {
-                IsValid = false;
+                IsValid = true;
             }
         }
     }
@@ -60,6 +60,14 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
 
 bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Pattern)
 {
+    /* Input verification */
+    if (EID_Pattern.MaxAuthority < EID_Pattern.MinAuthority ||
+        EID_Pattern.MaxNode      < EID_Pattern.MinNode      ||
+        EID_Pattern.MaxService   < EID_Pattern.MinService)
+    {
+        return false;
+    }
+
     if (EID_Actual.Scheme == EID_Pattern.Scheme)
     { /* The EID schemes are compatible for comparison */
         if (EID_Actual.IpnFormat == EID_Pattern.IpnFormat)
