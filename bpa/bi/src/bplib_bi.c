@@ -41,7 +41,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     size_t n_copy, bytes_copied;
     BPLib_Bundle_t* bundle;
 
-    if (inst == NULL)
+    if ((inst == NULL) || (BundleIn == NULL))
     {
         return BPLIB_ERROR;
     }
@@ -105,7 +105,7 @@ BPLib_Status_t BPLib_BI_SendFullBundleOut(BPLib_Instance_t* inst, void *BundleOu
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
 
-    if (inst == NULL)
+    if ((inst == NULL) || (BundleOut == NULL) || (Size == NULL))
     {
         return BPLIB_ERROR;
     }

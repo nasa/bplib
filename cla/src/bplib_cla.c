@@ -43,7 +43,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const v
     BPLib_Status_t Status = BPLIB_SUCCESS;
     const uint8_t *InBundle = Bundle;
 
-    if (inst == NULL)
+    if ((inst == NULL) || (Bundle == NULL))
     {
         return BPLIB_ERROR;
     }
@@ -74,7 +74,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* inst, uint8_t ContId, void *Bu
     size_t bytes_copied;
     BPLib_MEM_Block_t* curr_block;
 
-    if (inst == NULL)
+    if ((inst == NULL) || (Bundle == NULL) || (Size == NULL))
     {
         return BPLIB_ERROR;
     }
