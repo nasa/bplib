@@ -56,13 +56,18 @@ typedef enum BPLib_QM_Priority
 typedef struct BPLib_Instance
 {
     BPLib_MEM_Pool_t pool;
-    /* In a future ticket, the state below can become QueueTable_t */
+
+    /* In a future ticket, the state below can go inside QueueTable_t */
     void* job_mem;
-    BPLib_QM_WaitQueue_t jobs;
-    void* event_mem;
-    BPLib_QM_WaitQueue_t events;
-    void* cla_out_mem;
-    BPLib_QM_WaitQueue_t cla_out;
+    BPLib_QM_WaitQueue_t GenericWorkerJobs;
+    void* unsorted_job_mem;
+    BPLib_QM_WaitQueue_t UnsortedJobs;
+    void* contact_egress_mem;
+    BPLib_QM_WaitQueue_t ContactEgressJobs;
+    /* A secret note for Sara
+     * void* channel_egress_mem;
+     * BPLib_QM_WaitQueue_t ChannelEgressJobs;
+    */
     /* End QueueTable_t */
 } BPLib_Instance_t;
 
@@ -76,22 +81,22 @@ typedef struct BPLib_QM_Job
     BPLib_QM_Priority_t priority;
 } BPLib_QM_Job_t;
 
-typedef struct BPLib_QM_Event
+typedef struct BPLib_QM_UnsortedJob
 {
     BPLib_Bundle_t* bundle;
     BPLib_QM_JobState_t next_state;
     BPLib_QM_Priority_t priority;
-} BPLib_QM_Event_t;
+} BPLib_QM_UnsortedJob_t;
 
 bool BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs);
 
 void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst);
 
-void BPLib_QM_EventLoopAdvance(BPLib_Instance_t* inst, size_t num_jobs);
+void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs);
 
 void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms);
 
-bool BPLib_QM_PostEvent(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
+bool BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms);
 
 #endif /* BPLIB_QM_H */

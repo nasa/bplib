@@ -96,7 +96,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     }
     printf("Ingressing packet of %lu bytes from CLA\n", bytes_copied);
 
-    BPLib_QM_PostEvent(inst, bundle, STATE_BI_IN, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    BPLib_QM_AddUnsortedJob(inst, bundle, STATE_BI_IN, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
 }
 

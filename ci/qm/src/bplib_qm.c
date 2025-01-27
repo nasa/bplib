@@ -39,39 +39,39 @@ bool BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     }
 
     /* This is a one-time allocation when BPLib is initialized
-    ** Note: We have decided to modify this so that job_mem and event_mem are passed
+    ** Note: We have decided to modify this so that job_mem and unsorted_job_mem are passed
     **  in as parameters this function. This will be done in a future ticket.
     */
     inst->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
-    inst->event_mem = calloc(max_jobs, sizeof(BPLib_QM_Event_t));
-    inst->cla_out_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
-    if (inst->event_mem == NULL)
+    inst->unsorted_job_mem = calloc(max_jobs, sizeof(BPLib_QM_UnsortedJob_t));
+    inst->contact_egress_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
+    if (inst->unsorted_job_mem == NULL)
     {
         free(inst->job_mem);
-        free(inst->event_mem);
-        free(inst->cla_out_mem);
+        free(inst->unsorted_job_mem);
+        free(inst->contact_egress_mem);
         return false;
     }
 
-    /* Initialize the job and event queue  */
+    /* Initialize the jobs and unsorted jobs queue */
     queue_init = true;
-    if (!BPLib_QM_WaitQueueInit(&(inst->jobs), inst->job_mem, sizeof(BPLib_QM_Job_t), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(inst->GenericWorkerJobs), inst->job_mem, sizeof(BPLib_QM_Job_t), max_jobs))
     {
         queue_init = false;
     }
-    if (!BPLib_QM_WaitQueueInit(&(inst->events), inst->event_mem, sizeof(BPLib_QM_Event_t), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(inst->UnsortedJobs), inst->unsorted_job_mem, sizeof(BPLib_QM_UnsortedJob_t), max_jobs))
     {
         queue_init = false;
     }
-    if (!BPLib_QM_WaitQueueInit(&(inst->cla_out), inst->cla_out_mem, sizeof(BPLib_Bundle_t*), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(inst->ContactEgressJobs), inst->contact_egress_mem, sizeof(BPLib_Bundle_t*), max_jobs))
     {
         queue_init = false;
     }
     if (!queue_init)
     {
         free(inst->job_mem);
-        free(inst->event_mem);
-        free(inst->cla_out_mem);
+        free(inst->unsorted_job_mem);
+        free(inst->contact_egress_mem);
         return false;
     }
 
@@ -85,22 +85,22 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
         return;
     }
 
-    BPLib_QM_WaitQueueDestroy(&(inst->jobs));
-    BPLib_QM_WaitQueueDestroy(&(inst->events));
-    BPLib_QM_WaitQueueDestroy(&(inst->cla_out));
+    BPLib_QM_WaitQueueDestroy(&(inst->GenericWorkerJobs));
+    BPLib_QM_WaitQueueDestroy(&(inst->UnsortedJobs));
+    BPLib_QM_WaitQueueDestroy(&(inst->ContactEgressJobs));
     free(inst->job_mem);
-    free(inst->event_mem);
-    free(inst->cla_out_mem);
+    free(inst->unsorted_job_mem);
+    free(inst->contact_egress_mem);
 }
 
-bool BPLib_QM_PostEvent(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
+bool BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
 {
-    BPLib_QM_Event_t event;
-    event.bundle = bundle;
-    event.next_state = state;
-    event.priority = priority;
-    return BPLib_QM_WaitQueueTryPush(&(inst->events), &event, timeout_ms);
+    BPLib_QM_UnsortedJob_t unsorted_job;
+    unsorted_job.bundle = bundle;
+    unsorted_job.next_state = state;
+    unsorted_job.priority = priority;
+    return BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &unsorted_job, timeout_ms);
 }
 
 void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
@@ -108,58 +108,58 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
     BPLib_QM_Job_t curr_job;
     BPLib_QM_JobState_t next_state;
 
-    if (BPLib_QM_WaitQueueTryPull(&(inst->jobs), &curr_job, timeout_ms))
+    if (BPLib_QM_WaitQueueTryPull(&(inst->GenericWorkerJobs), &curr_job, timeout_ms))
     {
         /* Run the job and get back the next state */
         BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
         next_state = curr_job.job_func(inst, curr_job.bundle);
         BPLib_PL_PerfLogExit(BPLIB_QM_RUNJOB_PERF_ID);
 
-        /* Create a new event with the next state and post it to the event loop 
+        /* Create a new unsorted job with the next state and place it in the unsorted jobs queue
         ** Important note here:
-        **  Should a worker fail to post an event back to the event queue, this
+        **  Should a worker fail to place the job in the unsorted jobs queue, this
         **  may indicate a system that's over-tasked. There are several ways to define what 
         **  our node's behavior should be here:
-        **      1) we could post these event to an overflow queue, then notify the event loop that the system degraded.
-        **      2) we could selectively drop "less important" events based on their next_state or priority.
+        **      1) we could put this jobs in an overflow queue, then create a notificatino that the system degraded.
+        **      2) we could selectively drop "less important" UnsortedJob_t based on their next_state or priority.
         **         This means bundles would be dropped, which I'm guessing we dont want
-        **      3) we could block and wait until this event can be pushed.
+        **      3) we could block and wait until this job can be pushed.
         **
-        **  I think it could be a good idea to make the event queue larger than the jobs queue so that this
+        **  I think it could be a good idea to make the unsorted jobs queue larger than the jobs queue so that this
         **  case is infrequent.
         */
-        BPLib_QM_PostEvent(inst, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+        BPLib_QM_AddUnsortedJob(inst, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     }
 }
 
 
-void BPLib_QM_EventLoopAdvance(BPLib_Instance_t* inst, size_t num_jobs)
+void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
 {
     size_t jobs_scheduled;
     BPLib_QM_Job_t curr_job;
-    BPLib_QM_Event_t curr_event;
+    BPLib_QM_UnsortedJob_t unsorted_job;
 
     jobs_scheduled = 0;
     while (jobs_scheduled < num_jobs)
     {
-        if (BPLib_QM_WaitQueueTryPull(&(inst->events), &curr_event, BPLIB_QM_JOBWAIT_TIMEOUT))
+        if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &unsorted_job, BPLIB_QM_JOBWAIT_TIMEOUT))
         {
-            if (curr_event.next_state == STATE_CLA_OUT)
+            if (unsorted_job.next_state == STATE_CLA_OUT)
             {
-                BPLib_QM_WaitQueueTryPush(&(inst->cla_out), &curr_event.bundle, WAITQUEUE_WAIT_FOREVER);
+                BPLib_QM_WaitQueueTryPush(&(inst->ContactEgressJobs), &unsorted_job.bundle, WAITQUEUE_WAIT_FOREVER);
             }
-            else if (curr_event.next_state == STATE_ADU_OUT)
+            else if (unsorted_job.next_state == STATE_ADU_OUT)
             {
                 /* Implement something similar to CLA Out State */
             }
             else
             {
-                /* Construct a new job for this event */
-                curr_job.bundle = curr_event.bundle;
-                curr_job.state = curr_event.next_state;
-                curr_job.job_func = BPLib_QM_Job_Lookup(curr_event.next_state);
+                /* Create a new job for the unsorted job and place it in the generic worker jobs queue */
+                curr_job.bundle = unsorted_job.bundle;
+                curr_job.state = unsorted_job.next_state;
+                curr_job.job_func = BPLib_QM_Job_Lookup(unsorted_job.next_state);
                 assert(curr_job.job_func != NULL);
-                curr_job.priority = curr_event.priority;
+                curr_job.priority = unsorted_job.priority;
 
                 /* Add the job to the job queue so a worker can discover it 
                 ** Note: There is no backpressuring logic right now so this can block indefintely.
@@ -167,7 +167,7 @@ void BPLib_QM_EventLoopAdvance(BPLib_Instance_t* inst, size_t num_jobs)
                 **  We will have to remove the 'WAITQUEUE_WAIT_FOREVER` and replace it 
                 **  with a backpressuring strategy, but it should be done in a future ticket.
                 */
-                BPLib_QM_WaitQueueTryPush(&(inst->jobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
+                BPLib_QM_WaitQueueTryPush(&(inst->GenericWorkerJobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
                 jobs_scheduled++;
             }
         }
