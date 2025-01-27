@@ -144,13 +144,13 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
     {
         if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &unsorted_job, BPLIB_QM_JOBWAIT_TIMEOUT))
         {
-            if (unsorted_job.next_state == STATE_CLA_OUT)
+            if (unsorted_job.next_state == CONTACT_OUT_BI_TO_CLA)
             {
                 BPLib_QM_WaitQueueTryPush(&(inst->ContactEgressJobs), &unsorted_job.bundle, WAITQUEUE_WAIT_FOREVER);
             }
-            else if (unsorted_job.next_state == STATE_ADU_OUT)
+            else if (unsorted_job.next_state == CHANNEL_OUT_PI_TO_ADU)
             {
-                /* Implement something similar to CLA Out State */
+                /* Implement something similar to BI_TO_CLA State */
             }
             else
             {

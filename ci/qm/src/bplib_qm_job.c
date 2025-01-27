@@ -21,75 +21,127 @@
 #include "bplib_qm_job.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-/* 
-** Job Functions - These are the entry points to jobs being run in QM.
+/*******************************************************************************
+ * Job Functions - These are the entry points to jobs being run within QM.
 */
-static BPLib_QM_JobState_t BPLib_Job_BI_Ingress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactIn_CLA_TO_BI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    return STATE_EBP_IN;
+    return CONTACT_IN_BI_TO_EBP;
 }
 
-static BPLib_QM_JobState_t BPLib_Job_EBP_Ingress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactIn_BI_TO_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    return STATE_CT_IN;
+    return CONTACT_IN_EBP_TO_CT;
 }
 
-static BPLib_QM_JobState_t BPLib_Job_CT_Ingress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactIn_EBP_TO_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    return STATE_CACHE_IN;
+    return CONTACT_IN_CT_TO_STOR;
 }
 
-static BPLib_QM_JobState_t BPLib_Job_CACHE_Ingress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactIn_CT_TO_STOR(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    //return STATE_PI_OUT; // Go back to CLA here
-    return STATE_EBP_OUT;
+    /* Note: Looping back to ADU Out Path */
+    return CONTACT_OUT_STOR_TO_CT;
 }
 
-static BPLib_QM_JobState_t BPLib_Job_PI_Ingress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactOut_STOR_TO_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    return STATE_CACHE_IN;
+    return CONTACT_OUT_CT_TO_EBP;
 }
 
-static BPLib_QM_JobState_t BPLib_Job_BI_Egress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactOut_CT_TO_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    return STATE_CLA_OUT;
+    return CONTACT_OUT_EBP_TO_BI;
 }
 
-static BPLib_QM_JobState_t BPLib_Job_EBP_Egress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactOut_EBP_TO_BI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    return STATE_BI_OUT;
+    return CONTACT_OUT_BI_TO_CLA;
 }
 
-static BPLib_QM_JobState_t BPLib_Job_CT_Egress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ContactOut_BI_TO_CLA(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    return STATE_EBP_OUT;
+    /* FIXME: Our loop doesn't currently use this state. */
+    abort();
+    return 0;
 }
 
-static BPLib_QM_JobState_t BPLib_Job_CACHE_Egress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t BundleStorage(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    return STATE_CT_OUT;
+    /* Nothing should be hooked up to Bundle Stor/Cache yet */
+    abort();
+    return 0;
 }
 
-static BPLib_QM_JobState_t BPLib_Job_PI_Egress(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ChannelIn_ADU_TO_PI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    printf("PI EGRESS REACHED\n");
-    return STATE_ADU_OUT;
+    return CHANNEL_IN_PI_TO_EBP;
 }
 
+static BPLib_QM_JobState_t ChannelIn_PI_TO_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+{
+    return CHANNEL_IN_EBP_TO_CT;
+}
+
+static BPLib_QM_JobState_t ChannelIn_EBP_TO_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+{
+    return CHANNEL_IN_CT_TO_STOR;
+}
+
+static BPLib_QM_JobState_t ChannelIn_CT_TO_STOR(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+{
+    /* Note: Looping back to ADU Out Path */
+    return CHANNEL_OUT_STOR_TO_CT;
+}
+
+static BPLib_QM_JobState_t ChanneOut_STOR_TO_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+{
+    return CHANNEL_OUT_CT_TO_EBP;
+}
+
+static BPLib_QM_JobState_t ChanneOut_CT_TO_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+{
+    return CHANNEL_OUT_EBP_TO_PI;
+}
+
+static BPLib_QM_JobState_t ChanneOut_EBP_TO_PI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+{
+    return CHANNEL_OUT_PI_TO_ADU;
+}
+
+static BPLib_QM_JobState_t ChanneOut_PI_TO_ADU(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+{
+    /* FIXME: Our loop doesn't currently use this state. */
+    abort();
+    return 0;
+}
+
+/*******************************************************************************
+ * JobState_t to JobFunc_t mapping
+*/
 static const BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES] =
 {
-    [STATE_BI_IN] = BPLib_Job_BI_Ingress,
-    [STATE_EBP_IN] = BPLib_Job_EBP_Ingress,
-    [STATE_CT_IN] = BPLib_Job_CT_Ingress,
-    [STATE_CACHE_IN] = BPLib_Job_CACHE_Ingress,
-    [STATE_PI_IN] = BPLib_Job_PI_Ingress,
-    [STATE_BI_OUT] = BPLib_Job_BI_Egress,
-    [STATE_EBP_OUT] = BPLib_Job_EBP_Egress,
-    [STATE_CT_OUT] = BPLib_Job_CT_Egress,
-    [STATE_CACHE_OUT] = BPLib_Job_CACHE_Egress,
-    [STATE_PI_OUT] = BPLib_Job_PI_Egress
+    [CONTACT_IN_CLA_TO_BI] = ContactIn_CLA_TO_BI,
+    [CONTACT_IN_BI_TO_EBP] = ContactIn_BI_TO_EBP,
+    [CONTACT_IN_EBP_TO_CT] = ContactIn_EBP_TO_CT,
+    [CONTACT_IN_CT_TO_STOR] = ContactIn_CT_TO_STOR,
+    [CONTACT_OUT_STOR_TO_CT] = ContactOut_STOR_TO_CT,
+    [CONTACT_OUT_CT_TO_EBP] = ContactOut_CT_TO_EBP,
+    [CONTACT_OUT_EBP_TO_BI] = ContactOut_EBP_TO_BI,
+    [CONTACT_OUT_BI_TO_CLA] = ContactOut_BI_TO_CLA,
+    [BUNDLE_STOR] = BundleStorage,
+    [CHANNEL_IN_ADU_TO_PI] = ChannelIn_ADU_TO_PI,
+    [CHANNEL_IN_PI_TO_EBP] = ChannelIn_PI_TO_EBP,
+    [CHANNEL_IN_EBP_TO_CT] = ChannelIn_EBP_TO_CT,
+    [CHANNEL_IN_CT_TO_STOR] = ChannelIn_CT_TO_STOR,
+    [CHANNEL_OUT_STOR_TO_CT] = ChanneOut_STOR_TO_CT,
+    [CHANNEL_OUT_CT_TO_EBP] = ChanneOut_CT_TO_EBP,
+    [CHANNEL_OUT_EBP_TO_PI] = ChanneOut_EBP_TO_PI,
+    [CHANNEL_OUT_PI_TO_ADU] = ChanneOut_PI_TO_ADU,
 };
 
 BPLib_QM_JobFunc_t BPLib_QM_Job_Lookup(BPLib_QM_JobState_t job_state)

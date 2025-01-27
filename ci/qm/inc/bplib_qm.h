@@ -30,20 +30,23 @@
 
 typedef enum BPLib_JobState
 {
-    /* Ingress States */
-    STATE_BI_IN,
-    STATE_EBP_IN,
-    STATE_CT_IN,
-    STATE_CACHE_IN,
-    STATE_PI_IN,
-    /* Egress States */
-    STATE_CLA_OUT,
-    STATE_BI_OUT,
-    STATE_EBP_OUT,
-    STATE_CT_OUT,
-    STATE_CACHE_OUT,
-    STATE_PI_OUT,
-    STATE_ADU_OUT,
+    CONTACT_IN_CLA_TO_BI = 0,
+    CONTACT_IN_BI_TO_EBP,
+    CONTACT_IN_EBP_TO_CT,
+    CONTACT_IN_CT_TO_STOR,
+    CONTACT_OUT_STOR_TO_CT,
+    CONTACT_OUT_CT_TO_EBP,
+    CONTACT_OUT_EBP_TO_BI,
+    CONTACT_OUT_BI_TO_CLA,
+    BUNDLE_STOR,
+    CHANNEL_IN_ADU_TO_PI,
+    CHANNEL_IN_PI_TO_EBP,
+    CHANNEL_IN_EBP_TO_CT,
+    CHANNEL_IN_CT_TO_STOR,
+    CHANNEL_OUT_STOR_TO_CT,
+    CHANNEL_OUT_CT_TO_EBP,
+    CHANNEL_OUT_EBP_TO_PI,
+    CHANNEL_OUT_PI_TO_ADU,
     /* Must be last */
     NUM_JOB_STATES
 } BPLib_QM_JobState_t;
@@ -57,7 +60,7 @@ typedef struct BPLib_Instance
 {
     BPLib_MEM_Pool_t pool;
 
-    /* In a future ticket, the state below can go inside QueueTable_t */
+    /* In a future ticket, the state below can go inside a TBDefined QueueTable_t */
     void* job_mem;
     BPLib_QM_WaitQueue_t GenericWorkerJobs;
     void* unsorted_job_mem;
