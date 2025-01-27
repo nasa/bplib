@@ -27,13 +27,13 @@
 #include <assert.h>
 
 #define BPLIB_QM_RUNJOB_PERF_ID 0x7F
-#define BPLIB_QM_EVT_TIMEOUT_MAX_MS 1L
+#define BPLIB_QM_JOBWAIT_TIMEOUT 1L
 
-bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
+bool BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
 {
     bool queue_init;
 
-    if (tbl == NULL)
+    if (inst == NULL)
     {
         return false;
     }
@@ -42,77 +42,77 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
     ** Note: We have decided to modify this so that job_mem and event_mem are passed
     **  in as parameters this function. This will be done in a future ticket.
     */
-    tbl->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
-    tbl->event_mem = calloc(max_jobs, sizeof(BPLib_QM_Event_t));
-    tbl->cla_out_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
-    if (tbl->event_mem == NULL)
+    inst->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
+    inst->event_mem = calloc(max_jobs, sizeof(BPLib_QM_Event_t));
+    inst->cla_out_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
+    if (inst->event_mem == NULL)
     {
-        free(tbl->job_mem);
-        free(tbl->event_mem);
-        free(tbl->cla_out_mem);
+        free(inst->job_mem);
+        free(inst->event_mem);
+        free(inst->cla_out_mem);
         return false;
     }
 
     /* Initialize the job and event queue  */
     queue_init = true;
-    if (!BPLib_QM_WaitQueueInit(&(tbl->jobs), tbl->job_mem, sizeof(BPLib_QM_Job_t), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(inst->jobs), inst->job_mem, sizeof(BPLib_QM_Job_t), max_jobs))
     {
         queue_init = false;
     }
-    if (!BPLib_QM_WaitQueueInit(&(tbl->events), tbl->event_mem, sizeof(BPLib_QM_Event_t), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(inst->events), inst->event_mem, sizeof(BPLib_QM_Event_t), max_jobs))
     {
         queue_init = false;
     }
-    if (!BPLib_QM_WaitQueueInit(&(tbl->cla_out), tbl->cla_out_mem, sizeof(BPLib_Bundle_t*), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(inst->cla_out), inst->cla_out_mem, sizeof(BPLib_Bundle_t*), max_jobs))
     {
         queue_init = false;
     }
     if (!queue_init)
     {
-        free(tbl->job_mem);
-        free(tbl->event_mem);
-        free(tbl->cla_out_mem);
+        free(inst->job_mem);
+        free(inst->event_mem);
+        free(inst->cla_out_mem);
         return false;
     }
 
     return true;
 }
 
-void BPLib_QM_QueueTableDestroy(BPLib_QM_QueueTable_t* tbl)
+void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
 {
-    if (tbl == NULL)
+    if (inst == NULL)
     {
         return;
     }
 
-    BPLib_QM_WaitQueueDestroy(&(tbl->jobs));
-    BPLib_QM_WaitQueueDestroy(&(tbl->events));
-    BPLib_QM_WaitQueueDestroy(&(tbl->cla_out));
-    free(tbl->job_mem);
-    free(tbl->event_mem);
-    free(tbl->cla_out_mem);
+    BPLib_QM_WaitQueueDestroy(&(inst->jobs));
+    BPLib_QM_WaitQueueDestroy(&(inst->events));
+    BPLib_QM_WaitQueueDestroy(&(inst->cla_out));
+    free(inst->job_mem);
+    free(inst->event_mem);
+    free(inst->cla_out_mem);
 }
 
-bool BPLib_QM_PostEvent(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle,
+bool BPLib_QM_PostEvent(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
 {
     BPLib_QM_Event_t event;
     event.bundle = bundle;
     event.next_state = state;
     event.priority = priority;
-    return BPLib_QM_WaitQueueTryPush(&(tbl->events), &event, timeout_ms);
+    return BPLib_QM_WaitQueueTryPush(&(inst->events), &event, timeout_ms);
 }
 
-void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
+void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
 {
     BPLib_QM_Job_t curr_job;
     BPLib_QM_JobState_t next_state;
 
-    if (BPLib_QM_WaitQueueTryPull(&(tbl->jobs), &curr_job, timeout_ms))
+    if (BPLib_QM_WaitQueueTryPull(&(inst->jobs), &curr_job, timeout_ms))
     {
         /* Run the job and get back the next state */
         BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
-        next_state = curr_job.job_func(tbl, curr_job.bundle);
+        next_state = curr_job.job_func(inst, curr_job.bundle);
         BPLib_PL_PerfLogExit(BPLIB_QM_RUNJOB_PERF_ID);
 
         /* Create a new event with the next state and post it to the event loop 
@@ -128,12 +128,12 @@ void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
         **  I think it could be a good idea to make the event queue larger than the jobs queue so that this
         **  case is infrequent.
         */
-        BPLib_QM_PostEvent(tbl, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+        BPLib_QM_PostEvent(inst, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     }
 }
 
 
-void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
+void BPLib_QM_EventLoopAdvance(BPLib_Instance_t* inst, size_t num_jobs)
 {
     size_t jobs_scheduled;
     BPLib_QM_Job_t curr_job;
@@ -142,11 +142,11 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
     jobs_scheduled = 0;
     while (jobs_scheduled < num_jobs)
     {
-        if (BPLib_QM_WaitQueueTryPull(&(tbl->events), &curr_event, BPLIB_QM_EVT_TIMEOUT_MAX_MS))
+        if (BPLib_QM_WaitQueueTryPull(&(inst->events), &curr_event, BPLIB_QM_JOBWAIT_TIMEOUT))
         {
             if (curr_event.next_state == STATE_CLA_OUT)
             {
-                BPLib_QM_WaitQueueTryPush(&(tbl->cla_out), &curr_event.bundle, WAITQUEUE_WAIT_FOREVER);
+                BPLib_QM_WaitQueueTryPush(&(inst->cla_out), &curr_event.bundle, WAITQUEUE_WAIT_FOREVER);
             }
             else if (curr_event.next_state == STATE_ADU_OUT)
             {
@@ -167,7 +167,7 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
                 **  We will have to remove the 'WAITQUEUE_WAIT_FOREVER` and replace it 
                 **  with a backpressuring strategy, but it should be done in a future ticket.
                 */
-                BPLib_QM_WaitQueueTryPush(&(tbl->jobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
+                BPLib_QM_WaitQueueTryPush(&(inst->jobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
                 jobs_scheduled++;
             }
         }

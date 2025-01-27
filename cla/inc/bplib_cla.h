@@ -113,7 +113,7 @@ BPLib_Status_t BPLib_CLA_Init(void);
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] tbl Pointer to a valid Queue Table Instance
+ *  \param[in] inst Pointer to a valid Queue Table Instance
  *  \param[in] ContactsTbl - Pointer of the Contact Table
  *  \param[in] Bundle - Pointer to the received bundle
  *  \param[in] Size - Size of the received bundle
@@ -122,7 +122,7 @@ BPLib_Status_t BPLib_CLA_Init(void);
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Ingress was successful
  */
-BPLib_Status_t BPLib_CLA_Ingress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout);
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout);
 
 /**
  * \brief CLA Egress function
@@ -133,7 +133,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, con
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] tbl Pointer to a valid Queue Table Instance
+ *  \param[in] inst Pointer to a valid Queue Table Instance
  *  \param[in] ContactsTbl - Pointer of the Contact Table
  *  \param[in] Bundle - Pointer to the received bundle
  *  \param[in] Size - Size of the received bundle
@@ -142,7 +142,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, con
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout);
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* inst, uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout);
 
 /**
  * \brief Validate Contact Table configurations

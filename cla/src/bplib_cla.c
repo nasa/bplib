@@ -38,12 +38,12 @@ BPLib_Status_t BPLib_CLA_Init(void) {
 }
 
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
-BPLib_Status_t BPLib_CLA_Ingress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     const uint8_t *InBundle = Bundle;
 
-    if (tbl == NULL)
+    if (inst == NULL)
     {
         return BPLIB_ERROR;
     }
@@ -60,7 +60,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, con
         else
         {
             /* Receive a RFC 9171 bundle and pass it to BI */
-            Status = BPLib_BI_RecvFullBundleIn(tbl, Bundle, Size);
+            Status = BPLib_BI_RecvFullBundleIn(inst, Bundle, Size);
         }
     }
     
@@ -68,18 +68,18 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, con
 }
 
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* inst, uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout)
 {
     BPLib_Bundle_t* bundle;
     size_t bytes_copied;
     BPLib_MEM_Block_t* curr_block;
 
-    if (tbl == NULL)
+    if (inst == NULL)
     {
         return BPLIB_ERROR;
     }
 
-    if (BPLib_QM_WaitQueueTryPull(&tbl->cla_out, &bundle, Timeout))
+    if (BPLib_QM_WaitQueueTryPull(&inst->cla_out, &bundle, Timeout))
     {
         bytes_copied = 0;
         curr_block = bundle->blob;
@@ -89,8 +89,8 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, void
             bytes_copied += curr_block->chunk_len;
             curr_block = curr_block->next;
         }
-        BPLib_MEM_BlockListFree(&tbl->pool, bundle->blob);
-        BPLib_MEM_BlockFree(&tbl->pool, (BPLib_MEM_Block_t*)bundle);
+        BPLib_MEM_BlockListFree(&inst->pool, bundle->blob);
+        BPLib_MEM_BlockFree(&inst->pool, (BPLib_MEM_Block_t*)bundle);
         *Size = bytes_copied;
         printf("Egressing packet of %lu bytes to CLA\n", *Size);
         return BPLIB_SUCCESS;

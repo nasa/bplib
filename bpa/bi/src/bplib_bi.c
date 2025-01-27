@@ -34,14 +34,14 @@ int BPLib_BI_Init(void) {
 }
 
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
-BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void *BundleIn, size_t Size)
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_MEM_Block_t* curr_block;
     size_t n_copy, bytes_copied;
     BPLib_Bundle_t* bundle;
 
-    if (tbl == NULL)
+    if (inst == NULL)
     {
         return BPLIB_ERROR;
     }
@@ -61,7 +61,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
     ** as the Blob
     */
     /* Bundle Header */
-    curr_block = BPLib_MEM_BlockAlloc(&tbl->pool);
+    curr_block = BPLib_MEM_BlockAlloc(&inst->pool);
     if (curr_block == NULL)
     {
         return BPLIB_ERROR;
@@ -71,10 +71,10 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
     bundle->blocks.pri_blk.src_eid.node_number = 0x42;
 
     /* Blob */
-    curr_block = BPLib_MEM_BlockListAlloc(&tbl->pool, Size);
+    curr_block = BPLib_MEM_BlockListAlloc(&inst->pool, Size);
     if (curr_block == NULL)
     {
-        BPLib_MEM_BlockFree(&tbl->pool, (BPLib_MEM_Block_t*)bundle);
+        BPLib_MEM_BlockFree(&inst->pool, (BPLib_MEM_Block_t*)bundle);
         return BPLIB_ERROR;
     }
 
@@ -96,16 +96,16 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
     }
     printf("Ingressing packet of %lu bytes from CLA\n", bytes_copied);
 
-    BPLib_QM_PostEvent(tbl, bundle, STATE_BI_IN, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    BPLib_QM_PostEvent(inst, bundle, STATE_BI_IN, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
 }
 
 /* Pull deserialized bundle from BI Out Queue, CBOR encode it, then send it to CLA */
-BPLib_Status_t BPLib_BI_SendFullBundleOut(BPLib_QM_QueueTable_t* tbl, void *BundleOut, size_t* Size)
+BPLib_Status_t BPLib_BI_SendFullBundleOut(BPLib_Instance_t* inst, void *BundleOut, size_t* Size)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
 
-    if (tbl == NULL)
+    if (inst == NULL)
     {
         return BPLIB_ERROR;
     }

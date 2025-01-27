@@ -57,14 +57,14 @@ BPLib_Status_t BPLib_BI_Init(void);
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
- *  \param[in] tbl Pointer to a valid Queue Table Instance
+ *  \param[in] inst Pointer to a valid Queue Table Instance
  *  \param[in] BundleInPtr Pointer to the bundle
  *  \param[in] Size Bundle size
  * 
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void *BundleInPtr, size_t Size);
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleInPtr, size_t Size);
 
 
 /**
@@ -76,14 +76,14 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] tbl Pointer to a valid Queue Table Instance
+ *  \param[in] inst Pointer to a valid Queue Table Instance
  *  \param[in] BundleOutPtr Pointer to the bundle
  *  \param[in] Size Bundle size
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-BPLib_Status_t BPLib_BI_SendFullBundleOut(BPLib_QM_QueueTable_t* tbl, void *BundleOutPtr, size_t* Size);
+BPLib_Status_t BPLib_BI_SendFullBundleOut(BPLib_Instance_t* inst, void *BundleOutPtr, size_t* Size);
 
 /**
  * \brief Function for receiving control message from CLA

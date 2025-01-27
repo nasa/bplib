@@ -53,7 +53,7 @@ typedef enum BPLib_QM_Priority
     QM_PRI_NORMAL = 1
 } BPLib_QM_Priority_t;
 
-typedef struct BPLib_QM_QueueTable
+typedef struct BPLib_Instance
 {
     BPLib_MEM_Pool_t pool;
     void* job_mem;
@@ -62,9 +62,9 @@ typedef struct BPLib_QM_QueueTable
     BPLib_WaitQueue_t events;
     void* cla_out_mem;
     BPLib_WaitQueue_t cla_out;
-} BPLib_QM_QueueTable_t;
+} BPLib_Instance_t;
 
-typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle);
+typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle);
 
 typedef struct BPLib_QM_Job
 {
@@ -81,15 +81,15 @@ typedef struct BPLib_QM_Event
     BPLib_QM_Priority_t priority;
 } BPLib_QM_Event_t;
 
-bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs);
+bool BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs);
 
-void BPLib_QM_QueueTableDestroy(BPLib_QM_QueueTable_t* tbl);
+void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst);
 
-void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs);
+void BPLib_QM_EventLoopAdvance(BPLib_Instance_t* inst, size_t num_jobs);
 
-void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms);
+void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms);
 
-bool BPLib_QM_PostEvent(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle,
+bool BPLib_QM_PostEvent(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms);
 
 #endif /* BPLIB_QM_H */
