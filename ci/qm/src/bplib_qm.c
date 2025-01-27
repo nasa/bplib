@@ -58,15 +58,15 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
 
     /* Initialize the job and event queue  */
     queue_init = true;
-    if (!BPLib_CI_WaitQueueInit(&(tbl->jobs), tbl->job_mem, sizeof(BPLib_QM_Job_t), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(tbl->jobs), tbl->job_mem, sizeof(BPLib_QM_Job_t), max_jobs))
     {
         queue_init = false;
     }
-    if (!BPLib_CI_WaitQueueInit(&(tbl->events), tbl->event_mem, sizeof(BPLib_QM_Event_t), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(tbl->events), tbl->event_mem, sizeof(BPLib_QM_Event_t), max_jobs))
     {
         queue_init = false;
     }
-    if (!BPLib_CI_WaitQueueInit(&(tbl->cla_out), tbl->cla_out_mem, sizeof(BPLib_Bundle_t*), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(tbl->cla_out), tbl->cla_out_mem, sizeof(BPLib_Bundle_t*), max_jobs))
     {
         queue_init = false;
     }
@@ -88,9 +88,9 @@ void BPLib_QM_QueueTableDestroy(BPLib_QM_QueueTable_t* tbl)
         return;
     }
 
-    BPLib_CI_WaitQueueDestroy(&(tbl->jobs));
-    BPLib_CI_WaitQueueDestroy(&(tbl->events));
-    BPLib_CI_WaitQueueDestroy(&(tbl->cla_out));
+    BPLib_QM_WaitQueueDestroy(&(tbl->jobs));
+    BPLib_QM_WaitQueueDestroy(&(tbl->events));
+    BPLib_QM_WaitQueueDestroy(&(tbl->cla_out));
     free(tbl->job_mem);
     free(tbl->event_mem);
     free(tbl->cla_out_mem);
@@ -103,7 +103,7 @@ bool BPLib_QM_PostEvent(BPLib_QM_QueueTable_t* tbl, BPLib_Bundle_t* bundle,
     event.bundle = bundle;
     event.next_state = state;
     event.priority = priority;
-    return BPLib_CI_WaitQueueTryPush(&(tbl->events), &event, timeout_ms);
+    return BPLib_QM_WaitQueueTryPush(&(tbl->events), &event, timeout_ms);
 }
 
 void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
@@ -111,7 +111,7 @@ void BPLib_QM_RunJob(BPLib_QM_QueueTable_t* tbl, int timeout_ms)
     BPLib_QM_Job_t curr_job;
     BPLib_QM_JobState_t next_state;
 
-    if (BPLib_CI_WaitQueueTryPull(&(tbl->jobs), &curr_job, timeout_ms))
+    if (BPLib_QM_WaitQueueTryPull(&(tbl->jobs), &curr_job, timeout_ms))
     {
         /* Run the job and get back the next state */
         BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
@@ -145,11 +145,11 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
     jobs_scheduled = 0;
     while (jobs_scheduled < num_jobs)
     {
-        if (BPLib_CI_WaitQueueTryPull(&(tbl->events), &curr_event, BPLIB_QM_EVT_TIMEOUT_MAX_MS))
+        if (BPLib_QM_WaitQueueTryPull(&(tbl->events), &curr_event, BPLIB_QM_EVT_TIMEOUT_MAX_MS))
         {
             if (curr_event.next_state == STATE_CLA_OUT)
             {
-                BPLib_CI_WaitQueueTryPush(&(tbl->cla_out), &curr_event.bundle, WAITQUEUE_WAIT_FOREVER);
+                BPLib_QM_WaitQueueTryPush(&(tbl->cla_out), &curr_event.bundle, WAITQUEUE_WAIT_FOREVER);
             }
             else if (curr_event.next_state == STATE_ADU_OUT)
             {
@@ -170,7 +170,7 @@ void BPLib_QM_EventLoopAdvance(BPLib_QM_QueueTable_t* tbl, size_t num_jobs)
                 **  We will have to remove the 'WAITQUEUE_WAIT_FOREVER` and replace it 
                 **  with a backpressuring strategy, but it should be done in a future ticket.
                 */
-                BPLib_CI_WaitQueueTryPush(&(tbl->jobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
+                BPLib_QM_WaitQueueTryPush(&(tbl->jobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
                 jobs_scheduled++;
             }
         }

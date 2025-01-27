@@ -47,12 +47,12 @@ typedef struct BPLib_WaitQueue
     pthread_cond_t cv_push;
 } BPLib_WaitQueue_t;
 
-bool BPLib_CI_WaitQueueInit(BPLib_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity);
+bool BPLib_QM_WaitQueueInit(BPLib_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity);
 
-void BPLib_CI_WaitQueueDestroy(BPLib_WaitQueue_t* q);
+void BPLib_QM_WaitQueueDestroy(BPLib_WaitQueue_t* q);
 
-bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms);
+bool BPLib_QM_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms);
 
-bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout_ms);
+bool BPLib_QM_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout_ms);
 
 #endif /* BPLIB_QM_WAITQUEUE_H */

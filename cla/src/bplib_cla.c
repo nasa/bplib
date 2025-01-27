@@ -79,7 +79,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_QM_QueueTable_t* tbl, uint8_t ContId, void
         return BPLIB_ERROR;
     }
 
-    if (BPLib_CI_WaitQueueTryPull(&tbl->cla_out, &bundle, Timeout))
+    if (BPLib_QM_WaitQueueTryPull(&tbl->cla_out, &bundle, Timeout))
     {
         bytes_copied = 0;
         curr_block = bundle->blob;
