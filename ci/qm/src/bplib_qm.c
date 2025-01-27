@@ -38,9 +38,6 @@ bool BPLib_QM_QueueTableInit(BPLib_QM_QueueTable_t* tbl, size_t max_jobs)
         return false;
     }
 
-    /* Belongs in BPLib_Init(), but we don't have that function. */
-    BPLib_QM_Job_TableInit();
-
     /* This is a one-time allocation when BPLib is initialized
     ** Note: We have decided to modify this so that job_mem and event_mem are passed
     **  in as parameters this function. This will be done in a future ticket.

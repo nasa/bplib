@@ -23,7 +23,6 @@
 
 #include "bplib_qm.h"
 
-void BPLib_QM_Job_TableInit(void);
 BPLib_QM_JobFunc_t BPLib_QM_Job_Lookup(BPLib_QM_JobState_t job_state);
 
 
