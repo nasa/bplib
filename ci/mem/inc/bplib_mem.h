@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef __GSFC_BPLIB_MEM_POOL_H__
-#define __GSFC_BPLIB_MEM_POOL_H__
+#ifndef BPLIB_MEM_H
+#define BPLIB_MEM_H
 
 #include "bplib_ben_allocator.h"
 
@@ -57,4 +57,4 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_
 
 void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head);
 
-#endif /* __GSFC_BPLIB_MEM_POOL_H__ */
+#endif /* BPLIB_MEM_H */

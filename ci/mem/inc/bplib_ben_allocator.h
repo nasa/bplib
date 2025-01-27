@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef __GSFC_BPLIB_MEM_BENALLOC_H__
-#define __GSFC_BPLIB_MEM_BENALLOC_H__
+#ifndef BPLIB_MEM_BEN_ALLOCATOR_H
+#define BPLIB_MEM_BEN_ALLOCATOR_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -44,4 +44,4 @@ void* BPLib_MEM_PoolImplAlloc(BPLib_MEM_PoolImpl_t* pool);
 
 void BPLib_MEM_PoolImplFree(BPLib_MEM_PoolImpl_t* pool, void* to_free);
 
-#endif /* __GSFC_BPLIB_MEM_BENALLOC_H__ */
+#endif /* BPLIB_MEM_BENALLOCATOR_H */

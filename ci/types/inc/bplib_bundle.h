@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_TYPES_BUNDLE_H
-#define BPLIB_TYPES_BUNDLE_H
+#ifndef BPLIB_BUNDLE_H
+#define BPLIB_BUNDLE_H
 
 #include "bplib_mem.h"
 
@@ -85,4 +85,4 @@ typedef struct BPLib_Bundle
 void bplib_types_testbundle_init(BPLib_MEM_Pool_t* pool, BPLib_Bundle_t* bundle,
 	int id);
 
-#endif /* BPLIB_TYPES_BUNDLE_H */
+#endif /* BPLIB_BUNDLE_H */

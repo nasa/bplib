@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef __GSFC_BPLIB_CI_WAITQUEUE_H__
-#define __GSFC_BPLIB_CI_WAITQUEUE_H__
+#ifndef BPLIB_QM_WAITQUEUE_H
+#define BPLIB_QM_WAITQUEUE_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -33,15 +33,15 @@
 
 typedef struct BPLib_WaitQueue
 {
-    // init state
+    /* Init state */
     void* storage;
     size_t el_size;
     size_t capacity;
-    // internal state
+    /* Internal State */
     int front;
     int rear;
     size_t size;
-    // Locks/CV
+    /* Locks/CV */
     pthread_mutex_t lock;
     pthread_cond_t cv_pull;
     pthread_cond_t cv_push;
@@ -55,4 +55,4 @@ bool BPLib_CI_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms)
 
 bool BPLib_CI_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout_ms);
 
-#endif /* __GSFC_BPLIB_CI_WAITQUEUE_H__ */
+#endif /* BPLIB_QM_WAITQUEUE_H */

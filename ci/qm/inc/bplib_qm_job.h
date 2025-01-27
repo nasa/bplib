@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef __GSFC_BPLIB_QM_JOBS_H__
-#define __GSFC_BPLIB_QM_JOBS_H__
+#ifndef BPLIB_QM_JOB_H
+#define BPLIB_QM_JOB_H
 
 #include "bplib_qm.h"
 
@@ -27,4 +27,4 @@ extern BPLib_QM_JobFunc_t job_funcs[NUM_JOB_STATES];
 
 void BPLib_QM_JobTableInit(void);
 
-#endif /* __GSFC_BPLIB_QM_JOBS_H__ */
+#endif /* BPLIB_QM_JOB_H */
