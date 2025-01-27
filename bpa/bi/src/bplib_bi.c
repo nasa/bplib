@@ -94,7 +94,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_QM_QueueTable_t* tbl, const void 
         bytes_copied += n_copy;
         curr_block = curr_block->next;
     }
-    printf("Ingressing packet of %lu bytes from CLA\n", n_copy);
+    printf("Ingressing packet of %lu bytes from CLA\n", bytes_copied);
 
     BPLib_QM_PostEvent(tbl, bundle, STATE_BI_IN, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
