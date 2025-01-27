@@ -56,12 +56,14 @@ typedef enum BPLib_QM_Priority
 typedef struct BPLib_Instance
 {
     BPLib_MEM_Pool_t pool;
+    /* In a future ticket, the state below can become QueueTable_t */
     void* job_mem;
     BPLib_QM_WaitQueue_t jobs;
     void* event_mem;
     BPLib_QM_WaitQueue_t events;
     void* cla_out_mem;
     BPLib_QM_WaitQueue_t cla_out;
+    /* End QueueTable_t */
 } BPLib_Instance_t;
 
 typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle);

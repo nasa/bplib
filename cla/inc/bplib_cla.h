@@ -113,7 +113,7 @@ BPLib_Status_t BPLib_CLA_Init(void);
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] inst Pointer to a valid Queue Table Instance
+ *  \param[in] inst Pointer to a valid BPLib_Instance_t
  *  \param[in] ContactsTbl - Pointer of the Contact Table
  *  \param[in] Bundle - Pointer to the received bundle
  *  \param[in] Size - Size of the received bundle
@@ -133,7 +133,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const v
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] inst Pointer to a valid Queue Table Instance
+ *  \param[in] inst Pointer to a valid BPLib_Instance_t
  *  \param[in] ContactsTbl - Pointer of the Contact Table
  *  \param[in] Bundle - Pointer to the received bundle
  *  \param[in] Size - Size of the received bundle

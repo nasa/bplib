@@ -57,7 +57,7 @@ BPLib_Status_t BPLib_BI_Init(void);
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
- *  \param[in] inst Pointer to a valid Queue Table Instance
+ *  \param[in] inst Pointer to a valid BPLib_Instance_t
  *  \param[in] BundleInPtr Pointer to the bundle
  *  \param[in] Size Bundle size
  * 
@@ -76,7 +76,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] inst Pointer to a valid Queue Table Instance
+ *  \param[in] inst Pointer to a valid BPLib_Instance_t
  *  \param[in] BundleOutPtr Pointer to the bundle
  *  \param[in] Size Bundle size
  *
