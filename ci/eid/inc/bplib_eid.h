@@ -104,8 +104,7 @@ typedef struct
 
 /**
  * \brief     Checks if the EID consists of valid parts
- * \details   TODO
- * \note      TODO
+ * \details   Validation is TBD
  * \param[in] EID (BPLib_EID_t) EID struct whose validity is in question
  * \return    EID validity
  * \retval    true: The EID matches the criteria required to be valid
