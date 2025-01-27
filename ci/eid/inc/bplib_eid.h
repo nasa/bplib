@@ -39,15 +39,63 @@
 /* ======== */
 
 /**
- * \brief EID schema (Scheme Authority.Node.Service)
+ * \brief 2-digit IPN (Node.Service)
+ * \anchor BPLib_EID_IPN2_t
+ */
+typedef struct
+{
+    uint64_t Node;    /* System that implements DTN communications protocol services identified by unique node ID */
+    uint64_t Service; /* DTN communication protocol service */
+} BPLib_EID_IPN2_t;
+
+/**
+ * \brief 3-digit IPN (Authority.Node.Service)
+ * \anchor BPLib_EID_IPN3_t
+ */
+typedef struct
+{
+    uint64_t Authority; /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
+    uint64_t Node;      /* System that implements DTN communications protocol services identified by unique node ID */
+    uint64_t Service;   /* DTN communication protocol service */
+} BPLib_EID_IPN3_t;
+
+/**
+ * \brief Allows flexibility on whether the EID uses a 2- or 3-digit IPN
+ * \secreflist
+ * \refitem BPLib_EID_IPN2_t
+ * \refitem BPLib_EID_IPN3_t
+ * \endsecreflist
+ * \anchor BPLib_EID_IPN_t
+ */
+typedef union
+{
+    BPLib_EID_IPN2_t IPN2;
+    BPLib_EID_IPN3_t IPN3;
+} BPLib_EID_IPN_t;
+
+/**
+ * \brief Provides discrete values for the scheme of the EID
+ * \anchor BPLib_EID_Scheme_t
+ */
+typedef enum
+{
+    BPLIB_EID_SCHEME_UNDEFINED = 0,
+    BPLIB_EID_SCHEME_INT       = 1, /* DTN scheme */
+    BPLIB_EID_SCHEME_STRING    = 2, /* IPN scheme */
+} BPLib_EID_Scheme_t;
+
+/**
+ * \brief EID schema (Scheme [Authority.]Node.Service)
+ * \secreflist
+ * \refitem BPLib_EID_Scheme_t
+ * \refitem BPLib_EID_IPN_t
+ * \endsecreflist
  * \anchor BPLib_EID_t
 */
 typedef struct
 {
-    uint8_t  Scheme;    /* The form the EID takes */
-    uint64_t Authority; /* Defines a set of syntactic and semantic rules that fully explain how to parse and interpret the scheme-specific part (SSP) */
-    uint64_t Node;      /* System implementing a set of DTN communications protocol services identified by a unique node ID */
-    uint64_t Service;   /* DTN communication protocol service */
+    BPLib_EID_Scheme_t Scheme; /* The form the EID takes */
+    BPLib_EID_IPN_t    IPN;    /* 2- or 3-digit IPN */
 } BPLib_EID_t;
 
 /* ================== */
