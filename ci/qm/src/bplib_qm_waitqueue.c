@@ -43,7 +43,7 @@ static void ms_to_abstimeout(uint32_t ms, struct timespec *ts)
 /*******************************************************************************
 * Exported Functions
 */
-bool BPLib_QM_WaitQueueInit(BPLib_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity)
+bool BPLib_QM_WaitQueueInit(BPLib_QM_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity)
 {
     if ((q == NULL) || (storage == NULL) || (el_size == 0) || (capacity < 2))
     {
@@ -64,7 +64,7 @@ bool BPLib_QM_WaitQueueInit(BPLib_WaitQueue_t* q, void* storage, size_t el_size,
     return true;
 }
 
-void BPLib_QM_WaitQueueDestroy(BPLib_WaitQueue_t* q)
+void BPLib_QM_WaitQueueDestroy(BPLib_QM_WaitQueue_t* q)
 {
     if (q == NULL)
     {
@@ -84,7 +84,7 @@ void BPLib_QM_WaitQueueDestroy(BPLib_WaitQueue_t* q)
     pthread_cond_destroy(&q->cv_pull);
 }
 
-bool BPLib_QM_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms)
+bool BPLib_QM_WaitQueueTryPush(BPLib_QM_WaitQueue_t* q, void* item, int timeout_ms)
 {
     struct timespec deadline;
     int rc;
@@ -127,7 +127,7 @@ bool BPLib_QM_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms)
     return true;
 }
 
-bool BPLib_QM_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout_ms)
+bool BPLib_QM_WaitQueueTryPull(BPLib_QM_WaitQueue_t* q, void* ret_item, int timeout_ms)
 {
     struct timespec deadline;
     int rc;

@@ -57,11 +57,11 @@ typedef struct BPLib_Instance
 {
     BPLib_MEM_Pool_t pool;
     void* job_mem;
-    BPLib_WaitQueue_t jobs;
+    BPLib_QM_WaitQueue_t jobs;
     void* event_mem;
-    BPLib_WaitQueue_t events;
+    BPLib_QM_WaitQueue_t events;
     void* cla_out_mem;
-    BPLib_WaitQueue_t cla_out;
+    BPLib_QM_WaitQueue_t cla_out;
 } BPLib_Instance_t;
 
 typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle);

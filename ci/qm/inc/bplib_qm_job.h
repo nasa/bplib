@@ -25,5 +25,4 @@
 
 BPLib_QM_JobFunc_t BPLib_QM_Job_Lookup(BPLib_QM_JobState_t job_state);
 
-
 #endif /* BPLIB_QM_JOB_H */

@@ -31,7 +31,7 @@
 #define WAITQUEUE_NO_WAIT      0L
 #define WAITQUEUE_WAIT_FOREVER -1L
 
-typedef struct BPLib_WaitQueue
+typedef struct BPLib_QM_WaitQueue
 {
     /* Init state */
     void* storage;
@@ -45,14 +45,14 @@ typedef struct BPLib_WaitQueue
     pthread_mutex_t lock;
     pthread_cond_t cv_pull;
     pthread_cond_t cv_push;
-} BPLib_WaitQueue_t;
+} BPLib_QM_WaitQueue_t;
 
-bool BPLib_QM_WaitQueueInit(BPLib_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity);
+bool BPLib_QM_WaitQueueInit(BPLib_QM_WaitQueue_t* q, void* storage, size_t el_size, size_t capacity);
 
-void BPLib_QM_WaitQueueDestroy(BPLib_WaitQueue_t* q);
+void BPLib_QM_WaitQueueDestroy(BPLib_QM_WaitQueue_t* q);
 
-bool BPLib_QM_WaitQueueTryPush(BPLib_WaitQueue_t* q, void* item, int timeout_ms);
+bool BPLib_QM_WaitQueueTryPush(BPLib_QM_WaitQueue_t* q, void* item, int timeout_ms);
 
-bool BPLib_QM_WaitQueueTryPull(BPLib_WaitQueue_t* q, void* ret_item, int timeout_ms);
+bool BPLib_QM_WaitQueueTryPull(BPLib_QM_WaitQueue_t* q, void* ret_item, int timeout_ms);
 
 #endif /* BPLIB_QM_WAITQUEUE_H */
