@@ -39,35 +39,15 @@
 /* ======== */
 
 /**
- * \brief 2-digit IPN (Node.Service)
- * \anchor BPLib_EID_IPN2_t
- */
-typedef struct
-{
-    uint64_t Service; /* DTN communication protocol service */
-    uint64_t Node;    /* System that implements DTN communications protocol services identified by unique node ID */
-} BPLib_EID_IPN2_t;
-
-/**
- * \brief 3-digit IPN (Authority.Node.Service)
- * \anchor BPLib_EID_IPN3_t
- */
-typedef struct
-{
-    uint64_t Service;   /* DTN communication protocol service */
-    uint64_t Node;      /* System that implements DTN communications protocol services identified by unique node ID */
-    uint64_t Authority; /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
-} BPLib_EID_IPN3_t;
-
-/**
  * \brief Provides discrete values for the scheme of the EID
+ * \note https://www.rfc-editor.org/rfc/rfc9171.html#section-9.6
  * \anchor BPLib_EID_Scheme_t
  */
 typedef enum
 {
-    BPLIB_EID_SCHEME_UNDEFINED = 0,
-    BPLIB_EID_SCHEME_INT       = 1, /* DTN scheme */
-    BPLIB_EID_SCHEME_STRING    = 2, /* IPN scheme */
+    BPLIB_EID_SCHEME_RESERVED = 0,
+    BPLIB_EID_SCHEME_DTN      = 1, /* DTN scheme */
+    BPLIB_EID_SCHEME_IPN      = 2, /* IPN scheme */
 } BPLib_EID_Scheme_t;
 
 /**
@@ -80,14 +60,27 @@ typedef enum
 */
 typedef struct
 {
-    BPLib_EID_Scheme_t Scheme; /* The form the EID takes */
-
-    union
-    {
-        BPLib_EID_IPN2_t IPN2;
-        BPLib_EID_IPN3_t IPN3;
-    } IPN;
+    uint64_t Scheme;    /* The form the EID takes */
+    uint64_t IpnFormat; /* 2- or 3-digit IPN indicator */
+    uint64_t Authority; /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
+    uint64_t Node;      /* System that implements DTN communications protocol services identified by unique node ID */
+    uint64_t Service;   /* DTN communication protocol service */
 } BPLib_EID_t;
+
+/**
+ * \brief Pattern of acceptable EID values
+ */
+typedef struct
+{
+    uint64_t Scheme;
+    uint64_t IpnFormat;
+    uint64_t MaxAuthority;
+    uint64_t MinAuthority;
+    uint64_t MaxNode;
+    uint64_t MinNode;
+    uint64_t MaxService;
+    uint64_t MinService;
+} BPLib_EID_PatternMatch_t;
 
 /* ================== */
 /* Exported Functions */
@@ -108,20 +101,21 @@ typedef struct
 bool BPLib_EID_IsValid(BPLib_EID_t EID);
 
 /**
- * \brief     Checks if the one EID matches another EID
+ * \brief     Checks if the one EID matches a pattern
  * \details   The various members of each EID are compared for equivalence
- *            or whether the reference is a wildcard
+ *            within a range, or whether the reference is a wildcard
  * \note      Wildcards are represented as BPLIB_EID_WILDCARD
  * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
- * \param[in] EID_Reference (BPLib_EID_t) EID that is to be matched
+ * \param[in] EID_Pattern (BPLib_EID_t) EID pattern that is to be matched
  * \return    EID match
- * \retval    true: The actual EID does match the reference EID
- * \retval    false: The actual EID does not match the reference EID
+ * \retval    true: The actual EID does match the reference EID pattern
+ * \retval    false: The actual EID does not match the reference EID pattern
  * \secreflist
  * \refitem   BPLib_EID_t
+ * \refitem   BPLib_EID_PatternMatch_t
  * \endsecreflist
  * \anchor    BPLib_EID_IsMatch
  */
-bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Pattern);
 
 #endif /* BPLIB_EID_H */
