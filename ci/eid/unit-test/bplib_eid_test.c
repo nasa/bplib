@@ -249,11 +249,10 @@ void Test_BPLib_EID_IsMatch_AuthorityMismatch_Error(void)
 {
     bool IsMatch;
 
-    // Actual EID = 1, 18.18.19
+    // Actual EID = 1, 18.19
     EID_A.Scheme             = BPLIB_EID_SCHEME_INT;
-    EID_A.IPN.IPN3.Authority = 18;
-    EID_A.IPN.IPN3.Node      = 18;
-    EID_A.IPN.IPN3.Service   = 19;
+    EID_A.IPN.IPN2.Node      = 18;
+    EID_A.IPN.IPN2.Service   = 19;
 
     // Reference EID = 1, 17.18.19
     EID_B.Scheme             = BPLIB_EID_SCHEME_INT;
