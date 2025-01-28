@@ -131,7 +131,6 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
     }
 }
 
-
 void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
 {
     size_t jobs_scheduled;
@@ -158,6 +157,13 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
                 curr_job.state = unsorted_job.next_state;
                 curr_job.priority = unsorted_job.priority;
                 curr_job.job_func = BPLib_QM_Job_Lookup(unsorted_job.next_state);
+                if (curr_job.job_func == NULL)
+                {
+                    /* job_func should never be NULL because they're hooked up at compile time 
+                    ** Getting here implies one of the job state functions returned an invalid state
+                    */
+                    continue;
+                }
 
                 /* Add the job to the job queue so a worker can discover it 
                 ** Note: There is no backpressuring logic right now so this can block indefintely.
