@@ -7,13 +7,13 @@
 #
 ##################################################################
 
-add_library(bplib_ci_qm OBJECT
+add_library(bplib_qm OBJECT
     src/bplib_qm.c
     src/bplib_qm_job.c
     src/bplib_qm_waitqueue.c
 )
 
-target_include_directories(bplib_ci_qm PUBLIC
+target_include_directories(bplib_qm PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
