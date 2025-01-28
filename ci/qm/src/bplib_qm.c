@@ -24,7 +24,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #define BPLIB_QM_RUNJOB_PERF_ID 0x7F
 #define BPLIB_QM_JOBWAIT_TIMEOUT 1L
@@ -157,9 +156,8 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
                 /* Create a new job for the unsorted job and place it in the generic worker jobs queue */
                 curr_job.bundle = unsorted_job.bundle;
                 curr_job.state = unsorted_job.next_state;
-                curr_job.job_func = BPLib_QM_Job_Lookup(unsorted_job.next_state);
-                assert(curr_job.job_func != NULL);
                 curr_job.priority = unsorted_job.priority;
+                curr_job.job_func = BPLib_QM_Job_Lookup(unsorted_job.next_state);
 
                 /* Add the job to the job queue so a worker can discover it 
                 ** Note: There is no backpressuring logic right now so this can block indefintely.

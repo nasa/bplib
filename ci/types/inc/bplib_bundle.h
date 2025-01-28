@@ -22,8 +22,7 @@
 #define BPLIB_BUNDLE_H
 
 #include "bplib_mem.h"
-
-#include <stdint.h>
+#include "bplib_api_types.h"
 
 #define MAX_EXT_BLOCKS 5
 
@@ -82,7 +81,5 @@ typedef struct BPLib_Bundle
     BPLib_MEM_Block_t* blob; // "Everything else"
 } BPLib_Bundle_t;
 
-void bplib_types_testbundle_init(BPLib_MEM_Pool_t* pool, BPLib_Bundle_t* bundle,
-	int id);
 
 #endif /* BPLIB_BUNDLE_H */

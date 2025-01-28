@@ -17,8 +17,6 @@ target_include_directories(bplib_ci_qm PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:bplib_ci_types,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit test coverage subdirectory

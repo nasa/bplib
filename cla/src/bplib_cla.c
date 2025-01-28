@@ -40,31 +40,25 @@ BPLib_Status_t BPLib_CLA_Init(void) {
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
 BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
 {
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-    const uint8_t *InBundle = Bundle;
 
     if ((inst == NULL) || (Bundle == NULL))
     {
         return BPLIB_ERROR;
     }
 
-    if (Bundle != NULL)
+    /* Not a RFC 9171 bundle. Can be a control message or junk*/
+    if (BPLib_CLA_IsAControlMsg((const uint8_t*)Bundle))
     {
-        /* Not a RFC 9171 bundle. Can be a control message or junk*/
-        if (BPLib_CLA_IsAControlMsg(InBundle))
-        {
-            /* Processes the control message and pass to BI*/
-            BPLib_CLA_ProcessControlMessage((BPLib_CLA_CtrlMsg_t*)Bundle);
-            
-        }
-        else
-        {
-            /* Receive a RFC 9171 bundle and pass it to BI */
-            Status = BPLib_BI_RecvFullBundleIn(inst, Bundle, Size);
-        }
+        /* Processes the control message and pass to BI*/
+        BPLib_CLA_ProcessControlMessage((BPLib_CLA_CtrlMsg_t*)Bundle);
+        return BPLIB_SUCCESS;
     }
-    
-    return Status;    
+    else
+    {
+        /* Receive a RFC 9171 bundle and pass it to BI */
+        return BPLib_BI_RecvFullBundleIn(inst, Bundle, Size);
+    }
+ 
 }
 
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
