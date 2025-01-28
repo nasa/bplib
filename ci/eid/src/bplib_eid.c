@@ -46,13 +46,19 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
     }
     else if (EID.Scheme == BPLIB_EID_SCHEME_IPN)
     {
+        /* Switch default validity to true for IPN schemes */
+        IsValid = true;
+
         if (EID.IpnSspFormat == 2 && EID.Authority != 0)
         {
             IsValid = false;
         }
         else
         {
-            IsValid = true;
+            if (EID.Node == 0 && EID.Service != 0)
+            {
+                IsValid = false;
+            }
         }
     }
 
