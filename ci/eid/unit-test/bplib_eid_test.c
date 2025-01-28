@@ -101,8 +101,8 @@ void Test_BPLib_EID_IsMatch_Nominal(void)
 
     EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
     EID_Pattern.IpnSspFormat    =  BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
-    EID_Pattern.MaxAuthority = 20;
-    EID_Pattern.MinAuthority = 0;
+    EID_Pattern.MaxAllocator = 20;
+    EID_Pattern.MinAllocator = 0;
     EID_Pattern.MaxNode      = 30;
     EID_Pattern.MinNode      = 5;
     EID_Pattern.MaxService   = 40;
@@ -111,7 +111,7 @@ void Test_BPLib_EID_IsMatch_Nominal(void)
     UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
-void Test_BPLib_EID_IsMatch_AuthorityWildcard_Nominal(void)
+void Test_BPLib_EID_IsMatch_AllocatorWildcard_Nominal(void)
 {
     EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
     EID_Test.IpnSspFormat =  BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
@@ -121,8 +121,8 @@ void Test_BPLib_EID_IsMatch_AuthorityWildcard_Nominal(void)
 
     EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
     EID_Pattern.IpnSspFormat =  BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
-    EID_Pattern.MaxAuthority = 100;
-    EID_Pattern.MinAuthority = 0;
+    EID_Pattern.MaxAllocator = 100;
+    EID_Pattern.MinAllocator = 0;
     EID_Pattern.MaxNode      = 100;
     EID_Pattern.MinNode      = 0;
     EID_Pattern.MaxService   = 100;
@@ -184,7 +184,7 @@ void Test_BPLib_EID_IsMatch_SspMismatch_Error(void)
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
 
-void Test_BPLib_EID_IsMatch_AuthorityMismatch_Error(void)
+void Test_BPLib_EID_IsMatch_AllocatorMismatch_Error(void)
 {
     EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
     EID_Test.IpnSspFormat =  BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
@@ -195,16 +195,16 @@ void Test_BPLib_EID_IsMatch_AuthorityMismatch_Error(void)
     /* === Allocator > Max Allocator === */
     EID_Test.Allocator = 17;
 
-    EID_Pattern.MaxAuthority = 2;
-    EID_Pattern.MinAuthority = 1;
+    EID_Pattern.MaxAllocator = 2;
+    EID_Pattern.MinAllocator = 1;
 
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 
     /* === Allocator < Min Allocator === */
     EID_Test.Allocator = 1;
 
-    EID_Pattern.MaxAuthority = 10;
-    EID_Pattern.MinAuthority = 9;
+    EID_Pattern.MaxAllocator = 10;
+    EID_Pattern.MinAllocator = 9;
 
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
@@ -265,14 +265,14 @@ void Test_BPLib_EID_IsMatch_ServiceMismatch_Error(void)
 void Test_BPLib_EID_IsMatch_InvalidRanges_Error(void)
 {
     /* === Invalid Allocator pattern range === */
-    EID_Pattern.MaxAuthority = 0;
-    EID_Pattern.MinAuthority = 100;
+    EID_Pattern.MaxAllocator = 0;
+    EID_Pattern.MinAllocator = 100;
 
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 
     /* === Invalid Node pattern range === */
-    EID_Pattern.MaxAuthority = 100; /* Isolate node range error */
-    EID_Pattern.MinAuthority = 0;   /* Isolate node range error */
+    EID_Pattern.MaxAllocator = 100; /* Isolate node range error */
+    EID_Pattern.MinAllocator = 0;   /* Isolate node range error */
     EID_Pattern.MaxNode      = 0;
     EID_Pattern.MinNode      = 100;
 
@@ -297,12 +297,12 @@ void TestBplibEid_Register(void)
     ADD_TEST(Test_BPLib_EID_IsValid_InvalidDTNService_Error);
     ADD_TEST(Test_BPLib_EID_IsValid_InvalidSSP_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_Nominal);
-    ADD_TEST(Test_BPLib_EID_IsMatch_AuthorityWildcard_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsMatch_AllocatorWildcard_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_NodeWildcard_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_ServiceWildcard_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_SchemeMismatch_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_SspMismatch_Error);
-    ADD_TEST(Test_BPLib_EID_IsMatch_AuthorityMismatch_Error);
+    ADD_TEST(Test_BPLib_EID_IsMatch_AllocatorMismatch_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_NodeMismatch_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_ServiceMismatch_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_InvalidRanges_Error);

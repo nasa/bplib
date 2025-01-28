@@ -65,9 +65,9 @@ typedef struct
 /**
  * \brief Pattern of acceptable EID values
  *
- * - MaxAuthority is the inclusive maximum value for the Allocator component of the IPN-style SSP
+ * - MaxAllocator is the inclusive maximum value for the Allocator component of the IPN-style SSP
  *
- * - MinAuthority is the inclusive minimum value for the Allocator component of the IPN-style SSP
+ * - MinAllocator is the inclusive minimum value for the Allocator component of the IPN-style SSP
  *
  * - MaxNode is the inclusive maximum value for the Node component of the IPN-style SSP
  *
@@ -81,8 +81,8 @@ typedef struct
 {
     uint64_t Scheme;
     uint64_t IpnSspFormat;
-    uint64_t MaxAuthority;
-    uint64_t MinAuthority;
+    uint64_t MaxAllocator;
+    uint64_t MinAllocator;
     uint64_t MaxNode;
     uint64_t MinNode;
     uint64_t MaxService;

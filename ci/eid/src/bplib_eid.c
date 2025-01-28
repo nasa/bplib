@@ -30,8 +30,8 @@
 
 const BPLib_EID_PatternMatch_t BPLIB_EID_DTN_NONE = {.Scheme       = BPLIB_EID_SCHEME_DTN,
                                                      .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
-                                                     .MaxAuthority = 0,
-                                                     .MinAuthority = 0,
+                                                     .MaxAllocator = 0,
+                                                     .MinAllocator = 0,
                                                      .MaxNode      = 0,
                                                      .MinNode      = 0,
                                                      .MaxService   = 0,
@@ -39,8 +39,8 @@ const BPLib_EID_PatternMatch_t BPLIB_EID_DTN_NONE = {.Scheme       = BPLIB_EID_S
 
 const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_NONE_2D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
                                                         .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
-                                                        .MaxAuthority = 0,
-                                                        .MinAuthority = 0,
+                                                        .MaxAllocator = 0,
+                                                        .MinAllocator = 0,
                                                         .MaxNode      = 0,
                                                         .MinNode      = 0,
                                                         .MaxService   = 0,
@@ -48,8 +48,8 @@ const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_NONE_2D = {.Scheme       = BPLIB_EI
 
 const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_NONE_3D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
                                                         .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT,
-                                                        .MaxAuthority = 0,
-                                                        .MinAuthority = 0,
+                                                        .MaxAllocator = 0,
+                                                        .MinAllocator = 0,
                                                         .MaxNode      = 0,
                                                         .MinNode      = 0,
                                                         .MaxService   = 0,
@@ -155,7 +155,7 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Patt
     IsMatch = true;
 
     /* Input verification */
-    if (EID_Pattern.MaxAuthority < EID_Pattern.MinAuthority ||
+    if (EID_Pattern.MaxAllocator < EID_Pattern.MinAllocator ||
         EID_Pattern.MaxNode      < EID_Pattern.MinNode      ||
         EID_Pattern.MaxService   < EID_Pattern.MinService)
     {
@@ -170,8 +170,8 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Patt
                 if (EID_Actual.IpnSspFormat == BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT)
                 { /* EID has an Allocator */
                     /* Check for valid Allocator values */
-                    IsMatch &= (EID_Actual.Allocator <= EID_Pattern.MaxAuthority &&
-                                EID_Actual.Allocator >= EID_Pattern.MinAuthority);
+                    IsMatch &= (EID_Actual.Allocator <= EID_Pattern.MaxAllocator &&
+                                EID_Actual.Allocator >= EID_Pattern.MinAllocator);
                 }
 
                 /* Check for valid Node values */
