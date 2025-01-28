@@ -151,6 +151,10 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
                 IsValid = false;
             }
         }
+        else
+        { /* Invalid IPN SSP format */
+            IsValid = false;
+        }
     }
     else
     {

@@ -146,6 +146,14 @@ void Test_BPLib_EID_IsValid_IPN2dService_Error(void)
     UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
 }
 
+void Test_BPLib_EID_IsValid_Format_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = 5;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
+
 void Test_BPLib_EID_IsMatch_Nominal(void)
 {
     EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
@@ -176,7 +184,7 @@ void Test_BPLib_EID_IsMatch_AllocatorWildcard_Nominal(void)
 
     EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
     EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
-    EID_Pattern.MaxAllocator = 100;
+    EID_Pattern.MaxAllocator = 0xFFFFFFFFFFFFFFFF;
     EID_Pattern.MinAllocator = 0;
     EID_Pattern.MaxNode      = 100;
     EID_Pattern.MinNode      = 0;
@@ -195,8 +203,8 @@ void Test_BPLib_EID_IsMatch_NodeWildcard_Nominal(void)
 
     EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
     EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
-    EID_Pattern.MaxNode      = 100;
-    EID_Pattern.MinNode      = 90;
+    EID_Pattern.MaxNode      = 0xFFFFFFFFFFFFFFFF;
+    EID_Pattern.MinNode      = 0;
     EID_Pattern.MaxService   = 100;
     EID_Pattern.MinService   = 0;
 
@@ -214,7 +222,7 @@ void Test_BPLib_EID_IsMatch_ServiceWildcard_Nominal(void)
     EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
     EID_Pattern.MaxNode      = 100;
     EID_Pattern.MinNode      = 0;
-    EID_Pattern.MaxService   = 1;
+    EID_Pattern.MaxService   = 0xFFFFFFFFFFFFFFFF;
     EID_Pattern.MinService   = 0;
 
     UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
@@ -355,6 +363,7 @@ void TestBplibEid_Register(void)
     ADD_TEST(Test_BPLib_EID_IsValid_IPN3dService_Error);
     ADD_TEST(Test_BPLib_EID_IsValid_IPN2dAllocator_Error);
     ADD_TEST(Test_BPLib_EID_IsValid_IPN2dService_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_Format_Error);
     ADD_TEST(Test_BPLib_EID_IsMatch_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_AllocatorWildcard_Nominal);
     ADD_TEST(Test_BPLib_EID_IsMatch_NodeWildcard_Nominal);
