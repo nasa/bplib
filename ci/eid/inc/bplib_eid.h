@@ -27,13 +27,6 @@
 
 #include "bplib_api_types.h"
 
-/* ====== */
-/* Macros */
-/* ====== */
-
-/* Wildcard designator in EIDs, max value for uint64_t */
-#define BPLIB_EID_WILDCARD 0xFFFFFFFF
-
 /* ======== */
 /* Typedefs */
 /* ======== */

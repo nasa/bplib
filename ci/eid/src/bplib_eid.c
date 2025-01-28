@@ -81,20 +81,17 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Patt
                 if (EID_Actual.IpnSspFormat == 3)
                 { /* EID has an Authority */
                     /* Check for valid Authority values */
-                    IsMatch &= (EID_Actual.Authority <= EID_Pattern.MaxAuthority  &&
-                                EID_Actual.Authority >= EID_Pattern.MinAuthority) ||
-                               (EID_Actual.Authority == BPLIB_EID_WILDCARD);
+                    IsMatch &= (EID_Actual.Authority <= EID_Pattern.MaxAuthority &&
+                                EID_Actual.Authority >= EID_Pattern.MinAuthority);
                 }
 
                 /* Check for valid Node values */
-                IsMatch &= (EID_Actual.Node <= EID_Pattern.MaxNode  &&
-                            EID_Actual.Node >= EID_Pattern.MinNode) ||
-                           (EID_Actual.Node == BPLIB_EID_WILDCARD);
+                IsMatch &= (EID_Actual.Node <= EID_Pattern.MaxNode &&
+                            EID_Actual.Node >= EID_Pattern.MinNode);
 
                 /* Check for valid Service values */
-                IsMatch &= (EID_Actual.Service <= EID_Pattern.MaxService  &&
-                            EID_Actual.Service >= EID_Pattern.MinService) ||
-                           (EID_Actual.Service == BPLIB_EID_WILDCARD);
+                IsMatch &= (EID_Actual.Service <= EID_Pattern.MaxService &&
+                            EID_Actual.Service >= EID_Pattern.MinService);
             }
             else
             {
