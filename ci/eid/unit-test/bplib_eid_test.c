@@ -39,7 +39,7 @@ void Test_BPLib_EID_IsValid_DTN_Nominal(void)
 
 void Test_BPLib_EID_IsValid_IPN_Nominal(void)
 {
-    EID_Test.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_IPN;
     EID_Test.IpnFormat = 3;
     EID_Test.Authority = 1;
     EID_Test.Node      = BPLIB_EID_WILDCARD;
