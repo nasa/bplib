@@ -24,12 +24,12 @@
 #include <string.h>
 #include <stdlib.h>
 
-bool BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
+BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
     size_t mem_len, uint32_t block_size)
 {
     if (pool == NULL)
     {
-        return false;
+        return BPLIB_ERROR;
     }
     if (init_mem != NULL)
     {
@@ -40,7 +40,7 @@ bool BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
     pool->mem = (void*)init_mem;
     pool->size = 0;
     pool->block_size = block_size;
-    return true;
+    return BPLIB_SUCCESS;
 }
 
 void BPLib_MEM_PoolImplDestroy(BPLib_MEM_PoolImpl_t* pool)

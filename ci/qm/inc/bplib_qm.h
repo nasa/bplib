@@ -21,6 +21,7 @@
 #ifndef BPLIB_QM_H
 #define BPLIB_QM_H
 
+#include "bplib_api_types.h"
 #include "bplib_bundle.h"
 #include "bplib_qm_waitqueue.h"
 #include "bplib_mem.h"
@@ -91,7 +92,7 @@ typedef struct BPLib_QM_UnsortedJob
     BPLib_QM_Priority_t priority;
 } BPLib_QM_UnsortedJob_t;
 
-bool BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs);
+BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs);
 
 void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst);
 
@@ -99,7 +100,7 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs);
 
 void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms);
 
-bool BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
+BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms);
 
 #endif /* BPLIB_QM_H */

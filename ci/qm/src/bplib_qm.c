@@ -28,13 +28,13 @@
 #define BPLIB_QM_RUNJOB_PERF_ID 0x7F
 #define BPLIB_QM_JOBWAIT_TIMEOUT 1L
 
-bool BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
+BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
 {
     bool queue_init;
 
     if (inst == NULL)
     {
-        return false;
+        return BPLIB_ERROR;
     }
 
     /* This is a one-time allocation when BPLib is initialized
@@ -49,7 +49,7 @@ bool BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
-        return false;
+        return BPLIB_ERROR;
     }
 
     /* Initialize the jobs and unsorted jobs queue */
@@ -71,10 +71,10 @@ bool BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
-        return false;
+        return BPLIB_ERROR;
     }
 
-    return true;
+    return BPLIB_SUCCESS;
 }
 
 void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
@@ -92,7 +92,7 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
     free(inst->contact_egress_mem);
 }
 
-bool BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
+BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
 {
     BPLib_QM_UnsortedJob_t unsorted_job;
@@ -180,6 +180,4 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
             break;
         }
     }
-
-    return;
 }

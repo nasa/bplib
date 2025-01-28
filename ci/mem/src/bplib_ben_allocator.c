@@ -36,24 +36,24 @@ static uint32_t index_from_addr(BPLib_MEM_PoolImpl_t* pool, const void* p)
     return  (((uint32_t)((uint8_t*)p - (uint8_t*)pool->mem_start)) / pool->block_size);
 }
 
-bool BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
+BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
     size_t mem_len, uint32_t block_size)
 {
     if (pool == NULL)
     {
-        return false;
+        return BPLIB_ERROR;
     }
     if (init_mem == NULL)
     {
-        return false;
+        return BPLIB_ERROR;
     }
     if (block_size < sizeof(uint32_t))
     {
-        return false;
+        return BPLIB_ERROR;
     }
     if (mem_len == 0)
     {
-        return false;
+        return BPLIB_ERROR;
     }
 
     memset(pool, 0, sizeof(BPLib_MEM_PoolImpl_t));
@@ -63,7 +63,7 @@ bool BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
     pool->mem_next = pool->mem_start;
     pool->num_free = pool->num_blocks;
 
-    return true;
+    return BPLIB_SUCCESS;
 }
 
 void BPLib_MEM_PoolImplDestroy(BPLib_MEM_PoolImpl_t* pool)

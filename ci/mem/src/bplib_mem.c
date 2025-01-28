@@ -27,11 +27,11 @@
 /*******************************************************************************
 * Exported Functions
 */
-bool BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size)
+BPLib_Status_t BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size)
 {
     if (pool == NULL)
     {
-        return false;
+        return BPLIB_ERROR;
     }
 
     memset(pool, 0, sizeof(BPLib_MEM_Pool_t));

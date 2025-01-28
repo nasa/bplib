@@ -23,13 +23,9 @@
 
 #include "bplib_ben_allocator.h"
 
-#include <stddef.h>
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <pthread.h>
 
-#define BPLIB_MEM_CHUNKSIZE 512U
+#define BPLIB_MEM_CHUNKSIZE (512U)
 
 typedef struct BPLib_MEM_Block
 {
@@ -45,7 +41,7 @@ typedef struct BPLib_MEM_Pool
     pthread_mutex_t lock;
 } BPLib_MEM_Pool_t;
 
-bool BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size);
+BPLib_Status_t BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size);
 
 void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool);
 

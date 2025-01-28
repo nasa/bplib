@@ -21,9 +21,7 @@
 #ifndef BPLIB_MEM_STD_ALLOCATOR_H
 #define BPLIB_MEM_STD_ALLOCATOR_H
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include "bplib_api_types.h"
 
 typedef struct BPLib_MEM_PoolImpl
 {
@@ -32,7 +30,7 @@ typedef struct BPLib_MEM_PoolImpl
     uint32_t block_size;
 } BPLib_MEM_PoolImpl_t;
 
-bool BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
+BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
     size_t mem_len, uint32_t block_size);
 
 void BPLib_MEM_PoolImplDestroy(BPLib_MEM_PoolImpl_t* pool);
