@@ -49,7 +49,7 @@ typedef struct
     void (*BPA_PERFLOGP_Exit)(uint32_t PerfLogID);
 
     /* Table Proxy function callbacks */
-    int32_t (*BPA_TABLEP_SingleTableUpdate)(int16_t TblHandle);
+    BPLib_Status_t (*BPA_TABLEP_SingleTableUpdate)(int16_t TblHandle);
 
     /* Event Proxy function callbacks */
     BPLib_Status_t (*BPA_EVP_Init)(void);
@@ -96,6 +96,5 @@ extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
 BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks);
-
 
 #endif /* BPLIB_FWP_H */

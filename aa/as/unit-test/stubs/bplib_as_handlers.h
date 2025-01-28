@@ -35,7 +35,7 @@
 /* Macros */
 /* ====== */
 
-#define UT_MAX_INCDEC_DEPTH 4
+#define UT_MAX_INCDEC_DEPTH (50u)
 
 /* ================ */
 /* Type Definitions */
