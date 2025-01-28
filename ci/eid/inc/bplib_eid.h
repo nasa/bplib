@@ -34,7 +34,6 @@
 /**
  * \brief Provides discrete values for the scheme of the EID
  * \note https://www.rfc-editor.org/rfc/rfc9171.html#section-9.6
- * \anchor BPLib_EID_Scheme_t
  */
 typedef enum
 {
@@ -45,10 +44,7 @@ typedef enum
 
 /**
  * \brief EID schema (Scheme [Authority.]Node.Service)
- * \secreflist
- * \refitem BPLib_EID_Scheme_t
- * \endsecreflist
- * \anchor BPLib_EID_t
+ * \ref     BPLib_EID_Scheme_t
 */
 typedef struct
 {
@@ -61,17 +57,17 @@ typedef struct
 
 /**
  * \brief Pattern of acceptable EID values
- * 
+ *
  * - MaxAuthority is the inclusive maximum value for the Authority component of the IPN-style SSP
- * 
+ *
  * - MinAuthority is the inclusive minimum value for the Authority component of the IPN-style SSP
  *
  * - MaxNode is the inclusive maximum value for the Node component of the IPN-style SSP
- * 
+ *
  * - MinNode is the inclusive minimum value for the Node component of the IPN-style SSP
- * 
+ *
  * - MaxService is the inclusive maximum value for the Service of the IPN-style SSP
- * 
+ *
  * - MinService is the inclusive minimum value for the Service of the IPN-style SSP
  */
 typedef struct
@@ -97,28 +93,24 @@ typedef struct
  * \return    EID validity
  * \retval    true: The EID matches the criteria required to be valid
  * \retval    false: The EID is invalid in some way
- * \secreflist
- * \refitem   BPLib_EID_t
- * \endsecreflist
- * \anchor    BPLib_EID_IsValid
+ * \ref       BPLib_EID_t
  */
 bool BPLib_EID_IsValid(BPLib_EID_t EID);
 
 /**
  * \brief     Checks if the one EID matches a pattern
  * \details   The various members of each EID are compared for equivalence
- *            within a range, or whether the reference is a wildcard
- * \note      Wildcards are represented as BPLIB_EID_WILDCARD
+ *            within a range
+ * \note      Wildcards are represented as a BPLib_EID_PatternMatch_t::Min<Field> == 0
+ *            and a BPLib_EID_PatternMatch_t::Max<Field> == 0xFFFF FFFF FFFF FFFF, where
+ *            Field is Authority, Node, or Service
  * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
- * \param[in] EID_Pattern (BPLib_EID_t) EID pattern that is to be matched
+ * \param[in] EID_Pattern (BPLib_EID_PatternMatch_t) EID pattern that is to be matched
  * \return    EID match
  * \retval    true: The actual EID does match the reference EID pattern
  * \retval    false: The actual EID does not match the reference EID pattern
- * \secreflist
- * \refitem   BPLib_EID_t
- * \refitem   BPLib_EID_PatternMatch_t
- * \endsecreflist
- * \anchor    BPLib_EID_IsMatch
+ * \ref       BPLib_EID_t
+ * \ref       BPLib_EID_PatternMatch_t
  */
 bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Pattern);
 
