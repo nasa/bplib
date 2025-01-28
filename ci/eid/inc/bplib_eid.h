@@ -60,9 +60,9 @@ typedef enum
 */
 typedef struct
 {
-    uint64_t Scheme;    /* The form the EID takes */
+    uint64_t Scheme;    /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
     uint64_t IpnFormat; /* 2- or 3-digit IPN indicator */
-    uint64_t Authority; /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
+    uint64_t Authority; /* Controlling organziation */
     uint64_t Node;      /* System that implements DTN communications protocol services identified by unique node ID */
     uint64_t Service;   /* DTN communication protocol service */
 } BPLib_EID_t;

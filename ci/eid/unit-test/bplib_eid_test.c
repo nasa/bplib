@@ -220,16 +220,16 @@ void Test_BPLib_EID_IsMatch_NodeMismatch_Error(void)
     /* === Node > Max Node === */
     EID_Test.Node = 22;
     
-    EID_Pattern.MaxNode    = 20;
-    EID_Pattern.MinService = 0;
+    EID_Pattern.MaxNode = 20;
+    EID_Pattern.MinNode = 0;
 
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 
     /* === Node < Min Node === */
     EID_Test.Node = 0;
     
-    EID_Pattern.MaxNode    = 20;
-    EID_Pattern.MinService = 5;
+    EID_Pattern.MaxNode = 20;
+    EID_Pattern.MinNode = 5;
 
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 }
@@ -271,12 +271,16 @@ void Test_BPLib_EID_IsMatch_InvalidRanges_Error(void)
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 
     /* === Invalid Node pattern range === */
-    EID_Pattern.MaxNode = 0;
-    EID_Pattern.MinNode = 100;
+    EID_Pattern.MaxAuthority = 100; /* Isolate node range error */
+    EID_Pattern.MinAuthority = 0;   /* Isolate node range error */
+    EID_Pattern.MaxNode      = 0;
+    EID_Pattern.MinNode      = 100;
 
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
 
     /* === Invalid Service pattern range === */
+    EID_Pattern.MaxNode    = 100; /* Isolate service range error */
+    EID_Pattern.MinNode    = 0;   /* Isolate service range error */
     EID_Pattern.MaxService = 0;
     EID_Pattern.MinService = 100;
 
