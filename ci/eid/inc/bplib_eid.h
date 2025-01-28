@@ -61,7 +61,7 @@ typedef enum
 typedef struct
 {
     uint64_t Scheme;    /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
-    uint64_t IpnFormat; /* 2- or 3-digit IPN indicator */
+    uint64_t SspFormat; /* 2- or 3-digit SSP indicator */
     uint64_t Authority; /* Controlling organziation */
     uint64_t Node;      /* System that implements DTN communications protocol services identified by unique node ID */
     uint64_t Service;   /* DTN communication protocol service */
@@ -73,7 +73,7 @@ typedef struct
 typedef struct
 {
     uint64_t Scheme;
-    uint64_t IpnFormat;
+    uint64_t SspFormat;
     uint64_t MaxAuthority;
     uint64_t MinAuthority;
     uint64_t MaxNode;

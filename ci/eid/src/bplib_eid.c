@@ -46,7 +46,7 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
     }
     else if (EID.Scheme == BPLIB_EID_SCHEME_IPN)
     {
-        if (EID.IpnFormat == 2 && EID.Authority != 0)
+        if (EID.SspFormat == 2 && EID.Authority != 0)
         {
             IsValid = false;
         }
@@ -76,9 +76,9 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Patt
     {
         if (EID_Actual.Scheme == EID_Pattern.Scheme)
         { /* The EID schemes are compatible for comparison */
-            if (EID_Actual.IpnFormat == EID_Pattern.IpnFormat)
+            if (EID_Actual.SspFormat == EID_Pattern.SspFormat)
             { /* IPN formats are compatible for comparison */
-                if (EID_Actual.IpnFormat == 3)
+                if (EID_Actual.SspFormat == 3)
                 { /* EID has an Authority */
                     /* Check for valid Authority values */
                     IsMatch &= (EID_Actual.Authority <= EID_Pattern.MaxAuthority  &&
