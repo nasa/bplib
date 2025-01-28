@@ -32,29 +32,23 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
 {
     bool IsValid;
 
-    IsValid = false;
+    IsValid = true;
 
     if (EID.Scheme == BPLIB_EID_SCHEME_DTN)
     {
-        if (EID.Node == 0)
-        {
-            if (EID.Service == 0)
-            {
-                IsValid = true;
-            }
-        }
+        /* Only dtn:none is accepted in the DTN scheme right now */
+        IsValid = BPLib_EID_IsMatch(EID, DTN_NONE);
     }
     else if (EID.Scheme == BPLIB_EID_SCHEME_IPN)
     {
-        /* Switch default validity to true for IPN schemes */
-        IsValid = true;
-
+        /* Authority values need to be zero when not using them */
         if (EID.IpnSspFormat == 2 && EID.Authority != 0)
         {
             IsValid = false;
         }
         else
         {
+            /* Anonymous Node 0 requires a Service number of 0 */
             if (EID.Node == 0 && EID.Service != 0)
             {
                 IsValid = false;

@@ -27,6 +27,37 @@
 
 #include "bplib_api_types.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+const BPLib_EID_PatternMatch_t DTN_NONE = {.Scheme       = BPLIB_EID_SCHEME_DTN,
+                                           .IpnSspFormat = 2,
+                                           .MaxAuthority = 0,
+                                           .MinAuthority = 0,
+                                           .MaxNode      = 0,
+                                           .MinNode      = 0,
+                                           .MaxService   = 0,
+                                           .MinService   = 0};
+
+const BPLib_EID_PatternMatch_t IPN_2D_NONE = {.Scheme       = BPLIB_EID_SCHEME_IPN,
+                                              .IpnSspFormat = 2,
+                                              .MaxAuthority = 0,
+                                              .MinAuthority = 0,
+                                              .MaxNode      = 0,
+                                              .MinNode      = 0,
+                                              .MaxService   = 0,
+                                              .MinService   = 0};
+
+const BPLib_EID_PatternMatch_t IPN_3D_NONE = {.Scheme       = BPLIB_EID_SCHEME_IPN,
+                                              .IpnSspFormat = 3,
+                                              .MaxAuthority = 0,
+                                              .MinAuthority = 0,
+                                              .MaxNode      = 0,
+                                              .MinNode      = 0,
+                                              .MaxService   = 0,
+                                              .MinService   = 0};
+
 /* ======== */
 /* Typedefs */
 /* ======== */
