@@ -54,26 +54,37 @@ typedef enum
  * \brief EID schema (Scheme [Authority.]Node.Service)
  * \secreflist
  * \refitem BPLib_EID_Scheme_t
- * \refitem BPLib_EID_IPN_t
  * \endsecreflist
  * \anchor BPLib_EID_t
 */
 typedef struct
 {
-    uint64_t Scheme;    /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
-    uint64_t SspFormat; /* 2- or 3-digit SSP indicator */
-    uint64_t Authority; /* Controlling organziation */
-    uint64_t Node;      /* System that implements DTN communications protocol services identified by unique node ID */
-    uint64_t Service;   /* DTN communication protocol service */
+    uint64_t Scheme;       /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
+    uint64_t IpnSspFormat; /* 2- or 3-digit IPN-style SSP indicator */
+    uint64_t Authority;    /* Controlling organziation */
+    uint64_t Node;         /* System that implements DTN communications protocol services identified by unique node ID */
+    uint64_t Service;      /* DTN communication protocol service */
 } BPLib_EID_t;
 
 /**
  * \brief Pattern of acceptable EID values
+ * 
+ * - MaxAuthority is the inclusive maximum value for the Authority component of the IPN-style SSP
+ * 
+ * - MinAuthority is the inclusive minimum value for the Authority component of the IPN-style SSP
+ *
+ * - MaxNode is the inclusive maximum value for the Node component of the IPN-style SSP
+ * 
+ * - MinNode is the inclusive minimum value for the Node component of the IPN-style SSP
+ * 
+ * - MaxService is the inclusive maximum value for the Service of the IPN-style SSP
+ * 
+ * - MinService is the inclusive minimum value for the Service of the IPN-style SSP
  */
 typedef struct
 {
     uint64_t Scheme;
-    uint64_t SspFormat;
+    uint64_t IpnSspFormat;
     uint64_t MaxAuthority;
     uint64_t MinAuthority;
     uint64_t MaxNode;
