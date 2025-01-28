@@ -31,6 +31,13 @@
 /* Typedefs */
 /* ======== */
 
+typedef enum
+{
+    BPLIB_EID_IPN_SSP_FORMAT_RESERVED    = 0,
+    BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT   = 2,
+    BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT = 3,
+} BPLib_EID_IPN_SSP_Format_t;
+
 /**
  * \brief Provides discrete values for the scheme of the EID
  * \note https://www.rfc-editor.org/rfc/rfc9171.html#section-9.6
@@ -43,14 +50,14 @@ typedef enum
 } BPLib_EID_Scheme_t;
 
 /**
- * \brief EID schema (Scheme [Authority.]Node.Service)
- * \ref     BPLib_EID_Scheme_t
+ * \brief EID schema (Scheme [Allocator.]Node.Service)
+ * \ref   BPLib_EID_Scheme_t
 */
 typedef struct
 {
     uint64_t Scheme;       /* Defines syntactic and semantic rules that explain how to parse and interpret scheme-specific part (SSP) */
     uint64_t IpnSspFormat; /* 2- or 3-digit IPN-style SSP indicator */
-    uint64_t Authority;    /* Controlling organziation */
+    uint64_t Allocator;    /* Controlling organization */
     uint64_t Node;         /* System that implements DTN communications protocol services identified by unique node ID */
     uint64_t Service;      /* DTN communication protocol service */
 } BPLib_EID_t;
@@ -58,9 +65,9 @@ typedef struct
 /**
  * \brief Pattern of acceptable EID values
  *
- * - MaxAuthority is the inclusive maximum value for the Authority component of the IPN-style SSP
+ * - MaxAuthority is the inclusive maximum value for the Allocator component of the IPN-style SSP
  *
- * - MinAuthority is the inclusive minimum value for the Authority component of the IPN-style SSP
+ * - MinAuthority is the inclusive minimum value for the Allocator component of the IPN-style SSP
  *
  * - MaxNode is the inclusive maximum value for the Node component of the IPN-style SSP
  *
@@ -86,7 +93,7 @@ typedef struct
 /* Global Data */
 /* =========== */
 
-extern const BPLib_EID_PatternMatch_t DTN_NONE;
+extern const BPLib_EID_PatternMatch_t BPLIB_EID_DTN_NONE;
 extern const BPLib_EID_PatternMatch_t IPN_2D_NONE;
 extern const BPLib_EID_PatternMatch_t IPN_3D_NONE;
 
@@ -97,6 +104,7 @@ extern const BPLib_EID_PatternMatch_t IPN_3D_NONE;
 /**
  * \brief     Checks if the EID consists of valid parts
  * \details   Validation is TBD
+ * \note      Validity determined from this reference: https://datatracker.ietf.org/doc/draft-ietf-dtn-ipn-update/14/
  * \param[in] EID (BPLib_EID_t) EID struct whose validity is in question
  * \return    EID validity
  * \retval    true: The EID matches the criteria required to be valid
@@ -111,7 +119,7 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID);
  *            within a range
  * \note      Wildcards are represented as a BPLib_EID_PatternMatch_t::Min<Field> == 0
  *            and a BPLib_EID_PatternMatch_t::Max<Field> == 0xFFFF FFFF FFFF FFFF, where
- *            Field is Authority, Node, or Service
+ *            Field is Allocator, Node, or Service
  * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
  * \param[in] EID_Pattern (BPLib_EID_PatternMatch_t) EID pattern that is to be matched
  * \return    EID match

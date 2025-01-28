@@ -28,32 +28,32 @@
 /* Global Data */
 /* =========== */
 
-const BPLib_EID_PatternMatch_t DTN_NONE = {.Scheme       = BPLIB_EID_SCHEME_DTN,
-                                           .IpnSspFormat = 2,
-                                           .MaxAuthority = 0,
-                                           .MinAuthority = 0,
-                                           .MaxNode      = 0,
-                                           .MinNode      = 0,
-                                           .MaxService   = 0,
-                                           .MinService   = 0};
+const BPLib_EID_PatternMatch_t BPLIB_EID_DTN_NONE = {.Scheme       = BPLIB_EID_SCHEME_DTN,
+                                                     .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+                                                     .MaxAuthority = 0,
+                                                     .MinAuthority = 0,
+                                                     .MaxNode      = 0,
+                                                     .MinNode      = 0,
+                                                     .MaxService   = 0,
+                                                     .MinService   = 0};
 
-const BPLib_EID_PatternMatch_t IPN_2D_NONE = {.Scheme       = BPLIB_EID_SCHEME_IPN,
-                                              .IpnSspFormat = 2,
-                                              .MaxAuthority = 0,
-                                              .MinAuthority = 0,
-                                              .MaxNode      = 0,
-                                              .MinNode      = 0,
-                                              .MaxService   = 0,
-                                              .MinService   = 0};
+const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_NONE_2D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
+                                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+                                                        .MaxAuthority = 0,
+                                                        .MinAuthority = 0,
+                                                        .MaxNode      = 0,
+                                                        .MinNode      = 0,
+                                                        .MaxService   = 0,
+                                                        .MinService   = 0};
 
-const BPLib_EID_PatternMatch_t IPN_3D_NONE = {.Scheme       = BPLIB_EID_SCHEME_IPN,
-                                              .IpnSspFormat = 3,
-                                              .MaxAuthority = 0,
-                                              .MinAuthority = 0,
-                                              .MaxNode      = 0,
-                                              .MinNode      = 0,
-                                              .MaxService   = 0,
-                                              .MinService   = 0};
+const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_NONE_3D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
+                                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT,
+                                                        .MaxAuthority = 0,
+                                                        .MinAuthority = 0,
+                                                        .MaxNode      = 0,
+                                                        .MinNode      = 0,
+                                                        .MaxService   = 0,
+                                                        .MinService   = 0};
 
 /* ==================== */
 /* Function Definitions */
@@ -63,25 +63,83 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
 {
     bool IsValid;
 
-    IsValid = true;
-
     if (EID.Scheme == BPLIB_EID_SCHEME_DTN)
     {
         /* Only dtn:none is accepted in the DTN scheme right now */
-        IsValid = BPLib_EID_IsMatch(EID, DTN_NONE);
+        IsValid = BPLib_EID_IsMatch(EID, BPLIB_EID_DTN_NONE);
     }
     else if (EID.Scheme == BPLIB_EID_SCHEME_IPN)
     {
-        /* Authority values need to be zero when not using them */
-        if (EID.IpnSspFormat == 2 && EID.Authority != 0)
+        if (EID.IpnSspFormat == BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT)
         {
-            IsValid = false;
-        }
-        else
-        {
-            /* Anonymous Node 0 requires a Service number of 0 */
-            if (EID.Node == 0 && EID.Service != 0)
+            if (EID.Allocator == 0)
             {
+                if (EID.Node == 0)
+                {
+                    if (EID.Service == 0)
+                    { /* Allocator = 0, Node = 0, Service = 0 */
+                        /* 
+                         * Within the ipn URI scheme, the 'null' EID is represented by the Null
+                         * ipn URI (Section 3.1).  This means that the URIs dtn:none
+                         * (Section 4.2.5.1.1 of [RFC9171]), ipn:0.0, and ipn:0.0.0 all refer to
+                         * the BPv7 'null' endpoint.
+                         */
+                        IsValid = true;
+                    }
+                    else
+                    { /* Allocator = 0, Node = 0, Service > 0 */
+                        /*
+                         * This means that any ipn URI with a zero (0) Allocator Identifier and
+                         * a zero (0) Node Number, but a non-zero Service Number component is
+                         * invalid.  Such ipn URIs MUST NOT be composed, and processors of such
+                         * ipn URIs MUST consider them as the Null ipn URI.
+                         */
+                        IsValid = false;
+                    }
+                }
+            }
+            else
+            {
+                if (EID.Node == 0)
+                { /* Allocator > 0, Node = 0, Service = ?? */
+                    /*
+                     * It is RECOMMENDED that Node Number zero (0) not be assigned by an
+                     * Allocator to avoid confusion with the Null ipn URI
+                     */ 
+                    IsValid = false;
+                }
+            }
+        }
+        else if (EID.IpnSspFormat == BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT)
+        {
+            if (EID.Allocator == 0)
+            {
+                if (EID.Node == 0)
+                {
+                    if (EID.Service == 0)
+                    { /* Allocator = 0, Node = 0, Service = 0 */
+                        /*
+                         * Within the ipn URI scheme, the 'null' EID is represented by the Null
+                         * ipn URI (Section 3.1).  This means that the URIs dtn:none
+                         * (Section 4.2.5.1.1 of [RFC9171]), ipn:0.0, and ipn:0.0.0 all refer to
+                         * the BPv7 'null' endpoint.
+                         */
+                        IsValid = true;
+                    }
+                    else
+                    { /* Allocator = 0, Node = 0, Service != 0 */
+                        /* Anonymous Node 0 requires a Service number of 0 */
+                        IsValid = false;
+                    }
+                }
+                else
+                { /* Allocator = 0, Node > 0, Service = ?? */
+                    IsValid = true;
+                }
+            }
+            else
+            { /* Allocator > 0, Node = ??, Service = ?? */
+                /* Allocator values need to be zero when not using them */
                 IsValid = false;
             }
         }
@@ -109,11 +167,11 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Patt
         { /* The EID schemes are compatible for comparison */
             if (EID_Actual.IpnSspFormat == EID_Pattern.IpnSspFormat)
             { /* IPN formats are compatible for comparison */
-                if (EID_Actual.IpnSspFormat == 3)
-                { /* EID has an Authority */
-                    /* Check for valid Authority values */
-                    IsMatch &= (EID_Actual.Authority <= EID_Pattern.MaxAuthority &&
-                                EID_Actual.Authority >= EID_Pattern.MinAuthority);
+                if (EID_Actual.IpnSspFormat == BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT)
+                { /* EID has an Allocator */
+                    /* Check for valid Allocator values */
+                    IsMatch &= (EID_Actual.Allocator <= EID_Pattern.MaxAuthority &&
+                                EID_Actual.Allocator >= EID_Pattern.MinAuthority);
                 }
 
                 /* Check for valid Node values */
