@@ -46,12 +46,13 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
     }
     else if (EID.Scheme == BPLIB_EID_SCHEME_IPN)
     {
-        if (EID.IpnFormat == 2)
+        if (EID.IpnFormat == 2 && EID.Authority != 0)
         {
-            if (EID.Authority == 0)
-            {
-                IsValid = true;
-            }
+            IsValid = false;
+        }
+        else
+        {
+            IsValid = true;
         }
     }
 
@@ -80,20 +81,20 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Patt
                 if (EID_Actual.IpnFormat == 3)
                 { /* EID has an Authority */
                     /* Check for valid Authority values */
-                    IsMatch &= (EID_Actual.Authority <= EID_Pattern.MaxAuthority &&
-                                EID_Actual.Authority >= EID_Pattern.MinAuthority ||
-                                EID_Actual.Authority == BPLIB_EID_WILDCARD);
+                    IsMatch &= (EID_Actual.Authority <= EID_Pattern.MaxAuthority  &&
+                                EID_Actual.Authority >= EID_Pattern.MinAuthority) ||
+                               (EID_Actual.Authority == BPLIB_EID_WILDCARD);
                 }
 
                 /* Check for valid Node values */
-                IsMatch &= (EID_Actual.Node <= EID_Pattern.MaxNode &&
-                            EID_Actual.Node >= EID_Pattern.MinNode ||
-                            EID_Actual.Node == BPLIB_EID_WILDCARD);
+                IsMatch &= (EID_Actual.Node <= EID_Pattern.MaxNode  &&
+                            EID_Actual.Node >= EID_Pattern.MinNode) ||
+                           (EID_Actual.Node == BPLIB_EID_WILDCARD);
 
                 /* Check for valid Service values */
-                IsMatch &= (EID_Actual.Service <= EID_Pattern.MaxService &&
-                            EID_Actual.Service >= EID_Pattern.MinService ||
-                            EID_Actual.Service == BPLIB_EID_WILDCARD);
+                IsMatch &= (EID_Actual.Service <= EID_Pattern.MaxService  &&
+                            EID_Actual.Service >= EID_Pattern.MinService) ||
+                           (EID_Actual.Service == BPLIB_EID_WILDCARD);
             }
             else
             {

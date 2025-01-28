@@ -37,7 +37,18 @@ void Test_BPLib_EID_IsValid_DTN_Nominal(void)
     UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
 }
 
-void Test_BPLib_EID_IsValid_IPN_Nominal(void)
+void Test_BPLib_EID_IsValid_IPN2_Nominal(void)
+{
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnFormat = 2;
+    EID_Test.Authority = 0;
+    EID_Test.Node      = BPLIB_EID_WILDCARD;
+    EID_Test.Service   = 2;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_IPN3_Nominal(void)
 {
     EID_Test.Scheme    = BPLIB_EID_SCHEME_IPN;
     EID_Test.IpnFormat = 3;
@@ -275,7 +286,8 @@ void Test_BPLib_EID_IsMatch_InvalidRanges_Error(void)
 void TestBplibEid_Register(void)
 {
     ADD_TEST(Test_BPLib_EID_IsValid_DTN_Nominal);
-    ADD_TEST(Test_BPLib_EID_IsValid_IPN_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN2_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN3_Nominal);
     ADD_TEST(Test_BPLib_EID_IsValid_InvalidScheme_Error);
     ADD_TEST(Test_BPLib_EID_IsValid_InvalidDTNNode_Error);
     ADD_TEST(Test_BPLib_EID_IsValid_InvalidDTNService_Error);
