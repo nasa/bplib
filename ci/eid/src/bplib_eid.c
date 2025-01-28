@@ -97,9 +97,13 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
                         IsValid = false;
                     }
                 }
+                else
+                { /* Allocator = 0, Node > 0, Service = ?? */
+                    IsValid = true;
+                }
             }
             else
-            {
+            { /* Allocator > 0 */
                 if (EID.Node == 0)
                 { /* Allocator > 0, Node = 0, Service = ?? */
                     /*
@@ -107,6 +111,10 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
                      * Allocator to avoid confusion with the Null ipn URI
                      */ 
                     IsValid = false;
+                }
+                else
+                { /* Allocator > 0, Node > 0, Service = ?? */
+                    IsValid = true;
                 }
             }
         }
@@ -143,6 +151,10 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
                 IsValid = false;
             }
         }
+    }
+    else
+    {
+        IsValid = false;
     }
 
     return IsValid;
