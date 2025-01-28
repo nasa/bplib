@@ -60,51 +60,51 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
 
 bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Pattern)
 {
+    bool IsMatch;
+
+    IsMatch = true;
+
     /* Input verification */
     if (EID_Pattern.MaxAuthority < EID_Pattern.MinAuthority ||
         EID_Pattern.MaxNode      < EID_Pattern.MinNode      ||
         EID_Pattern.MaxService   < EID_Pattern.MinService)
     {
-        return false;
+        IsMatch = false;
     }
-
-    if (EID_Actual.Scheme == EID_Pattern.Scheme)
-    { /* The EID schemes are compatible for comparison */
-        if (EID_Actual.IpnFormat == EID_Pattern.IpnFormat)
-        { /* IPN formats are compatible for comparison */
-            if (EID_Actual.IpnFormat == 3)
-            { /* IPN format contains an Authority member, so compare the Authorities */
-                if (EID_Actual.Authority  > EID_Pattern.MaxAuthority ||
-                    EID_Actual.Authority  < EID_Pattern.MinAuthority &&
-                    EID_Actual.Authority != BPLIB_EID_WILDCARD)
-                { /* Given Authority value is out of range and not a wildcard */
-                    return false;
+    else
+    {
+        if (EID_Actual.Scheme == EID_Pattern.Scheme)
+        { /* The EID schemes are compatible for comparison */
+            if (EID_Actual.IpnFormat == EID_Pattern.IpnFormat)
+            { /* IPN formats are compatible for comparison */
+                if (EID_Actual.IpnFormat == 3)
+                { /* EID has an Authority */
+                    /* Check for valid Authority values */
+                    IsMatch &= (EID_Actual.Authority  > EID_Pattern.MaxAuthority) ||
+                               (EID_Actual.Authority  < EID_Pattern.MinAuthority  &&
+                                EID_Actual.Authority != BPLIB_EID_WILDCARD);
                 }
-            }
 
-            if (EID_Actual.Node  > EID_Pattern.MaxNode ||
-                EID_Actual.Node  < EID_Pattern.MinNode &&
-                EID_Actual.Node != BPLIB_EID_WILDCARD)
-            { /* Given Node value is out of range and not a wildcard */
-                return false;
-            }
+                /* Check for valid Node values */
+                IsMatch &= (EID_Actual.Node  > EID_Pattern.MaxNode) ||
+                           (EID_Actual.Node  < EID_Pattern.MinNode  &&
+                            EID_Actual.Node != BPLIB_EID_WILDCARD);
 
-            if (EID_Actual.Service  > EID_Pattern.MaxService ||
-                EID_Actual.Service  < EID_Pattern.MinService &&
-                EID_Actual.Service != BPLIB_EID_WILDCARD)
-            { /* Given Service value is out of range and not a wildcard */
-                return false;
+                /* Check for valid Service values */
+                IsMatch &= (EID_Actual.Service  > EID_Pattern.MaxService) ||
+                           (EID_Actual.Service  < EID_Pattern.MinService  &&
+                            EID_Actual.Service != BPLIB_EID_WILDCARD);
+            }
+            else
+            {
+                IsMatch = false;
             }
         }
         else
         {
-            return false;
+            IsMatch = false;
         }
     }
-    else
-    {
-        return false;
-    }
 
-    return true;
+    return IsMatch;
 }
