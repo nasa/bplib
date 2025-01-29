@@ -56,6 +56,9 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const v
     else
     {
         /* Receive a RFC 9171 bundle and pass it to BI */
+        /* Note: An argument can be made to simply implement RecvFullBundleIn here
+        * and do away with BI_RecvFullBundleIn()
+        */
         return BPLib_BI_RecvFullBundleIn(inst, Bundle, Size);
     }
  
@@ -89,6 +92,7 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* inst, uint8_t ContId, void *Bu
         printf("Egressing packet of %lu bytes to CLA\n", *Size);
         return BPLIB_SUCCESS;
     }
+
     return BPLIB_CLA_TIMEOUT;
 }
 

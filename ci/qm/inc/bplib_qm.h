@@ -31,25 +31,28 @@
 
 typedef enum BPLib_JobState
 {
-    CONTACT_IN_CLA_TO_BI = 0,
-    CONTACT_IN_BI_TO_EBP,
+    CONTACT_IN_BI_TO_EBP = 0,
     CONTACT_IN_EBP_TO_CT,
     CONTACT_IN_CT_TO_STOR,
     CONTACT_OUT_STOR_TO_CT,
     CONTACT_OUT_CT_TO_EBP,
     CONTACT_OUT_EBP_TO_BI,
-    CONTACT_OUT_BI_TO_CLA,
-    BUNDLE_STOR,
-    CHANNEL_IN_ADU_TO_PI,
     CHANNEL_IN_PI_TO_EBP,
     CHANNEL_IN_EBP_TO_CT,
     CHANNEL_IN_CT_TO_STOR,
     CHANNEL_OUT_STOR_TO_CT,
     CHANNEL_OUT_CT_TO_EBP,
     CHANNEL_OUT_EBP_TO_PI,
-    CHANNEL_OUT_PI_TO_ADU,
-    /* Must be last */
-    NUM_JOB_STATES
+    /*
+     * Must come after contact and channel states as this is used to static
+     * allocate an array of job functions
+     */
+    NUM_GENWORKER_STATES,
+
+    /* These states are for "signaling" QM, but do not have associated job
+     * functions (yet)
+     */
+    NO_NEXT_STATE,
 } BPLib_QM_JobState_t;
 
 typedef enum BPLib_QM_Priority

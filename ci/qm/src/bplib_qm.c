@@ -127,14 +127,18 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
         **  I think it could be a good idea to make the unsorted jobs queue larger than the jobs queue so that this
         **  case is infrequent.
         */
-        BPLib_QM_AddUnsortedJob(inst, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
-    }
+        if (next_state != NO_NEXT_STATE)
+        {
+           BPLib_QM_AddUnsortedJob(inst, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+        } 
+    }    
 }
 
 void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
 {
     size_t jobs_scheduled;
     BPLib_QM_Job_t curr_job;
+    BPLib_QM_JobFunc_t next_job_func;
     BPLib_QM_UnsortedJob_t unsorted_job;
 
     jobs_scheduled = 0;
@@ -142,28 +146,14 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
     {
         if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &unsorted_job, BPLIB_QM_JOBWAIT_TIMEOUT))
         {
-            if (unsorted_job.next_state == CONTACT_OUT_BI_TO_CLA)
-            {
-                BPLib_QM_WaitQueueTryPush(&(inst->ContactEgressJobs), &unsorted_job.bundle, WAITQUEUE_WAIT_FOREVER);
-            }
-            else if (unsorted_job.next_state == CHANNEL_OUT_PI_TO_ADU)
-            {
-                /* Implement something similar to BI_TO_CLA State */
-            }
-            else
+            next_job_func = BPLib_QM_Job_Lookup(unsorted_job.next_state);
+            if (next_job_func)
             {
                 /* Create a new job for the unsorted job and place it in the generic worker jobs queue */
                 curr_job.bundle = unsorted_job.bundle;
                 curr_job.state = unsorted_job.next_state;
                 curr_job.priority = unsorted_job.priority;
-                curr_job.job_func = BPLib_QM_Job_Lookup(unsorted_job.next_state);
-                if (curr_job.job_func == NULL)
-                {
-                    /* job_func should never be NULL because they're hooked up at compile time 
-                    ** Getting here implies one of the job state functions returned an invalid state
-                    */
-                    continue;
-                }
+                curr_job.job_func = next_job_func;
 
                 /* Add the job to the job queue so a worker can discover it 
                 ** Note: There is no backpressuring logic right now so this can block indefintely.
@@ -173,6 +163,11 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
                 */
                 BPLib_QM_WaitQueueTryPush(&(inst->GenericWorkerJobs), &curr_job, WAITQUEUE_WAIT_FOREVER);
                 jobs_scheduled++;
+            }
+            else
+            {
+                /* I don't think this warrants an event message, but we should know if something got here */
+                printf("Invalid Bundle State Reached: %d\n", unsorted_job.next_state);
             }
         }
         else

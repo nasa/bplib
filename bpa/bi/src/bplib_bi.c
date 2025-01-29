@@ -21,9 +21,10 @@
 /*
 ** Include
 */
-#include <stdio.h>
 #include "bplib_bi.h"
 #include "bplib_qm.h"
+
+#include <stdio.h>
 
 /*
 ** Function Definitions
@@ -52,10 +53,6 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
 
     /* Validate the deserialized bundle*/
     Status = BPLib_BI_ValidateBundle();
-    
-    /* 
-     * Pass the deserialized bundle into EBP In Queue 
-    */
 
     /* Presently, there is no bundle deserialization. We're just going to create a faux bundle and attach BundleIn
     ** as the Blob
@@ -96,32 +93,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     }
     printf("Ingressing packet of %lu bytes from CLA\n", bytes_copied);
 
-    BPLib_QM_AddUnsortedJob(inst, bundle, CONTACT_IN_CLA_TO_BI, QM_PRI_NORMAL, QM_WAIT_FOREVER);
-    return Status;
-}
-
-/* Pull deserialized bundle from BI Out Queue, CBOR encode it, then send it to CLA */
-BPLib_Status_t BPLib_BI_SendFullBundleOut(BPLib_Instance_t* inst, void *BundleOut, size_t* Size)
-{
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-
-    if ((inst == NULL) || (BundleOut == NULL) || (Size == NULL))
-    {
-        return BPLIB_ERROR;
-    }
-
-    /* 
-     * Pull the deserialized bundle from BI Out Queue 
-     */
-    
-    /* 
-     * CBOR encode the deserialized bundle if needed, return the bundle pointer 
-     */
-    
-    /* 
-     * Pass the bundle out to CLA 
-     */
-    
+    BPLib_QM_AddUnsortedJob(inst, bundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
 }
 
