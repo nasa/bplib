@@ -28,7 +28,7 @@
 /* Global Data */
 /* =========== */
 
-const BPLib_EID_PatternMatch_t BPLIB_EID_DTN_NONE = {.Scheme       = BPLIB_EID_SCHEME_DTN,
+const BPLib_EID_Pattern_t BPLIB_EID_DTN_NONE = {.Scheme       = BPLIB_EID_SCHEME_DTN,
                                                      .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
                                                      .MaxAllocator = 0,
                                                      .MinAllocator = 0,
@@ -37,7 +37,7 @@ const BPLib_EID_PatternMatch_t BPLIB_EID_DTN_NONE = {.Scheme       = BPLIB_EID_S
                                                      .MaxService   = 0,
                                                      .MinService   = 0};
 
-const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_NONE_2D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
+const BPLib_EID_Pattern_t BPLIB_EID_IPN_NONE_2D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
                                                         .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
                                                         .MaxAllocator = 0,
                                                         .MinAllocator = 0,
@@ -46,7 +46,7 @@ const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_NONE_2D = {.Scheme       = BPLIB_EI
                                                         .MaxService   = 0,
                                                         .MinService   = 0};
 
-const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_NONE_3D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
+const BPLib_EID_Pattern_t BPLIB_EID_IPN_NONE_3D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
                                                         .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT,
                                                         .MaxAllocator = 0,
                                                         .MinAllocator = 0,
@@ -164,7 +164,7 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
     return IsValid;
 }
 
-bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Pattern)
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
 {
     bool IsMatch;
 

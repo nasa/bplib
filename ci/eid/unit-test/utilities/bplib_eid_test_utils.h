@@ -37,7 +37,7 @@
 /* =========== */
 
 extern BPLib_EID_t EID_Test;
-extern BPLib_EID_PatternMatch_t EID_Pattern;
+extern BPLib_EID_Pattern_t EID_Pattern;
 
 /* ====== */
 /* Macros */

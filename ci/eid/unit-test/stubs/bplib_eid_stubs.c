@@ -32,12 +32,12 @@
  * Generated stub function for BPLib_EID_IsMatch()
  * ----------------------------------------------------
  */
-bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Pattern)
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_EID_IsMatch, bool);
 
     UT_GenStub_AddParam(BPLib_EID_IsMatch, BPLib_EID_t, EID_Actual);
-    UT_GenStub_AddParam(BPLib_EID_IsMatch, BPLib_EID_PatternMatch_t, EID_Pattern);
+    UT_GenStub_AddParam(BPLib_EID_IsMatch, BPLib_EID_Pattern_t, EID_Pattern);
 
     UT_GenStub_Execute(BPLib_EID_IsMatch, Basic, NULL);
 

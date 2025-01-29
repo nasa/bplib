@@ -87,15 +87,15 @@ typedef struct
     uint64_t MinNode;
     uint64_t MaxService;
     uint64_t MinService;
-} BPLib_EID_PatternMatch_t;
+} BPLib_EID_Pattern_t;
 
 /* =========== */
 /* Global Data */
 /* =========== */
 
-extern const BPLib_EID_PatternMatch_t BPLIB_EID_DTN_NONE;
-extern const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_2D_NONE;
-extern const BPLib_EID_PatternMatch_t BPLIB_EID_IPN_3D_NONE;
+extern const BPLib_EID_Pattern_t BPLIB_EID_DTN_NONE;
+extern const BPLib_EID_Pattern_t BPLIB_EID_IPN_2D_NONE;
+extern const BPLib_EID_Pattern_t BPLIB_EID_IPN_3D_NONE;
 
 /* =================== */
 /* Function Prototypes */
@@ -117,17 +117,17 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID);
  * \brief     Checks if the one EID matches a pattern
  * \details   The various members of each EID are compared for equivalence
  *            within a range
- * \note      Wildcards are represented as a BPLib_EID_PatternMatch_t::Min<Field> == 0
- *            and a BPLib_EID_PatternMatch_t::Max<Field> == 0xFFFF FFFF FFFF FFFF, where
+ * \note      Wildcards are represented as a BPLib_EID_Pattern_t::Min<Field> == 0
+ *            and a BPLib_EID_Pattern_t::Max<Field> == 0xFFFF FFFF FFFF FFFF, where
  *            Field is Allocator, Node, or Service
  * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
- * \param[in] EID_Pattern (BPLib_EID_PatternMatch_t) EID pattern that is to be matched
+ * \param[in] EID_Pattern (BPLib_EID_Pattern_t) EID pattern that is to be matched
  * \return    EID match
  * \retval    true: The actual EID does match the reference EID pattern
  * \retval    false: The actual EID does not match the reference EID pattern
  * \ref       BPLib_EID_t
- * \ref       BPLib_EID_PatternMatch_t
+ * \ref       BPLib_EID_Pattern_t
  */
-bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_PatternMatch_t EID_Pattern);
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern);
 
 #endif /* BPLIB_EID_H */

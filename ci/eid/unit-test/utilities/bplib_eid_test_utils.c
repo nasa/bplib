@@ -29,14 +29,14 @@
 /* =========== */
 
 BPLib_EID_t EID_Test;
-BPLib_EID_PatternMatch_t EID_Pattern;
+BPLib_EID_Pattern_t EID_Pattern;
 
 void BPLib_EID_Test_Setup(void)
 {
     /* Initialize test environment to default state for every test */
 
     memset(&EID_Test, 0, sizeof(BPLib_EID_t));
-    memset(&EID_Pattern, 0, sizeof(BPLib_EID_PatternMatch_t));
+    memset(&EID_Pattern, 0, sizeof(BPLib_EID_Pattern_t));
 
     UT_ResetState(0);
 }
