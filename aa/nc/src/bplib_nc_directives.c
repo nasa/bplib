@@ -344,23 +344,23 @@ void BPLib_NC_ResetErrorCounters(const BPLib_ResetErrorCounters_Payload_t Payloa
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_ResetErrorCounters(Payload.SourceEid);
+    Status = BPLib_AS_ResetErrorCounters(Payload.MibArrayIndex);
 
     if (Status == BPLIB_SUCCESS)
     {
-        BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
+        BPLib_AS_Increment(Payload.MibArrayIndex, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Successfully reset error counters for source EID %d",
-                            Payload.SourceEid);
+                            "Successfully reset error counters for source MIB counters at index %d",
+                            Payload.MibArrayIndex);
     }
     else
     {
-        BPLib_AS_Increment(Payload.SourceEid, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
+        BPLib_AS_Increment(Payload.MibArrayIndex, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_RESET_ERR_CTRS_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Could not reset error counters with source EID %d, RC = %d",
-                            Payload.SourceEid,
+                            "Could not reset error counters for source MIB counters at index %d, RC = %d",
+                            Payload.MibArrayIndex,
                             Status);
     }
 }
