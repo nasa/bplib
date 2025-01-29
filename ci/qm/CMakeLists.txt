@@ -20,6 +20,6 @@ target_include_directories(bplib_qm PUBLIC
 )
 
 # Add unit test coverage subdirectory
-#if(BPLIB_ENABLE_UNIT_TESTS)
-#    add_subdirectory(unit-test)
-#endif(BPLIB_ENABLE_UNIT_TESTS)
+if(BPLIB_ENABLE_UNIT_TESTS)
+    add_subdirectory(unit-test)
+endif(BPLIB_ENABLE_UNIT_TESTS)
