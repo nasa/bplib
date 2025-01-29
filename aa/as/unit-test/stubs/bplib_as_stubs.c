@@ -27,9 +27,6 @@
 #include "bplib_as.h"
 #include "utgenstub.h"
 
-BPLib_NodeMibCountersHkTlm_Payload_t    BPLib_AS_NodeCountersPayload;        /** \brief Global node MIB counter payload */
-BPLib_SourceMibCountersHkTlm_Payload_t  BPLib_AS_SourceCountersPayload;      /** \brief Global source MID counter payload */
-
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_AS_Decrement()
@@ -79,6 +76,7 @@ BPLib_Status_t BPLib_AS_Init(void)
  */
 void BPLib_AS_ResetAllCounters(void)
 {
+
     UT_GenStub_Execute(BPLib_AS_ResetAllCounters, Basic, NULL);
 }
 
@@ -87,8 +85,9 @@ void BPLib_AS_ResetAllCounters(void)
  * Generated stub function for BPLib_AS_ResetBundleCounters()
  * ----------------------------------------------------
  */
-void BPLib_AS_ResetBundleCounters()
+void BPLib_AS_ResetBundleCounters(void)
 {
+
     UT_GenStub_Execute(BPLib_AS_ResetBundleCounters, Basic, NULL);
 }
 
@@ -114,11 +113,11 @@ BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Count
  * Generated stub function for BPLib_AS_ResetErrorCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_ResetErrorCounters(int16_t SourceEid)
+BPLib_Status_t BPLib_AS_ResetErrorCounters(uint8_t MibArrayIndex)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_AS_ResetErrorCounters, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_AS_ResetErrorCounters, int16_t, SourceEid);
+    UT_GenStub_AddParam(BPLib_AS_ResetErrorCounters, uint8_t, MibArrayIndex);
 
     UT_GenStub_Execute(BPLib_AS_ResetErrorCounters, Basic, NULL);
 

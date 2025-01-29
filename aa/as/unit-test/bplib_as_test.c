@@ -270,37 +270,37 @@ void Test_BPLib_AS_ResetBundleCounters_Nominal(void)
 void Test_BPLib_AS_ResetErrorCounters_Nominal(void)
 {
     BPLib_Status_t Status;
-    int32_t SourceEid;
+    uint8_t MibArrayIndex;
     uint32_t TestValue;
 
-    SourceEid = 3;
-    TestValue = 5;
+    MibArrayIndex = 3;
+    TestValue     = 5;
 
     /* Set the values to be tested */
-    Test_BPLib_AS_SetErrorCounterValues(SourceEid, TestValue);
+    Test_BPLib_AS_SetErrorCounterValues(MibArrayIndex, TestValue);
 
     /* Run the function under test */
-    Status = BPLib_AS_ResetErrorCounters(SourceEid);
+    Status = BPLib_AS_ResetErrorCounters(MibArrayIndex);
 
     /* Assert that BPLib_AS_ResetErrorCounters() ran successfully */
     UtAssert_EQ(BPLib_Status_t, BPLIB_SUCCESS, Status);
 
     /* Assert that each modified error counter was reset */
-    Test_BPLib_AS_ErrorCountersValueTest(SourceEid, 0);
+    Test_BPLib_AS_ErrorCountersValueTest(MibArrayIndex, 0);
 }
 
 void Test_BPLib_AS_ResetErrorCounters_Error(void)
 {
     BPLib_Status_t Status;
-    int32_t SourceEid;
+    uint8_t MibArrayIndex;
 
-    SourceEid = -15;
+    MibArrayIndex = -15;
 
     /* Run the function under test */
-    Status = BPLib_AS_ResetErrorCounters(SourceEid);
+    Status = BPLib_AS_ResetErrorCounters(MibArrayIndex);
 
-    /* Assert that BPLib_AS_ResetErrorCounters() failed due to an invalid source EID */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
+    /* Assert that BPLib_AS_ResetErrorCounters() failed due to an invalid index into source MIB counters array */
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_MIB_INDEX, Status);
 }
 
 void Test_BPLib_AS_ResetAllCounters_Nominal(void)

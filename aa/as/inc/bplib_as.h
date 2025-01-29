@@ -288,9 +288,9 @@ void BPLib_AS_ResetBundleCounters(void);
  * \brief     Set to zero all resettable MIB error counters
  * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
  * \note      Directly sets error counters in payloads to 0
- * \param[in] MibArrayIndex (uint8_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
+ * \param[in] MibArrayIndex (uint8_t) Index into source counters array
  * \return    Execution status
- * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
+ * \retval    BPLIB_AS_INVALID_MIB_INDEX: Index into source MIB counters array is out of range
  * \retval    BPLIB_SUCCESS: Successful execution
  * \secreflist
  * \refitem   BPLib_AS_Counter_t

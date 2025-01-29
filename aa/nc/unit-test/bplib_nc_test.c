@@ -388,18 +388,18 @@ void Test_BPLib_NC_ResetErrorCounters_Nominal(void)
 
     memset((void*) &Payload, 0, sizeof(BPLib_ResetErrorCounters_Payload_t));
 
-    Payload.SourceEid = 2;
+    Payload.MibArrayIndex = 2;
     BPLib_NC_ResetErrorCounters(Payload);
     
     // Verify directive counter was incremented
-    Test_BPLib_NC_VerifyIncrement(Payload.SourceEid, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
+    Test_BPLib_NC_VerifyIncrement(Payload.MibArrayIndex, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1, 1);
 
     /* Verify downstream function was called */
     UtAssert_STUB_COUNT(BPLib_AS_ResetErrorCounters, 1);
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_ERR_CTRS_SUCCESS_EID,
-                                "Successfully reset error counters for source EID %d");
+                                "Successful reset-error-counters directive for source MIB counters at index %d");
 }
 
 void Test_BPLib_NC_ResetErrorCounters_Error(void)
@@ -408,20 +408,20 @@ void Test_BPLib_NC_ResetErrorCounters_Error(void)
 
     memset((void*) &Payload, 0, sizeof(BPLib_ResetErrorCounters_Payload_t));
 
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetErrorCounters), BPLIB_AS_INVALID_EID);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_ResetErrorCounters), BPLIB_AS_INVALID_MIB_INDEX);
 
-    Payload.SourceEid = 19;
+    Payload.MibArrayIndex = 19;
     BPLib_NC_ResetErrorCounters(Payload);
     
     // Verify directive counter was incremented
-    Test_BPLib_NC_VerifyIncrement(Payload.SourceEid, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+    Test_BPLib_NC_VerifyIncrement(Payload.MibArrayIndex, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
 
     /* Verify downstream function was called */
     UtAssert_STUB_COUNT(BPLib_AS_ResetErrorCounters, 1);
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_RESET_ERR_CTRS_ERR_EID,
-                                "Could not reset error counters with source EID %d, RC = %d");
+                                "Could not reset error counters for source MIB counters at index %d, RC = %d");
 }
 
 void Test_BPLib_NC_AddApplication_Nominal(void)
