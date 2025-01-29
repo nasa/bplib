@@ -172,8 +172,6 @@ void BPLib_NC_ResetBundleCounters(void);
   * \brief     Set all error counters to zero
   * \details   Node Configuration Reset Error Counters command
   * \note      This command relies on BPLib_AS_ResetErrorCounters() in bplib_as.h for functionality.
-  *            This command will issue a success event since BPLib_AS_ResetErrorCounters() has no
-  *            no return value
   * \param[in] Payload (BPLib_ResetErrorCounters_Payload_t) Payload found in bplib_nc_payloads.h
   * \return    void
   */

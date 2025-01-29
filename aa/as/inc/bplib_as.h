@@ -292,12 +292,9 @@ void BPLib_AS_ResetBundleCounters(void);
  * \return    Execution status
  * \retval    BPLIB_AS_INVALID_MIB_INDEX: Index into source MIB counters array is out of range
  * \retval    BPLIB_SUCCESS: Successful execution
- * \secreflist
- * \refitem   BPLib_AS_Counter_t
- * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
- * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
- * \endsecreflist
- * \anchor    BPLib_AS_ResetErrorCounters
+ * \ref       BPLib_AS_Counter_t
+ * \ref       BPLib_SourceMibCountersHkTlm_Payload_t
+ * \ref       BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
  */
 BPLib_Status_t BPLib_AS_ResetErrorCounters(uint8_t MibArrayIndex);
 
