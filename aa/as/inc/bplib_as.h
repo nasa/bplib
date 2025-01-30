@@ -140,7 +140,7 @@ typedef enum
  */
 typedef struct
 {
-    /** 
+    /**
       * \brief Array of all node counters
       * \note  See BPLib_AS_Counter_t for counter details
       * \ref   BPLib_AS_Counter_t
@@ -201,22 +201,19 @@ typedef struct
 BPLib_Status_t BPLib_AS_Init(void);
 
 /**
- * \brief     Add an amount to the counter specified by the source EID and counter
+ * \brief     Add an amount to the counter specified by the given EID and counter
  * \details   Incrementing function for counters used by Admin Statistics
  * \note      Amount must be positive
- * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
+ * \param[in] EID (BPLib_EID_t) EID whose associated counter should be incremented
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
  * \param[in] Amount (uint32_t) Positive integer to increment Counter by
  * \return    void
- * \secreflist
- * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
- * \refitem   BPLib_AS_Counter_t
- * \refitem   BPLib_AS_SetCounter [BPLib_AS_SetCounter()]
- * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
- * \endsecreflist
- * \anchor    BPLib_AS_Increment
+ * \ref       BPLib_SourceMibCountersHkTlm_Payload_t
+ * \ref       BPLib_AS_Counter_t
+ * \ref       BPLib_AS_SetCounter [BPLib_AS_SetCounter()]
+ * \ref       BPLib_EID_t
  */
-void BPLib_AS_Increment(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
+void BPLib_AS_Increment(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount)
 
 /**
  * \brief     Subtract an amount from the counter specified by the source EID and counter
