@@ -216,23 +216,19 @@ BPLib_Status_t BPLib_AS_Init(void);
 void BPLib_AS_Increment(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
 /**
- * \brief     Subtract an amount from the counter specified by the source EID and counter
+ * \brief     Subtract an amount to the counter specified by the given EID and counter
  * \details   Decrementing function for counters used by Admin Statistics
  * \note      Amount must be positive
- * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
+ * \param[in] EID (BPLib_EID_t) EID whose associated counter should be decremented
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to decrement
- * \param[in] Amount (uint32_t) Amount to decrement by
+ * \param[in] Amount (uint32_t) Positive integer to decrement Counter by
  * \return    void
- * \secreflist
- * \refitem   BPLib_AS_Get [BPLib_AS_Get()]
- * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
- * \refitem   BPLib_AS_Counter_t
- * \refitem   BPLib_AS_SetCounter [BPLib_AS_SetCounter()]
- * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
- * \endsecreflist
- * \anchor    BPLib_AS_Decrement
+ * \ref       BPLib_SourceMibCountersHkTlm_Payload_t
+ * \ref       BPLib_AS_Counter_t
+ * \ref       BPLib_AS_SetCounter [BPLib_AS_SetCounter()]
+ * \ref       BPLib_EID_t
  */
-void BPLib_AS_Decrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount);
+void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
 /**
  * \brief     Set to zero to counter associated with the given source EID pattern
