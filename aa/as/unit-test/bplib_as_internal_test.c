@@ -148,6 +148,74 @@ void Test_BPLib_AS_UnlockCounters_Error(void)
     BPLib_AS_Test_Verify_Event(0, BPLIB_AS_GIVE_MUTEX_ERR_EID, "Failed to give to the counter mutex, RC = %d");
 }
 
+void Test_BPLib_AS_GetMibArrayIndex_Nominal(void)
+{
+    BPLib_Status_t Status;
+    uint8_t Index;
+    uint8_t ExpectedIndex;
+    BPLib_EID_t EID_Test;
+    BPLib_EID_Pattern_t EID_Pattern;
+
+    memset((void*) &EID_Pattern, 0, sizeof(BPLib_EID_Pattern_t));
+    Index         = 20;
+    ExpectedIndex = 2;
+
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Allocator    = 1;
+    EID_Test.Node         = 2;
+    EID_Test.Service      = 3;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Pattern.MaxAllocator = 1;
+    EID_Pattern.MinAllocator = 0;
+    EID_Pattern.MaxNode      = 2;
+    EID_Pattern.MinNode      = 0;
+    EID_Pattern.MaxService   = 3;
+    EID_Pattern.MinService   = 0;
+
+    BPLib_AS_SourceCountersPayload.MibArray[ExpectedIndex].SourceEIDs[1] = EID_Pattern;
+
+    Status = BPLib_AS_GetMibArrayIndex(EID_Test, &Index);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+    UtAssert_UINT8_EQ(Index, ExpectedIndex);
+}
+
+void Test_BPLib_AS_GetMibArrayIndex_NoMatch_Error(void)
+{
+    BPLib_Status_t Status;
+    uint8_t Index;
+    BPLib_EID_t EID_Test;
+    BPLib_EID_Pattern_t EID_Pattern;
+
+    memset((void*) &EID_Pattern, 0, sizeof(BPLib_EID_Pattern_t));
+    Index = 20;
+
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Allocator    = 4;
+    EID_Test.Node         = 5;
+    EID_Test.Service      = 6;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Pattern.MaxAllocator = 4;
+    EID_Pattern.MinAllocator = 0;
+    EID_Pattern.MaxNode      = 5;
+    EID_Pattern.MinNode      = 0;
+    EID_Pattern.MaxService   = 1;
+    EID_Pattern.MinService   = 0;
+
+    BPLib_AS_SourceCountersPayload.MibArray[1].SourceEIDs[1] = EID_Pattern;
+
+    Status = BPLib_AS_GetMibArrayIndex(EID_Test, &Index);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_UNKNOWN_MIB_ARRAY_EID);
+    UtAssert_UINT8_EQ(Index, 20);
+}
+
 void TestBplibAsInternal_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_EidIsValid_Nominal);
