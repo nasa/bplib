@@ -39,14 +39,15 @@ void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* 
                             context_BPLib_EM_SendEvent[EventNum].Spec, BPLIB_EM_EXPANDED_EVENT_SIZE);
 }
 
-void Test_BPLib_NC_VerifyIncrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum)
+void Test_BPLib_NC_VerifyIncrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum)
 {
     UtAssert_STUB_COUNT(BPLib_AS_Increment, CallNum);
 
-    if (SourceEid != -1)
-    {
-        UtAssert_EQ(int16_t, SourceEid, Context_BPLib_AS_Increment[CallNum - 1].SourceEid);
-    }
+    UtAssert_EQ(uint64_t, EID.Scheme,       Context_BPLib_AS_Increment[CallNum - 1].EID.Scheme);
+    UtAssert_EQ(uint64_t, EID.IpnSspFormat, Context_BPLib_AS_Increment[CallNum - 1].EID.IpnSspFormat);
+    UtAssert_EQ(uint64_t, EID.Allocator,    Context_BPLib_AS_Increment[CallNum - 1].EID.Allocator);
+    UtAssert_EQ(uint64_t, EID.Node,         Context_BPLib_AS_Increment[CallNum - 1].EID.Node);
+    UtAssert_EQ(uint64_t, EID.Service,      Context_BPLib_AS_Increment[CallNum - 1].EID.Service);
 
     if (Counter != -1)
     {
@@ -59,14 +60,15 @@ void Test_BPLib_NC_VerifyIncrement(int16_t SourceEid, BPLib_AS_Counter_t Counter
     }
 }
 
-void Test_BPLib_NC_VerifyDecrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum)
+void Test_BPLib_NC_VerifyDecrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum)
 {
     UtAssert_STUB_COUNT(BPLib_AS_Decrement, CallNum);
 
-    if (SourceEid != -1)
-    {
-        UtAssert_EQ(uint16_t, SourceEid, Context_BPLib_AS_Decrement[CallNum - 1].SourceEid);
-    }
+    UtAssert_EQ(uint64_t, EID.Scheme,       Context_BPLib_AS_Decrement[CallNum - 1].EID.Scheme);
+    UtAssert_EQ(uint64_t, EID.IpnSspFormat, Context_BPLib_AS_Decrement[CallNum - 1].EID.IpnSspFormat);
+    UtAssert_EQ(uint64_t, EID.Allocator,    Context_BPLib_AS_Decrement[CallNum - 1].EID.Allocator);
+    UtAssert_EQ(uint64_t, EID.Node,         Context_BPLib_AS_Decrement[CallNum - 1].EID.Node);
+    UtAssert_EQ(uint64_t, EID.Service,      Context_BPLib_AS_Decrement[CallNum - 1].EID.Service);
 
     if (Counter != -1)
     {
