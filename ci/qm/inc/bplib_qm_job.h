@@ -23,6 +23,16 @@
 
 #include "bplib_qm.h"
 
+/**
+ * @brief Looks up the job function associated with a given job state.
+ * 
+ * This function returns the appropriate job function (callback) based on the provided job state. 
+ * The job function is used to handle the execution of jobs within the QM subsystem.
+ * 
+ * @param[in] job_state The state of the job for which the function is being looked up.
+ * 
+ * @return A function pointer to the job function corresponding to the specified job state.
+ */
 BPLib_QM_JobFunc_t BPLib_QM_Job_Lookup(BPLib_QM_JobState_t job_state);
 
 #endif /* BPLIB_QM_JOB_H */

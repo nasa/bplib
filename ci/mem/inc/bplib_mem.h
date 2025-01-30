@@ -25,32 +25,98 @@
 
 #include <pthread.h>
 
-#define BPLIB_MEM_CHUNKSIZE (512U)
+#define BPLIB_MEM_CHUNKSIZE (512U) /**< Defines the size of a memory chunk */
 
+/**
+ * @struct BPLib_MEM_Block_t
+ * @brief Represents a block of memory in the pool.
+ * 
+ * This structure holds a chunk of memory (`chunk`). 
+ * It also has a pointer (`next`) to link to other blocks in a linked list.
+ */
 typedef struct BPLib_MEM_Block
 {
-    uint8_t chunk[BPLIB_MEM_CHUNKSIZE];
-    size_t chunk_len;
-    struct BPLib_MEM_Block* next;
+    uint8_t chunk[BPLIB_MEM_CHUNKSIZE]; /**< Memory chunk stored in the block */
+    size_t chunk_len; /**< Byte-length of user-data currently within the chunk. This is initialized to 0. */
+    struct BPLib_MEM_Block* next; /**< Pointer to the next block in the list */
 } BPLib_MEM_Block_t;
 
-// TODO: Make implementation private if desired
+/**
+ * @struct BPLib_MEM_Pool_t
+ * @brief Represents a memory pool that manages memory blocks.
+ * 
+ * This structure holds the implementation of the pool (`impl`), and a mutex lock (`lock`)
+ * for thread safety when accessing the memory pool.
+ */
 typedef struct BPLib_MEM_Pool
 {
-    BPLib_MEM_PoolImpl_t impl;
-    pthread_mutex_t lock;
+    BPLib_MEM_PoolImpl_t impl; /**< The pool implementation (details hidden) */
+    pthread_mutex_t lock; /**< Mutex for synchronizing access to the pool */
 } BPLib_MEM_Pool_t;
 
+/**
+ * @brief Initializes a memory pool.
+ * 
+ * This function initializes a memory pool with the provided initial memory and size.
+ * 
+ * @param[out] pool Pointer to the memory pool to initialize.
+ * @param[in] init_mem Pointer to the initial memory for the pool.
+ * @param[in] init_size Size of the initial memory.
+ * 
+ * @return Status of the operation.
+ */
 BPLib_Status_t BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size);
 
+/**
+ * @brief Destroys a memory pool.
+ * 
+ * This function destroys the memory pool and frees any allocated resources.
+ * 
+ * @param[in] pool Pointer to the memory pool to destroy.
+ */
 void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool);
 
+/**
+ * @brief Allocates a new memory block from the pool.
+ * 
+ * This function allocates a single memory block from the memory pool.
+ * 
+ * @param[in] pool Pointer to the memory pool from which to allocate a block.
+ * 
+ * @return Pointer to the allocated memory block.
+ */
 BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool);
 
+/**
+ * @brief Frees a memory block back to the pool.
+ * 
+ * This function frees a memory block that was previously allocated from the pool.
+ * 
+ * @param[in] pool Pointer to the memory pool to which to return the block.
+ * @param[in] block Pointer to the memory block to free.
+ */
 void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block);
 
+/**
+ * @brief Allocates a list of memory blocks from the pool.
+ * 
+ * This function allocates a list of memory blocks that together have the requested byte length.
+ * 
+ * @param[in] pool Pointer to the memory pool from which to allocate blocks.
+ * @param[in] byte_len The total byte length of the blocks to allocate.
+ * 
+ * @return Pointer to the head of the allocated block list.
+ */
 BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len);
 
+/**
+ * @brief Frees a list of memory blocks back to the pool.
+ * 
+ * This function frees a list of memory blocks that were previously allocated from the pool.
+ * 
+ * @param[in] pool Pointer to the memory pool to which to return the blocks.
+ * @param[in] head Pointer to the head of the block list to free.
+ */
 void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head);
 
 #endif /* BPLIB_MEM_H */
