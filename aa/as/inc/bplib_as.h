@@ -319,6 +319,8 @@ void BPLib_AS_ResetAllCounters(void);
   * \param[in] void No arguments accepted
   * \return    Execution status
   * \return    Return codes from BPA_TLMP_SendNodeMibCounterPkt() in fwp_tlmp.h
+  * \ref       BPLib_AS_LockCounters [BPLib_AS_LockCounters()]
+  * \ref       BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
   */
 BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
 
@@ -329,6 +331,8 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
   * \param[in] void No arguments accepted
   * \return    Execution status
   * \return    Return codes from BPA_TLMP_SendPerSourceMibCounterPkt() in fwp_tlmp.h
+  * \ref       BPLib_AS_LockCounters [BPLib_AS_LockCounters()]
+  * \ref       BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
   */
 BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
 
