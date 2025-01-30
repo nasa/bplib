@@ -2,22 +2,24 @@
 #
 # Bundle Protocol Library (BPLib) CMake build recipe
 #
-# This is for the MEM module
+# This is for the "Queue Manager (QM)" submodule, which applies only to the
+# bplib_stor_qm build.
 #
 ##################################################################
 
-add_library(bplib_mem OBJECT
-    src/bplib_mem.c
-    src/bplib_ben_allocator.c
-    #src/bplib_std_allocator.c
+add_library(bplib_qm OBJECT
+    src/bplib_qm.c
+    src/bplib_qm_job.c
+    src/bplib_qm_waitqueue.c
 )
 
-target_include_directories(bplib_mem PUBLIC
+target_include_directories(bplib_qm PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# Add unit tests
+# Add unit test coverage subdirectory
 if(BPLIB_ENABLE_UNIT_TESTS)
-   add_subdirectory(unit-test)
+    add_subdirectory(unit-test)
 endif(BPLIB_ENABLE_UNIT_TESTS)

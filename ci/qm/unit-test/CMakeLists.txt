@@ -8,12 +8,13 @@
 ##################################################################
 
 # Create stubs (for external use)
-add_library(bplib_mem_stubs STATIC
-    stubs/bplib_mem_stubs.c
+add_library(bplib_qm_stubs STATIC
+    stubs/bplib_qm_stubs.c
+    stubs/bplib_qm_waitqueue_stubs.c
 )
 
-target_include_directories(bplib_mem_stubs PUBLIC
-    $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
+target_include_directories(bplib_qm_stubs PUBLIC
+    $<TARGET_PROPERTY:bplib_qm,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(bplib_mem_stubs PUBLIC ut_assert)
+target_link_libraries(bplib_qm_stubs PUBLIC ut_assert)

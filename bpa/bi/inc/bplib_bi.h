@@ -27,7 +27,8 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cla.h"
-
+#include "bplib_qm.h"
+#include "bplib_bundle.h"
 
 /*
 ** Exported Functions
@@ -56,31 +57,15 @@ BPLib_Status_t BPLib_BI_Init(void);
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
+ *  \param[in] inst Pointer to a valid BPLib_Instance_t
  *  \param[in] BundleInPtr Pointer to the bundle
  *  \param[in] Size Bundle size
  * 
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-BPLib_Status_t BPLib_BI_RecvFullBundleIn(const void *BundleInPtr, size_t Size);
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleInPtr, size_t Size);
 
-
-/**
- * \brief Function for Sending Bundle to CLA
- *
- *  \par Description
- *       Pull deserialized bundle from BI Out Queue, CBOR encode it, then send the bundle to CLA
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- * 
- *  \param[in] BundleOutPtr Pointer to the bundle
- *  \param[in] Size Bundle size
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_BI_SendFullBundleOut(void *BundleOutPtr, size_t* Size);
 
 /**
  * \brief Function for receiving control message from CLA

@@ -21,9 +21,10 @@
 /*
 ** Include
 */
-
 #include "bplib_bi.h"
+#include "bplib_qm.h"
 
+#include <stdio.h>
 
 /*
 ** Function Definitions
@@ -34,39 +35,65 @@ int BPLib_BI_Init(void) {
 }
 
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
-BPLib_Status_t BPLib_BI_RecvFullBundleIn(const void *BundleIn, size_t Size)
+BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
+    BPLib_MEM_Block_t* curr_block;
+    size_t n_copy, bytes_copied;
+    BPLib_Bundle_t* bundle;
+
+    if ((inst == NULL) || (BundleIn == NULL))
+    {
+        return BPLIB_ERROR;
+    }
+
     /* 
      * CBOR Decode the bundle and return the deserialized bundle pointer 
     */
-    
+
     /* Validate the deserialized bundle*/
     Status = BPLib_BI_ValidateBundle();
-    
-    /* 
-     * Pass the deserialized bundle into EBP In Queue 
-    */
-    return Status;
-}
 
-/* Pull deserialized bundle from BI Out Queue, CBOR encode it, then send it to CLA */
-BPLib_Status_t BPLib_BI_SendFullBundleOut(void *BundleOut, size_t* Size)
-{
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-    
-    /* 
-     * Pull the deserialized bundle from BI Out Queue 
-     */
-    
-    /* 
-     * CBOR encode the deserialized bundle if needed, return the bundle pointer 
-     */
-    
-    /* 
-     * Pass the bundle out to CLA 
-     */
-    
+    /* Presently, there is no bundle deserialization. We're just going to create a faux bundle and attach BundleIn
+    ** as the Blob
+    */
+    /* Bundle Header */
+    curr_block = BPLib_MEM_BlockAlloc(&inst->pool);
+    if (curr_block == NULL)
+    {
+        return BPLIB_ERROR;
+    }
+    bundle = (BPLib_Bundle_t*)(curr_block);
+    bundle->blocks.pri_blk.version = 7;
+    bundle->blocks.pri_blk.src_eid.node_number = 0x42;
+
+    /* Blob */
+    curr_block = BPLib_MEM_BlockListAlloc(&inst->pool, Size);
+    if (curr_block == NULL)
+    {
+        BPLib_MEM_BlockFree(&inst->pool, (BPLib_MEM_Block_t*)bundle);
+        return BPLIB_ERROR;
+    }
+
+    bytes_copied = 0;
+    bundle->blob = curr_block;
+    while (curr_block != NULL)
+    {
+        n_copy = BPLIB_MEM_CHUNKSIZE;
+        if (Size - bytes_copied < n_copy)
+        {
+            n_copy = Size - bytes_copied;
+        }
+        memcpy(curr_block->chunk, (uint8_t*)(BundleIn) + bytes_copied, n_copy);
+        curr_block->chunk_len = n_copy;
+
+        /* Go to the next block */
+        bytes_copied += n_copy;
+        curr_block = curr_block->next;
+    }
+    printf("Ingressing packet of %lu bytes from CLA\n", bytes_copied);
+
+    BPLib_QM_AddUnsortedJob(inst, bundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
 }
 

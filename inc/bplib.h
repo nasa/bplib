@@ -43,6 +43,8 @@ extern "C" {
 #include "bplib_as.h"
 #include "bplib_arp.h"
 #include "bplib_pdb.h"
+#include "bplib_qm.h"
+#include "bplib_mem.h"
 
 #ifdef __cplusplus
 } // extern "C"
