@@ -93,10 +93,10 @@ typedef struct
 /* Global Data */
 /* =========== */
 
-extern const BPLib_EID_Pattern_t BPLIB_EID_DTN_NONE;
-extern const BPLib_EID_Pattern_t BPLIB_EID_IPN_2D_NONE;
-extern const BPLib_EID_Pattern_t BPLIB_EID_IPN_3D_NONE;
-extern const BPLib_EID_t         BPLIB_EID_INSTANCE;
+extern const BPLib_EID_t BPLIB_EID_DTN_NONE;
+extern const BPLib_EID_t BPLIB_EID_IPN_2D_NONE;
+extern const BPLib_EID_t BPLIB_EID_IPN_3D_NONE;
+extern const BPLib_EID_t BPLIB_EID_INSTANCE;
 
 /* =================== */
 /* Function Prototypes */
