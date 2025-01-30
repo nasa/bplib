@@ -152,7 +152,7 @@ BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t C
             }
             else
             {
-                Status = BPLIB_AS_UNKNOWN_MIB_ARRAY_INDEX;
+                Status = BPLIB_AS_INVALID_MIB_INDEX;
             }
         }
         else
@@ -184,7 +184,7 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(uint8_t MibArrayIndex)
     }
     else
     {
-        Status = BPLIB_AS_UNKNOWN_MIB_ARRAY_INDEX;
+        Status = BPLIB_AS_INVALID_MIB_INDEX;
     }
 
     return Status;
@@ -282,11 +282,7 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(uint8_t MibArrayIndex)
     /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;
 
-    if (MibArrayIndex >= BPLIB_MAX_NUM_SOURCE_EID)
-    { /* Invalid MIB source counter array index */
-        Status = BPLIB_AS_INVALID_MIB_INDEX;
-    }
-    else
+    if (MibArrayIndex < BPLIB_MAX_NUM_SOURCE_EID)
     { /* Valid MIB source counter array index */
         /* Prevent modification of counters from other tasks while modifying them */
         BPLib_AS_LockCounters();
@@ -337,6 +333,10 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(uint8_t MibArrayIndex)
 
         /* Allow counters to be modified by other tasks after operation has finished */
         BPLib_AS_UnlockCounters();
+    }
+    else
+    { /* Invalid MIB source counter array index */
+        Status = BPLIB_AS_INVALID_MIB_INDEX;
     }
 
     return Status;
