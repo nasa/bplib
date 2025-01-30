@@ -34,21 +34,21 @@
 
 typedef struct
 {
-    int16_t  SourceEid; /** \brief Source EID whose counter is to be reset */
-    uint16_t Spare;     /** \brief Spare for alignment */
-    uint32_t Counter;   /** \brief Counter to reset */
+    uint8_t  MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
+    uint8_t  Spare[3];      /** \brief Spare for alignment */
+    uint32_t Counter;       /** \brief Counter to reset */
 } BPLib_ResetCounter_Payload_t;
 
 typedef struct
 {
-    int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
-    uint16_t Spare;    /** \brief Spare for 32-bit alignment */
+    uint8_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
+    uint8_t Spare[3];      /** \brief Spare for 32-bit alignment */
 } BPLib_ResetSourceCounters_Payload_t;
 
 typedef struct
 {
-    uint8_t MibArrayIndex; /** \brief Index into the source MIB counter array that is to be reset */
-    uint16_t Spare;        /** \brief Spare for 32-bit alignment */
+    uint8_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
+    uint8_t Spare[3];      /** \brief Spare for 32-bit alignment */
 } BPLib_ResetErrorCounters_Payload_t;
 
 typedef struct
