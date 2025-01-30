@@ -28,6 +28,7 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_as.h"
+#include "bplib_eid.h"
 
 /*
 ** Type Definitions
@@ -41,9 +42,10 @@ typedef struct
     uint32_t    Version;
     uint32_t    CrcType;
     uint64_t    BundleProcFlags;
-    char        DestEID[BPLIB_MAX_EID_LENGTH];
-    char        SrcEID[BPLIB_MAX_EID_LENGTH];
-    char        ReportToEID[BPLIB_MAX_EID_LENGTH];
+
+    BPLib_EID_t DestEID;
+    BPLib_EID_t SrcEID;
+    BPLib_EID_t ReportToEID;
     uint64_t    LifeTime;
 } BPLib_PI_PriBlkConfig_t;
 
@@ -56,7 +58,7 @@ typedef struct
     uint32_t    BlockNum;
     uint64_t    BlockProcFlags;
     uint32_t    CrcType;
-    uint32_t    Spare;       
+    uint32_t    Spare;
 } BPLib_PI_CanBlkConfig_t;
 
 /**
@@ -139,7 +141,7 @@ BPLib_Status_t BPLib_PI_RemoveApplication(uint8_t ChanId);
  *       Validate configuration table parameters
  *
  *  \par Assumptions, External Events, and Notes:
- *       - This function is called by whatever external task handles table management. 
+ *       - This function is called by whatever external task handles table management.
  *         Every time a new channel table is loaded, this function should be called to
  *         validate its parameters.
  *
