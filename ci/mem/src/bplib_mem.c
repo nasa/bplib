@@ -48,9 +48,9 @@ void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool)
         return;
     }
 
-    memset(pool, 0, sizeof(BPLib_MEM_Pool_t));
     pthread_mutex_destroy(&pool->lock);
     BPLib_MEM_PoolImplDestroy(&pool->impl);
+    memset(pool, 0, sizeof(BPLib_MEM_Pool_t));
 }
 
 BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool)
