@@ -113,17 +113,46 @@ void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
     }
 }
 
-BPLib_Status_t BPLib_AS_ResetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter)
+BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t Counter)
 {
     BPLib_Status_t Status;
 
-    /* Prevent modification of counters while outputting */
-    BPLib_AS_LockCounters();
+    Status = BPLIB_SUCCESS;
 
-    Status = BPLib_AS_SetCounter(SourceEid, Counter, 0);
+    if (MibArrayIndex == BPLIB_AS_NODE_CNTR_INDICATOR)
+    {
+        if (Counter < BPLIB_AS_NUM_NODE_CNTRS)
+        { // Counter is within range
+            /* Prevent modification of counters while outputting */
+            BPLib_AS_LockCounters();
 
-    /* Allow counters to be modified again */
-    BPLib_AS_UnlockCounters();
+            BPLib_AS_NodeCountersPayload.NodeCounters[Counter] = 0;
+
+            /* Allow counters to be modified again */
+            BPLib_AS_UnlockCounters();
+        }
+        else
+        { // Counter is out of valid range
+            Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
+        }
+    }
+    else
+    {
+        if (Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
+        { // Counter is within range
+            /* Prevent modification of counters while outputting */
+            BPLib_AS_LockCounters();
+
+            BPLib_AS_SourceCountersPayload.MibArray[MibArrayIndex].SourceCounters[Counter] = 0;
+
+            /* Allow counters to be modified again */
+            BPLib_AS_UnlockCounters();
+        }
+        else
+        {
+            Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
+        }
+    }
 
     return Status;
 }
