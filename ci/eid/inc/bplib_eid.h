@@ -96,6 +96,7 @@ typedef struct
 extern const BPLib_EID_Pattern_t BPLIB_EID_DTN_NONE;
 extern const BPLib_EID_Pattern_t BPLIB_EID_IPN_2D_NONE;
 extern const BPLib_EID_Pattern_t BPLIB_EID_IPN_3D_NONE;
+extern const BPLib_EID_t         BPLIB_EID_INSTANCE;
 
 /* =================== */
 /* Function Prototypes */
@@ -122,12 +123,24 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID);
  *            Field is Allocator, Node, or Service
  * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
  * \param[in] EID_Pattern (BPLib_EID_Pattern_t) EID pattern that is to be matched
- * \return    EID match
+ * \return    EID-Pattern match
  * \retval    true: The actual EID does match the reference EID pattern
  * \retval    false: The actual EID does not match the reference EID pattern
  * \ref       BPLib_EID_t
  * \ref       BPLib_EID_Pattern_t
  */
-bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern);
+bool BPLib_EID_Pattern_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern);
+
+/**
+ * \brief     Checks if the one EID matches another EID
+ * \details   The various members of each EID are compared for equivalence
+ * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
+ * \param[in] EID_Reference (BPLib_EID_t) EID that is to be matched
+ * \return    EID-EID match
+ * \retval    true: The actual EID does match the reference EID
+ * \retval    false: The actual EID does not match the reference EID
+ * \ref       BPLib_EID_t
+ */
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
 
 #endif /* BPLIB_EID_H */

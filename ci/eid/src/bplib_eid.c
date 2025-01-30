@@ -28,32 +28,29 @@
 /* Global Data */
 /* =========== */
 
-const BPLib_EID_Pattern_t BPLIB_EID_DTN_NONE = {.Scheme       = BPLIB_EID_SCHEME_DTN,
-                                                     .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
-                                                     .MaxAllocator = 0,
-                                                     .MinAllocator = 0,
-                                                     .MaxNode      = 0,
-                                                     .MinNode      = 0,
-                                                     .MaxService   = 0,
-                                                     .MinService   = 0};
+const BPLib_EID_t BPLIB_EID_DTN_NONE = {.Scheme       = BPLIB_EID_SCHEME_DTN,
+                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+                                        .Allocator    = 0,
+                                        .Node         = 0,
+                                        .Service      = 0};
 
-const BPLib_EID_Pattern_t BPLIB_EID_IPN_NONE_2D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
-                                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
-                                                        .MaxAllocator = 0,
-                                                        .MinAllocator = 0,
-                                                        .MaxNode      = 0,
-                                                        .MinNode      = 0,
-                                                        .MaxService   = 0,
-                                                        .MinService   = 0};
+const BPLib_EID_t BPLIB_EID_IPN_NONE_2D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
+                                           .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+                                           .Allocator    = 0,
+                                           .Node         = 0,
+                                           .Service      = 0};
 
-const BPLib_EID_Pattern_t BPLIB_EID_IPN_NONE_3D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
-                                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT,
-                                                        .MaxAllocator = 0,
-                                                        .MinAllocator = 0,
-                                                        .MaxNode      = 0,
-                                                        .MinNode      = 0,
-                                                        .MaxService   = 0,
-                                                        .MinService   = 0};
+const BPLib_EID_t BPLIB_EID_IPN_NONE_3D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
+                                           .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT,
+                                           .Allocator    = 0,
+                                           .Node         = 0,
+                                           .Service      = 0};
+
+const BPLib_EID_t BPLIB_EID_INSTANCE = {.Scheme       = BPLIB_EID_SCHEME_IPN,
+                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+                                        .Allocator    = 0,
+                                        .Node         = 2,
+                                        .Service      = 0};
 
 /* ==================== */
 /* Function Definitions */
@@ -164,7 +161,7 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
     return IsValid;
 }
 
-bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
+bool BPLib_EID_Pattern_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
 {
     bool IsMatch;
 
@@ -210,4 +207,13 @@ bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
     }
 
     return IsMatch;
+}
+
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
+{
+    return (EID_Actual.Scheme       == EID_Reference.Scheme       &&
+            EID_Actual.IpnSspFormat == EID_Reference.IpnSspFormat &&
+            EID_Actual.Allocator    == EID_Reference.Allocator    &&
+            EID_Actual.Node         == EID_Reference.Node         &&
+            EID_Actual.Service      == EID_Reference.Service);
 }

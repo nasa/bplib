@@ -36,7 +36,8 @@
 /* Global Data */
 /* =========== */
 
-extern BPLib_EID_t EID_Test;
+extern BPLib_EID_t EID_Actual;
+extern BPLib_EID_t EID_Reference;
 extern BPLib_EID_Pattern_t EID_Pattern;
 
 /* ====== */
