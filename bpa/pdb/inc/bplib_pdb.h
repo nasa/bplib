@@ -27,14 +27,14 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
-
+#include "bplib_eid.h"
 
 /*
 ** Authorized Source EID Table
 */
 typedef struct
 {
-    char AuthSrcEIDs[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_PatternMatch_t AuthSrcEIDs[BPLIB_MAX_AUTH_SOURCES];
 } BPLib_PDB_SrcAuthTable_t;
 
 /*
@@ -42,7 +42,7 @@ typedef struct
 */
 typedef struct
 {
-    char AuthCustodians[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_PatternMatch_t AuthCustodians[BPLIB_MAX_AUTH_SOURCES];
 } BPLib_PDB_CustodianTable_t;
 
 /*
@@ -50,7 +50,7 @@ typedef struct
 */
 typedef struct
 {
-    char AuthCustodySrc[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_PatternMatch_t AuthCustodySrc[BPLIB_MAX_AUTH_SOURCES];
 } BPLib_PDB_CustodyTable_t;
 
 /*
@@ -58,7 +58,7 @@ typedef struct
 */
 typedef struct
 {
-    char AuthReportToEIDs[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_PatternMatch_t AuthReportToEIDs[BPLIB_MAX_AUTH_SOURCES];
 } BPLib_PDB_ReportToTable_t;
 
 /*
