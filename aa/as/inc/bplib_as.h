@@ -238,6 +238,10 @@ void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
 /**
  * \brief     Set to zero to counter associated with the given MIB counter array index
  * \note      Use BPLIB_AS_NODE_CNTR_INDICATOR if the counter to be reset is a node counter
+ * 
+ *            The index into the source MIB counter array must be known ahead of time. This can
+ *            be determined by looking at the source EIDs inside the MIB array, nested within the
+ *            source MIB counters payload of the source MIB counters HK packet
  * \param[in] MibArrayIndex (uint8_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
  * \param[in] Counter       (BPLib_AS_Counter_t) Counter to reset
  * \return    Execution status
