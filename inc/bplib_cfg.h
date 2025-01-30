@@ -35,7 +35,7 @@ extern "C" {
  */
 
 #define BPLIB_MAX_EID_LENGTH                256 /* Maximum EID string length */
-#define BPLIB_MAX_NUM_BUNDLE_QUEUES         16  /* Maximum number of queuses */
+#define BPLIB_MAX_NUM_BUNDLE_QUEUES         16  /* Maximum number of queues */
 #define BPLIB_MAX_NUM_SOURCE_EID            16  /* Maximum number of allowed source EIDs */
 #define BPLIB_MAX_NUM_STRING                24  /* Maximum string length */
 #define BPLIB_MAX_NUM_STORE_SET             10  /* Maximum number of storage policy sets. pre source EID */
@@ -45,16 +45,21 @@ extern "C" {
 #define BPLIB_MAX_NUM_MIB_PS                10  /* Maximum number of sources for MIB Config per source */
 
 
-    
-    
-    
+
+
+
 /** 
  * \brief Maximum number of contacts that can be running at once
  *          This drives the number of entries in the CLA configuration
  *          tables, as well as the number of CLA In/Out tasks in BPNode
  */
 #define BPLIB_MAX_NUM_CONTACTS              1
-    
+
+/**
+ * \brief Maximum number of destination EID patterns per contact
+ */
+#define BPLIB_CONTACT_MAX_NUM_EID_PATTERNS  3
+
 /** 
  * \brief Maximum number of channels that can be running at once
  *          This drives the number of entries in the channel and ADU proxy configuration
