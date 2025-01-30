@@ -213,7 +213,7 @@ BPLib_Status_t BPLib_AS_Init(void);
  * \ref       BPLib_AS_SetCounter [BPLib_AS_SetCounter()]
  * \ref       BPLib_EID_t
  */
-void BPLib_AS_Increment(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount)
+void BPLib_AS_Increment(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount);
 
 /**
  * \brief     Subtract an amount from the counter specified by the source EID and counter

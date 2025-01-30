@@ -71,26 +71,23 @@ extern char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 bool BPLib_AS_EidIsValid(int16_t SourceEid);
 
 /**
- * \brief     Set given counter associated with given source EID pattern to given value
+ * \brief     Set given counter associated with given EID to given value
  * \details   Reference the BPLib_AS_Counter_t struct to see what each counter represents
  * \note      Directly sets counter in counter payloads to given value
- * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
- * \param[in] Counter   (BPLib_AS_Counter_t) Counter to reset
- * \param[in] Value     (uint32_t) Numerical value to assign to the counter
+ * \param[in] EID     (BPLib_EID_t) EID of node whose counter should be set
+ * \param[in] Counter (BPLib_AS_Counter_t) Counter to reset
+ * \param[in] Value   (uint32_t) Numerical value to assign to the counter
  * \return    Execution status
- * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
+ * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_EID_IsValid()
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: Counter is outside node counters' range
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: Counter is outside source counters' range
  * \retval    BPLIB_SUCCESS: Successful execution
- * \secreflist
- * \refitem   BPLib_AS_Counter_t
- * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
- * \refitem   BPLib_NodeMibCountersHkTlm_Payload_t
- * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
- * \endsecreflist
- * \anchor    BPLib_AS_SetCounter
+ * \ref       BPLib_AS_Counter_t
+ * \ref       BPLib_SourceMibCountersHkTlm_Payload_t
+ * \ref       BPLib_NodeMibCountersHkTlm_Payload_t
+ * \ref       BPLib_EID_IsValid [BPLib_EID_IsValid()]
  */
-BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value);
+BPLib_Status_t BPLib_AS_SetCounter(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Value);
 
 /**
  * \brief     Initialize the mutex that guards the node and source MIB counters
