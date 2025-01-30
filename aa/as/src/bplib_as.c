@@ -157,27 +157,27 @@ BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t C
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid)
+BPLib_Status_t BPLib_AS_ResetSourceCounters(uint8_t MibArrayIndex)
 {
     BPLib_Status_t Status;
 
     /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;
 
-    if (!BPLib_AS_EidIsValid(SourceEid))
-    { /* Invalid source EID */
-        Status = BPLIB_AS_INVALID_EID;
-    }
-    else
-    { /* Valid source EID */
+    if (MibArrayIndex < BPLIB_MAX_NUM_SOURCE_EID)
+    {
         /* Prevent modification of counters from other tasks while modifying them */
         BPLib_AS_LockCounters();
 
-        memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters,
-                0, sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters));
+        memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[MibArrayIndex].SourceCounters,
+                0, sizeof(BPLib_AS_SourceCountersPayload.MibArray[MibArrayIndex].SourceCounters));
 
         /* Allow counters to be modified by other tasks after operation has finished */
         BPLib_AS_UnlockCounters();
+    }
+    else
+    {
+        Status = BPLIB_AS_UNKNOWN_MIB_ARRAY_INDEX;
     }
 
     return Status;

@@ -255,21 +255,22 @@ void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
 BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t Counter);
 
 /**
- * \brief     Set to zero all resettable MIB counters associated with the given source EID pattern
+ * \brief     Set to zero all resettable MIB counters associated with the given index into the MIB
+ *            counter array
  * \details   See function body and reference the BPLib_AS_Counter_t struct to see which counters are reset
- * \note      Directly sets source counters in payloads to 0
- * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
+ * \note      The index into the source MIB counter array must be known ahead of time. This can
+ *            be determined by looking at the source EIDs inside the MIB array, nested within the
+ *            source MIB counters payload of the source MIB counters HK packet
+ * \param[in] MibArrayIndex (uint8_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
  * \return    Execution status
- * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_AS_EidIsValid()
+ * \retval    BPLIB_AS_UNKNOWN_MIB_ARRAY_INDEX: Given MIB counter array index is out of range
  * \retval    BPLIB_SUCCESS: Successful execution
- * \secreflist
- * \refitem   BPLib_AS_Counter_t
- * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
- * \refitem   BPLib_AS_EidIsValid [BPLib_AS_EidIsValid()]
- * \endsecreflist
- * \anchor    BPLib_AS_ResetSourceCounters
+ * \ref       BPLib_SourceMibCountersHkTlm_Payload_t
+ * \ref       BPLib_AS_Counter_t
+ * \ref       BPLib_AS_LockCounters [BPLib_AS_LockCounters()]
+ * \ref       BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
  */
-BPLib_Status_t BPLib_AS_ResetSourceCounters(int16_t SourceEid);
+BPLib_Status_t BPLib_AS_ResetSourceCounters(uint8_t MibArrayIndex);
 
 /**
  * \brief     Set to zero all resettable node MIB counters associated with bundles
