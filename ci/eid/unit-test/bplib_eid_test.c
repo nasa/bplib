@@ -1,0 +1,377 @@
+/*
+ * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+ * System Application (BP) v6.5”
+ *
+ * Copyright © 2020 United States Government as represented by the Administrator of
+ * the National Aeronautics and Space Administration. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+/* ======== */
+/* Includes */
+/* ======== */
+
+#include "bplib_eid_test_utils.h"
+
+/* ==================== */
+/* Function Definitions */
+/* ==================== */
+
+void Test_BPLib_EID_IsValid_DTN_Nominal(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Node         = 0;
+    EID_Test.Service      = 0;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_IPN2D_None_Nominal(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Allocator    = 0;
+    EID_Test.Node         = 0;
+    EID_Test.Service      = 0;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_IPN2D_Nominal(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Allocator    = 0;
+    EID_Test.Node         = 1;
+    EID_Test.Service      = 1;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_IPN3D_None_Nominal(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Test.Allocator    = 0;
+    EID_Test.Node         = 0;
+    EID_Test.Service      = 0;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_IPN3D_Nominal(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+
+    /* === Zero Allocator === */
+    EID_Test.Allocator = 0;
+    EID_Test.Node      = 1;
+    EID_Test.Service   = 2;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
+
+    /* === Non-zero allocator === */
+    EID_Test.Allocator = 1;
+    EID_Test.Node      = 1;
+    EID_Test.Service   = 1;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_InvalidScheme_Error(void)
+{
+    EID_Test.Scheme = BPLIB_EID_IPN_SSP_FORMAT_RESERVED;
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_InvalidDTN_Error(void)
+{
+    EID_Test.Scheme = BPLIB_EID_SCHEME_DTN;
+    EID_Test.Node   = 1;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_IPN3dNode_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Test.Allocator    = 1;
+    EID_Test.Node         = 0;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_IPN3dService_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Test.Allocator    = 0;
+    EID_Test.Node         = 0;
+    EID_Test.Service      = 1;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_IPN2dAllocator_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Allocator    = 1;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_IPN2dService_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Allocator    = 0;
+    EID_Test.Node         = 0;
+    EID_Test.Service      = 1;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsValid_Format_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = 5;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsValid(EID_Test));
+}
+
+void Test_BPLib_EID_IsMatch_Nominal(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Test.Allocator    = 10;
+    EID_Test.Node         = 11;
+    EID_Test.Service      = 12;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Pattern.MaxAllocator = 20;
+    EID_Pattern.MinAllocator = 0;
+    EID_Pattern.MaxNode      = 30;
+    EID_Pattern.MinNode      = 5;
+    EID_Pattern.MaxService   = 40;
+    EID_Pattern.MinService   = 10;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_AllocatorWildcard_Nominal(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Test.Allocator    = 5;
+    EID_Test.Node         = 6;
+    EID_Test.Service      = 7;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Pattern.MaxAllocator = 0xFFFFFFFFFFFFFFFF;
+    EID_Pattern.MinAllocator = 0;
+    EID_Pattern.MaxNode      = 100;
+    EID_Pattern.MinNode      = 0;
+    EID_Pattern.MaxService   = 100;
+    EID_Pattern.MinService   = 0;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_NodeWildcard_Nominal(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Node         = 9;
+    EID_Test.Service      = 10;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Pattern.MaxNode      = 0xFFFFFFFFFFFFFFFF;
+    EID_Pattern.MinNode      = 0;
+    EID_Pattern.MaxService   = 100;
+    EID_Pattern.MinService   = 0;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_ServiceWildcard_Nominal(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Node         = 12;
+    EID_Test.Service      = 13;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Pattern.MaxNode      = 100;
+    EID_Pattern.MinNode      = 0;
+    EID_Pattern.MaxService   = 0xFFFFFFFFFFFFFFFF;
+    EID_Pattern.MinService   = 0;
+
+    UtAssert_BOOL_TRUE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_SchemeMismatch_Error(void)
+{
+    EID_Test.Scheme    = BPLIB_EID_SCHEME_IPN;
+    EID_Pattern.Scheme = BPLIB_EID_SCHEME_DTN;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_FormatMismatch_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_AllocatorMismatch_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+
+    /* === Allocator > Max Allocator === */
+    EID_Test.Allocator = 17;
+
+    EID_Pattern.MaxAllocator = 2;
+    EID_Pattern.MinAllocator = 1;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+
+    /* === Allocator < Min Allocator === */
+    EID_Test.Allocator = 1;
+
+    EID_Pattern.MaxAllocator = 10;
+    EID_Pattern.MinAllocator = 9;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_NodeMismatch_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+
+    /* === Node > Max Node === */
+    EID_Test.Node = 22;
+
+    EID_Pattern.MaxNode = 20;
+    EID_Pattern.MinNode = 0;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+
+    /* === Node < Min Node === */
+    EID_Test.Node = 0;
+
+    EID_Pattern.MaxNode = 20;
+    EID_Pattern.MinNode = 5;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_ServiceMismatch_Error(void)
+{
+    EID_Test.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Test.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Test.Node         = 24;
+
+    EID_Pattern.Scheme       = BPLIB_EID_SCHEME_DTN;
+    EID_Pattern.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    EID_Pattern.MaxNode      = 30;
+    EID_Pattern.MinNode      = 0;
+
+    /* === Service > Max Service === */
+    EID_Test.Service = 20;
+
+    EID_Pattern.MaxService = 10;
+    EID_Pattern.MinService = 0;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+
+    /* === Service < Min Service === */
+    EID_Test.Service = 0;
+
+    EID_Pattern.MaxService = 10;
+    EID_Pattern.MinService = 5;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void Test_BPLib_EID_IsMatch_InvalidRanges_Error(void)
+{
+    /* === Invalid Allocator pattern range === */
+    EID_Pattern.MaxAllocator = 0;
+    EID_Pattern.MinAllocator = 100;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+
+    /* === Invalid Node pattern range === */
+    EID_Pattern.MaxAllocator = 100; /* Isolate node range error */
+    EID_Pattern.MinAllocator = 0;   /* Isolate node range error */
+    EID_Pattern.MaxNode      = 0;
+    EID_Pattern.MinNode      = 100;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+
+    /* === Invalid Service pattern range === */
+    EID_Pattern.MaxNode    = 100; /* Isolate service range error */
+    EID_Pattern.MinNode    = 0;   /* Isolate service range error */
+    EID_Pattern.MaxService = 0;
+    EID_Pattern.MinService = 100;
+
+    UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Test, EID_Pattern));
+}
+
+void TestBplibEid_Register(void)
+{
+    ADD_TEST(Test_BPLib_EID_IsValid_DTN_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN2D_None_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN2D_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN3D_None_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN3D_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsValid_InvalidScheme_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_InvalidDTN_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN3dNode_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN3dService_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN2dAllocator_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_IPN2dService_Error);
+    ADD_TEST(Test_BPLib_EID_IsValid_Format_Error);
+    ADD_TEST(Test_BPLib_EID_IsMatch_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsMatch_AllocatorWildcard_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsMatch_NodeWildcard_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsMatch_ServiceWildcard_Nominal);
+    ADD_TEST(Test_BPLib_EID_IsMatch_SchemeMismatch_Error);
+    ADD_TEST(Test_BPLib_EID_IsMatch_FormatMismatch_Error);
+    ADD_TEST(Test_BPLib_EID_IsMatch_AllocatorMismatch_Error);
+    ADD_TEST(Test_BPLib_EID_IsMatch_NodeMismatch_Error);
+    ADD_TEST(Test_BPLib_EID_IsMatch_ServiceMismatch_Error);
+    ADD_TEST(Test_BPLib_EID_IsMatch_InvalidRanges_Error);
+}
