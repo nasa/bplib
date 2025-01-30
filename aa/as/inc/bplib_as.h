@@ -31,6 +31,7 @@
 #include "bplib_nc_payloads.h"
 #include "bplib_eventids.h"
 #include "bplib_em.h"
+#include "bplib_eid.h"
 
 /* ====== */
 /* Macros */
@@ -157,12 +158,15 @@ typedef struct
   */
 typedef struct
 {
-    char SourceEID[BPLIB_MAX_EID_LENGTH]; /** \brief Source EID this telemetry corresponds to */
+    /**
+      * \brief Source EID patters this telemetry corresponds to
+      * \ref BPLib_EID_Pattern_t
+      */
+    BPLib_EID_Pattern_t SourceEIDs[BPLIB_MAX_MIB_EID_PATTERNS];
 
     /**
       * \brief Array of all source counters
-      * \note  See BPLib_AS_Counter_t for counter details
-      * \ref   BPLib_AS_Counter_t
+      * \ref BPLib_AS_Counter_t
       */
     uint32_t SourceCounters[BPLIB_AS_NUM_SOURCE_CNTRS];
 } BPLib_SourceMibCounters_t;
@@ -202,7 +206,7 @@ BPLib_Status_t BPLib_AS_Init(void);
  * \note      Amount must be positive
  * \param[in] SourceEid (int16_t) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to increment
- * \param[in] Amount (uint32_t) Amount to increment Counter by
+ * \param[in] Amount (uint32_t) Positive integer to increment Counter by
  * \return    void
  * \secreflist
  * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
