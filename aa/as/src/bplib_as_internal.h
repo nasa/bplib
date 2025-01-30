@@ -55,22 +55,6 @@ extern char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
 /* =================== */
 
 /**
- * \brief     Checks if the source EID matches an expected, valid pattern
- * \details   Eventually some more advanced checks will occur with something like regex.
- * \note      The source EID is not expected to be int16_t typed data but it is for now, as a placeholder
- * \param[in] SourceEid (int16_t) Indicator of which source in the BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
- *                      array should be modified
- * \return    Source EID validity
- * \retval    true: The source EID matches the criteria required to be valid <enter criteria here>
- * \retval    false: The source EID is invalid in some way
- * \secreflist
- * \refitem   BPLib_SourceMibCountersHkTlm_Payload_t
- * \endsecreflist
- * \anchor    BPLib_AS_EidIsValid
- */
-bool BPLib_AS_EidIsValid(int16_t SourceEid);
-
-/**
  * \brief     Set given counter associated with given EID to given value
  * \details   Reference the BPLib_AS_Counter_t struct to see what each counter represents
  * \note      Directly sets counter in counter payloads to given value

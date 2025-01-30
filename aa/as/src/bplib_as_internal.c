@@ -41,11 +41,6 @@ osal_id_t MutexId;
 /* Function Definitions */
 /* ==================== */
 
-bool BPLib_AS_EidIsValid(int16_t SourceEid)
-{
-    return (SourceEid >= 0 && SourceEid < BPLIB_MAX_NUM_SOURCE_EID);
-}
-
 BPLib_Status_t BPLib_AS_SetCounter(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Value)
 {
     BPLib_Status_t Status;
