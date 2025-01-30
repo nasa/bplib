@@ -307,7 +307,8 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(uint8_t MibArrayIndex);
  * \note      Directly sets all counters in payloads to 0
  * \param[in] void No arguments accepted
  * \return    void
- * \anchor    BPLib_AS_ResetAllCounters
+ * \ref       BPLib_AS_LockCounters [BPLib_AS_LockCounters()]
+ * \ref       BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
  */
 void BPLib_AS_ResetAllCounters(void);
 

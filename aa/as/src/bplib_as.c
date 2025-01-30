@@ -349,12 +349,13 @@ void BPLib_AS_ResetAllCounters(void)
     /* Prevent modification of counters from other tasks while modifying them */
     BPLib_AS_LockCounters();
 
-    memset((void*) &BPLib_AS_NodeCountersPayload, 0, sizeof(BPLib_AS_NodeCountersPayload));
+    memset((void*) BPLib_AS_NodeCountersPayload.NodeCounters, 0,
+            sizeof(uint32_t) * BPLIB_AS_NUM_NODE_CNTRS);
 
     for (SourceCtrl = 0; SourceCtrl < BPLIB_MAX_NUM_SOURCE_EID; SourceCtrl++)
     {
-        memset((void*) &BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl], 0,
-                sizeof(BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl]));
+        memset((void*) BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl].SourceCounters, 0,
+                sizeof(uint32_t) * BPLIB_AS_NUM_SOURCE_CNTRS);
     }
 
     /* Allow counters to be modified by other tasks after operation has finished */
