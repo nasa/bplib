@@ -49,7 +49,7 @@ const BPLib_EID_t BPLIB_EID_IPN_NONE_3D = {.Scheme       = BPLIB_EID_SCHEME_IPN,
 const BPLib_EID_t BPLIB_EID_INSTANCE = {.Scheme       = BPLIB_EID_SCHEME_IPN,
                                         .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
                                         .Allocator    = 0,
-                                        .Node         = 2,
+                                        .Node         = 0,
                                         .Service      = 0};
 
 /* ==================== */
