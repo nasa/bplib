@@ -247,6 +247,7 @@ void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
  * \return    Execution status
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: Counter is outside node counters' range
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: Counter is outside source counters' range
+ * \retval    BPLIB_AS_UNKNOWN_MIB_ARRAY_INDEX: Given MIB counter array index is out of range
  * \retval    BPLIB_SUCCESS: Successful execution
  * \ref       BPLib_AS_Counter_t
  * \ref       BPLib_AS_LockCounters [BPLib_AS_LockCounters]

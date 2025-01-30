@@ -140,13 +140,20 @@ BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t C
     {
         if (Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
         { // Counter is within range
-            /* Prevent modification of counters while outputting */
-            BPLib_AS_LockCounters();
+            if (MibArrayIndex < BPLIB_MAX_NUM_SOURCE_EID)
+            {
+                /* Prevent modification of counters while outputting */
+                BPLib_AS_LockCounters();
 
-            BPLib_AS_SourceCountersPayload.MibArray[MibArrayIndex].SourceCounters[Counter] = 0;
+                BPLib_AS_SourceCountersPayload.MibArray[MibArrayIndex].SourceCounters[Counter] = 0;
 
-            /* Allow counters to be modified again */
-            BPLib_AS_UnlockCounters();
+                /* Allow counters to be modified again */
+                BPLib_AS_UnlockCounters();
+            }
+            else
+            {
+                Status = BPLIB_AS_UNKNOWN_MIB_ARRAY_INDEX;
+            }
         }
         else
         {
