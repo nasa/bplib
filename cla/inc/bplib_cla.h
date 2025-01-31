@@ -28,6 +28,7 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
+#include "bplib_qm.h"
 
 /* There are 4 types of control message types, received from CL*/
 typedef enum 
@@ -112,6 +113,8 @@ BPLib_Status_t BPLib_CLA_Init(void);
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
+ * 
+ *  \param[in] inst Pointer to a valid BPLib_Instance_t
  *  \param[in] ContactsTbl - Pointer of the Contact Table
  *  \param[in] Bundle - Pointer to the received bundle
  *  \param[in] Size - Size of the received bundle
@@ -120,7 +123,7 @@ BPLib_Status_t BPLib_CLA_Init(void);
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Ingress was successful
  */
-BPLib_Status_t BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout);
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout);
 
 /**
  * \brief CLA Egress function
@@ -130,6 +133,8 @@ BPLib_Status_t BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
+ * 
+ *  \param[in] inst Pointer to a valid BPLib_Instance_t
  *  \param[in] ContactsTbl - Pointer of the Contact Table
  *  \param[in] Bundle - Pointer to the received bundle
  *  \param[in] Size - Size of the received bundle
@@ -138,7 +143,7 @@ BPLib_Status_t BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
-BPLib_Status_t BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout);
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* inst, uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout);
 
 /**
  * \brief Validate Contact Table configurations
