@@ -73,9 +73,9 @@ typedef enum
 
 typedef struct
 {
-    char        SrcEID[BPLIB_MAX_EID_LENGTH];
-    uint32_t    Latency;
-    uint32_t    Spare;    
+    BPLib_EID_PatternMatch_t SrcEID;
+    uint32_t                 Latency;
+    uint32_t                 Spare;
 }BPLib_PDB_SrcLatencySet_t;
 
 typedef struct
