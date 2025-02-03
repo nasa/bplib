@@ -37,7 +37,7 @@ extern "C" {
 #define BPLIB_MAX_EID_LENGTH                256 /* Maximum EID string length */
 #define BPLIB_MAX_NUM_BUNDLE_QUEUES         16  /* Maximum number of queuses */
 #define BPLIB_MAX_NUM_SOURCE_EID            16  /* Maximum number of allowed source EIDs */
-#define BPLIB_MAX_MIB_EID_PATTERNS           4  /* Maximum number of EID patterns that can map to a source MIB counter index */
+#define BPLIB_MAX_MIB_ARRAY_KEYS             4  /* Maximum number of EID patterns that can map to a source MIB counter index */
 #define BPLIB_MAX_NUM_STRING                24  /* Maximum string length */
 #define BPLIB_MAX_NUM_STORE_SET             10  /* Maximum number of storage policy sets. pre source EID */
 #define BPLIB_MAX_MUN_CRS                   10  /* Maximum number of Compressed Reporting CRS Entries */
