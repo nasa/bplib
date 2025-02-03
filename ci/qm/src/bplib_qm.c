@@ -95,11 +95,19 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
 BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
 {
+    BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_QM_UnsortedJob_t unsorted_job;
+    
     unsorted_job.bundle = bundle;
     unsorted_job.next_state = state;
     unsorted_job.priority = priority;
-    return BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &unsorted_job, timeout_ms);
+    
+    if (!BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &unsorted_job, timeout_ms))
+    {
+        Status = BPLIB_QM_PUSH_ERROR;
+    }
+
+    return Status;
 }
 
 void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)

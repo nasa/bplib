@@ -30,7 +30,9 @@
 
 #include "bplib_pi.h"
 #include "bplib_mem.h"
-#include "bplib_qm.h"
+
+#include <stdio.h>
+
 
 /*
 ** Function Definitions
@@ -63,51 +65,50 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 }
 
 /* Ingress an ADU */
-BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, void *AduPtr, size_t AduSize)
+BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, 
+                                                            void *AduPtr, size_t AduSize)
 {
-
-    BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_MEM_Block_t* CurrBlock;
     size_t ChunkLen, BytesCopied;
     BPLib_Bundle_t* NewBundle;
 
     if ((Inst == NULL) || (AduPtr == NULL))
     {
-        return BPLIB_ERROR; // TODO add specific errors
+        return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* Presently, there is no bundle deserialization. We're just going to create a faux bundle and attach BundleIn
-    ** as the Blob
-    */
-
-    /* Bundle Header */
+    /* Allocate bundle header */
     CurrBlock = BPLib_MEM_BlockAlloc(&Inst->pool);
     if (CurrBlock == NULL)
     {
-        return BPLIB_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     NewBundle = (BPLib_Bundle_t *)(CurrBlock);
-    NewBundle->blocks.pri_blk.version = 7;
+    NewBundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
     NewBundle->blocks.pri_blk.src_eid.node_number = 0x42;
 
-    /* Blob */
-    CurrBlock = BPLib_MEM_BlockListAlloc(&inst->pool, AduSize);
+    /* Allocate a blob */
+    CurrBlock = BPLib_MEM_BlockListAlloc(&Inst->pool, AduSize);
     if (CurrBlock == NULL)
     {
-        BPLib_MEM_BlockFree(&Inst->pool, (BPLib_MEM_Block_t*) NewBundle);
-        return BPLIB_ERROR;
+        BPLib_MEM_BlockFree(&Inst->pool, (BPLib_MEM_Block_t *) NewBundle);
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     BytesCopied = 0;
     NewBundle->blob = CurrBlock;
+
+    /* Copy ADU into blob */
     while (CurrBlock != NULL)
     {
         ChunkLen = BPLIB_MEM_CHUNKSIZE;
+
         if (AduSize - BytesCopied < ChunkLen)
         {
             ChunkLen = AduSize - BytesCopied;
         }
+
         memcpy(CurrBlock->chunk, (uint8_t *)(AduPtr) + BytesCopied, ChunkLen);
         CurrBlock->chunk_len = ChunkLen;
 
@@ -115,18 +116,11 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, void *Ad
         BytesCopied += ChunkLen;
         CurrBlock = CurrBlock->next;
     }
-    printf("Ingressing packet of %lu bytes from CLA\n", BytesCopied);
 
-    BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+    printf("Ingressing packet of %lu bytes from ADU\n", BytesCopied);
 
-    /*
-    if (Bundle creation error)
-    {
-        BPLib_AS_Increment(SourceEid, BUNDLE_COUNT_GENERATED_REJECTED, 1);
-    }
-    */
-
-    return Status;
+    return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, 
+                                                        QM_PRI_NORMAL, QM_WAIT_FOREVER);
 }
 
 /* Egress an ADU */

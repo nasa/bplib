@@ -28,6 +28,8 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_as.h"
+#include "bplib_qm.h"
+
 
 /*
 ** Type Definitions
