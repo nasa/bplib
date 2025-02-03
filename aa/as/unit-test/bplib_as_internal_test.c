@@ -175,7 +175,7 @@ void Test_BPLib_AS_GetMibArrayIndex_Nominal(void)
     EID_Pattern.MaxService   = 3;
     EID_Pattern.MinService   = 0;
 
-    BPLib_AS_SourceCountersPayload.MibArray[ExpectedIndex].SourceEIDs[1] = EID_Pattern;
+    BPLib_AS_SourceCountersPayload.MibArray[ExpectedIndex].EidPatterns[1] = EID_Pattern;
 
     Status = BPLib_AS_GetMibArrayIndex(EID_Test, &Index);
 
@@ -208,7 +208,7 @@ void Test_BPLib_AS_GetMibArrayIndex_NoMatch_Error(void)
     EID_Pattern.MaxService   = 1;
     EID_Pattern.MinService   = 0;
 
-    BPLib_AS_SourceCountersPayload.MibArray[1].SourceEIDs[1] = EID_Pattern;
+    BPLib_AS_SourceCountersPayload.MibArray[1].EidPatterns[1] = EID_Pattern;
 
     Status = BPLib_AS_GetMibArrayIndex(EID_Test, &Index);
 

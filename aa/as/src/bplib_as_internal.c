@@ -148,8 +148,8 @@ BPLib_Status_t BPLib_AS_GetMibArrayIndex(BPLib_EID_t EID, uint8_t* MibArrayIndex
     {
         for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_EID_PATTERNS; PatternIndex++)
         {
-            MibPattern = BPLib_AS_SourceCountersPayload.MibArray[MibIndex].SourceEIDs[PatternIndex];
-            if (BPLib_EID_Pattern_IsMatch(EID, MibPattern))
+            MibPattern = BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex];
+            if (BPLib_EID_PatternIsMatch(EID, MibPattern))
             {
                 *MibArrayIndex = MibIndex;
                 Status = BPLIB_SUCCESS;
