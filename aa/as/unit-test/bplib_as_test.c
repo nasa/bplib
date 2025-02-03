@@ -248,7 +248,7 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
     Status = BPLib_AS_ResetSourceCounters(SourceEid);
 
     /* Check that BPLib_AS_ResetSourceCounters() ran successfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_EID, Status);
+    UtAssert_EQ(BPLib_Status_t, BPLIB_INVALID_EID, Status);
 }
 
 void Test_BPLib_AS_ResetBundleCounters_Nominal(void)

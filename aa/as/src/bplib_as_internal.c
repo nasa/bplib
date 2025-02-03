@@ -76,7 +76,7 @@ BPLib_Status_t BPLib_AS_SetCounter(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, 
     }
     else
     {
-        Status = BPLIB_AS_INVALID_EID;
+        Status = BPLIB_INVALID_EID;
     }
 
     return Status;

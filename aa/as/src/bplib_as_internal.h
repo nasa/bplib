@@ -62,7 +62,7 @@ extern char      MutexName[BPLIB_AS_MAX_MUTEX_NAME_SIZE];
  * \param[in] Counter (BPLib_AS_Counter_t) Counter to reset
  * \param[in] Value   (uint32_t) Numerical value to assign to the counter
  * \return    Execution status
- * \retval    BPLIB_AS_INVALID_EID: Source EID did not pass criteria in BPLib_EID_IsValid()
+ * \retval    BPLIB_INVALID_EID: Source EID did not pass criteria in BPLib_EID_IsValid()
  * \retval    BPLIB_AS_UNKNOWN_NODE_CNTR: Counter is outside node counters' range
  * \retval    BPLIB_AS_UNKNOWN_SRC_CNTR: Counter is outside source counters' range
  * \retval    BPLIB_SUCCESS: Successful execution
