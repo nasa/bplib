@@ -115,6 +115,17 @@ extern const BPLib_EID_t BPLIB_EID_INSTANCE;
 bool BPLib_EID_IsValid(BPLib_EID_t EID);
 
 /**
+ * \brief     Checks if the EID pattern consists of valid parts
+ * \note      Validity is based on max values being greater than the min valies
+ * \param[in] EID_Pattern (BPLib_EID_Pattern_t) EID pattern struct whose validity is in question
+ * \return    EID pattern validity
+ * \retval    true: The EID pattern matches the criteria required to be valid
+ * \retval    false: The EID pattern is invalid in some way
+ * \ref       BPLib_EID_Pattern_t
+ */
+bool BPLib_EID_PatternIsValid(BPLib_EID_Pattern_t EID_Pattern);
+
+/**
  * \brief     Checks if the one EID matches another EID
  * \details   The various members of each EID are compared for equivalence
  * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
