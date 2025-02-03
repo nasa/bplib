@@ -63,7 +63,7 @@ typedef struct
 typedef struct
 {
     uint32_t                 ContactID;
-    BPLib_EID_PatternMatch_t DestEIDs[BPLIB_CONTACT_MAX_NUM_EID_PATTERNS];
+    BPLib_EID_PatternMatch_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];
     CLAType_t                CLAType;
     char                     CLAddr[BPLIB_MAX_EID_LENGTH];
     int32_t                  PortNum;

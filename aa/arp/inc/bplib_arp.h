@@ -40,7 +40,7 @@ typedef struct
 
 typedef struct
 {
-    BPLib_ARP_CRSSet_t CRS_Set[BPLIB_MAX_MUN_CRS];
+    BPLib_ARP_CRSSet_t CRS_Set[BPLIB_MAX_NUM_CRS];
 } BPLib_ARP_CRSTable_t;
 
 /*
