@@ -391,3 +391,44 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
 
     return Status;
 }
+
+BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t EID_Pattern)
+{
+    BPLib_Status_t Status;
+    uint8_t MibIndex;
+    uint8_t PatternIndex;
+
+    Status = BPLIB_SUCCESS;
+
+    /* Verify that the given EID pattern is valid */
+    if (BPLib_EID_PatternIsValid(EID_Pattern))
+    {
+        /* Verify that the array can hold another entry */
+        for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
+        {
+            for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+            {
+                if (BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex].Scheme != BPLIB_EID_SCHEME_RESERVED)
+                { /* A pattern was found for this MIB array entry, go to the next entry */
+                    break;
+                }
+            }
+
+            if (PatternIndex == BPLIB_MAX_MIB_ARRAY_KEYS)
+            { /* No pattern was found for this MIB array entry, stop search */
+                break;
+            }
+        }
+
+        if (MibIndex != BPLIB_MAX_NUM_SOURCE_EID)
+        { /* An entry in the MIB array was found to not have a pattern */
+            BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex] = EID_Pattern;
+        }
+        else
+        {
+            Status = BPLIB_AS_MIB_KEY_ARRAY_FULL;
+        }
+    }
+
+    return Status;
+}

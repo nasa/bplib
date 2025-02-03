@@ -163,7 +163,7 @@ typedef struct
       * \brief Source EID patters this telemetry corresponds to
       * \ref BPLib_EID_Pattern_t
       */
-    BPLib_EID_Pattern_t EidPatterns[BPLIB_MAX_MIB_EID_PATTERNS];
+    BPLib_EID_Pattern_t EidPatterns[BPLIB_MAX_MIB_ARRAY_KEYS];
 
     /**
       * \brief Array of all source counters
@@ -335,5 +335,7 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
   * \ref       BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
   */
 BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
+
+BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t EID_Pattern);
 
 #endif /* BPLIB_AS_H */
