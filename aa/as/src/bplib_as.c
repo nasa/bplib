@@ -400,10 +400,10 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t EID_Pattern)
 
     if (BPLib_EID_PatternIsValid(EID_Pattern))
     { /* The given EID pattern is valid */
-        for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
-        { /* Loop through every entry in the MIB key array */
-            for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
-            { /* Loop through every pattern in the MIB key array entry */
+        for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+        { /* Loop through every pattern in the MIB key array entry */
+            for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
+            { /* Loop through every entry in the MIB key array */
                 if (BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex].Scheme != BPLIB_EID_SCHEME_RESERVED)
                 { /* A pattern was found for this MIB array entry, go to the next entry */
                     break;
