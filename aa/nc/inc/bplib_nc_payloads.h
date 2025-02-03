@@ -27,6 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
+#include "bplib_eid.h"
 
 /* =================== */
 /* Payload Definitions */
@@ -152,7 +153,7 @@ typedef struct
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    BPLib_EID_Pattern_t EID_Pattern;
 } BPLib_AddMibArrayKey_Payload_t;
 
 typedef struct

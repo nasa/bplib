@@ -915,36 +915,30 @@ void BPLib_NC_ContactTeardown(const BPLib_ContactTeardown_Payload_t Payload)
 
 void BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)
 {
-    /*
     BPLib_Status_t Status;
 
-    Status = BPLIB_SUCCESS;
+    Status = BPLib_AS_AddMibArrayKey(Payload.EID_Pattern);
 
-    - NC verifies that specified EID (source) is valid (EID schema, table size, and duplicate checking)
+    /*
     - If valid, NC adds entry to table and synchronously begins using updated table
     - NC sends notification to Framework Proxy that MIB configuration has been updated
     - Framework Proxy notifies cFS Table Services of MIB table update
-    - NC calls AS to set the MIB array key
+    */
 
     if (Status == BPLIB_SUCCESS)
-    */
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_ACCEPTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_ADD_MIB_ARR_KEY_SUCCESS_EID,
                             BPLib_EM_EventType_INFORMATION,
-                            "Add mib array key directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "Successful add-mib-array-key directive");
     }
-    /*
     else
     {
         BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1);
         BPLib_EM_SendEvent(BPLIB_NC_ADD_MIB_ARR_KEY_ERR_EID,
                             BPLib_EM_EventType_ERROR,
-                            "Add mib array key directive not implemented, received %d in payload",
-                            Payload.ExampleParameter);
+                            "An error occurred while attempting to add a MIB array key");
     }
-    */
 }
 
 void BPLib_NC_RemoveMibArrayKey(const BPLib_RemoveMibArrayKey_Payload_t Payload)
