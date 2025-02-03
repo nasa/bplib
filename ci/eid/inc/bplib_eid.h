@@ -129,7 +129,7 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID);
  * \ref       BPLib_EID_t
  * \ref       BPLib_EID_Pattern_t
  */
-bool BPLib_EID_Pattern_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern);
+bool BPLib_EID_PatternIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern);
 
 /**
  * \brief     Checks if the one EID matches another EID

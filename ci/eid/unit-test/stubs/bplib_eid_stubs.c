@@ -62,17 +62,17 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_EID_Pattern_IsMatch()
+ * Generated stub function for BPLib_EID_PatternIsMatch()
  * ----------------------------------------------------
  */
-bool BPLib_EID_Pattern_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
+bool BPLib_EID_PatternIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_EID_Pattern_IsMatch, bool);
+    UT_GenStub_SetupReturnBuffer(BPLib_EID_PatternIsMatch, bool);
 
-    UT_GenStub_AddParam(BPLib_EID_Pattern_IsMatch, BPLib_EID_t, EID_Actual);
-    UT_GenStub_AddParam(BPLib_EID_Pattern_IsMatch, BPLib_EID_Pattern_t, EID_Pattern);
+    UT_GenStub_AddParam(BPLib_EID_PatternIsMatch, BPLib_EID_t, EID_Actual);
+    UT_GenStub_AddParam(BPLib_EID_PatternIsMatch, BPLib_EID_Pattern_t, EID_Pattern);
 
-    UT_GenStub_Execute(BPLib_EID_Pattern_IsMatch, Basic, NULL);
+    UT_GenStub_Execute(BPLib_EID_PatternIsMatch, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_EID_Pattern_IsMatch, bool);
+    return UT_GenStub_GetReturnValue(BPLib_EID_PatternIsMatch, bool);
 }

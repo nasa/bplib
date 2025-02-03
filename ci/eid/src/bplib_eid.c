@@ -161,21 +161,31 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
     return IsValid;
 }
 
-bool BPLib_EID_Pattern_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
+bool BPLib_EID_PatternIsValid(BPLib_EID_Pattern_t EID_Pattern)
+{
+    return (EID_Pattern.MaxAllocator >= EID_Pattern.MinAllocator &&
+            EID_Pattern.MaxNode      >= EID_Pattern.MinNode      &&
+            EID_Pattern.MaxService   >= EID_Pattern.MinService);
+}
+
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
+{
+    return (EID_Actual.Scheme       == EID_Reference.Scheme       &&
+            EID_Actual.IpnSspFormat == EID_Reference.IpnSspFormat &&
+            EID_Actual.Allocator    == EID_Reference.Allocator    &&
+            EID_Actual.Node         == EID_Reference.Node         &&
+            EID_Actual.Service      == EID_Reference.Service);
+}
+
+bool BPLib_EID_PatternIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
 {
     bool IsMatch;
 
     IsMatch = true;
 
     /* Input verification */
-    if (EID_Pattern.MaxAllocator < EID_Pattern.MinAllocator ||
-        EID_Pattern.MaxNode      < EID_Pattern.MinNode      ||
-        EID_Pattern.MaxService   < EID_Pattern.MinService)
-    {
-        IsMatch = false;
-    }
-    else
-    {
+    if (BPLib_EID_PatternIsValid(EID_Pattern))
+    { /* The pattern is considered valid */
         if (EID_Actual.Scheme == EID_Pattern.Scheme)
         { /* The EID schemes are compatible for comparison */
             if (EID_Actual.IpnSspFormat == EID_Pattern.IpnSspFormat)
@@ -205,15 +215,10 @@ bool BPLib_EID_Pattern_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_P
             IsMatch = false;
         }
     }
+    else
+    {
+        IsMatch = false;
+    }
 
     return IsMatch;
-}
-
-bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
-{
-    return (EID_Actual.Scheme       == EID_Reference.Scheme       &&
-            EID_Actual.IpnSspFormat == EID_Reference.IpnSspFormat &&
-            EID_Actual.Allocator    == EID_Reference.Allocator    &&
-            EID_Actual.Node         == EID_Reference.Node         &&
-            EID_Actual.Service      == EID_Reference.Service);
 }
