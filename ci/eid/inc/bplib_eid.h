@@ -115,6 +115,18 @@ extern const BPLib_EID_t BPLIB_EID_INSTANCE;
 bool BPLib_EID_IsValid(BPLib_EID_t EID);
 
 /**
+ * \brief     Checks if the one EID matches another EID
+ * \details   The various members of each EID are compared for equivalence
+ * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
+ * \param[in] EID_Reference (BPLib_EID_t) EID that is to be matched
+ * \return    EID-EID match
+ * \retval    true: The actual EID does match the reference EID
+ * \retval    false: The actual EID does not match the reference EID
+ * \ref       BPLib_EID_t
+ */
+bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
+
+/**
  * \brief     Checks if the one EID matches a pattern
  * \details   The various members of each EID are compared for equivalence
  *            within a range
@@ -130,17 +142,5 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID);
  * \ref       BPLib_EID_Pattern_t
  */
 bool BPLib_EID_PatternIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern);
-
-/**
- * \brief     Checks if the one EID matches another EID
- * \details   The various members of each EID are compared for equivalence
- * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
- * \param[in] EID_Reference (BPLib_EID_t) EID that is to be matched
- * \return    EID-EID match
- * \retval    true: The actual EID does match the reference EID
- * \retval    false: The actual EID does not match the reference EID
- * \ref       BPLib_EID_t
- */
-bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
 
 #endif /* BPLIB_EID_H */
