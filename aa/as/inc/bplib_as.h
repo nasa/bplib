@@ -32,6 +32,7 @@
 #include "bplib_eventids.h"
 #include "bplib_em.h"
 #include "bplib_eid.h"
+#include "bplib_fwp.h"
 
 /* ====== */
 /* Macros */

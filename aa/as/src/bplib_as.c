@@ -24,8 +24,6 @@
 
 #include "bplib_as.h"
 #include "bplib_as_internal.h"
-#include "bplib_fwp.h"
-#include "bplib_eid.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -400,14 +398,12 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t EID_Pattern)
 
     Status = BPLIB_SUCCESS;
 
-    /* Verify that the given EID pattern is valid */
     if (BPLib_EID_PatternIsValid(EID_Pattern))
-    {
-        /* Verify that the array can hold another entry */
+    { /* The given EID pattern is valid */
         for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
-        {
+        { /* Loop through every entry in the MIB key array */
             for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
-            {
+            { /* Loop through every pattern in the MIB key array entry */
                 if (BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex].Scheme != BPLIB_EID_SCHEME_RESERVED)
                 { /* A pattern was found for this MIB array entry, go to the next entry */
                     break;
@@ -428,6 +424,10 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t EID_Pattern)
         {
             Status = BPLIB_AS_MIB_KEY_ARRAY_FULL;
         }
+    }
+    else
+    {
+        Status = BPLIB_INVALID_EID_PATTERN;
     }
 
     return Status;
