@@ -168,7 +168,8 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData);
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, void *AduPtr, size_t AduSize);
+BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint8_t ChanId, 
+                                                        void *AduPtr, size_t AduSize);
 
 /**
  * \brief Bundle Egress
@@ -186,6 +187,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, void *Ad
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t* Inst, uint8_t ChanId, void *BundlePtr, size_t BundleSize);
+BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t* Inst, uint8_t ChanId, void *AduPtr, 
+                                                size_t *AduSize, uint32_t Timeout);
 
 #endif /* BPLIB_PI_H */

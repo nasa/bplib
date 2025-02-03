@@ -119,15 +119,16 @@ typedef struct BPLib_IpnAddr
 
 /* Payload Interface Errors */
 #define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -27)
+#define BPLIB_PI_TIMEOUT                    ((BPLib_Status_t) -28)
 
 /* Admin Statistics (AS) Errors */
-#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -28)
-#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -29)
-#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -30)
-#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -31)
+#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -29)
+#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -30)
+#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -31)
+#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -32)
 
 /* Queue Manager (QM) Errors */
-#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -32)
+#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -33)
 
 
 

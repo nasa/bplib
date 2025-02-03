@@ -68,16 +68,16 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, 
                                                             void *AduPtr, size_t AduSize)
 {
-    BPLib_MEM_Block_t* CurrBlock;
-    size_t ChunkLen, BytesCopied;
-    BPLib_Bundle_t* NewBundle;
+    BPLib_MEM_Block_t *CurrBlock;
+    BPLib_Bundle_t    *NewBundle;
+    size_t             ChunkLen, BytesCopied;
 
     if ((Inst == NULL) || (AduPtr == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* Allocate bundle header */
+    /* Allocate Bundle header */
     CurrBlock = BPLib_MEM_BlockAlloc(&Inst->pool);
     if (CurrBlock == NULL)
     {
@@ -124,7 +124,44 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 }
 
 /* Egress an ADU */
-BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t* Inst, uint8_t ChanId, void *BundlePtr, size_t BundleSize)
+BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, 
+                                                size_t *AduSize, uint32_t Timeout)
 {
-    return BPLIB_SUCCESS;
+    BPLib_Bundle_t    *Bundle;
+    BPLib_MEM_Block_t *CurrBlock;
+    size_t             BytesCopied;
+
+    /* Null checks */
+    if ((Inst == NULL) || (AduPtr == NULL) || (AduSize == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    /* Get the next bundle in the channel egress queue */
+    if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs, &Bundle, Timeout))
+    {
+        BytesCopied = 0;
+        CurrBlock = Bundle->blob;
+
+        /* Copy out the contents of the bundle payload to the return pointer */
+        while (CurrBlock != NULL)
+        {
+            memcpy((uint8_t *)AduPtr + BytesCopied, CurrBlock->chunk, CurrBlock->chunk_len);
+            
+            BytesCopied += CurrBlock->chunk_len;
+            CurrBlock = CurrBlock->next;
+        }
+
+        /* Free the bundle blocks */
+        BPLib_MEM_BlockListFree(&Inst->pool, Bundle->blob);
+        BPLib_MEM_BlockFree(&Inst->pool, (BPLib_MEM_Block_t*)Bundle);
+
+        *AduSize = BytesCopied;
+
+        printf("Egressing packet of %lu bytes to ADU\n", *AduSize);
+
+        return BPLIB_SUCCESS;
+    }
+
+    return BPLIB_PI_TIMEOUT;
 }

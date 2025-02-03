@@ -97,7 +97,7 @@ BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* b
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_QM_UnsortedJob_t unsorted_job;
-    
+
     unsorted_job.bundle = bundle;
     unsorted_job.next_state = state;
     unsorted_job.priority = priority;
@@ -120,6 +120,8 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
         /* Run the job and get back the next state */
         BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
         next_state = curr_job.job_func(inst, curr_job.bundle);
+
+        printf("Next state of processed job is %d\n", next_state);
         BPLib_PL_PerfLogExit(BPLIB_QM_RUNJOB_PERF_ID);
 
         /* Create a new unsorted job with the next state and place it in the unsorted jobs queue
