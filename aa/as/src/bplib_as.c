@@ -393,40 +393,74 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
 BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t EID_Pattern)
 {
     BPLib_Status_t Status;
+    bool Overlaps;
+    uint16_t HasPattern;
     uint8_t MibIndex;
     uint8_t PatternIndex;
+    BPLib_EID_Pattern_t CurrPattern;
 
-    Status = BPLIB_SUCCESS;
+    Status     = BPLIB_SUCCESS;
+    Overlaps   = false;
+    HasPattern = 0;
 
     if (BPLib_EID_PatternIsValid(EID_Pattern))
     { /* The given EID pattern is valid */
-        for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
-        { /* Loop through every pattern in the MIB key array entry */
-            for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
-            { /* Loop through every entry in the MIB key array */
-                if (BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex].Scheme != BPLIB_EID_SCHEME_RESERVED)
-                { /* A pattern was found for this MIB array entry, go to the next entry */
-                    break;
+        for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
+        { /* Loop through every entry in the MIB key array */
+            for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+            { /* Loop through every pattern in the MIB key array entry */    
+                CurrPattern = BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex];
+                
+                if (CurrPattern.Scheme != BPLIB_EID_SCHEME_RESERVED)
+                { /* A pattern was found for this MIB array entry */
+                    Overlaps = (EID_Pattern.MaxAllocator >= CurrPattern.MinAllocator ||
+                                EID_Pattern.MinAllocator <= CurrPattern.MaxAllocator ||
+                                EID_Pattern.MaxNode      >= CurrPattern.MinNode      ||
+                                EID_Pattern.MinNode      <= CurrPattern.MaxNode      ||
+                                EID_Pattern.MaxService   >= CurrPattern.MinService   ||
+                                EID_Pattern.MinService   <= CurrPattern.MaxService);
+
+                    if (Overlaps)
+                    { /* An overlap was detected */
+                        Status = BPLIB_AS_MIB_KEYS_OVERLAP;
+                        break;
+                    }
+                    else
+                    { /* An entry with a pattern and no overlap was found, so track that */
+                        HasPattern |= (1 << MibIndex);
+                    }
                 }
             }
 
-            if (PatternIndex == BPLIB_MAX_MIB_ARRAY_KEYS)
-            { /* No pattern was found for this MIB array entry, stop search */
+            if (Overlaps)
+            { /* An overlap in MIB arrray keys was found and the status needs to be reported */
                 break;
             }
+
         }
 
-        if (MibIndex != BPLIB_MAX_NUM_SOURCE_EID)
-        { /* An entry in the MIB array was found to not have a pattern */
-            BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex] = EID_Pattern;
-        }
-        else
-        {
-            Status = BPLIB_AS_MIB_KEY_ARRAY_FULL;
+        if (!Overlaps)
+        { /* Add a key to an array entry if such an entry exists */
+            for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
+            { /* Cycle through every bit of HasPattern, searching for a 0 */
+                if ((HasPattern & 1) == 0)
+                { /* Bit 0 is a 0, so the entry in the MIB key array is empty */
+                    BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[0] = EID_Pattern;
+                    break;
+                }
+
+                /* Examine the next bit in the bit string */
+                HasPattern >>= 1;
+            }
+
+            if (MibIndex == BPLIB_MAX_NUM_SOURCE_EID)
+            { /* The above loop ran to completion without finding an indication that a spot is open */
+                Status = BPLIB_AS_MIB_KEY_ARRAY_FULL;
+            }
         }
     }
     else
-    {
+    { /* Given EID pattern is invalid */
         Status = BPLIB_INVALID_EID_PATTERN;
     }
 

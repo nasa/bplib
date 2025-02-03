@@ -126,6 +126,7 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -30)
 #define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID      ((BPLib_Status_t) -31)
 #define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -32)
+#define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -33)
 
 // BPLib_Handle_t - Multi-purpose handle for locks, APIs, and other allocated resources
 #define BPLIB_HANDLE_MAX_SERIAL 0xffffff
