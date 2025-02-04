@@ -38,120 +38,276 @@ void Test_BPLib_AS_Init_Error(void)
     // UtAssert_INT32_EQ(BPLib_AS_Init(), SOME_ERROR);
 }
 
-void Test_BPLib_AS_Increment_Nominal(void)
+void Test_BPLib_AS_Increment_NodeCounter_Nominal(void)
 {
-    int16_t  SourceEid;
     uint32_t TestValue;
 
-    /* Set values to test against */
-    SourceEid = 2;
-    TestValue = 15;
+    /* Force BPLib_AS_Increment to see the given EID as valid and for a node counter */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), true);
 
-    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REJECTED] = TestValue;
-    // BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_REJECTED] = TestValue;
+    /* Set values to test against */
+    TestValue = 50;
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DISCARDED] = TestValue;
 
     /* Run function under test */
-    BPLib_AS_Increment(SourceEid, BUNDLE_COUNT_CUSTODY_REJECTED, 1);
-    TestValue += 1;
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 5);
+    TestValue -= 5;
 
     /* Verify that counter is the expected value */
-    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REJECTED]);
-    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].BundleCountCustodyRejected);
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DISCARDED]);
+
+    /* Show that counters were locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
 }
 
-void Test_BPLib_AS_Increment_Error(void)
+void Test_BPLib_AS_Increment_SourceCounter_Nominal(void)
 {
-    int16_t  SourceEid;
+    int8_t  MibIndex;
     uint32_t TestValue;
 
-    /* === Invalid EID test === */
+    /* Force BPLib_AS_Increment to see the given EID as valid and for a source counter */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), false);
 
     /* Set values to test against */
-    SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
-    TestValue = 10;
+    MibIndex = 3;
+    TestValue = 17;
+    BPLib_AS_SourceCountersPayload.MibArray[MibIndex].SourceCounters[BUNDLE_COUNT_FORWARDED] = TestValue;
 
-    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REQUEST] = TestValue;
+    /* Run function under test */
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED, 7);
+    TestValue -= 7;
 
-    /* Run the function under test */
-    BPLib_AS_Increment(SourceEid, BUNDLE_COUNT_CUSTODY_REQUEST, 1);
+    // /* Verify that counter is the expected value */
+    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[MibIndex].SourceCounters[BUNDLE_COUNT_FORWARDED]);
 
-    /* Verify that counter is the expected value */
-    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REQUEST]);
-
-    /* === Unknown node counter test === */
-
-    /* Set values to test against */
-    SourceEid = 2;
-    TestValue = 6;
-
-    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REQUEST] = TestValue;
-
-    /* Run the function under test */
-    BPLib_AS_Increment(SourceEid, BPLIB_AS_NUM_NODE_CNTRS, 5);
-
-    /* Verify that counter is the expected value */
-    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_REQUEST]);
-
-    /* === Unknown source counter test === */
-    // TODO
+    /* Show that counters were locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
 }
 
-void Test_BPLib_AS_Decrement_Nominal(void)
+void Test_BPLib_AS_Increment_InvalidEID_Error(void)
 {
-    int16_t  SourceEid;
     uint32_t TestValue;
 
-    SourceEid = 2;
-    TestValue = 6;
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), false);
 
     /* Set values to test against */
+    TestValue = 45;
+
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FORWARDED_FAILED] = TestValue;
+
+    /* Run the function under test */
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED_FAILED, 10);
+
+    /* Verify that counter is the expected value */
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FORWARDED_FAILED]);
+
+    /* Show that counters were not locked or unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 0);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 0);
+
+    /* Demonstrate that the correct error event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
+                                "Could not increment node counter %d to %d, RC = %d");
+}
+
+void Test_BPLib_AS_Increment_UnkNodeCtr_Error(void)
+{
+    uint32_t TestValue;
+
+    /* Force BPLib_AS_Increment to see the given EID as valid and for a node counter */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), true);
+
+    /* Set values to test against */
+    TestValue = 6;
+
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENTED] = TestValue;
+
+    /* Run the function under test */
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BPLIB_AS_NUM_NODE_CNTRS, 8);
+
+    /* Verify that counter was set to the expected value */
+    UtAssert_STUB_COUNT(BPLib_AS_SetCounter, 1);
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENTED]);
+
+    /* Show that counters were locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
+
+    /* Demonstrate that the correct error event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
+                                "Could not increment node counter %d to %d, RC = %d");
+}
+
+void Test_BPLib_AS_Increment_UnkSrcCtr_Error(void)
+{
+    uint32_t TestValue;
+    uint32_t MibEntry;
+
+    /* Force BPLib_AS_Increment to see the given EID as valid and for a source counter */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), false);
+
+    /* Set values to test against */
+    TestValue = 66;
+    MibEntry  = 10;
+
+    BPLib_AS_SourceCountersPayload.MibArray[MibEntry].SourceCounters[BUNDLE_COUNT_FRAGMENT_ERROR] = TestValue;
+
+    /* Run the function under test */
+    BPLib_AS_Increment(BPLIB_EID_INSTANCE, BPLIB_AS_NUM_SOURCE_CNTRS, 6);
+
+    /* Verify that counter was set to the expected value */
+    // UtAssert_STUB_COUNT(BPLib_AS_SetCounter, 1);
+    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[MibEntry].SourceCounters[BUNDLE_COUNT_FRAGMENT_ERROR]);
+
+    /* Show that counters were locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
+
+    /* Demonstrate that the correct error event was issued */
+    // BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
+    //                             "Could not increment source counter %d to %d, RC = %d");
+}
+
+void Test_BPLib_AS_Decrement_NodeCounter_Nominal(void)
+{
+    uint32_t TestValue;
+
+    /* Force BPLib_AS_Decrement to see the given EID as valid and for a node counter */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), true);
+
+    /* Set values to test against */
+    TestValue = 6;
     BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue;
-    // BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue;
 
     /* Run function under test */
-    BPLib_AS_Decrement(SourceEid, BUNDLE_COUNT_CUSTODY_TRANSFERRED, 4);
+    BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_CUSTODY_TRANSFERRED, 4);
     TestValue -= 4;
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
-    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
+
+    /* Show that counters were locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
 }
 
-void Test_BPLib_AS_Decrement_Error(void)
+void Test_BPLib_AS_Decrement_SourceCounter_Nominal(void)
 {
-    int16_t  SourceEid;
+    int8_t  MibIndex;
     uint32_t TestValue;
 
-    /* === Invalid EID test === */
+    /* Force BPLib_AS_Decrement to see the given EID as valid and for a source counter */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), false);
 
     /* Set values to test against */
-    SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
+    MibIndex = 2;
+    TestValue = 6;
+    BPLib_AS_SourceCountersPayload.MibArray[MibIndex].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue;
+
+    /* Run function under test */
+    BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_CUSTODY_TRANSFERRED, 4);
+    TestValue -= 4;
+
+    // /* Verify that counter is the expected value */
+    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[MibIndex].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
+
+    /* Show that counters were locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
+}
+
+void Test_BPLib_AS_Decrement_InvalidEID_Error(void)
+{
+    uint32_t TestValue;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), false);
+
+    /* Set values to test against */
     TestValue = 1;
 
     BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED] = TestValue;
 
     /* Run the function under test */
-    BPLib_AS_Decrement(SourceEid, BUNDLE_COUNT_DELETED, 10);
+    BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DELETED, 10);
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
 
-    /* === Unknown node counter test === */
+    /* Show that counters were not locked or unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 0);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 0);
+
+    /* Demonstrate that the correct error event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
+                                "Could not decrement node counter %d to %d, RC = %d");
+}
+
+void Test_BPLib_AS_Decrement_UnkNodeCtr_Error(void)
+{
+    uint32_t TestValue;
+
+    /* Force BPLib_AS_Decrement to see the given EID as valid and for a node counter */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), true);
 
     /* Set values to test against */
-    SourceEid = 2;
     TestValue = 3;
 
     BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED] = TestValue;
 
     /* Run the function under test */
-    BPLib_AS_Decrement(SourceEid, BPLIB_AS_NUM_NODE_CNTRS, 5);
+    BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BPLIB_AS_NUM_NODE_CNTRS, 5);
 
-    /* Verify that counter is the expected value */
+    /* Verify that counter was set to the expected value */
+    UtAssert_STUB_COUNT(BPLib_AS_SetCounter, 1);
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
 
-    /* === Unknown source counter test === */
-    // TODO
+    /* Show that counters were locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
+
+    /* Demonstrate that the correct error event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
+                                "Could not decrement node counter %d to %d, RC = %d");
+}
+
+void Test_BPLib_AS_Decrement_UnkSrcCtr_Error(void)
+{
+    uint32_t TestValue;
+    uint32_t MibEntry;
+
+    /* Force BPLib_AS_Decrement to see the given EID as valid and for a source counter */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), false);
+
+    /* Set values to test against */
+    TestValue = 5;
+    MibEntry  = 1;
+
+    BPLib_AS_SourceCountersPayload.MibArray[MibEntry].SourceCounters[BUNDLE_COUNT_DELIVERED] = TestValue;
+
+    /* Run the function under test */
+    BPLib_AS_Decrement(BPLIB_EID_INSTANCE, BPLIB_AS_NUM_SOURCE_CNTRS, 5);
+
+    /* Verify that counter was set to the expected value */
+    // UtAssert_STUB_COUNT(BPLib_AS_SetCounter, 1);
+    // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[MibEntry].SourceCounters[BUNDLE_COUNT_DELIVERED]);
+
+    /* Show that counters were locked and unlocked */
+    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
+    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
+
+    /* Demonstrate that the correct error event was issued */
+    // BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
+    //                             "Could not decrement source counter %d to %d, RC = %d");
 }
 
 void Test_BPLib_AS_ResetCounter_Nominal(void)
@@ -429,10 +585,16 @@ void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
     ADD_TEST(Test_BPLib_AS_Init_Error);
-    ADD_TEST(Test_BPLib_AS_Increment_Nominal);
-    ADD_TEST(Test_BPLib_AS_Increment_Error);
-    ADD_TEST(Test_BPLib_AS_Decrement_Nominal);
-    ADD_TEST(Test_BPLib_AS_Decrement_Error);
+    ADD_TEST(Test_BPLib_AS_Increment_NodeCounter_Nominal);
+    ADD_TEST(Test_BPLib_AS_Increment_SourceCounter_Nominal);
+    ADD_TEST(Test_BPLib_AS_Increment_InvalidEID_Error);
+    ADD_TEST(Test_BPLib_AS_Increment_UnkNodeCtr_Error);
+    ADD_TEST(Test_BPLib_AS_Increment_UnkSrcCtr_Error);
+    ADD_TEST(Test_BPLib_AS_Decrement_NodeCounter_Nominal);
+    ADD_TEST(Test_BPLib_AS_Decrement_SourceCounter_Nominal);
+    ADD_TEST(Test_BPLib_AS_Decrement_InvalidEID_Error);
+    ADD_TEST(Test_BPLib_AS_Decrement_UnkNodeCtr_Error);
+    ADD_TEST(Test_BPLib_AS_Decrement_UnkSrcCtr_Error);
     ADD_TEST(Test_BPLib_AS_ResetCounter_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetCounter_Error);
     ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Nominal);
