@@ -374,6 +374,57 @@ void Test_BPLib_AS_SendSourceMibCountersHk_Nominal(void)
     UtAssert_EQ(BPLib_Status_t, 0, Status);
 }
 
+void Test_BPLib_AS_AddMibArrayKey_Nominal(void)
+{
+    BPLib_Status_t Status;
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS]= {
+                                                                    { /* Input pattern 0 */
+                                                                        .Scheme       = BPLIB_EID_SCHEME_DTN,
+                                                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT,
+                                                                        .MaxAllocator = 10,
+                                                                        .MinAllocator = 0,
+                                                                        .MaxNode      = 10,
+                                                                        .MinNode      = 0,
+                                                                        .MaxService   = 10,
+                                                                        .MinService   = 0
+                                                                    },
+                                                                    { /* Input pattern 1 */
+                                                                        .Scheme       = BPLIB_EID_SCHEME_IPN,
+                                                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+                                                                        .MaxAllocator = 20,
+                                                                        .MinAllocator = 11,
+                                                                        .MaxNode      = 20,
+                                                                        .MinNode      = 11,
+                                                                        .MaxService   = 20,
+                                                                        .MinService   = 11
+                                                                    },
+                                                                    { /* Input pattern 2 */
+                                                                        .Scheme       = BPLIB_EID_SCHEME_DTN,
+                                                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
+                                                                        .MaxAllocator = 30,
+                                                                        .MinAllocator = 21,
+                                                                        .MaxNode      = 30,
+                                                                        .MinNode      = 21,
+                                                                        .MaxService   = 30,
+                                                                        .MinService   = 21
+                                                                    },
+                                                                    { /* Input pattern 3 */
+                                                                        .Scheme       = BPLIB_EID_SCHEME_IPN,
+                                                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT,
+                                                                        .MaxAllocator = 40,
+                                                                        .MinAllocator = 31,
+                                                                        .MaxNode      = 40,
+                                                                        .MinNode      = 31,
+                                                                        .MaxService   = 40,
+                                                                        .MinService   = 31
+                                                                    }
+                                                                };
+
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+}
+
 void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
@@ -392,4 +443,5 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_ResetAllCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_SendNodeMibCountersHk_Nominal);
     ADD_TEST(Test_BPLib_AS_SendSourceMibCountersHk_Nominal);
+    ADD_TEST(Test_BPLib_AS_AddMibArrayKey_Nominal);
 }
