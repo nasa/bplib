@@ -129,16 +129,17 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
 {
     BPLib_Bundle_t    *Bundle;
     BPLib_MEM_Block_t *CurrBlock;
+    BPLib_Status_t     Status = BPLIB_SUCCESS;
     size_t             BytesCopied;
 
     /* Null checks */
     if ((Inst == NULL) || (AduPtr == NULL) || (AduSize == NULL))
     {
-        return BPLIB_NULL_PTR_ERROR;
+        Status = BPLIB_NULL_PTR_ERROR;
     }
 
     /* Get the next bundle in the channel egress queue */
-    if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs, &Bundle, Timeout))
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs, &Bundle, Timeout))
     {
         BytesCopied = 0;
         CurrBlock = Bundle->blob;
@@ -159,9 +160,12 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
         *AduSize = BytesCopied;
 
         printf("Egressing packet of %lu bytes to ADU\n", *AduSize);
-
-        return BPLIB_SUCCESS;
+    }
+    /* No packet was pulled, presumably queue is empty */
+    else 
+    {
+        Status = BPLIB_PI_TIMEOUT;
     }
 
-    return BPLIB_PI_TIMEOUT;
+    return Status;
 }

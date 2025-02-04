@@ -44,11 +44,13 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     inst->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
     inst->unsorted_job_mem = calloc(max_jobs, sizeof(BPLib_QM_UnsortedJob_t));
     inst->contact_egress_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
+    inst->channel_egress_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
     if (inst->unsorted_job_mem == NULL)
     {
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
+        free(inst->channel_egress_mem);
         return BPLIB_ERROR;
     }
 
@@ -66,11 +68,17 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     {
         queue_init = false;
     }
+    if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs), inst->channel_egress_mem, sizeof(BPLib_Bundle_t*), max_jobs))
+    {
+        queue_init = false;
+    }
+
     if (!queue_init)
     {
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
+        free(inst->channel_egress_mem);
         return BPLIB_ERROR;
     }
 
@@ -90,6 +98,7 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
     free(inst->job_mem);
     free(inst->unsorted_job_mem);
     free(inst->contact_egress_mem);
+    free(inst->channel_egress_mem);
 }
 
 BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
