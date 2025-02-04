@@ -44,35 +44,44 @@ BPLib_Status_t BPLib_AS_Init(void)
 void BPLib_AS_Increment(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount)
 {
     BPLib_Status_t Status;
-    uint8_t MibArrayIndex;
 
-    if (BPLib_EID_IsMatch(EID, BPLIB_EID_INSTANCE))
-    { /* Increment a node counter */
-        /* Prevent modification of counters from other tasks while modifying them */
-        BPLib_AS_LockCounters();
+    if (BPLib_EID_IsValid(EID))
+    {
+        if (BPLib_EID_IsMatch(EID, BPLIB_EID_INSTANCE))
+        { /* Increment a node counter */
+            /* Prevent modification of counters from other tasks while modifying them */
+            BPLib_AS_LockCounters();
 
-        /* Use BPLib_AS_SetCounter to evaluate source MIB array index and counter ranges */
-        Status = BPLib_AS_SetCounter(EID, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount);
-        if (Status != BPLIB_SUCCESS)
-        {
-            BPLib_EM_SendEvent(BPLIB_AS_SET_CTR_ERR_EID,
-                                BPLib_EM_EventType_ERROR,
-                                "Could not set node counter %d to %d, RC = %d",
-                                Counter,
-                                BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount,
-                                Status);
+            /* Use BPLib_AS_SetCounter to evaluate source MIB array index and counter ranges */
+            Status = BPLib_AS_SetCounter(EID, Counter, BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount);
+            if (Status != BPLIB_SUCCESS)
+            {
+                BPLib_EM_SendEvent(BPLIB_AS_SET_CTR_ERR_EID,
+                                    BPLib_EM_EventType_ERROR,
+                                    "Could not set node counter %d to %d, RC = %d",
+                                    Counter,
+                                    BPLib_AS_NodeCountersPayload.NodeCounters[Counter] + Amount,
+                                    Status);
+            }
+
+            /* Allow counters to be modified by other tasks after operation has finished */
+            BPLib_AS_UnlockCounters();
         }
+        else
+        { /* Increment a source counter */
+            /* Prevent modification of counters from other tasks while modifying them */
+            BPLib_AS_LockCounters();
 
-        /* Allow counters to be modified by other tasks after operation has finished */
-        BPLib_AS_UnlockCounters();
+            /* Allow counters to be modified by other tasks after operation has finished */
+            BPLib_AS_UnlockCounters();
+        }
     }
     else
-    { /* Increment a source counter */
-        /* Prevent modification of counters from other tasks while modifying them */
-        BPLib_AS_LockCounters();
-
-        /* Allow counters to be modified by other tasks after operation has finished */
-        BPLib_AS_UnlockCounters();
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_INVALID_EID_ERR_EID,
+                            BPLib_EM_EventType_ERROR,
+                            "Could not set counter %d due to an invalid EID",
+                            Counter);
     }
 }
 
