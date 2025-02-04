@@ -167,6 +167,11 @@ typedef struct
     BPLib_EID_Pattern_t EidPatterns[BPLIB_MAX_MIB_ARRAY_KEYS];
 
     /**
+     * \brief Indicates how many keys are active in EidPatterns
+     */
+    uint8_t ActiveKeys;
+
+    /**
       * \brief Array of all source counters
       * \ref BPLib_AS_Counter_t
       */
@@ -239,7 +244,7 @@ void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
 /**
  * \brief     Set to zero to counter associated with the given MIB counter array index
  * \note      Use BPLIB_AS_NODE_CNTR_INDICATOR if the counter to be reset is a node counter
- * 
+ *
  *            The index into the source MIB counter array must be known ahead of time. This can
  *            be determined by looking at the source EIDs inside the MIB array, nested within the
  *            source MIB counters payload of the source MIB counters HK packet
@@ -337,6 +342,9 @@ BPLib_Status_t BPLib_AS_SendNodeMibCountersHk(void);
   */
 BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
 
-BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t EID_Pattern);
+/**
+ * \note The terms key(s) and pattern(s) are used interchangeably since the MIB array keys are patterns of EIDs associated with the counters for that entry
+ */
+BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t* EID_Patterns);
 
 #endif /* BPLIB_AS_H */
