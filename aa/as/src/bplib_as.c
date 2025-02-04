@@ -404,35 +404,16 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t* EID_Patterns)
     Status       = BPLIB_SUCCESS;
     NumKeysGiven = 0;
 
-    /* Determine number of patterns given and if the given patterns are valid */
-    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
-    {
-        if (EID_Patterns[PatternIndex].Scheme != BPLIB_EID_SCHEME_RESERVED)
-        {
-            if (BPLib_EID_PatternIsValid(EID_Patterns[PatternIndex]))
-            {
-                NumKeysGiven++;
-            }
-            else
-            {
-                Status = BPLIB_INVALID_EID_PATTERN;
-                break;
-            }
-        }
-    }
-
-    /* Check for overlaps between existing and incoming keys */
-    if (Status == BPLIB_SUCCESS)
-    {
-        for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
-        { /* Loop through every entry in the MIB key array */
-            for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
-            { /* Loop through every pattern in the MIB key array entry */
-                CurrPattern = BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex];
-
-                for (InputIndex = 0; InputIndex < BPLIB_MAX_MIB_ARRAY_KEYS; InputIndex++)
-                {
-                    InputPattern = EID_Patterns[InputIndex];
+    for (InputIndex = 0; InputIndex < BPLIB_MAX_MIB_ARRAY_KEYS; InputIndex++)
+    { /* Loop through each given pattern */
+        InputPattern = EID_Patterns[InputIndex];
+        if (BPLib_EID_PatternIsValid(InputPattern))
+        { /* Given pattern is valid, see if it can be added to the MIB array */
+            for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
+            { /* Loop through every entry in the MIB key array */
+                for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+                { /* Loop through every pattern in the MIB key array entry */
+                    CurrPattern = BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex];
 
                     if (CurrPattern.Scheme != BPLIB_EID_SCHEME_RESERVED && InputPattern.Scheme != BPLIB_EID_SCHEME_RESERVED)
                     { /* A pattern was found for this MIB array entry */
@@ -450,37 +431,51 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t* EID_Patterns)
                 }
 
                 if (Status != BPLIB_SUCCESS)
-                {
+                { /* Stop searching the existing keys when an overlap is found */
                     break;
                 }
             }
 
-            if (Status != BPLIB_SUCCESS)
+            if (Status == BPLIB_SUCCESS)
             {
-                break;
+                NumKeysGiven++;
             }
+        }
+        else
+        {
+            Status = BPLIB_INVALID_EID_PATTERN;
+        }
+
+        if (Status != BPLIB_SUCCESS)
+        { /* Leave the key comparison and verification loops when an error is found */
+            break;
         }
     }
 
     if (Status == BPLIB_SUCCESS)
     { /* Add the key(s) */
+        /* Default to failure to save on extra logic */
+        Status = BPLIB_AS_MIB_KEY_ARRAY_FULL;
+
         for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
-        {
+        { /* Loop through every MIB array key entry */
             AvailableKeys = BPLIB_MAX_MIB_ARRAY_KEYS - BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys;
 
             if (AvailableKeys <= NumKeysGiven)
-            { /* Freeze the value of MibIndex by exiting the for loop */
+            { /* Space is available for the given key(s) to be  added */
+                for (PatternIndex = 0; PatternIndex < NumKeysGiven; PatternIndex++)
+                { /* Loop through input keys and add to MIB key array */
+                    InputIndex = BPLIB_MAX_MIB_ARRAY_KEYS - AvailableKeys--;
+                    BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[InputIndex] = EID_Patterns[PatternIndex];
+                }
+
+                /* Update the number of active keys for the MIB array entry */
+                BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys += NumKeysGiven;
+
+                /* Indicate that a key was added */
+                Status = BPLIB_SUCCESS;
                 break;
             }
-        }
-
-        if (MibIndex != BPLIB_MAX_NUM_SOURCE_EID)
-        { /* Available spots are open, so add the key */
-            /* TODO */
-        }
-        else
-        {
-            Status = BPLIB_AS_MIB_KEY_ARRAY_FULL;
         }
     }
 
