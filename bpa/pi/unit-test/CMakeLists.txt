@@ -51,10 +51,14 @@ target_include_directories(coverage-bplib_pi-testrunner PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     $<TARGET_PROPERTY:bplib_pi,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_as,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_mem,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_qm,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_pi-testrunner PUBLIC
     bplib_as_stubs    
+    bplib_mem_stubs
+    bplib_qm_stubs
     ut_coverage_link
     ut_assert
 )

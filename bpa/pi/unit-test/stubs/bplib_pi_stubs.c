@@ -48,13 +48,15 @@ BPLib_Status_t BPLib_PI_AddApplication(uint8_t ChanId)
  * Generated stub function for BPLib_PI_Egress()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_PI_Egress(uint8_t ChanId, void *BundlePtr, size_t BundleSize)
+BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, size_t *AduSize, uint32_t Timeout)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_PI_Egress, BPLib_Status_t);
 
+    UT_GenStub_AddParam(BPLib_PI_Egress, BPLib_Instance_t *, Inst);
     UT_GenStub_AddParam(BPLib_PI_Egress, uint8_t, ChanId);
-    UT_GenStub_AddParam(BPLib_PI_Egress, void *, BundlePtr);
-    UT_GenStub_AddParam(BPLib_PI_Egress, size_t, BundleSize);
+    UT_GenStub_AddParam(BPLib_PI_Egress, void *, AduPtr);
+    UT_GenStub_AddParam(BPLib_PI_Egress, size_t *, AduSize);
+    UT_GenStub_AddParam(BPLib_PI_Egress, uint32_t, Timeout);
 
     UT_GenStub_Execute(BPLib_PI_Egress, Basic, NULL);
 
@@ -66,10 +68,11 @@ BPLib_Status_t BPLib_PI_Egress(uint8_t ChanId, void *BundlePtr, size_t BundleSiz
  * Generated stub function for BPLib_PI_Ingress()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_PI_Ingress(uint8_t ChanId, void *AduPtr, size_t AduSize)
+BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, size_t AduSize)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_PI_Ingress, BPLib_Status_t);
 
+    UT_GenStub_AddParam(BPLib_PI_Ingress, BPLib_Instance_t *, Inst);
     UT_GenStub_AddParam(BPLib_PI_Ingress, uint8_t, ChanId);
     UT_GenStub_AddParam(BPLib_PI_Ingress, void *, AduPtr);
     UT_GenStub_AddParam(BPLib_PI_Ingress, size_t, AduSize);
