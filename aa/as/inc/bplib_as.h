@@ -344,6 +344,6 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk(void);
 /**
  * \note The terms key(s) and pattern(s) are used interchangeably since the MIB array keys are patterns of EIDs associated with the counters for that entry
  */
-BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t* EID_Patterns);
+BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns);
 
 #endif /* BPLIB_AS_H */
