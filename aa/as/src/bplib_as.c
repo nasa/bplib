@@ -424,6 +424,14 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
                             InputPattern.MinService   <= CurrPattern.MaxService)
                         { /* An overlap was found */
                             Status = BPLIB_AS_MIB_KEYS_OVERLAP;
+
+                            BPLib_EM_SendEvent(BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                                BPLib_EM_EventType_DEBUG,
+                                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d",
+                                                InputIndex,
+                                                MibIndex,
+                                                PatternIndex);
+
                             break;
                         }
                     }
@@ -443,6 +451,11 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
         else
         {
             Status = BPLIB_INVALID_EID_PATTERN;
+
+            BPLib_EM_SendEvent(BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                BPLib_EM_EventType_DEBUG,
+                                "Input key #%d is an invalid EID pattern",
+                                InputIndex);
         }
 
         if (Status != BPLIB_SUCCESS)
@@ -476,6 +489,13 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
                 break;
             }
         }
+    }
+
+    if (Status == BPLIB_AS_MIB_KEY_ARRAY_FULL)
+    {
+        BPLib_EM_SendEvent(BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                            BPLib_EM_EventType_DEBUG,
+                            "EID key array is full");
     }
 
     return Status;

@@ -130,4 +130,7 @@
 #define BPLIB_AS_GIVE_MUTEX_ERR_EID                     (581u)
 #define BPLIB_AS_SET_CTR_ERR_EID                        (582u)
 
+/* AS debug event IDs */
+#define BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID              (583u)
+
 #endif /* BPLIB_EVENTIDS_H */
