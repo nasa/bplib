@@ -24,6 +24,7 @@
 
 #include "bplib_as.h"
 #include "bplib_as_internal.h"
+#include "bplib_fwp.h"
 
 /* ==================== */
 /* Function Definitions */
@@ -388,7 +389,7 @@ BPLib_Status_t BPLib_AS_SendSourceMibCountersHk()
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_AddMibArrayKey(BPLib_EID_Pattern_t* EID_Patterns)
+BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
 {
     BPLib_Status_t Status;
     uint8_t NumKeysGiven;
