@@ -84,9 +84,16 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         return BPLIB_NULL_PTR_ERROR;
     }
 
+    memset(CurrBlock, 0, sizeof(BPLib_Bundle_t));
+
     NewBundle = (BPLib_Bundle_t *)(CurrBlock);
     NewBundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
-    NewBundle->blocks.pri_blk.src_eid.node_number = 0x42;
+
+    /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
+    if (ChanId == 0)
+    {
+        NewBundle->blocks.pri_blk.src_eid.service_number = 0x42;
+    }
 
     /* Allocate a blob */
     CurrBlock = BPLib_MEM_BlockListAlloc(&Inst->pool, AduSize);
@@ -117,7 +124,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         CurrBlock = CurrBlock->next;
     }
 
-    printf("Ingressing packet of %lu bytes from ADU\n", BytesCopied);
+    printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", BytesCopied, ChanId);
 
     return BPLib_QM_AddUnsortedJob(Inst, NewBundle, CHANNEL_IN_PI_TO_EBP, 
                                                         QM_PRI_NORMAL, QM_WAIT_FOREVER);
@@ -139,7 +146,7 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     }
 
     /* Get the next bundle in the channel egress queue */
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs, &Bundle, Timeout))
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, Timeout))
     {
         BytesCopied = 0;
         CurrBlock = Bundle->blob;
@@ -159,7 +166,7 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
 
         *AduSize = BytesCopied;
 
-        printf("Egressing packet of %lu bytes to ADU\n", *AduSize);
+        printf("Egressing packet of %lu bytes to ADU via channel #%d\n", *AduSize, ChanId);
     }
     /* No packet was pulled, presumably queue is empty */
     else 

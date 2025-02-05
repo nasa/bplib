@@ -25,6 +25,7 @@
 #include "bplib_bundle.h"
 #include "bplib_qm_waitqueue.h"
 #include "bplib_mem.h"
+#include "bplib_cfg.h"
 
 #define QM_NO_WAIT       WAITQUEUE_NO_WAIT  /**< Constant for no wait */
 #define QM_WAIT_FOREVER  WAITQUEUE_WAIT_FOREVER  /**< Constant for indefinite wait */
@@ -80,8 +81,8 @@ typedef struct BPLib_Instance
     BPLib_QM_WaitQueue_t UnsortedJobs; /**< Queue of unsorted jobs */
     void* contact_egress_mem; /**< Memory for contact egress jobs */
     BPLib_QM_WaitQueue_t ContactEgressJobs; /**< Queue of contact egress jobs */
-    void* channel_egress_mem;   /**< Memory for channel egress jobs */
-    BPLib_QM_WaitQueue_t ChannelEgressJobs; /**< Queue of channel egress jobs */
+    void* ChannelEgressMem[BPLIB_MAX_NUM_CHANNELS];   /**< Memory for channel egress jobs */
+    BPLib_QM_WaitQueue_t ChannelEgressJobs[BPLIB_MAX_NUM_CHANNELS]; /**< Queue of channel egress jobs */
     
 } BPLib_Instance_t;
 
