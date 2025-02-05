@@ -27,6 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
+#include "bplib_eid.h"
 
 /* =================== */
 /* Payload Definitions */
@@ -313,8 +314,14 @@ typedef struct
 */
 typedef struct
 {
-    char        SrcEID[BPLIB_MAX_EID_LENGTH];
-    char        EIDPattern[BPLIB_MAX_EID_LENGTH];
+    /**
+     * The SrcEID field is the EID pattern.
+     * The EIDPattern field was a string value of "ipn" or "dtn". It is now
+     * the BPLib_EID_Scheme_t enum in BPLib_EID_PatternMatch_t.
+     */
+    // char        SrcEID[BPLIB_MAX_EID_LENGTH];
+    // char        EIDPattern[BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_PatternMatch_t SrcEIDs[BPLIB_MAX_NUM_MIB_PS];
     uint32_t    ParamSetMaxLifetime;
     uint32_t    ParamSetMaxBSRGenerationRate;
     uint32_t    ParamSetMaxCBRGenerationRate;
