@@ -170,6 +170,8 @@ typedef struct
      */
     uint8_t ActiveKeys;
 
+    uint8_t Spare[3]; /* Spare for alignment */
+
     /**
       * \brief Array of all source counters
       * \ref BPLib_AS_Counter_t
