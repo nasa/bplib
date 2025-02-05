@@ -42,7 +42,7 @@ extern "C" {
  */
 #define BPLIB_MAX_NUM_BUNDLE_QUEUES         16  /* Maximum number of queues */
 #define BPLIB_MAX_NUM_SOURCE_EID            16  /* Maximum number of allowed source EIDs */
-#define BPLIB_MAX_NUM_STORE_SET             10  /* Maximum number of storage policy sets. pre source EID */
+#define BPLIB_MAX_NUM_STORE_SET             10  /* Maximum number of storage policy sets. */
 #define BPLIB_MAX_NUM_CRS                   10  /* Maximum number of Compressed Reporting CRS Entries */
 #define BPLIB_MAX_AUTH_SOURCE_EIDS          10  /* Maximum number of authorized source EID patterns */
 #define BPLIB_MAX_AUTH_CUSTODIAN_EIDS       10  /* Maximum number of authorized custodian EID patterns */
@@ -50,6 +50,7 @@ extern "C" {
 #define BPLIB_MAX_AUTH_REPORT_TO_EIDS       10  /* Maximum number of report-to EID patterns */
 #define BPLIB_MAX_LATENCY_SOURCE_EIDS       10  /* Maximum number of sources for latency policy */
 #define BPLIB_MAX_NUM_MIB_PS                10  /* Maximum number of sources for MIB Config per source */
+#define BPLIB_MAX_NUM_STORE_EIDS            10  /* Maximum number of EID patterns per storage policy set */
 
 
 
