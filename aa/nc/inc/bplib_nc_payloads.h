@@ -153,7 +153,7 @@ typedef struct
 
 typedef struct
 {
-    BPLib_EID_Pattern_t EID_Pattern;
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
 } BPLib_AddMibArrayKey_Payload_t;
 
 typedef struct

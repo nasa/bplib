@@ -917,7 +917,7 @@ void BPLib_NC_AddMibArrayKey(const BPLib_AddMibArrayKey_Payload_t Payload)
 {
     BPLib_Status_t Status;
 
-    Status = BPLib_AS_AddMibArrayKey(Payload.EID_Pattern);
+    Status = BPLib_AS_AddMibArrayKey(Payload.EID_Patterns);
 
     /*
     - If valid, NC adds entry to table and synchronously begins using updated table
