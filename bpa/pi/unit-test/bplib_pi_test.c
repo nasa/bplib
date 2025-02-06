@@ -110,6 +110,8 @@ void Test_BPLib_PI_Egress_Nominal(void)
     uint32_t Timeout = 1000;
     BPLib_Bundle_t BundleBuf;
 
+    memset(&BundleBuf, 0, sizeof(BPLib_Bundle_t));
+
     UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundleBuf, sizeof(BPLib_Bundle_t), false);
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
