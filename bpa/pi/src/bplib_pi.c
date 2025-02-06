@@ -144,7 +144,6 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
     {
         Status = BPLIB_NULL_PTR_ERROR;
     }
-
     /* Get the next bundle in the channel egress queue */
     else if (BPLib_QM_WaitQueueTryPull(&Inst->ChannelEgressJobs[ChanId], &Bundle, Timeout))
     {
@@ -159,11 +158,12 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
             {
                 Status = BPLIB_BUF_LEN_ERROR;
             }
-
-            memcpy((uint8_t *)AduPtr + BytesCopied, CurrBlock->chunk, CurrBlock->chunk_len);
-            
-            BytesCopied += CurrBlock->chunk_len;
-            CurrBlock = CurrBlock->next;
+            else
+            {
+                memcpy((uint8_t *)AduPtr + BytesCopied, CurrBlock->chunk, CurrBlock->chunk_len);
+                BytesCopied += CurrBlock->chunk_len;
+                CurrBlock = CurrBlock->next;
+            }
         }
 
         /* Free the bundle blocks */

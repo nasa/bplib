@@ -91,11 +91,13 @@ BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bu
             {
                 Status = BPLIB_BUF_LEN_ERROR;
             }
+            else
+            {
+                memcpy((uint8_t *)Bundle + BytesCopied, CurrBlock->chunk, CurrBlock->chunk_len);
 
-            memcpy((uint8_t *)Bundle + BytesCopied, CurrBlock->chunk, CurrBlock->chunk_len);
-
-            BytesCopied += CurrBlock->chunk_len;
-            CurrBlock = CurrBlock->next;
+                BytesCopied += CurrBlock->chunk_len;
+                CurrBlock = CurrBlock->next;
+            }
         }
 
         /* Free the bundle blocks */
