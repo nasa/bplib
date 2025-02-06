@@ -70,6 +70,8 @@ void Test_BPLib_PI_Ingress_Nominal(void)
     BPLib_MEM_Block_t Block;
     size_t AduSize = 0;
 
+    memset(&Block, 0, sizeof(Block));
+
     UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BlockAlloc), 1, (UT_IntReturn_t) &Block);
     UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BlockListAlloc), 1, (UT_IntReturn_t) &Block);
 
@@ -106,6 +108,9 @@ void Test_BPLib_PI_Egress_Nominal(void)
     size_t BufLen = 10;
     size_t AduSize;
     uint32_t Timeout = 1000;
+    BPLib_Bundle_t BundleBuf;
+
+    UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundleBuf, sizeof(BPLib_Bundle_t), false);
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
 
