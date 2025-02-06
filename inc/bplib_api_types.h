@@ -82,8 +82,9 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3) ///< Unknown return status
 #define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4) /* Table validation error code */
 #define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5) // BPLib Red-Black Tree (RBT) Duplicate Search Result
-#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6)
-#define BPLIB_NULL_PTR_ERROR                ((BPLib_Status_t) -7)
+#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6) /* Timeout pending on a queue */
+#define BPLIB_NULL_PTR_ERROR                ((BPLib_Status_t) -7) /* Null pointer error */
+#define BPLIB_BUF_LEN_ERROR                 ((BPLib_Status_t) -8) /* Buffer length error */
 
 /** @defgroup BPLib_ErrorCodes BPLib Error Code Defines
  * @{

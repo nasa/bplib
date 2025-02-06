@@ -38,10 +38,10 @@ BPLib_Status_t BPLib_CLA_Init(void) {
 }
 
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
-BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
 {
 
-    if ((inst == NULL) || (Bundle == NULL))
+    if ((Inst == NULL) || (Bundle == NULL))
     {
         return BPLIB_ERROR;
     }
@@ -59,41 +59,64 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const v
         /* Note: An argument can be made to simply implement RecvFullBundleIn here
         * and do away with BI_RecvFullBundleIn()
         */
-        return BPLib_BI_RecvFullBundleIn(inst, Bundle, Size);
+        return BPLib_BI_RecvFullBundleIn(Inst, Bundle, Size);
     }
  
 }
 
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* inst, uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bundle, 
+                                size_t *Size, size_t BufLen, uint32_t Timeout)
 {
-    BPLib_Bundle_t* bundle;
-    size_t bytes_copied;
-    BPLib_MEM_Block_t* curr_block;
+    BPLib_Status_t     Status = BPLIB_SUCCESS;
+    BPLib_Bundle_t    *QueuedBundle;
+    BPLib_MEM_Block_t *CurrBlock;
+    size_t             BytesCopied;
 
-    if ((inst == NULL) || (Bundle == NULL) || (Size == NULL))
+    /* Null checks */
+    if ((Inst == NULL) || (Bundle == NULL) || (Size == NULL))
     {
-        return BPLIB_ERROR;
+        Status = BPLIB_NULL_PTR_ERROR;
     }
 
-    if (BPLib_QM_WaitQueueTryPull(&inst->ContactEgressJobs, &bundle, Timeout))
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs, &QueuedBundle, Timeout))
     {
-        bytes_copied = 0;
-        curr_block = bundle->blob;
-        while (curr_block != NULL)
+        BytesCopied = 0;
+        CurrBlock = QueuedBundle->blob;
+
+        while (CurrBlock != NULL && Status == BPLIB_SUCCESS)
         {
-            memcpy((uint8_t*)Bundle + bytes_copied, curr_block->chunk, curr_block->chunk_len);
-            bytes_copied += curr_block->chunk_len;
-            curr_block = curr_block->next;
+            /* Error, trying to copy a bundle that's too big into a buffer that's too small */
+            if (BytesCopied + CurrBlock->chunk_len >= BufLen)
+            {
+                Status = BPLIB_BUF_LEN_ERROR;
+            }
+
+            memcpy((uint8_t *)Bundle + BytesCopied, CurrBlock->chunk, CurrBlock->chunk_len);
+
+            BytesCopied += CurrBlock->chunk_len;
+            CurrBlock = CurrBlock->next;
         }
-        BPLib_MEM_BlockListFree(&inst->pool, bundle->blob);
-        BPLib_MEM_BlockFree(&inst->pool, (BPLib_MEM_Block_t*)bundle);
-        *Size = bytes_copied;
-        printf("Egressing packet of %lu bytes to CLA\n", *Size);
-        return BPLIB_SUCCESS;
+
+        /* Free the bundle blocks */
+        BPLib_MEM_BlockListFree(&Inst->pool, QueuedBundle->blob);
+        BPLib_MEM_BlockFree(&Inst->pool, (BPLib_MEM_Block_t *) QueuedBundle);
+
+        if (Status == BPLIB_SUCCESS)
+        {
+            *Size = BytesCopied;
+
+            printf("Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);
+        }
+    }
+    /* No packet was pulled, presumably queue is empty */
+    else
+    {
+        Status = BPLIB_CLA_TIMEOUT;
     }
 
-    return BPLIB_CLA_TIMEOUT;
+    return Status;
+
 }
 
 /* Validate Contacts table data */

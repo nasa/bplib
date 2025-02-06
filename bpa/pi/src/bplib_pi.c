@@ -132,7 +132,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 
 /* Egress an ADU */
 BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, 
-                                                size_t *AduSize, uint32_t Timeout)
+                                    size_t *AduSize, size_t BufLen, uint32_t Timeout)
 {
     BPLib_Bundle_t    *Bundle;
     BPLib_MEM_Block_t *CurrBlock;
@@ -152,8 +152,14 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
         CurrBlock = Bundle->blob;
 
         /* Copy out the contents of the bundle payload to the return pointer */
-        while (CurrBlock != NULL)
+        while (CurrBlock != NULL && Status == BPLIB_SUCCESS)
         {
+            /* Error, trying to copy a bundle that's too big into a buffer that's too small */
+            if (BytesCopied + CurrBlock->chunk_len >= BufLen)
+            {
+                Status = BPLIB_BUF_LEN_ERROR;
+            }
+
             memcpy((uint8_t *)AduPtr + BytesCopied, CurrBlock->chunk, CurrBlock->chunk_len);
             
             BytesCopied += CurrBlock->chunk_len;
@@ -162,11 +168,14 @@ BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *Adu
 
         /* Free the bundle blocks */
         BPLib_MEM_BlockListFree(&Inst->pool, Bundle->blob);
-        BPLib_MEM_BlockFree(&Inst->pool, (BPLib_MEM_Block_t*)Bundle);
+        BPLib_MEM_BlockFree(&Inst->pool, (BPLib_MEM_Block_t*) Bundle);
 
-        *AduSize = BytesCopied;
+        if (Status == BPLIB_SUCCESS)
+        {
+            *AduSize = BytesCopied;
 
-        printf("Egressing packet of %lu bytes to ADU via channel #%d\n", *AduSize, ChanId);
+            printf("Egressing packet of %lu bytes to ADU via channel #%d\n", *AduSize, ChanId);
+        }
     }
     /* No packet was pulled, presumably queue is empty */
     else 
