@@ -92,7 +92,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
     if (ChanId == 0)
     {
-        NewBundle->blocks.pri_blk.src_eid.service_number = 0x42;
+        NewBundle->blocks.pri_blk.dest_eid.service_number = 0x42;
     }
 
     /* Allocate a blob */
