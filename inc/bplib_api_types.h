@@ -70,188 +70,71 @@ typedef struct BPLib_IpnAddr
 ** Macros
 */
 
+#define BPLIB_BUNDLE_PROTOCOL_VERSION       (7)     /**< \brief Version of Bundle Protocol being implemented */
+
 /** @defgroup BPLib_ReturnCodes BPLib Return Codes
  * @{
  */
 /* General Return Codes */
-#define BPLIB_SUCCESS                       ((BPLib_Status_t)  0) ///< Successful execution
-#define BPLIB_ERROR                         ((BPLib_Status_t) -1) ///< Failed execution
-#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2) ///< Unimplemented function
-#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3) ///< Unknown return status
-#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4) /* Table validation error code */
-#define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5) // BPLib Red-Black Tree (RBT) Duplicate Search Result
-#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6)
-#define BPLIB_INVALID_EID                   ((BPLib_Status_t) -7)
-#define BPLIB_INVALID_EID_PATTERN           ((BPLib_Status_t) -8)
+#define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)  /* Successful execution */
+#define BPLIB_ERROR                         ((BPLib_Status_t) -1)  /* Failed execution */
+#define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)  /* Unimplemented function */
+#define BPLIB_UNKNOWN                       ((BPLib_Status_t) -3)  /* Unknown return status */
+#define BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE   ((BPLib_Status_t) -4)  /* Table validation error code */
+#define BPLIB_RBT_DUPLICATE                 ((BPLib_Status_t) -5)  /* BPLib Red-Black Tree (RBT) Duplicate Search Result */
+#define BPLIB_TIMEOUT                       ((BPLib_Status_t) -6)  /* Timeout pending on a queue */
+#define BPLIB_NULL_PTR_ERROR                ((BPLib_Status_t) -7)  /* Null pointer error */
+#define BPLIB_BUF_LEN_ERROR                 ((BPLib_Status_t) -8)  /* Buffer length error */
+#define BPLIB_INVALID_EID                   ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
+#define BPLIB_INVALID_EID_PATTERN           ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
 
 /** @defgroup BPLib_ErrorCodes BPLib Error Code Defines
  * @{
  */
 /* Framework Proxy Errors */
-#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -9)
+#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -10)
 
 /* Time Management Errors */
-#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) -10)
-#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) -11)
-#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) -12)
-#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -13)
+#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) -11)
+#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) -12)
+#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) -13)
+#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -14)
 
 /* Event Management Errors */
-#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -14)
-#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -15)
-#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -16)
-#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -17)
-#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -18)
-#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -19)
-#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -20)
-#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -21)
+#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -15)
+#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -16)
+#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -17)
+#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -18)
+#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -19)
+#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -20)
+#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -21)
+#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -22)
 
 /* PerfLog Proxy Errors*/
-#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -22)
+#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -23)
 
 /* Node Configuration (NC) errors */
-#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -23)
-#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -24)
+#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -24)
+#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -25)
 
 /* CLA Errors*/
-#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -25)
+#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -26)
 
 /* Payload Interface Errors */
-#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -26)
+#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -27)
+#define BPLIB_PI_TIMEOUT                    ((BPLib_Status_t) -28)
 
 /* Admin Statistics (AS) Errors */
-#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -27)
-#define BPLIB_AS_INVALID_MIB_INDEX          ((BPLib_Status_t) -28)
-#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -29)
-#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -30)
-#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID      ((BPLib_Status_t) -31)
-#define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -32)
-#define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -33)
+#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -29)
+#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -30)
+#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -31)
+#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -32)
+#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID      ((BPLib_Status_t) -33)
+#define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -34)
+#define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -35)
 
-// BPLib_Handle_t - Multi-purpose handle for locks, APIs, and other allocated resources
-#define BPLIB_HANDLE_MAX_SERIAL 0xffffff
-
-#define BPLIB_HANDLE_RAM_STORE_BASE \
-    (BPLib_Handle_t)                \
-    {                               \
-        0x1000000                   \
-    }
-#define BPLIB_HANDLE_FLASH_STORE_BASE \
-    (BPLib_Handle_t)                  \
-    {                                 \
-        0x2000000                     \
-    }
-#define BPLIB_HANDLE_FILE_STORE_BASE \
-    (BPLib_Handle_t)                 \
-    {                                \
-        0x3000000                    \
-    }
-#define BPLIB_HANDLE_OS_BASE \
-    (BPLib_Handle_t)         \
-    {                        \
-        0x4000000            \
-    }
-
-#define BPLIB_HANDLE_INTF_BASE \
-    (BPLib_Handle_t)           \
-    {                          \
-        0x5000000              \
-    }
-
-// BPLIB_HANDLE_MPOOL_BASE is from heritage bplib_api_types.h, hence the "MPOOL".
-#define BPLIB_HANDLE_MPOOL_BASE \
-    (BPLib_Handle_t)            \
-    {                           \
-        0x6000000               \
-    }
-
-#define BPLIB_INVALID_HANDLE \
-    (const BPLib_Handle_t)   \
-    {                        \
-        0                    \
-    } /* used for integers (os locks, storage services) */
-
-/**
- *  Exported BPLib_Handle_t Functions
- */
-
-/**
- * Checks for validity of given handle
- *
- * @param h the handle value
- * @retval false if the handle is not possibly valid
- * @retval true if the handle may be valid
- */
-static inline bool BPLib_HandleIsValid(BPLib_Handle_t h)
-{
-    return (h.hdl != 0);
-}
-
-/**
- * Gets the "printable" value of a handle
- *
- * This may be used in conjunction with the "%d" format
- * specifier on printf()-style calls to display the logical
- * value of a handle.
- *
- * @param h the handle value
- * @returns handle value as an "int"
- */
-static inline int BPLib_HandlePrintable(BPLib_Handle_t h)
-{
-    return (int)h.hdl;
-}
-
-/**
- * Checks if two handles are equal
- *
- * Since handles are not integers, one cannot use the == operator
- * to check for equality.  This inline function may be used in its place.
- *
- * @param h1 the first handle value
- * @param h2 the second handle value
- * @retval false if the handles are different
- * @retval true if the handles are equal
- */
-static inline bool BPLib_HandleEqual(BPLib_Handle_t h1, BPLib_Handle_t h2)
-{
-    return (h1.hdl == h2.hdl);
-}
-
-/**
- * Converts the given handle to a serial number
- *
- * This determines the 0-based serial number corresponding to a handle,
- * which can in turn be used to index into a table/array.
- *
- * @sa BPLib_HandleFromSerial
- *
- * @param h the handle value
- * @param base the object base handle (indicates the type/class of handle)
- *
- * @returns handle as a serial number
- */
-static inline int BPLib_HandleToSerial(BPLib_Handle_t h, BPLib_Handle_t base)
-{
-    return (h.hdl - base.hdl);
-}
-
-/**
- * Converts the given serial number given to a handle
- *
- * This determines the handle value corresponding to a 0-based serial number.
- *
- * @sa BPLib_HandleToSerial
- *
- * @param hv   the handle value
- * @param base the object base handle (indicates the type/class of handle)
- *
- * @returns handle as a serial number
- */
-static inline BPLib_Handle_t BPLib_HandleFromSerial(int hv, BPLib_Handle_t base)
-{
-    return (BPLib_Handle_t) {.hdl = (uint32_t)hv + base.hdl};
-}
+/* Queue Manager (QM) Errors */
+#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -36)
 
 // TODO TIME Helpers
 

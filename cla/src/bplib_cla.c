@@ -21,10 +21,12 @@
 /*
 ** Include
 */
+#include <stdio.h>
 
 #include "bplib_cla.h"
 #include "bplib_cla_internal.h"
 #include "bplib_bi.h"
+#include "bplib_qm.h"
 
 
 /*
@@ -36,53 +38,87 @@ BPLib_Status_t BPLib_CLA_Init(void) {
 }
 
 /* BPLib_CLA_Ingress - Received candidate bundles from CL */
-BPLib_Status_t BPLib_CLA_Ingress(uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout)
 {
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-    const uint8_t *InBundle = Bundle;
-    if (Bundle != NULL)
+
+    if ((Inst == NULL) || (Bundle == NULL))
     {
-        /* Count candidate bundles received from CL*/
-        if (*InBundle != 0x9F) /*Check CBOR indefinite-length array*/
-        {
-            /* Not a RFC 9171 bundle. Can be a control message or junk*/
-            if (BPLib_CLA_IsAControlMsg(InBundle))
-            {
-                /* Processes the control message and pass to BI*/
-                BPLib_CLA_ProcessControlMessage((BPLib_CLA_CtrlMsg_t*)Bundle);
-                
-            }
-        }
-        else
-        {
-            /* Receive a RFC 9171 bundle and pass it to BI*/
-            Status = BPLib_BI_RecvFullBundleIn(Bundle, Size);
-            if (Status != BPLIB_SUCCESS)
-            {
-                
-            }
-        }
-        
+        return BPLIB_ERROR;
     }
-    
-    return Status;    
+
+    /* Not a RFC 9171 bundle. Can be a control message or junk*/
+    if (BPLib_CLA_IsAControlMsg((const uint8_t*)Bundle))
+    {
+        /* Processes the control message and pass to BI*/
+        BPLib_CLA_ProcessControlMessage((BPLib_CLA_CtrlMsg_t*)Bundle);
+        return BPLIB_SUCCESS;
+    }
+    else
+    {
+        /* Receive a RFC 9171 bundle and pass it to BI */
+        /* Note: An argument can be made to simply implement RecvFullBundleIn here
+        * and do away with BI_RecvFullBundleIn()
+        */
+        return BPLib_BI_RecvFullBundleIn(Inst, Bundle, Size);
+    }
+ 
 }
 
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
-BPLib_Status_t BPLib_CLA_Egress(uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout)
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bundle, 
+                                size_t *Size, size_t BufLen, uint32_t Timeout)
 {
-    BPLib_Status_t Status = BPLIB_SUCCESS;
-    const uint8_t *InBundle = Bundle;
-    if (InBundle != NULL)
-    {
-        /* Receive a RFC9171 deserialized bundle from BI and send it to CL */
-        Status = BPLib_BI_SendFullBundleOut(Bundle, Size);
-        if (Status != BPLIB_SUCCESS)
-        {
+    BPLib_Status_t     Status = BPLIB_SUCCESS;
+    BPLib_Bundle_t    *QueuedBundle;
+    BPLib_MEM_Block_t *CurrBlock;
+    size_t             BytesCopied;
 
+    /* Null checks */
+    if ((Inst == NULL) || (Bundle == NULL) || (Size == NULL))
+    {
+        Status = BPLIB_NULL_PTR_ERROR;
+    }
+
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs, &QueuedBundle, Timeout))
+    {
+        BytesCopied = 0;
+        CurrBlock = QueuedBundle->blob;
+
+        while (CurrBlock != NULL && Status == BPLIB_SUCCESS)
+        {
+            /* Error, trying to copy a bundle that's too big into a buffer that's too small */
+            if (BytesCopied + CurrBlock->chunk_len >= BufLen)
+            {
+                Status = BPLIB_BUF_LEN_ERROR;
+            }
+            else
+            {
+                memcpy((uint8_t *)Bundle + BytesCopied, CurrBlock->chunk, CurrBlock->chunk_len);
+
+                BytesCopied += CurrBlock->chunk_len;
+                CurrBlock = CurrBlock->next;
+            }
+        }
+
+        /* Free the bundle blocks */
+        BPLib_MEM_BlockListFree(&Inst->pool, QueuedBundle->blob);
+        BPLib_MEM_BlockFree(&Inst->pool, (BPLib_MEM_Block_t *) QueuedBundle);
+
+        if (Status == BPLIB_SUCCESS)
+        {
+            *Size = BytesCopied;
+
+            printf("Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);
         }
     }
-    return Status;    
+    /* No packet was pulled, presumably queue is empty */
+    else
+    {
+        Status = BPLIB_CLA_TIMEOUT;
+    }
+
+    return Status;
+
 }
 
 /* Validate Contacts table data */

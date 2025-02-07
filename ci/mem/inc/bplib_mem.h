@@ -21,300 +21,107 @@
 #ifndef BPLIB_MEM_H
 #define BPLIB_MEM_H
 
-/*
-** Include
+#include "bplib_ben_allocator.h"
+
+#include <pthread.h>
+
+/**
+** \brief Defines the size of a memory chunk.
+**        NOTE: This value should be greater than or equal to the size of BPLib_Bundle_t
 */
+#define BPLIB_MEM_CHUNKSIZE (512U)
 
-#include "bplib_api_types.h"
 
-#include "bplib_time.h"
-
-#include "bplib_rbt.h"
-
-/*
- * Minimum size of a generic data block
+/**
+ * @struct BPLib_MEM_Block_t
+ * @brief Represents a block of memory in the pool.
+ * 
+ * This structure holds a chunk of memory (`chunk`). 
+ * It also has a pointer (`next`) to link to other blocks in a linked list.
  */
-#define BPLIB_MEM_MIN_USER_BLOCK_SIZE 480 // bytes
-
-#define BPLIB_MEM_CACHE_CBOR_DATA_SIGNATURE 0x6b243e33
-
-/*
- * Priority levels for pool buffers -
- * The intent here is to give some preference to things which may decrease pool
- * memory usage (such as receipt of a DACS, which might allow dozens of
- * bundles to be deleted) over things that may increase pool memory usage
- * (such as an app sending in new data bundles).
- *
- * This only comes into play once the pool is mostly used.  As long as memory
- * use is low, everything gets allocated without issue.  Once memory becomes
- * constrained, things need to start becoming more choosy as to who gets the buffer.
- */
-#define BPLIB_MEM_ALLOC_PRI_LO  0
-#define BPLIB_MEM_ALLOC_PRI_MLO 63
-#define BPLIB_MEM_ALLOC_PRI_MED 127
-#define BPLIB_MEM_ALLOC_PRI_MHI 191
-#define BPLIB_MEM_ALLOC_PRI_HI  255
-
-typedef struct BPLib_MEM_Pool BPLib_MEM_Pool_t;
-
-/*
- * This union is just to make sure that the "content_start" field
- * in a generic data block is suitably aligned to hold any data type, mainly
- * the max-sized integers, max-sized floating point values, or a pointer.
- */
-typedef union BPLib_MEM_AlignedData
+typedef struct BPLib_MEM_Block
 {
-    uint8_t     first_octet;
-    uintmax_t   align_int;
-    void       *align_ptr;
-    long double align_float;
-} BPLib_MEM_AlignedData_t;
+    uint8_t chunk[BPLIB_MEM_CHUNKSIZE]; /**< Memory chunk stored in the block */
+    size_t chunk_len; /**< Byte-length of user-data currently within the chunk. This is initialized to 0. */
+    struct BPLib_MEM_Block* next; /**< Pointer to the next block in the list */
+} BPLib_MEM_Block_t;
 
-typedef struct BPLib_MEM_Lock
+/**
+ * @struct BPLib_MEM_Pool_t
+ * @brief Represents a memory pool that manages memory blocks.
+ * 
+ * This structure holds the implementation of the pool (`impl`), and a mutex lock (`lock`)
+ * for thread safety when accessing the memory pool.
+ */
+typedef struct BPLib_MEM_Pool
 {
-    BPLib_Handle_t lock_id;
-} BPLib_MEM_Lock_t;
-
-typedef struct BPLib_MEM_Global
-{
-    BPLib_MEM_Lock_t BPLib_MEM_PoolLock;
-} BPLib_MEM_Global_T;
+    BPLib_MEM_PoolImpl_t impl; /**< The pool implementation (details hidden) */
+    pthread_mutex_t lock; /**< Mutex for synchronizing access to the pool */
+} BPLib_MEM_Pool_t;
 
 /**
- * The BPLib_MEM_Blocktype is a subset of the BPLib_STOR_CACHE_Blocktype.
- * The administrative block will be marked with 0xFF, this still permits the
- * type to be stored as a uint8_t if needed to save bits.
+ * @brief Initializes a memory pool.
+ * 
+ * This function initializes a memory pool with the provided initial memory and size.
+ * 
+ * @param[out] pool Pointer to the memory pool to initialize.
+ * @param[in] init_mem Pointer to the initial memory for the pool.
+ * @param[in] init_size Size of the initial memory.
+ * 
+ * @return Status of the operation.
  */
-
-#define BPLIB_MEM_BLOCKTYPE_ADMIN 255
-
-typedef enum BPLib_MEM_Blocktype
-{
-    /**
-     * The complete list is in BPLib_STOR_CACHE_Blocktype_t.
-     * The values match, mainly for ease of understanding and debugging.
-     * Declarations in CACHE that are not used in MEM are not in this list, to
-     * cause a build-time error if they are used in MEM.
-     */
-
-    BPLib_MEM_BlocktypeUndefined = 0,
-    BPLib_MEM_BlocktypeApi       = 1,
-    BPLib_MEM_BlocktypeGeneric   = 2,
-    BPLib_MEM_BlocktypePrimary   = 4,
-    BPLib_MEM_BlocktypeCanonical = 5,
-    BPLib_MEM_BlocktypeDuct      = 6,
-    BPLib_MEM_BlocktypeRef       = 7,
-    BPLib_MEM_BlocktypeMax       = 8, /* placeholder for the max "regular" block type */
-
-    BPLib_MEM_BlocktypeSecondaryGeneric = 100,
-    BPLib_MEM_BlocktypeListHead         = 101,  // For Available and Free lists (subqs)
-    BPLib_MEM_BlocktypeJob              = 102,  // A job or pending work item to do
-    BPLib_MEM_BlocktypeSecondaryMax     = 103,
-    BPLib_MEM_BlocktypeAdmin            = 255
-} BPLib_MEM_Blocktype_t;
-
-typedef struct BPLib_MEM_Block BPLib_MEM_Block_t;
+BPLib_Status_t BPLib_MEM_PoolInit(BPLib_MEM_Pool_t* pool, void* init_mem, size_t init_size);
 
 /**
- * @brief Create a condition variable for an underlying mutex.
- *
- * Creates a condition variable for use with BPLib_MEM_OS_Lock and
- * BPLib_MEM_OS_Unlock
- *
- * @return BPLib_Handle_t The handle of the condition variable.
+ * @brief Destroys a memory pool.
+ * 
+ * This function destroys the memory pool and frees any allocated resources.
+ * 
+ * @param[in] pool Pointer to the memory pool to destroy.
  */
-BPLib_Handle_t BPLib_MEM_OS_CreateLock(void);
+void BPLib_MEM_PoolDestroy(BPLib_MEM_Pool_t* pool);
 
 /**
- * @brief Locks/Acquires the underlying mutex associated with a condition variable
- *
- * The mutex should always be locked by a task before reading or modifying the
- * data object associated with a condition variable.
- *
- * @param h The handle of the condition variable.
+ * @brief Allocates a new memory block from the pool.
+ * 
+ * This function allocates a single memory block from the memory pool.
+ * 
+ * @param[in] pool Pointer to the memory pool from which to allocate a block.
+ * 
+ * @return Pointer to the allocated memory block.
  */
-void BPLib_MEM_OS_Lock(BPLib_Handle_t h);
+BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool);
 
 /**
- * @brief Release the underlying mutex associated with a condition variable
- *
- * @param h The handle of the condition variable.
+ * @brief Frees a memory block back to the pool.
+ * 
+ * This function frees a memory block that was previously allocated from the pool.
+ * 
+ * @param[in] pool Pointer to the memory pool to which to return the block.
+ * @param[in] block Pointer to the memory block to free.
  */
-void BPLib_MEM_OS_Unlock(BPLib_Handle_t h);
+void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block);
 
 /**
- * @brief Acquires a given lock
- *
- * The lock should be identified via BPLib_MEM_LockPrepare() or this
- * can re-acquire the same lock again after releasing it with
- * BPLib_MEM_LockRelease().
- *
- * @param lock
+ * @brief Allocates a list of memory blocks from the pool.
+ * 
+ * This function allocates a list of memory blocks that together have the requested byte length.
+ * 
+ * @param[in] pool Pointer to the memory pool from which to allocate blocks.
+ * @param[in] byte_len The total byte length of the blocks to allocate.
+ * 
+ * @return Pointer to the head of the allocated block list.
  */
-static inline void BPLib_MEM_LockAcquire(BPLib_MEM_Lock_t *lock)
-{
-    BPLib_MEM_OS_Lock(lock->lock_id);
-}
+BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_len);
 
 /**
- * @brief Release a given lock (simple)
- *
- * This simply unlocks a resource.
- *
- * This API will NOT automatically wake any task that might be waiting for a
- * state change of the underlying resource
- *
- * @param lock
+ * @brief Frees a list of memory blocks back to the pool.
+ * 
+ * This function frees a list of memory blocks that were previously allocated from the pool.
+ * 
+ * @param[in] pool Pointer to the memory pool to which to return the blocks.
+ * @param[in] head Pointer to the head of the block list to free.
  */
-static inline void BPLib_MEM_LockRelease(BPLib_MEM_Lock_t *lock)
-{
-    if (lock != NULL)
-    {
-        BPLib_MEM_OS_Unlock(lock->lock_id);
-    }
-}
-
-/**
- * @brief Prepares for resource-based locking
- *
- * Locates the correct lock to use for the given resource, but does not acquire the lock
- *
- * @note  it is imperative that all calls use the same reference address (such as the head
- * of the list) when referring to the same resource for locking to work correctly.
- *
- * @param resource_addr
- * @return BPLib_MEM_Lock_t*
- */
-BPLib_MEM_Lock_t *BPLib_MEM_LockPrepare(void *resource_addr);
-
-/**
- * @brief Lock a given resource
- *
- * Locates the correct lock to use for a given resource address, and also acquires it
- *
- * @note  it is imperative that all calls use the same referece address (such as the head
- * of the list) when referring to the same resource for locking to work correctly.
- *
- * @param resource_addr
- * @return BPLib_MEM_Lock_t*
- */
-BPLib_MEM_Lock_t *BPLib_MEM_LockResource(void *resource_addr);
-
-/**
- * @brief Waits for a state change related to the given lock
- *
- * @note The resource must be locked when called.
- *
- * @param lock
- * @param BPLIB_TIME_TO_INT(until_time)
- * @return true
- * @return false
- */
-bool BPLib_MEM_LockWait(BPLib_MEM_Lock_t *lock, BPLib_TIME_MonotonicTime_t until_time);
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_MEM_QueryMemCurrentUse
- *
- *-----------------------------------------------------------------*/
-size_t BPLib_MEM_QueryMemCurrentUse(BPLib_MEM_Pool_t *pool);
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_MEM_QueryMemMaxUse
- *
- *-----------------------------------------------------------------*/
-size_t BPLib_MEM_QueryMemMaxUse(BPLib_MEM_Pool_t *pool);
-
-/*----------------------------------------------------------------
- *
- * Function: BPLib_MEM_GetParentPoolFromLink
- *
- *-----------------------------------------------------------------*/
-BPLib_MEM_Pool_t *BPLib_MEM_GetParentPoolFromLink(BPLib_MEM_Block_t *cb);
-
-/**
- * @brief Allocate a new user data block
- *
- * Note that the maximum block capacity is set at compile time.  This limits the size
- * of user data objects that can be stored by this mechanism.
- *
- * @param pool
- * @param magic_number
- * @param init_arg Opaque pointer passed to initializer (may be NULL)
- * @return BPLib_MEM_Block_t*
- */
-BPLib_MEM_Block_t *BPLib_MEM_GenericDataAlloc(BPLib_MEM_Pool_t *pool, uint32_t magic_number, void *init_arg);
-
-/**
- * @brief Cast a block to generic user data type
- *
- * User blocks require a match on on the "magic number", which may be a random 32-bit integer.
- * This is intended as a data integrity check to confirm the block is indeed the correct flavor.
- *
- * @param cb
- * @param required_magic
- * @return BPLib_MEM_GenericData_t*
- */
-void *BPLib_MEM_GenericDataCast(BPLib_MEM_Block_t *cb, uint32_t required_magic);
-
-/**
- * @brief Cast a generic user data segment to its parent block
- *
- * This is the inverse of BPLib_MEM_GenericDataCast() and allows obtaining the pool
- * block from a generic data pointer.  The pointer passed in must be from a prior call
- * to BPLib_MEM_GenericDataCast() or else the result is undefined.
- *
- * @param blk pointer from previous call to BPLib_MEM_GenericDataCast
- * @param required_magic
- * @return BPLib_MEM_GenericData_t*
- */
-BPLib_MEM_Block_t *BPLib_MEM_GenericDataUncast(void *blk, BPLib_MEM_Blocktype_t parent_bt,
-                                               uint32_t required_magic);
-
-/**
- * @brief Get the parent memory block from a link to a memory block that may be a child
- *
- * Gets the pointer to a memory block that is the top-level parent block.
- * Traverses to the parent block via the parent offset, if the block is a not
- * the top-level parent.
- *
- * @param lblk pointer to BPLib_MEM_Block_t
- * @return pointer to BPLib_MEM_Block_t Top-level parent block
- */
-BPLib_MEM_Block_t *BPLib_MEM_GetBlockFromLink(BPLib_MEM_Block_t *lblk);
-
-/**
- * @brief Get the generic data capacity for a memory block
- *
- * Gets the size of the user content space for a block, based on the
- * size of BPLib_MEM_BlockBuffer_t less the data offset for the block's
- * blocktype.
- *
- * @param cb pointer to BPLib_MEM_Block_t
- * @return size_t
- */
-size_t BPLib_MEM_GetGenericDataCapacity(const BPLib_MEM_Block_t *cb);
-
-/**
- * @brief Perform garbage collection for a given pool of memory blocks
- *
- * @param pool pointer to BPLib_MEM_Pool_t
- */
-void BPLib_MEM_Maintain(BPLib_MEM_Pool_t *pool);
-
-/**
- * \brief Memory Allocator initialization
- *
- *  \par Description
- *       MEM initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_MEM_Init(void);
+void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head);
 
 #endif /* BPLIB_MEM_H */
