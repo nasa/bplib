@@ -84,7 +84,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    memset(CurrBlock, 0, sizeof(BPLib_Bundle_t));
+    memset(CurrBlock->chunk, 0, sizeof(BPLib_Bundle_t));
 
     NewBundle = (BPLib_Bundle_t *)((void*)&CurrBlock->chunk);
     NewBundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
