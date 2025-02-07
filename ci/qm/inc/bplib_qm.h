@@ -25,6 +25,7 @@
 #include "bplib_bundle.h"
 #include "bplib_qm_waitqueue.h"
 #include "bplib_mem.h"
+#include "bplib_cfg.h"
 
 #define QM_NO_WAIT       WAITQUEUE_NO_WAIT  /**< Constant for no wait */
 #define QM_WAIT_FOREVER  WAITQUEUE_WAIT_FOREVER  /**< Constant for indefinite wait */
@@ -38,20 +39,20 @@
  */
 typedef enum BPLib_JobState
 {
-    CONTACT_IN_BI_TO_EBP = 0, /**< Contact state: BI to EBP */
-    CONTACT_IN_EBP_TO_CT,     /**< Contact state: EBP to CT */
-    CONTACT_IN_CT_TO_STOR,    /**< Contact state: CT to Storage */
-    CONTACT_OUT_STOR_TO_CT,   /**< Contact state: Storage to CT */
-    CONTACT_OUT_CT_TO_EBP,    /**< Contact state: CT to EBP */
-    CONTACT_OUT_EBP_TO_BI,    /**< Contact state: EBP to BI */
-    CHANNEL_IN_PI_TO_EBP,     /**< Channel state: PI to EBP */
-    CHANNEL_IN_EBP_TO_CT,     /**< Channel state: EBP to CT */
-    CHANNEL_IN_CT_TO_STOR,    /**< Channel state: CT to Storage */
-    CHANNEL_OUT_STOR_TO_CT,   /**< Channel state: Storage to CT */
-    CHANNEL_OUT_CT_TO_EBP,    /**< Channel state: CT to EBP */
-    CHANNEL_OUT_EBP_TO_PI,    /**< Channel state: EBP to PI */
-    NUM_GENWORKER_STATES,     /**< Total number of worker states */
-    NO_NEXT_STATE,            /**< Signaling state with no next state */
+    CONTACT_IN_BI_TO_EBP = 0,       /**< Contact state: BI to EBP */
+    CONTACT_IN_EBP_TO_CT = 1,       /**< Contact state: EBP to CT */
+    CONTACT_IN_CT_TO_STOR = 2,      /**< Contact state: CT to Storage */
+    CONTACT_OUT_STOR_TO_CT = 3,     /**< Contact state: Storage to CT */
+    CONTACT_OUT_CT_TO_EBP = 4,      /**< Contact state: CT to EBP */
+    CONTACT_OUT_EBP_TO_BI = 5,      /**< Contact state: EBP to BI */
+    CHANNEL_IN_PI_TO_EBP = 6,       /**< Channel state: PI to EBP */
+    CHANNEL_IN_EBP_TO_CT = 7,       /**< Channel state: EBP to CT */
+    CHANNEL_IN_CT_TO_STOR = 8,      /**< Channel state: CT to Storage */
+    CHANNEL_OUT_STOR_TO_CT = 9,     /**< Channel state: Storage to CT */
+    CHANNEL_OUT_CT_TO_EBP = 10,     /**< Channel state: CT to EBP */
+    CHANNEL_OUT_EBP_TO_PI = 11,     /**< Channel state: EBP to PI */
+    NUM_GENWORKER_STATES = 12,      /**< Total number of worker states */
+    NO_NEXT_STATE = 13,             /**< Signaling state with no next state */
 } BPLib_QM_JobState_t;
 
 /**
@@ -80,10 +81,9 @@ typedef struct BPLib_Instance
     BPLib_QM_WaitQueue_t UnsortedJobs; /**< Queue of unsorted jobs */
     void* contact_egress_mem; /**< Memory for contact egress jobs */
     BPLib_QM_WaitQueue_t ContactEgressJobs; /**< Queue of contact egress jobs */
-    /* A secret note for Sara
-     * void* channel_egress_mem;
-     * BPLib_QM_WaitQueue_t ChannelEgressJobs;
-    */
+    void* ChannelEgressMem[BPLIB_MAX_NUM_CHANNELS];   /**< Memory for channel egress jobs */
+    BPLib_QM_WaitQueue_t ChannelEgressJobs[BPLIB_MAX_NUM_CHANNELS]; /**< Queue of channel egress jobs */
+    
 } BPLib_Instance_t;
 
 /**

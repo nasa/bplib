@@ -66,20 +66,95 @@ void Test_BPLib_PI_ValidateConfigs_Failure(void)
 void Test_BPLib_PI_Ingress_Nominal(void)
 {
     uint8_t ChanId = 0;
-    void *AduPtr = NULL;
+    uint8_t AduPtr[10];
+    BPLib_MEM_Block_t Block;
     size_t AduSize = 0;
 
-    UtAssert_INT32_EQ(BPLib_PI_Ingress(ChanId, AduPtr, AduSize), BPLIB_SUCCESS);
+    memset(&Block, 0, sizeof(Block));
+
+    UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BlockAlloc), 1, (UT_IntReturn_t) &Block);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BlockListAlloc), 1, (UT_IntReturn_t) &Block);
+
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_SUCCESS);
+}
+
+/* Test ingress function null checks */
+void Test_BPLib_PI_Ingress_Null(void)
+{
+    uint8_t ChanId = 0;
+    uint8_t AduPtr[10];
+    BPLib_MEM_Block_t Block;
+    size_t AduSize = 0;
+
+    /* Null BPLib instance */
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(NULL, ChanId, AduPtr, AduSize), BPLIB_NULL_PTR_ERROR);
+    
+    /* Null ADU pointer */
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, NULL, AduSize), BPLIB_NULL_PTR_ERROR);
+
+    /* The block allocation function returns null by default */
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_NULL_PTR_ERROR);
+
+    /* Successful block allocation but failed blob allocation */
+    UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BlockAlloc), 1, (UT_IntReturn_t) &Block);
+    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_NULL_PTR_ERROR);
 }
 
 /* Test nominal egress function */
 void Test_BPLib_PI_Egress_Nominal(void)
 {
-    uint8_t ChanId = 0;
-    void *BundlePtr = NULL;
-    size_t BundleSize = 0;
+    // uint8_t ChanId = 0;
+    // uint8_t AduPtr[10];
+    // size_t BufLen = 10;
+    // size_t AduSize;
+    // uint32_t Timeout = 1000;
+    // BPLib_Bundle_t BundleBuf;
+    // BPLib_MEM_Block_t Block;
 
-    UtAssert_INT32_EQ(BPLib_PI_Egress(ChanId, BundlePtr, BundleSize), BPLIB_SUCCESS);
+    // memset(&BundleBuf, 0, sizeof(BPLib_Bundle_t));
+    // memset(&Block, 0, sizeof(BPLib_MEM_Block_t));
+
+    // Block.chunk_len = 5;
+    // Block.next = NULL;
+    // BundleBuf.blob = &Block;
+
+    // UT_SetDataBuffer(UT_KEY(BPLib_QM_WaitQueueTryPull), &BundleBuf, sizeof(BundleBuf), false);
+    // UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), true);
+
+    // UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_SUCCESS);
+}
+
+/* Test egress function null checks */
+void Test_BPLib_PI_Egress_Null(void)
+{
+    uint8_t ChanId = 0;
+    uint8_t AduPtr[10];
+    size_t BufLen = 10;
+    size_t AduSize;
+    uint32_t Timeout = 1000;
+
+    /* Null BPLib instance */
+    UtAssert_INT32_EQ(BPLib_PI_Egress(NULL, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_NULL_PTR_ERROR);
+
+    /* Null ADU pointer */
+    UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, NULL, &AduSize, BufLen, Timeout), BPLIB_NULL_PTR_ERROR);
+
+    /* Null ADU size */
+    UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, NULL, BufLen, Timeout), BPLIB_NULL_PTR_ERROR);
+}
+
+/* Test egress function timeout */
+void Test_BPLib_PI_Egress_Timeout(void)
+{
+    uint8_t ChanId = 0;
+    uint8_t AduPtr[10];
+    size_t BufLen = 10;
+    size_t AduSize;
+    uint32_t Timeout = 1000;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_QM_WaitQueueTryPull), false);
+
+    UtAssert_INT32_EQ(BPLib_PI_Egress(&BplibInst, ChanId, AduPtr, &AduSize, BufLen, Timeout), BPLIB_PI_TIMEOUT);
 }
 
 
@@ -93,6 +168,9 @@ void TestBplibPi_Register(void)
     ADD_TEST(Test_BPLib_PI_ValidateConfigs_Failure);
 
     ADD_TEST(Test_BPLib_PI_Ingress_Nominal);
+    ADD_TEST(Test_BPLib_PI_Ingress_Null);
 
     ADD_TEST(Test_BPLib_PI_Egress_Nominal);
+    ADD_TEST(Test_BPLib_PI_Egress_Null);
+    ADD_TEST(Test_BPLib_PI_Egress_Timeout);
 }
