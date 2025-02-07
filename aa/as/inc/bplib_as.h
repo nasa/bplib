@@ -170,13 +170,15 @@ typedef struct
      */
     uint8_t ActiveKeys;
 
-    uint8_t Spare[3]; /* Spare for alignment */
+    uint8_t Spare1[3]; /* Spare for alignment */
 
     /**
       * \brief Array of all source counters
       * \ref BPLib_AS_Counter_t
       */
     uint32_t SourceCounters[BPLIB_AS_NUM_SOURCE_CNTRS];
+
+    uint8_t Spare2[4] /* Spare for alignment */
 } BPLib_SourceMibCounters_t;
 
 /**
