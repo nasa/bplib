@@ -63,9 +63,12 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     {
         return BPLIB_ERROR;
     }
-    bundle = (BPLib_Bundle_t*)((void*)&curr_block->chunk);
-    bundle->blocks.pri_blk.version = 7;
-    bundle->blocks.pri_blk.src_eid.node_number = 0x42;
+
+    memset(curr_block->chunk, 0, sizeof(BPLib_Bundle_t));
+    curr_block->chunk_len = sizeof(BPLib_Bundle_t);
+
+    bundle = (BPLib_Bundle_t *)((void *)&curr_block->chunk);
+    bundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
     /* Blob */
     curr_block = BPLib_MEM_BlockListAlloc(&inst->pool, Size);
