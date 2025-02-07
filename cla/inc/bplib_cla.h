@@ -65,6 +65,12 @@ typedef struct
     uint32_t                 ContactID;
     BPLib_EID_PatternMatch_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];
     CLAType_t                CLAType;
+     /**
+      * CLAddr uses BPLIB_MAX_EID_LENGTH, but initialization in
+      * pnode_contact_tbl.c is
+      * .CLAddr = "127.0.0.1"
+      * which makes it a string containing an IP address, not an EID.
+      */
     char                     CLAddr[BPLIB_MAX_EID_LENGTH];
     int32_t                  PortNum;
     uint32_t                 DestLTPEngineID;
