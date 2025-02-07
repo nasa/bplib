@@ -41,7 +41,6 @@
  */
 typedef struct BPLib_MEM_Block
 {
-    //uint64_t chunk[BPLIB_MEM_CHUNKSIZE]; /**< Memory chunk stored in the block */
     uint8_t chunk[BPLIB_MEM_CHUNKSIZE]; /**< Memory chunk stored in the block */
     size_t chunk_len; /**< Byte-length of user-data currently within the chunk. This is initialized to 0. */
     struct BPLib_MEM_Block* next; /**< Pointer to the next block in the list */
