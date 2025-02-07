@@ -86,7 +86,7 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
 
     memset(CurrBlock, 0, sizeof(BPLib_Bundle_t));
 
-    NewBundle = (BPLib_Bundle_t *)(CurrBlock);
+    NewBundle = (BPLib_Bundle_t *)(&CurrBlock->chunk);
     NewBundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
     /* Temporary code to allow for routing between chan 0 and 1, will be replaced */

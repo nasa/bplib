@@ -25,7 +25,12 @@
 
 #include <pthread.h>
 
-#define BPLIB_MEM_CHUNKSIZE (512U) /**< Defines the size of a memory chunk */
+/**
+** \brief Defines the size of a memory chunk.
+**        NOTE: This value should be greater than or equal to the size of BPLib_Bundle_t
+*/
+#define BPLIB_MEM_CHUNKSIZE (512U)
+
 
 /**
  * @struct BPLib_MEM_Block_t
@@ -36,7 +41,7 @@
  */
 typedef struct BPLib_MEM_Block
 {
-    uint8_t chunk[BPLIB_MEM_CHUNKSIZE]; /**< Memory chunk stored in the block */
+    uint64_t chunk[BPLIB_MEM_CHUNKSIZE]; /**< Memory chunk stored in the block */
     size_t chunk_len; /**< Byte-length of user-data currently within the chunk. This is initialized to 0. */
     struct BPLib_MEM_Block* next; /**< Pointer to the next block in the list */
 } BPLib_MEM_Block_t;
