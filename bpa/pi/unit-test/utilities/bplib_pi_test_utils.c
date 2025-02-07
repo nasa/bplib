@@ -24,12 +24,21 @@
 
 #include "bplib_pi_test_utils.h"
 
+
+/*
+** Global Data
+*/
+
+BPLib_Instance_t BplibInst;
+
 /*
 ** Function Definitions
 */
 
 void BPLib_PI_Test_Setup(void)
 {
+    memset(&BplibInst, 0, sizeof(BPLib_Instance_t));
+
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 }

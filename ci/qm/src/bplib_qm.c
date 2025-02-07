@@ -30,7 +30,8 @@
 
 BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
 {
-    bool queue_init;
+    bool queue_init, mem_init;
+    uint i;
 
     if (inst == NULL)
     {
@@ -41,14 +42,45 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     ** Note: We have decided to modify this so that job_mem and unsorted_job_mem are passed
     **  in as parameters this function. This will be done in a future ticket.
     */
+    mem_init = true;
     inst->job_mem = calloc(max_jobs, sizeof(BPLib_QM_Job_t));
+    if (inst->job_mem == NULL)
+    {
+        mem_init = false;
+    }
+
     inst->unsorted_job_mem = calloc(max_jobs, sizeof(BPLib_QM_UnsortedJob_t));
-    inst->contact_egress_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
     if (inst->unsorted_job_mem == NULL)
+    {
+        mem_init = false;
+    }
+
+    inst->contact_egress_mem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
+    if (inst->contact_egress_mem == NULL)
+    {
+        mem_init = false;
+    }
+
+    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+    {
+        inst->ChannelEgressMem[i] = calloc(max_jobs * BPLIB_MAX_NUM_CHANNELS, sizeof(BPLib_Bundle_t *));
+        if (inst->ChannelEgressMem[i] == NULL)
+        {
+            mem_init = false;
+        }
+    }
+
+    if (mem_init == false)
     {
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
+
+        for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+        {
+            free(inst->ChannelEgressMem[i]);
+        }
+
         return BPLIB_ERROR;
     }
 
@@ -66,11 +98,26 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     {
         queue_init = false;
     }
+
+    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+    {
+        if (!BPLib_QM_WaitQueueInit(&(inst->ChannelEgressJobs[i]), inst->ChannelEgressMem[i], sizeof(BPLib_Bundle_t*), max_jobs))
+        {
+            queue_init = false;
+        }
+    }
+
     if (!queue_init)
     {
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
+
+        for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+        {
+            free(inst->ChannelEgressMem[i]);
+        }
+
         return BPLIB_ERROR;
     }
 
@@ -79,6 +126,8 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
 
 void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
 {
+    uint i;
+
     if (inst == NULL)
     {
         return;
@@ -90,16 +139,29 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
     free(inst->job_mem);
     free(inst->unsorted_job_mem);
     free(inst->contact_egress_mem);
+
+    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+    {
+        free(inst->ChannelEgressMem[i]);
+    }
 }
 
 BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
     BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
 {
+    BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_QM_UnsortedJob_t unsorted_job;
+
     unsorted_job.bundle = bundle;
     unsorted_job.next_state = state;
     unsorted_job.priority = priority;
-    return BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &unsorted_job, timeout_ms);
+    
+    if (!BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &unsorted_job, timeout_ms))
+    {
+        Status = BPLIB_QM_PUSH_ERROR;
+    }
+
+    return Status;
 }
 
 void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)

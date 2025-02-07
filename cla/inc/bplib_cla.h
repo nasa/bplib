@@ -113,16 +113,17 @@ BPLib_Status_t BPLib_CLA_Init(void);
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] inst Pointer to a valid BPLib_Instance_t
- *  \param[in] ContactsTbl - Pointer of the Contact Table
- *  \param[in] Bundle - Pointer to the received bundle
- *  \param[in] Size - Size of the received bundle
- *  \param[in] Timeout - Time for pending on CL
+ *  \param[in] Inst Pointer to a valid BPLib_Instance_t
+ *  \param[in] ContId Contact ID
+ *  \param[in] Bundle Pointer to bundle to ingress
+ *  \param[in] Size Size of the bundle to ingress
+ *  \param[in] Timeout Time for pending on CL
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Ingress was successful
  */
-BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const void *Bundle, size_t Size, uint32_t Timeout);
+BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, 
+                                    const void *Bundle, size_t Size, uint32_t Timeout);
 
 /**
  * \brief CLA Egress function
@@ -133,17 +134,18 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* inst, uint8_t ContId, const v
  *  \par Assumptions, External Events, and Notes:
  *       None
  * 
- *  \param[in] inst Pointer to a valid BPLib_Instance_t
- *  \param[in] ContactsTbl - Pointer of the Contact Table
- *  \param[in] Bundle - Pointer to the received bundle
- *  \param[in] Size - Size of the received bundle
- *  \param[in] Timeout - Time for pending on Bundle Queue
+ *  \param[in] Inst Pointer to a valid BPLib_Instance_t
+ *  \param[in] ContId Contact ID
+ *  \param[in] Bundle Pointer to put egressing bundle into
+ *  \param[in] Size Size of the received bundle to return
+ *  \param[in] BufLen Length of the buffer provided (the bundle pointer)
+ *  \param[in] Timeout Time to pend on contact egress queue (in milliseconds)
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* inst, uint8_t ContId, void *Bundle, size_t *Size, uint32_t Timeout);
-
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bundle, 
+                                size_t *Size, size_t BufLen, uint32_t Timeout);
 /**
  * \brief Validate Contact Table configurations
  *

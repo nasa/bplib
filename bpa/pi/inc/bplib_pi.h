@@ -28,6 +28,8 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_as.h"
+#include "bplib_qm.h"
+
 
 /*
 ** Type Definitions
@@ -154,11 +156,12 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData);
  * \brief Bundle Ingress
  *
  *  \par Description
- *       PI receives an ADU and turns it into a deserialized bundle
+ *       PI receives an ADU, turns it into a deserialized bundle, and pushes it to QM
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
+ *  \param[in] Inst Pointer to an the BPLib instance state struct
  *  \param[in] ChanId Channel ID
  *  \param[in] AduPtr Pointer to the ADU
  *  \param[in] AduSize Length of the provided ADU
@@ -166,24 +169,29 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData);
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_Ingress(uint8_t ChanId, void *AduPtr, size_t AduSize);
+BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t *Inst, uint8_t ChanId, 
+                                                        void *AduPtr, size_t AduSize);
 
 /**
  * \brief Bundle Egress
  *
  *  \par Description
- *       PI receives a deserialized bundle, extracts the ADU, and delivers it
+ *       PI pulls an ADU off the relevant channel out queue to return to calling function
  *
  *  \par Assumptions, External Events, and Notes:
  *       None
  *
+ *  \param[in] Inst Pointer to an the BPLib instance state struct
  *  \param[in] ChanId Channel ID
- *  \param[in] BundlePtr Pointer to the deserialized bundle
- *  \param[in] BundleSize Length of the provided bundle
+ *  \param[in] AduPtr Pointer to the returned ADU
+ *  \param[in] AduSize Pointer to set to the received ADU's size
+ *  \param[in] BufLen Length of the buffer provided (the ADU pointer)
+ *  \param[in] Timeout Total time to pend on channel out queue (in milliseconds)
  *
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Operation was successful
  */
-BPLib_Status_t BPLib_PI_Egress(uint8_t ChanId, void *BundlePtr, size_t BundleSize);
+BPLib_Status_t BPLib_PI_Egress(BPLib_Instance_t *Inst, uint8_t ChanId, void *AduPtr, 
+                                    size_t *AduSize, size_t BufLen, uint32_t Timeout);
 
 #endif /* BPLIB_PI_H */

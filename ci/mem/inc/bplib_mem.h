@@ -25,7 +25,12 @@
 
 #include <pthread.h>
 
-#define BPLIB_MEM_CHUNKSIZE (512U) /**< Defines the size of a memory chunk */
+/**
+** \brief Defines the size of a memory chunk.
+**        NOTE: This value should be greater than or equal to the size of BPLib_Bundle_t
+*/
+#define BPLIB_MEM_CHUNKSIZE (512U)
+
 
 /**
  * @struct BPLib_MEM_Block_t

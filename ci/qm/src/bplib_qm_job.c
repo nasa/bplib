@@ -68,19 +68,29 @@ static BPLib_QM_JobState_t ChannelIn_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* 
     return CHANNEL_OUT_STOR_TO_CT;
 }
 
-static BPLib_QM_JobState_t ChanneOut_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ChannelOut_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
     return CHANNEL_OUT_CT_TO_EBP;
 }
 
 
-static BPLib_QM_JobState_t ChanneOut_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
     return CHANNEL_OUT_EBP_TO_PI;
 }
 
-static BPLib_QM_JobState_t ChanneOut_PI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
+static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
+    /* Hacky attempt at routing just to prove concept, FIX ME */
+    if (bundle->blocks.pri_blk.dest_eid.service_number == 0x42)
+    {
+        BPLib_QM_WaitQueueTryPush(&(inst->ChannelEgressJobs[0]), &bundle, QM_WAIT_FOREVER);
+    }
+    else
+    {
+        BPLib_QM_WaitQueueTryPush(&(inst->ChannelEgressJobs[1]), &bundle, QM_WAIT_FOREVER);
+    }
+    
     return NO_NEXT_STATE;
 }
 
@@ -105,9 +115,9 @@ static const BPLib_QM_JobFunc_t job_funcs[NUM_GENWORKER_STATES] =
     [CHANNEL_IN_PI_TO_EBP] = ChannelIn_EBP,
     [CHANNEL_IN_EBP_TO_CT] = ChannelIn_CT,
     [CHANNEL_IN_CT_TO_STOR] = STOR_Cache,
-    [CHANNEL_OUT_STOR_TO_CT] = ChanneOut_CT,
-    [CHANNEL_OUT_CT_TO_EBP] = ChanneOut_EBP,
-    [CHANNEL_OUT_EBP_TO_PI] = ChanneOut_PI,
+    [CHANNEL_OUT_STOR_TO_CT] = ChannelOut_CT,
+    [CHANNEL_OUT_CT_TO_EBP] = ChannelOut_EBP,
+    [CHANNEL_OUT_EBP_TO_PI] = ChannelOut_PI,
 };
 
 BPLib_QM_JobFunc_t BPLib_QM_Job_Lookup(BPLib_QM_JobState_t job_state)
