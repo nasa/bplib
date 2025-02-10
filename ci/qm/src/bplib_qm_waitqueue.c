@@ -33,7 +33,7 @@ static void ms_to_abstimeout(uint32_t ms, struct timespec *ts)
         return;
     }
 
-    clock_gettime(CLOCK_REALTIME, ts);
+    // clock_gettime(CLOCK_REALTIME, ts);
     ts->tv_sec += ms / 1000;
     ts->tv_nsec += (ms % 1000 * 1000000);
     ts->tv_sec += ts->tv_nsec / 1000000000;

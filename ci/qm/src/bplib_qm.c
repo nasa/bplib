@@ -31,7 +31,7 @@
 BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
 {
     bool queue_init, mem_init;
-    uint i;
+    uint16_t i;
 
     if (inst == NULL)
     {
@@ -126,7 +126,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
 
 void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
 {
-    uint i;
+    uint16_t i;
 
     if (inst == NULL)
     {

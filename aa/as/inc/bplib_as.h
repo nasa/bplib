@@ -178,7 +178,7 @@ typedef struct
       */
     uint32_t SourceCounters[BPLIB_AS_NUM_SOURCE_CNTRS];
 
-    uint8_t Spare2[4] /* Spare for alignment */
+    uint8_t Spare2[4]; /* Spare for alignment */
 } BPLib_SourceMibCounters_t;
 
 /**
