@@ -65,7 +65,7 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockAlloc(BPLib_MEM_Pool_t* pool)
     pthread_mutex_lock(&pool->lock);
     block = (BPLib_MEM_Block_t*)(BPLib_MEM_PoolImplAlloc(&pool->impl));
     pthread_mutex_unlock(&pool->lock);
-    block->chunk_len = 0;
+    block->used_len = 0;
     block->next = NULL;
 
     return block;
@@ -79,7 +79,7 @@ void BPLib_MEM_BlockFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* block)
     }
 
     pthread_mutex_lock(&pool->lock);
-    BPLib_MEM_PoolImplFree(&pool->impl, (void*)block->chunk);
+    BPLib_MEM_PoolImplFree(&pool->impl, (void*)block);
     pthread_mutex_unlock(&pool->lock);
 }
 
@@ -141,4 +141,103 @@ void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head)
         curr = curr->next;
         BPLib_MEM_BlockFree(pool, to_free);
     }
+}
+
+BPLib_Bundle_t* BPLib_MEM_BundleAlloc(BPLib_MEM_Pool_t* pool, const void* blob_data, size_t data_len)
+{
+    BPLib_Bundle_t    *bundle;
+    BPLib_MEM_Block_t *curr_block;
+    size_t copy_len, bytes_copied, bytes_remaining;
+
+    /* NULL Checks */
+    if ((pool == NULL) || (blob_data == NULL))
+    {
+        return NULL;
+    }
+
+    /* Allocate a MEM_Block_t for the Bundle Metadata (bblocks) */
+    curr_block = BPLib_MEM_BlockAlloc(pool);
+    if (curr_block == NULL)
+    {
+        return NULL;
+    }
+    memset(&curr_block->user_data.bundle, 0, sizeof(BPLib_Bundle_t));
+    curr_block->used_len = sizeof(BPLib_Bundle_t);
+    bundle = (BPLib_Bundle_t *)(&curr_block->user_data.bundle);
+
+    /* Allocate a blob */
+    curr_block = BPLib_MEM_BlockListAlloc(pool, data_len);
+    if (curr_block == NULL)
+    {
+        BPLib_MEM_BlockFree(pool, (BPLib_MEM_Block_t *) bundle);
+        return NULL;
+    }
+    bundle->blob = curr_block;
+
+    /* Copy the blob_data in to the bundle's blob MEM_Block_t list */
+    bytes_copied = 0;
+    while (curr_block != NULL)
+    {
+        bytes_remaining = data_len - bytes_copied;
+        copy_len = (bytes_remaining < BPLIB_MEM_CHUNKSIZE) ? bytes_remaining : BPLIB_MEM_CHUNKSIZE;
+
+        memcpy(curr_block->user_data.raw_bytes,
+            (void*)((uintptr_t)(blob_data) + bytes_copied),
+            copy_len);
+        curr_block->used_len = copy_len;
+
+        /* Go to the next block */
+        bytes_copied += copy_len;
+        curr_block = curr_block->next;
+    }
+    return bundle;
+}
+
+void BPLib_MEM_BundleFree(BPLib_MEM_Pool_t* pool, BPLib_Bundle_t* bundle)
+{
+    /* NULL Checks */
+    if ((pool == NULL) || (bundle == NULL))
+    {
+        return;
+    }
+
+    /* Note: The cast here from bundle back to MEM_Block_t is relying
+    ** on the user being absolutely sure they obtained this bundle from
+    ** the BundleAlloc function. Passing in a bundle_t from somewhere else
+    ** is undefined behavior, and is noted in the docstring.
+    */
+    BPLib_MEM_BlockListFree(pool, bundle->blob);
+    BPLib_MEM_BlockFree(pool, (BPLib_MEM_Block_t*)bundle);
+}
+
+BPLib_Status_t BPLib_MEM_BlobCopyOut(BPLib_Bundle_t* bundle, void* out_buffer, size_t max_len, size_t* out_size)
+{
+    BPLib_MEM_Block_t* curr_block;
+    size_t bytes_copied;
+
+    if ((bundle == NULL) || (out_buffer == NULL) || (out_size == NULL))
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+
+    curr_block = bundle->blob;
+    bytes_copied = 0;
+    while (curr_block != NULL)
+    {
+        if ((bytes_copied + curr_block->used_len) > max_len)
+        {
+            *out_size = 0;
+            return BPLIB_BUF_LEN_ERROR;
+        }
+
+        memcpy((void*)((uintptr_t)out_buffer + bytes_copied),
+            (void*)curr_block->user_data.raw_bytes,
+            curr_block->used_len);
+
+        bytes_copied += curr_block->used_len;
+        curr_block = curr_block->next;
+    }
+
+    *out_size = bytes_copied;
+    return BPLIB_SUCCESS;
 }

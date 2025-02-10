@@ -18,10 +18,9 @@
  *
  */
 
-#ifndef BPLIB_BUNDLE_H
-#define BPLIB_BUNDLE_H
+#ifndef BPLIB_BBLOCKS_H
+#define BPLIB_BBLOCKS_H
 
-#include "bplib_mem.h"
 #include "bplib_api_types.h"
 
 #define MAX_EXT_BLOCKS 5 /**< Maximum number of decoded extension blocks that can be stored within Bundle metadata. */
@@ -94,14 +93,4 @@ typedef struct BPLib_BBlocks
     PayloadHeader_t pay_hdr;
 } BPLib_BBlocks_t;
 
-/**
- * @struct BPLib_Bundle_t
- * @brief Represents the entire bundle, including its blocks and an additional blob for other data.
- */
-typedef struct BPLib_Bundle
-{
-    BPLib_BBlocks_t blocks;
-    BPLib_MEM_Block_t* blob;
-} BPLib_Bundle_t;
-
-#endif /* BPLIB_BUNDLE_H */
+#endif /* BPLIB_BBLOCKS_H */
