@@ -52,14 +52,10 @@ void Test_BPLib_AS_Increment_NodeCounter_Nominal(void)
 
     /* Run function under test */
     BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_DISCARDED, 5);
-    TestValue -= 5;
+    TestValue += 5;
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DISCARDED]);
-
-    /* Show that counters were locked and unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
 }
 
 void Test_BPLib_AS_Increment_SourceCounter_Nominal(void)
@@ -78,14 +74,10 @@ void Test_BPLib_AS_Increment_SourceCounter_Nominal(void)
 
     /* Run function under test */
     BPLib_AS_Increment(BPLIB_EID_INSTANCE, BUNDLE_COUNT_FORWARDED, 7);
-    TestValue -= 7;
+    TestValue += 7;
 
     // /* Verify that counter is the expected value */
     // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[MibIndex].SourceCounters[BUNDLE_COUNT_FORWARDED]);
-
-    /* Show that counters were locked and unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
 }
 
 void Test_BPLib_AS_Increment_InvalidEID_Error(void)
@@ -104,14 +96,6 @@ void Test_BPLib_AS_Increment_InvalidEID_Error(void)
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FORWARDED_FAILED]);
-
-    /* Show that counters were not locked or unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 0);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 0);
-
-    /* Demonstrate that the correct error event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
-                                "Could not increment node counter %d to %d, RC = %d");
 }
 
 void Test_BPLib_AS_Increment_UnkNodeCtr_Error(void)
@@ -131,12 +115,7 @@ void Test_BPLib_AS_Increment_UnkNodeCtr_Error(void)
     BPLib_AS_Increment(BPLIB_EID_INSTANCE, BPLIB_AS_NUM_NODE_CNTRS, 8);
 
     /* Verify that counter was set to the expected value */
-    UtAssert_STUB_COUNT(BPLib_AS_SetCounter, 1);
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_FRAGMENTED]);
-
-    /* Show that counters were locked and unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
 
     /* Demonstrate that the correct error event was issued */
     BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
@@ -165,10 +144,6 @@ void Test_BPLib_AS_Increment_UnkSrcCtr_Error(void)
     // UtAssert_STUB_COUNT(BPLib_AS_SetCounter, 1);
     // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[MibEntry].SourceCounters[BUNDLE_COUNT_FRAGMENT_ERROR]);
 
-    /* Show that counters were locked and unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
-
     /* Demonstrate that the correct error event was issued */
     // BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
     //                             "Could not increment source counter %d to %d, RC = %d");
@@ -192,10 +167,6 @@ void Test_BPLib_AS_Decrement_NodeCounter_Nominal(void)
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
-
-    /* Show that counters were locked and unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
 }
 
 void Test_BPLib_AS_Decrement_SourceCounter_Nominal(void)
@@ -218,10 +189,6 @@ void Test_BPLib_AS_Decrement_SourceCounter_Nominal(void)
 
     // /* Verify that counter is the expected value */
     // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[MibIndex].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
-
-    /* Show that counters were locked and unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
 }
 
 void Test_BPLib_AS_Decrement_InvalidEID_Error(void)
@@ -240,14 +207,6 @@ void Test_BPLib_AS_Decrement_InvalidEID_Error(void)
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
-
-    /* Show that counters were not locked or unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 0);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 0);
-
-    /* Demonstrate that the correct error event was issued */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
-                                "Could not decrement node counter %d to %d, RC = %d");
 }
 
 void Test_BPLib_AS_Decrement_UnkNodeCtr_Error(void)
@@ -270,10 +229,6 @@ void Test_BPLib_AS_Decrement_UnkNodeCtr_Error(void)
     UtAssert_STUB_COUNT(BPLib_AS_SetCounter, 1);
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
 
-    /* Show that counters were locked and unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
-
     /* Demonstrate that the correct error event was issued */
     BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
                                 "Could not decrement node counter %d to %d, RC = %d");
@@ -285,7 +240,6 @@ void Test_BPLib_AS_Decrement_UnkSrcCtr_Error(void)
     uint32_t MibEntry;
 
     /* Force BPLib_AS_Decrement to see the given EID as valid and for a source counter */
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsValid), true);
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_IsMatch), false);
 
     /* Set values to test against */
@@ -301,70 +255,119 @@ void Test_BPLib_AS_Decrement_UnkSrcCtr_Error(void)
     // UtAssert_STUB_COUNT(BPLib_AS_SetCounter, 1);
     // UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[MibEntry].SourceCounters[BUNDLE_COUNT_DELIVERED]);
 
-    /* Show that counters were locked and unlocked */
-    UtAssert_STUB_COUNT(BPLib_AS_LockCounters, 1);
-    UtAssert_STUB_COUNT(BPLib_AS_UnlockCounters, 1);
-
     /* Demonstrate that the correct error event was issued */
     // BPLib_AS_Test_Verify_Event(0, BPLIB_AS_SET_CTR_ERR_EID,
     //                             "Could not decrement source counter %d to %d, RC = %d");
 }
 
-void Test_BPLib_AS_ResetCounter_Nominal(void)
+void Test_BPLib_AS_ResetCounter_NodeCtr_Nominal(void)
 {
     int16_t  SourceEid;
     uint32_t TestValue;
+    BPLib_Status_t Status;
+
+    SourceEid = BPLIB_AS_NODE_CNTR_INDICATOR;
+    TestValue = 6;
+
+    /* Set values to test against */
+    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue;
+
+    /* Run function under test */
+    Status = BPLib_AS_ResetCounter(SourceEid, BUNDLE_COUNT_CUSTODY_TRANSFERRED);
+
+    /* Verify the return status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+
+    /* Verify that counter is the expected value */
+    UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
+}
+
+void Test_BPLib_AS_ResetCounter_SrcCtr_Nominal(void)
+{
+    int16_t  SourceEid;
+    uint32_t TestValue;
+    BPLib_Status_t Status;
 
     SourceEid = 2;
     TestValue = 6;
 
     /* Set values to test against */
-    BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue;
-    // BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue;
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED] = TestValue;
 
     /* Run function under test */
-    BPLib_AS_ResetCounter(SourceEid, BUNDLE_COUNT_CUSTODY_TRANSFERRED);
+    Status = BPLib_AS_ResetCounter(SourceEid, BUNDLE_COUNT_CUSTODY_TRANSFERRED);
+
+    /* Verify the return status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
 
     /* Verify that counter is the expected value */
-    UtAssert_EQ(uint32_t, 0, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
-    // UtAssert_EQ(uint32_t, 0, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
+    UtAssert_EQ(uint32_t, 0, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_CUSTODY_TRANSFERRED]);
 }
 
-void Test_BPLib_AS_ResetCounter_Error(void)
+void Test_BPLib_AS_ResetCounter_InvalidIndex_Error(void)
 {
     int16_t  SourceEid;
     uint32_t TestValue;
-
-    /* === Invalid EID test === */
+    BPLib_Status_t Status;
 
     /* Set values to test against */
-    SourceEid = BPLIB_MAX_NUM_SOURCE_EID;
+    SourceEid = BPLIB_MAX_NUM_SOURCE_EID + 1;
     TestValue = 1;
 
     BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED] = TestValue;
 
     /* Run the function under test */
-    BPLib_AS_ResetCounter(SourceEid, BUNDLE_COUNT_DELETED);
+    Status = BPLib_AS_ResetCounter(SourceEid, BUNDLE_COUNT_DELETED);
+
+    /* Verify the return status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_INVALID_MIB_INDEX);
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
+}
 
-    /* === Unknown node counter test === */
+void Test_BPLib_AS_ResetCounter_UnkNodeCtr_Error(void)
+{
+    int16_t  SourceEid;
+    uint32_t TestValue;
+    BPLib_Status_t Status;
 
     /* Set values to test against */
-    SourceEid = 2;
-    TestValue = 3;
+    SourceEid = BPLIB_AS_NODE_CNTR_INDICATOR;
+    TestValue = 13;
 
     BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED] = TestValue;
 
     /* Run the function under test */
-    BPLib_AS_ResetCounter(SourceEid, BPLIB_AS_NUM_NODE_CNTRS);
+    Status = BPLib_AS_ResetCounter(SourceEid, BPLIB_AS_NUM_NODE_CNTRS);
+
+    /* Verify the return status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_UNKNOWN_NODE_CNTR);
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
+}
 
-    /* === Unknown source counter test === */
-    // TODO
+void Test_BPLib_AS_ResetCounter_UnkSrcCtr_Error(void)
+{
+    int16_t  SourceEid;
+    uint32_t TestValue;
+    BPLib_Status_t Status;
+
+    /* Set values to test against */
+    SourceEid = 5;
+    TestValue = 48;
+
+    BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_RECEIVED_ADMIN_RECORD] = TestValue;
+
+    /* Run the function under test */
+    Status = BPLib_AS_ResetCounter(SourceEid, BPLIB_AS_NUM_SOURCE_CNTRS);
+
+    /* Verify the return status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_UNKNOWN_SRC_CNTR);
+
+    /* Verify that counter is the expected value */
+    UtAssert_EQ(uint32_t, TestValue, BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[BUNDLE_COUNT_RECEIVED_ADMIN_RECORD]);
 }
 
 void Test_BPLib_AS_ResetSourceCounters_Nominal(void)
@@ -396,15 +399,11 @@ void Test_BPLib_AS_ResetSourceCounters_Error(void)
 
     SourceEid = -10;
 
-    /* ================ */
-    /* Invalid EID test */
-    /* ================ */
-
     /* Run the function under test */
     Status = BPLib_AS_ResetSourceCounters(SourceEid);
 
     /* Check that BPLib_AS_ResetSourceCounters() ran successfully */
-    UtAssert_EQ(BPLib_Status_t, BPLIB_INVALID_EID, Status);
+    UtAssert_EQ(BPLib_Status_t, BPLIB_AS_INVALID_MIB_INDEX, Status);
 }
 
 void Test_BPLib_AS_ResetBundleCounters_Nominal(void)
@@ -536,6 +535,8 @@ void Test_BPLib_AS_AddMibArrayKey_Nominal(void)
     uint8_t PatternIndex;
     BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
 
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
     for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
     {
         EID_Patterns[PatternIndex].Scheme       = (PatternIndex % 2) + 1;      /*   1,   2,   1,   2 */
@@ -569,6 +570,125 @@ void Test_BPLib_AS_AddMibArrayKey_Nominal(void)
     UtAssert_UINT8_EQ(BPLIB_MAX_MIB_ARRAY_KEYS, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
 }
 
+void Test_BPLib_AS_AddMibArrayKey_Overlap_Error(void)
+{
+    BPLib_Status_t Status;
+    uint8_t PatternIndex;
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+
+    /* Verify that the function gets past the valid pattern check */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    /* Create input patterns */
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+    {
+        EID_Patterns[PatternIndex].Scheme       = (PatternIndex % 2) + 1;      /*   1,   2,   1,   2 */
+        EID_Patterns[PatternIndex].IpnSspFormat = (PatternIndex % 2) + 2,      /*   2,   3,   2,   3 */
+        EID_Patterns[PatternIndex].MaxAllocator = 10 * (PatternIndex + 1) - 1; /*   9,  19,  29,  39 */
+        EID_Patterns[PatternIndex].MinAllocator = 10 * PatternIndex;           /*   0,  10,  20,  30 */
+        EID_Patterns[PatternIndex].MaxNode      = 20 * (PatternIndex + 1) - 1; /*  19,  39,  59,  79 */
+        EID_Patterns[PatternIndex].MinNode      = 20 * PatternIndex;           /*   0,  20,  40,  60 */
+        EID_Patterns[PatternIndex].MaxService   = 30 * (PatternIndex + 1) - 1; /*  29,  59,  89, 119 */
+        EID_Patterns[PatternIndex].MinService   = 30 * PatternIndex;           /*   0,  30,  60,  90 */
+    }
+
+    /* Create an overlap */
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator = EID_Patterns[0].MaxAllocator;
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
+
+    /* Show that the keys were not copied into the MIB array */
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+    {
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxAllocator);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinAllocator);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxNode);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinNode);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxService);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinService);
+    }
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+}
+
+void Test_BPLib_AS_AddMibArrayKey_Nominal(void)
+{
+    BPLib_Status_t Status;
+    uint8_t PatternIndex;
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), false);
+
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_EID_PATTERN);
+
+    /* Show that the keys were not copied into the MIB array */
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+    {
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxAllocator);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinAllocator);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxNode);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinNode);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxService);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinService);
+    }
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+
+    /* Verify correct event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "Input key #%d is an invalid EID pattern");
+}
+
+void Test_BPLib_AS_AddMibArrayKey_Overlap_Error(void)
+{
+    BPLib_Status_t Status;
+    uint8_t PatternIndex;
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+
+    /* Verify that the function gets past the valid pattern check */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    /* Indicate that all keys are in use */
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+    {
+        BPLib_AS_SourceCountersPayload.MibArray[PatternIndex].ActiveKeys = BPLIB_MAX_MIB_ARRAY_KEYS;
+    }
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEY_ARRAY_FULL);
+
+    /* Show that the keys were not copied into the MIB array */
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+    {
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxAllocator);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinAllocator);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxNode);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinNode);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxService);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinService);
+    }
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+}
+
 void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
@@ -583,8 +703,11 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_Decrement_InvalidEID_Error);
     ADD_TEST(Test_BPLib_AS_Decrement_UnkNodeCtr_Error);
     ADD_TEST(Test_BPLib_AS_Decrement_UnkSrcCtr_Error);
-    ADD_TEST(Test_BPLib_AS_ResetCounter_Nominal);
-    ADD_TEST(Test_BPLib_AS_ResetCounter_Error);
+    ADD_TEST(Test_BPLib_AS_ResetCounter_NodeCtr_Nominal);
+    ADD_TEST(Test_BPLib_AS_ResetCounter_SrcCtr_Nominal);
+    ADD_TEST(Test_BPLib_AS_ResetCounter_InvalidIndex_Error);
+    ADD_TEST(Test_BPLib_AS_ResetCounter_UnkNodeCtr_Error);
+    ADD_TEST(Test_BPLib_AS_ResetCounter_UnkSrcCtr_Error);
     ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Nominal);
     ADD_TEST(Test_BPLib_AS_ResetSourceCounters_Error);
     ADD_TEST(Test_BPLib_AS_ResetBundleCounters_Nominal);

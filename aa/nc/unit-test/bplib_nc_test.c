@@ -988,7 +988,10 @@ void Test_BPLib_NC_AddMibArrayKey_Nominal(void)
 {
     BPLib_AddMibArrayKey_Payload_t Payload;
 
-    Payload.ExampleParameter = 20;
+    /* Force AS_AddMibArrayKey function to return success */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_AddMibArrayKey), BPLIB_SUCCESS);
+
+    /* Run function under test */
     BPLib_NC_AddMibArrayKey(Payload);
     
     // Verify directive counter was incremented
@@ -996,20 +999,25 @@ void Test_BPLib_NC_AddMibArrayKey_Nominal(void)
 
     /* Verify event */
     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_MIB_ARR_KEY_SUCCESS_EID,
-                                "Add mib array key directive not implemented, received %d in payload");
+                                "Successful add-mib-array-key directive");
 }
 
 void Test_BPLib_NC_AddMibArrayKey_Error(void)
 {
-    /*
     BPLib_AddMibArrayKey_Payload_t Payload;
 
-    Payload.ExampleParameter = 20;
+    /* Force AS_AddMibArrayKey function to return success */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_AddMibArrayKey), BPLIB_INVALID_EID_PATTERN);
+
+    /* Run function under test */
     BPLib_NC_AddMibArrayKey(Payload);
     
     // Verify directive counter was incremented
     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
-    */
+
+    /* Verify event */
+    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_MIB_ARR_KEY_ERR_EID,
+                                "An error occurred while attempting to add a MIB array key");
 }
 
 void Test_BPLib_NC_RemoveMibArrayKey_Nominal(void)

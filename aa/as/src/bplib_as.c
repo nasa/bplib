@@ -133,29 +133,26 @@ BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t C
             Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
         }
     }
-    else
+    else if (MibArrayIndex < BPLIB_MAX_NUM_SOURCE_EID)
     {
         if (Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
         { // Counter is within range
-            if (MibArrayIndex < BPLIB_MAX_NUM_SOURCE_EID)
-            {
-                /* Prevent modification of counters while outputting */
-                BPLib_AS_LockCounters();
+            /* Prevent modification of counters while outputting */
+            BPLib_AS_LockCounters();
 
-                BPLib_AS_SourceCountersPayload.MibArray[MibArrayIndex].SourceCounters[Counter] = 0;
+            BPLib_AS_SourceCountersPayload.MibArray[MibArrayIndex].SourceCounters[Counter] = 0;
 
-                /* Allow counters to be modified again */
-                BPLib_AS_UnlockCounters();
-            }
-            else
-            {
-                Status = BPLIB_AS_INVALID_MIB_INDEX;
-            }
+            /* Allow counters to be modified again */
+            BPLib_AS_UnlockCounters();
         }
         else
         {
             Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
         }
+    }
+    else
+    {
+        Status = BPLIB_AS_INVALID_MIB_INDEX;
     }
 
     return Status;
@@ -473,7 +470,7 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
         { /* Loop through every MIB array key entry */
             AvailableKeys = BPLIB_MAX_MIB_ARRAY_KEYS - BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys;
 
-            if (AvailableKeys <= NumKeysGiven)
+            if (AvailableKeys <= NumKeysGiven && AvailableKeys > 0)
             { /* Space is available for the given key(s) to be  added */
                 for (PatternIndex = 0; PatternIndex < NumKeysGiven; PatternIndex++)
                 { /* Loop through input keys and add to MIB key array */

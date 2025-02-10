@@ -369,9 +369,8 @@ void Test_BPLib_EID_IsMatch_Nominal(void)
 
 void Test_BPLib_EID_IsMatch_MismatchScheme_Error(void)
 {
-    EID_Actual.Scheme = BPLIB_EID_SCHEME_DTN;
-
-    EID_Reference.Scheme = EID_Actual.Scheme;
+    EID_Actual.Scheme    = BPLIB_EID_SCHEME_DTN;
+    EID_Reference.Scheme = BPLIB_EID_SCHEME_IPN;
 
     UtAssert_BOOL_FALSE(BPLib_EID_IsMatch(EID_Actual, EID_Reference));
 }
