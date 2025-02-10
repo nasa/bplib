@@ -29,18 +29,19 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_AS_EidIsValid()
+ * Generated stub function for BPLib_AS_GetMibArrayIndex()
  * ----------------------------------------------------
  */
-bool BPLib_AS_EidIsValid(int16_t SourceEid)
+BPLib_Status_t BPLib_AS_GetMibArrayIndex(BPLib_EID_t EID, uint8_t *MibArrayIndex)
 {
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_EidIsValid, bool);
+    UT_GenStub_SetupReturnBuffer(BPLib_AS_GetMibArrayIndex, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_AS_EidIsValid, int16_t, SourceEid);
+    UT_GenStub_AddParam(BPLib_AS_GetMibArrayIndex, BPLib_EID_t, EID);
+    UT_GenStub_AddParam(BPLib_AS_GetMibArrayIndex, uint8_t *, MibArrayIndex);
 
-    UT_GenStub_Execute(BPLib_AS_EidIsValid, Basic, NULL);
+    UT_GenStub_Execute(BPLib_AS_GetMibArrayIndex, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(BPLib_AS_EidIsValid, bool);
+    return UT_GenStub_GetReturnValue(BPLib_AS_GetMibArrayIndex, BPLib_Status_t);
 }
 
 /*
@@ -73,11 +74,11 @@ void BPLib_AS_LockCounters(void)
  * Generated stub function for BPLib_AS_SetCounter()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_SetCounter(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Value)
+BPLib_Status_t BPLib_AS_SetCounter(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Value)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_AS_SetCounter, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_AS_SetCounter, int16_t, SourceEid);
+    UT_GenStub_AddParam(BPLib_AS_SetCounter, BPLib_EID_t, EID);
     UT_GenStub_AddParam(BPLib_AS_SetCounter, BPLib_AS_Counter_t, Counter);
     UT_GenStub_AddParam(BPLib_AS_SetCounter, uint32_t, Value);
 
