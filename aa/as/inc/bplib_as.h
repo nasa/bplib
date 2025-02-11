@@ -165,10 +165,7 @@ typedef struct
       */
     BPLib_EID_Pattern_t EidPatterns[BPLIB_MAX_MIB_ARRAY_KEYS];
 
-    /**
-     * \brief Indicates how many keys are active in EidPatterns
-     */
-    uint8_t ActiveKeys;
+    uint8_t ActiveKeys; /** \brief Indicates how many keys are active in EidPatterns */
 
     uint8_t Spare1[3]; /* Spare for alignment */
 
@@ -206,7 +203,6 @@ typedef struct
  * \param[in] void No arguments accepted
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Initialization was successful
- * \anchor    BPLib_AS_Init
  */
 BPLib_Status_t BPLib_AS_Init(void);
 
