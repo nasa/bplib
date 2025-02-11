@@ -49,7 +49,6 @@ extern "C" {
 #define BPLIB_MAX_AUTH_CUSTODIAN_EIDS       10  /* Maximum number of authorized custodian EID patterns */
 #define BPLIB_MAX_AUTH_CUSTODY_SOURCE_EIDS  10  /* Maximum number of authorized custody source EID patterns */
 #define BPLIB_MAX_AUTH_REPORT_TO_EIDS       10  /* Maximum number of report-to EID patterns */
-#define BPLIB_MAX_LATENCY_SOURCE_EIDS       10  /* Maximum number of sources for latency policy */
 #define BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES    10  /* Maximum number of entries in MIB PS Cfg table */
 #define BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS   10  /* Maximum number of EID patterns for each MIB PS Cfg Table Entry */
 #define BPLIB_MAX_NUM_STORE_EIDS            10  /* Maximum number of EID patterns per storage policy set */
