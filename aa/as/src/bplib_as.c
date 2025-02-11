@@ -390,7 +390,6 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
 {
     BPLib_Status_t Status;
     uint8_t NumKeysGiven;
-    uint8_t AvailableKeys;
     uint8_t MibIndex;
     uint8_t PatternIndex;
     uint8_t InputIndex;
@@ -480,13 +479,13 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
 
         for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
         { /* Loop through every MIB array key entry */
-            AvailableKeys = BPLIB_MAX_MIB_ARRAY_KEYS - BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys;
-
-            if (AvailableKeys <= NumKeysGiven && AvailableKeys > 0)
+            if ((BPLIB_MAX_MIB_ARRAY_KEYS - BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys) <= NumKeysGiven &&
+                BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys < BPLIB_MAX_MIB_ARRAY_KEYS)
             { /* Space is available for the given key(s) to be  added */
                 for (PatternIndex = 0; PatternIndex < NumKeysGiven; PatternIndex++)
                 { /* Loop through input keys and add to MIB key array */
-                    InputIndex = BPLIB_MAX_MIB_ARRAY_KEYS - AvailableKeys--;
+                    /* ActiveKeys also serves as the index of the next open key slot */
+                    InputIndex = BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys + PatternIndex;
                     BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[InputIndex] = EID_Patterns[PatternIndex];
                 }
 
