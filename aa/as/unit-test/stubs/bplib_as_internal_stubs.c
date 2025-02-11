@@ -29,23 +29,6 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_AS_GetMibArrayIndex()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_AS_GetMibArrayIndex(BPLib_EID_t EID, uint8_t *MibArrayIndex)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_AS_GetMibArrayIndex, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_AS_GetMibArrayIndex, BPLib_EID_t, EID);
-    UT_GenStub_AddParam(BPLib_AS_GetMibArrayIndex, uint8_t *, MibArrayIndex);
-
-    UT_GenStub_Execute(BPLib_AS_GetMibArrayIndex, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_AS_GetMibArrayIndex, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_AS_InitMutex()
  * ----------------------------------------------------
  */

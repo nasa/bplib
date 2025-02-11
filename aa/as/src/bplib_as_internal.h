@@ -102,17 +102,4 @@ void BPLib_AS_LockCounters(void);
  */
 void BPLib_AS_UnlockCounters(void);
 
-/**
- * \brief      Find the index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
- *             by referencing the source EID patterns with the given EID
- * \param[in]  EID (BPLib_EID_t) EID to find in the MIB array map EID patterns
- * \param[out] MibArrayIndex (uint8*) Index into BPLib_SourceMibCountersHkTlm_Payload_t::MibArray
- * \return     Execution status
- * \retval     BPLIB_SUCCESS
- * \retval     BPLIB_UNKNOWN_EID
- * \ref        BPLib_EID_t
- * \ref        BPLib_SourceMibCountersHkTlm_Payload_t
- */
-BPLib_Status_t BPLib_AS_GetMibArrayIndex(BPLib_EID_t EID, uint8_t* MibArrayIndex);
-
 #endif // BPLIB_AS_INTERNAL_H
