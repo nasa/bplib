@@ -83,7 +83,7 @@ typedef struct
 
 typedef struct
 {
-    BPLib_PDB_SrcLatencySet_t LatencySet[BPLIB_MAX_LATENCY_SOURCE_EIDS];
+    BPLib_PDB_SrcLatencySet_t LatencySet[BPLIB_MAX_NUM_LATENCY_POLICY_SETS];
 } BPLib_PDB_SrcLatencyTable_t;
 
 /*
