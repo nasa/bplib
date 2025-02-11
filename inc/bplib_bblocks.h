@@ -23,7 +23,7 @@
 
 #include "bplib_api_types.h"
 
-#define MAX_EXT_BLOCKS 5 /**< Maximum number of decoded extension blocks that can be stored within Bundle metadata. */
+#define BPLIB_MAX_EXT_BLOCKS 5 /**< Maximum number of decoded extension blocks that can be stored within Bundle metadata. */
 
 /**
  * @struct EndpointIDSSP
@@ -89,7 +89,7 @@ typedef struct PayloadHeader {
 typedef struct BPLib_BBlocks
 {
     PrimaryBlock_t pri_blk;
-    ExtensionBlock_t ext_blks[MAX_EXT_BLOCKS];
+    ExtensionBlock_t ext_blks[BPLIB_MAX_EXT_BLOCKS];
     PayloadHeader_t pay_hdr;
 } BPLib_BBlocks_t;
 

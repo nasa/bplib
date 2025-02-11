@@ -30,12 +30,12 @@
  */
 
 /* It is expected that the memory returned from this allocator will be cast
-** to structs with valid allignment. For these casts to work, the memory
+** to structs with valid alignment. For these casts to work, the memory
 ** that backs this pool needs to start on a boundary of the largest primitive
-** type. It is assumed that this allignment will be sizeof(uint64_t) because
+** type. It is assumed that this alignment will be sizeof(uint64_t) because
 ** many RFC 9171 fields require this type to be supported natively.
 */
-#define LARGEST_ALLIGNMENT  (8u)
+#define BPLIB_BEN_ALLOC_LARGEST_ALIGNMENT  (8u)
 
 typedef uint64_t MemIndex_t;
 
@@ -59,7 +59,7 @@ BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, void* init_mem
     size_t mem_len, size_t block_size)
 {
     size_t unaligned_bytes;
-    void* alligned_init_mem;
+    void* aligned_init_mem;
 
     /* NULL Checks */
     if (pool == NULL)
@@ -76,11 +76,11 @@ BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, void* init_mem
     }
 
     /* Size safety checks */
-    if ((block_size < sizeof(MemIndex_t)) || ((block_size % LARGEST_ALLIGNMENT) != 0))
+    if ((block_size < sizeof(MemIndex_t)) || ((block_size % BPLIB_BEN_ALLOC_LARGEST_ALIGNMENT) != 0))
     {
         /* Minimum allocation size must be at least the size of the MemIndex_t
         ** that is used to maintain the index of the next free block. It also must
-        ** be a an exact multiple of the system's strictest/largest allignment.
+        ** be a an exact multiple of the system's strictest/largest alignment.
         */
         return BPLIB_ERROR;
     }
@@ -89,12 +89,12 @@ BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, void* init_mem
     ** begins on an alignment boundary. If the user called malloc() to obtain init_mem,
     ** this should be guaranteed. Because this allocator doesn't know where init_mem
     ** comes from, we need to forcibly ensure that we allocate the first block on the
-    ** strictest possible allignment boundary. Each subsequent block will also be on
+    ** strictest possible alignment boundary. Each subsequent block will also be on
     ** that alignment boundary because we've ensured block_size is a multiple of the alignment.
     */
-    alligned_init_mem = (void*)(((uintptr_t)(init_mem) + ((uintptr_t)LARGEST_ALLIGNMENT - 1))
-        & ~((uintptr_t)LARGEST_ALLIGNMENT - 1));
-    unaligned_bytes = (size_t)((uintptr_t)alligned_init_mem - (uintptr_t)init_mem);
+    aligned_init_mem = (void*)(((uintptr_t)(init_mem) + ((uintptr_t)BPLIB_BEN_ALLOC_LARGEST_ALIGNMENT - 1))
+        & ~((uintptr_t)BPLIB_BEN_ALLOC_LARGEST_ALIGNMENT - 1));
+    unaligned_bytes = (size_t)((uintptr_t)aligned_init_mem - (uintptr_t)init_mem);
 
     /* Now that the start of useable memory is known, we need to make sure we
     ** have the space to allocate at least one block.
@@ -106,7 +106,7 @@ BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, void* init_mem
     mem_len -= unaligned_bytes;
 
     memset(pool, 0, sizeof(BPLib_MEM_PoolImpl_t));
-    pool->mem_start = alligned_init_mem;
+    pool->mem_start = aligned_init_mem;
     pool->block_size = block_size;
     pool->num_blocks = mem_len / block_size;
     pool->mem_next = pool->mem_start;
