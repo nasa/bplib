@@ -28,6 +28,15 @@
 #include "bplib_api_types.h"
 
 /* ======== */
+/* Defines  */
+/* ======== */
+
+#define BPLIB_EID_PATTERN_MAX           0xFFFFFFFFFFFFFFFF    // 2^64-1
+#define BPLIB_EID_PATTERN_MAX_ALLOCATOR BPLIB_EID_PATTERN_MAX
+#define BPLIB_EID_PATTERN_MAX_NODE      BPLIB_EID_PATTERN_MAX
+#define BPLIB_EID_PATTERN_MAX_SERVICE   BPLIB_EID_PATTERN_MAX
+
+/* ======== */
 /* Typedefs */
 /* ======== */
 

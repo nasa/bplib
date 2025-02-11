@@ -88,7 +88,7 @@ endif()
 list (APPEND BPLIB_COMPONENT_DIRS
   version cla aa/arp aa/as aa/fwp aa/nc bpa/bi bpa/ct
   bpa/ebp bpa/pdb bpa/pi bpa/stor
-  ci/cbor ci/em ci/mem ci/pl ci/qm ci/time ci/crc
+  ci/cbor ci/em ci/mem ci/pl ci/qm ci/time ci/crc ci/eid
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENT_DIRS})
@@ -99,7 +99,7 @@ list(APPEND BPLIB_COMPONENTS
   bplib_cla bplib_arp bplib_as bplib_fwp bplib_nc
   bplib_bi bplib_ct bplib_ebp bplib_pdb bplib_pi
   bplib_stor bplib_cbor bplib_em bplib_mem bplib_pl bplib_time
-  bplib_crc bplib_version bplib_qm
+  bplib_crc bplib_version bplib_qm bplib_eid
 )
 
 foreach(COMPONENT ${BPLIB_COMPONENTS})
