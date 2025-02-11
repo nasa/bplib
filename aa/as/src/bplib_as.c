@@ -482,7 +482,7 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
 
         for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
         { /* Loop through every MIB array key entry */
-            if ((BPLIB_MAX_MIB_ARRAY_KEYS - BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys) <= NumKeysGiven &&
+            if ((BPLIB_MAX_MIB_ARRAY_KEYS - BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys) >= NumKeysGiven &&
                 BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys < BPLIB_MAX_MIB_ARRAY_KEYS)
             { /* Space is available for the given key(s) to be  added */
                 for (PatternIndex = 0; PatternIndex < NumKeysGiven; PatternIndex++)
