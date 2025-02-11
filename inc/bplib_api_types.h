@@ -133,9 +133,10 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -34)
 #define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -35)
 #define BPLIB_AS_INVALID_MIB_INDEX          ((BPLib_Status_t) -36)
+#define BPLIB_AS_NO_KEYS_GIVEN              ((BPLib_Status_t) -37)
 
 /* Queue Manager (QM) Errors */
-#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -37)
+#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -38)
 
 // TODO TIME Helpers
 

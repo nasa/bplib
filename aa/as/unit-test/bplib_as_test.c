@@ -1054,6 +1054,41 @@ void Test_BPLib_AS_AddMibArrayKey_FullArray_Error(void)
                                 "EID key array is full");
 }
 
+void Test_BPLib_AS_AddMibArrayKey_NoKeysGiven_Error(void)
+{
+    BPLib_Status_t Status;
+    uint8_t PatternIndex;
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+
+    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_MIB_ARRAY_KEYS);
+
+    /* Verify that the function gets past the valid pattern check */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_NO_KEYS_GIVEN);
+
+    /* Show that the keys were not copied into the MIB array */
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+    {
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxAllocator);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinAllocator);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxNode);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinNode);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxService);
+        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinService);
+    }
+
+    /* Verify the expected event */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "EID key array is full");
+}
+
 void TestBplibAs_Register(void)
 {
     ADD_TEST(Test_BPLib_AS_Init_Nominal);
@@ -1087,4 +1122,5 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_ServiceOverlap_Error);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_InvalidEID_Error);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_FullArray_Error);
+    ADD_TEST(Test_BPLib_AS_AddMibArrayKey_NoKeysGiven_Error);
 }
