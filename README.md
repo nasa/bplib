@@ -54,13 +54,22 @@ The versions used may change. The versions as of the last update of this documen
 - pkg-config 0.29.1
 - gcc  (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
 
-2. Install tinycbor if it is not already installed.  
-See https://github.com/intel/tinycbor.git.
+2. Install tinycbor 0.6.0 if it is not already installed.
+- Check if tinycbor is installed with `pkg-config --modversion tinycbor`
+- See https://github.com/intel/tinycbor.
 
-- tinycbor version 0.6.0
+3. Install QCBOR 1.4 if it is not already installed.
+- Check if QCBOR is installed with `pkg-config --modversion qcbor`
+- git clone https://github.com/laurencelundblade/QCBOR.git
+- cd QCBOR
+- cmake -S . -B build-folder
+- cmake --build build-folder
+- sudo make install
+- Verify that the contents of the file `bplib/qcbor.pc` are correct for the installation and then copy it to pkgconfig.
+- sudo cp bplib/qcbor.pc /usr/local/lib/pkgconfig/
 
 #### Build bplib with cFS
-3. Clone, init, and update cFS and all required submodules. Then clone bp and bplib to the cFS local repository.
+4. Clone, init, and update cFS and all required submodules. Then clone bp and bplib to the cFS local repository.
 
 ```
    cd <chosen working directory>
@@ -73,7 +82,7 @@ See https://github.com/intel/tinycbor.git.
    git clone https://github.com/nasa/bplib "${CFS_HOME}"/cfs-bundle/libs/bplib
 ```
 
-4. Setup OSAL.
+5. Setup OSAL.
 
 Define the OSAL definitions for CMake.
 Run CMake for OSAL.
@@ -91,7 +100,7 @@ Run Make for OSAL with the destination directory `./osal-staging`.
    make DESTDIR="${CFS_HOME}"/osal-staging install
 ```
 
-5. Build bplib and the test runners
+6. Build bplib and the test runners
 
 Note that the possible build folders are one of <Debug,Release>-<OSAL,POSIX> for the build type and operating system layer respectively.
 
@@ -120,7 +129,7 @@ Run CMake and make all to build bplib and the bplib tests.
 ```
 
 #### Example Test
-6. Test bplib
+7. Test bplib
 
 ```
    cd "${CFS_HOME}"/bplib-build-matrix-Debug-OSAL
