@@ -163,7 +163,7 @@ BPLib_Bundle_t* BPLib_MEM_BundleAlloc(BPLib_MEM_Pool_t* pool, const void* blob_d
  * @brief Frees a bundle from the memory pool.
  * 
  * This function frees the memory associated with a `BPLib_Bundle_t`.
- * The bundle pointer provided have been allocated by using BPLib_MEM_BundleAlloc.
+ * The bundle pointer provided must have been allocated using BPLib_MEM_BundleAlloc.
  * 
  * @param[in] pool Pointer to the memory pool to which the bundle will be freed.
  * @param[in] bundle Pointer to the bundle to free.
