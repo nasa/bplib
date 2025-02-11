@@ -27,20 +27,21 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
+#include "bplib_eid.h"
 
 /*
 ** CRS Table
 */
 typedef struct
 {
-    char        DestEID[BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_t DestEID;
     uint32_t    TimeTrigger;
     uint32_t    SizeTrigger;
 } BPLib_ARP_CRSSet_t;
 
 typedef struct
 {
-    BPLib_ARP_CRSSet_t CRS_Set[BPLIB_MAX_MUN_CRS];
+    BPLib_ARP_CRSSet_t CRS_Set[BPLIB_MAX_NUM_CRS];
 } BPLib_ARP_CRSTable_t;
 
 /*

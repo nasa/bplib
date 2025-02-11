@@ -27,6 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
+#include "bplib_eid.h"
 
 // TODO BPLIB_FLAG_DIAGNOSTIC (from BPLIB_FLAG_DIAGNOSTIC) should b in bplib.h
 #define BPLIB_FLAG_DIAGNOSTIC              0x00000000
@@ -59,8 +60,8 @@ struct BPLib_StorageHkTlm_Payload
 */
 typedef struct
 {
-    char        SrcEID[BPLIB_MAX_EID_LENGTH];
-    uint32_t    StorageSize;
+    BPLib_EID_PatternMatch_t  SrcEIDs[BPLIB_MAX_NUM_STORE_EIDS];
+    uint32_t                  StorageSize;
 } BPLib_STOR_StorageSet_t;
 
 typedef struct

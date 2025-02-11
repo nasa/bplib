@@ -61,6 +61,7 @@ void Test_BPLib_AS_SetCounter_Error(void)
 {
     int16_t  SourceEid;
     uint32_t TestValue;
+    uint8_t  Counter; // Counter should be unsigned enum BPLib_AS_Counter_t. The function tests for Counter > -1.
 
     /* === Invalid EID test === */
 
@@ -89,6 +90,16 @@ void Test_BPLib_AS_SetCounter_Error(void)
 
     /* Verify that counter is the expected value */
     UtAssert_EQ(uint32_t, TestValue, BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED]);
+
+    /* === Negative counter === */
+
+    /* Set the values to test against */
+    SourceEid = 2;
+    Counter   = -1;
+    TestValue = 4;
+
+    /* Verify that the return status is BPLIB_AS_UNKNOWN_NODE_CNTR */
+    UtAssert_EQ(BPLib_Status_t, BPLib_AS_SetCounter(SourceEid, Counter, TestValue), BPLIB_AS_UNKNOWN_NODE_CNTR);
 }
 
 void Test_BPLib_AS_InitMutex_Nominal(void)
