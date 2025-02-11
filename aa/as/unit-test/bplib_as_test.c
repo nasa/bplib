@@ -569,32 +569,45 @@ void Test_BPLib_AS_AddMibArrayKey_Nominal(void)
     UtAssert_UINT8_EQ(BPLIB_MAX_MIB_ARRAY_KEYS, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
 }
 
-void Test_BPLib_AS_AddMibArrayKey_Overlap_Error(void)
+void Test_BPLib_AS_AddMibArrayKey_AllocatorOverlap_Error(void)
 {
     BPLib_Status_t Status;
-    uint8_t PatternIndex;
     BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    uint64_t MaxVal;
+    uint64_t MinVal;
+
+    MaxVal = 10;
+    MinVal = 1;
 
     /* Verify that the function gets past the valid pattern check */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
 
-    /* Create input patterns */
-    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
-    {
-        EID_Patterns[PatternIndex].Scheme       = (PatternIndex % 2) + 1;      /*   1,   2,   1,   2 */
-        EID_Patterns[PatternIndex].IpnSspFormat = (PatternIndex % 2) + 2,      /*   2,   3,   2,   3 */
-        EID_Patterns[PatternIndex].MaxAllocator = 10 * (PatternIndex + 1) - 1; /*   9,  19,  29,  39 */
-        EID_Patterns[PatternIndex].MinAllocator = 10 * PatternIndex;           /*   0,  10,  20,  30 */
-        EID_Patterns[PatternIndex].MaxNode      = 20 * (PatternIndex + 1) - 1; /*  19,  39,  59,  79 */
-        EID_Patterns[PatternIndex].MinNode      = 20 * PatternIndex;           /*   0,  20,  40,  60 */
-        EID_Patterns[PatternIndex].MaxService   = 30 * (PatternIndex + 1) - 1; /*  29,  59,  89, 119 */
-        EID_Patterns[PatternIndex].MinService   = 30 * PatternIndex;           /*   0,  30,  60,  90 */
-    }
-
-    /* Create an overlap */
+    /* Create MIB key array pattern */
     BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme       = BPLIB_EID_SCHEME_DTN;
     BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
-    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator = EID_Patterns[0].MaxAllocator;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator = MaxVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator = MinVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode      = MaxVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode      = MinVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService   = MaxVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService   = MinVal;
+
+    /* Set input pattern's scheme and IPN SSP format to values not used in present keys */
+    EID_Patterns[0].Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Patterns[0].IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+
+    /* Preset all other input pattern fields to guarantee nothing else overlaps */
+    EID_Patterns[0].MaxNode    = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode + MaxVal;
+    EID_Patterns[0].MinNode    = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode + MinVal;
+    EID_Patterns[0].MaxService = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService + MaxVal;
+    EID_Patterns[0].MinService = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService + MinVal;
+
+    /* ============================================ */
+    /* ============================================ */
+
+    /* Create subset overlap */
+    EID_Patterns[0].MaxAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator - 1;
+    EID_Patterns[0].MinAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator + 1;
 
     /* Run function under test */
     Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
@@ -602,21 +615,294 @@ void Test_BPLib_AS_AddMibArrayKey_Overlap_Error(void)
     /* Verify status */
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
 
-    /* Show that the keys were not copied into the MIB array */
-    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
-    {
-        UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme);
-        UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat);
-        UtAssert_EQ(uint64_t, EID_Patterns[0].MaxAllocator,       BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxAllocator);
-        UtAssert_EQ(uint64_t, 0,                                  BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinAllocator);
-        UtAssert_EQ(uint64_t, 0,                                  BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxNode);
-        UtAssert_EQ(uint64_t, 0,                                  BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinNode);
-        UtAssert_EQ(uint64_t, 0,                                  BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxService);
-        UtAssert_EQ(uint64_t, 0,                                  BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinService);
-    }
+    /* Show that the input keys were not copied into the MIB array */
+    UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme);
+    UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat);
+    UtAssert_EQ(uint64_t, MaxVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator);
+    UtAssert_EQ(uint64_t, MinVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator);
 
     /* Verify that the number of keys in use is the correct value */
     UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+
+    /* Verify debug event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d");
+
+    /* ============================================ */
+    /* ============================================ */
+
+    /* Create left-skewed overlap */
+    EID_Patterns[0].MaxAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator - 1;
+    EID_Patterns[0].MinAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator - 1;
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
+
+    /* Show that the input keys were not copied into the MIB array */
+    UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme);
+    UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat);
+    UtAssert_EQ(uint64_t, MaxVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator);
+    UtAssert_EQ(uint64_t, MinVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator);
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+
+    /* Verify debug event was issued */
+    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d");
+
+    /* ============================================ */
+    /* ============================================ */
+
+    /* Create right-skewed overlap */
+    EID_Patterns[0].MaxAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator + 1;
+    EID_Patterns[0].MinAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator + 1;
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
+
+    /* Show that the input keys were not copied into the MIB array */
+    UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme);
+    UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat);
+    UtAssert_EQ(uint64_t, MaxVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator);
+    UtAssert_EQ(uint64_t, MinVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator);
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+
+    /* Verify debug event was issued */
+    BPLib_AS_Test_Verify_Event(2, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d");
+}
+
+void Test_BPLib_AS_AddMibArrayKey_NodeOverlap_Error(void)
+{
+    BPLib_Status_t Status;
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    uint64_t MaxVal;
+    uint64_t MinVal;
+
+    MaxVal = 20;
+    MinVal = 11;
+
+    /* Verify that the function gets past the valid pattern check */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    /* Create MIB key array pattern */
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme       = BPLIB_EID_SCHEME_DTN;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator = MaxVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator = MinVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode      = MaxVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode      = MinVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService   = MaxVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService   = MinVal;
+
+    /* Set input pattern's scheme and IPN SSP format to values not used in present keys */
+    EID_Patterns[0].Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Patterns[0].IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+
+    /* Preset all other input pattern fields to guarantee nothing else overlaps */
+    EID_Patterns[0].MaxAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator + MaxVal;
+    EID_Patterns[0].MinAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator + MinVal;
+    EID_Patterns[0].MaxService   = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService + MaxVal;
+    EID_Patterns[0].MinService   = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService + MinVal;
+
+    /* ============================================ */
+    /* ============================================ */
+
+    /* Create subset overlap */
+    EID_Patterns[0].MaxNode = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode - 1;
+    EID_Patterns[0].MinNode = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode + 1;
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
+
+    /* Show that the input keys were not copied into the MIB array */
+    UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme);
+    UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat);
+    UtAssert_EQ(uint64_t, MaxVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode);
+    UtAssert_EQ(uint64_t, MinVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode);
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+    
+    /* Verify debug event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d");
+
+    /* ============================================ */
+    /* ============================================ */
+
+    /* Create left-skewed overlap */
+    EID_Patterns[0].MaxNode = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode - 1;
+    EID_Patterns[0].MinNode = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode - 1;
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
+
+    /* Show that the input keys were not copied into the MIB array */
+    UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme);
+    UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat);
+    UtAssert_EQ(uint64_t, MaxVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode);
+    UtAssert_EQ(uint64_t, MinVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode);
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+
+    /* Verify debug event was issued */
+    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d");
+
+    /* ============================================ */
+    /* ============================================ */
+
+    /* Create right-skewed overlap */
+    EID_Patterns[0].MaxNode = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode + 1;
+    EID_Patterns[0].MinNode = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode + 1;
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
+
+    /* Show that the input keys were not copied into the MIB array */
+    UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme);
+    UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat);
+    UtAssert_EQ(uint64_t, MaxVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode);
+    UtAssert_EQ(uint64_t, MinVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode);
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+
+    /* Verify debug event was issued */
+    BPLib_AS_Test_Verify_Event(2, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d");
+}
+
+void Test_BPLib_AS_AddMibArrayKey_ServiceOverlap_Error(void)
+{
+    BPLib_Status_t Status;
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    uint64_t MaxVal;
+    uint64_t MinVal;
+
+    MaxVal = 30;
+    MinVal = 21;
+
+    /* Verify that the function gets past the valid pattern check */
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
+
+    /* Create MIB key array pattern */
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme       = BPLIB_EID_SCHEME_DTN;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator = MaxVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator = MinVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode      = MaxVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode      = MinVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService   = MaxVal;
+    BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService   = MinVal;
+
+    /* Set input pattern's scheme and IPN SSP format to values not used in present keys */
+    EID_Patterns[0].Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Patterns[0].IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+
+    /* Preset all other input pattern fields to guarantee nothing else overlaps */
+    EID_Patterns[0].MaxAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxAllocator + MaxVal;
+    EID_Patterns[0].MinAllocator = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinAllocator + MinVal;
+    EID_Patterns[0].MaxNode      = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxNode + MaxVal;
+    EID_Patterns[0].MinNode      = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinNode + MinVal;
+
+    /* ============================================ */
+    /* ============================================ */
+
+    /* Create subset overlap */
+    EID_Patterns[0].MaxService = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService - 1;
+    EID_Patterns[0].MinService = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService + 1;
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
+
+    /* Show that the input keys were not copied into the MIB array */
+    UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme);
+    UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat);
+    UtAssert_EQ(uint64_t, MaxVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService);
+    UtAssert_EQ(uint64_t, MinVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService);
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+
+    /* Verify debug event was issued */
+    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d");
+
+    /* ============================================ */
+    /* ============================================ */
+
+    /* Create left-skewed overlap */
+    EID_Patterns[0].MaxService = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService - 1;
+    EID_Patterns[0].MinService = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService - 1;
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
+
+    /* Show that the input keys were not copied into the MIB array */
+    UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme);
+    UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat);
+    UtAssert_EQ(uint64_t, MaxVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService);
+    UtAssert_EQ(uint64_t, MinVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService);
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+
+    /* Verify debug event was issued */
+    BPLib_AS_Test_Verify_Event(1, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d");
+
+    /* ============================================ */
+    /* ============================================ */
+
+    /* Create right-skewed overlap */
+    EID_Patterns[0].MaxService = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService + 1;
+    EID_Patterns[0].MinService = BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService + 1;
+
+    /* Run function under test */
+    Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
+
+    /* Verify status */
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEYS_OVERLAP);
+
+    /* Show that the input keys were not copied into the MIB array */
+    UtAssert_EQ(uint64_t, BPLIB_EID_SCHEME_DTN,               BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].Scheme);
+    UtAssert_EQ(uint64_t, BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].IpnSspFormat);
+    UtAssert_EQ(uint64_t, MaxVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MaxService);
+    UtAssert_EQ(uint64_t, MinVal,                             BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[0].MinService);
+
+    /* Verify that the number of keys in use is the correct value */
+    UtAssert_UINT8_EQ(0, BPLib_AS_SourceCountersPayload.MibArray[0].ActiveKeys);
+
+    /* Verify debug event was issued */
+    BPLib_AS_Test_Verify_Event(2, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d");
 }
 
 void Test_BPLib_AS_AddMibArrayKey_InvalidEID_Error(void)
@@ -627,6 +913,17 @@ void Test_BPLib_AS_AddMibArrayKey_InvalidEID_Error(void)
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), false);
 
+    /* Create an input key to compare against */
+    EID_Patterns[0].Scheme       = BPLIB_EID_SCHEME_IPN;
+    EID_Patterns[0].IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_THREE_DIGIT;
+    EID_Patterns[0].MaxAllocator = 10;
+    EID_Patterns[0].MinAllocator = 0;
+    EID_Patterns[0].MaxNode      = 20;
+    EID_Patterns[0].MinNode      = 11;
+    EID_Patterns[0].MaxService   = 30;
+    EID_Patterns[0].MinService   = 21;
+
+    /* Run function under test */
     Status = BPLib_AS_AddMibArrayKey(EID_Patterns);
 
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_EID_PATTERN);
@@ -634,14 +931,14 @@ void Test_BPLib_AS_AddMibArrayKey_InvalidEID_Error(void)
     /* Show that the keys were not copied into the MIB array */
     for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
     {
-        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme);
-        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat);
-        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxAllocator);
-        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinAllocator);
-        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxNode);
-        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinNode);
-        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxService);
-        UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinService);
+        UtAssert_NEQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme,       EID_Patterns[0].Scheme);
+        UtAssert_NEQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat, EID_Patterns[0].IpnSspFormat);
+        UtAssert_NEQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxAllocator, EID_Patterns[0].MaxAllocator);
+        UtAssert_NEQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinAllocator, EID_Patterns[0].MinAllocator);
+        UtAssert_NEQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxNode,      EID_Patterns[0].MaxNode);
+        UtAssert_NEQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinNode,      EID_Patterns[0].MinNode);
+        UtAssert_NEQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxService,   EID_Patterns[0].MaxService);
+        UtAssert_NEQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinService,   EID_Patterns[0].MinService);
     }
 
     /* Verify that the number of keys in use is the correct value */
@@ -729,7 +1026,9 @@ void TestBplibAs_Register(void)
     ADD_TEST(Test_BPLib_AS_SendNodeMibCountersHk_Nominal);
     ADD_TEST(Test_BPLib_AS_SendSourceMibCountersHk_Nominal);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_Nominal);
-    ADD_TEST(Test_BPLib_AS_AddMibArrayKey_Overlap_Error);
+    ADD_TEST(Test_BPLib_AS_AddMibArrayKey_AllocatorOverlap_Error);
+    ADD_TEST(Test_BPLib_AS_AddMibArrayKey_NodeOverlap_Error);
+    ADD_TEST(Test_BPLib_AS_AddMibArrayKey_ServiceOverlap_Error);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_InvalidEID_Error);
     ADD_TEST(Test_BPLib_AS_AddMibArrayKey_FullArray_Error);
 }

@@ -413,12 +413,24 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
 
                     if (CurrPattern.Scheme != BPLIB_EID_SCHEME_RESERVED && InputPattern.Scheme != BPLIB_EID_SCHEME_RESERVED)
                     { /* A pattern was found for this MIB array entry */
-                        if (InputPattern.MaxAllocator >= CurrPattern.MinAllocator ||
-                            InputPattern.MinAllocator <= CurrPattern.MaxAllocator ||
-                            InputPattern.MaxNode      >= CurrPattern.MinNode      ||
-                            InputPattern.MinNode      <= CurrPattern.MaxNode      ||
-                            InputPattern.MaxService   >= CurrPattern.MinService   ||
-                            InputPattern.MinService   <= CurrPattern.MaxService)
+                        /* 
+                        ** Check if the head or tail of the input pattern lies between the 
+                        ** head and tail of a key that is already present in the MIB key array
+                        */
+                        if ((InputPattern.MaxAllocator >= CurrPattern.MinAllocator  && /*  ------------------ */
+                             InputPattern.MaxAllocator <= CurrPattern.MaxAllocator) || /* | Check input key's */
+                            (InputPattern.MinAllocator >= CurrPattern.MinAllocator  && /* | allocator range   */
+                             InputPattern.MinAllocator <= CurrPattern.MaxAllocator)    /*  ------------------ */
+                            || 
+                            (InputPattern.MaxNode      >= CurrPattern.MinNode       && /*  ------------------ */
+                             InputPattern.MaxNode      <= CurrPattern.MaxNode)      || /* | Check input key's */
+                            (InputPattern.MinNode      >= CurrPattern.MinNode       && /* | node range        */
+                             InputPattern.MinNode      <= CurrPattern.MaxNode)         /*  ------------------ */
+                            ||
+                            (InputPattern.MaxService   >= CurrPattern.MinService    && /*  ------------------ */
+                             InputPattern.MaxService   <= CurrPattern.MaxService)   || /* | Check input key's */
+                            (InputPattern.MinService   >= CurrPattern.MinService    && /* | service range     */
+                             InputPattern.MinService   <= CurrPattern.MaxService))     /*  ------------------ */
                         { /* An overlap was found */
                             Status = BPLIB_AS_MIB_KEYS_OVERLAP;
 
