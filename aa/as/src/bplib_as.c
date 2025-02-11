@@ -404,56 +404,59 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
         InputPattern = EID_Patterns[InputIndex];
         if (BPLib_EID_PatternIsValid(InputPattern))
         { /* Given pattern is valid, see if it can be added to the MIB array */
-            for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
-            { /* Loop through every entry in the MIB key array */
-                for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
-                { /* Loop through every pattern in the MIB key array entry */
-                    CurrPattern = BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex];
+            if (InputPattern.Scheme != BPLIB_EID_SCHEME_RESERVED)
+            { /* The key provided has values */
+                for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
+                { /* Loop through every entry in the MIB key array */
+                    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+                    { /* Loop through every pattern in the MIB key array entry */
+                        CurrPattern = BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex];
 
-                    if (CurrPattern.Scheme != BPLIB_EID_SCHEME_RESERVED && InputPattern.Scheme != BPLIB_EID_SCHEME_RESERVED)
-                    { /* A pattern was found for this MIB array entry */
-                        /* 
-                        ** Check if the head or tail of the input pattern lies between the 
-                        ** head and tail of a key that is already present in the MIB key array
-                        */
-                        if ((InputPattern.MaxAllocator >= CurrPattern.MinAllocator  && /*  ------------------ */
-                             InputPattern.MaxAllocator <= CurrPattern.MaxAllocator) || /* | Check input key's */
-                            (InputPattern.MinAllocator >= CurrPattern.MinAllocator  && /* | allocator range   */
-                             InputPattern.MinAllocator <= CurrPattern.MaxAllocator)    /*  ------------------ */
-                            || 
-                            (InputPattern.MaxNode      >= CurrPattern.MinNode       && /*  ------------------ */
-                             InputPattern.MaxNode      <= CurrPattern.MaxNode)      || /* | Check input key's */
-                            (InputPattern.MinNode      >= CurrPattern.MinNode       && /* | node range        */
-                             InputPattern.MinNode      <= CurrPattern.MaxNode)         /*  ------------------ */
-                            ||
-                            (InputPattern.MaxService   >= CurrPattern.MinService    && /*  ------------------ */
-                             InputPattern.MaxService   <= CurrPattern.MaxService)   || /* | Check input key's */
-                            (InputPattern.MinService   >= CurrPattern.MinService    && /* | service range     */
-                             InputPattern.MinService   <= CurrPattern.MaxService))     /*  ------------------ */
-                        { /* An overlap was found */
-                            Status = BPLIB_AS_MIB_KEYS_OVERLAP;
+                        if (CurrPattern.Scheme != BPLIB_EID_SCHEME_RESERVED)
+                        { /* A pattern was found for this MIB array entry */
+                            /* 
+                            ** Check if the head or tail of the input pattern lies between the 
+                            ** head and tail of a key that is already present in the MIB key array
+                            */
+                            if ((InputPattern.MaxAllocator >= CurrPattern.MinAllocator  && /*  ------------------ */
+                                 InputPattern.MaxAllocator <= CurrPattern.MaxAllocator) || /* | Check input key's */
+                                (InputPattern.MinAllocator >= CurrPattern.MinAllocator  && /* | allocator range   */
+                                 InputPattern.MinAllocator <= CurrPattern.MaxAllocator)    /*  ------------------ */
+                                || 
+                                (InputPattern.MaxNode      >= CurrPattern.MinNode       && /*  ------------------ */
+                                 InputPattern.MaxNode      <= CurrPattern.MaxNode)      || /* | Check input key's */
+                                (InputPattern.MinNode      >= CurrPattern.MinNode       && /* | node range        */
+                                 InputPattern.MinNode      <= CurrPattern.MaxNode)         /*  ------------------ */
+                                ||
+                                (InputPattern.MaxService   >= CurrPattern.MinService    && /*  ------------------ */
+                                 InputPattern.MaxService   <= CurrPattern.MaxService)   || /* | Check input key's */
+                                (InputPattern.MinService   >= CurrPattern.MinService    && /* | service range     */
+                                 InputPattern.MinService   <= CurrPattern.MaxService))     /*  ------------------ */
+                            { /* An overlap was found */
+                                Status = BPLIB_AS_MIB_KEYS_OVERLAP;
 
-                            BPLib_EM_SendEvent(BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
-                                                BPLib_EM_EventType_DEBUG,
-                                                "MIB array key overlap found between input #%d and MIB #%d, active key #%d",
-                                                InputIndex,
-                                                MibIndex,
-                                                PatternIndex);
+                                BPLib_EM_SendEvent(BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                                                    BPLib_EM_EventType_DEBUG,
+                                                    "MIB array key overlap found between input #%d and MIB #%d, active key #%d",
+                                                    InputIndex,
+                                                    MibIndex,
+                                                    PatternIndex);
 
-                            break;
+                                break;
+                            }
                         }
+                    }
+
+                    if (Status != BPLIB_SUCCESS)
+                    { /* Stop searching the existing keys when an overlap is found */
+                        break;
                     }
                 }
 
-                if (Status != BPLIB_SUCCESS)
-                { /* Stop searching the existing keys when an overlap is found */
-                    break;
+                if (Status == BPLIB_SUCCESS)
+                {
+                    NumKeysGiven++;
                 }
-            }
-
-            if (Status == BPLIB_SUCCESS)
-            {
-                NumKeysGiven++;
             }
         }
         else
