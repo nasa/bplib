@@ -62,13 +62,9 @@ BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, void* init_mem
     void* aligned_init_mem;
 
     /* NULL Checks */
-    if (pool == NULL)
+    if (pool == NULL || init_mem == NULL)
     {
-        return BPLIB_ERROR;
-    }
-    if (init_mem == NULL)
-    {
-        return BPLIB_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
     if (mem_len == 0)
     {

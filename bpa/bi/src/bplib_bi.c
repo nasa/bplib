@@ -42,7 +42,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
 
     if ((inst == NULL) || (BundleIn == NULL))
     {
-        return BPLIB_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* Create the bundle from the incoming blob */

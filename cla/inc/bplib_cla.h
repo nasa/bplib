@@ -143,7 +143,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId,
  * 
  *  \param[in] Inst Pointer to a valid BPLib_Instance_t
  *  \param[in] ContId Contact ID
- *  \param[in] Bundle Pointer to put egressing bundle into
+ *  \param[in] BundleOut Pointer to put egressing bundle into
  *  \param[in] Size Size of the received bundle to return
  *  \param[in] BufLen Length of the buffer provided (the bundle pointer)
  *  \param[in] Timeout Time to pend on contact egress queue (in milliseconds)
@@ -151,7 +151,7 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId,
  *  \return Execution status
  *  \retval BPLIB_SUCCESS when BPLib_CLA_Egress was successful
  */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bundle, 
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *BundleOut, 
                                 size_t *Size, size_t BufLen, uint32_t Timeout);
 /**
  * \brief Validate Contact Table configurations
