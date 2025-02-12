@@ -101,8 +101,7 @@ static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* inst, BPLib_Bundle_t* bu
         bundle->blocks.pri_blk.dest_eid.node_number,
         bundle->blocks.pri_blk.dest_eid.service_number);
 
-    QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(inst->BundleCacheList), bundle, QM_WAIT_FOREVER);
-
+    QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(inst->BundleCacheList), &bundle, QM_WAIT_FOREVER);
     if (QueuePushReturnStatus == false)
     {
         printf("STOR_Cache failed BPLib_QM_WaitQueueTryPush\n");
