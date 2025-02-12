@@ -60,19 +60,17 @@ BPLib_Status_t BPLib_AS_SetCounter(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, 
                 Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
             }
         }
-        else
-        { /* EID denotes a source counter manipulation */
-            /*
-            if (Counter > -1 && Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
-            { // Counter is within range
-                BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[Counter] = Value;
-            }
-            else
-            { // Counter is out of valid range
-                Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
-            }
-            */
-        }
+        // else
+        // { /* EID denotes a source counter manipulation */
+        //     if (Counter > -1 && Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
+        //     { // Counter is within range
+        //         BPLib_AS_SourceCountersPayload.MibArray[SourceEid].SourceCounters[Counter] = Value;
+        //     }
+        //     else
+        //     { // Counter is out of valid range
+        //         Status = BPLIB_AS_UNKNOWN_SRC_CNTR;
+        //     }
+        // }
     }
     else
     {

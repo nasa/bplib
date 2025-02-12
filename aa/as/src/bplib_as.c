@@ -66,14 +66,14 @@ void BPLib_AS_Increment(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
         /* Allow counters to be modified by other tasks after operation has finished */
         BPLib_AS_UnlockCounters();
     }
-    else
-    { /* Increment a source counter */
-        /* Prevent modification of counters from other tasks while modifying them */
-        BPLib_AS_LockCounters();
+    // else
+    // { /* Increment a source counter */
+    //     /* Prevent modification of counters from other tasks while modifying them */
+    //     BPLib_AS_LockCounters();
 
-        /* Allow counters to be modified by other tasks after operation has finished */
-        BPLib_AS_UnlockCounters();
-    }
+    //     /* Allow counters to be modified by other tasks after operation has finished */
+    //     BPLib_AS_UnlockCounters();
+    // }
 }
 
 void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount)
@@ -100,14 +100,14 @@ void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
         /* Allow counters to be modified by other tasks after operation has finished */
         BPLib_AS_UnlockCounters();
     }
-    else
-    { /* Increment a source counter */
-        /* Prevent modification of counters from other tasks while modifying them */
-        BPLib_AS_LockCounters();
+    // else
+    // { /* Increment a source counter */
+    //     /* Prevent modification of counters from other tasks while modifying them */
+    //     BPLib_AS_LockCounters();
 
-        /* Allow counters to be modified by other tasks after operation has finished */
-        BPLib_AS_UnlockCounters();
-    }
+    //     /* Allow counters to be modified by other tasks after operation has finished */
+    //     BPLib_AS_UnlockCounters();
+    // }
 }
 
 BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t Counter)
