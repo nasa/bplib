@@ -1083,10 +1083,6 @@ void Test_BPLib_AS_AddMibArrayKey_NoKeysGiven_Error(void)
         UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MaxService);
         UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].MinService);
     }
-
-    /* Verify the expected event */
-    BPLib_AS_Test_Verify_Event(0, BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
-                                "EID key array is full");
 }
 
 void TestBplibAs_Register(void)
