@@ -27,14 +27,14 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
-
+#include "bplib_eid.h"
 
 /*
 ** Authorized Source EID Table
 */
 typedef struct
 {
-    char AuthSrcEIDs[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_PatternMatch_t AuthSrcEIDs[BPLIB_MAX_AUTH_SOURCE_EIDS];
 } BPLib_PDB_SrcAuthTable_t;
 
 /*
@@ -42,7 +42,7 @@ typedef struct
 */
 typedef struct
 {
-    char AuthCustodians[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_PatternMatch_t AuthCustodians[BPLIB_MAX_AUTH_CUSTODIAN_EIDS];
 } BPLib_PDB_CustodianTable_t;
 
 /*
@@ -50,7 +50,7 @@ typedef struct
 */
 typedef struct
 {
-    char AuthCustodySrc[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_PatternMatch_t AuthCustodySrc[BPLIB_MAX_AUTH_CUSTODY_SOURCE_EIDS];
 } BPLib_PDB_CustodyTable_t;
 
 /*
@@ -58,7 +58,7 @@ typedef struct
 */
 typedef struct
 {
-    char AuthReportToEIDs[BPLIB_MAX_AUTH_SOURCES][BPLIB_MAX_EID_LENGTH];
+    BPLib_EID_PatternMatch_t AuthReportToEIDs[BPLIB_MAX_AUTH_REPORT_TO_EIDS];
 } BPLib_PDB_ReportToTable_t;
 
 /*
@@ -71,16 +71,19 @@ typedef enum
     High = 2,
 } BPLib_PDB_SrcLatency;
 
+/**
+ * \brief Source Latency Table Entry
+ */
 typedef struct
 {
-    char        SrcEID[BPLIB_MAX_EID_LENGTH];
-    uint32_t    Latency;
-    uint32_t    Spare;    
+    BPLib_EID_PatternMatch_t SrcEID;   ///< Source EID pattern to match
+    uint32_t                 Latency;  ///< Maximum latency (ms) for the matching EIDs
+    uint32_t                 Spare;
 }BPLib_PDB_SrcLatencySet_t;
 
 typedef struct
 {
-    BPLib_PDB_SrcLatencySet_t LatencySet[BPLIB_MAX_NUM_LATENCY_SRC];
+    BPLib_PDB_SrcLatencySet_t LatencySet[BPLIB_MAX_NUM_LATENCY_POLICY_SETS];
 } BPLib_PDB_SrcLatencyTable_t;
 
 /*

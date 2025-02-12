@@ -27,6 +27,7 @@
 
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
+#include "bplib_eid.h"
 #include "bplib_qm.h"
 
 /* There are 4 types of control message types, received from CL*/
@@ -49,7 +50,7 @@ typedef enum
 typedef struct
 {
     char        CtrlMsgTag[8]; /* "BPNMSG" */
-    uint32_t    SeesionID;
+    uint32_t    SessionID;
     uint32_t    BundleID;
     CLAType_t   ClaType;
     uint8_t     MsgTypes;
@@ -61,17 +62,23 @@ typedef struct
 
 typedef struct
 {
-    uint32_t    ContactID;
-    char        DestEIDs[BPLIB_MAX_EID_LENGTH];
-    CLAType_t   CLAType;  
-    char        CLAddr[BPLIB_MAX_EID_LENGTH];
-    int32_t     PortNum;
-    uint32_t    DestLTPEngineID;
-    uint32_t    SendBytePerCycle;
-    uint32_t    ReceiveBytePerCycle;
-    uint32_t    RetransmitTimeout;
-    uint32_t    CSTimeTrigger;
-    uint32_t    CSSizeTrigger;
+    uint32_t                 ContactID;
+    BPLib_EID_PatternMatch_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];
+    CLAType_t                CLAType;
+     /**
+      * CLAddr uses BPLIB_MAX_EID_LENGTH, but initialization in
+      * pnode_contact_tbl.c is
+      * .CLAddr = "127.0.0.1"
+      * which makes it a string containing an IP address, not an EID.
+      */
+    char                     CLAddr[BPLIB_MAX_EID_LENGTH];
+    int32_t                  PortNum;
+    uint32_t                 DestLTPEngineID;
+    uint32_t                 SendBytePerCycle;
+    uint32_t                 ReceiveBytePerCycle;
+    uint32_t                 RetransmitTimeout;
+    uint32_t                 CSTimeTrigger;
+    uint32_t                 CSSizeTrigger;
 } BPLib_CLA_ContactsSet_t;
 
 struct BPLib_CLA_ContactsTable
