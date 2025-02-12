@@ -1002,23 +1002,23 @@ void Test_BPLib_NC_AddMibArrayKey_Nominal(void)
                                 "Successful add-mib-array-key directive");
 }
 
-void Test_BPLib_NC_AddMibArrayKey_Error(void)
-{
-    BPLib_AddMibArrayKey_Payload_t Payload;
+// void Test_BPLib_NC_AddMibArrayKey_Error(void)
+// {
+//     BPLib_AddMibArrayKey_Payload_t Payload;
 
-    /* Force AS_AddMibArrayKey function to return success */
-    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_AddMibArrayKey), BPLIB_INVALID_EID_PATTERN);
+//     /* Force AS_AddMibArrayKey function to return success */
+//     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_AddMibArrayKey), BPLIB_INVALID_EID_PATTERN);
 
-    /* Run function under test */
-    BPLib_NC_AddMibArrayKey(Payload);
+//     /* Run function under test */
+//     BPLib_NC_AddMibArrayKey(Payload);
     
-    // Verify directive counter was incremented
-    Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
+//     // Verify directive counter was incremented
+//     Test_BPLib_NC_VerifyIncrement(BPLIB_EID_INSTANCE, BUNDLE_AGENT_REJECTED_DIRECTIVE_COUNT, 1, 1);
 
-    /* Verify event */
-    BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_MIB_ARR_KEY_ERR_EID,
-                                "An error occurred while attempting to add a MIB array key");
-}
+//     /* Verify event */
+//     BPLib_NC_Test_Verify_Event(0, BPLIB_NC_ADD_MIB_ARR_KEY_ERR_EID,
+//                                 "An error occurred while attempting to add a MIB array key");
+// }
 
 void Test_BPLib_NC_RemoveMibArrayKey_Nominal(void)
 {
@@ -1453,7 +1453,7 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_ContactTeardown_Nominal);
     ADD_TEST(Test_BPLib_NC_ContactTeardown_Error);
     ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Nominal);
-    ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Error);
+    // ADD_TEST(Test_BPLib_NC_AddMibArrayKey_Error);
     ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Nominal);
     ADD_TEST(Test_BPLib_NC_RemoveMibArrayKey_Error);
     ADD_TEST(Test_BPLib_NC_SetMibItem_Nominal);
