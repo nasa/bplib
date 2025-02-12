@@ -414,15 +414,15 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
 
                         if (CurrPattern.Scheme != BPLIB_EID_SCHEME_RESERVED)
                         { /* A pattern was found for this MIB array entry */
-                            /* 
-                            ** Check if the head or tail of the input pattern lies between the 
+                            /*
+                            ** Check if the head or tail of the input pattern lies between the
                             ** head and tail of a key that is already present in the MIB key array
                             */
                             if ((InputPattern.MaxAllocator >= CurrPattern.MinAllocator  && /*  ------------------ */
                                  InputPattern.MaxAllocator <= CurrPattern.MaxAllocator) || /* | Check input key's */
                                 (InputPattern.MinAllocator >= CurrPattern.MinAllocator  && /* | allocator range   */
                                  InputPattern.MinAllocator <= CurrPattern.MaxAllocator)    /*  ------------------ */
-                                || 
+                                ||
                                 (InputPattern.MaxNode      >= CurrPattern.MinNode       && /*  ------------------ */
                                  InputPattern.MaxNode      <= CurrPattern.MaxNode)      || /* | Check input key's */
                                 (InputPattern.MinNode      >= CurrPattern.MinNode       && /* | node range        */
@@ -475,10 +475,10 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
         }
     }
 
-    if (NumKeysGiven > 0)
-    {
-        if (Status == BPLIB_SUCCESS)
-        { /* Add the key(s) */
+    if (Status == BPLIB_SUCCESS)
+    { /* Add the key(s) */
+        if (NumKeysGiven > 0)
+        { /* At least 1 key was provided as input */
             /* Default to failure to save on extra logic */
             Status = BPLIB_AS_MIB_KEY_ARRAY_FULL;
 
@@ -502,17 +502,17 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
                 }
             }
         }
-
-        if (Status == BPLIB_AS_MIB_KEY_ARRAY_FULL)
+        else
         {
-            BPLib_EM_SendEvent(BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
-                                BPLib_EM_EventType_DEBUG,
-                                "EID key array is full");
+            Status = BPLIB_AS_NO_KEYS_GIVEN;
         }
     }
-    else
+
+    if (Status == BPLIB_AS_MIB_KEY_ARRAY_FULL)
     {
-        Status = BPLIB_AS_NO_KEYS_GIVEN;
+        BPLib_EM_SendEvent(BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID,
+                            BPLib_EM_EventType_DEBUG,
+                            "EID key array is full");
     }
 
     return Status;
