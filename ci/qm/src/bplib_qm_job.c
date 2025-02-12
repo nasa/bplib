@@ -35,9 +35,7 @@ static BPLib_QM_JobState_t ContactIn_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t*
 
 static BPLib_QM_JobState_t ContactIn_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    /* Note: Looping back to Contact Out Path */
     return CONTACT_IN_CT_TO_STOR;
-    // return CONTACT_OUT_STOR_TO_CT;
 }
 
 static BPLib_QM_JobState_t ContactOut_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
@@ -63,8 +61,6 @@ static BPLib_QM_JobState_t ChannelIn_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t*
 
 static BPLib_QM_JobState_t ChannelIn_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    /* Note: Looping back to ADU Out Path */
-    // return CHANNEL_OUT_STOR_TO_CT;
     return CHANNEL_IN_CT_TO_STOR;
 }
 
