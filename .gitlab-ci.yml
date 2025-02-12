@@ -59,7 +59,6 @@ default:
     - cmake --version | tee -a ${CI_JOB_INFO_LOG}
     - echo "git version=" | tee -a ${CI_JOB_INFO_LOG}
     - git --version | tee -a ${CI_JOB_INFO_LOG}
-    - echo "QCBOR version="`pkg-config --modversion qcbor`
 
 # Build bplib release version
 build-release-job:
@@ -73,9 +72,8 @@ build-release-job:
    - cd QCBOR
    - cmake -S . -B build-folder
    - cmake --build build-folder
-   - sudo make install
-   - sudo cp bplib/qcbor.pc /usr/local/lib/pkgconfig/
-   - echo "QCBOR version="`pkg-config --modversion qcbor`
+   # Install QCBOR in bplib/QCBOR/lib
+   - make install PREFIX=lib
    - cd ..
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
