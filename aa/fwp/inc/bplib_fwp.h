@@ -36,14 +36,14 @@
 ** Type Definitions
 */
 
-typedef struct 
+typedef struct
 {
     /* Time Proxy function callbacks */
     int64_t (*BPA_TIMEP_GetMonotonicTime)(void);
     void (*BPA_TIMEP_GetHostEpoch)(BPLib_TIME_Epoch_t *Epoch);
     BPLib_TIME_ClockState_t (*BPA_TIMEP_GetHostClockState)(void);
     int64_t (*BPA_TIMEP_GetHostTime)(void);
-    
+
     /* PerfLog Proxy function callbacks */
     void (*BPA_PERFLOGP_Entry)(uint32_t PerfLogID);
     void (*BPA_PERFLOGP_Exit)(uint32_t PerfLogID);
@@ -54,7 +54,7 @@ typedef struct
     /* Event Proxy function callbacks */
     BPLib_Status_t (*BPA_EVP_Init)(void);
     BPLib_Status_t (*BPA_EVP_SendEvent)(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText);
-    
+
     /* Telemetry Proxy function callbacks */
     BPLib_Status_t (*BPA_TLMP_SendNodeMibConfigPkt)(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload);
     BPLib_Status_t (*BPA_TLMP_SendPerSourceMibConfigPkt)(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload);
