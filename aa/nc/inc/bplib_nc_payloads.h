@@ -317,23 +317,23 @@ typedef struct
     /**
      * The SrcEID field is the EID pattern.
      * The EIDPattern field was a string value of "ipn" or "dtn". It is now
-     * the BPLib_EID_Scheme_t enum in BPLib_EID_PatternMatch_t.
+     * the BPLib_EID_Scheme_t enum in BPLib_EID_Pattern_t.
      */
-    BPLib_EID_PatternMatch_t SrcEIDs[BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS];
-    uint32_t    ParamSetMaxLifetime;
-    uint32_t    ParamSetMaxBSRGenerationRate;
-    uint32_t    ParamSetMaxCBRGenerationRate;
-    uint8_t     BundleSetBehaviorReceivedBSRGenerate;
-    uint8_t     BundleSetBehaviorAcceptedBSRGenerate;
-    uint8_t     BundleSetBehaviorForwardedBSRGenerate;
-    uint8_t     BundleSetBehaviorDeliveredBSRGenerate;
-    uint8_t     BundleSetBehaviorDeletedBSRGenerate;
-    uint8_t     BundleSetBehaviorReceivedCBRGenerate;
-    uint8_t     BundleSetBehaviorAcceptedCBRGenerate;
-    uint8_t     BundleSetBehaviorForwardedCBRGenerate;
-    uint8_t     BundleSetBehaviorDeliveredCBRGenerate;
-    uint8_t     BundleSetBehaviorDeletedCBRGenerate;  
-    uint16_t    Spare;
+    BPLib_EID_Pattern_t SrcEIDs[BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS];
+    uint32_t            ParamSetMaxLifetime;
+    uint32_t            ParamSetMaxBSRGenerationRate;
+    uint32_t            ParamSetMaxCBRGenerationRate;
+    uint8_t             BundleSetBehaviorReceivedBSRGenerate;
+    uint8_t             BundleSetBehaviorAcceptedBSRGenerate;
+    uint8_t             BundleSetBehaviorForwardedBSRGenerate;
+    uint8_t             BundleSetBehaviorDeliveredBSRGenerate;
+    uint8_t             BundleSetBehaviorDeletedBSRGenerate;
+    uint8_t             BundleSetBehaviorReceivedCBRGenerate;
+    uint8_t             BundleSetBehaviorAcceptedCBRGenerate;
+    uint8_t             BundleSetBehaviorForwardedCBRGenerate;
+    uint8_t             BundleSetBehaviorDeliveredCBRGenerate;
+    uint8_t             BundleSetBehaviorDeletedCBRGenerate;  
+    uint16_t            Spare;
 } BPLib_NC_MIBConfigPSSet_t;
 
 typedef struct

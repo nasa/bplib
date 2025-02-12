@@ -62,9 +62,9 @@ typedef struct
 
 typedef struct
 {
-    uint32_t                 ContactID;
-    BPLib_EID_PatternMatch_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];
-    CLAType_t                CLAType;
+    uint32_t            ContactID;
+    BPLib_EID_Pattern_t DestEIDs[BPLIB_MAX_CONTACT_DEST_EIDS];
+    CLAType_t           CLAType;
      /**
       * CLAddr uses BPLIB_MAX_EID_LENGTH, but initialization in
       * pnode_contact_tbl.c is
