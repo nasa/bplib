@@ -268,10 +268,6 @@ void BPLib_QM_ScanCache(BPLib_Instance_t* inst, size_t max_num_bundles_to_scan)
         {
             if (QueuedBundle != NULL)
             {
-                /*
-                ** TODO: WARNING: we seem to be hitting a seg fault right around here
-                */
-
                 printf("BPLib_QM_ScanCache found bundle with Dest EID: \"ipn:%lu.%lu\".\n",
                     QueuedBundle->blocks.pri_blk.dest_eid.node_number,
                     QueuedBundle->blocks.pri_blk.dest_eid.service_number);
@@ -301,7 +297,6 @@ void BPLib_QM_ScanCache(BPLib_Instance_t* inst, size_t max_num_bundles_to_scan)
         }
         else
         {
-            printf("BPLib_QM_ScanCache found no bundles in BundleCacheList.\n");
             break;
         }
         BundlesScheduled++;
