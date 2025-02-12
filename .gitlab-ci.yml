@@ -67,6 +67,15 @@ build-release-job:
   stage: build-release
   script:
    - git status
+   # Clone and build QCBOR
+   - git clone https://github.com/laurencelundblade/QCBOR.git
+   - cd QCBOR
+   - cmake -S . -B build-folder
+   - cmake --build build-folder
+   - make install
+   - cp bplib/qcbor.pc /usr/local/lib/pkgconfig/
+   - echo "QCBOR version="`pkg-config --modversion qcbor`
+   - cd ..
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
    - cd osal/
