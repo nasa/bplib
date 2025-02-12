@@ -61,6 +61,12 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         mem_init = false;
     }
 
+    inst->BundleCacheListMem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
+    if (inst->BundleCacheListMem == NULL)
+    {
+        mem_init = false;
+    }
+
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         inst->ChannelEgressMem[i] = calloc(max_jobs * BPLIB_MAX_NUM_CHANNELS, sizeof(BPLib_Bundle_t *));
@@ -75,6 +81,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
+        free(inst->BundleCacheListMem);
 
         for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
         {
@@ -98,6 +105,10 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     {
         queue_init = false;
     }
+    if (!BPLib_QM_WaitQueueInit(&(inst->BundleCacheList), inst->BundleCacheListMem, sizeof(BPLib_Bundle_t*), max_jobs))
+    {
+        queue_init = false;
+    }
 
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
@@ -112,6 +123,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
+        free(inst->BundleCacheListMem);
 
         for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
         {
@@ -136,9 +148,11 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
     BPLib_QM_WaitQueueDestroy(&(inst->GenericWorkerJobs));
     BPLib_QM_WaitQueueDestroy(&(inst->UnsortedJobs));
     BPLib_QM_WaitQueueDestroy(&(inst->ContactEgressJobs));
+    BPLib_QM_WaitQueueDestroy(&(inst->BundleCacheList));
     free(inst->job_mem);
     free(inst->unsorted_job_mem);
     free(inst->contact_egress_mem);
+    free(inst->BundleCacheListMem);
 
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
@@ -236,5 +250,60 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
         {
             break;
         }
+    }
+}
+
+
+void BPLib_QM_ScanCache(BPLib_Instance_t* inst, size_t max_num_bundles_to_scan)
+{
+    size_t BundlesScheduled = 0;
+    BPLib_Bundle_t *QueuedBundle;
+    BPLib_QM_JobState_t NextJobState = NO_NEXT_STATE;
+    BPLib_Status_t PushUnsortedJobStatus;
+
+    while (BundlesScheduled < max_num_bundles_to_scan)
+    {
+        QueuedBundle = NULL;
+        if (BPLib_QM_WaitQueueTryPull(&(inst->BundleCacheList), &QueuedBundle, BPLIB_QM_JOBWAIT_TIMEOUT))
+        {
+            if (QueuedBundle != NULL)
+            {
+                /*
+                ** TODO: WARNING: we seem to be hitting a seg fault right around here
+                */
+
+                printf("BPLib_QM_ScanCache found bundle with Dest EID: \"ipn:%lu.%lu\".\n",
+                    QueuedBundle->blocks.pri_blk.dest_eid.node_number,
+                    QueuedBundle->blocks.pri_blk.dest_eid.service_number);
+
+                /* Another hacky attempt at routing just to prove concept, FIX ME */
+                if (QueuedBundle->blocks.pri_blk.dest_eid.node_number == 200)
+                {
+                    NextJobState = CONTACT_OUT_STOR_TO_CT;
+                }
+                else
+                {
+                    NextJobState = CHANNEL_OUT_STOR_TO_CT;
+                }
+
+                PushUnsortedJobStatus = BPLib_QM_AddUnsortedJob(inst, QueuedBundle, NextJobState,
+                                                                QM_PRI_NORMAL, QM_WAIT_FOREVER);
+                if (PushUnsortedJobStatus != BPLIB_SUCCESS)
+                {
+                    printf("BPLib_QM_ScanCache call to BPLib_QM_AddUnsortedJob returned error %d.\n",
+                        PushUnsortedJobStatus);
+                }
+            }
+            else
+            {
+                printf("BPLib_QM_ScanCache found null bundle in BundleCacheList.\n");
+            }
+        }
+        else
+        {
+            printf("BPLib_QM_ScanCache found no bundles in BundleCacheList.\n");
+            break;
+        }
+        BundlesScheduled++;
     }
 }

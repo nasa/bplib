@@ -81,6 +81,8 @@ typedef struct BPLib_Instance
     BPLib_QM_WaitQueue_t UnsortedJobs; /**< Queue of unsorted jobs */
     void* contact_egress_mem; /**< Memory for contact egress jobs */
     BPLib_QM_WaitQueue_t ContactEgressJobs; /**< Queue of contact egress jobs */
+    void* BundleCacheListMem; /**< Memory for bundle cache */
+    BPLib_QM_WaitQueue_t BundleCacheList; /**< Queue of bundles in cache */
     void* ChannelEgressMem[BPLIB_MAX_NUM_CHANNELS];   /**< Memory for channel egress jobs */
     BPLib_QM_WaitQueue_t ChannelEgressJobs[BPLIB_MAX_NUM_CHANNELS]; /**< Queue of channel egress jobs */
     
@@ -153,6 +155,17 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst);
  * @param[in] num_jobs The number of jobs to be sorted.
  */
 void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs);
+
+
+/**
+ * @brief Check the bundle cache fifo for available bundles
+ * 
+ * This function pulls from Bundle Cache and pushes them to the unsorted job queue
+ * 
+ * @param[in] inst The instance containing the jobs to be sorted.
+ * @param[in] max_num_bundles_to_scan The number of bundles to pull from storage
+ */
+void BPLib_QM_ScanCache(BPLib_Instance_t* inst, size_t max_num_bundles_to_scan);
 
 /**
  * @brief Executes a single job in the Queue Manager.
