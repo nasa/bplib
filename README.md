@@ -6,10 +6,10 @@
 [4. Application Programming Interface](#4-application-programming-interface)  
 [5. Storage Service](#5-storage-service)  
 
-[Note #1 - Bundle Protocol Version 6](doc/bpv6_notes.md)  
-[Note #2 - Library Development Guidelines](doc/dev_notes.md)  
-[Note #3 - Configuration Parameter Trades](doc/parm_notes.md)  
-[Note #4 - Bundle Flow Analysis for Intermittent Communication](doc/perf_analysis_ic.md)
+[Note #1 - Bundle Protocol Version 6](docs/bpv6_notes.md)  
+[Note #2 - Library Development Guidelines](docs/dev_notes.md)  
+[Note #3 - Configuration Parameter Trades](docs/parm_notes.md)  
+[Note #4 - Bundle Flow Analysis for Intermittent Communication](docs/perf_analysis_ic.md)
 
 ----------------------------------------------------------------------
 ## 1. Overview
@@ -54,11 +54,7 @@ The versions used may change. The versions as of the last update of this documen
 - pkg-config 0.29.1
 - gcc  (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
 
-2. Install tinycbor 0.6.0 if it is not already installed.
-- Check if tinycbor is installed with `pkg-config --modversion tinycbor`
-- See https://github.com/intel/tinycbor.
-
-3. Install QCBOR 1.4 if it is not already installed.
+2. Install QCBOR 1.4 if it is not already installed.
 - Check if QCBOR is installed with `pkg-config --modversion qcbor`
 - git clone https://github.com/laurencelundblade/QCBOR.git
 - cd QCBOR
@@ -69,7 +65,7 @@ The versions used may change. The versions as of the last update of this documen
 - sudo cp bplib/qcbor.pc /usr/local/lib/pkgconfig/
 
 #### Build bplib with cFS
-4. Clone, init, and update cFS and all required submodules. Then clone bp and bplib to the cFS local repository.
+3. Clone, init, and update cFS and all required submodules. Then clone bp and bplib to the cFS local repository.
 
 ```
    cd <chosen working directory>
@@ -82,7 +78,7 @@ The versions used may change. The versions as of the last update of this documen
    git clone https://github.com/nasa/bplib "${CFS_HOME}"/cfs-bundle/libs/bplib
 ```
 
-5. Setup OSAL.
+4. Setup OSAL.
 
 Define the OSAL definitions for CMake.
 Run CMake for OSAL.
@@ -100,7 +96,7 @@ Run Make for OSAL with the destination directory `./osal-staging`.
    make DESTDIR="${CFS_HOME}"/osal-staging install
 ```
 
-6. Build bplib and the test runners
+5. Build bplib and the test runners
 
 Note that the possible build folders are one of <Debug,Release>-<OSAL,POSIX> for the build type and operating system layer respectively.
 
@@ -129,7 +125,7 @@ Run CMake and make all to build bplib and the bplib tests.
 ```
 
 #### Example Test
-7. Test bplib
+6. Test bplib
 
 ```
    cd "${CFS_HOME}"/bplib-build-matrix-Debug-OSAL
