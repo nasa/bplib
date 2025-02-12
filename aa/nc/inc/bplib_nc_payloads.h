@@ -153,7 +153,7 @@ typedef struct
 
 typedef struct
 {
-    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
 } BPLib_AddMibArrayKey_Payload_t;
 
 typedef struct
@@ -266,7 +266,7 @@ typedef struct
 
 typedef struct
 {
-    BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_SOURCE_EID];
+    BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_MIB_SETS];
     uint32_t Spare2;
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */

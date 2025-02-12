@@ -133,7 +133,7 @@ BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t C
             Status = BPLIB_AS_UNKNOWN_NODE_CNTR;
         }
     }
-    else if (MibArrayIndex < BPLIB_MAX_NUM_SOURCE_EID)
+    else if (MibArrayIndex < BPLIB_MAX_NUM_MIB_SETS)
     {
         if (Counter < BPLIB_AS_NUM_SOURCE_CNTRS)
         { // Counter is within range
@@ -165,7 +165,7 @@ BPLib_Status_t BPLib_AS_ResetSourceCounters(uint8_t MibArrayIndex)
     /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;
 
-    if (MibArrayIndex < BPLIB_MAX_NUM_SOURCE_EID)
+    if (MibArrayIndex < BPLIB_MAX_NUM_MIB_SETS)
     {
         /* Prevent modification of counters from other tasks while modifying them */
         BPLib_AS_LockCounters();
@@ -276,7 +276,7 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(uint8_t MibArrayIndex)
     /* Default to BPLIB_SUCCESS */
     Status = BPLIB_SUCCESS;
 
-    if (MibArrayIndex < BPLIB_MAX_NUM_SOURCE_EID)
+    if (MibArrayIndex < BPLIB_MAX_NUM_MIB_SETS)
     { /* Valid MIB source counter array index */
         /* Prevent modification of counters from other tasks while modifying them */
         BPLib_AS_LockCounters();
@@ -346,7 +346,7 @@ void BPLib_AS_ResetAllCounters(void)
     memset((void*) BPLib_AS_NodeCountersPayload.NodeCounters, 0,
             sizeof(uint32_t) * BPLIB_AS_NUM_NODE_CNTRS);
 
-    for (SourceCtrl = 0; SourceCtrl < BPLIB_MAX_NUM_SOURCE_EID; SourceCtrl++)
+    for (SourceCtrl = 0; SourceCtrl < BPLIB_MAX_NUM_MIB_SETS; SourceCtrl++)
     {
         memset((void*) BPLib_AS_SourceCountersPayload.MibArray[SourceCtrl].SourceCounters, 0,
                 sizeof(uint32_t) * BPLIB_AS_NUM_SOURCE_CNTRS);
@@ -399,16 +399,16 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
     Status       = BPLIB_SUCCESS;
     NumKeysGiven = 0;
 
-    for (InputIndex = 0; InputIndex < BPLIB_MAX_MIB_ARRAY_KEYS; InputIndex++)
+    for (InputIndex = 0; InputIndex < BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET; InputIndex++)
     { /* Loop through each given pattern */
         InputPattern = EID_Patterns[InputIndex];
         if (BPLib_EID_PatternIsValid(InputPattern))
         { /* Given pattern is valid, see if it can be added to the MIB array */
             if (InputPattern.Scheme != BPLIB_EID_SCHEME_RESERVED)
             { /* The key provided has values */
-                for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
+                for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_MIB_SETS; MibIndex++)
                 { /* Loop through every entry in the MIB key array */
-                    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+                    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET; PatternIndex++)
                     { /* Loop through every pattern in the MIB key array entry */
                         CurrPattern = BPLib_AS_SourceCountersPayload.MibArray[MibIndex].EidPatterns[PatternIndex];
 
@@ -482,9 +482,9 @@ BPLib_Status_t BPLib_AS_AddMibArrayKey(const BPLib_EID_Pattern_t* EID_Patterns)
             /* Default to failure to save on extra logic */
             Status = BPLIB_AS_MIB_KEY_ARRAY_FULL;
 
-            for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_SOURCE_EID; MibIndex++)
+            for (MibIndex = 0; MibIndex < BPLIB_MAX_NUM_MIB_SETS; MibIndex++)
             { /* Loop through every MIB array key entry */
-                if ((BPLIB_MAX_MIB_ARRAY_KEYS - BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys) >= NumKeysGiven)
+                if ((BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET - BPLib_AS_SourceCountersPayload.MibArray[MibIndex].ActiveKeys) >= NumKeysGiven)
                 { /* Space is available for the given key(s) to be  added */
                     for (PatternIndex = 0; PatternIndex < NumKeysGiven; PatternIndex++)
                     { /* Loop through input keys and add to MIB key array */

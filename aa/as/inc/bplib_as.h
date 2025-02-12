@@ -37,9 +37,9 @@
 /* Macros */
 /* ====== */
 
-#define BPLIB_AS_NUM_NODE_CNTRS      (79u)                      /** \brief Number of node counters (also total number of counters) */
-#define BPLIB_AS_NUM_SOURCE_CNTRS    (56u)                      /** \brief Number of source counters */
-#define BPLIB_AS_NODE_CNTR_INDICATOR (BPLIB_MAX_NUM_SOURCE_EID) /** \brief Indicates to the reset counter command that  */
+#define BPLIB_AS_NUM_NODE_CNTRS      (79u)                    /** \brief Number of node counters (also total number of counters) */
+#define BPLIB_AS_NUM_SOURCE_CNTRS    (56u)                    /** \brief Number of source counters */
+#define BPLIB_AS_NODE_CNTR_INDICATOR (BPLIB_MAX_NUM_MIB_SETS) /** \brief Indicates to the reset counter command that  */
 
 /* ======= */
 /* Typdefs */
@@ -163,7 +163,7 @@ typedef struct
       * \brief Source EID patters this telemetry corresponds to
       * \ref BPLib_EID_Pattern_t
       */
-    BPLib_EID_Pattern_t EidPatterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    BPLib_EID_Pattern_t EidPatterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
 
     uint8_t ActiveKeys; /** \brief Indicates how many keys are active in EidPatterns */
 
@@ -184,7 +184,7 @@ typedef struct
   */
 typedef struct
 {
-    BPLib_SourceMibCounters_t MibArray[BPLIB_MAX_NUM_SOURCE_EID]; /** \brief Counters for each source */
+    BPLib_SourceMibCounters_t MibArray[BPLIB_MAX_NUM_MIB_SETS]; /** \brief Counters for each source */
 
     uint32_t Spare2;
     uint32_t TimeBootEra;                   /** \brief Boot Era for Monotonic Time */

@@ -310,7 +310,7 @@ void Test_BPLib_AS_ResetCounter_InvalidIndex_Error(void)
     BPLib_Status_t Status;
 
     /* Set values to test against */
-    SourceEid = BPLIB_MAX_NUM_SOURCE_EID + 1;
+    SourceEid = BPLIB_MAX_NUM_MIB_SETS + 1;
     TestValue = 1;
 
     BPLib_AS_NodeCountersPayload.NodeCounters[BUNDLE_COUNT_DELETED] = TestValue;
@@ -531,13 +531,13 @@ void Test_BPLib_AS_SendSourceMibCountersHk_Nominal(void)
 void Test_BPLib_AS_AddMibArrayKey_Nominal(void)
 {
     BPLib_Status_t Status;
-    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
     uint64_t MaxVal;
     uint64_t MinVal;
 
     MaxVal = 100;
     MinVal = 90;
-    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_MIB_ARRAY_KEYS);
+    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET);
 
     /* Verify that the function gets past the valid pattern check */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
@@ -621,13 +621,13 @@ void Test_BPLib_AS_AddMibArrayKey_Nominal(void)
 void Test_BPLib_AS_AddMibArrayKey_AllocatorOverlap_Error(void)
 {
     BPLib_Status_t Status;
-    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
     uint64_t MaxVal;
     uint64_t MinVal;
 
     MaxVal = 10;
     MinVal = 1;
-    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_MIB_ARRAY_KEYS);
+    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET);
 
     /* Verify that the function gets past the valid pattern check */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
@@ -734,13 +734,13 @@ void Test_BPLib_AS_AddMibArrayKey_AllocatorOverlap_Error(void)
 void Test_BPLib_AS_AddMibArrayKey_NodeOverlap_Error(void)
 {
     BPLib_Status_t Status;
-    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
     uint64_t MaxVal;
     uint64_t MinVal;
 
     MaxVal = 20;
     MinVal = 11;
-    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_MIB_ARRAY_KEYS);
+    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET);
 
     /* Verify that the function gets past the valid pattern check */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
@@ -847,13 +847,13 @@ void Test_BPLib_AS_AddMibArrayKey_NodeOverlap_Error(void)
 void Test_BPLib_AS_AddMibArrayKey_ServiceOverlap_Error(void)
 {
     BPLib_Status_t Status;
-    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
     uint64_t MaxVal;
     uint64_t MinVal;
 
     MaxVal = 30;
     MinVal = 21;
-    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_MIB_ARRAY_KEYS);
+    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET);
 
     /* Verify that the function gets past the valid pattern check */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
@@ -961,9 +961,9 @@ void Test_BPLib_AS_AddMibArrayKey_InvalidEID_Error(void)
 {
     BPLib_Status_t Status;
     uint8_t PatternIndex;
-    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
 
-    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_MIB_ARRAY_KEYS);
+    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET);
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), false);
 
@@ -983,7 +983,7 @@ void Test_BPLib_AS_AddMibArrayKey_InvalidEID_Error(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_INVALID_EID_PATTERN);
 
     /* Show that the keys were not copied into the MIB array */
-    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET; PatternIndex++)
     {
         UtAssert_EQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme,       0);
         UtAssert_EQ(uint64_t, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat, 0);
@@ -1007,17 +1007,17 @@ void Test_BPLib_AS_AddMibArrayKey_FullArray_Error(void)
 {
     BPLib_Status_t Status;
     uint8_t PatternIndex;
-    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
 
-    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_MIB_ARRAY_KEYS);
+    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET);
 
     /* Verify that the function gets past the valid pattern check */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
 
     /* Indicate that all keys are in use */
-    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_NUM_SOURCE_EID; PatternIndex++)
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_NUM_MIB_SETS; PatternIndex++)
     {
-        BPLib_AS_SourceCountersPayload.MibArray[PatternIndex].ActiveKeys = BPLIB_MAX_MIB_ARRAY_KEYS;
+        BPLib_AS_SourceCountersPayload.MibArray[PatternIndex].ActiveKeys = BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET;
     }
 
     /* Have something that you attempt to write to the array */
@@ -1037,7 +1037,7 @@ void Test_BPLib_AS_AddMibArrayKey_FullArray_Error(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_MIB_KEY_ARRAY_FULL);
 
     /* Show that the keys were not copied into the MIB array */
-    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET; PatternIndex++)
     {
         UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme);
         UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat);
@@ -1058,9 +1058,9 @@ void Test_BPLib_AS_AddMibArrayKey_NoKeysGiven_Error(void)
 {
     BPLib_Status_t Status;
     uint8_t PatternIndex;
-    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_MIB_ARRAY_KEYS];
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
 
-    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_MIB_ARRAY_KEYS);
+    memset((void*) EID_Patterns, 0, sizeof(BPLib_EID_Pattern_t) * BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET);
 
     /* Verify that the function gets past the valid pattern check */
     UT_SetDefaultReturnValue(UT_KEY(BPLib_EID_PatternIsValid), true);
@@ -1072,7 +1072,7 @@ void Test_BPLib_AS_AddMibArrayKey_NoKeysGiven_Error(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_AS_NO_KEYS_GIVEN);
 
     /* Show that the keys were not copied into the MIB array */
-    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_MIB_ARRAY_KEYS; PatternIndex++)
+    for (PatternIndex = 0; PatternIndex < BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET; PatternIndex++)
     {
         UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].Scheme);
         UtAssert_EQ(uint64_t, 0, BPLib_AS_SourceCountersPayload.MibArray[0].EidPatterns[PatternIndex].IpnSspFormat);
