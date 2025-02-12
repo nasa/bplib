@@ -113,6 +113,10 @@ foreach(COMPONENT ${BPLIB_COMPONENTS})
 
 endforeach()
 
+# Add the QCBOR library
+add_library(QCBOR UNKNOWN IMPORTED)
+set_target_properties(QCBOR PROPERTIES IMPORTED_LOCATION "QCBOR/libqcbor.a")
+
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
 # this allows simply dropping this module into a CFS project
 if (IS_CFS_ARCH_BUILD)
@@ -134,9 +138,9 @@ else()
   # this should preferably be in OS subdirectory, but it needs to be done
   # at the bplib target which is created here.
   if (BPLIB_OS_LAYER STREQUAL OSAL)
-    target_link_libraries(bplib osal)
+    target_link_libraries(bplib osal QCBOR)
   elseif(BPLIB_OS_LAYER STREQUAL POSIX)
-    target_link_libraries(bplib rt pthread)
+    target_link_libraries(bplib rt pthread QCBOR)
   endif()
 
   # Install and also export this library, so it can be found via

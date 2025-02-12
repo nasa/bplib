@@ -30,6 +30,7 @@ variables:
   BPLIB_DEBUG_BUILD: bplib-build-matrix-Debug-OSAL/
   BPLIB_DOC_BUILD: bplib-build-matrix-Doc/
   CMAKE_BPLIB_DOC_DEFS: "-DCMAKE_BUILD_TYPE=Debug -DBPLIB_OS_LAYER=NONE"
+  CMAKE_QCBOR_DEFS: "-DQCBOR_INCLUDE_DIRS=bplib/QCBOR/lib/inc -DQCBOR_LDFLAGS='bplib/QCBOR/libqcbor.a -lm'"
 
 stages:          # List of stages for jobs, and their order of execution
   - build-release
@@ -83,7 +84,7 @@ build-release-job:
    - make DESTDIR=../osal-staging install
    # Build bplib with osal
    - cd ..
-   - cmake $CMAKE_BPLIB_RELEASE_DEFS -B "${BPLIB_RELEASE_BUILD}"
+   - cmake $CMAKE_BPLIB_RELEASE_DEFS "${CMAKE_QCBOR_DEFS}" -B "${BPLIB_RELEASE_BUILD}"
    - cd "${BPLIB_RELEASE_BUILD}"
    - make all
    # Run unit tests

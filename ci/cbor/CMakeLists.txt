@@ -12,6 +12,7 @@ add_library(bplib_cbor OBJECT
 
 target_include_directories(bplib_cbor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
+    ${QCBOR_INCLUDE_DIRS}
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
