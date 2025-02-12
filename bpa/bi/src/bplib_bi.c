@@ -68,9 +68,9 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     curr_block->chunk_len = sizeof(BPLib_Bundle_t);
 
     bundle = (BPLib_Bundle_t *)((void *)&curr_block->chunk);
-    // hand-jam these for now, since we're now deserializing the real bundle (yet)
+    /* hand-jam these for now, since we're now deserializing the real bundle (yet) */
     bundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
-    bundle->blocks.pri_blk.dest_eid.node_number = 200; // this will route it back to the CLA egress, after cache
+    bundle->blocks.pri_blk.dest_eid.node_number = 200; /* this will route it back to the CLA egress, after cache */
     bundle->blocks.pri_blk.dest_eid.service_number = 0xcafe;
 
     /* Blob */

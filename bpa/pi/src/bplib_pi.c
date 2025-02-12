@@ -92,6 +92,9 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     /* TODO fully fill out primary block fields */
     NewBundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
+    /* this will route it back to the channel egress, after cache */
+    NewBundle->blocks.pri_blk.dest_eid.node_number = 100;
+
     /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
     if (ChanId == 0)
     {
