@@ -73,11 +73,28 @@ typedef struct
 
 } BPLib_FWP_ProxyCallbacks_t;
 
+typedef struct
+{
+    BPA_ADUP_Table_t*            AduTblPtr;
+    BPLib_PI_ChannelTable_t*     ChanTblPtr;
+    BPLib_CLA_ContactsTable_t*   ContactsTblPtr;
+    BPLib_ARP_CRSTable_t*        CrsTblPtr;
+    BPLib_PDB_CustodianTable_t*  CustodianTblPtr;
+    BPLib_PDB_CustodyTable_t*    CustodyTblPtr;
+    BPLib_NC_MIBConfigPNTable_t* MibPnTblPtr;
+    BPLib_NC_MIBConfigPSTable_t* MibPsTblPtr;
+    BPLib_PDB_ReportToTable_t*   ReportTblPtr;
+    BPLib_PDB_SrcAuthTable_t*    AuthTblPtr;
+    BPLib_PDB_SrcLatencyTable_t* LatTblPtr;
+    BPLib_STOR_StorageTable_t*   StorTblPtr;
+} BPLib_FWP_ConfigPtrs_t;
+
 /*
 ** Global Data
 */
 
 extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
+extern BPLib_FWP_ConfigPtrs_t BPLib_FWP_ConfigPtrs;
 
 /*
 ** Exported Functions

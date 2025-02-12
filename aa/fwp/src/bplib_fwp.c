@@ -30,7 +30,7 @@
 */
 
 BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
-
+BPLib_FWP_ConfigPtrs_t BPLib_FWP_ConfigPtrs;
 
 /*
 ** Function Definitions
@@ -96,6 +96,20 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         
         /* Initialize other proxies' callbacks TODO */
     }
+
+    /* Capture configuration pointers in the global configuration struct */
+    BPLib_FWP_ConfigPtrs.AduTblPtr       = BPNode_AppData.TblNameParamsArr[0].TablePtr;
+    BPLib_FWP_ConfigPtrs.ChanTblPtr      = BPNode_AppData.TblNameParamsArr[1].TablePtr;
+    BPLib_FWP_ConfigPtrs.ContactsTblPtr  = BPNode_AppData.TblNameParamsArr[2].TablePtr;
+    BPLib_FWP_ConfigPtrs.CrsTblPtr       = BPNode_AppData.TblNameParamsArr[3].TablePtr;
+    BPLib_FWP_ConfigPtrs.CustodianTblPtr = BPNode_AppData.TblNameParamsArr[4].TablePtr;
+    BPLib_FWP_ConfigPtrs.CustodyTblPtr   = BPNode_AppData.TblNameParamsArr[5].TablePtr;
+    BPLib_FWP_ConfigPtrs.MibPnTblPtr     = BPNode_AppData.TblNameParamsArr[6].TablePtr;
+    BPLib_FWP_ConfigPtrs.MibPsTblPtr     = BPNode_AppData.TblNameParamsArr[7].TablePtr;
+    BPLib_FWP_ConfigPtrs.ReportTblPtr    = BPNode_AppData.TblNameParamsArr[8].TablePtr;
+    BPLib_FWP_ConfigPtrs.AuthTblPtr      = BPNode_AppData.TblNameParamsArr[9].TablePtr;
+    BPLib_FWP_ConfigPtrs.LatTblPtr       = BPNode_AppData.TblNameParamsArr[10].TablePtr;
+    BPLib_FWP_ConfigPtrs.StorTblPtr      = BPNode_AppData.TblNameParamsArr[11].TablePtr;
 
     return BPLIB_SUCCESS;
 }
