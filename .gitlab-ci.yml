@@ -102,6 +102,14 @@ build-debug-job:
   stage: build-debug
   script:
    - git status
+   # Clone and build QCBOR
+   - git clone https://github.com/laurencelundblade/QCBOR.git
+   - cd QCBOR
+   - cmake -S . -B build-folder
+   - cmake --build build-folder
+   # Install QCBOR in bplib/QCBOR/lib
+   - make install PREFIX=lib
+   - cd ..
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
    - cd osal/
@@ -110,7 +118,7 @@ build-debug-job:
    - make DESTDIR=../osal-staging install
    # Build bplib with osal
    - cd ..
-   - cmake $CMAKE_BPLIB_DEBUG_DEFS -B "${BPLIB_DEBUG_BUILD}"
+   - cmake $CMAKE_BPLIB_DEBUG_DEFS "${CMAKE_QCBOR_DEFS}" -B "${BPLIB_DEBUG_BUILD}"
    - cd "${BPLIB_DEBUG_BUILD}"
    - make all
    # Run unit tests
