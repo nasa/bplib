@@ -120,7 +120,7 @@ if (IS_CFS_ARCH_BUILD)
   # Create the app module using the CFE/OSAL adapter layer
   # Note this ignores the setting of BPLIB_INCLUDE_POSIX, as OSAL provides this service
   # The CFE build system determines whether to create a shared or static object inside this routine
-  add_cfe_app(bplib ${BPLIB_SRC})
+  add_cfe_app(bplib ${BPLIB_SRC} ${CMAKE_SOURCE_DIR}/QCBOR/libqcbor.a)
 
 else()
 
@@ -134,9 +134,9 @@ else()
   # this should preferably be in OS subdirectory, but it needs to be done
   # at the bplib target which is created here.
   if (BPLIB_OS_LAYER STREQUAL OSAL)
-    target_link_libraries(bplib osal)
+    target_link_libraries(bplib osal ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a)
   elseif(BPLIB_OS_LAYER STREQUAL POSIX)
-    target_link_libraries(bplib rt pthread)
+    target_link_libraries(bplib rt pthread ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a)
   endif()
 
   # Install and also export this library, so it can be found via
