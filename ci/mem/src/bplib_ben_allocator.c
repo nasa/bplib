@@ -58,9 +58,6 @@ static MemIndex_t IndexFromAddr(BPLib_MEM_PoolImpl_t* pool, const void* p)
 BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, void* init_mem,
     size_t mem_len, size_t block_size)
 {
-    size_t unaligned_bytes;
-    void* aligned_init_mem;
-
     /* NULL Checks */
     if (pool == NULL || init_mem == NULL)
     {
@@ -84,25 +81,17 @@ BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, void* init_mem
     /* Before allowing this initialization to succeed, we need to be sure init_mem
     ** begins on an alignment boundary. If the user called malloc() to obtain init_mem,
     ** this should be guaranteed. Because this allocator doesn't know where init_mem
-    ** comes from, we need to forcibly ensure that we allocate the first block on the
-    ** strictest possible alignment boundary. Each subsequent block will also be on
-    ** that alignment boundary because we've ensured block_size is a multiple of the alignment.
+    ** comes from, we need to manually validate that it is on a strict alignment
+    ** If it isn't, casting to other data types from the memory returned by this pool
+    ** would be undefined behavior.
     */
-    aligned_init_mem = (void*)(((uintptr_t)(init_mem) + ((uintptr_t)BPLIB_BEN_ALLOC_LARGEST_ALIGNMENT - 1))
-        & ~((uintptr_t)BPLIB_BEN_ALLOC_LARGEST_ALIGNMENT - 1));
-    unaligned_bytes = (size_t)((uintptr_t)aligned_init_mem - (uintptr_t)init_mem);
-
-    /* Now that the start of useable memory is known, we need to make sure we
-    ** have the space to allocate at least one block.
-    */
-    if (mem_len < (unaligned_bytes + block_size))
+    if (((uintptr_t)(init_mem) % (uintptr_t)BPLIB_BEN_ALLOC_LARGEST_ALIGNMENT) != 0)
     {
-        return BPLIB_ERROR;
+        return BPLIB_MEM_INITMEM_UNALIGN;
     }
-    mem_len -= unaligned_bytes;
 
     memset(pool, 0, sizeof(BPLib_MEM_PoolImpl_t));
-    pool->mem_start = aligned_init_mem;
+    pool->mem_start = init_mem;
     pool->block_size = block_size;
     pool->num_blocks = mem_len / block_size;
     pool->mem_next = pool->mem_start;

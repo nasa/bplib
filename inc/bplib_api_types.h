@@ -131,8 +131,8 @@ typedef struct BPLib_IpnAddr
 /* Queue Manager (QM) Errors */
 #define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -33)
 
-
-
+/* MEM Errors */
+#define BPLIB_MEM_INITMEM_UNALIGN           ((BPLib_Status_t) -34)
 
 // TODO TIME Helpers
 
