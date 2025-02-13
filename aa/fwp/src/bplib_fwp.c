@@ -37,8 +37,8 @@ BPLib_FWP_ConfigPtrs_t BPLib_FWP_ConfigPtrs;
 */
 
 /* Initialize proxy callbacks */
-BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
-
+BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks)
+{
     if (Callbacks.BPA_TIMEP_GetMonotonicTime            == NULL ||
         Callbacks.BPA_TIMEP_GetHostEpoch                == NULL ||
         Callbacks.BPA_TIMEP_GetHostClockState           == NULL ||
@@ -64,14 +64,14 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
     else
     {
         /* Initialize Time Proxy callbacks */
-        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime = Callbacks.BPA_TIMEP_GetMonotonicTime;
-        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch = Callbacks.BPA_TIMEP_GetHostEpoch;
+        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetMonotonicTime  = Callbacks.BPA_TIMEP_GetMonotonicTime;
+        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostEpoch      = Callbacks.BPA_TIMEP_GetHostEpoch;
         BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState = Callbacks.BPA_TIMEP_GetHostClockState;
-        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime = Callbacks.BPA_TIMEP_GetHostTime;
+        BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostTime       = Callbacks.BPA_TIMEP_GetHostTime;
 
         /* Initialize PerfLog Proxy callbacks */
         BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Entry = Callbacks.BPA_PERFLOGP_Entry;
-        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit = Callbacks.BPA_PERFLOGP_Exit;
+        BPLib_FWP_ProxyCallbacks.BPA_PERFLOGP_Exit  = Callbacks.BPA_PERFLOGP_Exit;
 
         /* Initialize Table Proxy callbacks */
         BPLib_FWP_ProxyCallbacks.BPA_TABLEP_SingleTableUpdate = Callbacks.BPA_TABLEP_SingleTableUpdate;
@@ -87,29 +87,18 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks) {
         BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication = Callbacks.BPA_ADUP_RemoveApplication;
 
         /* Initialize Telemetry Proxy callbacks*/
-        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt          = Callbacks.BPA_TLMP_SendNodeMibConfigPkt;
-        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt     = Callbacks.BPA_TLMP_SendPerSourceMibConfigPkt;
-        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt         = Callbacks.BPA_TLMP_SendNodeMibCounterPkt;
-        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt    = Callbacks.BPA_TLMP_SendPerSourceMibCounterPkt;
-        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt         = Callbacks.BPA_TLMP_SendChannelContactPkt;
-        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt                = Callbacks.BPA_TLMP_SendStoragePkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt       = Callbacks.BPA_TLMP_SendNodeMibConfigPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt  = Callbacks.BPA_TLMP_SendPerSourceMibConfigPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = Callbacks.BPA_TLMP_SendNodeMibCounterPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = Callbacks.BPA_TLMP_SendPerSourceMibCounterPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = Callbacks.BPA_TLMP_SendChannelContactPkt;
+        BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt             = Callbacks.BPA_TLMP_SendStoragePkt;
 
         /* Initialize other proxies' callbacks TODO */
     }
 
     /* Capture configuration pointers in the global configuration struct */
-    BPLib_FWP_ConfigPtrs.AduTblPtr       = BPNode_AppData.TblNameParamsArr[0].TablePtr;
-    BPLib_FWP_ConfigPtrs.ChanTblPtr      = BPNode_AppData.TblNameParamsArr[1].TablePtr;
-    BPLib_FWP_ConfigPtrs.ContactsTblPtr  = BPNode_AppData.TblNameParamsArr[2].TablePtr;
-    BPLib_FWP_ConfigPtrs.CrsTblPtr       = BPNode_AppData.TblNameParamsArr[3].TablePtr;
-    BPLib_FWP_ConfigPtrs.CustodianTblPtr = BPNode_AppData.TblNameParamsArr[4].TablePtr;
-    BPLib_FWP_ConfigPtrs.CustodyTblPtr   = BPNode_AppData.TblNameParamsArr[5].TablePtr;
-    BPLib_FWP_ConfigPtrs.MibPnTblPtr     = BPNode_AppData.TblNameParamsArr[6].TablePtr;
-    BPLib_FWP_ConfigPtrs.MibPsTblPtr     = BPNode_AppData.TblNameParamsArr[7].TablePtr;
-    BPLib_FWP_ConfigPtrs.ReportTblPtr    = BPNode_AppData.TblNameParamsArr[8].TablePtr;
-    BPLib_FWP_ConfigPtrs.AuthTblPtr      = BPNode_AppData.TblNameParamsArr[9].TablePtr;
-    BPLib_FWP_ConfigPtrs.LatTblPtr       = BPNode_AppData.TblNameParamsArr[10].TablePtr;
-    BPLib_FWP_ConfigPtrs.StorTblPtr      = BPNode_AppData.TblNameParamsArr[11].TablePtr;
+    /* TODO: Call BPLib_NC_TableUpdate() for each table */
 
     return BPLIB_SUCCESS;
 }

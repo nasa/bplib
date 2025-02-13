@@ -75,7 +75,6 @@ typedef struct
 
 typedef struct
 {
-    BPA_ADUP_Table_t*            AduTblPtr;
     BPLib_PI_ChannelTable_t*     ChanTblPtr;
     BPLib_CLA_ContactsTable_t*   ContactsTblPtr;
     BPLib_ARP_CRSTable_t*        CrsTblPtr;
