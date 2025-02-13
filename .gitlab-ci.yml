@@ -69,6 +69,7 @@ build-release-job:
   script:
    - git status
    # Clone and build QCBOR
+   - rm -rf QCBOR
    - git clone https://github.com/laurencelundblade/QCBOR.git
    - cd QCBOR
    - cmake -S . -B build-folder
@@ -103,6 +104,7 @@ build-debug-job:
   script:
    - git status
    # Clone and build QCBOR
+   - rm -rf QCBOR
    - git clone https://github.com/laurencelundblade/QCBOR.git
    - cd QCBOR
    - cmake -S . -B build-folder
