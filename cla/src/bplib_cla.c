@@ -61,55 +61,32 @@ BPLib_Status_t BPLib_CLA_Ingress(BPLib_Instance_t* Inst, uint8_t ContId, const v
         */
         return BPLib_BI_RecvFullBundleIn(Inst, Bundle, Size);
     }
- 
 }
 
 /* BPLib_CLA_Egress - Receive bundles from BI and send bundles out to CL */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *Bundle, 
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t* Inst, uint8_t ContId, void *BundleOut, 
                                 size_t *Size, size_t BufLen, uint32_t Timeout)
 {
     BPLib_Status_t     Status = BPLIB_SUCCESS;
-    BPLib_Bundle_t    *QueuedBundle;
-    BPLib_MEM_Block_t *CurrBlock;
-    size_t             BytesCopied;
+    BPLib_Bundle_t    *Bundle;
 
     /* Null checks */
-    if ((Inst == NULL) || (Bundle == NULL) || (Size == NULL))
+    if ((Inst == NULL) || (BundleOut == NULL) || (Size == NULL))
     {
         Status = BPLIB_NULL_PTR_ERROR;
     }
 
-    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs, &QueuedBundle, Timeout))
+    else if (BPLib_QM_WaitQueueTryPull(&Inst->ContactEgressJobs, &Bundle, Timeout))
     {
-        BytesCopied = 0;
-        CurrBlock = QueuedBundle->blob;
-
-        while (CurrBlock != NULL && Status == BPLIB_SUCCESS)
-        {
-            /* Error, trying to copy a bundle that's too big into a buffer that's too small */
-            if (BytesCopied + CurrBlock->chunk_len >= BufLen)
-            {
-                Status = BPLIB_BUF_LEN_ERROR;
-            }
-            else
-            {
-                memcpy((uint8_t *)Bundle + BytesCopied, CurrBlock->chunk, CurrBlock->chunk_len);
-
-                BytesCopied += CurrBlock->chunk_len;
-                CurrBlock = CurrBlock->next;
-            }
-        }
-
-        /* Free the bundle blocks */
-        BPLib_MEM_BlockListFree(&Inst->pool, QueuedBundle->blob);
-        BPLib_MEM_BlockFree(&Inst->pool, (BPLib_MEM_Block_t *) QueuedBundle);
-
+        /* Copy the bundle to the CLA buffer */
+        Status = BPLib_MEM_BlobCopyOut(Bundle, BundleOut, BufLen, Size);
         if (Status == BPLIB_SUCCESS)
         {
-            *Size = BytesCopied;
-
             printf("Egressing packet of %lu bytes to CLA #%d\n", *Size, ContId);
         }
+    
+        /* Free the bundle blocks */
+        BPLib_MEM_BundleFree(&Inst->pool, Bundle);
     }
     /* No packet was pulled, presumably queue is empty */
     else

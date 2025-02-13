@@ -29,6 +29,25 @@
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_MEM_BlobCopyOut()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_MEM_BlobCopyOut(BPLib_Bundle_t *bundle, void *out_buffer, size_t max_len, size_t *out_size)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_BlobCopyOut, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_MEM_BlobCopyOut, BPLib_Bundle_t *, bundle);
+    UT_GenStub_AddParam(BPLib_MEM_BlobCopyOut, void *, out_buffer);
+    UT_GenStub_AddParam(BPLib_MEM_BlobCopyOut, size_t, max_len);
+    UT_GenStub_AddParam(BPLib_MEM_BlobCopyOut, size_t *, out_size);
+
+    UT_GenStub_Execute(BPLib_MEM_BlobCopyOut, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_MEM_BlobCopyOut, BPLib_Status_t);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_MEM_BlockAlloc()
  * ----------------------------------------------------
  */
@@ -84,6 +103,37 @@ void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t *pool, BPLib_MEM_Block_t *head)
     UT_GenStub_AddParam(BPLib_MEM_BlockListFree, BPLib_MEM_Block_t *, head);
 
     UT_GenStub_Execute(BPLib_MEM_BlockListFree, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_MEM_BundleAlloc()
+ * ----------------------------------------------------
+ */
+BPLib_Bundle_t *BPLib_MEM_BundleAlloc(BPLib_MEM_Pool_t *pool, const void *blob_data, size_t data_len)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_MEM_BundleAlloc, BPLib_Bundle_t *);
+
+    UT_GenStub_AddParam(BPLib_MEM_BundleAlloc, BPLib_MEM_Pool_t *, pool);
+    UT_GenStub_AddParam(BPLib_MEM_BundleAlloc, const void *, blob_data);
+    UT_GenStub_AddParam(BPLib_MEM_BundleAlloc, size_t, data_len);
+
+    UT_GenStub_Execute(BPLib_MEM_BundleAlloc, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_MEM_BundleAlloc, BPLib_Bundle_t *);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_MEM_BundleFree()
+ * ----------------------------------------------------
+ */
+void BPLib_MEM_BundleFree(BPLib_MEM_Pool_t *pool, BPLib_Bundle_t *bundle)
+{
+    UT_GenStub_AddParam(BPLib_MEM_BundleFree, BPLib_MEM_Pool_t *, pool);
+    UT_GenStub_AddParam(BPLib_MEM_BundleFree, BPLib_Bundle_t *, bundle);
+
+    UT_GenStub_Execute(BPLib_MEM_BundleFree, Basic, NULL);
 }
 
 /*
