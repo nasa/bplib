@@ -52,11 +52,19 @@ target_include_directories(coverage-bplib_cbor-testrunner PRIVATE
     $<TARGET_PROPERTY:bplib_cbor,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(coverage-bplib_cbor-testrunner PUBLIC
-    ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a
-    ut_coverage_link
-    ut_assert
-)
+if (IS_CFS_ARCH_BUILD)
+    target_link_libraries(coverage-bplib_cbor-testrunner PUBLIC
+        ${CMAKE_SOURCE_DIR}/QCBOR/libqcbor.a
+        ut_coverage_link
+        ut_assert
+    )
+else()
+    target_link_libraries(coverage-bplib_cbor-testrunner PUBLIC
+        ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a
+        ut_coverage_link
+        ut_assert
+    )
+endif()
 
 add_test(coverage-bplib_cbor-testrunner coverage-bplib_cbor-testrunner)
 
