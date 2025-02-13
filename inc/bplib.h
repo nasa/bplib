@@ -45,6 +45,7 @@ extern "C" {
 #include "bplib_pdb.h"
 #include "bplib_qm.h"
 #include "bplib_mem.h"
+#include "bplib_cbor.h"
 
 #ifdef __cplusplus
 } // extern "C"
