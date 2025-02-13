@@ -38,66 +38,30 @@ int BPLib_BI_Init(void) {
 BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-    BPLib_MEM_Block_t* curr_block;
-    size_t n_copy, bytes_copied;
     BPLib_Bundle_t* bundle;
 
     if ((inst == NULL) || (BundleIn == NULL))
     {
-        return BPLIB_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* 
-     * CBOR Decode the bundle and return the deserialized bundle pointer 
-    */
-
-    /* Validate the deserialized bundle*/
-    Status = BPLib_BI_ValidateBundle();
-
-    /* Presently, there is no bundle deserialization. We're just going to create a faux bundle and attach BundleIn
-    ** as the Blob
-    */
-    /* Bundle Header */
-    curr_block = BPLib_MEM_BlockAlloc(&inst->pool);
-    if (curr_block == NULL)
+    /* Create the bundle from the incoming blob */
+    bundle = BPLib_MEM_BundleAlloc(&inst->pool, BundleIn, Size);
+    if (bundle == NULL)
     {
-        return BPLIB_ERROR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
-    memset(curr_block->chunk, 0, sizeof(BPLib_Bundle_t));
-    curr_block->chunk_len = sizeof(BPLib_Bundle_t);
-
-    bundle = (BPLib_Bundle_t *)((void *)&curr_block->chunk);
-    /* hand-jam these for now, since we're now deserializing the real bundle (yet) */
+    /* TODO: CBOR Decode the bundle and return the deserialized bundle pointer */
+    /* TODO: fully fill out primary block fields from decoded bundle */
     bundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
     bundle->blocks.pri_blk.dest_eid.node_number = 200; /* this will route it back to the CLA egress, after cache */
     bundle->blocks.pri_blk.dest_eid.service_number = 0xcafe;
 
-    /* Blob */
-    curr_block = BPLib_MEM_BlockListAlloc(&inst->pool, Size);
-    if (curr_block == NULL)
-    {
-        BPLib_MEM_BlockFree(&inst->pool, (BPLib_MEM_Block_t*)bundle);
-        return BPLIB_ERROR;
-    }
+    /* Validate the deserialized bundle (this does nothing right now) */
+    Status = BPLib_BI_ValidateBundle();
 
-    bytes_copied = 0;
-    bundle->blob = curr_block;
-    while (curr_block != NULL)
-    {
-        n_copy = BPLIB_MEM_CHUNKSIZE;
-        if (Size - bytes_copied < n_copy)
-        {
-            n_copy = Size - bytes_copied;
-        }
-        memcpy(curr_block->chunk, (uint8_t*)(BundleIn) + bytes_copied, n_copy);
-        curr_block->chunk_len = n_copy;
-
-        /* Go to the next block */
-        bytes_copied += n_copy;
-        curr_block = curr_block->next;
-    }
-    printf("Ingressing packet of %lu bytes from CLA\n", bytes_copied);
+    printf("Ingressing packet of %lu bytes from CLA\n", (unsigned long)Size);
 
     BPLib_QM_AddUnsortedJob(inst, bundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;

@@ -22,7 +22,6 @@
 #define BPLIB_QM_H
 
 #include "bplib_api_types.h"
-#include "bplib_bundle.h"
 #include "bplib_qm_waitqueue.h"
 #include "bplib_mem.h"
 #include "bplib_cfg.h"
