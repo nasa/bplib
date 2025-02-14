@@ -120,7 +120,7 @@ if (IS_CFS_ARCH_BUILD)
   # Create the app module using the CFE/OSAL adapter layer
   # Note this ignores the setting of BPLIB_INCLUDE_POSIX, as OSAL provides this service
   # The CFE build system determines whether to create a shared or static object inside this routine
-  add_cfe_app(bplib ${BPLIB_SRC} ${CMAKE_SOURCE_DIR}/QCBOR/libqcbor.a)
+  add_cfe_app(bplib ${BPLIB_SRC} ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a)
 
 else()
 
