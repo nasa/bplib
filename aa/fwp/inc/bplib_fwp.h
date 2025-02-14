@@ -31,6 +31,10 @@
 #include "bplib_stor.h"
 #include "bplib_time.h"
 #include "bplib_em.h"
+#include "bplib_pi.h"
+#include "bplib_cla.h"
+#include "bplib_arp.h"
+#include "bplib_pdb.h"
 
 /*
 ** Type Definitions
