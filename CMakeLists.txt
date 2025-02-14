@@ -115,6 +115,7 @@ endforeach()
 
 # Add the QCBOR library.
 add_library(qcborlib STATIC IMPORTED)
+message("Set target properties for qcborlib ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a")
 set_target_properties(qcborlib PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a)
 
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set

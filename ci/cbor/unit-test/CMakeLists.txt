@@ -53,7 +53,7 @@ target_include_directories(coverage-bplib_cbor-testrunner PRIVATE
 )
 
 target_link_libraries(coverage-bplib_cbor-testrunner PUBLIC
-    ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a
+    qcborlib
     ut_coverage_link
     ut_assert
 )
