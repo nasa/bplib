@@ -68,15 +68,6 @@ build-release-job:
   stage: build-release
   script:
    - git status
-   # Clone and build QCBOR
-   - rm -rf QCBOR
-   - git clone https://github.com/laurencelundblade/QCBOR.git
-   - cd QCBOR
-   - cmake -S . -B build-folder
-   - cmake --build build-folder
-   # Install QCBOR in bplib/QCBOR/lib
-   - make install PREFIX=lib
-   - cd ..
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
    - cd osal/
@@ -103,15 +94,6 @@ build-debug-job:
   stage: build-debug
   script:
    - git status
-   # Clone and build QCBOR
-   - rm -rf QCBOR
-   - git clone https://github.com/laurencelundblade/QCBOR.git
-   - cd QCBOR
-   - cmake -S . -B build-folder
-   - cmake --build build-folder
-   # Install QCBOR in bplib/QCBOR/lib
-   - make install PREFIX=lib
-   - cd ..
    # Clone and build osal as a standalone
    - git clone https://github.com/nasa/osal.git
    - cd osal/
