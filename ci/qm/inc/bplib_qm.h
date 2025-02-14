@@ -155,17 +155,6 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst);
  */
 void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs);
 
-
-/**
- * @brief Check the bundle cache fifo for available bundles
- * 
- * This function pulls from Bundle Cache and pushes them to the unsorted job queue
- * 
- * @param[in] inst The instance containing the jobs to be sorted.
- * @param[in] max_num_bundles_to_scan The number of bundles to pull from storage
- */
-void BPLib_QM_ScanCache(BPLib_Instance_t* inst, size_t max_num_bundles_to_scan);
-
 /**
  * @brief Executes a single job in the Queue Manager.
  * 

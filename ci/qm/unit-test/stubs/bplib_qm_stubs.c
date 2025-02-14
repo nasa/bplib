@@ -102,16 +102,3 @@ void BPLib_QM_SortJobs(BPLib_Instance_t *inst, size_t num_jobs)
 
     UT_GenStub_Execute(BPLib_QM_SortJobs, Basic, NULL);
 }
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_QM_ScanCache()
- * ----------------------------------------------------
- */
-void BPLib_QM_ScanCache(BPLib_Instance_t *inst, size_t max_num_bundles_to_scan)
-{
-    UT_GenStub_AddParam(BPLib_QM_ScanCache, BPLib_Instance_t *, inst);
-    UT_GenStub_AddParam(BPLib_QM_ScanCache, size_t, max_num_bundles_to_scan);
-
-    UT_GenStub_Execute(BPLib_QM_ScanCache, Basic, NULL);
-}

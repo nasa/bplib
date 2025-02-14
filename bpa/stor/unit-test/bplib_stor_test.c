@@ -39,8 +39,21 @@ void Test_BPLib_STOR_StorageTblValidateFunc_Nominal(void)
     UtAssert_INT32_EQ((int32) BPLib_STOR_StorageTblValidateFunc(&TestTblData), (int32) BPLIB_SUCCESS);     
 }
 
+void Test_BPLib_STOR_ScanCache_NullInstError(void)
+{
+    BPLib_Instance_t* inst = NULL;
+    uint32_t max_num_bundles_to_scan = 0;
+    UtAssert_INT32_EQ(BPLib_STOR_ScanCache(inst, max_num_bundles_to_scan), BPLIB_NULL_PTR_ERROR);
+}
+
+/*
+** More BPLib_STOR_ScanCache tests would go here, but this is very temporary code,
+** so its probably not worth further unit testing.
+*/
+
 void TestBplibStor_Register(void)
 {
     UtTest_Add(Test_BPLib_STOR_Init, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_Init");
     UtTest_Add(Test_BPLib_STOR_StorageTblValidateFunc_Nominal, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_StorageTblValidateFunc_Nominal");
+    UtTest_Add(Test_BPLib_STOR_ScanCache_NullInstError, BPLib_STOR_Test_Setup, BPLib_STOR_Test_Teardown, "Test_BPLib_STOR_ScanCache_NullInstError");
 }

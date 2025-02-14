@@ -130,4 +130,15 @@
 #define BPLIB_AS_GIVE_MUTEX_ERR_EID                     (581u)
 #define BPLIB_AS_SET_CTR_ERR_EID                        (582u)
 
+
+/* ============ */
+/* STOR event IDs */
+/* ============ */
+
+#define BPLIB_STOR_SCAN_CACHE_INVALID_ARG_ERR_EID       (600u)
+#define BPLIB_STOR_SCAN_CACHE_GOT_GOOD_BUNDLE_INF_EID   (601u)
+#define BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID  (602u)
+#define BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID           (603u)
+
+
 #endif /* BPLIB_EVENTIDS_H */
