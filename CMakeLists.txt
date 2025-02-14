@@ -113,6 +113,10 @@ foreach(COMPONENT ${BPLIB_COMPONENTS})
 
 endforeach()
 
+# Add the QCBOR library.
+add_library(qcborlib STATIC IMPORTED)
+set_target_properties(qcborlib PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a)
+
 # If building as part of CFE/CFS, then the "IS_CFS_ARCH_BUILD" should be set
 # this allows simply dropping this module into a CFS project
 if (IS_CFS_ARCH_BUILD)
@@ -120,7 +124,7 @@ if (IS_CFS_ARCH_BUILD)
   # Create the app module using the CFE/OSAL adapter layer
   # Note this ignores the setting of BPLIB_INCLUDE_POSIX, as OSAL provides this service
   # The CFE build system determines whether to create a shared or static object inside this routine
-  add_cfe_app(bplib ${BPLIB_SRC} ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a)
+  add_cfe_app(bplib ${BPLIB_SRC})
 
 else()
 
@@ -134,9 +138,9 @@ else()
   # this should preferably be in OS subdirectory, but it needs to be done
   # at the bplib target which is created here.
   if (BPLIB_OS_LAYER STREQUAL OSAL)
-    target_link_libraries(bplib osal ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a)
+    target_link_libraries(bplib osal qcborlib)
   elseif(BPLIB_OS_LAYER STREQUAL POSIX)
-    target_link_libraries(bplib rt pthread ${PROJECT_SOURCE_DIR}/QCBOR/libqcbor.a)
+    target_link_libraries(bplib rt pthread qcborlib)
   endif()
 
   # Install and also export this library, so it can be found via
