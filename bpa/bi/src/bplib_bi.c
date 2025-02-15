@@ -56,11 +56,17 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     /* TODO: fully fill out primary block fields from decoded bundle */
     bundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
-    if (Size == BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK)
+    if (Size == BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_0)
     {
         /* this will route it to channel 0 egress, after cache */
         bundle->blocks.pri_blk.dest_eid.node_number = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES;
         bundle->blocks.pri_blk.dest_eid.service_number = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES;
+    }
+    else if (Size == BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_1)
+    {
+        /* this will route it to channel 1 egress, after cache */
+        bundle->blocks.pri_blk.dest_eid.node_number = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES;
+        bundle->blocks.pri_blk.dest_eid.service_number = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES;
     }
     else
     {

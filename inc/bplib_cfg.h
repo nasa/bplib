@@ -95,14 +95,13 @@ extern "C" {
  *        Other Service Numbers will be routed to Channel 1
  *        This must not equal BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES
  */
-#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES 0x42
+#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES 42
 
 /**
  * \brief Temporary EID Service Number to Route bundle from PI to a Channel 1
  *        This must not equal BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES
  */
-// This def may not be necessary
-// #define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES 0x53
+#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES 53
 
 
 /**
@@ -115,13 +114,19 @@ extern "C" {
  * \brief Temporary EID Service Number to Route bundle from PI to a Channel 1
  *        This must not equal BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES
  */
-#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CONTACT_ROUTES 0x53
+#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CONTACT_ROUTES 64
+
+/**
+ * \brief This is the expected size of a raw cFS app no-op command
+ *        This will be removed when we can decode the primary block to get the Dest EID
+ */
+#define BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_0 8
 
 /**
  * \brief This is the expected size of a bundle with a cFS app no-op command payload (8 bytes)
  *        This will be removed when we can decode the primary block to get the Dest EID
  */
-#define BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK 61
+#define BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_1 61
 
 
 
