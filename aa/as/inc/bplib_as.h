@@ -39,7 +39,7 @@
 
 #define BPLIB_AS_NUM_NODE_CNTRS      (79u)                    /** \brief Number of node counters (also total number of counters) */
 #define BPLIB_AS_NUM_SOURCE_CNTRS    (56u)                    /** \brief Number of source counters */
-#define BPLIB_AS_NODE_CNTR_INDICATOR (BPLIB_MAX_NUM_MIB_SETS) /** \brief Indicates to the reset counter command that  */
+#define BPLIB_AS_NODE_CNTR_INDICATOR (BPLIB_MAX_NUM_MIB_SETS) /** \brief Indicates that only the node counter passed in should be modified, not the source counter */
 
 /* ======= */
 /* Typdefs */
