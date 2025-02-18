@@ -112,11 +112,11 @@ void BPLib_AS_ResetBundleCounters(void)
  * Generated stub function for BPLib_AS_ResetCounter()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t Counter)
+BPLib_Status_t BPLib_AS_ResetCounter(uint16_t MibArrayIndex, BPLib_AS_Counter_t Counter)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_AS_ResetCounter, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_AS_ResetCounter, uint8_t, MibArrayIndex);
+    UT_GenStub_AddParam(BPLib_AS_ResetCounter, uint16_t, MibArrayIndex);
     UT_GenStub_AddParam(BPLib_AS_ResetCounter, BPLib_AS_Counter_t, Counter);
 
     UT_GenStub_Execute(BPLib_AS_ResetCounter, Basic, NULL);
