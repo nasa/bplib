@@ -48,14 +48,14 @@ BPLib_Status_t BPLib_CLA_ContactsTblValidateFunc(void *TblData)
  * Generated stub function for BPLib_CLA_Egress()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t *Inst, uint8_t ContId, void *Bundle, size_t *Size, size_t BufLen,
+BPLib_Status_t BPLib_CLA_Egress(BPLib_Instance_t *Inst, uint8_t ContId, void *BundleOut, size_t *Size, size_t BufLen,
                                 uint32_t Timeout)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_CLA_Egress, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_CLA_Egress, BPLib_Instance_t *, Inst);
     UT_GenStub_AddParam(BPLib_CLA_Egress, uint8_t, ContId);
-    UT_GenStub_AddParam(BPLib_CLA_Egress, void *, Bundle);
+    UT_GenStub_AddParam(BPLib_CLA_Egress, void *, BundleOut);
     UT_GenStub_AddParam(BPLib_CLA_Egress, size_t *, Size);
     UT_GenStub_AddParam(BPLib_CLA_Egress, size_t, BufLen);
     UT_GenStub_AddParam(BPLib_CLA_Egress, uint32_t, Timeout);

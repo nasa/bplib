@@ -1,50 +1,71 @@
 /*
- * NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
- * System Application (BP) v6.5”
- *
- * Copyright © 2020 United States Government as represented by the Administrator of
- * the National Aeronautics and Space Administration. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+* NASA Docket No. GSC-18,587-1 and identified as “The Bundle Protocol Core Flight
+* System Application (BP) v6.5”
+*
+* Copyright © 2020 United States Government as represented by the Administrator of
+* the National Aeronautics and Space Administration. All Rights Reserved.
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*/
 
 #ifndef BPLIB_MEM_H
 #define BPLIB_MEM_H
 
 #include "bplib_ben_allocator.h"
+#include "bplib_bblocks.h"
 
 #include <pthread.h>
 
 /**
-** \brief Defines the size of a memory chunk.
-**        NOTE: This value should be greater than or equal to the size of BPLib_Bundle_t
+ ** \brief Defines the size of a memory block user data if used as a bytearray
 */
 #define BPLIB_MEM_CHUNKSIZE (512U)
 
+typedef struct BPLib_MEM_Block BPLib_MEM_Block_t;
+
+/**
+ * @struct BPLib_Bundle_t
+ * @brief Represents the entire bundle, including its blocks and an additional blob for other data.
+ */
+typedef struct BPLib_Bundle
+{
+    BPLib_BBlocks_t blocks;
+    struct BPLib_MEM_Block* blob;
+} BPLib_Bundle_t;
+
+/**
+ * @brief This union represents data types anticipated for allocation by this memory pool.
+ * @union BPLib_MEM_UserData_t
+ */
+typedef union BPLib_MEM_UserData
+{
+    uint8_t raw_bytes[BPLIB_MEM_CHUNKSIZE]; /**< A raw byte array, useful for storing arbitrary binary data */
+    struct BPLib_Bundle bundle; /**< A bundle type, intended to store CBOR-decoded Bundle metadata */
+} BPLib_MEM_UserData_t;
 
 /**
  * @struct BPLib_MEM_Block_t
  * @brief Represents a block of memory in the pool.
  * 
- * This structure holds a chunk of memory (`chunk`). 
+ * This structure holds a chunk of usable memory (`user_data`). 
  * It also has a pointer (`next`) to link to other blocks in a linked list.
  */
-typedef struct BPLib_MEM_Block
+struct BPLib_MEM_Block
 {
-    uint8_t chunk[BPLIB_MEM_CHUNKSIZE]; /**< Memory chunk stored in the block */
-    size_t chunk_len; /**< Byte-length of user-data currently within the chunk. This is initialized to 0. */
+    BPLib_MEM_UserData_t user_data; /**< User data stored in the block */
+    size_t used_len; /**< Byte-length of user data currently within the chunk. This is initialized to 0. */
     struct BPLib_MEM_Block* next; /**< Pointer to the next block in the list */
-} BPLib_MEM_Block_t;
+};
 
 /**
  * @struct BPLib_MEM_Pool_t
@@ -123,5 +144,45 @@ BPLib_MEM_Block_t* BPLib_MEM_BlockListAlloc(BPLib_MEM_Pool_t* pool, size_t byte_
  * @param[in] head Pointer to the head of the block list to free.
  */
 void BPLib_MEM_BlockListFree(BPLib_MEM_Pool_t* pool, BPLib_MEM_Block_t* head);
+
+/**
+ * @brief Allocates a bundle from the memory pool.
+ * 
+ * This function allocates a new `BPLib_Bundle_t` from the memory pool, 
+ * including a blob of data specified by the `blob_data` and `data_len` parameters.
+ * 
+ * @param[in] pool Pointer to the memory pool from which to allocate the bundle.
+ * @param[in] blob_data A pointer to the data to store in the bundle.
+ * @param[in] data_len The length of the data to store in the bundle.
+ * 
+ * @return A pointer to the allocated bundle.
+ */
+BPLib_Bundle_t* BPLib_MEM_BundleAlloc(BPLib_MEM_Pool_t* pool, const void* blob_data, size_t data_len);
+
+/**
+ * @brief Frees a bundle from the memory pool.
+ * 
+ * This function frees the memory associated with a `BPLib_Bundle_t`.
+ * The bundle pointer provided must have been allocated using BPLib_MEM_BundleAlloc.
+ * 
+ * @param[in] pool Pointer to the memory pool to which the bundle will be freed.
+ * @param[in] bundle Pointer to the bundle to free.
+ */
+void BPLib_MEM_BundleFree(BPLib_MEM_Pool_t* pool, BPLib_Bundle_t* bundle);
+
+/**
+ * @brief Copies the blob data out of a bundle.
+ * 
+ * This function copies the blob data from the specified bundle into the provided buffer.
+ * If the bundle has more blob data than max_len, this function returns BPLIB_BUF_LEN_ERROR
+ * 
+ * @param[in] bundle Pointer to the bundle from which to copy the data.
+ * @param[out] out_buffer A buffer to store the copied data.
+ * @param[in] max_len The maximum number of bytes to copy.
+ * @param[out] out_size The actual number of bytes copied.
+ * 
+ * @return Status of the operation.
+ */
+BPLib_Status_t BPLib_MEM_BlobCopyOut(BPLib_Bundle_t* bundle, void* out_buffer, size_t max_len, size_t* out_size);
 
 #endif /* BPLIB_MEM_H */
