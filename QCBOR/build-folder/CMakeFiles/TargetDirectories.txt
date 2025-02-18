@@ -1,7 +1,0 @@
-/home/gskenned/repos/nasa-gitlab/gsfc-dtn/dtn-cfs/libs/bplib/QCBOR/build-folder/CMakeFiles/install/strip.dir
-/home/gskenned/repos/nasa-gitlab/gsfc-dtn/dtn-cfs/libs/bplib/QCBOR/build-folder/CMakeFiles/install/local.dir
-/home/gskenned/repos/nasa-gitlab/gsfc-dtn/dtn-cfs/libs/bplib/QCBOR/build-folder/CMakeFiles/install.dir
-/home/gskenned/repos/nasa-gitlab/gsfc-dtn/dtn-cfs/libs/bplib/QCBOR/build-folder/CMakeFiles/list_install_components.dir
-/home/gskenned/repos/nasa-gitlab/gsfc-dtn/dtn-cfs/libs/bplib/QCBOR/build-folder/CMakeFiles/rebuild_cache.dir
-/home/gskenned/repos/nasa-gitlab/gsfc-dtn/dtn-cfs/libs/bplib/QCBOR/build-folder/CMakeFiles/edit_cache.dir
-/home/gskenned/repos/nasa-gitlab/gsfc-dtn/dtn-cfs/libs/bplib/QCBOR/build-folder/CMakeFiles/qcbor.dir
