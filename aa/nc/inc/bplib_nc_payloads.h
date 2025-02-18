@@ -35,7 +35,7 @@
 
 typedef struct
 {
-    uint8_t  MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
+    uint16_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
     uint8_t  Spare[3];      /** \brief Spare for alignment */
     uint32_t Counter;       /** \brief Counter to reset */
 } BPLib_ResetCounter_Payload_t;

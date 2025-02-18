@@ -258,7 +258,7 @@ void BPLib_AS_Decrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Am
  * \ref       BPLib_AS_LockCounters [BPLib_AS_LockCounters]
  * \ref       BPLib_AS_UnlockCounters [BPLib_AS_UnlockCounters()]
  */
-BPLib_Status_t BPLib_AS_ResetCounter(uint8_t MibArrayIndex, BPLib_AS_Counter_t Counter);
+BPLib_Status_t BPLib_AS_ResetCounter(uint16_t MibArrayIndex, BPLib_AS_Counter_t Counter);
 
 /**
  * \brief     Set to zero all resettable MIB counters associated with the given index into the MIB
