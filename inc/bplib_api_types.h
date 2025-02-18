@@ -87,56 +87,73 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_BUF_LEN_ERROR                 ((BPLib_Status_t) -8)  /* Buffer length error */
 #define BPLIB_INVALID_EID                   ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
 #define BPLIB_INVALID_EID_PATTERN           ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
+/*
+#define BPLIB_GENERIC_ERROR_11              ((BPLib_Status_t) -11) // Error description
+#define BPLIB_GENERIC_ERROR_12              ((BPLib_Status_t) -12) // Error description
+#define BPLIB_GENERIC_ERROR_13              ((BPLib_Status_t) -13) // Error description
+#define BPLIB_GENERIC_ERROR_14              ((BPLib_Status_t) -14) // Error description
+#define BPLIB_GENERIC_ERROR_15              ((BPLib_Status_t) -15) // Error description
+#define BPLIB_GENERIC_ERROR_16              ((BPLib_Status_t) -16) // Error description
+#define BPLIB_GENERIC_ERROR_17              ((BPLib_Status_t) -17) // Error description
+#define BPLIB_GENERIC_ERROR_18              ((BPLib_Status_t) -18) // Error description
+#define BPLIB_GENERIC_ERROR_19              ((BPLib_Status_t) -19) // Error description
+#define BPLIB_GENERIC_ERROR_20              ((BPLib_Status_t) -20) // Error description
+#define BPLIB_GENERIC_ERROR_21              ((BPLib_Status_t) -21) // Error description
+#define BPLIB_GENERIC_ERROR_22              ((BPLib_Status_t) -22) // Error description
+#define BPLIB_GENERIC_ERROR_23              ((BPLib_Status_t) -23) // Error description
+#define BPLIB_GENERIC_ERROR_24              ((BPLib_Status_t) -24) // Error description
+#define BPLIB_GENERIC_ERROR_25              ((BPLib_Status_t) -25) // Error description
+*/
 
 /** @defgroup BPLib_ErrorCodes BPLib Error Code Defines
  * @{
  */
 /* Framework Proxy Errors */
-#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -10)
+#define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -26)
 
 /* Time Management Errors */
-#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) -11)
-#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) -12)
-#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) -13)
-#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -14)
+#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) -27)
+#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) -28)
+#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) -29)
+#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -30)
 
 /* Event Management Errors */
-#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -15)
-#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -16)
-#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -17)
-#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -18)
-#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -19)
-#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -20)
-#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -21)
-#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -22)
+#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -31)
+#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -32)
+#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -33)
+#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -34)
+#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -35)
+#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -36)
+#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -37)
+#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -38)
 
 /* PerfLog Proxy Errors*/
-#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -23)
+#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -39)
 
 /* Node Configuration (NC) errors */
-#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -24)
-#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -25)
+#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -40)
+#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -41)
 
 /* CLA Errors*/
-#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -26)
+#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -42)
 
 /* Payload Interface Errors */
-#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -27)
-#define BPLIB_PI_TIMEOUT                    ((BPLib_Status_t) -28)
+#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -43)
+#define BPLIB_PI_TIMEOUT                    ((BPLib_Status_t) -44)
 
 /* Admin Statistics (AS) Errors */
-#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -29)
-#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -30)
-#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -31)
-#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -32)
-#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID      ((BPLib_Status_t) -33)
-#define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -34)
-#define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -35)
-#define BPLIB_AS_INVALID_MIB_INDEX          ((BPLib_Status_t) -36)
-#define BPLIB_AS_NO_KEYS_GIVEN              ((BPLib_Status_t) -37)
+#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -45)
+#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -46)
+#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -47)
+#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -48)
+#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID      ((BPLib_Status_t) -49)
+#define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -50)
+#define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -51)
+#define BPLIB_AS_INVALID_MIB_INDEX          ((BPLib_Status_t) -52)
+#define BPLIB_AS_NO_KEYS_GIVEN              ((BPLib_Status_t) -53)
 
 /* Queue Manager (QM) Errors */
-#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -38)
+#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -54)
 
 // TODO TIME Helpers
 
