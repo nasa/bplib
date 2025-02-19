@@ -27,6 +27,9 @@
 #include "bplib_fwp.h"
 #include "utgenstub.h"
 
+BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
+BPLib_FWP_ConfigPtrs_t     BPLib_FWP_ConfigPtrs;
+
 /*
  * ----------------------------------------------------
  * Generated stub function for BPLib_FWP_Init()
