@@ -60,8 +60,8 @@ struct BPLib_StorageHkTlm_Payload
 */
 typedef struct
 {
-    BPLib_EID_PatternMatch_t  SrcEIDs[BPLIB_MAX_NUM_STORE_EIDS];
-    uint32_t                  StorageSize;
+    BPLib_EID_Pattern_t SrcEIDs[BPLIB_MAX_NUM_STORE_EIDS];
+    uint32_t            StorageSize;
 } BPLib_STOR_StorageSet_t;
 
 typedef struct
