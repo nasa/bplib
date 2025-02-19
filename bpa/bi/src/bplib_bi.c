@@ -55,7 +55,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     /* TODO: CBOR Decode the bundle and return the deserialized bundle pointer */
 
     /* TODO: fully fill out primary block fields from decoded bundle */
-    bundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
+    bundle->blocks.PrimaryBlock.Version = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
     /* Validate the deserialized bundle (this does nothing right now) */
     Status = BPLib_BI_ValidateBundle();

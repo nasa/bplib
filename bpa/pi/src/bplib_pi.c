@@ -83,12 +83,12 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     }
 
     /* TODO fully fill out primary block fields */
-    NewBundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
+    NewBundle->blocks.PrimaryBlock.Version = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
     /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
     if (ChanId == 0)
     {
-        NewBundle->blocks.pri_blk.dest_eid.service_number = 0x42;
+        NewBundle->blocks.PrimaryBlock.DestEID.Service = 0x42;
     }
 
     printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", (unsigned long)AduSize, ChanId);

@@ -82,7 +82,7 @@ static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t
 static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
     /* Hacky attempt at routing just to prove concept, FIX ME */
-    if (bundle->blocks.pri_blk.dest_eid.service_number == 0x42)
+    if (bundle->blocks.PrimaryBlock.DestEID.Service == 0x42)
     {
         BPLib_QM_WaitQueueTryPush(&(inst->ChannelEgressJobs[0]), &bundle, QM_WAIT_FOREVER);
     }

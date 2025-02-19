@@ -39,6 +39,21 @@ extern "C" {
 */
 
 /**
+ * @brief Canonical block type
+ *
+ * @note The numeric values match the block type values in BPv7 section 9.1. The v6 types 
+ *       are not included.
+ */
+typedef enum
+{
+    BPLib_BlockType_Reserved = 0,
+    BPLib_BlockType_Payload = 1,
+    BPLib_BlockType_PrevNode = 6,
+    BPLib_BlockType_Age = 7,
+    BPLib_BlockType_HopCount = 10
+} BPLib_BlockType_t;
+
+/**
  * \brief BPLib status type for type safety
  */
 typedef int32_t BPLib_Status_t;
@@ -70,7 +85,7 @@ typedef struct BPLib_IpnAddr
 ** Macros
 */
 
-#define BPLIB_BUNDLE_PROTOCOL_VERSION       (7)     /**< \brief Version of Bundle Protocol being implemented */
+#define BPLIB_BUNDLE_PROTOCOL_VERSION       (7)     /** @brief Version of Bundle Protocol being implemented */
 
 /** @defgroup BPLib_ReturnCodes BPLib Return Codes
  * @{
