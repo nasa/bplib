@@ -36,20 +36,20 @@
 typedef struct
 {
     uint16_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
-    uint8_t  Spare[3];      /** \brief Spare for alignment */
+    uint8_t  Spare[2];      /** \brief Spare for 32-bit alignment */
     uint32_t Counter;       /** \brief Counter to reset */
 } BPLib_ResetCounter_Payload_t;
 
 typedef struct
 {
-    uint8_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
-    uint8_t Spare[3];      /** \brief Spare for 32-bit alignment */
+    uint16_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
+    uint8_t  Spare[2];      /** \brief Spare for 32-bit alignment */
 } BPLib_ResetSourceCounters_Payload_t;
 
 typedef struct
 {
-    uint8_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
-    uint8_t Spare[3];      /** \brief Spare for 32-bit alignment */
+    uint16_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
+    uint8_t  Spare[2];      /** \brief Spare for 32-bit alignment */
 } BPLib_ResetErrorCounters_Payload_t;
 
 typedef struct
