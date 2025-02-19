@@ -92,29 +92,26 @@ typedef struct
     BPLib_STOR_StorageTable_t*   StorTblPtr;
 } BPLib_FWP_ConfigPtrs_t;
 
-/*
-** Global Data
-*/
+/* =========== */
+/* Global Data */
+/* =========== */
 
 extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
-extern BPLib_FWP_ConfigPtrs_t BPLib_FWP_ConfigPtrs;
+extern BPLib_FWP_ConfigPtrs_t     BPLib_FWP_ConfigPtrs;
 
-/*
-** Exported Functions
-*/
+/* =================== */
+/* Function Prototypes */
+/* =================== */
 
 /**
- * \brief Framework Proxy initialization
- *
- *  \par Description
- *       FWP initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks);
+  * \brief     Framework Proxy initialization
+  * \param[in] Callbacks (BPLib_FWP_ProxyCallbacks_t*) Pointer to callback functions for BPLib populated by BPNode
+  * \param[in] ConfigPtrs (BPLib_FWP_ConfigPtrs_t*) Pointer to configurations for BPLib populated by BPNode
+  * \return    Execution status
+  * \retval    BPLIB_SUCCESS: Initialization was successful
+  * \retval    BPLIB_FWP_CALLBACK_INIT_ERROR: At least on passed in callback function is NULL
+  * \retval    BPLIB_FWP_CONFIG_PTRS_INIT_ERROR: At least one passed in configuration/table is NULL
+  */
+BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks, BPLib_FWP_ConfigPtrs_t* ConfigPtrs);
 
 #endif /* BPLIB_FWP_H */
