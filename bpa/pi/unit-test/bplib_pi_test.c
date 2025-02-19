@@ -67,13 +67,12 @@ void Test_BPLib_PI_Ingress_Nominal(void)
 {
     uint8_t ChanId = 0;
     uint8_t AduPtr[10];
-    BPLib_MEM_Block_t Block;
     size_t AduSize = 0;
+    BPLib_Bundle_t Bundle;
 
-    memset(&Block, 0, sizeof(Block));
+    memset(&Bundle, 0, sizeof(Bundle));
 
-    UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BlockAlloc), 1, (UT_IntReturn_t) &Block);
-    UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BlockListAlloc), 1, (UT_IntReturn_t) &Block);
+    UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BundleAlloc), 1, (UT_IntReturn_t) &Bundle);
 
     UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_SUCCESS);
 }
@@ -83,7 +82,6 @@ void Test_BPLib_PI_Ingress_Null(void)
 {
     uint8_t ChanId = 0;
     uint8_t AduPtr[10];
-    BPLib_MEM_Block_t Block;
     size_t AduSize = 0;
 
     /* Null BPLib instance */
@@ -93,10 +91,6 @@ void Test_BPLib_PI_Ingress_Null(void)
     UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, NULL, AduSize), BPLIB_NULL_PTR_ERROR);
 
     /* The block allocation function returns null by default */
-    UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_NULL_PTR_ERROR);
-
-    /* Successful block allocation but failed blob allocation */
-    UT_SetDeferredRetcode(UT_KEY(BPLib_MEM_BlockAlloc), 1, (UT_IntReturn_t) &Block);
     UtAssert_INT32_EQ(BPLib_PI_Ingress(&BplibInst, ChanId, AduPtr, AduSize), BPLIB_NULL_PTR_ERROR);
 }
 

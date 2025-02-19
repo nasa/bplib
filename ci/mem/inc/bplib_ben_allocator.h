@@ -33,10 +33,10 @@ typedef struct BPLib_MEM_PoolImpl
 {
     void* mem_start; /**< Pointer to the start of the memory region backing the pool */
     void* mem_next; /**< Pointer to the next available memory block location within the pool */
-    uint32_t num_blocks; /**< The maximum number of blocks that can be allocated by this pool. */
-    uint32_t block_size; /**< Size of each block in the pool, in bytes. */
-    uint32_t num_free; /**< Number of free blocks available */
-    uint32_t num_init; /**< Number of initialized blocks. */
+    size_t num_blocks; /**< The maximum number of blocks that can be allocated by this pool. */
+    size_t block_size; /**< Size of each block in the pool, in bytes. */
+    size_t num_free; /**< Number of free blocks available */
+    size_t num_init; /**< Number of initialized blocks. */
 } BPLib_MEM_PoolImpl_t;
 
 /**
@@ -51,8 +51,8 @@ typedef struct BPLib_MEM_PoolImpl
  * 
  * @return Status of the operation.
  */
-BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, const void* init_mem,
-    size_t mem_len, uint32_t block_size);
+BPLib_Status_t BPLib_MEM_PoolImplInit(BPLib_MEM_PoolImpl_t* pool, void* init_mem,
+    size_t mem_len, size_t block_size);
 
 /**
  * @brief Destroys the memory pool implementation.
