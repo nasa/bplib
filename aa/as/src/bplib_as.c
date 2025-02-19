@@ -158,7 +158,7 @@ BPLib_Status_t BPLib_AS_ResetCounter(uint16_t MibArrayIndex, BPLib_AS_Counter_t 
     return Status;
 }
 
-BPLib_Status_t BPLib_AS_ResetSourceCounters(uint8_t MibArrayIndex)
+BPLib_Status_t BPLib_AS_ResetSourceCounters(uint16_t MibArrayIndex)
 {
     BPLib_Status_t Status;
 
@@ -269,7 +269,7 @@ void BPLib_AS_ResetBundleCounters()
     BPLib_AS_UnlockCounters();
 }
 
-BPLib_Status_t BPLib_AS_ResetErrorCounters(uint8_t MibArrayIndex)
+BPLib_Status_t BPLib_AS_ResetErrorCounters(uint16_t MibArrayIndex)
 {
     BPLib_Status_t Status;
 

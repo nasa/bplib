@@ -129,11 +129,11 @@ BPLib_Status_t BPLib_AS_ResetCounter(uint16_t MibArrayIndex, BPLib_AS_Counter_t 
  * Generated stub function for BPLib_AS_ResetErrorCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_ResetErrorCounters(uint8_t MibArrayIndex)
+BPLib_Status_t BPLib_AS_ResetErrorCounters(uint16_t MibArrayIndex)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_AS_ResetErrorCounters, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_AS_ResetErrorCounters, uint8_t, MibArrayIndex);
+    UT_GenStub_AddParam(BPLib_AS_ResetErrorCounters, uint16_t, MibArrayIndex);
 
     UT_GenStub_Execute(BPLib_AS_ResetErrorCounters, Basic, NULL);
 
@@ -145,11 +145,11 @@ BPLib_Status_t BPLib_AS_ResetErrorCounters(uint8_t MibArrayIndex)
  * Generated stub function for BPLib_AS_ResetSourceCounters()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_AS_ResetSourceCounters(uint8_t MibArrayIndex)
+BPLib_Status_t BPLib_AS_ResetSourceCounters(uint16_t MibArrayIndex)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_AS_ResetSourceCounters, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_AS_ResetSourceCounters, uint8_t, MibArrayIndex);
+    UT_GenStub_AddParam(BPLib_AS_ResetSourceCounters, uint16_t, MibArrayIndex);
 
     UT_GenStub_Execute(BPLib_AS_ResetSourceCounters, Basic, NULL);
 
