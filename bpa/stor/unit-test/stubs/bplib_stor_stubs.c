@@ -64,3 +64,21 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
   return UT_GenStub_GetReturnValue(BPLib_STOR_StorageTblValidateFunc,
                                    BPLib_Status_t);
 }
+
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_QM_ScanCache()
+ * ----------------------------------------------------
+ */
+BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t *inst, uint32_t max_num_bundles_to_scan)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_STOR_ScanCache, BPLib_Status_t);
+
+    UT_GenStub_AddParam(BPLib_STOR_ScanCache, BPLib_Instance_t *, inst);
+    UT_GenStub_AddParam(BPLib_STOR_ScanCache, uint32_t, max_num_bundles_to_scan);
+
+    UT_GenStub_Execute(BPLib_STOR_ScanCache, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_STOR_ScanCache, BPLib_Status_t);
+}

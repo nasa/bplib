@@ -44,7 +44,7 @@
 /* Unit test increment/decrement hook information */
 typedef struct
 {
-    int16_t            SourceEid;
+    BPLib_EID_t        EID;
     BPLib_AS_Counter_t Counter;
     uint32_t           Amount;
 } BPLib_AS_IncrementDecrementContext_t;

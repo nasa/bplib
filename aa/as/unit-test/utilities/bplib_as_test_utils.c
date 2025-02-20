@@ -337,6 +337,9 @@ void BPLib_AS_Test_Setup(void)
     /* Initialize the source counter payload to 0s */
     memset((void*) &BPLib_AS_SourceCountersPayload, 0, sizeof(BPLib_AS_SourceCountersPayload));
 
+    /* Clear out event handler context */
+    memset((void*) &context_BPLib_EM_SendEvent, 0, sizeof(BPLib_EM_SendEvent_context_t));
+
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 
