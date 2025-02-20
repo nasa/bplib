@@ -27,6 +27,10 @@
 #include "bplib_fwp.h"
 #include "utgenstub.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
 BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
 BPLib_FWP_ConfigPtrs_t     BPLib_FWP_ConfigPtrs;
 
@@ -35,12 +39,11 @@ BPLib_FWP_ConfigPtrs_t     BPLib_FWP_ConfigPtrs;
  * Generated stub function for BPLib_FWP_Init()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t *Callbacks, BPLib_FWP_ConfigPtrs_t *ConfigPtrs)
+BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t *Callbacks)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_FWP_Init, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_FWP_Init, BPLib_FWP_ProxyCallbacks_t *, Callbacks);
-    UT_GenStub_AddParam(BPLib_FWP_Init, BPLib_FWP_ConfigPtrs_t *, ConfigPtrs);
 
     UT_GenStub_Execute(BPLib_FWP_Init, Basic, NULL);
 
