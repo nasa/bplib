@@ -94,8 +94,8 @@ static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* inst, BPLib_Bundle_t* bu
 {
     bool QueuePushReturnStatus;
     printf("STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".\n",
-        bundle->blocks.pri_blk.dest_eid.node_number,
-        bundle->blocks.pri_blk.dest_eid.service_number);
+        bundle->blocks.PrimaryBlock.DestEID.Node,
+        bundle->blocks.PrimaryBlock.DestEID.Service);
 
     QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(inst->BundleCacheList), &bundle, QM_WAIT_FOREVER);
     if (QueuePushReturnStatus == false)
