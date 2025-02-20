@@ -40,7 +40,7 @@
  *
  * @note the numeric values of this enumeration match the crctype values in the BPv7 spec.
  */
-typedef enum BPLib_CRC_Type
+enum BPLib_CRC_Type
 {
     /**
      * @brief No CRC is present.
@@ -57,7 +57,10 @@ typedef enum BPLib_CRC_Type
      */
     BPLib_CRC_Type_CRC32C = 2
 
-} BPLib_CRC_Type_t;
+};
+
+typedef uint8_t BPLib_CRC_Type_t;
+
 
 /*
  * To keep the interface consistent the digest functions do I/O as 32 bit values.

@@ -43,6 +43,7 @@ typedef struct
 {
     uint8_t          Version;  // TODO can this be anything other than v7??
     BPLib_CRC_Type_t CrcType;
+    uint8_t          Spare[6];
     uint64_t         BundleProcFlags;
     BPLib_EID_t      DestEID;
     BPLib_EID_t      SrcEID;
@@ -59,7 +60,7 @@ typedef struct
     uint32_t         BlockNum;
     uint64_t         BlockProcFlags;
     BPLib_CRC_Type_t CrcType;
-    uint32_t         Spare;
+    uint8_t          Spare[7];
 } BPLib_PI_CanBlkConfig_t;
 
 /**
