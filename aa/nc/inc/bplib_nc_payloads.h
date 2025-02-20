@@ -35,21 +35,21 @@
 
 typedef struct
 {
-    int16_t  SourceEid; /** \brief Source EID whose counter is to be reset */
-    uint16_t Spare;     /** \brief Spare for alignment */
-    uint32_t Counter;   /** \brief Counter to reset */
+    uint16_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
+    uint8_t  Spare[2];      /** \brief Spare for 32-bit alignment */
+    uint32_t Counter;       /** \brief Counter to reset */
 } BPLib_ResetCounter_Payload_t;
 
 typedef struct
 {
-    int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
-    uint16_t Spare;    /** \brief Spare for 32-bit alignment */
+    uint16_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
+    uint8_t  Spare[2];      /** \brief Spare for 32-bit alignment */
 } BPLib_ResetSourceCounters_Payload_t;
 
 typedef struct
 {
-    int16_t SourceEid; /** \brief Source EID whose counter is to be reset */
-    uint16_t Spare;    /** \brief Spare for 32-bit alignment */
+    uint16_t MibArrayIndex; /** \brief Index into source MIB counter array corresponding to counters to reset */
+    uint8_t  Spare[2];      /** \brief Spare for 32-bit alignment */
 } BPLib_ResetErrorCounters_Payload_t;
 
 typedef struct
@@ -153,7 +153,7 @@ typedef struct
 
 typedef struct
 {
-    uint32_t ExampleParameter;
+    BPLib_EID_Pattern_t EID_Patterns[BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET];
 } BPLib_AddMibArrayKey_Payload_t;
 
 typedef struct
@@ -266,7 +266,7 @@ typedef struct
 
 typedef struct
 {
-    BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_SOURCE_EID];
+    BPLib_SourceMibConfigSet_t SourceConfigs[BPLIB_MAX_NUM_MIB_SETS];
     uint32_t Spare2;
     uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
     int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
@@ -317,23 +317,23 @@ typedef struct
     /**
      * The SrcEID field is the EID pattern.
      * The EIDPattern field was a string value of "ipn" or "dtn". It is now
-     * the BPLib_EID_Scheme_t enum in BPLib_EID_PatternMatch_t.
+     * the BPLib_EID_Scheme_t enum in BPLib_EID_Pattern_t.
      */
-    BPLib_EID_PatternMatch_t SrcEIDs[BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS];
-    uint32_t    ParamSetMaxLifetime;
-    uint32_t    ParamSetMaxBSRGenerationRate;
-    uint32_t    ParamSetMaxCBRGenerationRate;
-    uint8_t     BundleSetBehaviorReceivedBSRGenerate;
-    uint8_t     BundleSetBehaviorAcceptedBSRGenerate;
-    uint8_t     BundleSetBehaviorForwardedBSRGenerate;
-    uint8_t     BundleSetBehaviorDeliveredBSRGenerate;
-    uint8_t     BundleSetBehaviorDeletedBSRGenerate;
-    uint8_t     BundleSetBehaviorReceivedCBRGenerate;
-    uint8_t     BundleSetBehaviorAcceptedCBRGenerate;
-    uint8_t     BundleSetBehaviorForwardedCBRGenerate;
-    uint8_t     BundleSetBehaviorDeliveredCBRGenerate;
-    uint8_t     BundleSetBehaviorDeletedCBRGenerate;  
-    uint16_t    Spare;
+    BPLib_EID_Pattern_t SrcEIDs[BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS];
+    uint32_t            ParamSetMaxLifetime;
+    uint32_t            ParamSetMaxBSRGenerationRate;
+    uint32_t            ParamSetMaxCBRGenerationRate;
+    uint8_t             BundleSetBehaviorReceivedBSRGenerate;
+    uint8_t             BundleSetBehaviorAcceptedBSRGenerate;
+    uint8_t             BundleSetBehaviorForwardedBSRGenerate;
+    uint8_t             BundleSetBehaviorDeliveredBSRGenerate;
+    uint8_t             BundleSetBehaviorDeletedBSRGenerate;
+    uint8_t             BundleSetBehaviorReceivedCBRGenerate;
+    uint8_t             BundleSetBehaviorAcceptedCBRGenerate;
+    uint8_t             BundleSetBehaviorForwardedCBRGenerate;
+    uint8_t             BundleSetBehaviorDeliveredCBRGenerate;
+    uint8_t             BundleSetBehaviorDeletedCBRGenerate;  
+    uint16_t            Spare;
 } BPLib_NC_MIBConfigPSSet_t;
 
 typedef struct

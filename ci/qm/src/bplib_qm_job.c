@@ -35,9 +35,7 @@ static BPLib_QM_JobState_t ContactIn_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t*
 
 static BPLib_QM_JobState_t ContactIn_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    /* Note: Looping back to Contact Out Path */
-    /* return CONTACT_IN_CT_TO_STOR; */
-    return CONTACT_OUT_STOR_TO_CT;
+    return CONTACT_IN_CT_TO_STOR;
 }
 
 static BPLib_QM_JobState_t ContactOut_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
@@ -63,9 +61,7 @@ static BPLib_QM_JobState_t ChannelIn_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t*
 
 static BPLib_QM_JobState_t ChannelIn_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    /* Note: Looping back to ADU Out Path */
-    /* return CHANNEL_IN_CT_TO_STOR; */
-    return CHANNEL_OUT_STOR_TO_CT;
+    return CHANNEL_IN_CT_TO_STOR;
 }
 
 static BPLib_QM_JobState_t ChannelOut_CT(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
@@ -82,7 +78,7 @@ static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t
 static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
     /* Hacky attempt at routing just to prove concept, FIX ME */
-    if (bundle->blocks.pri_blk.dest_eid.service_number == 0x42)
+    if (bundle->blocks.pri_blk.dest_eid.service_number == BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES)
     {
         BPLib_QM_WaitQueueTryPush(&(inst->ChannelEgressJobs[0]), &bundle, QM_WAIT_FOREVER);
     }
@@ -96,9 +92,18 @@ static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* inst, BPLib_Bundle_t*
 
 static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
-    /* Nothing should be hooked up to Bundle Stor/Cache yet */
-    abort();
-    return 0;
+    bool QueuePushReturnStatus;
+    printf("STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".\n",
+        bundle->blocks.pri_blk.dest_eid.node_number,
+        bundle->blocks.pri_blk.dest_eid.service_number);
+
+    QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(inst->BundleCacheList), &bundle, QM_WAIT_FOREVER);
+    if (QueuePushReturnStatus == false)
+    {
+        printf("STOR_Cache failed BPLib_QM_WaitQueueTryPush\n");
+    }
+
+    return NO_NEXT_STATE;
 }
 
 /*******************************************************************************

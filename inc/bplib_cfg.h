@@ -40,22 +40,19 @@ extern "C" {
 /**
  * \brief Configuration array constraints
  */
-#define BPLIB_MAX_NUM_BUNDLE_QUEUES         16  /* Maximum number of queues */
-#define BPLIB_MAX_NUM_SOURCE_EID            16  /* Maximum number of allowed source EIDs */
-#define BPLIB_MAX_NUM_LATENCY_POLICY_SETS   10  /* Maximum number of latency policy sets */
-#define BPLIB_MAX_NUM_STORE_SET             10  /* Maximum number of storage policy sets. */
-#define BPLIB_MAX_NUM_CRS                   10  /* Maximum number of Compressed Reporting CRS Entries */
-#define BPLIB_MAX_AUTH_SOURCE_EIDS          10  /* Maximum number of authorized source EID patterns */
-#define BPLIB_MAX_AUTH_CUSTODIAN_EIDS       10  /* Maximum number of authorized custodian EID patterns */
-#define BPLIB_MAX_AUTH_CUSTODY_SOURCE_EIDS  10  /* Maximum number of authorized custody source EID patterns */
-#define BPLIB_MAX_AUTH_REPORT_TO_EIDS       10  /* Maximum number of report-to EID patterns */
-#define BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES    10  /* Maximum number of entries in MIB PS Cfg table */
-#define BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS   10  /* Maximum number of EID patterns for each MIB PS Cfg Table Entry */
-#define BPLIB_MAX_NUM_STORE_EIDS            10  /* Maximum number of EID patterns per storage policy set */
-
-
-
-
+#define BPLIB_MAX_NUM_BUNDLE_QUEUES             16  /* Maximum number of queues */
+#define BPLIB_MAX_NUM_MIB_SETS                  16  /* Maximum number of MIB sets of counters associated with EID patterns in the source counters HK telemetry */
+#define BPLIB_MAX_NUM_EID_PATTERNS_PER_MIB_SET   4  /* Maximum number of EID patterns that can map to a source MIB counter index */
+#define BPLIB_MAX_NUM_LATENCY_POLICY_SETS       10  /* Maximum number of latency policy sets */
+#define BPLIB_MAX_NUM_STORE_SET                 10  /* Maximum number of storage policy sets. */
+#define BPLIB_MAX_NUM_CRS                       10  /* Maximum number of Compressed Reporting CRS Entries */
+#define BPLIB_MAX_AUTH_SOURCE_EIDS              10  /* Maximum number of authorized source EID patterns */
+#define BPLIB_MAX_AUTH_CUSTODIAN_EIDS           10  /* Maximum number of authorized custodian EID patterns */
+#define BPLIB_MAX_AUTH_CUSTODY_SOURCE_EIDS      10  /* Maximum number of authorized custody source EID patterns */
+#define BPLIB_MAX_AUTH_REPORT_TO_EIDS           10  /* Maximum number of report-to EID patterns */
+#define BPLIB_MAX_NUM_MIB_PS_CFG_ENTRIES        10  /* Maximum number of entries in MIB PS Cfg table */
+#define BPLIB_MAX_NUM_MIB_PS_EID_PATTERNS       10  /* Maximum number of EID patterns for each MIB PS Cfg Table Entry */
+#define BPLIB_MAX_NUM_STORE_EIDS                10  /* Maximum number of EID patterns per storage policy set */
 
 /** 
  * \brief Maximum number of contacts that can be running at once
@@ -81,6 +78,55 @@ extern "C" {
  * \brief Maximum number of canonical blocks per bundle
  */
 #define BPLIB_MAX_NUM_CANONICAL_BLOCK       10
+
+
+
+/**
+ * \brief Temporary EID Node Number to Route bundle from Cache to a Channel
+ *        This must not equal BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CONTACT_ROUTES
+ */
+#define BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES 100
+
+/**
+ * \brief Temporary EID Service Number to Route bundle from PI to a Channel 0
+ *        Other Service Numbers will be routed to Channel 1
+ *        This must not equal BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES
+ */
+#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES 42
+
+/**
+ * \brief Temporary EID Service Number to Route bundle from PI to a Channel 1
+ *        This must not equal BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES
+ */
+#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES 53
+
+
+/**
+ * \brief Temporary EID Node Number to Route bundle from Cache to a Contact
+ *        This must not equal BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES
+ */
+#define BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CONTACT_ROUTES 200
+
+/**
+ * \brief Temporary EID Service Number to Route bundle from PI to a Channel 1
+ *        This must not equal BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES
+ */
+#define BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CONTACT_ROUTES 64
+
+/**
+ * \brief This is the expected size of a raw cFS app no-op command
+ *        This will be removed when we can decode the primary block to get the Dest EID
+ */
+#define BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_0 8
+
+/**
+ * \brief This is the expected size of a bundle with a cFS app no-op command payload (8 bytes)
+ *        This will be removed when we can decode the primary block to get the Dest EID
+ */
+#define BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_1 61
+
+
+
 
 #ifdef __cplusplus
 } // extern "C"
