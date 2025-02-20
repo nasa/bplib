@@ -133,4 +133,15 @@
 /* AS debug event IDs */
 #define BPLIB_AS_ADD_MIB_ARRAY_KEY_DBG_EID              (583u)
 
+
+/* ============ */
+/* STOR event IDs */
+/* ============ */
+
+#define BPLIB_STOR_SCAN_CACHE_INVALID_ARG_ERR_EID       (600u)
+#define BPLIB_STOR_SCAN_CACHE_GOT_GOOD_BUNDLE_INF_EID   (601u)
+#define BPLIB_STOR_SCAN_CACHE_GOT_NULL_BUNDLE_WARN_EID  (602u)
+#define BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID           (603u)
+
+
 #endif /* BPLIB_EVENTIDS_H */
