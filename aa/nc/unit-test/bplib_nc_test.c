@@ -62,6 +62,19 @@ void Test_BPLib_NC_Init_AS_Init_Error(void)
     UtAssert_EQ(BPLib_Status_t, Status, BPLIB_ERROR);
 }
 
+void Test_BPLib_NC_Init_NullConfigPtrs_Error(void)
+{
+    BPLib_Status_t Status;
+    BPLib_FWP_ConfigPtrs_t* NullConfigPtr;
+
+    UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
+
+    NullConfigPtr = NULL;
+    Status = BPLib_NC_Init(NullConfigPtr);
+
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_NC_INIT_CONFIG_PTRS_ERROR);
+}
+
 void Test_BPLib_NC_Init_NullChanTblPtr_Error(void)
 {
     BPLib_Status_t Status;
@@ -1531,6 +1544,7 @@ void TestBplibNc_Register(void)
 {
     ADD_TEST(Test_BPLib_NC_Init_Nominal);
     ADD_TEST(Test_BPLib_NC_Init_AS_Init_Error);
+    ADD_TEST(Test_BPLib_NC_Init_NullConfigPtrs_Error);
     ADD_TEST(Test_BPLib_NC_Init_NullChanTblPtr_Error);
     ADD_TEST(Test_BPLib_NC_Init_NullContactsTblPtr_Error);
     ADD_TEST(Test_BPLib_NC_Init_NullCrsTblPtr_Error);

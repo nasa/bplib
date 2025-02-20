@@ -45,7 +45,8 @@ BPLib_Status_t BPLib_NC_Init(BPLib_FWP_ConfigPtrs_t* ConfigPtrs)
     memset((void*) &BPLib_NC_ChannelContactStatsPayload, 0, sizeof(BPLib_NC_ChannelContactStatsPayload));
 
     /* Capture configuration pointers in the global configuration struct */
-    if (ConfigPtrs->ChanTblPtr      == NULL ||
+    if (ConfigPtrs                  == NULL ||
+        ConfigPtrs->ChanTblPtr      == NULL ||
         ConfigPtrs->ContactsTblPtr  == NULL ||
         ConfigPtrs->CrsTblPtr       == NULL ||
         ConfigPtrs->CustodianTblPtr == NULL ||
