@@ -49,10 +49,10 @@
 void BPLib_NC_Test_Verify_Event(uint16_t EventNum, int32_t EventID, const char* EventText);
 
 /* AS increment argument verification */
-void Test_BPLib_NC_VerifyIncrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum);
+void Test_BPLib_NC_VerifyIncrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum);
 
 /* AS decrement argument verification */
-void Test_BPLib_NC_VerifyDecrement(int16_t SourceEid, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum);
+void Test_BPLib_NC_VerifyDecrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, uint32_t Amount, int16_t CallNum);
 
 void BPLib_NC_Test_Setup(void);
 void BPLib_NC_Test_Teardown(void);
