@@ -24,6 +24,12 @@
 
 #include "bplib_nc_test_utils.h"
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
+
 /* ==================== */
 /* Function Definitions */
 /* ==================== */
@@ -83,17 +89,55 @@ void Test_BPLib_NC_VerifyDecrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, 
 
 void BPLib_NC_Test_Setup(void)
 {
+    BPLib_PI_ChannelTable_t     TestChanTbl;
+    BPLib_CLA_ContactsTable_t   TestContactsTbl;
+    BPLib_ARP_CRSTable_t        TestCrsTbl;
+    BPLib_PDB_CustodianTable_t  TestCustodianTbl;
+    BPLib_PDB_CustodyTable_t    TestCustodyTbl;
+    BPLib_NC_MIBConfigPNTable_t TestMibPnTbl;
+    BPLib_NC_MIBConfigPSTable_t TestMibPsTbl;
+    BPLib_PDB_ReportToTable_t   TestReportTbl;
+    BPLib_PDB_SrcAuthTable_t    TestAuthTbl;
+    BPLib_PDB_SrcLatencyTable_t TestLatencyTbl;
+    BPLib_STOR_StorageTable_t   TestStorTbl;
+
     /* Initialize test environment to default state for every test */
     UT_ResetState(0);
 
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication             = BPA_ADUP_AddApplication;
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication          = BPA_ADUP_RemoveApplication;
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication           = BPA_ADUP_StartApplication;
-    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication            = BPA_ADUP_StopApplication;
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt       = BPA_TLMP_SendNodeMibConfigPkt;
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt  = BPA_TLMP_SendPerSourceMibConfigPkt;
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = BPA_TLMP_SendChannelContactPkt;
-    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt             = BPA_TLMP_SendStoragePkt;
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_AddApplication            = BPA_ADUP_AddApplication;
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication         = BPA_ADUP_RemoveApplication;
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StartApplication          = BPA_ADUP_StartApplication;
+    BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication           = BPA_ADUP_StopApplication;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt      = BPA_TLMP_SendNodeMibConfigPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt = BPA_TLMP_SendPerSourceMibConfigPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt     = BPA_TLMP_SendChannelContactPkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt            = BPA_TLMP_SendStoragePkt;
+
+    memset((void*) &TestChanTbl,      1, sizeof(BPLib_PI_ChannelTable_t));
+    memset((void*) &TestContactsTbl,  1, sizeof(BPLib_CLA_ContactsTable_t));
+    memset((void*) &TestCrsTbl,       1, sizeof(BPLib_ARP_CRSTable_t));
+    memset((void*) &TestCustodianTbl, 1, sizeof(BPLib_PDB_CustodianTable_t));
+    memset((void*) &TestCustodyTbl,   1, sizeof(BPLib_PDB_CustodyTable_t));
+    memset((void*) &TestMibPnTbl,     1, sizeof(BPLib_NC_MIBConfigPNTable_t));
+    memset((void*) &TestMibPsTbl,     1, sizeof(BPLib_NC_MIBConfigPSTable_t));
+    memset((void*) &TestReportTbl,    1, sizeof(BPLib_PDB_ReportToTable_t));
+    memset((void*) &TestAuthTbl,      1, sizeof(BPLib_PDB_SrcAuthTable_t));
+    memset((void*) &TestLatencyTbl,   1, sizeof(BPLib_PDB_SrcLatencyTable_t));
+    memset((void*) &TestStorTbl,      1, sizeof(BPLib_STOR_StorageTable_t));
+
+    memset((void*) &BPLib_FWP_ConfigPtrs, 0, sizeof(BPLib_FWP_ConfigPtrs_t));
+
+    TestConfigPtrs.AuthTblPtr      = &TestAuthTbl;
+    TestConfigPtrs.ChanTblPtr      = &TestChanTbl;
+    TestConfigPtrs.ContactsTblPtr  = &TestContactsTbl;
+    TestConfigPtrs.CrsTblPtr       = &TestCrsTbl;
+    TestConfigPtrs.CustodianTblPtr = &TestCustodianTbl;
+    TestConfigPtrs.CustodyTblPtr   = &TestCustodyTbl;
+    TestConfigPtrs.LatTblPtr       = &TestLatencyTbl;
+    TestConfigPtrs.MibPnTblPtr     = &TestMibPnTbl;
+    TestConfigPtrs.MibPsTblPtr     = &TestMibPsTbl;
+    TestConfigPtrs.ReportTblPtr    = &TestReportTbl;
+    TestConfigPtrs.StorTblPtr      = &TestStorTbl;
 
     UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
     UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_Increment, NULL);

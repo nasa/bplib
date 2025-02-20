@@ -28,7 +28,6 @@
 /* Global Data */
 /* =========== */
 
-BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
 BPLib_FWP_ProxyCallbacks_t TestCallbacks;
 
 /* ==================== */
@@ -37,44 +36,7 @@ BPLib_FWP_ProxyCallbacks_t TestCallbacks;
 
 void BPLib_FWP_Test_Setup(void)
 {
-    BPLib_PI_ChannelTable_t     TestChanTbl;
-    BPLib_CLA_ContactsTable_t   TestContactsTbl;
-    BPLib_ARP_CRSTable_t        TestCrsTbl;
-    BPLib_PDB_CustodianTable_t  TestCustodianTbl;
-    BPLib_PDB_CustodyTable_t    TestCustodyTbl;
-    BPLib_NC_MIBConfigPNTable_t TestMibPnTbl;
-    BPLib_NC_MIBConfigPSTable_t TestMibPsTbl;
-    BPLib_PDB_ReportToTable_t   TestReportTbl;
-    BPLib_PDB_SrcAuthTable_t    TestAuthTbl;
-    BPLib_PDB_SrcLatencyTable_t TestLatencyTbl;
-    BPLib_STOR_StorageTable_t   TestStorTbl;
-
-    memset(&TestChanTbl,      0, sizeof(BPLib_PI_ChannelTable_t));
-    memset(&TestContactsTbl,  0, sizeof(BPLib_CLA_ContactsTable_t));
-    memset(&TestCrsTbl,       0, sizeof(BPLib_ARP_CRSTable_t));
-    memset(&TestCustodianTbl, 0, sizeof(BPLib_PDB_CustodianTable_t));
-    memset(&TestCustodyTbl,   0, sizeof(BPLib_PDB_CustodyTable_t));
-    memset(&TestMibPnTbl,     0, sizeof(BPLib_NC_MIBConfigPNTable_t));
-    memset(&TestMibPsTbl,     0, sizeof(BPLib_NC_MIBConfigPSTable_t));
-    memset(&TestReportTbl,    0, sizeof(BPLib_PDB_ReportToTable_t));
-    memset(&TestAuthTbl,      0, sizeof(BPLib_PDB_SrcAuthTable_t));
-    memset(&TestLatencyTbl,   0, sizeof(BPLib_PDB_SrcLatencyTable_t));
-    memset(&TestStorTbl,      0, sizeof(BPLib_STOR_StorageTable_t));
-
-    memset((void*) &TestConfigPtrs, 0, sizeof(BPLib_FWP_ConfigPtrs_t));
-    memset((void*) &TestCallbacks,  0, sizeof(BPLib_FWP_ProxyCallbacks_t));;
-
-    TestConfigPtrs.AuthTblPtr      = &TestAuthTbl;
-    TestConfigPtrs.ChanTblPtr      = &TestChanTbl;
-    TestConfigPtrs.ContactsTblPtr  = &TestContactsTbl;
-    TestConfigPtrs.CrsTblPtr       = &TestCrsTbl;
-    TestConfigPtrs.CustodianTblPtr = &TestCustodianTbl;
-    TestConfigPtrs.CustodyTblPtr   = &TestCustodyTbl;
-    TestConfigPtrs.LatTblPtr       = &TestLatencyTbl;
-    TestConfigPtrs.MibPnTblPtr     = &TestMibPnTbl;
-    TestConfigPtrs.MibPsTblPtr     = &TestMibPsTbl;
-    TestConfigPtrs.ReportTblPtr    = &TestReportTbl;
-    TestConfigPtrs.StorTblPtr      = &TestStorTbl;
+    memset((void*) &TestCallbacks,  0, sizeof(BPLib_FWP_ProxyCallbacks_t));
 
     TestCallbacks.BPA_TIMEP_GetHostClockState         = BPA_TIMEP_GetHostClockState;
     TestCallbacks.BPA_TIMEP_GetHostEpoch              = BPA_TIMEP_GetHostEpoch;

@@ -110,28 +110,28 @@ typedef struct BPLib_IpnAddr
  */
 /* Framework Proxy Errors */
 #define BPLIB_FWP_CALLBACK_INIT_ERROR       ((BPLib_Status_t) -26)
-#define BPLIB_FWP_CONFIG_PTRS_INIT_ERROR    ((BPLib_Status_t) -27)
 
 /* Time Management Errors */
-#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) -28)
-#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) -29)
-#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) -30)
-#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -31)
+#define BPLIB_TIME_UNDEF_DELTA_ERROR        ((BPLib_Status_t) -27)
+#define BPLIB_TIME_WRITE_ERROR              ((BPLib_Status_t) -28)
+#define BPLIB_TIME_READ_ERROR               ((BPLib_Status_t) -29)
+#define BPLIB_TIME_UNINIT_ERROR             ((BPLib_Status_t) -30)
 
 /* Event Management Errors */
-#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -32)
-#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -33)
-#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -34)
-#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -35)
-#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -36)
-#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -37)
-#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -38)
-#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -39)
+#define BPLIB_EM_STRING_TRUNCATED           ((BPLib_Status_t) -31)
+#define BPLIB_EM_ILLEGAL_APP_ID             ((BPLib_Status_t) -32)
+#define BPLIB_EM_UNKNOWN_FILTER             ((BPLib_Status_t) -33)
+#define BPLIB_EM_BAD_ARGUMENT               ((BPLib_Status_t) -34)
+#define BPLIB_EM_INVALID_PARAMETER          ((BPLib_Status_t) -35)
+#define BPLIB_EM_APP_NOT_REGISTERED         ((BPLib_Status_t) -36)
+#define BPLIB_EM_APP_SQUELCHED              ((BPLib_Status_t) -37)
+#define BPLIB_EM_EXPANDED_TEXT_ERROR        ((BPLib_Status_t) -38)
 
 /* PerfLog Proxy Errors*/
-#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -40)
+#define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -39)
 
 /* Node Configuration (NC) errors */
+#define BPLIB_NC_INIT_CONFIG_PTRS_ERROR     ((BPLib_Status_t) -40)
 #define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -41)
 #define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -42)
 

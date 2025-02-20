@@ -39,7 +39,7 @@
 /* Test nominal FWP initialization */
 void Test_BPLib_FWP_Init_Nominal(void)
 {
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_SUCCESS);
 
     UtAssert_True(TestCallbacks.BPA_TIMEP_GetHostClockState == BPLib_FWP_ProxyCallbacks.BPA_TIMEP_GetHostClockState,
                     "Same BPA_TIMEP_GetHostClockState functions");
@@ -83,214 +83,134 @@ void Test_BPLib_FWP_Init_Nominal(void)
                     "Same BPA_TLMP_SendPerSourceMibCounterPkt functions");
     UtAssert_True(TestCallbacks.BPA_TLMP_SendStoragePkt == BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt,
                     "Same BPA_TLMP_SendStoragePkt functions");
-
-
-    UtAssert_True(TestConfigPtrs.ChanTblPtr      == BPLib_FWP_ConfigPtrs.ChanTblPtr,      "Same ChanTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.ContactsTblPtr  == BPLib_FWP_ConfigPtrs.ContactsTblPtr,  "Same ContactsTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.CrsTblPtr       == BPLib_FWP_ConfigPtrs.CrsTblPtr,       "Same CrsTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.CustodianTblPtr == BPLib_FWP_ConfigPtrs.CustodianTblPtr, "Same CustodianTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.CustodyTblPtr   == BPLib_FWP_ConfigPtrs.CustodyTblPtr,   "Same CustodyTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.MibPnTblPtr     == BPLib_FWP_ConfigPtrs.MibPnTblPtr,     "Same MibPnTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.MibPsTblPtr     == BPLib_FWP_ConfigPtrs.MibPsTblPtr,     "Same MibPsTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.ReportTblPtr    == BPLib_FWP_ConfigPtrs.ReportTblPtr,    "Same ReportTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.AuthTblPtr      == BPLib_FWP_ConfigPtrs.AuthTblPtr,      "Same AuthTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.LatTblPtr       == BPLib_FWP_ConfigPtrs.LatTblPtr,       "Same LatTblPtr pointer");
-    UtAssert_True(TestConfigPtrs.StorTblPtr      == BPLib_FWP_ConfigPtrs.StorTblPtr,      "Same StorTblPtr pointer");
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_GetHostClockStateNull(void)
 {
     TestCallbacks.BPA_TIMEP_GetHostClockState = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_GetHostEpochNull(void)
 {
     TestCallbacks.BPA_TIMEP_GetHostEpoch = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_GetHostTimeNull(void)
 {
     TestCallbacks.BPA_TIMEP_GetHostTime = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_GetMonotonicTimeNull(void)
 {
     TestCallbacks.BPA_TIMEP_GetMonotonicTime = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_SingleTableUpdateNull(void)
 {
     TestCallbacks.BPA_TABLEP_SingleTableUpdate = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 void Test_BPLib_FWP_Init_EVP_InitNull(void)
 {
     TestCallbacks.BPA_EVP_Init = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 void Test_BPLib_FWP_Init_EVP_SendEventNull(void)
 {
     TestCallbacks.BPA_EVP_SendEvent = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_PERFLOGP_EntryNull(void)
 {
     TestCallbacks.BPA_PERFLOGP_Entry = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_PERFLOGP_ExitNull(void)
 {
     TestCallbacks.BPA_PERFLOGP_Exit = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 void Test_BPLib_FWP_Init_ADUP_AddApplicationNull(void)
 {
     TestCallbacks.BPA_ADUP_AddApplication = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 void Test_BPLib_FWP_Init_ADUP_StartApplicationNull(void)
 {
     TestCallbacks.BPA_ADUP_StartApplication = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 void Test_BPLib_FWP_Init_ADUP_StopApplicationNull(void)
 {
     TestCallbacks.BPA_ADUP_StopApplication = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 void Test_BPLib_FWP_Init_ADUP_RemoveApplicationNull(void)
 {
     TestCallbacks.BPA_ADUP_RemoveApplication = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_SendChannelContactPktNull(void)
 {
     TestCallbacks.BPA_TLMP_SendChannelContactPkt = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_SendNodeMibConfigPktNull(void)
 {
     TestCallbacks.BPA_TLMP_SendNodeMibConfigPkt = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_SendNodeMibCounterPktNull(void)
 {
     TestCallbacks.BPA_TLMP_SendNodeMibCounterPkt = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_SendPerSourceMibConfigPktNull(void)
 {
     TestCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_SendPerSourceMibCounterPktNull(void)
 {
     TestCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
 /* Test FWP initialization with null function */
 void Test_BPLib_FWP_Init_SendStoragePktNull(void)
 {
     TestCallbacks.BPA_TLMP_SendStoragePkt = NULL;
-    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CALLBACK_INIT_ERROR);
+    UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
-
-void Test_BPLib_FWP_Init_AuthTblPtrNull_Error(void)
-{
-    TestConfigPtrs.AuthTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_ChanTblPtrNull_Error(void)
-{
-    TestConfigPtrs.ChanTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_ContactsTblPtrNull_Error(void)
-{
-    TestConfigPtrs.ContactsTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_CrsTblPtrNull_Error(void)
-{
-    TestConfigPtrs.CrsTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_CustodianTblPtrNull_Error(void)
-{
-    TestConfigPtrs.CustodianTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_CustodyTblPtrNull_Error(void)
-{
-    TestConfigPtrs.CustodyTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_LatTblPtrNull_Error(void)
-{
-    TestConfigPtrs.LatTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_MibPnTblPtrNull_Error(void)
-{
-    TestConfigPtrs.MibPnTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_MibPsTblPtrNull_Error(void)
-{
-    TestConfigPtrs.MibPsTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_ReportTblPtrNull_Error(void)
-{
-    TestConfigPtrs.ReportTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
-void Test_BPLib_FWP_Init_StorTblPtrNull_Error(void)
-{
-    TestConfigPtrs.StorTblPtr = NULL;
-    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks, &TestConfigPtrs), BPLIB_FWP_CONFIG_PTRS_INIT_ERROR);
-}
-
 
 void TestBplibFwp_Register(void)
 {
@@ -314,15 +234,4 @@ void TestBplibFwp_Register(void)
     UtTest_Add(Test_BPLib_FWP_Init_SendPerSourceMibConfigPktNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendPerSourceMibConfigPktNull");
     UtTest_Add(Test_BPLib_FWP_Init_SendPerSourceMibCounterPktNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendPerSourceMibCounterPktNull");
     UtTest_Add(Test_BPLib_FWP_Init_SendStoragePktNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendStoragePktNull");
-    UtTest_Add(Test_BPLib_FWP_Init_AuthTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_AuthTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_ChanTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ChanTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_ContactsTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ContactsTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_CrsTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_CrsTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_CustodianTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_CustodianTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_CustodyTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_CustodyTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_LatTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_LatTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_MibPnTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_MibPnTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_MibPsTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_MibPsTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_ReportTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_ReportTblPtrNull_Error");
-    UtTest_Add(Test_BPLib_FWP_Init_StorTblPtrNull_Error, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_StorTblPtrNull_Error");
 }

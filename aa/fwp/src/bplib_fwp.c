@@ -36,7 +36,7 @@ BPLib_FWP_ConfigPtrs_t     BPLib_FWP_ConfigPtrs;
 /* ==================== */
 
 /* Initialize proxy callbacks */
-BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks, BPLib_FWP_ConfigPtrs_t* ConfigPtrs)
+BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks)
 {
     BPLib_Status_t Status;
 
@@ -99,37 +99,6 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks, BPLib_FWP_C
         BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt             = Callbacks->BPA_TLMP_SendStoragePkt;
 
         /* Initialize other proxies' callbacks TODO */
-
-        /* Capture configuration pointers in the global configuration struct */
-        if (ConfigPtrs->AuthTblPtr      == NULL ||
-            ConfigPtrs->ChanTblPtr      == NULL ||
-            ConfigPtrs->ContactsTblPtr  == NULL ||
-            ConfigPtrs->CrsTblPtr       == NULL ||
-            ConfigPtrs->CustodianTblPtr == NULL ||
-            ConfigPtrs->CustodyTblPtr   == NULL ||
-            ConfigPtrs->LatTblPtr       == NULL ||
-            ConfigPtrs->MibPnTblPtr     == NULL ||
-            ConfigPtrs->MibPsTblPtr     == NULL ||
-            ConfigPtrs->ReportTblPtr    == NULL ||
-            ConfigPtrs->StorTblPtr      == NULL)
-        {
-            Status = BPLIB_FWP_CONFIG_PTRS_INIT_ERROR;
-        }
-        else
-        {
-            /* Initialize configurations (AKA tables) */
-            BPLib_FWP_ConfigPtrs.AuthTblPtr      = ConfigPtrs->AuthTblPtr;
-            BPLib_FWP_ConfigPtrs.ChanTblPtr      = ConfigPtrs->ChanTblPtr;
-            BPLib_FWP_ConfigPtrs.ContactsTblPtr  = ConfigPtrs->ContactsTblPtr;
-            BPLib_FWP_ConfigPtrs.CrsTblPtr       = ConfigPtrs->CrsTblPtr;
-            BPLib_FWP_ConfigPtrs.CustodianTblPtr = ConfigPtrs->CustodianTblPtr;
-            BPLib_FWP_ConfigPtrs.CustodyTblPtr   = ConfigPtrs->CustodyTblPtr;
-            BPLib_FWP_ConfigPtrs.LatTblPtr       = ConfigPtrs->LatTblPtr;
-            BPLib_FWP_ConfigPtrs.MibPnTblPtr     = ConfigPtrs->MibPnTblPtr;
-            BPLib_FWP_ConfigPtrs.MibPsTblPtr     = ConfigPtrs->MibPsTblPtr;
-            BPLib_FWP_ConfigPtrs.ReportTblPtr    = ConfigPtrs->ReportTblPtr;
-            BPLib_FWP_ConfigPtrs.StorTblPtr      = ConfigPtrs->StorTblPtr;
-        }
     }
 
     return Status;

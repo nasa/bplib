@@ -36,6 +36,12 @@
 #include "bplib_arp.h"
 #include "bplib_pdb.h"
 
+/* ====== */
+/* Macros */
+/* ====== */
+
+#define BPLIB_NUM_TBLS 11
+
 /*
 ** Type Definitions
 */
@@ -106,12 +112,10 @@ extern BPLib_FWP_ConfigPtrs_t     BPLib_FWP_ConfigPtrs;
 /**
   * \brief     Framework Proxy initialization
   * \param[in] Callbacks (BPLib_FWP_ProxyCallbacks_t*) Pointer to callback functions for BPLib populated by BPNode
-  * \param[in] ConfigPtrs (BPLib_FWP_ConfigPtrs_t*) Pointer to configurations for BPLib populated by BPNode
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Initialization was successful
   * \retval    BPLIB_FWP_CALLBACK_INIT_ERROR: At least on passed in callback function is NULL
-  * \retval    BPLIB_FWP_CONFIG_PTRS_INIT_ERROR: At least one passed in configuration/table is NULL
   */
-BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks, BPLib_FWP_ConfigPtrs_t* ConfigPtrs);
+BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks);
 
 #endif /* BPLIB_FWP_H */
