@@ -37,18 +37,18 @@ void Test_BPLib_NC_Init_Nominal(void)
 
     Status = BPLib_NC_Init(&TestConfigPtrs);
 
-    UtAssert_EQ(BPLib_Status_t,               Status,                               BPLIB_SUCCESS);
-    UtAssert_EQ(BPLib_PI_ChannelTable_t*,     BPLib_FWP_ConfigPtrs.ChanTblPtr,      TestConfigPtrs.ChanTblPtr);
-    UtAssert_EQ(BPLib_CLA_ContactsTable_t*,   BPLib_FWP_ConfigPtrs.ContactsTblPtr,  TestConfigPtrs.ContactsTblPtr);
-    UtAssert_EQ(BPLib_ARP_CRSTable_t*,        BPLib_FWP_ConfigPtrs.CrsTblPtr,       TestConfigPtrs.CrsTblPtr);
-    UtAssert_EQ(BPLib_PDB_CustodianTable_t*,  BPLib_FWP_ConfigPtrs.CustodianTblPtr, TestConfigPtrs.CustodianTblPtr);
-    UtAssert_EQ(BPLib_PDB_CustodyTable_t*,    BPLib_FWP_ConfigPtrs.CustodyTblPtr,   TestConfigPtrs.CustodyTblPtr);
-    UtAssert_EQ(BPLib_NC_MIBConfigPNTable_t*, BPLib_FWP_ConfigPtrs.MibPnTblPtr,     TestConfigPtrs.MibPnTblPtr);
-    UtAssert_EQ(BPLib_NC_MIBConfigPSTable_t*, BPLib_FWP_ConfigPtrs.MibPsTblPtr,     TestConfigPtrs.MibPsTblPtr);
-    UtAssert_EQ(BPLib_PDB_ReportToTable_t*,   BPLib_FWP_ConfigPtrs.ReportTblPtr,    TestConfigPtrs.ReportTblPtr);
-    UtAssert_EQ(BPLib_PDB_SrcAuthTable_t*,    BPLib_FWP_ConfigPtrs.AuthTblPtr,      TestConfigPtrs.AuthTblPtr);
-    UtAssert_EQ(BPLib_PDB_SrcLatencyTable_t*, BPLib_FWP_ConfigPtrs.LatTblPtr,       TestConfigPtrs.LatTblPtr);
-    UtAssert_EQ(BPLib_STOR_StorageTable_t*,   BPLib_FWP_ConfigPtrs.StorTblPtr,      TestConfigPtrs.StorTblPtr);
+    UtAssert_EQ(BPLib_Status_t, Status, BPLIB_SUCCESS);
+    UtAssert_True(BPLib_FWP_ConfigPtrs.ChanTblPtr      == TestConfigPtrs.ChanTblPtr,      "BPLib_FWP_ConfigPtrs ChanTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.ContactsTblPtr  == TestConfigPtrs.ContactsTblPtr,  "BPLib_FWP_ConfigPtrs ContactsTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.CrsTblPtr       == TestConfigPtrs.CrsTblPtr,       "BPLib_FWP_ConfigPtrs CrsTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.CustodianTblPtr == TestConfigPtrs.CustodianTblPtr, "BPLib_FWP_ConfigPtrs CustodianTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.CustodyTblPtr   == TestConfigPtrs.CustodyTblPtr,   "BPLib_FWP_ConfigPtrs CustodyTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.MibPnTblPtr     == TestConfigPtrs.MibPnTblPtr,     "BPLib_FWP_ConfigPtrs MibPnTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.MibPsTblPtr     == TestConfigPtrs.MibPsTblPtr,     "BPLib_FWP_ConfigPtrs MibPsTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.ReportTblPtr    == TestConfigPtrs.ReportTblPtr,    "BPLib_FWP_ConfigPtrs ReportTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.AuthTblPtr      == TestConfigPtrs.AuthTblPtr,      "BPLib_FWP_ConfigPtrs AuthTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.LatTblPtr       == TestConfigPtrs.LatTblPtr,       "BPLib_FWP_ConfigPtrs LatTblPtr successfully modified");
+    UtAssert_True(BPLib_FWP_ConfigPtrs.StorTblPtr      == TestConfigPtrs.StorTblPtr,      "BPLib_FWP_ConfigPtrs StorTblPtr successfully modified");
 }
 
 void Test_BPLib_NC_Init_AS_Init_Error(void)
