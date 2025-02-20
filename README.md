@@ -258,7 +258,7 @@ The application programming interface is documented in the header files, and the
 generated using the `doxygen` tool.
 
 The NASA CFE/CFS infrastructure has scripts to build the documentation, and this component works with
-that infrastructure.  In a CFE/CFS envirnomnent, build the "docs" target to generate this documentation.
+that infrastructure.  In a CFE/CFS environment, build the "docs" target to generate this documentation.
 
 ### 4.1 Functions
 
