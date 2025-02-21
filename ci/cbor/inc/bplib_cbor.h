@@ -25,7 +25,12 @@
 ** Include
 */
 
+#include "bplib.h"
 #include "bplib_api_types.h"
+
+#include "qcbor/qcbor_encode.h"
+#include "qcbor/qcbor_decode.h"
+#include "qcbor/qcbor_spiffy_decode.h"
 
 /*
 ** Exported Functions
@@ -43,6 +48,31 @@
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-int BPLib_CBOR_Init(void);
+int  BPLib_CBOR_Init(void);
+
+/**
+ * @brief The CBOR APIs provide various CBOR encode and decode functions that
+ * use the BPLib_Bundle_t data structure for both input and output.
+ * BPLib_Bundle_t has the BPLib_BBlocks_t bundle data structure and a blob for CBOR data.
+ * The functions that are specific to a canonical block type are provided for convenience.
+ */
+
+void BPLib_CBOR_DecodeAgeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
+void BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
+int  BPLib_CBOR_DecodeCanonical(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
+void BPLib_CBOR_DecodeHopCountData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
+int  BPLib_CBOR_DecodePayload(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
+void BPLib_CBOR_DecodePrevNodeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
+void BPLib_CBOR_DecodePrimary(QCBORDecodeContext *DecodeCtx, PrimaryBlock_t *v);
+
+void BPLib_CBOR_EncodeAgeData(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+void BPLib_CBOR_EncodeBundle(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+int  BPLib_CBOR_EncodeCanonical(BPLib_Bundle_t *Bundle);
+void BPLib_CBOR_EncodeCRC(QCBOREncodeContext *enc);
+void BPLib_CBOR_EncodeHopCountData(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+int  BPLib_CBOR_EncodePayload(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
+void BPLib_CBOR_EncodePrevNodeData(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+void BPLib_CBOR_EncodePrimary(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+int  BPLib_CBOR_ValidateCRC(void);
 
 #endif /* BPLIB_CBOR_H */
