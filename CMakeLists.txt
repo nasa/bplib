@@ -122,6 +122,9 @@ if (IS_CFS_ARCH_BUILD)
   # The CFE build system determines whether to create a shared or static object inside this routine
   add_cfe_app(bplib ${BPLIB_SRC})
 
+  # link with the requisite dependencies
+  target_link_libraries(bplib qcbor)
+
 else()
 
   # Building as a standalone library
@@ -129,6 +132,9 @@ else()
   # The flavor of library (shared/static) being built here depends on the BUILD_SHARED_LIBS option
   # This directory may be built twice, setting this option differently to build both flavors
   add_library(bplib ${BPLIB_SRC})
+
+  # link with the requisite dependencies
+  target_link_libraries(bplib qcbor)
 
   # Add in the required link libraries based on OS adapter selection
   # this should preferably be in OS subdirectory, but it needs to be done

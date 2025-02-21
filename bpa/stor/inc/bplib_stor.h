@@ -28,6 +28,7 @@
 #include "bplib_api_types.h"
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
+#include "bplib_qm.h"
 
 // TODO BPLIB_FLAG_DIAGNOSTIC (from BPLIB_FLAG_DIAGNOSTIC) should b in bplib.h
 #define BPLIB_FLAG_DIAGNOSTIC              0x00000000
@@ -110,5 +111,22 @@ int BPLib_STOR_Init(void);
  *  \retval BPLIB_SUCCESS Validation was successful
  */
 BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
+
+
+
+/**
+ * @brief Check the bundle cache fifo for available bundles
+ *
+ * This function pulls from Bundle Cache and pushes them to the unsorted job queue
+ *
+ * @param[in] inst The instance containing the jobs to be sorted.
+ * @param[in] max_num_bundles_to_scan The number of bundles to pull from storage
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Scanning cache was successful
+ *  \retval BPLIB_NULL_PTR_ERROR Provided instance pointer was null/invalid
+ */
+BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* inst, uint32_t max_num_bundles_to_scan);
+
 
 #endif /* BPLIB_STOR_H */

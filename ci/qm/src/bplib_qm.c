@@ -61,6 +61,12 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         mem_init = false;
     }
 
+    inst->BundleCacheListMem = calloc(max_jobs, sizeof(BPLib_Bundle_t *));
+    if (inst->BundleCacheListMem == NULL)
+    {
+        mem_init = false;
+    }
+
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         inst->ChannelEgressMem[i] = calloc(max_jobs * BPLIB_MAX_NUM_CHANNELS, sizeof(BPLib_Bundle_t *));
@@ -75,6 +81,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
+        free(inst->BundleCacheListMem);
 
         for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
         {
@@ -98,6 +105,10 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     {
         queue_init = false;
     }
+    if (!BPLib_QM_WaitQueueInit(&(inst->BundleCacheList), inst->BundleCacheListMem, sizeof(BPLib_Bundle_t*), max_jobs))
+    {
+        queue_init = false;
+    }
 
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
@@ -112,6 +123,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         free(inst->job_mem);
         free(inst->unsorted_job_mem);
         free(inst->contact_egress_mem);
+        free(inst->BundleCacheListMem);
 
         for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
         {
@@ -136,9 +148,11 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
     BPLib_QM_WaitQueueDestroy(&(inst->GenericWorkerJobs));
     BPLib_QM_WaitQueueDestroy(&(inst->UnsortedJobs));
     BPLib_QM_WaitQueueDestroy(&(inst->ContactEgressJobs));
+    BPLib_QM_WaitQueueDestroy(&(inst->BundleCacheList));
     free(inst->job_mem);
     free(inst->unsorted_job_mem);
     free(inst->contact_egress_mem);
+    free(inst->BundleCacheListMem);
 
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
