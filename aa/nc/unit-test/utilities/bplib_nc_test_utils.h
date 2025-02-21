@@ -41,6 +41,12 @@
 // Add a test case
 #define ADD_TEST(test) UtTest_Add(test, BPLib_NC_Test_Setup, BPLib_NC_Test_Teardown, #test)
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+extern BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
+
 /* =================== */
 /* Function Prototypes */
 /* =================== */
