@@ -131,32 +131,33 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_PL_NULL_CALLBACK_ERROR        ((BPLib_Status_t) -39)
 
 /* Node Configuration (NC) errors */
-#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -40)
-#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -41)
+#define BPLIB_NC_INIT_CONFIG_PTRS_ERROR     ((BPLib_Status_t) -40)
+#define BPLIB_NC_INVALID_MIB_ITEM_INDEX     ((BPLib_Status_t) -41)
+#define BPLIB_NC_INVALID_MID_VALUE          ((BPLib_Status_t) -42)
 
 /* CLA Errors*/
-#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -42)
+#define BPLIB_CLA_TIMEOUT                   ((BPLib_Status_t) -43)
 
 /* Payload Interface Errors */
-#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -43)
-#define BPLIB_PI_TIMEOUT                    ((BPLib_Status_t) -44)
+#define BPLIB_PI_INVALID_CONFIG_ERROR       ((BPLib_Status_t) -44)
+#define BPLIB_PI_TIMEOUT                    ((BPLib_Status_t) -45)
 
 /* Admin Statistics (AS) Errors */
-#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -45)
-#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -46)
-#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -47)
-#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -48)
-#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID      ((BPLib_Status_t) -49)
-#define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -50)
-#define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -51)
-#define BPLIB_AS_INVALID_MIB_INDEX          ((BPLib_Status_t) -52)
-#define BPLIB_AS_NO_KEYS_GIVEN              ((BPLib_Status_t) -53)
+#define BPLIB_AS_INIT_MUTEX_ERR             ((BPLib_Status_t) -46)
+#define BPLIB_AS_INVALID_EID                ((BPLib_Status_t) -47)
+#define BPLIB_AS_UNKNOWN_NODE_CNTR          ((BPLib_Status_t) -48)
+#define BPLIB_AS_UNKNOWN_SRC_CNTR           ((BPLib_Status_t) -49)
+#define BPLIB_AS_UNKNOWN_MIB_ARRAY_EID      ((BPLib_Status_t) -50)
+#define BPLIB_AS_MIB_KEY_ARRAY_FULL         ((BPLib_Status_t) -51)
+#define BPLIB_AS_MIB_KEYS_OVERLAP           ((BPLib_Status_t) -52)
+#define BPLIB_AS_INVALID_MIB_INDEX          ((BPLib_Status_t) -53)
+#define BPLIB_AS_NO_KEYS_GIVEN              ((BPLib_Status_t) -54)
 
 /* Queue Manager (QM) Errors */
-#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -54)
+#define BPLIB_QM_PUSH_ERROR                 ((BPLib_Status_t) -55)
 
 /* MEM Errors */
-#define BPLIB_MEM_INITMEM_UNALIGN           ((BPLib_Status_t) -55)
+#define BPLIB_MEM_INITMEM_UNALIGN           ((BPLib_Status_t) -56)
 
 // TODO TIME Helpers
 
