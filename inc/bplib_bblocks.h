@@ -73,8 +73,6 @@ typedef struct
     BPLib_EID_t               ReportToEID;
     BPLib_CreationTimeStamp_t Timestamp;
     uint64_t                  Lifetime;
-    uint32_t                  FragmentOffset;
-    uint32_t                  TotalAduLength;
     BPLib_CRC_Val_t           CrcVal;
 } BPLib_PrimaryBlock_t;
 
