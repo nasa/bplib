@@ -65,6 +65,7 @@ The versions used may change. The versions as of the last update of this documen
 - switch to the correct version of QCBOR
    - `git checkout v1.5.1`
 - build and install QCBOR
+   - `sudo make uninstall`
    - `cmake -DBUILD_SHARED_LIBS=ON -S . -B build`
    - `cmake --build build`
    - `sudo make install`
