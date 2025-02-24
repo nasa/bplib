@@ -48,8 +48,6 @@ BPLib_Status_t BPA_EVP_Init(void);
 
 BPLib_Status_t BPA_EVP_SendEvent(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText);
 
-int32_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle);
-
 void BPA_PERFLOGP_Entry(uint32_t PerfLogID);
 
 void BPA_PERFLOGP_Exit(uint32_t PerfLogID);

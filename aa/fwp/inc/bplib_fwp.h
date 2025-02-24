@@ -61,7 +61,6 @@ typedef struct
 
     /* Table Proxy function callbacks */
     BPLib_Status_t (*BPA_TABLEP_TableUpdate)(BPLib_NC_TableType_t TableType, void** TblPtr);
-    BPLib_Status_t (*BPA_TABLEP_SingleTableUpdate)(int16_t TblHandle);
 
     /* Event Proxy function callbacks */
     BPLib_Status_t (*BPA_EVP_Init)(void);

@@ -44,7 +44,6 @@ void BPLib_FWP_Test_Setup(void)
     TestCallbacks.BPA_TIMEP_GetMonotonicTime          = BPA_TIMEP_GetMonotonicTime;
     TestCallbacks.BPA_PERFLOGP_Entry                  = BPA_PERFLOGP_Entry;
     TestCallbacks.BPA_PERFLOGP_Exit                   = BPA_PERFLOGP_Exit;
-    TestCallbacks.BPA_TABLEP_SingleTableUpdate        = BPA_TABLEP_SingleTableUpdate;
     TestCallbacks.BPA_EVP_Init                        = BPA_EVP_Init;
     TestCallbacks.BPA_EVP_SendEvent                   = BPA_EVP_SendEvent;
     TestCallbacks.BPA_PERFLOGP_Entry                  = BPA_PERFLOGP_Entry;

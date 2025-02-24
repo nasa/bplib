@@ -149,22 +149,6 @@ void BPA_PERFLOGP_Exit(uint32_t PerfLogID)
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPA_TABLEP_SingleTableUpdate()
- * ----------------------------------------------------
- */
-int32_t BPA_TABLEP_SingleTableUpdate(int16_t TblHandle)
-{
-    UT_GenStub_SetupReturnBuffer(BPA_TABLEP_SingleTableUpdate, int32_t);
-
-    UT_GenStub_AddParam(BPA_TABLEP_SingleTableUpdate, int16_t, TblHandle);
-
-    UT_GenStub_Execute(BPA_TABLEP_SingleTableUpdate, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPA_TABLEP_SingleTableUpdate, int32_t);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPA_TIMEP_GetHostClockState()
  * ----------------------------------------------------
  */
