@@ -22,6 +22,7 @@
 ** Include
 */
 #include "bplib_bi.h"
+#include "bplib_cbor.h"
 #include "bplib_qm.h"
 
 #include <stdio.h>
@@ -37,6 +38,7 @@ int BPLib_BI_Init(void) {
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
 BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
+    QCBORDecodeContext DecodeCtx;
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_Bundle_t* bundle;
 
@@ -54,6 +56,8 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
 
     /* TODO: CBOR Decode the bundle and return the deserialized bundle pointer */
     /* TODO: fully fill out primary block fields from decoded bundle */
+    BPLib_CBOR_DecodeBundle(&DecodeCtx, bundle, Size);
+
     bundle->blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
     if (Size == BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_0)

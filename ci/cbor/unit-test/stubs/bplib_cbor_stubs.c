@@ -78,12 +78,18 @@ void BPLib_CBOR_DecodeAgeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bun
  * Generated stub function for BPLib_CBOR_DecodeBundle()
  * ----------------------------------------------------
  */
-void BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle)
+BPLib_Status_t BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *CandidateBundle,
+                                       size_t CandidateBundleLen)
 {
+    UT_GenStub_SetupReturnBuffer(BPLib_CBOR_DecodeBundle, BPLib_Status_t);
+
     UT_GenStub_AddParam(BPLib_CBOR_DecodeBundle, QCBORDecodeContext *, DecodeCtx);
-    UT_GenStub_AddParam(BPLib_CBOR_DecodeBundle, BPLib_Bundle_t *, Bundle);
+    UT_GenStub_AddParam(BPLib_CBOR_DecodeBundle, BPLib_Bundle_t *, CandidateBundle);
+    UT_GenStub_AddParam(BPLib_CBOR_DecodeBundle, size_t, CandidateBundleLen);
 
     UT_GenStub_Execute(BPLib_CBOR_DecodeBundle, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_CBOR_DecodeBundle, BPLib_Status_t);
 }
 
 /*
@@ -317,23 +323,6 @@ BPLib_Status_t BPLib_CBOR_PrimaryBlockParse(QCBORDecodeContext *ctx)
     UT_GenStub_Execute(BPLib_CBOR_PrimaryBlockParse, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_CBOR_PrimaryBlockParse, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
- * Generated stub function for BPLib_CBOR_TryBundleDecode()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_CBOR_TryBundleDecode(void *CandBundle, size_t CandleBundleLen)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_CBOR_TryBundleDecode, BPLib_Status_t);
-
-    UT_GenStub_AddParam(BPLib_CBOR_TryBundleDecode, void *, CandBundle);
-    UT_GenStub_AddParam(BPLib_CBOR_TryBundleDecode, size_t, CandleBundleLen);
-
-    UT_GenStub_Execute(BPLib_CBOR_TryBundleDecode, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_CBOR_TryBundleDecode, BPLib_Status_t);
 }
 
 /*

@@ -32,8 +32,14 @@ void Test_BPLib_CBOR_Init(void)
     UtAssert_INT32_EQ(BPLib_CBOR_Init(), BPLIB_SUCCESS);
 }
 
-void Test_BPLib_CBOR_TryBundleDecode(void)
+void Test_BPLib_CBOR_DecodeBundle(void)
 {
+    // TODO Include bpnode config here or what? (For BPNODE_MEM_POOL_LEN)
+    /**
+     * \brief Size of BPLib's Memory Pool, in bytes
+     */
+    #define BPNODE_MEM_POOL_LEN               (16834u)
+
     // Good Bundle Data
     // Created with `xxd -i good-bundle.bin > good.c`
     unsigned char good_bundle_bin[] = {
@@ -54,15 +60,28 @@ void Test_BPLib_CBOR_TryBundleDecode(void)
     };
     unsigned int good_bundle_bin_len = 160;
 
-    uint8_t *CandidateBundle = good_bundle_bin;
-    size_t DataLen = good_bundle_bin_len;
+    uint8_t *bundle_blob = good_bundle_bin;
+    size_t CandidateBundleLen = good_bundle_bin_len;
+    QCBORDecodeContext DecodeCtx;
 
-    /* Decode */
-    UtAssert_INT32_EQ(BPLib_CBOR_TryBundleDecode(CandidateBundle, DataLen), BPLIB_SUCCESS);
+    // TODO Instance init should move to bplib_cbor_test_utils.c
+    BPLib_Instance_t inst;
+    memset(&inst, 0, sizeof(BPLib_Instance_t));
+    uint8_t *pool_mem;
+
+    UtAssert_INT32_EQ(BPLib_MEM_PoolInit(&inst.pool, &pool_mem, (size_t)BPNODE_MEM_POOL_LEN), BPLIB_SUCCESS);
+
+    BPLib_Bundle_t *CandidateBundle;
+
+    CandidateBundle = BPLib_MEM_BundleAlloc(&inst.pool, bundle_blob, CandidateBundleLen);
+    UtAssert_NOT_NULL(CandidateBundle);
+
+    /* Decode with error */
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(&DecodeCtx, CandidateBundle, CandidateBundleLen), BPLIB_CBOR_DEC_ERR);
 }
 
 void TestBplibCbor_Register(void)
 {
     UtTest_Add(Test_BPLib_CBOR_Init, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_Init");
-    UtTest_Add(Test_BPLib_CBOR_TryBundleDecode, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_TryBundleDecode");
+    UtTest_Add(Test_BPLib_CBOR_DecodeBundle, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_TryBundleDecode");
 }

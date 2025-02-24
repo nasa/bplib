@@ -46,7 +46,7 @@ int32_t BPLib_CBOR_SimpleValuesTest1(void);
 static uint8_t spBigBuf[2200];
 
 /*
- 85                  # array(5)
+   85               # array(5)
    F5               # primitive(21)
    F4               # primitive(20)
    F6               # primitive(22)
@@ -68,8 +68,43 @@ void BPLib_CBOR_DecodeAgeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bun
 
 }
 
-void BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle)
+BPLib_Status_t BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx,
+                                       BPLib_Bundle_t *CandidateBundle,
+                                       size_t CandidateBundleLen)
 {
+    BPLib_Status_t Status;
+    uint8_t* CandidateBytes;
+
+    UsefulBufC UBufC;
+
+    if (CandidateBundle == NULL)
+    {
+        return BPLIB_NULL_PTR_ERROR;
+    }
+    if (CandidateBundleLen <= 2)
+    {
+        return BPLIB_CBOR_DEC_ERR;
+    }
+
+    /* Check for CBOR Indefinite Array manually: this avoids a layer of QCBOR calls. */
+    CandidateBytes = (uint8_t*)(CandidateBundle);
+    if ((CandidateBytes[0] != 0x9F) || (CandidateBytes[CandidateBundleLen - 1] != 0xFF))
+    {
+        return BPLIB_CBOR_DEC_ERR;
+    }
+
+    /* Init QCBOR Decode Engine with the Candidate Bundle */
+    UBufC.ptr = (const void*)((uint8_t*)CandidateBundle + 1);
+    UBufC.len = CandidateBundleLen - 2;
+    QCBORDecode_Init(DecodeCtx, UBufC, QCBOR_DECODE_MODE_NORMAL);
+
+    Status = BPLib_CBOR_PrimaryBlockParse(DecodeCtx);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return Status;
+    }
+
+    return BPLIB_SUCCESS;
 
 }
 
@@ -393,42 +428,4 @@ BPLib_Status_t BPLib_CBOR_PrimaryBlockParse(QCBORDecodeContext* ctx)
 BPLib_Status_t BPLib_CBOR_CanonicalBlockParse(QCBORDecodeContext* ctx)
 {
     return BPLIB_CBOR_DEC_ERR;
-}
-
-BPLib_Status_t BPLib_CBOR_TryBundleDecode(void* CandBundle, size_t CandleBundleLen)
-{
-    BPLib_Status_t Status;
-    uint8_t* CandBytes;
-
-    UsefulBufC UBufC;
-    QCBORDecodeContext ctx;
-
-    if (CandBundle == NULL)
-    {
-        return BPLIB_NULL_PTR_ERROR;
-    }
-    if (CandleBundleLen <= 2)
-    {
-        return BPLIB_CBOR_DEC_ERR;
-    }
-
-    /* Check for CBOR Indefinite Array manually: this avoids a layer of QCBOR calls. */
-    CandBytes = (uint8_t*)(CandBundle);
-    if ((CandBytes[0] != 0x9F) || (CandBytes[CandleBundleLen - 1] != 0xFF))
-    {
-        return BPLIB_CBOR_DEC_ERR;
-    }
-
-    /* Init QCBOR Decode Engine with the Candidate Bundle */
-    UBufC.ptr = (const void*)((uint8_t*)CandBundle + 1);
-    UBufC.len = CandleBundleLen - 2;
-    QCBORDecode_Init(&ctx, UBufC, QCBOR_DECODE_MODE_NORMAL);
-
-    Status = BPLib_CBOR_PrimaryBlockParse(&ctx);
-    if (Status != BPLIB_SUCCESS)
-    {
-        return Status;
-    }
-
-    return BPLIB_SUCCESS;
 }

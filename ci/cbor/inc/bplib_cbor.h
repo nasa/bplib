@@ -64,7 +64,7 @@ BPLib_Status_t BPLib_CBOR_Init(void);
  */
 
           void BPLib_CBOR_DecodeAgeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
-          void BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
+BPLib_Status_t BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *CandidateBundle, size_t CandidateBundleLen);
 BPLib_Status_t BPLib_CBOR_DecodeCanonical(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
           void BPLib_CBOR_DecodeHopCountData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
 BPLib_Status_t BPLib_CBOR_DecodePayload(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
@@ -86,6 +86,5 @@ BPLib_Status_t BPLib_CBOR_ValidateCRC(void);
     QCBORError BPLib_CBOR_EIDParse(QCBORDecodeContext* ctx, BPLib_EID_t* eid);
 BPLib_Status_t BPLib_CBOR_PrimaryBlockParse(QCBORDecodeContext* ctx);
 BPLib_Status_t BPLib_CBOR_CanonicalBlockParse(QCBORDecodeContext* ctx);
-BPLib_Status_t BPLib_CBOR_TryBundleDecode(void* CandBundle, size_t CandleBundleLen);
 
 #endif /* BPLIB_CBOR_H */
