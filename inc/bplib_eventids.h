@@ -144,4 +144,7 @@
 #define BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID           (603u)
 
 
+#define BPLIB_NC_FWP_TBL_UPDATE_ERR_EID                 (604u)
+#define BPLIB_NC_TBL_UPDATE_ERR_EID                     (605u)
+
 #endif /* BPLIB_EVENTIDS_H */

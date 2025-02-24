@@ -71,7 +71,6 @@ typedef enum
 /**
   * \brief     Initialize NC
   * \details   Node Configuration initialization
-  * \note      As of right now, this function always returns BPLIB_SUCCESS
   * \param[in] ConfigPtrs (BPLib_FWP_ConfigPtrs_t*) Pointer to configurations for BPLib populated by BPNode
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Initialization was successful
@@ -122,7 +121,18 @@ void BPLib_NC_SetAppState(uint8_t ChanId, BPLib_NC_ApplicationState_t State);
 
 BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId);
 
-
-BPLib_Status_t BPLib_NC_TableWakeUp(void)
+/**
+  * \brief     Pass updated table configurations to corresponding modules
+  * \details   Uses FWP to update the BPLib table pointers, then pass those updated pointer tables to the
+  *            module that controls that table
+  * \note      As of right now, the API calls to modules that will update tables are commented out, since
+  *            some of those functions are not implemented yet
+  * \param[in] void No arguments accepted
+  * \return    Execution status
+  * \retval    BPLIB_SUCCESS: Initialization was successful
+  * \retval    BPLIB_NC_FWP_TBL_WAKEUP_ERR: Something went wrong while attempting to update the table pointer with TABLEP
+  * \retval    BPLIB_NC_TBL_WAKEUP_ERR: Something went wrong while attempting to update the tables with module API calls
+  */
+BPLib_Status_t BPLib_NC_TableWakeUp(void);
 
 #endif // BPLIB_NC_H
