@@ -112,6 +112,7 @@ void BPLib_NC_Test_Setup(void)
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt = BPA_TLMP_SendPerSourceMibConfigPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt     = BPA_TLMP_SendChannelContactPkt;
     BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt            = BPA_TLMP_SendStoragePkt;
+    BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate             = BPA_TABLEP_TableUpdate;
 
     memset((void*) &TestChanTbl,      1, sizeof(BPLib_PI_ChannelTable_t));
     memset((void*) &TestContactsTbl,  1, sizeof(BPLib_CLA_ContactsTable_t));
