@@ -128,11 +128,7 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId);
   * \note      As of right now, the API calls to modules that will update tables are commented out, since
   *            some of those functions are not implemented yet
   * \param[in] void No arguments accepted
-  * \return    Execution status
-  * \retval    BPLIB_SUCCESS: Initialization was successful
-  * \retval    BPLIB_NC_FWP_TBL_WAKEUP_ERR: Something went wrong while attempting to update the table pointer with TABLEP
-  * \retval    BPLIB_NC_TBL_WAKEUP_ERR: Something went wrong while attempting to update the tables with module API calls
   */
-BPLib_Status_t BPLib_NC_TableWakeUp(void);
+void BPLib_NC_TableWakeUp(void);
 
 #endif // BPLIB_NC_H

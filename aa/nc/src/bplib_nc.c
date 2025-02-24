@@ -124,14 +124,10 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId)
     return BPLib_NC_ChannelContactStatsPayload.ChannelStatus[ChanId].State;
 }
 
-BPLib_Status_t BPLib_NC_TableWakeUp(void)
+void BPLib_NC_TableWakeUp(void)
 {
     BPLib_Status_t FWP_UpdateStatus;
     BPLib_Status_t BPLibUpdateStatus;
-    BPLib_Status_t Status;
-
-    /* Default to reporting successful table wake ups */
-    Status = BPLIB_SUCCESS;
 
     /* Update Channel Configurations table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(CHANNEL_CONFIG,
@@ -151,10 +147,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
                                 "Failed to update Channel Configuration table");
         }
         */
-    }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
     }
 
     /* Update Contacts table with TABLEP */
@@ -176,10 +168,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
         }
         */
     }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
-    }
 
     /* Update Compressed Reporting table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(COMPRESSED_REPORTING,
@@ -199,10 +187,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
                                             "Failed to update Compressed Reporting table");
         }
         */
-    }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
     }
     
     /* Update Custodian Authorization Table with TABLEP */
@@ -224,10 +208,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
         }
         */
     }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
-    }
 
     /* Update Custody Authorization table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(CUSTODY_AUTH_POLICY,
@@ -247,10 +227,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
                                 "Failed to update Custody Authorization Policy table");
         }
         */
-    }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
     }
 
     /* Update MIB Configuration per Node table with TABLEP */
@@ -272,10 +248,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
         }
         */
     }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
-    }
 
     /* Update MIB Configuration per Source table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(MIB_CONFIG_PER_SRC,
@@ -295,10 +267,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
                                 "Failed to update MIB Configuration per Source table");
         }
         */
-    }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
     }
 
     /* Update Report-to-EID Authorization Policy table with TABLEP */
@@ -320,10 +288,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
         }
         */
     }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
-    }
 
     /* Update Source Authorization Policy table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(SRC_AUTH_POLICY,
@@ -343,10 +307,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
                                 "Failed to update Source Authorization Policy table");
         }
         */
-    }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
     }
 
     /* Update Source Latency Policy table with TABLEP */
@@ -368,10 +328,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
         }
         */
     }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
-    }
 
     /* Update Storage table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(STORAGE,
@@ -392,10 +348,6 @@ BPLib_Status_t BPLib_NC_TableWakeUp(void)
         }
         */
     }
-    else if (FWP_UpdateStatus != BPLIB_SUCCESS)
-    {
-        Status = BPLIB_NC_FWP_TBL_WAKEUP_ERR;
-    }
 
-    return Status;
+    return;
 }
