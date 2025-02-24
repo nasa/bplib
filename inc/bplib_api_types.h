@@ -161,7 +161,7 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_MEM_INITMEM_UNALIGN           ((BPLib_Status_t) -56)
 
 
-#define BPLIB_NC_TBL_WAKEUP_ERR             ((BPLib_Status_t) -57)
+#define BPLIB_NC_TBL_UPDATE_ERR             ((BPLib_Status_t) -57)
 
 // TODO TIME Helpers
 

@@ -140,7 +140,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
@@ -160,7 +160,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
@@ -180,7 +180,7 @@ void BPLib_NC_TableUpdate(void)
         BPLibUpdateStatus = BPLib_ARP_CompressedReportingTblUpdate();
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                             BPLib_EM_EventType_ERROR,
@@ -200,7 +200,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
@@ -220,7 +220,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
@@ -240,7 +240,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
@@ -260,7 +260,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
@@ -280,7 +280,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
@@ -300,7 +300,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
@@ -320,7 +320,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
@@ -340,7 +340,7 @@ void BPLib_NC_TableUpdate(void)
 
         if (BPLibUpdateStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_WAKEUP_ERR;
+            Status = BPLIB_NC_TBL_UPDATE_ERR;
 
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
