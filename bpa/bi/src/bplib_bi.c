@@ -23,6 +23,7 @@
 */
 #include "bplib_bi.h"
 #include "bplib_qm.h"
+#include "bplib_bblocks.h"
 
 #include <stdio.h>
 
