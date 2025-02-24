@@ -44,14 +44,16 @@ extern "C" {
  * @note The numeric values match the block type values in BPv7 section 9.1. The v6 types 
  *       are not included.
  */
-typedef enum
+enum BPLib_BlockType
 {
     BPLib_BlockType_Reserved = 0,
     BPLib_BlockType_Payload = 1,
     BPLib_BlockType_PrevNode = 6,
     BPLib_BlockType_Age = 7,
     BPLib_BlockType_HopCount = 10
-} BPLib_BlockType_t;
+};
+
+typedef uint64_t BPLib_BlockType_t;
 
 /**
  * \brief BPLib status type for type safety

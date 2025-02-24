@@ -149,7 +149,7 @@ static inline uint8_t BPLib_GetPriCrcType(BPLib_PrimaryBlock_t PriBlock)
  */
 static inline uint64_t BPLib_GetPriVersionCrcTypeComposite(BPLib_CRC_Type_t CrcType)
 {
-    return (BPLIB_BUNDLE_PROTOCOL_VERSION << 7) | CrcType;
+    return (BPLIB_BUNDLE_PROTOCOL_VERSION << 8) | CrcType;
 }
 
 #endif /* BPLIB_BBLOCKS_H */
