@@ -18,50 +18,32 @@
  *
  */
 
-#ifndef BPLIB_EM_HANDLERS_H
-#define BPLIB_EM_HANDLERS_H
+#ifndef BPLIB_RBT_TEST_UTILS_H
+#define BPLIB_RBT_TEST_UTILS_H
 
-/* ======== */
-/* Includes */
-/* ======== */
+/*
+** Include
+*/
 
 #include "utassert.h"
 #include "utstubs.h"
 #include "uttest.h"
 
-#include "bplib_em.h"
+#include "bplib_api_types.h"
+#include "bplib_rbt.h"
 
+/*
+** Macro Definitions
+*/
 
-/* ================= */
-/* Macro Definitions */
-/* ================= */
+/* Macro to add test case */
+#define ADD_TEST(test) UtTest_Add(test, BPLib_RBT_Test_Setup, BPLib_RBT_Test_Teardown, #test)
 
-#define UT_MAX_SENDEVENT_DEPTH 80
+/*
+** Function Definitions
+*/
 
-/* ================ */
-/* Type Definitions */
-/* ================ */
+void BPLib_RBT_Test_Setup(void);
+void BPLib_RBT_Test_Teardown(void);
 
-/* Unit test check event hook information */
-typedef struct
-{
-    uint16_t EventID;
-    BPLib_EM_EventType_t EventType;
-    char     Spec[BPLIB_EM_EXPANDED_EVENT_SIZE];
-} BPLib_EM_SendEvent_context_t;
-
-
-/* =========== */
-/* Global Data */
-/* =========== */
-
-extern BPLib_EM_SendEvent_context_t context_BPLib_EM_SendEvent[];
-
-
-/* ==================== */
-/* Function Definitions */
-/* ==================== */
-
-void UT_Handler_BPLib_EM_SendEvent(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context);
-
-#endif /* BPLIB_EM_HANDLERS_H */
+#endif /* BPLIB_RBT_TEST_UTILS_H */

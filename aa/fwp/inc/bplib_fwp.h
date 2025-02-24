@@ -31,19 +31,29 @@
 #include "bplib_stor.h"
 #include "bplib_time.h"
 #include "bplib_em.h"
+#include "bplib_pi.h"
+#include "bplib_cla.h"
+#include "bplib_arp.h"
+#include "bplib_pdb.h"
+
+/* ====== */
+/* Macros */
+/* ====== */
+
+#define BPLIB_NUM_TBLS 11
 
 /*
 ** Type Definitions
 */
 
-typedef struct 
+typedef struct
 {
     /* Time Proxy function callbacks */
     int64_t (*BPA_TIMEP_GetMonotonicTime)(void);
     void (*BPA_TIMEP_GetHostEpoch)(BPLib_TIME_Epoch_t *Epoch);
     BPLib_TIME_ClockState_t (*BPA_TIMEP_GetHostClockState)(void);
     int64_t (*BPA_TIMEP_GetHostTime)(void);
-    
+
     /* PerfLog Proxy function callbacks */
     void (*BPA_PERFLOGP_Entry)(uint32_t PerfLogID);
     void (*BPA_PERFLOGP_Exit)(uint32_t PerfLogID);
@@ -54,7 +64,7 @@ typedef struct
     /* Event Proxy function callbacks */
     BPLib_Status_t (*BPA_EVP_Init)(void);
     BPLib_Status_t (*BPA_EVP_SendEvent)(uint16_t EventID, BPLib_EM_EventType_t EventType, char const* EventText);
-    
+
     /* Telemetry Proxy function callbacks */
     BPLib_Status_t (*BPA_TLMP_SendNodeMibConfigPkt)(BPLib_NodeMibConfigHkTlm_Payload_t* NodeMIBConfigTlmPayload);
     BPLib_Status_t (*BPA_TLMP_SendPerSourceMibConfigPkt)(BPLib_SourceMibConfigHkTlm_Payload_t* SrcMIBConfigTlmPayload);
@@ -73,28 +83,39 @@ typedef struct
 
 } BPLib_FWP_ProxyCallbacks_t;
 
-/*
-** Global Data
-*/
+typedef struct
+{
+    BPLib_PI_ChannelTable_t*     ChanTblPtr;
+    BPLib_CLA_ContactsTable_t*   ContactsTblPtr;
+    BPLib_ARP_CRSTable_t*        CrsTblPtr;
+    BPLib_PDB_CustodianTable_t*  CustodianTblPtr;
+    BPLib_PDB_CustodyTable_t*    CustodyTblPtr;
+    BPLib_NC_MIBConfigPNTable_t* MibPnTblPtr;
+    BPLib_NC_MIBConfigPSTable_t* MibPsTblPtr;
+    BPLib_PDB_ReportToTable_t*   ReportTblPtr;
+    BPLib_PDB_SrcAuthTable_t*    AuthTblPtr;
+    BPLib_PDB_SrcLatencyTable_t* LatTblPtr;
+    BPLib_STOR_StorageTable_t*   StorTblPtr;
+} BPLib_FWP_ConfigPtrs_t;
+
+/* =========== */
+/* Global Data */
+/* =========== */
 
 extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
+extern BPLib_FWP_ConfigPtrs_t     BPLib_FWP_ConfigPtrs;
 
-/*
-** Exported Functions
-*/
+/* =================== */
+/* Function Prototypes */
+/* =================== */
 
 /**
- * \brief Framework Proxy initialization
- *
- *  \par Description
- *       FWP initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t Callbacks);
+  * \brief     Framework Proxy initialization
+  * \param[in] Callbacks (BPLib_FWP_ProxyCallbacks_t*) Pointer to callback functions for BPLib populated by BPNode
+  * \return    Execution status
+  * \retval    BPLIB_SUCCESS: Initialization was successful
+  * \retval    BPLIB_FWP_CALLBACK_INIT_ERROR: At least on passed in callback function is NULL
+  */
+BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks);
 
 #endif /* BPLIB_FWP_H */

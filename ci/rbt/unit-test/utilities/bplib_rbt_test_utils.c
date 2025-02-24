@@ -18,37 +18,29 @@
  *
  */
 
-#ifndef BPLIB_FWP_TEST_UTILS_H
-#define BPLIB_FWP_TEST_UTILS_H
+/*
+** Include
+*/
 
-/* ======== */
-/* Includes */
-/* ======== */
+#include "../bplib_rbt_test.h"
+#include "bplib_rbt_test_utils.h"
 
-#include "utassert.h"
-#include "utstubs.h"
-#include "uttest.h"
+/*
+** Function Definitions
+*/
 
-#include "bplib_api_types.h"
-#include "bplib_fwp.h"
+void BPLib_RBT_Test_Setup(void)
+{
+    /* Initialize test environment to default state for every test */
+    UT_ResetState(0);
+}
 
-#include "bpa_fwp_stubs.h"  /* For stub definitions of callbacks */
+void BPLib_RBT_Test_Teardown(void)
+{
+    /* Clean up test environment */
+}
 
-/* =========== */
-/* Global Data */
-/* =========== */
-
-extern BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
-extern BPLib_FWP_ProxyCallbacks_t TestCallbacks;
-
-/* =================== */
-/* Function Prototypes */
-/* =================== */
-
-void BPLib_FWP_Test_Setup(void);
-
-void BPLib_FWP_Test_Teardown(void);
-
-void TestBplibFwp_Register(void);
-
-#endif /* BPLIB_FWP_TEST_UTILS_H */
+void UtTest_Setup(void)
+{
+    Test_BPLib_RBT_Register();
+}

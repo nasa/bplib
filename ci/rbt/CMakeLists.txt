@@ -2,17 +2,18 @@
 #
 # Bundle Protocol Library (BPLib) CMake build recipe
 #
-# This is for the CBOR module
+# This is for the MEM module
 #
 ##################################################################
 
-add_library(bplib_cbor OBJECT
-    src/bplib_cbor.c
+add_library(bplib_rbt OBJECT
+    src/bplib_rbt_impl.c
+    src/bplib_rbt_iterator.c
+    src/bplib_rbt_api.c
 )
 
-target_include_directories(bplib_cbor PUBLIC
+target_include_directories(bplib_rbt PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
-    ${QCBOR_INCLUDE_DIRS}
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
 )
 

@@ -34,10 +34,10 @@
 /* Typedefs */
 /* ======== */
 
-/** 
+/**
   * \brief Channel application state
   */
-typedef enum 
+typedef enum
 {
     BPLIB_NC_APP_STATE_REMOVED = 0,
     BPLIB_NC_APP_STATE_STOPPED = 1,
@@ -53,11 +53,12 @@ typedef enum
   * \brief     Initialize NC
   * \details   Node Configuration initialization
   * \note      As of right now, this function always returns BPLIB_SUCCESS
-  * \param[in] void No arguments accepted
-  * \return    Return status
-  * \retval    BPLIB_SUCCESS: Command was successful
+  * \param[in] ConfigPtrs (BPLib_FWP_ConfigPtrs_t*) Pointer to configurations for BPLib populated by BPNode
+  * \return    Execution status
+  * \retval    BPLIB_SUCCESS: Initialization was successful
+  * \retval    BPLIB_FWP_CONFIG_PTRS_INIT_ERROR: At least one passed in configuration/table is NULL
   */
-BPLib_Status_t BPLib_NC_Init(void);
+BPLib_Status_t BPLib_NC_Init(BPLib_FWP_ConfigPtrs_t* ConfigPtrs);
 
 /**
  * \brief Validate MIB Per Node Configuration Table configurations
@@ -66,7 +67,7 @@ BPLib_Status_t BPLib_NC_Init(void);
  *       Validate configuration table parameters
  *
  *  \par Assumptions, External Events, and Notes:
- *       - This function is called by whatever external task handles table management. 
+ *       - This function is called by whatever external task handles table management.
  *         Every time a new MIB Configuration Per Node table is loaded, this function should be called to
  *         validate its parameters.
  *
@@ -86,7 +87,7 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
  *       Validate configuration table parameters
  *
  *  \par Assumptions, External Events, and Notes:
- *       - This function is called by whatever external task handles table management. 
+ *       - This function is called by whatever external task handles table management.
  *         Every time a new MIB Configuration Per Source table is loaded, this function should be called to
  *         validate its parameters.
  *
