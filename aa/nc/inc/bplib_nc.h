@@ -82,19 +82,19 @@ BPLib_Status_t BPLib_NC_Init(BPLib_FWP_ConfigPtrs_t* ConfigPtrs);
 /**
  * \brief Validate MIB Per Node Configuration Table configurations
  *
- *  \par Description
+ * \par Description
  *       Validate configuration table parameters
  *
- *  \par Assumptions, External Events, and Notes:
+ * \par Assumptions, External Events, and Notes:
  *       - This function is called by whatever external task handles table management.
  *         Every time a new MIB Configuration Per Node table is loaded, this function should be called to
  *         validate its parameters.
  *
- *  \param[in] TblData Pointer to the config table
+ * \param[in] TblData Pointer to the config table
  *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Validation was successful
- *  \retval    BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
+ * \return Execution status
+ * \retval BPLIB_SUCCESS Validation was successful
+ * \retval BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
 */
 BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
 
@@ -102,24 +102,27 @@ BPLib_Status_t BPLib_NC_MIBConfigPNTblValidateFunc(void *TblData);
 /**
  * \brief Validate MIB Per Source Table configurations
  *
- *  \par Description
- *       Validate configuration table parameters
+ * \par Description
+ *      Validate configuration table parameters
  *
- *  \par Assumptions, External Events, and Notes:
- *       - This function is called by whatever external task handles table management.
- *         Every time a new MIB Configuration Per Source table is loaded, this function should be called to
- *         validate its parameters.
+ * \par Assumptions, External Events, and Notes:
+ *      - This function is called by whatever external task handles table management.
+ *        Every time a new MIB Configuration Per Source table is loaded, this function should be called to
+ *        validate its parameters.
  *
- *  \param[in] TblData Pointer to the config table
+ * \param[in] TblData Pointer to the config table
  *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Validation was successful
- * \retval    BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
+ * \return Execution status
+ * \retval BPLIB_SUCCESS Validation was successful
+ * \retval BPLIB_TABLE_OUT_OF_RANGE_ERR_CODE: table parameters are out of range
  */
 BPLib_Status_t BPLib_NC_MIBConfigPSTblValidateFunc(void *TblData);
 
 void BPLib_NC_SetAppState(uint8_t ChanId, BPLib_NC_ApplicationState_t State);
 
 BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId);
+
+
+BPLib_Status_t BPLib_NC_TableWakeUp(void)
 
 #endif // BPLIB_NC_H
