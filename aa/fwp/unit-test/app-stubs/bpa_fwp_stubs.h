@@ -31,7 +31,6 @@
 #include "bplib_as.h"
 #include "bplib_stor.h"
 
-
 /*
 ** Function Definitions
 */
@@ -71,5 +70,7 @@ BPLib_Status_t BPA_TLMP_SendPerSourceMibCounterPkt(BPLib_SourceMibCountersHkTlm_
 BPLib_Status_t BPA_TLMP_SendChannelContactPkt(BPLib_ChannelContactStatHkTlm_Payload_t* ChannelContactTlmPayload);
 
 BPLib_Status_t BPA_TLMP_SendStoragePkt(BPLib_StorageHkTlm_Payload_t* StorTlmPayload);
+
+BPLib_Status_t BPA_TABLEP_TableUpdate(uint8 TableType, void** TblPtr);
 
 #endif /* BPA_FWP_STUBS_H */
