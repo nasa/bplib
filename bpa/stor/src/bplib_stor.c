@@ -76,11 +76,11 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* inst, uint32_t max_num_bun
                 /* We may want to completely remove this event in the future, but for now it'll probably be helpful */
                 BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_GOT_GOOD_BUNDLE_INF_EID, BPLib_EM_EventType_INFORMATION,
                     "BPLib_QM_ScanCache found bundle with Dest EID: \"ipn:%lu.%lu\".",
-                    QueuedBundle->blocks.pri_blk.dest_eid.node_number,
-                    QueuedBundle->blocks.pri_blk.dest_eid.service_number);
+                    QueuedBundle->blocks.PrimaryBlock.DestEID.Node,
+                    QueuedBundle->blocks.PrimaryBlock.DestEID.Service);
 
                 /* Another hacky attempt at routing just to prove concept, FIX ME */
-                if (QueuedBundle->blocks.pri_blk.dest_eid.node_number == 200)
+                if (QueuedBundle->blocks.PrimaryBlock.DestEID.Node == 200)
                 {
                     NextJobState = CONTACT_OUT_STOR_TO_CT;
                 }
