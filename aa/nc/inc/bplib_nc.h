@@ -45,6 +45,25 @@ typedef enum
     BPLIB_NC_APP_STATE_STARTED = 3,
 } BPLib_NC_ApplicationState_t;
 
+/**
+  * \brief Indicator for type of table
+  */
+typedef enum
+{
+    CHANNEL_CONFIG            =  0, /* Channel Configuration table */
+    CONTACTS                  =  1, /* Contacts table */
+    COMPRESSED_REPORTING      =  2, /* Compressed Reporting table */
+    CUSTODIAN_AUTH_POLICY     =  3, /* Custodian Authorization Policy table */
+    CUSTODY_AUTH_POLICY       =  4, /* Custody Authorization Policy table */
+    MIB_CONFIG_PER_NODE       =  5, /* MIB Configuration per Node table */
+    MIB_CONFIG_PER_SRC        =  6, /* MIB Configuration per Source table */
+    REPORT_TO_EID_AUTH_POLICY =  7, /* Report-to-EID Authorization Policy table */
+    SRC_AUTH_POLICY           =  8, /* Source Authorization Policy table */
+    SRC_LATENCY_POLICY        =  9, /* Source Latency Policy table */
+    STORAGE                   = 10, /* Storage table */
+    ADU_PROXY_CONFIG          = 11, /* FWP's ADU Proxy Configuration table; confined to BPNode */
+} BPLib_NC_TableType_t;
+
 /* =================== */
 /* Function Prototypes */
 /* =================== */
