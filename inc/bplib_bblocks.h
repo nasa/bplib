@@ -84,6 +84,8 @@ typedef struct
     BPLib_EID_t               ReportToEID;
     BPLib_CreationTimeStamp_t Timestamp;
     uint64_t                  Lifetime;
+    uint64_t                  FragmentOffset;
+    uint64_t                  TotalAduLength;
     BPLib_CRC_Val_t           CrcVal;
 } BPLib_PrimaryBlock_t;
 
@@ -137,7 +139,7 @@ typedef struct
 /**
  * @brief Returns the CRC type of a primary block
  */
-inline uint8_t BPLib_GetPriCrcType(BPLib_PrimaryBlock_t PriBlock)
+static inline uint8_t BPLib_GetPriCrcType(BPLib_PrimaryBlock_t PriBlock)
 {
     return (uint8_t) (PriBlock.VersionCrcType & BPLIB_PRI_BLOCK_CRC_MASK);
 }
@@ -145,7 +147,7 @@ inline uint8_t BPLib_GetPriCrcType(BPLib_PrimaryBlock_t PriBlock)
 /**
  * @brief OR's together the CRC type and the BP version to return the composite field
  */
-inline uint64_t BPLib_GetPriVersionCrcTypeComposite(BPLib_CRC_Type_t CrcType)
+static inline uint64_t BPLib_GetPriVersionCrcTypeComposite(BPLib_CRC_Type_t CrcType)
 {
     return (BPLIB_BUNDLE_PROTOCOL_VERSION << 7) | CrcType;
 }
