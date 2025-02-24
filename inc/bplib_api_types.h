@@ -87,6 +87,11 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_BUF_LEN_ERROR                 ((BPLib_Status_t) -8)  /* Buffer length error */
 #define BPLIB_INVALID_EID                   ((BPLib_Status_t) -9)  /* Invalid endpoint identification */
 #define BPLIB_INVALID_EID_PATTERN           ((BPLib_Status_t) -10) /* Invalid endpoint identification pattern */
+#define BPLIB_CBOR_DEC_ERR                  ((BPLib_Status_t) -11) /* CBOR decode error */
+#define BPLIB_CBOR_ENC_ERR                  ((BPLib_Status_t) -12) /* CBOR encode  error */
+#define BPLIB_CBOR_LOGIC_ERR                ((BPLib_Status_t) -13) /* CBOR logic error */
+#define BPLIB_CBOR_DEC_PRI_ERR              ((BPLib_Status_t) -14) /* CBOR decode primary block error */
+
 /*
 #define BPLIB_GENERIC_ERROR_11              ((BPLib_Status_t) -11) // Error description
 #define BPLIB_GENERIC_ERROR_12              ((BPLib_Status_t) -12) // Error description

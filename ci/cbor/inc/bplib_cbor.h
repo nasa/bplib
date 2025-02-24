@@ -32,6 +32,12 @@
 #include "qcbor/qcbor_decode.h"
 #include "qcbor/qcbor_spiffy_decode.h"
 
+typedef struct BPLib_CreationTimestamp
+{
+    uint64_t CreationTimestamp;
+    uint64_t SequenceNumber;
+} BPLib_CreationTimestamp_t;
+
 /*
 ** Exported Functions
 */
@@ -48,7 +54,7 @@
  *  \return Execution status
  *  \retval BPLIB_SUCCESS Initialization was successful
  */
-int  BPLib_CBOR_Init(void);
+BPLib_Status_t BPLib_CBOR_Init(void);
 
 /**
  * @brief The CBOR APIs provide various CBOR encode and decode functions that
@@ -57,22 +63,29 @@ int  BPLib_CBOR_Init(void);
  * The functions that are specific to a canonical block type are provided for convenience.
  */
 
-void BPLib_CBOR_DecodeAgeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
-void BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
-int  BPLib_CBOR_DecodeCanonical(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
-void BPLib_CBOR_DecodeHopCountData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
-int  BPLib_CBOR_DecodePayload(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
-void BPLib_CBOR_DecodePrevNodeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
-void BPLib_CBOR_DecodePrimary(QCBORDecodeContext *DecodeCtx, PrimaryBlock_t *v);
+          void BPLib_CBOR_DecodeAgeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
+          void BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
+BPLib_Status_t BPLib_CBOR_DecodeCanonical(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
+          void BPLib_CBOR_DecodeHopCountData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
+BPLib_Status_t BPLib_CBOR_DecodePayload(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
+          void BPLib_CBOR_DecodePrevNodeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
+          void BPLib_CBOR_DecodePrimary(QCBORDecodeContext *DecodeCtx, PrimaryBlock_t *v);
 
-void BPLib_CBOR_EncodeAgeData(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
-void BPLib_CBOR_EncodeBundle(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
-int  BPLib_CBOR_EncodeCanonical(BPLib_Bundle_t *Bundle);
-void BPLib_CBOR_EncodeCRC(QCBOREncodeContext *enc);
-void BPLib_CBOR_EncodeHopCountData(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
-int  BPLib_CBOR_EncodePayload(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
-void BPLib_CBOR_EncodePrevNodeData(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
-void BPLib_CBOR_EncodePrimary(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
-int  BPLib_CBOR_ValidateCRC(void);
+          void BPLib_CBOR_EncodeAgeData(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+          void BPLib_CBOR_EncodeBundle(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+BPLib_Status_t BPLib_CBOR_EncodeCanonical(BPLib_Bundle_t *Bundle);
+          void BPLib_CBOR_EncodeCRC(QCBOREncodeContext *enc);
+          void BPLib_CBOR_EncodeHopCountData(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
+          void BPLib_CBOR_EncodePrevNodeData(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+          void BPLib_CBOR_EncodePrimary(QCBOREncodeContext *EncodeCtx, BPLib_Bundle_t *Bundle);
+BPLib_Status_t BPLib_CBOR_ValidateCRC(void);
+
+
+    QCBORError BPLib_CBOR_CreationTimestampParse(QCBORDecodeContext* ctx, BPLib_CreationTimestamp_t* CreationTimestamp);
+    QCBORError BPLib_CBOR_EIDParse(QCBORDecodeContext* ctx, BPLib_EID_t* eid);
+BPLib_Status_t BPLib_CBOR_PrimaryBlockParse(QCBORDecodeContext* ctx);
+BPLib_Status_t BPLib_CBOR_CanonicalBlockParse(QCBORDecodeContext* ctx);
+BPLib_Status_t BPLib_CBOR_TryBundleDecode(void* CandBundle, size_t CandleBundleLen);
 
 #endif /* BPLIB_CBOR_H */
