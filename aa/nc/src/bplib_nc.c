@@ -128,226 +128,205 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId)
 void BPLib_NC_TableUpdate(void)
 {
     BPLib_Status_t FWP_UpdateStatus;
+    // BPLib_Status_t ModuleStatus;
 
     /* Update Channel Configurations table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(CHANNEL_CONFIG,
                                                                         (void**) &BPLib_NC_ConfigPtrs.ChanTblPtr);
 
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_NC_ChannelConfigTblUpdate();
+        ModuleStatus = BPLib_NC_ChannelConfigTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update Channel Configuration table");
         }
-        */
     }
+    */
 
     /* Update Contacts table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(CONTACTS,
                                                                         (void**) &BPLib_NC_ConfigPtrs.ContactsTblPtr);
 
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_NC_ContactsTblUpdate();
+        ModuleStatus = BPLib_NC_ContactsTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update Contacts table");
         }
-        */
     }
+    */
 
     /* Update Compressed Reporting table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(COMPRESSED_REPORTING,
                                                                         (void**) &BPLib_NC_ConfigPtrs.CrsTblPtr);
 
-    
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_ARP_CompressedReportingTblUpdate();
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        ModuleStatus = BPLib_ARP_CompressedReportingTblUpdate();
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                             BPLib_EM_EventType_ERROR,
                                             "Failed to update Compressed Reporting table");
         }
-        */
     }
+    */
     
     /* Update Custodian Authorization Table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(CUSTODIAN_AUTH_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.CustodianTblPtr);
-                                                                    
+
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_PD_CustodianAuthorizationTblUpdate();
+        ModuleStatus = BPLib_PD_CustodianAuthorizationTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update Custodian Authorization Policy table");
         }
-        */
     }
+    */
 
     /* Update Custody Authorization table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(CUSTODY_AUTH_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.CustodyTblPtr);
 
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_PD_CustodyAuthorizationTblUpdate();
+        ModuleStatus = BPLib_PD_CustodyAuthorizationTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update Custody Authorization Policy table");
         }
-        */
     }
+    */
 
     /* Update MIB Configuration per Node table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(MIB_CONFIG_PER_NODE,
                                                                         (void**) &BPLib_NC_ConfigPtrs.MibPnTblPtr);
 
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_NC_NodeConfigTblUpdate();
+        ModuleStatus = BPLib_NC_NodeConfigTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update MIB Configuration per Node table");
         }
-        */
     }
+    */
 
     /* Update MIB Configuration per Source table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(MIB_CONFIG_PER_SRC,
                                                                         (void**) &BPLib_NC_ConfigPtrs.MibPsTblPtr);
 
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_NC_SourceConfigTblUpdate();
+        ModuleStatus = BPLib_NC_SourceConfigTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update MIB Configuration per Source table");
         }
-        */
     }
+    */
 
     /* Update Report-to-EID Authorization Policy table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(REPORT_TO_EID_AUTH_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.ReportTblPtr);
 
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_PD_ReportTblUpdate();
+        ModuleStatus = BPLib_PD_ReportTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update Report-to-EID Authorization Policy table");
         }
-        */
     }
+    */
 
     /* Update Source Authorization Policy table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(SRC_AUTH_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.AuthTblPtr);
 
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_PD_SrcAuthTblUpdate();
+        ModuleStatus = BPLib_PD_SrcAuthTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update Source Authorization Policy table");
         }
-        */
     }
+    */
 
     /* Update Source Latency Policy table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(SRC_LATENCY_POLICY,
                                                                         (void**) &BPLib_NC_ConfigPtrs.LatTblPtr);
 
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
         /*
-        BPLibUpdateStatus = BPLib_PD_SrcLatencyTblUpdate();
+        ModuleStatus = BPLib_PD_SrcLatencyTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update Source Latency Policy table");
         }
-        */
     }
+    */
 
     /* Update Storage table with TABLEP */
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(STORAGE,
                                                                         (void**) &BPLib_NC_ConfigPtrs.StorTblPtr);
 
+    /*
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
-        /*
-        BPLibUpdateStatus = BPLib_STOR_StorageTblUpdate();
+        ModuleStatus = BPLib_STOR_StorageTblUpdate();
 
-        if (BPLibUpdateStatus != BPLIB_SUCCESS)
+        if (ModuleStatus != BPLIB_SUCCESS)
         {
-            Status = BPLIB_NC_TBL_UPDATE_ERR;
-
             BPLib_EM_SendEvent(BPLIB_NC_TBL_UPDATE_ERR_EID,
                                 BPLib_EM_EventType_ERROR,
                                 "Failed to update Storage table");
         }
-        */
     }
+    */
 
     return;
 }
