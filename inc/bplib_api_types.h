@@ -76,6 +76,7 @@ typedef struct BPLib_IpnAddr
  * @{
  */
 /* General Return Codes */
+#define BPLIB_TBL_UPDATED                   ((BPLib_Status_t)  1)  /* Table has been updated */
 #define BPLIB_SUCCESS                       ((BPLib_Status_t)  0)  /* Successful execution */
 #define BPLIB_ERROR                         ((BPLib_Status_t) -1)  /* Failed execution */
 #define BPLIB_UNIMPLEMENTED                 ((BPLib_Status_t) -2)  /* Unimplemented function */
