@@ -28,7 +28,7 @@
 /* Global Data */
 /* =========== */
 
-BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
+BPLib_NC_ConfigPtrs_t TestConfigPtrs;
 
 /* ==================== */
 /* Function Definitions */
@@ -125,7 +125,7 @@ void BPLib_NC_Test_Setup(void)
     memset((void*) &TestLatencyTbl,   1, sizeof(BPLib_PDB_SrcLatencyTable_t));
     memset((void*) &TestStorTbl,      1, sizeof(BPLib_STOR_StorageTable_t));
 
-    memset((void*) &BPLib_FWP_ConfigPtrs, 0, sizeof(BPLib_FWP_ConfigPtrs_t));
+    memset((void*) &BPLib_NC_ConfigPtrs, 0, sizeof(BPLib_NC_ConfigPtrs_t));
 
     TestConfigPtrs.AuthTblPtr      = &TestAuthTbl;
     TestConfigPtrs.ChanTblPtr      = &TestChanTbl;

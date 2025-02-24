@@ -29,10 +29,30 @@
 #include "bplib_nc_payloads.h"
 #include "bplib_nc_directives.h"
 #include "bplib_as.h"
+#include "bplib_pi.h"
+#include "bplib_cla.h"
+#include "bplib_arp.h"
+#include "bplib_pdb.h"
+#include "bplib_fwp.h"
 
 /* ======== */
 /* Typedefs */
 /* ======== */
+
+typedef struct
+{
+    BPLib_PI_ChannelTable_t*     ChanTblPtr;
+    BPLib_CLA_ContactsTable_t*   ContactsTblPtr;
+    BPLib_ARP_CRSTable_t*        CrsTblPtr;
+    BPLib_PDB_CustodianTable_t*  CustodianTblPtr;
+    BPLib_PDB_CustodyTable_t*    CustodyTblPtr;
+    BPLib_NC_MIBConfigPNTable_t* MibPnTblPtr;
+    BPLib_NC_MIBConfigPSTable_t* MibPsTblPtr;
+    BPLib_PDB_ReportToTable_t*   ReportTblPtr;
+    BPLib_PDB_SrcAuthTable_t*    AuthTblPtr;
+    BPLib_PDB_SrcLatencyTable_t* LatTblPtr;
+    BPLib_STOR_StorageTable_t*   StorTblPtr;
+} BPLib_NC_ConfigPtrs_t;
 
 /**
   * \brief Channel application state
@@ -64,6 +84,12 @@ typedef enum
     ADU_PROXY_CONFIG          = 11, /* FWP's ADU Proxy Configuration table; confined to BPNode */
 } BPLib_NC_TableType_t;
 
+/* =========== */
+/* Global Data */
+/* =========== */
+
+extern BPLib_NC_ConfigPtrs_t BPLib_NC_ConfigPtrs;
+
 /* =================== */
 /* Function Prototypes */
 /* =================== */
@@ -71,12 +97,12 @@ typedef enum
 /**
   * \brief     Initialize NC
   * \details   Node Configuration initialization
-  * \param[in] ConfigPtrs (BPLib_FWP_ConfigPtrs_t*) Pointer to configurations for BPLib populated by BPNode
+  * \param[in] ConfigPtrs (BPLib_NC_ConfigPtrs_t*) Pointer to configurations for BPLib populated by BPNode
   * \return    Execution status
   * \retval    BPLIB_SUCCESS: Initialization was successful
   * \retval    BPLIB_FWP_CONFIG_PTRS_INIT_ERROR: At least one passed in configuration/table is NULL
   */
-BPLib_Status_t BPLib_NC_Init(BPLib_FWP_ConfigPtrs_t* ConfigPtrs);
+BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs);
 
 /**
  * \brief Validate MIB Per Node Configuration Table configurations

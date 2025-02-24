@@ -48,11 +48,11 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId)
  * Generated stub function for BPLib_NC_Init()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_NC_Init(BPLib_FWP_ConfigPtrs_t *ConfigPtrs)
+BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t *ConfigPtrs)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_NC_Init, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPLib_NC_Init, BPLib_FWP_ConfigPtrs_t *, ConfigPtrs);
+    UT_GenStub_AddParam(BPLib_NC_Init, BPLib_NC_ConfigPtrs_t *, ConfigPtrs);
 
     UT_GenStub_Execute(BPLib_NC_Init, Basic, NULL);
 

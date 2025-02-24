@@ -45,7 +45,7 @@
 /* Global Data */
 /* =========== */
 
-extern BPLib_FWP_ConfigPtrs_t TestConfigPtrs;
+extern BPLib_NC_ConfigPtrs_t TestConfigPtrs;
 
 /* =================== */
 /* Function Prototypes */

@@ -29,7 +29,6 @@
 /* =========== */
 
 BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
-BPLib_FWP_ConfigPtrs_t     BPLib_FWP_ConfigPtrs;
 
 /* ==================== */
 /* Function Definitions */

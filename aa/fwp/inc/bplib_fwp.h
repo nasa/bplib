@@ -31,10 +31,6 @@
 #include "bplib_stor.h"
 #include "bplib_time.h"
 #include "bplib_em.h"
-#include "bplib_pi.h"
-#include "bplib_cla.h"
-#include "bplib_arp.h"
-#include "bplib_pdb.h"
 #include "bplib_nc.h"
 
 /* ====== */
@@ -60,7 +56,7 @@ typedef struct
     void (*BPA_PERFLOGP_Exit)(uint32_t PerfLogID);
 
     /* Table Proxy function callbacks */
-    BPLib_Status_t (*BPA_TABLEP_TableUpdate)(BPLib_NC_TableType_t TableType, void** TblPtr);
+    BPLib_Status_t (*BPA_TABLEP_TableUpdate)(uint8_t TableType, void** TblPtr);
 
     /* Event Proxy function callbacks */
     BPLib_Status_t (*BPA_EVP_Init)(void);
@@ -84,27 +80,11 @@ typedef struct
 
 } BPLib_FWP_ProxyCallbacks_t;
 
-typedef struct
-{
-    BPLib_PI_ChannelTable_t*     ChanTblPtr;
-    BPLib_CLA_ContactsTable_t*   ContactsTblPtr;
-    BPLib_ARP_CRSTable_t*        CrsTblPtr;
-    BPLib_PDB_CustodianTable_t*  CustodianTblPtr;
-    BPLib_PDB_CustodyTable_t*    CustodyTblPtr;
-    BPLib_NC_MIBConfigPNTable_t* MibPnTblPtr;
-    BPLib_NC_MIBConfigPSTable_t* MibPsTblPtr;
-    BPLib_PDB_ReportToTable_t*   ReportTblPtr;
-    BPLib_PDB_SrcAuthTable_t*    AuthTblPtr;
-    BPLib_PDB_SrcLatencyTable_t* LatTblPtr;
-    BPLib_STOR_StorageTable_t*   StorTblPtr;
-} BPLib_FWP_ConfigPtrs_t;
-
 /* =========== */
 /* Global Data */
 /* =========== */
 
 extern BPLib_FWP_ProxyCallbacks_t BPLib_FWP_ProxyCallbacks;
-extern BPLib_FWP_ConfigPtrs_t     BPLib_FWP_ConfigPtrs;
 
 /* =================== */
 /* Function Prototypes */

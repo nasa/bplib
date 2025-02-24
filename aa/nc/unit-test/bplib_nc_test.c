@@ -65,7 +65,7 @@ void Test_BPLib_NC_Init_AS_Init_Error(void)
 void Test_BPLib_NC_Init_NullConfigPtrs_Error(void)
 {
     BPLib_Status_t Status;
-    BPLib_FWP_ConfigPtrs_t* NullConfigPtr;
+    BPLib_NC_ConfigPtrs_t* NullConfigPtr;
 
     UT_SetDefaultReturnValue(UT_KEY(BPLib_AS_Init), BPLIB_SUCCESS);
 
