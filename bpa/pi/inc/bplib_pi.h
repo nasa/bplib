@@ -55,11 +55,11 @@ typedef struct
 */
 typedef struct
 {
-    uint32_t         BlockType;
-    uint32_t         BlockNum;
-    uint64_t         BlockProcFlags;
-    BPLib_CRC_Type_t CrcType;
-    uint8_t          Spare[7];
+    BPLib_BlockType_t BlockType;
+    BPLib_CRC_Type_t  CrcType;
+    uint16_t          Spare;
+    uint32_t          BlockNum;
+    uint64_t          BlockProcFlags;
 } BPLib_PI_CanBlkConfig_t;
 
 /**

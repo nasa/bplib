@@ -53,7 +53,7 @@ enum BPLib_BlockType
     BPLib_BlockType_HopCount = 10
 };
 
-typedef uint64_t BPLib_BlockType_t;
+typedef uint8_t BPLib_BlockType_t;
 
 /**
  * \brief BPLib status type for type safety
