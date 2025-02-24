@@ -26,6 +26,18 @@
 #include "bplib_eid.h"
 #include "bplib_crc.h"
 
+
+/*
+** Macros
+*/
+
+#define BPLIB_PRI_BLOCK_CRC_MASK 0xFF
+
+
+/*
+** Types
+*/
+
 /**
  * @brief Previous Node Extension Block Data
  */
@@ -47,8 +59,8 @@ typedef struct
  */
 typedef struct
 {
-    uint8_t HopLimit;
-    uint8_t HopCount;
+    uint64_t HopLimit;
+    uint64_t HopCount;
 } BPLib_HopCountData_t;
 
 /**
@@ -65,9 +77,8 @@ typedef struct
  */
 typedef struct 
 {
-    uint8_t                   Version;
+    uint64_t                  VersionCrcType;
     uint64_t                  BundleProcFlags;
-    BPLib_CRC_Type_t          CrcType;
     BPLib_EID_t               DestEID;
     BPLib_EID_t               SrcEID;
     BPLib_EID_t               ReportToEID;
@@ -92,8 +103,8 @@ typedef union
 typedef struct
 {
     BPLib_BlockType_t BlockType;
-    uint8_t           BlockNum;
-    BPLib_CRC_Type_t  CrcType;
+    uint64_t          BlockNum;
+    uint64_t          CrcType;
     uint64_t          BundleProcFlags;
     BPLib_CRC_Val_t   CrcVal;    
 } BPLib_CanBlockHeader_t;
@@ -117,5 +128,26 @@ typedef struct
     BPLib_ExtensionBlock_t ExtBlocks[BPLIB_MAX_NUM_EXTENSION_BLOCKS];
     BPLib_CanBlockHeader_t PayloadHeader;
 } BPLib_BBlocks_t;
+
+
+/*
+** Function Definitions
+*/
+
+/**
+ * @brief Returns the CRC type of a primary block
+ */
+inline uint8_t BPLib_GetPriCrcType(BPLib_PrimaryBlock_t PriBlock)
+{
+    return (uint8_t) (PriBlock.VersionCrcType & BPLIB_PRI_BLOCK_CRC_MASK);
+}
+
+/**
+ * @brief OR's together the CRC type and the BP version to return the composite field
+ */
+inline uint64_t BPLib_GetPriVersionCrcTypeComposite(BPLib_CRC_Type_t CrcType)
+{
+    return (BPLIB_BUNDLE_PROTOCOL_VERSION << 7) | CrcType;
+}
 
 #endif /* BPLIB_BBLOCKS_H */

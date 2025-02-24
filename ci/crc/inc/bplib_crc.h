@@ -63,10 +63,10 @@ typedef uint8_t BPLib_CRC_Type_t;
 
 
 /*
- * To keep the interface consistent the digest functions do I/O as 32 bit values.
+ * To keep the value consistent with CBOR, all CRCs are 64-bit
  * For CRC algorithms of lesser width, the value is right-justified (LSB/LSW)
  */
-typedef uint32_t BPLib_CRC_Val_t;
+typedef uint64_t BPLib_CRC_Val_t;
 
 /* Standard parameters for calculating a CRC. */
 struct BPLib_CRC_Parameters;

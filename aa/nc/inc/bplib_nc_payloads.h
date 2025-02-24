@@ -235,11 +235,11 @@ typedef struct
     bool ParamSetBehaviorTransIdReuse;                          /**< \brief Flag indicating whether transmission IDs should be reused on retries */
     bool ParamSetBehaviorTransIdRollover;                       /**< \brief Flag indicating that the transmissionID has wrapped around */
     bool ParamSetBehaviorWrapResponse;                          /**< \brief Indication of whether the oldest or newest bundle will be dropped when CTDB buffer is full */
-    uint8_t Spare1;
+    uint8_t  Version;                                           /**< \brief Bundle Protocol version */
     uint32_t BundleSizeFragment;                                /**< \brief Maximum size of bundles that can traverse DTN without additional bundle layer fragmentation */
-    uint32_t TimeBootEra;                   /**< \brief Boot Era for Monotonic Time */
-    int64_t  MonotonicTime;                 /**< \brief Monotonic Time Counter */
-    int64_t  CorrelationFactor;             /**< \brief Time Correlation Factor */
+    uint32_t TimeBootEra;                                       /**< \brief Boot Era for Monotonic Time */
+    uint64_t MonotonicTime;                                     /**< \brief Monotonic Time Counter */
+    int64_t  CorrelationFactor;                                 /**< \brief Time Correlation Factor */
 } BPLib_NodeMibConfigHkTlm_Payload_t;
 
 /**

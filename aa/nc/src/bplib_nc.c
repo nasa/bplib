@@ -46,6 +46,8 @@ BPLib_Status_t BPLib_NC_Init(void)
     memset((void*) &BPLib_NC_NodeMibConfigPayload,       0, sizeof(BPLib_NC_NodeMibConfigPayload));
     memset((void*) &BPLib_NC_ChannelContactStatsPayload, 0, sizeof(BPLib_NC_ChannelContactStatsPayload));
 
+    BPLib_NC_NodeMibConfigPayload.Version = BPLIB_BUNDLE_PROTOCOL_VERSION;
+
     return Status;
 }
 
