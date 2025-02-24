@@ -35,6 +35,7 @@
 #include "bplib_cla.h"
 #include "bplib_arp.h"
 #include "bplib_pdb.h"
+#include "bplib_nc.h"
 
 /* ====== */
 /* Macros */
@@ -59,7 +60,7 @@ typedef struct
     void (*BPA_PERFLOGP_Exit)(uint32_t PerfLogID);
 
     /* Table Proxy function callbacks */
-    BPLib_Status_t (*BPA_TABLEP_TableUpdate)(void);
+    BPLib_Status_t (*BPA_TABLEP_TableUpdate)(BPLib_NC_TableType_t TableType, void** TblPtr);
     BPLib_Status_t (*BPA_TABLEP_SingleTableUpdate)(int16_t TblHandle);
 
     /* Event Proxy function callbacks */
