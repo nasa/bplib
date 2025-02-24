@@ -125,7 +125,7 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId)
     return BPLib_NC_ChannelContactStatsPayload.ChannelStatus[ChanId].State;
 }
 
-void BPLib_NC_TableWakeUp(void)
+void BPLib_NC_TableUpdate(void)
 {
     BPLib_Status_t FWP_UpdateStatus;
 

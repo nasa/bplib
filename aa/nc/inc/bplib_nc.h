@@ -155,6 +155,6 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId);
   *            some of those functions are not implemented yet
   * \param[in] void No arguments accepted
   */
-void BPLib_NC_TableWakeUp(void);
+void BPLib_NC_TableUpdate(void);
 
 #endif // BPLIB_NC_H
