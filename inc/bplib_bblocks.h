@@ -77,7 +77,7 @@ typedef struct
  */
 typedef struct 
 {
-    uint64_t                  VersionCrcType;
+    uint64_t                  CrcType;
     uint64_t                  BundleProcFlags;
     BPLib_EID_t               DestEID;
     BPLib_EID_t               SrcEID;
@@ -131,25 +131,5 @@ typedef struct
     BPLib_CanBlockHeader_t PayloadHeader;
 } BPLib_BBlocks_t;
 
-
-/*
-** Function Definitions
-*/
-
-/**
- * @brief Returns the CRC type of a primary block
- */
-static inline uint8_t BPLib_GetPriCrcType(BPLib_PrimaryBlock_t PriBlock)
-{
-    return (uint8_t) (PriBlock.VersionCrcType & BPLIB_PRI_BLOCK_CRC_MASK);
-}
-
-/**
- * @brief OR's together the CRC type and the BP version to return the composite field
- */
-static inline uint64_t BPLib_GetPriVersionCrcTypeComposite(BPLib_CRC_Type_t CrcType)
-{
-    return (BPLIB_BUNDLE_PROTOCOL_VERSION << 8) | CrcType;
-}
 
 #endif /* BPLIB_BBLOCKS_H */

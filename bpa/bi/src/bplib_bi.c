@@ -55,7 +55,6 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
 
     /* TODO: CBOR Decode the bundle and return the deserialized bundle pointer */
     /* TODO: fully fill out primary block fields from decoded bundle */
-    bundle->blocks.PrimaryBlock.VersionCrcType = BPLib_GetPriVersionCrcTypeComposite(0);
 
     if (Size == BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_0)
     {
