@@ -69,7 +69,7 @@ void Test_BPLib_CBOR_DecodeBundle_LengthError(void)
     BPLib_Bundle_t bundle;
 
     /* CandBundleLen expected to be at least 2 */
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(good_bundle_bin, 2, &bundle), BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(good_bundle_bin, 2, &bundle), BPLIB_CBOR_DEC_ERR);
 }
 
 void Test_BPLib_CBOR_DecodeBundle_Nominal(void)
