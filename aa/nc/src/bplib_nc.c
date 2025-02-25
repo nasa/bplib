@@ -45,6 +45,9 @@ BPLib_Status_t BPLib_NC_Init(BPLib_NC_ConfigPtrs_t* ConfigPtrs)
     memset((void*) &BPLib_NC_NodeMibConfigPayload,       0, sizeof(BPLib_NC_NodeMibConfigPayload));
     memset((void*) &BPLib_NC_ChannelContactStatsPayload, 0, sizeof(BPLib_NC_ChannelContactStatsPayload));
 
+    /* Set bundle protocol version */
+    BPLib_NC_NodeMibConfigPayload.Version = BPLIB_BUNDLE_PROTOCOL_VERSION;
+
     /* Capture configuration pointers in the global configuration struct */
     if (ConfigPtrs                  == NULL ||
         ConfigPtrs->ChanTblPtr      == NULL ||

@@ -73,11 +73,10 @@ extern "C" {
  */
 #define BPLIB_MAX_NUM_CHANNELS              2
 
-
 /** 
- * \brief Maximum number of canonical blocks per bundle
+ * \brief Maximum number of extension blocks per bundle.
  */
-#define BPLIB_MAX_NUM_CANONICAL_BLOCK       10
+#define BPLIB_MAX_NUM_EXTENSION_BLOCKS       4
 
 
 
