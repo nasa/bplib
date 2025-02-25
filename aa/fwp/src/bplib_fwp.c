@@ -59,7 +59,8 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks)
         Callbacks->BPA_TLMP_SendNodeMibCounterPkt        == NULL ||
         Callbacks->BPA_TLMP_SendPerSourceMibCounterPkt   == NULL ||
         Callbacks->BPA_TLMP_SendChannelContactPkt        == NULL ||
-        Callbacks->BPA_TLMP_SendStoragePkt               == NULL)
+        Callbacks->BPA_TLMP_SendStoragePkt               == NULL ||
+        Callbacks->BPA_TABLEP_TableUpdate                == NULL)
     {
         Status = BPLIB_FWP_CALLBACK_INIT_ERROR;
     }
@@ -85,13 +86,16 @@ BPLib_Status_t BPLib_FWP_Init(BPLib_FWP_ProxyCallbacks_t* Callbacks)
         BPLib_FWP_ProxyCallbacks.BPA_ADUP_StopApplication   = Callbacks->BPA_ADUP_StopApplication;
         BPLib_FWP_ProxyCallbacks.BPA_ADUP_RemoveApplication = Callbacks->BPA_ADUP_RemoveApplication;
 
-        /* Initialize Telemetry Proxy callbacks*/
+        /* Initialize Telemetry Proxy callbacks */
         BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibConfigPkt       = Callbacks->BPA_TLMP_SendNodeMibConfigPkt;
         BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibConfigPkt  = Callbacks->BPA_TLMP_SendPerSourceMibConfigPkt;
         BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendNodeMibCounterPkt      = Callbacks->BPA_TLMP_SendNodeMibCounterPkt;
         BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendPerSourceMibCounterPkt = Callbacks->BPA_TLMP_SendPerSourceMibCounterPkt;
         BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendChannelContactPkt      = Callbacks->BPA_TLMP_SendChannelContactPkt;
         BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt             = Callbacks->BPA_TLMP_SendStoragePkt;
+
+        /* Initialize Table Proxy callbacks */
+        BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate = Callbacks->BPA_TABLEP_TableUpdate;
 
         /* Initialize other proxies' callbacks TODO */
     }
