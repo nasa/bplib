@@ -26,6 +26,8 @@
 #include "bplib_qm.h"
 #include "bplib_em.h"
 #include "bplib_eventids.h"
+#include "bplib_fwp.h"
+#include "bplib_nc.h"
 
 
 /* 
@@ -51,25 +53,57 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 }
 
 /* Initial, simplified (reduced feature set, using fifo) Bundle Cache scan */
-BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* inst, uint32_t max_num_bundles_to_scan)
+BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan)
 {
     BPLib_Status_t ReturnStatus = BPLIB_SUCCESS;
     uint32_t BundlesScheduled = 0;
     BPLib_Bundle_t *QueuedBundle;
     BPLib_QM_JobState_t NextJobState = NO_NEXT_STATE;
     BPLib_Status_t PushUnsortedJobStatus;
+    uint16_t i, j;
+    uint16_t AvailChans[BPLIB_MAX_NUM_CHANNELS];
+    uint16_t AvailConts[BPLIB_MAX_NUM_CONTACTS];
+    uint16_t NumChans = 0;
+    uint16_t NumConts = 0;
+    bool CanRoute = false;
+    uint16_t EgressId = BPLIB_MAX_NUM_CONTACTS;
 
-    if (inst == NULL)
+    if (Inst == NULL)
     {
         BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_INVALID_ARG_ERR_EID, BPLib_EM_EventType_ERROR,
             "BPLib_STOR_ScanCache called with null instance pointer.");
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    while (BundlesScheduled < max_num_bundles_to_scan)
+    /* Get an array of all available channels */
+    for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
+    {
+        if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
+        {
+            AvailChans[NumChans] = i;
+            NumChans++;
+        }
+    }
+
+    /* Get an array of all available contacts */
+    for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
+    {
+        /*
+        if (Contact state is started) TODO fix me once contact directives are implemented
+        {
+        */
+            AvailConts[NumConts] = i;
+            NumConts++;
+        /*
+        }
+        */
+    }    
+
+
+    while (BundlesScheduled < MaxBundlesToScan)
     {
         QueuedBundle = NULL;
-        if (BPLib_QM_WaitQueueTryPull(&(inst->BundleCacheList), &QueuedBundle, 1))
+        if (BPLib_QM_WaitQueueTryPull(&(Inst->BundleCacheList), &QueuedBundle, 1))
         {
             if (QueuedBundle != NULL)
             {
@@ -79,27 +113,69 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* inst, uint32_t max_num_bun
                     QueuedBundle->blocks.PrimaryBlock.DestEID.Node,
                     QueuedBundle->blocks.PrimaryBlock.DestEID.Service);
 
-                /* Another hacky attempt at routing just to prove concept, FIX ME */
-                if (QueuedBundle->blocks.PrimaryBlock.DestEID.Node == 200)
+                /* If destination EID matches this node, look for an available channel */
+                if (BPLib_EID_NodeIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
+                                            BPLIB_EID_INSTANCE))
                 {
-                    NextJobState = CONTACT_OUT_STOR_TO_CT;
-                }
-                else
-                {
-                    NextJobState = CHANNEL_OUT_STOR_TO_CT;
+                    for (i = 0; i < NumChans; i++)
+                    {
+                        /* 
+                        ** See if this available channel has the same service number as
+                        ** this bundle's destination EID
+                        */
+                        if (QueuedBundle->blocks.PrimaryBlock.DestEID.Service ==
+                            BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[AvailChans[i]].LocalServiceNumber)
+                        {
+                            CanRoute = true;
+                            EgressId = i;
+                            NextJobState = CHANNEL_OUT_STOR_TO_CT;
+
+                            break;
+                        }
+                    }
                 }
 
-                PushUnsortedJobStatus = BPLib_QM_AddUnsortedJob(inst, QueuedBundle, NextJobState,
-                                                                QM_PRI_NORMAL, QM_WAIT_FOREVER);
-                if (PushUnsortedJobStatus != BPLIB_SUCCESS)
+                /* 
+                ** If no local delivery options were found, look for a contact to send
+                ** bundles out on
+                */                
+                i = 0;
+                while (CanRoute == false && i < NumConts)
                 {
-                    BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID, BPLib_EM_EventType_ERROR,
-                        "BPLib_STOR_ScanCache call to BPLib_QM_AddUnsortedJob returned error %d.",
-                        PushUnsortedJobStatus);
-                    /* If we can't add jobs, we shouldn't continue */
-                    ReturnStatus = BPLIB_ERROR;
-                    break;
+                    for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
+                    {
+                        if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
+                            BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
+                        {
+                            CanRoute = true;
+                            EgressId = i;
+                            NextJobState = CONTACT_OUT_STOR_TO_CT;
+
+                            break;
+                        }
+                    }
+
+                    i++;
                 }
+
+                /* Egress bundle if a route exists */
+                if (CanRoute == true)
+                {
+                    PushUnsortedJobStatus = BPLib_QM_AddUnsortedJob(Inst, QueuedBundle, NextJobState,
+                                                    QM_PRI_NORMAL, EgressId, QM_WAIT_FOREVER);
+                    if (PushUnsortedJobStatus != BPLIB_SUCCESS)
+                    {
+                        BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID, BPLib_EM_EventType_ERROR,
+                            "BPLib_STOR_ScanCache call to BPLib_QM_AddUnsortedJob returned error %d.",
+                            PushUnsortedJobStatus);
+                        /* If we can't add jobs, we shouldn't continue */
+                        ReturnStatus = BPLIB_ERROR;
+                        break;
+                    }
+                }
+
+                /* Cache bundle even if it's been routed out */
+                BPLib_STOR_CacheBundle(Inst, QueuedBundle);
             }
             else
             {
@@ -116,4 +192,12 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* inst, uint32_t max_num_bun
     }
 
     return ReturnStatus;
+}
+
+BPLib_Status_t BPLib_STOR_CacheBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bundle)
+{
+    /* For now, just put the bundle back in the queue, will replace with real Cache */
+    BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_WAIT_FOREVER);
+
+    return BPLIB_SUCCESS;
 }

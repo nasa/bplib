@@ -88,41 +88,36 @@ typedef struct BPLib_Instance
 } BPLib_Instance_t;
 
 /**
+ * @struct BPLib_QM_JobContext_t
+ * @brief Represents a job's context information. Alone, this is considered an
+ *        unsorted job.
+ */
+typedef struct
+{
+    BPLib_Bundle_t*     Bundle; /**< Pointer to the bundle associated with this unsorted job */
+    BPLib_QM_JobState_t NextState; /**< The next state for the job */
+    BPLib_QM_Priority_t Priority; /**< Priority of the unsorted job */
+    uint16_t            EgressId; /**< For egressing bundles, ID of channel/contact to send to */
+} BPLib_QM_JobContext_t;
+
+/**
  * @typedef BPLib_QM_JobFunc_t
  * @brief Type definition for the job function used in the QM.
  * 
- * The function takes an instance and a bundle and returns the next job state.
+ * The function takes an instance and a job context and returns the next job state.
  */
-typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle);
+typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_Instance_t* Inst, BPLib_QM_JobContext_t *Context);
 
 /**
  * @struct BPLib_QM_Job
  * @brief Represents a single job in the Queue Manager.
- * 
- * A job consists of a bundle, its current state, the associated job function, 
- * and its priority in the queue.
  */
 typedef struct BPLib_QM_Job
 {
-    BPLib_Bundle_t* bundle; /**< Pointer to the bundle associated with this job */
-    BPLib_QM_JobState_t state; /**< Current state of the job */
-    BPLib_QM_JobFunc_t job_func; /**< Function to be called for this job */
-    BPLib_QM_Priority_t priority; /**< Priority of the job */
+    BPLib_QM_JobFunc_t     JobFunc; /**< Function to be called for this job */
+    BPLib_QM_JobContext_t *Context; /**< Job context information */
 } BPLib_QM_Job_t;
 
-/**
- * @struct BPLib_QM_UnsortedJob
- * @brief Represents an unsorted job in the Queue Manager.
- * 
- * An unsorted job contains the bundle, the next state to transition to, and 
- * its priority for future processing.
- */
-typedef struct BPLib_QM_UnsortedJob
-{
-    BPLib_Bundle_t* bundle; /**< Pointer to the bundle associated with this unsorted job */
-    BPLib_QM_JobState_t next_state; /**< The next state for the job */
-    BPLib_QM_Priority_t priority; /**< Priority of the unsorted job */
-} BPLib_QM_UnsortedJob_t;
 
 /**
  * @brief Initializes the Queue Table for a specific instance.
@@ -175,11 +170,12 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms);
  * @param[in] bundle The bundle associated with the job.
  * @param[in] state The initial state of the job.
  * @param[in] priority The priority of the job.
+ * @param[in] EgressId For egressing bundles, a contact/channel ID to go to
  * @param[in] timeout_ms Timeout in milliseconds for adding the job.
  * 
  * @return Status of the job addition (success or failure).
  */
 BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
-    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms);
+    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, uint16_t EgressId, int timeout_ms);
 
 #endif /* BPLIB_QM_H */

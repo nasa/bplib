@@ -146,6 +146,9 @@ bool BPLib_EID_PatternIsValid(BPLib_EID_Pattern_t EID_Pattern);
  */
 bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
 
+// TODO header
+bool BPLib_EID_NodeIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
+
 /**
  * \brief     Checks if the one EID matches a pattern
  * \details   The various members of each EID are compared for equivalence

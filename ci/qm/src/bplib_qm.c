@@ -49,7 +49,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
         mem_init = false;
     }
 
-    inst->unsorted_job_mem = calloc(max_jobs, sizeof(BPLib_QM_UnsortedJob_t));
+    inst->unsorted_job_mem = calloc(max_jobs, sizeof(BPLib_QM_JobContext_t));
     if (inst->unsorted_job_mem == NULL)
     {
         mem_init = false;
@@ -97,7 +97,7 @@ BPLib_Status_t BPLib_QM_QueueTableInit(BPLib_Instance_t* inst, size_t max_jobs)
     {
         queue_init = false;
     }
-    if (!BPLib_QM_WaitQueueInit(&(inst->UnsortedJobs), inst->unsorted_job_mem, sizeof(BPLib_QM_UnsortedJob_t), max_jobs))
+    if (!BPLib_QM_WaitQueueInit(&(inst->UnsortedJobs), inst->unsorted_job_mem, sizeof(BPLib_QM_JobContext_t), max_jobs))
     {
         queue_init = false;
     }
@@ -161,16 +161,17 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
 }
 
 BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
-    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
+    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, uint16_t EgressId, int timeout_ms)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
-    BPLib_QM_UnsortedJob_t unsorted_job;
+    BPLib_QM_JobContext_t UnsortedJob;
 
-    unsorted_job.bundle = bundle;
-    unsorted_job.next_state = state;
-    unsorted_job.priority = priority;
+    UnsortedJob.Bundle = bundle;
+    UnsortedJob.NextState = state;
+    UnsortedJob.Priority = priority;
+    UnsortedJob.EgressId = EgressId;
     
-    if (!BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &unsorted_job, timeout_ms))
+    if (!BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &UnsortedJob, timeout_ms))
     {
         Status = BPLIB_QM_PUSH_ERROR;
     }
@@ -187,7 +188,7 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
     {
         /* Run the job and get back the next state */
         BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
-        next_state = curr_job.job_func(inst, curr_job.bundle);
+        next_state = curr_job.JobFunc(inst, curr_job.Context);
         BPLib_PL_PerfLogExit(BPLIB_QM_RUNJOB_PERF_ID);
 
         /* Create a new unsorted job with the next state and place it in the unsorted jobs queue
@@ -205,7 +206,8 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
         */
         if (next_state != NO_NEXT_STATE)
         {
-           BPLib_QM_AddUnsortedJob(inst, curr_job.bundle, next_state, QM_PRI_NORMAL, QM_WAIT_FOREVER);
+           BPLib_QM_AddUnsortedJob(inst, curr_job.Context->Bundle, next_state, QM_PRI_NORMAL, 
+                                    curr_job.Context->EgressId, QM_WAIT_FOREVER);
         } 
     }    
 }
@@ -215,21 +217,19 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
     size_t jobs_scheduled;
     BPLib_QM_Job_t curr_job;
     BPLib_QM_JobFunc_t next_job_func;
-    BPLib_QM_UnsortedJob_t unsorted_job;
+    BPLib_QM_JobContext_t unsorted_job;
 
     jobs_scheduled = 0;
     while (jobs_scheduled < num_jobs)
     {
         if (BPLib_QM_WaitQueueTryPull(&(inst->UnsortedJobs), &unsorted_job, BPLIB_QM_JOBWAIT_TIMEOUT))
         {
-            next_job_func = BPLib_QM_Job_Lookup(unsorted_job.next_state);
+            next_job_func = BPLib_QM_Job_Lookup(unsorted_job.NextState);
             if (next_job_func)
             {
                 /* Create a new job for the unsorted job and place it in the generic worker jobs queue */
-                curr_job.bundle = unsorted_job.bundle;
-                curr_job.state = unsorted_job.next_state;
-                curr_job.priority = unsorted_job.priority;
-                curr_job.job_func = next_job_func;
+                curr_job.JobFunc = next_job_func;
+                curr_job.Context = &unsorted_job;
 
                 /* Add the job to the job queue so a worker can discover it 
                 ** Note: There is no backpressuring logic right now so this can block indefintely.
@@ -243,7 +243,7 @@ void BPLib_QM_SortJobs(BPLib_Instance_t* inst, size_t num_jobs)
             else
             {
                 /* I don't think this warrants an event message, but we should know if something got here */
-                printf("Invalid Bundle State Reached: %d\n", unsorted_job.next_state);
+                printf("Invalid Bundle State Reached: %d\n", unsorted_job.NextState);
             }
         }
         else
