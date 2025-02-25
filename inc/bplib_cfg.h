@@ -124,7 +124,33 @@ extern "C" {
  */
 #define BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_1 61
 
+/**
+ * \brief This is the EID scheme for this instance of a DTN node
+ */
+#define BPLIB_LOCAL_EID_SCHEME          BPLIB_EID_SCHEME_IPN
 
+/**
+ * \brief This is the EID IPN/SSP format for this instance of a DTN node
+ */
+#define BPLIB_LOCAL_EID_IPN_SSP_FORMAT  BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT
+
+/**
+ * \brief This is the EID allocator for this instance of a DTN node
+ */
+#define BPLIB_LOCAL_EID_ALLOCATOR       0
+
+/**
+ * \brief This is the EID node number for this instance of a DTN node
+ */
+#define BPLIB_LOCAL_EID_NODE_NUM        BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES
+
+/**
+ * \brief This is the EID service number for this instance of a DTN node. This is not
+ *        really used by BPLib, since local delivery sends bundles to other services on
+ *        this node, but is included just in case a BPNode implementation does end up
+ *        needing it.
+ */
+#define BPLIB_LOCAL_EID_SERVICE_NUM     0
 
 
 #ifdef __cplusplus

@@ -28,7 +28,7 @@
 #include "bplib_eventids.h"
 #include "bplib_fwp.h"
 #include "bplib_nc.h"
-
+#include <stdio.h>
 
 /* 
 ** Globals
@@ -130,6 +130,8 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                             EgressId = i;
                             NextJobState = CHANNEL_OUT_STOR_TO_CT;
 
+                            printf("Routing bundle to channel #%d\n", EgressId);
+
                             break;
                         }
                     }
@@ -150,6 +152,8 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                             CanRoute = true;
                             EgressId = i;
                             NextJobState = CONTACT_OUT_STOR_TO_CT;
+
+                            printf("Routing bundle to contact #%d\n", EgressId);
 
                             break;
                         }
@@ -197,7 +201,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
 BPLib_Status_t BPLib_STOR_CacheBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bundle)
 {
     /* For now, just put the bundle back in the queue, will replace with real Cache */
-    BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_WAIT_FOREVER);
+    //BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_WAIT_FOREVER);
 
     return BPLIB_SUCCESS;
 }
