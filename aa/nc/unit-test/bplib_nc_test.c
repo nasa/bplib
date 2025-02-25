@@ -1712,4 +1712,6 @@ void TestBplibNc_Register(void)
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Nominal);
     ADD_TEST(Test_BPLib_NC_MIBConfigPSTblValidateFunc_Invalid);
     ADD_TEST(Test_BPLib_NC_GetSetAppState_Nominal);
+    ADD_TEST(Test_BPLib_NC_TableUpdate_Success_Nominal);
+    ADD_TEST(Test_BPLib_NC_TableUpdate_Update_Nominal);
 }
