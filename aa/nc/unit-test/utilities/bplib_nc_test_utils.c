@@ -29,6 +29,7 @@
 /* =========== */
 
 BPLib_NC_ConfigPtrs_t TestConfigPtrs;
+uint8 Context_TableType[UT_MAX_TABLE_TYPE_DEPTH];
 
 /* ==================== */
 /* Function Definitions */
@@ -85,6 +86,30 @@ void Test_BPLib_NC_VerifyDecrement(BPLib_EID_t EID, BPLib_AS_Counter_t Counter, 
     {
         UtAssert_EQ(uint32_t, Amount, Context_BPLib_AS_Decrement[CallNum - 1].Amount);
     }
+}
+
+void UT_Handler_BPA_TABLEP_TableUpdate(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
+{
+    uint16 CallCount;
+    uint16 idx;
+
+    CallCount = UT_GetStubCount(UT_KEY(BPA_TABLEP_TableUpdate));
+
+    if (CallCount > UT_MAX_TABLE_TYPE_DEPTH)
+    {
+        UtAssert_Failed("BPA_TABLEP_TableUpdate UT depth %u exceeded: %u, increase UT_MAX_TABLE_TYPE_DEPTH",
+                        UT_MAX_TABLE_TYPE_DEPTH, CallCount);
+    }
+    else
+    {
+        idx = CallCount - 1;
+        Context_TableType[idx] = UT_Hook_GetArgValueByName(Context, "TableType", uint8);
+    }
+}
+
+void BPNode_Test_TABLEP_TableUpdate(uint8 CallNum, uint8 TableType)
+{
+    UtAssert_EQ(uint8, Context_TableType[CallNum], TableType);
 }
 
 void BPLib_NC_Test_Setup(void)
