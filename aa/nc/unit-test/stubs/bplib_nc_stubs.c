@@ -103,3 +103,14 @@ void BPLib_NC_SetAppState(uint8_t ChanId, BPLib_NC_ApplicationState_t State)
 
     UT_GenStub_Execute(BPLib_NC_SetAppState, Basic, NULL);
 }
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_NC_TableUpdate()
+ * ----------------------------------------------------
+ */
+void BPLib_NC_TableUpdate(void)
+{
+
+    UT_GenStub_Execute(BPLib_NC_TableUpdate, Basic, NULL);
+}
