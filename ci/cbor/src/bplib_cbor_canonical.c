@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "bplib_cbor.h"
+#include "bplib_cbor_private.h"
 
 #define BPLIB_CBOR_BLOCKTYPE_PAYLOAD    1
 #define BPLIB_CBOR_BLOCKTYPE_PREVNODE   6

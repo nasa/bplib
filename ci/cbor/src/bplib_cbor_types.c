@@ -1,4 +1,4 @@
-#include "bplib_cbor.h"
+#include "bplib_cbor_private.h"
 
 #define BPLIB_IPN_URI              2
 

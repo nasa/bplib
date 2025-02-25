@@ -1,6 +1,5 @@
-#include "bplib_cbor.h"
+#include "bplib_cbor_private.h"
 
-#define BP_VERSION    7
 
 /*******************************************************************************
 * RFC-9171 Primary Block Parsing Definition
@@ -63,7 +62,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
-    if (Version != BP_VERSION)
+    if (Version != BPLIB_BUNDLE_PROTOCOL_VERSION)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
