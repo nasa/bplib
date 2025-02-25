@@ -134,7 +134,6 @@ void BPLib_NC_TableUpdate(void)
     FWP_UpdateStatus = BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate(CHANNEL_CONFIG,
                                                                         (void**) &BPLib_NC_ConfigPtrs.ChanTblPtr);
 
-
     if (FWP_UpdateStatus == BPLIB_TBL_UPDATED)
     {
         /*

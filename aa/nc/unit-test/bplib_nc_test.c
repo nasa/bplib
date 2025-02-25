@@ -1540,6 +1540,41 @@ void Test_BPLib_NC_GetSetAppState_Nominal(void)
     UtAssert_EQ(BPLib_NC_ApplicationState_t, BPLIB_NC_APP_STATE_STARTED, State);
 }
 
+void Test_BPLib_NC_TableUpdate_Success_Nominal(void)
+{
+    /* Force table updates to report only success */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_SUCCESS);
+
+    /* Run function under test */
+    BPLib_NC_TableUpdate();
+
+    /* Show that 0 table update events were issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+}
+
+void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
+{
+    /* Force table updates to report only success */
+    UT_SetDefaultReturnValue(UT_KEY(BPA_TABLEP_TableUpdate), BPLIB_TBL_UPDATED);
+
+    /* Run function under test */
+    BPLib_NC_TableUpdate();
+
+    /* Verify that every table update event was issued */
+    UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 11);
+    BPLib_NC_Test_Verify_Event(0,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Channel Configuration table");
+    BPLib_NC_Test_Verify_Event(1,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Contacts table");
+    BPLib_NC_Test_Verify_Event(2,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Compressed Reporting table");
+    BPLib_NC_Test_Verify_Event(3,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custodian Authorization Policy table");
+    BPLib_NC_Test_Verify_Event(4,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Custody Authorization Policy table");
+    BPLib_NC_Test_Verify_Event(5,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Node table");
+    BPLib_NC_Test_Verify_Event(6,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated MIB Configuration per Source table");
+    BPLib_NC_Test_Verify_Event(7,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Report-to-EID Authorization Policy table");
+    BPLib_NC_Test_Verify_Event(8,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Authorization Policy table");
+    BPLib_NC_Test_Verify_Event(9,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Latency Policy table");
+    BPLib_NC_Test_Verify_Event(10, BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Storage table");
+}
+
 void TestBplibNc_Register(void)
 {
     ADD_TEST(Test_BPLib_NC_Init_Nominal);
