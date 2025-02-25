@@ -140,9 +140,10 @@ void BPLib_NC_Test_Setup(void)
     TestConfigPtrs.ReportTblPtr    = &TestReportTbl;
     TestConfigPtrs.StorTblPtr      = &TestStorTbl;
 
-    UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent), UT_Handler_BPLib_EM_SendEvent, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment), UT_Handler_BPLib_AS_Increment, NULL);
-    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement), UT_Handler_BPLib_AS_Decrement, NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_EM_SendEvent),     UT_Handler_BPLib_EM_SendEvent,     NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Increment),     UT_Handler_BPLib_AS_Increment,     NULL);
+    UT_SetHandlerFunction(UT_KEY(BPLib_AS_Decrement),     UT_Handler_BPLib_AS_Decrement,     NULL);
+    UT_SetHandlerFunction(UT_KEY(BPA_TABLEP_TableUpdate), UT_Handler_BPA_TABLEP_TableUpdate, NULL);
 }
 
 void BPLib_NC_Test_Teardown(void)
