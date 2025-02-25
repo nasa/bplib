@@ -1550,6 +1550,20 @@ void Test_BPLib_NC_TableUpdate_Success_Nominal(void)
 
     /* Show that 0 table update events were issued */
     UtAssert_STUB_COUNT(BPLib_EM_SendEvent, 0);
+
+    /* Show that an attempt to update all tables was made */
+    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
+    BPNode_Test_TABLEP_TableUpdate(0,  CHANNEL_CONFIG);
+    BPNode_Test_TABLEP_TableUpdate(1,  CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  MIB_CONFIG_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  MIB_CONFIG_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, STORAGE);
 }
 
 void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
@@ -1573,6 +1587,20 @@ void Test_BPLib_NC_TableUpdate_Update_Nominal(void)
     BPLib_NC_Test_Verify_Event(8,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Authorization Policy table");
     BPLib_NC_Test_Verify_Event(9,  BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Source Latency Policy table");
     BPLib_NC_Test_Verify_Event(10, BPLIB_NC_TBL_UPDATE_INF_EID, "Updated Storage table");
+
+    /* Show that an attempt to update all tables was made */
+    UtAssert_STUB_COUNT(BPA_TABLEP_TableUpdate, 11);
+    BPNode_Test_TABLEP_TableUpdate(0,  CHANNEL_CONFIG);
+    BPNode_Test_TABLEP_TableUpdate(1,  CONTACTS);
+    BPNode_Test_TABLEP_TableUpdate(2,  COMPRESSED_REPORTING);
+    BPNode_Test_TABLEP_TableUpdate(3,  CUSTODIAN_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(4,  CUSTODY_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(5,  MIB_CONFIG_PER_NODE);
+    BPNode_Test_TABLEP_TableUpdate(6,  MIB_CONFIG_PER_SRC);
+    BPNode_Test_TABLEP_TableUpdate(7,  REPORT_TO_EID_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(8,  SRC_AUTH_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(9,  SRC_LATENCY_POLICY);
+    BPNode_Test_TABLEP_TableUpdate(10, STORAGE);
 }
 
 void TestBplibNc_Register(void)
