@@ -25,9 +25,13 @@
 ** Include
 */
 
+// TODO Remove stdint and stddef if not required
+#include <stdint.h>
+#include <stddef.h>
+
 #include "bplib.h"
 #include "bplib_api_types.h"
-
+ 
 #include "qcbor/qcbor_encode.h"
 #include "qcbor/qcbor_decode.h"
 #include "qcbor/qcbor_spiffy_decode.h"
@@ -64,7 +68,7 @@ BPLib_Status_t BPLib_CBOR_Init(void);
  */
 
           void BPLib_CBOR_DecodeAgeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
-BPLib_Status_t BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *CandidateBundle, size_t CandidateBundleLen);
+BPLib_Status_t BPLib_CBOR_DecodeBundle(BPLib_Bundle_t *CandidateBundle, size_t CandidateBundleLen, BPLib_Bundle_t *bundle);
 BPLib_Status_t BPLib_CBOR_DecodeCanonical(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
           void BPLib_CBOR_DecodeHopCountData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle);
 BPLib_Status_t BPLib_CBOR_DecodePayload(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size);
@@ -86,5 +90,36 @@ BPLib_Status_t BPLib_CBOR_ValidateCRC(void);
     QCBORError BPLib_CBOR_EIDParse(QCBORDecodeContext* ctx, BPLib_EID_t* eid);
 BPLib_Status_t BPLib_CBOR_PrimaryBlockParse(QCBORDecodeContext* ctx);
 BPLib_Status_t BPLib_CBOR_CanonicalBlockParse(QCBORDecodeContext* ctx);
+
+
+/*******************************************************************************
+* RFC-9171 Type Parsers
+*/
+typedef BPLib_Status_t (*QCBOR_UInt64Parser)(QCBORDecodeContext* ctx, uint64_t* parsed);
+
+typedef BPLib_Status_t (*QCBOR_EIDParser)(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
+
+typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* parsed);
+
+typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_CreationTimestamp_t* parsed);
+
+
+/*******************************************************************************
+* RFC-9171 Type Parsers (Implementation Prototypes)
+*/
+BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
+
+BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
+
+BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
+
+BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_CreationTimestamp_t* parsed);
+
+/*******************************************************************************
+* Exported Parsing Helpers
+*/
+BPLib_Status_t BPLib_QCBOR_EnterDefiniteArray(QCBORDecodeContext* ctx, size_t* ArrayLen);
+
+BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext* ctx);
 
 #endif /* BPLIB_CBOR_H */

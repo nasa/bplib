@@ -62,7 +62,8 @@ void Test_BPLib_CBOR_DecodeBundle(void)
 
     uint8_t *bundle_blob = good_bundle_bin;
     size_t CandidateBundleLen = good_bundle_bin_len;
-    QCBORDecodeContext DecodeCtx;
+    BPLib_Bundle_t *CandidateBundle;
+    BPLib_Bundle_t *bundle;  // The decoded bundle
 
     // TODO Instance init should move to bplib_cbor_test_utils.c
     BPLib_Instance_t inst;
@@ -71,13 +72,20 @@ void Test_BPLib_CBOR_DecodeBundle(void)
 
     UtAssert_INT32_EQ(BPLib_MEM_PoolInit(&inst.pool, &pool_mem, (size_t)BPNODE_MEM_POOL_LEN), BPLIB_SUCCESS);
 
-    BPLib_Bundle_t *CandidateBundle;
-
     CandidateBundle = BPLib_MEM_BundleAlloc(&inst.pool, bundle_blob, CandidateBundleLen);
     UtAssert_NOT_NULL(CandidateBundle);
 
+    if (CandidateBundleLen == 0)
+    {
+        UtPrintf("BPLib_MEM_BundleAlloc set CandidateBundleLen to zero.");
+        CandidateBundleLen = good_bundle_bin_len;
+    }
+
+    /* Decode Nominally */
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(CandidateBundle, CandidateBundleLen, bundle), BPLIB_SUCCESS);
+
     /* Decode with error */
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(&DecodeCtx, CandidateBundle, CandidateBundleLen), BPLIB_CBOR_DEC_ERR);
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(CandidateBundle, 0, bundle), BPLIB_CBOR_DEC_ERR);
 }
 
 void TestBplibCbor_Register(void)

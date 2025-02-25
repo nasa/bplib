@@ -68,46 +68,6 @@ void BPLib_CBOR_DecodeAgeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bun
 
 }
 
-BPLib_Status_t BPLib_CBOR_DecodeBundle(QCBORDecodeContext *DecodeCtx,
-                                       BPLib_Bundle_t *CandidateBundle,
-                                       size_t CandidateBundleLen)
-{
-    BPLib_Status_t Status;
-    uint8_t* CandidateBytes;
-
-    UsefulBufC UBufC;
-
-    if (CandidateBundle == NULL)
-    {
-        return BPLIB_NULL_PTR_ERROR;
-    }
-    if (CandidateBundleLen <= 2)
-    {
-        return BPLIB_CBOR_DEC_ERR;
-    }
-
-    /* Check for CBOR Indefinite Array manually: this avoids a layer of QCBOR calls. */
-    CandidateBytes = (uint8_t*)(CandidateBundle);
-    if ((CandidateBytes[0] != 0x9F) || (CandidateBytes[CandidateBundleLen - 1] != 0xFF))
-    {
-        return BPLIB_CBOR_DEC_ERR;
-    }
-
-    /* Init QCBOR Decode Engine with the Candidate Bundle */
-    UBufC.ptr = (const void*)((uint8_t*)CandidateBundle + 1);
-    UBufC.len = CandidateBundleLen - 2;
-    QCBORDecode_Init(DecodeCtx, UBufC, QCBOR_DECODE_MODE_NORMAL);
-
-    Status = BPLib_CBOR_PrimaryBlockParse(DecodeCtx);
-    if (Status != BPLIB_SUCCESS)
-    {
-        return Status;
-    }
-
-    return BPLIB_SUCCESS;
-
-}
-
 BPLib_Status_t BPLib_CBOR_DecodeCanonical(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size)
 {
 

@@ -8,6 +8,10 @@
 
 add_library(bplib_cbor OBJECT
     src/bplib_cbor.c
+    src/bplib_cbor_bundle.c
+    src/bplib_cbor_types.c
+    src/bplib_cbor_primary.c
+    src/bplib_cbor_canonical.c
 )
 
 target_include_directories(bplib_cbor PUBLIC
