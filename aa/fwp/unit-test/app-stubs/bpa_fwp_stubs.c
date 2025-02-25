@@ -152,11 +152,11 @@ void BPA_PERFLOGP_Exit(uint32_t PerfLogID)
  * Generated stub function for BPA_TABLEP_TableUpdate()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPA_TABLEP_TableUpdate(uint8 TableType, void **TblPtr)
+BPLib_Status_t BPA_TABLEP_TableUpdate(uint8_t TableType, void **TblPtr)
 {
     UT_GenStub_SetupReturnBuffer(BPA_TABLEP_TableUpdate, BPLib_Status_t);
 
-    UT_GenStub_AddParam(BPA_TABLEP_TableUpdate, uint8, TableType);
+    UT_GenStub_AddParam(BPA_TABLEP_TableUpdate, uint8_t, TableType);
     UT_GenStub_AddParam(BPA_TABLEP_TableUpdate, void **, TblPtr);
 
     UT_GenStub_Execute(BPA_TABLEP_TableUpdate, Basic, NULL);
