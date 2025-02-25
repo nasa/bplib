@@ -44,14 +44,11 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* ATTENTION: DO NOT USE THESE IN THE FINAL IMPLEMENTATION 
-    ** They are a stand in for passing &bundle->Version directly to the parser.
-    ** An extra assignment ends up being an implicit copy. I did this because
-    ** I didn't have the final Bundle_t definition.
+    /*
+    ** The version field is currently not stored in our bundle metadata,
+    ** so we decode this to a local stack buffer (for verification purposes only).
     */
     uint64_t Version;
-    uint64_t Flags;
-    uint64_t CrcType;
 
     /* First, enter into the primary block array */
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
@@ -72,26 +69,19 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     }
 
     /* Flags */
-    Status = PrimaryBlockParser.FlagsParser(ctx, &Flags);
+    Status = PrimaryBlockParser.FlagsParser(ctx, &bundle->blocks.PrimaryBlock.BundleProcFlags);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
     /* Check flags to make sure we support the requested options */
-    if (Flags != 4) // ¯\_(ツ)_/¯
+    if (bundle->blocks.PrimaryBlock.BundleProcFlags != 4) // ¯\_(ツ)_/¯
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
 
     /* CRC Type */
-    Status = PrimaryBlockParser.CRCTypeParser(ctx, &CrcType);
-    if (Status != BPLIB_SUCCESS)
-    {
-        return BPLIB_CBOR_DEC_PRI_ERR;
-    }
-
-    /* Source EID */
-    Status = PrimaryBlockParser.SrcEIDParser(ctx, &bundle->blocks.PrimaryBlock.SrcEID);
+    Status = PrimaryBlockParser.CRCTypeParser(ctx, &bundle->blocks.PrimaryBlock.CrcType);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
@@ -99,6 +89,13 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 
     /* Dest EID */
     Status = PrimaryBlockParser.DestEIDParser(ctx, &bundle->blocks.PrimaryBlock.DestEID);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_PRI_ERR;
+    }
+
+    /* Source EID */
+    Status = PrimaryBlockParser.SrcEIDParser(ctx, &bundle->blocks.PrimaryBlock.SrcEID);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
