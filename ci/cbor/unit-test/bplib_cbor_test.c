@@ -23,26 +23,7 @@
  */
 #include "bplib_cbor_test_utils.h"
 
-/*
-** Test function for
-** int BPLib_CBOR_Init()
-*/
-void Test_BPLib_CBOR_Init(void)
-{
-    UtAssert_INT32_EQ(BPLib_CBOR_Init(), BPLIB_SUCCESS);
-}
-
-void Test_BPLib_CBOR_DecodeBundle(void)
-{
-    // TODO Include bpnode config here or what? (For BPNODE_MEM_POOL_LEN)
-    /**
-     * \brief Size of BPLib's Memory Pool, in bytes
-     */
-    #define BPNODE_MEM_POOL_LEN               (16834u)
-
-    // Good Bundle Data
-    // Created with `xxd -i good-bundle.bin > good.c`
-    unsigned char good_bundle_bin[] = {
+unsigned char good_bundle_bin[] = {
     0x9f, 0x89, 0x07, 0x04, 0x01, 0x82, 0x02, 0x82, 0x18, 0xc8, 0x01, 0x82,
     0x02, 0x82, 0x18, 0x64, 0x01, 0x82, 0x02, 0x82, 0x18, 0x64, 0x01, 0x82,
     0x1b, 0x00, 0x00, 0x00, 0xaf, 0xe9, 0x53, 0x7a, 0x38, 0x00, 0x1a, 0x00,
@@ -58,39 +39,57 @@ void Test_BPLib_CBOR_DecodeBundle(void)
     0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x0a,
     0x42, 0x7a, 0x2f, 0xff
     };
-    unsigned int good_bundle_bin_len = 160;
 
-    uint8_t *bundle_blob = good_bundle_bin;
-    size_t CandidateBundleLen = good_bundle_bin_len;
-    BPLib_Bundle_t *CandidateBundle;
-    BPLib_Bundle_t bundle;  // The decoded bundle
-    // TODO Instance init should move to bplib_cbor_test_utils.c
-    BPLib_Instance_t inst;
-    memset(&inst, 0, sizeof(BPLib_Instance_t));
-    uint8_t *pool_mem;
-
-    memset(&bundle, 0, sizeof(BPLib_Bundle_t));
-
-    UtAssert_INT32_EQ(BPLib_MEM_PoolInit(&inst.pool, &pool_mem, (size_t)BPNODE_MEM_POOL_LEN), BPLIB_SUCCESS);
-
-    CandidateBundle = BPLib_MEM_BundleAlloc(&inst.pool, bundle_blob, CandidateBundleLen);
-    UtAssert_NOT_NULL(CandidateBundle);
-
-    if (CandidateBundleLen == 0)
-    {
-        UtPrintf("BPLib_MEM_BundleAlloc set CandidateBundleLen to zero.");
-        CandidateBundleLen = good_bundle_bin_len;
-    }
-
-    /* Decode Nominally */
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(CandidateBundle, CandidateBundleLen, &bundle), BPLIB_CBOR_DEC_ERR); // Should be BPLIB_SUCCESS);
-
-    /* Decode with error */
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(CandidateBundle, 0, &bundle), BPLIB_CBOR_DEC_ERR);
+/*
+** Test function for
+** int BPLib_CBOR_Init()
+*/
+void Test_BPLib_CBOR_Init(void)
+{
+    UtAssert_INT32_EQ(BPLib_CBOR_Init(), BPLIB_SUCCESS);
 }
+
+void Test_BPLib_CBOR_DecodeBundle_NullInputErrors(void)
+{
+    BPLib_Bundle_t bundle;
+
+    /* both null */
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(NULL, 0, NULL), BPLIB_NULL_PTR_ERROR);
+    
+    /* CandBundle valid and bundle null */
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(good_bundle_bin, 0, NULL), BPLIB_NULL_PTR_ERROR);
+    
+    /* CandBundle null and bundle valid */
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(NULL, 0, &bundle), BPLIB_NULL_PTR_ERROR);
+}
+
+
+void Test_BPLib_CBOR_DecodeBundle_LengthError(void)
+{
+    BPLib_Bundle_t bundle;
+
+    /* CandBundleLen expected to be at least 2 */
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(good_bundle_bin, 2, &bundle), BPLIB_NULL_PTR_ERROR);
+}
+
+void Test_BPLib_CBOR_DecodeBundle_Nominal(void)
+{
+    BPLib_Bundle_t bundle;
+    BPLib_Status_t ReturnStatus;
+    memset(&bundle, 0, sizeof(bundle));
+    bundle.blob = NULL;
+
+    ReturnStatus = BPLib_CBOR_DecodeBundle(good_bundle_bin, sizeof(good_bundle_bin), &bundle);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+
+}
+
 
 void TestBplibCbor_Register(void)
 {
     UtTest_Add(Test_BPLib_CBOR_Init, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_Init");
-    UtTest_Add(Test_BPLib_CBOR_DecodeBundle, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_TryBundleDecode");
+    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_NullInputErrors");
+    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_LengthError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_LengthError");
+    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_Nominal");
 }

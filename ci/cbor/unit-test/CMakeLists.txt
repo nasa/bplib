@@ -58,7 +58,6 @@ target_include_directories(coverage-bplib_cbor-testrunner PRIVATE
 
 # The CBOR tests use the actual bplib_mem because they need memory allocation.
 target_link_libraries(coverage-bplib_cbor-testrunner PUBLIC
-    bplib_mem
     qcbor
     m
     ut_coverage_link
