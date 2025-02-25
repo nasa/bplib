@@ -109,8 +109,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     }
 
     /* Creation Timestamp */
-    // TODO -Werror=incompatible-pointer-types Timestamp
-    // Status = PrimaryBlockParser.CreationTimestampParser(ctx, &bundle->blocks.PrimaryBlock.Timestamp);
+    Status = PrimaryBlockParser.CreationTimestampParser(ctx, &bundle->blocks.PrimaryBlock.Timestamp);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;

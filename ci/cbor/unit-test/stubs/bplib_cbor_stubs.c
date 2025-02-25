@@ -48,12 +48,12 @@ BPLib_Status_t BPLib_CBOR_CanonicalBlockParse(QCBORDecodeContext *ctx)
  * Generated stub function for BPLib_CBOR_CreationTimestampParse()
  * ----------------------------------------------------
  */
-QCBORError BPLib_CBOR_CreationTimestampParse(QCBORDecodeContext *ctx, BPLib_CreationTimestamp_t *CreationTimestamp)
+QCBORError BPLib_CBOR_CreationTimestampParse(QCBORDecodeContext *ctx, BPLib_CreationTimeStamp_t *CreationTimestamp)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_CBOR_CreationTimestampParse, QCBORError);
 
     UT_GenStub_AddParam(BPLib_CBOR_CreationTimestampParse, QCBORDecodeContext *, ctx);
-    UT_GenStub_AddParam(BPLib_CBOR_CreationTimestampParse, BPLib_CreationTimestamp_t *, CreationTimestamp);
+    UT_GenStub_AddParam(BPLib_CBOR_CreationTimestampParse, BPLib_CreationTimeStamp_t *, CreationTimestamp);
 
     UT_GenStub_Execute(BPLib_CBOR_CreationTimestampParse, Basic, NULL);
 
@@ -413,12 +413,12 @@ BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext *ctx)
  * Generated stub function for BPLib_QCBOR_TimestampParserImpl()
  * ----------------------------------------------------
  */
-BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext *ctx, BPLib_CreationTimestamp_t *parsed)
+BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext *ctx, BPLib_CreationTimeStamp_t *parsed)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_QCBOR_TimestampParserImpl, BPLib_Status_t);
 
     UT_GenStub_AddParam(BPLib_QCBOR_TimestampParserImpl, QCBORDecodeContext *, ctx);
-    UT_GenStub_AddParam(BPLib_QCBOR_TimestampParserImpl, BPLib_CreationTimestamp_t *, parsed);
+    UT_GenStub_AddParam(BPLib_QCBOR_TimestampParserImpl, BPLib_CreationTimeStamp_t *, parsed);
 
     UT_GenStub_Execute(BPLib_QCBOR_TimestampParserImpl, Basic, NULL);
 

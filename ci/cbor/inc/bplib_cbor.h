@@ -31,16 +31,11 @@
 
 #include "bplib.h"
 #include "bplib_api_types.h"
+#include "bplib_bblocks.h"
  
 #include "qcbor/qcbor_encode.h"
 #include "qcbor/qcbor_decode.h"
 #include "qcbor/qcbor_spiffy_decode.h"
-
-typedef struct BPLib_CreationTimestamp
-{
-    uint64_t CreationTimestamp;
-    uint64_t SequenceNumber;
-} BPLib_CreationTimestamp_t;
 
 /*
 ** Exported Functions
@@ -86,7 +81,7 @@ BPLib_Status_t BPLib_CBOR_EncodePayload(BPLib_Bundle_t *Bundle, const void *data
 BPLib_Status_t BPLib_CBOR_ValidateCRC(void);
 
 
-    QCBORError BPLib_CBOR_CreationTimestampParse(QCBORDecodeContext* ctx, BPLib_CreationTimestamp_t* CreationTimestamp);
+    QCBORError BPLib_CBOR_CreationTimestampParse(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* CreationTimestamp);
     QCBORError BPLib_CBOR_EIDParse(QCBORDecodeContext* ctx, BPLib_EID_t* eid);
 BPLib_Status_t BPLib_CBOR_PrimaryBlockParse(QCBORDecodeContext* ctx);
 BPLib_Status_t BPLib_CBOR_CanonicalBlockParse(QCBORDecodeContext* ctx);
@@ -101,7 +96,7 @@ typedef BPLib_Status_t (*QCBOR_EIDParser)(QCBORDecodeContext* ctx, BPLib_EID_t* 
 
 typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* parsed);
 
-typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_CreationTimestamp_t* parsed);
+typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed);
 
 
 /*******************************************************************************
@@ -113,7 +108,7 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
 
 BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
 
-BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_CreationTimestamp_t* parsed);
+BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed);
 
 /*******************************************************************************
 * Exported Parsing Helpers

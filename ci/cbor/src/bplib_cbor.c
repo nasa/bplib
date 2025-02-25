@@ -174,7 +174,7 @@ int32_t BPLib_CBOR_SimpleValuesTest1(void)
    return(nReturn);
 }
 
-QCBORError BPLib_CBOR_CreationTimestampParse(QCBORDecodeContext* ctx, BPLib_CreationTimestamp_t* CreationTimestamp)
+QCBORError BPLib_CBOR_CreationTimestampParse(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* CreationTimestamp)
 {
     QCBORItem CurrItem;
     QCBORError QStatus = QCBOR_SUCCESS; // @note QStatus is not used correctly.

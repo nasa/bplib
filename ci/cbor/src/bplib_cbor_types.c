@@ -143,7 +143,7 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
     return BPLIB_SUCCESS;
 }
 
-BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_CreationTimestamp_t* parsed)
+BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed)
 {
     BPLib_Status_t Status;
     size_t CurrArrLen;
@@ -161,7 +161,7 @@ BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_Cr
     }
 
     /* First Element of the array should be creation timestamp */
-    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->CreationTimestamp);
+    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->CreateTime);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_ERR;
