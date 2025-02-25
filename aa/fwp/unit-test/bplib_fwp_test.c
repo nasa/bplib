@@ -81,6 +81,8 @@ void Test_BPLib_FWP_Init_Nominal(void)
                     "Same BPA_TLMP_SendPerSourceMibCounterPkt functions");
     UtAssert_True(TestCallbacks.BPA_TLMP_SendStoragePkt == BPLib_FWP_ProxyCallbacks.BPA_TLMP_SendStoragePkt,
                     "Same BPA_TLMP_SendStoragePkt functions");
+    UtAssert_True(TestCallbacks.BPA_TABLEP_TableUpdate == BPLib_FWP_ProxyCallbacks.BPA_TABLEP_TableUpdate,
+                    "Same BPA_TABLEP_TableUpdate functions");
 }
 
 /* Test FWP initialization with null function */
@@ -203,6 +205,12 @@ void Test_BPLib_FWP_Init_SendStoragePktNull(void)
     UtAssert_INT32_EQ(BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
 }
 
+void Test_BPLib_FWP_Init_TableUpdateNull(void)
+{
+    TestCallbacks.BPA_TABLEP_TableUpdate = NULL;
+    UtAssert_EQ(BPLib_Status_t, BPLib_FWP_Init(&TestCallbacks), BPLIB_FWP_CALLBACK_INIT_ERROR);
+}
+
 void TestBplibFwp_Register(void)
 {
     UtTest_Add(Test_BPLib_FWP_Init_Nominal, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_Nominal");
@@ -224,4 +232,5 @@ void TestBplibFwp_Register(void)
     UtTest_Add(Test_BPLib_FWP_Init_SendPerSourceMibConfigPktNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendPerSourceMibConfigPktNull");
     UtTest_Add(Test_BPLib_FWP_Init_SendPerSourceMibCounterPktNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendPerSourceMibCounterPktNull");
     UtTest_Add(Test_BPLib_FWP_Init_SendStoragePktNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_SendStoragePktNull");
+    UtTest_Add(Test_BPLib_FWP_Init_TableUpdateNull, BPLib_FWP_Test_Setup, BPLib_FWP_Test_Teardown, "Test_BPLib_FWP_Init_TableUpdateNull");
 }
