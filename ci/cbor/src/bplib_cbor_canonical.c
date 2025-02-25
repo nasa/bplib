@@ -1,6 +1,6 @@
-#include "bplib_cbor_canonical.h"
-
 #include <stdio.h>
+
+#include "bplib_cbor.h"
 
 #define BPLIB_CBOR_BLOCKTYPE_PAYLOAD    1
 #define BPLIB_CBOR_BLOCKTYPE_PREVNODE   6
@@ -20,6 +20,7 @@ struct  _CanonicalBlockBaseParser
     QCBOR_UInt64Parser CRCTypeParser;
 };
 
+#ifdef REMOVED_DUE_TO_ERROR // error: struct has no members [-Werror=pedantic]
 /* Age Block Payload */
 struct _AgeBlockParser
 {
@@ -42,6 +43,7 @@ struct _PayloadBlockParser
 {
 
 };
+#endif // REMOVED_DUE_TO_ERROR
 
 static struct _CanonicalBlockBaseParser CanonicalBlockParser = {
     .BlockTypeParser = BPLib_QCBOR_UInt64ParserImpl,
@@ -57,13 +59,12 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
 {
     BPLib_Status_t Status;
     size_t ArrayLen;
-    int i;
 
     uint64_t BlockType, BlockNum, Flags, CRCType;
 
     if ((ctx == NULL) || (bundle == NULL))
     {
-        return BPLIB_NULL_PTR_ERR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* Enter the canonical block array */

@@ -24,6 +24,7 @@
 #include "bplib_bi.h"
 #include "bplib_cbor.h"
 #include "bplib_qm.h"
+#include "bplib_bblocks.h"
 
 #include <stdio.h>
 
@@ -38,7 +39,6 @@ int BPLib_BI_Init(void) {
 /* Receive candidate bundle from CLA, CBOR decode it, then place it to EBP In Queue */
 BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
-    QCBORDecodeContext DecodeCtx;
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_Bundle_t* CandidateBundle;
 
@@ -61,25 +61,25 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
     /* TODO: fully fill out primary block fields from decoded bundle */
     BPLib_CBOR_DecodeBundle(CandidateBundle, Size, &bundle);
 
-    bundle.blocks.pri_blk.version = BPLIB_BUNDLE_PROTOCOL_VERSION;
+    bundle.blocks.PrimaryBlock.BundleProcFlags = BPLIB_BUNDLE_PROTOCOL_VERSION;
 
     if (Size == BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_0)
     {
         /* this will route it to channel 0 egress, after cache */
-        bundle.blocks.pri_blk.dest_eid.node_number = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES;
-        bundle.blocks.pri_blk.dest_eid.service_number = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES;
+        bundle.blocks.PrimaryBlock.DestEID.Node = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES;
+        bundle.blocks.PrimaryBlock.DestEID.Service = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES;
     }
     else if (Size == BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_1)
     {
         /* this will route it to channel 1 egress, after cache */
-        bundle.blocks.pri_blk.dest_eid.node_number = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES;
-        bundle.blocks.pri_blk.dest_eid.service_number = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES;
+        bundle.blocks.PrimaryBlock.DestEID.Node = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES;
+        bundle.blocks.PrimaryBlock.DestEID.Service = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES;
     }
     else
     {
         /* this will route it back to the CLA egress, after cache */
-        bundle.blocks.pri_blk.dest_eid.node_number = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CONTACT_ROUTES;
-        bundle.blocks.pri_blk.dest_eid.service_number = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CONTACT_ROUTES;
+        bundle.blocks.PrimaryBlock.DestEID.Node = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CONTACT_ROUTES;
+        bundle.blocks.PrimaryBlock.DestEID.Service = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CONTACT_ROUTES;
     }
 
     /* Validate the deserialized bundle (this does nothing right now) */
@@ -87,8 +87,8 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
 
     printf("Ingressing packet of %lu bytes from CLA, jamming deserialized Dest EID to %lu.%lu\n",
         (unsigned long)Size,
-        bundle.blocks.pri_blk.dest_eid.node_number,
-        bundle.blocks.pri_blk.dest_eid.service_number);
+        bundle.blocks.PrimaryBlock.DestEID.Node,
+        bundle.blocks.PrimaryBlock.DestEID.Service);
 
     // TODO Allocate and copy bundle off the stack?
     BPLib_QM_AddUnsortedJob(inst, &bundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);

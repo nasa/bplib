@@ -1,6 +1,4 @@
 #include "bplib_cbor.h"
-#include "bplib_cbor_primary.h"
-#include "bplib_cbor_canonical.h"
 
 #include <qcbor/qcbor_decode.h>
 #include <qcbor/qcbor_spiffy_decode.h>
@@ -17,8 +15,6 @@
 BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundleLen, BPLib_Bundle_t* bundle)
 {
     BPLib_Status_t Status;
-    uint8_t* CandBytes;
-    int i;
 
     QCBORDecodeContext ctx;
     QCBORError QStatus, NextElementType;
@@ -27,7 +23,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
 
     if ((CandBundle == NULL) || (bundle == NULL))
     {
-        return BPLIB_NULL_PTR_ERR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* A CandBundleLen less than 2 implies empty contents. */

@@ -1,4 +1,4 @@
-#include "bplib_cbor_primary.h"
+#include "bplib_cbor.h"
 
 #define BP_VERSION    7
 
@@ -41,7 +41,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 
     if ((ctx == NULL) || (bundle == NULL))
     {
-        return BPLIB_NULL_PTR_ERR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* ATTENTION: DO NOT USE THESE IN THE FINAL IMPLEMENTATION 
@@ -91,28 +91,29 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
     }
 
     /* Source EID */
-    Status = PrimaryBlockParser.SrcEIDParser(ctx, &bundle->SrcEID);
+    Status = PrimaryBlockParser.SrcEIDParser(ctx, &bundle->blocks.PrimaryBlock.SrcEID);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
 
     /* Dest EID */
-    Status = PrimaryBlockParser.DestEIDParser(ctx, &bundle->DestEID);
+    Status = PrimaryBlockParser.DestEIDParser(ctx, &bundle->blocks.PrimaryBlock.DestEID);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
 
     /* Report EID */
-    Status = PrimaryBlockParser.ReportEIDParser(ctx, &bundle->ReportEID);
+    Status = PrimaryBlockParser.ReportEIDParser(ctx, &bundle->blocks.PrimaryBlock.ReportToEID);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
 
     /* Creation Timestamp */
-    Status = PrimaryBlockParser.CreationTimestampParser(ctx, &bundle->CreationTimestamp);
+    // TODO -Werror=incompatible-pointer-types Timestamp
+    // Status = PrimaryBlockParser.CreationTimestampParser(ctx, &bundle->blocks.PrimaryBlock.Timestamp);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;

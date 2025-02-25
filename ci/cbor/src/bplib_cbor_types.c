@@ -1,4 +1,4 @@
-#include "bplib_cbor_types.h"
+#include "bplib_cbor.h"
 
 #define BPLIB_IPN_URI              2
 
@@ -12,7 +12,7 @@ BPLib_Status_t BPLib_QCBOR_EnterDefiniteArray(QCBORDecodeContext* ctx, size_t* A
 
     if ((ctx == NULL) || (ArrayLen == NULL))
     {
-        return BPLIB_NULL_PTR_ERR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* Ensure ctx is pointing to an array. */
@@ -43,7 +43,7 @@ BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext* ctx)
 
     if (ctx == NULL)
     {
-        return BPLIB_NULL_PTR_ERR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     QCBORDecode_ExitArray(ctx);
@@ -65,7 +65,7 @@ BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* p
 
     if ((ctx == NULL) || (parsed == NULL))
     {
-        return BPLIB_NULL_PTR_ERR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     QCBORDecode_GetUInt64(ctx, parsed);
@@ -84,7 +84,7 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
 
     if ((ctx == NULL) || (parsed == NULL))
     {
-        return BPLIB_NULL_PTR_ERR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* Enter EID Array */
@@ -95,12 +95,12 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
     }
 
     /* Parse URI Type: Note only IPN accepted */
-    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->URIType);
+    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Scheme);
     if (Status != BPLIB_SUCCESS)
     {
         return Status;
     }
-    if (parsed->URIType != BPLIB_IPN_URI)
+    if (parsed->Scheme != BPLIB_IPN_URI)
     {
         return BPLIB_CBOR_NOT_IMPL;
     }
@@ -113,14 +113,14 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
     }
 
     /* Node Number */
-    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->NodeNum);
+    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Node);
     if (Status != BPLIB_SUCCESS)
     {
         return Status;
     }
 
     /* Node Service */
-    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->NodeService);
+    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Service);
     if (Status != BPLIB_SUCCESS)
     {
         return Status;
@@ -150,7 +150,7 @@ BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_Cr
 
     if ((ctx == NULL) || (parsed == NULL))
     {
-        return BPLIB_NULL_PTR_ERR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* Enter Timestamp Array */
@@ -161,7 +161,7 @@ BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_Cr
     }
 
     /* First Element of the array should be creation timestamp */
-    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->Timestamp);
+    Status = BPLib_QCBOR_UInt64ParserImpl(ctx, &parsed->CreationTimestamp);
     if (Status != BPLIB_SUCCESS)
     {
         return BPLIB_CBOR_DEC_ERR;
@@ -188,7 +188,7 @@ BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* pars
 {
     if ((ctx == NULL) || (parsed == NULL))
     {
-        return BPLIB_NULL_PTR_ERR;
+        return BPLIB_NULL_PTR_ERROR;
     }
 
     /* TODO: Copy in the byte string and run a CRC */

@@ -41,14 +41,13 @@
 */
 typedef struct
 {
-    uint32_t    Version;
-    uint32_t    CrcType;
-    uint64_t    BundleProcFlags;
-
-    BPLib_EID_t DestEID;
-    BPLib_EID_t SrcEID;
-    BPLib_EID_t ReportToEID;
-    uint64_t    LifeTime;
+    BPLib_CRC_Type_t CrcType;
+    uint8_t          Spare[7];
+    uint64_t         BundleProcFlags;
+    BPLib_EID_t      DestEID;
+    BPLib_EID_t      SrcEID;
+    BPLib_EID_t      ReportToEID;
+    uint64_t         Lifetime;
 } BPLib_PI_PriBlkConfig_t;
 
 /**
@@ -56,11 +55,11 @@ typedef struct
 */
 typedef struct
 {
-    uint32_t    BlockType;
-    uint32_t    BlockNum;
-    uint64_t    BlockProcFlags;
-    uint32_t    CrcType;
-    uint32_t    Spare;
+    BPLib_BlockType_t BlockType;
+    BPLib_CRC_Type_t  CrcType;
+    uint16_t          Spare;
+    uint32_t          BlockNum;
+    uint64_t          BlockProcFlags;
 } BPLib_PI_CanBlkConfig_t;
 
 /**
@@ -88,7 +87,7 @@ typedef struct
     uint32_t                LocalServiceNumber;
     uint32_t                MaxBundlePayloadSize;
     BPLib_PI_PriBlkConfig_t PriBlkConfig;
-    BPLib_PI_CanBlkConfig_t CanBlkConfig[BPLIB_MAX_NUM_CANONICAL_BLOCK];
+    BPLib_PI_CanBlkConfig_t CanBlkConfig[BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1];
 } BPLib_PI_Config_t;
 
 /**

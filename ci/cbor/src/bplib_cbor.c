@@ -68,12 +68,6 @@ void BPLib_CBOR_DecodeAgeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bun
 
 }
 
-BPLib_Status_t BPLib_CBOR_DecodeCanonical(BPLib_Bundle_t *Bundle, const void *data_ptr, size_t data_size)
-{
-
-    return BPLIB_SUCCESS;
-}
-
 void BPLib_CBOR_DecodeHopCountData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle)
 {
 
@@ -86,11 +80,6 @@ BPLib_Status_t BPLib_CBOR_DecodePayload(BPLib_Bundle_t *Bundle, const void *data
 }
 
 void BPLib_CBOR_DecodePrevNodeData(QCBORDecodeContext *DecodeCtx, BPLib_Bundle_t *Bundle)
-{
-
-}
-
-void BPLib_CBOR_DecodePrimary(QCBORDecodeContext *DecodeCtx, PrimaryBlock_t *v)
 {
 
 }

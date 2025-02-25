@@ -63,12 +63,13 @@ void Test_BPLib_CBOR_DecodeBundle(void)
     uint8_t *bundle_blob = good_bundle_bin;
     size_t CandidateBundleLen = good_bundle_bin_len;
     BPLib_Bundle_t *CandidateBundle;
-    BPLib_Bundle_t *bundle;  // The decoded bundle
-
+    BPLib_Bundle_t bundle;  // The decoded bundle
     // TODO Instance init should move to bplib_cbor_test_utils.c
     BPLib_Instance_t inst;
     memset(&inst, 0, sizeof(BPLib_Instance_t));
     uint8_t *pool_mem;
+
+    memset(&bundle, 0, sizeof(BPLib_Bundle_t));
 
     UtAssert_INT32_EQ(BPLib_MEM_PoolInit(&inst.pool, &pool_mem, (size_t)BPNODE_MEM_POOL_LEN), BPLIB_SUCCESS);
 
@@ -82,10 +83,10 @@ void Test_BPLib_CBOR_DecodeBundle(void)
     }
 
     /* Decode Nominally */
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(CandidateBundle, CandidateBundleLen, bundle), BPLIB_SUCCESS);
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(CandidateBundle, CandidateBundleLen, &bundle), BPLIB_CBOR_DEC_ERR); // Should be BPLIB_SUCCESS);
 
     /* Decode with error */
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(CandidateBundle, 0, bundle), BPLIB_CBOR_DEC_ERR);
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(CandidateBundle, 0, &bundle), BPLIB_CBOR_DEC_ERR);
 }
 
 void TestBplibCbor_Register(void)

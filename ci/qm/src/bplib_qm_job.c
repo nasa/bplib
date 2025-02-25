@@ -78,7 +78,7 @@ static BPLib_QM_JobState_t ChannelOut_EBP(BPLib_Instance_t* inst, BPLib_Bundle_t
 static BPLib_QM_JobState_t ChannelOut_PI(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle)
 {
     /* Hacky attempt at routing just to prove concept, FIX ME */
-    if (bundle->blocks.pri_blk.dest_eid.service_number == BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES)
+    if (bundle->blocks.PrimaryBlock.DestEID.Service == BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_0_ROUTES)
     {
         BPLib_QM_WaitQueueTryPush(&(inst->ChannelEgressJobs[0]), &bundle, QM_WAIT_FOREVER);
     }
@@ -94,8 +94,8 @@ static BPLib_QM_JobState_t STOR_Cache(BPLib_Instance_t* inst, BPLib_Bundle_t* bu
 {
     bool QueuePushReturnStatus;
     printf("STOR_Cache received bundle with Dest EID: \"ipn:%lu.%lu\".\n",
-        bundle->blocks.pri_blk.dest_eid.node_number,
-        bundle->blocks.pri_blk.dest_eid.service_number);
+        bundle->blocks.PrimaryBlock.DestEID.Node,
+        bundle->blocks.PrimaryBlock.DestEID.Service);
 
     QueuePushReturnStatus = BPLib_QM_WaitQueueTryPush(&(inst->BundleCacheList), &bundle, QM_WAIT_FOREVER);
     if (QueuePushReturnStatus == false)
