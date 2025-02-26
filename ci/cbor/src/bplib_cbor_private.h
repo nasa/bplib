@@ -65,8 +65,6 @@ typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_C
 /*******************************************************************************
 * RFC-9171 Type Parsers (Implementation Prototypes)
 */
-BPLib_Status_t BPLib_QCBOR_UInt16ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
-BPLib_Status_t BPLib_QCBOR_UInt32ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
 BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
 
 BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
