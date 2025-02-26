@@ -33,7 +33,7 @@
  * ----------------------------------------------------
  */
 BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t *inst, BPLib_Bundle_t *bundle, BPLib_QM_JobState_t state,
-                                       BPLib_QM_Priority_t priority, int timeout_ms)
+                                       BPLib_QM_Priority_t priority, uint16_t EgressId, int timeout_ms)
 {
     UT_GenStub_SetupReturnBuffer(BPLib_QM_AddUnsortedJob, BPLib_Status_t);
 
@@ -41,6 +41,7 @@ BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t *inst, BPLib_Bundle_t *b
     UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, BPLib_Bundle_t *, bundle);
     UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, BPLib_QM_JobState_t, state);
     UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, BPLib_QM_Priority_t, priority);
+    UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, uint16_t, EgressId);
     UT_GenStub_AddParam(BPLib_QM_AddUnsortedJob, int, timeout_ms);
 
     UT_GenStub_Execute(BPLib_QM_AddUnsortedJob, Basic, NULL);

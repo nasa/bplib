@@ -31,11 +31,13 @@
 /* Globals */
 /* ======= */
 
-const BPLib_EID_t BPLIB_EID_INSTANCE = {.Scheme       = BPLIB_EID_SCHEME_IPN,
-                                        .IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT,
-                                        .Allocator    = 0,
-                                        .Node         = 0,
-                                        .Service      = 0};
+const BPLib_EID_t BPLIB_EID_INSTANCE = {
+                                .Scheme       = BPLIB_LOCAL_EID_SCHEME,
+                                .IpnSspFormat = BPLIB_LOCAL_EID_IPN_SSP_FORMAT,
+                                .Allocator    = BPLIB_LOCAL_EID_ALLOCATOR,
+                                .Node         = BPLIB_LOCAL_EID_NODE_NUM,
+                                .Service      = BPLIB_LOCAL_EID_SERVICE_NUM
+};
 
 /*
  * ----------------------------------------------------
@@ -68,6 +70,23 @@ bool BPLib_EID_IsValid(BPLib_EID_t EID)
     UT_GenStub_Execute(BPLib_EID_IsValid, Basic, NULL);
 
     return UT_GenStub_GetReturnValue(BPLib_EID_IsValid, bool);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for BPLib_EID_NodeIsMatch()
+ * ----------------------------------------------------
+ */
+bool BPLib_EID_NodeIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
+{
+    UT_GenStub_SetupReturnBuffer(BPLib_EID_NodeIsMatch, bool);
+
+    UT_GenStub_AddParam(BPLib_EID_NodeIsMatch, BPLib_EID_t, EID_Actual);
+    UT_GenStub_AddParam(BPLib_EID_NodeIsMatch, BPLib_EID_t, EID_Reference);
+
+    UT_GenStub_Execute(BPLib_EID_NodeIsMatch, Basic, NULL);
+
+    return UT_GenStub_GetReturnValue(BPLib_EID_NodeIsMatch, bool);
 }
 
 /*

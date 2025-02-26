@@ -146,7 +146,16 @@ bool BPLib_EID_PatternIsValid(BPLib_EID_Pattern_t EID_Pattern);
  */
 bool BPLib_EID_IsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
 
-// TODO header
+/**
+ * \brief     Checks if two EIDs have the same node
+ * \details   The various members of each EID are compared for equivalence
+ * \param[in] EID_Actual (BPLib_EID_t) EID that is to be evaluated
+ * \param[in] EID_Reference (BPLib_EID_t) EID that is to be matched
+ * \return    EID-EID match
+ * \retval    true: The actual EID does match the reference EID's node
+ * \retval    false: The actual EID does not match the reference EID'd node
+ * \ref       BPLib_EID_t
+ */
 bool BPLib_EID_NodeIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference);
 
 /**

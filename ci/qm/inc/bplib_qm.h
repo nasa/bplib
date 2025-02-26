@@ -94,10 +94,10 @@ typedef struct BPLib_Instance
  */
 typedef struct
 {
-    BPLib_Bundle_t*     Bundle; /**< Pointer to the bundle associated with this unsorted job */
+    BPLib_Bundle_t*     Bundle;    /**< Pointer to the bundle associated with this unsorted job */
     BPLib_QM_JobState_t NextState; /**< The next state for the job */
-    BPLib_QM_Priority_t Priority; /**< Priority of the unsorted job */
-    uint16_t            EgressId; /**< For egressing bundles, ID of channel/contact to send to */
+    BPLib_QM_Priority_t Priority;  /**< Priority of the job */
+    uint16_t            EgressId;  /**< For egressing bundles, ID of channel/contact to send to */
 } BPLib_QM_JobContext_t;
 
 /**

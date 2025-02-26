@@ -28,7 +28,7 @@
 #include "bplib_eventids.h"
 #include "bplib_fwp.h"
 #include "bplib_nc.h"
-#include <stdio.h>
+#include "bplib_eid.h"
 
 /* 
 ** Globals
@@ -55,19 +55,17 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData)
 /* Initial, simplified (reduced feature set, using fifo) Bundle Cache scan */
 BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan)
 {
-    BPLib_Status_t ReturnStatus = BPLIB_SUCCESS;
-    uint32_t BundlesScheduled = 0;
-    BPLib_Bundle_t *QueuedBundle;
-    BPLib_QM_JobState_t NextJobState = NO_NEXT_STATE;
-    BPLib_Status_t PushUnsortedJobStatus;
-    uint16_t i, j;
-    uint16_t AvailChans[BPLIB_MAX_NUM_CHANNELS];
-    uint16_t AvailConts[BPLIB_MAX_NUM_CONTACTS];
-    uint16_t NumChans = 0;
-    uint16_t NumConts = 0;
-    bool CanRoute = false;
-    uint16_t EgressId = BPLIB_MAX_NUM_CONTACTS;
-
+    BPLib_Status_t      Status           = BPLIB_SUCCESS;
+    BPLib_QM_JobState_t NextJobState     = NO_NEXT_STATE;
+    uint32_t            BundlesScheduled = 0;
+    uint16_t            NumChans         = 0;
+    uint16_t            NumConts         = 0;
+    uint16_t            EgressId         = BPLIB_UNKNOWN_ROUTE_ID;
+    BPLib_Bundle_t     *QueuedBundle;
+    uint16_t            AvailChans[BPLIB_MAX_NUM_CHANNELS];
+    uint16_t            AvailConts[BPLIB_MAX_NUM_CONTACTS];
+    uint16_t            i, j;
+    
     if (Inst == NULL)
     {
         BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_INVALID_ARG_ERR_EID, BPLib_EM_EventType_ERROR,
@@ -75,7 +73,11 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* Get an array of all available channels */
+    /*
+    ** Get all currently available channels/contacts to avoid repeatedly checking the
+    ** destination EIDs of unavailable channels/contacts
+    */
+
     for (i = 0; i < BPLIB_MAX_NUM_CHANNELS; i++)
     {
         if (BPLib_NC_GetAppState(i) == BPLIB_NC_APP_STATE_STARTED)
@@ -85,7 +87,6 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         }
     }
 
-    /* Get an array of all available contacts */
     for (i = 0; i < BPLIB_MAX_NUM_CONTACTS; i++)
     {
         /*
@@ -100,8 +101,8 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         */
     }    
 
-
-    while (BundlesScheduled < MaxBundlesToScan)
+    /* Pull bundles from cache queue and process them */
+    while (BundlesScheduled < MaxBundlesToScan && Status == BPLIB_SUCCESS)
     {
         QueuedBundle = NULL;
         if (BPLib_QM_WaitQueueTryPull(&(Inst->BundleCacheList), &QueuedBundle, 1))
@@ -127,11 +128,8 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                         if (QueuedBundle->blocks.PrimaryBlock.DestEID.Service ==
                             BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[AvailChans[i]].LocalServiceNumber)
                         {
-                            CanRoute = true;
                             EgressId = i;
                             NextJobState = CHANNEL_OUT_STOR_TO_CT;
-
-                            printf("Routing bundle to channel #%d\n", EgressId);
 
                             break;
                         }
@@ -141,50 +139,51 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                 /* 
                 ** If no local delivery options were found, look for a contact to send
                 ** bundles out on
-                */                
-                i = 0;
-                while (CanRoute == false && i < NumConts)
+                */
+                else
                 {
-                    for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
+                    i = 0;
+                    while (EgressId != BPLIB_UNKNOWN_ROUTE_ID && i < NumConts)
                     {
-                        printf("Checking against %ld:%ld\n", 
-                            BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j].MaxNode,
-                            BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j].MaxService);
-                            
-                        if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
-                            BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
-                        {
-                            CanRoute = true;
-                            EgressId = i;
-                            NextJobState = CONTACT_OUT_STOR_TO_CT;
+                        for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
+                        {    
+                            if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
+                                BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
+                            {
+                                EgressId = i;
+                                NextJobState = CONTACT_OUT_STOR_TO_CT;
 
-                            printf("Routing bundle to contact #%d\n", EgressId);
-
-                            break;
+                                break;
+                            }
                         }
+    
+                        i++;
                     }
-
-                    i++;
+    
                 }
 
                 /* Egress bundle if a route exists */
-                if (CanRoute == true)
+                if (EgressId != BPLIB_UNKNOWN_ROUTE_ID)
                 {
-                    PushUnsortedJobStatus = BPLib_QM_AddUnsortedJob(Inst, QueuedBundle, NextJobState,
+                    Status = BPLib_QM_AddUnsortedJob(Inst, QueuedBundle, NextJobState,
                                                     QM_PRI_NORMAL, EgressId, QM_WAIT_FOREVER);
-                    if (PushUnsortedJobStatus != BPLIB_SUCCESS)
+                    if (Status != BPLIB_SUCCESS)
                     {
                         BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID, BPLib_EM_EventType_ERROR,
                             "BPLib_STOR_ScanCache call to BPLib_QM_AddUnsortedJob returned error %d.",
-                            PushUnsortedJobStatus);
-                        /* If we can't add jobs, we shouldn't continue */
-                        ReturnStatus = BPLIB_ERROR;
-                        break;
+                            Status);
                     }
-                }
 
-                /* Cache bundle even if it's been routed out */
-                BPLib_STOR_CacheBundle(Inst, QueuedBundle);
+                    /*
+                    ** TODO cache bundle even if it's set to egress, can't delete it until
+                    ** egress can be verified or custody processing has been done
+                    */
+                }
+                /* Cache a bundle if it cannot currently be routed */
+                else
+                {
+                    BPLib_STOR_CacheBundle(Inst, QueuedBundle);
+                }
             }
             else
             {
@@ -195,18 +194,21 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         }
         else
         {
+            /* No bundles found in queue, end processing */
             break;
         }
+
         BundlesScheduled++;
     }
 
-    return ReturnStatus;
+    return Status;
 }
 
+/* Put a bundle in Cache */
 BPLib_Status_t BPLib_STOR_CacheBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bundle)
 {
     /* For now, just put the bundle back in the queue, will replace with real Cache */
-    //BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_WAIT_FOREVER);
+    BPLib_QM_WaitQueueTryPush(&(Inst->BundleCacheList), &Bundle, QM_WAIT_FOREVER);
 
     return BPLIB_SUCCESS;
 }

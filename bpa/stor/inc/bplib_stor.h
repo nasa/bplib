@@ -128,8 +128,17 @@ BPLib_Status_t BPLib_STOR_StorageTblValidateFunc(void *TblData);
  */
 BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesToScan);
 
-
-// TODO describe func
+/**
+ * @brief Cache a bundle
+ *
+ * This function takes a bundle and puts it in Cache
+ *
+ * @param[in] Inst The instance with the queue context information
+ * @param[in] Bundle The bundle to cache
+ *
+ *  \return Execution status
+ *  \retval BPLIB_SUCCESS Scanning cache was successful
+ */
 BPLib_Status_t BPLib_STOR_CacheBundle(BPLib_Instance_t *Inst, BPLib_Bundle_t *Bundle);
 
 #endif /* BPLIB_STOR_H */
