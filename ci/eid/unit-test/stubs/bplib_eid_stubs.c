@@ -41,6 +41,19 @@ const BPLib_EID_t BPLIB_EID_INSTANCE = {
 
 /*
  * ----------------------------------------------------
+ * Generated stub function for BPLib_EID_CopyEids()
+ * ----------------------------------------------------
+ */
+void BPLib_EID_CopyEids(BPLib_EID_t *EID_Actual, BPLib_EID_t EID_Reference)
+{
+    UT_GenStub_AddParam(BPLib_EID_CopyEids, BPLib_EID_t *, EID_Actual);
+    UT_GenStub_AddParam(BPLib_EID_CopyEids, BPLib_EID_t, EID_Reference);
+
+    UT_GenStub_Execute(BPLib_EID_CopyEids, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
  * Generated stub function for BPLib_EID_IsMatch()
  * ----------------------------------------------------
  */

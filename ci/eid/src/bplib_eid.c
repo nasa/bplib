@@ -185,6 +185,15 @@ bool BPLib_EID_NodeIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_t EID_Reference)
             EID_Actual.Node         == EID_Reference.Node);
 }
 
+void BPLib_EID_CopyEids(BPLib_EID_t *EID_Actual, BPLib_EID_t EID_Reference)
+{
+    EID_Actual->Allocator = EID_Reference.Allocator;
+    EID_Actual->IpnSspFormat = EID_Reference.IpnSspFormat;
+    EID_Actual->Node = EID_Reference.Node;
+    EID_Actual->Scheme = EID_Reference.Scheme;
+    EID_Actual->Service = EID_Reference.Service;
+}
+
 bool BPLib_EID_PatternIsMatch(BPLib_EID_t EID_Actual, BPLib_EID_Pattern_t EID_Pattern)
 {
     bool IsMatch;

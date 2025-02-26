@@ -30,7 +30,7 @@
 
 #include "bplib_pi.h"
 #include "bplib_mem.h"
-
+#include "bplib_fwp.h"
 #include <stdio.h>
 
 
@@ -82,25 +82,25 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* TODO fully fill out primary block fields */
-    NewBundle->blocks.PrimaryBlock.DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
-    NewBundle->blocks.PrimaryBlock.DestEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
-    NewBundle->blocks.PrimaryBlock.DestEID.Allocator = 0;
+    /* Set primary block based on channel table configurations */
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.DestEID), 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].DestEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.ReportToEID), 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].ReportToEID);
+    BPLib_EID_CopyEids(&(NewBundle->blocks.PrimaryBlock.SrcEID), BPLIB_EID_INSTANCE);
+    NewBundle->blocks.PrimaryBlock.SrcEID.Service = 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].LocalServiceNumber;
 
-    /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
-    if (ChanId == 0)
-    {
-        /* this will route it back to the contact egress, after cache */
-        NewBundle->blocks.PrimaryBlock.DestEID.Node = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CONTACT_ROUTES;
-        NewBundle->blocks.PrimaryBlock.DestEID.Service = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CONTACT_ROUTES;
-    }
-    else
-    {
-        /* this will route it back to the channel egress, after cache */
-        NewBundle->blocks.PrimaryBlock.DestEID.Node = BPLIB_TEMPORARY_EID_NODE_NUM_FOR_CHANNEL_ROUTES;
-        /* this will route it back to the channel 1 */
-        NewBundle->blocks.PrimaryBlock.DestEID.Service = BPLIB_TEMPORARY_EID_SERVICE_NUM_FOR_CHANNEL_1_ROUTES;
-    }
+    NewBundle->blocks.PrimaryBlock.BundleProcFlags = 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].BundleProcFlags;
+    NewBundle->blocks.PrimaryBlock.CrcType = 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].CrcType;
+    NewBundle->blocks.PrimaryBlock.Lifetime = 
+                BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].Lifetime;
+    
+    /* TODO additional updates needed to add the CRC and timestamp */
+    
+    /* TODO add extension blocks configs? Or is that EBP? */
 
     printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", (unsigned long)AduSize, ChanId);
 

@@ -30,6 +30,9 @@
 #include "bplib_nc.h"
 #include "bplib_eid.h"
 
+
+#include <stdio.h>
+
 /* 
 ** Globals
 */
@@ -109,12 +112,6 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         {
             if (QueuedBundle != NULL)
             {
-                /* We may want to completely remove this event in the future, but for now it'll probably be helpful */
-                BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_GOT_GOOD_BUNDLE_INF_EID, BPLib_EM_EventType_INFORMATION,
-                    "BPLib_QM_ScanCache found bundle with Dest EID: \"ipn:%lu.%lu\".",
-                    QueuedBundle->blocks.PrimaryBlock.DestEID.Node,
-                    QueuedBundle->blocks.PrimaryBlock.DestEID.Service);
-
                 /* If destination EID matches this node, look for an available channel */
                 if (BPLib_EID_NodeIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
                                             BPLIB_EID_INSTANCE))
@@ -143,10 +140,10 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                 else
                 {
                     i = 0;
-                    while (EgressId != BPLIB_UNKNOWN_ROUTE_ID && i < NumConts)
+                    while (EgressId == BPLIB_UNKNOWN_ROUTE_ID && i < NumConts)
                     {
                         for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
-                        {    
+                        {
                             if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
                                 BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
                             {
