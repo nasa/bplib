@@ -110,14 +110,10 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_DEC_PRI_ERR              ((BPLib_Status_t) -14) /* CBOR decode primary block error */
 #define BPLIB_CBOR_NOT_IMPL                 ((BPLib_Status_t) -15) /* CBOR function not implemented error */
 #define BPLIB_CBOR_DEC_CANON_ERR            ((BPLib_Status_t) -16) /* CBOR decode canonical block error */
+#define BPLIB_CBOR_DEC_CANON_LIM_ERR        ((BPLib_Status_t) -17) /* CBOR decode canonical block error (limit) */
 
 /*
-#define BPLIB_GENERIC_ERROR_11              ((BPLib_Status_t) -11) // Error description
-#define BPLIB_GENERIC_ERROR_12              ((BPLib_Status_t) -12) // Error description
-#define BPLIB_GENERIC_ERROR_13              ((BPLib_Status_t) -13) // Error description
-#define BPLIB_GENERIC_ERROR_14              ((BPLib_Status_t) -14) // Error description
-#define BPLIB_GENERIC_ERROR_15              ((BPLib_Status_t) -15) // Error description
-#define BPLIB_GENERIC_ERROR_16              ((BPLib_Status_t) -16) // Error description
+
 #define BPLIB_GENERIC_ERROR_17              ((BPLib_Status_t) -17) // Error description
 #define BPLIB_GENERIC_ERROR_18              ((BPLib_Status_t) -18) // Error description
 #define BPLIB_GENERIC_ERROR_19              ((BPLib_Status_t) -19) // Error description
