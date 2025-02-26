@@ -1,5 +1,6 @@
 #include "bplib_cbor_private.h"
 
+
 #define BPLIB_IPN_URI              2
 
 /*******************************************************************************
@@ -59,6 +60,7 @@ BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext* ctx)
 /*******************************************************************************
 * RFC-9171 Type Parsers (Implementation)
 */
+
 BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed)
 {
     QCBORError QStatus;
@@ -184,14 +186,61 @@ BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_Cr
     return QCBOR_SUCCESS;
 }
 
-BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed)
+BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type)
 {
+    UsefulBufC TemporaryByteStringBuffer;
+    QCBORError QStatus;
+
     if ((ctx == NULL) || (parsed == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    /* TODO: Copy in the byte string and run a CRC */
+    /* get the CRC as a byte string */
+    QCBORDecode_GetByteString(ctx, &TemporaryByteStringBuffer);
+    QStatus = QCBORDecode_GetError(ctx);
+    if (QStatus != QCBOR_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_ERR;
+    }
 
-    return BPLIB_CBOR_DEC_ERR;
+    if (crc_type == BPLib_CRC_Type_CRC16)
+    {
+        if (TemporaryByteStringBuffer.len != 2)
+        {
+            printf("BPLib_QCBOR_CRCParserImpl error: expected 2-byte crc. Got %lu bytes instead!\n",
+                TemporaryByteStringBuffer.len);
+            return BPLIB_CBOR_DEC_ERR;
+        }
+        else
+        {
+            /* unpack the network-byte-ordered 16-bit value, storing into the 64-bit destination */
+            *parsed  = (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[0] <<  8u;
+            *parsed |= (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[1];
+            return BPLIB_SUCCESS;
+        }
+        
+    }
+    else if (crc_type == BPLib_CRC_Type_CRC32C)
+    {
+        if (TemporaryByteStringBuffer.len != 4)
+        {
+            printf("BPLib_QCBOR_CRCParserImpl error: expected 2-byte crc. Got %lu bytes instead!\n",
+                TemporaryByteStringBuffer.len);
+            return BPLIB_CBOR_DEC_ERR;
+        }
+        else
+        {
+            /* unpack the network-byte-ordered 32-bit value, storing into the 64-bit destination */
+            *parsed  = (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[0] << 24u;
+            *parsed |= (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[1] << 16u;
+            *parsed |= (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[2] <<  8u;
+            *parsed |= (uint64_t) ((uint8_t*)TemporaryByteStringBuffer.ptr)[3];
+            return BPLIB_SUCCESS;
+        }
+    }
+    else
+    {
+        return BPLIB_CBOR_DEC_ERR;
+    }
 }

@@ -33,6 +33,8 @@
 #include "qcbor/qcbor_spiffy_decode.h"
 
 
+#include <stdio.h>
+
 
 /*
 ** Exported Functions
@@ -55,7 +57,7 @@ typedef BPLib_Status_t (*QCBOR_UInt64Parser)(QCBORDecodeContext* ctx, uint64_t* 
 
 typedef BPLib_Status_t (*QCBOR_EIDParser)(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
-typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* parsed);
+typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type);
 
 typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed);
 
@@ -63,11 +65,13 @@ typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_C
 /*******************************************************************************
 * RFC-9171 Type Parsers (Implementation Prototypes)
 */
+BPLib_Status_t BPLib_QCBOR_UInt16ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
+BPLib_Status_t BPLib_QCBOR_UInt32ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
 BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
 
 BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
-BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
+BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type);
 
 BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed);
 

@@ -114,6 +114,39 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
 
+    /* Lifetime */
+    Status = PrimaryBlockParser.LifetimeParser(ctx, &bundle->blocks.PrimaryBlock.Lifetime);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_PRI_ERR;
+    }
+
+    /* CRC Value */
+    Status = PrimaryBlockParser.CRCParser(ctx, &bundle->blocks.PrimaryBlock.CrcVal, bundle->blocks.PrimaryBlock.CrcType);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_PRI_ERR;
+    }
+
+
+    printf("Primary Block: \n");
+    printf("\t CRC Type: %lu\n", bundle->blocks.PrimaryBlock.CrcType);
+    printf("\t Flags: %lu\n", bundle->blocks.PrimaryBlock.BundleProcFlags);
+    printf("\t Dest EID (scheme.node.service): %lu.%lu.%lu\n", bundle->blocks.PrimaryBlock.DestEID.Scheme, 
+                                                               bundle->blocks.PrimaryBlock.DestEID.Node,
+                                                               bundle->blocks.PrimaryBlock.DestEID.Service);
+    printf("\t Source EID (scheme.node.service): %lu.%lu.%lu\n", bundle->blocks.PrimaryBlock.SrcEID.Scheme, 
+                                                                 bundle->blocks.PrimaryBlock.SrcEID.Node,
+                                                                 bundle->blocks.PrimaryBlock.SrcEID.Service);
+    printf("\t Report-To EID (scheme.node.service): %lu.%lu.%lu\n", bundle->blocks.PrimaryBlock.ReportToEID.Scheme, 
+                                                                    bundle->blocks.PrimaryBlock.ReportToEID.Node,
+                                                                    bundle->blocks.PrimaryBlock.ReportToEID.Service);
+    printf("\t Timestamp (created, seq): %lu, %lu\n", bundle->blocks.PrimaryBlock.Timestamp.CreateTime,
+                                                      bundle->blocks.PrimaryBlock.Timestamp.SequenceNumber);
+    printf("\t Lifetime: %lu\n", bundle->blocks.PrimaryBlock.Lifetime);
+    printf("\t CRC Value: 0x%lX\n", bundle->blocks.PrimaryBlock.CrcVal);
+
+
     /* Exit the primary block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
     if (Status != BPLIB_SUCCESS)

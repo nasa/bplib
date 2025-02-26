@@ -22,6 +22,41 @@
  * Include
  */
 #include "bplib_cbor_test_utils.h"
+#include "bplib_crc.h"
+
+
+/*
+Canonical Block [0]: 
+         Block Type: 6 (prev node block)
+         Block Number: 6
+         Flags: 0
+         CRC Type: 1
+         Offset Into Encoded Bundle: 42
+Canonical Block [1]: 
+         Block Type: 7 (age block)
+         Block Number: 2
+         Flags: 5
+         CRC Type: 1
+         Offset Into Encoded Bundle: 58
+Canonical Block [2]: 
+         Block Type: 10 (hop count)
+         Block Number: 3
+         Flags: 1
+         CRC Type: 1
+         Offset Into Encoded Bundle: 72
+Canonical Block [3]: 
+         Block Type: 15 (unassigned / reserved?)
+         Block Number: 4
+         Flags: 2
+         CRC Type: 1
+         Offset Into Encoded Bundle: 84
+Canonical Block [4]: 
+         Block Type: 16 (unassigned / reserved?)
+         Block Number: 5
+         Flags: 0
+         CRC Type: 1
+         Offset Into Encoded Bundle: 103
+*/
 
 unsigned char good_bundle_bin[] = {
     0x9f, 0x89, 0x07, 0x04, 0x01, 0x82, 0x02, 0x82, 0x18, 0xc8, 0x01, 0x82,
@@ -52,6 +87,35 @@ unsigned char bad_bundle[] = {
     0x01, 0x01, 0x00, 0x01, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
     0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
     0xc6, 0x8f, 0xff
+};
+
+/*
+Primary Block: 
+         CRC Type: 1
+         Flags: 4
+         Dest EID (scheme.node.service): 2.200.1
+         Source EID (scheme.node.service): 2.100.1
+         Report-To EID (scheme.node.service): 2.100.1
+         Timestamp (created, seq): 755533838904, 0
+         Lifetime: 3600000
+         CRC Value: 0xB19
+Canonical Block [0]: 
+         Block Type: 1
+         Block Number: 1
+         Flags: 0
+         CRC Type: 1
+         Offset Into Encoded Bundle: 42
+*/
+unsigned char primary_and_payload_with_aa_x_20[] = {
+    0x9f, 0x89, 0x07, 0x04, 0x01, 0x82, 0x02, 0x82, 
+    0x18, 0xc8, 0x01, 0x82, 0x02, 0x82, 0x18, 0x64, 
+    0x01, 0x82, 0x02, 0x82, 0x18, 0x64, 0x01, 0x82, 
+    0x1b, 0x00, 0x00, 0x00, 0xaf, 0xe9, 0x53, 0x7a, 
+    0x38, 0x00, 0x1a, 0x00, 0x36, 0xee, 0x80, 0x42, 
+    0x0b, 0x19, 0x86, 0x01, 0x01, 0x00, 0x01, 0x54, 
+    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 
+    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 
+    0xaa, 0xaa, 0xaa, 0xaa, 0x42, 0xc6, 0x8f, 0xff,
 };
 
 /*
@@ -119,6 +183,54 @@ void Test_BPLib_CBOR_DecodeBundle_DecodeError(void)
 }
 
 
+
+void Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload(void)
+{
+    BPLib_Bundle_t bundle;
+    BPLib_Status_t ReturnStatus;
+    memset(&bundle, 0, sizeof(bundle));
+    bundle.blob = NULL;
+
+    ReturnStatus = BPLib_CBOR_DecodeBundle(primary_and_payload_with_aa_x_20,
+                                           sizeof(primary_and_payload_with_aa_x_20),
+                                           &bundle);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+
+    /*
+    ** Verify Primary Block metadata
+    */
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.CrcType, (uint64_t) BPLib_CRC_Type_CRC16);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.BundleProcFlags, 4);
+
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.DestEID.Scheme, 2);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.DestEID.Node, 200);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.DestEID.Service, 1);
+
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.SrcEID.Scheme, 2);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.SrcEID.Node, 100);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.SrcEID.Service, 1);
+
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.ReportToEID.Scheme, 2);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.ReportToEID.Node, 100);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.ReportToEID.Service, 1);
+
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.Timestamp.CreateTime, 755533838904);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.Timestamp.SequenceNumber, 0);
+    
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.Lifetime, 3600000);
+    UtAssert_EQ(uint64_t, bundle.blocks.PrimaryBlock.CrcVal, 0x0b19);
+
+    /*
+    ** Verify Payload metadata
+    */
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockType, (uint64_t) BPLib_BlockType_Payload);
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BlockNum, 1);
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.BundleProcFlags, 0);
+    UtAssert_EQ(uint64_t, bundle.blocks.PayloadHeader.CrcType, (uint64_t) BPLib_CRC_Type_CRC16);
+}
+
+
 void TestBplibCbor_Register(void)
 {
     UtTest_Add(Test_BPLib_CBOR_Init, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_Init");
@@ -126,4 +238,5 @@ void TestBplibCbor_Register(void)
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_LengthError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_LengthError");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_Nominal");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_DecodeError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_DecodeError");
+    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload");
 }

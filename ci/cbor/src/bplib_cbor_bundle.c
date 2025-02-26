@@ -36,6 +36,17 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
         return BPLIB_CBOR_DEC_ERR;
     }
 
+    printf("Candidate bundle received with size %lu: \n", CandBundleLen);
+    for (size_t i = 0 ; i < CandBundleLen; i++)
+    {
+        printf("0x%02x, ", ((uint8_t*)CandBundle)[i]);
+        if (((i+1) % 8) == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\n");
+
     /* Init QCBOR Decode Engine with the Candidate Bundle */
     UBufC.ptr = (const void*)((uint8_t*)CandBundle);
     UBufC.len = CandBundleLen;
