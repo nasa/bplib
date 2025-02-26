@@ -26,6 +26,15 @@
 
 
 /*
+Primary Block: 
+         CRC Type: 1
+         Flags: 4
+         Dest EID (scheme.node.service): 2.200.1
+         Source EID (scheme.node.service): 2.100.1
+         Report-To EID (scheme.node.service): 2.100.1
+         Timestamp (created, seq): 755533838904, 0
+         Lifetime: 3600000
+         CRC Value: 0xB19
 Canonical Block [0]: 
          Block Type: 6 (prev node block)
          Block Number: 6
@@ -45,13 +54,13 @@ Canonical Block [2]:
          CRC Type: 1
          Offset Into Encoded Bundle: 72
 Canonical Block [3]: 
-         Block Type: 15 (unassigned / reserved?)
+         Block Type: 15 (CREB or CTEB ?)
          Block Number: 4
          Flags: 2
          CRC Type: 1
          Offset Into Encoded Bundle: 84
 Canonical Block [4]: 
-         Block Type: 16 (unassigned / reserved?)
+         Block Type: 16 (CREB or CTEB ?)
          Block Number: 5
          Flags: 0
          CRC Type: 1

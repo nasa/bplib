@@ -146,6 +146,19 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     printf("\t CRC Type: %lu\n", CanonicalBlockHdr->CrcType);
     printf("\t Offset Into Encoded Bundle: %lu\n", CanonicalBlockHdr->OffsetIntoEncodedBundle);
 
+    /*
+    ** TODO: grab canonical block-specific data
+    **  - [ ] Age Block
+    **  - [ ] Hop Block
+    **  - [ ] Prev Node Block
+    */
+
+
+    /*
+    ** TODO: grab canonical block CRC Value
+    */
+
+
     /* Exit the canonical block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
     if (Status != BPLIB_SUCCESS)
