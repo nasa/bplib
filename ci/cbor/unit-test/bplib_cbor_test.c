@@ -45,7 +45,7 @@ unsigned char good_bundle_bin[] = {
 ** tools/openc3-cosmos-dtnfsw/targets/DTNFSW/procedures/bpnode_contact_loopback_test.py
 ** warning: this binary may have errors, due to the way I printed / copied it
 */
-unsigned char bundle_bin_w_prim_and_payload_only[] = {
+unsigned char bad_bundle[] = {
     0x9f, 0x89, 0x07, 0x04, 0x01, 0x82, 0x02, 0x82, 0x18, 0xc8, 0x01, 0x82,
     0x02, 0x82, 0x18, 0x01, 0x82, 0x02, 0x82, 0x18, 0x01, 0x82, 0x1b, 0x00,
     0x00, 0x00, 0xaf, 0xe9, 0x00, 0x1a, 0x00, 0xee, 0x80, 0x0b, 0x19, 0x86,
@@ -86,6 +86,7 @@ void Test_BPLib_CBOR_DecodeBundle_LengthError(void)
     UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(good_bundle_bin, 2, &bundle), BPLIB_CBOR_DEC_ERR);
 }
 
+
 void Test_BPLib_CBOR_DecodeBundle_Nominal(void)
 {
     BPLib_Bundle_t bundle;
@@ -93,11 +94,27 @@ void Test_BPLib_CBOR_DecodeBundle_Nominal(void)
     memset(&bundle, 0, sizeof(bundle));
     bundle.blob = NULL;
 
-    ReturnStatus = BPLib_CBOR_DecodeBundle(bundle_bin_w_prim_and_payload_only,
-                                           sizeof(bundle_bin_w_prim_and_payload_only),
+    ReturnStatus = BPLib_CBOR_DecodeBundle(good_bundle_bin,
+                                           sizeof(good_bundle_bin),
                                            &bundle);
 
     UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+
+}
+
+
+void Test_BPLib_CBOR_DecodeBundle_DecodeError(void)
+{
+    BPLib_Bundle_t bundle;
+    BPLib_Status_t ReturnStatus;
+    memset(&bundle, 0, sizeof(bundle));
+    bundle.blob = NULL;
+
+    ReturnStatus = BPLib_CBOR_DecodeBundle(bad_bundle,
+                                           sizeof(bad_bundle),
+                                           &bundle);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_PRI_ERR);
 
 }
 
@@ -108,4 +125,5 @@ void TestBplibCbor_Register(void)
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_NullInputErrors");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_LengthError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_LengthError");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_Nominal");
+    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_DecodeError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_DecodeError");
 }

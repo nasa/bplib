@@ -63,6 +63,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     BPLib_Status_t Status;
     uint16_t BlockIndex = 0;
     BPLib_CanBlockHeader_t* CanonicalBlockHdr;
+    BPLib_CanBlockHeader_t SpareCanonicalBlockHdr;
     size_t ArrayLen;
     uint64_t BlockType;
 
@@ -103,8 +104,15 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         }
         if (BlockIndex >= BPLIB_MAX_NUM_EXTENSION_BLOCKS)
         {
-            /* all of the ext block metadata fields were taken */
+            /*
+            ** all of the ext block metadata fields were taken
+            ** eventually, we might want to throw an error here.
+            ** however, for now, continue decoding the block data into a spare buffer, for debugging
+            */
+            CanonicalBlockHdr = &SpareCanonicalBlockHdr;
+            /*
             return BPLIB_CBOR_DEC_CANON_LIM_ERR;
+            */
         }
         else
         {
