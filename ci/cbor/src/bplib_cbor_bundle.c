@@ -21,6 +21,9 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     QCBORError QStatus, NextElementType;
     QCBORItem OuterArr, PeekItem;
     UsefulBufC UBufC;
+    uint32_t CurrentTraversalOffset;
+    uint32_t CanonicalBlockIndex = 0;
+    const uint32_t MAX_CANONICAL_BLOCKS = BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1;
 
     if ((CandBundle == NULL) || (bundle == NULL))
     {
@@ -37,6 +40,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     UBufC.ptr = (const void*)((uint8_t*)CandBundle);
     UBufC.len = CandBundleLen;
     QCBORDecode_Init(&ctx, UBufC, QCBOR_DECODE_MODE_NORMAL);
+
 
     /* Enter Array */
     QCBORDecode_EnterArray(&ctx, &OuterArr);
@@ -57,7 +61,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     ** Note: This is an indefinite array, so we're forced to use a while
     ** loop with breakout approach.
     */
-    do
+    for (CanonicalBlockIndex = 0; CanonicalBlockIndex < MAX_CANONICAL_BLOCKS; CanonicalBlockIndex++)
     {
         /* If we're out of elements, break */
         NextElementType = QCBORDecode_PeekNext(&ctx, &PeekItem);
@@ -66,9 +70,16 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
             break;
         }
 
+        /* Grab the current offset, to be kept in the canonical block's metadata */
+        CurrentTraversalOffset = QCBORDecode_Tell(&ctx);
+
         /* Decode the next canonical block */
-        Status = BPLib_CBOR_DecodeCanonical(&ctx, bundle);
-    } while (Status == BPLIB_SUCCESS);
+        Status = BPLib_CBOR_DecodeCanonical(&ctx, bundle, CurrentTraversalOffset, CanonicalBlockIndex);
+        if (Status != BPLIB_SUCCESS)
+        {
+            break;
+        }
+    };
 
     QCBORDecode_ExitArray(&ctx);
     QStatus = QCBORDecode_GetError(&ctx);

@@ -39,7 +39,10 @@
 */
 
 
-BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle);
+BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
+                                          BPLib_Bundle_t* bundle,
+                                          uint32_t CurrentTraversalOffset,
+                                          uint32_t CanonicalBlockIndex);
 
 BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle);
 

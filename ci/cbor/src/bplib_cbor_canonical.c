@@ -58,10 +58,9 @@ static struct _CanonicalBlockBaseParser CanonicalBlockParser = {
 /*******************************************************************************
 * RFC-9171 Canonical Block Parsers (Implementation)
 */
-BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle)
+BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle, uint32_t CurrentTraversalOffset, uint32_t CanonicalBlockIndex)
 {
     BPLib_Status_t Status;
-    uint16_t BlockIndex = 0;
     BPLib_CanBlockHeader_t* CanonicalBlockHdr;
     BPLib_CanBlockHeader_t SpareCanonicalBlockHdr;
     size_t ArrayLen;
@@ -70,6 +69,11 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     if ((ctx == NULL) || (bundle == NULL))
     {
         return BPLIB_NULL_PTR_ERROR;
+    }
+
+    if (CanonicalBlockIndex > BPLIB_MAX_NUM_EXTENSION_BLOCKS)
+    {
+        return BPLIB_CBOR_DEC_CANON_LIM_ERR;
     }
 
     /* Enter the canonical block array */
@@ -93,16 +97,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     }
     else
     {
-        /* This is an extension block; find a free entry in the bblock data */
-        for (BlockIndex = 0; BlockIndex < BPLIB_MAX_NUM_EXTENSION_BLOCKS; BlockIndex++)
-        {
-            /* assume that a free entry will have the block type set to BPLib_BlockType_Reserved (0) */
-            if (bundle->blocks.ExtBlocks[BlockIndex].Header.BlockType == BPLib_BlockType_Reserved)
-            {
-                break;
-            }
-        }
-        if (BlockIndex >= BPLIB_MAX_NUM_EXTENSION_BLOCKS)
+        /* This is an extension block  */
+        if (CanonicalBlockIndex >= BPLIB_MAX_NUM_EXTENSION_BLOCKS)
         {
             /*
             ** all of the ext block metadata fields were taken
@@ -116,10 +112,11 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         }
         else
         {
-            CanonicalBlockHdr = &bundle->blocks.ExtBlocks[BlockIndex].Header;
+            CanonicalBlockHdr = &bundle->blocks.ExtBlocks[CanonicalBlockIndex].Header;
         }
     }
     CanonicalBlockHdr->BlockType = BlockType;
+    CanonicalBlockHdr->OffsetIntoEncodedBundle = CurrentTraversalOffset;
 
     /* Block Number */
     Status = CanonicalBlockParser.BlockNumberParser(ctx, &CanonicalBlockHdr->BlockNum);
@@ -142,11 +139,12 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         return BPLIB_CBOR_DEC_CANON_ERR;
     }
 
-    printf("Canonical Block: \n");
+    printf("Canonical Block [%u]: \n", CanonicalBlockIndex);
     printf("\t Block Type: %lu\n", CanonicalBlockHdr->BlockType);
     printf("\t Block Number: %lu\n", CanonicalBlockHdr->BlockNum);
     printf("\t Flags: %lu\n", CanonicalBlockHdr->BundleProcFlags);
     printf("\t CRC Type: %lu\n", CanonicalBlockHdr->CrcType);
+    printf("\t Offset Into Encoded Bundle: %lu\n", CanonicalBlockHdr->OffsetIntoEncodedBundle);
 
     /* Exit the canonical block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);

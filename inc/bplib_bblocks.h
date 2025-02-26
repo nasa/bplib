@@ -109,6 +109,7 @@ typedef struct
     uint64_t        BundleProcFlags;
     uint64_t        CrcType;
     BPLib_CRC_Val_t CrcVal;    
+    uint64_t        OffsetIntoEncodedBundle;
 } BPLib_CanBlockHeader_t;
 
 /**
