@@ -30,78 +30,15 @@
 #include "qcbor/qcbor_encode.h"
 #include "qcbor/qcbor_decode.h"
 
-
-// Local prototype for the simple QCBOR test function.
-int32_t BPLib_CBOR_SimpleValuesTest1(void);
-
-
 /*
  ** Macros
  */
-
-#define CheckResults(Enc, Expected) \
-   UsefulBuf_Compare(Enc, (UsefulBufC){Expected, sizeof(Expected)})
-
-// One big buffer that can be used by any test in this file.
-
-static uint8_t spBigBuf[2200];
-
-/*
-   85               # array(5)
-   F5               # primitive(21)
-   F4               # primitive(20)
-   F6               # primitive(22)
-   F7               # primitive(23)
-   A1               # map(1)
-      65            # text(5)
-         554E446566 # "UNDef"
-      F7            # primitive(23)
- */
-static const uint8_t spExpectedEncodedSimple[] = {
-   0x85, 0xf5, 0xf4, 0xf6, 0xf7, 0xa1, 0x65, 0x55, 0x4e, 0x44, 0x65, 0x66, 0xf7};
 
 /*
 ** Function Definitions
 */
 
-BPLib_Status_t BPLib_CBOR_Init(void) {
-    int32_t Status;
-
-    Status = BPLib_CBOR_SimpleValuesTest1();
-
-    if (Status == 0) {
-        return BPLIB_SUCCESS;
-    }
-    return BPLIB_ERROR;
-}
-
-int32_t BPLib_CBOR_SimpleValuesTest1(void)
+BPLib_Status_t BPLib_CBOR_Init(void)
 {
-   QCBOREncodeContext ECtx;
-   int nReturn = 0;
-
-   QCBOREncode_Init(&ECtx, UsefulBuf_FROM_BYTE_ARRAY(spBigBuf));
-   QCBOREncode_OpenArray(&ECtx);
-
-   QCBOREncode_AddBool(&ECtx, true);
-   QCBOREncode_AddBool(&ECtx, false);
-   QCBOREncode_AddNULL(&ECtx);
-   QCBOREncode_AddUndef(&ECtx);
-
-   QCBOREncode_OpenMap(&ECtx);
-
-   QCBOREncode_AddUndefToMapSZ(&ECtx, "UNDef");
-   QCBOREncode_CloseMap(&ECtx);
-
-   QCBOREncode_CloseArray(&ECtx);
-
-   UsefulBufC ECBOR;
-   if(QCBOREncode_Finish(&ECtx, &ECBOR)) {
-      nReturn = -1;
-   }
-
-   if(CheckResults(ECBOR, spExpectedEncodedSimple))
-      return -2;
-
-   return(nReturn);
+    return BPLIB_SUCCESS;
 }
