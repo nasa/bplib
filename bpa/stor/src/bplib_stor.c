@@ -94,6 +94,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         */
             AvailConts[NumConts] = i;
             NumConts++;
+
         /*
         }
         */
@@ -146,6 +147,10 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                 {
                     for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
                     {
+                        printf("Checking against %ld:%ld\n", 
+                            BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j].MaxNode,
+                            BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j].MaxService);
+                            
                         if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
                             BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
                         {

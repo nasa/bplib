@@ -55,6 +55,9 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
 
     /* TODO: CBOR Decode the bundle and return the deserialized bundle pointer */
     /* TODO: fully fill out primary block fields from decoded bundle */
+    bundle->blocks.PrimaryBlock.DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    bundle->blocks.PrimaryBlock.DestEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    bundle->blocks.PrimaryBlock.DestEID.Allocator = 0;
 
     if (Size == BPLIB_TEMPORARY_BUNDLE_SIZE_FOR_CHAN_DELIVERY_HACK_0)
     {

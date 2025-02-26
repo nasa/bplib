@@ -83,6 +83,9 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     }
 
     /* TODO fully fill out primary block fields */
+    NewBundle->blocks.PrimaryBlock.DestEID.Scheme = BPLIB_EID_SCHEME_IPN;
+    NewBundle->blocks.PrimaryBlock.DestEID.IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    NewBundle->blocks.PrimaryBlock.DestEID.Allocator = 0;
 
     /* Temporary code to allow for routing between chan 0 and 1, will be replaced */
     if (ChanId == 0)
