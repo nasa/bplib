@@ -50,8 +50,8 @@ static BPLib_QM_JobState_t ContactOut_EBP(BPLib_Instance_t* Inst, BPLib_QM_JobCo
 
 static BPLib_QM_JobState_t ContactOut_BI(BPLib_Instance_t* Inst, BPLib_QM_JobContext_t *Job)
 {
-    // TODO add multiple channel queues
-    BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs), &(Job->Bundle), QM_WAIT_FOREVER);
+    BPLib_QM_WaitQueueTryPush(&(Inst->ContactEgressJobs[Job->EgressId]), &(Job->Bundle), QM_WAIT_FOREVER);
+
     return NO_NEXT_STATE;
 }
 

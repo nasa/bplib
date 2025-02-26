@@ -78,8 +78,8 @@ typedef struct BPLib_Instance
     BPLib_QM_WaitQueue_t GenericWorkerJobs; /**< Queue of generic worker jobs */
     void* unsorted_job_mem; /**< Memory for unsorted jobs */
     BPLib_QM_WaitQueue_t UnsortedJobs; /**< Queue of unsorted jobs */
-    void* contact_egress_mem; /**< Memory for contact egress jobs */
-    BPLib_QM_WaitQueue_t ContactEgressJobs; /**< Queue of contact egress jobs */
+    void* ContactEgressMem[BPLIB_MAX_NUM_CONTACTS]; /**< Memory for contact egress jobs */
+    BPLib_QM_WaitQueue_t ContactEgressJobs[BPLIB_MAX_NUM_CONTACTS]; /**< Queue of contact egress jobs */
     void* BundleCacheListMem; /**< Memory for bundle cache */
     BPLib_QM_WaitQueue_t BundleCacheList; /**< Queue of bundles in cache */
     void* ChannelEgressMem[BPLIB_MAX_NUM_CHANNELS];   /**< Memory for channel egress jobs */
