@@ -18,26 +18,26 @@ struct  _CanonicalBlockBaseParser
     QCBOR_UInt64Parser BlockNumberParser;
     QCBOR_UInt64Parser FlagsParser;
     QCBOR_UInt64Parser CRCTypeParser;
+    QCBOR_CRCParser CRCParser;
 };
 
 /* Age Block Payload */
-struct _AgeBlockParser
+struct _AgeBlockDataParser
 {
-    QCBOR_UInt64Parser BundleAge;
+    QCBOR_UInt64Parser BundleAgeParser;
 };
 
 /* Prev Node Block Payload */
-struct _PrevNodeBlockParser
+struct _PrevNodeBlockDataParser
 {
-    QCBOR_UInt64Parser ForwardedEID;
+    QCBOR_EIDParser EidForwardedParser;
 };
 
 /* Hop Count Block Payload */
-struct _HopCountBlockParser
+struct _HopCountBlockDataParser
 {
-    QCBOR_UInt64Parser BundleHopLimit;
-    QCBOR_UInt64Parser BundleHopCount;
-
+    QCBOR_UInt64Parser BundleHopLimitParser;
+    QCBOR_UInt64Parser BundleHopCountParser;
 };
 
 #ifdef REMOVED_DUE_TO_ERROR // error: struct has no members [-Werror=pedantic]
@@ -51,8 +51,26 @@ static struct _CanonicalBlockBaseParser CanonicalBlockParser = {
     .BlockTypeParser = BPLib_QCBOR_UInt64ParserImpl,
     .BlockNumberParser = BPLib_QCBOR_UInt64ParserImpl,
     .FlagsParser = BPLib_QCBOR_UInt64ParserImpl,
-    .CRCTypeParser = BPLib_QCBOR_UInt64ParserImpl
+    .CRCTypeParser = BPLib_QCBOR_UInt64ParserImpl,
+    .CRCParser = BPLib_QCBOR_CRCParserImpl
 };
+
+
+static struct _AgeBlockDataParser AgeBlockDataParser = {
+    .BundleAgeParser = BPLib_QCBOR_UInt64ParserImpl
+};
+
+
+static struct _PrevNodeBlockDataParser PrevNodeBlockDataParser = {
+    .EidForwardedParser = BPLib_QCBOR_EIDParserImpl
+};
+
+
+static struct _HopCountBlockDataParser HopCountBlockDataParser = {
+    .BundleHopLimitParser = BPLib_QCBOR_UInt64ParserImpl,
+    .BundleHopCountParser = BPLib_QCBOR_UInt64ParserImpl
+};
+
 
 
 /*******************************************************************************
@@ -64,6 +82,8 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     BPLib_CanBlockHeader_t* CanonicalBlockHdr;
     BPLib_CanBlockHeader_t SpareCanonicalBlockHdr;
     size_t ArrayLen;
+    size_t AgeBlockDataArrayLen;
+    QCBORError QStatus;
     uint64_t BlockType;
 
     if ((ctx == NULL) || (bundle == NULL))
@@ -147,17 +167,124 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     printf("\t Offset Into Encoded Bundle: %lu\n", CanonicalBlockHdr->OffsetIntoEncodedBundle);
 
     /*
-    ** TODO: grab canonical block-specific data
-    **  - [ ] Age Block
-    **  - [ ] Hop Block
-    **  - [ ] Prev Node Block
+    ** next should be the canonical-block-specific data
+    ** this should be wrapped in a CBOR byte-string
     */
+    QCBORDecode_EnterBstrWrapped(ctx, QCBOR_TAG_REQUIREMENT_NOT_A_TAG, NULL);
+    QStatus = QCBORDecode_GetError(ctx);
+    if (QStatus != QCBOR_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_ERR;
+    }
 
+    if (CanonicalBlockHdr->BlockType == BPLib_BlockType_PrevNode)
+    {
+        printf("\t Prev Node Block Data: \n");
+        printf("\t\t Prev Node Block MetaData Length: %lu\n", sizeof(BPLib_PrevNodeBlockData_t));
 
-    /*
-    ** TODO: grab canonical block CRC Value
-    */
+        Status = PrevNodeBlockDataParser.EidForwardedParser(ctx,
+            &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId);
+        if (Status != BPLIB_SUCCESS)
+        {
+            printf("\t\t Prev Node Block Data Parser Error!\n");
+            return BPLIB_CBOR_DEC_CANON_ERR;
+        }
 
+        printf("\t\t EID Forwarded (scheme.node.service): %lu.%lu.%lu\n",
+            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId.Scheme, 
+            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId.Node,
+            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.PrevNodeBlockData.PrevNodeId.Service);
+
+    }
+    else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Age)
+    {
+        printf("\t Age Block Data: \n");
+        printf("\t\t Age Block MetaData Length: %lu\n", sizeof(BPLib_AgeBlockData_t));
+
+        Status = AgeBlockDataParser.BundleAgeParser(ctx,
+            &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.AgeBlockData.Age);
+        if (Status != BPLIB_SUCCESS)
+        {
+            printf("\t\t Age Block Data Parser Error!\n");
+            return BPLIB_CBOR_DEC_CANON_ERR;
+        }
+
+        printf("\t\t Age (in milliseconds): %lu\n",
+            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.AgeBlockData.Age);
+    }
+    else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_HopCount)
+    {
+        printf("\t Hop Count Block Data: \n");
+        printf("\t\t Hop Count MetaData Length: %lu\n", sizeof(BPLib_AgeBlockData_t));
+
+        /* Enter the hop count block data array */
+        Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &AgeBlockDataArrayLen);
+        if (Status != BPLIB_SUCCESS)
+        {
+            printf("\t\t Hop Count Block Data Parser Error 1!\n");
+            return BPLIB_CBOR_DEC_CANON_ERR;
+        }
+        printf("\t\t Hop Count Definite Array Length: %lu\n", AgeBlockDataArrayLen);
+
+        Status = HopCountBlockDataParser.BundleHopLimitParser(ctx,
+            &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopLimit);
+        if (Status != BPLIB_SUCCESS)
+        {
+            printf("\t\t Hop Count Block Data Parser Error 2!\n");
+            return BPLIB_CBOR_DEC_CANON_ERR;
+        }
+        Status = HopCountBlockDataParser.BundleHopCountParser(ctx,
+            &bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopCount);
+        if (Status != BPLIB_SUCCESS)
+        {
+            printf("\t\t Hop Count Block Data Parser Error 3!\n");
+            return BPLIB_CBOR_DEC_CANON_ERR;
+        }
+
+        printf("\t\t Hop Limit: %lu\n",
+            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopLimit);
+        printf("\t\t Hop Count: %lu\n",
+            bundle->blocks.ExtBlocks[CanonicalBlockIndex].BlockData.HopCountData.HopCount);
+
+        /* Exit the hop count block data array */
+        Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
+        if (Status != BPLIB_SUCCESS)
+        {
+            return BPLIB_CBOR_DEC_CANON_ERR;
+        }
+    }
+    else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_CREB)
+    {
+        printf("\t CREB Block Data Parsing Skipped!\n");
+    }
+    else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_CTEB)
+    {
+        printf("\t CTEB Block Data Parsing Skipped!\n");
+    }
+    else if (CanonicalBlockHdr->BlockType == BPLib_BlockType_Payload)
+    {
+        printf("\t Payload Block Data Parsing Skipped!\n");
+    }
+    else
+    {
+        printf("\t Unrecognized Block (%lu) Data Parsing Skipped!\n", CanonicalBlockHdr->BlockType);
+    }
+
+    /* exit the byte-string */
+    QCBORDecode_ExitBstrWrapped(ctx);
+    QStatus = QCBORDecode_GetError(ctx);
+    if (QStatus != QCBOR_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_ERR;
+    }
+
+    /* CRC Value */
+    Status = CanonicalBlockParser.CRCParser(ctx, &CanonicalBlockHdr->CrcVal, CanonicalBlockHdr->CrcType);
+    if (Status != BPLIB_SUCCESS)
+    {
+        return BPLIB_CBOR_DEC_CANON_ERR;
+    }
+    printf("\t CRC Value: 0x%lX\n", CanonicalBlockHdr->CrcVal);
 
     /* Exit the canonical block array */
     Status = BPLib_QCBOR_ExitDefiniteArray(ctx);
