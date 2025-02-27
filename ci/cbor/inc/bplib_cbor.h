@@ -25,10 +25,6 @@
 ** Include
 */
 
-// TODO Remove stdint and stddef if not required
-// #include <stdint.h>
-// #include <stddef.h>
-
 #include "bplib.h"
 #include "bplib_api_types.h"
 #include "bplib_bblocks.h"
@@ -38,10 +34,15 @@
 */
 
 /**
- * @brief The CBOR APIs provide various CBOR encode and decode functions that
- * use the BPLib_Bundle_t data structure for both input and output.
- * BPLib_Bundle_t has the BPLib_BBlocks_t bundle data structure and a blob for CBOR data.
- * The functions that are specific to a canonical block type are provided for convenience.
+ * \brief     Decode a bundle
+ * \details   Decode a bundle and fill in related bundle metadata
+ * \param[in] CandBundle (const void*) Candidate Bundle pointer
+ * \param[in] CandBundleLen (size_t) length of the provided Candidate Bundle
+ * \param[in] bundle (BPLib_Bundle_t*) pointer to the bundle metadata (to be filled out)
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
  */
 BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundleLen, BPLib_Bundle_t *bundle);
 

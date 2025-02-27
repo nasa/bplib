@@ -6,6 +6,7 @@
 /*******************************************************************************
 * Exported Parsing Helpers
 */
+
 BPLib_Status_t BPLib_QCBOR_EnterDefiniteArray(QCBORDecodeContext* ctx, size_t* ArrayLen)
 {
     QCBORError QStatus;

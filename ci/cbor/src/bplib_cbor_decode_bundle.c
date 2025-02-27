@@ -13,6 +13,7 @@
 /*******************************************************************************
 * Exported Functions
 */
+
 BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundleLen, BPLib_Bundle_t* bundle)
 {
     BPLib_Status_t Status;

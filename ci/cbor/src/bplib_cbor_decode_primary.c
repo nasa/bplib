@@ -33,6 +33,7 @@ static struct _PrimaryBlockParser PrimaryBlockParser = {
 /*******************************************************************************
 * RFC-9171 Primary Block Parser (Implementation)
 */
+
 BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle)
 {
     BPLib_Status_t Status;

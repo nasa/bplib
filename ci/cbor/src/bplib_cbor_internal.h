@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef BPLIB_CBOR_PRIVATE_H
-#define BPLIB_CBOR_PRIVATE_H
+#ifndef BPLIB_CBOR_INTERNAL_H
+#define BPLIB_CBOR_INTERNAL_H
 
 
 #include "bplib.h"
@@ -44,7 +44,7 @@
  * \brief     Decode Canonical Block Data
  * \details   Decode Canonical Block Data and fill in related bundle metadata
  * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
- * \param[in] bundle (BPLib_Bundle_t*) Counter to reset
+ * \param[in] bundle (BPLib_Bundle_t*) pointer to the bundle metadata (to be filled out)
  * \param[in] CanonicalBlockIndex (uint32_t) which bundle extension block metadata to fill out
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
@@ -62,7 +62,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
  * \brief     Decode Primary Block Data
  * \details   Decode Primary Block Data and fill in related bundle metadata
  * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
- * \param[in] bundle (BPLib_Bundle_t*) Counter to reset
+ * \param[in] bundle (BPLib_Bundle_t*) pointer to the bundle metadata (to be filled out)
  * \return    Execution status
  * \retval    BPLIB_SUCCESS: Successful execution
  * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
@@ -75,31 +75,139 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
 /*******************************************************************************
 * RFC-9171 Type Parsers
 */
+
+/**
+ * \brief     Function pointer for a function that decodes a uint64_t type
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (uint64_t*) pointer to the field that needs to be filled with decoded data
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
 typedef BPLib_Status_t (*QCBOR_UInt64Parser)(QCBORDecodeContext* ctx, uint64_t* parsed);
 
+
+/**
+ * \brief     Function pointer for a function that decodes a BPLib_EID_t type
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (BPLib_EID_t*) pointer to the field that needs to be filled with decoded data
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
 typedef BPLib_Status_t (*QCBOR_EIDParser)(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
+
+/**
+ * \brief     Function pointer for a function that decodes a BPLib_CreationTimeStamp_t
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (BPLib_CreationTimeStamp_t*) pointer to the field that needs to be filled with decoded data
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
+typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed);
+
+
+/**
+ * \brief     Function pointer for a function that decodes a CRC value
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (uint64_t*) pointer to the field that needs to be filled with decoded data
+ * \param[in] crc_type (uint64_t) specifies the expected CRC type (None, CRC16, or CRC32C)
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
 typedef BPLib_Status_t (*QCBOR_CRCParser)(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type);
 
-typedef BPLib_Status_t (*QCBOR_TimestampParser)(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed);
+
+
+/*******************************************************************************
+* Exported Parsing Helpers
+*/
+
+
+/**
+ * \brief     Enters a CBOR definite array (always to be used with BPLib_QCBOR_ExitDefiniteArray)
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (uint64_t*) pointer to the field that needs to be filled with decoded data
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
+BPLib_Status_t BPLib_QCBOR_EnterDefiniteArray(QCBORDecodeContext* ctx, size_t* ArrayLen);
+
+
+/**
+ * \brief     Exits a CBOR definite array (always to be used with BPLib_QCBOR_EnterDefiniteArray)
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
+BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext* ctx);
 
 
 /*******************************************************************************
 * RFC-9171 Type Parsers (Implementation Prototypes)
 */
+
+
+/**
+ * \brief     Decodes a uint64_t type
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (uint64_t*) pointer to the field that needs to be filled with decoded data
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
 BPLib_Status_t BPLib_QCBOR_UInt64ParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed);
 
+
+/**
+ * \brief     Decodes a BPLib_EID_t type
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (BPLib_EID_t*) pointer to the field that needs to be filled with decoded data
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
 BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* parsed);
 
+
+
+/**
+ * \brief     Decodes a BPLib_CreationTimeStamp_t
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (BPLib_CreationTimeStamp_t*) pointer to the field that needs to be filled with decoded data
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
 BPLib_Status_t BPLib_QCBOR_TimestampParserImpl(QCBORDecodeContext* ctx, BPLib_CreationTimeStamp_t* parsed);
 
+
+
+/**
+ * \brief     Decodes a CRC value
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] parsed (uint64_t*) pointer to the field that needs to be filled with decoded data
+ * \param[in] crc_type (uint64_t) specifies the expected CRC type (None, CRC16, or CRC32C)
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_ERR: decode error
+ */
 BPLib_Status_t BPLib_QCBOR_CRCParserImpl(QCBORDecodeContext* ctx, uint64_t* parsed, uint64_t crc_type);
 
-/*******************************************************************************
-* Exported Parsing Helpers
-*/
-BPLib_Status_t BPLib_QCBOR_EnterDefiniteArray(QCBORDecodeContext* ctx, size_t* ArrayLen);
 
-BPLib_Status_t BPLib_QCBOR_ExitDefiniteArray(QCBORDecodeContext* ctx);
-
-#endif
+#endif /* BPLIB_CBOR_INTERNAL_H */
