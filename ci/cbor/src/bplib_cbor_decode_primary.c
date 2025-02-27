@@ -75,7 +75,7 @@ BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t*
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
     /* Check flags to make sure we support the requested options */
-    if (bundle->blocks.PrimaryBlock.BundleProcFlags != 4) // ¯\_(ツ)_/¯
+    if (bundle->blocks.PrimaryBlock.BundleProcFlags != 4)
     {
         return BPLIB_CBOR_DEC_PRI_ERR;
     }
