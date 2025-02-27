@@ -55,10 +55,10 @@ target_include_directories(coverage-bplib_cbor-testrunner PRIVATE
     $<TARGET_PROPERTY:bplib_cbor,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# The CBOR tests use the actual bplib_mem because they need memory allocation.
 target_link_libraries(coverage-bplib_cbor-testrunner PUBLIC
     qcbor
     m
+    bplib_em_stubs
     ut_coverage_link
     ut_assert
 )

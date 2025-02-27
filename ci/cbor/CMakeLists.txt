@@ -17,6 +17,7 @@ target_include_directories(bplib_cbor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${QCBOR_INCLUDE_DIRS}
     $<TARGET_PROPERTY:bplib,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_em,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 # Add unit tests
