@@ -55,6 +55,7 @@ target_include_directories(coverage-bplib_pi-testrunner PRIVATE
     $<TARGET_PROPERTY:bplib_qm,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_fwp,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:bplib_eid,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:bplib_time,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(coverage-bplib_pi-testrunner PUBLIC
@@ -63,6 +64,7 @@ target_link_libraries(coverage-bplib_pi-testrunner PUBLIC
     bplib_qm_stubs
     bplib_fwp_stubs
     bplib_eid_stubs
+    bplib_time_stubs
     ut_coverage_link
     ut_assert
 )

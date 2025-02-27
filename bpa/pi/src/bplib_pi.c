@@ -68,7 +68,7 @@ BPLib_Status_t BPLib_PI_ValidateConfigs(void *TblData)
 BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId, 
                                                             void *AduPtr, size_t AduSize)
 {
-    BPLib_Bundle_t    *NewBundle;
+    BPLib_Bundle_t *NewBundle;
 
     if ((Inst == NULL) || (AduPtr == NULL))
     {
@@ -98,8 +98,18 @@ BPLib_Status_t BPLib_PI_Ingress(BPLib_Instance_t* Inst, uint8_t ChanId,
     NewBundle->blocks.PrimaryBlock.Lifetime = 
                 BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[ChanId].Lifetime;
     
-    /* TODO additional updates needed to add the CRC and timestamp */
-    
+    /* 
+    ** Try to set creation timestamp. If no valid DTN time can be found, the CreateTime
+    ** will be set to 0 and the MonoTime will be used for age block calculations and 
+    ** other time calculations later on
+    */
+    BPLib_TIME_GetMonotonicTime(&(NewBundle->Meta.MonoTime));
+    NewBundle->blocks.PrimaryBlock.Timestamp.CreateTime = BPLib_TIME_GetDtnTime(NewBundle->Meta.MonoTime);
+
+    /* Set any necessary metadata */
+    NewBundle->Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
+
+    /* TODO need additional changes to set CRC */
     /* TODO add extension blocks configs? Or is that EBP? */
 
     printf("Ingressing packet of %lu bytes from ADU via channel #%d\n", (unsigned long)AduSize, ChanId);

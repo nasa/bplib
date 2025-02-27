@@ -25,7 +25,7 @@
 #include "bplib_cfg.h"
 #include "bplib_eid.h"
 #include "bplib_crc.h"
-
+#include "bplib_time.h"
 
 /*
 ** Macros
@@ -137,6 +137,8 @@ typedef struct
 typedef struct 
 {
     uint16_t EgressID;  /**< For egressing bundles, ID of channel/contact to send to */
+
+    BPLib_TIME_MonotonicTime_t MonoTime; /**< Creation *monotonic* time, will use for DTN timestamp later */
 
     /* Additional metadata will likely get added here */
 
