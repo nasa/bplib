@@ -1,5 +1,5 @@
 
-#include "bplib_cbor_private.h"
+#include "bplib_cbor_internal.h"
 
 #include <qcbor/qcbor_decode.h>
 #include <qcbor/qcbor_spiffy_decode.h>

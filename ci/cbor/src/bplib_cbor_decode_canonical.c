@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "bplib_cbor_private.h"
+#include "bplib_cbor_internal.h"
 
 
 /*******************************************************************************

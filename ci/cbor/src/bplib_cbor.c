@@ -25,7 +25,7 @@
 #include <stdio.h>
 
 #include "bplib_cbor.h"
-#include "bplib_cbor_private.h"
+#include "bplib_cbor_internal.h"
 
 #include "qcbor/qcbor_encode.h"
 #include "qcbor/qcbor_decode.h"

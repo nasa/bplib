@@ -21,10 +21,10 @@ target_link_libraries(bplib_cbor_stubs PUBLIC ut_assert)
 # Create unit test object
 add_library(utobj_bplib_cbor OBJECT
     ../src/bplib_cbor.c
-    ../src/bplib_cbor_bundle.c
-    ../src/bplib_cbor_canonical.c
-    ../src/bplib_cbor_primary.c
-    ../src/bplib_cbor_types.c
+    ../src/bplib_cbor_decode_bundle.c
+    ../src/bplib_cbor_decode_canonical.c
+    ../src/bplib_cbor_decode_primary.c
+    ../src/bplib_cbor_decode_types.c
 )
 
 target_compile_definitions(utobj_bplib_cbor PRIVATE
