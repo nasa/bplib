@@ -76,7 +76,9 @@ static struct _HopCountBlockDataParser HopCountBlockDataParser = {
 /*******************************************************************************
 * RFC-9171 Canonical Block Parsers (Implementation)
 */
-BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle, uint32_t CurrentTraversalOffset, uint32_t CanonicalBlockIndex)
+BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
+                                          BPLib_Bundle_t* bundle,
+                                          uint32_t CanonicalBlockIndex)
 {
     BPLib_Status_t Status;
     BPLib_CanBlockHeader_t* CanonicalBlockHdr;
@@ -85,6 +87,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     size_t AgeBlockDataArrayLen;
     QCBORError QStatus;
     uint64_t BlockType;
+    uint32_t CurrentTraversalOffset;
 
     if ((ctx == NULL) || (bundle == NULL))
     {
@@ -95,6 +98,9 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     {
         return BPLIB_CBOR_DEC_CANON_LIM_ERR;
     }
+
+    /* Grab the current offset, to be kept in the canonical block's metadata */
+    CurrentTraversalOffset = QCBORDecode_Tell(ctx);
 
     /* Enter the canonical block array */
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &ArrayLen);
@@ -136,7 +142,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
         }
     }
     CanonicalBlockHdr->BlockType = BlockType;
-    CanonicalBlockHdr->OffsetIntoEncodedBundle = CurrentTraversalOffset;
+    CanonicalBlockHdr->HeaderOffset = CurrentTraversalOffset;
 
     /* Block Number */
     Status = CanonicalBlockParser.BlockNumberParser(ctx, &CanonicalBlockHdr->BlockNum);
@@ -164,7 +170,7 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     printf("\t Block Number: %lu\n", CanonicalBlockHdr->BlockNum);
     printf("\t Flags: %lu\n", CanonicalBlockHdr->BundleProcFlags);
     printf("\t CRC Type: %lu\n", CanonicalBlockHdr->CrcType);
-    printf("\t Offset Into Encoded Bundle: %lu\n", CanonicalBlockHdr->OffsetIntoEncodedBundle);
+    printf("\t Header Offset: %lu\n", CanonicalBlockHdr->HeaderOffset);
 
     /*
     ** next should be the canonical-block-specific data
@@ -176,6 +182,10 @@ BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx, BPLib_Bundle_
     {
         return BPLIB_CBOR_DEC_ERR;
     }
+
+    /* Grab the current offset, to be kept in the canonical block's metadata */
+    CanonicalBlockHdr->DataOffset = QCBORDecode_Tell(ctx);
+    printf("\t Data Offset: %lu\n", CanonicalBlockHdr->DataOffset);
 
     if (CanonicalBlockHdr->BlockType == BPLib_BlockType_PrevNode)
     {

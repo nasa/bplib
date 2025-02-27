@@ -21,7 +21,6 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     QCBORError QStatus, NextElementType;
     QCBORItem OuterArr, PeekItem;
     UsefulBufC UBufC;
-    uint32_t CurrentTraversalOffset;
     uint32_t CanonicalBlockIndex = 0;
     const uint32_t MAX_CANONICAL_BLOCKS = BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1;
 
@@ -68,9 +67,9 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
         return Status;
     }
 
-    /* Iterate over each canonical block 
-    ** Note: This is an indefinite array, so we're forced to use a while
-    ** loop with breakout approach.
+    /*
+    ** Iterate over each canonical block 
+    ** Note: This is an indefinite array, so we're forced to use a loop with breakout approach.
     */
     for (CanonicalBlockIndex = 0; CanonicalBlockIndex < MAX_CANONICAL_BLOCKS; CanonicalBlockIndex++)
     {
@@ -81,11 +80,8 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
             break;
         }
 
-        /* Grab the current offset, to be kept in the canonical block's metadata */
-        CurrentTraversalOffset = QCBORDecode_Tell(&ctx);
-
         /* Decode the next canonical block */
-        Status = BPLib_CBOR_DecodeCanonical(&ctx, bundle, CurrentTraversalOffset, CanonicalBlockIndex);
+        Status = BPLib_CBOR_DecodeCanonical(&ctx, bundle, CanonicalBlockIndex);
         if (Status != BPLIB_SUCCESS)
         {
             break;
