@@ -16,10 +16,11 @@
 BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundleLen, BPLib_Bundle_t* bundle)
 {
     BPLib_Status_t Status;
-
     QCBORDecodeContext ctx;
-    QCBORError QStatus, NextElementType;
-    QCBORItem OuterArr, PeekItem;
+    QCBORError QStatus;
+    QCBORError NextElementType;
+    QCBORItem OuterArr;
+    QCBORItem PeekItem;
     UsefulBufC UBufC;
     uint32_t CanonicalBlockIndex = 0;
     const uint32_t MAX_CANONICAL_BLOCKS = BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1;
@@ -87,6 +88,13 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
             break;
         }
     };
+
+    /* sanity check that we didn't have extra data left after decoding the canonical blocks */
+    NextElementType = QCBORDecode_PeekNext(&ctx, &PeekItem);
+    if (NextElementType != QCBOR_ERR_NO_MORE_ITEMS)
+    {
+        return BPLIB_CBOR_DEC_PAST_MAX_BLOCKS;
+    }
 
     QCBORDecode_ExitArray(&ctx);
     QStatus = QCBORDecode_GetError(&ctx);

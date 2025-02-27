@@ -40,6 +40,7 @@ int BPLib_BI_Init(void) {
 BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *BundleIn, size_t Size)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
+    BPLib_Status_t DecodeStatus;
     BPLib_Bundle_t* CandidateBundle;
 
     if ((inst == NULL) || (BundleIn == NULL))
@@ -54,7 +55,18 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
         return BPLIB_NULL_PTR_ERROR;
     }
 
-    BPLib_CBOR_DecodeBundle(BundleIn, Size, CandidateBundle);
+    DecodeStatus = BPLib_CBOR_DecodeBundle(BundleIn, Size, CandidateBundle);
+    if (DecodeStatus != BPLIB_SUCCESS)
+    {
+        /* cease bundle processing and free the memory */
+        BPLib_MEM_BundleFree(&inst->pool, CandidateBundle);
+
+        BPLib_EM_SendEvent(BPLIB_BI_INGRESS_CBOR_DECODE_ERR_EID,
+            BPLib_EM_EventType_ERROR,
+            "Error decoding bundle, RC = %d", DecodeStatus);
+
+        return DecodeStatus;
+    }
 
     /* Validate the deserialized bundle (this does nothing right now) */
     Status = BPLib_BI_ValidateBundle();

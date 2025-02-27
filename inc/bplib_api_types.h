@@ -113,6 +113,7 @@ typedef struct BPLib_IpnAddr
 #define BPLIB_CBOR_NOT_IMPL                 ((BPLib_Status_t) -15) /* CBOR function not implemented error */
 #define BPLIB_CBOR_DEC_CANON_ERR            ((BPLib_Status_t) -16) /* CBOR decode canonical block error */
 #define BPLIB_CBOR_DEC_CANON_LIM_ERR        ((BPLib_Status_t) -17) /* CBOR decode canonical block error (limit) */
+#define BPLIB_CBOR_DEC_PAST_MAX_BLOCKS      ((BPLib_Status_t) -18) /* CBOR decode error (past max supported blocks) */
 
 /*
 
