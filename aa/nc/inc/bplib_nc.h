@@ -154,7 +154,11 @@ BPLib_NC_ApplicationState_t BPLib_NC_GetAppState(uint8_t ChanId);
   * \note      As of right now, the API calls to modules that will update tables are commented out, since
   *            some of those functions are not implemented yet
   * \param[in] void No arguments accepted
+  * \return    Execution status
+  * \retval    BPLIB_SUCCESS: Successful execution without updates to tables
+  * \retval    BPLIB_TBL_UPDATED: Successful execution with table updates
+  * \retval    BPLIB_ERROR: An error occured while attempting to refresh/update tables
   */
-void BPLib_NC_TableUpdate(void);
+BPLib_Status_t BPLib_NC_TableUpdate(void);
 
 #endif // BPLIB_NC_H
