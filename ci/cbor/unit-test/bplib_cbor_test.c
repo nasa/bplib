@@ -67,7 +67,7 @@ Canonical Block [4]:
          Offset Into Encoded Bundle: 103
 */
 
-unsigned char good_bundle_bin[] = {
+unsigned char bundle_with_too_many_canonical_blocks[] = {
     0x9f, 0x89, 0x07, 0x04, 0x01, 0x82, 0x02, 0x82, 0x18, 0xc8, 0x01, 0x82,
     0x02, 0x82, 0x18, 0x64, 0x01, 0x82, 0x02, 0x82, 0x18, 0x64, 0x01, 0x82,
     0x1b, 0x00, 0x00, 0x00, 0xaf, 0xe9, 0x53, 0x7a, 0x38, 0x00, 0x1a, 0x00,
@@ -136,7 +136,7 @@ void Test_BPLib_CBOR_DecodeBundle_NullInputErrors(void)
     UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(NULL, 0, NULL), BPLIB_NULL_PTR_ERROR);
     
     /* CandBundle valid and bundle null */
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(good_bundle_bin, 0, NULL), BPLIB_NULL_PTR_ERROR);
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(primary_and_payload_with_aa_x_20, 0, NULL), BPLIB_NULL_PTR_ERROR);
     
     /* CandBundle null and bundle valid */
     UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(NULL, 0, &bundle), BPLIB_NULL_PTR_ERROR);
@@ -148,25 +148,8 @@ void Test_BPLib_CBOR_DecodeBundle_LengthError(void)
     BPLib_Bundle_t bundle;
 
     /* CandBundleLen expected to be at least 2 */
-    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(good_bundle_bin, 2, &bundle), BPLIB_CBOR_DEC_ERR);
+    UtAssert_INT32_EQ(BPLib_CBOR_DecodeBundle(primary_and_payload_with_aa_x_20, 2, &bundle), BPLIB_CBOR_DEC_ERR);
 }
-
-
-void Test_BPLib_CBOR_DecodeBundle_Nominal(void)
-{
-    BPLib_Bundle_t bundle;
-    BPLib_Status_t ReturnStatus;
-    memset(&bundle, 0, sizeof(bundle));
-    bundle.blob = NULL;
-
-    ReturnStatus = BPLib_CBOR_DecodeBundle(good_bundle_bin,
-                                           sizeof(good_bundle_bin),
-                                           &bundle);
-
-    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
-
-}
-
 
 void Test_BPLib_CBOR_DecodeBundle_DecodeError(void)
 {
@@ -232,11 +215,29 @@ void Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload(void)
 }
 
 
+
+void Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError(void)
+{
+    BPLib_Bundle_t bundle;
+    BPLib_Status_t ReturnStatus;
+    memset(&bundle, 0, sizeof(bundle));
+    bundle.blob = NULL;
+
+    ReturnStatus = BPLib_CBOR_DecodeBundle(bundle_with_too_many_canonical_blocks,
+                                           sizeof(bundle_with_too_many_canonical_blocks),
+                                           &bundle);
+
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_SUCCESS);
+
+}
+
+
+
 void TestBplibCbor_Register(void)
 {
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_NullInputErrors");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_LengthError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_LengthError");
-    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_Nominal");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_DecodeError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_DecodeError");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload");
+    UtTest_Add(Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_MaxCanonicalBlockError");
 }
