@@ -34,20 +34,6 @@
 
 /*
  * ----------------------------------------------------
- * Generated stub function for BPLib_CBOR_Init()
- * ----------------------------------------------------
- */
-BPLib_Status_t BPLib_CBOR_Init(void)
-{
-    UT_GenStub_SetupReturnBuffer(BPLib_CBOR_Init, BPLib_Status_t);
-
-    UT_GenStub_Execute(BPLib_CBOR_Init, Basic, NULL);
-
-    return UT_GenStub_GetReturnValue(BPLib_CBOR_Init, BPLib_Status_t);
-}
-
-/*
- * ----------------------------------------------------
  * Generated stub function for BPLib_CBOR_DecodeBundle()
  * ----------------------------------------------------
  */

@@ -127,14 +127,6 @@ unsigned char primary_and_payload_with_aa_x_20[] = {
     0xaa, 0xaa, 0xaa, 0xaa, 0x42, 0xc6, 0x8f, 0xff,
 };
 
-/*
-** Test function for
-** int BPLib_CBOR_Init()
-*/
-void Test_BPLib_CBOR_Init(void)
-{
-    UtAssert_INT32_EQ(BPLib_CBOR_Init(), BPLIB_SUCCESS);
-}
 
 void Test_BPLib_CBOR_DecodeBundle_NullInputErrors(void)
 {
@@ -242,7 +234,6 @@ void Test_BPLib_CBOR_DecodeBundle_PrimaryAndPayload(void)
 
 void TestBplibCbor_Register(void)
 {
-    UtTest_Add(Test_BPLib_CBOR_Init, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_Init");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_NullInputErrors, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_NullInputErrors");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_LengthError, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_LengthError");
     UtTest_Add(Test_BPLib_CBOR_DecodeBundle_Nominal, BPLib_CBOR_Test_Setup, BPLib_CBOR_Test_Teardown, "Test_BPLib_CBOR_DecodeBundle_Nominal");

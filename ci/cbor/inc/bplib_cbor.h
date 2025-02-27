@@ -38,20 +38,6 @@
 */
 
 /**
- * \brief CBOR initialization
- *
- *  \par Description
- *       CBOR initialization function
- *
- *  \par Assumptions, External Events, and Notes:
- *       None
- *
- *  \return Execution status
- *  \retval BPLIB_SUCCESS Initialization was successful
- */
-BPLib_Status_t BPLib_CBOR_Init(void);
-
-/**
  * @brief The CBOR APIs provide various CBOR encode and decode functions that
  * use the BPLib_Bundle_t data structure for both input and output.
  * BPLib_Bundle_t has the BPLib_BBlocks_t bundle data structure and a blob for CBOR data.

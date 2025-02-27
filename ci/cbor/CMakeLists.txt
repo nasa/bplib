@@ -7,7 +7,6 @@
 ##################################################################
 
 add_library(bplib_cbor OBJECT
-    src/bplib_cbor.c
     src/bplib_cbor_decode_bundle.c
     src/bplib_cbor_decode_types.c
     src/bplib_cbor_decode_primary.c
