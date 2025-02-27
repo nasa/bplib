@@ -1,7 +1,6 @@
 #include "bplib_cbor_internal.h"
+#include "bplib_eid.h"
 
-
-#define BPLIB_IPN_URI              2
 
 /*******************************************************************************
 * Exported Parsing Helpers
@@ -103,7 +102,7 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
     {
         return Status;
     }
-    if (parsed->Scheme != BPLIB_IPN_URI)
+    if (parsed->Scheme != BPLIB_EID_SCHEME_IPN)
     {
         return BPLIB_CBOR_NOT_IMPL;
     }
