@@ -2,10 +2,6 @@
 
 #include "bplib_cbor_private.h"
 
-#define BPLIB_CBOR_BLOCKTYPE_PAYLOAD    1
-#define BPLIB_CBOR_BLOCKTYPE_PREVNODE   6
-#define BPLIB_CBOR_BLOCKTYPE_AGE        7
-#define BPLIB_CBOR_BLOCKTYPE_HOPCNT     10
 
 /*******************************************************************************
 * RFC-9171 Canonical Block Parsing Definitions
