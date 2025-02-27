@@ -36,12 +36,6 @@ struct _HopCountBlockDataParser
     QCBOR_UInt64Parser BundleHopCountParser;
 };
 
-#ifdef REMOVED_DUE_TO_ERROR // error: struct has no members [-Werror=pedantic]
-struct _PayloadBlockParser
-{
-
-};
-#endif // REMOVED_DUE_TO_ERROR
 
 static struct _CanonicalBlockBaseParser CanonicalBlockParser = {
     .BlockTypeParser = BPLib_QCBOR_UInt64ParserImpl,
