@@ -180,7 +180,7 @@ void BPLib_QM_QueueTableDestroy(BPLib_Instance_t* inst)
 }
 
 BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
-    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, uint16_t EgressId, int timeout_ms)
+    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms)
 {
     BPLib_Status_t Status = BPLIB_SUCCESS;
     BPLib_QM_JobContext_t UnsortedJob;
@@ -188,7 +188,6 @@ BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* b
     UnsortedJob.Bundle = bundle;
     UnsortedJob.NextState = state;
     UnsortedJob.Priority = priority;
-    UnsortedJob.EgressId = EgressId;
     
     if (!BPLib_QM_WaitQueueTryPush(&(inst->UnsortedJobs), &UnsortedJob, timeout_ms))
     {
@@ -207,7 +206,7 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
     {
         /* Run the job and get back the next state */
         BPLib_PL_PerfLogEntry(BPLIB_QM_RUNJOB_PERF_ID);
-        next_state = curr_job.JobFunc(inst, curr_job.Context);
+        next_state = curr_job.JobFunc(inst, curr_job.Context->Bundle);
         BPLib_PL_PerfLogExit(BPLIB_QM_RUNJOB_PERF_ID);
 
         /* Create a new unsorted job with the next state and place it in the unsorted jobs queue
@@ -225,8 +224,8 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms)
         */
         if (next_state != NO_NEXT_STATE)
         {
-           BPLib_QM_AddUnsortedJob(inst, curr_job.Context->Bundle, next_state, QM_PRI_NORMAL, 
-                                    curr_job.Context->EgressId, QM_WAIT_FOREVER);
+           BPLib_QM_AddUnsortedJob(inst, curr_job.Context->Bundle, next_state, 
+                                                        QM_PRI_NORMAL, QM_WAIT_FOREVER);
         } 
     }    
 }

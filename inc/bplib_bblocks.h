@@ -131,5 +131,15 @@ typedef struct
     BPLib_CanBlockHeader_t PayloadHeader;
 } BPLib_BBlocks_t;
 
+/**
+ * @brief Represents the metadata needed for bundle processing
+ */
+typedef struct 
+{
+    uint16_t EgressID;  /**< For egressing bundles, ID of channel/contact to send to */
+
+    /* Additional metadata will likely get added here */
+
+} BPLib_BundleMetaData_t;
 
 #endif /* BPLIB_BBLOCKS_H */

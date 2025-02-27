@@ -97,7 +97,6 @@ typedef struct
     BPLib_Bundle_t*     Bundle;    /**< Pointer to the bundle associated with this unsorted job */
     BPLib_QM_JobState_t NextState; /**< The next state for the job */
     BPLib_QM_Priority_t Priority;  /**< Priority of the job */
-    uint16_t            EgressId;  /**< For egressing bundles, ID of channel/contact to send to */
 } BPLib_QM_JobContext_t;
 
 /**
@@ -106,7 +105,7 @@ typedef struct
  * 
  * The function takes an instance and a job context and returns the next job state.
  */
-typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_Instance_t* Inst, BPLib_QM_JobContext_t *Context);
+typedef BPLib_QM_JobState_t (*BPLib_QM_JobFunc_t)(BPLib_Instance_t* Inst, BPLib_Bundle_t* Bundle);
 
 /**
  * @struct BPLib_QM_Job
@@ -170,12 +169,11 @@ void BPLib_QM_RunJob(BPLib_Instance_t* inst, int timeout_ms);
  * @param[in] bundle The bundle associated with the job.
  * @param[in] state The initial state of the job.
  * @param[in] priority The priority of the job.
- * @param[in] EgressId For egressing bundles, a contact/channel ID to go to
  * @param[in] timeout_ms Timeout in milliseconds for adding the job.
  * 
  * @return Status of the job addition (success or failure).
  */
 BPLib_Status_t BPLib_QM_AddUnsortedJob(BPLib_Instance_t* inst, BPLib_Bundle_t* bundle,
-    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, uint16_t EgressId, int timeout_ms);
+    BPLib_QM_JobState_t state, BPLib_QM_Priority_t priority, int timeout_ms);
 
 #endif /* BPLIB_QM_H */

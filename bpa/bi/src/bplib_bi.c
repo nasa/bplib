@@ -86,8 +86,7 @@ BPLib_Status_t BPLib_BI_RecvFullBundleIn(BPLib_Instance_t* inst, const void *Bun
         bundle->blocks.PrimaryBlock.DestEID.Node,
         bundle->blocks.PrimaryBlock.DestEID.Service);
 
-    BPLib_QM_AddUnsortedJob(inst, bundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, 
-                                            BPLIB_UNKNOWN_ROUTE_ID, QM_WAIT_FOREVER);
+    BPLib_QM_AddUnsortedJob(inst, bundle, CONTACT_IN_BI_TO_EBP, QM_PRI_NORMAL, QM_WAIT_FOREVER);
     return Status;
 }
 

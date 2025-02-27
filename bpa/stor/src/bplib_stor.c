@@ -63,7 +63,6 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
     uint32_t            BundlesScheduled = 0;
     uint16_t            NumChans         = 0;
     uint16_t            NumConts         = 0;
-    uint16_t            EgressId         = BPLIB_UNKNOWN_ROUTE_ID;
     BPLib_Bundle_t     *QueuedBundle;
     uint16_t            AvailChans[BPLIB_MAX_NUM_CHANNELS];
     uint16_t            AvailConts[BPLIB_MAX_NUM_CONTACTS];
@@ -102,7 +101,9 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
         /*
         }
         */
-    }    
+    }
+    
+    QueuedBundle->Meta.EgressID = BPLIB_UNKNOWN_ROUTE_ID;
 
     /* Pull bundles from cache queue and process them */
     while (BundlesScheduled < MaxBundlesToScan && Status == BPLIB_SUCCESS)
@@ -125,7 +126,7 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                         if (QueuedBundle->blocks.PrimaryBlock.DestEID.Service ==
                             BPLib_FWP_ConfigPtrs.ChanTblPtr->Configs[AvailChans[i]].LocalServiceNumber)
                         {
-                            EgressId = i;
+                            QueuedBundle->Meta.EgressID = i;
                             NextJobState = CHANNEL_OUT_STOR_TO_CT;
 
                             break;
@@ -140,14 +141,14 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                 else
                 {
                     i = 0;
-                    while (EgressId == BPLIB_UNKNOWN_ROUTE_ID && i < NumConts)
+                    while (QueuedBundle->Meta.EgressID == BPLIB_UNKNOWN_ROUTE_ID && i < NumConts)
                     {
                         for (j = 0; j < BPLIB_MAX_CONTACT_DEST_EIDS; j++)
                         {
                             if (BPLib_EID_PatternIsMatch(QueuedBundle->blocks.PrimaryBlock.DestEID, 
                                 BPLib_FWP_ConfigPtrs.ContactsTblPtr->ContactSet[AvailConts[i]].DestEIDs[j]))
                             {
-                                EgressId = i;
+                                QueuedBundle->Meta.EgressID = i;
                                 NextJobState = CONTACT_OUT_STOR_TO_CT;
 
                                 break;
@@ -160,10 +161,10 @@ BPLib_Status_t BPLib_STOR_ScanCache(BPLib_Instance_t* Inst, uint32_t MaxBundlesT
                 }
 
                 /* Egress bundle if a route exists */
-                if (EgressId != BPLIB_UNKNOWN_ROUTE_ID)
+                if (QueuedBundle->Meta.EgressID != BPLIB_UNKNOWN_ROUTE_ID)
                 {
                     Status = BPLib_QM_AddUnsortedJob(Inst, QueuedBundle, NextJobState,
-                                                    QM_PRI_NORMAL, EgressId, QM_WAIT_FOREVER);
+                                                    QM_PRI_NORMAL, QM_WAIT_FOREVER);
                     if (Status != BPLIB_SUCCESS)
                     {
                         BPLib_EM_SendEvent(BPLIB_STOR_SCAN_CACHE_ADD_JOB_ERR_EID, BPLib_EM_EventType_ERROR,
