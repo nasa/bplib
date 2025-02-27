@@ -40,11 +40,34 @@
 ** Exported Functions
 */
 
-
+/**
+ * \brief     Decode Canonical Block Data
+ * \details   Decode Canonical Block Data and fill in related bundle metadata
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] bundle (BPLib_Bundle_t*) Counter to reset
+ * \param[in] CanonicalBlockIndex (uint32_t) which bundle extension block metadata to fill out
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_CANON_LIM_ERR: index past max supported canonical blocks
+ * \retval    BPLIB_CBOR_DEC_ERR: QCBOR library decode error
+ * \retval    BPLIB_CBOR_DEC_CANON_ERR: other decode error
+ */
 BPLib_Status_t BPLib_CBOR_DecodeCanonical(QCBORDecodeContext* ctx,
                                           BPLib_Bundle_t* bundle,
                                           uint32_t CanonicalBlockIndex);
 
+
+/**
+ * \brief     Decode Primary Block Data
+ * \details   Decode Primary Block Data and fill in related bundle metadata
+ * \param[in] ctx (QCBORDecodeContext*) QCBOR decode context instance pointer
+ * \param[in] bundle (BPLib_Bundle_t*) Counter to reset
+ * \return    Execution status
+ * \retval    BPLIB_SUCCESS: Successful execution
+ * \retval    BPLIB_NULL_PTR_ERROR: invalid input pointer
+ * \retval    BPLIB_CBOR_DEC_PRI_ERR: decode error
+ */
 BPLib_Status_t BPLib_CBOR_DecodePrimary(QCBORDecodeContext* ctx, BPLib_Bundle_t* bundle);
 
 
