@@ -24,7 +24,6 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     QCBORItem PeekItem;
     UsefulBufC UBufC;
     uint32_t CanonicalBlockIndex = 0;
-    const uint32_t MAX_CANONICAL_BLOCKS = BPLIB_MAX_NUM_EXTENSION_BLOCKS + 1;
 
     if ((CandBundle == NULL) || (bundle == NULL))
     {
@@ -73,7 +72,7 @@ BPLib_Status_t BPLib_CBOR_DecodeBundle(const void* CandBundle, size_t CandBundle
     ** Iterate over each canonical block 
     ** Note: This is an indefinite array, so we're forced to use a loop with breakout approach.
     */
-    for (CanonicalBlockIndex = 0; CanonicalBlockIndex < MAX_CANONICAL_BLOCKS; CanonicalBlockIndex++)
+    for (CanonicalBlockIndex = 0; CanonicalBlockIndex < BPLIB_MAX_NUM_CANONICAL_BLOCKS; CanonicalBlockIndex++)
     {
         /* If we're out of elements, break */
         NextElementType = QCBORDecode_PeekNext(&ctx, &PeekItem);
