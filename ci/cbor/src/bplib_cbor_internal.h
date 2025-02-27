@@ -22,7 +22,6 @@
 #define BPLIB_CBOR_INTERNAL_H
 
 
-#include "bplib.h"
 #include "bplib_api_types.h"
 #include "bplib_bblocks.h"
 #include "bplib_cbor.h"
