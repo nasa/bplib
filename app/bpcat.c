@@ -45,7 +45,7 @@
 
 #include "bplib.h"
 
-#define NUM_GEN_WORKER 3
+#define NUM_GEN_WORKER 1
 
 static BPLib_Instance_t            BplibInst;
 static pthread_t cla_in_thr;

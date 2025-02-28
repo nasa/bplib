@@ -22,7 +22,8 @@ set(BPAPP_COMPILE_FEATURES "c_std_99")
 set(BPAPP_COMPILE_OPTIONS "$<$<C_COMPILER_ID:GNU>:-Wall;-Werror>")
 set(BPAPP_LINK_LIBRARIES bplib)
 
-add_executable(bpcat bpcat.c
+add_executable(bpcat 
+    bpcat.c
     #${CMAKE_CURRENT_SOURCE_DIR}/src/
 )
 
@@ -30,7 +31,7 @@ add_executable(bpcat bpcat.c
 target_compile_features(bpcat PRIVATE ${BPAPP_COMPILE_FEATURES})
 
 # If using GNU GCC, then also enable full warning reporting
-target_compile_options(bpcat PRIVATE ${BPAPP_COMPILE_OPTIONS})
+target_compile_options(bpcat PRIVATE ${BPAPP_COMPILE_OPTIONS} "-g")
 
 # Low level test apps may include "private" headers, whereas higher level tests should not
 target_include_directories(bpcat PRIVATE ${BPLIB_PRIVATE_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/inc/)
