@@ -163,7 +163,7 @@ void Test_BPLib_CBOR_DecodeBundle_DecodeError(void)
                                            sizeof(bad_bundle),
                                            &bundle);
 
-    UtAssert_INT32_EQ(ReturnStatus, -1);
+    UtAssert_INT32_EQ(ReturnStatus, BPLIB_CBOR_DEC_PRIM_SRC_EID_DEC_ERR);
 
 }
 
