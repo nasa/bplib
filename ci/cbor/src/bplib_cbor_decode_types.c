@@ -106,6 +106,9 @@ BPLib_Status_t BPLib_QCBOR_EIDParserImpl(QCBORDecodeContext* ctx, BPLib_EID_t* p
     {
         return BPLIB_CBOR_DEC_TYPES_EID_SCHEME_NOT_IMPL_ERR;
     }
+    /* Jam these extra fields, while we only support IPN two-digit EIDs */
+    parsed->IpnSspFormat = BPLIB_EID_IPN_SSP_FORMAT_TWO_DIGIT;
+    parsed->Allocator = 0;
 
     /* Enter SSP Array */
     Status = BPLib_QCBOR_EnterDefiniteArray(ctx, &CurrArrLen);
