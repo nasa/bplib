@@ -165,7 +165,7 @@ BPLib_Status_t BPLib_CLA_ContactSetup(uint16_t ContactId)
     {
         Status = BPLIB_CLA_CONTACTS_MAX_REACHED;
 
-        BPLib_EM_SendEvent(BPLIB_CLA_UNKNOWN_CONTACT_DBG_EID,
+        BPLib_EM_SendEvent(BPLIB_CLA_CONTACTS_MAX_REACHED_DBG_EID,
                             BPLib_EM_EventType_DEBUG,
                             "Setting up contact with ID %d would exceed max allowed",
                             ContactId);
